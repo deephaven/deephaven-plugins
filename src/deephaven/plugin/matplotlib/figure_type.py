@@ -9,7 +9,7 @@ def name() -> str:
 def is_type(object) -> bool:
     return isinstance(object, Figure)
 
-def to_bytes(figure: Figure) -> bytes:
+def to_bytes(exporter, figure: Figure) -> bytes:
     buf = BytesIO()
     figure.savefig(buf, format='PNG')
     return buf.getvalue()
