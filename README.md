@@ -11,7 +11,7 @@ To create your build / development environment:
 ```sh
 python3 -m venv .venv
 source .venv/bin/activate
-pip install --upgrade pip setuptools build matplotlib
+pip install --upgrade pip setuptools build deephaven-plugin matplotlib
 ```
 
 To build:

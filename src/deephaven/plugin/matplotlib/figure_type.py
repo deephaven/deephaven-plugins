@@ -1,9 +1,10 @@
 from io import BytesIO
 from matplotlib.figure import Figure
+from deephaven.plugin.object import Exporter, ObjectType
 
 NAME = "matplotlib.figure.Figure"
 
-class FigureType:
+class FigureType(ObjectType):
     @property
     def name(self) -> str:
         return NAME
@@ -11,7 +12,7 @@ class FigureType:
     def is_type(self, object) -> bool:
         return isinstance(object, Figure)
 
-    def to_bytes(self, exporter, figure: Figure) -> bytes:
+    def to_bytes(self, exporter: Exporter, figure: Figure) -> bytes:
         buf = BytesIO()
         figure.savefig(buf, format='PNG')
         return buf.getvalue()
