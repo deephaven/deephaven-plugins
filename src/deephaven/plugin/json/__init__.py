@@ -4,7 +4,7 @@ import base64
 from deephaven.plugin import Registration
 from deephaven.plugin.object import Exporter, ObjectType, Reference
 
-__version__ = "0.0.1.dev1"
+__version__ = "0.0.1.dev2"
 
 
 class Node:
@@ -39,6 +39,10 @@ class Encoder(json.JSONEncoder):
             _JTable = None
             _JFigure = None
 
+        if isinstance(obj, Node):
+            return {
+                "type": "Node",
+                "ref": self._exporter.new_server_side_reference(obj)}
         if isinstance(obj, _JTable):
             return {
                 "type": "Table",
