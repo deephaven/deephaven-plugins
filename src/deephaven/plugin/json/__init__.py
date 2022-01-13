@@ -1,15 +1,18 @@
+from __future__ import annotations
+
 import json
-import base64
 
 from deephaven.plugin import Registration
-from deephaven.plugin.object import Exporter, ObjectType, Reference
+from deephaven.plugin.object \
+    import Exporter, ObjectType, Reference, has_object_type_plugin
 
 __version__ = "0.0.1.dev2"
 
 
 class Node:
-    def __init__(self, object, **kw) -> None:
+    def __init__(self, object, is_ref=False, **kw) -> None:
         self._object = object
+        self._is_ref = is_ref
         self._kw = kw
 
     @property
@@ -19,6 +22,14 @@ class Node:
     @property
     def kw(self):
         return self._kw
+
+    @property
+    def is_ref(self) -> bool:
+        return self._is_ref
+
+    @property
+    def as_ref(self) -> Node:
+        return Node(self._object, is_ref=True, **self._kw)
 
 
 class Encoder(json.JSONEncoder):
@@ -32,39 +43,35 @@ class Encoder(json.JSONEncoder):
         try:
             from deephaven.Plot.figure_wrapper import FigureWrapper
             import jpy
-            _JTable = jpy.get_type('io.deephaven.engine.table.Table')
-            _JFigure = jpy.get_type('io.deephaven.plot.Figure')
         except ModuleNotFoundError:
             FigureWrapper = None
-            _JTable = None
-            _JFigure = None
+
+        # todo: we should have generic unwrapping code ABC
+        if isinstance(obj, FigureWrapper):
+            return obj.figure
 
         if isinstance(obj, Node):
-            return {
-                "type": "Node",
-                "ref": self._exporter.new_server_side_reference(obj)}
-        if isinstance(obj, _JTable):
-            return {
-                "type": "Table",
-                "ref": self._exporter.new_server_side_reference(obj)}
-        if isinstance(obj, _JFigure):
-            # todo: should this be a plugin lookup?
-            return {
-                "type": "Figure",
-                "ref": self._exporter.new_server_side_reference(obj)}
-        if isinstance(obj, FigureWrapper):
-            # todo: proper unwrap common code
-            return obj.figure
+            if obj.is_ref:
+                return self._exporter.reference(obj)
+            else:
+                return obj.object
+
         if isinstance(obj, Reference):
-            # todo, try and get int id instead?
-            return str(base64.standard_b64encode(obj.id), 'ASCII')
+            return {'index': obj.index}
+
+        if isinstance(obj, jpy.JType):
+            return self._exporter.reference(obj)
+
+        if has_object_type_plugin(obj):
+            return self._exporter.reference(obj)
+
         return json.JSONEncoder.default(self, obj)
 
 
 class JsonType(ObjectType):
     @property
     def name(self) -> str:
-        return "json"
+        return "deephaven.plugin.json"
 
     def is_type(self, object) -> bool:
         return isinstance(object, Node)
