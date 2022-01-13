@@ -6,7 +6,7 @@ from deephaven.plugin import Registration
 from deephaven.plugin.object \
     import Exporter, ObjectType, Reference, has_object_type_plugin
 
-__version__ = "0.0.1.dev2"
+__version__ = "0.0.1.dev3"
 
 
 class Node:
