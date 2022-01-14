@@ -1,17 +1,8 @@
 from deephaven.plugin.json import Node
-
-
-def check_matplotlib():
-    try:
-        import deephaven.plugin.matplotlib
-    except ModuleNotFoundError as e:
-        print('Expecting deephaven-plugin-matplotlib to be installed')
-        raise e
+import matplotlib.pyplot as plt
 
 
 def create():
-    check_matplotlib()
-    import matplotlib.pyplot as plt
     x = [0, 2, 4, 6]
     y = [1, 3, 4, 8]
     plt.plot(x, y)
