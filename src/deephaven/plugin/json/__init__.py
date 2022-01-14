@@ -4,9 +4,9 @@ import json
 
 from deephaven.plugin import Registration
 from deephaven.plugin.object \
-    import Exporter, ObjectType, Reference, has_object_type_plugin
+    import Exporter, ObjectType, Reference
 
-__version__ = "0.0.1.dev3"
+__version__ = "0.0.1.dev4"
 
 
 class Node:
@@ -33,45 +33,50 @@ class Node:
 
 
 class Encoder(json.JSONEncoder):
-    def __init__(self, exporter, **kw):
+    def __init__(self, exporter: Exporter, **kw):
         super().__init__(**kw)
         self._exporter = exporter
 
     def default(self, obj):
-        # todo: we shouldn't have this dependencies here
-        # TBD until we have a better way of doing it
-        try:
-            from deephaven.Plot.figure_wrapper import FigureWrapper
-            import jpy
-        except ModuleNotFoundError:
-            FigureWrapper = None
-
-        # todo: we should have generic unwrapping code ABC
-        if isinstance(obj, FigureWrapper):
-            return obj.figure
-
         if isinstance(obj, Node):
             if obj.is_ref:
-                return self._exporter.reference(obj)
+                ref = self._exporter.reference(obj)
+                if not ref:
+                    raise RuntimeError("Unable to create reference to Node")
+                return ref
             else:
                 return obj.object
 
         if isinstance(obj, Reference):
-            return {'index': obj.index}
+            # Note: serializing type is extraneous,
+            # but it makes our testing easier. Should
+            # we provide a way to turn type serialization on/off?
+            return {
+                'type': obj.type,
+                'index': obj.index}
 
-        if isinstance(obj, jpy.JType):
-            return self._exporter.reference(obj)
+        # Try to create a reference with a known type
+        ref = self._exporter.reference(obj, allow_unknown_type=False)
+        if ref:
+            return ref
 
-        if has_object_type_plugin(obj):
-            return self._exporter.reference(obj)
+        # Try the default JSON (python) types
+        try:
+            return json.JSONEncoder.default(self, obj)
+        except TypeError:
+            pass
 
-        return json.JSONEncoder.default(self, obj)
+        # Fallback to unknown reference types
+        ref = self._exporter.reference(obj, allow_unknown_type=True)
+        if not ref:
+            raise RuntimeError("Unable to create reference from exporter")
+        return ref
 
 
 class JsonType(ObjectType):
     @property
     def name(self) -> str:
-        return "deephaven.plugin.json"
+        return "deephaven.plugin.json.Node"
 
     def is_type(self, object) -> bool:
         return isinstance(object, Node)
