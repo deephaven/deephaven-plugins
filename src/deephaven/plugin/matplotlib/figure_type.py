@@ -14,5 +14,5 @@ class FigureType(ObjectType):
 
     def to_bytes(self, exporter: Exporter, figure: Figure) -> bytes:
         buf = BytesIO()
-        figure.savefig(buf, format='PNG')
+        figure.savefig(buf, format='PNG', dpi=144)
         return buf.getvalue()
