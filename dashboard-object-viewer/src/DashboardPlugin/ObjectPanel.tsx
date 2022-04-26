@@ -14,10 +14,10 @@ type StateProps = {
   };
 };
 
-export type JsExportedObjectType = 'Table' | 'TableMap';
+export type JsExportedObjectType = 'Table' | 'TableMap' | 'Figure';
 
 export type JsWidgetExportedObject = {
-  type: 'Table' | 'TableMap';
+  type: JsExportedObjectType;
   fetch: () => Promise<unknown>;
 };
 
@@ -82,22 +82,18 @@ export class ObjectPanel extends React.Component<
     log.info('handleExportedTypeClick', exportedObject, index);
 
     const { type } = exportedObject;
-    if (type === 'Table') {
-      log.info('Opening table', index);
+    log.info('Opening object', index);
 
-      const { glEventHub, metadata } = this.props;
-      const { name } = metadata;
-      const openOptions = {
-        fetch: () => exportedObject.fetch(),
-        widget: { name: `${name}/${index}`, type },
-      };
+    const { glEventHub, metadata } = this.props;
+    const { name } = metadata;
+    const openOptions = {
+      fetch: () => exportedObject.fetch(),
+      widget: { name: `${name}/${index}`, type },
+    };
 
-      log.info('openWidget', openOptions);
+    log.info('openWidget', openOptions);
 
-      glEventHub.emit(PanelEvent.OPEN, openOptions);
-    } else {
-      log.error('Unable to handle exported object type', type);
-    }
+    glEventHub.emit(PanelEvent.OPEN, openOptions);
   }
 
   handleError(error: unknown): void {
