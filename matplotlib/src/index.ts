@@ -1,2 +1,2 @@
-export * from "./MatPlotLibPanel";
-export * from "./DashboardPlugin";
+export * from './MatPlotLibPanel';
+export * from './DashboardPlugin';

@@ -35,7 +35,9 @@
     "@deephaven/components": "0.11.2",
     "@deephaven/dashboard": "0.11.2",
     "@deephaven/log": "0.11.2",
+    "@deephaven/prettier-config": "0.11.2",
     "@deephaven/redux": "0.11.2",
+    "@deephaven/stylelint-config": "0.11.2",
     "@types/jest": "^27.4.0",
     "@types/node": "^17.0.7",
     "@types/react": "^17.0.2",
@@ -77,7 +79,19 @@
     "react-redux": "^7.2.4"
   },
   "dependencies": {
+    "@deephaven/jsapi-shim": "^0.11.4",
     "shortid": "^2.2.16"
+  },
+  "prettier": "@deephaven/prettier-config",
+  "stylelint": {
+    "ignoreFiles": [
+      "node_modules",
+      "*.*",
+      "!*.scss"
+    ],
+    "extends": [
+      "@deephaven/stylelint-config"
+    ]
   },
   "publishConfig": {
     "access": "public"
