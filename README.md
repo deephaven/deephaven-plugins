@@ -3,21 +3,34 @@
 The Deephaven Plugin for Plotly. Allows for opening Plotly plots in a Deephaven environment. Any Plotly plot
 should be viewable by default. For example:
 
-### Line Plot
+### Scatter Plot
 ```python
-# TODO
+import plotly.express as px
+df = px.data.iris()
+fig = px.scatter(df, x="sepal_width", y="sepal_length", color="species",
+                 size='petal_length', hover_data=['petal_width'])
 ```
 
-### Scatter Plot
-Scatter plots require data in a different format that Line plots, so need to pass in the data differently.
+### Box Plot
 ```python
-# TODO
+import plotly.express as px
+df = px.data.tips()
+fig = px.box(df, x="time", y="total_bill")
 ```
 
 ### Multiple Series
-It's possible to have multiple kinds of series in the same figure. Here is an example driving a line and a scatter plot:
+It's possible to have multiple kinds of series in the same figure. Here is an example driving a line and a bar plot:
 ```python
-# TODO
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
+fig = make_subplots(rows=1, cols=2)
+fig.add_trace(
+    go.Scatter(x=[1, 2, 3], y=[4, 5, 6]),
+    row=1, col=1)
+fig.add_trace(
+    go.Bar(x=[1, 2, 3], y=[4, 5, 6], marker=dict(color=[4, 5, 6], coloraxis="coloraxis")),
+    row=1, col=2)
+fig.update_layout(title_text="Side By Side Subplots", showlegend=False)
 ```
 
 ## Build
