@@ -33,6 +33,15 @@ fig.add_trace(
 fig.update_layout(title_text="Side By Side Subplots", showlegend=False)
 ```
 
+### Plot data from a Deephaven table
+```python
+from deephaven import empty_table, numpy
+import plotly.express as px
+t = empty_table(300).update(formulas=["X = (double)i", "Y = Math.sin(X)"])
+data = numpy.to_numpy(t, ["X", "Y"])
+fig = px.line(x=data[:,0], y=data[:,1])
+```
+
 ## Build
 
 To create your build / development environment:
