@@ -1,11 +1,12 @@
 from deephaven.plugin import Registration
-from plotly import io
+from plotly import io as pio
 
 __version__ = "0.0.1.dev1"
 
 def _init_theme():
     # Set the Deephaven style globally
-    io.templates.default = "plotly_dark"
+    from . import theme_deephaven_overrides
+    pio.templates.default = "plotly_dark+deephaven_overrides"
 
 class PlotlyRegistration(Registration):
     @classmethod
