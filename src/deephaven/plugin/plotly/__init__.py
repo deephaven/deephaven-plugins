@@ -7,6 +7,8 @@ def _init_theme():
     # Set the Deephaven style globally
     from . import theme_deephaven_overrides
     pio.templates.default = "plotly_dark+deephaven_overrides"
+    # Disable default renderer to ignore figure.show()
+    pio.renderers.default = None
 
 class PlotlyRegistration(Registration):
     @classmethod
