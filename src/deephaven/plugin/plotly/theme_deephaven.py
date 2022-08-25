@@ -7,8 +7,12 @@ line_color = '#5b5a5c'
 title_color = '#f0f0ee'
 paper_bgcolor = '#2d2a2e'
 zeroline_color = '#c0bfbf'
+button_bgcolor = '#c0bfbf'
+button_color = '#2d2a2e'
 
-pio.templates["deephaven_overrides"] = go.layout.Template(
+deephaven = go.layout.Template(pio.templates['plotly_dark'])
+
+pio.templates['deephaven'] = deephaven.update(
     layout = {
         'paper_bgcolor': paper_bgcolor,
         'plot_bgcolor': bg_color,
@@ -74,6 +78,12 @@ pio.templates["deephaven_overrides"] = go.layout.Template(
                   'showline': True,
                   'gridcolor': grid_color,
                   'linecolor': line_color,
-                  'zerolinecolor': zeroline_color}
+                  'zerolinecolor': zeroline_color},
+        'updatemenudefaults': {
+            'bgcolor': button_bgcolor,
+            'borderwidth': 0,
+            'font': {
+                'color': button_color},
+        },
     }
 )

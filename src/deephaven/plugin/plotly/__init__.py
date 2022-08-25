@@ -5,8 +5,8 @@ __version__ = "0.0.1.dev1"
 
 def _init_theme():
     # Set the Deephaven style globally
-    from . import theme_deephaven_overrides
-    pio.templates.default = "plotly_dark+deephaven_overrides"
+    from . import theme_deephaven
+    pio.templates.default = "deephaven"
     # Disable default renderer to ignore figure.show()
     pio.renderers.default = None
 
