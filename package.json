@@ -3,7 +3,8 @@
   "workspaces": [
     "dashboard-object-viewer",
     "matplotlib",
-    "table-example"
+    "table-example",
+    "plotly"
   ],
   "scripts": {
     "build": "npm run build --workspaces",
