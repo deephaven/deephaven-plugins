@@ -1,6 +1,6 @@
 {
   "name": "@deephaven/js-plugin-dashboard-object-viewer",
-  "version": "0.1.6",
+  "version": "0.2.0",
   "description": "Deephaven dashboard object viewer",
   "keywords": [
     "Deephaven",

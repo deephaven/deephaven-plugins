@@ -1,6 +1,6 @@
 {
   "name": "@deephaven/js-plugin-table-example",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "Deephaven JS Plugin Table Example",
   "keywords": [
     "Deephaven",

@@ -38,9 +38,9 @@ type TablePluginProps = {
  * An example of a TablePlugin. Displays a header at the top of the grid, and has custom context menu items.
  *
  * @example
- * from deephaven.TableTools import emptyTable
- * t = emptyTable(5).update("X=i")
- * t.setAttribute("PluginName", "@deephaven/js-plugin-module-template")
+ * from deephaven import empty_table
+ * t = empty_table(5).update("X=i")
+ * t.j_table.setAttribute("PluginName", "@deephaven/js-plugin-module-template")
  */
 const TablePlugin = (
   props: TablePluginProps,
