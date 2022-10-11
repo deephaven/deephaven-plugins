@@ -53,7 +53,6 @@ module.exports = {
   ],
   externals: {
     react: 'react',
-    reactstrap: 'reactstrap',
   },
   performance: {
     hints: false,

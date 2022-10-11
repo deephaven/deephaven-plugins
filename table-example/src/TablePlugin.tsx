@@ -6,7 +6,12 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Modal, ModalBody, ModalFooter, ModalHeader } from 'reactstrap';
+import {
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+} from '@deephaven/components';
 import type { Column, Table } from '@deephaven/jsapi-shim';
 
 type QuickFilterDefinition = { name: string; type: string; value: string };

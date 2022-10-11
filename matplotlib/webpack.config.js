@@ -51,10 +51,7 @@ module.exports = {
       'window.jQuery': 'jquery',
     }),
   ],
-  externals: {
-    react: 'react',
-    reactstrap: 'reactstrap',
-  },
+  externals: { react: 'react' },
   performance: {
     hints: false,
   },
