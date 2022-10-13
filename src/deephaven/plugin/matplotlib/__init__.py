@@ -20,6 +20,7 @@ class MatplotlibRegistration(Registration):
     @classmethod
     def register_into(cls, callback: Registration.Callback) -> None:
         _init_theme()
+        plt.switch_backend('AGG')
         from . import figure_type
         callback.register(figure_type.FigureType)
 
