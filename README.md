@@ -110,7 +110,7 @@ ani = TableAnimation(fig, tt, update_fig)
 To create your build / development environment:
 
 ```sh
-python3 -m venv .venv
+python -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip setuptools
 pip install build deephaven-plugin matplotlib
@@ -122,4 +122,7 @@ To build:
 python -m build --wheel
 ```
 
-produces the wheel into `dist/`.
+The wheel is stored in `dist/`. 
+
+To test within [deephaven-core](https://github.com/deephaven/deephaven-core), note where this wheel is stored (using `pwd`, for example).
+Then, follow the directions in the [deephaven-js-plugins](https://github.com/deephaven/deephaven-js-plugins) repo.
