@@ -1,4 +1,5 @@
 from collections.abc import Generator
+from typing import Callable
 
 import plotly.express as px
 from plotly.graph_objects import Figure
@@ -12,6 +13,7 @@ from deephaven import empty_table
 
 from .params import ParamGetterCollection
 from .deephaven_figure import DeephavenFigure
+from .arg_type import ArgType
 
 __version__ = "0.0.1.dev0"
 
@@ -59,12 +61,31 @@ type_null_mapping = {
 }
 
 
+
+# TODO: use deephaven data types directly rather than convert to string?
 # map types of data cols to the matching null value
 def col_null_mapping(table: Table, cols: set[str]) -> Generator[tuple[str, str]]:
-    # TODO: use deephaven data types directly rather than convert to string?
     for col in table.columns:
         if col.name in cols:
             yield col.name, type_null_mapping[str(col.data_type)]
+
+# TODO: figure out defaults
+
+
+#def get_data_type():
+#    return source.meta_table.where(filters=["Name = `Strings`"]).select("DataType")
+
+def get_distinct_values(table, col, arg_type):
+    match arg_type:
+        case ArgType.CONDITIONAL:
+            # processing depends on if the column is categorical or numerical
+            pass
+        case ArgType.CATEGORICAL:
+            # no matter what, ever unique item is a category
+            return table.select_distinct(col)
+        case ArgType.NUMERICAL:
+            # no matter what, this must be numerical inpout
+            pass
 
 
 # create a minimal dataframe that can be passed to px plotting functions
@@ -74,9 +95,11 @@ def col_null_mapping(table: Table, cols: set[str]) -> Generator[tuple[str, str]]
 # params to plotly express
 # TODO: does this have race conditions if data is ticking? probably?
 # will need some way to freeze the data
+# TODO: support custom ordering
 def construct_min_dataframe(table: Table,
                             data_cols: list[str],
-                            category_cols: list[str]) -> DataFrame:
+                            category_cols: list[str]
+                            ) -> DataFrame:
     # TODO:
     # improve how this is done as retrieving all possible pairs
     # will likely be overkill in many cases
@@ -84,11 +107,11 @@ def construct_min_dataframe(table: Table,
     # (NOT n-tuple order)
     # use a query object?
 
-    distinct_val_cols = [table.select_distinct(col) for col in category_cols]
+    distinct_val_cols = [get_distinct_values(table, col, None) for col in category_cols]
 
     # calculate all possible n-tuples of categories needed for ordering
     # TODO: if a category_col is numerical, don't multiply in some cases
-    cross_product = empty_table(1)
+    join_result = empty_table(1)
     for right in distinct_val_cols:
         cross_product = cross_product.join(right)
 
@@ -102,6 +125,11 @@ def construct_min_dataframe(table: Table,
 
     return dhpd.to_pandas(update_result)
 
+def override_args(call_args : dict[any],
+                  pgc: ParamGetterCollection) -> None:
+    #todo: override call args, but only if necessary
+    # for example, override color_discrete_sequence as needed
+    pass
 
 # TODO:
 # to support multiple columns, must support listening on groups of columns
@@ -117,6 +145,7 @@ def modify_scatter(table: Table = None,
                    y: str | list[str] = None,
                    color: str = None,
                    color_discrete_sequence: list[str] = None,
+                   px_draw: Callable = None,
                    pgc: ParamGetterCollection = None,
                    fig: DeephavenFigure = None) -> DeephavenFigure:
     if not pgc:
@@ -125,18 +154,20 @@ def modify_scatter(table: Table = None,
     # call locals here so the DeephavenFigure has access to the pgc
     call_args = locals()
 
-    data_frame = construct_min_dataframe(table, data_cols=prepare_cols(x, y),
+    override_args(call_args, pgc)
+
+    data_frame = construct_min_dataframe(table, data_cols=prepare_cols(x, y)
                                          category_cols=prepare_cols(color))
 
-    plot = px.scatter(data_frame=data_frame, x=x, y=y, color=color,
-                      **pgc.get_next_group())
+    plot = px_draw(data_frame=data_frame, x=x, y=y, color=color,
+                   **pgc.get_next_group())
 
     if not fig:
         fig = DeephavenFigure(plot, call_args=call_args, call=modify_scatter)
     else:
         fig.add_traces(plot.data)
 
-    fig.add_data_mapping(extract_data_mapping(data_frame, x, y, color))
+    fig.add_data_mapping(extract_data_mapping(data_frame, x, y))#, color))
 
     # need to increment params based on how many were just used to ensure
     # that this is ready for the next set of data
@@ -170,11 +201,11 @@ def prepare_cols(*args: list[str] | str) -> list[str]:
 def extract_data_mapping(data_frame: DataFrame,
                          x: str | list[str],
                          y: str | list[str],
-                         color: str) -> list[dict[any]]:
+                         color: str
+                         ) -> list[dict[any]]:
     vals = list(data_frame[color])
 
-    return [{"table": "ref",
-             "data_columns": {"x": x, "y": y},
+    return [{"table": "ref", "data_columns": {"x": x, "y": y},
              "filters": {color: val}} for val in vals]
 
 
@@ -182,12 +213,58 @@ def scatter(table: Table = None,
             x: str | list[str] = None,
             y: str | list[str] = None,
             color: str = None,
-            color_discrete_sequence: list[str] = None) -> DeephavenFigure:
+            symbol: str = None,
+            size: str = None,
+            color_discrete_sequence: list[str] = None
+            ) -> DeephavenFigure:
     if isinstance(table, Table):
-        return modify_scatter(table=table, x=x, y=y, color=color,
-                              color_discrete_sequence=color_discrete_sequence)
+        # todo: might want to do more validation checking here
+        # conditional if numeric or categorical depending on column type
+        # categorical regardless of column type
+        # numerical i
+        # todo: make enums?
+        category_map = {
+            "color": "conditional",
+            "symbol": "categorical",
+            "size": "numerical"
+        }
+        # TODO: facet columns here?
 
+        return modify_scatter(**locals(), px_draw=px.scatter)
     else:
-        return DeephavenFigure(px.scatter(data_frame=table, x=x, y=y, color=color,
-                                          color_discrete_sequence=color_discrete_sequence))
-    pass
+        return DeephavenFigure(
+            px.scatter(
+                data_frame=table,
+                x=x,
+                y=y,
+                color=color,
+                color_discrete_sequence=color_discrete_sequence))
+
+
+def line(table: Table = None,
+         x: str | list[str] = None,
+         y: str | list[str] = None,
+         line_group: str = None,
+         color: str = None,
+         line_dash: str = None,
+         symbol: str = None,
+         color_discrete_sequence: list[str] = None
+         ) -> DeephavenFigure:
+    if isinstance(table, Table):
+        category_map = {
+            "line_group": "categorical",
+            "color": "categorical",
+            "line_dash": "categorical",
+            "symbol": "categorical"
+        }
+        # todo: might want to do more validation checking here
+        return modify_scatter(**locals(), px_draw=px.line)
+    else:
+        return DeephavenFigure(
+            px.line(
+                data_frame=table,
+                x=x,
+                y=y,
+                color=color,
+                color_discrete_sequence=color_discrete_sequence
+            ))

@@ -18,7 +18,9 @@ class DeephavenFigure:
 
         self.data_mapping = []
 
-    def add_data(self, table: Table) -> DeephavenFigure:
+    def add_data(self, table: Table) -> None:
+        # this is not currently supported
+        return
         # only need to override existing data_frame with new data
         self.call_args["table"] = table
         self.call_args["fig"] = self
