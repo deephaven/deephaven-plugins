@@ -13,19 +13,9 @@ class DeephavenFigure:
         self.fig = fig
         self.call = call
         self.call_args = call_args
-        # store original table so it can be referenced later
         self.call_args["orig_table"] = call_args["table"]
 
         self.data_mapping = []
-
-    def add_data(self, table: Table) -> None:
-        # this is not currently supported
-        return
-        # only need to override existing data_frame with new data
-        self.call_args["table"] = table
-        self.call_args["fig"] = self
-        self.call(**self.call_args)
-        return self
 
     def add_data_mapping(self, new: list[any]) -> None:
         self.data_mapping += new
