@@ -1,6 +1,6 @@
+import itertools
 from collections.abc import Generator
 from typing import Callable
-from itertools import product
 
 import plotly.express as px
 from plotly.graph_objects import Figure
@@ -107,17 +107,29 @@ def merge_cols(args: list[str | list[str]]) -> list[str]:
     return prepared_cols
 
 
+def json_link(i, keys):
+    # create json links to link deephaven to plotly data
+    for key in keys:
+        yield f'/plotly/data/{i}/{key}'
+
+
+def column_link_dict(col_dict, i, keys):
+    # get a dict that maps column to a json link
+    return dict(zip(col_dict, json_link(i, keys)))
+
 def column_product(data_cols: dict[str | list[str]]) -> dict[str, any]:
     # generate a product of all column groupings for the data mapping
-    vals = []
+    col_names = []
     for val in data_cols.values():
         if isinstance(val, str):
-            vals.append([val])
+            col_names.append([val])
         else:
-            vals.append(val)
+            col_names.append(val)
 
-    for val_dict in product(*vals):
-        yield dict(zip(data_cols.keys(), val_dict))
+    col_name_groups = itertools.product(*col_names)
+
+    for i, col_dict in enumerate(col_name_groups):
+        yield column_link_dict(col_dict, i, data_cols.keys())
 
 
 def extract_data_mapping(
