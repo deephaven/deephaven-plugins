@@ -8,12 +8,12 @@ from deephaven.table import Table
 from deephaven.plugin.object import Reference
 
 class DeephavenFigure:
-    def __init__(self, fig: Figure, call: Callable = None, call_args: dict[any] = None):
+    def __init__(self, fig: Figure, table: Table, call: Callable = None, call_args: dict[any] = None):
         # keep track of function that called this and it's args
         self.fig = fig
         self.call = call
         self.call_args = call_args
-        self.call_args["orig_table"] = call_args["table"]
+        self.orig_table = table
 
         self.data_mapping = []
 
@@ -30,7 +30,7 @@ class DeephavenFigure:
     def to_json(self, exporter) -> str:
         #todo: make this work when combining figures. Will have to keep track
         # of all the tables data comes from
-        self.attach_ref(exporter.reference(self.call_args["orig_table"])._index)
+        self.attach_ref(exporter.reference(self.orig_table)._index)
         figure_json = f'"plotly": {self.fig.to_json()}'
         dh_json = f'"deephaven": {json.dumps(self.data_mapping)}'
         # todo: figure out f string - the curly brackets make it tricky
