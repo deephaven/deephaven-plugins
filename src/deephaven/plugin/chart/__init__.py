@@ -179,10 +179,12 @@ def scatter(table: Table = None,
             opacity: float = None,
             marginal_x: str = None,
             marginal_y: str = None,
+            log_x: bool = False,
+            log_y: bool = False,
             range_x: list[int] = None,
             range_y: list[int] = None,
             title: str = None,
-            template: str = None
+            template: str = None,
             ) -> DeephavenFigure:
     if isinstance(table, Table):
         return generate_figure(px_draw=px.scatter, call_args=locals())

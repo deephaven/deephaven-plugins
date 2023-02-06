@@ -100,12 +100,6 @@ Dependent on trendline
 ### trendline_scope
 Dependent on trendline
 
-### log_x
-Should be doable. Requires a table data transform
-
-### log_y
-Should be doable. Requires a table data transform
-
 ### render_mode
 Should we even support this? Seems like we should require webgl.
 

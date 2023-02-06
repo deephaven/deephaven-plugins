@@ -20,4 +20,7 @@ fig = scatter(source,
               marginal_x="rug",
               marginal_y="violin",
               title="Test",
-              template="ggplot2")
+              template="ggplot2",
+              range_x=[0,10],
+              range_y=[0,100]
+)
