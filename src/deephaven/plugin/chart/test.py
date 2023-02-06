@@ -11,14 +11,13 @@ source = new_table([
    float_col("Floats", [9.9, 8.8, 7.7, 5, 10])
 ])
 
-test = scatter(source, x="Ints", y="Floats", color="Strings", color_discrete_sequence=["red", "blue"])
-
-
-# add new data to the existing figure
-new = new_table([
-   string_col("Strings", ["String 7", "String 8"]),
-   int_col("Ints", [7, 9]),
-   float_col("Floats", [9.9, 5.1])
-])
-
-test2 = test.add_data(new)
+fig = scatter(source,
+              x="Ints",
+              y=["Ints2", "Floats"],
+              labels={"value": "y"},
+              color_discrete_sequence=["red", "blue"],
+              opacity=0.5,
+              marginal_x="rug",
+              marginal_y="violin",
+              title="Test",
+              template="ggplot2")
