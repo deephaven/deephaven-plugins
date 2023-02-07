@@ -108,3 +108,82 @@ Doable, but we don't support on client
 
 ### height
 Doable, but we don't support on client
+
+## scatter_3d
+
+### same as scatter
+color
+symbol
+size
+text
+hover_name
+hover_data
+custom_data
+error_x
+error_x_minus
+error_y
+error_y_minus
+error_z
+error_z_minus
+animation_frame
+animation_group
+category_orders
+labels
+size_max
+color_discrete_map
+color_continuous_scale
+range_color
+color_continuous_midpoint
+symbol_sequence
+symbol_map
+width
+height
+
+## scatter_polar
+
+### same as scatter
+color
+symbol
+size
+hover_name
+hover_data
+custom_data
+text
+animation_frame
+animation_group
+category_orders
+labels
+size_max
+color_discrete_map
+color_continuous_scale
+range_color
+color_continuous_midpoint
+symbol_sequence
+symbol_map
+render_mode
+width
+height
+
+## scatter_ternary
+
+### same as scatter
+color
+symbol
+size
+text
+hover_name
+hover_data
+custom_data
+animation_frame
+animation_groups
+category_orders
+labels
+color_discrete_map
+color_continuous_scale
+range_color
+color_continuous_midpoint
+symbol_sequence
+symbol_map
+size_max
+width
+height
