@@ -1,6 +1,7 @@
 import itertools
+#from builtins import _dict_keys, _dict_values
 from collections.abc import Generator
-from typing import Callable
+from typing import Callable, Iterable
 
 from pandas import DataFrame
 
@@ -9,6 +10,7 @@ from deephaven.table import Table
 from deephaven import empty_table
 
 from .deephaven_figure import DeephavenFigure
+from .data_mapping import extract_data_mapping
 
 # TODO: this is not comprehensive
 TYPE_NULL_MAPPING = {
@@ -114,12 +116,16 @@ def split_custom_args(
     custom arguments have been removed from call_args and are now in
     custom_call_args
     """
+
+    new_call_args = {}
     custom_call_args = {}
     for k in call_args:
         if k in CUSTOM_ARGS:
-            custom_call_args[k] = call_args.pop(k)
+            custom_call_args[k] = call_args[k]
+        else:
+            new_call_args[k] = call_args[k]
 
-    return call_args, custom_call_args
+    return new_call_args, custom_call_args
 
 
 def generate_figure(
@@ -168,151 +174,3 @@ def merge_cols(args: list[str | list[str]]) -> list[str]:
         else:
             prepared_cols.append(arg)
     return prepared_cols
-
-
-def json_link(i: int, keys: list[str]) -> Generator[str]:
-    """
-    Create json links to a plotly data object at a specific index and with a
-    specific variable
-
-    :param i: The index of the plotly data object to link to
-    :param keys: The variables such as x, y, theta, etc. to link to
-    :return: Yield the json links
-    """
-    for key in keys:
-        yield ['plotly/data/', i, '/', key]
-        yield f'/plotly/data/{i}/{key}'
-
-def column_link_dict(
-        col_dict: tuple[str],
-        i: int,
-        keys: list[str]
-) -> dict[str, str]:
-    """
-    Return a dictionary mapping columns to json links
-
-    Example output:
-    {
-        "Col1": "/plotly/data/0/x"
-        "Col2": "/plotly/data/0/y"
-    }
-
-    :param col_dict: A tuple containing columns from the table
-    :param i: The index of the plotly data object to link to
-    :param keys: The variables such as x, y, theta, etc. to link to
-    :return: A dictionary
-    """
-    # get a dict that maps column to a json link
-    return dict(zip(col_dict, json_link(i, keys)))
-
-
-def col_prod(
-        data_cols: dict[str | list[str]]
-) -> Generator[tuple[dict[str, str], dict[str, str]]]:
-    """
-    Generate a product of all column groupings for the data mapping.
-
-    Example output:
-    A tuple with the following 2 values
-    First:
-    {
-        "Col1": "/plotly/data/0/x"
-        "Col2": "/plotly/data/0/y"
-    }
-    Second:
-    {
-        "x": "Col1",
-        "y": "Col2"
-    }
-
-    :param data_cols:
-    :return: A tuple containing (dict of column name to json link, dict of
-    variable to column name)
-    """
-    # todo: maybe clean up how this is done
-
-    # generate a product of all column groupings for the data mapping
-    col_names = []
-    for val in data_cols.values():
-        if isinstance(val, str):
-            col_names.append([val])
-        else:
-            col_names.append(val)
-
-    col_name_groups = itertools.product(*col_names)
-
-    for i, col_dict in enumerate(col_name_groups):
-        keys = data_cols.keys()
-        col_dict = column_link_dict(col_dict, i, list(data_cols.keys()))
-        var_col_dict = dict(zip(keys, col_dict))
-        yield col_dict, var_col_dict
-
-"""
-
-"""
-
-
-def col_prod_with_marg(
-        data_cols: dict[str | list[str]],
-        marginal_vars: list[str],
-) -> Generator[dict[str, str]]:
-    """
-    Yield a product of all column groupings for the data mapping.
-
-    Example output with a marginal_vars={x}:
-    First yield:
-    {
-        "Col1": "/plotly/data/0/x"
-        "Col2": "/plotly/data/0/y"
-    }
-
-    Then yield:
-    {
-        "Col1": "/plotly/data/1/x"
-    }
-
-    :param data_cols: A dictionary containing strings and lists of strings used
-    to compute a cartesian product of all possible value groups
-    :param marginal_vars: A list of any marginal values to append
-    :return: yield a dictionary mapping cols to json links
-    """
-    for col_dict, var_col_dict in col_prod(data_cols):
-        # yield the original col_dict, then any marginals in the order they
-        # are provided
-        yield col_dict
-        for marginal_var in marginal_vars:
-            col = var_col_dict[marginal_var]
-            yield {col: col_dict[col]}
-
-
-def extract_data_mapping(
-        data_cols: dict[str | list[str]],
-        marginal_vars: list[str] = None
-) -> list[dict[any]]:
-    """
-    Create a data mapping of table and cols to json link
-    Note that ref is just a placeholder for the table. The actual table is
-    substituted when the plotly figure is sent to the client
-
-    Example output:
-    [{
-        table: "ref",
-        data_columns: {
-            "Col1": "/plotly/data/0/x",
-            "Col2": "/plotly/data/0/y"
-        },
-    }
-    {
-        "table": "ref",
-        {
-            "Col1": "/plotly/data/1/x"
-        }
-    }]
-
-    :param data_cols: A dictionary containing strings and lists of strings used
-    to compute a cartesian product of all possible value groups
-    :param marginal_vars: A list of any marginal values to append
-    :return: A list containing dicts that have a table to ref mapping
-    """
-    return [{"table": "ref", "data_columns": col_dict} for col_dict in
-            col_prod_with_marg(data_cols, marginal_vars)]
