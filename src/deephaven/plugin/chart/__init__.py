@@ -9,7 +9,7 @@ from deephaven.plugin import Registration
 from deephaven.plugin.object import Exporter, ObjectType
 from deephaven.table import Table
 
-from .generate import generate_figure
+from .generate import generate_figure, table_type_error
 from .deephaven_figure import DeephavenFigure
 
 __version__ = "0.0.1.dev0"
@@ -44,7 +44,6 @@ def scatter(
         x: str | list[str] = None,
         y: str | list[str] = None,
         labels: dict[str, str] = None,
-        orientation: str = None,  # implemented, but I can't figure out a good example for scatter
         color_discrete_sequence: list[str] = None,
         opacity: float = None,
         marginal_x: str = None,
@@ -99,7 +98,6 @@ def scatter_polar(
 ) -> DeephavenFigure:
     if isinstance(table, Table):
         return generate_figure(px_draw=px.scatter_polar, call_args=locals())
-    pass
 
 
 def scatter_ternary(
@@ -115,13 +113,22 @@ def scatter_ternary(
 ) -> DeephavenFigure:
     if isinstance(table, Table):
         return generate_figure(px_draw=px.scatter_ternary, call_args=locals())
-    pass
 
 
 def line(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
+        color_discrete_sequence: list[str] = None,
+        symbol_sequence: list[str] = None,  # only draws the first shape with wide data
+        log_x: bool = False,
+        log_y: bool = False,
+        range_x: list[int] = None,
+        range_y: list[int] = None,
+        markers: bool = False,
+        line_shape: str = 'linear',
+        title: str = None,
+        template: str = None,
         callback: Callable = None
 ) -> DeephavenFigure:
     if isinstance(table, Table):
@@ -133,22 +140,43 @@ def line_3d(
         x: str = None,
         y: str = None,
         z: str = None,
+        color_discrete_sequence: list[str] = None,
+        symbol_sequence: list[str] = None,  # only draws the first shape with wide data
+        log_x: bool = False,
+        log_y: bool = False,
+        log_z: bool = False,
+        range_x: list[int] = None,
+        range_y: list[int] = None,
+        range_z: list[int] = None,
+        title: str = None,
+        template: str = None,
         callback: Callable = None
 ) -> DeephavenFigure:
     if isinstance(table, Table):
         return generate_figure(px_draw=px.line_3d, call_args=locals())
-    pass
 
 
 def line_polar(
         table: Table = None,
         r: str = None,
         theta: str = None,
-        callback: Callable = None
+        color_discrete_sequence: list[str] = None,
+        symbol_sequence: list[str] = None,
+        markers: bool = False,
+        direction: str = 'clockwise',
+        start_angle: int = 90,
+        line_close: bool = False,
+        line_shape: str = 'linear',
+        range_r: list[int] = None,
+        range_theta: list[int] = None,
+        log_r: bool = False,
+        title: str = None,
+        template: str = None,
+        callback: Callable = None,
 ) -> DeephavenFigure:
     if isinstance(table, Table):
         return generate_figure(px_draw=px.line_polar, call_args=locals())
-    pass
+    table_type_error(table)
 
 
 def line_ternary(
@@ -156,8 +184,13 @@ def line_ternary(
         a: str = None,
         b: str = None,
         c: str = None,
+        color_discrete_sequence: list[str] = None,
+        symbol_sequence: list[str] = None,
+        markers: bool = False,
+        line_shape: str = 'linear',
+        title: str = None,
+        template: str = None,
         callback: Callable = None
 ) -> DeephavenFigure:
     if isinstance(table, Table):
         return generate_figure(px_draw=px.line_ternary, call_args=locals())
-    pass

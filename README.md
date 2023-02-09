@@ -1,4 +1,4 @@
-# Deephaven Plugin for Graphs
+# Deephaven Plugin for Charts
 
 Custom implementation built on top of plotly express to make it compatible with deephaven tables.
 

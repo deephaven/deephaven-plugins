@@ -1,5 +1,5 @@
 import itertools
-#from builtins import _dict_keys, _dict_values
+# from builtins import _dict_keys, _dict_values
 from collections.abc import Generator
 from typing import Callable, Iterable
 
@@ -150,6 +150,8 @@ def generate_figure(
     data_frame = construct_min_dataframe(table, data_cols=merge_cols(list(data_cols.values())))
 
     plot = px_draw(data_frame=data_frame, **call_args)
+
+    plot = custom_call_args['callback'](plot)
 
     fig = DeephavenFigure(plot, table, call_args=call_args, call=px_draw)
 

@@ -1,5 +1,4 @@
-# Unimplemented Plotly Express Functionality
-## scatter
+# Globally Unimplemented Plotly Express Functionality
 ### color
 Need improvements to plugin architecture to update charts.
 New categories cannot be added.
@@ -109,81 +108,20 @@ Doable, but we don't support on client
 ### height
 Doable, but we don't support on client
 
-## scatter_3d
+### line_group
+See color
 
-### same as scatter
-color
-symbol
-size
-text
-hover_name
-hover_data
-custom_data
-error_x
-error_x_minus
-error_y
-error_y_minus
-error_z
-error_z_minus
-animation_frame
-animation_group
-category_orders
-labels
-size_max
-color_discrete_map
-color_continuous_scale
-range_color
-color_continuous_midpoint
-symbol_sequence
-symbol_map
-width
-height
+### line_group
+See color
 
-## scatter_polar
+### line_dash
+See color
 
-### same as scatter
-color
-symbol
-size
-hover_name
-hover_data
-custom_data
-text
-animation_frame
-animation_group
-category_orders
-labels
-size_max
-color_discrete_map
-color_continuous_scale
-range_color
-color_continuous_midpoint
-symbol_sequence
-symbol_map
-render_mode
-width
-height
+### line_dash_map
+Doable, but dependent on line_dash
 
-## scatter_ternary
+### orientation
+Needs to be carefully implemented as it has conditional logic based on the data
 
-### same as scatter
-color
-symbol
-size
-text
-hover_name
-hover_data
-custom_data
-animation_frame
-animation_groups
-category_orders
-labels
-color_discrete_map
-color_continuous_scale
-range_color
-color_continuous_midpoint
-symbol_sequence
-symbol_map
-size_max
-width
-height
+### line_dash_sequence
+Doable, but dependent on line_dash
