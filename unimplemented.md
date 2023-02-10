@@ -99,9 +99,6 @@ Dependent on trendline
 ### trendline_scope
 Dependent on trendline
 
-### render_mode
-Should we even support this? Seems like we should require webgl.
-
 ### width
 Doable, but we don't support on client
 
@@ -125,3 +122,21 @@ Needs to be carefully implemented as it has conditional logic based on the data
 
 ### line_dash_sequence
 Doable, but dependent on line_dash
+
+### pattern_shape
+See color
+
+### base
+Seems like it is similar to error_x
+
+### barmode
+Doable, but not useful without color
+
+## Notable limitations in implemented arguments
+
+### Sequence arguments
+Excluding color_discrete_sequence, when in wide mode, any argument that ends in _sequence will apply the first provided 
+argument to all elements in the plot. This is a plotly express limitation.
+
+### render_mode
+Not exposed to user. Automatically set to webgl.

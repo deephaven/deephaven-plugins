@@ -15,7 +15,8 @@ from .data_mapping import extract_data_mapping
 # TODO: this is not comprehensive
 TYPE_NULL_MAPPING = {
     "int": "NULL_INT",
-    "double": "NULL_DOUBLE"
+    "double": "NULL_DOUBLE",
+    "long": "NULL_LONG"
 }
 
 # these are args that hold data that needs to be overriden on the client

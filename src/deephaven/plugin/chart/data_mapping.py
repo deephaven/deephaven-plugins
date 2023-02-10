@@ -98,7 +98,7 @@ def convert_to_json_links(
         },
         {
             "Col1": "/plotly/data/1/x",
-            "Col3": "/plotly/data/2/y",
+            "Col3": "/plotly/data/1/y",
         }
     ]
 
