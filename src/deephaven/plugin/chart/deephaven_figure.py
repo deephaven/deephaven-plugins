@@ -13,7 +13,8 @@ class DeephavenFigure:
         self.fig = fig
         self.call = call
         self.call_args = call_args
-        self.orig_table = table
+        self.orig_tables = [table]
+        self.marginals = None
 
         self.data_mapping = []
 
@@ -28,10 +29,8 @@ class DeephavenFigure:
             data["table"] = ref
 
     def to_json(self, exporter=None) -> str:
-        #todo: make this work when combining figures. Will have to keep track
-        # of all the tables data comes from
         if exporter:
-            self.attach_ref(exporter.reference(self.orig_table)._index)
+            self.attach_ref(exporter.reference(self.orig_tables[0])._index)
         figure_json = f'"plotly": {self.fig.to_json()}'
         dh_json = f'"deephaven": {json.dumps(self.data_mapping)}'
         # todo: figure out f string - the curly brackets make it tricky

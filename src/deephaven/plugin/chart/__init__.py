@@ -6,7 +6,7 @@ from deephaven.plugin import Registration
 from deephaven.plugin.object import Exporter, ObjectType
 from deephaven.table import Table
 
-from .generate import generate_figure
+from .generate import generate_figure, draw_ohlc
 from .deephaven_figure import DeephavenFigure
 
 __version__ = "0.0.1.dev0"
@@ -39,13 +39,18 @@ class ChartRegistration(Registration):
         callback.register(DeephavenFigureType)
 
 
+#TODO: add column where entries can have specific colors, symbols, etc. directly assigned?
+
+
 def scatter(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
-        labels: dict[str, str] = None,
+        # labels: dict[str, str] = None
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
+        xaxis_sequence: list[str] = None,
+        yaxis_sequence: list[str] = None,
         opacity: float = None,
         # marginal_x: str = None, #not supported at the moment, will probably be slow
         # marginal_y: str = None, #with lots of data
@@ -59,7 +64,7 @@ def scatter(
 ) -> DeephavenFigure:
     if isinstance(table, Table):
         render_mode = "webgl"
-        return generate_figure(px_draw=px.scatter, call_args=locals())
+        return generate_figure(draw=px.scatter, call_args=locals())
 
 
 def scatter_3d(
@@ -82,7 +87,7 @@ def scatter_3d(
 ) -> DeephavenFigure:
     if isinstance(table, Table):
         render_mode = "webgl"
-        return generate_figure(px_draw=px.scatter_3d, call_args=locals())
+        return generate_figure(draw=px.scatter_3d, call_args=locals())
 
 
 def scatter_polar(
@@ -103,7 +108,7 @@ def scatter_polar(
 ) -> DeephavenFigure:
     if isinstance(table, Table):
         render_mode = "webgl"
-        return generate_figure(px_draw=px.scatter_polar, call_args=locals())
+        return generate_figure(draw=px.scatter_polar, call_args=locals())
 
 
 def scatter_ternary(
@@ -119,7 +124,7 @@ def scatter_ternary(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        return generate_figure(px_draw=px.scatter_ternary, call_args=locals())
+        return generate_figure(draw=px.scatter_ternary, call_args=locals())
 
 
 def line(
@@ -128,6 +133,8 @@ def line(
         y: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,  # only draws the first shape with wide data
+        xaxis_sequence: list[str] = None,
+        yaxis_sequence: list[str] = None,
         markers: bool = False,
         log_x: bool = False,
         log_y: bool = False,
@@ -140,7 +147,7 @@ def line(
 ) -> DeephavenFigure:
     if isinstance(table, Table):
         render_mode = "webgl"
-        return generate_figure(px_draw=px.line, call_args=locals())
+        return generate_figure(draw=px.line, call_args=locals())
 
 
 def line_3d(
@@ -161,7 +168,7 @@ def line_3d(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        return generate_figure(px_draw=px.line_3d, call_args=locals())
+        return generate_figure(draw=px.line_3d, call_args=locals())
 
 
 def line_polar(
@@ -184,7 +191,7 @@ def line_polar(
 ) -> DeephavenFigure:
     if isinstance(table, Table):
         render_mode = "webgl"
-        return generate_figure(px_draw=px.line_polar, call_args=locals())
+        return generate_figure(draw=px.line_polar, call_args=locals())
 
 
 def line_ternary(
@@ -201,9 +208,9 @@ def line_ternary(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        return generate_figure(px_draw=px.line_ternary, call_args=locals())
+        return generate_figure(draw=px.line_ternary, call_args=locals())
 
-
+# todo: add yaxis and xaxis sequence?
 def area(
         table: Table = None,
         x: str | list[str] = None,
@@ -223,7 +230,7 @@ def area(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        return generate_figure(px_draw=px.area, call_args=locals())
+        return generate_figure(draw=px.area, call_args=locals())
 
 
 def bar(
@@ -244,7 +251,7 @@ def bar(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        return generate_figure(px_draw=px.bar, call_args=locals())
+        return generate_figure(draw=px.bar, call_args=locals())
 
 
 def bar_polar(
@@ -266,7 +273,7 @@ def bar_polar(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        return generate_figure(px_draw=px.bar_polar, call_args=locals())
+        return generate_figure(draw=px.bar_polar, call_args=locals())
 
 
 def violin(
@@ -286,7 +293,7 @@ def violin(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        return generate_figure(px_draw=px.violin, call_args=locals())
+        return generate_figure(draw=px.violin, call_args=locals())
 
 
 def box(
@@ -306,7 +313,7 @@ def box(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        return generate_figure(px_draw=px.box, call_args=locals())
+        return generate_figure(draw=px.box, call_args=locals())
 
 
 def ecdf(
@@ -331,7 +338,7 @@ def ecdf(
 ) -> DeephavenFigure:
     if isinstance(table, Table):
         render_mode = "webgl"
-        return generate_figure(px_draw=px.ecdf, call_args=locals())
+        return generate_figure(draw=px.ecdf, call_args=locals())
 
 
 def strip(
@@ -349,7 +356,7 @@ def strip(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        return generate_figure(px_draw=px.strip, call_args=locals())
+        return generate_figure(draw=px.strip, call_args=locals())
 
 
 # todo: figure out buckets
@@ -377,7 +384,23 @@ def histogram(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        return generate_figure(px_draw=px.histogram, call_args=locals())
+        return generate_figure(draw=px.histogram, call_args=locals())
+
+def pie(
+        table: Table = None,
+        names: str = None,
+        values: str = None,
+        color_discrete_sequence: list[str] = None,
+        opacity: str = None,
+        hole: str = None
+):
+    if isinstance(table, Table):
+        return generate_figure(draw=px.pie, call_args=locals())
+
+def treemap(
+        table: Table = None,
+):
+    pass
 
 
 def funnel(
@@ -395,4 +418,22 @@ def funnel(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        return generate_figure(px_draw=px.bar, call_args=locals())
+        return generate_figure(draw=px.bar, call_args=locals())
+
+
+def ohlc(
+        table: Table = None,
+        date: str = None,
+        open: str = None,
+        high: str = None,
+        low: str = None,
+        close: str = None,
+        callback: Callable = default_callback
+
+):
+    if isinstance(table, Table):
+        call_args = locals()
+        # x is the name used in plotly for the date data
+        call_args["x"] = call_args.pop("date")
+
+        return generate_figure(draw=draw_ohlc, call_args=call_args)
