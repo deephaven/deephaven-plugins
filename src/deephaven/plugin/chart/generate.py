@@ -158,11 +158,12 @@ def new_x_axis_obj(
     :return: The new axis object
     """
     return {f"xaxis{num}": {
-        "anchor": "y",
+        "anchor": "free" if num >= 2 else "y",
         "overlaying": "x",
         "side": "bottom" if bottom else "top",
         "domain": domain,
-        "position": position
+        "position": position,
+        "title": {"text": f"X Values {num}"}
     }}
 
 
@@ -180,11 +181,12 @@ def new_y_axis_obj(
     :return: The new axis object
     """
     return {f"yaxis{num}": {
-        "anchor": "x",
+        "anchor": "free" if num >= 2 else "x",
         "overlaying": "y",
         "side": "left" if left else "right",
         "domain": domain,
-        "position": position
+        "position": position,
+        "title": {"text": f"Y Values {num}"}
     }}
 
 
@@ -247,7 +249,7 @@ def calculate_position(
     :return: The position the axis is at
     """
     # increment each axis 0.05 further from the initial axis
-    offset = ceil(max(0, (num - 2)) / 2) / 20
+    offset = ceil(max(0, (num - 2)) / 2) / 10
 
     # if odd, adding to left/bottom
     # position is calculated on other domain since the other domain is
@@ -319,8 +321,8 @@ def calculate_domain(
     """
     # if calculating domain for x-axis, need to take into account legend
     offset = 0.05 if is_x and count >= 2 else 0
-    start = floor((count - 1) / 2) / 20
-    end = 1 - offset - (floor(count / 2) / 20)
+    start = floor((count - 1) / 2) / 10
+    end = 1 - offset - (floor(count / 2) / 10)
     return [start, end]
 
 
