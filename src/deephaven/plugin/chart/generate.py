@@ -1,3 +1,4 @@
+from itertools import zip_longest, cycle
 from collections.abc import Generator
 from math import floor, ceil
 from typing import Callable
@@ -12,6 +13,7 @@ from deephaven import empty_table
 
 from .deephaven_figure import DeephavenFigure
 from .data_mapping import extract_data_mapping
+from .shared import combined_generator
 
 # TODO: this is not comprehensive
 TYPE_NULL_MAPPING = {
@@ -20,7 +22,15 @@ TYPE_NULL_MAPPING = {
     "long": "NULL_LONG"
 }
 
+ERROR_ARGS = {
+    "error_x", "error_x_minus",
+    "error_y", "error_y_minus",
+    "error_z", "error_z_minus"
+}
+
 # these are args that hold data that needs to be overriden on the client
+# note that ERROR_ARGS is not here because those args don't need to be
+# processed in a specific way that preserves their type
 DATA_ARGS = {
     "x", "y", "z",
     "r", "theta",
@@ -49,6 +59,15 @@ CUSTOM_ARGS = {
     "callback",
 }
 CUSTOM_ARGS.update(SEQUENCE_ARGS)
+
+ERROR_UPDATE_MAP = {
+    "error_x": "error_x_array",
+    "error_x_minus": "error_x_arrayminus",
+    "error_y": "error_y_array",
+    "error_y_minus": "error_y_arrayminus",
+    "error_z": "error_z_array",
+    "error_z_minus": "error_z_arrayminus"
+}
 
 
 def col_null_mapping(
@@ -102,7 +121,7 @@ def get_data_cols(call_args: dict[any]) -> dict[str | list[str]]:
     column or list of columns
     """
     # get columns that need to be added to dataset
-    return {k: v for k, v in call_args.items() if k in DATA_ARGS}
+    return {k: v for k, v in call_args.items() if k in DATA_ARGS and v}
 
 
 def get_marginals(call_args: dict[any]) -> list[str]:
@@ -118,28 +137,38 @@ def get_marginals(call_args: dict[any]) -> list[str]:
             if k in call_args and call_args[k]]
 
 
-def split_custom_args(
-        call_args: dict[any]
+def split_args(
+        call_args: dict[str, any]
 ) -> tuple[dict[str, any], dict[str, any]]:
     """
     Remove any custom args that are not supported in plotly express.
     Add these custom args to a separate object, then return both arg dicts
 
     :param call_args: The initial call args
-    :return: A tuple containing (call_args, custom_call_args), where any
-    custom arguments have been removed from call_args and are now in
-    custom_call_args
+    :return: A tuple containing (call_args, custom_call_args, data_map_args),
+    where any custom arguments have been removed from call_args and are
+    now in custom_call_args and any arguments needed for the data mapping are
+    in data_map_args
     """
 
+    # todo: instead of creating all these args, just create a new set that needs to be used in plotly express
+    # and use the existing ones as custom
     new_call_args = {}
     custom_call_args = {}
-    # TODO: here add check for list or not in error bars
-    # needs to be in call args if just a string, and in custom args if custom
-    for k in call_args:
-        if k in CUSTOM_ARGS:
-            custom_call_args[k] = call_args[k]
+
+    for arg in call_args:
+        val = call_args[arg]
+        if arg in CUSTOM_ARGS:
+            custom_call_args[arg] = val
+        elif arg in ERROR_ARGS:
+            # only technically need custom processing if we have a list of
+            # as px can handle one, but there's no benefit to passing it to px
+            # we also convert to list here so it doesn't need to be done when
+            # adding to figure or generating data object
+            if val:
+                custom_call_args[arg] = val if isinstance(val, list) else [val]
         else:
-            new_call_args[k] = call_args[k]
+            new_call_args[arg] = val
 
     return new_call_args, custom_call_args
 
@@ -155,6 +184,8 @@ def new_x_axis_obj(
 
     :param num: The axis to create
     :param bottom: Where we are adding a new axis to the bottom or not
+    :param domain: The domain this axis should span
+    :param position: Where to position the axis (if free)
     :return: The new axis object
     """
     return {f"xaxis{num}": {
@@ -178,6 +209,8 @@ def new_y_axis_obj(
 
     :param num: The axis to create
     :param left: Where we are adding a new axis to the left side or not
+    :param domain: The domain this axis should span
+    :param position: Where to position the axis (if free)
     :return: The new axis object
     """
     return {f"yaxis{num}": {
@@ -190,55 +223,66 @@ def new_y_axis_obj(
     }}
 
 
-def new_axis_dict(
-        is_x: bool,
-        new_axis: int
+def new_axis_generator(
+        is_x,
+        new_axes: list[int],
 ):
     """
     Create a dictionary used to modify the axis for a trace.
 
     :param is_x: Whether we are adjusting the x-axis or not
-    :param new_axis: The new axis this trace will use
+    :param new_axes: The new axis this trace will use
     :return: A dictionary containing a key of which axis to modify and a value
     of the new axis.
     """
     var = "x" if is_x else "y"
-    # don't number the first axis as it's already created without numbering
-    new_axis = "" if new_axis == 1 else new_axis
-    return {
-        f"{var}axis": f"{var}{new_axis}"
-    }
+
+    for new_axis in cycle(new_axes):
+        # don't number the first axis as it's already created without numbering
+        new_axis = "" if new_axis == 1 else new_axis
+        yield f"{var}axis", f"{var}{new_axis}"
 
 
-def update_trace_axes(
-        fig: Figure,
-        axes: list[int],
-        step: int,
-        is_x: bool,
-):
+def new_error_generator(
+        arg: str,
+        error_cols: list[str]
+) -> Generator[tuple[str, list]]:
     """
-    Update the axis of plotly traces with new axis
+    Generate key, value pairs for error bar updates. If an error column is
+    None, then there is no error bar drawn for the corresponding trace.
+
+    :param arg: The error bar to map to an update
+    :param error_cols: A list of error columns to determine what the value
+    should be
+    :returns: Generates a list of key, value pairs of (error update, value)
+    """
+    for error_col in cycle(error_cols):
+        yield ERROR_UPDATE_MAP[arg], [] if error_col else None
+
+
+def update_traces(
+        fig: Figure,
+        generator: Generator[dict],
+        step: int,
+) -> None:
+    """
+    Update the plotly traces with a generator
 
     :param fig: The Plotly figure to modify
-    :param axes: A list of axes to be applied, in order.
-    :param step: How many traces to skip when applying the new axis. Useful if
-    marginals have been specified, as they should be skipped
-    :param is_x: Whether we are adjusting the x axes or not
+    :param generator: A generator that yields updates to apply
+    :param step: How many traces to skip when applying the new changes. Useful
+    if marginals have been specified, as they should be skipped
     """
-    trace_index = 0
-    vals_index = 0
-    while trace_index < len(fig.data):
+    for trace_index, update in zip(range(0, len(fig.data), step), generator):
         fig.update_traces(
-            new_axis_dict(is_x, axes[vals_index]),
+            update,
             selector=trace_index)
-        trace_index += step
-        vals_index = (vals_index + 1) % len(axes)
 
 
 def calculate_position(
-        other_domain,
-        num
-):
+        other_domain: list[float],
+        num: int
+) -> float:
     """
     Calculate the position of this axis. Uses the domain of the other variable
     (x with y or y with x) since the position is relative to that domain.
@@ -260,6 +304,7 @@ def calculate_position(
         position = other_domain[1] + offset
     return position
 
+
 def update_layout_axes(
         fig: Figure,
         axes: list[int],
@@ -267,7 +312,7 @@ def update_layout_axes(
         x_domain: list[float],
         y_domain: list[float]
 
-):
+) -> None:
     """
     Update existing axis and add any new axes to layout if needed.
 
@@ -309,7 +354,7 @@ def update_layout_axes(
 def calculate_domain(
         count: int,
         is_x: bool
-):
+) -> list[float, float]:
     """
     Calculate a domain for an axis, based on the count of axes in the other
     dimension and whether we're calculating the domain for an x-axis or not.
@@ -320,7 +365,7 @@ def calculate_domain(
 
     """
     # if calculating domain for x-axis, need to take into account legend
-    offset = 0.05 if is_x and count >= 2 else 0
+    offset = 0.01 if is_x and count >= 2 else 0
     start = floor((count - 1) / 2) / 10
     end = 1 - offset - (floor(count / 2) / 10)
     return [start, end]
@@ -352,26 +397,35 @@ def handle_custom_args(
     :param step: Optional, default 1. How many steps to skip when applying any
     changes to traces.
     """
-    # todo: this might be better moved to a param getter once we can add figure data
 
     # the domain is calculated based on the other sequence
     # for example, a new y-axis shrinks the x-axis domain
     x_domain = get_domain(custom_call_args.get("yaxis_sequence", None), True)
     y_domain = get_domain(custom_call_args.get("xaxis_sequence", None), False)
 
+    # check all custom args
+    # add to trace update
+    # send update
+    generators = []
+
     for arg, val in custom_call_args.items():
         if arg in SEQUENCE_ARGS:
             is_x = arg == "xaxis_sequence"
 
-            # even if val is not specified, the domain may need to be updated
-            # for this axis
-            if not val:
+            if val:
+                generators.append(new_axis_generator(is_x, val))
+            else:
+                # even if val is None, the domain may need to be updated
+                # for this axis
                 val = [1]
 
             # todo: make it so a list of log axis and ranges can be specified
-            update_trace_axes(fig, val, step, is_x)
-
             update_layout_axes(fig, val, is_x, x_domain, y_domain)
+
+        elif arg in ERROR_ARGS and val:
+            generators.append(new_error_generator(arg, val))
+
+    update_traces(fig, combined_generator(generators), step)
 
 
 def generate_figure(
@@ -384,12 +438,12 @@ def generate_figure(
 
     :param draw: The plotly express function to use to generate the figure
     :param call_args: Call arguments to use, either passing to plotly express
-    or handled seperately
+    or handled separately
     :return: a Deephaven figure
     """
     table = call_args.pop("table")
 
-    call_args, custom_call_args = split_custom_args(call_args)
+    call_args, custom_call_args = split_args(call_args)
 
     data_cols = get_data_cols(call_args)
 
@@ -398,21 +452,23 @@ def generate_figure(
                                              list(data_cols.values())
                                          ))
 
-    pxFig = draw(data_frame=data_frame, **call_args)
+    px_fig = draw(data_frame=data_frame, **call_args)
 
     # get the marginals here as the length is needed so that axis arguments
     # are not applied to the marginals
     marginal_vars = get_marginals(call_args)
 
-    handle_custom_args(pxFig, custom_call_args, step=len(marginal_vars) + 1)
+    handle_custom_args(px_fig, custom_call_args, step=len(marginal_vars) + 1)
 
-    plot = custom_call_args['callback'](pxFig)
+    plot = custom_call_args['callback'](px_fig)
 
-    dhFig = DeephavenFigure(plot, table, call_args=call_args, call=draw)
+    dh_fig = DeephavenFigure(plot, table, call_args=call_args, call=draw)
 
-    dhFig.add_data_mapping(extract_data_mapping(data_cols, marginal_vars))
+    dh_fig.add_data_mapping(extract_data_mapping(data_cols,
+                                                 marginal_vars,
+                                                 custom_call_args))
 
-    return dhFig
+    return dh_fig
 
 
 def merge_cols(args: list[str | list[str]]) -> list[str]:
@@ -438,7 +494,7 @@ def draw_ohlc(
         high: str,
         low: str,
         close: str
-):
+) -> Figure:
     """
     Create a plotly OHLC chart.
 

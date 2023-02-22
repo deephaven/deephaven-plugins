@@ -41,13 +41,20 @@ class ChartRegistration(Registration):
 
 #TODO: add column where entries can have specific colors, symbols, etc. directly assigned?
 
+#TODO: legend position gap smaller
 
+#todo: adjust x axis for title
 def scatter(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
+        error_x: str | list[str] = None,
+        error_x_minus: str | list[str] = None,
+        error_y: str | list[str] = None,
+        error_y_minus: str | list[str] = None,
         # labels: dict[str, str] = None
         color_discrete_sequence: list[str] = None,
+        # todo: in wide mode we should apply symbols to all columns
         symbol_sequence: list[str] = None,
         xaxis_sequence: list[str] = None,
         yaxis_sequence: list[str] = None,

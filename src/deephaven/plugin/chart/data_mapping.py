@@ -1,6 +1,18 @@
-import itertools
+from collections import defaultdict
+from itertools import cycle, zip_longest, product
 from collections.abc import Generator
 from typing import Iterable
+
+from .shared import combined_generator
+
+# need to override some args since they aren't named in the trace directly
+# based on the variable name
+OVERRIDES = {
+    "error_x": "error_x/array",
+    "error_x_minus": "error_x/arrayminus",
+    "error_y": "error_y/array",
+    "error_y_minus": "error_y/arrayminus",
+}
 
 
 def get_data_groups(
@@ -13,6 +25,7 @@ def get_data_groups(
     :return: An iterable containing tuples that contain all possible
     combinations of the values in the data_vals
     """
+
     data_groups = []
     for val in data_vals:
         if isinstance(val, str):
@@ -20,7 +33,7 @@ def get_data_groups(
         else:
             data_groups.append(val)
 
-    return itertools.product(*data_groups)
+    return product(*data_groups)
 
 
 def get_var_col_dicts(
@@ -105,6 +118,21 @@ def convert_to_json_links(
     :param var_col_dicts: A list of dictionaries to convert to json links
     :return: The generated dictionaries with json links
     """
+
+    """
+    this code fixes the issue where columns are overriden if associated with
+    with multiple columns but results in a list for every column
+    """
+    """
+    for i, var_col_dict in enumerate(var_col_dicts):
+        merged = defaultdict(list)
+        for k, v in zip(
+                var_col_dict.values(),
+                json_links(i, var_col_dict.keys())):
+            merged[k].append(v)
+
+        yield merged
+    """
     for i, var_col_dict in enumerate(var_col_dicts):
         yield dict(zip(
             var_col_dict.values(),
@@ -132,9 +160,49 @@ def add_marginals(
             }
 
 
+def error_bars_generator(
+        error_var: str,
+        error_cols: list[str]
+) -> Generator[tuple[str, str]]:
+    """
+    Generate data mappings for error bars.
+
+    :param error_var: The error arg to map to columns
+    :param error_cols: The columns to map to
+    :returns: Generates a tuple pair of (variable,
+    """
+    for error_col in cycle(error_cols):
+        yield OVERRIDES[error_var], error_col
+
+
+def add_error_bars(
+        var_col_dicts: Generator[dict[str, str]],
+        custom_call_args: dict[str, any] = None
+) -> Generator[dict[str, str]]:
+    """
+    Given the existing variable to column mappings, add error bars
+
+    :param var_col_dicts: Existing var to col map
+    :param custom_call_args: Arguments to check for any error bar-related vars
+    :returns: Generates new dictionary with var_col_dicts modified to have
+    error bars if needed
+    """
+    generators = []
+
+    for arg in OVERRIDES:
+        if arg in custom_call_args and (val := custom_call_args[arg]):
+            generators.append(error_bars_generator(arg, val))
+
+    update_generator = combined_generator(generators, fill={})
+
+    for var_col_dict, error_dict in zip(var_col_dicts, update_generator):
+        yield {**var_col_dict, **error_dict}
+
+
 def create_data_mapping(
         data_dict: dict[str, str | list[str]],
-        marginals: list[str]
+        marginals: list[str],
+        custom_call_args: dict[str, any] = None
 ) -> Generator[dict[str, str]]:
     """
     Create a data mapping of data columns to json links, attaching marginals
@@ -143,9 +211,14 @@ def create_data_mapping(
     :param data_dict: A dictionary containing (variable, column) maps that need
     to be converted to (column, json link) maps
     :param marginals: Any marginals to attach
+    :param custom_call_args: Extra args extracted from the call_args that require
+    special processing
     :return: Generated data mappings
     """
+
     var_col_dicts = get_var_col_dicts(data_dict)
+
+    var_col_dicts = add_error_bars(var_col_dicts, custom_call_args)
 
     var_col_dicts = add_marginals(var_col_dicts, marginals)
 
@@ -156,7 +229,8 @@ def create_data_mapping(
 
 def extract_data_mapping(
         data_dict: dict[str, str | list[str]],
-        marginals: list[str] = None
+        marginals: list[str] = None,
+        custom_call_args: dict[str, str | list[str]] = None
 ) -> list[dict[any]]:
     """
     Create a data mapping of table and cols to json link
@@ -178,7 +252,7 @@ def extract_data_mapping(
             "Col1": "/plotly/data/0/x",
             "Col2": "/plotly/data/0/y"
         },
-    }
+    },
     {
         "table": "ref",
         data_columns: {
@@ -190,8 +264,11 @@ def extract_data_mapping(
     and lists of strings used to compute a cartesian product of all possible
     value groups
     :param marginals: A list of any marginal vars to append
+    :param custom_call_args: Extra args extracted from the call_args that require
+    special processing
     :return: A list containing dicts that have a table to ref mapping as well
     as a mapping from originating column to plotly data location
     """
+
     return [{"table": "ref", "data_columns": col_dict} for col_dict in
-            create_data_mapping(data_dict, marginals)]
+            create_data_mapping(data_dict, marginals, custom_call_args)]
