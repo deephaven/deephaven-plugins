@@ -44,8 +44,6 @@ class ChartRegistration(Registration):
 
 # TODO: add column where entries can have specific colors, symbols, etc. directly assigned?
 
-# TODO: legend position gap smaller
-
 # todo: adjust x axis for title
 def scatter(
         table: Table = None,
@@ -82,6 +80,12 @@ def scatter_3d(
         x: str = None,
         y: str = None,
         z: str = None,
+        error_x: str | list[str] = None,
+        error_x_minus: str | list[str] = None,
+        error_y: str | list[str] = None,
+        error_y_minus: str | list[str] = None,
+        error_z: str | list[str] = None,
+        error_z_minus: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
         opacity: float = None,
@@ -136,11 +140,15 @@ def scatter_ternary(
     if isinstance(table, Table):
         return generate_figure(draw=px.scatter_ternary, call_args=locals())
 
-
+#TODO: support line_shape as a list?
 def line(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
+        error_x: str | list[str] = None,
+        error_x_minus: str | list[str] = None,
+        error_y: str | list[str] = None,
+        error_y_minus: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,  # only draws the first shape with wide data
         xaxis_sequence: list[str] = None,
@@ -165,6 +173,12 @@ def line_3d(
         x: str = None,
         y: str = None,
         z: str = None,
+        error_x: str | list[str] = None,
+        error_x_minus: str | list[str] = None,
+        error_y: str | list[str] = None,
+        error_y_minus: str | list[str] = None,
+        error_z: str | list[str] = None,
+        error_z_minus: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,  # only draws the first shape with wide data
         log_x: bool = False,
@@ -221,7 +235,6 @@ def line_ternary(
         return generate_figure(draw=px.line_ternary, call_args=locals())
 
 
-# todo: add yaxis and xaxis sequence?
 def area(
         table: Table = None,
         x: str | list[str] = None,

@@ -65,9 +65,7 @@ def get_var_col_dicts(
     :param data_dict: A dictionary contain var to column or column list mappings
     :return: Generated var to column mappings
     """
-    data_groups = get_data_groups(data_dict.values())
-
-    for data_group in data_groups:
+    for data_group in get_data_groups(data_dict.values()):
         yield dict(zip(data_dict.keys(), data_group))
 
 
@@ -130,6 +128,19 @@ def add_error_bars(
         yield {**var_col_dict, **error_dict}
 
 
+def filter_none(
+        var_col_dicts: Generator[dict[str, str]]
+) -> Generator[dict[str, str]]:
+    """
+    Filters key, value pais that have None values from the dictionaries.
+
+    :param var_col_dicts: The dictionaries to filter
+    :returns: A generator that yields the filtered dicts
+    """
+    for var_col_dict in var_col_dicts:
+        yield {k: v for k, v in var_col_dict.items() if v is not None}
+
+
 def create_data_mapping(
         data_dict: dict[str, str | list[str]],
         marginals: list[str],
@@ -146,7 +157,10 @@ def create_data_mapping(
     :param marginals: Any marginals to attach
     :param custom_call_args: Extra args extracted from the call_args that require
     special processing
-    :return: A list of data mappings
+    :param table: The table that contains the data
+    :param start_index: what index (of the corresponding traces) that this
+    mapping starts with
+    :return: A DataMapping for a specific table
     """
 
     var_col_dicts = get_var_col_dicts(data_dict)
@@ -154,6 +168,8 @@ def create_data_mapping(
     var_col_dicts = add_error_bars(var_col_dicts, custom_call_args)
 
     var_col_dicts = add_marginals(var_col_dicts, marginals)
+
+    var_col_dicts = filter_none(var_col_dicts)
 
     return DataMapping(
         table,

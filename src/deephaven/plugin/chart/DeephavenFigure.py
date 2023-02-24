@@ -33,7 +33,6 @@ class DeephavenFigure:
     #    self.fig.add_traces(data)
 
     def get_json_links(self, exporter):
-        #TODO FRIDAY need to keep track of index
         return [links for mapping in self._data_mappings
                 for links in mapping.get_links(exporter)]
 

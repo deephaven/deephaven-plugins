@@ -1,3 +1,4 @@
+from collections import defaultdict
 from itertools import count
 from collections.abc import Generator, Iterable
 
@@ -52,11 +53,6 @@ def convert_to_json_links(
     :return: The generated dictionaries with json links
     """
 
-    """
-    this code fixes the issue where columns are overriden if associated with
-    with multiple columns but results in a list for every column
-    """
-    """
     for i, var_col_dict in enumerate(var_col_dicts):
         merged = defaultdict(list)
         for k, v in zip(
@@ -71,6 +67,7 @@ def convert_to_json_links(
             var_col_dict.values(),
             json_links(i, var_col_dict.keys())
         ))
+    """
 
 def json_link_mapping(
         var_col_dicts: list[dict[str, str]],

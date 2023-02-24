@@ -46,9 +46,13 @@ MARGINAL_ARGS = {
 }
 
 # these are a type of custom args (see CUSTOM_ARGS)
-SEQUENCE_ARGS = {
+AXIS_SEQUENCE_ARGS = {
     "xaxis_sequence",
     "yaxis_sequence"
+}
+
+SEQUENCE_ARGS = {
+    ""
 }
 
 # any custom args should be specified here to prevent them from being passed
@@ -58,7 +62,7 @@ SEQUENCE_ARGS = {
 CUSTOM_ARGS = {
     "callback",
 }
-CUSTOM_ARGS.update(SEQUENCE_ARGS)
+CUSTOM_ARGS.update(AXIS_SEQUENCE_ARGS)
 
 ERROR_UPDATE_MAP = {
     "error_x": "error_x_array",
@@ -409,7 +413,7 @@ def handle_custom_args(
     generators = []
 
     for arg, val in custom_call_args.items():
-        if arg in SEQUENCE_ARGS:
+        if arg in AXIS_SEQUENCE_ARGS:
             is_x = arg == "xaxis_sequence"
 
             if val:
