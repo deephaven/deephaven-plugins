@@ -40,20 +40,6 @@ Dependent on facet_row
 ### facet_col_spacing
 Dependent on facet_col
 
-### error_x
-Possible, but px doesn't fully support on wide data.
-All figure objects are given the same data.
-Maybe a list of columns would work?
-
-### error_x_minus
-see error_x
-
-### error_y
-see error_x
-
-### error_y_minus
-see error_x
-
 ### animation_frame
 Need improvements to plugin architecture to update charts.
 New frames cannot be added.

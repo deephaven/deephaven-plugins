@@ -1,4 +1,4 @@
-from itertools import zip_longest, cycle
+from itertools import cycle
 from collections.abc import Generator
 from math import floor, ceil
 from typing import Callable
@@ -11,8 +11,8 @@ from deephaven import pandas as dhpd
 from deephaven.table import Table
 from deephaven import empty_table
 
-from .deephaven_figure import DeephavenFigure
-from .data_mapping import extract_data_mapping
+from .DeephavenFigure import DeephavenFigure
+from .data_mapping import create_data_mapping
 from .shared import combined_generator
 
 # TODO: this is not comprehensive
@@ -431,6 +431,7 @@ def handle_custom_args(
 def generate_figure(
         draw: Callable,
         call_args: dict[str, any],
+        start_index: int = 0
 ) -> DeephavenFigure:
     """
     Generate a figure using a plotly express function as well as any args that
@@ -439,6 +440,9 @@ def generate_figure(
     :param draw: The plotly express function to use to generate the figure
     :param call_args: Call arguments to use, either passing to plotly express
     or handled separately
+    :param start_index: Optional argument. Only needed if there are existing
+    traces that this figure is being added to. In that case, the data mapping
+    needs to start at the end of the existing traces.
     :return: a Deephaven figure
     """
     table = call_args.pop("table")
@@ -454,7 +458,7 @@ def generate_figure(
 
     px_fig = draw(data_frame=data_frame, **call_args)
 
-    # get the marginals here as the length is needed so that axis arguments
+    # get the marginals here as the length is needed so that some arguments
     # are not applied to the marginals
     marginal_vars = get_marginals(call_args)
 
@@ -462,11 +466,21 @@ def generate_figure(
 
     plot = custom_call_args['callback'](px_fig)
 
-    dh_fig = DeephavenFigure(plot, table, call_args=call_args, call=draw)
+    data_mapping = create_data_mapping(
+        data_cols,
+        marginal_vars,
+        custom_call_args,
+        table,
+        start_index
+    )
 
-    dh_fig.add_data_mapping(extract_data_mapping(data_cols,
-                                                 marginal_vars,
-                                                 custom_call_args))
+    dh_fig = DeephavenFigure(
+        plot,
+        table,
+        call_args=call_args,
+        call=draw,
+        data_mappings=[data_mapping]
+    )
 
     return dh_fig
 
@@ -501,7 +515,6 @@ def draw_ohlc(
     :param data_frame: The data frame to draw with
     :param x: The name of the column containing x-axis values
     :param open_: The name of the column containing open values
-    :param high: The name of the column containing high values
     :param low: The name of the column containing low values
     :param close: The name of the column containing close values
     :return:

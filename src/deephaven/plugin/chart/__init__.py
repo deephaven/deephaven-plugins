@@ -1,17 +1,20 @@
+from copy import copy
 from typing import Callable
 
 import plotly.express as px
+from plotly.graph_objects import Figure
 
 from deephaven.plugin import Registration
 from deephaven.plugin.object import Exporter, ObjectType
 from deephaven.table import Table
 
 from .generate import generate_figure, draw_ohlc
-from .deephaven_figure import DeephavenFigure
+from .DeephavenFigure import DeephavenFigure
 
 __version__ = "0.0.1.dev0"
 
 NAME = "deephaven.plugin.chart.DeephavenFigure"
+
 
 def default_callback(fig):
     return fig
@@ -39,11 +42,11 @@ class ChartRegistration(Registration):
         callback.register(DeephavenFigureType)
 
 
-#TODO: add column where entries can have specific colors, symbols, etc. directly assigned?
+# TODO: add column where entries can have specific colors, symbols, etc. directly assigned?
 
-#TODO: legend position gap smaller
+# TODO: legend position gap smaller
 
-#todo: adjust x axis for title
+# todo: adjust x axis for title
 def scatter(
         table: Table = None,
         x: str | list[str] = None,
@@ -216,6 +219,7 @@ def line_ternary(
 ) -> DeephavenFigure:
     if isinstance(table, Table):
         return generate_figure(draw=px.line_ternary, call_args=locals())
+
 
 # todo: add yaxis and xaxis sequence?
 def area(
@@ -393,6 +397,7 @@ def histogram(
     if isinstance(table, Table):
         return generate_figure(draw=px.histogram, call_args=locals())
 
+
 def pie(
         table: Table = None,
         names: str = None,
@@ -403,6 +408,7 @@ def pie(
 ):
     if isinstance(table, Table):
         return generate_figure(draw=px.pie, call_args=locals())
+
 
 def treemap(
         table: Table = None,
@@ -444,3 +450,39 @@ def ohlc(
         call_args["x"] = call_args.pop("date")
 
         return generate_figure(draw=draw_ohlc, call_args=call_args)
+
+
+def layer(*args, callback=default_callback):
+    # should take plotly or deephaven fig
+    # plotly fig will
+    # compose figures
+    if len(args) == 0:
+        raise TypeError("No figures provided to compose")
+
+    new_data = []
+    new_layout = {}
+    new_data_mappings = []
+
+    for arg in args:
+
+        #todo: throw error
+
+        if isinstance(arg, Figure):
+            new_data += arg.data
+            new_layout.update(arg.to_dict()['layout'])
+
+        elif isinstance(arg, DeephavenFigure):
+            fig = arg.fig
+            # the next data mapping should start after all the existing traces
+            offset = len(new_data)
+            new_data += fig.data
+            new_layout.update(fig.to_dict()['layout'])
+            new_data_mappings += [mapping.copy(offset)
+                                  for mapping in arg._data_mappings]
+
+    new_fig = Figure(data=new_data, layout=new_layout)
+
+    new_fig = callback(new_fig)
+
+    #todo this doesn't maintain call args, but that isn't currently needed
+    return DeephavenFigure(fig=new_fig, data_mappings=new_data_mappings)

@@ -3,5 +3,5 @@ def combined_generator(generators, fill=None):
         while True:
             yield dict(next(zip(*generators)))
     except StopIteration:
-        while fill:
+        while fill is not None:
             yield fill
