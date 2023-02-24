@@ -51,8 +51,10 @@ AXIS_SEQUENCE_ARGS = {
     "yaxis_sequence"
 }
 
+# these need to be applied to all in wide mode
 SEQUENCE_ARGS = {
-    ""
+    "symbol_sequence",
+    "pattern_shape_sequence"
 }
 
 # any custom args should be specified here to prevent them from being passed
@@ -62,7 +64,7 @@ SEQUENCE_ARGS = {
 CUSTOM_ARGS = {
     "callback",
 }
-CUSTOM_ARGS.update(AXIS_SEQUENCE_ARGS)
+CUSTOM_ARGS.update(AXIS_SEQUENCE_ARGS, SEQUENCE_ARGS)
 
 ERROR_UPDATE_MAP = {
     "error_x": "error_x_array",
@@ -72,6 +74,10 @@ ERROR_UPDATE_MAP = {
     "error_z": "error_z_array",
     "error_z_minus": "error_z_arrayminus"
 }
+
+WIDE = "wide"
+
+
 
 
 def col_null_mapping(
@@ -155,7 +161,6 @@ def split_args(
     in data_map_args
     """
 
-    # todo: instead of creating all these args, just create a new set that needs to be used in plotly express
     # and use the existing ones as custom
     new_call_args = {}
     custom_call_args = {}
@@ -171,6 +176,7 @@ def split_args(
             # adding to figure or generating data object
             if val:
                 custom_call_args[arg] = val if isinstance(val, list) else [val]
+        #elif arg in
         else:
             new_call_args[arg] = val
 
@@ -431,6 +437,10 @@ def handle_custom_args(
 
     update_traces(fig, combined_generator(generators), step)
 
+# need to track what mode we are in - currently we only support wide mode
+# adding colors, facets, etc. complicates this
+def get_mode():
+    return WIDE
 
 def generate_figure(
         draw: Callable,

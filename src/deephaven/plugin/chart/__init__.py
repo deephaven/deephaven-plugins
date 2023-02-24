@@ -254,6 +254,7 @@ def area(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
+        #TODO: make scatterlgl? no px arg
         return generate_figure(draw=px.area, call_args=locals())
 
 
@@ -475,6 +476,7 @@ def layer(*args, callback=default_callback):
     new_data = []
     new_layout = {}
     new_data_mappings = []
+    new_template = None
 
     for arg in args:
 
@@ -492,10 +494,11 @@ def layer(*args, callback=default_callback):
             new_layout.update(fig.to_dict()['layout'])
             new_data_mappings += [mapping.copy(offset)
                                   for mapping in arg._data_mappings]
+            new_template = arg.template if arg.template else new_template
 
     new_fig = Figure(data=new_data, layout=new_layout)
 
     new_fig = callback(new_fig)
 
     #todo this doesn't maintain call args, but that isn't currently needed
-    return DeephavenFigure(fig=new_fig, data_mappings=new_data_mappings)
+    return DeephavenFigure(fig=new_fig, data_mappings=new_data_mappings, template=new_template)

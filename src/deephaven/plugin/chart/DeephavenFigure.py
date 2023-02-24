@@ -17,17 +17,20 @@ class DeephavenFigure:
             table: Table = None,
             call: Callable = None,
             call_args: dict[any] = None,
-            data_mappings: list[DataMapping] = None
+            data_mappings: list[DataMapping] = None,
+            template: str = None
     ):
         # keep track of function that called this and it's args
         self.fig = fig
         self.call = call
         self.call_args = call_args
 
+        self.template = template if template else call_args["template"]
+
         self._data_mappings = data_mappings if data_mappings else []
 
-    #def add_data_mapping(self, new: DataMapping) -> None:
-        #self._data_mappings.append(new)
+    # def add_data_mapping(self, new: DataMapping) -> None:
+    # self._data_mappings.append(new)
 
     # def add_traces(self, data: dict[any]) -> None:
     #    self.fig.add_traces(data)
@@ -38,7 +41,8 @@ class DeephavenFigure:
 
     def to_json(self, exporter) -> str:
         figure_json = f'"plotly": {self.fig.to_json()}'
-        dh_json = f'"deephaven": {json.dumps(self.get_json_links(exporter))}'
+        mapping_json = f'"mappings": {json.dumps(self.get_json_links(exporter))}'
+        template_json = f', "template": {json.dumps(self.template)}' if self.template else ''
+        dh_json = '"deephaven": {' + mapping_json + template_json + '}'
         # todo: figure out f string - the curly brackets make it tricky
-        dh_figure_json = '{' + figure_json + ', ' + dh_json + '}'
-        return dh_figure_json
+        return '{' + figure_json + ', ' + dh_json + '}'
