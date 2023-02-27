@@ -44,7 +44,12 @@ class ChartRegistration(Registration):
 
 # TODO: add column where entries can have specific colors, symbols, etc. directly assigned?
 
-# todo: adjust x axis for title
+# todo MONDAY: adjust x axis for title
+#  apply symbols, patterns, etc to all columns in wide mode
+#  add list support for axis range and log
+
+
+
 def scatter(
         table: Table = None,
         x: str | list[str] = None,
@@ -59,6 +64,8 @@ def scatter(
         symbol_sequence: list[str] = None,
         xaxis_sequence: list[str] = None,
         yaxis_sequence: list[str] = None,
+        yaxis_title_sequence = None,
+        xaxis_title_sequence = None,
         opacity: float = None,
         # marginal_x: str = None, #not supported at the moment, will probably be slow
         # marginal_y: str = None, #with lots of data
@@ -255,10 +262,12 @@ def area(
 ) -> DeephavenFigure:
     if isinstance(table, Table):
         #TODO: make scatterlgl? no px arg
+        # TODO: stack group 'one' if stacked
+
         return generate_figure(draw=px.area, call_args=locals())
 
 
-def bar(
+def _bar(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
@@ -279,7 +288,7 @@ def bar(
         return generate_figure(draw=px.bar, call_args=locals())
 
 
-def bar_polar(
+def _bar_polar(
         table: Table = None,
         r: str = None,
         theta: str = None,
@@ -301,7 +310,7 @@ def bar_polar(
         return generate_figure(draw=px.bar_polar, call_args=locals())
 
 
-def violin(
+def _violin(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
@@ -321,7 +330,7 @@ def violin(
         return generate_figure(draw=px.violin, call_args=locals())
 
 
-def box(
+def _box(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
@@ -341,7 +350,7 @@ def box(
         return generate_figure(draw=px.box, call_args=locals())
 
 
-def ecdf(
+def _ecdf(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
@@ -366,7 +375,7 @@ def ecdf(
         return generate_figure(draw=px.ecdf, call_args=locals())
 
 
-def strip(
+def _strip(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
@@ -386,7 +395,7 @@ def strip(
 
 # todo: figure out buckets
 # will need a new table for data
-def histogram(
+def _histogram(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
@@ -412,7 +421,7 @@ def histogram(
         return generate_figure(draw=px.histogram, call_args=locals())
 
 
-def pie(
+def _pie(
         table: Table = None,
         names: str = None,
         values: str = None,
@@ -424,13 +433,13 @@ def pie(
         return generate_figure(draw=px.pie, call_args=locals())
 
 
-def treemap(
+def _treemap(
         table: Table = None,
 ):
     pass
 
 
-def funnel(
+def _funnel(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
@@ -447,7 +456,7 @@ def funnel(
     if isinstance(table, Table):
         return generate_figure(draw=px.bar, call_args=locals())
 
-
+#TODO: support str or list of str
 def ohlc(
         table: Table = None,
         date: str = None,
@@ -502,3 +511,6 @@ def layer(*args, callback=default_callback):
 
     #todo this doesn't maintain call args, but that isn't currently needed
     return DeephavenFigure(fig=new_fig, data_mappings=new_data_mappings, template=new_template)
+
+def make_subplots(rows=1, cols=2):
+    pass

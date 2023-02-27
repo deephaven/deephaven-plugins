@@ -62,9 +62,6 @@ see color_continuous_scale
 ### color_continuous_midpoint
 see color_continuous_scale
 
-### symbol_sequence
-Doable, but not useful without symbol
-
 ### symbol_map
 see symbol_sequence
 
