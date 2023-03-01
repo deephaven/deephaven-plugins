@@ -42,7 +42,7 @@ class DeephavenFigure:
     def to_json(self, exporter) -> str:
         figure_json = f'"plotly": {self.fig.to_json()}'
         mapping_json = f'"mappings": {json.dumps(self.get_json_links(exporter))}'
-        template_json = f', "template": {json.dumps(self.template)}' if self.template else ''
+        template_json = f', "is_user_set_template": {"true" if self.template else "false"}'
         dh_json = '"deephaven": {' + mapping_json + template_json + '}'
         # todo: figure out f string - the curly brackets make it tricky
         return '{' + figure_json + ', ' + dh_json + '}'
