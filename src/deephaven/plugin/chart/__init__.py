@@ -49,7 +49,6 @@ class ChartRegistration(Registration):
 #  add list support for axis range and log
 
 
-
 def scatter(
         table: Table = None,
         x: str | list[str] = None,
@@ -64,8 +63,8 @@ def scatter(
         symbol_sequence: list[str] = None,
         xaxis_sequence: list[str] = None,
         yaxis_sequence: list[str] = None,
-        yaxis_title_sequence = None,
-        xaxis_title_sequence = None,
+        yaxis_title_sequence: list[str] = None,
+        xaxis_title_sequence: list[str] = None,
         opacity: float = None,
         # marginal_x: str = None, #not supported at the moment, will probably be slow
         # marginal_y: str = None, #with lots of data
@@ -147,7 +146,8 @@ def scatter_ternary(
     if isinstance(table, Table):
         return generate_figure(draw=px.scatter_ternary, call_args=locals())
 
-#TODO: support line_shape as a list?
+
+# TODO: support line_shape as a list?
 def line(
         table: Table = None,
         x: str | list[str] = None,
@@ -160,6 +160,8 @@ def line(
         symbol_sequence: list[str] = None,  # only draws the first shape with wide data
         xaxis_sequence: list[str] = None,
         yaxis_sequence: list[str] = None,
+        yaxis_title_sequence: list[str] = None,
+        xaxis_title_sequence: list[str] = None,
         markers: bool = False,
         log_x: bool = False,
         log_y: bool = False,
@@ -261,7 +263,7 @@ def area(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        #TODO: make scatterlgl? no px arg
+        # TODO: make scatterlgl? no px arg
         # TODO: stack group 'one' if stacked
 
         return generate_figure(draw=px.area, call_args=locals())
@@ -456,7 +458,8 @@ def _funnel(
     if isinstance(table, Table):
         return generate_figure(draw=px.bar, call_args=locals())
 
-#TODO: support str or list of str
+
+# TODO: support str or list of str
 def ohlc(
         table: Table = None,
         date: str = None,
@@ -489,7 +492,7 @@ def layer(*args, callback=default_callback):
 
     for arg in args:
 
-        #todo: throw error
+        # todo: throw error
 
         if isinstance(arg, Figure):
             new_data += arg.data
@@ -509,8 +512,9 @@ def layer(*args, callback=default_callback):
 
     new_fig = callback(new_fig)
 
-    #todo this doesn't maintain call args, but that isn't currently needed
+    # todo this doesn't maintain call args, but that isn't currently needed
     return DeephavenFigure(fig=new_fig, data_mappings=new_data_mappings, template=new_template)
 
-def make_subplots(rows=1, cols=2):
+
+def make_subplots(rows=1, cols=1):
     pass

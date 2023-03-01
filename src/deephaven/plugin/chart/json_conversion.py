@@ -53,7 +53,7 @@ def convert_to_json_links(
     :return: The generated dictionaries with json links
     """
 
-    for i, var_col_dict in enumerate(var_col_dicts):
+    for i, var_col_dict in zip(count(start_index), var_col_dicts):
         merged = defaultdict(list)
         for k, v in zip(
                 var_col_dict.values(),
@@ -61,13 +61,7 @@ def convert_to_json_links(
             merged[k].append(v)
 
         yield merged
-    """
-    for i, var_col_dict in zip(count(start_index), var_col_dicts):
-        yield dict(zip(
-            var_col_dict.values(),
-            json_links(i, var_col_dict.keys())
-        ))
-    """
+
 
 def json_link_mapping(
         var_col_dicts: list[dict[str, str]],
@@ -109,6 +103,5 @@ def json_link_mapping(
     :return: A list containing dicts that have a table to ref mapping as well
     as a mapping from originating column to plotly data location
     """
-
     return [{"table": table_index, "data_columns": json_link_dict} for json_link_dict in
             convert_to_json_links(var_col_dicts, start_index)]

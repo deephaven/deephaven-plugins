@@ -16,7 +16,7 @@ from .data_mapping import create_data_mapping
 from .shared import combined_generator
 
 # TODO: this is not comprehensive
-#TODO: refactor args a bit so less/no redundancy
+# TODO: refactor args a bit so less/no redundancy
 TYPE_NULL_MAPPING = {
     "int": "NULL_INT",
     "double": "NULL_DOUBLE",
@@ -221,31 +221,13 @@ def split_args(
     return new_call_args, custom_call_args
 
 
-def new_x_axis_obj(
-        num: int,
-        bottom: bool,
-        domain: list[float],
-        position: float
-):
+def base_x_axis_generator() -> Generator[dict]:
     """
-    Return a new x-axis object, to be added to a figure layout
+    Generates a dict to update anchor, overlaying, side, and a default title
+    for the x axis
 
-    :param num: The axis to create
-    :param bottom: Where we are adding a new axis to the bottom or not
-    :param domain: The domain this axis should span
-    :param position: Where to position the axis (if free)
-    :return: The new axis object
+    :returns: Generated dict
     """
-    return {f"xaxis{num}": {
-        "anchor": "free" if num >= 2 else "y",
-        "overlaying": "x",
-        "side": "bottom" if bottom else "top",
-        "domain": domain,
-        "position": position,
-        "title": {"text": f"X Values {num}"}
-    }}
-
-def base_x_axis_generator():
     bottom = True
     for num in count(start=1):
         yield {
@@ -256,7 +238,14 @@ def base_x_axis_generator():
         }
         bottom = not bottom
 
-def base_y_axis_generator():
+
+def base_y_axis_generator() -> Generator[dict]:
+    """
+    Generates a dict to update anchor, overlaying, side, and a default title
+    for the y axis
+
+    :returns: Generated dict
+    """
     left = True
     for num in count(start=1):
         yield {
@@ -267,43 +256,27 @@ def base_y_axis_generator():
         }
         left = not left
 
-def key_val_generator( # this can handle log, range, title, domain (once calculated)
-        key, vals
-):
+
+def key_val_generator(  # this can handle log, range, title, domain (once calculated)
+        key: str,
+        vals: list[any]
+) -> Generator[str, any]:
+    """
+    A simple generator that loops over the provided vals and returns key, value
+    for updates
+
+    :param key: The key to update
+    :param vals: A list to return as a value pair
+    :returns: Generates a tuple of (key, specific value in vals)
+    """
     for val in cycle(vals):
         yield key, val
 
 
-
-def new_y_axis_obj(
-        num: int,
-        left: bool,
-        domain: list[float],
-        position: float
-):
-    """
-    Return a new y-axis object, to be added to a figure layout
-
-    :param num: The axis to create
-    :param left: Where we are adding a new axis to the left side or not
-    :param domain: The domain this axis should span
-    :param position: Where to position the axis (if free)
-    :return: The new axis object
-    """
-    return {f"yaxis{num}": {
-        "anchor": "free" if num >= 2 else "x",
-        "overlaying": "y",
-        "side": "left" if left else "right",
-        "domain": domain,
-        "position": position,
-        "title": {"text": f"Y Values {num}"}
-    }}
-
-
 def new_axis_generator(
-        is_x,
+        is_x: bool,
         new_axes: list[int],
-):
+) -> Generator[tuple[str, str]]:
     """
     Create a dictionary used to modify the axis for a trace.
 
@@ -356,40 +329,15 @@ def update_traces(
             selector=trace_index)
 
 
-def calculate_position(
-        other_domain: list[float],
-        num: int
-) -> float:
+def position_generator(
+        other_domain: list[float]
+) -> Generator[str, float]:
     """
     Calculate the position of this axis. Uses the domain of the other variable
     (x with y or y with x) since the position is relative to that domain.
 
     :param other_domain: The domain of the other dimension
-    :param num: The number the axis is. Will be odd if on left/bottom, right
-    if on right/top
-    :return: The position the axis is at
-    """
-    # increment each axis 0.05 further from the initial axis
-    offset = ceil(max(0, (num - 2)) / 2) / 10
-
-    # if odd, adding to left/bottom
-    # position is calculated on other domain since the other domain is
-    # shrunk when an axis are added on this dimension
-    if num % 2 == 1:
-        position = other_domain[0] - offset
-    else:
-        position = other_domain[1] + offset
-    return position
-
-def position_generator(other_domain):
-    """
-    Calculate the position of this axis. Uses the domain of the other variable
-    (x with y or y with x) since the position is relative to that domain.
-
-    :param other_domain: The domain of the other dimension
-    :param num: The number the axis is. Will be odd if on left/bottom, right
-    if on right/top
-    :return: The position the axis is at
+    :return: Generates the position the axis is at
     """
     for num in count(start=1):
         # increment each axis 0.05 further from the initial axis
@@ -406,73 +354,29 @@ def position_generator(other_domain):
         yield "position", position
 
 
-def update_layout_axes(
-        fig: Figure,
-        axes: list[int],
-        is_x: bool,
-        x_domain: list[float],
-        y_domain: list[float]
-
-) -> None:
-    """
-    Update existing axis and add any new axes to layout if needed.
-
-    :param fig: The Plotly figure to modify
-    :param axes: A list of axes to be applied, in order.
-    :param is_x: Whether we are adjusting the x axes or not
-    :param x_domain: The domain of all x axes
-    :param y_domain: The domain of all y-axes
-    """
-
-    if is_x:
-        new_axis_obj = new_x_axis_obj
-        this_domain = x_domain
-        other_domain = y_domain
-        update = {"xaxis_domain": x_domain,
-                  "xaxis_position": y_domain[0]}
-    else:
-        new_axis_obj = new_y_axis_obj
-        this_domain = y_domain
-        other_domain = x_domain
-        update = {"yaxis_domain": y_domain,
-                  "yaxis_position": x_domain[0]}
-
-    # update the initial axis with domain and position as it already exists
-    fig.update_layout(update)
-
-    # skip the first axis as that's done
-    for num in range(2, max(axes) + 1):
-        position = calculate_position(other_domain, num)
-
-        fig.update_layout(
-            new_axis_obj(num,
-                         num % 2 == 1,
-                         this_domain,
-                         position)
-        )
-
-
 def calculate_domain(
-        count: int,
+        other_total: int,
         is_x: bool
 ) -> list[float, float]:
     """
     Calculate a domain for an axis, based on the count of axes in the other
     dimension and whether we're calculating the domain for an x-axis or not.
 
-    :param count: The number of axis that exist in the other dimension
+    :param other_total: The number of axis that exist in the other dimension
     :param is_x: If True, take into account the legend
     :return: The domain
-
     """
     # if calculating domain for x-axis, need to take into account legend
-    offset = 0.01 if is_x and count >= 2 else 0
-    start = floor((count - 1) / 2) / 10
-    end = 1 - offset - (floor(count / 2) / 10)
+    offset = 0.01 if is_x and other_total >= 2 else 0
+    start = floor((other_total - 1) / 2) / 10
+    end = 1 - offset - (floor(other_total / 2) / 10)
     return [start, end]
 
 
-def get_domain(axes, is_x):
+def get_domain(
+        axes: list[int],
+        is_x: bool
+) -> list[float, float]:
     """
     Get a domain from a list of axes and whether this is the x-axis or not
 
@@ -484,39 +388,71 @@ def get_domain(axes, is_x):
         return [0, 1]
     return calculate_domain(max(axes), is_x)
 
+
 def sequence_generator(
         arg: str,
         ls: list[str]
-):
+) -> Generator[tuple[str, str]]:
+    """
+    Loops over the provided list to update the argument provided
+
+    :param arg: The arg to update
+    :param ls: The list of values to use
+    """
     for val in cycle(ls):
         yield SEQUENCE_ARGS[arg], val
 
+
 def log_generator(
-        vals
-):
-    for val in cycle(vals):
+        is_log: list[bool]
+) -> Generator[dict | tuple[str, str]]:
+    """
+    Given a boolean list, cycle through it. If the list value is True, convert
+    that axis to a log. Otherwise, do nothing.
+
+    :param is_log: The list of booleans to loop over
+    :returns: Generates either a tuple ("type", "log") or an empty dictionary
+    """
+    for val in cycle(is_log):
         if val:
             yield "type", "log"
         else:
             yield {}
 
-"""
-def key_val_generator( # this can handle log, range, title, domain (once calculated)
-        key, vals
-):
-    if not isinstance(vals, list):
-        vals = list[vals]
-    for val in cycle(vals):
-        yield key, val
-"""
+
+def title_generator(
+        titles: list[str]
+) -> Generator[str]:
+    """
+    Generate changes to a layout's titles. This will not loop, so if the length
+    of the title list is shorter than the number of axes the axes will keep the
+    default title.
+
+    :param titles: The titles to use
+    :returns: Generates the titles
+    """
+    for title in titles:
+        yield {"title": {"text": title}}
+
+    while True:
+        yield {}
+
 
 def update_layout_axis(
-    fig,
-    axis,
-    generator,
-    last
-):
-    for num in range(1, last):
+        fig: Figure,
+        axis: str,
+        generator: Generator[dict],
+        last: int
+) -> None:
+    """
+    Loop through the generator to update all axis of the specified type.
+
+    :param fig: The figure to update
+    :param axis: The axis (yaxis or xaxis) to update
+    :param generator: The generator to use for updates
+    :param last: The last index to update
+    """
+    for num in range(1, last + 1):
         num = "" if num == 1 else num
         update = {f"{axis}{num}": next(generator)}
         fig.update_layout(update)
@@ -526,7 +462,7 @@ def handle_custom_args(
         fig: Figure,
         custom_call_args: dict[str, any],
         step: int = 1
-):
+) -> None:
     """
     Modify plotly traces with the specified custom arguments.
 
@@ -544,8 +480,8 @@ def handle_custom_args(
     # gather up generators to update traces and axes all at once
     trace_generators = []
 
-    x_axis_generators = [base_x_axis_generator(), key_val_generator("domain", [x_domain])]
-    y_axis_generators = [base_y_axis_generator(), key_val_generator("domain", [y_domain])]
+    x_axis_generators = [base_x_axis_generator()]
+    y_axis_generators = [base_y_axis_generator()]
 
     # set last axis to zero so no changes are made unless an axis sequence is specified
     # this ensures nothing will be done if dealing with a chart type that doesn't support axis
@@ -553,37 +489,48 @@ def handle_custom_args(
     last_y_axis = 0
 
     for arg, val in custom_call_args.items():
-        if arg in AXIS_SEQUENCE_ARGS and val:
-            is_x = arg == "xaxis_sequence"
+        if val:
+            if arg in AXIS_SEQUENCE_ARGS:
+                is_x = arg == "xaxis_sequence"
 
-            trace_generators.append(new_axis_generator(is_x, val))
+                trace_generators.append(new_axis_generator(is_x, val))
 
-            if is_x:
-                x_axis_generators.append(position_generator(y_domain))
-                # add one to last index as axes are 1-indexed
-                last_x_axis = max(val) + 1
-            else:
-                y_axis_generators.append(position_generator(x_domain))
-                last_y_axis = max(val) + 1
+                if is_x:
+                    x_axis_generators.append(position_generator(y_domain))
+                    # add one to last index as axes are 1-indexed
+                    last_x_axis = max(val)
+                    # need to make sure the other domain is updated
+                    last_y_axis = max(1, last_y_axis)
+                    y_axis_generators.append(key_val_generator("domain", [y_domain]))
+                else:
+                    y_axis_generators.append(position_generator(x_domain))
+                    last_y_axis = max(val)
+                    last_x_axis = max(1, last_x_axis)
+                    x_axis_generators.append(key_val_generator("domain", [x_domain]))
 
-        elif arg in ERROR_ARGS and val:
-            trace_generators.append(new_error_generator(arg, val))
+            elif arg in ERROR_ARGS:
+                trace_generators.append(new_error_generator(arg, val))
 
-        elif arg in SEQUENCE_ARGS and val:
-            trace_generators.append(sequence_generator(arg, val))
+            elif arg in SEQUENCE_ARGS:
+                trace_generators.append(sequence_generator(arg, val))
 
-        elif arg == "log_x" and val:
-            x_axis_generators.append(log_generator(val))
+            elif arg == "log_x":
+                x_axis_generators.append(log_generator(val))
 
-        elif arg == "log_y" and val:
-            y_axis_generators.append(log_generator(val))
+            elif arg == "log_y":
+                y_axis_generators.append(log_generator(val))
 
-        elif arg == "range_x" and val:
-            x_axis_generators.append(key_val_generator("range", val))
+            elif arg == "range_x":
+                x_axis_generators.append(key_val_generator("range", val))
 
-        elif arg == "range_y" and val:
-            y_axis_generators.append(key_val_generator("range", val))
+            elif arg == "range_y":
+                y_axis_generators.append(key_val_generator("range", val))
 
+            elif arg == "xaxis_title_sequence":
+                x_axis_generators.append(title_generator(val))
+
+            elif arg == "yaxis_title_sequence":
+                y_axis_generators.append(title_generator(val))
 
     update_traces(fig, combined_generator(trace_generators), step)
 
@@ -599,8 +546,14 @@ def handle_custom_args(
 
 # need to track what mode we are in - currently we only support wide mode
 # adding colors, facets, etc. complicates this
-def get_mode():
+def get_mode() -> str:
+    """
+    Get the mode. Currently, always wide
+
+    :return:
+    """
     return WIDE
+
 
 def generate_figure(
         draw: Callable,
@@ -659,7 +612,9 @@ def generate_figure(
     return dh_fig
 
 
-def merge_cols(args: list[str | list[str]]) -> list[str]:
+def merge_cols(
+        args: list[str | list[str]]
+) -> list[str]:
     """
     Merge the strings or list of strings passed into one list.
 
@@ -689,6 +644,7 @@ def draw_ohlc(
     :param data_frame: The data frame to draw with
     :param x: The name of the column containing x-axis values
     :param open_: The name of the column containing open values
+    :param high: The name of the column containing high values
     :param low: The name of the column containing low values
     :param close: The name of the column containing close values
     :return:
