@@ -36,7 +36,8 @@ DATA_ARGS = {
     "x", "y", "z",
     "r", "theta",
     "a", "b", "c",
-    "open", "high", "low", "close"
+    "open", "high", "low", "close",
+    "names", "values"
 }
 
 # these args map a marginal argument to what variable the data should be

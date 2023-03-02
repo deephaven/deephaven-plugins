@@ -13,6 +13,11 @@ from .DeephavenFigure import DeephavenFigure
 
 __version__ = "0.0.1.dev0"
 
+from .preprocess import preprocess_pie, calc_hist
+
+from deephaven import new_table
+from deephaven.column import int_col
+
 NAME = "deephaven.plugin.chart.DeephavenFigure"
 
 
@@ -280,7 +285,6 @@ def _bar(
         log_y: bool = False,
         range_x: list[int] = None,
         range_y: list[int] = None,
-        line_shape: str = 'linear',
         text_auto: bool | str = False,
         title: str = None,
         template: str = None,
@@ -397,30 +401,49 @@ def _strip(
 
 # todo: figure out buckets
 # will need a new table for data
+#https://github.com/deephaven/deephaven-core/blob/227eb5e5176ba670a89521ea7968614b7e17407f/Plot/src/main/java/io/deephaven/plot/datasets/histogram/HistogramCalculator.java
+
+# range
+# divide into n bins
+# use bar plot, calculate midpoint of each bin (should just be some sort of offset)
+# calculate total between points
 def _histogram(
         table: Table = None,
-        x: str | list[str] = None,
-        y: str | list[str] = None,
-        color_discrete_sequence: list[str] = None,
-        pattern_shape_sequence: list[str] = None,
-        opacity: float = None,
-        barmode: str = 'relative',
-        barnorm: str = None,
-        histnorm: str = None,
-        log_x: bool = False,
-        log_y: bool = False,
+        x: str = None,
+        #y: str | list[str] = None,
+        #color_discrete_sequence: list[str] = None,
+        #pattern_shape_sequence: list[str] = None,
+        #opacity: float = None,
+        #barmode: str = 'relative',
+        #barnorm: str = None,
+        #histnorm: str = None,
+        #log_x: bool = False,
+        #log_y: bool = False,
         range_x: list[int] = None,
-        range_y: list[int] = None,
-        histfunc: str = 'count',
-        cumulative: bool = False,
+        #range_y: list[int] = None,
+        #histfunc: str = 'count',
+        #cumulative: bool = False,
         nbins: int = None,
-        text_auto: bool | str = False,
+        #text_auto: bool | str = False,
         title: str = None,
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        return generate_figure(draw=px.histogram, call_args=locals())
+        table, x, y = calc_hist(table, x, nbins, range_x)
+
+        #table = new_table([
+        #    int_col("Point", [10, 20, 30, 40, 50]),
+        #    int_col("Count", [3, 5, 1, 9, 2]),
+        #])
+
+        #x, y = ("Point", "Count")
+
+        #remove arguments not used in bar
+        args = call_args=locals()
+        args.pop("nbins")
+
+        return generate_figure(draw=px.bar, call_args=args)
 
 
 def _pie(
@@ -428,10 +451,13 @@ def _pie(
         names: str = None,
         values: str = None,
         color_discrete_sequence: list[str] = None,
-        opacity: str = None,
-        hole: str = None
+        title: str = None,
+        template: str = None,
+        hole: str = None,
+        callback: Callable = default_callback
 ):
     if isinstance(table, Table):
+        #table = preprocess_pie(table, names, values)
         return generate_figure(draw=px.pie, call_args=locals())
 
 
@@ -515,6 +541,21 @@ def layer(*args, callback=default_callback):
     # todo this doesn't maintain call args, but that isn't currently needed
     return DeephavenFigure(fig=new_fig, data_mappings=new_data_mappings, template=new_template)
 
+"""
+def make_subplots(rows=1, cols=1, plots=None):
+    fig = make_subplots(rows=1, cols=2)
 
-def make_subplots(rows=1, cols=1):
+    fig.add_trace(
+        go.Scatter(x=[1, 2, 3], y=[4, 5, 6]),
+        row=1, col=1
+    )
+
+    fig.add_trace(
+        go.Scatter(x=[20, 30, 40], y=[50, 60, 70]),
+        row=1, col=2
+    )
+
+    fig.update_layout(height=600, width=800, title_text="Side By Side Subplots")
+
     pass
+"""
