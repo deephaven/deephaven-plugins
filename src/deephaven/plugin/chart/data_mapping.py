@@ -9,13 +9,16 @@ from .shared import combined_generator
 
 # need to override some args since they aren't named in the trace directly
 # based on the variable name
-OVERRIDES = {
+ERROR_OVERRIDES = {
     "error_x": "error_x/array",
     "error_x_minus": "error_x/arrayminus",
     "error_y": "error_y/array",
-    "error_y_minus": "error_y/arrayminus",
+    "error_y_minus": "error_y/arrayminus"
 }
 
+OVERRIDES = {
+    "names": "labels"
+}
 
 def get_data_groups(
         data_vals: Iterable[str | list[str]]
@@ -36,6 +39,10 @@ def get_data_groups(
             data_groups.append(val)
 
     return product(*data_groups)
+
+def overriden_keys(keys):
+    for key in keys:
+        yield OVERRIDES[key] if key in OVERRIDES else key
 
 
 def get_var_col_dicts(
@@ -66,7 +73,7 @@ def get_var_col_dicts(
     :return: Generated var to column mappings
     """
     for data_group in get_data_groups(data_dict.values()):
-        yield dict(zip(data_dict.keys(), data_group))
+        yield dict(zip(overriden_keys(data_dict.keys()), data_group))
 
 
 def add_marginals(
@@ -88,7 +95,7 @@ def add_marginals(
                 marginal: var_col_dict[marginal]
             }
 
-
+#TODO: could just pass the overriding arg and use key value generator
 def error_bars_generator(
         error_var: str,
         error_cols: list[str]
@@ -101,7 +108,7 @@ def error_bars_generator(
     :returns: Generates a tuple pair of (variable,
     """
     for error_col in cycle(error_cols):
-        yield OVERRIDES[error_var], error_col
+        yield ERROR_OVERRIDES[error_var], error_col
 
 
 def add_error_bars(
@@ -118,7 +125,7 @@ def add_error_bars(
     """
     generators = []
 
-    for arg in OVERRIDES:
+    for arg in ERROR_OVERRIDES:
         if arg in custom_call_args and (val := custom_call_args[arg]):
             generators.append(error_bars_generator(arg, val))
 
@@ -132,7 +139,7 @@ def filter_none(
         var_col_dicts: Generator[dict[str, str]]
 ) -> Generator[dict[str, str]]:
     """
-    Filters key, value pais that have None values from the dictionaries.
+    Filters key, value pairs that have None values from the dictionaries.
 
     :param var_col_dicts: The dictionaries to filter
     :returns: A generator that yields the filtered dicts

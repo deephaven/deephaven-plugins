@@ -457,7 +457,7 @@ def _pie(
         callback: Callable = default_callback
 ):
     if isinstance(table, Table):
-        #table = preprocess_pie(table, names, values)
+        table = preprocess_pie(table, names, values)
         return generate_figure(draw=px.pie, call_args=locals())
 
 
