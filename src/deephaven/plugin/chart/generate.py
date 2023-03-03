@@ -10,17 +10,20 @@ from plotly.graph_objects import Figure
 from deephaven import pandas as dhpd
 from deephaven.table import Table
 from deephaven import empty_table
+from deephaven.constants import NULL_BYTE, NULL_SHORT, NULL_INT, NULL_LONG, NULL_FLOAT, NULL_DOUBLE;
 
 from .DeephavenFigure import DeephavenFigure
 from .data_mapping import create_data_mapping
 from .shared import combined_generator
 
-# TODO: this is not comprehensive
 # TODO: refactor args a bit so less/no redundancy
 TYPE_NULL_MAPPING = {
+    "byte": "NULL_BYTE",
+    "short": "NULL_SHORT",
     "int": "NULL_INT",
+    "long": "NULL_LONG",
+    "float": "NULL_FLOAT",
     "double": "NULL_DOUBLE",
-    "long": "NULL_LONG"
 }
 
 ERROR_ARGS = {
@@ -113,10 +116,14 @@ def col_null_mapping(
     :param cols: The column set to check against
     :return: tuple of the form (column name, associated null value)
     """
-    # TODO: use deephaven data types directly rather than convert to string?
+    # TODO: catch "unsupported" types?
     for col in table.columns:
         if col.name in cols:
-            yield col.name, TYPE_NULL_MAPPING[str(col.data_type)]
+            type_ = col.data_type.j_name
+            if type_ in TYPE_NULL_MAPPING:
+                yield col.name, TYPE_NULL_MAPPING[type_]
+            else:
+                yield col.name, "`None`"
 
 
 def construct_min_dataframe(table: Table,
