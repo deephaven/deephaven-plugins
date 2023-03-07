@@ -1,6 +1,14 @@
 from deephaven.table import Table
-from deephaven import agg as agg
-from deephaven import empty_table
+from deephaven import agg, empty_table, new_table
+from deephaven.column import long_col
+
+
+def remap_args(args, remap):
+    for k, v in enumerate(remap):
+        if k in args:
+            args[remap[k]] = args.pop(k)
+    return args
+
 
 def preprocess_pie(
         table: Table,
@@ -18,51 +26,78 @@ def preprocess_pie(
     """
     return table.view([names, values]).sum_by([names])
 
-def calc_hist(
-        table,
-        column,
-        nbins,
-        range_
+
+def create_count_tables(
+        table: Table,
+        columns: list[str],
+        range_table: Table
 ):
-    bin_counts = table.join(range_hist(table, column, nbins, range_)) \
-        .update_view(f"RangeIndex = Range.index({column})") \
-        .where("!isNull(RangeIndex)") \
-        .agg_by([agg.count_("Count"), agg.last("Range")], "RangeIndex") \
+    for column in columns:
+        count_col = f"Count{column}"
+        count_table = table.view(column) \
+            .join(range_table) \
+            .update_view(f"RangeIndex = Range.index({column})") \
+            .where("!isNull(RangeIndex)") \
+            .agg_by([agg.count_(count_col)], "RangeIndex")
+        yield count_table, count_col
+
+
+def create_hist_tables(
+        table: Table,
+        columns: str | list[str],
+        nbins: int,
+        range_: list[int]
+):
+    columns = columns if isinstance(columns, list) else [columns]
+
+    range_table = create_range_table(table, columns, nbins, range_)
+    bin_counts = new_table([
+        long_col("RangeIndex", [i for i in range(nbins)])
+    ])
+
+    count_cols = []
+
+    for count_table, count_col in \
+            create_count_tables(table, columns, range_table):
+        bin_counts = bin_counts.natural_join(count_table, on=["RangeIndex"], joins=[count_col])
+        count_cols.append(count_col)
+
+    bin_counts = bin_counts.join(range_table) \
         .update_view(["BinMin = Range.binMin(RangeIndex)",
                       "BinMax = Range.binMax(RangeIndex)",
                       "BinMid=0.5*(BinMin+BinMax)"])
 
-    return bin_counts, "BinMid", "Count"
+    return bin_counts, "BinMid", count_cols
 
-def range_hist(
-        table,
-        column,
-        nbins,
-        range,
+
+def get_aggs(
+        base,
+        columns,
 ):
-    if range:
-        range_min = range[0]
-        range_max = range[1]
+    return ([f"{base}{column}={column}" for column in columns],
+            ', '.join([f"{base}{column}" for column in columns]))
+
+
+def create_range_table(
+        table: Table,
+        columns: list[str],
+        nbins: int,
+        range_: list[int]
+):
+    if range_:
+        range_min = range_[0]
+        range_max = range_[1]
         table = empty_table(1)
     else:
         range_min = "RangeMin"
         range_max = "RangeMax"
-        table = table.agg_by([agg.min_(f"RangeMin={column}"),
-                         agg.max_(f"RangeMax={column}"),
-                         agg.count_("NSamples")])
+        # need to find range across all columns
+        min_aggs, min_cols = get_aggs("RangeMin", columns)
+        max_aggs, max_cols = get_aggs("RangeMax", columns)
+        table = table.agg_by([agg.min_(min_aggs), agg.max_(max_aggs)]) \
+            .update([f"RangeMin = min({min_cols})", f"RangeMax = max({max_cols})"])
 
-    return table.update(f"Range = new io.deephaven.plot.datasets.histogram."
-                f"DiscretizedRangeEqual("
-                        f"{range_min}, "
-                        f"{range_max}, "
-                        f"{nbins})").view("Range")
-
-
-"""
-    private static Table range(final Table t, final int nbins) {
-        return t.aggBy(List.of(AggMin("RangeMin=X"), AggMax("RangeMax=X"), AggCount("NSamples")))
-                .update("Range = new io.deephaven.plot.datasets.histogram.DiscretizedRangeEqual(RangeMin, RangeMax, "
-                        + nbins + ")")
-                .view("Range");
-    }
-"""
+    return table.update(
+        f"Range = new io.deephaven.plot.datasets.histogram."
+        f"DiscretizedRangeEqual({range_min},{range_max}, "
+        f"{nbins})").view("Range")

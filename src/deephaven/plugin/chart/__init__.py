@@ -13,10 +13,7 @@ from .DeephavenFigure import DeephavenFigure
 
 __version__ = "0.0.1.dev0"
 
-from .preprocess import preprocess_pie, calc_hist
-
-from deephaven import new_table
-from deephaven.column import int_col
+from .preprocess import preprocess_pie, create_hist_tables
 
 NAME = "deephaven.plugin.chart.DeephavenFigure"
 
@@ -45,14 +42,6 @@ class ChartRegistration(Registration):
     @classmethod
     def register_into(cls, callback: Registration.Callback) -> None:
         callback.register(DeephavenFigureType)
-
-
-# TODO: add column where entries can have specific colors, symbols, etc. directly assigned?
-
-# todo MONDAY: adjust x axis for title
-#  apply symbols, patterns, etc to all columns in wide mode
-#  add list support for axis range and log
-
 
 def scatter(
         table: Table = None,
@@ -162,7 +151,8 @@ def line(
         error_y: str | list[str] = None,
         error_y_minus: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
-        symbol_sequence: list[str] = None,  # only draws the first shape with wide data
+        line_dash_sequence: list[str] = None,
+        symbol_sequence: list[str] = None,
         xaxis_sequence: list[str] = None,
         yaxis_sequence: list[str] = None,
         yaxis_title_sequence: list[str] = None,
@@ -399,28 +389,23 @@ def _strip(
         return generate_figure(draw=px.strip, call_args=locals())
 
 
-# todo: figure out buckets
 # will need a new table for data
 #https://github.com/deephaven/deephaven-core/blob/227eb5e5176ba670a89521ea7968614b7e17407f/Plot/src/main/java/io/deephaven/plot/datasets/histogram/HistogramCalculator.java
 
-# range
-# divide into n bins
-# use bar plot, calculate midpoint of each bin (should just be some sort of offset)
-# calculate total between points
-def _histogram(
+def histogram(
         table: Table = None,
-        x: str = None,
-        #y: str | list[str] = None,
+        x: str | list[str] = None,
+        y: str | list[str] = None,
         #color_discrete_sequence: list[str] = None,
         #pattern_shape_sequence: list[str] = None,
-        #opacity: float = None,
+        opacity: float = None,
         #barmode: str = 'relative',
         #barnorm: str = None,
         #histnorm: str = None,
         #log_x: bool = False,
         #log_y: bool = False,
         range_x: list[int] = None,
-        #range_y: list[int] = None,
+        range_y: list[int] = None,
         #histfunc: str = 'count',
         #cumulative: bool = False,
         nbins: int = None,
@@ -430,23 +415,26 @@ def _histogram(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        table, x, y = calc_hist(table, x, nbins, range_x)
+        if x:
+            table, x, y = create_hist_tables(table, x, nbins, range_x)
+        elif y:
+            table, y, x = create_hist_tables(table, y, nbins, range_y)
+            orientation = "h"
+        else:
+            #TODO: throw error
+            pass
 
-        #table = new_table([
-        #    int_col("Point", [10, 20, 30, 40, 50]),
-        #    int_col("Count", [3, 5, 1, 9, 2]),
-        #])
-
-        #x, y = ("Point", "Count")
+        # since we're simulating a histogram with a bar plot, we want no data gaps
+        bargap=0
 
         #remove arguments not used in bar
-        args = call_args=locals()
+        args = locals()
         args.pop("nbins")
 
         return generate_figure(draw=px.bar, call_args=args)
 
 
-def _pie(
+def pie(
         table: Table = None,
         names: str = None,
         values: str = None,
@@ -463,8 +451,19 @@ def _pie(
 
 def _treemap(
         table: Table = None,
+        names: str = None,
+        values: str = None,
+        parents: str = None,
+        ids: str = None,
+        #path: str = None,
+        title: str = None,
+        template: str = None,
+        #branchvalues: str = None,
+        #maxdepth: int = None,
+        callback: Callable = default_callback
 ):
-    pass
+    if isinstance(table, Table):
+        return generate_figure(draw=px.treemap, call_args=locals())
 
 
 def _funnel(

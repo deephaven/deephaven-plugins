@@ -14,10 +14,10 @@ class DeephavenFigure:
     def __init__(
             self,
             fig: Figure = None,
-            table: Table = None,
             call: Callable = None,
             call_args: dict[any] = None,
             data_mappings: list[DataMapping] = None,
+            #TODO: fix so template isn't just a string but can be a provided template
             template: str = None
     ):
         # keep track of function that called this and it's args

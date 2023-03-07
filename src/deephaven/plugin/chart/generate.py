@@ -10,7 +10,6 @@ from plotly.graph_objects import Figure
 from deephaven import pandas as dhpd
 from deephaven.table import Table
 from deephaven import empty_table
-from deephaven.constants import NULL_BYTE, NULL_SHORT, NULL_INT, NULL_LONG, NULL_FLOAT, NULL_DOUBLE;
 
 from .DeephavenFigure import DeephavenFigure
 from .data_mapping import create_data_mapping
@@ -40,7 +39,8 @@ DATA_ARGS = {
     "r", "theta",
     "a", "b", "c",
     "open", "high", "low", "close",
-    "names", "values"
+    "names", "values",
+    "parents", "ids",
 }
 
 # these args map a marginal argument to what variable the data should be
@@ -59,7 +59,13 @@ AXIS_SEQUENCE_ARGS = {
 # these need to be applied to all in wide mode
 SEQUENCE_ARGS = {
     "symbol_sequence": "marker_symbol",
-    "pattern_shape_sequence": "fillpattern_shape"
+    "pattern_shape_sequence": "fillpattern_shape",
+    "line_dash_sequence": "line_dash",
+    # px can handle multiple colors in wide mode, but not if new data is added
+    # need separate keys for line and scatter color as they are written to
+    # different locations
+    #"color_discrete_sequence_line": "line_color",
+    #"color_discrete_sequence_scatter": "marker_color"
 }
 
 # these are arguments that are applied across axes
@@ -90,6 +96,7 @@ CUSTOM_Y_AXIS_ARGS.update(SIMPLE_Y_AXIS_ARGS)
 # pandas data frame separately
 CUSTOM_ARGS = {
     "callback",
+    "bargap"
 }
 CUSTOM_ARGS.update(AXIS_SEQUENCE_ARGS)
 
@@ -139,6 +146,15 @@ def construct_min_dataframe(table: Table,
     :param data_cols: A list of columns that are needed in the final dataframe
     :return: The minimal dataframe
     """
+
+    # first, create a unique column name (maybe literally column?)
+    # maybe pull out of hover name
+    # then pass color column to px
+    # finally, pass tables to data mapping as each should be one trace
+
+    upd = [f"{col} = {null}" for col, null
+                                           in col_null_mapping(table, set(data_cols))]
+    print(upd)
     # add null valued columns as placeholders for plotly express
     update_result = empty_table(1).update([f"{col} = {null}" for col, null
                                            in col_null_mapping(table, set(data_cols))])
@@ -465,7 +481,6 @@ def update_layout_axis(
         update = {f"{axis}{num}": next(generator)}
         fig.update_layout(update)
 
-
 def handle_custom_args(
         fig: Figure,
         custom_call_args: dict[str, any],
@@ -497,7 +512,7 @@ def handle_custom_args(
     last_y_axis = 0
 
     for arg, val in custom_call_args.items():
-        if val:
+        if val is not None:
             if arg in AXIS_SEQUENCE_ARGS:
                 is_x = arg == "xaxis_sequence"
 
@@ -505,9 +520,9 @@ def handle_custom_args(
 
                 if is_x:
                     x_axis_generators.append(position_generator(y_domain))
-                    # add one to last index as axes are 1-indexed
                     last_x_axis = max(val)
-                    # need to make sure the other domain is updated
+                    # need to make sure the other domain is updated,
+                    # so set max to at least 1
                     last_y_axis = max(1, last_y_axis)
                     y_axis_generators.append(key_val_generator("domain", [y_domain]))
                 else:
@@ -539,6 +554,9 @@ def handle_custom_args(
 
             elif arg == "yaxis_title_sequence":
                 y_axis_generators.append(title_generator(val))
+
+            elif arg == "bargap":
+                fig.update_layout(bargap=val)
 
     update_traces(fig, combined_generator(trace_generators), step)
 
@@ -611,7 +629,6 @@ def generate_figure(
 
     dh_fig = DeephavenFigure(
         plot,
-        table,
         call_args=call_args,
         call=draw,
         data_mappings=[data_mapping]
