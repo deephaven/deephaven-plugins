@@ -147,14 +147,6 @@ def construct_min_dataframe(table: Table,
     :return: The minimal dataframe
     """
 
-    # first, create a unique column name (maybe literally column?)
-    # maybe pull out of hover name
-    # then pass color column to px
-    # finally, pass tables to data mapping as each should be one trace
-
-    upd = [f"{col} = {null}" for col, null
-                                           in col_null_mapping(table, set(data_cols))]
-    print(upd)
     # add null valued columns as placeholders for plotly express
     update_result = empty_table(1).update([f"{col} = {null}" for col, null
                                            in col_null_mapping(table, set(data_cols))])
