@@ -17,7 +17,6 @@ from .preprocess import preprocess_pie, create_hist_tables
 
 NAME = "deephaven.plugin.chart.DeephavenFigure"
 
-
 def default_callback(fig):
     return fig
 
@@ -100,7 +99,6 @@ def scatter_3d(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        render_mode = "webgl"
         return generate_figure(draw=px.scatter_3d, call_args=locals())
 
 
@@ -168,7 +166,7 @@ def line(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        render_mode = "webgl"
+        #render_mode = "webgl"
         return generate_figure(draw=px.line, call_args=locals())
 
 
@@ -389,47 +387,44 @@ def _strip(
         return generate_figure(draw=px.strip, call_args=locals())
 
 
-# will need a new table for data
-#https://github.com/deephaven/deephaven-core/blob/227eb5e5176ba670a89521ea7968614b7e17407f/Plot/src/main/java/io/deephaven/plot/datasets/histogram/HistogramCalculator.java
-
 def histogram(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
-        #color_discrete_sequence: list[str] = None,
-        #pattern_shape_sequence: list[str] = None,
+        color_discrete_sequence: list[str] = None,
+        pattern_shape_sequence: list[str] = None,
         opacity: float = None,
-        #barmode: str = 'relative',
+        barmode: str = 'relative',
         #barnorm: str = None,
         #histnorm: str = None,
-        #log_x: bool = False,
-        #log_y: bool = False,
+        log_x: bool = False,
+        log_y: bool = False,
         range_x: list[int] = None,
         range_y: list[int] = None,
-        #histfunc: str = 'count',
+        histfunc: str = 'count',
         #cumulative: bool = False,
         nbins: int = None,
-        #text_auto: bool | str = False,
+        text_auto: bool | str = False,
         title: str = None,
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
         if x:
-            table, x, y = create_hist_tables(table, x, nbins, range_x)
+            table, x, y = create_hist_tables(table, x, nbins, range_x, histfunc)
         elif y:
-            table, y, x = create_hist_tables(table, y, nbins, range_y)
+            table, y, x = create_hist_tables(table, y, nbins, range_y, histfunc)
             orientation = "h"
         else:
             #TODO: throw error
             pass
-
         # since we're simulating a histogram with a bar plot, we want no data gaps
         bargap=0
 
         #remove arguments not used in bar
         args = locals()
         args.pop("nbins")
+        args.pop("histfunc")
 
         return generate_figure(draw=px.bar, call_args=args)
 
@@ -449,7 +444,7 @@ def pie(
         return generate_figure(draw=px.pie, call_args=locals())
 
 
-def _treemap(
+def treemap(
         table: Table = None,
         names: str = None,
         values: str = None,

@@ -2,6 +2,17 @@ from deephaven.table import Table
 from deephaven import agg, empty_table, new_table
 from deephaven.column import long_col
 
+HISTFUNC_MAP = {
+    'avg': agg.avg,
+    'count': agg.count_,
+    'count_distinct': agg.count_distinct,
+    'max': agg.max_,
+    'median': agg.median,
+    'min': agg.min_,
+    'std': agg.std,
+    'sum': agg.sum_,
+    'var': agg.var
+}
 
 def remap_args(args, remap):
     for k, v in enumerate(remap):
@@ -30,23 +41,26 @@ def preprocess_pie(
 def create_count_tables(
         table: Table,
         columns: list[str],
-        range_table: Table
+        range_table: Table,
+        histfunc: str
 ):
+    agg_func = HISTFUNC_MAP[histfunc]
     for column in columns:
-        count_col = f"Count{column}"
         count_table = table.view(column) \
             .join(range_table) \
             .update_view(f"RangeIndex = Range.index({column})") \
             .where("!isNull(RangeIndex)") \
-            .agg_by([agg.count_(count_col)], "RangeIndex")
-        yield count_table, count_col
+            .drop_columns("Range") \
+            .agg_by([agg_func(column)], "RangeIndex")
+        yield count_table, column
 
 
 def create_hist_tables(
         table: Table,
         columns: str | list[str],
         nbins: int,
-        range_: list[int]
+        range_: list[int],
+        histfunc: str
 ):
     columns = columns if isinstance(columns, list) else [columns]
 
@@ -58,7 +72,7 @@ def create_hist_tables(
     count_cols = []
 
     for count_table, count_col in \
-            create_count_tables(table, columns, range_table):
+            create_count_tables(table, columns, range_table, histfunc):
         bin_counts = bin_counts.natural_join(count_table, on=["RangeIndex"], joins=[count_col])
         count_cols.append(count_col)
 
