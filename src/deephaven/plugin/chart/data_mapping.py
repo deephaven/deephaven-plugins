@@ -92,7 +92,7 @@ def add_marginals(
         yield var_col_dict
         for marginal in marginals:
             yield {
-                marginal: var_col_dict[marginal]
+                "marginal_placeholder"
             }
 
 #TODO: could just pass the overriding arg and use key value generator
@@ -150,10 +150,10 @@ def filter_none(
 
 def create_data_mapping(
         data_dict: dict[str, str | list[str]],
-        marginals: list[str],
         custom_call_args: dict[str, any],
         table: Table,
-        start_index: int
+        start_index: int,
+        #marginals: list[str],
 ) -> DataMapping:
     """
     Create a data mapping of data columns to json links, attaching marginals
@@ -174,7 +174,7 @@ def create_data_mapping(
 
     var_col_dicts = add_error_bars(var_col_dicts, custom_call_args)
 
-    var_col_dicts = add_marginals(var_col_dicts, marginals)
+    #var_col_dicts = add_marginals(var_col_dicts, marginals)
 
     var_col_dicts = filter_none(var_col_dicts)
 

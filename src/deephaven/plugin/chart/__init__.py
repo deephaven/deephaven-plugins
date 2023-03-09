@@ -3,6 +3,7 @@ from typing import Callable
 
 import plotly.express as px
 from plotly.graph_objects import Figure
+from plotly import subplots
 
 from deephaven.plugin import Registration
 from deephaven.plugin.object import Exporter, ObjectType
@@ -16,6 +17,13 @@ __version__ = "0.0.1.dev0"
 from .preprocess import preprocess_pie, create_hist_tables
 
 NAME = "deephaven.plugin.chart.DeephavenFigure"
+
+# these args map a marginal argument to what variable the data should be
+# pulled from in the corresponding figure data
+MARGINAL_ARGS = {
+    "marginal_x": "x",
+    "marginal_y": "y",
+}
 
 def default_callback(fig):
     return fig
@@ -42,6 +50,25 @@ class ChartRegistration(Registration):
     def register_into(cls, callback: Registration.Callback) -> None:
         callback.register(DeephavenFigureType)
 
+"""
+def marginal_generator(
+        scatter_: DeephavenFigure,
+        which,
+        table: Table,
+        range_x,
+        range_y,
+        color_discrete_sequence,
+        x,
+        y,
+):
+    for mariginal in which:
+        if marginal
+    marginals = histogram(table, x, y, range_x=range_x, range_y=range_y,
+
+def marginal_mapping_generator
+"""
+
+
 def scatter(
         table: Table = None,
         x: str | list[str] = None,
@@ -52,26 +79,31 @@ def scatter(
         error_y_minus: str | list[str] = None,
         # labels: dict[str, str] = None
         color_discrete_sequence: list[str] = None,
-        # todo: in wide mode we should apply symbols to all columns
         symbol_sequence: list[str] = None,
         xaxis_sequence: list[str] = None,
         yaxis_sequence: list[str] = None,
         yaxis_title_sequence: list[str] = None,
         xaxis_title_sequence: list[str] = None,
         opacity: float = None,
-        # marginal_x: str = None, #not supported at the moment, will probably be slow
-        # marginal_y: str = None, #with lots of data
-        log_x: bool = False,
-        log_y: bool = False,
-        range_x: list[int] = None,
-        range_y: list[int] = None,
+        #marginal_x: str = None, #not supported at the moment, will probably be slow
+        #marginal_y: str = None, #with lots of data
+        log_x: bool | list[bool] = False,
+        log_y: bool | list[bool] = False,
+        range_x: list[int] | list[list[int]] = None,
+        range_y: list[int] | list[list[int]] = None,
         title: str = None,
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
+        #if (xaxis_sequence or yaxis_sequence) and (marginal_x and marginal_y):
+        #    raise ValueError("Cannot use both *axis_sequence and marginal_* arguments")
+
         render_mode = "webgl"
-        return generate_figure(draw=px.scatter, call_args=locals())
+        args = locals()
+        fig = generate_figure(draw=px.scatter, call_args=args)
+
+        return fig
 
 
 def scatter_3d(
@@ -279,6 +311,7 @@ def _bar(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
+        #= args.pop("pattern_shape_sequence")
         return generate_figure(draw=px.bar, call_args=locals())
 
 
@@ -416,8 +449,7 @@ def histogram(
             table, y, x = create_hist_tables(table, y, nbins, range_y, histfunc)
             orientation = "h"
         else:
-            #TODO: throw error
-            pass
+            raise ValueError("x or y must be specified")
         # since we're simulating a histogram with a bar plot, we want no data gaps
         bargap=0
 
@@ -453,8 +485,8 @@ def treemap(
         #path: str = None,
         title: str = None,
         template: str = None,
-        #branchvalues: str = None,
-        #maxdepth: int = None,
+        branchvalues: str = None,
+        maxdepth: int = None,
         callback: Callable = default_callback
 ):
     if isinstance(table, Table):
@@ -476,13 +508,13 @@ def _funnel(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        return generate_figure(draw=px.bar, call_args=locals())
+        return generate_figure(draw=px.funnel, call_args=locals())
 
 
 # TODO: support str or list of str
 def ohlc(
         table: Table = None,
-        date: str = None,
+        x: str = None,
         open: str = None,
         high: str = None,
         low: str = None,
@@ -493,8 +525,6 @@ def ohlc(
     if isinstance(table, Table):
         call_args = locals()
         # x is the name used in plotly for the date data
-        call_args["x"] = call_args.pop("date")
-
         return generate_figure(draw=draw_ohlc, call_args=call_args)
 
 
@@ -512,8 +542,6 @@ def layer(*args, callback=default_callback):
 
     for arg in args:
 
-        # todo: throw error
-
         if isinstance(arg, Figure):
             new_data += arg.data
             new_layout.update(arg.to_dict()['layout'])
@@ -524,9 +552,11 @@ def layer(*args, callback=default_callback):
             offset = len(new_data)
             new_data += fig.data
             new_layout.update(fig.to_dict()['layout'])
-            new_data_mappings += [mapping.copy(offset)
-                                  for mapping in arg._data_mappings]
+            new_data_mappings += arg.copy_mappings(offset=offset)
             new_template = arg.template if arg.template else new_template
+
+        else:
+            raise ValueError("All arguments must be of type Figure or DeephavenFigure")
 
     new_fig = Figure(data=new_data, layout=new_layout)
 
@@ -535,21 +565,10 @@ def layer(*args, callback=default_callback):
     # todo this doesn't maintain call args, but that isn't currently needed
     return DeephavenFigure(fig=new_fig, data_mappings=new_data_mappings, template=new_template)
 
-"""
-def make_subplots(rows=1, cols=1, plots=None):
-    fig = make_subplots(rows=1, cols=2)
 
-    fig.add_trace(
-        go.Scatter(x=[1, 2, 3], y=[4, 5, 6]),
-        row=1, col=1
-    )
-
-    fig.add_trace(
-        go.Scatter(x=[20, 30, 40], y=[50, 60, 70]),
-        row=1, col=2
-    )
-
-    fig.update_layout(height=600, width=800, title_text="Side By Side Subplots")
-
-    pass
-"""
+def _make_subplots(
+        rows=1,
+        cols=1
+):
+    new_fig = subplots.make_subplots(rows=rows, cols=cols)
+    return DeephavenFigure(new_fig, has_subplots=True)

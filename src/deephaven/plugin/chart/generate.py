@@ -59,7 +59,9 @@ AXIS_SEQUENCE_ARGS = {
 # these need to be applied to all in wide mode
 SEQUENCE_ARGS = {
     "symbol_sequence": "marker_symbol",
-    "pattern_shape_sequence": "fillpattern_shape",
+    # area vs bar patterns are handled in different locations
+    "pattern_shape_sequence_area": "fillpattern_shape",
+    "pattern_shape_sequence_bar": "marker_color_pattern_shape",
     "line_dash_sequence": "line_dash",
     # px can handle multiple colors in wide mode, but not if new data is added
     # need separate keys for line and scatter color as they are written to
@@ -548,7 +550,8 @@ def handle_custom_args(
                 y_axis_generators.append(title_generator(val))
 
             elif arg == "bargap":
-                fig.update_layout(bargap=val)
+                x_axis_generators.append(key_val_generator("bargap", [val]))
+                y_axis_generators.append(key_val_generator("bargap", [val]))
 
     update_traces(fig, combined_generator(trace_generators), step)
 
@@ -605,18 +608,21 @@ def generate_figure(
 
     # get the marginals here as the length is needed so that some arguments
     # are not applied to the marginals
-    marginal_vars = get_marginals(call_args)
+    #marginal_vars = get_marginals(call_args)
 
-    handle_custom_args(px_fig, custom_call_args, step=len(marginal_vars) + 1)
+    # don't need the marginal data so just delete it
+    #delete_marginal_data_
+
+    handle_custom_args(px_fig, custom_call_args, step=1)#step=len(marginal_vars) + 1)
 
     plot = custom_call_args['callback'](px_fig)
 
     data_mapping = create_data_mapping(
         data_cols,
-        marginal_vars,
         custom_call_args,
         table,
-        start_index
+        start_index,
+        #marginal_vars
     )
 
     dh_fig = DeephavenFigure(
@@ -650,7 +656,7 @@ def merge_cols(
 def draw_ohlc(
         data_frame: DataFrame,
         x: str,
-        open_: str,
+        open: str,
         high: str,
         low: str,
         close: str
@@ -667,7 +673,7 @@ def draw_ohlc(
     :return:
     """
     return go.Figure(data=go.Ohlc(x=data_frame[x],
-                                  open=data_frame[open_],
+                                  open=data_frame[open],
                                   high=data_frame[high],
                                   low=data_frame[low],
                                   close=data_frame[close]))
