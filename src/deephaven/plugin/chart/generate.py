@@ -61,7 +61,7 @@ SEQUENCE_ARGS = {
     "symbol_sequence": "marker_symbol",
     # area vs bar patterns are handled in different locations
     "pattern_shape_sequence_area": "fillpattern_shape",
-    "pattern_shape_sequence_bar": "marker_color_pattern_shape",
+    "pattern_shape_sequence_bar": "marker_pattern_shape",
     "line_dash_sequence": "line_dash",
     # px can handle multiple colors in wide mode, but not if new data is added
     # need separate keys for line and scatter color as they are written to

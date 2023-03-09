@@ -277,6 +277,9 @@ def area(
         pattern_shape_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
         markers: bool = False,
+        # todo: should groupnorm be done in engine?
+        #  not really a huge gain, just dividing values
+        #  and setting max to 100 (for percent)
         groupnorm: str = None,
         log_x: bool = False,
         log_y: bool = False,
@@ -289,18 +292,24 @@ def area(
 ) -> DeephavenFigure:
     if isinstance(table, Table):
         # TODO: make scatterlgl? no px arg
-        # TODO: stack group 'one' if stacked
+        args = locals()
+        args["pattern_shape_sequence_area"] = args.pop("pattern_shape_sequence")
 
-        return generate_figure(draw=px.area, call_args=locals())
+        return generate_figure(draw=px.area, call_args=args)
 
 
-def _bar(
+def bar(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
+        error_x: str | list[str] = None,
+        error_x_minus: str | list[str] = None,
+        error_y: str | list[str] = None,
+        error_y_minus: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
         pattern_shape_sequence: list[str] = None,
         opacity: float = None,
+        barmode: str = 'relative',
         log_x: bool = False,
         log_y: bool = False,
         range_x: list[int] = None,
@@ -311,8 +320,10 @@ def _bar(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        #= args.pop("pattern_shape_sequence")
-        return generate_figure(draw=px.bar, call_args=locals())
+        args = locals()
+        args["pattern_shape_sequence_bar"] = args.pop("pattern_shape_sequence")
+
+        return generate_figure(draw=px.bar, call_args=args)
 
 
 def _bar_polar(
@@ -321,11 +332,10 @@ def _bar_polar(
         theta: str = None,
         color_discrete_sequence: list[str] = None,
         pattern_shape_sequence: list[str] = None,
-        barmode: str = None,
+        barnorm: str = None,
+        barmode: str = 'relative',
         direction: str = 'clockwise',
         start_angle: int = 90,
-        line_close: bool = False,
-        line_shape: str = 'linear',
         range_r: list[int] = None,
         range_theta: list[int] = None,
         log_r: bool = False,
@@ -524,7 +534,6 @@ def ohlc(
 ):
     if isinstance(table, Table):
         call_args = locals()
-        # x is the name used in plotly for the date data
         return generate_figure(draw=draw_ohlc, call_args=call_args)
 
 
