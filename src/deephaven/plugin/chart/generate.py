@@ -23,16 +23,24 @@ TYPE_NULL_MAPPING = {
     "long": "NULL_LONG",
     "float": "NULL_FLOAT",
     "double": "NULL_DOUBLE",
+    "io.deephaven.time.DateTime": "2000-01-01"
 }
 
 ERROR_ARGS = {
     "error_x", "error_x_minus",
     "error_y", "error_y_minus",
-    "error_z", "error_z_minus"
+    "error_z", "error_z_minus",
 }
 
+# These are data args that are not passed to plotly express but end up in the
+# data mapping (generally due to some custom processing)
+CUSTOM_DATA_ARGS = {
+    "x_diff"
+}
+
+
 # these are args that hold data that needs to be overriden on the client
-# note that ERROR_ARGS is not here because those args don't need to be
+# note that ERROR_ARGS are not here because those args don't need to be
 # processed in a specific way that preserves their type
 DATA_ARGS = {
     "x", "y", "z",
@@ -41,6 +49,7 @@ DATA_ARGS = {
     "open", "high", "low", "close",
     "names", "values",
     "parents", "ids",
+    "x_start", "x_end"
 }
 
 # these args map a marginal argument to what variable the data should be
@@ -207,8 +216,8 @@ def split_args(
     for arg, val in call_args.items():
         if arg in CUSTOM_ARGS:
             custom_call_args[arg] = val
-        elif arg in ERROR_ARGS:
-            # only technically need custom processing if we have a list of
+        elif arg in ERROR_ARGS or arg in CUSTOM_DATA_ARGS:
+            # only technically need custom processing if we have a list of errors
             # as px can handle one, but there's no benefit to passing it to px
             # we also convert to list here so it doesn't need to be done when
             # adding to figure or generating data object
@@ -550,8 +559,9 @@ def handle_custom_args(
                 y_axis_generators.append(title_generator(val))
 
             elif arg == "bargap":
-                x_axis_generators.append(key_val_generator("bargap", [val]))
-                y_axis_generators.append(key_val_generator("bargap", [val]))
+                fig.update_layout(bargap=val)
+                #x_axis_generators.append(key_val_generator("bargap", [val]))
+                #y_axis_generators.append(key_val_generator("bargap", [val]))
 
     update_traces(fig, combined_generator(trace_generators), step)
 

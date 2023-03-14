@@ -14,7 +14,7 @@ from .DeephavenFigure import DeephavenFigure
 
 __version__ = "0.0.1.dev0"
 
-from .preprocess import preprocess_pie, create_hist_tables
+from .preprocess import preprocess_pie, create_hist_tables, preprocess_frequency_bar, preprocess_timeline
 
 NAME = "deephaven.plugin.chart.DeephavenFigure"
 
@@ -346,6 +346,49 @@ def _bar_polar(
     if isinstance(table, Table):
         return generate_figure(draw=px.bar_polar, call_args=locals())
 
+def _timeline(
+        table = None,
+        x_start = None,
+        x_end = None,
+        y = None,
+        color_discrete_sequence: list[str] = None,
+        pattern_shape_sequence: list[str] = None,
+        opacity: float = None,
+        range_x: list[int] = None,
+        range_y: list[int] = None,
+        title: str = None,
+        template: str = None,
+        callback: Callable = default_callback
+):
+    if isinstance(table, Table):
+        table, x_diff = preprocess_timeline(table, x_start, x_end, y)
+        return generate_figure(draw=px.timeline, call_args=locals())
+
+# todo: make work for multiple
+def frequency_bar(
+        table: Table = None,
+        x: str = None,
+        y: str = None,
+        color_discrete_sequence: list[str] = None,
+        pattern_shape_sequence: list[str] = None,
+        opacity: float = None,
+        log_x: bool = False,
+        log_y: bool = False,
+        range_x: list[int] = None,
+        range_y: list[int] = None,
+        text_auto: bool | str = False,
+        title: str = None,
+        template: str = None,
+        callback: Callable = default_callback
+):
+    if x:
+        table, y = preprocess_frequency_bar(table, x)
+    else:
+        table, x = preprocess_frequency_bar(table, y)
+        orientation = "h"
+
+    return generate_figure(draw=px.bar, call_args=locals())
+
 
 def _violin(
         table: Table = None,
@@ -503,6 +546,36 @@ def treemap(
         return generate_figure(draw=px.treemap, call_args=locals())
 
 
+def _sunburst(
+        table: Table = None,
+        names: str = None,
+        values: str = None,
+        parents: str = None,
+        ids: str = None,
+        title: str = None,
+        template: str = None,
+        branchvalues: str = None,
+        maxdepth: int = None,
+        callback: Callable = default_callback
+):
+    if isinstance(table, Table):
+        return generate_figure(draw=px.sunburst, call_args=locals())
+
+def _icicle(
+        table: Table = None,
+        names: str = None,
+        values: str = None,
+        parents: str = None,
+        ids: str = None,
+        title: str = None,
+        template: str = None,
+        branchvalues: str = None,
+        maxdepth: int = None,
+        callback: Callable = default_callback
+):
+    if isinstance(table, Table):
+        return generate_figure(draw=px.icicle, call_args=locals())
+
 def _funnel(
         table: Table = None,
         x: str | list[str] = None,
@@ -520,6 +593,14 @@ def _funnel(
     if isinstance(table, Table):
         return generate_figure(draw=px.funnel, call_args=locals())
 
+    #TODO: funnel_area is similar
+    # note that for both (funnels) need to aggregate like pie
+
+
+def _funnel_area(
+
+):
+    pass
 
 # TODO: support str or list of str
 def ohlc(
@@ -535,6 +616,9 @@ def ohlc(
     if isinstance(table, Table):
         call_args = locals()
         return generate_figure(draw=draw_ohlc, call_args=call_args)
+
+def _scatter_matrix():
+    pass
 
 
 def layer(*args, callback=default_callback):

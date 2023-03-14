@@ -27,10 +27,11 @@ class DeephavenFigure:
         self.call_args = call_args
         self.has_subplots = has_subplots
 
+        self.template = None
         if template:
             self.template = template
-        else:
-            self.template = call_args["template"] if "template" in call_args else None
+        elif call_args and "template" in call_args:
+            self.template = call_args["template"]
 
         self._data_mappings = data_mappings if data_mappings else []
 

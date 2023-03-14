@@ -9,15 +9,24 @@ from .shared import combined_generator
 
 # need to override some args since they aren't named in the trace directly
 # based on the variable name
-ERROR_OVERRIDES = {
+# these are appended
+CUSTOM_DATA_ARGS = {
     "error_x": "error_x/array",
     "error_x_minus": "error_x/arrayminus",
     "error_y": "error_y/array",
-    "error_y_minus": "error_y/arrayminus"
+    "error_y_minus": "error_y/arrayminus",
+    "x_diff": "x"
 }
 
+# override these data columns with different names
 OVERRIDES = {
-    "names": "labels"
+    "names": "labels",
+    "x_start": "base",
+}
+
+# x_end is not used, the calculations are made in preprocessing step and passed to x
+REMOVE = {
+    "x_end"
 }
 
 def get_data_groups(
@@ -96,22 +105,22 @@ def add_marginals(
             }
 
 #TODO: could just pass the overriding arg and use key value generator
-def error_bars_generator(
-        error_var: str,
-        error_cols: list[str]
+def custom_data_args_generator(
+        var: str,
+        cols: list[str]
 ) -> Generator[tuple[str, str]]:
     """
-    Generate data mappings for error bars.
+    Generate data mappings for custom data args
 
-    :param error_var: The error arg to map to columns
-    :param error_cols: The columns to map to
-    :returns: Generates a tuple pair of (variable,
+    :param var: The arg to map to columns
+    :param cols: The columns to map to
+    :returns: Generates a tuple pair of (variable, column value)
     """
-    for error_col in cycle(error_cols):
-        yield ERROR_OVERRIDES[error_var], error_col
+    for col in cycle(cols):
+        yield CUSTOM_DATA_ARGS[var], col
 
 
-def add_error_bars(
+def add_custom_data_args(
         var_col_dicts: Generator[dict[str, str]],
         custom_call_args: dict[str, any] = None
 ) -> Generator[dict[str, str]]:
@@ -125,14 +134,14 @@ def add_error_bars(
     """
     generators = []
 
-    for arg in ERROR_OVERRIDES:
+    for arg in CUSTOM_DATA_ARGS:
         if arg in custom_call_args and (val := custom_call_args[arg]):
-            generators.append(error_bars_generator(arg, val))
+            generators.append(custom_data_args_generator(arg, val))
 
     update_generator = combined_generator(generators, fill={})
 
-    for var_col_dict, error_dict in zip(var_col_dicts, update_generator):
-        yield {**var_col_dict, **error_dict}
+    for var_col_dict, custom_dict in zip(var_col_dicts, update_generator):
+        yield {**var_col_dict, **custom_dict}
 
 
 def filter_none(
@@ -146,6 +155,15 @@ def filter_none(
     """
     for var_col_dict in var_col_dicts:
         yield {k: v for k, v in var_col_dict.items() if v is not None}
+
+def remove_unmapped_args(
+    data_dict
+):
+    for arg in REMOVE:
+        if arg in data_dict:
+            data_dict.pop(arg)
+
+    return data_dict
 
 
 def create_data_mapping(
@@ -170,9 +188,11 @@ def create_data_mapping(
     :return: A DataMapping for a specific table
     """
 
+    data_dict = remove_unmapped_args(data_dict)
+
     var_col_dicts = get_var_col_dicts(data_dict)
 
-    var_col_dicts = add_error_bars(var_col_dicts, custom_call_args)
+    var_col_dicts = add_custom_data_args(var_col_dicts, custom_call_args)
 
     #var_col_dicts = add_marginals(var_col_dicts, marginals)
 

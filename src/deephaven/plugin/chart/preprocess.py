@@ -1,6 +1,7 @@
 from deephaven.table import Table
 from deephaven import agg, empty_table, new_table
 from deephaven.column import long_col
+from deephaven.time import nanos_to_millis, diff_nanos
 
 HISTFUNC_MAP = {
     'avg': agg.avg,
@@ -13,6 +14,7 @@ HISTFUNC_MAP = {
     'sum': agg.sum_,
     'var': agg.var
 }
+
 
 def remap_args(args, remap):
     for k, v in enumerate(remap):
@@ -115,3 +117,24 @@ def create_range_table(
         f"Range = new io.deephaven.plot.datasets.histogram."
         f"DiscretizedRangeEqual({range_min},{range_max}, "
         f"{nbins})").view("Range")
+
+
+def time_length(start, end):
+    return nanos_to_millis(diff_nanos(start, end))
+
+
+def preprocess_frequency_bar(table, column):
+    return table.view([column]).count_by("Count", by=column), "Count"
+
+
+def preprocess_timeline(
+        table,
+        x_start,
+        x_end,
+        y
+):
+    new_table = table.view([f"{x_start}",
+                            f"{x_end}",
+                            f"Time_Diff = time_length({x_start}, {x_end})",
+                            f"{y}"])
+    return new_table, "Time_Diff"
