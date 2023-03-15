@@ -160,7 +160,6 @@ def construct_min_dataframe(table: Table,
     # add null valued columns as placeholders for plotly express
     update = [f"{col} = {null}" for col, null
               in col_null_mapping(table, set(data_cols))]
-    print(update)
 
     update_result = empty_table(1).update(update)
 
