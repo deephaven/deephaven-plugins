@@ -1,5 +1,6 @@
 from __future__ import annotations
 import json
+from collections.abc import Generator
 from typing import Callable
 
 from plotly.graph_objects import Figure
@@ -19,13 +20,15 @@ class DeephavenFigure:
             data_mappings: list[DataMapping] = None,
             #TODO: fix so template isn't just a string but can be a provided template
             template: str = None,
-            has_subplots: bool = False
+            has_subplots: bool = False,
+            trace_generator: Generator[dict[str, any]] = None
     ):
         # keep track of function that called this and it's args
         self.fig = fig
         self.call = call
         self.call_args = call_args
         self.has_subplots = has_subplots
+        self.trace_generator = trace_generator
 
         self.template = None
         if template:

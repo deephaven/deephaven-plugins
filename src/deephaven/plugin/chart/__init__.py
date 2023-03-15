@@ -364,6 +364,17 @@ def _timeline(
         table, x_diff = preprocess_timeline(table, x_start, x_end, y)
         return generate_figure(draw=px.timeline, call_args=locals())
 
+#todo: can this be done better?
+def _to_list(
+    arg
+):
+    if isinstance(arg, list):
+        return arg
+    elif not arg:
+        return []
+    return [arg]
+
+
 # todo: make work for multiple
 def frequency_bar(
         table: Table = None,
@@ -381,13 +392,45 @@ def frequency_bar(
         template: str = None,
         callback: Callable = default_callback
 ):
-    if x:
-        table, y = preprocess_frequency_bar(table, x)
-    else:
-        table, x = preprocess_frequency_bar(table, y)
-        orientation = "h"
+    #TODO: refactor and add colors to generator (also pattern should be pattern_shape_sequence_bar
+    if x and y:
+        raise ValueError("Cannot specify both x and y")
 
-    return generate_figure(draw=px.bar, call_args=locals())
+    args = locals()
+
+    args["pattern_shape_sequence_bar"] = args.pop("pattern_shape_sequence")
+
+    x = _to_list(x)
+    y = _to_list(y)
+
+    figs = []
+    trace_generator = None
+
+    for col in x:
+        new_table, y_col = preprocess_frequency_bar(table, col)
+        args["table"] = new_table
+        args["x"] = col
+        args["y"] = y_col
+
+        figs.append(generate_figure(draw=px.bar, call_args=args, trace_generator=trace_generator))
+
+        if not trace_generator:
+            trace_generator = figs[0].trace_generator
+
+    for col in y:
+        new_table, x_col = preprocess_frequency_bar(table, col)
+        args["orientation"] = "h"
+        args["table"] = new_table
+        args["x"] = x_col
+        args["y"] = col
+
+        figs.append(generate_figure(draw=px.bar, call_args=args, trace_generator=trace_generator))
+
+        if not trace_generator:
+            trace_generator = figs[0].trace_generator
+
+    # layer but with only the first layout (as subsequent ones were not modfied)
+    return layer(*figs, which_layout=0)
 
 
 def _violin(
@@ -621,35 +664,40 @@ def _scatter_matrix():
     pass
 
 
-def layer(*args, callback=default_callback):
+def layer(
+        *args,
+        which_layout=None,
+        callback=default_callback
+):
     # should take plotly or deephaven fig
     # plotly fig will
     # compose figures
     if len(args) == 0:
-        raise TypeError("No figures provided to compose")
+        raise ValueError("No figures provided to compose")
 
     new_data = []
     new_layout = {}
     new_data_mappings = []
     new_template = None
 
-    for arg in args:
-
+    for i, arg in enumerate(args):
         if isinstance(arg, Figure):
             new_data += arg.data
-            new_layout.update(arg.to_dict()['layout'])
+            if not which_layout or which_layout == i:
+                new_layout.update(arg.to_dict()['layout'])
 
         elif isinstance(arg, DeephavenFigure):
             fig = arg.fig
             # the next data mapping should start after all the existing traces
             offset = len(new_data)
             new_data += fig.data
-            new_layout.update(fig.to_dict()['layout'])
+            if not which_layout or which_layout == i:
+                new_layout.update(fig.to_dict()['layout'])
             new_data_mappings += arg.copy_mappings(offset=offset)
             new_template = arg.template if arg.template else new_template
 
         else:
-            raise ValueError("All arguments must be of type Figure or DeephavenFigure")
+            raise TypeError("All arguments must be of type Figure or DeephavenFigure")
 
     new_fig = Figure(data=new_data, layout=new_layout)
 

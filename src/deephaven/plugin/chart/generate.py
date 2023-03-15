@@ -23,7 +23,7 @@ TYPE_NULL_MAPPING = {
     "long": "NULL_LONG",
     "float": "NULL_FLOAT",
     "double": "NULL_DOUBLE",
-    "io.deephaven.time.DateTime": "2000-01-01"
+    "io.deephaven.time.DateTime": "`2000-01-01`"
 }
 
 ERROR_ARGS = {
@@ -37,7 +37,6 @@ ERROR_ARGS = {
 CUSTOM_DATA_ARGS = {
     "x_diff"
 }
-
 
 # these are args that hold data that needs to be overriden on the client
 # note that ERROR_ARGS are not here because those args don't need to be
@@ -75,8 +74,8 @@ SEQUENCE_ARGS = {
     # px can handle multiple colors in wide mode, but not if new data is added
     # need separate keys for line and scatter color as they are written to
     # different locations
-    #"color_discrete_sequence_line": "line_color",
-    #"color_discrete_sequence_scatter": "marker_color"
+    # "color_discrete_sequence_line": "line_color",
+    # "color_discrete_sequence_scatter": "marker_color"
 }
 
 # these are arguments that are applied across axes
@@ -159,8 +158,11 @@ def construct_min_dataframe(table: Table,
     """
 
     # add null valued columns as placeholders for plotly express
-    update_result = empty_table(1).update([f"{col} = {null}" for col, null
-                                           in col_null_mapping(table, set(data_cols))])
+    update = [f"{col} = {null}" for col, null
+              in col_null_mapping(table, set(data_cols))]
+    print(update)
+
+    update_result = empty_table(1).update(update)
 
     return dhpd.to_pandas(update_result)
 
@@ -484,11 +486,13 @@ def update_layout_axis(
         update = {f"{axis}{num}": next(generator)}
         fig.update_layout(update)
 
+
 def handle_custom_args(
         fig: Figure,
         custom_call_args: dict[str, any],
-        step: int = 1
-) -> None:
+        step: int = 1,
+        trace_generator=None
+) -> Generator[dict[str, any]]:
     """
     Modify plotly traces with the specified custom arguments.
 
@@ -497,6 +501,12 @@ def handle_custom_args(
     :param step: Optional, default 1. How many steps to skip when applying any
     changes to traces.
     """
+    # if there is a specified trace generator, use that instead since it
+    # accurately reflects with color, pattern, etc. is next
+    # don't need to adjust layout as that will not change
+    if trace_generator:
+        update_traces(fig, trace_generator, step)
+        return trace_generator
 
     # the domain is calculated based on the other sequence
     # for example, a new y-axis shrinks the x-axis domain
@@ -560,10 +570,12 @@ def handle_custom_args(
 
             elif arg == "bargap":
                 fig.update_layout(bargap=val)
-                #x_axis_generators.append(key_val_generator("bargap", [val]))
-                #y_axis_generators.append(key_val_generator("bargap", [val]))
+                # x_axis_generators.append(key_val_generator("bargap", [val]))
+                # y_axis_generators.append(key_val_generator("bargap", [val]))
 
-    update_traces(fig, combined_generator(trace_generators), step)
+    trace_generator = combined_generator(trace_generators)
+
+    update_traces(fig, trace_generator, step)
 
     update_layout_axis(fig,
                        "xaxis",
@@ -573,6 +585,8 @@ def handle_custom_args(
                        "yaxis",
                        combined_generator(y_axis_generators),
                        last_y_axis)
+
+    return trace_generator
 
 
 # need to track what mode we are in - currently we only support wide mode
@@ -589,7 +603,8 @@ def get_mode() -> str:
 def generate_figure(
         draw: Callable,
         call_args: dict[str, any],
-        start_index: int = 0
+        start_index: int = 0,
+        trace_generator=None,
 ) -> DeephavenFigure:
     """
     Generate a figure using a plotly express function as well as any args that
@@ -618,12 +633,15 @@ def generate_figure(
 
     # get the marginals here as the length is needed so that some arguments
     # are not applied to the marginals
-    #marginal_vars = get_marginals(call_args)
+    # marginal_vars = get_marginals(call_args)
 
     # don't need the marginal data so just delete it
-    #delete_marginal_data_
+    # delete_marginal_data_
 
-    handle_custom_args(px_fig, custom_call_args, step=1)#step=len(marginal_vars) + 1)
+    trace_generator = handle_custom_args(px_fig,
+                                         custom_call_args,
+                                         step=1,
+                                         trace_generator=trace_generator)  # step=len(marginal_vars) + 1)
 
     plot = custom_call_args['callback'](px_fig)
 
@@ -632,14 +650,15 @@ def generate_figure(
         custom_call_args,
         table,
         start_index,
-        #marginal_vars
+        # marginal_vars
     )
 
     dh_fig = DeephavenFigure(
         plot,
         call_args=call_args,
         call=draw,
-        data_mappings=[data_mapping]
+        data_mappings=[data_mapping],
+        trace_generator=trace_generator
     )
 
     return dh_fig
