@@ -589,7 +589,7 @@ def treemap(
         return generate_figure(draw=px.treemap, call_args=locals())
 
 
-def _sunburst(
+def sunburst(
         table: Table = None,
         names: str = None,
         values: str = None,
@@ -604,7 +604,7 @@ def _sunburst(
     if isinstance(table, Table):
         return generate_figure(draw=px.sunburst, call_args=locals())
 
-def _icicle(
+def icicle(
         table: Table = None,
         names: str = None,
         values: str = None,

@@ -260,7 +260,7 @@ def base_x_axis_generator() -> Generator[dict]:
     for num in count(start=1):
         yield {
             "anchor": "free" if num >= 2 else "y",
-            "overlaying": "x",
+            "overlaying": "x" if num >= 2 else None,
             "side": "bottom" if bottom else "top",
             "title": {"text": f"X Values {num}"}
         }
@@ -278,7 +278,7 @@ def base_y_axis_generator() -> Generator[dict]:
     for num in count(start=1):
         yield {
             "anchor": "free" if num >= 2 else "x",
-            "overlaying": "y",
+            "overlaying": "y" if num >= 2 else None,
             "side": "left" if left else "right",
             "title": {"text": f"Y Values {num}"}
         }
