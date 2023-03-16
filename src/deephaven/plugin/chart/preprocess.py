@@ -126,7 +126,7 @@ def time_length(start, end):
 def preprocess_frequency_bar(table, column):
     return table.view([column]).count_by("Count", by=column), "Count"
 
-
+#todo: always modify given column names to prevent column collisions?
 def preprocess_timeline(
         table,
         x_start,
@@ -138,3 +138,17 @@ def preprocess_timeline(
                             f"Time_Diff = time_length({x_start}, {x_end})",
                             f"{y}"])
     return new_table, "Time_Diff"
+
+def preprocess_violin(
+        table,
+        column
+):
+    col_names, col_vals = f"{column}_names", f"{column}_vals",
+    # also used for box and strip
+    new_table = table.view([
+        f"{col_names} = `{column}`",
+        f"{col_vals} = {column}"
+    ])
+
+    return new_table, col_names, col_vals
+

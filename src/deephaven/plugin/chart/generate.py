@@ -74,8 +74,8 @@ SEQUENCE_ARGS = {
     # px can handle multiple colors in wide mode, but not if new data is added
     # need separate keys for line and scatter color as they are written to
     # different locations
-    # "color_discrete_sequence_line": "line_color",
-    # "color_discrete_sequence_scatter": "marker_color"
+    "color_discrete_sequence_line": "line_color",
+    "color_discrete_sequence_marker": "marker_color"
 }
 
 # these are arguments that are applied across axes

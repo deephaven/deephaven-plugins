@@ -14,7 +14,8 @@ from .DeephavenFigure import DeephavenFigure
 
 __version__ = "0.0.1.dev0"
 
-from .preprocess import preprocess_pie, create_hist_tables, preprocess_frequency_bar, preprocess_timeline
+from .preprocess import preprocess_pie, create_hist_tables, preprocess_frequency_bar, preprocess_timeline, \
+    preprocess_violin
 
 NAME = "deephaven.plugin.chart.DeephavenFigure"
 
@@ -24,6 +25,7 @@ MARGINAL_ARGS = {
     "marginal_x": "x",
     "marginal_y": "y",
 }
+
 
 def default_callback(fig):
     return fig
@@ -49,6 +51,7 @@ class ChartRegistration(Registration):
     @classmethod
     def register_into(cls, callback: Registration.Callback) -> None:
         callback.register(DeephavenFigureType)
+
 
 """
 def marginal_generator(
@@ -85,8 +88,8 @@ def scatter(
         yaxis_title_sequence: list[str] = None,
         xaxis_title_sequence: list[str] = None,
         opacity: float = None,
-        #marginal_x: str = None, #not supported at the moment, will probably be slow
-        #marginal_y: str = None, #with lots of data
+        # marginal_x: str = None, #not supported at the moment, will probably be slow
+        # marginal_y: str = None, #with lots of data
         log_x: bool | list[bool] = False,
         log_y: bool | list[bool] = False,
         range_x: list[int] | list[list[int]] = None,
@@ -96,11 +99,10 @@ def scatter(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        #if (xaxis_sequence or yaxis_sequence) and (marginal_x and marginal_y):
-        #    raise ValueError("Cannot use both *axis_sequence and marginal_* arguments")
-
         render_mode = "webgl"
         args = locals()
+        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+
         fig = generate_figure(draw=px.scatter, call_args=args)
 
         return fig
@@ -131,7 +133,10 @@ def scatter_3d(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        return generate_figure(draw=px.scatter_3d, call_args=locals())
+        args = locals()
+        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+
+        return generate_figure(draw=px.scatter_3d, call_args=args)
 
 
 def scatter_polar(
@@ -151,8 +156,11 @@ def scatter_polar(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
+        args = locals()
+        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+
         render_mode = "webgl"
-        return generate_figure(draw=px.scatter_polar, call_args=locals())
+        return generate_figure(draw=px.scatter_polar, call_args=args)
 
 
 def scatter_ternary(
@@ -168,7 +176,10 @@ def scatter_ternary(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        return generate_figure(draw=px.scatter_ternary, call_args=locals())
+        args = locals()
+        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+
+        return generate_figure(draw=px.scatter_ternary, call_args=args)
 
 
 # TODO: support line_shape as a list?
@@ -198,8 +209,11 @@ def line(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        #render_mode = "webgl"
-        return generate_figure(draw=px.line, call_args=locals())
+        # render_mode = "webgl"
+        args = locals()
+        args["color_discrete_sequence_line"] = args.pop("color_discrete_sequence")
+
+        return generate_figure(draw=px.line, call_args=args)
 
 
 def line_3d(
@@ -226,7 +240,10 @@ def line_3d(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        return generate_figure(draw=px.line_3d, call_args=locals())
+        args = locals()
+        args["color_discrete_sequence_line"] = args.pop("color_discrete_sequence")
+
+        return generate_figure(draw=px.line_3d, call_args=args)
 
 
 def line_polar(
@@ -248,8 +265,9 @@ def line_polar(
         callback: Callable = default_callback,
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        render_mode = "webgl"
-        return generate_figure(draw=px.line_polar, call_args=locals())
+        args = locals()
+        args["color_discrete_sequence_line"] = args.pop("color_discrete_sequence")
+        return generate_figure(draw=px.line_polar, call_args=args)
 
 
 def line_ternary(
@@ -266,7 +284,10 @@ def line_ternary(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        return generate_figure(draw=px.line_ternary, call_args=locals())
+        args = locals()
+        args["color_discrete_sequence_line"] = args.pop("color_discrete_sequence")
+
+        return generate_figure(draw=px.line_ternary, call_args=args)
 
 
 def area(
@@ -294,6 +315,7 @@ def area(
         # TODO: make scatterlgl? no px arg
         args = locals()
         args["pattern_shape_sequence_area"] = args.pop("pattern_shape_sequence")
+        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
         return generate_figure(draw=px.area, call_args=args)
 
@@ -322,6 +344,7 @@ def bar(
     if isinstance(table, Table):
         args = locals()
         args["pattern_shape_sequence_bar"] = args.pop("pattern_shape_sequence")
+        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
         return generate_figure(draw=px.bar, call_args=args)
 
@@ -344,13 +367,16 @@ def _bar_polar(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        return generate_figure(draw=px.bar_polar, call_args=locals())
+        args = locals()
+        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+        return generate_figure(draw=px.bar_polar, call_args=args)
+
 
 def _timeline(
-        table = None,
-        x_start = None,
-        x_end = None,
-        y = None,
+        table=None,
+        x_start=None,
+        x_end=None,
+        y=None,
         color_discrete_sequence: list[str] = None,
         pattern_shape_sequence: list[str] = None,
         opacity: float = None,
@@ -362,11 +388,14 @@ def _timeline(
 ):
     if isinstance(table, Table):
         table, x_diff = preprocess_timeline(table, x_start, x_end, y)
-        return generate_figure(draw=px.timeline, call_args=locals())
+        args = locals()
+        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+        return generate_figure(draw=px.timeline, call_args=args)
 
-#todo: can this be done better?
+
+# todo: can this be done better?
 def _to_list(
-    arg
+        arg
 ):
     if isinstance(arg, list):
         return arg
@@ -375,7 +404,6 @@ def _to_list(
     return [arg]
 
 
-# todo: make work for multiple
 def frequency_bar(
         table: Table = None,
         x: str = None,
@@ -392,12 +420,12 @@ def frequency_bar(
         template: str = None,
         callback: Callable = default_callback
 ):
-    #TODO: refactor and add colors to generator (also pattern should be pattern_shape_sequence_bar
+    # TODO: refactor?
     if x and y:
         raise ValueError("Cannot specify both x and y")
 
     args = locals()
-
+    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
     args["pattern_shape_sequence_bar"] = args.pop("pattern_shape_sequence")
 
     x = _to_list(x)
@@ -449,8 +477,43 @@ def _violin(
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
+    if x and y:
+        raise ValueError("Cannot specify both x and y")
+
+    args = locals()
+    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+
     if isinstance(table, Table):
-        return generate_figure(draw=px.violin, call_args=locals())
+        x = _to_list(x)
+        y = _to_list(y)
+
+        figs = []
+        trace_generator = None
+
+        for col in x:
+            new_table, col_names, col_vals = preprocess_violin(table, col)
+            args["table"] = new_table
+            args["x"] = col_vals
+            args["y"] = col_names
+
+            figs.append(generate_figure(draw=px.violin, call_args=args, trace_generator=trace_generator))
+
+            if not trace_generator:
+                trace_generator = figs[0].trace_generator
+
+        for col in y:
+            new_table, col_names, col_vals = preprocess_violin(table, col)
+            args["table"] = new_table
+            args["x"] = col_names
+            args["y"] = col_vals
+
+            figs.append(generate_figure(draw=px.violin, call_args=args, trace_generator=trace_generator))
+
+            if not trace_generator:
+                trace_generator = figs[0].trace_generator
+
+        # layer but with only the first layout (as subsequent ones were not modfied)
+        return layer(*figs, which_layout=0)
 
 
 def _box(
@@ -470,7 +533,89 @@ def _box(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     if isinstance(table, Table):
-        return generate_figure(draw=px.box, call_args=locals())
+        args = locals()
+        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+        if isinstance(table, Table):
+            x = _to_list(x)
+            y = _to_list(y)
+
+            figs = []
+            trace_generator = None
+
+            for col in x:
+                new_table, col_names, col_vals = preprocess_violin(table, col)
+                args["table"] = new_table
+                args["x"] = col_vals
+                args["y"] = col_names
+
+                figs.append(generate_figure(draw=px.box, call_args=args, trace_generator=trace_generator))
+
+                if not trace_generator:
+                    trace_generator = figs[0].trace_generator
+
+            for col in y:
+                new_table, col_names, col_vals = preprocess_violin(table, col)
+                args["table"] = new_table
+                args["x"] = col_names
+                args["y"] = col_vals
+
+                figs.append(generate_figure(draw=px.box, call_args=args, trace_generator=trace_generator))
+
+                if not trace_generator:
+                    trace_generator = figs[0].trace_generator
+
+            # layer but with only the first layout (as subsequent ones were not modfied)
+            return layer(*figs, which_layout=0)
+
+
+def _strip(
+        table: Table = None,
+        x: str | list[str] = None,
+        y: str | list[str] = None,
+        color_discrete_sequence: list[str] = None,
+        stripmode: str = 'group',
+        log_x: bool = False,
+        log_y: bool = False,
+        range_x: list[int] = None,
+        range_y: list[int] = None,
+        title: str = None,
+        template: str = None,
+        callback: Callable = default_callback
+) -> DeephavenFigure:
+    if isinstance(table, Table):
+        args = locals()
+        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+        if isinstance(table, Table):
+            x = _to_list(x)
+            y = _to_list(y)
+
+            figs = []
+            trace_generator = None
+
+            for col in x:
+                new_table, col_names, col_vals = preprocess_violin(table, col)
+                args["table"] = new_table
+                args["x"] = col_vals
+                args["y"] = col_names
+
+                figs.append(generate_figure(draw=px.strip, call_args=args, trace_generator=trace_generator))
+
+                if not trace_generator:
+                    trace_generator = figs[0].trace_generator
+
+            for col in y:
+                new_table, col_names, col_vals = preprocess_violin(table, col)
+                args["table"] = new_table
+                args["x"] = col_names
+                args["y"] = col_vals
+
+                figs.append(generate_figure(draw=px.strip, call_args=args, trace_generator=trace_generator))
+
+                if not trace_generator:
+                    trace_generator = figs[0].trace_generator
+
+            # layer but with only the first layout (as subsequent ones were not modfied)
+            return layer(*figs, which_layout=0)
 
 
 def _ecdf(
@@ -495,25 +640,9 @@ def _ecdf(
 ) -> DeephavenFigure:
     if isinstance(table, Table):
         render_mode = "webgl"
-        return generate_figure(draw=px.ecdf, call_args=locals())
-
-
-def _strip(
-        table: Table = None,
-        x: str | list[str] = None,
-        y: str | list[str] = None,
-        color_discrete_sequence: list[str] = None,
-        stripmode: str = 'group',
-        log_x: bool = False,
-        log_y: bool = False,
-        range_x: list[int] = None,
-        range_y: list[int] = None,
-        title: str = None,
-        template: str = None,
-        callback: Callable = default_callback
-) -> DeephavenFigure:
-    if isinstance(table, Table):
-        return generate_figure(draw=px.strip, call_args=locals())
+        args = locals()
+        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+        return generate_figure(draw=px.ecdf, call_args=args)
 
 
 def histogram(
@@ -524,14 +653,14 @@ def histogram(
         pattern_shape_sequence: list[str] = None,
         opacity: float = None,
         barmode: str = 'relative',
-        #barnorm: str = None,
-        #histnorm: str = None,
+        # barnorm: str = None,
+        # histnorm: str = None,
         log_x: bool = False,
         log_y: bool = False,
         range_x: list[int] = None,
         range_y: list[int] = None,
         histfunc: str = 'count',
-        #cumulative: bool = False,
+        # cumulative: bool = False,
         nbins: int = None,
         text_auto: bool | str = False,
         title: str = None,
@@ -547,12 +676,15 @@ def histogram(
         else:
             raise ValueError("x or y must be specified")
         # since we're simulating a histogram with a bar plot, we want no data gaps
-        bargap=0
+        bargap = 0
 
-        #remove arguments not used in bar
+        # remove arguments not used in bar
         args = locals()
         args.pop("nbins")
         args.pop("histfunc")
+
+        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+        args["pattern_shape_sequence_bar"] = args.pop("pattern_shape_sequence")
 
         return generate_figure(draw=px.bar, call_args=args)
 
@@ -569,7 +701,10 @@ def pie(
 ):
     if isinstance(table, Table):
         table = preprocess_pie(table, names, values)
-        return generate_figure(draw=px.pie, call_args=locals())
+        args = locals()
+        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+
+        return generate_figure(draw=px.pie, call_args=args)
 
 
 def treemap(
@@ -578,7 +713,7 @@ def treemap(
         values: str = None,
         parents: str = None,
         ids: str = None,
-        #path: str = None,
+        # path: str = None,
         title: str = None,
         template: str = None,
         branchvalues: str = None,
@@ -604,6 +739,7 @@ def sunburst(
     if isinstance(table, Table):
         return generate_figure(draw=px.sunburst, call_args=locals())
 
+
 def icicle(
         table: Table = None,
         names: str = None,
@@ -619,6 +755,7 @@ def icicle(
     if isinstance(table, Table):
         return generate_figure(draw=px.icicle, call_args=locals())
 
+
 def _funnel(
         table: Table = None,
         x: str | list[str] = None,
@@ -633,10 +770,11 @@ def _funnel(
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
+    #marker
     if isinstance(table, Table):
         return generate_figure(draw=px.funnel, call_args=locals())
 
-    #TODO: funnel_area is similar
+    # TODO: funnel_area is similar
     # note that for both (funnels) need to aggregate like pie
 
 
@@ -644,6 +782,7 @@ def _funnel_area(
 
 ):
     pass
+
 
 # TODO: support str or list of str
 def ohlc(
@@ -659,6 +798,7 @@ def ohlc(
     if isinstance(table, Table):
         call_args = locals()
         return generate_figure(draw=draw_ohlc, call_args=call_args)
+
 
 def _scatter_matrix():
     pass
