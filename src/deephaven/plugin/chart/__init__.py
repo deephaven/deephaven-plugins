@@ -71,7 +71,9 @@ def marginal_generator(
 def marginal_mapping_generator
 """
 
-
+#TODO: make sure defaults are correct and specified in docstring
+# todo: improve axis sequences so only up to
+#todo: size sequence
 def scatter(
         table: Table = None,
         x: str | list[str] = None,
@@ -83,8 +85,8 @@ def scatter(
         # labels: dict[str, str] = None
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
-        xaxis_sequence: list[str] = None,
-        yaxis_sequence: list[str] = None,
+        xaxis_sequence: list[int] = None,
+        yaxis_sequence: list[int] = None,
         yaxis_title_sequence: list[str] = None,
         xaxis_title_sequence: list[str] = None,
         opacity: float = None,
@@ -98,6 +100,71 @@ def scatter(
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
+    """
+    Returns a scatter chart
+
+    :param table: A table to pull data from.
+    :param x: A column or list of columns that contain x-axis values.
+    :param y: A column or list of columns that contain y-axis values.
+    :param error_x: A column or list of columns with x error bar
+    values. These form the error bars in both the positive and negative
+    direction if error_x_minus is not specified, and the error bars in only the
+    positive direction if error_x_minus is specified. None can be used to
+    specify no error bars on the corresponding series.
+    :param error_x_minus: A column or list of columns with x error
+    bar values. These form the error bars in the negative direction, and are
+    ignored if error_x is not specified.
+    :param error_y: A column or list of columns with x error bar
+    values. These form the error bars in both the positive and negative
+    direction if error_y_minus is not specified, and the error bars in only the
+    positive direction if error_y_minus is specified. None can be used to
+    specify no error bars on the corresponding series.
+    :param error_y_minus: A column or list of columns with x error
+    bar values. These form the error bars in the negative direction, and are
+    ignored if error_y is not specified.
+    :param color_discrete_sequence: A list of colors to sequentially apply to
+    the series. The colors loop, so if there are more series than colors,
+    colors will be reused.
+    :param symbol_sequence: A list of symbols to sequentially apply to the
+    series. The symbols loop, so if there are more series than symbols, symbols
+    will be reused.
+    :param xaxis_sequence: A list of x axes to assign series to. Odd numbers
+    starting with 1 are created on the bottom x axis and even numbers starting
+    with 2 are created on the top x axis. Axes are created up
+    to the maximum number specified. The axes loop, so if there are more series
+    than axes, axes will be reused.
+    :param yaxis_sequence: A list of y axes to assign series to. Odd numbers
+    starting with 1 are created on the left y axis and even numbers starting
+    with 2 are created on the top y axis. Axes are created up
+    to the maximum number specified. The axes loop, so if there are more series
+    than axes, axes will be reused.
+    :param yaxis_title_sequence: A list of titles to sequentially apply to the
+    y axes. The titles do not loop.
+    :param xaxis_title_sequence: A list of titles to sequentially apply to the
+    x axes. The titles do not loop.
+    :param opacity: Opacity to apply to all points. 0 is completely transparent
+    and 1 is completely opaque.
+    :param log_x: Default False. A boolean or list of booleans that specify if
+    the corresponding axis is a log axis or not. The booleans loop, so if there
+    are more series than booleans, booleans will be reused.
+    :param log_y: Default False. A boolean or list of booleans that specify if
+    the corresponding axis is a log axis or not. The booleans loop, so if there
+    are more series than booleans, booleans will be reused.
+    :param range_x: A list of two numbers or a list of lists of two numbers
+    that specify the range of the x axes. None can be specified for no range
+    The ranges loop, so if there are more axes than ranges, ranges will
+    be reused.
+    :param range_y: A list of two numbers or a list of lists of two numbers
+     that specify the range of the x axes. None can be specified for no range
+    The ranges loop, so if there are more axes than ranges, ranges will
+    be reused.
+    :param title: The title of the chart
+    :param template: The template for the chart.
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :return: A DeephavenFigure that contains the scatter chart
+    """
     if isinstance(table, Table):
         render_mode = "webgl"
         args = locals()
@@ -132,6 +199,58 @@ def scatter_3d(
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
+    """
+    Returns a 3D scatter chart
+
+    :param table: A table to pull data from.
+    :param x: A column that contains x-axis values.
+    :param y: A column that contains y-axis values.
+    :param z: A column that contains z-axis values.
+    :param error_x: A column with x error bar values. These form the error
+    bars in both the positive and negative direction if error_x_minus is not
+    specified, and the error bars in only the positive direction if
+    error_x_minus is specified.
+    :param error_x_minus: A column with x error bar values. These form
+    the error bars in the negative direction, and are ignored if error_x is not
+    specified.
+    :param error_y: A column with x error bar values. These form the error
+    bars in both the positive and negative direction if error_z_minus is not
+    specified, and the error bars in only the positive direction if
+    error_x_minus is specified.
+    :param error_y_minus: A column with y error bar values. These form
+    the error bars in the negative direction, and are ignored if error_x is not
+    specified.
+    :param error_z: A column with x error bar values. These form the error
+    bars in both the positive and negative direction if error_z_minus is not
+    specified, and the error bars in only the positive direction if
+    error_x_minus is specified.
+    :param error_z_minus: A column with z error bar values. These form
+    the error bars in the negative direction, and are ignored if error_x is not
+    specified.
+    :param color_discrete_sequence: A list of colors to sequentially apply to
+    the series. The colors loop, so if there are more series than colors,
+    colors will be reused.
+    :param symbol_sequence: A list of symbols to sequentially apply to the
+    series. The symbols loop, so if there are more series than symbols, symbols
+    will be reused.
+    :param opacity: Opacity to apply to all points. 0 is completely transparent
+    and 1 is completely opaque.
+    :param log_x: A boolean that specifies if the corresponding axis is a log
+    axis or not.
+    :param log_y: A boolean that specifies if the corresponding axis is a log
+    axis or not.
+    :param log_z: A boolean that specifies if the corresponding axis is a log
+    axis or not.
+    :param range_x: A list of two numbers that specify the range of the x axis.
+    :param range_y: A list of two numbers that specify the range of the y axis.
+    :param range_z: A list of two numbers that specify the range of the z axis.
+    :param title: The title of the chart.
+    :param template: The template for the chart.
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :return: A DeephavenFigure that contains the 3D scatter chart
+    """
     if isinstance(table, Table):
         args = locals()
         args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
@@ -155,6 +274,33 @@ def scatter_polar(
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
+    """
+    Returns a polar scatter chart
+
+    :param table: A table to pull data from.
+    :param r: A column that contains r values.
+    :param theta: A column that contains theta values.
+    :param color_discrete_sequence: A list of colors to sequentially apply to
+    the series. The colors loop, so if there are more series than colors,
+    colors will be reused.
+    :param symbol_sequence: A list of symbols to sequentially apply to the
+    series. The symbols loop, so if there are more series than symbols, symbols
+    will be reused.
+    :param opacity: Opacity to apply to all points. 0 is completely transparent
+    and 1 is completely opaque.
+    :param direction: Which direction points are drawn. Default clockwise.
+    :param start_angle: Sets start angle. Default 90.
+    :param range_r: A list of two numbers that specify the range of r.
+    :param range_theta: A list of two numbers that specify the range of theta.
+    :param log_r: A boolean that specifies if the corresponding axis is a log
+    axis or not.
+    :param title: The title of the chart.
+    :param template: The template for the chart.
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :return: A DeephavenFigure that contains the polar scatter chart
+    """
     if isinstance(table, Table):
         args = locals()
         args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
@@ -175,6 +321,28 @@ def scatter_ternary(
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
+    """
+    Returns a ternary scatter chart
+
+    :param table: A table to pull data from.
+    :param a: A column that contains a-axis values.
+    :param b: A column that contains b-axis values.
+    :param c: A column that contains c-axis values.
+    :param color_discrete_sequence: A list of colors to sequentially apply to
+    the series. The colors loop, so if there are more series than colors,
+    colors will be reused.
+    :param symbol_sequence: A list of symbols to sequentially apply to the
+    series. The symbols loop, so if there are more series than symbols, symbols
+    will be reused.
+    :param opacity: Opacity to apply to all points. 0 is completely transparent
+    and 1 is completely opaque.
+    :param title: The title of the chart.
+    :param template: The template for the chart.
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :return: A DeephavenFigure that contains the ternary scatter chart
+    """
     if isinstance(table, Table):
         args = locals()
         args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
@@ -208,6 +376,76 @@ def line(
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
+    """
+    Returns a line chart
+
+    :param table: A table to pull data from.
+    :param x: A column or list of columns that contain x-axis values.
+    :param y: A column or list of columns that contain y-axis values.
+    :param error_x: A column or list of columns with x error bar
+    values. These form the error bars in both the positive and negative
+    direction if error_x_minus is not specified, and the error bars in only the
+    positive direction if error_x_minus is specified. None can be used to
+    specify no error bars on the corresponding series.
+    :param error_x_minus: A column or list of columns with x error
+    bar values. These form the error bars in the negative direction, and are
+    ignored if error_x is not specified.
+    :param error_y: A column or list of columns with x error bar
+    values. These form the error bars in both the positive and negative
+    direction if error_y_minus is not specified, and the error bars in only the
+    positive direction if error_y_minus is specified. None can be used to
+    specify no error bars on the corresponding series.
+    :param error_y_minus: A column or list of columns with x error
+    bar values. These form the error bars in the negative direction, and are
+    ignored if error_y is not specified.
+    :param color_discrete_sequence: A list of colors to sequentially apply to
+    the series. The colors loop, so if there are more series than colors,
+    colors will be reused.
+    :param line_dash_sequence: A list of line dashes to sequentially apply to
+    the series. The dashes loop, so if there are more series than dashes,
+    dashes will be reused.
+    :param symbol_sequence: A list of symbols to sequentially apply to the
+    series. The symbols loop, so if there are more series than symbols, symbols
+    will be reused.
+    :param xaxis_sequence: A list of x axes to assign series to. Odd numbers
+    starting with 1 are created on the bottom x axis and even numbers starting
+    with 2 are created on the top x axis. Axes are created up
+    to the maximum number specified. The axes loop, so if there are more series
+    than axes, axes will be reused.
+    :param yaxis_sequence: A list of y axes to assign series to. Odd numbers
+    starting with 1 are created on the left y axis and even numbers starting
+    with 2 are created on the top y axis. Axes are created up
+    to the maximum number specified. The axes loop, so if there are more series
+    than axes, axes will be reused.
+    :param yaxis_title_sequence: A list of titles to sequentially apply to the
+    y axes. The titles do not loop.
+    :param xaxis_title_sequence: A list of titles to sequentially apply to the
+    x axes. The titles do not loop.
+    :param markers: True to draw markers on the line, False to not. Default
+    False
+    :param log_x: Default False. A boolean or list of booleans that specify if
+    the corresponding axis is a log axis or not. The booleans loop, so if there
+    are more series than booleans, booleans will be reused.
+    :param log_y: Default False. A boolean or list of booleans that specify if
+    the corresponding axis is a log axis or not. The booleans loop, so if there
+    are more series than booleans, booleans will be reused.
+    :param range_x: A list of two numbers or a list of lists of two numbers
+    that specify the range of the x axes. None can be specified for no range
+    The ranges loop, so if there are more axes than ranges, ranges will
+    be reused.
+    :param range_y: A list of two numbers or a list of lists of two numbers
+     that specify the range of the x axes. None can be specified for no range
+    The ranges loop, so if there are more axes than ranges, ranges will
+    be reused.
+    :param line_shape: The line shape for all lines created. One of 'linear',
+    'spline', 'vhv', 'hvh', 'vh', 'hv'. Default 'linear'
+    :param title: The title of the chart
+    :param template: The template for the chart.
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :return: A DeephavenFigure that contains the line chart
+    """
     if isinstance(table, Table):
         # render_mode = "webgl"
         args = locals()
@@ -228,7 +466,8 @@ def line_3d(
         error_z: str | list[str] = None,
         error_z_minus: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
-        symbol_sequence: list[str] = None,  # only draws the first shape with wide data
+        symbol_sequence: list[str] = None,
+        markers: bool = False,
         log_x: bool = False,
         log_y: bool = False,
         log_z: bool = False,
@@ -239,6 +478,58 @@ def line_3d(
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
+    """
+    Returns a 3D line chart
+
+    :param table: A table to pull data from.
+    :param x: A column that contains x-axis values.
+    :param y: A column that contains y-axis values.
+    :param z: A column that contains z-axis values.
+    :param error_x: A column with x error bar values. These form the error
+    bars in both the positive and negative direction if error_x_minus is not
+    specified, and the error bars in only the positive direction if
+    error_x_minus is specified.
+    :param error_x_minus: A column with x error bar values. These form
+    the error bars in the negative direction, and are ignored if error_x is not
+    specified.
+    :param error_y: A column with x error bar values. These form the error
+    bars in both the positive and negative direction if error_z_minus is not
+    specified, and the error bars in only the positive direction if
+    error_x_minus is specified.
+    :param error_y_minus: A column with y error bar values. These form
+    the error bars in the negative direction, and are ignored if error_x is not
+    specified.
+    :param error_z: A column with x error bar values. These form the error
+    bars in both the positive and negative direction if error_z_minus is not
+    specified, and the error bars in only the positive direction if
+    error_x_minus is specified.
+    :param error_z_minus: A column with z error bar values. These form
+    the error bars in the negative direction, and are ignored if error_x is not
+    specified.
+    :param color_discrete_sequence: A list of colors to sequentially apply to
+    the series. The colors loop, so if there are more series than colors,
+    colors will be reused.
+    :param symbol_sequence: A list of symbols to sequentially apply to the
+    series. The symbols loop, so if there are more series than symbols, symbols
+    will be reused.
+    :param markers: True to draw markers on the line, False to not. Default
+    False
+    :param log_x: A boolean that specifies if the corresponding axis is a log
+    axis or not.
+    :param log_y: A boolean that specifies if the corresponding axis is a log
+    axis or not.
+    :param log_z: A boolean that specifies if the corresponding axis is a log
+    axis or not.
+    :param range_x: A list of two numbers that specify the range of the x axis.
+    :param range_y: A list of two numbers that specify the range of the y axis.
+    :param range_z: A list of two numbers that specify the range of the z axis.
+    :param title: The title of the chart.
+    :param template: The template for the chart.
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :return: A DeephavenFigure that contains the 3D line chart
+    """
     if isinstance(table, Table):
         args = locals()
         args["color_discrete_sequence_line"] = args.pop("color_discrete_sequence")
@@ -264,6 +555,37 @@ def line_polar(
         template: str = None,
         callback: Callable = default_callback,
 ) -> DeephavenFigure:
+    """
+    Returns a polar scatter chart
+
+    :param table: A table to pull data from.
+    :param r: A column that contains r values.
+    :param theta: A column that contains theta values.
+    :param color_discrete_sequence: A list of colors to sequentially apply to
+    the series. The colors loop, so if there are more series than colors,
+    colors will be reused.
+    :param symbol_sequence: A list of symbols to sequentially apply to the
+    series. The symbols loop, so if there are more series than symbols, symbols
+    will be reused.
+    :param markers: True to draw markers on the line, False to not. Default
+    False
+    :param direction: Which direction points are drawn. Default clockwise.
+    :param start_angle: Sets start angle. Default 90.
+    :param line_close: True draw a line between first and last point, False to
+    not. Default False
+    :param line_shape: The line shape for all lines created. One of 'linear',
+    'spline'. Default 'linear'
+    :param range_r: A list of two numbers that specify the range of r.
+    :param range_theta: A list of two numbers that specify the range of theta.
+    :param log_r: A boolean that specifies if the corresponding axis is a log
+    axis or not.
+    :param title: The title of the chart.
+    :param template: The template for the chart.
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :return: A DeephavenFigure that contains the polar scatter chart
+    """
     if isinstance(table, Table):
         args = locals()
         args["color_discrete_sequence_line"] = args.pop("color_discrete_sequence")
@@ -283,13 +605,37 @@ def line_ternary(
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
+    """
+       Returns a ternary line chart
+
+       :param table: A table to pull data from.
+       :param a: A column that contains a-axis values.
+       :param b: A column that contains b-axis values.
+       :param c: A column that contains c-axis values.
+       :param color_discrete_sequence: A list of colors to sequentially apply to
+       the series. The colors loop, so if there are more series than colors,
+       colors will be reused.
+       :param symbol_sequence: A list of symbols to sequentially apply to the
+       series. The symbols loop, so if there are more series than symbols, symbols
+       will be reused.
+       :param markers: True to draw markers on the line, False to not. Default
+       False
+       :param line_shape: The line shape for all lines created. One of 'linear',
+       'spline'. Default 'linear'
+       :param title: The title of the chart.
+       :param template: The template for the chart.
+       :param callback: A callback function that takes a figure as an argument and
+       returns a figure. Used to add any custom changes to the underlying plotly
+       figure. Note that the existing data traces should not be removed.
+       :return: A DeephavenFigure that contains the ternary line chart
+       """
     if isinstance(table, Table):
         args = locals()
         args["color_discrete_sequence_line"] = args.pop("color_discrete_sequence")
 
         return generate_figure(draw=px.line_ternary, call_args=args)
 
-
+#todo: support multiple axes
 def area(
         table: Table = None,
         x: str | list[str] = None,
@@ -297,6 +643,10 @@ def area(
         color_discrete_sequence: list[str] = None,
         pattern_shape_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
+        xaxis_sequence: list[str] = None,
+        yaxis_sequence: list[str] = None,
+        yaxis_title_sequence: list[str] = None,
+        xaxis_title_sequence: list[str] = None,
         markers: bool = False,
         # todo: should groupnorm be done in engine?
         #  not really a huge gain, just dividing values
@@ -311,6 +661,64 @@ def area(
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
+    """
+        Returns an area chart
+
+        :param table: A table to pull data from.
+        :param x: A column or list of columns that contain x-axis values.
+        :param y: A column or list of columns that contain y-axis values.
+        :param color_discrete_sequence: A list of colors to sequentially apply to
+        the series. The colors loop, so if there are more series than colors,
+        colors will be reused.
+        :param symbol_sequence: A list of symbols to sequentially apply to the
+        series. The symbols loop, so if there are more series than symbols, symbols
+        will be reused.
+        :param pattern_shape_sequence: A list of patterns to sequentially apply
+        to the series. The patterns loop, so if there are more series than
+        patterns, patterns will be reused.
+        :param xaxis_sequence: A list of x axes to assign series to. Odd numbers
+        starting with 1 are created on the bottom x axis and even numbers starting
+        with 2 are created on the top x axis. Axes are created up
+        to the maximum number specified. The axes loop, so if there are more series
+        than axes, axes will be reused.
+        :param yaxis_sequence: A list of y axes to assign series to. Odd numbers
+        starting with 1 are created on the left y axis and even numbers starting
+        with 2 are created on the top y axis. Axes are created up
+        to the maximum number specified. The axes loop, so if there are more series
+        than axes, axes will be reused.
+        :param yaxis_title_sequence: A list of titles to sequentially apply to the
+        y axes. The titles do not loop.
+        :param xaxis_title_sequence: A list of titles to sequentially apply to the
+        x axes. The titles do not loop.
+        :param markers: True to draw markers on the line, False to not. Default
+        False
+        :param groupnorm: Default None. 'fraction' to plot the fraction out of
+        the total value of all points at that x value, 'percent' to take the
+        fraction and multiply by 100. Note that if multiple y axes are
+        specified, the groupnorm is taken per axis.
+        :param log_x: Default False. A boolean or list of booleans that specify if
+        the corresponding axis is a log axis or not. The booleans loop, so if there
+        are more series than booleans, booleans will be reused.
+        :param log_y: Default False. A boolean or list of booleans that specify if
+        the corresponding axis is a log axis or not. The booleans loop, so if there
+        are more series than booleans, booleans will be reused.
+        :param range_x: A list of two numbers or a list of lists of two numbers
+        that specify the range of the x axes. None can be specified for no range
+        The ranges loop, so if there are more axes than ranges, ranges will
+        be reused.
+        :param range_y: A list of two numbers or a list of lists of two numbers
+         that specify the range of the x axes. None can be specified for no range
+        The ranges loop, so if there are more axes than ranges, ranges will
+        be reused.
+        :param line_shape: The line shape for all lines created. One of 'linear',
+        'spline', 'vhv', 'hvh', 'vh', 'hv'. Default 'linear'
+        :param title: The title of the chart
+        :param template: The template for the chart.
+        :param callback: A callback function that takes a figure as an argument and
+        returns a figure. Used to add any custom changes to the underlying plotly
+        figure. Note that the existing data traces should not be removed.
+        :return: A DeephavenFigure that contains the area chart
+        """
     if isinstance(table, Table):
         # TODO: make scatterlgl? no px arg
         args = locals()
@@ -341,6 +749,66 @@ def bar(
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
+    """
+    Returns a bar chart
+
+    :param table: A table to pull data from.
+    :param x: A column name or list of columns that contain x-axis values.
+    :param y: A column name or list of columns that contain y-axis values.
+    :param error_x: A column or list of columns with x error bar
+    values. These form the error bars in both the positive and negative
+    direction if error_x_minus is not specified, and the error bars in only the
+    positive direction if error_x_minus is specified. None can be used to
+    specify no error bars on the corresponding series.
+    :param error_x_minus: A column or list of columns with x error
+    bar values. These form the error bars in the negative direction, and are
+    ignored if error_x is not specified.
+    :param error_y: A column or list of columns with x error bar
+    values. These form the error bars in both the positive and negative
+    direction if error_y_minus is not specified, and the error bars in only the
+    positive direction if error_y_minus is specified. None can be used to
+    specify no error bars on the corresponding series.
+    :param error_y_minus: A column or list of columns with x error
+    bar values. These form the error bars in the negative direction, and are
+    ignored if error_y is not specified.
+    :param color_discrete_sequence: A list of colors to sequentially apply to
+    the series. The colors loop, so if there are more series than colors,
+    colors will be reused.
+    :param pattern_shape_sequence: A list of patterns to sequentially apply
+    to the series. The patterns loop, so if there are more series than
+    patterns, patterns will be reused.
+    :param opacity: Opacity to apply to all points. 0 is completely transparent
+    and 1 is completely opaque.
+    :param barmode: Default 'relative'. If 'relative', bars are stacked. If
+    'overlay', bars are drawn on top of each other. If 'group', bars are drawn
+    next to each other.
+    :param log_x: Default False. A boolean or list of booleans that specify if
+    the corresponding axis is a log axis or not. The booleans loop, so if there
+    are more series than booleans, booleans will be reused.
+    :param log_y: Default False. A boolean or list of booleans that specify if
+    the corresponding axis is a log axis or not. The booleans loop, so if there
+    are more series than booleans, booleans will be reused.
+    :param range_x: A list of two numbers or a list of lists of two numbers
+    that specify the range of the x axes. None can be specified for no range
+    The ranges loop, so if there are more axes than ranges, ranges will
+    be reused.
+    :param range_y: A list of two numbers or a list of lists of two numbers
+     that specify the range of the x axes. None can be specified for no range
+    The ranges loop, so if there are more axes than ranges, ranges will
+    be reused.
+    :param range_y: A list of two numbers or a list of lists of two numbers
+    that specify the range of the x axes. None can be specified for no range
+    The ranges loop, so if there are more axes than ranges, ranges will
+    be reused.
+    :param text_auto: Default False. If True, display the value at each bar.
+    If a string, specifies a plotly texttemplate.
+    :param title: The title of the chart
+    :param template: The template for the chart.
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :return: A DeephavenFigure that contains the bar chart
+    """
     if isinstance(table, Table):
         args = locals()
         args["pattern_shape_sequence_bar"] = args.pop("pattern_shape_sequence")
@@ -355,7 +823,7 @@ def _bar_polar(
         theta: str = None,
         color_discrete_sequence: list[str] = None,
         pattern_shape_sequence: list[str] = None,
-        barnorm: str = None,
+        # barnorm: str = None,
         barmode: str = 'relative',
         direction: str = 'clockwise',
         start_angle: int = 90,
@@ -372,11 +840,11 @@ def _bar_polar(
         return generate_figure(draw=px.bar_polar, call_args=args)
 
 
-def _timeline(
-        table=None,
-        x_start=None,
-        x_end=None,
-        y=None,
+def timeline(
+        table: str = None,
+        x_start: str = None,
+        x_end: str = None,
+        y: str = None,
         color_discrete_sequence: list[str] = None,
         pattern_shape_sequence: list[str] = None,
         opacity: float = None,
@@ -386,6 +854,37 @@ def _timeline(
         template: str = None,
         callback: Callable = default_callback
 ):
+    """
+    Returns a timeline (otherwise known as a gantt chart)
+
+    :param table: A table to pull data from.
+    :param x_start: A column that contains starting x-axis values.
+    :param x_end: A column that contains ending x-axis values.
+    :param y: A column or list of columns that contain y-axis labels
+    :param color_discrete_sequence: A list of colors to sequentially apply to
+    the series. The colors loop, so if there are more series than colors,
+    colors will be reused.
+    :param pattern_shape_sequence: A list of patterns to sequentially apply
+    to the series. The patterns loop, so if there are more series than
+    patterns, patterns will be reused.
+    :param opacity: Opacity to apply to all points. 0 is completely transparent
+    and 1 is completely opaque.
+    :param range_x: A list of two numbers or a list of lists of two numbers
+    that specify the range of the x axes. None can be specified for no range
+    The ranges loop, so if there are more axes than ranges, ranges will
+    be reused.
+    :param range_y: A list of two numbers or a list of lists of two numbers
+     that specify the range of the x axes. None can be specified for no range
+    The ranges loop, so if there are more axes than ranges, ranges will
+    be reused.
+    :param title: The title of the chart
+    :param template: The template for the chart.
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :return: A DeephavenFigure that contains the timeline chart
+    """
+    #TODO: add resource column?
     if isinstance(table, Table):
         table, x_diff = preprocess_timeline(table, x_start, x_end, y)
         args = locals()
@@ -411,6 +910,7 @@ def frequency_bar(
         color_discrete_sequence: list[str] = None,
         pattern_shape_sequence: list[str] = None,
         opacity: float = None,
+        barmode: str = 'relative',
         log_x: bool = False,
         log_y: bool = False,
         range_x: list[int] = None,
@@ -461,7 +961,7 @@ def frequency_bar(
     return layer(*figs, which_layout=0)
 
 
-def _violin(
+def violin(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
@@ -477,6 +977,7 @@ def _violin(
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
+    #TODO: offset group?
     if x and y:
         raise ValueError("Cannot specify both x and y")
 
@@ -516,7 +1017,7 @@ def _violin(
         return layer(*figs, which_layout=0)
 
 
-def _box(
+def box(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
@@ -568,7 +1069,7 @@ def _box(
             return layer(*figs, which_layout=0)
 
 
-def _strip(
+def strip(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
@@ -697,12 +1198,17 @@ def pie(
         title: str = None,
         template: str = None,
         hole: str = None,
+        aggregate: bool = True,
         callback: Callable = default_callback
 ):
     if isinstance(table, Table):
-        table = preprocess_pie(table, names, values)
+        if aggregate:
+            table = preprocess_pie(table, names, values)
+
         args = locals()
         args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+
+        args.pop("preprocess")
 
         return generate_figure(draw=px.pie, call_args=args)
 
@@ -770,7 +1276,7 @@ def _funnel(
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
-    #marker
+    # marker
     if isinstance(table, Table):
         return generate_figure(draw=px.funnel, call_args=locals())
 

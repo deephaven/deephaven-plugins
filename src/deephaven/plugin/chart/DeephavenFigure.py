@@ -21,6 +21,7 @@ class DeephavenFigure:
             #TODO: fix so template isn't just a string but can be a provided template
             template: str = None,
             has_subplots: bool = False,
+            has_color: bool = False,
             trace_generator: Generator[dict[str, any]] = None
     ):
         # keep track of function that called this and it's args
@@ -35,6 +36,12 @@ class DeephavenFigure:
             self.template = template
         elif call_args and "template" in call_args:
             self.template = call_args["template"]
+
+        self.has_color = None
+        if has_color:
+            self.template = template
+        elif call_args and "color_discrete_sequence" in call_args:
+            self.has_color = call_args["color_discrete_sequence"] is not None
 
         self._data_mappings = data_mappings if data_mappings else []
 
@@ -93,6 +100,7 @@ class DeephavenFigure:
         figure_json = f'"plotly": {self.fig.to_json()}'
         mapping_json = f'"mappings": {json.dumps(self.get_json_links(exporter))}'
         template_json = f', "is_user_set_template": {"true" if self.template else "false"}'
-        dh_json = '"deephaven": {' + mapping_json + template_json + '}'
+        color_json = f', "is_user_set_color": {"true" if self.has_color else "false"}'
+        dh_json = '"deephaven": {' + mapping_json + template_json + color_json + '}'
         # todo: figure out f string - the curly brackets make it tricky
         return '{' + figure_json + ', ' + dh_json + '}'

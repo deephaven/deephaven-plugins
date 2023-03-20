@@ -15,6 +15,8 @@ CUSTOM_DATA_ARGS = {
     "error_x_minus": "error_x/arrayminus",
     "error_y": "error_y/array",
     "error_y_minus": "error_y/arrayminus",
+    "error_z": "error_z/array",
+    "error_z_minus": "error_z/arrayminus",
     "x_diff": "x"
 }
 
