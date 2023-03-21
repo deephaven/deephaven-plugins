@@ -367,10 +367,10 @@ def line(
         yaxis_title_sequence: list[str] = None,
         xaxis_title_sequence: list[str] = None,
         markers: bool = False,
-        log_x: bool = False,
-        log_y: bool = False,
-        range_x: list[int] = None,
-        range_y: list[int] = None,
+        log_x: bool | list[bool] = False,
+        log_y: bool | list[bool] = False,
+        range_x: list[int] | list[list[int]] = None,
+        range_y: list[int] | list[list[int]] = None,
         line_shape: str = 'linear',
         title: str = None,
         template: str = None,
@@ -652,10 +652,10 @@ def area(
         #  not really a huge gain, just dividing values
         #  and setting max to 100 (for percent)
         groupnorm: str = None,
-        log_x: bool = False,
-        log_y: bool = False,
-        range_x: list[int] = None,
-        range_y: list[int] = None,
+        log_x: bool | list[bool] = False,
+        log_y: bool | list[bool] = False,
+        range_x: list[int] | list[list[int]] = None,
+        range_y: list[int] | list[list[int]] = None,
         line_shape: str = 'linear',
         title: str = None,
         template: str = None,
@@ -869,14 +869,12 @@ def timeline(
     patterns, patterns will be reused.
     :param opacity: Opacity to apply to all points. 0 is completely transparent
     and 1 is completely opaque.
-    :param range_x: A list of two numbers or a list of lists of two numbers
-    that specify the range of the x axes. None can be specified for no range
-    The ranges loop, so if there are more axes than ranges, ranges will
-    be reused.
-    :param range_y: A list of two numbers or a list of lists of two numbers
-     that specify the range of the x axes. None can be specified for no range
-    The ranges loop, so if there are more axes than ranges, ranges will
-    be reused.
+    :param log_x: A boolean that specifies if the corresponding axis is a log
+    axis or not.
+    :param log_y: A boolean that specifies if the corresponding axis is a log
+    axis or not.
+    :param range_x: A list of two numbers that specify the range of the x axis.
+    :param range_y: A list of two numbers that specify the range of the y axis.
     :param title: The title of the chart
     :param template: The template for the chart.
     :param callback: A callback function that takes a figure as an argument and
@@ -920,6 +918,42 @@ def frequency_bar(
         template: str = None,
         callback: Callable = default_callback
 ):
+    """
+    Returns a bar chart that contains the counts of the specified columns
+
+    :param table: A table to pull data from.
+    :param x: A column name or list of columns that contain x-axis values.
+    Only one of x or y can be specified. If x is specified, the bars are drawn
+    vertically.
+    :param y: A column name or list of columns that contain y-axis values.
+    Only one of x or y can be specified. If x is specified, the bars are drawn
+    horizontally.
+    :param color_discrete_sequence: A list of colors to sequentially apply to
+    the series. The colors loop, so if there are more series than colors,
+    colors will be reused.
+    :param pattern_shape_sequence: A list of patterns to sequentially apply
+    to the series. The patterns loop, so if there are more series than
+    patterns, patterns will be reused.
+    :param opacity: Opacity to apply to all points. 0 is completely transparent
+    and 1 is completely opaque.
+    :param barmode: Default 'relative'. If 'relative', bars are stacked. If
+    'overlay', bars are drawn on top of each other. If 'group', bars are drawn
+    next to each other.
+    :param log_x: A boolean that specifies if the corresponding axis is a log
+    axis or not.
+    :param log_y: A boolean that specifies if the corresponding axis is a log
+    axis or not.
+    :param range_x: A list of two numbers that specify the range of the x axis.
+    :param range_y: A list of two numbers that specify the range of the y axis.
+    :param text_auto: Default False. If True, display the value at each bar.
+    If a string, specifies a plotly texttemplate.
+    :param title: The title of the chart
+    :param template: The template for the chart.
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :return: A DeephavenFigure that contains the bar chart
+    """
     # TODO: refactor?
     if x and y:
         raise ValueError("Cannot specify both x and y")
@@ -971,12 +1005,44 @@ def violin(
         log_y: bool = False,
         range_x: list[int] = None,
         range_y: list[int] = None,
-        points: str = 'outliers',
+        points: bool | str = 'outliers',
         box: bool = False,
         title: str = None,
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
+    """
+    Returns a violin chart
+
+    :param table: A table to pull data from.
+    :param x: A column name or list of columns that contain x-axis values.
+    Only one of x or y can be specified. If x is specified, the violins are
+    drawn horizontally.
+    :param y: A column name or list of columns that contain y-axis values.
+    Only one of x or y can be specified. If y is specified, the violins are
+    drawn vertically.
+    :param color_discrete_sequence: A list of colors to sequentially apply to
+    the series. The colors loop, so if there are more series than colors,
+    colors will be reused.
+    :param violinmode: Default 'group', which draws the violins next
+    to each other and 'overlay' which draws them on top of each other.
+    :param log_x: A boolean that specifies if the corresponding axis is a log
+    axis or not.
+    :param log_y: A boolean that specifies if the corresponding axis is a log
+    axis or not.
+    :param range_x: A list of two numbers that specify the range of the x axis.
+    :param range_y: A list of two numbers that specify the range of the y axis.
+    :param points: Default 'outliers', which draws points outside the whiskers.
+    'suspectedoutliers' draws points below 4*Q1-3*Q3 and above 4*Q3-3*Q1.
+    'all' draws all points and False draws no points.
+    :param box: Default False. Draw boxes inside the violin if True.
+    :param title: The title of the chart
+    :param template: The template for the chart.
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :return: A DeephavenFigure that contains the violin chart
+    """
     #TODO: offset group?
     if x and y:
         raise ValueError("Cannot specify both x and y")
@@ -1027,12 +1093,44 @@ def box(
         log_y: bool = False,
         range_x: list[int] = None,
         range_y: list[int] = None,
-        points: str = 'outliers',
+        points: bool | str = 'outliers',
         notched: bool = False,
         title: str = None,
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
+    """
+    Returns a box chart
+
+    :param table: A table to pull data from.
+    :param x: A column name or list of columns that contain x-axis values.
+    Only one of x or y can be specified. If x is specified, the violins are
+    drawn horizontally.
+    :param y: A column name or list of columns that contain y-axis values.
+    Only one of x or y can be specified. If y is specified, the violins are
+    drawn vertically.
+    :param color_discrete_sequence: A list of colors to sequentially apply to
+    the series. The colors loop, so if there are more series than colors,
+    colors will be reused.
+    :param boxmode: Default 'group', which draws the violins next
+    to each other and 'overlay' which draws them on top of each other.
+    :param log_x: A boolean that specifies if the corresponding axis is a log
+    axis or not.
+    :param log_y: A boolean that specifies if the corresponding axis is a log
+    axis or not.
+    :param range_x: A list of two numbers that specify the range of the x axis.
+    :param range_y: A list of two numbers that specify the range of the y axis.
+    :param points: Default 'outliers', which draws points outside the whiskers.
+    'suspectedoutliers' draws points below 4*Q1-3*Q3 and above 4*Q3-3*Q1.
+    'all' draws all points and False draws no points.
+    :param notched: Default False, if True boxes are drawn with notches
+    :param title: The title of the chart
+    :param template: The template for the chart.
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :return: A DeephavenFigure that contains the box chart
+    """
     if isinstance(table, Table):
         args = locals()
         args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
@@ -1074,7 +1172,7 @@ def strip(
         x: str | list[str] = None,
         y: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
-        stripmode: str = 'group',
+        stripmode: bool | str = 'group',
         log_x: bool = False,
         log_y: bool = False,
         range_x: list[int] = None,
@@ -1083,6 +1181,34 @@ def strip(
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
+    """
+    Returns a strip chart
+
+    :param table: A table to pull data from.
+    :param x: A column name or list of columns that contain x-axis values.
+    Only one of x or y can be specified. If x is specified, the violins are
+    drawn horizontally.
+    :param y: A column name or list of columns that contain y-axis values.
+    Only one of x or y can be specified. If y is specified, the violins are
+    drawn vertically.
+    :param color_discrete_sequence: A list of colors to sequentially apply to
+    the series. The colors loop, so if there are more series than colors,
+    colors will be reused.
+    :param stripmode: Default 'group', which draws the violins next
+    to each other and 'overlay' which draws them on top of each other.
+    :param log_x: A boolean that specifies if the corresponding axis is a log
+    axis or not.
+    :param log_y: A boolean that specifies if the corresponding axis is a log
+    axis or not.
+    :param range_x: A list of two numbers that specify the range of the x axis.
+    :param range_y: A list of two numbers that specify the range of the y axis.
+    :param title: The title of the chart
+    :param template: The template for the chart.
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :return: A DeephavenFigure that contains the strip chart
+    """
     if isinstance(table, Table):
         args = locals()
         args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
@@ -1160,19 +1286,64 @@ def histogram(
         log_y: bool = False,
         range_x: list[int] = None,
         range_y: list[int] = None,
+        range_bins: list[int] = None,
         histfunc: str = 'count',
         # cumulative: bool = False,
-        nbins: int = None,
+        nbins: int = 10,
         text_auto: bool | str = False,
         title: str = None,
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
+    """
+    Returns a histogram
+
+    :param table: A table to pull data from.
+    :param x: A column name or list of columns that contain x-axis values.
+    Only one of x or y can be specified. If x is specified, the bars are drawn
+    vertically.
+    :param y: A column name or list of columns that contain y-axis values.
+    Only one of x or y can be specified. If x is specified, the bars are drawn
+    horizontally.
+    :param color_discrete_sequence: A list of colors to sequentially apply to
+    the series. The colors loop, so if there are more series than colors,
+    colors will be reused.
+    :param pattern_shape_sequence: A list of patterns to sequentially apply
+    to the series. The patterns loop, so if there are more series than
+    patterns, patterns will be reused.
+    :param opacity: Opacity to apply to all points. 0 is completely transparent
+    and 1 is completely opaque.
+    :param barmode: Default 'relative'. If 'relative', bars are stacked. If
+    'overlay', bars are drawn on top of each other. If 'group', bars are drawn
+    next to each other.
+    :param log_x: A boolean that specifies if the corresponding axis is a log
+    axis or not.
+    :param log_y: A boolean that specifies if the corresponding axis is a log
+    axis or not.
+    :param range_x: A list of two numbers that specify the range of the x axis.
+    :param range_y: A list of two numbers that specify the range of the y axis.
+    :param range_bins: A list of two numbers that specify the range of data
+    that is used.
+    :param histfunc: The function to use when aggregating within bins. One of
+    'avg', 'count', 'count_distinct', 'max', 'median', 'min', 'std', 'sum',
+    or 'var'
+    :param nbins: Default 10. The number of bins to use.
+    :param text_auto: Default False. If True, display the value at each bar.
+    If a string, specifies a plotly texttemplate.
+    :param title: The title of the chart
+    :param template: The template for the chart.
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :return: A DeephavenFigure that contains the histogram
+    """
+    #todo: barmode relative and overlay not working
+
     if isinstance(table, Table):
         if x:
-            table, x, y = create_hist_tables(table, x, nbins, range_x, histfunc)
+            table, x, y = create_hist_tables(table, x, nbins, range_bins, histfunc)
         elif y:
-            table, y, x = create_hist_tables(table, y, nbins, range_y, histfunc)
+            table, y, x = create_hist_tables(table, y, nbins, range_bins, histfunc)
             orientation = "h"
         else:
             raise ValueError("x or y must be specified")
@@ -1183,6 +1354,7 @@ def histogram(
         args = locals()
         args.pop("nbins")
         args.pop("histfunc")
+        args.pop("range_bins")
 
         args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
         args["pattern_shape_sequence_bar"] = args.pop("pattern_shape_sequence")
@@ -1197,10 +1369,33 @@ def pie(
         color_discrete_sequence: list[str] = None,
         title: str = None,
         template: str = None,
-        hole: str = None,
+        opacity: float = None,
+        hole: float = None,
         aggregate: bool = True,
         callback: Callable = default_callback
 ):
+    """
+    Returns a pie chart
+
+    :param table: A table to pull data from.
+    :param names: The column containing names of the pie slices
+    :param values: The column containing values of the pie slices
+    :param color_discrete_sequence: A list of colors to sequentially apply to
+    the series. The colors loop, so if there are more series than colors,
+    colors will be reused.
+    :param title: The title of the chart
+    :param template: The template for the chart.
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :param opacity: Opacity to apply to all points. 0 is completely transparent
+    and 1 is completely opaque.
+    :param hole: Fraction of the radius to cut out of the center of the pie.
+    :param aggregate: Default True, aggregate the table names by total values. Can
+    be set to False if the table is already aggregated by name.
+    :param callback:
+    :return: A DeephavenFigure that contains the pie chart
+    """
     if isinstance(table, Table):
         if aggregate:
             table = preprocess_pie(table, names, values)
@@ -1226,6 +1421,27 @@ def treemap(
         maxdepth: int = None,
         callback: Callable = default_callback
 ):
+    """
+    Returns a treemap chart
+
+    :param table: A table to pull data from.
+    :param names: The column containing names of the sections
+    :param values: The column containing values of the sections
+    :param parents: The column containing parents of the sections
+    :param ids: The column containing ids of the sections. Unlike values, these
+    must be unique. Values are used for ids if ids are not specified.
+    :param title: The title of the chart
+    :param template: The template for the chart.
+    :param branchvalues: Set to 'total' to take the value at a level to include
+    all descendants and 'remainder' to the value as the remainder after
+    subtracting leaf values.
+    :param maxdepth: Sets the total number of visible levels. Set to -1 to
+     render all levels.
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :return: A DeephavenFigure that contains the treemap chart
+    """
     if isinstance(table, Table):
         return generate_figure(draw=px.treemap, call_args=locals())
 
@@ -1242,6 +1458,27 @@ def sunburst(
         maxdepth: int = None,
         callback: Callable = default_callback
 ):
+    """
+    Returns a treemap chart
+
+    :param table: A table to pull data from.
+    :param names: The column containing names of the sections
+    :param values: The column containing values of the sections
+    :param parents: The column containing parents of the sections
+    :param ids: The column containing ids of the sections. Unlike values, these
+    must be unique. Values are used for ids if ids are not specified.
+    :param title: The title of the chart
+    :param template: The template for the chart.
+    :param branchvalues: Set to 'total' to take the value at a level to include
+    all descendants and 'remainder' to the value as the remainder after
+    subtracting leaf values.
+    :param maxdepth: Sets the total number of visible levels. Set to -1 to
+     render all levels.
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :return: A DeephavenFigure that contains the treemap chart
+    """
     if isinstance(table, Table):
         return generate_figure(draw=px.sunburst, call_args=locals())
 
@@ -1258,6 +1495,27 @@ def icicle(
         maxdepth: int = None,
         callback: Callable = default_callback
 ):
+    """
+    Returns a treemap chart
+
+    :param table: A table to pull data from.
+    :param names: The column containing names of the sections
+    :param values: The column containing values of the sections
+    :param parents: The column containing parents of the sections
+    :param ids: The column containing ids of the sections. Unlike values, these
+    must be unique. Values are used for ids if ids are not specified.
+    :param title: The title of the chart
+    :param template: The template for the chart.
+    :param branchvalues: Set to 'total' to take the value at a level to include
+    all descendants and 'remainder' to the value as the remainder after
+    subtracting leaf values.
+    :param maxdepth: Sets the total number of visible levels. Set to -1 to
+     render all levels.
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :return: A DeephavenFigure that contains the treemap chart
+    """
     if isinstance(table, Table):
         return generate_figure(draw=px.icicle, call_args=locals())
 
@@ -1299,8 +1557,21 @@ def ohlc(
         low: str = None,
         close: str = None,
         callback: Callable = default_callback
-
 ):
+    """
+    Returns an ohlc chart
+
+    :param table: A table to pull data from.
+    :param x: The column containing x-axis data
+    :param open: The column containing the open data
+    :param high: The column containing the high data
+    :param low: The column containing the low data
+    :param close: The column containing the close data
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :return: A DeephavenFigure that contains the ohlc chart
+    """
     if isinstance(table, Table):
         call_args = locals()
         return generate_figure(draw=draw_ohlc, call_args=call_args)
