@@ -1,5 +1,5 @@
 from collections import defaultdict
-from itertools import cycle, product
+from itertools import cycle, product, zip_longest
 from collections.abc import Generator, Iterable
 
 from deephaven.table import Table
@@ -17,7 +17,16 @@ CUSTOM_DATA_ARGS = {
     "error_y_minus": "error_y/arrayminus",
     "error_z": "error_z/array",
     "error_z_minus": "error_z/arrayminus",
-    "x_diff": "x"
+    "x_diff": "x",
+}
+
+# these are data args that need to be appended rather than having the product taken
+APPEND_ARGS = {
+    "x_finance": "x",
+    "open": "open",
+    "high": "high",
+    "low": "low",
+    "close": "close",
 }
 
 # override these data columns with different names
@@ -30,6 +39,7 @@ OVERRIDES = {
 REMOVE = {
     "x_end"
 }
+
 
 def get_data_groups(
         data_vals: Iterable[str | list[str]]
@@ -50,6 +60,7 @@ def get_data_groups(
             data_groups.append(val)
 
     return product(*data_groups)
+
 
 def overriden_keys(keys):
     for key in keys:
@@ -106,7 +117,8 @@ def add_marginals(
                 "marginal_placeholder"
             }
 
-#TODO: could just pass the overriding arg and use key value generator
+
+# TODO: could just pass the overriding arg and use key value generator
 def custom_data_args_generator(
         var: str,
         cols: list[str]
@@ -158,8 +170,9 @@ def filter_none(
     for var_col_dict in var_col_dicts:
         yield {k: v for k, v in var_col_dict.items() if v is not None}
 
+
 def remove_unmapped_args(
-    data_dict
+        data_dict
 ):
     for arg in REMOVE:
         if arg in data_dict:
@@ -168,12 +181,39 @@ def remove_unmapped_args(
     return data_dict
 
 
+def remove_unmapped_args(
+        data_dict
+):
+    for arg in REMOVE:
+        if arg in data_dict:
+            data_dict.pop(arg)
+
+    return data_dict
+
+
+def zip_args(
+        data_dict
+):
+    for x_f, o, h, l, c in zip_longest(
+            data_dict["x_finance"], data_dict["open"], data_dict["high"],
+            data_dict["low"], data_dict["close"],
+            fillvalue=data_dict["x_finance"][0]):
+
+        yield {
+            "x": x_f,
+            "open": o,
+            "high": h,
+            "low": l,
+            "close": c,
+        }
+
+
 def create_data_mapping(
         data_dict: dict[str, str | list[str]],
         custom_call_args: dict[str, any],
         table: Table,
         start_index: int,
-        #marginals: list[str],
+        # marginals: list[str],
 ) -> DataMapping:
     """
     Create a data mapping of data columns to json links, attaching marginals
@@ -190,13 +230,19 @@ def create_data_mapping(
     :return: A DataMapping for a specific table
     """
 
+    print(data_dict)
+
     data_dict = remove_unmapped_args(data_dict)
 
-    var_col_dicts = get_var_col_dicts(data_dict)
+    # in case oh finance, zip instead of take product
+    if "x_finance" in data_dict:
+        var_col_dicts = zip_args(data_dict)
+    else:
+        var_col_dicts = get_var_col_dicts(data_dict)
 
     var_col_dicts = add_custom_data_args(var_col_dicts, custom_call_args)
 
-    #var_col_dicts = add_marginals(var_col_dicts, marginals)
+    # var_col_dicts = add_marginals(var_col_dicts, marginals)
 
     var_col_dicts = filter_none(var_col_dicts)
 

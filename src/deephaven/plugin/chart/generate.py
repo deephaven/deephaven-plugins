@@ -1,4 +1,4 @@
-from itertools import cycle, count, repeat
+from itertools import cycle, count, repeat, zip_longest
 from collections.abc import Generator
 from math import floor, ceil
 from typing import Callable
@@ -38,6 +38,13 @@ CUSTOM_DATA_ARGS = {
     "x_diff"
 }
 
+# these are data args that can always be safely converted to lists, mostly for
+# convenience
+TO_LIST_DATA_ARGS = {
+    "open", "high", "low", "close",
+    "x_finance"
+}
+
 # these are args that hold data that needs to be overriden on the client
 # note that ERROR_ARGS are not here because those args don't need to be
 # processed in a specific way that preserves their type
@@ -45,11 +52,11 @@ DATA_ARGS = {
     "x", "y", "z",
     "r", "theta",
     "a", "b", "c",
-    "open", "high", "low", "close",
     "names", "values",
     "parents", "ids",
-    "x_start", "x_end"
+    "x_start", "x_end",
 }
+DATA_ARGS.update(TO_LIST_DATA_ARGS)
 
 # these args map a marginal argument to what variable the data should be
 # pulled from in the corresponding figure data
@@ -75,7 +82,9 @@ SEQUENCE_ARGS = {
     # need separate keys for line and scatter color as they are written to
     # different locations
     "color_discrete_sequence_line": "line_color",
-    "color_discrete_sequence_marker": "marker_color"
+    "color_discrete_sequence_marker": "marker_color",
+    "increasing_color_sequence": "increasing_line_color",
+    "decreasing_color_sequence": "decreasing_line_color",
 }
 
 # these are arguments that are applied across axes
@@ -243,6 +252,8 @@ def split_args(
 
         elif arg in CUSTOM_X_AXIS_ARGS or arg in CUSTOM_Y_AXIS_ARGS:
             custom_call_args[arg] = val
+        elif arg in TO_LIST_DATA_ARGS:
+            new_call_args[arg] = val if isinstance(val, list) else [val]
         else:
             new_call_args[arg] = val
 
@@ -623,6 +634,7 @@ def generate_figure(
 
     data_cols = get_data_cols(call_args)
 
+
     data_frame = construct_min_dataframe(table,
                                          data_cols=merge_cols(
                                              list(data_cols.values())
@@ -681,9 +693,41 @@ def merge_cols(
     return prepared_cols
 
 
+def draw_finance(
+        data_frame: DataFrame,
+        x_finance: str | list[str],
+        open: str | list[str],
+        high: str | list[str],
+        low: str | list[str],
+        close: str | list[str],
+        go_func: Callable
+):
+    #x_finance = x_finance if isinstance(x_finance, list) else [x_finance]
+    #open = open if isinstance(open, list) else [open]
+    #high = high if isinstance(high, list) else [high]
+    #low = low if isinstance(low, list) else [low]
+    #close = close if isinstance(close, list) else [close]
+
+    # todo: validate
+    #   x should be a singleton or list, o,h,l,c and x (if list) should be same length
+
+    data = []
+
+    for x_f, o, h, l, c in zip_longest(x_finance, open, high, low, close, fillvalue=x_finance[0]):
+        data.append(go_func(x=data_frame[x_f],
+                            open=data_frame[open],
+                            high=data_frame[high],
+                            low=data_frame[low],
+                            close=data_frame[close]))
+
+    return go.Figure(data=data)
+
+
+# increasing_line_color= 'cyan', decreasing_line_color
+# axis sequence
 def draw_ohlc(
         data_frame: DataFrame,
-        x: str,
+        x_finance: str,
         open: str,
         high: str,
         low: str,
@@ -694,14 +738,40 @@ def draw_ohlc(
 
     :param data_frame: The data frame to draw with
     :param x: The name of the column containing x-axis values
-    :param open_: The name of the column containing open values
+    :param open: The name of the column containing open values
     :param high: The name of the column containing high values
     :param low: The name of the column containing low values
     :param close: The name of the column containing close values
     :return:
     """
-    return go.Figure(data=go.Ohlc(x=data_frame[x],
-                                  open=data_frame[open],
-                                  high=data_frame[high],
-                                  low=data_frame[low],
-                                  close=data_frame[close]))
+    return draw_finance(
+        data_frame, x_finance,
+        open, high, low, close,
+        go.Ohlc)
+
+
+
+def draw_candlestick(
+        data_frame: DataFrame,
+        x_finance: str | list[str],
+        open: str | list[str],
+        high: str | list[str],
+        low: str | list[str],
+        close: str | list[str],
+) -> Figure:
+    """
+    Create a plotly OHLC chart.
+
+    :param data_frame: The data frame to draw with
+    :param x: The name of the column containing x-axis values
+    :param open: The name of the column containing open values
+    :param high: The name of the column containing high values
+    :param low: The name of the column containing low values
+    :param close: The name of the column containing close values
+    :return:
+    """
+
+    return draw_finance(
+        data_frame, x_finance,
+        open, high, low, close,
+        go.Candlestick)

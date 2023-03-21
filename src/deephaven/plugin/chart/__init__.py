@@ -9,7 +9,7 @@ from deephaven.plugin import Registration
 from deephaven.plugin.object import Exporter, ObjectType
 from deephaven.table import Table
 
-from .generate import generate_figure, draw_ohlc
+from .generate import generate_figure, draw_ohlc, draw_candlestick
 from .DeephavenFigure import DeephavenFigure
 
 __version__ = "0.0.1.dev0"
@@ -1556,6 +1556,8 @@ def ohlc(
         high: str = None,
         low: str = None,
         close: str = None,
+        increasing_color_sequence: list[str] = None,
+        decreasing_color_sequence: list[str] = None,
         callback: Callable = default_callback
 ):
     """
@@ -1573,8 +1575,44 @@ def ohlc(
     :return: A DeephavenFigure that contains the ohlc chart
     """
     if isinstance(table, Table):
-        call_args = locals()
-        return generate_figure(draw=draw_ohlc, call_args=call_args)
+        args = locals()
+        args["x_finance"] = args.pop("x")
+        return generate_figure(draw=draw_ohlc, call_args=args)
+
+
+def candlestick(
+        table: Table = None,
+        x: str = None,
+        open: str = None,
+        high: str = None,
+        low: str = None,
+        close: str = None,
+        increasing_color_sequence: list[str] = None,
+        decreasing_color_sequence: list[str] = None,
+        xaxis_sequence: list[int] = None,
+        yaxis_sequence: list[int] = None,
+        yaxis_title_sequence: list[str] = None,
+        xaxis_title_sequence: list[str] = None,
+        callback: Callable = default_callback
+):
+    """
+    Returns a candlestick chart
+
+    :param table: A table to pull data from.
+    :param x: The column containing x-axis data
+    :param open: The column containing the open data
+    :param high: The column containing the high data
+    :param low: The column containing the low data
+    :param close: The column containing the close data
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :return: A DeephavenFigure that contains the candlestick chart
+    """
+    if isinstance(table, Table):
+        args = locals()
+        args["x_finance"] = args.pop("x")
+        return generate_figure(draw=draw_candlestick, call_args=args)
 
 
 def _scatter_matrix():
