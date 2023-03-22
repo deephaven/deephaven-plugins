@@ -1,4 +1,3 @@
-from copy import copy
 from typing import Callable
 
 import plotly.express as px
@@ -53,27 +52,7 @@ class ChartRegistration(Registration):
         callback.register(DeephavenFigureType)
 
 
-"""
-def marginal_generator(
-        scatter_: DeephavenFigure,
-        which,
-        table: Table,
-        range_x,
-        range_y,
-        color_discrete_sequence,
-        x,
-        y,
-):
-    for mariginal in which:
-        if marginal
-    marginals = histogram(table, x, y, range_x=range_x, range_y=range_y,
-
-def marginal_mapping_generator
-"""
-
-#TODO: make sure defaults are correct and specified in docstring
-# todo: improve axis sequences so only up to
-#todo: size sequence
+# todo: size sequence
 def scatter(
         table: Table = None,
         x: str | list[str] = None,
@@ -635,7 +614,7 @@ def line_ternary(
 
         return generate_figure(draw=px.line_ternary, call_args=args)
 
-#todo: support multiple axes
+
 def area(
         table: Table = None,
         x: str | list[str] = None,
@@ -648,9 +627,7 @@ def area(
         yaxis_title_sequence: list[str] = None,
         xaxis_title_sequence: list[str] = None,
         markers: bool = False,
-        # todo: should groupnorm be done in engine?
-        #  not really a huge gain, just dividing values
-        #  and setting max to 100 (for percent)
+        # todo: groupnorm in engine
         groupnorm: str = None,
         log_x: bool | list[bool] = False,
         log_y: bool | list[bool] = False,
@@ -720,7 +697,6 @@ def area(
         :return: A DeephavenFigure that contains the area chart
         """
     if isinstance(table, Table):
-        # TODO: make scatterlgl? no px arg
         args = locals()
         args["pattern_shape_sequence_area"] = args.pop("pattern_shape_sequence")
         args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
@@ -834,6 +810,7 @@ def _bar_polar(
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
+    # todo: not yet implemented
     if isinstance(table, Table):
         args = locals()
         args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
@@ -869,10 +846,6 @@ def timeline(
     patterns, patterns will be reused.
     :param opacity: Opacity to apply to all points. 0 is completely transparent
     and 1 is completely opaque.
-    :param log_x: A boolean that specifies if the corresponding axis is a log
-    axis or not.
-    :param log_y: A boolean that specifies if the corresponding axis is a log
-    axis or not.
     :param range_x: A list of two numbers that specify the range of the x axis.
     :param range_y: A list of two numbers that specify the range of the y axis.
     :param title: The title of the chart
@@ -882,7 +855,7 @@ def timeline(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the timeline chart
     """
-    #TODO: add resource column?
+    # TODO: add resource column?
     if isinstance(table, Table):
         table, x_diff = preprocess_timeline(table, x_start, x_end, y)
         args = locals()
@@ -890,7 +863,6 @@ def timeline(
         return generate_figure(draw=px.timeline, call_args=args)
 
 
-# todo: can this be done better?
 def _to_list(
         arg
 ):
@@ -1043,7 +1015,6 @@ def violin(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the violin chart
     """
-    #TODO: offset group?
     if x and y:
         raise ValueError("Cannot specify both x and y")
 
@@ -1241,7 +1212,7 @@ def strip(
                 if not trace_generator:
                     trace_generator = figs[0].trace_generator
 
-            # layer but with only the first layout (as subsequent ones were not modfied)
+            # layer but with only the first layout (as subsequent ones were not modified)
             return layer(*figs, which_layout=0)
 
 
@@ -1265,6 +1236,7 @@ def _ecdf(
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
+    # todo: not yet implemented
     if isinstance(table, Table):
         render_mode = "webgl"
         args = locals()
@@ -1337,7 +1309,7 @@ def histogram(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the histogram
     """
-    #todo: barmode relative and overlay not working
+    # todo: barmode relative and overlay not working
 
     if isinstance(table, Table):
         if x:
@@ -1534,21 +1506,18 @@ def _funnel(
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
-    # marker
+    # todo: not yet implemented
     if isinstance(table, Table):
         return generate_figure(draw=px.funnel, call_args=locals())
 
-    # TODO: funnel_area is similar
-    # note that for both (funnels) need to aggregate like pie
-
 
 def _funnel_area(
-
 ):
+    # todo: not yet implemented
     pass
 
-
-# TODO: support str or list of str
+# todo: range slider
+#   fig.update(layout_xaxis_rangeslider_visible=False)
 def ohlc(
         table: Table = None,
         x: str = None,
@@ -1558,6 +1527,10 @@ def ohlc(
         close: str = None,
         increasing_color_sequence: list[str] = None,
         decreasing_color_sequence: list[str] = None,
+        xaxis_sequence: list[int] = None,
+        yaxis_sequence: list[int] = None,
+        yaxis_title_sequence: list[str] = None,
+        xaxis_title_sequence: list[str] = None,
         callback: Callable = default_callback
 ):
     """
@@ -1569,6 +1542,26 @@ def ohlc(
     :param high: The column containing the high data
     :param low: The column containing the low data
     :param close: The column containing the close data
+    :param increasing_color_sequence: A list of colors to sequentially apply to
+    the series on increasing bars. The colors loop, so if there are more series
+    than colors, colors will be reused.
+    :param decreasing_color_sequence: A list of colors to sequentially apply to
+    the series on decreasing bars. The colors loop, so if there are more series
+    than colors, colors will be reused.
+    :param xaxis_sequence: A list of x axes to assign series to. Odd numbers
+    starting with 1 are created on the bottom x axis and even numbers starting
+    with 2 are created on the top x axis. Axes are created up
+    to the maximum number specified. The axes loop, so if there are more series
+    than axes, axes will be reused.
+    :param yaxis_sequence: A list of y axes to assign series to. Odd numbers
+    starting with 1 are created on the left y axis and even numbers starting
+    with 2 are created on the top y axis. Axes are created up
+    to the maximum number specified. The axes loop, so if there are more series
+    than axes, axes will be reused.
+    :param yaxis_title_sequence: A list of titles to sequentially apply to the
+    y axes. The titles do not loop.
+    :param xaxis_title_sequence: A list of titles to sequentially apply to the
+    x axes. The titles do not loop.
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
@@ -1604,6 +1597,26 @@ def candlestick(
     :param high: The column containing the high data
     :param low: The column containing the low data
     :param close: The column containing the close data
+    :param increasing_color_sequence: A list of colors to sequentially apply to
+    the series on increasing bars. The colors loop, so if there are more series
+    than colors, colors will be reused.
+    :param decreasing_color_sequence: A list of colors to sequentially apply to
+    the series on decreasing bars. The colors loop, so if there are more series
+    than colors, colors will be reused.
+    :param xaxis_sequence: A list of x axes to assign series to. Odd numbers
+    starting with 1 are created on the bottom x axis and even numbers starting
+    with 2 are created on the top x axis. Axes are created up
+    to the maximum number specified. The axes loop, so if there are more series
+    than axes, axes will be reused.
+    :param yaxis_sequence: A list of y axes to assign series to. Odd numbers
+    starting with 1 are created on the left y axis and even numbers starting
+    with 2 are created on the top y axis. Axes are created up
+    to the maximum number specified. The axes loop, so if there are more series
+    than axes, axes will be reused.
+    :param yaxis_title_sequence: A list of titles to sequentially apply to the
+    y axes. The titles do not loop.
+    :param xaxis_title_sequence: A list of titles to sequentially apply to the
+    x axes. The titles do not loop.
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
@@ -1616,17 +1629,28 @@ def candlestick(
 
 
 def _scatter_matrix():
+    # todo: not yet implemented
     pass
 
 
 def layer(
-        *args,
-        which_layout=None,
+        *args: DeephavenFigure | Figure,
+        which_layout: int = None,
         callback=default_callback
 ):
-    # should take plotly or deephaven fig
-    # plotly fig will
-    # compose figures
+    """
+    Layers the provided figures. Be default, the layouts are sequentially
+    applied, so the layouts of later figures will override the layouts of early
+    figures.
+
+    :param args: The charts to layer
+    :param which_layout: None to layer layouts, or an index of which arg to
+    take the layout from
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :return: The layered chart
+    """
     if len(args) == 0:
         raise ValueError("No figures provided to compose")
 
@@ -1658,7 +1682,7 @@ def layer(
 
     new_fig = callback(new_fig)
 
-    # todo this doesn't maintain call args, but that isn't currently needed
+    # todo: this doesn't maintain call args, but that isn't currently needed
     return DeephavenFigure(fig=new_fig, data_mappings=new_data_mappings, template=new_template)
 
 
@@ -1666,5 +1690,6 @@ def _make_subplots(
         rows=1,
         cols=1
 ):
+    # todo: not yet implemented
     new_fig = subplots.make_subplots(rows=rows, cols=cols)
-    return DeephavenFigure(new_fig, has_subplots=True)
+    return DeephavenFigure(new_fig)

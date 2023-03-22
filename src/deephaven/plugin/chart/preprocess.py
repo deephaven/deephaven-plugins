@@ -1,8 +1,11 @@
+from collections.abc import Generator
+
 from deephaven.table import Table
 from deephaven import agg, empty_table, new_table
 from deephaven.column import long_col
 from deephaven.time import nanos_to_millis, diff_nanos
 
+# Used to aggregate within histogram bins
 HISTFUNC_MAP = {
     'avg': agg.avg,
     'count': agg.count_,
@@ -14,13 +17,6 @@ HISTFUNC_MAP = {
     'sum': agg.sum_,
     'var': agg.var
 }
-
-
-def remap_args(args, remap):
-    for k, v in enumerate(remap):
-        if k in args:
-            args[remap[k]] = args.pop(k)
-    return args
 
 
 def preprocess_pie(
@@ -45,7 +41,17 @@ def create_count_tables(
         columns: list[str],
         range_table: Table,
         histfunc: str
-):
+) -> Generator[Table, str]:
+    """
+    Generate count tables per column
+
+    :param table: The table to pull data from
+    :param columns: A list of columns to create histograms over
+    :param range_table: A table containing ranges to calculate the bin for each
+    value in the column
+    :param histfunc: The function to aggregate values within each bin
+    :returns: Yields a tuple containing (a new count_table, the column name)
+    """
     agg_func = HISTFUNC_MAP[histfunc]
     for column in columns:
         count_table = table.view(column) \
@@ -63,7 +69,19 @@ def create_hist_tables(
         nbins: int,
         range_: list[int],
         histfunc: str
-):
+) -> tuple[Table, str, list[str]]:
+    """
+    Create the histogram table that contains aggregated bin counts
+
+    :param table: The table to pull data from
+    :param columns: A list of columns to create histograms over
+    :param nbins: The number of bins, shared between all histograms
+    :param range_: The range that the bins are drawn over. If none, the range
+    will be over all data
+    :param histfunc: The function to aggregate values within each bin
+    :return: A tuple containing (the new counts table,
+    the column of the midpoint, the columns that contain counts)
+    """
     columns = columns if isinstance(columns, list) else [columns]
 
     range_table = create_range_table(table, columns, nbins, range_)
@@ -87,9 +105,18 @@ def create_hist_tables(
 
 
 def get_aggs(
-        base,
-        columns,
-):
+        base: str,
+        columns: list[str],
+) -> tuple[list[str], str]:
+    """
+    Create aggregations over all columns
+
+    :param base: The base of the new columns that store the agg per column
+    :param columns: All columns joined for the sake of taking min or max over
+    the columns
+    :return: A tuple containing (a list of the new columns,
+    a joined string of "NewCol, NewCol2...")
+    """
     return ([f"{base}{column}={column}" for column in columns],
             ', '.join([f"{base}{column}" for column in columns]))
 
@@ -99,7 +126,17 @@ def create_range_table(
         columns: list[str],
         nbins: int,
         range_: list[int]
-):
+) -> Table:
+    """
+    Create a table that contains the bin ranges
+
+    :param table: The table to pull data from
+    :param columns: The column names to create the range table over
+    :param nbins: The number of bins to use
+    :param range_: The range that the bins are drawn over. If none, the range
+    will be over all data
+    :return: A new table that contains a range object in a Range column
+    """
     if range_:
         range_min = range_[0]
         range_max = range_[1]
@@ -119,30 +156,74 @@ def create_range_table(
         f"{nbins})").view("Range")
 
 
-def time_length(start, end):
+def time_length(
+        start: str,
+        end: str
+) -> int:
+    """
+    Calculate the difference between the start and end times in milliseconds
+
+    :param start: The start time
+    :param end: The end time
+    :return: The time in milliseconds
+    """
     return nanos_to_millis(diff_nanos(start, end))
 
 
-def preprocess_frequency_bar(table, column):
+def preprocess_frequency_bar(
+        table: Table,
+        column: str
+) -> tuple[Table, str]:
+    """
+    Preprocess frequency bar params into an appropriate table
+    This just sums each value by count
+
+    :param table: The table to pull data from
+    :param column: The column that has counts applied
+    :return: A tuple containing (the new table, the name of the count column)
+    """
     return table.view([column]).count_by("Count", by=column), "Count"
 
-#todo: always modify given column names to prevent column collisions?
+
+# todo: always modify given column names to prevent column collisions?
 def preprocess_timeline(
-        table,
-        x_start,
-        x_end,
-        y
-):
+        table: Table,
+        x_start: str,
+        x_end: str,
+        y: str
+) -> tuple[Table, str]:
+    """
+    Preprocess timeline params into an appropriate table
+    The table should contain the Time_Diff, which is milliseconds between the
+    provided x_start and x_end
+
+    :param table: The table to pull data from
+    :param x_start: The column that contains start dates
+    :param x_end: The column that contains end dates
+    :param y: The label for the row
+    :return: A tuple containing (the new table,
+    the name of the new time_diff column)
+    """
     new_table = table.view([f"{x_start}",
                             f"{x_end}",
                             f"Time_Diff = time_length({x_start}, {x_end})",
                             f"{y}"])
     return new_table, "Time_Diff"
 
+
 def preprocess_violin(
-        table,
-        column
-):
+        table: Table,
+        column: str
+) -> tuple[Table, str, str]:
+    """
+    Preprocess the violin (or box or strip) params into an appropriate table
+    For each column, the data needs to be reshaped so that there is a column
+    that contains the column name, and a column that contains the value
+
+    :param table: The table to pull data from
+    :param column: The column to use for violin data
+    :return: A tuple of new_table, column names, and column values
+    """
     col_names, col_vals = f"{column}_names", f"{column}_vals",
     # also used for box and strip
     new_table = table.view([
@@ -151,4 +232,3 @@ def preprocess_violin(
     ])
 
     return new_table, col_names, col_vals
-

@@ -1,4 +1,3 @@
-from collections import defaultdict
 from itertools import cycle, product, zip_longest
 from collections.abc import Generator, Iterable
 
@@ -62,7 +61,15 @@ def get_data_groups(
     return product(*data_groups)
 
 
-def overriden_keys(keys):
+def overriden_keys(
+        keys: list[str]
+) -> Generator[str]:
+    """
+    Override all keys provided with values in OVERRIDES if applicable
+
+    :param keys: The keys to override
+    :returns: A generator that yields the overriden keys
+    """
     for key in keys:
         yield OVERRIDES[key] if key in OVERRIDES else key
 
@@ -95,7 +102,7 @@ def get_var_col_dicts(
     :return: Generated var to column mappings
     """
     for data_group in get_data_groups(data_dict.values()):
-        yield dict(zip(overriden_keys(data_dict.keys()), data_group))
+        yield dict(zip(overriden_keys(list(data_dict.keys())), data_group))
 
 
 def add_marginals(
@@ -118,7 +125,6 @@ def add_marginals(
             }
 
 
-# TODO: could just pass the overriding arg and use key value generator
 def custom_data_args_generator(
         var: str,
         cols: list[str]
@@ -172,18 +178,14 @@ def filter_none(
 
 
 def remove_unmapped_args(
-        data_dict
-):
-    for arg in REMOVE:
-        if arg in data_dict:
-            data_dict.pop(arg)
+        data_dict: dict[str, str | list[str]]
+) -> dict[str, str | list[str]]:
+    """
+    Removed any args that do not need to be in the data mapping
 
-    return data_dict
-
-
-def remove_unmapped_args(
-        data_dict
-):
+    :param data_dict: The dict to remove args from
+    :return: The filtered dict
+    """
     for arg in REMOVE:
         if arg in data_dict:
             data_dict.pop(arg)
@@ -192,8 +194,15 @@ def remove_unmapped_args(
 
 
 def zip_args(
-        data_dict
-):
+        data_dict: dict[str, str | list[str]]
+) -> Generator[dict[str, str]]:
+    """
+    Yields var_col_dicts, similarly to get_var_col_dicts
+    Special case for OHLC and Candlestick as their data mappings are applied
+    sequentially rather than in a product
+
+    :param data_dict: The data
+    """
     for x_f, o, h, l, c in zip_longest(
             data_dict["x_finance"], data_dict["open"], data_dict["high"],
             data_dict["low"], data_dict["close"],
@@ -213,15 +222,12 @@ def create_data_mapping(
         custom_call_args: dict[str, any],
         table: Table,
         start_index: int,
-        # marginals: list[str],
 ) -> DataMapping:
     """
-    Create a data mapping of data columns to json links, attaching marginals
-    as needed.
+    Create a data mapping of variable to table column
 
     :param data_dict: A dictionary containing (variable, column) maps that need
-    to be converted to (column, json link) maps
-    :param marginals: Any marginals to attach
+    to be converted to (variable, table column) maps
     :param custom_call_args: Extra args extracted from the call_args that require
     special processing
     :param table: The table that contains the data
@@ -230,11 +236,9 @@ def create_data_mapping(
     :return: A DataMapping for a specific table
     """
 
-    print(data_dict)
-
     data_dict = remove_unmapped_args(data_dict)
 
-    # in case oh finance, zip instead of take product
+    # in case of finance, zip instead of take product
     if "x_finance" in data_dict:
         var_col_dicts = zip_args(data_dict)
     else:

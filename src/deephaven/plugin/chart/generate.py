@@ -1,4 +1,4 @@
-from itertools import cycle, count, repeat, zip_longest
+from itertools import cycle, count, zip_longest
 from collections.abc import Generator
 from math import floor, ceil
 from typing import Callable
@@ -15,7 +15,6 @@ from .DeephavenFigure import DeephavenFigure
 from .data_mapping import create_data_mapping
 from .shared import combined_generator
 
-# TODO: refactor args a bit so less/no redundancy
 TYPE_NULL_MAPPING = {
     "byte": "NULL_BYTE",
     "short": "NULL_SHORT",
@@ -26,11 +25,11 @@ TYPE_NULL_MAPPING = {
     "io.deephaven.time.DateTime": "`2000-01-01`"
 }
 
-ERROR_ARGS = {
+"""ERROR_ARGS = {
     "error_x", "error_x_minus",
     "error_y", "error_y_minus",
     "error_z", "error_z_minus",
-}
+}"""
 
 # These are data args that are not passed to plotly express but end up in the
 # data mapping (generally due to some custom processing)
@@ -142,7 +141,7 @@ def col_null_mapping(
     :param cols: The column set to check against
     :return: tuple of the form (column name, associated null value)
     """
-    # TODO: catch "unsupported" types?
+    # TODO: catch "unsupported" types
     for col in table.columns:
         if col.name in cols:
             type_ = col.data_type.j_name
@@ -152,9 +151,10 @@ def col_null_mapping(
                 yield col.name, "`None`"
 
 
-def construct_min_dataframe(table: Table,
-                            data_cols: list[str]
-                            ) -> DataFrame:
+def construct_min_dataframe(
+        table: Table,
+        data_cols: list[str]
+) -> DataFrame:
     """
     Construct a pandas dataframe that can be passed to plotly express with as
     little data as possible but maintaining the same plotly figure data
@@ -175,7 +175,9 @@ def construct_min_dataframe(table: Table,
     return dhpd.to_pandas(update_result)
 
 
-def get_data_cols(call_args: dict[any]) -> dict[str | list[str]]:
+def get_data_cols(
+        call_args: dict[any]
+) -> dict[str | list[str]]:
     """
     Pull out all arguments that contain columns from the table. These need to
     be overriden on the client.
@@ -192,7 +194,9 @@ def get_data_cols(call_args: dict[any]) -> dict[str | list[str]]:
     return {k: v for k, v in call_args.items() if k in DATA_ARGS and v}
 
 
-def get_marginals(call_args: dict[any]) -> list[str]:
+def get_marginals(
+        call_args: dict[any]
+) -> list[str]:
     """
     Pull out any arguments that create marginal plots then map these arguments
     to what arg the data comes from.
@@ -226,7 +230,7 @@ def split_args(
     for arg, val in call_args.items():
         if arg in CUSTOM_ARGS:
             custom_call_args[arg] = val
-        elif arg in ERROR_ARGS or arg in CUSTOM_DATA_ARGS:
+        elif arg in ERROR_UPDATE_MAP or arg in CUSTOM_DATA_ARGS:
             # only technically need custom processing if we have a list of errors
             # as px can handle one, but there's no benefit to passing it to px
             # we also convert to list here so it doesn't need to be done when
@@ -510,6 +514,9 @@ def handle_custom_args(
     :param custom_call_args: Custom arguments to process
     :param step: Optional, default 1. How many steps to skip when applying any
     changes to traces.
+    :param trace_generator: Optional, if provided then only use this trace
+    generator and return (as layout should already be created)
+    :returns: A trace generator, to be used if adding more traces
     """
     # if there is a specified trace generator, use that instead since it
     # accurately reflects with color, pattern, etc. is next
@@ -554,7 +561,7 @@ def handle_custom_args(
                     last_x_axis = max(1, last_x_axis)
                     x_axis_generators.append(key_val_generator("domain", [x_domain]))
 
-            elif arg in ERROR_ARGS:
+            elif arg in ERROR_UPDATE_MAP:
                 trace_generators.append(new_error_generator(arg, val))
 
             elif arg in SEQUENCE_ARGS:
@@ -626,6 +633,8 @@ def generate_figure(
     :param start_index: Optional argument. Only needed if there are existing
     traces that this figure is being added to. In that case, the data mapping
     needs to start at the end of the existing traces.
+    :param trace_generator: Optional, if provided then only use this trace
+    generator and return (as layout should already be created)
     :return: a Deephaven figure
     """
     table = call_args.pop("table")
@@ -633,7 +642,6 @@ def generate_figure(
     call_args, custom_call_args = split_args(call_args)
 
     data_cols = get_data_cols(call_args)
-
 
     data_frame = construct_min_dataframe(table,
                                          data_cols=merge_cols(
@@ -645,9 +653,6 @@ def generate_figure(
     # get the marginals here as the length is needed so that some arguments
     # are not applied to the marginals
     # marginal_vars = get_marginals(call_args)
-
-    # don't need the marginal data so just delete it
-    # delete_marginal_data_
 
     trace_generator = handle_custom_args(px_fig,
                                          custom_call_args,
@@ -702,14 +707,22 @@ def draw_finance(
         close: str | list[str],
         go_func: Callable
 ):
-    #x_finance = x_finance if isinstance(x_finance, list) else [x_finance]
-    #open = open if isinstance(open, list) else [open]
-    #high = high if isinstance(high, list) else [high]
-    #low = low if isinstance(low, list) else [low]
-    #close = close if isinstance(close, list) else [close]
+    """
+    Draws a finance (OHLC or candlestick) chart
 
-    # todo: validate
-    #   x should be a singleton or list, o,h,l,c and x (if list) should be same length
+    :param data_frame: The data frame to draw with
+    :param x_finance: The name of the column containing x-axis values
+    :param open: The name of the column containing open values
+    :param high: The name of the column containing high values
+    :param low: The name of the column containing low values
+    :param close: The name of the column containing close values
+    :param go_func: The function to use to create graph objects
+    :return: The chart
+    """
+    if not all(len(open) == len(ls) for ls in [high, low, close]) and \
+            (len(open) == len(x_finance) or len(x_finance) == 1):
+        raise ValueError("open, high, low, close must have same length and x "
+                         "must also be of the same length or be of length 1")
 
     data = []
 
@@ -737,18 +750,17 @@ def draw_ohlc(
     Create a plotly OHLC chart.
 
     :param data_frame: The data frame to draw with
-    :param x: The name of the column containing x-axis values
+    :param x_finance: The name of the column containing x-axis values
     :param open: The name of the column containing open values
     :param high: The name of the column containing high values
     :param low: The name of the column containing low values
     :param close: The name of the column containing close values
-    :return:
+    :return: The plotly OHLC chart
     """
     return draw_finance(
         data_frame, x_finance,
         open, high, low, close,
         go.Ohlc)
-
 
 
 def draw_candlestick(
@@ -760,15 +772,15 @@ def draw_candlestick(
         close: str | list[str],
 ) -> Figure:
     """
-    Create a plotly OHLC chart.
+    Create a plotly candlestick chart.
 
     :param data_frame: The data frame to draw with
-    :param x: The name of the column containing x-axis values
+    :param x_finance: The name of the column containing x-axis values
     :param open: The name of the column containing open values
     :param high: The name of the column containing high values
     :param low: The name of the column containing low values
     :param close: The name of the column containing close values
-    :return:
+    :return: The plotly candlestick chart
     """
 
     return draw_finance(

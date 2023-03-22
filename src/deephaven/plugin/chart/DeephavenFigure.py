@@ -5,30 +5,44 @@ from typing import Callable
 
 from plotly.graph_objects import Figure
 
-from deephaven.table import Table
-from deephaven.plugin.object import Reference
+from deephaven.plugin.object import Exporter
 
 from .DataMapping import DataMapping
 
 
 class DeephavenFigure:
+    """
+    A DeephavenFigure that contains a plotly figure and mapping from Deephaven
+    data tables to the plotly figure
+    """
     def __init__(
-            self,
+            self: DeephavenFigure,
             fig: Figure = None,
             call: Callable = None,
             call_args: dict[any] = None,
             data_mappings: list[DataMapping] = None,
-            #TODO: fix so template isn't just a string but can be a provided template
+            # TODO: fix so template isn't just a string but can be a provided template
             template: str = None,
-            has_subplots: bool = False,
             has_color: bool = False,
             trace_generator: Generator[dict[str, any]] = None
     ):
+        """
+        Initialize a DeephavenFigure
+
+        :param fig: The underlying plotly fig
+        :param call_args: The arguments that were used to call px
+        :param call: The (usually) px drawing function
+        :param data_mappings:A list of data mappings from table column to
+        corresponding plotly variable
+        :param template: A template that is used
+        :param has_color: True if color was manually applied via
+        discrete_color_sequence
+        :param trace_generator: A generator for modifications to traces
+        """
         # keep track of function that called this and it's args
         self.fig = fig
         self.call = call
         self.call_args = call_args
-        self.has_subplots = has_subplots
         self.trace_generator = trace_generator
 
         self.template = None
@@ -45,58 +59,42 @@ class DeephavenFigure:
 
         self._data_mappings = data_mappings if data_mappings else []
 
+    def copy_mappings(
+            self: DeephavenFigure,
+            offset: int = 0
+    ) -> list[DataMapping]:
+        """
+        Copy all DataMappings within this figure, adding a specific offset
 
-    # def add_data_mapping(self, new: DataMapping) -> None:
-    # self._data_mappings.append(new)
-
-    # def add_traces(self, data: dict[any]) -> None:
-    #    self.fig.add_traces(data)
-
-
-    def copy_mappings(self, offset=0):
+        :param offset: The offset to offset the copy by
+        :return: The new DataMappings
+        """
         return [mapping.copy(offset) for mapping in self._data_mappings]
 
-    """
-    def add_subplot(
+    def get_json_links(
             self: DeephavenFigure,
-            sub_fig: Figure | DeephavenFigure,
-            row: int,
-            col: int):
-        if not self.has_subplots:
-            raise ValueError("DeephavenFigure does not contain subplots")
+            exporter: Exporter
+    ) -> list[dict[str, str]]:
+        """
+        Convert the internal data mapping to the JSON data mapping with tables
+        and proper plotly indices attached
 
-        new_fig = Figure(self.fig)
-        new_data_mappings = self.copy_mappings()
-
-        if isinstance(sub_fig, Figure):
-                new_fig.add_traces(
-                    sub_fig.select_traces(),
-                    rows=row,
-                    cols=col
-                )
-
-        else:
-
-
-        offset = len(self.fig.select_traces())
-
-        self._data_mappings.append()
-
-        new_data_mappings = self.copy_mappings()
-
-        new_data_mappings.append()
-     """
-
-
-
-
-
-
-    def get_json_links(self, exporter):
+        :param exporter: The exporter to use to send tables
+        :return: The list of json links that map table columns to the plotly figure
+        """
         return [links for mapping in self._data_mappings
                 for links in mapping.get_links(exporter)]
 
-    def to_json(self, exporter) -> str:
+    def to_json(
+            self: DeephavenFigure,
+            exporter: Exporter
+    ) -> str:
+        """
+        Convert the DeephavenFigure to JSON
+
+        :param exporter: The exporter to use to send tables
+        :return: The DeephavenFigure as a JSON string
+        """
         figure_json = f'"plotly": {self.fig.to_json()}'
         mapping_json = f'"mappings": {json.dumps(self.get_json_links(exporter))}'
         template_json = f', "is_user_set_template": {"true" if self.template else "false"}'
