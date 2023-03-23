@@ -95,10 +95,17 @@ class DeephavenFigure:
         :param exporter: The exporter to use to send tables
         :return: The DeephavenFigure as a JSON string
         """
-        figure_json = f'"plotly": {self.fig.to_json()}'
-        mapping_json = f'"mappings": {json.dumps(self.get_json_links(exporter))}'
-        template_json = f', "is_user_set_template": {"true" if self.template else "false"}'
-        color_json = f', "is_user_set_color": {"true" if self.has_color else "false"}'
-        dh_json = '"deephaven": {' + mapping_json + template_json + color_json + '}'
-        # todo: figure out f string - the curly brackets make it tricky
-        return '{' + figure_json + ', ' + dh_json + '}'
+        plotly = json.loads(self.fig.to_json())
+        mappings = self.get_json_links(exporter)
+        template = True if self.template else False
+        color = True if self.has_color else False
+        deephaven = {
+            "mappings": mappings,
+            "is_user_set_template": template,
+            "is_user_set_color": color
+        }
+        payload = {
+            "plotly": plotly,
+            "deephaven": deephaven
+        }
+        return json.dumps(payload)

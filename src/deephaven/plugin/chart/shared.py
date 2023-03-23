@@ -1,4 +1,19 @@
-def combined_generator(generators, fill=None):
+from collections.abc import Generator
+
+
+def combined_generator(
+        generators: list[Generator[tuple | dict]],
+        fill: any = None
+) -> Generator[dict]:
+    """
+    Combines generators into dictionary updates iteratively
+    One yield of this combined generator yields one yield from each dictionary,
+    combined into a new dictionary.
+
+    :param generators: Generators to combine. Each should yield
+    either a tuple of a key, value pair or a dictionary.
+    :param fill: Optional fill when the generators are exhausted
+    """
     try:
         while True:
             full_update = {}

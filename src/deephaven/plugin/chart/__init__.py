@@ -1,4 +1,5 @@
 from typing import Callable
+from functools import partial
 
 import plotly.express as px
 from plotly.graph_objects import Figure
@@ -863,20 +864,45 @@ def timeline(
         return generate_figure(draw=px.timeline, call_args=args)
 
 
-def _to_list(
-        arg
-):
-    if isinstance(arg, list):
-        return arg
-    elif not arg:
-        return []
-    return [arg]
+def _preprocess_and_layer(
+        preprocesser: Callable,
+        draw: Callable,
+        args: dict[str, any],
+        var: str,
+        orientation: str = None,
+) -> DeephavenFigure:
+    cols = args[var]
+    cols = cols if isinstance(cols, list) else [cols]
+    keys = ["table", "x", "y"] if var == "x" else ["table", "y", "x"]
+    table = args["table"]
+
+    figs = []
+    trace_generator = None
+
+    if orientation:
+        args["orientation"] = orientation
+
+    for col in cols:
+        output = preprocesser(table, col)
+        for k, v in zip(keys, output):
+            args[k] = v
+
+        figs.append(generate_figure(
+            draw=draw,
+            call_args=args,
+            trace_generator=trace_generator)
+        )
+
+        if not trace_generator:
+            trace_generator = figs[0].trace_generator
+
+    return layer(*figs, which_layout=0)
 
 
 def frequency_bar(
         table: Table = None,
-        x: str = None,
-        y: str = None,
+        x: str | list[str] = None,
+        y: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
         pattern_shape_sequence: list[str] = None,
         opacity: float = None,
@@ -926,7 +952,10 @@ def frequency_bar(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the bar chart
     """
-    # TODO: refactor?
+    # todo: restructure all code to this table check
+    if not isinstance(table, Table):
+        raise ValueError("Argument table is not of type Table")
+
     if x and y:
         raise ValueError("Cannot specify both x and y")
 
@@ -934,37 +963,11 @@ def frequency_bar(
     args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
     args["pattern_shape_sequence_bar"] = args.pop("pattern_shape_sequence")
 
-    x = _to_list(x)
-    y = _to_list(y)
+    create_layered = partial(_preprocess_and_layer,
+                             preprocess_frequency_bar,
+                             px.bar, args)
 
-    figs = []
-    trace_generator = None
-
-    for col in x:
-        new_table, y_col = preprocess_frequency_bar(table, col)
-        args["table"] = new_table
-        args["x"] = col
-        args["y"] = y_col
-
-        figs.append(generate_figure(draw=px.bar, call_args=args, trace_generator=trace_generator))
-
-        if not trace_generator:
-            trace_generator = figs[0].trace_generator
-
-    for col in y:
-        new_table, x_col = preprocess_frequency_bar(table, col)
-        args["orientation"] = "h"
-        args["table"] = new_table
-        args["x"] = x_col
-        args["y"] = col
-
-        figs.append(generate_figure(draw=px.bar, call_args=args, trace_generator=trace_generator))
-
-        if not trace_generator:
-            trace_generator = figs[0].trace_generator
-
-    # layer but with only the first layout (as subsequent ones were not modfied)
-    return layer(*figs, which_layout=0)
+    return create_layered("x") if x else create_layered("y", orientation="h")
 
 
 def violin(
@@ -1015,43 +1018,20 @@ def violin(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the violin chart
     """
+    if not isinstance(table, Table):
+        raise ValueError("Argument table is not of type Table")
+
     if x and y:
         raise ValueError("Cannot specify both x and y")
 
     args = locals()
     args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
-    if isinstance(table, Table):
-        x = _to_list(x)
-        y = _to_list(y)
+    create_layered = partial(_preprocess_and_layer,
+                             preprocess_violin,
+                             px.violin, args)
 
-        figs = []
-        trace_generator = None
-
-        for col in x:
-            new_table, col_names, col_vals = preprocess_violin(table, col)
-            args["table"] = new_table
-            args["x"] = col_vals
-            args["y"] = col_names
-
-            figs.append(generate_figure(draw=px.violin, call_args=args, trace_generator=trace_generator))
-
-            if not trace_generator:
-                trace_generator = figs[0].trace_generator
-
-        for col in y:
-            new_table, col_names, col_vals = preprocess_violin(table, col)
-            args["table"] = new_table
-            args["x"] = col_names
-            args["y"] = col_vals
-
-            figs.append(generate_figure(draw=px.violin, call_args=args, trace_generator=trace_generator))
-
-            if not trace_generator:
-                trace_generator = figs[0].trace_generator
-
-        # layer but with only the first layout (as subsequent ones were not modfied)
-        return layer(*figs, which_layout=0)
+    return create_layered("x") if x else create_layered("y")
 
 
 def box(
@@ -1102,40 +1082,20 @@ def box(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the box chart
     """
-    if isinstance(table, Table):
-        args = locals()
-        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
-        if isinstance(table, Table):
-            x = _to_list(x)
-            y = _to_list(y)
+    if not isinstance(table, Table):
+        raise ValueError("Argument table is not of type Table")
 
-            figs = []
-            trace_generator = None
+    if x and y:
+        raise ValueError("Cannot specify both x and y")
 
-            for col in x:
-                new_table, col_names, col_vals = preprocess_violin(table, col)
-                args["table"] = new_table
-                args["x"] = col_vals
-                args["y"] = col_names
+    args = locals()
+    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
-                figs.append(generate_figure(draw=px.box, call_args=args, trace_generator=trace_generator))
+    create_layered = partial(_preprocess_and_layer,
+                             preprocess_violin,
+                             px.box, args)
 
-                if not trace_generator:
-                    trace_generator = figs[0].trace_generator
-
-            for col in y:
-                new_table, col_names, col_vals = preprocess_violin(table, col)
-                args["table"] = new_table
-                args["x"] = col_names
-                args["y"] = col_vals
-
-                figs.append(generate_figure(draw=px.box, call_args=args, trace_generator=trace_generator))
-
-                if not trace_generator:
-                    trace_generator = figs[0].trace_generator
-
-            # layer but with only the first layout (as subsequent ones were not modfied)
-            return layer(*figs, which_layout=0)
+    return create_layered("x") if x else create_layered("y")
 
 
 def strip(
@@ -1180,40 +1140,20 @@ def strip(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the strip chart
     """
-    if isinstance(table, Table):
-        args = locals()
-        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
-        if isinstance(table, Table):
-            x = _to_list(x)
-            y = _to_list(y)
+    if not isinstance(table, Table):
+        raise ValueError("Argument table is not of type Table")
 
-            figs = []
-            trace_generator = None
+    if x and y:
+        raise ValueError("Cannot specify both x and y")
 
-            for col in x:
-                new_table, col_names, col_vals = preprocess_violin(table, col)
-                args["table"] = new_table
-                args["x"] = col_vals
-                args["y"] = col_names
+    args = locals()
+    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
-                figs.append(generate_figure(draw=px.strip, call_args=args, trace_generator=trace_generator))
+    create_layered = partial(_preprocess_and_layer,
+                             preprocess_violin,
+                             px.strip, args)
 
-                if not trace_generator:
-                    trace_generator = figs[0].trace_generator
-
-            for col in y:
-                new_table, col_names, col_vals = preprocess_violin(table, col)
-                args["table"] = new_table
-                args["x"] = col_names
-                args["y"] = col_vals
-
-                figs.append(generate_figure(draw=px.strip, call_args=args, trace_generator=trace_generator))
-
-                if not trace_generator:
-                    trace_generator = figs[0].trace_generator
-
-            # layer but with only the first layout (as subsequent ones were not modified)
-            return layer(*figs, which_layout=0)
+    return create_layered("x") if x else create_layered("y")
 
 
 def _ecdf(
@@ -1515,6 +1455,7 @@ def _funnel_area(
 ):
     # todo: not yet implemented
     pass
+
 
 # todo: range slider
 #   fig.update(layout_xaxis_rangeslider_visible=False)

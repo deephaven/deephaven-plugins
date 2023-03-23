@@ -173,16 +173,17 @@ def time_length(
 def preprocess_frequency_bar(
         table: Table,
         column: str
-) -> tuple[Table, str]:
+) -> tuple[Table, str, str]:
     """
     Preprocess frequency bar params into an appropriate table
     This just sums each value by count
 
     :param table: The table to pull data from
     :param column: The column that has counts applied
-    :return: A tuple containing (the new table, the name of the count column)
+    :return: A tuple containing (the new table, the original column name,
+    the name of the count column)
     """
-    return table.view([column]).count_by("Count", by=column), "Count"
+    return table.view([column]).count_by("Count", by=column), column, "Count"
 
 
 # todo: always modify given column names to prevent column collisions?
