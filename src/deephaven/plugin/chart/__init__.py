@@ -52,6 +52,10 @@ class ChartRegistration(Registration):
     def register_into(cls, callback: Registration.Callback) -> None:
         callback.register(DeephavenFigureType)
 
+def _validate_common_args(args):
+    if not isinstance(args["table"], Table):
+        raise ValueError("Argument table is not of type Table")
+
 
 # todo: size sequence
 def scatter(
@@ -145,14 +149,15 @@ def scatter(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the scatter chart
     """
-    if isinstance(table, Table):
-        render_mode = "webgl"
-        args = locals()
-        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+    render_mode = "webgl"
+    args = locals()
+    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
-        fig = generate_figure(draw=px.scatter, call_args=args)
+    _validate_common_args(args)
 
-        return fig
+    fig = generate_figure(draw=px.scatter, call_args=args)
+
+    return fig
 
 
 def scatter_3d(
@@ -231,11 +236,12 @@ def scatter_3d(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the 3D scatter chart
     """
-    if isinstance(table, Table):
-        args = locals()
-        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+    args = locals()
+    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
-        return generate_figure(draw=px.scatter_3d, call_args=args)
+    _validate_common_args(args)
+
+    return generate_figure(draw=px.scatter_3d, call_args=args)
 
 
 def scatter_polar(
@@ -281,12 +287,13 @@ def scatter_polar(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the polar scatter chart
     """
-    if isinstance(table, Table):
-        args = locals()
-        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+    render_mode = "webgl"
+    args = locals()
+    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
-        render_mode = "webgl"
-        return generate_figure(draw=px.scatter_polar, call_args=args)
+    _validate_common_args(args)
+
+    return generate_figure(draw=px.scatter_polar, call_args=args)
 
 
 def scatter_ternary(
@@ -323,11 +330,12 @@ def scatter_ternary(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the ternary scatter chart
     """
-    if isinstance(table, Table):
-        args = locals()
-        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+    args = locals()
+    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
-        return generate_figure(draw=px.scatter_ternary, call_args=args)
+    _validate_common_args(args)
+
+    return generate_figure(draw=px.scatter_ternary, call_args=args)
 
 
 # TODO: support line_shape as a list?
@@ -426,12 +434,12 @@ def line(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the line chart
     """
-    if isinstance(table, Table):
-        # render_mode = "webgl"
-        args = locals()
-        args["color_discrete_sequence_line"] = args.pop("color_discrete_sequence")
+    args = locals()
+    args["color_discrete_sequence_line"] = args.pop("color_discrete_sequence")
 
-        return generate_figure(draw=px.line, call_args=args)
+    _validate_common_args(args)
+
+    return generate_figure(draw=px.line, call_args=args)
 
 
 def line_3d(
@@ -510,11 +518,12 @@ def line_3d(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the 3D line chart
     """
-    if isinstance(table, Table):
-        args = locals()
-        args["color_discrete_sequence_line"] = args.pop("color_discrete_sequence")
+    args = locals()
+    args["color_discrete_sequence_line"] = args.pop("color_discrete_sequence")
 
-        return generate_figure(draw=px.line_3d, call_args=args)
+    _validate_common_args(args)
+
+    return generate_figure(draw=px.line_3d, call_args=args)
 
 
 def line_polar(
@@ -566,10 +575,12 @@ def line_polar(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the polar scatter chart
     """
-    if isinstance(table, Table):
-        args = locals()
-        args["color_discrete_sequence_line"] = args.pop("color_discrete_sequence")
-        return generate_figure(draw=px.line_polar, call_args=args)
+    args = locals()
+    args["color_discrete_sequence_line"] = args.pop("color_discrete_sequence")
+
+    _validate_common_args(args)
+
+    return generate_figure(draw=px.line_polar, call_args=args)
 
 
 def line_ternary(
@@ -586,34 +597,35 @@ def line_ternary(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     """
-       Returns a ternary line chart
+    Returns a ternary line chart
 
-       :param table: A table to pull data from.
-       :param a: A column that contains a-axis values.
-       :param b: A column that contains b-axis values.
-       :param c: A column that contains c-axis values.
-       :param color_discrete_sequence: A list of colors to sequentially apply to
-       the series. The colors loop, so if there are more series than colors,
-       colors will be reused.
-       :param symbol_sequence: A list of symbols to sequentially apply to the
-       series. The symbols loop, so if there are more series than symbols, symbols
-       will be reused.
-       :param markers: True to draw markers on the line, False to not. Default
-       False
-       :param line_shape: The line shape for all lines created. One of 'linear',
-       'spline'. Default 'linear'
-       :param title: The title of the chart.
-       :param template: The template for the chart.
-       :param callback: A callback function that takes a figure as an argument and
-       returns a figure. Used to add any custom changes to the underlying plotly
-       figure. Note that the existing data traces should not be removed.
-       :return: A DeephavenFigure that contains the ternary line chart
-       """
-    if isinstance(table, Table):
-        args = locals()
-        args["color_discrete_sequence_line"] = args.pop("color_discrete_sequence")
+    :param table: A table to pull data from.
+    :param a: A column that contains a-axis values.
+    :param b: A column that contains b-axis values.
+    :param c: A column that contains c-axis values.
+    :param color_discrete_sequence: A list of colors to sequentially apply to
+    the series. The colors loop, so if there are more series than colors,
+    colors will be reused.
+    :param symbol_sequence: A list of symbols to sequentially apply to the
+    series. The symbols loop, so if there are more series than symbols, symbols
+    will be reused.
+    :param markers: True to draw markers on the line, False to not. Default
+    False
+    :param line_shape: The line shape for all lines created. One of 'linear',
+    'spline'. Default 'linear'
+    :param title: The title of the chart.
+    :param template: The template for the chart.
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :return: A DeephavenFigure that contains the ternary line chart
+    """
+    args = locals()
+    args["color_discrete_sequence_line"] = args.pop("color_discrete_sequence")
 
-        return generate_figure(draw=px.line_ternary, call_args=args)
+    _validate_common_args(args)
+
+    return generate_figure(draw=px.line_ternary, call_args=args)
 
 
 def area(
@@ -640,69 +652,70 @@ def area(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     """
-        Returns an area chart
+    Returns an area chart
 
-        :param table: A table to pull data from.
-        :param x: A column or list of columns that contain x-axis values.
-        :param y: A column or list of columns that contain y-axis values.
-        :param color_discrete_sequence: A list of colors to sequentially apply to
-        the series. The colors loop, so if there are more series than colors,
-        colors will be reused.
-        :param symbol_sequence: A list of symbols to sequentially apply to the
-        series. The symbols loop, so if there are more series than symbols, symbols
-        will be reused.
-        :param pattern_shape_sequence: A list of patterns to sequentially apply
-        to the series. The patterns loop, so if there are more series than
-        patterns, patterns will be reused.
-        :param xaxis_sequence: A list of x axes to assign series to. Odd numbers
-        starting with 1 are created on the bottom x axis and even numbers starting
-        with 2 are created on the top x axis. Axes are created up
-        to the maximum number specified. The axes loop, so if there are more series
-        than axes, axes will be reused.
-        :param yaxis_sequence: A list of y axes to assign series to. Odd numbers
-        starting with 1 are created on the left y axis and even numbers starting
-        with 2 are created on the top y axis. Axes are created up
-        to the maximum number specified. The axes loop, so if there are more series
-        than axes, axes will be reused.
-        :param yaxis_title_sequence: A list of titles to sequentially apply to the
-        y axes. The titles do not loop.
-        :param xaxis_title_sequence: A list of titles to sequentially apply to the
-        x axes. The titles do not loop.
-        :param markers: True to draw markers on the line, False to not. Default
-        False
-        :param groupnorm: Default None. 'fraction' to plot the fraction out of
-        the total value of all points at that x value, 'percent' to take the
-        fraction and multiply by 100. Note that if multiple y axes are
-        specified, the groupnorm is taken per axis.
-        :param log_x: Default False. A boolean or list of booleans that specify if
-        the corresponding axis is a log axis or not. The booleans loop, so if there
-        are more series than booleans, booleans will be reused.
-        :param log_y: Default False. A boolean or list of booleans that specify if
-        the corresponding axis is a log axis or not. The booleans loop, so if there
-        are more series than booleans, booleans will be reused.
-        :param range_x: A list of two numbers or a list of lists of two numbers
-        that specify the range of the x axes. None can be specified for no range
-        The ranges loop, so if there are more axes than ranges, ranges will
-        be reused.
-        :param range_y: A list of two numbers or a list of lists of two numbers
-         that specify the range of the x axes. None can be specified for no range
-        The ranges loop, so if there are more axes than ranges, ranges will
-        be reused.
-        :param line_shape: The line shape for all lines created. One of 'linear',
-        'spline', 'vhv', 'hvh', 'vh', 'hv'. Default 'linear'
-        :param title: The title of the chart
-        :param template: The template for the chart.
-        :param callback: A callback function that takes a figure as an argument and
-        returns a figure. Used to add any custom changes to the underlying plotly
-        figure. Note that the existing data traces should not be removed.
-        :return: A DeephavenFigure that contains the area chart
-        """
-    if isinstance(table, Table):
-        args = locals()
-        args["pattern_shape_sequence_area"] = args.pop("pattern_shape_sequence")
-        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+    :param table: A table to pull data from.
+    :param x: A column or list of columns that contain x-axis values.
+    :param y: A column or list of columns that contain y-axis values.
+    :param color_discrete_sequence: A list of colors to sequentially apply to
+    the series. The colors loop, so if there are more series than colors,
+    colors will be reused.
+    :param symbol_sequence: A list of symbols to sequentially apply to the
+    series. The symbols loop, so if there are more series than symbols, symbols
+    will be reused.
+    :param pattern_shape_sequence: A list of patterns to sequentially apply
+    to the series. The patterns loop, so if there are more series than
+    patterns, patterns will be reused.
+    :param xaxis_sequence: A list of x axes to assign series to. Odd numbers
+    starting with 1 are created on the bottom x axis and even numbers starting
+    with 2 are created on the top x axis. Axes are created up
+    to the maximum number specified. The axes loop, so if there are more series
+    than axes, axes will be reused.
+    :param yaxis_sequence: A list of y axes to assign series to. Odd numbers
+    starting with 1 are created on the left y axis and even numbers starting
+    with 2 are created on the top y axis. Axes are created up
+    to the maximum number specified. The axes loop, so if there are more series
+    than axes, axes will be reused.
+    :param yaxis_title_sequence: A list of titles to sequentially apply to the
+    y axes. The titles do not loop.
+    :param xaxis_title_sequence: A list of titles to sequentially apply to the
+    x axes. The titles do not loop.
+    :param markers: True to draw markers on the line, False to not. Default
+    False
+    :param groupnorm: Default None. 'fraction' to plot the fraction out of
+    the total value of all points at that x value, 'percent' to take the
+    fraction and multiply by 100. Note that if multiple y axes are
+    specified, the groupnorm is taken per axis.
+    :param log_x: Default False. A boolean or list of booleans that specify if
+    the corresponding axis is a log axis or not. The booleans loop, so if there
+    are more series than booleans, booleans will be reused.
+    :param log_y: Default False. A boolean or list of booleans that specify if
+    the corresponding axis is a log axis or not. The booleans loop, so if there
+    are more series than booleans, booleans will be reused.
+    :param range_x: A list of two numbers or a list of lists of two numbers
+    that specify the range of the x axes. None can be specified for no range
+    The ranges loop, so if there are more axes than ranges, ranges will
+    be reused.
+    :param range_y: A list of two numbers or a list of lists of two numbers
+     that specify the range of the x axes. None can be specified for no range
+    The ranges loop, so if there are more axes than ranges, ranges will
+    be reused.
+    :param line_shape: The line shape for all lines created. One of 'linear',
+    'spline', 'vhv', 'hvh', 'vh', 'hv'. Default 'linear'
+    :param title: The title of the chart
+    :param template: The template for the chart.
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :return: A DeephavenFigure that contains the area chart
+    """
+    args = locals()
+    args["pattern_shape_sequence_area"] = args.pop("pattern_shape_sequence")
+    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
-        return generate_figure(draw=px.area, call_args=args)
+    _validate_common_args(args)
+
+    return generate_figure(draw=px.area, call_args=args)
 
 
 def bar(
@@ -786,12 +799,13 @@ def bar(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the bar chart
     """
-    if isinstance(table, Table):
-        args = locals()
-        args["pattern_shape_sequence_bar"] = args.pop("pattern_shape_sequence")
-        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+    args = locals()
+    args["pattern_shape_sequence_bar"] = args.pop("pattern_shape_sequence")
+    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
-        return generate_figure(draw=px.bar, call_args=args)
+    _validate_common_args(args)
+
+    return generate_figure(draw=px.bar, call_args=args)
 
 
 def _bar_polar(
@@ -815,6 +829,9 @@ def _bar_polar(
     if isinstance(table, Table):
         args = locals()
         args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+
+        _validate_common_args(args)
+
         return generate_figure(draw=px.bar_polar, call_args=args)
 
 
@@ -857,11 +874,13 @@ def timeline(
     :return: A DeephavenFigure that contains the timeline chart
     """
     # TODO: add resource column?
-    if isinstance(table, Table):
-        table, x_diff = preprocess_timeline(table, x_start, x_end, y)
-        args = locals()
-        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
-        return generate_figure(draw=px.timeline, call_args=args)
+    table, x_diff = preprocess_timeline(table, x_start, x_end, y)
+    args = locals()
+    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+
+    _validate_common_args(args)
+
+    return generate_figure(draw=px.timeline, call_args=args)
 
 
 def _preprocess_and_layer(
@@ -871,6 +890,20 @@ def _preprocess_and_layer(
         var: str,
         orientation: str = None,
 ) -> DeephavenFigure:
+    """
+    Given a preprocessing function, a draw function, and several
+    columns, layer up the resulting figures
+
+    :param preprocesser: A function that returns a tuple that contains
+    (new table, first data columnn, second data column)
+    :param draw: A draw function, generally from plotly express
+    :param args: The args to pass to figure creation
+    :param var: Which var to map to the first column. If "x", then the
+    preprocessor output is mapped to table, x, y. If "y" then preprocessor
+    output is mapped to table, y, x.
+    :param orientation: optional orientation if it is needed
+    :return:
+    """
     cols = args[var]
     cols = cols if isinstance(cols, list) else [cols]
     keys = ["table", "x", "y"] if var == "x" else ["table", "y", "x"]
@@ -952,9 +985,6 @@ def frequency_bar(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the bar chart
     """
-    # todo: restructure all code to this table check
-    if not isinstance(table, Table):
-        raise ValueError("Argument table is not of type Table")
 
     if x and y:
         raise ValueError("Cannot specify both x and y")
@@ -962,6 +992,8 @@ def frequency_bar(
     args = locals()
     args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
     args["pattern_shape_sequence_bar"] = args.pop("pattern_shape_sequence")
+
+    _validate_common_args(args)
 
     create_layered = partial(_preprocess_and_layer,
                              preprocess_frequency_bar,
@@ -1018,14 +1050,13 @@ def violin(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the violin chart
     """
-    if not isinstance(table, Table):
-        raise ValueError("Argument table is not of type Table")
-
     if x and y:
         raise ValueError("Cannot specify both x and y")
 
     args = locals()
     args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+
+    _validate_common_args(args)
 
     create_layered = partial(_preprocess_and_layer,
                              preprocess_violin,
@@ -1082,14 +1113,13 @@ def box(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the box chart
     """
-    if not isinstance(table, Table):
-        raise ValueError("Argument table is not of type Table")
-
     if x and y:
         raise ValueError("Cannot specify both x and y")
 
     args = locals()
     args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+
+    _validate_common_args(args)
 
     create_layered = partial(_preprocess_and_layer,
                              preprocess_violin,
@@ -1140,14 +1170,13 @@ def strip(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the strip chart
     """
-    if not isinstance(table, Table):
-        raise ValueError("Argument table is not of type Table")
-
     if x and y:
         raise ValueError("Cannot specify both x and y")
 
     args = locals()
     args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+
+    _validate_common_args(args)
 
     create_layered = partial(_preprocess_and_layer,
                              preprocess_violin,
@@ -1177,11 +1206,13 @@ def _ecdf(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     # todo: not yet implemented
-    if isinstance(table, Table):
-        render_mode = "webgl"
-        args = locals()
-        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
-        return generate_figure(draw=px.ecdf, call_args=args)
+    render_mode = "webgl"
+    args = locals()
+    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+
+    _validate_common_args(args)
+
+    return generate_figure(draw=px.ecdf, call_args=args)
 
 
 def histogram(
@@ -1250,28 +1281,28 @@ def histogram(
     :return: A DeephavenFigure that contains the histogram
     """
     # todo: barmode relative and overlay not working
+    _validate_common_args(locals())
 
-    if isinstance(table, Table):
-        if x:
-            table, x, y = create_hist_tables(table, x, nbins, range_bins, histfunc)
-        elif y:
-            table, y, x = create_hist_tables(table, y, nbins, range_bins, histfunc)
-            orientation = "h"
-        else:
-            raise ValueError("x or y must be specified")
-        # since we're simulating a histogram with a bar plot, we want no data gaps
-        bargap = 0
+    if x:
+        table, x, y = create_hist_tables(table, x, nbins, range_bins, histfunc)
+    elif y:
+        table, y, x = create_hist_tables(table, y, nbins, range_bins, histfunc)
+        orientation = "h"
+    else:
+        raise ValueError("x or y must be specified")
+    # since we're simulating a histogram with a bar plot, we want no data gaps
+    bargap = 0
 
-        # remove arguments not used in bar
-        args = locals()
-        args.pop("nbins")
-        args.pop("histfunc")
-        args.pop("range_bins")
+    # remove arguments not used in bar
+    args = locals()
+    args.pop("nbins")
+    args.pop("histfunc")
+    args.pop("range_bins")
 
-        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
-        args["pattern_shape_sequence_bar"] = args.pop("pattern_shape_sequence")
+    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+    args["pattern_shape_sequence_bar"] = args.pop("pattern_shape_sequence")
 
-        return generate_figure(draw=px.bar, call_args=args)
+    return generate_figure(draw=px.bar, call_args=args)
 
 
 def pie(
@@ -1308,16 +1339,17 @@ def pie(
     :param callback:
     :return: A DeephavenFigure that contains the pie chart
     """
-    if isinstance(table, Table):
-        if aggregate:
-            table = preprocess_pie(table, names, values)
+    if aggregate:
+        table = preprocess_pie(table, names, values)
 
-        args = locals()
-        args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+    args = locals()
+    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
-        args.pop("preprocess")
+    args.pop("aggregate")
 
-        return generate_figure(draw=px.pie, call_args=args)
+    _validate_common_args(args)
+
+    return generate_figure(draw=px.pie, call_args=args)
 
 
 def treemap(
@@ -1354,8 +1386,11 @@ def treemap(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the treemap chart
     """
-    if isinstance(table, Table):
-        return generate_figure(draw=px.treemap, call_args=locals())
+    args = locals()
+
+    _validate_common_args(args)
+
+    return generate_figure(draw=px.treemap, call_args=args)
 
 
 def sunburst(
@@ -1391,8 +1426,11 @@ def sunburst(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the treemap chart
     """
-    if isinstance(table, Table):
-        return generate_figure(draw=px.sunburst, call_args=locals())
+    args = locals()
+
+    _validate_common_args(args)
+
+    return generate_figure(draw=px.sunburst, call_args=args)
 
 
 def icicle(
@@ -1428,8 +1466,11 @@ def icicle(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the treemap chart
     """
-    if isinstance(table, Table):
-        return generate_figure(draw=px.icicle, call_args=locals())
+    args = locals()
+
+    _validate_common_args(args)
+
+    return generate_figure(draw=px.icicle, call_args=args)
 
 
 def _funnel(
@@ -1508,10 +1549,12 @@ def ohlc(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the ohlc chart
     """
-    if isinstance(table, Table):
-        args = locals()
-        args["x_finance"] = args.pop("x")
-        return generate_figure(draw=draw_ohlc, call_args=args)
+    args = locals()
+    args["x_finance"] = args.pop("x")
+
+    _validate_common_args(args)
+
+    return generate_figure(draw=draw_ohlc, call_args=args)
 
 
 def candlestick(
@@ -1563,10 +1606,12 @@ def candlestick(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the candlestick chart
     """
-    if isinstance(table, Table):
-        args = locals()
-        args["x_finance"] = args.pop("x")
-        return generate_figure(draw=draw_candlestick, call_args=args)
+    args = locals()
+    args["x_finance"] = args.pop("x")
+
+    _validate_common_args(args)
+
+    return generate_figure(draw=draw_candlestick, call_args=args)
 
 
 def _scatter_matrix():
