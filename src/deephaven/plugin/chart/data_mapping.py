@@ -19,15 +19,6 @@ CUSTOM_DATA_ARGS = {
     "x_diff": "x",
 }
 
-# these are data args that need to be appended rather than having the product taken
-APPEND_ARGS = {
-    "x_finance": "x",
-    "open": "open",
-    "high": "high",
-    "low": "low",
-    "close": "close",
-}
-
 # override these data columns with different names
 OVERRIDES = {
     "names": "labels",
@@ -103,26 +94,6 @@ def get_var_col_dicts(
     """
     for data_group in get_data_groups(data_dict.values()):
         yield dict(zip(overriden_keys(list(data_dict.keys())), data_group))
-
-
-def add_marginals(
-        var_col_dicts: Generator[dict[str, str]],
-        marginals: list[str]
-) -> Generator[dict[str, str]]:
-    """
-    Add marginal data objects to the generated data mappings.
-
-    :param var_col_dicts: A base dictionary mapping variables to columns that
-    needs marginals attached
-    :param marginals: A list of marginals to attach
-    :return: Generated dictionaries with marginals attached
-    """
-    for var_col_dict in var_col_dicts:
-        yield var_col_dict
-        for marginal in marginals:
-            yield {
-                "marginal_placeholder"
-            }
 
 
 def custom_data_args_generator(
@@ -245,8 +216,6 @@ def create_data_mapping(
         var_col_dicts = get_var_col_dicts(data_dict)
 
     var_col_dicts = add_custom_data_args(var_col_dicts, custom_call_args)
-
-    # var_col_dicts = add_marginals(var_col_dicts, marginals)
 
     var_col_dicts = filter_none(var_col_dicts)
 

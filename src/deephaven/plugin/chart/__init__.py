@@ -52,9 +52,29 @@ class ChartRegistration(Registration):
     def register_into(cls, callback: Registration.Callback) -> None:
         callback.register(DeephavenFigureType)
 
-def _validate_common_args(args):
+
+def _validate_common_args(
+        args: dict
+) -> None:
+    """
+    Validate common args amongst plots
+
+    :param args: The args to validate
+    """
     if not isinstance(args["table"], Table):
         raise ValueError("Argument table is not of type Table")
+
+
+def _remap_scene_args(
+        args: dict
+) -> None:
+    """
+    Remap layout scenes args so that they are not converted to a list
+
+    :param args: The args to remap
+    """
+    for arg in ["range_x", "range_y", "range_z", "log_x", "log_y", "log_z"]:
+        args[arg + '_scene'] = args.pop(arg)
 
 
 # todo: size sequence
@@ -238,6 +258,8 @@ def scatter_3d(
     """
     args = locals()
     args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+
+    _remap_scene_args(args)
 
     _validate_common_args(args)
 
@@ -520,6 +542,8 @@ def line_3d(
     """
     args = locals()
     args["color_discrete_sequence_line"] = args.pop("color_discrete_sequence")
+
+    _remap_scene_args(args)
 
     _validate_common_args(args)
 
