@@ -19,13 +19,14 @@ HISTFUNC_MAP = {
 }
 
 
-def preprocess_pie(
+def preprocess_aggregate(
         table: Table,
         names: str,
         values: str
 ) -> Table:
     """
-    Preprocess a table passed to pie to ensure it only has 1 row per name
+    Preprocess a table passed to pie or funnel_area to ensure it only has 1 row
+    per name
 
     :param table: The table to preprocess
     :param names: The column to use for names
@@ -33,7 +34,7 @@ def preprocess_pie(
     :return: A new table that contains a single row per name and columns of
     specified names and values
     """
-    return table.view([names, values]).sum_by([names])
+    return table.view([names, values]).sum_by(names)
 
 
 def create_count_tables(

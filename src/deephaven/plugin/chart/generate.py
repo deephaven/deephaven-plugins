@@ -15,7 +15,6 @@ from .DeephavenFigure import DeephavenFigure
 from .data_mapping import create_data_mapping
 from .shared import combined_generator
 
-
 TYPE_NULL_MAPPING = {
     "byte": "NULL_BYTE",
     "short": "NULL_SHORT",
@@ -86,7 +85,6 @@ CUSTOM_ARGS = {
     "callback",
     "bargap"
 }
-
 
 ERROR_UPDATE_MAP = {
     "error_x": "error_x_array",
@@ -588,7 +586,9 @@ def generate_figure(
                                          step=1,
                                          trace_generator=trace_generator)
 
-    plot = custom_call_args['callback'](px_fig)
+    # allow either returning a new fig or not from callback
+    new_fig = custom_call_args['callback'](px_fig)
+    new_fig = new_fig if new_fig else px_fig
 
     data_mapping = create_data_mapping(
         data_cols,
@@ -598,7 +598,7 @@ def generate_figure(
     )
 
     dh_fig = DeephavenFigure(
-        plot,
+        new_fig,
         call_args=call_args,
         call=draw,
         data_mappings=[data_mapping],

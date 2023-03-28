@@ -14,7 +14,7 @@ from .DeephavenFigure import DeephavenFigure
 
 __version__ = "0.0.1.dev0"
 
-from .preprocess import preprocess_pie, create_hist_tables, preprocess_frequency_bar, preprocess_timeline, \
+from .preprocess import preprocess_aggregate, create_hist_tables, preprocess_frequency_bar, preprocess_timeline, \
     preprocess_violin
 
 NAME = "deephaven.plugin.chart.DeephavenFigure"
@@ -767,8 +767,8 @@ def bar(
     Returns a bar chart
 
     :param table: A table to pull data from.
-    :param x: A column name or list of columns that contain x-axis values.
-    :param y: A column name or list of columns that contain y-axis values.
+    :param x: A column or list of columns that contain x-axis values.
+    :param y: A column or list of columns that contain y-axis values.
     :param error_x: A column or list of columns with x error bar
     values. These form the error bars in both the positive and negative
     direction if error_x_minus is not specified, and the error bars in only the
@@ -1360,18 +1360,21 @@ def pie(
     :param hole: Fraction of the radius to cut out of the center of the pie.
     :param aggregate: Default True, aggregate the table names by total values. Can
     be set to False if the table is already aggregated by name.
-    :param callback:
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the pie chart
     """
-    if aggregate:
-        table = preprocess_pie(table, names, values)
-
     args = locals()
+
+    _validate_common_args(args)
+
+    if aggregate:
+        args["table"] = preprocess_aggregate(table, names, values)
+
     args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
     args.pop("aggregate")
-
-    _validate_common_args(args)
 
     return generate_figure(draw=px.pie, call_args=args)
 
@@ -1430,7 +1433,7 @@ def sunburst(
         callback: Callable = default_callback
 ):
     """
-    Returns a treemap chart
+    Returns a sunburst chart
 
     :param table: A table to pull data from.
     :param names: The column containing names of the sections
@@ -1448,7 +1451,7 @@ def sunburst(
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
-    :return: A DeephavenFigure that contains the treemap chart
+    :return: A DeephavenFigure that contains the sunburst chart
     """
     args = locals()
 
@@ -1470,7 +1473,7 @@ def icicle(
         callback: Callable = default_callback
 ):
     """
-    Returns a treemap chart
+    Returns a icicle chart
 
     :param table: A table to pull data from.
     :param names: The column containing names of the sections
@@ -1488,7 +1491,7 @@ def icicle(
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
-    :return: A DeephavenFigure that contains the treemap chart
+    :return: A DeephavenFigure that contains the icicle chart
     """
     args = locals()
 
@@ -1497,12 +1500,13 @@ def icicle(
     return generate_figure(draw=px.icicle, call_args=args)
 
 
-def _funnel(
+def funnel(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
         opacity: float = None,
+        orientation: str = None,
         log_x: bool = False,
         log_y: bool = False,
         range_x: list[int] = None,
@@ -1511,15 +1515,82 @@ def _funnel(
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
-    # todo: not yet implemented
-    if isinstance(table, Table):
-        return generate_figure(draw=px.funnel, call_args=locals())
+    """
+    Returns a funnel chart
+
+    :param table: A table to pull data from.
+    :param x: A column that contains x-axis values.
+    :param y: A column that contains y-axis values.
+    :param color_discrete_sequence: A list of colors to sequentially apply to
+    the series. The colors loop, so if there are more series than colors,
+    colors will be reused.
+    :param opacity: Opacity to apply to all points. 0 is completely transparent
+    and 1 is completely opaque.
+    :param orientation:
+    :param log_x: A boolean that specifies if the corresponding axis is a log
+    axis or not.
+    :param log_y: A boolean that specifies if the corresponding axis is a log
+    axis or not.
+    :param range_x: A list of two numbers that specify the range of the x axis.
+    :param range_y: A list of two numbers that specify the range of the y axis.
+    :param title: The title of the chart
+    :param template: The template for the chart.
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :return: A DeephavenFigure that contains the funnel chart
+    """
+    args = locals()
+
+    _validate_common_args(args)
+
+    return generate_figure(draw=px.funnel, call_args=args)
 
 
-def _funnel_area(
+def funnel_area(
+        table: Table = None,
+        names: str = None,
+        values: str = None,
+        color_discrete_sequence: list[str] = None,
+        title: str = None,
+        template: str = None,
+        opacity: float = None,
+        aggregate: bool = True,
+        callback: Callable = default_callback
 ):
-    # todo: not yet implemented
-    pass
+    """
+    Returns a funnel area chart
+
+    :param table: A table to pull data from.
+    :param names: The column containing names of the pie slices
+    :param values: The column containing values of the pie slices
+    :param color_discrete_sequence: A list of colors to sequentially apply to
+    the series. The colors loop, so if there are more series than colors,
+    colors will be reused.
+    :param title: The title of the chart
+    :param template: The template for the chart.
+    :param opacity: Opacity to apply to all points. 0 is completely transparent
+    and 1 is completely opaque.
+    :param aggregate: Default True, aggregate the table names by total values. Can
+    be set to False if the table is already aggregated by name.
+    :param callback: A callback function that takes a figure as an argument and
+    returns a figure. Used to add any custom changes to the underlying plotly
+    figure. Note that the existing data traces should not be removed.
+    :return: A DeephavenFigure that contains the funnel area chart
+    """
+
+    args = locals()
+
+    _validate_common_args(args)
+
+    if aggregate:
+        args["table"] = preprocess_aggregate(table, names, values)
+
+    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+
+    args.pop("aggregate")
+
+    return generate_figure(draw=px.funnel_area, call_args=args)
 
 
 # todo: range slider
