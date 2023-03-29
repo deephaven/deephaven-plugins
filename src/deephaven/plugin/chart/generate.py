@@ -83,7 +83,8 @@ CUSTOM_LIST_ARGS.update(AXIS_SEQUENCE_ARGS)
 # pandas data frame separately
 CUSTOM_ARGS = {
     "callback",
-    "bargap"
+    "bargap",
+    #"rangemode"
 }
 
 ERROR_UPDATE_MAP = {
@@ -527,8 +528,8 @@ def handle_custom_args(
             elif arg == "yaxis_title_sequence":
                 y_axis_generators.append(title_generator(val))
 
-            elif arg == "bargap":
-                fig.update_layout(bargap=val)
+            elif arg == "bargap" or arg == "rangemode":
+                fig.update_layout({arg: val})
                 # x_axis_generators.append(key_val_generator("bargap", [val]))
                 # y_axis_generators.append(key_val_generator("bargap", [val]))
 

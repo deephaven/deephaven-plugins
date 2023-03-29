@@ -15,7 +15,7 @@ from .DeephavenFigure import DeephavenFigure
 __version__ = "0.0.1.dev0"
 
 from .preprocess import preprocess_aggregate, create_hist_tables, preprocess_frequency_bar, preprocess_timeline, \
-    preprocess_violin
+    preprocess_violin, preprocess_ecdf
 
 NAME = "deephaven.plugin.chart.DeephavenFigure"
 
@@ -1229,15 +1229,24 @@ def _ecdf(
         template: str = None,
         callback: Callable = default_callback
 ) -> DeephavenFigure:
-    # todo: not yet implemented
-    render_mode = "webgl"
+    line_shape = "hv"
+    #rangemode = "tozero"
+
     args = locals()
-    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
     _validate_common_args(args)
 
-    return generate_figure(draw=px.ecdf, call_args=args)
+    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
+    args.pop("lines")
+    args.pop("ecdfnorm")
+    args.pop("ecdfmode")
+
+    create_layered = partial(_preprocess_and_layer,
+                             preprocess_ecdf,
+                             px.line, args)
+
+    return create_layered("x") if x else create_layered("y", orientation="h")
 
 def histogram(
         table: Table = None,
@@ -1304,7 +1313,6 @@ def histogram(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the histogram
     """
-    # todo: barmode relative and overlay not working
     _validate_common_args(locals())
 
     if x:
