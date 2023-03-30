@@ -7,7 +7,21 @@ from plotly.graph_objects import Figure
 
 from deephaven.plugin.object import Exporter
 
-from .DataMapping import DataMapping
+from ..data_mapping import DataMapping
+
+
+def export_figure(
+        exporter: Exporter,
+        figure: DeephavenFigure
+) -> bytes:
+    """
+    Helper to export a DeephavenFigure as json
+
+    :param exporter: The exporter to use
+    :param figure: The figure to export
+    :return: The figure as bytes
+    """
+    return figure.to_json(exporter).encode()
 
 
 class DeephavenFigure:
@@ -15,6 +29,7 @@ class DeephavenFigure:
     A DeephavenFigure that contains a plotly figure and mapping from Deephaven
     data tables to the plotly figure
     """
+
     def __init__(
             self: DeephavenFigure,
             fig: Figure = None,
