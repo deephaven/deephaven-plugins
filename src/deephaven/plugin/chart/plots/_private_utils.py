@@ -2,7 +2,6 @@ from typing import Callable
 
 from plotly.graph_objects import Figure
 
-from deephaven.plugin.object import Exporter
 from deephaven.table import Table
 
 from ..deephaven_figure import generate_figure, DeephavenFigure

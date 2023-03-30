@@ -1,9 +1,9 @@
 from deephaven.plugin import Registration
 from deephaven.plugin.object import Exporter, ObjectType
 
-from .deephaven_figure.DeephavenFigure import DeephavenFigure, export_figure
+from .deephaven_figure import DeephavenFigure, export_figure
 
-from plots import area, bar, frequency_bar, timeline, histogram, _ecdf, box, \
+from .plots import area, bar, frequency_bar, timeline, histogram, _ecdf, box, \
     violin, strip, ohlc, candlestick, treemap, sunburst, icicle, funnel, \
     funnel_area, line, line_polar, line_ternary, line_3d, scatter, scatter_3d, \
     scatter_polar, scatter_ternary, pie, layer

@@ -5,8 +5,7 @@ from plotly import express as px
 from deephaven.table import Table
 
 from ._private_utils import default_callback, validate_common_args, remap_scene_args
-from ..deephaven_figure import generate_figure
-from ..deephaven_figure import DeephavenFigure
+from ..deephaven_figure import generate_figure, DeephavenFigure
 
 
 # TODO: support line_shape as a list?

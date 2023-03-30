@@ -1,1 +1,1 @@
-from shared import combined_generator
+from .shared import combined_generator

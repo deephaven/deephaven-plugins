@@ -4,7 +4,7 @@ from collections.abc import Generator, Iterable
 from deephaven.table import Table
 
 from .DataMapping import DataMapping
-from ..shared.shared import combined_generator
+from ..shared import combined_generator
 
 # need to override some args since they aren't named in the trace directly
 # based on the variable name
