@@ -571,16 +571,16 @@ def generate_figure(
     """
     table = call_args.pop("table")
 
-    call_args, custom_call_args = split_args(call_args)
+    filtered_call_args, custom_call_args = split_args(call_args)
 
-    data_cols = get_data_cols(call_args)
+    data_cols = get_data_cols(filtered_call_args)
 
     data_frame = construct_min_dataframe(table,
                                          data_cols=merge_cols(
                                              list(data_cols.values())
                                          ))
 
-    px_fig = draw(data_frame=data_frame, **call_args)
+    px_fig = draw(data_frame=data_frame, **filtered_call_args)
 
     trace_generator = handle_custom_args(px_fig,
                                          custom_call_args,
@@ -665,8 +665,6 @@ def draw_finance(
     return go.Figure(data=data)
 
 
-# increasing_line_color= 'cyan', decreasing_line_color
-# axis sequence
 def draw_ohlc(
         data_frame: DataFrame,
         x_finance: str,

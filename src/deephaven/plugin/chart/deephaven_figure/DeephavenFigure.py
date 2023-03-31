@@ -24,6 +24,45 @@ def export_figure(
     return figure.to_json(exporter).encode()
 
 
+def has_color_args(
+        call_args: dict[str, any]
+) -> bool:
+    """
+    Check if any of the color args are in call_args
+
+    :param call_args: A dictionary of args
+    :return: True if color args are in, false otherwise
+    """
+    for arg in ["color_discrete_sequence_line",
+                "color_discrete_sequence_marker"]:
+        # convert to bool to ensure empty lists don't prevent removal of
+        # colors on traces
+        if arg in call_args and bool(call_args[arg]):
+            return True
+    return False
+
+
+def has_arg(
+        call_args: dict[str, any],
+        check: str | Callable
+) -> bool:
+    """
+    Given either a string to check for in call_args or function to check,
+    return True if the arg is in the call_args
+
+    :param call_args: A dictionary of args
+    :param check: Either a string or a function that takes call_args
+    :return:
+    """
+    if call_args:
+        if isinstance(check, str) and check in call_args:
+            return bool(call_args[check])
+        elif isinstance(check, Callable):
+            return check(call_args)
+    return False
+    # check is either a function or string
+
+
 class DeephavenFigure:
     """
     A DeephavenFigure that contains a plotly figure and mapping from Deephaven
@@ -36,8 +75,7 @@ class DeephavenFigure:
             call: Callable = None,
             call_args: dict[any] = None,
             data_mappings: list[DataMapping] = None,
-            # TODO: fix so template isn't just a string but can be a provided template
-            template: str = None,
+            has_template: str = None,
             has_color: bool = False,
             trace_generator: Generator[dict[str, any]] = None
     ):
@@ -60,17 +98,11 @@ class DeephavenFigure:
         self.call_args = call_args
         self.trace_generator = trace_generator
 
-        self.template = None
-        if template:
-            self.template = template
-        elif call_args and "template" in call_args:
-            self.template = call_args["template"]
+        self.has_template = has_template if has_template else \
+            has_arg(call_args, "template")
 
-        self.has_color = None
-        if has_color:
-            self.template = template
-        elif call_args and "color_discrete_sequence" in call_args:
-            self.has_color = call_args["color_discrete_sequence"] is not None
+        self.has_color = has_color if has_color else \
+            has_arg(call_args, has_color_args)
 
         self._data_mappings = data_mappings if data_mappings else []
 
@@ -112,12 +144,10 @@ class DeephavenFigure:
         """
         plotly = json.loads(self.fig.to_json())
         mappings = self.get_json_links(exporter)
-        template = True if self.template else False
-        color = True if self.has_color else False
         deephaven = {
             "mappings": mappings,
-            "is_user_set_template": template,
-            "is_user_set_color": color
+            "is_user_set_template": self.has_template,
+            "is_user_set_color": self.has_color
         }
         payload = {
             "plotly": plotly,

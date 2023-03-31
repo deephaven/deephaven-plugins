@@ -7,6 +7,7 @@ from deephaven.table import Table
 
 from ..deephaven_figure import generate_figure, DeephavenFigure
 
+
 def default_callback(
         fig
 ) -> Figure:
@@ -14,9 +15,10 @@ def default_callback(
     A default callback that returns the passed fig
 
     :param fig:
-    :return:
+    :return: The same fig
     """
     return fig
+
 
 def layer(
         *args: DeephavenFigure | Figure,
@@ -69,6 +71,7 @@ def layer(
 
     # todo: this doesn't maintain call args, but that isn't currently needed
     return DeephavenFigure(fig=new_fig, data_mappings=new_data_mappings, template=new_template)
+
 
 def validate_common_args(
         args: dict
@@ -141,6 +144,7 @@ def preprocess_and_layer(
             trace_generator = figs[0].trace_generator
 
     return layer(*figs, which_layout=0)
+
 
 def _make_subplots(
         rows=1,
