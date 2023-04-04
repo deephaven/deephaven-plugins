@@ -36,7 +36,7 @@ def layer(
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
-    :return: The layered express
+    :return: The layered chart
     """
     if len(args) == 0:
         raise ValueError("No figures provided to compose")

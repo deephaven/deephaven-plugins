@@ -23,7 +23,7 @@ def treemap(
         callback: Callable = default_callback
 ):
     """
-    Returns a treemap express
+    Returns a treemap chart
 
     :param table: A table to pull data from.
     :param names: The column containing names of the sections
@@ -31,8 +31,8 @@ def treemap(
     :param parents: The column containing parents of the sections
     :param ids: The column containing ids of the sections. Unlike values, these
     must be unique. Values are used for ids if ids are not specified.
-    :param title: The title of the express
-    :param template: The template for the express.
+    :param title: The title of the chart
+    :param template: The template for the chart.
     :param branchvalues: Set to 'total' to take the value at a level to include
     all descendants and 'remainder' to the value as the remainder after
     subtracting leaf values.
@@ -41,7 +41,7 @@ def treemap(
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
-    :return: A DeephavenFigure that contains the treemap express
+    :return: A DeephavenFigure that contains the treemap chart
     """
     args = locals()
 
@@ -63,7 +63,7 @@ def sunburst(
         callback: Callable = default_callback
 ):
     """
-    Returns a sunburst express
+    Returns a sunburst chart
 
     :param table: A table to pull data from.
     :param names: The column containing names of the sections
@@ -71,8 +71,8 @@ def sunburst(
     :param parents: The column containing parents of the sections
     :param ids: The column containing ids of the sections. Unlike values, these
     must be unique. Values are used for ids if ids are not specified.
-    :param title: The title of the express
-    :param template: The template for the express.
+    :param title: The title of the chart
+    :param template: The template for the chart.
     :param branchvalues: Set to 'total' to take the value at a level to include
     all descendants and 'remainder' to the value as the remainder after
     subtracting leaf values.
@@ -81,7 +81,7 @@ def sunburst(
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
-    :return: A DeephavenFigure that contains the sunburst express
+    :return: A DeephavenFigure that contains the sunburst chart
     """
     args = locals()
 
@@ -103,7 +103,7 @@ def icicle(
         callback: Callable = default_callback
 ):
     """
-    Returns a icicle express
+    Returns a icicle chart
 
     :param table: A table to pull data from.
     :param names: The column containing names of the sections
@@ -111,8 +111,8 @@ def icicle(
     :param parents: The column containing parents of the sections
     :param ids: The column containing ids of the sections. Unlike values, these
     must be unique. Values are used for ids if ids are not specified.
-    :param title: The title of the express
-    :param template: The template for the express.
+    :param title: The title of the chart
+    :param template: The template for the chart.
     :param branchvalues: Set to 'total' to take the value at a level to include
     all descendants and 'remainder' to the value as the remainder after
     subtracting leaf values.
@@ -121,7 +121,7 @@ def icicle(
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
-    :return: A DeephavenFigure that contains the icicle express
+    :return: A DeephavenFigure that contains the icicle chart
     """
     args = locals()
 
@@ -146,7 +146,7 @@ def funnel(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     """
-    Returns a funnel express
+    Returns a funnel chart
 
     :param table: A table to pull data from.
     :param x: A column that contains x-axis values.
@@ -163,12 +163,12 @@ def funnel(
     axis or not.
     :param range_x: A list of two numbers that specify the range of the x axis.
     :param range_y: A list of two numbers that specify the range of the y axis.
-    :param title: The title of the express
-    :param template: The template for the express.
+    :param title: The title of the chart
+    :param template: The template for the chart.
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
-    :return: A DeephavenFigure that contains the funnel express
+    :return: A DeephavenFigure that contains the funnel chart
     """
     args = locals()
 
@@ -189,7 +189,7 @@ def funnel_area(
         callback: Callable = default_callback
 ):
     """
-    Returns a funnel area express
+    Returns a funnel area chart
 
     :param table: A table to pull data from.
     :param names: The column containing names of the pie slices
@@ -197,8 +197,8 @@ def funnel_area(
     :param color_discrete_sequence: A list of colors to sequentially apply to
     the series. The colors loop, so if there are more series than colors,
     colors will be reused.
-    :param title: The title of the express
-    :param template: The template for the express.
+    :param title: The title of the chart
+    :param template: The template for the chart.
     :param opacity: Opacity to apply to all points. 0 is completely transparent
     and 1 is completely opaque.
     :param aggregate: Default True, aggregate the table names by total values. Can
@@ -206,7 +206,7 @@ def funnel_area(
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
-    :return: A DeephavenFigure that contains the funnel area express
+    :return: A DeephavenFigure that contains the funnel area chart
     """
 
     args = locals()

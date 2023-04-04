@@ -36,7 +36,7 @@ def scatter(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     """
-    Returns a scatter express
+    Returns a scatter chart
 
     :param table: A table to pull data from.
     :param x: A column or list of columns that contain x-axis values.
@@ -93,12 +93,12 @@ def scatter(
      that specify the range of the x axes. None can be specified for no range
     The ranges loop, so if there are more axes than ranges, ranges will
     be reused.
-    :param title: The title of the express
-    :param template: The template for the express.
+    :param title: The title of the chart
+    :param template: The template for the chart.
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
-    :return: A DeephavenFigure that contains the scatter express
+    :return: A DeephavenFigure that contains the scatter chart
     """
     render_mode = "webgl"
     args = locals()
@@ -136,7 +136,7 @@ def scatter_3d(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     """
-    Returns a 3D scatter express
+    Returns a 3D scatter chart
 
     :param table: A table to pull data from.
     :param x: A column that contains x-axis values.
@@ -180,12 +180,12 @@ def scatter_3d(
     :param range_x: A list of two numbers that specify the range of the x axis.
     :param range_y: A list of two numbers that specify the range of the y axis.
     :param range_z: A list of two numbers that specify the range of the z axis.
-    :param title: The title of the express.
-    :param template: The template for the express.
+    :param title: The title of the chart.
+    :param template: The template for the chart.
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
-    :return: A DeephavenFigure that contains the 3D scatter express
+    :return: A DeephavenFigure that contains the 3D scatter chart
     """
     args = locals()
     args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
@@ -214,7 +214,7 @@ def scatter_polar(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     """
-    Returns a polar scatter express
+    Returns a polar scatter chart
 
     :param table: A table to pull data from.
     :param r: A column that contains r values.
@@ -233,12 +233,12 @@ def scatter_polar(
     :param range_theta: A list of two numbers that specify the range of theta.
     :param log_r: A boolean that specifies if the corresponding axis is a log
     axis or not.
-    :param title: The title of the express.
-    :param template: The template for the express.
+    :param title: The title of the chart.
+    :param template: The template for the chart.
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
-    :return: A DeephavenFigure that contains the polar scatter express
+    :return: A DeephavenFigure that contains the polar scatter chart
     """
     render_mode = "webgl"
     args = locals()
@@ -262,7 +262,7 @@ def scatter_ternary(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     """
-    Returns a ternary scatter express
+    Returns a ternary scatter chart
 
     :param table: A table to pull data from.
     :param a: A column that contains a-axis values.
@@ -276,12 +276,12 @@ def scatter_ternary(
     will be reused.
     :param opacity: Opacity to apply to all points. 0 is completely transparent
     and 1 is completely opaque.
-    :param title: The title of the express.
-    :param template: The template for the express.
+    :param title: The title of the chart.
+    :param template: The template for the chart.
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
-    :return: A DeephavenFigure that contains the ternary scatter express
+    :return: A DeephavenFigure that contains the ternary scatter chart
     """
     args = locals()
     args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")

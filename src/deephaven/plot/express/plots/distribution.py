@@ -27,7 +27,7 @@ def violin(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     """
-    Returns a violin express
+    Returns a violin chart
 
     :param table: A table to pull data from.
     :param x: A column name or list of columns that contain x-axis values.
@@ -51,12 +51,12 @@ def violin(
     'suspectedoutliers' draws points below 4*Q1-3*Q3 and above 4*Q3-3*Q1.
     'all' draws all points and False draws no points.
     :param box: Default False. Draw boxes inside the violin if True.
-    :param title: The title of the express
-    :param template: The template for the express.
+    :param title: The title of the chart
+    :param template: The template for the chart.
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
-    :return: A DeephavenFigure that contains the violin express
+    :return: A DeephavenFigure that contains the violin chart
     """
     if x and y:
         raise ValueError("Cannot specify both x and y")
@@ -90,7 +90,7 @@ def box(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     """
-    Returns a box express
+    Returns a box chart
 
     :param table: A table to pull data from.
     :param x: A column name or list of columns that contain x-axis values.
@@ -114,12 +114,12 @@ def box(
     'suspectedoutliers' draws points below 4*Q1-3*Q3 and above 4*Q3-3*Q1.
     'all' draws all points and False draws no points.
     :param notched: Default False, if True boxes are drawn with notches
-    :param title: The title of the express
-    :param template: The template for the express.
+    :param title: The title of the chart
+    :param template: The template for the chart.
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
-    :return: A DeephavenFigure that contains the box express
+    :return: A DeephavenFigure that contains the box chart
     """
     if x and y:
         raise ValueError("Cannot specify both x and y")
@@ -151,7 +151,7 @@ def strip(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     """
-    Returns a strip express
+    Returns a strip chart
 
     :param table: A table to pull data from.
     :param x: A column name or list of columns that contain x-axis values.
@@ -171,12 +171,12 @@ def strip(
     axis or not.
     :param range_x: A list of two numbers that specify the range of the x axis.
     :param range_y: A list of two numbers that specify the range of the y axis.
-    :param title: The title of the express
-    :param template: The template for the express.
+    :param title: The title of the chart
+    :param template: The template for the chart.
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
-    :return: A DeephavenFigure that contains the strip express
+    :return: A DeephavenFigure that contains the strip chart
     """
     if x and y:
         raise ValueError("Cannot specify both x and y")
@@ -291,8 +291,8 @@ def histogram(
     :param nbins: Default 10. The number of bins to use.
     :param text_auto: Default False. If True, display the value at each bar.
     If a string, specifies a plotly texttemplate.
-    :param title: The title of the express
-    :param template: The template for the express.
+    :param title: The title of the chart
+    :param template: The template for the chart.
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.

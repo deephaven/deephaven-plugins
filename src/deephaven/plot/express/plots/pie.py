@@ -22,7 +22,7 @@ def pie(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     """
-    Returns a pie express
+    Returns a pie chart
 
     :param table: A table to pull data from.
     :param names: The column containing names of the pie slices
@@ -30,8 +30,8 @@ def pie(
     :param color_discrete_sequence: A list of colors to sequentially apply to
     the series. The colors loop, so if there are more series than colors,
     colors will be reused.
-    :param title: The title of the express
-    :param template: The template for the express.
+    :param title: The title of the chart
+    :param template: The template for the chart.
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
@@ -43,7 +43,7 @@ def pie(
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
-    :return: A DeephavenFigure that contains the pie express
+    :return: A DeephavenFigure that contains the pie chart
     """
     args = locals()
 
