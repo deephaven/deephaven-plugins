@@ -12,6 +12,7 @@ __version__ = "0.0.1.dev0"
 
 NAME = "deephaven.plugin.chart.DeephavenFigure"
 
+
 class DeephavenFigureType(ObjectType):
     @property
     def name(self) -> str:

@@ -22,7 +22,7 @@ def ohlc(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     """
-    Returns an ohlc chart
+    Returns an ohlc express
 
     :param table: A table to pull data from.
     :param x: The column containing x-axis data
@@ -53,7 +53,7 @@ def ohlc(
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
-    :return: A DeephavenFigure that contains the ohlc chart
+    :return: A DeephavenFigure that contains the ohlc express
     """
 
     # todo: range slider
@@ -82,7 +82,7 @@ def candlestick(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     """
-    Returns a candlestick chart
+    Returns a candlestick express
 
     :param table: A table to pull data from.
     :param x: The column containing x-axis data
@@ -113,7 +113,7 @@ def candlestick(
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
-    :return: A DeephavenFigure that contains the candlestick chart
+    :return: A DeephavenFigure that contains the candlestick express
     """
     args = locals()
     args["x_finance"] = args.pop("x")

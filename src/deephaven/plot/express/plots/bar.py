@@ -32,7 +32,7 @@ def bar(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     """
-    Returns a bar chart
+    Returns a bar express
 
     :param table: A table to pull data from.
     :param x: A column or list of columns that contain x-axis values.
@@ -84,12 +84,12 @@ def bar(
     be reused.
     :param text_auto: Default False. If True, display the value at each bar.
     If a string, specifies a plotly texttemplate.
-    :param title: The title of the chart
-    :param template: The template for the chart.
+    :param title: The title of the express
+    :param template: The template for the express.
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
-    :return: A DeephavenFigure that contains the bar chart
+    :return: A DeephavenFigure that contains the bar express
     """
     args = locals()
     args["pattern_shape_sequence_bar"] = args.pop("pattern_shape_sequence")
@@ -142,7 +142,7 @@ def timeline(
         callback: Callable = default_callback
 ):
     """
-    Returns a timeline (otherwise known as a gantt chart)
+    Returns a timeline (otherwise known as a gantt express)
 
     :param table: A table to pull data from.
     :param x_start: A column that contains starting x-axis values.
@@ -158,12 +158,12 @@ def timeline(
     and 1 is completely opaque.
     :param range_x: A list of two numbers that specify the range of the x axis.
     :param range_y: A list of two numbers that specify the range of the y axis.
-    :param title: The title of the chart
-    :param template: The template for the chart.
+    :param title: The title of the express
+    :param template: The template for the express.
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
-    :return: A DeephavenFigure that contains the timeline chart
+    :return: A DeephavenFigure that contains the timeline express
     """
     # TODO: add resource column?
     table, x_diff = preprocess_timeline(table, x_start, x_end, y)
@@ -193,7 +193,7 @@ def frequency_bar(
         callback: Callable = default_callback
 ):
     """
-    Returns a bar chart that contains the counts of the specified columns
+    Returns a bar express that contains the counts of the specified columns
 
     :param table: A table to pull data from.
     :param x: A column name or list of columns that contain x-axis values.
@@ -221,12 +221,12 @@ def frequency_bar(
     :param range_y: A list of two numbers that specify the range of the y axis.
     :param text_auto: Default False. If True, display the value at each bar.
     If a string, specifies a plotly texttemplate.
-    :param title: The title of the chart
-    :param template: The template for the chart.
+    :param title: The title of the express
+    :param template: The template for the express.
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
-    :return: A DeephavenFigure that contains the bar chart
+    :return: A DeephavenFigure that contains the bar express
     """
 
     if x and y:

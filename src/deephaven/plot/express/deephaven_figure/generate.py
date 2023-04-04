@@ -153,7 +153,7 @@ def get_data_cols(
     because x needs to be overriden with data from Col1 and Col2 in the table.
 
     :param call_args: A dictionary containing arguments that were passed to
-    the chart creation call.
+    the express creation call.
     :return: A dictionary containing a key of argument name and a value of
     column or list of columns
     """
@@ -476,7 +476,7 @@ def handle_custom_args(
     y_axis_generators = [base_y_axis_generator()]
 
     # set last axis to zero so no changes are made unless an axis sequence is specified
-    # this ensures nothing will be done if dealing with a chart type that doesn't support axis
+    # this ensures nothing will be done if dealing with a express type that doesn't support axis
     last_x_axis = 0
     last_y_axis = 0
 
@@ -637,7 +637,7 @@ def draw_finance(
         go_func: Callable
 ):
     """
-    Draws a finance (OHLC or candlestick) chart
+    Draws a finance (OHLC or candlestick) express
 
     :param data_frame: The data frame to draw with
     :param x_finance: The name of the column containing x-axis values
@@ -646,7 +646,7 @@ def draw_finance(
     :param low: The name of the column containing low values
     :param close: The name of the column containing close values
     :param go_func: The function to use to create graph objects
-    :return: The chart
+    :return: The express
     """
     if not all(len(open) == len(ls) for ls in [high, low, close]) and \
             (len(open) == len(x_finance) or len(x_finance) == 1):
@@ -674,7 +674,7 @@ def draw_ohlc(
         close: str
 ) -> Figure:
     """
-    Create a plotly OHLC chart.
+    Create a plotly OHLC express.
 
     :param data_frame: The data frame to draw with
     :param x_finance: The name of the column containing x-axis values
@@ -682,7 +682,7 @@ def draw_ohlc(
     :param high: The name of the column containing high values
     :param low: The name of the column containing low values
     :param close: The name of the column containing close values
-    :return: The plotly OHLC chart
+    :return: The plotly OHLC express
     """
     return draw_finance(
         data_frame, x_finance,
@@ -699,7 +699,7 @@ def draw_candlestick(
         close: str | list[str],
 ) -> Figure:
     """
-    Create a plotly candlestick chart.
+    Create a plotly candlestick express.
 
     :param data_frame: The data frame to draw with
     :param x_finance: The name of the column containing x-axis values
@@ -707,7 +707,7 @@ def draw_candlestick(
     :param high: The name of the column containing high values
     :param low: The name of the column containing low values
     :param close: The name of the column containing close values
-    :return: The plotly candlestick chart
+    :return: The plotly candlestick express
     """
 
     return draw_finance(

@@ -32,7 +32,7 @@ def area(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     """
-    Returns an area chart
+    Returns an area express
 
     :param table: A table to pull data from.
     :param x: A column or list of columns that contain x-axis values.
@@ -82,12 +82,12 @@ def area(
     be reused.
     :param line_shape: The line shape for all lines created. One of 'linear',
     'spline', 'vhv', 'hvh', 'vh', 'hv'. Default 'linear'
-    :param title: The title of the chart
-    :param template: The template for the chart.
+    :param title: The title of the express
+    :param template: The template for the express.
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
-    :return: A DeephavenFigure that contains the area chart
+    :return: A DeephavenFigure that contains the area express
     """
     args = locals()
     args["pattern_shape_sequence_area"] = args.pop("pattern_shape_sequence")
