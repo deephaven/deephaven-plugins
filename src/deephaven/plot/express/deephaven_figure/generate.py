@@ -526,7 +526,7 @@ def handle_custom_args(
                 trace_generators.append(sequence_generator(arg, val))
 
             elif arg == "log_x":
-                last_y_axis = max(1, last_x_axis)
+                last_x_axis = max(1, last_x_axis)
                 x_axis_generators.append(log_generator(val))
 
             elif arg == "log_y":
@@ -534,7 +534,7 @@ def handle_custom_args(
                 y_axis_generators.append(log_generator(val))
 
             elif arg == "range_x":
-                last_y_axis = max(1, last_x_axis)
+                last_x_axis = max(1, last_x_axis)
                 x_axis_generators.append(key_val_generator("range", val))
 
             elif arg == "range_y":
