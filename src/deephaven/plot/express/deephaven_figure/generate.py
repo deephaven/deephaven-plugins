@@ -203,39 +203,51 @@ def split_args(
     return new_call_args, custom_call_args
 
 
-def base_x_axis_generator() -> Generator[dict]:
+def base_x_axis_generator(
+        update_titles: bool = False
+) -> Generator[dict]:
     """
     Generates a dict to update anchor, overlaying, side, and a default title
     for the x axis
 
+    :param update_titles: If this is true, update the titles
     :returns: Generated dict
     """
     bottom = True
     for num in count(start=1):
-        yield {
+        update = {
             "anchor": "free" if num >= 2 else "y",
             "overlaying": "x" if num >= 2 else None,
             "side": "bottom" if bottom else "top",
-            "title": {"text": f"X Values {num}"}
         }
+        # only update the title if there is an axis arg
+        if update_titles:
+            update["title"] = {"text": f"X Values {num}"}
+        yield update
         bottom = not bottom
 
 
-def base_y_axis_generator() -> Generator[dict]:
+def base_y_axis_generator(
+    update_titles: bool = False
+) -> Generator[dict]:
     """
     Generates a dict to update anchor, overlaying, side, and a default title
     for the y axis
 
+    :param update_titles: If this is true, update the titles
     :returns: Generated dict
     """
     left = True
     for num in count(start=1):
-        yield {
+        update = {
             "anchor": "free" if num >= 2 else "x",
             "overlaying": "y" if num >= 2 else None,
             "side": "left" if left else "right",
-            "title": {"text": f"Y Values {num}"}
         }
+        # only update the title if there is an axis arg
+        if update_titles:
+            update["title"] = {"text": f"Y Values {num}"}
+        yield update
         left = not left
 
 
@@ -472,8 +484,16 @@ def handle_custom_args(
     # gather up generators to update traces and axes all at once
     trace_generators = []
 
-    x_axis_generators = [base_x_axis_generator()]
-    y_axis_generators = [base_y_axis_generator()]
+    # Only update titles if dealing with a plot that has an axis sequence
+    # specified as this should otherwise preserve plotly express behavior
+    x_axis_generators = [base_x_axis_generator(
+        "xaxis_sequence" in custom_call_args
+        and custom_call_args["xaxis_sequence"]
+    )]
+    y_axis_generators = [base_y_axis_generator(
+        "yaxis_sequence" in custom_call_args
+        and custom_call_args["yaxis_sequence"]
+    )]
 
     # set last axis to zero so no changes are made unless an axis sequence is specified
     # this ensures nothing will be done if dealing with a chart type that doesn't support axis
