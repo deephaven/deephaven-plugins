@@ -23,7 +23,7 @@ def default_callback(
 def layer(
         *args: DeephavenFigure | Figure,
         which_layout: int = None,
-        callback=default_callback
+        callback: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Layers the provided figures. Be default, the layouts are sequentially
@@ -44,7 +44,8 @@ def layer(
     new_data = []
     new_layout = {}
     new_data_mappings = []
-    new_template = None
+    new_has_template = False
+    new_has_color = False
 
     for i, arg in enumerate(args):
         if isinstance(arg, Figure):
@@ -60,7 +61,8 @@ def layer(
             if not which_layout or which_layout == i:
                 new_layout.update(fig.to_dict()['layout'])
             new_data_mappings += arg.copy_mappings(offset=offset)
-            new_template = arg.template if arg.template else new_template
+            new_has_template = arg.has_template or new_has_template
+            new_has_color = arg.has_color or new_has_color
 
         else:
             raise TypeError("All arguments must be of type Figure or DeephavenFigure")
@@ -70,7 +72,12 @@ def layer(
     new_fig = callback(new_fig)
 
     # todo: this doesn't maintain call args, but that isn't currently needed
-    return DeephavenFigure(fig=new_fig, data_mappings=new_data_mappings, template=new_template)
+    return DeephavenFigure(
+        fig=new_fig,
+        data_mappings=new_data_mappings,
+        has_template=new_has_template,
+        has_color=new_has_color
+    )
 
 
 def validate_common_args(
