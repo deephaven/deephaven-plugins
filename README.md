@@ -28,7 +28,7 @@ Then, follow the directions in the [deephaven-js-plugins](https://github.com/dee
 ## Usage
 Once you have the plugin installed and the server started, the recommended way to import the package mirrors plotly express:
 ```python
-import deephaven.plugin.chart as dx
+import deephaven.plot.express as dx
 ```
 
 Then, you can create a table (or use an existing one) and start plotting
