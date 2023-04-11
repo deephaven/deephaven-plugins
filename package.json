@@ -1,13 +1,21 @@
 {
   "name": "deephaven-js-plugins",
   "workspaces": [
-    "dashboard-object-viewer",
-    "matplotlib",
-    "table-example",
-    "plotly"
+    "./plugins/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces",
-    "clean": "npm run clean --workspaces"
-  }
+    "start": "lerna run start --stream",
+    "build": "lerna run build --stream"
+  },
+  "devDependencies": {
+    "@deephaven/eslint-config": "^0.34.0",
+    "@deephaven/prettier-config": "^0.34.0",
+    "@deephaven/tsconfig": "^0.34.0",
+    "@types/shortid": "^0.0.29",
+    "eslint": "^8.37.0",
+    "lerna": "^6.6.1",
+    "prettier": "^2.8.7",
+    "nx": "15.9.2"
+  },
+  "prettier": "@deephaven/prettier-config"
 }

@@ -1,0 +1,52 @@
+{
+  "name": "@deephaven/js-plugin-plotly",
+  "version": "0.2.0",
+  "description": "Deephaven plotly plugin",
+  "keywords": [
+    "Deephaven",
+    "plugin",
+    "deephaven-js-plugin",
+    "plotly"
+  ],
+  "author": "Deephaven Data Labs LLC",
+  "license": "Apache-2.0",
+  "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deephaven/deephaven-js-plugins"
+  },
+  "bugs": {
+    "url": "https://github.com/deephaven/deephaven-js-plugins/issues"
+  },
+  "homepage": "https://github.com/deephaven/deephaven-js-plugins",
+  "scripts": {
+    "start": "vite build --watch",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "@types/react": "^17.0.2",
+    "@vitejs/plugin-react-swc": "^3.0.0",
+    "react": "^17.0.2",
+    "typescript": "^4.5.4",
+    "vite": "~4.1.4"
+  },
+  "peerDependencies": {
+    "react": "^17.0.2"
+  },
+  "dependencies": {
+    "@deephaven/components": "0.34.0",
+    "@deephaven/dashboard": "0.34.0",
+    "@deephaven/jsapi-shim": "0.34.0",
+    "@deephaven/log": "0.34.0",
+    "@deephaven/utils": "0.34.0",
+    "plotly.js-dist-min": "^2.20.0",
+    "react-plotly.js": "^2.4.0",
+    "shortid": "^2.2.16"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ]
+}
