@@ -91,7 +91,8 @@ def area(
     """
     args = locals()
     args["pattern_shape_sequence_area"] = args.pop("pattern_shape_sequence")
-    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+    args["color_discrete_sequence_marker"] = args["color_discrete_sequence"]
+    args["color_discrete_sequence_line"] = args.pop("color_discrete_sequence")
 
     validate_common_args(args)
 
