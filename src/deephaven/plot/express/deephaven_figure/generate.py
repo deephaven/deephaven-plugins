@@ -188,7 +188,9 @@ def split_args(
                 new_call_args[arg.removesuffix('_scene')] = val
             elif arg.startswith("range_"):
                 # range is a special case as ranges are a list
-                custom_call_args[arg] = val if isinstance(val[0], list) else [val]
+                # None can be specified for no range within a list of ranges
+                custom_call_args[arg] = val if \
+                    (isinstance(val[0], list) or val[0] is None) else [val]
             elif any([arg in mappable for mappable in
                       [ERROR_UPDATE_MAP, SEQUENCE_ARGS_MAP, CUSTOM_LIST_ARGS]]):
                 # some of these args should always be lists, so the check is
