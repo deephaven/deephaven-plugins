@@ -1,11 +1,12 @@
 from typing import Callable
+from collections.abc import Generator
 
 from plotly import subplots
 from plotly.graph_objects import Figure
 
 from deephaven.table import Table
 
-from ..deephaven_figure import generate_figure, DeephavenFigure
+from ..deephaven_figure import generate_figure, DeephavenFigure, update_traces
 
 
 def default_callback(
@@ -104,6 +105,21 @@ def remap_scene_args(
         args[arg + '_scene'] = args.pop(arg)
 
 
+def trace_legend_generator(
+        cols: str
+) -> Generator[dict]:
+    """
+    Adds the traces to the legend
+
+    :param cols: The cols to label the trace with in the legend
+    """
+    for col in cols:
+        yield {
+            "name": col,
+            "showlegend": True
+        }
+
+
 def preprocess_and_layer(
         preprocesser: Callable,
         draw: Callable,
@@ -150,7 +166,22 @@ def preprocess_and_layer(
         if not trace_generator:
             trace_generator = figs[0].trace_generator
 
-    return layer(*figs, which_layout=0)
+    layered = layer(*figs, which_layout=0)
+
+    # the legend is only shown in px if there is more than one trace
+    if len(cols) > 1:
+        update_traces(layered.fig, trace_legend_generator(cols))
+
+        layered.fig.update_layout(
+            {
+                "legend": {
+                    "title": {"text": "variable"},
+                    "tracegroupgap": 0
+                }
+            }
+        )
+
+    return layered
 
 
 def _make_subplots(

@@ -308,7 +308,7 @@ def new_error_generator(
 def update_traces(
         fig: Figure,
         generator: Generator[dict],
-        step: int,
+        step: int = 1,
 ) -> None:
     """
     Update the plotly traces with a generator
