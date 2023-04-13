@@ -2,3 +2,6 @@ build/
 dist/
 .venv/
 *.egg-info/
+.idea
+.DS_store
+src/deephaven/plot/express/__pycache__/

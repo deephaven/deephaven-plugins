@@ -10,7 +10,7 @@ from .plots import area, bar, frequency_bar, timeline, histogram, _ecdf, box, \
 
 __version__ = "0.0.1.dev0"
 
-NAME = "deephaven.plot.express.DeephavenFigure"
+NAME = "deephaven.plugin.chart.DeephavenFigure"
 
 
 class DeephavenFigureType(ObjectType):

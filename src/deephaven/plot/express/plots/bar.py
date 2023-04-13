@@ -240,6 +240,6 @@ def frequency_bar(
 
     create_layered = partial(preprocess_and_layer,
                              preprocess_frequency_bar,
-                             px.bar, args)
+                             px.bar, args, var_axis_name="value")
 
     return create_layered("x") if x else create_layered("y", orientation="h")

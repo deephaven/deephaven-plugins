@@ -106,7 +106,7 @@ def remap_scene_args(
 
 
 def trace_legend_generator(
-        cols: str
+        cols: list[str]
 ) -> Generator[dict]:
     """
     Adds the traces to the legend
@@ -126,6 +126,7 @@ def preprocess_and_layer(
         args: dict[str, any],
         var: str,
         orientation: str = None,
+        var_axis_name: str = None,
 ) -> DeephavenFigure:
     """
     Given a preprocessing function, a draw function, and several
@@ -139,10 +140,14 @@ def preprocess_and_layer(
     preprocessor output is mapped to table, x, y. If "y" then preprocessor
     output is mapped to table, y, x.
     :param orientation: optional orientation if it is needed
+    :param var_axis_name: Name on the var axis if cols is a list
     :return:
     """
     cols = args[var]
-    cols = cols if isinstance(cols, list) else [cols]
+    # to mirror px, var_axis_name and legend should only be used when cols are
+    # a list (regardless of length)
+    is_list = isinstance(cols, list)
+    cols = cols if is_list else [cols]
     keys = ["table", "x", "y"] if var == "x" else ["table", "y", "x"]
     table = args["table"]
 
@@ -168,18 +173,17 @@ def preprocess_and_layer(
 
     layered = layer(*figs, which_layout=0)
 
-    # the legend is only shown in px if there is more than one trace
-    if len(cols) > 1:
+    if is_list:
         update_traces(layered.fig, trace_legend_generator(cols))
-
         layered.fig.update_layout(
-            {
-                "legend": {
-                    "title": {"text": "variable"},
-                    "tracegroupgap": 0
-                }
-            }
+            legend_title_text="variable",
+            legend_tracegroupgap=0
         )
+
+        if var_axis_name:
+            layered.fig.update_layout(
+                {f"{var}axis_title_text": var_axis_name}
+            )
 
     return layered
 

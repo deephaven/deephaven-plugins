@@ -84,7 +84,13 @@ def create_hist_tables(
     :return: A tuple containing (the new counts table,
     the column of the midpoint, the columns that contain counts)
     """
-    columns = columns if isinstance(columns, list) else [columns]
+    # in px, if a str is passed, no legend is drawn, so capture this and
+    # return the str
+    is_list = isinstance(columns, list)
+
+    columns = columns if is_list else [columns]
+
+    var_axis_name = "bins"
 
     range_table = create_range_table(table, columns, nbins, range_)
     bin_counts = new_table([
@@ -101,9 +107,9 @@ def create_hist_tables(
     bin_counts = bin_counts.join(range_table) \
         .update_view(["BinMin = Range.binMin(RangeIndex)",
                       "BinMax = Range.binMax(RangeIndex)",
-                      "BinMid=0.5*(BinMin+BinMax)"])
+                      f"{var_axis_name}=0.5*(BinMin+BinMax)"])
 
-    return bin_counts, "BinMid", count_cols
+    return bin_counts, var_axis_name, count_cols if is_list else count_cols[0]
 
 
 def get_aggs(
@@ -185,10 +191,9 @@ def preprocess_frequency_bar(
     :return: A tuple containing (the new table, the original column name,
     the name of the count column)
     """
-    return table.view([column]).count_by("Count", by=column), column, "Count"
+    return table.view([column]).count_by("count", by=column), column, "count"
 
 
-# todo: always modify given column names to prevent column collisions?
 def preprocess_timeline(
         table: Table,
         x_start: str,
@@ -227,7 +232,7 @@ def preprocess_violin(
     :param column: The column to use for violin data
     :return: A tuple of new_table, column names, and column values
     """
-    col_names, col_vals = f"{column}_names", f"{column}_vals",
+    col_names, col_vals = f"category", f"value",
     # also used for box and strip
     new_table = table.view([
         f"{col_names} = `{column}`",
