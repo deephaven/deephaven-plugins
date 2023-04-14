@@ -68,7 +68,8 @@ def violin(
 
     create_layered = partial(preprocess_and_layer,
                              preprocess_violin,
-                             px.violin, args)
+                             px.violin, args,
+                             list_val_axis_name="value")
 
     return create_layered("x") if x else create_layered("y")
 
@@ -131,7 +132,8 @@ def box(
 
     create_layered = partial(preprocess_and_layer,
                              preprocess_violin,
-                             px.box, args)
+                             px.box, args,
+                             list_val_axis_name="value")
 
     return create_layered("x") if x else create_layered("y")
 
@@ -188,7 +190,8 @@ def strip(
 
     create_layered = partial(preprocess_and_layer,
                              preprocess_violin,
-                             px.strip, args)
+                             px.strip, args,
+                             list_val_axis_name="value")
 
     return create_layered("x") if x else create_layered("y")
 
@@ -214,7 +217,7 @@ def _ecdf(
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     line_shape = "hv"
-    #rangemode = "tozero"
+    # rangemode = "tozero"
 
     args = locals()
 
@@ -298,20 +301,11 @@ def histogram(
     figure. Note that the existing data traces should not be removed.
     :return: A DeephavenFigure that contains the histogram
     """
-    validate_common_args(locals())
-
-    if x:
-        table, x, y = create_hist_tables(table, x, nbins, range_bins, histfunc)
-    elif y:
-        table, y, x = create_hist_tables(table, y, nbins, range_bins, histfunc)
-        orientation = "h"
-    else:
-        raise ValueError("x or y must be specified")
-    # since we're simulating a histogram with a bar plot, we want no data gaps
     bargap = 0
+    args = locals()
+    validate_common_args(args)
 
     # remove arguments not used in bar
-    args = locals()
     args.pop("nbins")
     args.pop("histfunc")
     args.pop("range_bins")
@@ -319,4 +313,19 @@ def histogram(
     args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
     args["pattern_shape_sequence_bar"] = args.pop("pattern_shape_sequence")
 
-    return generate_figure(draw=px.bar, call_args=args)
+    preprocessor = partial(
+        create_hist_tables,
+        nbins=nbins,
+        range_bins=range_bins,
+        histfunc=histfunc
+    )
+
+    create_layered = partial(
+        preprocess_and_layer,
+        preprocessor, px.bar, args,
+        str_val_axis_name=histfunc,
+        list_val_axis_name=histfunc,
+        skip_layer=True,
+    )
+
+    return create_layered("x") if x else create_layered("y", orientation="h")

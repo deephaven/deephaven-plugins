@@ -457,7 +457,7 @@ def handle_custom_args(
         fig: Figure,
         custom_call_args: dict[str, any],
         step: int = 1,
-        trace_generator=None
+        trace_generator: Generator[dict[str, any]] = None
 ) -> Generator[dict[str, any]]:
     """
     Modify plotly traces with the specified custom arguments.
@@ -574,7 +574,8 @@ def generate_figure(
         draw: Callable,
         call_args: dict[str, any],
         start_index: int = 0,
-        trace_generator=None,
+        trace_generator: Generator[dict] = None,
+        allow_callback: bool = True
 ) -> DeephavenFigure:
     """
     Generate a figure using a plotly express function as well as any args that
@@ -588,6 +589,8 @@ def generate_figure(
     needs to start at the end of the existing traces.
     :param trace_generator: Optional, if provided then only use this trace
     generator and return (as layout should already be created)
+    :param allow_callback: Optional, set to False to disable the callback if
+    more processing is needed before this figure is "done"
     :return: a Deephaven figure
     """
     table = call_args.pop("table")
@@ -609,7 +612,9 @@ def generate_figure(
                                          trace_generator=trace_generator)
 
     # allow either returning a new fig or not from callback
-    new_fig = custom_call_args['callback'](px_fig)
+    new_fig = None
+    if allow_callback:
+        new_fig = custom_call_args['callback'](px_fig)
     new_fig = new_fig if new_fig else px_fig
 
     data_mapping = create_data_mapping(

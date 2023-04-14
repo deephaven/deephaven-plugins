@@ -1,3 +1,4 @@
+from functools import partial
 from typing import Callable
 from collections.abc import Generator
 
@@ -112,6 +113,7 @@ def trace_legend_generator(
     Adds the traces to the legend
 
     :param cols: The cols to label the trace with in the legend
+    :returns: A generator that yields trace updates
     """
     for col in cols:
         yield {
@@ -120,19 +122,114 @@ def trace_legend_generator(
         }
 
 
+def preprocessed_fig(
+        preprocesser: Callable,
+        draw: Callable,
+        keys: list[str],
+        table: Table,
+        args: dict[str, any],
+        trace_generator: Generator[dict[str, any]],
+        cols: str | list[str],
+) -> DeephavenFigure:
+    """
+    Preprocess and return a figure
+
+    :param preprocesser: A function that returns a tuple that contains
+    (new table, first data columnn, second data column)
+    :param draw: A draw function, generally from plotly express
+    :param args: The args to pass to figure creation
+    :param keys: A list of the variables to assign the preprocessed results to
+    :param table: The table to use
+    :param args: The args to passed to generate_figure
+    :param trace_generator: The trace generator to use to pass to
+    generate_figure
+    :param cols: The columns that are being plotted
+    :return: The resulting DeephavenFigure
+    """
+    output = preprocesser(table, cols)
+    for k, v in zip(keys, output):
+        args[k] = v
+
+    return generate_figure(
+        draw=draw,
+        call_args=args,
+        trace_generator=trace_generator,
+        allow_callback=False
+    )
+
+
+def update_legend_and_titles(
+        fig: DeephavenFigure,
+        var: str,
+        cols: list[str],
+        is_list: bool,
+        list_var_axis_name: str,
+        list_val_axis_name: str,
+        str_var_axis_name: str,
+        str_val_axis_name: str
+) -> None:
+    """
+    Update the legend and titles so they match plotly express (more or less)
+
+    :param fig: The figure to update
+    :param var: Which var to map to the first column. If "x", then the
+    preprocessor output is mapped to table, x, y. If "y" then preprocessor
+    output is mapped to table, y, x.
+    :param cols: The columns that are used for the sake of updating the
+    legend
+    :param is_list: True if the cols were originally passed as a list
+    :param str_var_axis_name: Name on the var axis if cols is a str
+    :param str_val_axis_name: Name on the non-var axis if cols is a str
+    :param list_var_axis_name: Name on the var axis if cols is a list
+    :param list_val_axis_name: Name on the non-var axis if cols is a list
+    """
+    layout_update = {}
+    other_var = "y" if var == "x" else "x"
+
+    if is_list:
+        update_traces(fig.fig, trace_legend_generator(cols))
+        layout_update.update(
+            legend_title_text="variable",
+            legend_tracegroupgap=0
+        )
+
+        if list_var_axis_name:
+            layout_update[f"{var}axis_title_text"] = list_var_axis_name
+
+        if list_val_axis_name:
+            layout_update[f"{other_var}axis_title_text"] = list_val_axis_name
+
+    else:
+        # ensure the legend is hidden (especially for hist)
+        layout_update["showlegend"] = False
+
+        if str_var_axis_name:
+            layout_update[f"{var}axis_title_text"] = str_var_axis_name
+
+        if str_val_axis_name:
+            layout_update[f"{other_var}axis_title_text"] = str_val_axis_name
+
+    fig.fig.update_layout(layout_update)
+
+
 def preprocess_and_layer(
         preprocesser: Callable,
         draw: Callable,
         args: dict[str, any],
         var: str,
         orientation: str = None,
-        var_axis_name: str = None,
+        str_var_axis_name: str = None,
+        str_val_axis_name: str = None,
+        list_var_axis_name: str = None,
+        list_val_axis_name: str = None,
+        skip_layer: bool = False,
 ) -> DeephavenFigure:
     """
     Given a preprocessing function, a draw function, and several
     columns, layer up the resulting figures
 
-    :param preprocesser: A function that returns a tuple that contains
+    :param preprocesser: A function that takes a table, list of cols
+    and returns a tuple that contains
     (new table, first data columnn, second data column)
     :param draw: A draw function, generally from plotly express
     :param args: The args to pass to figure creation
@@ -140,52 +237,60 @@ def preprocess_and_layer(
     preprocessor output is mapped to table, x, y. If "y" then preprocessor
     output is mapped to table, y, x.
     :param orientation: optional orientation if it is needed
-    :param var_axis_name: Name on the var axis if cols is a list
-    :return:
+    :param str_var_axis_name: Name on the var axis if cols is a str
+    :param str_val_axis_name: Name on the non-var axis if cols is a str
+    :param list_var_axis_name: Name on the var axis if cols is a list
+    :param list_val_axis_name: Name on the non-var axis if cols is a list
+    :param skip_layer: If true, all columns are passed to the preprocess function
+    and only one table is returned from it, so the layering step is skipped.
+    Currently, it is assumed that hist is the only plot type using this.
+    :return: The resulting DeephavenFigure
     """
     cols = args[var]
-    # to mirror px, var_axis_name and legend should only be used when cols are
-    # a list (regardless of length)
+    # to mirror px, list_var_axis_name and legend should only be used when cols
+    # are a list (regardless of length)
     is_list = isinstance(cols, list)
     cols = cols if is_list else [cols]
     keys = ["table", "x", "y"] if var == "x" else ["table", "y", "x"]
     table = args["table"]
-
     figs = []
     trace_generator = None
 
     if orientation:
         args["orientation"] = orientation
 
-    for col in cols:
-        output = preprocesser(table, col)
-        for k, v in zip(keys, output):
-            args[k] = v
+    create_fig = partial(
+        preprocessed_fig,
+        preprocesser, draw,
+        keys, table, args
+    )
 
-        figs.append(generate_figure(
-            draw=draw,
-            call_args=args,
-            trace_generator=trace_generator)
-        )
+    if skip_layer:
+        figs.append(create_fig(trace_generator, cols))
+        # currently, the only user of skip_layer is hist, so if another plot
+        # type is passed here this will need to be refactored
+        # hist should have the col name be the passed str if cols is a str
+        str_var_axis_name = str_var_axis_name if is_list else cols[0]
+    else:
+        for col in cols:
+            figs.append(create_fig(trace_generator, col))
 
-        if not trace_generator:
-            trace_generator = figs[0].trace_generator
+            if not trace_generator:
+                trace_generator = figs[0].trace_generator
 
     layered = layer(*figs, which_layout=0)
 
-    if is_list:
-        update_traces(layered.fig, trace_legend_generator(cols))
-        layered.fig.update_layout(
-            legend_title_text="variable",
-            legend_tracegroupgap=0
-        )
+    update_legend_and_titles(
+        layered, var, cols, is_list,
+        list_var_axis_name, list_val_axis_name,
+        str_var_axis_name, str_val_axis_name
+    )
 
-        if var_axis_name:
-            layered.fig.update_layout(
-                {f"{var}axis_title_text": var_axis_name}
-            )
+    # call the callback now as it was not allowed during figure generation
+    new_fig = args['callback'](layered)
+    new_fig = new_fig if new_fig else layered
 
-    return layered
+    return new_fig
 
 
 def _make_subplots(

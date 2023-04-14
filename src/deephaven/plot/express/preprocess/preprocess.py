@@ -67,10 +67,10 @@ def create_count_tables(
 
 def create_hist_tables(
         table: Table,
-        columns: str | list[str],
-        nbins: int,
-        range_: list[int],
-        histfunc: str
+        columns: list[str],
+        nbins: int = 10,
+        range_bins: list[int] = None,
+        histfunc: str = 'count'
 ) -> tuple[Table, str, list[str]]:
     """
     Create the histogram table that contains aggregated bin counts
@@ -78,21 +78,13 @@ def create_hist_tables(
     :param table: The table to pull data from
     :param columns: A list of columns to create histograms over
     :param nbins: The number of bins, shared between all histograms
-    :param range_: The range that the bins are drawn over. If none, the range
+    :param range_bins: The range that the bins are drawn over. If none, the range
     will be over all data
     :param histfunc: The function to aggregate values within each bin
     :return: A tuple containing (the new counts table,
     the column of the midpoint, the columns that contain counts)
     """
-    # in px, if a str is passed, no legend is drawn, so capture this and
-    # return the str
-    is_list = isinstance(columns, list)
-
-    columns = columns if is_list else [columns]
-
-    var_axis_name = "bins"
-
-    range_table = create_range_table(table, columns, nbins, range_)
+    range_table = create_range_table(table, columns, nbins, range_bins)
     bin_counts = new_table([
         long_col("RangeIndex", [i for i in range(nbins)])
     ])
@@ -101,15 +93,22 @@ def create_hist_tables(
 
     for count_table, count_col in \
             create_count_tables(table, columns, range_table, histfunc):
-        bin_counts = bin_counts.natural_join(count_table, on=["RangeIndex"], joins=[count_col])
+        bin_counts = bin_counts.natural_join(
+            count_table,
+            on=["RangeIndex"],
+            joins=[count_col]
+        )
         count_cols.append(count_col)
+
+    # this name also ends up on the chart if there is a list of cols
+    var_axis_name = "bins"
 
     bin_counts = bin_counts.join(range_table) \
         .update_view(["BinMin = Range.binMin(RangeIndex)",
                       "BinMax = Range.binMax(RangeIndex)",
                       f"{var_axis_name}=0.5*(BinMin+BinMax)"])
 
-    return bin_counts, var_axis_name, count_cols if is_list else count_cols[0]
+    return bin_counts, var_axis_name, count_cols
 
 
 def get_aggs(
@@ -232,7 +231,7 @@ def preprocess_violin(
     :param column: The column to use for violin data
     :return: A tuple of new_table, column names, and column values
     """
-    col_names, col_vals = f"category", f"value",
+    col_names, col_vals = "category", f"{column}",
     # also used for box and strip
     new_table = table.view([
         f"{col_names} = `{column}`",
@@ -257,8 +256,8 @@ def preprocess_ecdf(
         .count_by(col_dup, by=column) \
         .sort(column) \
         .update_by(
-            cum_sum(f"{tot_count_col}={col_dup}")
-        )
+        cum_sum(f"{tot_count_col}={col_dup}")
+    )
 
     # convert the counts to arrays to calculate the percentages then
     # convert back to columns

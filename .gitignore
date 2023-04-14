@@ -4,4 +4,4 @@ dist/
 *.egg-info/
 .idea
 .DS_store
-src/deephaven/plot/express/__pycache__/
+__pycache__/
