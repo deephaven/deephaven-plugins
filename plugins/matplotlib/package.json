@@ -45,6 +45,6 @@
     "access": "public"
   },
   "files": [
-    "dist"
+    "dist/index.js"
   ]
 }

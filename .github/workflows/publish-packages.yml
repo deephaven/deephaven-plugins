@@ -1,0 +1,29 @@
+name: Publish Packages
+on:
+  workflow_dispatch:
+  release:
+    types: [created]
+jobs:
+  publish-packages:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build production
+        run: npm run build
+      - name: Publish packages
+        run: ./node_modules/.bin/lerna publish from-package --yes
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.DEEPHAVENBOT_NPM_TOKEN }}
