@@ -77,7 +77,8 @@ class DeephavenFigure:
             data_mappings: list[DataMapping] = None,
             has_template: str = None,
             has_color: bool = False,
-            trace_generator: Generator[dict[str, any]] = None
+            trace_generator: Generator[dict[str, any]] = None,
+            has_subplots: bool = False
     ):
         """
         Initialize a DeephavenFigure
@@ -105,6 +106,8 @@ class DeephavenFigure:
             has_arg(call_args, has_color_args)
 
         self._data_mappings = data_mappings if data_mappings else []
+
+        self.has_subplots = has_subplots
 
     def copy_mappings(
             self: DeephavenFigure,

@@ -223,7 +223,7 @@ def base_x_axis_generator(
         }
         # only update the title if there is an axis arg
         if update_titles:
-            update["title"] = {"text": f"X Values {num}"}
+            update["title"] = None #{"text": f"X Values {num}"}
         yield update
         bottom = not bottom
 
@@ -247,7 +247,7 @@ def base_y_axis_generator(
         }
         # only update the title if there is an axis arg
         if update_titles:
-            update["title"] = {"text": f"Y Values {num}"}
+            update["title"] = None #{"text": f"Y Values {num}"}
         yield update
         left = not left
 
