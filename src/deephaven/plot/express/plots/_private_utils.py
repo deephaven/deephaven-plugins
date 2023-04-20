@@ -22,14 +22,40 @@ def default_callback(
     return fig
 
 
-# normalize the existing domain to a scale of 0, 1
-# chart domain should always contain obj_domain
+def normalize_position(
+        position: float,
+        chart_start: float,
+        chart_range: float
+) -> float:
+    """
+    Normalize a position so that it falls between 0 and 1 (inclusive)
 
-def normalize_position(position, chart_start, chart_range):
+    :param position: The current position
+    :param chart_start: The start of the domain the existing chart has
+    :param chart_range: The range the existing chart has
+    :return:
+    """
     return (position - chart_start) / chart_range
 
 
-def get_new_positions(new_domain, positions, chart_domain):
+def get_new_positions(
+        new_domain: list[float],
+        positions: list[float],
+        chart_domain: list[float]
+) -> list[float]:
+    """
+    Get positions within the new domain of an arbitrary list of positions
+    The positions will first be normalized to fall between 0 and 1 inclusive
+    using the current chart_domain. Then, the positions are mapped onto
+    new_domain.
+    For example, if a position is at 0.5, chart_domain is [0, 1] and new_domain
+    is [0, 0.6], the new position is 0.3.
+
+    :param new_domain: The new domain to map the points to
+    :param positions: The current positions of the points
+    :param chart_domain: The current domain of the whole chart
+    :return:
+    """
     if not isinstance(positions, list):
         positions = [positions]
     new_positions = []
@@ -42,10 +68,19 @@ def get_new_positions(new_domain, positions, chart_domain):
     return new_positions
 
 
-# def new_position(position, chart_domain):
-#    return chart_domain[0] + obj_domain[0] * chart_range
+def resize_domain(
+        obj: dict,
+        new_domain: dict[str, list[float]]
+) -> None:
+    """
+    Resize the domain of the given object
 
-def resize_domain(obj, new_domain):
+    :param obj: The object to resize. It should have a "domain" key that
+    references a dict that has "x" and "y" keys.
+    :param new_domain: The new domain the map the figure to. Contains keys of x
+    and y and values of domains, such as [0,0.5]
+    keys
+    """
     new_domain_x = new_domain.get("x", None)
     new_domain_y = new_domain.get("y", None)
     obj_domain_x = obj["domain"]["x"]
@@ -65,7 +100,19 @@ def resize_domain(obj, new_domain):
         pass
 
 
-def resize_axis(axis, new_domain, which):
+def resize_xy_axis(
+        axis: dict,
+        new_domain: dict[str, list[float]],
+        which: str
+) -> None:
+    """
+    Resize either an x or y axis.
+
+    :param axis: The axis object to resize. It should have a "domain" key.
+    :param new_domain: The new domain the map the figure to. Contains keys of x
+    and y and values of domains, such as [0,0.5]
+    :param which: Either "x" or "y"
+    """
     new_domain_x = new_domain.get("x", None)
     new_domain_y = new_domain.get("y", None)
     axis_domain = axis["domain"]
@@ -89,7 +136,16 @@ def resize_axis(axis, new_domain, which):
         pass
 
 
-def reassign_axes(trace, axes_remapping):
+def reassign_axes(
+        trace: dict,
+        axes_remapping: dict[str, str]
+) -> None:
+    """
+    RUpdate the trace with its new axes using with the remapping
+
+    :param trace: The trace to remap axes within
+    :param axes_remapping: The mapping of old to new axes
+    """
     if 'xaxis' in trace:
         trace.update(xaxis=axes_remapping[trace['xaxis']])
 
@@ -106,7 +162,16 @@ def reassign_axes(trace, axes_remapping):
         trace.update(ternary=axes_remapping[trace['ternary']])
 
 
-def reassign_attributes(axis, axes_remapping):
+def reassign_attributes(
+        axis: dict,
+        axes_remapping: dict[str, str]
+) -> None:
+    """
+    Reassign attributes of a layout object using with the remapping
+
+    :param axis: The axis object to remap attributes from
+    :param axes_remapping: The mapping of old to new axes
+    """
     # anchor can also be free, which does not need to be modified
     if 'anchor' in axis and axis['anchor'] in axes_remapping:
         axis.update(anchor=axes_remapping[axis['anchor']])
@@ -115,120 +180,136 @@ def reassign_attributes(axis, axes_remapping):
         axis.update(overlaying=axes_remapping[axis['overlaying']])
 
 
-def resize(
-        fig_data,
-        fig_layout,
-        new_domain,
-        recreate_axes,
-        new_axes_start,
-):
-    # regex match against axes
-    # add to them with offset
-    # adjust the existing ones
-    # if there's a large axis gap, keep it (for future)
-    if not new_domain:
-        return
+def resize_axis(
+        type_: str,
+        old_axis: str,
+        axis: dict,
+        num: str,
+        new_domain: dict[str, list[float]]
+) -> tuple[str, str, str]:
+    """
+    Maps the specified axis to new_domain and returns info to help remap axes
 
-    if not recreate_axes:
-        """fig.for_each_trace(
-            lambda trace: resize_domain(trace, domain)
-        )
-
-        fig.for_each_xaxis(
-            lambda axis: resize_axis(axis, {"domain": domain.get("x", None)})
-        )
-
-        fig.for_each_yaxis(
-            lambda axis: resize_axis(axis, {"domain": domain.get("y", None)})
-        )
-
-        fig.for_each_ternary(
-            lambda ternary: resize_domain(ternary, domain)
-        )
-
-        fig.for_each_scene(
-            lambda scene: resize_domain(scene, domain)
-        )
-
-        fig.for_each_polar(
-            lambda polar: resize_domain(polar, domain)
-        )"""
-        pass
-
+    :param type_: The type of axis to resize
+    :param old_axis: The old axis name
+    :param axis: The axis object to resize
+    :param num: The number (possibly empty) of this axis within the new chart
+    :param new_domain: The new domain the map the figure to. Contains keys of x
+    and y and values of domains, such as [0,0.5]
+    :return: A tuple of new axis name, old axis name (for trace remapping),
+    new axis name (for trace remapping). The new axis name isn't always the
+    same within the trace as it is in the layout (such as in the case of xaxis
+    or yaxis), hence the need for both of the names.
+    """
+    new_axis = f"{type_}{num}"
+    if type_ == 'xaxis' or type_ == 'yaxis':
+        which = type_[0]
+        resize_xy_axis(axis, new_domain, which)
+        old_trace_axis = old_axis.replace(type_, which)
+        return new_axis, old_trace_axis, f"{which}{num}"
     else:
-        axes_remapping = {}
+        resize_domain(axis, new_domain)
+        return new_axis, old_axis, new_axis
 
-        new_axes = {}
 
-        old_axes = []
+def resize(
+        fig_data: dict,
+        fig_layout: dict,
+        new_domain: dict[str, list[float]],
+        new_axes_start: dict[str, int],
+) -> tuple[dict, dict]:
+    """
+    Resize a figure into new_domain, reindexing with the indices specified in
+    new_axes_start
 
-        for k, v in fig_layout.items():
-            if k.startswith("xaxis"):
-                old_axes.append(k)
-                suffix = '' if new_axes_start['x'] == 1 else new_axes_start['x']
-                new_axis = f"xaxis{suffix}"
-                resize_axis(v, new_domain, "x")
-                new_axes[new_axis] = v
-                old_axis_key = 'x' if k == 'xaxis' else f"x{k.removeprefix('xaxis')}"
-                axes_remapping[old_axis_key] = f"x{suffix}"
-                new_axes_start["x"] += 1
-            elif k.startswith("yaxis"):
-                old_axes.append(k)
-                suffix = '' if new_axes_start['y'] == 1 else new_axes_start['y']
-                new_axis = f"yaxis{suffix}"
-                resize_axis(v, new_domain, "y")
-                new_axes[new_axis] = v
-                old_axis_key = 'y' if k == 'yaxis' else f"y{k.removeprefix('yaxis')}"
-                axes_remapping[old_axis_key] = f"y{suffix}"
-                new_axes_start["y"] += 1
-            elif k.startswith("scene"):
-                old_axes.append(k)
-                new_axis = f"scene{'' if new_axes_start['scene'] == 1 else new_axes_start['scene']}"
-                resize_domain(v, new_domain)
-                new_axes[new_axis] = v
-                axes_remapping[k] = new_axis
-                new_axes_start["scene"] += 1
-            elif k.startswith("polar"):
-                old_axes.append(k)
-                new_axis = f"polar{'' if new_axes_start['polar'] == 1 else new_axes_start['polar']}"
-                resize_domain(v, new_domain)
-                new_axes[new_axis] = v
-                axes_remapping[k] = new_axis
-                new_axes_start["polar"] += 1
-            elif k.startswith("ternary"):
-                old_axes.append(k)
-                new_axis = f"ternary{'' if new_axes_start['ternary'] == 1 else new_axes_start['ternary']}"
-                resize_domain(v, new_domain)
-                new_axes[new_axis] = v
-                axes_remapping[k] = new_axis
-                new_axes_start["ternary"] += 1
-
-        for axis in old_axes:
-            fig_layout.pop(axis)
-
-        fig_layout.update(new_axes)
-
-        for trace in fig_data:
-            reassign_axes(trace, axes_remapping)
-            if "domain" in trace:
-                resize_domain(trace, new_domain)
-
-        for axis in fig_layout.values():
-            reassign_attributes(axis, axes_remapping)
-
+    :param fig_data: The current figure data
+    :param fig_layout: The current figure layout
+    :param new_domain: The new domain the map the figure to. Contains keys of x
+    and y and values of domains, such as [0,0.5]
+    :param new_axes_start: A dictionary containing the start of new indices to
+    ensure there is no reindexing collisions
+    :return: A tuple of the new figure data, the new figure layout
+    """
+    if not new_domain:
         return fig_data, fig_layout
+
+    axes_remapping = {}
+    new_axes = {}
+    old_axes = []
+    type_ = None
+
+    for k, v in fig_layout.items():
+        if k.startswith("xaxis"):
+            type_ = "xaxis"
+
+        elif k.startswith("yaxis"):
+            type_ = "yaxis"
+
+        elif k.startswith("scene"):
+            type_ = "scene"
+
+        elif k.startswith("polar"):
+            type_ = "polar"
+
+        elif k.startswith("ternary"):
+            type_ = "ternary"
+
+        if type_:
+            # axes start at 1, and the 1 is dropped
+            num = "" if new_axes_start[type_] == 1 else new_axes_start[type_]
+            new_axes_start[type_] += 1
+            old_axes.append(k)
+
+            new_axis, old_trace_axis, new_trace_axis = resize_axis(
+                type_, k, v, num, new_domain)
+
+            new_axes[new_axis] = v
+            axes_remapping[old_trace_axis] = new_trace_axis
+
+        type_ = None
+
+    # need to remove old axes in case there is one with a very high number
+    for axis in old_axes:
+        fig_layout.pop(axis)
+
+    fig_layout.update(new_axes)
+
+    for trace in fig_data:
+        reassign_axes(trace, axes_remapping)
+        if "domain" in trace:
+            resize_domain(trace, new_domain)
+
+    for axis in fig_layout.values():
+        reassign_attributes(axis, axes_remapping)
+
+    return fig_data, fig_layout
 
 
 def fig_data_and_layout(
-        fig,
-        i,
-        domains,
-        which_layout,
-        recreate_axes,
-        new_axes_start
-):
+        fig: Figure,
+        i: int,
+        domains: list[dict[str, list[float]]],
+        which_layout: int,
+        new_axes_start: dict[str, int]
+) -> tuple[tuple | dict, dict]:
+    """
+    Get new data and layout for the specified figure
+
+    :param fig: The current figure
+    :param i: The index of the figure, used for which_layout
+    :param which_layout: None to layer layouts, or an index of which arg to
+    take the layout from
+    :param domains: A list of dictionaries that contain keys of "x" and "y"
+    and values that are lists of two floats form 0 to 1. The chart that
+    corresponds with a domain will be resized to that domain. X and y can be
+    excluded if only resizing on one axis.
+    :param new_axes_start: A dict that keeps track of starting points when
+    recreating axes
+    :return: A tuple of figure data, figure layout
+    """
     if domains:
-        return resize(fig.to_dict()['data'], fig.to_dict()['layout'], domains[i], recreate_axes, new_axes_start)
+        return resize(fig.to_dict()['data'], fig.to_dict()['layout'],
+                      domains[i], new_axes_start)
 
     fig_layout = {}
     if not which_layout or which_layout == i:
@@ -240,9 +321,8 @@ def fig_data_and_layout(
 def layer(
         *args: DeephavenFigure | Figure,
         which_layout: int = None,
-        domains: list[dict[str, float]] = None,
-        recreate_axes=True,
-        # can be set of {'x', 'y', '3D', 'polar', 'ternary'} to selectively recreate for faceting or marginal
+        domains: list[dict[str, list[float]]] = None,
+        # recreate_axes=True, TODO needed for faceting, marginals: control when axes are recreated
         callback: Callable = default_callback
 ) -> DeephavenFigure:
     """
@@ -252,7 +332,11 @@ def layer(
 
     :param args: The charts to layer
     :param which_layout: None to layer layouts, or an index of which arg to
-    take the layout from
+    take the layout from. Currently only valid if domains are not specified.
+    :param domains: A list of dictionaries that contain keys of "x" and "y"
+    and values that are lists of two floats form 0 to 1. The chart that
+    corresponds with a domain will be resized to that domain. Either x or y can
+    be excluded if only resizing on one axis.
     :param callback: A callback function that takes a figure as an argument and
     returns a figure. Used to add any custom changes to the underlying plotly
     figure. Note that the existing data traces should not be removed.
@@ -269,20 +353,17 @@ def layer(
 
     # when recreating axes, need to keep track of start of new axes
     new_axes_start = {
-        "x": 1,
-        "y": 1,
+        "xaxis": 1,
+        "yaxis": 1,
         "scene": 1,
         "polar": 1,
         "ternary": 1
     }
 
-    new_axes = {}
-    old_axes = {}
-
     for i, arg in enumerate(args):
         if isinstance(arg, Figure):
             fig_data, fig_layout = fig_data_and_layout(
-                arg, i, domains, which_layout, recreate_axes, new_axes_start
+                arg, i, domains, which_layout, new_axes_start
             )
 
         elif isinstance(arg, DeephavenFigure):
@@ -290,12 +371,11 @@ def layer(
             if arg.has_subplots:
                 raise NotImplementedError("Cannot currently add figure with subplots as a subplot")
             fig_data, fig_layout = fig_data_and_layout(
-                arg.fig, i, domains, which_layout, recreate_axes, new_axes_start
+                arg.fig, i, domains, which_layout, new_axes_start
             )
             new_data_mappings += arg.copy_mappings(offset=offset)
             new_has_template = arg.has_template or new_has_template
             new_has_color = arg.has_color or new_has_color
-
 
         else:
             raise TypeError("All arguments must be of type Figure or DeephavenFigure")
