@@ -87,13 +87,15 @@ CUSTOM_ARGS = {
     #"rangemode"
 }
 
-ERROR_UPDATE_MAP = {
+# these are columns that are "attached" sequentially to the traces
+ATTACHED_UPDATE_MAP = {
     "error_x": "error_x_array",
     "error_x_minus": "error_x_arrayminus",
     "error_y": "error_y_array",
     "error_y_minus": "error_y_arrayminus",
     "error_z": "error_z_array",
-    "error_z_minus": "error_z_arrayminus"
+    "error_z_minus": "error_z_arrayminus",
+    "size": "marker_size"
 }
 
 
@@ -193,7 +195,7 @@ def split_args(
                 custom_call_args[arg] = val if \
                     (isinstance(val[0], list) or val[0] is None) else [val]
             elif any([arg in mappable for mappable in
-                      [ERROR_UPDATE_MAP, SEQUENCE_ARGS_MAP, CUSTOM_LIST_ARGS]]):
+                      [ATTACHED_UPDATE_MAP, SEQUENCE_ARGS_MAP, CUSTOM_LIST_ARGS]]):
                 # some of these args should always be lists, so the check is
                 # redundant, but useful if a single valid value is passed
                 custom_call_args[arg] = val if isinstance(val, list) else [val]
@@ -220,7 +222,7 @@ def base_x_axis_generator(
         update = {
             "anchor": "free" if num >= 2 else "y",
             "overlaying": "x" if num >= 2 else None,
-            "side": "bottom" if bottom else "top",
+            "side": "bottom" if bottom else "top"
         }
         # only update the title if there is an axis arg
         if update_titles:
@@ -244,7 +246,7 @@ def base_y_axis_generator(
         update = {
             "anchor": "free" if num >= 2 else "x",
             "overlaying": "y" if num >= 2 else None,
-            "side": "left" if left else "right",
+            "side": "left" if left else "right"
         }
         # only update the title if there is an axis arg
         if update_titles:
@@ -289,21 +291,21 @@ def new_axis_generator(
         yield f"{var}axis", f"{var}{new_axis}"
 
 
-def new_error_generator(
+def attached_generator(
         arg: str,
-        error_cols: list[str]
+        attached_cols: list[str]
 ) -> Generator[tuple[str, list]]:
     """
     Generate key, value pairs for error bar updates. If an error column is
     None, then there is no error bar drawn for the corresponding trace.
 
     :param arg: The error bar to map to an update
-    :param error_cols: A list of error columns to determine what the value
+    :param attached_cols: A list of error columns to determine what the value
     should be
     :returns: Generates a list of key, value pairs of (error update, value)
     """
-    for error_col in cycle(error_cols):
-        yield ERROR_UPDATE_MAP[arg], [] if error_col else None
+    for error_col in cycle(attached_cols):
+        yield ATTACHED_UPDATE_MAP[arg], [] if error_col else None
 
 
 def update_traces(
@@ -522,8 +524,8 @@ def handle_custom_args(
                     last_x_axis = max(1, last_x_axis)
                     x_axis_generators.append(key_val_generator("domain", [x_domain]))
 
-            elif arg in ERROR_UPDATE_MAP:
-                trace_generators.append(new_error_generator(arg, val))
+            elif arg in ATTACHED_UPDATE_MAP:
+                trace_generators.append(attached_generator(arg, val))
 
             elif arg in SEQUENCE_ARGS_MAP:
                 trace_generators.append(sequence_generator(arg, val))

@@ -12,6 +12,7 @@ def area(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
+        size: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
         pattern_shape_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
@@ -49,7 +50,7 @@ def area(
     symbols, symbols will be reused.
     :param size_sequence: A list of sizes to sequentially apply to the
     markers in the series. The sizes loop, so if there are more series than
-    symbols, sizes will be reused.
+    symbols, sizes will be reused. This is overriden is "size" is specified.
     :param xaxis_sequence: A list of x axes to assign series to. Odd numbers
     starting with 1 are created on the bottom x axis and even numbers starting
     with 2 are created on the top x axis. Axes are created up

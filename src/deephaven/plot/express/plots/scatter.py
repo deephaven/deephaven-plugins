@@ -16,6 +16,7 @@ def scatter(
         error_x_minus: str | list[str] = None,
         error_y: str | list[str] = None,
         error_y_minus: str | list[str] = None,
+        size: str | list[str] = None,
         # labels: dict[str, str] = None
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
@@ -49,6 +50,7 @@ def scatter(
     :param error_x_minus: A column or list of columns with x error
     bar values. These form the error bars in the negative direction, and are
     ignored if error_x is not specified.
+    :param size: A column or list of columns that contain size values.
     :param error_y: A column or list of columns with x error bar
     values. These form the error bars in both the positive and negative
     direction if error_y_minus is not specified, and the error bars in only the
@@ -65,7 +67,7 @@ def scatter(
     symbols, symbols will be reused.
     :param size_sequence: A list of sizes to sequentially apply to the
     markers in the series. The sizes loop, so if there are more series than
-    symbols, sizes will be reused.
+    symbols, sizes will be reused. This is overriden is "size" is specified.
     :param xaxis_sequence: A list of x axes to assign series to. Odd numbers
     starting with 1 are created on the bottom x axis and even numbers starting
     with 2 are created on the top x axis. Axes are created up
@@ -125,6 +127,7 @@ def scatter_3d(
         error_y_minus: str | list[str] = None,
         error_z: str | list[str] = None,
         error_z_minus: str | list[str] = None,
+        size: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
         size_sequence: list[int] = None,
@@ -167,6 +170,7 @@ def scatter_3d(
     :param error_z_minus: A column with z error bar values. These form
     the error bars in the negative direction, and are ignored if error_x is not
     specified.
+    :param size: A column or list of columns that contain size values.
     :param color_discrete_sequence: A list of colors to sequentially apply to
     the series. The colors loop, so if there are more series than colors,
     colors will be reused.
@@ -175,7 +179,7 @@ def scatter_3d(
     symbols, symbols will be reused.
     :param size_sequence: A list of sizes to sequentially apply to the
     markers in the series. The sizes loop, so if there are more series than
-    symbols, sizes will be reused.
+    symbols, sizes will be reused. This is overriden is "size" is specified.
     :param opacity: Opacity to apply to all points. 0 is completely transparent
     and 1 is completely opaque.
     :param log_x: A boolean that specifies if the corresponding axis is a log
@@ -208,6 +212,7 @@ def scatter_polar(
         table: Table = None,
         r: str = None,
         theta: str = None,
+        size: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
         size_sequence: list[int] = None,
@@ -227,6 +232,7 @@ def scatter_polar(
     :param table: A table to pull data from.
     :param r: A column that contains r values.
     :param theta: A column that contains theta values.
+    :param size: A column or list of columns that contain size values.
     :param color_discrete_sequence: A list of colors to sequentially apply to
     the series. The colors loop, so if there are more series than colors,
     colors will be reused.
@@ -235,7 +241,7 @@ def scatter_polar(
     symbols, symbols will be reused.
     :param size_sequence: A list of sizes to sequentially apply to the
     markers in the series. The sizes loop, so if there are more series than
-    symbols, sizes will be reused.
+    symbols, sizes will be reused. This is overriden is "size" is specified.
     :param opacity: Opacity to apply to all points. 0 is completely transparent
     and 1 is completely opaque.
     :param direction: Which direction points are drawn. Default clockwise.
@@ -265,6 +271,7 @@ def scatter_ternary(
         a: str = None,
         b: str = None,
         c: str = None,
+        size: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
         size_sequence: list[int] = None,
@@ -280,6 +287,7 @@ def scatter_ternary(
     :param a: A column that contains a-axis values.
     :param b: A column that contains b-axis values.
     :param c: A column that contains c-axis values.
+    :param size: A column or list of columns that contain size values.
     :param color_discrete_sequence: A list of colors to sequentially apply to
     the series. The colors loop, so if there are more series than colors,
     colors will be reused.
@@ -288,7 +296,7 @@ def scatter_ternary(
     symbols, symbols will be reused.
     :param size_sequence: A list of sizes to sequentially apply to the
     markers in the series. The sizes loop, so if there are more series than
-    symbols, sizes will be reused.
+    symbols, sizes will be reused. This is overriden is "size" is specified.
     :param opacity: Opacity to apply to all points. 0 is completely transparent
     and 1 is completely opaque.
     :param title: The title of the chart.
