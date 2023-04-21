@@ -20,6 +20,7 @@ def line(
         color_discrete_sequence: list[str] = None,
         line_dash_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
+        size_sequence: list[int] = None,
         xaxis_sequence: list[str] = None,
         yaxis_sequence: list[str] = None,
         yaxis_title_sequence: list[str] = None,
@@ -63,8 +64,11 @@ def line(
     the series. The dashes loop, so if there are more series than dashes,
     dashes will be reused.
     :param symbol_sequence: A list of symbols to sequentially apply to the
-    series. The symbols loop, so if there are more series than symbols, symbols
-    will be reused.
+    markers in the series. The symbols loop, so if there are more series than
+    symbols, symbols will be reused.
+    :param size_sequence: A list of sizes to sequentially apply to the
+    markers in the series. The sizes loop, so if there are more series than
+    symbols, sizes will be reused.
     :param xaxis_sequence: A list of x axes to assign series to. Odd numbers
     starting with 1 are created on the bottom x axis and even numbers starting
     with 2 are created on the top x axis. Axes are created up
@@ -125,6 +129,7 @@ def line_3d(
         error_z_minus: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
+        size_sequence: list[int] = None,
         markers: bool = False,
         log_x: bool = False,
         log_y: bool = False,
@@ -168,10 +173,11 @@ def line_3d(
     the series. The colors loop, so if there are more series than colors,
     colors will be reused.
     :param symbol_sequence: A list of symbols to sequentially apply to the
-    series. The symbols loop, so if there are more series than symbols, symbols
-    will be reused.
-    :param markers: True to draw markers on the line, False to not. Default
-    False
+    markers in the series. The symbols loop, so if there are more series than
+    symbols, symbols will be reused.
+    :param size_sequence: A list of sizes to sequentially apply to the
+    markers in the series. The sizes loop, so if there are more series than
+    symbols, sizes will be reused.
     :param log_x: A boolean that specifies if the corresponding axis is a log
     axis or not.
     :param log_y: A boolean that specifies if the corresponding axis is a log
@@ -204,6 +210,7 @@ def line_polar(
         theta: str = None,
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
+        size_sequence: list[int] = None,
         markers: bool = False,
         direction: str = 'clockwise',
         start_angle: int = 90,
@@ -226,8 +233,11 @@ def line_polar(
     the series. The colors loop, so if there are more series than colors,
     colors will be reused.
     :param symbol_sequence: A list of symbols to sequentially apply to the
-    series. The symbols loop, so if there are more series than symbols, symbols
-    will be reused.
+    markers in the series. The symbols loop, so if there are more series than
+    symbols, symbols will be reused.
+    :param size_sequence: A list of sizes to sequentially apply to the
+    markers in the series. The sizes loop, so if there are more series than
+    symbols, sizes will be reused.
     :param markers: True to draw markers on the line, False to not. Default
     False
     :param direction: Which direction points are drawn. Default clockwise.
@@ -262,6 +272,7 @@ def line_ternary(
         c: str = None,
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
+        size_sequence: list[int] = None,
         markers: bool = False,
         line_shape: str = 'linear',
         title: str = None,
@@ -279,8 +290,11 @@ def line_ternary(
     the series. The colors loop, so if there are more series than colors,
     colors will be reused.
     :param symbol_sequence: A list of symbols to sequentially apply to the
-    series. The symbols loop, so if there are more series than symbols, symbols
-    will be reused.
+    markers in the series. The symbols loop, so if there are more series than
+    symbols, symbols will be reused.
+    :param size_sequence: A list of sizes to sequentially apply to the
+    markers in the series. The sizes loop, so if there are more series than
+    symbols, sizes will be reused.
     :param markers: True to draw markers on the line, False to not. Default
     False
     :param line_shape: The line shape for all lines created. One of 'linear',

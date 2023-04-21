@@ -64,6 +64,7 @@ SEQUENCE_ARGS_MAP = {
     "color_discrete_sequence_marker": "marker_color",
     "increasing_color_sequence": "increasing_line_color",
     "decreasing_color_sequence": "decreasing_line_color",
+    "size_sequence": "marker_size"
 }
 
 # these args should always be converted to a list and only passed to custom

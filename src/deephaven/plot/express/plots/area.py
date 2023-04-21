@@ -15,6 +15,7 @@ def area(
         color_discrete_sequence: list[str] = None,
         pattern_shape_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
+        size_sequence: list[int] = None,
         xaxis_sequence: list[str] = None,
         yaxis_sequence: list[str] = None,
         yaxis_title_sequence: list[str] = None,
@@ -40,12 +41,15 @@ def area(
     :param color_discrete_sequence: A list of colors to sequentially apply to
     the series. The colors loop, so if there are more series than colors,
     colors will be reused.
-    :param symbol_sequence: A list of symbols to sequentially apply to the
-    series. The symbols loop, so if there are more series than symbols, symbols
-    will be reused.
     :param pattern_shape_sequence: A list of patterns to sequentially apply
     to the series. The patterns loop, so if there are more series than
     patterns, patterns will be reused.
+    :param symbol_sequence: A list of symbols to sequentially apply to the
+    markers in the series. The symbols loop, so if there are more series than
+    symbols, symbols will be reused.
+    :param size_sequence: A list of sizes to sequentially apply to the
+    markers in the series. The sizes loop, so if there are more series than
+    symbols, sizes will be reused.
     :param xaxis_sequence: A list of x axes to assign series to. Odd numbers
     starting with 1 are created on the bottom x axis and even numbers starting
     with 2 are created on the top x axis. Axes are created up
