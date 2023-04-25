@@ -46,11 +46,11 @@ def draw_finance(
 
 def draw_ohlc(
         data_frame: DataFrame,
-        x_finance: str,
-        open: str,
-        high: str,
-        low: str,
-        close: str
+        x_finance: str | list[str],
+        open: str | list[str],
+        high: str | list[str],
+        low: str | list[str],
+        close: str | list[str],
 ) -> Figure:
     """
     Create a plotly OHLC chart.
