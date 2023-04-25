@@ -82,7 +82,7 @@ CUSTOM_LIST_ARGS.update(AXIS_SEQUENCE_ARGS)
 # Note that table is not here because it is pulled off and converted to a
 # pandas data frame separately
 CUSTOM_ARGS = {
-    "callback",
+    "unsafe_update",
     "bargap",
     #"rangemode"
 }
@@ -578,7 +578,7 @@ def generate_figure(
         call_args: dict[str, any],
         start_index: int = 0,
         trace_generator: Generator[dict] = None,
-        allow_callback: bool = True
+        allow_unsafe_update: bool = True
 ) -> DeephavenFigure:
     """
     Generate a figure using a plotly express function as well as any args that
@@ -592,7 +592,7 @@ def generate_figure(
     needs to start at the end of the existing traces.
     :param trace_generator: Optional, if provided then only use this trace
     generator and return (as layout should already be created)
-    :param allow_callback: Optional, set to False to disable the callback if
+    :param allow_unsafe_update: Optional, set to False to disable the update if
     more processing is needed before this figure is "done"
     :return: a Deephaven figure
     """
@@ -616,8 +616,8 @@ def generate_figure(
 
     # allow either returning a new fig or not from callback
     new_fig = None
-    if allow_callback:
-        new_fig = custom_call_args['callback'](px_fig)
+    if allow_unsafe_update:
+        new_fig = custom_call_args['unsafe_update'](px_fig)
     new_fig = new_fig if new_fig else px_fig
 
     data_mapping = create_data_mapping(

@@ -389,7 +389,7 @@ def layer(
 
     new_fig = Figure(data=new_data, layout=new_layout)
 
-    new_fig = callback(new_fig)
+    new_fig = unsafe_update(new_fig)
 
     # todo: this doesn't maintain call args, but that isn't currently needed
     return DeephavenFigure(
@@ -607,7 +607,7 @@ def preprocess_and_layer(
     )
 
     # call the callback now as it was not allowed during figure generation
-    new_fig = args['callback'](layered)
+    new_fig = args['unsafe_update'](layered)
     new_fig = new_fig if new_fig else layered
 
     return new_fig
