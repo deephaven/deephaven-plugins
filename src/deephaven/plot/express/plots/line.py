@@ -24,17 +24,17 @@ def line(
         size_sequence: list[int] = None,
         xaxis_sequence: list[str] = None,
         yaxis_sequence: list[str] = None,
-        yaxis_title_sequence: list[str] = None,
-        xaxis_title_sequence: list[str] = None,
         markers: bool = False,
         log_x: bool | list[bool] = False,
         log_y: bool | list[bool] = False,
         range_x: list[int] | list[list[int]] = None,
         range_y: list[int] | list[list[int]] = None,
+        yaxis_titles: list[str] = None,
+        xaxis_titles: list[str] = None,
         line_shape: str = 'linear',
         title: str = None,
         template: str = None,
-        callback: Callable = default_callback
+        unsafe_update: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a line chart
@@ -81,10 +81,6 @@ def line(
     with 2 are created on the top y axis. Axes are created up
     to the maximum number specified. The axes loop, so if there are more series
     than axes, axes will be reused.
-    :param yaxis_title_sequence: A list of titles to sequentially apply to the
-    y axes. The titles do not loop.
-    :param xaxis_title_sequence: A list of titles to sequentially apply to the
-    x axes. The titles do not loop.
     :param markers: True to draw markers on the line, False to not. Default
     False
     :param log_x: Default False. A boolean or list of booleans that specify if
@@ -98,16 +94,23 @@ def line(
     The ranges loop, so if there are more axes than ranges, ranges will
     be reused.
     :param range_y: A list of two numbers or a list of lists of two numbers
-     that specify the range of the x axes. None can be specified for no range
+    that specify the range of the x axes. None can be specified for no range
     The ranges loop, so if there are more axes than ranges, ranges will
     be reused.
+    :param yaxis_titles: A list of titles to sequentially apply to the
+    y axes. The titles do not loop.
+    :param xaxis_titles: A list of titles to sequentially apply to the
+    x axes. The titles do not loop.
     :param line_shape: The line shape for all lines created. One of 'linear',
     'spline', 'vhv', 'hvh', 'vh', 'hv'. Default 'linear'
     :param title: The title of the chart
     :param template: The template for the chart.
-    :param callback: A callback function that takes a figure as an argument and
-    returns a figure. Used to add any custom changes to the underlying plotly
-    figure. Note that the existing data traces should not be removed.
+    :param unsafe_update: An update function that takes a figure as an
+    argument and optionally returns a figure. If a figure is not returned,
+    the plotly figure passed will be assumed to be the return value. Used to
+    add any custom changes to the underlying plotly figure. Note that the
+    existing data traces should not be removed. This may lead to unexpected
+    behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the line chart
     """
     args = locals()
@@ -142,7 +145,7 @@ def line_3d(
         range_z: list[int] = None,
         title: str = None,
         template: str = None,
-        callback: Callable = default_callback
+        unsafe_update: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a 3D line chart
@@ -195,9 +198,12 @@ def line_3d(
     :param range_z: A list of two numbers that specify the range of the z axis.
     :param title: The title of the chart.
     :param template: The template for the chart.
-    :param callback: A callback function that takes a figure as an argument and
-    returns a figure. Used to add any custom changes to the underlying plotly
-    figure. Note that the existing data traces should not be removed.
+    :param unsafe_update: An update function that takes a figure as an
+    argument and optionally returns a figure. If a figure is not returned,
+    the plotly figure passed will be assumed to be the return value. Used to
+    add any custom changes to the underlying plotly figure. Note that the
+    existing data traces should not be removed. This may lead to unexpected
+    behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the 3D line chart
     """
     args = locals()
@@ -228,7 +234,7 @@ def line_polar(
         log_r: bool = False,
         title: str = None,
         template: str = None,
-        callback: Callable = default_callback,
+        unsafe_update: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a polar scatter chart
@@ -260,9 +266,12 @@ def line_polar(
     axis or not.
     :param title: The title of the chart.
     :param template: The template for the chart.
-    :param callback: A callback function that takes a figure as an argument and
-    returns a figure. Used to add any custom changes to the underlying plotly
-    figure. Note that the existing data traces should not be removed.
+    :param unsafe_update: An update function that takes a figure as an
+    argument and optionally returns a figure. If a figure is not returned,
+    the plotly figure passed will be assumed to be the return value. Used to
+    add any custom changes to the underlying plotly figure. Note that the
+    existing data traces should not be removed. This may lead to unexpected
+    behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the polar scatter chart
     """
     args = locals()
@@ -286,7 +295,7 @@ def line_ternary(
         line_shape: str = 'linear',
         title: str = None,
         template: str = None,
-        callback: Callable = default_callback
+        unsafe_update: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a ternary line chart
@@ -311,9 +320,12 @@ def line_ternary(
     'spline'. Default 'linear'
     :param title: The title of the chart.
     :param template: The template for the chart.
-    :param callback: A callback function that takes a figure as an argument and
-    returns a figure. Used to add any custom changes to the underlying plotly
-    figure. Note that the existing data traces should not be removed.
+    :param unsafe_update: An update function that takes a figure as an
+    argument and optionally returns a figure. If a figure is not returned,
+    the plotly figure passed will be assumed to be the return value. Used to
+    add any custom changes to the underlying plotly figure. Note that the
+    existing data traces should not be removed. This may lead to unexpected
+    behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the ternary line chart
     """
     args = locals()

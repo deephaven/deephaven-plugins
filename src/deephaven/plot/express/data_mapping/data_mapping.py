@@ -17,7 +17,7 @@ CUSTOM_DATA_ARGS = {
     "error_z": "error_z/array",
     "error_z_minus": "error_z/arrayminus",
     "x_diff": "x",
-    "size": "marker/size"
+    "size": "marker/size",
 }
 
 # override these data columns with different names

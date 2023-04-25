@@ -239,6 +239,7 @@ def resize(
     type_ = None
 
     for k, v in fig_layout.items():
+        #todo: coloraxis; thickness, len, x, y
         if k.startswith("xaxis"):
             type_ = "xaxis"
 
@@ -323,7 +324,7 @@ def layer(
         which_layout: int = None,
         domains: list[dict[str, list[float]]] = None,
         # recreate_axes=True, TODO needed for faceting, marginals: control when axes are recreated
-        callback: Callable = default_callback
+        unsafe_update: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Layers the provided figures. Be default, the layouts are sequentially
@@ -337,9 +338,12 @@ def layer(
     and values that are lists of two floats form 0 to 1. The chart that
     corresponds with a domain will be resized to that domain. Either x or y can
     be excluded if only resizing on one axis.
-    :param callback: A callback function that takes a figure as an argument and
-    returns a figure. Used to add any custom changes to the underlying plotly
-    figure. Note that the existing data traces should not be removed.
+    :param unsafe_update: An update function that takes a figure as an
+    argument and optionally returns a figure. If a figure is not returned,
+    the plotly figure passed will be assumed to be the return value. Used to
+    add any custom changes to the underlying plotly figure. Note that the
+    existing data traces should not be removed. This may lead to unexpected
+    behavior if traces are modified in a way that break data mappings.
     :return: The layered chart
     """
     if len(args) == 0:
@@ -595,6 +599,7 @@ def preprocess_and_layer(
 
     layered = layer(*figs, which_layout=0)
 
+    # todo: pull this out?
     update_legend_and_titles(
         layered, var, cols, is_list,
         list_var_axis_name, list_val_axis_name,

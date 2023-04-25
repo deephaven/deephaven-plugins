@@ -19,7 +19,7 @@ def pie(
         opacity: float = None,
         hole: float = None,
         aggregate: bool = True,
-        callback: Callable = default_callback
+        unsafe_update: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a pie chart
@@ -32,17 +32,15 @@ def pie(
     colors will be reused.
     :param title: The title of the chart
     :param template: The template for the chart.
-    :param callback: A callback function that takes a figure as an argument and
-    returns a figure. Used to add any custom changes to the underlying plotly
-    figure. Note that the existing data traces should not be removed.
-    :param opacity: Opacity to apply to all points. 0 is completely transparent
-    and 1 is completely opaque.
     :param hole: Fraction of the radius to cut out of the center of the pie.
     :param aggregate: Default True, aggregate the table names by total values. Can
     be set to False if the table is already aggregated by name.
-    :param callback: A callback function that takes a figure as an argument and
-    returns a figure. Used to add any custom changes to the underlying plotly
-    figure. Note that the existing data traces should not be removed.
+    :param unsafe_update: An update function that takes a figure as an
+    argument and optionally returns a figure. If a figure is not returned,
+    the plotly figure passed will be assumed to be the return value. Used to
+    add any custom changes to the underlying plotly figure. Note that the
+    existing data traces should not be removed. This may lead to unexpected
+    behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the pie chart
     """
     args = locals()

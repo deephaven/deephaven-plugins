@@ -23,8 +23,6 @@ def scatter(
         size_sequence: list[int] = None,
         xaxis_sequence: list[int] = None,
         yaxis_sequence: list[int] = None,
-        yaxis_title_sequence: list[str] = None,
-        xaxis_title_sequence: list[str] = None,
         opacity: float = None,
         # marginal_x: str = None, #not supported at the moment, will probably be slow
         # marginal_y: str = None, #with lots of data
@@ -32,9 +30,11 @@ def scatter(
         log_y: bool | list[bool] = False,
         range_x: list[int] | list[list[int]] = None,
         range_y: list[int] | list[list[int]] = None,
+        yaxis_titles: list[str] = None,
+        xaxis_titles: list[str] = None,
         title: str = None,
         template: str = None,
-        callback: Callable = default_callback
+        unsafe_update: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a scatter chart
@@ -78,10 +78,6 @@ def scatter(
     with 2 are created on the top y axis. Axes are created up
     to the maximum number specified. The axes loop, so if there are more series
     than axes, axes will be reused.
-    :param yaxis_title_sequence: A list of titles to sequentially apply to the
-    y axes. The titles do not loop.
-    :param xaxis_title_sequence: A list of titles to sequentially apply to the
-    x axes. The titles do not loop.
     :param opacity: Opacity to apply to all points. 0 is completely transparent
     and 1 is completely opaque.
     :param log_x: Default False. A boolean or list of booleans that specify if
@@ -95,14 +91,21 @@ def scatter(
     The ranges loop, so if there are more axes than ranges, ranges will
     be reused.
     :param range_y: A list of two numbers or a list of lists of two numbers
-     that specify the range of the x axes. None can be specified for no range
+    that specify the range of the x axes. None can be specified for no range
     The ranges loop, so if there are more axes than ranges, ranges will
     be reused.
+    :param yaxis_titles: A list of titles to sequentially apply to the
+    y axes. The titles do not loop.
+    :param xaxis_titles: A list of titles to sequentially apply to the
+    x axes. The titles do not loop.
     :param title: The title of the chart
     :param template: The template for the chart.
-    :param callback: A callback function that takes a figure as an argument and
-    returns a figure. Used to add any custom changes to the underlying plotly
-    figure. Note that the existing data traces should not be removed.
+    :param unsafe_update: An update function that takes a figure as an
+    argument and optionally returns a figure. If a figure is not returned,
+    the plotly figure passed will be assumed to be the return value. Used to
+    add any custom changes to the underlying plotly figure. Note that the
+    existing data traces should not be removed. This may lead to unexpected
+    behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the scatter chart
     """
     render_mode = "webgl"
@@ -140,7 +143,7 @@ def scatter_3d(
         range_z: list[int] = None,
         title: str = None,
         template: str = None,
-        callback: Callable = default_callback
+        unsafe_update: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a 3D scatter chart
@@ -193,9 +196,12 @@ def scatter_3d(
     :param range_z: A list of two numbers that specify the range of the z axis.
     :param title: The title of the chart.
     :param template: The template for the chart.
-    :param callback: A callback function that takes a figure as an argument and
-    returns a figure. Used to add any custom changes to the underlying plotly
-    figure. Note that the existing data traces should not be removed.
+    :param unsafe_update: An update function that takes a figure as an
+    argument and optionally returns a figure. If a figure is not returned,
+    the plotly figure passed will be assumed to be the return value. Used to
+    add any custom changes to the underlying plotly figure. Note that the
+    existing data traces should not be removed. This may lead to unexpected
+    behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the 3D scatter chart
     """
     args = locals()
@@ -224,7 +230,7 @@ def scatter_polar(
         log_r: bool = False,
         title: str = None,
         template: str = None,
-        callback: Callable = default_callback
+        unsafe_update: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a polar scatter chart
@@ -252,9 +258,12 @@ def scatter_polar(
     axis or not.
     :param title: The title of the chart.
     :param template: The template for the chart.
-    :param callback: A callback function that takes a figure as an argument and
-    returns a figure. Used to add any custom changes to the underlying plotly
-    figure. Note that the existing data traces should not be removed.
+    :param unsafe_update: An update function that takes a figure as an
+    argument and optionally returns a figure. If a figure is not returned,
+    the plotly figure passed will be assumed to be the return value. Used to
+    add any custom changes to the underlying plotly figure. Note that the
+    existing data traces should not be removed. This may lead to unexpected
+    behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the polar scatter chart
     """
     render_mode = "webgl"
@@ -278,7 +287,7 @@ def scatter_ternary(
         opacity: float = None,
         title: str = None,
         template: str = None,
-        callback: Callable = default_callback
+        unsafe_update: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a ternary scatter chart
@@ -301,9 +310,12 @@ def scatter_ternary(
     and 1 is completely opaque.
     :param title: The title of the chart.
     :param template: The template for the chart.
-    :param callback: A callback function that takes a figure as an argument and
-    returns a figure. Used to add any custom changes to the underlying plotly
-    figure. Note that the existing data traces should not be removed.
+    :param unsafe_update: An update function that takes a figure as an
+    argument and optionally returns a figure. If a figure is not returned,
+    the plotly figure passed will be assumed to be the return value. Used to
+    add any custom changes to the underlying plotly figure. Note that the
+    existing data traces should not be removed. This may lead to unexpected
+    behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the ternary scatter chart
     """
     args = locals()

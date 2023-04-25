@@ -20,7 +20,7 @@ def treemap(
         template: str = None,
         branchvalues: str = None,
         maxdepth: int = None,
-        callback: Callable = default_callback
+        unsafe_update: Callable = default_callback
 ):
     """
     Returns a treemap chart
@@ -37,10 +37,13 @@ def treemap(
     all descendants and 'remainder' to the value as the remainder after
     subtracting leaf values.
     :param maxdepth: Sets the total number of visible levels. Set to -1 to
-     render all levels.
-    :param callback: A callback function that takes a figure as an argument and
-    returns a figure. Used to add any custom changes to the underlying plotly
-    figure. Note that the existing data traces should not be removed.
+    render all levels.
+    :param unsafe_update: An update function that takes a figure as an
+    argument and optionally returns a figure. If a figure is not returned,
+    the plotly figure passed will be assumed to be the return value. Used to
+    add any custom changes to the underlying plotly figure. Note that the
+    existing data traces should not be removed. This may lead to unexpected
+    behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the treemap chart
     """
     args = locals()
@@ -60,7 +63,7 @@ def sunburst(
         template: str = None,
         branchvalues: str = None,
         maxdepth: int = None,
-        callback: Callable = default_callback
+        unsafe_update: Callable = default_callback
 ):
     """
     Returns a sunburst chart
@@ -77,10 +80,13 @@ def sunburst(
     all descendants and 'remainder' to the value as the remainder after
     subtracting leaf values.
     :param maxdepth: Sets the total number of visible levels. Set to -1 to
-     render all levels.
-    :param callback: A callback function that takes a figure as an argument and
-    returns a figure. Used to add any custom changes to the underlying plotly
-    figure. Note that the existing data traces should not be removed.
+    render all levels.
+    :param unsafe_update: An update function that takes a figure as an
+    argument and optionally returns a figure. If a figure is not returned,
+    the plotly figure passed will be assumed to be the return value. Used to
+    add any custom changes to the underlying plotly figure. Note that the
+    existing data traces should not be removed. This may lead to unexpected
+    behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the sunburst chart
     """
     args = locals()
@@ -100,7 +106,7 @@ def icicle(
         template: str = None,
         branchvalues: str = None,
         maxdepth: int = None,
-        callback: Callable = default_callback
+        unsafe_update: Callable = default_callback
 ):
     """
     Returns a icicle chart
@@ -117,10 +123,13 @@ def icicle(
     all descendants and 'remainder' to the value as the remainder after
     subtracting leaf values.
     :param maxdepth: Sets the total number of visible levels. Set to -1 to
-     render all levels.
-    :param callback: A callback function that takes a figure as an argument and
-    returns a figure. Used to add any custom changes to the underlying plotly
-    figure. Note that the existing data traces should not be removed.
+    render all levels.
+    :param unsafe_update: An update function that takes a figure as an
+    argument and optionally returns a figure. If a figure is not returned,
+    the plotly figure passed will be assumed to be the return value. Used to
+    add any custom changes to the underlying plotly figure. Note that the
+    existing data traces should not be removed. This may lead to unexpected
+    behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the icicle chart
     """
     args = locals()
@@ -143,7 +152,7 @@ def funnel(
         range_y: list[int] = None,
         title: str = None,
         template: str = None,
-        callback: Callable = default_callback
+        unsafe_update: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a funnel chart
@@ -165,9 +174,12 @@ def funnel(
     :param range_y: A list of two numbers that specify the range of the y axis.
     :param title: The title of the chart
     :param template: The template for the chart.
-    :param callback: A callback function that takes a figure as an argument and
-    returns a figure. Used to add any custom changes to the underlying plotly
-    figure. Note that the existing data traces should not be removed.
+    :param unsafe_update: An update function that takes a figure as an
+    argument and optionally returns a figure. If a figure is not returned,
+    the plotly figure passed will be assumed to be the return value. Used to
+    add any custom changes to the underlying plotly figure. Note that the
+    existing data traces should not be removed. This may lead to unexpected
+    behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the funnel chart
     """
     args = locals()
@@ -186,7 +198,7 @@ def funnel_area(
         template: str = None,
         opacity: float = None,
         aggregate: bool = True,
-        callback: Callable = default_callback
+        unsafe_update: Callable = default_callback
 ):
     """
     Returns a funnel area chart
@@ -203,9 +215,12 @@ def funnel_area(
     and 1 is completely opaque.
     :param aggregate: Default True, aggregate the table names by total values. Can
     be set to False if the table is already aggregated by name.
-    :param callback: A callback function that takes a figure as an argument and
-    returns a figure. Used to add any custom changes to the underlying plotly
-    figure. Note that the existing data traces should not be removed.
+    :param unsafe_update: An update function that takes a figure as an
+    argument and optionally returns a figure. If a figure is not returned,
+    the plotly figure passed will be assumed to be the return value. Used to
+    add any custom changes to the underlying plotly figure. Note that the
+    existing data traces should not be removed. This may lead to unexpected
+    behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the funnel area chart
     """
 

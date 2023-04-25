@@ -29,7 +29,7 @@ def bar(
         text_auto: bool | str = False,
         title: str = None,
         template: str = None,
-        callback: Callable = default_callback
+        unsafe_update: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a bar chart
@@ -86,9 +86,12 @@ def bar(
     If a string, specifies a plotly texttemplate.
     :param title: The title of the chart
     :param template: The template for the chart.
-    :param callback: A callback function that takes a figure as an argument and
-    returns a figure. Used to add any custom changes to the underlying plotly
-    figure. Note that the existing data traces should not be removed.
+    :param unsafe_update: An update function that takes a figure as an
+    argument and optionally returns a figure. If a figure is not returned,
+    the plotly figure passed will be assumed to be the return value. Used to
+    add any custom changes to the underlying plotly figure. Note that the
+    existing data traces should not be removed. This may lead to unexpected
+    behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the bar chart
     """
     args = locals()
@@ -139,7 +142,7 @@ def timeline(
         range_y: list[int] = None,
         title: str = None,
         template: str = None,
-        callback: Callable = default_callback
+        unsafe_update: Callable = default_callback
 ):
     """
     Returns a timeline (otherwise known as a gantt chart)
@@ -160,9 +163,12 @@ def timeline(
     :param range_y: A list of two numbers that specify the range of the y axis.
     :param title: The title of the chart
     :param template: The template for the chart.
-    :param callback: A callback function that takes a figure as an argument and
-    returns a figure. Used to add any custom changes to the underlying plotly
-    figure. Note that the existing data traces should not be removed.
+    :param unsafe_update: An update function that takes a figure as an
+    argument and optionally returns a figure. If a figure is not returned,
+    the plotly figure passed will be assumed to be the return value. Used to
+    add any custom changes to the underlying plotly figure. Note that the
+    existing data traces should not be removed. This may lead to unexpected
+    behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the timeline chart
     """
     # TODO: add resource column?
@@ -190,7 +196,7 @@ def frequency_bar(
         text_auto: bool | str = False,
         title: str = None,
         template: str = None,
-        callback: Callable = default_callback
+        unsafe_update: Callable = default_callback
 ):
     """
     Returns a bar chart that contains the counts of the specified columns
@@ -223,9 +229,12 @@ def frequency_bar(
     If a string, specifies a plotly texttemplate.
     :param title: The title of the chart
     :param template: The template for the chart.
-    :param callback: A callback function that takes a figure as an argument and
-    returns a figure. Used to add any custom changes to the underlying plotly
-    figure. Note that the existing data traces should not be removed.
+    :param unsafe_update: An update function that takes a figure as an
+    argument and optionally returns a figure. If a figure is not returned,
+    the plotly figure passed will be assumed to be the return value. Used to
+    add any custom changes to the underlying plotly figure. Note that the
+    existing data traces should not be removed. This may lead to unexpected
+    behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the bar chart
     """
 

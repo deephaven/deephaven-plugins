@@ -72,7 +72,7 @@ SEQUENCE_ARGS_MAP = {
 CUSTOM_LIST_ARGS = {
     "log_x", "range_x",
     "log_y", "range_y",
-    "xaxis_title_sequence", "yaxis_title_sequence",
+    "xaxis_titles", "yaxis_titles",
     "x_diff"
 }
 CUSTOM_LIST_ARGS.update(AXIS_SEQUENCE_ARGS)

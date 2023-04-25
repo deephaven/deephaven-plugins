@@ -6,7 +6,7 @@ from plotly import express as px
 from deephaven.table import Table
 
 from ._private_utils import default_callback, validate_common_args, preprocess_and_layer
-from ..deephaven_figure import generate_figure, DeephavenFigure
+from ..deephaven_figure import DeephavenFigure
 from ..preprocess import preprocess_ecdf, create_hist_tables, preprocess_violin
 
 
@@ -24,7 +24,7 @@ def violin(
         box: bool = False,
         title: str = None,
         template: str = None,
-        callback: Callable = default_callback
+        unsafe_update: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a violin chart
@@ -53,9 +53,12 @@ def violin(
     :param box: Default False. Draw boxes inside the violin if True.
     :param title: The title of the chart
     :param template: The template for the chart.
-    :param callback: A callback function that takes a figure as an argument and
-    returns a figure. Used to add any custom changes to the underlying plotly
-    figure. Note that the existing data traces should not be removed.
+    :param unsafe_update: An update function that takes a figure as an
+    argument and optionally returns a figure. If a figure is not returned,
+    the plotly figure passed will be assumed to be the return value. Used to
+    add any custom changes to the underlying plotly figure. Note that the
+    existing data traces should not be removed. This may lead to unexpected
+    behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the violin chart
     """
     if x and y:
@@ -88,7 +91,7 @@ def box(
         notched: bool = False,
         title: str = None,
         template: str = None,
-        callback: Callable = default_callback
+        unsafe_update: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a box chart
@@ -117,9 +120,12 @@ def box(
     :param notched: Default False, if True boxes are drawn with notches
     :param title: The title of the chart
     :param template: The template for the chart.
-    :param callback: A callback function that takes a figure as an argument and
-    returns a figure. Used to add any custom changes to the underlying plotly
-    figure. Note that the existing data traces should not be removed.
+    :param unsafe_update: An update function that takes a figure as an
+    argument and optionally returns a figure. If a figure is not returned,
+    the plotly figure passed will be assumed to be the return value. Used to
+    add any custom changes to the underlying plotly figure. Note that the
+    existing data traces should not be removed. This may lead to unexpected
+    behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the box chart
     """
     if x and y:
@@ -150,7 +156,7 @@ def strip(
         range_y: list[int] = None,
         title: str = None,
         template: str = None,
-        callback: Callable = default_callback
+        unsafe_update: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a strip chart
@@ -175,9 +181,12 @@ def strip(
     :param range_y: A list of two numbers that specify the range of the y axis.
     :param title: The title of the chart
     :param template: The template for the chart.
-    :param callback: A callback function that takes a figure as an argument and
-    returns a figure. Used to add any custom changes to the underlying plotly
-    figure. Note that the existing data traces should not be removed.
+    :param unsafe_update: An update function that takes a figure as an
+    argument and optionally returns a figure. If a figure is not returned,
+    the plotly figure passed will be assumed to be the return value. Used to
+    add any custom changes to the underlying plotly figure. Note that the
+    existing data traces should not be removed. This may lead to unexpected
+    behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the strip chart
     """
     if x and y:
@@ -257,7 +266,7 @@ def histogram(
         text_auto: bool | str = False,
         title: str = None,
         template: str = None,
-        callback: Callable = default_callback
+        unsafe_update: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a histogram
@@ -296,9 +305,12 @@ def histogram(
     If a string, specifies a plotly texttemplate.
     :param title: The title of the chart
     :param template: The template for the chart.
-    :param callback: A callback function that takes a figure as an argument and
-    returns a figure. Used to add any custom changes to the underlying plotly
-    figure. Note that the existing data traces should not be removed.
+    :param unsafe_update: An update function that takes a figure as an
+    argument and optionally returns a figure. If a figure is not returned,
+    the plotly figure passed will be assumed to be the return value. Used to
+    add any custom changes to the underlying plotly figure. Note that the
+    existing data traces should not be removed. This may lead to unexpected
+    behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the histogram
     """
     bargap = 0
