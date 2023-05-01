@@ -212,10 +212,28 @@ def resize_axis(
         return new_axis, old_axis, new_axis
 
 
-def resize(
+def get_axis_update(
+        spec: dict[str, any],
+        type_: str
+) -> dict[str, any] | None:
+    """
+    Retrieve an axis update from the spec
+
+    :param spec: The full spec object
+    :param type_: The type of axis to retrieve the update of
+    :return: A dictionary of updates to make to the x or y-axis
+    """
+    if 'xaxis_update' in spec and type_ == "xaxis":
+        return spec["xaxis_update"]
+    if 'yaxis_update' in spec and type_ == "yaxis":
+        return spec["yaxis_update"]
+    return None
+
+
+def resize_fig(
         fig_data: dict,
         fig_layout: dict,
-        new_domain: dict[str, list[float]],
+        spec: dict[str, str | bool | list[float]],
         new_axes_start: dict[str, int],
 ) -> tuple[dict, dict]:
     """
@@ -224,13 +242,17 @@ def resize(
 
     :param fig_data: The current figure data
     :param fig_layout: The current figure layout
-    :param new_domain: The new domain the map the figure to. Contains keys of x
-    and y and values of domains, such as [0,0.5]
+    :param spec: A dictionary that contains keys of "x" and "y"
+    that have values that are lists of two floats from 0 to 1. The chart that
+    corresponds with a domain will be resized to that domain. Either x or y can
+    be excluded if only resizing on one axis. Can also specify xaxis_update or
+    yaxis_update with a dictionary value to update all axes with that dict.
     :param new_axes_start: A dictionary containing the start of new indices to
     ensure there is no reindexing collisions
     :return: A tuple of the new figure data, the new figure layout
     """
-    if not new_domain:
+    if not spec:
+        # if there is no spec, nothing needs to be done
         return fig_data, fig_layout
 
     axes_remapping = {}
@@ -238,50 +260,64 @@ def resize(
     old_axes = []
     type_ = None
 
-    for k, v in fig_layout.items():
-        #todo: coloraxis; thickness, len, x, y
-        if k.startswith("xaxis"):
+    for name, obj in fig_layout.items():
+        # todo: coloraxis; thickness, len, x, y
+        if name.startswith("xaxis"):
             type_ = "xaxis"
 
-        elif k.startswith("yaxis"):
+        elif name.startswith("yaxis"):
             type_ = "yaxis"
 
-        elif k.startswith("scene"):
+        elif name.startswith("scene"):
             type_ = "scene"
 
-        elif k.startswith("polar"):
+        elif name.startswith("polar"):
             type_ = "polar"
 
-        elif k.startswith("ternary"):
+        elif name.startswith("ternary"):
             type_ = "ternary"
 
         if type_:
             # axes start at 1, and the 1 is dropped
             num = "" if new_axes_start[type_] == 1 else new_axes_start[type_]
             new_axes_start[type_] += 1
-            old_axes.append(k)
+            old_axes.append(name)
 
+            update = get_axis_update(spec, type_)
+
+            # this assumes that there is only one axis in plots with matched
+            # axes
+            # TODO: this could be refactored by allowing a dict for the matched
+            #   axis args that bind {axis to bind to matched: matched axis}
             new_axis, old_trace_axis, new_trace_axis = resize_axis(
-                type_, k, v, num, new_domain)
+                type_, name, obj, num, spec)
 
-            new_axes[new_axis] = v
+            if update:
+                obj.update(update)
+
+            new_axes[new_axis] = obj
             axes_remapping[old_trace_axis] = new_trace_axis
 
         type_ = None
 
-    # need to remove old axes in case there is one with a very high number
-    for axis in old_axes:
-        fig_layout.pop(axis)
+    if spec.get("wipe_layout", False):
+        # completely wipe out the layout (and axes will be added back)
+        fig_layout = {}
+    else:
+        # need to remove old axes in case there is one with a very high number
+        for axis in old_axes:
+            fig_layout.pop(axis)
 
     fig_layout.update(new_axes)
 
     for trace in fig_data:
         reassign_axes(trace, axes_remapping)
         if "domain" in trace:
-            resize_domain(trace, new_domain)
+            resize_domain(trace, spec)
 
     for axis in fig_layout.values():
-        reassign_attributes(axis, axes_remapping)
+        if isinstance(axis, dict):
+            reassign_attributes(axis, axes_remapping)
 
     return fig_data, fig_layout
 
@@ -289,9 +325,9 @@ def resize(
 def fig_data_and_layout(
         fig: Figure,
         i: int,
-        domains: list[dict[str, list[float]]],
+        specs: list[dict[str, str | bool | list[float]]],
         which_layout: int,
-        new_axes_start: dict[str, int]
+        new_axes_start: dict[str, int],
 ) -> tuple[tuple | dict, dict]:
     """
     Get new data and layout for the specified figure
@@ -300,17 +336,18 @@ def fig_data_and_layout(
     :param i: The index of the figure, used for which_layout
     :param which_layout: None to layer layouts, or an index of which arg to
     take the layout from
-    :param domains: A list of dictionaries that contain keys of "x" and "y"
-    and values that are lists of two floats form 0 to 1. The chart that
-    corresponds with a domain will be resized to that domain. X and y can be
-    excluded if only resizing on one axis.
+    :param specs: A list of dictionaries that contain keys of "x" and "y"
+    that have values that are lists of two floats from 0 to 1. The chart that
+    corresponds with a domain will be resized to that domain. Either x or y can
+    be excluded if only resizing on one axis. Can also specify xaxis_update or
+    yaxis_update with a dictionary value to update all axes with that dict.
     :param new_axes_start: A dict that keeps track of starting points when
     recreating axes
     :return: A tuple of figure data, figure layout
     """
-    if domains:
-        return resize(fig.to_dict()['data'], fig.to_dict()['layout'],
-                      domains[i], new_axes_start)
+    if specs:
+        return resize_fig(fig.to_dict()['data'], fig.to_dict()['layout'],
+                          specs[i], new_axes_start)
 
     fig_layout = {}
     if not which_layout or which_layout == i:
@@ -322,8 +359,7 @@ def fig_data_and_layout(
 def layer(
         *args: DeephavenFigure | Figure,
         which_layout: int = None,
-        domains: list[dict[str, list[float]]] = None,
-        # recreate_axes=True, TODO needed for faceting, marginals: control when axes are recreated
+        specs: list[dict[str, any]] = None,
         unsafe_update: Callable = default_callback
 ) -> DeephavenFigure:
     """
@@ -334,10 +370,11 @@ def layer(
     :param args: The charts to layer
     :param which_layout: None to layer layouts, or an index of which arg to
     take the layout from. Currently only valid if domains are not specified.
-    :param domains: A list of dictionaries that contain keys of "x" and "y"
-    and values that are lists of two floats form 0 to 1. The chart that
+    :param specs: A list of dictionaries that contain keys of "x" and "y"
+    that have values that are lists of two floats from 0 to 1. The chart that
     corresponds with a domain will be resized to that domain. Either x or y can
-    be excluded if only resizing on one axis.
+    be excluded if only resizing on one axis. Can also specify xaxis_update or
+    yaxis_update with a dictionary value to update all axes with that dict.
     :param unsafe_update: An update function that takes a figure as an
     argument and optionally returns a figure. If a figure is not returned,
     the plotly figure passed will be assumed to be the return value. Used to
@@ -367,7 +404,7 @@ def layer(
     for i, arg in enumerate(args):
         if isinstance(arg, Figure):
             fig_data, fig_layout = fig_data_and_layout(
-                arg, i, domains, which_layout, new_axes_start
+                arg, i, specs, which_layout, new_axes_start
             )
 
         elif isinstance(arg, DeephavenFigure):
@@ -375,7 +412,7 @@ def layer(
             if arg.has_subplots:
                 raise NotImplementedError("Cannot currently add figure with subplots as a subplot")
             fig_data, fig_layout = fig_data_and_layout(
-                arg.fig, i, domains, which_layout, new_axes_start
+                arg.fig, i, specs, which_layout, new_axes_start
             )
             new_data_mappings += arg.copy_mappings(offset=offset)
             new_has_template = arg.has_template or new_has_template
@@ -397,7 +434,7 @@ def layer(
         data_mappings=new_data_mappings,
         has_template=new_has_template,
         has_color=new_has_color,
-        has_subplots=True
+        has_subplots=True if specs else False
     )
 
 
@@ -442,16 +479,19 @@ def trace_legend_generator(
 
 
 def preprocessed_fig(
-        preprocesser: Callable,
         draw: Callable,
         keys: list[str],
-        table: Table,
         args: dict[str, any],
         trace_generator: Generator[dict[str, any]],
-        cols: str | list[str],
+        col: str | list[str],
+        preprocesser: Callable = None,
+        table: Table = None,
+        preprocessed_args: tuple[Table, str, list[str]] = None
 ) -> DeephavenFigure:
     """
     Preprocess and return a figure
+    Either both preprocesser and table or just preprocessed_table should be
+    specified
 
     :param preprocesser: A function that returns a tuple that contains
     (new table, first data columnn, second data column)
@@ -462,10 +502,20 @@ def preprocessed_fig(
     :param args: The args to passed to generate_figure
     :param trace_generator: The trace generator to use to pass to
     generate_figure
-    :param cols: The columns that are being plotted
+    :param col: The columns that are being plotted
+    :param preprocessed_args: If the data was already preprocessed, use that
+    tuple of data instead
     :return: The resulting DeephavenFigure
     """
-    output = preprocesser(table, cols)
+    # if preprocessed args are specified, the table is created,
+    # but the list of columns (the last of the preprocessed args)
+    # needs to be overriden with the current column
+    if preprocessed_args:
+        output = preprocessed_args
+        output = [output[0], output[1], col]
+    else:
+        output = preprocesser(table, col)
+
     for k, v in zip(keys, output):
         args[k] = v
 
@@ -473,7 +523,7 @@ def preprocessed_fig(
         draw=draw,
         call_args=args,
         trace_generator=trace_generator,
-        allow_callback=False
+        allow_unsafe_update=False
     )
 
 
@@ -541,7 +591,7 @@ def preprocess_and_layer(
         str_val_axis_name: str = None,
         list_var_axis_name: str = None,
         list_val_axis_name: str = None,
-        skip_layer: bool = False,
+        is_hist: bool = False,
 ) -> DeephavenFigure:
     """
     Given a preprocessing function, a draw function, and several
@@ -560,11 +610,12 @@ def preprocess_and_layer(
     :param str_val_axis_name: Name on the non-var axis if cols is a str
     :param list_var_axis_name: Name on the var axis if cols is a list
     :param list_val_axis_name: Name on the non-var axis if cols is a list
-    :param skip_layer: If true, all columns are passed to the preprocess function
-    and only one table is returned from it, so the layering step is skipped.
-    Currently, it is assumed that hist is the only plot type using this.
+    :param is_hist: If true, the figure is a histogram and requires custom
+    processing, specifically because the preprocessing returns a single table
+    for all columns.
     :return: The resulting DeephavenFigure
     """
+
     cols = args[var]
     # to mirror px, list_var_axis_name and legend should only be used when cols
     # are a list (regardless of length)
@@ -578,28 +629,39 @@ def preprocess_and_layer(
     if orientation:
         args["orientation"] = orientation
 
-    create_fig = partial(
-        preprocessed_fig,
-        preprocesser, draw,
-        keys, table, args
-    )
-
-    if skip_layer:
-        figs.append(create_fig(trace_generator, cols))
-        # currently, the only user of skip_layer is hist, so if another plot
-        # type is passed here this will need to be refactored
-        # hist should have the col name be the passed str if cols is a str
+    if is_hist:
+        # histograms generate one table with all info
         str_var_axis_name = str_var_axis_name if is_list else cols[0]
+        create_fig = partial(
+            preprocessed_fig,
+            draw, keys, args,
+            preprocessed_args=preprocesser(table, cols)
+        )
     else:
-        for col in cols:
-            figs.append(create_fig(trace_generator, col))
+        create_fig = partial(
+            preprocessed_fig,
+            draw, keys, args,
+            preprocesser=preprocesser,
+            table=table
+        )
 
-            if not trace_generator:
-                trace_generator = figs[0].trace_generator
+    for i, col in enumerate(cols):
+
+        new_fig = create_fig(trace_generator, col)
+        # offsetgroup is needed mostly to prevent spacing issues in
+        # marginals
+        # not setting the offsetgroup and having both marginals set to box,
+        # violin, etc. leads to extra spacing in each marginal
+        # offsetgroup needs to be unique within the subchart as columns
+        # could have the same name
+        new_fig.fig.update_traces(offsetgroup=f"{col}{i}")
+        figs.append(new_fig)
+
+        if not trace_generator:
+            trace_generator = figs[0].trace_generator
 
     layered = layer(*figs, which_layout=0)
 
-    # todo: pull this out?
     update_legend_and_titles(
         layered, var, cols, is_list,
         list_var_axis_name, list_val_axis_name,
@@ -607,10 +669,10 @@ def preprocess_and_layer(
     )
 
     # call the callback now as it was not allowed during figure generation
-    new_fig = args['unsafe_update'](layered)
-    new_fig = new_fig if new_fig else layered
+    new_fig = args['unsafe_update'](layered.fig)
+    layered.fig = new_fig if new_fig else layered.fig
 
-    return new_fig
+    return layered
 
 
 def _make_subplots(
@@ -620,3 +682,5 @@ def _make_subplots(
     # todo: not yet implemented
     new_fig = subplots.make_subplots(rows=rows, cols=cols)
     return DeephavenFigure(new_fig)
+
+

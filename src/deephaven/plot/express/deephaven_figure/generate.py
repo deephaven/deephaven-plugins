@@ -84,6 +84,9 @@ CUSTOM_LIST_ARGS.update(AXIS_SEQUENCE_ARGS)
 CUSTOM_ARGS = {
     "unsafe_update",
     "bargap",
+    "marginal",
+    "marginal_x",
+    "marginal_y"
     #"rangemode"
 }
 

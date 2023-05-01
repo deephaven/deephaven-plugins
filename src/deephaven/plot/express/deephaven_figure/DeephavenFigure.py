@@ -88,7 +88,7 @@ class DeephavenFigure:
         :param call: The (usually) px drawing function
         :param data_mappings:A list of data mappings from table column to
         corresponding plotly variable
-        :param template: A template that is used
+        :param has_template: If a template is used
         :param has_color: True if color was manually applied via
         discrete_color_sequence
         :param trace_generator: A generator for modifications to traces

@@ -84,6 +84,8 @@ def create_hist_tables(
     :return: A tuple containing (the new counts table,
     the column of the midpoint, the columns that contain counts)
     """
+    columns = list(set(columns))
+
     range_table = create_range_table(table, columns, nbins, range_bins)
     bin_counts = new_table([
         long_col("RangeIndex", [i for i in range(nbins)])
@@ -221,24 +223,24 @@ def preprocess_timeline(
 def preprocess_violin(
         table: Table,
         column: str
-) -> tuple[Table, str, str]:
+) -> tuple[Table, str, None]:
     """
     Preprocess the violin (or box or strip) params into an appropriate table
     For each column, the data needs to be reshaped so that there is a column
-    that contains the column name, and a column that contains the value
+    that contains the column value.
 
     :param table: The table to pull data from
     :param column: The column to use for violin data
-    :return: A tuple of new_table, column names, and column values
+    :return: A tuple of new_table, column values, and None
     """
-    col_names, col_vals = "category", f"{column}",
     # also used for box and strip
     new_table = table.view([
-        f"{col_names} = `{column}`",
-        f"{col_vals} = {column}"
+        f"{column} = {column}"
     ])
-
-    return new_table, col_names, col_vals
+    # The names are None as a third tuple value is required for
+    # preprocess_and_layer but putting the names in the figure
+    # breaks violinmode=overlay
+    return new_table, column, None
 
 
 def preprocess_ecdf(

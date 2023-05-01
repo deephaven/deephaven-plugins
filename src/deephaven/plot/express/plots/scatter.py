@@ -1,9 +1,11 @@
+import json
 from typing import Callable
 
 from plotly import express as px
 
 from deephaven.table import Table
 
+from .distribution import attach_marginals, get_marg_args
 from ._private_utils import default_callback, validate_common_args, remap_scene_args
 from ..deephaven_figure import generate_figure, DeephavenFigure
 
@@ -24,8 +26,8 @@ def scatter(
         xaxis_sequence: list[int] = None,
         yaxis_sequence: list[int] = None,
         opacity: float = None,
-        # marginal_x: str = None, #not supported at the moment, will probably be slow
-        # marginal_y: str = None, #with lots of data
+        marginal_x: str = None,
+        marginal_y: str = None,
         log_x: bool | list[bool] = False,
         log_y: bool | list[bool] = False,
         range_x: list[int] | list[list[int]] = None,
@@ -80,6 +82,8 @@ def scatter(
     than axes, axes will be reused.
     :param opacity: Opacity to apply to all points. 0 is completely transparent
     and 1 is completely opaque.
+    :param marginal_x: The type of x-axis marginal; histogram, violin, rug, box
+    :param marginal_y: The type of y-axis marginal; histogram, violin, rug, box
     :param log_x: Default False. A boolean or list of booleans that specify if
     the corresponding axis is a log axis or not. The booleans loop, so if there
     are more series than booleans, booleans will be reused.
@@ -110,13 +114,17 @@ def scatter(
     """
     render_mode = "webgl"
     args = locals()
+    marg_data, marg_style = get_marg_args(args)
     args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
     validate_common_args(args)
 
-    fig = generate_figure(draw=px.scatter, call_args=args)
-
-    return fig
+    return attach_marginals(
+        generate_figure(draw=px.scatter, call_args=args),
+        marg_data,
+        marg_style,
+        marginal_x=marginal_x, marginal_y=marginal_y,
+    )
 
 
 def scatter_3d(
