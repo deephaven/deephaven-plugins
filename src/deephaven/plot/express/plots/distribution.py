@@ -5,7 +5,8 @@ from plotly import express as px
 
 from deephaven.table import Table
 
-from ._private_utils import default_callback, validate_common_args, preprocess_and_layer, layer
+from ._private_utils import default_callback, validate_common_args, preprocess_and_layer, layer, \
+    unsafe_figure_update_wrapper
 from ..deephaven_figure import DeephavenFigure
 from ..preprocess import preprocess_ecdf, create_hist_tables, preprocess_violin
 
@@ -24,7 +25,7 @@ def violin(
         box: bool = False,
         title: str = None,
         template: str = None,
-        unsafe_update: Callable = default_callback
+        unsafe_update_figure: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a violin chart
@@ -53,11 +54,11 @@ def violin(
     :param box: Default False. Draw boxes inside the violin if True.
     :param title: The title of the chart
     :param template: The template for the chart.
-    :param unsafe_update: An update function that takes a figure as an
-    argument and optionally returns a figure. If a figure is not returned,
-    the plotly figure passed will be assumed to be the return value. Used to
-    add any custom changes to the underlying plotly figure. Note that the
-    existing data traces should not be removed. This may lead to unexpected
+    :param unsafe_update_figure: An update function that takes a plotly figure
+    as an argument and optionally returns a plotly figure. If a figure is not
+    returned, the plotly figure passed will be assumed to be the return value.
+    Used to add any custom changes to the underlying plotly figure. Note that
+    the existing data traces should not be removed. This may lead to unexpected
     behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the violin chart
     """
@@ -65,16 +66,24 @@ def violin(
         raise ValueError("Cannot specify both x and y")
 
     args = locals()
-    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
     validate_common_args(args)
+
+    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+
+    update_wrapper = partial(
+        unsafe_figure_update_wrapper,
+        args.pop("unsafe_update_figure")
+    )
 
     create_layered = partial(preprocess_and_layer,
                              preprocess_violin,
                              px.violin, args,
                              list_var_axis_name="value")
 
-    return create_layered("x") if x else create_layered("y")
+    return update_wrapper(
+        create_layered("x") if x else create_layered("y")
+    )
 
 
 def box(
@@ -91,7 +100,7 @@ def box(
         notched: bool = False,
         title: str = None,
         template: str = None,
-        unsafe_update: Callable = default_callback
+        unsafe_update_figure: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a box chart
@@ -120,11 +129,11 @@ def box(
     :param notched: Default False, if True boxes are drawn with notches
     :param title: The title of the chart
     :param template: The template for the chart.
-    :param unsafe_update: An update function that takes a figure as an
-    argument and optionally returns a figure. If a figure is not returned,
-    the plotly figure passed will be assumed to be the return value. Used to
-    add any custom changes to the underlying plotly figure. Note that the
-    existing data traces should not be removed. This may lead to unexpected
+    :param unsafe_update_figure: An update function that takes a plotly figure
+    as an argument and optionally returns a plotly figure. If a figure is not
+    returned, the plotly figure passed will be assumed to be the return value.
+    Used to add any custom changes to the underlying plotly figure. Note that
+    the existing data traces should not be removed. This may lead to unexpected
     behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the box chart
     """
@@ -132,16 +141,24 @@ def box(
         raise ValueError("Cannot specify both x and y")
 
     args = locals()
-    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
     validate_common_args(args)
+
+    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+
+    update_wrapper = partial(
+        unsafe_figure_update_wrapper,
+        args.pop("unsafe_update_figure")
+    )
 
     create_layered = partial(preprocess_and_layer,
                              preprocess_violin,
                              px.box, args,
                              list_val_axis_name="value")
 
-    return create_layered("x") if x else create_layered("y")
+    return update_wrapper(
+        create_layered("x") if x else create_layered("y")
+    )
 
 
 def strip(
@@ -156,7 +173,7 @@ def strip(
         range_y: list[int] = None,
         title: str = None,
         template: str = None,
-        unsafe_update: Callable = default_callback
+        unsafe_update_figure: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a strip chart
@@ -181,11 +198,11 @@ def strip(
     :param range_y: A list of two numbers that specify the range of the y axis.
     :param title: The title of the chart
     :param template: The template for the chart.
-    :param unsafe_update: An update function that takes a figure as an
-    argument and optionally returns a figure. If a figure is not returned,
-    the plotly figure passed will be assumed to be the return value. Used to
-    add any custom changes to the underlying plotly figure. Note that the
-    existing data traces should not be removed. This may lead to unexpected
+    :param unsafe_update_figure: An update function that takes a plotly figure
+    as an argument and optionally returns a plotly figure. If a figure is not
+    returned, the plotly figure passed will be assumed to be the return value.
+    Used to add any custom changes to the underlying plotly figure. Note that
+    the existing data traces should not be removed. This may lead to unexpected
     behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the strip chart
     """
@@ -193,16 +210,24 @@ def strip(
         raise ValueError("Cannot specify both x and y")
 
     args = locals()
-    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
     validate_common_args(args)
+
+    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+
+    update_wrapper = partial(
+        unsafe_figure_update_wrapper,
+        args.pop("unsafe_update_figure")
+    )
 
     create_layered = partial(preprocess_and_layer,
                              preprocess_violin,
                              px.strip, args,
                              list_val_axis_name="value")
 
-    return create_layered("x") if x else create_layered("y")
+    return update_wrapper(
+        create_layered("x") if x else create_layered("y")
+    )
 
 
 def _ecdf(
@@ -223,7 +248,7 @@ def _ecdf(
         range_y: list[int] = None,
         title: str = None,
         template: str = None,
-        callback: Callable = default_callback
+        unsafe_update_figure: Callable = default_callback
 ) -> DeephavenFigure:
     line_shape = "hv"
     # rangemode = "tozero"
@@ -238,11 +263,18 @@ def _ecdf(
     args.pop("ecdfnorm")
     args.pop("ecdfmode")
 
+    update_wrapper = partial(
+        unsafe_figure_update_wrapper,
+        args.pop("unsafe_update_figure")
+    )
+
     create_layered = partial(preprocess_and_layer,
                              preprocess_ecdf,
                              px.line, args)
 
-    return create_layered("x") if x else create_layered("y", orientation="h")
+    return update_wrapper(
+        create_layered("x") if x else create_layered("y", orientation="h")
+    )
 
 
 def histogram(
@@ -267,7 +299,7 @@ def histogram(
         text_auto: bool | str = False,
         title: str = None,
         template: str = None,
-        unsafe_update: Callable = default_callback
+        unsafe_update_figure: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a histogram
@@ -307,11 +339,11 @@ def histogram(
     If a string, specifies a plotly texttemplate.
     :param title: The title of the chart
     :param template: The template for the chart.
-    :param unsafe_update: An update function that takes a figure as an
-    argument and optionally returns a figure. If a figure is not returned,
-    the plotly figure passed will be assumed to be the return value. Used to
-    add any custom changes to the underlying plotly figure. Note that the
-    existing data traces should not be removed. This may lead to unexpected
+    :param unsafe_update_figure: An update function that takes a plotly figure
+    as an argument and optionally returns a plotly figure. If a figure is not
+    returned, the plotly figure passed will be assumed to be the return value.
+    Used to add any custom changes to the underlying plotly figure. Note that
+    the existing data traces should not be removed. This may lead to unexpected
     behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the histogram
     """
@@ -328,6 +360,11 @@ def histogram(
 
     args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
     args["pattern_shape_sequence_bar"] = args.pop("pattern_shape_sequence")
+
+    update_wrapper = partial(
+        unsafe_figure_update_wrapper,
+        args.pop("unsafe_update_figure")
+    )
 
     preprocessor = partial(
         create_hist_tables,
@@ -348,12 +385,20 @@ def histogram(
     orientation = "h" if var == "y" else None
     fig = create_layered(var, orientation=orientation)
 
-    return attach_marginals(
-        fig,
-        marg_data,
-        marg_style,
+    marginals = partial(
+        attach_marginals, marg_data, marg_style,
         marginal_x=marginal if var == "x" else None,
         marginal_y=marginal if var == "y" else None,
+    )
+
+    return update_wrapper(
+        attach_marginals(
+            fig,
+            marg_data,
+            marg_style,
+            marginal_x=marginal if var == "x" else None,
+            marginal_y=marginal if var == "y" else None,
+        )
     )
 
 

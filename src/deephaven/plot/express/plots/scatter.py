@@ -1,4 +1,5 @@
 import json
+from functools import partial
 from typing import Callable
 
 from plotly import express as px
@@ -6,7 +7,7 @@ from plotly import express as px
 from deephaven.table import Table
 
 from .distribution import attach_marginals, get_marg_args
-from ._private_utils import default_callback, validate_common_args, remap_scene_args
+from ._private_utils import default_callback, validate_common_args, remap_scene_args, unsafe_figure_update_wrapper
 from ..deephaven_figure import generate_figure, DeephavenFigure
 
 
@@ -36,7 +37,7 @@ def scatter(
         xaxis_titles: list[str] = None,
         title: str = None,
         template: str = None,
-        unsafe_update: Callable = default_callback
+        unsafe_update_figure: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a scatter chart
@@ -104,26 +105,34 @@ def scatter(
     x axes. The titles do not loop.
     :param title: The title of the chart
     :param template: The template for the chart.
-    :param unsafe_update: An update function that takes a figure as an
-    argument and optionally returns a figure. If a figure is not returned,
-    the plotly figure passed will be assumed to be the return value. Used to
-    add any custom changes to the underlying plotly figure. Note that the
-    existing data traces should not be removed. This may lead to unexpected
+    :param unsafe_update_figure: An update function that takes a plotly figure
+    as an argument and optionally returns a plotly figure. If a figure is not
+    returned, the plotly figure passed will be assumed to be the return value.
+    Used to add any custom changes to the underlying plotly figure. Note that
+    the existing data traces should not be removed. This may lead to unexpected
     behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the scatter chart
     """
     render_mode = "webgl"
     args = locals()
-    marg_data, marg_style = get_marg_args(args)
-    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
     validate_common_args(args)
 
-    return attach_marginals(
-        generate_figure(draw=px.scatter, call_args=args),
-        marg_data,
-        marg_style,
-        marginal_x=marginal_x, marginal_y=marginal_y,
+    marg_data, marg_style = get_marg_args(args)
+    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+
+    update_wrapper = partial(
+        unsafe_figure_update_wrapper,
+        args.pop("unsafe_update_figure")
+    )
+
+    return update_wrapper(
+        attach_marginals(
+            generate_figure(draw=px.scatter, call_args=args),
+            marg_data,
+            marg_style,
+            marginal_x=marginal_x, marginal_y=marginal_y,
+        )
     )
 
 
@@ -151,7 +160,7 @@ def scatter_3d(
         range_z: list[int] = None,
         title: str = None,
         template: str = None,
-        unsafe_update: Callable = default_callback
+        unsafe_update_figure: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a 3D scatter chart
@@ -204,22 +213,30 @@ def scatter_3d(
     :param range_z: A list of two numbers that specify the range of the z axis.
     :param title: The title of the chart.
     :param template: The template for the chart.
-    :param unsafe_update: An update function that takes a figure as an
-    argument and optionally returns a figure. If a figure is not returned,
-    the plotly figure passed will be assumed to be the return value. Used to
-    add any custom changes to the underlying plotly figure. Note that the
-    existing data traces should not be removed. This may lead to unexpected
+    :param unsafe_update_figure: An update function that takes a plotly figure
+    as an argument and optionally returns a plotly figure. If a figure is not
+    returned, the plotly figure passed will be assumed to be the return value.
+    Used to add any custom changes to the underlying plotly figure. Note that
+    the existing data traces should not be removed. This may lead to unexpected
     behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the 3D scatter chart
     """
     args = locals()
+
+    validate_common_args(args)
+
     args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
     remap_scene_args(args)
 
-    validate_common_args(args)
+    update_wrapper = partial(
+        unsafe_figure_update_wrapper,
+        args.pop("unsafe_update_figure")
+    )
 
-    return generate_figure(draw=px.scatter_3d, call_args=args)
+    return update_wrapper(
+        generate_figure(draw=px.scatter_3d, call_args=args)
+    )
 
 
 def scatter_polar(
@@ -238,7 +255,7 @@ def scatter_polar(
         log_r: bool = False,
         title: str = None,
         template: str = None,
-        unsafe_update: Callable = default_callback
+        unsafe_update_figure: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a polar scatter chart
@@ -266,21 +283,29 @@ def scatter_polar(
     axis or not.
     :param title: The title of the chart.
     :param template: The template for the chart.
-    :param unsafe_update: An update function that takes a figure as an
-    argument and optionally returns a figure. If a figure is not returned,
-    the plotly figure passed will be assumed to be the return value. Used to
-    add any custom changes to the underlying plotly figure. Note that the
-    existing data traces should not be removed. This may lead to unexpected
+    :param unsafe_update_figure: An update function that takes a plotly figure
+    as an argument and optionally returns a plotly figure. If a figure is not
+    returned, the plotly figure passed will be assumed to be the return value.
+    Used to add any custom changes to the underlying plotly figure. Note that
+    the existing data traces should not be removed. This may lead to unexpected
     behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the polar scatter chart
     """
     render_mode = "webgl"
     args = locals()
-    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
     validate_common_args(args)
 
-    return generate_figure(draw=px.scatter_polar, call_args=args)
+    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+
+    update_wrapper = partial(
+        unsafe_figure_update_wrapper,
+        args.pop("unsafe_update_figure")
+    )
+
+    return update_wrapper(
+        generate_figure(draw=px.scatter_polar, call_args=args)
+    )
 
 
 def scatter_ternary(
@@ -295,7 +320,7 @@ def scatter_ternary(
         opacity: float = None,
         title: str = None,
         template: str = None,
-        unsafe_update: Callable = default_callback
+        unsafe_update_figure: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a ternary scatter chart
@@ -318,20 +343,27 @@ def scatter_ternary(
     and 1 is completely opaque.
     :param title: The title of the chart.
     :param template: The template for the chart.
-    :param unsafe_update: An update function that takes a figure as an
-    argument and optionally returns a figure. If a figure is not returned,
-    the plotly figure passed will be assumed to be the return value. Used to
-    add any custom changes to the underlying plotly figure. Note that the
-    existing data traces should not be removed. This may lead to unexpected
+    :param unsafe_update_figure: An update function that takes a plotly figure
+    as an argument and optionally returns a plotly figure. If a figure is not
+    returned, the plotly figure passed will be assumed to be the return value.
+    Used to add any custom changes to the underlying plotly figure. Note that
+    the existing data traces should not be removed. This may lead to unexpected
     behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the ternary scatter chart
     """
     args = locals()
-    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
-
     validate_common_args(args)
 
-    return generate_figure(draw=px.scatter_ternary, call_args=args)
+    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
+
+    update_wrapper = partial(
+        unsafe_figure_update_wrapper,
+        args.pop("unsafe_update_figure")
+    )
+
+    return update_wrapper(
+        generate_figure(draw=px.scatter_ternary, call_args=args)
+    )
 
 
 def _scatter_matrix():

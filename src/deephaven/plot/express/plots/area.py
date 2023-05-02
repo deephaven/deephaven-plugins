@@ -1,10 +1,11 @@
+from functools import partial
 from typing import Callable
 
 from plotly import express as px
 
 from deephaven.table import Table
 
-from ._private_utils import default_callback, validate_common_args
+from ._private_utils import default_callback, validate_common_args, unsafe_figure_update_wrapper
 from ..deephaven_figure import generate_figure, DeephavenFigure
 
 
@@ -31,7 +32,7 @@ def area(
         line_shape: str = 'linear',
         title: str = None,
         template: str = None,
-        unsafe_update: Callable = default_callback
+        unsafe_update_figure: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns an area chart
@@ -90,19 +91,27 @@ def area(
     'spline', 'vhv', 'hvh', 'vh', 'hv'. Default 'linear'
     :param title: The title of the chart
     :param template: The template for the chart.
-    :param unsafe_update: An update function that takes a figure as an
-    argument and optionally returns a figure. If a figure is not returned,
-    the plotly figure passed will be assumed to be the return value. Used to
-    add any custom changes to the underlying plotly figure. Note that the
-    existing data traces should not be removed. This may lead to unexpected
+    :param unsafe_update_figure: An update function that takes a plotly figure
+    as an argument and optionally returns a plotly figure. If a figure is not
+    returned, the plotly figure passed will be assumed to be the return value.
+    Used to add any custom changes to the underlying plotly figure. Note that
+    the existing data traces should not be removed. This may lead to unexpected
     behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the area chart
     """
     args = locals()
+
+    validate_common_args(args)
+
     args["pattern_shape_sequence_area"] = args.pop("pattern_shape_sequence")
     args["color_discrete_sequence_marker"] = args["color_discrete_sequence"]
     args["color_discrete_sequence_line"] = args.pop("color_discrete_sequence")
 
-    validate_common_args(args)
+    update_wrapper = partial(
+        unsafe_figure_update_wrapper,
+        args.pop("unsafe_update_figure")
+    )
 
-    return generate_figure(draw=px.area, call_args=args)
+    return update_wrapper(
+        generate_figure(draw=px.area, call_args=args)
+    )

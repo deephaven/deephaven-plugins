@@ -22,6 +22,23 @@ def default_callback(
     return fig
 
 
+def unsafe_figure_update_wrapper(
+        unsafe_figure_update: callable,
+        dh_fig: DeephavenFigure
+) -> DeephavenFigure:
+    """
+    Wrap the callback to be applied last before a figure is returned
+
+    :param unsafe_figure_update: The function to call on the plotly figure
+    :param dh_fig: The DeephavenFigure to update
+    :return: The resulting DeephavenFigure
+    """
+    # allow either returning a new fig or not from callback
+    new_fig = unsafe_figure_update(dh_fig.fig)
+    dh_fig.fig = new_fig if new_fig else dh_fig.fig
+    return dh_fig
+
+
 def normalize_position(
         position: float,
         chart_start: float,
@@ -360,7 +377,7 @@ def layer(
         *args: DeephavenFigure | Figure,
         which_layout: int = None,
         specs: list[dict[str, any]] = None,
-        unsafe_update: Callable = default_callback
+        unsafe_update_figure: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Layers the provided figures. Be default, the layouts are sequentially
@@ -375,11 +392,11 @@ def layer(
     corresponds with a domain will be resized to that domain. Either x or y can
     be excluded if only resizing on one axis. Can also specify xaxis_update or
     yaxis_update with a dictionary value to update all axes with that dict.
-    :param unsafe_update: An update function that takes a figure as an
-    argument and optionally returns a figure. If a figure is not returned,
-    the plotly figure passed will be assumed to be the return value. Used to
-    add any custom changes to the underlying plotly figure. Note that the
-    existing data traces should not be removed. This may lead to unexpected
+    :param unsafe_update_figure: An update function that takes a plotly figure
+    as an argument and optionally returns a plotly figure. If a figure is not
+    returned, the plotly figure passed will be assumed to be the return value.
+    Used to add any custom changes to the underlying plotly figure. Note that
+    the existing data traces should not be removed. This may lead to unexpected
     behavior if traces are modified in a way that break data mappings.
     :return: The layered chart
     """
@@ -426,15 +443,20 @@ def layer(
 
     new_fig = Figure(data=new_data, layout=new_layout)
 
-    new_fig = unsafe_update(new_fig)
+    update_wrapper = partial(
+        unsafe_figure_update_wrapper,
+        unsafe_update_figure
+    )
 
     # todo: this doesn't maintain call args, but that isn't currently needed
-    return DeephavenFigure(
-        fig=new_fig,
-        data_mappings=new_data_mappings,
-        has_template=new_has_template,
-        has_color=new_has_color,
-        has_subplots=True if specs else False
+    return update_wrapper(
+        DeephavenFigure(
+            fig=new_fig,
+            data_mappings=new_data_mappings,
+            has_template=new_has_template,
+            has_color=new_has_color,
+            has_subplots=True if specs else False
+        )
     )
 
 
@@ -523,7 +545,6 @@ def preprocessed_fig(
         draw=draw,
         call_args=args,
         trace_generator=trace_generator,
-        allow_unsafe_update=False
     )
 
 
@@ -668,10 +689,6 @@ def preprocess_and_layer(
         str_var_axis_name, str_val_axis_name
     )
 
-    # call the callback now as it was not allowed during figure generation
-    new_fig = args['unsafe_update'](layered.fig)
-    layered.fig = new_fig if new_fig else layered.fig
-
     return layered
 
 
@@ -682,5 +699,3 @@ def _make_subplots(
     # todo: not yet implemented
     new_fig = subplots.make_subplots(rows=rows, cols=cols)
     return DeephavenFigure(new_fig)
-
-

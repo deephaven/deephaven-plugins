@@ -1,8 +1,9 @@
+from functools import partial
 from typing import Callable
 
 from deephaven.table import Table
 
-from ._private_utils import default_callback, validate_common_args
+from ._private_utils import default_callback, validate_common_args, unsafe_figure_update_wrapper
 from ..deephaven_figure import generate_figure, draw_ohlc, draw_candlestick, DeephavenFigure
 
 
@@ -19,7 +20,7 @@ def ohlc(
         yaxis_sequence: list[int] = None,
         yaxis_titles: list[str] = None,
         xaxis_titles: list[str] = None,
-        unsafe_update: Callable = default_callback
+        unsafe_update_figure: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns an ohlc chart
@@ -50,11 +51,11 @@ def ohlc(
     y axes. The titles do not loop.
     :param xaxis_titles: A list of titles to sequentially apply to the
     x axes. The titles do not loop.
-    :param unsafe_update: An update function that takes a figure as an
-    argument and optionally returns a figure. If a figure is not returned,
-    the plotly figure passed will be assumed to be the return value. Used to
-    add any custom changes to the underlying plotly figure. Note that the
-    existing data traces should not be removed. This may lead to unexpected
+    :param unsafe_update_figure: An update function that takes a plotly figure
+    as an argument and optionally returns a plotly figure. If a figure is not
+    returned, the plotly figure passed will be assumed to be the return value.
+    Used to add any custom changes to the underlying plotly figure. Note that
+    the existing data traces should not be removed. This may lead to unexpected
     behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the ohlc chart
     """
@@ -66,7 +67,14 @@ def ohlc(
 
     validate_common_args(args)
 
-    return generate_figure(draw=draw_ohlc, call_args=args)
+    update_wrapper = partial(
+        unsafe_figure_update_wrapper,
+        args.pop("unsafe_update_figure")
+    )
+
+    return update_wrapper(
+        generate_figure(draw=draw_ohlc, call_args=args)
+    )
 
 
 def candlestick(
@@ -82,7 +90,7 @@ def candlestick(
         yaxis_sequence: list[int] = None,
         yaxis_titles: list[str] = None,
         xaxis_titles: list[str] = None,
-        unsafe_update: Callable = default_callback
+        unsafe_update_figure: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a candlestick chart
@@ -113,17 +121,25 @@ def candlestick(
     y axes. The titles do not loop.
     :param xaxis_titles: A list of titles to sequentially apply to the
     x axes. The titles do not loop.
-    :param unsafe_update: An update function that takes a figure as an
-    argument and optionally returns a figure. If a figure is not returned,
-    the plotly figure passed will be assumed to be the return value. Used to
-    add any custom changes to the underlying plotly figure. Note that the
-    existing data traces should not be removed. This may lead to unexpected
+    :param unsafe_update_figure: An update function that takes a plotly figure
+    as an argument and optionally returns a plotly figure. If a figure is not
+    returned, the plotly figure passed will be assumed to be the return value.
+    Used to add any custom changes to the underlying plotly figure. Note that
+    the existing data traces should not be removed. This may lead to unexpected
     behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the candlestick chart
     """
     args = locals()
-    args["x_finance"] = args.pop("x")
 
     validate_common_args(args)
 
-    return generate_figure(draw=draw_candlestick, call_args=args)
+    args["x_finance"] = args.pop("x")
+
+    update_wrapper = partial(
+        unsafe_figure_update_wrapper,
+        args.pop("unsafe_update_figure")
+    )
+
+    return update_wrapper(
+        generate_figure(draw=draw_candlestick, call_args=args)
+    )

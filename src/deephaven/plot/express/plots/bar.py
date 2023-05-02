@@ -5,7 +5,7 @@ from plotly import express as px
 
 from deephaven.table import Table
 
-from ._private_utils import default_callback, validate_common_args, preprocess_and_layer
+from ._private_utils import default_callback, validate_common_args, preprocess_and_layer, unsafe_figure_update_wrapper
 from ..deephaven_figure import generate_figure, DeephavenFigure
 from ..preprocess import preprocess_timeline, preprocess_frequency_bar
 
@@ -29,7 +29,7 @@ def bar(
         text_auto: bool | str = False,
         title: str = None,
         template: str = None,
-        unsafe_update: Callable = default_callback
+        unsafe_update_figure: Callable = default_callback
 ) -> DeephavenFigure:
     """
     Returns a bar chart
@@ -86,11 +86,11 @@ def bar(
     If a string, specifies a plotly texttemplate.
     :param title: The title of the chart
     :param template: The template for the chart.
-    :param unsafe_update: An update function that takes a figure as an
-    argument and optionally returns a figure. If a figure is not returned,
-    the plotly figure passed will be assumed to be the return value. Used to
-    add any custom changes to the underlying plotly figure. Note that the
-    existing data traces should not be removed. This may lead to unexpected
+    :param unsafe_update_figure: An update function that takes a plotly figure
+    as an argument and optionally returns a plotly figure. If a figure is not
+    returned, the plotly figure passed will be assumed to be the return value.
+    Used to add any custom changes to the underlying plotly figure. Note that
+    the existing data traces should not be removed. This may lead to unexpected
     behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the bar chart
     """
@@ -100,7 +100,14 @@ def bar(
 
     validate_common_args(args)
 
-    return generate_figure(draw=px.bar, call_args=args)
+    update_wrapper = partial(
+        unsafe_figure_update_wrapper,
+        args.pop("unsafe_update_figure")
+    )
+
+    return update_wrapper(
+        generate_figure(draw=px.bar, call_args=args)
+    )
 
 
 def _bar_polar(
@@ -118,7 +125,7 @@ def _bar_polar(
         log_r: bool = False,
         title: str = None,
         template: str = None,
-        callback: Callable = default_callback
+        unsafe_update_figure: Callable = default_callback
 ) -> DeephavenFigure:
     # todo: not yet implemented
     if isinstance(table, Table):
@@ -142,7 +149,7 @@ def timeline(
         range_y: list[int] = None,
         title: str = None,
         template: str = None,
-        unsafe_update: Callable = default_callback
+        unsafe_update_figure: Callable = default_callback
 ):
     """
     Returns a timeline (otherwise known as a gantt chart)
@@ -163,11 +170,11 @@ def timeline(
     :param range_y: A list of two numbers that specify the range of the y axis.
     :param title: The title of the chart
     :param template: The template for the chart.
-    :param unsafe_update: An update function that takes a figure as an
-    argument and optionally returns a figure. If a figure is not returned,
-    the plotly figure passed will be assumed to be the return value. Used to
-    add any custom changes to the underlying plotly figure. Note that the
-    existing data traces should not be removed. This may lead to unexpected
+    :param unsafe_update_figure: An update function that takes a plotly figure
+    as an argument and optionally returns a plotly figure. If a figure is not
+    returned, the plotly figure passed will be assumed to be the return value.
+    Used to add any custom changes to the underlying plotly figure. Note that
+    the existing data traces should not be removed. This may lead to unexpected
     behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the timeline chart
     """
@@ -178,7 +185,14 @@ def timeline(
 
     validate_common_args(args)
 
-    return generate_figure(draw=px.timeline, call_args=args)
+    update_wrapper = partial(
+        unsafe_figure_update_wrapper,
+        args.pop("unsafe_update_figure")
+    )
+
+    return update_wrapper(
+        generate_figure(draw=px.timeline, call_args=args)
+    )
 
 
 def frequency_bar(
@@ -196,7 +210,7 @@ def frequency_bar(
         text_auto: bool | str = False,
         title: str = None,
         template: str = None,
-        unsafe_update: Callable = default_callback
+        unsafe_update_figure: Callable = default_callback
 ):
     """
     Returns a bar chart that contains the counts of the specified columns
@@ -229,11 +243,11 @@ def frequency_bar(
     If a string, specifies a plotly texttemplate.
     :param title: The title of the chart
     :param template: The template for the chart.
-    :param unsafe_update: An update function that takes a figure as an
-    argument and optionally returns a figure. If a figure is not returned,
-    the plotly figure passed will be assumed to be the return value. Used to
-    add any custom changes to the underlying plotly figure. Note that the
-    existing data traces should not be removed. This may lead to unexpected
+    :param unsafe_update_figure: An update function that takes a plotly figure
+    as an argument and optionally returns a plotly figure. If a figure is not
+    returned, the plotly figure passed will be assumed to be the return value.
+    Used to add any custom changes to the underlying plotly figure. Note that
+    the existing data traces should not be removed. This may lead to unexpected
     behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the bar chart
     """
@@ -247,8 +261,15 @@ def frequency_bar(
 
     validate_common_args(args)
 
+    update_wrapper = partial(
+        unsafe_figure_update_wrapper,
+        args.pop("unsafe_update_figure")
+    )
+
     create_layered = partial(preprocess_and_layer,
                              preprocess_frequency_bar,
                              px.bar, args, list_var_axis_name="value")
 
-    return create_layered("x") if x else create_layered("y", orientation="h")
+    return update_wrapper(
+        create_layered("x") if x else create_layered("y", orientation="h")
+    )
