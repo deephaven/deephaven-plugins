@@ -6,7 +6,7 @@ from .deephaven_figure import DeephavenFigure, export_figure
 from .plots import area, bar, frequency_bar, timeline, histogram, _ecdf, box, \
     violin, strip, ohlc, candlestick, treemap, sunburst, icicle, funnel, \
     funnel_area, line, line_polar, line_ternary, line_3d, scatter, scatter_3d, \
-    scatter_polar, scatter_ternary, pie, layer
+    scatter_polar, scatter_ternary, pie, layer, make_subplots
 
 __version__ = "0.0.2"
 

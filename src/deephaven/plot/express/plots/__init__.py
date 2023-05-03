@@ -7,3 +7,4 @@ from .financial import candlestick, ohlc
 from .hierarchial import treemap, icicle, sunburst, funnel, funnel_area
 from .pie import pie
 from ._private_utils import layer
+from .subplots import make_subplots

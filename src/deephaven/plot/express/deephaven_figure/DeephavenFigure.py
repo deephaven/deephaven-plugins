@@ -78,7 +78,8 @@ class DeephavenFigure:
             has_template: str = None,
             has_color: bool = False,
             trace_generator: Generator[dict[str, any]] = None,
-            has_subplots: bool = False
+            has_subplots: bool = False,
+            subplot_specs: list[dict] = None
     ):
         """
         Initialize a DeephavenFigure

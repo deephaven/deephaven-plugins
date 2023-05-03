@@ -1,6 +1,7 @@
 from functools import partial
+from itertools import chain
 from typing import Callable
-from collections.abc import Generator
+from collections.abc import Generator, Iterator
 
 from plotly import subplots
 from plotly.graph_objects import Figure
@@ -374,7 +375,8 @@ def fig_data_and_layout(
 
 
 def layer(
-        *args: DeephavenFigure | Figure,
+        *figs: DeephavenFigure | Figure,
+        fig_iterator: Iterator[DeephavenFigure | Figure] = None,
         which_layout: int = None,
         specs: list[dict[str, any]] = None,
         unsafe_update_figure: Callable = default_callback
@@ -384,7 +386,7 @@ def layer(
     applied, so the layouts of later figures will override the layouts of early
     figures.
 
-    :param args: The charts to layer
+    :param figs: The charts to layer
     :param which_layout: None to layer layouts, or an index of which arg to
     take the layout from. Currently only valid if domains are not specified.
     :param specs: A list of dictionaries that contain keys of "x" and "y"
@@ -400,7 +402,7 @@ def layer(
     behavior if traces are modified in a way that break data mappings.
     :return: The layered chart
     """
-    if len(args) == 0:
+    if len(figs) == 0 and not fig_iterator:
         raise ValueError("No figures provided to compose")
 
     new_data = []
@@ -418,8 +420,10 @@ def layer(
         "ternary": 1
     }
 
-    for i, arg in enumerate(args):
-        if isinstance(arg, Figure):
+    for i, arg in enumerate(chain(figs, fig_iterator)):
+        if not arg:
+            pass
+        elif isinstance(arg, Figure):
             fig_data, fig_layout = fig_data_and_layout(
                 arg, i, specs, which_layout, new_axes_start
             )
