@@ -10,11 +10,21 @@ def get_new_specs(
 specs, row_starts, row_ends, col_starts, col_ends
 ):
     new_specs = []
-    for r_s, r_e in zip(row_starts, row_ends):
-        for c_s, c_e in zip(col_starts, col_ends):
+
+    for row, (y_0, y_1) in enumerate(zip(row_starts, row_ends)):
+        for col, (x_0, x_1) in enumerate(zip(col_starts, col_ends)):
+            spec = {} if specs[row][col] is None else specs[row][col]
+            l = spec.get("l", 0)
+            r = spec.get("r", 0)
+            t = spec.get("t", 0)
+            b = spec.get("b", 0)
+            rowspan = spec.get("rowspan", 1)
+            colspan = spec.get("colspan", 1)
+            y_1 = row_ends[row + rowspan - 1]
+            x_1 = col_ends[col + colspan - 1]
             new_specs.append({
-                "x": [c_s, c_e],
-                "y": [r_s, r_e]
+                "x": [x_0 + l, x_1 - r],
+                "y": [y_0 + t, y_1 - b]
             })
     return new_specs
 
@@ -91,11 +101,12 @@ def make_subplots(
 
     # grid must have identical number of columns per row at this point
     rows, cols = len(grid), len(grid[0])
+
     if horizontal_spacing is None:
-        horizontal_spacing = 0.1 / cols
+        horizontal_spacing = 0.2 / cols
 
     if vertical_spacing is None:
-        vertical_spacing = 0.15 / rows
+        vertical_spacing = 0.3 / rows
 
     if column_widths is None:
         column_widths = [1.0 / cols for _ in range(cols)]
