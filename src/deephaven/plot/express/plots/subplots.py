@@ -1,86 +1,87 @@
 from itertools import product
+import math
 
 from plotly.graph_objs import Figure
 
 from ._private_utils import layer
 from .. import DeephavenFigure
 
-def calculate_new_domain(
-        row,
-        col,
-        rowspan,
-        colspan,
-        total_rows,
-        total_cols
-):
-    row_start = row / total_rows
-    col_start = col / total_cols
-    row_end = row_start + (rowspan / total_rows)
-    col_end = col_start + (colspan / total_cols)
-    return {
-        "x": [col_start, col_end],
-        "y": [row_start, row_end]
-    }
-
-
 def get_new_specs(
-        specs,
-        rows,
-        cols
+specs, row_starts, row_ends, col_starts, col_ends
 ):
-    if specs:
-        new_specs = []
-        row = 0
-        col = 0
-        # If none, width of 0
-        for specs_row in specs:
-            for spec in specs_row:
-                row_span = spec.get("rowspan", 1) if spec else 0
-                col_span = spec.get("colspan", 1) if spec else 0
-                new_specs.append(
-                    calculate_new_domain(
-                        row, col,
-                        row_span, col_span, rows, cols)
-                )
-                row += row_span
-                col += col_span
-        return new_specs
+    new_specs = []
+    for r_s, r_e in zip(row_starts, row_ends):
+        for c_s, c_e in zip(col_starts, col_ends):
+            new_specs.append({
+                "x": [c_s, c_e],
+                "y": [r_s, r_e]
+            })
+    return new_specs
 
-    return [calculate_new_domain(
-        row, col, 1, 1, rows, cols
-    ) for row, col in product(range(rows), range(cols))]
 
 def fig_generator(
         grid
 ):
+    figs = []
     for grid_row in grid:
         for fig in grid_row:
-            yield fig
+            figs.append(fig)
 
-def make_grid(ls, rows, cols):
+    return figs
+
+
+def make_grid(ls, rows, cols, fill=None):
     grid = []
     index = 0
     for row in range(rows):
         grid_row = []
         for col in range(cols):
             # if there are more slots in the grid then there are items, pad
-            # the grid with None
-            next_fig = ls[index] if index < len(ls) else None
+            # the grid
+            next_fig = ls[index] if index < len(ls) else fill
             grid_row.append(next_fig)
 
             index += 1
         grid.append(grid_row)
     return grid
 
+def get_domain(values, spacing):
+    # scale the values by however much the spacing uses
+    scale = 1 - (spacing * (len(values) - 1))
+    scaled = [v * scale for v in values]
+
+    # the first start value is just 0 since there is no spacing preceeding it
+    starts = [0]
+    # ignore the last value as it is not needed for the start of any domain
+    for i in range(len(scaled) - 1):
+        starts.append(starts[-1] + scaled[i] + spacing)
+
+    # the first end value is just the first scaled value since there is no
+    # spacing preceeding the figure
+    ends = [scaled[0]]
+    for i in range(1, len(scaled)):
+        ends.append(ends[-1] + scaled[i] + spacing)
+
+    return starts, ends
+
+
 def make_subplots(
         *figs,
-        rows: int = 1,
-        cols: int = 1,
-        grid = None,
-        specs = None,
+        rows: int = None,
+        cols: int = None,
+        grid=None,
+        horizontal_spacing=None,
+        vertical_spacing=None,
+        column_widths=None,
+        row_heights=None,
+        specs=None,
 ):
+    if rows or cols:
+        rows = rows if rows else math.ceil(len(figs) / cols)
+        cols = cols if cols else math.ceil(len(figs) / rows)
+
     if specs:
-        specs = specs if isinstance(specs[0], list) else make_grid(specs, rows, cols)
+        specs = specs if isinstance(specs[0], list) else make_grid(specs, rows, cols, fill={})
         specs.reverse()
 
     grid = grid if grid else make_grid(figs, rows, cols)
@@ -90,5 +91,22 @@ def make_subplots(
 
     # grid must have identical number of columns per row at this point
     rows, cols = len(grid), len(grid[0])
+    if horizontal_spacing is None:
+        horizontal_spacing = 0.1 / cols
 
-    return layer(fig_iterator=fig_generator(grid), specs=get_new_specs(specs, rows, cols))
+    if vertical_spacing is None:
+        vertical_spacing = 0.15 / rows
+
+    if column_widths is None:
+        column_widths = [1.0 / cols for _ in range(cols)]
+
+    if row_heights is None:
+        row_heights = [1.0 / rows for _ in range(rows)]
+
+    row_heights.reverse()
+
+    col_starts, col_ends = get_domain(column_widths, horizontal_spacing)
+    row_starts, row_ends = get_domain(row_heights, vertical_spacing)
+
+    return layer(*fig_generator(grid),
+                 specs=get_new_specs(specs, row_starts, row_ends, col_starts, col_ends))

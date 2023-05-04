@@ -376,7 +376,6 @@ def fig_data_and_layout(
 
 def layer(
         *figs: DeephavenFigure | Figure,
-        fig_iterator: Iterator[DeephavenFigure | Figure] = None,
         which_layout: int = None,
         specs: list[dict[str, any]] = None,
         unsafe_update_figure: Callable = default_callback
@@ -402,7 +401,7 @@ def layer(
     behavior if traces are modified in a way that break data mappings.
     :return: The layered chart
     """
-    if len(figs) == 0 and not fig_iterator:
+    if len(figs) == 0:
         raise ValueError("No figures provided to compose")
 
     new_data = []
@@ -420,9 +419,10 @@ def layer(
         "ternary": 1
     }
 
-    for i, arg in enumerate(chain(figs, fig_iterator)):
+    for i, arg in enumerate(figs):
         if not arg:
-            pass
+            continue
+
         elif isinstance(arg, Figure):
             fig_data, fig_layout = fig_data_and_layout(
                 arg, i, specs, which_layout, new_axes_start
@@ -694,12 +694,3 @@ def preprocess_and_layer(
     )
 
     return layered
-
-
-def _make_subplots(
-        rows=1,
-        cols=1
-):
-    # todo: not yet implemented
-    new_fig = subplots.make_subplots(rows=rows, cols=cols)
-    return DeephavenFigure(new_fig)
