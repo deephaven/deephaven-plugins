@@ -38,11 +38,29 @@ def preprocess_aggregate(
     return table.view([names, values]).sum_by(names)
 
 
+# TODO: generalize
+def get_unique_names(
+        table,
+        orig_names
+) -> dict[str, str]:
+    new_names = {}
+
+    table_columns = {column.name for column in table.columns}
+    for name in orig_names:
+        new_name = name
+        while new_name in table_columns:
+            new_name += '_'
+        new_names[name] = new_name
+    return new_names
+
+
 def create_count_tables(
         table: Table,
         columns: list[str],
         range_table: Table,
-        histfunc: str
+        histfunc: str,
+        range_,
+        range_index
 ) -> Generator[Table, str]:
     """
     Generate count tables per column
@@ -52,16 +70,19 @@ def create_count_tables(
     :param range_table: A table containing ranges to calculate the bin for each
     value in the column
     :param histfunc: The function to aggregate values within each bin
+    :param range_: The name of the range column. Generally range.
+    :param range_index: The name of the range_index column. Generally
+    range_index
     :returns: Yields a tuple containing (a new count_table, the column name)
     """
     agg_func = HISTFUNC_MAP[histfunc]
     for column in columns:
         count_table = table.view(column) \
             .join(range_table) \
-            .update_view(f"RangeIndex = Range.index({column})") \
-            .where("!isNull(RangeIndex)") \
-            .drop_columns("Range") \
-            .agg_by([agg_func(column)], "RangeIndex")
+            .update_view(f"{range_index} = {range_}.index({column})") \
+            .where(f"!isNull({range_index})") \
+            .drop_columns(range_) \
+            .agg_by([agg_func(column)], range_index)
         yield count_table, column
 
 
@@ -70,7 +91,10 @@ def create_hist_tables(
         columns: list[str],
         nbins: int = 10,
         range_bins: list[int] = None,
-        histfunc: str = 'count'
+        histfunc: str = 'count',
+        barnorm: str = None,
+        histnorm: str = None,
+        cumulative: str = None
 ) -> tuple[Table, str, list[str]]:
     """
     Create the histogram table that contains aggregated bin counts
@@ -80,35 +104,90 @@ def create_hist_tables(
     :param nbins: The number of bins, shared between all histograms
     :param range_bins: The range that the bins are drawn over. If none, the range
     will be over all data
-    :param histfunc: The function to aggregate values within each bin
+    :param histfunc: The function to use when aggregating within bins. One of
+    'avg', 'count', 'count_distinct', 'max', 'median', 'min', 'std', 'sum',
+    or 'var'
+    :param barnorm: Default None. If 'fraction', the value of the bar is
+    divided by all bars at that location. If 'percentage', the result is the
+    same but multiplied by 100.
+    :param histnorm: Default None. If 'probability', the value at this bin is
+    divided out of the total of all bins in this column. If 'percent', result
+    is the same as 'probability' but multiplied by 100. If 'density', the value
+    is divided by the width of the bin. If 'probability density', the value is
+    divided out of the total of all bins in this column and the width of the
+    bin.
+    :param cumulative: Default False. If True, values are cumulative.
     :return: A tuple containing (the new counts table,
     the column of the midpoint, the columns that contain counts)
     """
+    names = get_unique_names(table, ["range_index", "range", "bin_min", "bin_max", "bins", "total"])
+    range_index, bin_min, bin_max, range_, total = (
+        names["range_index"], names["bin_min"], names["bin_max"],
+        names["range"], names["total"]
+    )
+
     columns = list(set(columns))
 
-    range_table = create_range_table(table, columns, nbins, range_bins)
+    range_table = create_range_table(table, columns, nbins, range_bins, names["range"])
     bin_counts = new_table([
-        long_col("RangeIndex", [i for i in range(nbins)])
+        long_col(names[range_index], [i for i in range(nbins)])
     ])
 
     count_cols = []
 
     for count_table, count_col in \
-            create_count_tables(table, columns, range_table, histfunc):
+            create_count_tables(table, columns, range_table, histfunc,
+                                range_, range_index):
         bin_counts = bin_counts.natural_join(
             count_table,
-            on=["RangeIndex"],
+            on=[range_index],
             joins=[count_col]
         )
         count_cols.append(count_col)
 
     # this name also ends up on the chart if there is a list of cols
-    var_axis_name = "bins"
+    var_axis_name = names["bins"]
 
     bin_counts = bin_counts.join(range_table) \
-        .update_view(["BinMin = Range.binMin(RangeIndex)",
-                      "BinMax = Range.binMax(RangeIndex)",
-                      f"{var_axis_name}=0.5*(BinMin+BinMax)"])
+        .update_view([f"{bin_min} = {range_}.binMin({range_index})",
+                      f"{bin_max} = {range_}.binMax({range_index})",
+                      f"{var_axis_name}=0.5*({bin_min}+{bin_max})"])
+
+    if histnorm in {'percent', 'probability', 'probability density'}:
+        mult_factor = 100 if histnorm == 'percent' else 1
+
+        sums = [f"{col}_sum = {col}" for col in count_cols]
+
+        normed = [f"{col} = {col} * {mult_factor} / {col}_sum"
+                  for col in count_cols]
+
+        # range_ and bin cols need to be kept for probability density
+        # var_axis_name needs to be kept for plotting
+        bin_counts = bin_counts.agg_by([
+            agg.sum_(sums),
+            agg.group(count_cols +
+                      [var_axis_name, range_, bin_min, bin_max])
+        ]).update_view(normed).ungroup()
+
+    if cumulative:
+        bin_counts = bin_counts.update_by(
+            cum_sum(count_cols)
+        )
+
+    # note: with plotly express, cumulative=True will ignore density (including
+    # the density part of probability density)
+    if histnorm in {'density', 'probability density'}:
+        bin_counts = bin_counts.update_view(
+            [f"{col} = {col} / ({bin_max} - {bin_min})" for col in count_cols]
+        )
+
+    if barnorm:
+        mult_factor = 100 if barnorm == 'percent' else 1
+        sum_form = f"sum({','.join(count_cols)})"
+        bin_counts = bin_counts.update_view(
+            [f"{total}={sum_form}"] +
+            [f"{col}={col} * {mult_factor} / {total}" for col in count_cols]
+        )
 
     return bin_counts, var_axis_name, count_cols
 
@@ -134,7 +213,8 @@ def create_range_table(
         table: Table,
         columns: list[str],
         nbins: int,
-        range_: list[int]
+        range_bins: list[int],
+        range_: str
 ) -> Table:
     """
     Create a table that contains the bin ranges
@@ -142,13 +222,14 @@ def create_range_table(
     :param table: The table to pull data from
     :param columns: The column names to create the range table over
     :param nbins: The number of bins to use
-    :param range_: The range that the bins are drawn over. If none, the range
+    :param range_bins: The range that the bins are drawn over. If none, the range
     will be over all data
+    :param range_: The name of the range column. Generally "range"
     :return: A new table that contains a range object in a Range column
     """
-    if range_:
-        range_min = range_[0]
-        range_max = range_[1]
+    if range_bins:
+        range_min = range_bins[0]
+        range_max = range_bins[1]
         table = empty_table(1)
     else:
         range_min = "RangeMin"
@@ -160,9 +241,9 @@ def create_range_table(
             .update([f"RangeMin = min({min_cols})", f"RangeMax = max({max_cols})"])
 
     return table.update(
-        f"Range = new io.deephaven.plot.datasets.histogram."
+        f"{range_} = new io.deephaven.plot.datasets.histogram."
         f"DiscretizedRangeEqual({range_min},{range_max}, "
-        f"{nbins})").view("Range")
+        f"{nbins})").view(range_)
 
 
 def time_length(

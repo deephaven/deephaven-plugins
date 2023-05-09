@@ -286,15 +286,15 @@ def histogram(
         marginal: str = None,
         opacity: float = None,
         barmode: str = 'relative',
-        # barnorm: str = None,
-        # histnorm: str = None,
+        barnorm: str = None,
+        histnorm: str = None,
         log_x: bool = False,
         log_y: bool = False,
         range_x: list[int] = None,
         range_y: list[int] = None,
         range_bins: list[int] = None,
         histfunc: str = 'count',
-        # cumulative: bool = False,
+        cumulative: bool = False,
         nbins: int = 10,
         text_auto: bool | str = False,
         title: str = None,
@@ -323,6 +323,15 @@ def histogram(
     :param barmode: Default 'relative'. If 'relative', bars are stacked. If
     'overlay', bars are drawn on top of each other. If 'group', bars are drawn
     next to each other.
+    :param barnorm: Default None. If 'fraction', the value of the bar is
+    divided by all bars at that location. If 'percentage', the result is the
+    same but multiplied by 100.
+    :param histnorm: Default None. If 'probability', the value at this bin is
+    divided out of the total of all bins in this column. If 'percent', result
+    is the same as 'probability' but multiplied by 100. If 'density', the value
+    is divided by the width of the bin. If 'probability density', the value is
+    divided out of the total of all bins in this column and the width of the
+    bin.
     :param log_x: A boolean that specifies if the corresponding axis is a log
     axis or not.
     :param log_y: A boolean that specifies if the corresponding axis is a log
@@ -334,6 +343,7 @@ def histogram(
     :param histfunc: The function to use when aggregating within bins. One of
     'avg', 'count', 'count_distinct', 'max', 'median', 'min', 'std', 'sum',
     or 'var'
+    :param cumulative: Default False. If True, values are cumulative.
     :param nbins: Default 10. The number of bins to use.
     :param text_auto: Default False. If True, display the value at each bar.
     If a string, specifies a plotly texttemplate.
@@ -357,6 +367,9 @@ def histogram(
     args.pop("nbins")
     args.pop("histfunc")
     args.pop("range_bins")
+    args.pop("histnorm")
+    args.pop("barnorm")
+    args.pop("cumulative")
 
     args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
     args["pattern_shape_sequence_bar"] = args.pop("pattern_shape_sequence")
@@ -370,7 +383,10 @@ def histogram(
         create_hist_tables,
         nbins=nbins,
         range_bins=range_bins,
-        histfunc=histfunc
+        histfunc=histfunc,
+        barnorm=barnorm,
+        histnorm=histnorm,
+        cumulative=cumulative
     )
 
     create_layered = partial(
