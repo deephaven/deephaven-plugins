@@ -38,11 +38,19 @@ def preprocess_aggregate(
     return table.view([names, values]).sum_by(names)
 
 
-# TODO: generalize
 def get_unique_names(
-        table,
-        orig_names
+        table: Table,
+        orig_names: list[str]
 ) -> dict[str, str]:
+    """
+    Calculate names that do not occur in table, starting from the names in
+    orig_names
+
+    :param table: The table to check against
+    :param orig_names:
+    :return: A dictionary that maps orig_names to new names that are not found
+    in the table
+    """
     new_names = {}
 
     table_columns = {column.name for column in table.columns}
