@@ -185,7 +185,8 @@ def create_hist_tables(
         # with plotly express, cumulative=True will ignore density (including
         # the density part of probability density, but not the probability
         # part)
-        histnorm = histnorm.replace("density", "").strip()
+        if histnorm:
+            histnorm = histnorm.replace("density", "").strip()
 
     if histnorm in {'density', 'probability density'}:
         bin_counts = bin_counts.update_view(
