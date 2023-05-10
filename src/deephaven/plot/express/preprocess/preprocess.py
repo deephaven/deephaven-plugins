@@ -174,8 +174,11 @@ def create_hist_tables(
             cum_sum(count_cols)
         )
 
-    # note: with plotly express, cumulative=True will ignore density (including
-    # the density part of probability density)
+        # with plotly express, cumulative=True will ignore density (including
+        # the density part of probability density, but not the probability
+        # part)
+        histnorm = histnorm.replace("density", "").strip()
+
     if histnorm in {'density', 'probability density'}:
         bin_counts = bin_counts.update_view(
             [f"{col} = {col} / ({bin_max} - {bin_min})" for col in count_cols]
