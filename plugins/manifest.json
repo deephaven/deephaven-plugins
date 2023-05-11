@@ -1,0 +1,7 @@
+{
+  "plugins": [
+    { "name": "matplotlib", "version": "0.1.0", "main": "dist/index.js" },
+    { "name": "plotly-express", "version": "0.1.0", "main": "dist/index.js" },
+    { "name": "auth-keycloak", "version": "0.1.0", "main": "dist/index.js" }
+  ]
+}

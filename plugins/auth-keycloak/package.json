@@ -1,32 +1,34 @@
 {
-  "name": "@deephaven/js-plugin-matplotlib",
-  "version": "0.3.0",
-  "description": "Deephaven matplotlib plugin",
+  "name": "@deephaven/js-plugin-auth-keycloak",
+  "version": "0.2.0",
+  "description": "Deephaven Keycloak authentication plugin",
   "keywords": [
     "Deephaven",
     "plugin",
     "deephaven-js-plugin",
-    "matplotlib"
+    "auth",
+    "authentication",
+    "keycloak"
   ],
   "author": "Deephaven Data Labs LLC",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/deephaven/web-client-ui"
+    "url": "git+https://github.com/deephaven/deephaven-js-plugins"
   },
   "bugs": {
-    "url": "https://github.com/deephaven/web-client-ui/issues"
+    "url": "https://github.com/deephaven/deephaven-js-plugins/issues"
   },
-  "homepage": "https://github.com/deephaven/web-client-ui",
+  "homepage": "https://github.com/deephaven/deephaven-js-plugins",
   "scripts": {
     "start": "vite build --watch",
     "build": "vite build"
   },
   "devDependencies": {
+    "@types/plotly.js": "^2.12.18",
     "@types/react": "^17.0.2",
     "@vitejs/plugin-react-swc": "^3.0.0",
-    "@types/react-dom": "^17.0.2",
     "react": "^17.0.2",
     "typescript": "^4.5.4",
     "vite": "~4.1.4"
@@ -35,16 +37,19 @@
     "react": "^17.0.2"
   },
   "dependencies": {
+    "@deephaven/auth-plugins": "^0.38.0",
     "@deephaven/components": "^0.38.0",
-    "@deephaven/dashboard": "^0.38.0",
-    "@deephaven/jsapi-shim": "^0.38.0",
+    "@deephaven/jsapi-bootstrap": "^0.38.0",
+    "@deephaven/jsapi-components": "^0.38.0",
+    "@deephaven/jsapi-types": "^0.38.0",
     "@deephaven/log": "^0.38.0",
-    "shortid": "^2.2.16"
+    "@deephaven/utils": "^0.38.0",
+    "keycloak-js": "^21.0.2"
   },
   "publishConfig": {
     "access": "public"
   },
   "files": [
-    "dist/index.js"
+    "dist"
   ]
 }

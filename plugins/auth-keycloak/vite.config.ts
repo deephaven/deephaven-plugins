@@ -11,7 +11,17 @@ export default defineConfig(({ mode }) => ({
       formats: ['cjs'],
     },
     rollupOptions: {
-      external: ['react', 'react-dom', 'redux', 'react-redux'],
+      external: [
+        'react',
+        'react-dom',
+        'redux',
+        'react-redux',
+        '@deephaven/auth-plugins',
+        '@deephaven/jsapi-utils',
+        '@deephaven/jsapi-bootstrap',
+        '@deephaven/jsapi-components',
+        '@deephaven/log',
+      ],
     },
   },
   define:
