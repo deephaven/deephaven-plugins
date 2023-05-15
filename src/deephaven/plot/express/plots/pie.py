@@ -5,7 +5,7 @@ from plotly import express as px
 
 from deephaven.table import Table
 
-from ._private_utils import default_callback, validate_common_args, unsafe_figure_update_wrapper
+from ._private_utils import default_callback, process_args
 from ..deephaven_figure import generate_figure, DeephavenFigure
 from ..preprocess import preprocess_aggregate
 
@@ -33,6 +33,8 @@ def pie(
     colors will be reused.
     :param title: The title of the chart
     :param template: The template for the chart.
+    :param opacity: Opacity to apply to all markers. 0 is completely
+    transparent and 1 is completely opaque.
     :param hole: Fraction of the radius to cut out of the center of the pie.
     :param aggregate: Default True, aggregate the table names by total values. Can
     be set to False if the table is already aggregated by name.
@@ -46,19 +48,10 @@ def pie(
     """
     args = locals()
 
-    validate_common_args(args)
-
     if aggregate:
         args["table"] = preprocess_aggregate(table, names, values)
 
-    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
-
-    args.pop("aggregate")
-
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper,
-        args.pop("unsafe_update_figure")
-    )
+    update_wrapper = process_args(args, {"marker"}, pop=["aggregate"])
 
     return update_wrapper(
         generate_figure(draw=px.pie, call_args=args)

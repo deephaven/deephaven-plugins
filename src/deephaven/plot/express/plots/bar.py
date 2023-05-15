@@ -5,7 +5,7 @@ from plotly import express as px
 
 from deephaven.table import Table
 
-from ._private_utils import default_callback, validate_common_args, preprocess_and_layer, unsafe_figure_update_wrapper
+from ._private_utils import default_callback, validate_common_args, preprocess_and_layer, process_args
 from ..deephaven_figure import generate_figure, DeephavenFigure
 from ..preprocess import preprocess_timeline, preprocess_frequency_bar
 
@@ -18,6 +18,7 @@ def bar(
         error_x_minus: str | list[str] = None,
         error_y: str | list[str] = None,
         error_y_minus: str | list[str] = None,
+        text: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
         pattern_shape_sequence: list[str] = None,
         opacity: float = None,
@@ -53,6 +54,7 @@ def bar(
     :param error_y_minus: A column or list of columns with x error
     bar values. These form the error bars in the negative direction, and are
     ignored if error_y is not specified.
+    :param text: A column or list of columns that contain text annotations.
     :param color_discrete_sequence: A list of colors to sequentially apply to
     the series. The colors loop, so if there are more series than colors,
     colors will be reused.
@@ -95,15 +97,8 @@ def bar(
     :return: A DeephavenFigure that contains the bar chart
     """
     args = locals()
-    args["pattern_shape_sequence_bar"] = args.pop("pattern_shape_sequence")
-    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
-    validate_common_args(args)
-
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper,
-        args.pop("unsafe_update_figure")
-    )
+    update_wrapper = process_args(args, {"bar"})
 
     return update_wrapper(
         generate_figure(draw=px.bar, call_args=args)
@@ -142,6 +137,7 @@ def timeline(
         x_start: str = None,
         x_end: str = None,
         y: str = None,
+        text: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
         pattern_shape_sequence: list[str] = None,
         opacity: float = None,
@@ -158,6 +154,7 @@ def timeline(
     :param x_start: A column that contains starting x-axis values.
     :param x_end: A column that contains ending x-axis values.
     :param y: A column or list of columns that contain y-axis labels
+    :param text: A column or list of columns that contain text annotations.
     :param color_discrete_sequence: A list of colors to sequentially apply to
     the series. The colors loop, so if there are more series than colors,
     colors will be reused.
@@ -181,14 +178,8 @@ def timeline(
     # TODO: add resource column?
     table, x_diff = preprocess_timeline(table, x_start, x_end, y)
     args = locals()
-    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
-    validate_common_args(args)
-
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper,
-        args.pop("unsafe_update_figure")
-    )
+    update_wrapper = process_args(args, {"marker"})
 
     return update_wrapper(
         generate_figure(draw=px.timeline, call_args=args)
@@ -256,15 +247,8 @@ def frequency_bar(
         raise ValueError("Cannot specify both x and y")
 
     args = locals()
-    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
-    args["pattern_shape_sequence_bar"] = args.pop("pattern_shape_sequence")
 
-    validate_common_args(args)
-
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper,
-        args.pop("unsafe_update_figure")
-    )
+    update_wrapper = process_args(args, {"bar"})
 
     create_layered = partial(preprocess_and_layer,
                              preprocess_frequency_bar,

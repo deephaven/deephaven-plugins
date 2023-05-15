@@ -6,7 +6,7 @@ from plotly import express as px
 from deephaven.table import Table
 
 from ._private_utils import default_callback, validate_common_args, preprocess_and_layer, layer, \
-    unsafe_figure_update_wrapper
+    unsafe_figure_update_wrapper, process_args
 from ..deephaven_figure import DeephavenFigure
 from ..preprocess import preprocess_ecdf, create_hist_tables, preprocess_violin
 
@@ -67,14 +67,7 @@ def violin(
 
     args = locals()
 
-    validate_common_args(args)
-
-    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
-
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper,
-        args.pop("unsafe_update_figure")
-    )
+    update_wrapper = process_args(args, {"marker"})
 
     create_layered = partial(preprocess_and_layer,
                              preprocess_violin,
@@ -142,14 +135,7 @@ def box(
 
     args = locals()
 
-    validate_common_args(args)
-
-    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
-
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper,
-        args.pop("unsafe_update_figure")
-    )
+    update_wrapper = process_args(args, {"marker"})
 
     create_layered = partial(preprocess_and_layer,
                              preprocess_violin,
@@ -211,14 +197,7 @@ def strip(
 
     args = locals()
 
-    validate_common_args(args)
-
-    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
-
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper,
-        args.pop("unsafe_update_figure")
-    )
+    update_wrapper = process_args(args, {"marker"})
 
     create_layered = partial(preprocess_and_layer,
                              preprocess_violin,
@@ -363,22 +342,6 @@ def histogram(
 
     marg_data, marg_style = get_marg_args(args)
 
-    # remove arguments not used in bar
-    args.pop("nbins")
-    args.pop("histfunc")
-    args.pop("range_bins")
-    args.pop("histnorm")
-    args.pop("barnorm")
-    args.pop("cumulative")
-
-    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
-    args["pattern_shape_sequence_bar"] = args.pop("pattern_shape_sequence")
-
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper,
-        args.pop("unsafe_update_figure")
-    )
-
     preprocessor = partial(
         create_hist_tables,
         nbins=nbins,
@@ -395,6 +358,12 @@ def histogram(
         str_val_axis_name=histfunc,
         list_val_axis_name=histfunc,
         is_hist=True
+    )
+
+    update_wrapper = process_args(
+        args, {"bar"},
+        pop=["nbins", "histfunc", "range_bins", "histnorm", "barnorm",
+             "cumulative"]
     )
 
     var = "x" if x else "y"

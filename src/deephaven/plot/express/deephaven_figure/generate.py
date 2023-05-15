@@ -64,7 +64,8 @@ SEQUENCE_ARGS_MAP = {
     "color_discrete_sequence_marker": "marker_color",
     "increasing_color_sequence": "increasing_line_color",
     "decreasing_color_sequence": "decreasing_line_color",
-    "size_sequence": "marker_size"
+    "size_sequence": "marker_size",
+    "mode": "mode"
 }
 
 # these args should always be converted to a list and only passed to custom
@@ -97,7 +98,8 @@ ATTACHED_UPDATE_MAP = {
     "error_y_minus": "error_y_arrayminus",
     "error_z": "error_z_array",
     "error_z_minus": "error_z_arrayminus",
-    "size": "marker_size"
+    "size": "marker_size",
+    "text": "text",
 }
 
 

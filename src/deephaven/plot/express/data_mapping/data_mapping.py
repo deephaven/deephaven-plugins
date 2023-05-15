@@ -18,6 +18,7 @@ CUSTOM_DATA_ARGS = {
     "error_z_minus": "error_z/arrayminus",
     "x_diff": "x",
     "size": "marker/size",
+    "text": "text",
 }
 
 # override these data columns with different names
@@ -28,7 +29,7 @@ OVERRIDES = {
 
 # x_end is not used, the calculations are made in preprocessing step and passed to x
 REMOVE = {
-    "x_end"
+    "x_end",
 }
 
 

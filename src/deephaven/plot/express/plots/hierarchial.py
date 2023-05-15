@@ -5,7 +5,7 @@ from plotly import express as px
 
 from deephaven.table import Table
 
-from ._private_utils import default_callback, validate_common_args, unsafe_figure_update_wrapper
+from ._private_utils import default_callback, process_args
 from ..deephaven_figure import generate_figure, DeephavenFigure
 from ..preprocess import preprocess_aggregate
 
@@ -16,7 +16,6 @@ def treemap(
         values: str = None,
         parents: str = None,
         ids: str = None,
-        # path: str = None,
         title: str = None,
         template: str = None,
         branchvalues: str = None,
@@ -49,12 +48,7 @@ def treemap(
     """
     args = locals()
 
-    validate_common_args(args)
-
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper,
-        args.pop("unsafe_update_figure")
-    )
+    update_wrapper = process_args(args)
 
     return update_wrapper(
         generate_figure(draw=px.treemap, call_args=args)
@@ -99,12 +93,7 @@ def sunburst(
     """
     args = locals()
 
-    validate_common_args(args)
-
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper,
-        args.pop("unsafe_update_figure")
-    )
+    update_wrapper = process_args(args)
 
     return update_wrapper(
         generate_figure(draw=px.sunburst, call_args=args)
@@ -149,12 +138,7 @@ def icicle(
     """
     args = locals()
 
-    validate_common_args(args)
-
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper,
-        args.pop("unsafe_update_figure")
-    )
+    update_wrapper = process_args(args)
 
     return update_wrapper(
         generate_figure(draw=px.icicle, call_args=args)
@@ -165,6 +149,7 @@ def funnel(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
+        text: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
         opacity: float = None,
         orientation: str = None,
@@ -182,6 +167,7 @@ def funnel(
     :param table: A table to pull data from.
     :param x: A column that contains x-axis values.
     :param y: A column that contains y-axis values.
+    :param text: A column or list of columns that contain text annotations.
     :param color_discrete_sequence: A list of colors to sequentially apply to
     the series. The colors loop, so if there are more series than colors,
     colors will be reused.
@@ -206,12 +192,7 @@ def funnel(
     """
     args = locals()
 
-    validate_common_args(args)
-
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper,
-        args.pop("unsafe_update_figure")
-    )
+    update_wrapper = process_args(args, {"marker"})
 
     return update_wrapper(
         generate_figure(draw=px.funnel, call_args=args)
@@ -255,19 +236,10 @@ def funnel_area(
 
     args = locals()
 
-    validate_common_args(args)
-
     if aggregate:
         args["table"] = preprocess_aggregate(table, names, values)
 
-    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
-
-    args.pop("aggregate")
-
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper,
-        args.pop("unsafe_update_figure")
-    )
+    update_wrapper = process_args(args, {"marker"}, pop=["aggregate"])
 
     return update_wrapper(
         generate_figure(draw=px.funnel_area, call_args=args)

@@ -7,7 +7,7 @@ from plotly import express as px
 from deephaven.table import Table
 
 from .distribution import attach_marginals, get_marg_args
-from ._private_utils import default_callback, validate_common_args, remap_scene_args, unsafe_figure_update_wrapper
+from ._private_utils import default_callback, process_args
 from ..deephaven_figure import generate_figure, DeephavenFigure
 
 
@@ -20,6 +20,7 @@ def scatter(
         error_y: str | list[str] = None,
         error_y_minus: str | list[str] = None,
         size: str | list[str] = None,
+        text: str | list[str] = None,
         # labels: dict[str, str] = None
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
@@ -54,6 +55,7 @@ def scatter(
     bar values. These form the error bars in the negative direction, and are
     ignored if error_x is not specified.
     :param size: A column or list of columns that contain size values.
+    :param text: A column or list of columns that contain text annotations.
     :param error_y: A column or list of columns with x error bar
     values. These form the error bars in both the positive and negative
     direction if error_y_minus is not specified, and the error bars in only the
@@ -113,18 +115,11 @@ def scatter(
     behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the scatter chart
     """
-    render_mode = "webgl"
     args = locals()
 
-    validate_common_args(args)
-
     marg_data, marg_style = get_marg_args(args)
-    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
 
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper,
-        args.pop("unsafe_update_figure")
-    )
+    update_wrapper = process_args(args, {"scatter"})
 
     return update_wrapper(
         attach_marginals(
@@ -148,6 +143,7 @@ def scatter_3d(
         error_z: str | list[str] = None,
         error_z_minus: str | list[str] = None,
         size: str | list[str] = None,
+        text: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
         size_sequence: list[int] = None,
@@ -191,6 +187,7 @@ def scatter_3d(
     the error bars in the negative direction, and are ignored if error_x is not
     specified.
     :param size: A column or list of columns that contain size values.
+    :param text: A column or list of columns that contain text annotations.
     :param color_discrete_sequence: A list of colors to sequentially apply to
     the series. The colors loop, so if there are more series than colors,
     colors will be reused.
@@ -223,16 +220,7 @@ def scatter_3d(
     """
     args = locals()
 
-    validate_common_args(args)
-
-    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
-
-    remap_scene_args(args)
-
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper,
-        args.pop("unsafe_update_figure")
-    )
+    update_wrapper = process_args(args, {"scatter", "scene"})
 
     return update_wrapper(
         generate_figure(draw=px.scatter_3d, call_args=args)
@@ -244,6 +232,7 @@ def scatter_polar(
         r: str = None,
         theta: str = None,
         size: str | list[str] = None,
+        text: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
         size_sequence: list[int] = None,
@@ -264,6 +253,7 @@ def scatter_polar(
     :param r: A column that contains r values.
     :param theta: A column that contains theta values.
     :param size: A column or list of columns that contain size values.
+    :param text: A column or list of columns that contain text annotations.
     :param color_discrete_sequence: A list of colors to sequentially apply to
     the series. The colors loop, so if there are more series than colors,
     colors will be reused.
@@ -291,17 +281,9 @@ def scatter_polar(
     behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the polar scatter chart
     """
-    render_mode = "webgl"
     args = locals()
 
-    validate_common_args(args)
-
-    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
-
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper,
-        args.pop("unsafe_update_figure")
-    )
+    update_wrapper = process_args(args, {"scatter"})
 
     return update_wrapper(
         generate_figure(draw=px.scatter_polar, call_args=args)
@@ -314,6 +296,7 @@ def scatter_ternary(
         b: str = None,
         c: str = None,
         size: str | list[str] = None,
+        text: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
         size_sequence: list[int] = None,
@@ -330,6 +313,7 @@ def scatter_ternary(
     :param b: A column that contains b-axis values.
     :param c: A column that contains c-axis values.
     :param size: A column or list of columns that contain size values.
+    :param text: A column or list of columns that contain text annotations.
     :param color_discrete_sequence: A list of colors to sequentially apply to
     the series. The colors loop, so if there are more series than colors,
     colors will be reused.
@@ -352,14 +336,8 @@ def scatter_ternary(
     :return: A DeephavenFigure that contains the ternary scatter chart
     """
     args = locals()
-    validate_common_args(args)
 
-    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
-
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper,
-        args.pop("unsafe_update_figure")
-    )
+    update_wrapper = process_args(args, {"scatter"})
 
     return update_wrapper(
         generate_figure(draw=px.scatter_ternary, call_args=args)

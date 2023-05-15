@@ -5,7 +5,7 @@ from plotly import express as px
 
 from deephaven.table import Table
 
-from ._private_utils import default_callback, validate_common_args, remap_scene_args, unsafe_figure_update_wrapper
+from ._private_utils import default_callback, process_args
 from ..deephaven_figure import generate_figure, DeephavenFigure
 
 
@@ -19,6 +19,7 @@ def line(
         error_y: str | list[str] = None,
         error_y_minus: str | list[str] = None,
         size: str | list[str] = None,
+        text: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
         line_dash_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
@@ -60,6 +61,7 @@ def line(
     bar values. These form the error bars in the negative direction, and are
     ignored if error_y is not specified.
     :param size: A column or list of columns that contain size values.
+    :param text: A column or list of columns that contain text annotations.
     :param color_discrete_sequence: A list of colors to sequentially apply to
     the series. The colors loop, so if there are more series than colors,
     colors will be reused.
@@ -116,14 +118,7 @@ def line(
     """
     args = locals()
 
-    validate_common_args(args)
-
-    args["color_discrete_sequence_line"] = args.pop("color_discrete_sequence")
-
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper,
-        args.pop("unsafe_update_figure")
-    )
+    update_wrapper = process_args(args, {"line"})
 
     return update_wrapper(
         generate_figure(draw=px.line, call_args=args)
@@ -142,6 +137,7 @@ def line_3d(
         error_z: str | list[str] = None,
         error_z_minus: str | list[str] = None,
         size: str | list[str] = None,
+        text: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
         size_sequence: list[int] = None,
@@ -171,6 +167,7 @@ def line_3d(
     the error bars in the negative direction, and are ignored if error_x is not
     specified.
     :param size: A column or list of columns that contain size values.
+    :param text: A column or list of columns that contain text annotations.
     :param error_y: A column with x error bar values. These form the error
     bars in both the positive and negative direction if error_z_minus is not
     specified, and the error bars in only the positive direction if
@@ -217,16 +214,7 @@ def line_3d(
     """
     args = locals()
 
-    validate_common_args(args)
-
-    args["color_discrete_sequence_line"] = args.pop("color_discrete_sequence")
-
-    remap_scene_args(args)
-
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper,
-        args.pop("unsafe_update_figure")
-    )
+    update_wrapper = process_args(args, {"line", "scene"})
 
     return update_wrapper(
         generate_figure(draw=px.line_3d, call_args=args)
@@ -238,6 +226,7 @@ def line_polar(
         r: str = None,
         theta: str = None,
         size: str | list[str] = None,
+        text: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
         size_sequence: list[int] = None,
@@ -260,6 +249,7 @@ def line_polar(
     :param r: A column that contains r values.
     :param theta: A column that contains theta values.
     :param size: A column or list of columns that contain size values.
+    :param text: A column or list of columns that contain text annotations.
     :param color_discrete_sequence: A list of colors to sequentially apply to
     the series. The colors loop, so if there are more series than colors,
     colors will be reused.
@@ -291,15 +281,10 @@ def line_polar(
     behavior if traces are modified in a way that break data mappings.
     :return: A DeephavenFigure that contains the polar scatter chart
     """
+
     args = locals()
-    args["color_discrete_sequence_line"] = args.pop("color_discrete_sequence")
 
-    validate_common_args(args)
-
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper,
-        args.pop("unsafe_update_figure")
-    )
+    update_wrapper = process_args(args, {"line"})
 
     return update_wrapper(
         generate_figure(draw=px.line_polar, call_args=args)
@@ -312,6 +297,7 @@ def line_ternary(
         b: str = None,
         c: str = None,
         size: str | list[str] = None,
+        text: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
         size_sequence: list[int] = None,
@@ -329,6 +315,7 @@ def line_ternary(
     :param b: A column that contains b-axis values.
     :param c: A column that contains c-axis values.
     :param size: A column or list of columns that contain size values.
+    :param text: A column or list of columns that contain text annotations.
     :param color_discrete_sequence: A list of colors to sequentially apply to
     the series. The colors loop, so if there are more series than colors,
     colors will be reused.
@@ -354,14 +341,7 @@ def line_ternary(
     """
     args = locals()
 
-    validate_common_args(args)
-
-    args["color_discrete_sequence_line"] = args.pop("color_discrete_sequence")
-
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper,
-        args.pop("unsafe_update_figure")
-    )
+    update_wrapper = process_args(args, {"line"})
 
     return update_wrapper(
         generate_figure(draw=px.line_ternary, call_args=args)

@@ -1,9 +1,7 @@
 from functools import partial
-from itertools import chain
 from typing import Callable
-from collections.abc import Generator, Iterator
+from collections.abc import Generator
 
-from plotly import subplots
 from plotly.graph_objects import Figure
 
 from deephaven.table import Table
@@ -694,3 +692,150 @@ def preprocess_and_layer(
     )
 
     return layered
+
+
+def calculate_mode(
+        base_mode: str,
+        args: dict[str, any]
+) -> None:
+    """
+    Calculate the mode of the traces based on the arguments
+
+    :param base_mode: The mode that this trace definitely has, either lines or markers
+    :param args: The args to use to figure out the mode
+    :return: The mode. Some combination of markers, lines, text, joined by '+'.
+    """
+    modes = [base_mode]
+    if base_mode == "lines" and any([
+        args.get("markers", None),
+        args.get("symbol", None),
+        args.get("symbol_sequence", None),
+        args.get("text", None)]
+    ):
+        modes.append("markers")
+    if args.get("text", None):
+        modes.append("text")
+    return "+".join(modes)
+
+
+def apply_args_groups(
+        args: dict[str, any],
+        groups: set[str]
+) -> None:
+    """
+    Transform args depending on groups
+
+    :param args: A dictionary of args to transform
+    :param groups: A set of groups used to transform the args
+    """
+    groups = groups if isinstance(groups, set) else {groups}
+
+    sync_dict = SyncDict(args)
+
+    if "scatter" in groups:
+        args["mode"] = calculate_mode("markers", args)
+        args["color_discrete_sequence_marker"] = sync_dict.will_pop(
+            "color_discrete_sequence")
+
+    if "line" in groups:
+        args["mode"] = calculate_mode("lines", args)
+        args["color_discrete_sequence_marker"] = sync_dict.will_pop(
+            "color_discrete_sequence")
+        args["color_discrete_sequence_line"] = sync_dict.will_pop(
+            "color_discrete_sequence")
+
+    if "ecdf" in groups:
+        # ecdf should be forced to lines even if both "lines" and "markers" are False
+        base_mode = "lines" if args["lines"] or not args["markers"] else "markers"
+        args["mode"] = calculate_mode(base_mode, args)
+        args["color_discrete_sequence_marker"] = sync_dict.will_pop(
+            "color_discrete_sequence")
+        args["color_discrete_sequence_line"] = sync_dict.will_pop(
+            "color_discrete_sequence")
+
+    if 'scene' in groups:
+        for arg in ["range_x", "range_y", "range_z", "log_x", "log_y", "log_z"]:
+            args[arg + '_scene'] = args.pop(arg)
+
+    if 'bar' in groups:
+        args["color_discrete_sequence_marker"] = sync_dict.will_pop(
+            "color_discrete_sequence")
+        args["pattern_shape_sequence_bar"] = sync_dict.will_pop(
+            "pattern_shape_sequence")
+
+    if 'marker' in groups:
+        args["color_discrete_sequence_marker"] = sync_dict.will_pop(
+            "color_discrete_sequence")
+
+    if 'area' in groups:
+        args["pattern_shape_sequence_area"] = sync_dict.will_pop(
+            "pattern_shape_sequence")
+
+    if "webgl" in groups:
+        args["render_mode"] = "webgl"
+
+    sync_dict.sync_pop()
+
+
+def process_args(
+        args: dict[str, any],
+        groups: set[str] = None,
+        add: dict[str, any] = None,
+        pop: list[str] = None,
+        remap: dict[str, str] = None
+) -> partial:
+    """
+    Process the provided args
+
+    :param args: A dictionary of args to process
+    :param groups: A set of groups that apply transformations to the args
+    :param add: A dictionary to add to the args
+    :param pop: A list of keys to remove from the args
+    :param remap: A dictionary mapping of keys to keys
+    :return: The update wrapper, based on the update function in the args
+    """
+    validate_common_args(args)
+
+    apply_args_groups(args, groups)
+
+    if add:
+        args.update(add)
+
+    if pop:
+        for arg in pop:
+            args.pop(arg)
+
+    if remap:
+        for old_arg, new_arg in remap.items():
+            args[new_arg] = args.pop(old_arg)
+
+    update_wrapper = partial(
+        unsafe_figure_update_wrapper,
+        args.pop("unsafe_update_figure")
+    )
+
+    return update_wrapper
+
+
+class SyncDict:
+    def __init__(self, d):
+        self.d = d
+        self.pop_set = set()
+
+    def will_pop(self, key):
+        """
+        Add a key to the set of keys that will eventually be popped
+
+        :param key: The key to add to the set
+        :return: The value associated with the key that will be popped
+        """
+        self.pop_set.add(key)
+        return self.d[key]
+
+    def sync_pop(self):
+        """
+        Pop all elements from the dictionary that have been added to the pop
+        set
+        """
+        for k in self.pop_set:
+            self.d.pop(k)

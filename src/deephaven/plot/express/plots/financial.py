@@ -3,7 +3,7 @@ from typing import Callable
 
 from deephaven.table import Table
 
-from ._private_utils import default_callback, validate_common_args, unsafe_figure_update_wrapper
+from ._private_utils import default_callback, validate_common_args, process_args
 from ..deephaven_figure import generate_figure, draw_ohlc, draw_candlestick, DeephavenFigure
 
 
@@ -63,14 +63,9 @@ def ohlc(
     # todo: range slider
     #   fig.update(layout_xaxis_rangeslider_visible=False)
     args = locals()
-    args["x_finance"] = args.pop("x")
-
-    validate_common_args(args)
-
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper,
-        args.pop("unsafe_update_figure")
-    )
+    update_wrapper = process_args(args, remap={
+        "x": "x_finance"
+    })
 
     return update_wrapper(
         generate_figure(draw=draw_ohlc, call_args=args)
@@ -133,12 +128,9 @@ def candlestick(
 
     validate_common_args(args)
 
-    args["x_finance"] = args.pop("x")
-
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper,
-        args.pop("unsafe_update_figure")
-    )
+    update_wrapper = process_args(args, remap={
+        "x": "x_finance"
+    })
 
     return update_wrapper(
         generate_figure(draw=draw_candlestick, call_args=args)

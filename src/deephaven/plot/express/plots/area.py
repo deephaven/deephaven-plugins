@@ -5,7 +5,7 @@ from plotly import express as px
 
 from deephaven.table import Table
 
-from ._private_utils import default_callback, validate_common_args, unsafe_figure_update_wrapper
+from ._private_utils import default_callback, process_args
 from ..deephaven_figure import generate_figure, DeephavenFigure
 
 
@@ -14,6 +14,7 @@ def area(
         x: str | list[str] = None,
         y: str | list[str] = None,
         size: str | list[str] = None,
+        text: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
         pattern_shape_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
@@ -41,6 +42,7 @@ def area(
     :param x: A column or list of columns that contain x-axis values.
     :param y: A column or list of columns that contain y-axis values.
     :param size: A column or list of columns that contain size values.
+    :param text: A column or list of columns that contain text annotations.
     :param color_discrete_sequence: A list of colors to sequentially apply to
     the series. The colors loop, so if there are more series than colors,
     colors will be reused.
@@ -101,16 +103,7 @@ def area(
     """
     args = locals()
 
-    validate_common_args(args)
-
-    args["pattern_shape_sequence_area"] = args.pop("pattern_shape_sequence")
-    args["color_discrete_sequence_marker"] = args["color_discrete_sequence"]
-    args["color_discrete_sequence_line"] = args.pop("color_discrete_sequence")
-
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper,
-        args.pop("unsafe_update_figure")
-    )
+    update_wrapper = process_args(args, {"area", "line"})
 
     return update_wrapper(
         generate_figure(draw=px.area, call_args=args)
