@@ -2,6 +2,7 @@ from functools import partial
 from typing import Callable
 from collections.abc import Generator
 
+import plotly.express as px
 from plotly.graph_objects import Figure
 
 from deephaven.table import Table
@@ -648,6 +649,14 @@ def preprocess_and_layer(
     table = args["table"]
     figs = []
     trace_generator = None
+    has_color = None
+
+    if not args.get("color_discrete_sequence_marker"):
+        # the colors need to match the plotly qualitative colors so they can be
+        # overriden, but has_color should be false as the color was not
+        # specified by the user
+        has_color = False
+        args["color_discrete_sequence_marker"] = px.colors.qualitative.Plotly
 
     if orientation:
         args["orientation"] = orientation
@@ -684,6 +693,9 @@ def preprocess_and_layer(
             trace_generator = figs[0].trace_generator
 
     layered = layer(*figs, which_layout=0)
+
+    if has_color is False:
+        layered.has_color = False
 
     update_legend_and_titles(
         layered, var, cols, is_list,
