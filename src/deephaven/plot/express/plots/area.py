@@ -15,6 +15,8 @@ def area(
         y: str | list[str] = None,
         size: str | list[str] = None,
         text: str | list[str] = None,
+        hover_name: str | list[str] = None,
+        labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
         pattern_shape_sequence: list[str] = None,
         symbol_sequence: list[str] = None,

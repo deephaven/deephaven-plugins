@@ -1,36 +1,12 @@
+from copy import deepcopy
 from itertools import cycle, product, zip_longest
 from collections.abc import Generator, Iterable
 
 from deephaven.table import Table
 
 from .DataMapping import DataMapping
+from .data_mapping_constants import CUSTOM_DATA_ARGS, OVERRIDES, REMOVE
 from ..shared import combined_generator
-
-# need to override some args since they aren't named in the trace directly
-# based on the variable name
-# these are appended
-CUSTOM_DATA_ARGS = {
-    "error_x": "error_x/array",
-    "error_x_minus": "error_x/arrayminus",
-    "error_y": "error_y/array",
-    "error_y_minus": "error_y/arrayminus",
-    "error_z": "error_z/array",
-    "error_z_minus": "error_z/arrayminus",
-    "x_diff": "x",
-    "size": "marker/size",
-    "text": "text",
-}
-
-# override these data columns with different names
-OVERRIDES = {
-    "names": "labels",
-    "x_start": "base",
-}
-
-# x_end is not used, the calculations are made in preprocessing step and passed to x
-REMOVE = {
-    "x_end",
-}
 
 
 def get_data_groups(
@@ -189,13 +165,12 @@ def zip_args(
             "close": c,
         }
 
-
 def create_data_mapping(
         data_dict: dict[str, str | list[str]],
         custom_call_args: dict[str, any],
         table: Table,
         start_index: int,
-) -> DataMapping:
+) -> tuple[DataMapping, list[dict[str, str]]]:
     """
     Create a data mapping of variable to table column
 
@@ -208,7 +183,6 @@ def create_data_mapping(
     mapping starts with
     :return: A DataMapping for a specific table
     """
-
     data_dict = remove_unmapped_args(data_dict)
 
     # in case of finance, zip instead of take product
@@ -221,7 +195,10 @@ def create_data_mapping(
 
     var_col_dicts = filter_none(var_col_dicts)
 
+    mappings = list(var_col_dicts)
+
+    # must copy mappings as they might be relabeled
     return DataMapping(
         table,
-        list(var_col_dicts),
-        start_index)
+        mappings,
+        start_index), deepcopy(mappings)

@@ -14,6 +14,8 @@ def pie(
         table: Table = None,
         names: str = None,
         values: str = None,
+        hover_name: str | list[str] = None,
+        labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
         title: str = None,
         template: str = None,

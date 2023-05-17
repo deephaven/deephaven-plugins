@@ -21,7 +21,8 @@ def scatter(
         error_y_minus: str | list[str] = None,
         size: str | list[str] = None,
         text: str | list[str] = None,
-        # labels: dict[str, str] = None
+        hover_name: str | list[str] = None,
+        labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
         size_sequence: list[int] = None,
@@ -56,6 +57,9 @@ def scatter(
     ignored if error_x is not specified.
     :param size: A column or list of columns that contain size values.
     :param text: A column or list of columns that contain text annotations.
+    :param hover_name: A column or list of columns that contain names to bold
+    in the hover tooltip.
+    :param labels: A dictionary of labels mapping columns to new labels.
     :param error_y: A column or list of columns with x error bar
     values. These form the error bars in both the positive and negative
     direction if error_y_minus is not specified, and the error bars in only the
@@ -144,6 +148,8 @@ def scatter_3d(
         error_z_minus: str | list[str] = None,
         size: str | list[str] = None,
         text: str | list[str] = None,
+        hover_name: str | list[str] = None,
+        labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
         size_sequence: list[int] = None,
@@ -233,6 +239,8 @@ def scatter_polar(
         theta: str = None,
         size: str | list[str] = None,
         text: str | list[str] = None,
+        hover_name: str | list[str] = None,
+        labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
         size_sequence: list[int] = None,
@@ -297,6 +305,8 @@ def scatter_ternary(
         c: str = None,
         size: str | list[str] = None,
         text: str | list[str] = None,
+        hover_name: str | list[str] = None,
+        labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
         size_sequence: list[int] = None,

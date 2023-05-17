@@ -19,6 +19,8 @@ def bar(
         error_y: str | list[str] = None,
         error_y_minus: str | list[str] = None,
         text: str | list[str] = None,
+        hover_name: str | list[str] = None,
+        labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
         pattern_shape_sequence: list[str] = None,
         opacity: float = None,
@@ -138,6 +140,8 @@ def timeline(
         x_end: str = None,
         y: str = None,
         text: str | list[str] = None,
+        hover_name: str | list[str] = None,
+        labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
         pattern_shape_sequence: list[str] = None,
         opacity: float = None,
@@ -190,6 +194,8 @@ def frequency_bar(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
+        hover_name: str | list[str] = None,
+        labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
         pattern_shape_sequence: list[str] = None,
         opacity: float = None,
@@ -252,7 +258,7 @@ def frequency_bar(
 
     create_layered = partial(preprocess_and_layer,
                              preprocess_frequency_bar,
-                             px.bar, args, list_var_axis_name="value")
+                             px.bar, args)
 
     return update_wrapper(
         create_layered("x") if x else create_layered("y", orientation="h")

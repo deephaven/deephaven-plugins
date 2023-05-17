@@ -6,6 +6,8 @@ from deephaven.column import long_col
 from deephaven.time import nanos_to_millis, diff_nanos
 from deephaven.updateby import cum_sum
 
+from ..shared import get_unique_names
+
 # Used to aggregate within histogram bins
 HISTFUNC_MAP = {
     'avg': agg.avg,
@@ -36,30 +38,6 @@ def preprocess_aggregate(
     specified names and values
     """
     return table.view([names, values]).sum_by(names)
-
-
-def get_unique_names(
-        table: Table,
-        orig_names: list[str]
-) -> dict[str, str]:
-    """
-    Calculate names that do not occur in table, starting from the names in
-    orig_names
-
-    :param table: The table to check against
-    :param orig_names:
-    :return: A dictionary that maps orig_names to new names that are not found
-    in the table
-    """
-    new_names = {}
-
-    table_columns = {column.name for column in table.columns}
-    for name in orig_names:
-        new_name = name
-        while new_name in table_columns:
-            new_name += '_'
-        new_names[name] = new_name
-    return new_names
 
 
 def create_count_tables(
@@ -128,7 +106,7 @@ def create_hist_tables(
     :return: A tuple containing (the new counts table,
     the column of the midpoint, the columns that contain counts)
     """
-    names = get_unique_names(table, ["range_index", "range", "bin_min", "bin_max", "bins", "total"])
+    names = get_unique_names(table, ["range_index", "range", "bin_min", "bin_max", "value", "total"])
     range_index, bin_min, bin_max, range_, total = (
         names["range_index"], names["bin_min"], names["bin_max"],
         names["range"], names["total"]
@@ -154,7 +132,7 @@ def create_hist_tables(
         count_cols.append(count_col)
 
     # this name also ends up on the chart if there is a list of cols
-    var_axis_name = names["bins"]
+    var_axis_name = names["value"]
 
     bin_counts = bin_counts.join(range_table) \
         .update_view([f"{bin_min} = {range_}.binMin({range_index})",

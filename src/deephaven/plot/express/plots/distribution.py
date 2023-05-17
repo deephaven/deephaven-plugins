@@ -15,6 +15,8 @@ def violin(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
+        hover_name: str | list[str] = None,
+        labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
         violinmode: str = 'group',
         log_x: bool = False,
@@ -71,8 +73,7 @@ def violin(
 
     create_layered = partial(preprocess_and_layer,
                              preprocess_violin,
-                             px.violin, args,
-                             list_var_axis_name="value")
+                             px.violin, args)
 
     return update_wrapper(
         create_layered("x") if x else create_layered("y")
@@ -83,6 +84,8 @@ def box(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
+        hover_name: str | list[str] = None,
+        labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
         boxmode: str = 'group',
         log_x: bool = False,
@@ -139,8 +142,7 @@ def box(
 
     create_layered = partial(preprocess_and_layer,
                              preprocess_violin,
-                             px.box, args,
-                             list_val_axis_name="value")
+                             px.box, args)
 
     return update_wrapper(
         create_layered("x") if x else create_layered("y")
@@ -151,6 +153,8 @@ def strip(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
+        hover_name: str | list[str] = None,
+        labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
         stripmode: bool | str = 'group',
         log_x: bool = False,
@@ -201,8 +205,7 @@ def strip(
 
     create_layered = partial(preprocess_and_layer,
                              preprocess_violin,
-                             px.strip, args,
-                             list_val_axis_name="value")
+                             px.strip, args)
 
     return update_wrapper(
         create_layered("x") if x else create_layered("y")
@@ -255,11 +258,12 @@ def _ecdf(
         create_layered("x") if x else create_layered("y", orientation="h")
     )
 
-
 def histogram(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
+        hover_name: str | list[str] = None,
+        labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
         pattern_shape_sequence: list[str] = None,
         marginal: str = None,
@@ -337,6 +341,8 @@ def histogram(
     :return: A DeephavenFigure that contains the histogram
     """
     bargap = 0
+    hist_val_name = histfunc
+
     args = locals()
     validate_common_args(args)
 
@@ -355,8 +361,6 @@ def histogram(
     create_layered = partial(
         preprocess_and_layer,
         preprocessor, px.bar, args,
-        str_val_axis_name=histfunc,
-        list_val_axis_name=histfunc,
         is_hist=True
     )
 

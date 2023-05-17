@@ -8,6 +8,7 @@ from plotly.graph_objects import Figure
 from deephaven.table import Table
 
 from ..deephaven_figure import generate_figure, DeephavenFigure, update_traces
+from ..shared import get_unique_names
 
 
 def default_callback(
@@ -125,14 +126,15 @@ def resize_xy_axis(
     """
     Resize either an x or y axis.
 
-    :param axis: The axis object to resize. It should have a "domain" key.
+    :param axis: The axis object to resize.
     :param new_domain: The new domain the map the figure to. Contains keys of x
     and y and values of domains, such as [0,0.5]
     :param which: Either "x" or "y"
     """
     new_domain_x = new_domain.get("x", None)
     new_domain_y = new_domain.get("y", None)
-    axis_domain = axis["domain"]
+    # the existing domain is assumed to be 0, 1 if not set
+    axis_domain = axis.get("domain", [0, 1])
     axis_position = axis.get("position", None)
     axis_update = {}
     try:
@@ -367,7 +369,7 @@ def fig_data_and_layout(
                           specs[i], new_axes_start)
 
     fig_layout = {}
-    if not which_layout or which_layout == i:
+    if which_layout is None or which_layout == i:
         fig_layout.update(fig.to_dict()['layout'])
 
     return fig.data, fig_layout
@@ -487,26 +489,11 @@ def remap_scene_args(
         args[arg + '_scene'] = args.pop(arg)
 
 
-def trace_legend_generator(
-        cols: list[str]
-) -> Generator[dict]:
-    """
-    Adds the traces to the legend
-
-    :param cols: The cols to label the trace with in the legend
-    :returns: A generator that yields trace updates
-    """
-    for col in cols:
-        yield {
-            "name": col,
-            "showlegend": True
-        }
-
-
 def preprocessed_fig(
         draw: Callable,
         keys: list[str],
         args: dict[str, any],
+        is_list: bool,
         trace_generator: Generator[dict[str, any]],
         col: str | list[str],
         preprocesser: Callable = None,
@@ -530,6 +517,7 @@ def preprocessed_fig(
     :param col: The columns that are being plotted
     :param preprocessed_args: If the data was already preprocessed, use that
     tuple of data instead
+    :param is_list: True if the current column is one of a list
     :return: The resulting DeephavenFigure
     """
     # if preprocessed args are specified, the table is created,
@@ -544,65 +532,16 @@ def preprocessed_fig(
     for k, v in zip(keys, output):
         args[k] = v
 
+    if is_list:
+        # the col is needed for proper hover text, but only if
+        # there's a list
+        args["current_col"] = col
+
     return generate_figure(
         draw=draw,
         call_args=args,
         trace_generator=trace_generator,
     )
-
-
-def update_legend_and_titles(
-        fig: DeephavenFigure,
-        var: str,
-        cols: list[str],
-        is_list: bool,
-        list_var_axis_name: str,
-        list_val_axis_name: str,
-        str_var_axis_name: str,
-        str_val_axis_name: str
-) -> None:
-    """
-    Update the legend and titles so they match plotly express (more or less)
-
-    :param fig: The figure to update
-    :param var: Which var to map to the first column. If "x", then the
-    preprocessor output is mapped to table, x, y. If "y" then preprocessor
-    output is mapped to table, y, x.
-    :param cols: The columns that are used for the sake of updating the
-    legend
-    :param is_list: True if the cols were originally passed as a list
-    :param str_var_axis_name: Name on the var axis if cols is a str
-    :param str_val_axis_name: Name on the non-var axis if cols is a str
-    :param list_var_axis_name: Name on the var axis if cols is a list
-    :param list_val_axis_name: Name on the non-var axis if cols is a list
-    """
-    layout_update = {}
-    other_var = "y" if var == "x" else "x"
-
-    if is_list:
-        update_traces(fig.fig, trace_legend_generator(cols))
-        layout_update.update(
-            legend_title_text="variable",
-            legend_tracegroupgap=0
-        )
-
-        if list_var_axis_name:
-            layout_update[f"{var}axis_title_text"] = list_var_axis_name
-
-        if list_val_axis_name:
-            layout_update[f"{other_var}axis_title_text"] = list_val_axis_name
-
-    else:
-        # ensure the legend is hidden (especially for hist)
-        layout_update["showlegend"] = False
-
-        if str_var_axis_name:
-            layout_update[f"{var}axis_title_text"] = str_var_axis_name
-
-        if str_val_axis_name:
-            layout_update[f"{other_var}axis_title_text"] = str_val_axis_name
-
-    fig.fig.update_layout(layout_update)
 
 
 def preprocess_and_layer(
@@ -611,10 +550,6 @@ def preprocess_and_layer(
         args: dict[str, any],
         var: str,
         orientation: str = None,
-        str_var_axis_name: str = None,
-        str_val_axis_name: str = None,
-        list_var_axis_name: str = None,
-        list_val_axis_name: str = None,
         is_hist: bool = False,
 ) -> DeephavenFigure:
     """
@@ -630,10 +565,6 @@ def preprocess_and_layer(
     preprocessor output is mapped to table, x, y. If "y" then preprocessor
     output is mapped to table, y, x.
     :param orientation: optional orientation if it is needed
-    :param str_var_axis_name: Name on the var axis if cols is a str
-    :param str_val_axis_name: Name on the non-var axis if cols is a str
-    :param list_var_axis_name: Name on the var axis if cols is a list
-    :param list_val_axis_name: Name on the non-var axis if cols is a list
     :param is_hist: If true, the figure is a histogram and requires custom
     processing, specifically because the preprocessing returns a single table
     for all columns.
@@ -651,6 +582,9 @@ def preprocess_and_layer(
     trace_generator = None
     has_color = None
 
+    # the var is needed for proper hover text
+    args["current_var"] = var
+
     if not args.get("color_discrete_sequence_marker"):
         # the colors need to match the plotly qualitative colors so they can be
         # overriden, but has_color should be false as the color was not
@@ -663,23 +597,23 @@ def preprocess_and_layer(
 
     if is_hist:
         # histograms generate one table with all info
-        str_var_axis_name = str_var_axis_name if is_list else cols[0]
         create_fig = partial(
             preprocessed_fig,
-            draw, keys, args,
             preprocessed_args=preprocesser(table, cols)
         )
     else:
+        # pivot vars need to be calculated here to be shared between layers
+        args["pivot_vars"] = get_unique_names(table, ["variable", "value"])
+
         create_fig = partial(
             preprocessed_fig,
-            draw, keys, args,
             preprocesser=preprocesser,
             table=table
         )
 
     for i, col in enumerate(cols):
 
-        new_fig = create_fig(trace_generator, col)
+        new_fig = create_fig(draw, keys, args, is_list, trace_generator, col)
         # offsetgroup is needed mostly to prevent spacing issues in
         # marginals
         # not setting the offsetgroup and having both marginals set to box,
@@ -697,11 +631,10 @@ def preprocess_and_layer(
     if has_color is False:
         layered.has_color = False
 
-    update_legend_and_titles(
-        layered, var, cols, is_list,
-        list_var_axis_name, list_val_axis_name,
-        str_var_axis_name, str_val_axis_name
-    )
+    if is_list:
+        layered.fig.update_layout(legend_tracegroupgap=0)
+    else:
+        layered.fig.update_layout(showlegend=False)
 
     return layered
 
@@ -709,7 +642,7 @@ def preprocess_and_layer(
 def calculate_mode(
         base_mode: str,
         args: dict[str, any]
-) -> None:
+) -> str:
     """
     Calculate the mode of the traces based on the arguments
 
@@ -851,3 +784,5 @@ class SyncDict:
         """
         for k in self.pop_set:
             self.d.pop(k)
+
+
