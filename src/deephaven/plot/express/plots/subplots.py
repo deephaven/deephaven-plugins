@@ -13,19 +13,28 @@ def get_new_specs(
         col_starts: list[float],
         col_ends: list[float],
 ) -> list[dict[str, list[float]]]:
-    """
-    Transforms the given specs and row and column lists to specs for layering
+    """Transforms the given specs and row and column lists to specs for layering
 
-    :param specs: A 2 dimensional list that contains the specs per figure
-    :param row_starts: A list of domain values on the y-axis where the
-    corresponding figure will start
-    :param row_ends: A list of domain values on the y-axis where the
-    corresponding figure will end
-    :param col_starts: A list of domain values on the x-axis where the
-    corresponding figure will start
-    :param col_ends: A list of domain values on the x-axis where the
-    corresponding figure will end
-    :return: The new specs with x and y domains, to be passed to layering
+    Args:
+      specs: list[list[dict[str, int | float]]]
+        A 2 dimensional list that contains the specs per figure
+      row_starts: list[float]:
+        A list of domain values on the y-axis where the corresponding
+        figure will start
+      row_ends: list[float]:
+        A list of domain values on the y-axis where the corresponding
+        figure will end
+      col_starts: list[float]:
+        A list of domain values on the y-axis where the corresponding
+        figure will start
+      col_ends: list[float]:
+        A list of domain values on the y-axis where the corresponding
+        figure will end
+
+    Returns:
+      list[dict[str, list[float]]]:
+        The new specs with x and y domains, to be passed to layering
+
     """
     new_specs = []
 
@@ -51,18 +60,24 @@ def make_grid(
         items: list[any],
         rows: int,
         cols: int,
-        fill=None
+        fill: any = None
 ) -> list[list[any]]:
-    """
-    Make a grid (list of lists) out of the provided items
+    """Make a grid (list of lists) out of the provided items
 
-    :param items: A list of items to put in the grid
-    :param rows: The number of rows in the grid
-    :param cols: The number of cols in the grid
-    :param fill: If there are more slots (as defined by rows * columns) than
-    provided items, then the remaining items in the grid have this value.
-    Default None.
-    :return: The generated grid
+    Args:
+      items: int:
+        A list of items to put in the grid
+      rows: int:
+        The number of rows in the grid
+      cols: int:
+        The number of cols in the grid
+      fill: any:  (Default value = None)
+        If there are more slots (as defined by rows * columns) than
+        provided items, then the remaining items in the grid have this value.
+
+    Returns:
+      list[list[any]]: The generated grid
+
     """
     grid = []
     index = 0
@@ -83,13 +98,19 @@ def get_domains(
         values: list[float],
         spacing: float
 ) -> tuple[list[float], list[float]]:
-    """
-    Get the domains from a list of percentage values. The domains are
+    """Get the domains from a list of percentage values. The domains are
     cumulative and account for spacing.
 
-    :param values: The list of values to scale due to spacing then
-    :param spacing: The spacing between each value.
-    :return: A tuple of (list of domain starts, list of domain ends)
+    Args:
+      values: list[float]:
+        The list of values to scale due to spacing then
+      spacing: float:
+        The spacing between each value.
+
+    Returns:
+      tuple[list[float], list[float]]
+        A tuple of (list of domain starts, list of domain ends)
+
     """
     # scale the values by however much the spacing uses between each col or row
     scale = 1 - (spacing * (len(values) - 1))
@@ -122,34 +143,49 @@ def make_subplots(
         specs: list[dict[str, int | float]] |
                list[list[dict[str, int | float]]] = None,
 ) -> DeephavenFigure:
-    """
-    Create subplots. Either figs and at least one of rows and cols or grid
+    """Create subplots. Either figs and at least one of rows and cols or grid
     should be passed.
 
-    :param figs: Figures to use. Should be used with rows and/or cols.
-    :param rows: A list of rows in the resulting subplot grid. This is
-    calculated from cols and number of figs provided if not passed but cols is.
-    One of rows or cols should be provided if passing figs directly.
-    :param cols: A list of cols in the resulting subplot grid. This is
-    calculated from rows and number of figs provided if not passed but rows is.
-    One of rows or cols should be provided if passing figs directly.
-    :param grid: A grid (list of lists) of figures to draw. None can be
-    provided in a grid entry
-    :param horizontal_spacing: Spacing between each column. Default 0.2 / cols
-    :param vertical_spacing: Spacing between each row. Default 0.3 / rows
-    :param column_widths: The widths of each column. Should sum to 1.
-    :param row_heights: The heights of each row. Should sum to 1.
-    :param specs: A list or grid of dicts that contain specs. An empty
-    dictionary represents no specs, and None represents no figure, either
-    to leave a gap on the subplots on provide room for a figure spanning
-    multiple columns.
-    'l' is a float that adds left padding
-    'r' is a float that adds right padding
-    't' is a float that adds top padding
-    'b' is a float that adds bottom padding
-    'rowspan' is an int to make this figure span multiple rows
-    'colspan' is an int to make this figure span multiple columns
-    :return: The DeephavenFigure with subplots
+    Args:
+      *figs: Figure | DeephavenFigure
+        Figures to use. Should be used with rows and/or cols.
+      rows: int: (Default value = None)
+        A list of rows in the resulting subplot grid. This is
+        calculated from cols and number of figs provided if not passed
+        but cols is.
+        One of rows or cols should be provided if passing figs directly.
+      cols: int: (Default value = None)
+        A list of cols in the resulting subplot grid. This is
+        calculated from rows and number of figs provided if not passed
+        but rows is.
+        One of rows or cols should be provided if passing figs directly.
+      grid: list[list[Figure | DeephavenFigure]] (Default value = None)
+        A grid (list of lists) of figures to draw. None can be
+        provided in a grid entry
+      horizontal_spacing: float: (Default value = None)
+        Spacing between each column. Default 0.2 / cols
+      vertical_spacing: float: (Default value = None)
+        Spacing between each row. Default 0.3 / rows
+      column_widths: list[float] (Default value = None)
+        The widths of each column. Should sum to 1.
+      row_heights: list[float] (Default value = None)
+        The heights of each row. Should sum to 1.
+      specs: list[dict[str, int | float]] | list[list[dict[str, int | float]]]
+        (Default value = None)
+        A list or grid of dicts that contain specs. An empty
+        dictionary represents no specs, and None represents no figure, either
+        to leave a gap on the subplots on provide room for a figure spanning
+        multiple columns.
+        'l' is a float that adds left padding
+        'r' is a float that adds right padding
+        't' is a float that adds top padding
+        'b' is a float that adds bottom padding
+        'rowspan' is an int to make this figure span multiple rows
+        'colspan' is an int to make this figure span multiple columns
+
+    Returns:
+      DeephavenFigure: The DeephavenFigure with subplots
+
     """
     if rows or cols:
         rows = rows if rows else math.ceil(len(figs) / cols)

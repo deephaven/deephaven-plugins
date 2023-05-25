@@ -7,13 +7,16 @@ def json_links(
         i: int,
         _vars: Iterable[str]
 ) -> Generator[str]:
-    """
-    Create json links to a plotly data object at a specific index and with a
+    """Create json links to a plotly data object at a specific index and with a
     list of variables to link at that index
 
-    :param i: index to link to
-    :param _vars: variables to link to
-    :return: a generator that returns the links
+    Args:
+      i: int: index to link to
+      _vars: Iterable[str]: variables to link to
+
+    Yields:
+      str: the links
+
     """
     for var in _vars:
         yield f'/plotly/data/{i}/{var}'
@@ -23,36 +26,41 @@ def convert_to_json_links(
         var_col_dicts: list[dict[str, str]],
         start_index: int
 ) -> Generator[dict[str, str]]:
-    """
-    Convert the provided dictionaries to json links
+    """Convert the provided dictionaries to json links
 
-    Example input:
-    [
-        {
-            "x": "Col1",
-            "y": "Col2"
-        },
-        {
-            "x": "Col1",
-            "y": "Col3"
-        }
-    ]
+    Args:
+      var_col_dicts: list[dict[str, str]]: A list of dictionaries to convert
+        to json links
+      start_index: int: What index this data mapping starts at
 
-    Example output:
-    [
-        {
-            "Col1": "/plotly/data/0/x",
-            "Col2": "/plotly/data/0/y",
-        },
-        {
-            "Col1": "/plotly/data/1/x",
-            "Col3": "/plotly/data/1/y",
-        }
-    ]
+    Yields:
+      dict[str, str]: The generated dictionaries with json links
 
-    :param var_col_dicts: A list of dictionaries to convert to json links
-    :param start_index: What index this data mapping starts at
-    :return: The generated dictionaries with json links
+    Examples:
+        Example input:
+        [
+            {
+                "x": "Col1",
+                "y": "Col2"
+            },
+            {
+                "x": "Col1",
+                "y": "Col3"
+            }
+        ]
+
+        Example output:
+        [
+            {
+                "Col1": "/plotly/data/0/x",
+                "Col2": "/plotly/data/0/y",
+            },
+            {
+                "Col1": "/plotly/data/1/x",
+                "Col3": "/plotly/data/1/y",
+            }
+        ]
+
     """
 
     for i, var_col_dict in zip(count(start_index), var_col_dicts):
@@ -70,9 +78,8 @@ def json_link_mapping(
         table_index: int,
         start_index: int,
 ) -> list[dict[any]]:
-    """
-    Create a data mapping of table and cols to json link
-
+    """Create a data mapping of table and cols to json link
+    
     Example input:
     var_col_dicts = [
         {
@@ -80,7 +87,7 @@ def json_link_mapping(
             "y": "Col2
         }
     ]
-
+    
     Example output:
     [{
         table: 0,
@@ -90,14 +97,35 @@ def json_link_mapping(
         },
     }]
 
+    Args:
+      var_col_dicts: list[dict[str, str]]: A dictionary containing a mapping of
+        strings to strings and lists of strings used to compute a cartesian
+        product of all possible value groups
+      table_index: int: The index of the table that this mapping is part of
+      start_index: int:  What index this data mapping starts at
 
-    :param var_col_dicts: A dictionary containing a mapping of strings to strings
-    and lists of strings used to compute a cartesian product of all possible
-    value groups
-    :param start_index: What index this data mapping starts at
-    :param table_index: The index of the table that this mapping is part of
-    :return: A list containing dicts that have a table to ref mapping as well
-    as a mapping from originating column to plotly data location
+    Returns:
+      list[dict[any]]: A list containing dicts that have a table to ref mapping
+        as well as a mapping from originating column to plotly data location
+
+    Examples:
+        Example input:
+        var_col_dicts = [
+            {
+                "x: "Col1",
+                "y": "Col2
+            }
+        ]
+
+        Example output:
+        [{
+            table: 0,
+            data_columns: {
+                "Col1": "/plotly/data/0/x",
+                "Col2": "/plotly/data/0/y"
+            },
+        }]
+
     """
     return [
         {"table": table_index, "data_columns": json_link_dict}

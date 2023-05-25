@@ -27,42 +27,65 @@ def violin(
         box: bool = False,
         title: str = None,
         template: str = None,
-        unsafe_update_figure: Callable = default_callback
+        unsafe_update_figure: callable = default_callback
 ) -> DeephavenFigure:
-    """
-    Returns a violin chart
+    """Returns a violin chart
 
-    :param table: A table to pull data from.
-    :param x: A column name or list of columns that contain x-axis values.
-    Only one of x or y can be specified. If x is specified, the violins are
-    drawn horizontally.
-    :param y: A column name or list of columns that contain y-axis values.
-    Only one of x or y can be specified. If y is specified, the violins are
-    drawn vertically.
-    :param color_discrete_sequence: A list of colors to sequentially apply to
-    the series. The colors loop, so if there are more series than colors,
-    colors will be reused.
-    :param violinmode: Default 'group', which draws the violins next
-    to each other and 'overlay' which draws them on top of each other.
-    :param log_x: A boolean that specifies if the corresponding axis is a log
-    axis or not.
-    :param log_y: A boolean that specifies if the corresponding axis is a log
-    axis or not.
-    :param range_x: A list of two numbers that specify the range of the x axis.
-    :param range_y: A list of two numbers that specify the range of the y axis.
-    :param points: Default 'outliers', which draws points outside the whiskers.
-    'suspectedoutliers' draws points below 4*Q1-3*Q3 and above 4*Q3-3*Q1.
-    'all' draws all points and False draws no points.
-    :param box: Default False. Draw boxes inside the violin if True.
-    :param title: The title of the chart
-    :param template: The template for the chart.
-    :param unsafe_update_figure: An update function that takes a plotly figure
-    as an argument and optionally returns a plotly figure. If a figure is not
-    returned, the plotly figure passed will be assumed to be the return value.
-    Used to add any custom changes to the underlying plotly figure. Note that
-    the existing data traces should not be removed. This may lead to unexpected
-    behavior if traces are modified in a way that break data mappings.
-    :return: A DeephavenFigure that contains the violin chart
+    Args:
+      table:  Table:  (Default value = None)
+        A table to pull data from.
+      x: str | list[str]:  (Default value = None)
+        A column name or list of columns that contain x-axis values.
+        Only one of x or y can be specified. If x is specified,
+        the violins are drawn horizontally.
+      y: str | list[str]:  (Default value = None)
+        A column name or list of columns that contain y-axis values.
+        Only one of x or y can be specified. If y is specified, the
+        violins are drawn vertically.
+      hover_name: str | list[str]:  (Default value = None)
+        A column or list of columns that contain names to bold in the hover
+          tooltip.
+      labels: dict[str, str]:  (Default value = None)
+        A dictionary of labels mapping columns to new labels.
+      color_discrete_sequence: list[str]:  (Default value = None)
+        A list of colors to sequentially apply to
+        the series. The colors loop, so if there are more series than colors,
+        colors will be reused.
+      violinmode: str:  (Default value = 'group')
+        Default 'group', which draws the violins next
+        to each other or 'overlay' which draws them on top of each other.
+      log_x: bool
+        A boolean that specifies if the corresponding axis is a log
+        axis or not.
+      log_y: bool
+        A boolean that specifies if the corresponding axis is a log
+        axis or not.
+      range_x: list[int]:  (Default value = None)
+        A list of two numbers that specify the range of the x-axis.
+      range_y: list[int]:  (Default value = None)
+        A list of two numbers that specify the range of the y-axis.
+      points:  bool | str:  (Default value = 'outliers')
+        Default 'outliers', which draws points outside the whiskers.
+        'suspectedoutliers' draws points below 4*Q1-3*Q3 and above 4*Q3-3*Q1.
+        'all' draws all points and False draws no points.
+      box: bool:  (Default value = False)
+        Draw boxes inside the violin if True.
+      title: str: (Default value = None)
+        The title of the chart
+      template: str:  (Default value = None)
+        The template for the chart.
+      unsafe_update_figure: callable:  (Default value = default_callback)
+        An update function that takes a plotly figure
+        as an argument and optionally returns a plotly figure. If a figure is
+        not returned, the plotly figure passed will be assumed to be the return
+        value. Used to add any custom changes to the underlying plotly figure.
+        Note that the existing data traces should not be removed. This may lead
+        to unexpected behavior if traces are modified in a way that break data
+        mappings.
+
+    Returns:
+      DeephavenFigure: A DeephavenFigure that contains the violin chart
+
     """
     if x and y:
         raise ValueError("Cannot specify both x and y")
@@ -98,40 +121,63 @@ def box(
         template: str = None,
         unsafe_update_figure: Callable = default_callback
 ) -> DeephavenFigure:
-    """
-    Returns a box chart
+    """Returns a box chart
 
-    :param table: A table to pull data from.
-    :param x: A column name or list of columns that contain x-axis values.
-    Only one of x or y can be specified. If x is specified, the violins are
-    drawn horizontally.
-    :param y: A column name or list of columns that contain y-axis values.
-    Only one of x or y can be specified. If y is specified, the violins are
-    drawn vertically.
-    :param color_discrete_sequence: A list of colors to sequentially apply to
-    the series. The colors loop, so if there are more series than colors,
-    colors will be reused.
-    :param boxmode: Default 'group', which draws the violins next
-    to each other and 'overlay' which draws them on top of each other.
-    :param log_x: A boolean that specifies if the corresponding axis is a log
-    axis or not.
-    :param log_y: A boolean that specifies if the corresponding axis is a log
-    axis or not.
-    :param range_x: A list of two numbers that specify the range of the x axis.
-    :param range_y: A list of two numbers that specify the range of the y axis.
-    :param points: Default 'outliers', which draws points outside the whiskers.
-    'suspectedoutliers' draws points below 4*Q1-3*Q3 and above 4*Q3-3*Q1.
-    'all' draws all points and False draws no points.
-    :param notched: Default False, if True boxes are drawn with notches
-    :param title: The title of the chart
-    :param template: The template for the chart.
-    :param unsafe_update_figure: An update function that takes a plotly figure
-    as an argument and optionally returns a plotly figure. If a figure is not
-    returned, the plotly figure passed will be assumed to be the return value.
-    Used to add any custom changes to the underlying plotly figure. Note that
-    the existing data traces should not be removed. This may lead to unexpected
-    behavior if traces are modified in a way that break data mappings.
-    :return: A DeephavenFigure that contains the box chart
+    Args:
+      table:  Table:  (Default value = None)
+        A table to pull data from.
+      x: str | list[str]:  (Default value = None)
+        A column name or list of columns that contain x-axis values.
+        Only one of x or y can be specified. If x is specified,
+        the boxes are drawn horizontally.
+      y: str | list[str]:  (Default value = None)
+        A column name or list of columns that contain y-axis values.
+        Only one of x or y can be specified. If y is specified, the
+        boxes are drawn vertically.
+      hover_name: str | list[str]:  (Default value = None)
+        A column or list of columns that contain names to bold in the hover
+          tooltip.
+      labels: dict[str, str]:  (Default value = None)
+        A dictionary of labels mapping columns to new labels.
+      color_discrete_sequence: list[str]:  (Default value = None)
+        A list of colors to sequentially apply to
+        the series. The colors loop, so if there are more series than colors,
+        colors will be reused.
+      boxmode: str:  (Default value = 'group')
+        Default 'group', which draws the boxes next
+        to each other or 'overlay' which draws them on top of each other.
+      log_x: bool
+        A boolean that specifies if the corresponding axis is a log
+        axis or not.
+      log_y: bool
+        A boolean that specifies if the corresponding axis is a log
+        axis or not.
+      range_x: list[int]:  (Default value = None)
+        A list of two numbers that specify the range of the x-axis.
+      range_y: list[int]:  (Default value = None)
+        A list of two numbers that specify the range of the y-axis.
+      points:  bool | str:  (Default value = 'outliers')
+        Default 'outliers', which draws points outside the whiskers.
+        'suspectedoutliers' draws points below 4*Q1-3*Q3 and above 4*Q3-3*Q1.
+        'all' draws all points and False draws no points.
+      notched:  bool:  (Default value = False)
+         If True boxes are drawn with notches
+      title: str: (Default value = None)
+        The title of the chart
+      template: str:  (Default value = None)
+        The template for the chart.
+      unsafe_update_figure: callable:  (Default value = default_callback)
+        An update function that takes a plotly figure
+        as an argument and optionally returns a plotly figure. If a figure is
+        not returned, the plotly figure passed will be assumed to be the return
+        value. Used to add any custom changes to the underlying plotly figure.
+        Note that the existing data traces should not be removed. This may lead
+        to unexpected behavior if traces are modified in a way that break data
+        mappings.
+
+    Returns:
+      A DeephavenFigure that contains the box chart
+
     """
     if x and y:
         raise ValueError("Cannot specify both x and y")
@@ -165,36 +211,57 @@ def strip(
         template: str = None,
         unsafe_update_figure: Callable = default_callback
 ) -> DeephavenFigure:
-    """
-    Returns a strip chart
+    """Returns a strip chart
 
-    :param table: A table to pull data from.
-    :param x: A column name or list of columns that contain x-axis values.
-    Only one of x or y can be specified. If x is specified, the violins are
-    drawn horizontally.
-    :param y: A column name or list of columns that contain y-axis values.
-    Only one of x or y can be specified. If y is specified, the violins are
-    drawn vertically.
-    :param color_discrete_sequence: A list of colors to sequentially apply to
-    the series. The colors loop, so if there are more series than colors,
-    colors will be reused.
-    :param stripmode: Default 'group', which draws the violins next
-    to each other and 'overlay' which draws them on top of each other.
-    :param log_x: A boolean that specifies if the corresponding axis is a log
-    axis or not.
-    :param log_y: A boolean that specifies if the corresponding axis is a log
-    axis or not.
-    :param range_x: A list of two numbers that specify the range of the x axis.
-    :param range_y: A list of two numbers that specify the range of the y axis.
-    :param title: The title of the chart
-    :param template: The template for the chart.
-    :param unsafe_update_figure: An update function that takes a plotly figure
-    as an argument and optionally returns a plotly figure. If a figure is not
-    returned, the plotly figure passed will be assumed to be the return value.
-    Used to add any custom changes to the underlying plotly figure. Note that
-    the existing data traces should not be removed. This may lead to unexpected
-    behavior if traces are modified in a way that break data mappings.
-    :return: A DeephavenFigure that contains the strip chart
+    Args:
+      table:  Table:  (Default value = None)
+        A table to pull data from.
+      x: str | list[str]:  (Default value = None)
+        A column name or list of columns that contain x-axis values.
+        Only one of x or y can be specified. If x is specified,
+        the strips are drawn horizontally.
+      y: str | list[str]:  (Default value = None)
+        A column name or list of columns that contain y-axis values.
+        Only one of x or y can be specified. If y is specified, the
+        strips are drawn vertically.
+      hover_name: str | list[str]:  (Default value = None)
+        A column or list of columns that contain names to bold in the hover
+          tooltip.
+      labels: dict[str, str]:  (Default value = None)
+        A dictionary of labels mapping columns to new labels.
+      color_discrete_sequence: list[str]:  (Default value = None)
+        A list of colors to sequentially apply to
+        the series. The colors loop, so if there are more series than colors,
+        colors will be reused.
+      stripmode: str:  (Default value = 'group')
+        Default 'group', which draws the strips next
+        to each other or 'overlay' which draws them on top of each other.
+      log_x: bool
+        A boolean that specifies if the corresponding axis is a log
+        axis or not.
+      log_y: bool
+        A boolean that specifies if the corresponding axis is a log
+        axis or not.
+      range_x: list[int]:  (Default value = None)
+        A list of two numbers that specify the range of the x-axis.
+      range_y: list[int]:  (Default value = None)
+        A list of two numbers that specify the range of the y-axis.
+      title: str: (Default value = None)
+        The title of the chart
+      template: str:  (Default value = None)
+        The template for the chart.
+      unsafe_update_figure: callable:  (Default value = default_callback)
+        An update function that takes a plotly figure
+        as an argument and optionally returns a plotly figure. If a figure is
+        not returned, the plotly figure passed will be assumed to be the return
+        value. Used to add any custom changes to the underlying plotly figure.
+        Note that the existing data traces should not be removed. This may lead
+        to unexpected behavior if traces are modified in a way that break data
+        mappings.
+
+    Returns:
+      A DeephavenFigure that contains the strip chart
+
     """
     if x and y:
         raise ValueError("Cannot specify both x and y")
@@ -232,6 +299,31 @@ def _ecdf(
         template: str = None,
         unsafe_update_figure: Callable = default_callback
 ) -> DeephavenFigure:
+    """
+
+    Args:
+      table: Table:  (Default value = None)
+      x: str | list[str]:  (Default value = None)
+      y: str | list[str]:  (Default value = None)
+      markers: bool:  (Default value = False)
+      lines: bool:  (Default value = True)
+      color_discrete_sequence: list[str]:  (Default value = None)
+      line_dash_sequence: list[str]:  (Default value = None)
+      symbol_sequence: list[str]:  (Default value = None)
+      opacity: float:  (Default value = None)
+      ecdfnorm: str:  (Default value = 'probability')
+      ecdfmode: str:  (Default value = 'standard')
+      log_x: bool:  (Default value = False)
+      log_y: bool:  (Default value = False)
+      range_x: list[int]:  (Default value = None)
+      range_y: list[int]:  (Default value = None)
+      title: str:  (Default value = None)
+      template: str:  (Default value = None)
+      unsafe_update_figure: Callable:  (Default value = default_callback)
+
+    Returns:
+
+    """
     line_shape = "hv"
     # rangemode = "tozero"
 
@@ -257,6 +349,7 @@ def _ecdf(
     return update_wrapper(
         create_layered("x") if x else create_layered("y", orientation="h")
     )
+
 
 def histogram(
         table: Table = None,
@@ -284,61 +377,90 @@ def histogram(
         template: str = None,
         unsafe_update_figure: Callable = default_callback
 ) -> DeephavenFigure:
-    """
-    Returns a histogram
+    """Returns a histogram
 
-    :param table: A table to pull data from.
-    :param x: A column name or list of columns that contain x-axis values.
-    Only one of x or y can be specified. If x is specified, the bars are drawn
-    vertically.
-    :param y: A column name or list of columns that contain y-axis values.
-    Only one of x or y can be specified. If x is specified, the bars are drawn
-    horizontally.
-    :param color_discrete_sequence: A list of colors to sequentially apply to
-    the series. The colors loop, so if there are more series than colors,
-    colors will be reused.
-    :param pattern_shape_sequence: A list of patterns to sequentially apply
-    to the series. The patterns loop, so if there are more series than
-    patterns, patterns will be reused.
-    :param marginal: The type of marginal; histogram, violin, rug, box
-    :param opacity: Opacity to apply to all points. 0 is completely transparent
-    and 1 is completely opaque.
-    :param barmode: Default 'relative'. If 'relative', bars are stacked. If
-    'overlay', bars are drawn on top of each other. If 'group', bars are drawn
-    next to each other.
-    :param barnorm: Default None. If 'fraction', the value of the bar is
-    divided by all bars at that location. If 'percentage', the result is the
-    same but multiplied by 100.
-    :param histnorm: Default None. If 'probability', the value at this bin is
-    divided out of the total of all bins in this column. If 'percent', result
-    is the same as 'probability' but multiplied by 100. If 'density', the value
-    is divided by the width of the bin. If 'probability density', the value is
-    divided out of the total of all bins in this column and the width of the
-    bin.
-    :param log_x: A boolean that specifies if the corresponding axis is a log
-    axis or not.
-    :param log_y: A boolean that specifies if the corresponding axis is a log
-    axis or not.
-    :param range_x: A list of two numbers that specify the range of the x axis.
-    :param range_y: A list of two numbers that specify the range of the y axis.
-    :param range_bins: A list of two numbers that specify the range of data
-    that is used.
-    :param histfunc: The function to use when aggregating within bins. One of
-    'avg', 'count', 'count_distinct', 'max', 'median', 'min', 'std', 'sum',
-    or 'var'
-    :param cumulative: Default False. If True, values are cumulative.
-    :param nbins: Default 10. The number of bins to use.
-    :param text_auto: Default False. If True, display the value at each bar.
-    If a string, specifies a plotly texttemplate.
-    :param title: The title of the chart
-    :param template: The template for the chart.
-    :param unsafe_update_figure: An update function that takes a plotly figure
-    as an argument and optionally returns a plotly figure. If a figure is not
-    returned, the plotly figure passed will be assumed to be the return value.
-    Used to add any custom changes to the underlying plotly figure. Note that
-    the existing data traces should not be removed. This may lead to unexpected
-    behavior if traces are modified in a way that break data mappings.
-    :return: A DeephavenFigure that contains the histogram
+    Args:
+      table:  Table:  (Default value = None)
+        A table to pull data from.
+      x: str | list[str]:  (Default value = None)
+        A column name or list of columns that contain x-axis values.
+        Only one of x or y can be specified. If x is specified,
+        the bars are drawn horizontally.
+      y: str | list[str]:  (Default value = None)
+        A column name or list of columns that contain y-axis values.
+        Only one of x or y can be specified. If y is specified, the
+        bars are drawn vertically.
+      hover_name: str | list[str]:  (Default value = None)
+        A column or list of columns that contain names to bold in the hover
+          tooltip.
+      labels: dict[str, str]:  (Default value = None)
+        A dictionary of labels mapping columns to new labels.
+      color_discrete_sequence: list[str]:  (Default value = None)
+        A list of colors to sequentially apply to
+        the series. The colors loop, so if there are more series than colors,
+        colors will be reused.
+      pattern_shape_sequence: list[str]:  (Default value = None)
+        A list of patterns to sequentially apply
+        to the series. The patterns loop, so if there are more series than
+        patterns, patterns will be reused.
+      marginal: str:  (Default value = None)
+        The type of marginal; histogram, violin, rug, box
+      opacity: float:  (Default value = None)
+        Opacity to apply to all markers. 0 is completely transparent
+        and 1 is completely opaque.
+      barmode: str:  (Default value = 'relative')
+        If 'relative', bars are stacked. If
+        'overlay', bars are drawn on top of each other. If 'group', bars are
+        drawn next to each other.
+      barnorm:: str:  (Default value = None)
+        If 'fraction', the value of the bar is divided by all bars at that
+        location. If 'percentage', the result is the same but multiplied by
+        100.
+      histnorm: str:  (Default value = None)
+        If 'probability', the value at this bin is divided out of the total
+        of all bins in this column. If 'percent', result is the same as
+        'probability' but multiplied by 100. If 'density', the value is divided
+        by the width of the bin. If 'probability density', the value is divided
+        out of the total of all bins in this column and the width of the bin.
+      log_x: bool
+        A boolean that specifies if the corresponding axis is a log
+        axis or not.
+      log_y: bool
+        A boolean that specifies if the corresponding axis is a log
+        axis or not.
+      range_x: list[int]:  (Default value = None)
+        A list of two numbers that specify the range of the x-axis.
+      range_y: list[int]:  (Default value = None)
+        A list of two numbers that specify the range of the y-axis.
+      range_bins: list[int]:
+        A list of two numbers that specify the range of data that is used.
+      histfunc: str:  (Default value = 'count')
+        The function to use when aggregating within bins. One of
+        'avg', 'count', 'count_distinct', 'max', 'median', 'min', 'std', 'sum',
+        or 'var'
+      cumulative: bool:  (Default value = False)
+        If True, values are cumulative.
+      nbins: int:  (Default value = 10)
+        The number of bins to use.
+      text_auto: bool | str:  (Default value = False)
+        If True, display the value at each bar.
+        If a string, specifies a plotly texttemplate.
+      title: str: (Default value = None)
+        The title of the chart
+      template: str:  (Default value = None)
+        The template for the chart.
+      unsafe_update_figure: callable:  (Default value = default_callback)
+        An update function that takes a plotly figure
+        as an argument and optionally returns a plotly figure. If a figure is
+        not returned, the plotly figure passed will be assumed to be the return
+        value. Used to add any custom changes to the underlying plotly figure.
+        Note that the existing data traces should not be removed. This may lead
+        to unexpected behavior if traces are modified in a way that break data
+        mappings.
+
+    Returns:
+      DeephavenFigure: A DeephavenFigure that contains the histogram
+
     """
     bargap = 0
     hist_val_name = histfunc
@@ -396,15 +518,18 @@ def get_marginal_columns(
         y: str | list[str],
         var: str
 ) -> list[str]:
-    """
-    Get a list of column for creating marginals. If in wide mode and the
+    """Get a list of column for creating marginals. If in wide mode and the
     marginal is on the same dimension on the variable that's a list, return the
     list. Otherwise, return a list of the column, same length as the list
 
-    :param x: The columns on x
-    :param y: The columns on y
-    :param var: x if the marginal is along the x-axis, y if along y
-    :return: The marginals columns
+    Args:
+      x: str | list[str]: The columns on x
+      y: str | list[str]: The columns on y
+      var: str: x if the marginal is along the x-axis, y if along y
+
+    Returns:
+      list[str]: The marginals columns
+
     """
     x_is_list = isinstance(x, list)
     y_is_list = isinstance(y, list)
@@ -424,11 +549,15 @@ def get_marginal_columns(
 def marginal_axis_update(
         matches: str = None
 ) -> dict[str, any]:
-    """
-    Create an update to a marginal axis so it hides much of the axis info
+    """Create an update to a marginal axis so it hides much of the axis info
 
-    :param matches: An optional axis, such as x, y, x2 to match this axis to
-    :return: The update
+    Args:
+      matches: str:  (Default value = None)
+        An optional axis, such as x, y, x2 to match this axis to
+
+    Returns:
+      dict[str, any]: The update
+
     """
     return {
         "matches": matches,
@@ -446,14 +575,17 @@ def create_marginal(
         style: dict[str, any],
         which: str
 ) -> DeephavenFigure:
-    """
-    Create a marginal figure
+    """Create a marginal figure
 
-    :param marginal: The type of marginal; histogram, violin, rug, box
-    :param args: The args to pass to the marginal function
-    :param style: The style args to pass to the marginal function
-    :param which: x or y depending on which marginal is being drawn
-    :return: The marginal figure
+    Args:
+      marginal: str: The type of marginal; histogram, violin, rug, box
+      args: dict[str, any] The args to pass to the marginal function
+      style: dict[str, any] The style args to pass to the marginal function
+      which: str: x or y depending on which marginal is being drawn
+
+    Returns:
+      DeephavenFigure: The marginal figure
+
     """
     if marginal == "histogram":
         args["barmode"] = "overlay"
@@ -481,15 +613,21 @@ def attach_marginals(
         marginal_x: str = None,
         marginal_y: str = None
 ) -> DeephavenFigure:
-    """
-    Create and attach marginals to the provided figure.
+    """Create and attach marginals to the provided figure.
 
-    :param fig: The figure to attach marginals to
-    :param data: The data args to use
-    :param style: The style args to use
-    :param marginal_x: The type of marginal; histogram, violin, rug, box
-    :param marginal_y: The type of marginal; histogram, violin, rug, box
-    :return: The figure, with marginals attached if marginal_x/y was specified
+    Args:
+      fig: DeephavenFigure: The figure to attach marginals to
+      data: dict[str, any]: The data args to use
+      style: dict[str, any]: The style args to use
+      marginal_x: str:  (Default value = None)
+        The type of marginal; histogram, violin, rug, box
+      marginal_y: str:  (Default value = None)
+        The type of marginal; histogram, violin, rug, box
+
+    Returns:
+      DeephavenFigure: The figure, with marginals attached if marginal_x/y was
+        specified
+
     """
     figs = [fig]
 
@@ -543,11 +681,15 @@ def attach_marginals(
 def get_marg_args(
         args: dict[str, any]
 ) -> tuple[dict[str, any], dict[str, any]]:
-    """
-    Copy the required args into data and style for marginal creation
+    """Copy the required args into data and style for marginal creation
 
-    :param args: The args to split
-    :return: A tuple of (data args dict, style args dict)
+    Args:
+      args: dict[str, any]: The args to split
+
+    Returns:
+      tuple[dict[str, any], dict[str, any]]: A tuple of
+        (data args dict, style args dict)
+
     """
     data = {
         "table": args["table"],

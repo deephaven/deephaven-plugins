@@ -1,7 +1,3 @@
-import json
-from functools import partial
-from typing import Callable
-
 from plotly import express as px
 
 from deephaven.table import Table
@@ -39,85 +35,117 @@ def scatter(
         xaxis_titles: list[str] = None,
         title: str = None,
         template: str = None,
-        unsafe_update_figure: Callable = default_callback
+        unsafe_update_figure: callable = default_callback
 ) -> DeephavenFigure:
-    """
-    Returns a scatter chart
+    """Returns a scatter chart
 
-    :param table: A table to pull data from.
-    :param x: A column or list of columns that contain x-axis values.
-    :param y: A column or list of columns that contain y-axis values.
-    :param error_x: A column or list of columns with x error bar
-    values. These form the error bars in both the positive and negative
-    direction if error_x_minus is not specified, and the error bars in only the
-    positive direction if error_x_minus is specified. None can be used to
-    specify no error bars on the corresponding series.
-    :param error_x_minus: A column or list of columns with x error
-    bar values. These form the error bars in the negative direction, and are
-    ignored if error_x is not specified.
-    :param size: A column or list of columns that contain size values.
-    :param text: A column or list of columns that contain text annotations.
-    :param hover_name: A column or list of columns that contain names to bold
-    in the hover tooltip.
-    :param labels: A dictionary of labels mapping columns to new labels.
-    :param error_y: A column or list of columns with x error bar
-    values. These form the error bars in both the positive and negative
-    direction if error_y_minus is not specified, and the error bars in only the
-    positive direction if error_y_minus is specified. None can be used to
-    specify no error bars on the corresponding series.
-    :param error_y_minus: A column or list of columns with x error
-    bar values. These form the error bars in the negative direction, and are
-    ignored if error_y is not specified.
-    :param color_discrete_sequence: A list of colors to sequentially apply to
-    the series. The colors loop, so if there are more series than colors,
-    colors will be reused.
-    :param symbol_sequence: A list of symbols to sequentially apply to the
-    markers in the series. The symbols loop, so if there are more series than
-    symbols, symbols will be reused.
-    :param size_sequence: A list of sizes to sequentially apply to the
-    markers in the series. The sizes loop, so if there are more series than
-    symbols, sizes will be reused. This is overriden is "size" is specified.
-    :param xaxis_sequence: A list of x axes to assign series to. Odd numbers
-    starting with 1 are created on the bottom x axis and even numbers starting
-    with 2 are created on the top x axis. Axes are created up
-    to the maximum number specified. The axes loop, so if there are more series
-    than axes, axes will be reused.
-    :param yaxis_sequence: A list of y axes to assign series to. Odd numbers
-    starting with 1 are created on the left y axis and even numbers starting
-    with 2 are created on the top y axis. Axes are created up
-    to the maximum number specified. The axes loop, so if there are more series
-    than axes, axes will be reused.
-    :param opacity: Opacity to apply to all points. 0 is completely transparent
-    and 1 is completely opaque.
-    :param marginal_x: The type of x-axis marginal; histogram, violin, rug, box
-    :param marginal_y: The type of y-axis marginal; histogram, violin, rug, box
-    :param log_x: Default False. A boolean or list of booleans that specify if
-    the corresponding axis is a log axis or not. The booleans loop, so if there
-    are more series than booleans, booleans will be reused.
-    :param log_y: Default False. A boolean or list of booleans that specify if
-    the corresponding axis is a log axis or not. The booleans loop, so if there
-    are more series than booleans, booleans will be reused.
-    :param range_x: A list of two numbers or a list of lists of two numbers
-    that specify the range of the x axes. None can be specified for no range
-    The ranges loop, so if there are more axes than ranges, ranges will
-    be reused.
-    :param range_y: A list of two numbers or a list of lists of two numbers
-    that specify the range of the x axes. None can be specified for no range
-    The ranges loop, so if there are more axes than ranges, ranges will
-    be reused.
-    :param yaxis_titles: A list of titles to sequentially apply to the
-    y axes. The titles do not loop.
-    :param xaxis_titles: A list of titles to sequentially apply to the
-    x axes. The titles do not loop.
-    :param title: The title of the chart
-    :param template: The template for the chart.
-    :param unsafe_update_figure: An update function that takes a plotly figure
-    as an argument and optionally returns a plotly figure. If a figure is not
-    returned, the plotly figure passed will be assumed to be the return value.
-    Used to add any custom changes to the underlying plotly figure. Note that
-    the existing data traces should not be removed. This may lead to unexpected
-    behavior if traces are modified in a way that break data mappings.
-    :return: A DeephavenFigure that contains the scatter chart
+    Args:
+      table: Table:  (Default value = None)
+        A table to pull data from.
+      x: str | list[str]:  (Default value = None)
+        A column or list of columns that contain x-axis values.
+      y: str | list[str]:  (Default value = None)
+        A column or list of columns that contain y-axis values.
+      error_x: str | list[str]:  (Default value = None)
+        A column or list of columns with x error bar
+        values. These form the error bars in both the positive and negative
+        direction if error_x_minus is not specified, and the error bars in
+        only the positive direction if error_x_minus is specified. None can be
+        used to specify no error bars on the corresponding series.
+      error_x_minus: str | list[str]:  (Default value = None)
+        A column or list of columns with x error
+        bar values. These form the error bars in the negative direction,
+        and are ignored if error_x is not specified.
+      error_y: str | list[str]:  (Default value = None)
+        A column or list of columns with x error bar
+        values. These form the error bars in both the positive and negative
+        direction if error_y_minus is not specified, and the error bars in
+        only the positive direction if error_y_minus is specified. None can be
+        used to specify no error bars on the corresponding series.
+      error_y_minus: str | list[str]:  (Default value = None)
+        A column or list of columns with y error
+        bar values. These form the error bars in the negative direction,
+        and are ignored if error_y is not specified.
+      size: str | list[str]:  (Default value = None)
+        A column or list of columns that contain size values.
+      text: str | list[str]:  (Default value = None)
+        A column or list of columns that contain text annotations.
+      hover_name: str | list[str]:  (Default value = None)
+        A column or list of columns that contain names to bold in the hover
+          tooltip.
+      labels: dict[str, str]:  (Default value = None)
+        A dictionary of labels mapping columns to new labels.
+      color_discrete_sequence: list[str]:  (Default value = None)
+        A list of colors to sequentially apply to
+        the series. The colors loop, so if there are more series than colors,
+        colors will be reused.
+      symbol_sequence: list[str]:  (Default value = None)
+        A list of symbols to sequentially apply to the
+        markers in the series. The symbols loop, so if there are more series than
+        symbols, symbols will be reused.
+      size_sequence: list[str]:  (Default value = None)
+        A list of sizes to sequentially apply to the
+        markers in the series. The sizes loop, so if there are more series than
+        symbols, sizes will be reused. This is overriden is "size" is specified.
+      xaxis_sequence: list[str]:  (Default value = None)
+        A list of x axes to assign series to. Odd numbers
+        starting with 1 are created on the bottom x axis and even numbers starting
+        with 2 are created on the top x axis. Axes are created up
+        to the maximum number specified. The axes loop, so if there are more series
+        than axes, axes will be reused.
+      yaxis_sequence: list[str]:  (Default value = None)
+        A list of y axes to assign series to. Odd numbers
+        starting with 1 are created on the left y axis and even numbers starting
+        with 2 are created on the top y axis. Axes are created up
+        to the maximum number specified. The axes loop, so if there are more series
+        than axes, axes will be reused.
+      opacity: float:  (Default value = None)
+        Opacity to apply to all markers. 0 is completely transparent
+        and 1 is completely opaque.
+      marginal_x: str:  (Default value = None)
+        The type of x-axis marginal; histogram, violin, rug, box
+      marginal_y: str:  (Default value = None)
+        The type of y-axis marginal; histogram, violin, rug, box
+      log_x: bool | list[bool]:  (Default value = False)
+        A boolean or list of booleans that specify if
+        the corresponding axis is a log axis or not. The booleans loop, so if there
+        are more series than booleans, booleans will be reused.
+      log_y: bool | list[bool]:  (Default value = False)
+        A boolean or list of booleans that specify if
+        the corresponding axis is a log axis or not. The booleans loop, so if there
+        are more series than booleans, booleans will be reused.
+      range_x: list[int] | list[list[int]]:  (Default value = None)
+        A list of two numbers or a list of lists of two numbers
+        that specify the range of the x axes. None can be specified for no range
+        The ranges loop, so if there are more axes than ranges, ranges will
+        be reused.
+      range_y: list[int] | list[list[int]]:  (Default value = None)
+        A list of two numbers or a list of lists of two numbers
+        that specify the range of the y axes. None can be specified for no range
+        The ranges loop, so if there are more axes than ranges, ranges will
+        be reused.
+      yaxis_titles: list[str]:  (Default value = None)
+        A list of titles to sequentially apply to the y axes. The titles do not
+          loop.
+      xaxis_titles: list[str]:  (Default value = None)
+        A list of titles to sequentially apply to the x axes. The titles do not
+          loop.
+      title: str: (Default value = None)
+        The title of the chart
+      template: str:  (Default value = None)
+        The template for the chart.
+      unsafe_update_figure:  callable:  (Default value = default_callback)
+        An update function that takes a plotly figure
+        as an argument and optionally returns a plotly figure. If a figure is
+        not returned, the plotly figure passed will be assumed to be the return
+        value. Used to add any custom changes to the underlying plotly figure.
+        Note that the existing data traces should not be removed. This may lead
+        to unexpected behavior if traces are modified in a way that break data
+        mappings.
+
+    Returns:
+      A DeephavenFigure that contains the scatter chart
+
     """
     args = locals()
 
@@ -140,15 +168,15 @@ def scatter_3d(
         x: str = None,
         y: str = None,
         z: str = None,
-        error_x: str | list[str] = None,
-        error_x_minus: str | list[str] = None,
-        error_y: str | list[str] = None,
-        error_y_minus: str | list[str] = None,
-        error_z: str | list[str] = None,
-        error_z_minus: str | list[str] = None,
-        size: str | list[str] = None,
-        text: str | list[str] = None,
-        hover_name: str | list[str] = None,
+        error_x: str = None,
+        error_x_minus: str = None,
+        error_y: str = None,
+        error_y_minus: str = None,
+        error_z: str = None,
+        error_z_minus: str = None,
+        size: str = None,
+        text: str = None,
+        hover_name: str = None,
         labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
@@ -162,67 +190,101 @@ def scatter_3d(
         range_z: list[int] = None,
         title: str = None,
         template: str = None,
-        unsafe_update_figure: Callable = default_callback
+        unsafe_update_figure: callable = default_callback
 ) -> DeephavenFigure:
-    """
-    Returns a 3D scatter chart
+    """Returns a 3D scatter chart
 
-    :param table: A table to pull data from.
-    :param x: A column that contains x-axis values.
-    :param y: A column that contains y-axis values.
-    :param z: A column that contains z-axis values.
-    :param error_x: A column with x error bar values. These form the error
-    bars in both the positive and negative direction if error_x_minus is not
-    specified, and the error bars in only the positive direction if
-    error_x_minus is specified.
-    :param error_x_minus: A column with x error bar values. These form
-    the error bars in the negative direction, and are ignored if error_x is not
-    specified.
-    :param error_y: A column with x error bar values. These form the error
-    bars in both the positive and negative direction if error_z_minus is not
-    specified, and the error bars in only the positive direction if
-    error_x_minus is specified.
-    :param error_y_minus: A column with y error bar values. These form
-    the error bars in the negative direction, and are ignored if error_x is not
-    specified.
-    :param error_z: A column with x error bar values. These form the error
-    bars in both the positive and negative direction if error_z_minus is not
-    specified, and the error bars in only the positive direction if
-    error_x_minus is specified.
-    :param error_z_minus: A column with z error bar values. These form
-    the error bars in the negative direction, and are ignored if error_x is not
-    specified.
-    :param size: A column or list of columns that contain size values.
-    :param text: A column or list of columns that contain text annotations.
-    :param color_discrete_sequence: A list of colors to sequentially apply to
-    the series. The colors loop, so if there are more series than colors,
-    colors will be reused.
-    :param symbol_sequence: A list of symbols to sequentially apply to the
-    markers in the series. The symbols loop, so if there are more series than
-    symbols, symbols will be reused.
-    :param size_sequence: A list of sizes to sequentially apply to the
-    markers in the series. The sizes loop, so if there are more series than
-    symbols, sizes will be reused. This is overriden is "size" is specified.
-    :param opacity: Opacity to apply to all points. 0 is completely transparent
-    and 1 is completely opaque.
-    :param log_x: A boolean that specifies if the corresponding axis is a log
-    axis or not.
-    :param log_y: A boolean that specifies if the corresponding axis is a log
-    axis or not.
-    :param log_z: A boolean that specifies if the corresponding axis is a log
-    axis or not.
-    :param range_x: A list of two numbers that specify the range of the x axis.
-    :param range_y: A list of two numbers that specify the range of the y axis.
-    :param range_z: A list of two numbers that specify the range of the z axis.
-    :param title: The title of the chart.
-    :param template: The template for the chart.
-    :param unsafe_update_figure: An update function that takes a plotly figure
-    as an argument and optionally returns a plotly figure. If a figure is not
-    returned, the plotly figure passed will be assumed to be the return value.
-    Used to add any custom changes to the underlying plotly figure. Note that
-    the existing data traces should not be removed. This may lead to unexpected
-    behavior if traces are modified in a way that break data mappings.
-    :return: A DeephavenFigure that contains the 3D scatter chart
+    Args:
+      table: Table:  (Default value = None)
+        A table to pull data from.
+      x: str:  (Default value = None)
+        A column that contains x-axis values.
+      y: str:  (Default value = None)
+        A column that contains y-axis values.
+      z: str:  (Default value = None)
+        A column that contains z-axis values.
+      error_x: str:  (Default value = None)
+        A column with x error bar values. These form the error
+        bars in both the positive and negative direction if error_x_minus
+        is not specified, and the error bars in only the positive direction if
+        error_x_minus is specified.
+      error_x_minus: str:  (Default value = None)
+        A column with x error bar values. These form
+        the error bars in the negative direction, and are ignored if error_x
+        is not specified.
+      error_y: str:  (Default value = None)
+        A column with y error bar values. These form the error
+        bars in both the positive and negative direction if error_y_minus
+        is not specified, and the error bars in only the positive direction if
+        error_y_minus is specified.
+      error_y_minus: str:  (Default value = None)
+        A column with y error bar values. These form
+        the error bars in the negative direction, and are ignored if error_y
+        is not specified.
+      error_z: str:  (Default value = None)
+        A column with z error bar values. These form the error
+        bars in both the positive and negative direction if error_z_minus
+        is not specified, and the error bars in only the positive direction if
+        error_z_minus is specified.
+      error_z_minus: str:  (Default value = None)
+        A column with z error bar values. These form
+        the error bars in the negative direction, and are ignored if error_z
+        is not specified.
+      size: str:  (Default value = None)
+        A column that contains size values.
+      text: str:  (Default value = None)
+        A column that contains text annotations.
+      hover_name: str | list[str]:  (Default value = None)
+        A column that contains names to bold in the hover
+          tooltip.
+      labels: dict[str, str]:  (Default value = None)
+        A dictionary of labels mapping columns to new labels.
+      color_discrete_sequence: list[str]:  (Default value = None)
+        A list of colors to sequentially apply to
+        the series. The colors loop, so if there are more series than colors,
+        colors will be reused.
+      symbol_sequence: list[str]:  (Default value = None)
+        A list of symbols to sequentially apply to the
+        markers in the series. The symbols loop, so if there are more series than
+        symbols, symbols will be reused.
+      size_sequence: list[str]:  (Default value = None)
+        A list of sizes to sequentially apply to the
+        markers in the series. The sizes loop, so if there are more series than
+        symbols, sizes will be reused. This is overriden is "size" is specified.
+      opacity: float:  (Default value = None)
+        Opacity to apply to all markers. 0 is completely transparent
+        and 1 is completely opaque.
+      log_x: bool:  (Default value = False)
+        A boolean that specifies if the corresponding axis is a log
+        axis or not.
+      log_y: bool:  (Default value = False)
+        A boolean that specifies if the corresponding axis is a log
+        axis or not.
+      log_z: bool:  (Default value = False)
+        A boolean that specifies if the corresponding axis is a log
+        axis or not.
+      range_x: list[int]:  (Default value = None)
+        A list of two numbers that specify the range of the x axis.
+      range_y: list[int]:  (Default value = None)
+        A list of two numbers that specify the range of the y axis.
+      range_z: list[int]:  (Default value = None)
+        A list of two numbers that specify the range of the z axis.
+      title: str: (Default value = None)
+        The title of the chart
+      template: str:  (Default value = None)
+        The template for the chart.
+      unsafe_update_figure:  callable:  (Default value = default_callback)
+        An update function that takes a plotly figure
+        as an argument and optionally returns a plotly figure. If a figure is
+        not returned, the plotly figure passed will be assumed to be the return
+        value. Used to add any custom changes to the underlying plotly figure.
+        Note that the existing data traces should not be removed. This may lead
+        to unexpected behavior if traces are modified in a way that break data
+        mappings.
+
+    Returns:
+      A DeephavenFigure that contains the 3D scatter chart
+
     """
     args = locals()
 
@@ -237,9 +299,9 @@ def scatter_polar(
         table: Table = None,
         r: str = None,
         theta: str = None,
-        size: str | list[str] = None,
-        text: str | list[str] = None,
-        hover_name: str | list[str] = None,
+        size: str = None,
+        text: str = None,
+        hover_name: str = None,
         labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
@@ -252,42 +314,69 @@ def scatter_polar(
         log_r: bool = False,
         title: str = None,
         template: str = None,
-        unsafe_update_figure: Callable = default_callback
+        unsafe_update_figure: callable = default_callback
 ) -> DeephavenFigure:
-    """
-    Returns a polar scatter chart
+    """Returns a polar scatter chart
 
-    :param table: A table to pull data from.
-    :param r: A column that contains r values.
-    :param theta: A column that contains theta values.
-    :param size: A column or list of columns that contain size values.
-    :param text: A column or list of columns that contain text annotations.
-    :param color_discrete_sequence: A list of colors to sequentially apply to
-    the series. The colors loop, so if there are more series than colors,
-    colors will be reused.
-    :param symbol_sequence: A list of symbols to sequentially apply to the
-    markers in the series. The symbols loop, so if there are more series than
-    symbols, symbols will be reused.
-    :param size_sequence: A list of sizes to sequentially apply to the
-    markers in the series. The sizes loop, so if there are more series than
-    symbols, sizes will be reused. This is overriden is "size" is specified.
-    :param opacity: Opacity to apply to all points. 0 is completely transparent
-    and 1 is completely opaque.
-    :param direction: Which direction points are drawn. Default clockwise.
-    :param start_angle: Sets start angle. Default 90.
-    :param range_r: A list of two numbers that specify the range of r.
-    :param range_theta: A list of two numbers that specify the range of theta.
-    :param log_r: A boolean that specifies if the corresponding axis is a log
-    axis or not.
-    :param title: The title of the chart.
-    :param template: The template for the chart.
-    :param unsafe_update_figure: An update function that takes a plotly figure
-    as an argument and optionally returns a plotly figure. If a figure is not
-    returned, the plotly figure passed will be assumed to be the return value.
-    Used to add any custom changes to the underlying plotly figure. Note that
-    the existing data traces should not be removed. This may lead to unexpected
-    behavior if traces are modified in a way that break data mappings.
-    :return: A DeephavenFigure that contains the polar scatter chart
+    Args:
+      table: Table:  (Default value = None)
+        A table to pull data from.
+      r: str:  (Default value = None)
+        A column that contains r values.
+      theta: str:  (Default value = None)
+        A column that contains theta values.
+      size: str:  (Default value = None)
+        A column that contains size values.
+      text: str:  (Default value = None)
+        A column that contains text annotations.
+      hover_name: str | list[str]:  (Default value = None)
+        A column that contains names to bold in the hover
+          tooltip.
+      labels: dict[str, str]:  (Default value = None)
+        A dictionary of labels mapping columns to new labels.
+      color_discrete_sequence: list[str]:  (Default value = None)
+        A list of colors to sequentially apply to
+        the series. The colors loop, so if there are more series than colors,
+        colors will be reused.
+      symbol_sequence: list[str]:  (Default value = None)
+        A list of symbols to sequentially apply to the
+        markers in the series. The symbols loop, so if there are more series than
+        symbols, symbols will be reused.
+      size_sequence: list[str]:  (Default value = None)
+        A list of sizes to sequentially apply to the
+        markers in the series. The sizes loop, so if there are more series than
+        symbols, sizes will be reused. This is overriden is "size" is specified.
+      opacity: float:  (Default value = None)
+        Opacity to apply to all markers. 0 is completely transparent
+        and 1 is completely opaque.
+      direction: (Default value = 'clockwise')
+        Which direction points are drawn. Can be 'clockwise' or
+        'counterclockwise'
+      start_angle: int:  (Default value = 90)
+        Sets start angle.
+      range_r: list[int]:
+        A list of two numbers that specify the range of r.
+      range_theta: list[int]:
+        A list of two numbers that specify the range of theta.
+      log_r: bool
+        A boolean that specifies if the corresponding axis is a log
+        axis or not.
+      title: str: (Default value = None)
+        The title of the chart
+      template: str:  (Default value = None)
+        The template for the chart.
+      unsafe_update_figure:  callable:  (Default value = default_callback)
+        An update function that takes a plotly figure
+        as an argument and optionally returns a plotly figure. If a figure is
+        not returned, the plotly figure passed will be assumed to be the return
+        value. Used to add any custom changes to the underlying plotly figure.
+        Note that the existing data traces should not be removed. This may lead
+        to unexpected behavior if traces are modified in a way that break data
+        mappings.
+
+    Returns:
+      A DeephavenFigure that contains the polar scatter chart
+
     """
     args = locals()
 
@@ -303,9 +392,9 @@ def scatter_ternary(
         a: str = None,
         b: str = None,
         c: str = None,
-        size: str | list[str] = None,
-        text: str | list[str] = None,
-        hover_name: str | list[str] = None,
+        size: str = None,
+        text: str= None,
+        hover_name: str = None,
         labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
         symbol_sequence: list[str] = None,
@@ -313,37 +402,59 @@ def scatter_ternary(
         opacity: float = None,
         title: str = None,
         template: str = None,
-        unsafe_update_figure: Callable = default_callback
+        unsafe_update_figure: callable = default_callback
 ) -> DeephavenFigure:
-    """
-    Returns a ternary scatter chart
+    """Returns a ternary scatter chart
 
-    :param table: A table to pull data from.
-    :param a: A column that contains a-axis values.
-    :param b: A column that contains b-axis values.
-    :param c: A column that contains c-axis values.
-    :param size: A column or list of columns that contain size values.
-    :param text: A column or list of columns that contain text annotations.
-    :param color_discrete_sequence: A list of colors to sequentially apply to
-    the series. The colors loop, so if there are more series than colors,
-    colors will be reused.
-    :param symbol_sequence: A list of symbols to sequentially apply to the
-    markers in the series. The symbols loop, so if there are more series than
-    symbols, symbols will be reused.
-    :param size_sequence: A list of sizes to sequentially apply to the
-    markers in the series. The sizes loop, so if there are more series than
-    symbols, sizes will be reused. This is overriden is "size" is specified.
-    :param opacity: Opacity to apply to all points. 0 is completely transparent
-    and 1 is completely opaque.
-    :param title: The title of the chart.
-    :param template: The template for the chart.
-    :param unsafe_update_figure: An update function that takes a plotly figure
-    as an argument and optionally returns a plotly figure. If a figure is not
-    returned, the plotly figure passed will be assumed to be the return value.
-    Used to add any custom changes to the underlying plotly figure. Note that
-    the existing data traces should not be removed. This may lead to unexpected
-    behavior if traces are modified in a way that break data mappings.
-    :return: A DeephavenFigure that contains the ternary scatter chart
+    Args:
+      table: Table:  (Default value = None)
+        A table to pull data from.
+      a: str:
+        A column that contains a-axis values.
+      b: str:
+        A column that contains b-axis values.
+      c: str:
+        A column that contains c-axis values.
+      size: str:  (Default value = None)
+        A column that contains size values.
+      text: str:  (Default value = None)
+        A column that contains text annotations.
+      hover_name: str | list[str]:  (Default value = None)
+        A column that contains names to bold in the hover
+          tooltip.
+      labels: dict[str, str]:  (Default value = None)
+        A dictionary of labels mapping columns to new labels.
+      color_discrete_sequence: list[str]:  (Default value = None)
+        A list of colors to sequentially apply to
+        the series. The colors loop, so if there are more series than colors,
+        colors will be reused.
+      symbol_sequence: list[str]:  (Default value = None)
+        A list of symbols to sequentially apply to the
+        markers in the series. The symbols loop, so if there are more series than
+        symbols, symbols will be reused.
+      size_sequence: list[str]:  (Default value = None)
+        A list of sizes to sequentially apply to the
+        markers in the series. The sizes loop, so if there are more series than
+        symbols, sizes will be reused. This is overriden is "size" is specified.
+      opacity: float:  (Default value = None)
+        Opacity to apply to all markers. 0 is completely transparent
+        and 1 is completely opaque.
+      title: str: (Default value = None)
+        The title of the chart
+      template: str:  (Default value = None)
+        The template for the chart.
+      unsafe_update_figure:  callable:  (Default value = default_callback)
+        An update function that takes a plotly figure
+        as an argument and optionally returns a plotly figure. If a figure is
+        not returned, the plotly figure passed will be assumed to be the return
+        value. Used to add any custom changes to the underlying plotly figure.
+        Note that the existing data traces should not be removed. This may lead
+        to unexpected behavior if traces are modified in a way that break data
+        mappings.
+
+    Returns:
+      A DeephavenFigure that contains the ternary scatter chart
+
     """
     args = locals()
 
@@ -355,5 +466,6 @@ def scatter_ternary(
 
 
 def _scatter_matrix():
+    """ """
     # todo: not yet implemented
     pass

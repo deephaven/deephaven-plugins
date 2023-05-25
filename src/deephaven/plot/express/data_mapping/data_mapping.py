@@ -12,12 +12,16 @@ from ..shared import combined_generator
 def get_data_groups(
         data_vals: Iterable[str | list[str]]
 ) -> Iterable[tuple[str, ...]]:
-    """
-    Generate a cartesian product between all items in the provided iterable
+    """Generate a cartesian product between all items in the provided iterable
 
-    :param data_vals: An iterable
-    :return: An iterable containing tuples that contain all possible
-    combinations of the values in the data_vals
+    Args:
+      data_vals: Iterable[str | list[str]]: An iterable to generate the
+        cartesian product with
+
+    Returns:
+      Iterable[tuple[str, ...]]: An iterable containing tuples that contain
+        all possible combinations of the values in the data_vals
+
     """
 
     data_groups = []
@@ -33,11 +37,14 @@ def get_data_groups(
 def overriden_keys(
         keys: list[str]
 ) -> Generator[str]:
-    """
-    Override all keys provided with values in OVERRIDES if applicable
+    """Override all keys provided with values in OVERRIDES if applicable
 
-    :param keys: The keys to override
-    :returns: A generator that yields the overriden keys
+    Args:
+      keys: list[str]: The keys to override
+
+    Yields:
+      str: the overriden keys
+
     """
     for key in keys:
         yield OVERRIDES[key] if key in OVERRIDES else key
@@ -46,29 +53,34 @@ def overriden_keys(
 def get_var_col_dicts(
         data_dict: dict[str, str | list[str]]
 ) -> Generator[dict[str, str]]:
-    """
-    Generate variable to column mappings. The keys in the dictionary will be
+    """Generate variable to column mappings. The keys in the dictionary will be
     the keys in the new dictionary items, and a cartesian product will be
     computed on the dictionary values to create the new values.
 
-    Example input:
-    {
-        "x": "Col1",
-        "y": ["Col2", "Col3"]
-    }
+    Args:
+      data_dict: dict[str, str | list[str]]: A dictionary contain var to column
+        or column list mappings
 
-    Example output:
-    {
-        "x": "Col1",
-        "y": "Col2"
-    },
-    {
-        "x": "Col1",
-        "y": "Col3"
-    }
+    Yields:
+      dict[str, str]: Generated var to column mappings
 
-    :param data_dict: A dictionary contain var to column or column list mappings
-    :return: Generated var to column mappings
+    Examples:
+        Input:
+        {
+            "x": "Col1",
+            "y": ["Col2", "Col3"]
+        }
+
+        Output:
+        {
+            "x": "Col1",
+            "y": "Col2"
+        },
+        {
+            "x": "Col1",
+            "y": "Col3"
+        }
+
     """
     for data_group in get_data_groups(data_dict.values()):
         yield dict(zip(overriden_keys(list(data_dict.keys())), data_group))
@@ -78,12 +90,15 @@ def custom_data_args_generator(
         var: str,
         cols: list[str]
 ) -> Generator[tuple[str, str]]:
-    """
-    Generate data mappings for custom data args
+    """Generate data mappings for custom data args
 
-    :param var: The arg to map to columns
-    :param cols: The columns to map to
-    :returns: Generates a tuple pair of (variable, column value)
+    Args:
+      var: str: The arg to map to columns
+      cols: list[str]: The columns to map to
+
+    Yields:
+      tuple[str, str]: A tuple pair of (variable, column value)
+
     """
     for col in cycle(cols):
         yield CUSTOM_DATA_ARGS[var], col
@@ -93,13 +108,17 @@ def add_custom_data_args(
         var_col_dicts: Generator[dict[str, str]],
         custom_call_args: dict[str, any] = None
 ) -> Generator[dict[str, str]]:
-    """
-    Given the existing variable to column mappings, add error bars
+    """Given the existing variable to column mappings, add error bars
 
-    :param var_col_dicts: Existing var to col map
-    :param custom_call_args: Arguments to check for any error bar-related vars
-    :returns: Generates new dictionary with var_col_dicts modified to have
-    error bars if needed
+    Args:
+      var_col_dicts: Generator[dict[str, str]]: Existing var to col map
+      custom_call_args: dict[str, any]:  (Default value = None) Arguments to
+        check for any error bar-related vars
+
+    Yields:
+      dict[str, str]: New dictionary with var_col_dicts modified to have
+        error bars if needed
+
     """
     generators = []
 
@@ -116,11 +135,14 @@ def add_custom_data_args(
 def filter_none(
         var_col_dicts: Generator[dict[str, str]]
 ) -> Generator[dict[str, str]]:
-    """
-    Filters key, value pairs that have None values from the dictionaries.
+    """Filters key, value pairs that have None values from the dictionaries.
 
-    :param var_col_dicts: The dictionaries to filter
-    :returns: A generator that yields the filtered dicts
+    Args:
+      var_col_dicts: Generator[dict[str, str]]: The dictionaries to filter
+
+    Yields:
+      dict[str, str]: The filtered dicts
+
     """
     for var_col_dict in var_col_dicts:
         yield {k: v for k, v in var_col_dict.items() if v is not None}
@@ -129,11 +151,14 @@ def filter_none(
 def remove_unmapped_args(
         data_dict: dict[str, str | list[str]]
 ) -> dict[str, str | list[str]]:
-    """
-    Removed any args that do not need to be in the data mapping
+    """Removed any args that do not need to be in the data mapping
 
-    :param data_dict: The dict to remove args from
-    :return: The filtered dict
+    Args:
+      data_dict: dict[str, str | list[str]]: The dict to remove args from
+
+    Returns:
+      dict[str, str | list[str]]: The filtered dict
+
     """
     for arg in REMOVE:
         if arg in data_dict:
@@ -145,18 +170,20 @@ def remove_unmapped_args(
 def zip_args(
         data_dict: dict[str, str | list[str]]
 ) -> Generator[dict[str, str]]:
-    """
-    Yields var_col_dicts, similarly to get_var_col_dicts
+    """Yields var_col_dicts, similarly to get_var_col_dicts
     Special case for OHLC and Candlestick as their data mappings are applied
     sequentially rather than in a product
 
-    :param data_dict: The data
+    Args:
+      data_dict: dict[str, str | list[str]]: The data
+
+    Yields:
+        dict[str, str]: A dictionary with zipped args
     """
     for x_f, o, h, l, c in zip_longest(
             data_dict["x_finance"], data_dict["open"], data_dict["high"],
             data_dict["low"], data_dict["close"],
             fillvalue=data_dict["x_finance"][0]):
-
         yield {
             "x": x_f,
             "open": o,
@@ -165,23 +192,30 @@ def zip_args(
             "close": c,
         }
 
+
 def create_data_mapping(
         data_dict: dict[str, str | list[str]],
         custom_call_args: dict[str, any],
         table: Table,
         start_index: int,
 ) -> tuple[DataMapping, list[dict[str, str]]]:
-    """
-    Create a data mapping of variable to table column
+    """Create a data mapping of variable to table column as well as a mapping
+    copy for the hover text.
 
-    :param data_dict: A dictionary containing (variable, column) maps that need
-    to be converted to (variable, table column) maps
-    :param custom_call_args: Extra args extracted from the call_args that require
-    special processing
-    :param table: The table that contains the data
-    :param start_index: what index (of the corresponding traces) that this
-    mapping starts with
-    :return: A DataMapping for a specific table
+    Args:
+      data_dict: dict[str, str | list[str]]: A dictionary containing
+        (variable, column) maps that need to be converted to
+        (variable, table column) maps
+      custom_call_args: dict[str, any]: Extra args extracted from the call_args
+        that require special processing
+      table: Table: The table that contains the data
+      start_index: int: what index (of the corresponding traces) that this
+        mapping starts with
+
+    Returns:
+      DataMapping, list[dict[str, str]]: A DataMapping for a specific table and
+        the hover mapping
+
     """
     data_dict = remove_unmapped_args(data_dict)
 

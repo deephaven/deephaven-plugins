@@ -1,6 +1,3 @@
-from functools import partial
-from typing import Callable
-
 from deephaven.table import Table
 
 from ._private_utils import default_callback, validate_common_args, process_args
@@ -10,54 +7,72 @@ from ..deephaven_figure import generate_figure, draw_ohlc, draw_candlestick, Dee
 def ohlc(
         table: Table = None,
         x: str = None,
-        open: str = None,
-        high: str = None,
-        low: str = None,
-        close: str = None,
+        open: str | list[str] = None,
+        high: str | list[str] = None,
+        low: str | list[str] = None,
+        close: str | list[str] = None,
         increasing_color_sequence: list[str] = None,
         decreasing_color_sequence: list[str] = None,
         xaxis_sequence: list[int] = None,
         yaxis_sequence: list[int] = None,
         yaxis_titles: list[str] = None,
         xaxis_titles: list[str] = None,
-        unsafe_update_figure: Callable = default_callback
+        unsafe_update_figure: callable = default_callback
 ) -> DeephavenFigure:
-    """
-    Returns an ohlc chart
+    """Returns an ohlc chart
 
-    :param table: A table to pull data from.
-    :param x: The column containing x-axis data
-    :param open: The column containing the open data
-    :param high: The column containing the high data
-    :param low: The column containing the low data
-    :param close: The column containing the close data
-    :param increasing_color_sequence: A list of colors to sequentially apply to
-    the series on increasing bars. The colors loop, so if there are more series
-    than colors, colors will be reused.
-    :param decreasing_color_sequence: A list of colors to sequentially apply to
-    the series on decreasing bars. The colors loop, so if there are more series
-    than colors, colors will be reused.
-    :param xaxis_sequence: A list of x axes to assign series to. Odd numbers
-    starting with 1 are created on the bottom x axis and even numbers starting
-    with 2 are created on the top x axis. Axes are created up
-    to the maximum number specified. The axes loop, so if there are more series
-    than axes, axes will be reused.
-    :param yaxis_sequence: A list of y axes to assign series to. Odd numbers
-    starting with 1 are created on the left y axis and even numbers starting
-    with 2 are created on the top y axis. Axes are created up
-    to the maximum number specified. The axes loop, so if there are more series
-    than axes, axes will be reused.
-    :param yaxis_titles: A list of titles to sequentially apply to the
-    y axes. The titles do not loop.
-    :param xaxis_titles: A list of titles to sequentially apply to the
-    x axes. The titles do not loop.
-    :param unsafe_update_figure: An update function that takes a plotly figure
-    as an argument and optionally returns a plotly figure. If a figure is not
-    returned, the plotly figure passed will be assumed to be the return value.
-    Used to add any custom changes to the underlying plotly figure. Note that
-    the existing data traces should not be removed. This may lead to unexpected
-    behavior if traces are modified in a way that break data mappings.
-    :return: A DeephavenFigure that contains the ohlc chart
+    Args:
+      table: Table:  (Default value = None)
+        A table to pull data from.
+      x: str:  (Default value = None)
+        The column containing x-axis data
+      open: str | list[str]: (Default value = None)
+        The column containing the open data
+      high: str | list[str]: (Default value = None)
+        The column containing the high data
+      low: str | list[str]: (Default value = None)
+        The column containing the low data
+      close: str | list[str]: (Default value = None)
+        The column containing the close data
+      increasing_color_sequence: list[str]:  (Default value = None)
+        A list of colors to sequentially apply to
+        the series on increasing bars. The colors loop, so if there are
+        more series than colors, colors will be reused.
+      decreasing_color_sequence: list[str]:  (Default value = None)
+        A list of colors to sequentially apply to
+        the series on decreasing bars. The colors loop, so if there are
+        more series than colors, colors will be reused.
+      xaxis_sequence: list[str]:  (Default value = None)
+        A list of x axes to assign series to. Odd numbers
+        starting with 1 are created on the bottom x axis and even numbers starting
+        with 2 are created on the top x axis. Axes are created up
+        to the maximum number specified. The axes loop, so if there are more series
+        than axes, axes will be reused.
+      yaxis_sequence: list[str]:  (Default value = None)
+        A list of y axes to assign series to. Odd numbers
+        starting with 1 are created on the left y axis and even numbers starting
+        with 2 are created on the top y axis. Axes are created up
+        to the maximum number specified. The axes loop, so if there are more series
+        than axes, axes will be reused.
+      yaxis_titles: list[str]:  (Default value = None)
+        A list of titles to sequentially apply to the y axes. The titles do not
+          loop.
+      xaxis_titles: list[str]:  (Default value = None)
+        A list of titles to sequentially apply to the x axes. The titles do not
+          loop.
+      unsafe_update_figure:  Callable:  (Default value = default_callback)
+        An update function that takes a plotly figure
+        as an argument and optionally returns a plotly figure. If a figure is
+        not returned, the plotly figure passed will be assumed to be the return
+        value. Used to add any custom changes to the underlying plotly figure.
+        Note that the existing data traces should not be removed. This may lead
+        to unexpected behavior if traces are modified in a way that break data
+        mappings.
+
+
+    Returns:
+      DeephavenFigure: A DeephavenFigure that contains the ohlc chart
+
     """
 
     # todo: range slider
@@ -75,54 +90,71 @@ def ohlc(
 def candlestick(
         table: Table = None,
         x: str = None,
-        open: str = None,
-        high: str = None,
-        low: str = None,
-        close: str = None,
+        open: str | list[str] = None,
+        high: str | list[str] = None,
+        low: str | list[str] = None,
+        close: str | list[str] = None,
         increasing_color_sequence: list[str] = None,
         decreasing_color_sequence: list[str] = None,
         xaxis_sequence: list[int] = None,
         yaxis_sequence: list[int] = None,
         yaxis_titles: list[str] = None,
         xaxis_titles: list[str] = None,
-        unsafe_update_figure: Callable = default_callback
+        unsafe_update_figure: callable = default_callback
 ) -> DeephavenFigure:
-    """
-    Returns a candlestick chart
+    """Returns a candlestick chart
 
-    :param table: A table to pull data from.
-    :param x: The column containing x-axis data
-    :param open: The column containing the open data
-    :param high: The column containing the high data
-    :param low: The column containing the low data
-    :param close: The column containing the close data
-    :param increasing_color_sequence: A list of colors to sequentially apply to
-    the series on increasing bars. The colors loop, so if there are more series
-    than colors, colors will be reused.
-    :param decreasing_color_sequence: A list of colors to sequentially apply to
-    the series on decreasing bars. The colors loop, so if there are more series
-    than colors, colors will be reused.
-    :param xaxis_sequence: A list of x axes to assign series to. Odd numbers
-    starting with 1 are created on the bottom x axis and even numbers starting
-    with 2 are created on the top x axis. Axes are created up
-    to the maximum number specified. The axes loop, so if there are more series
-    than axes, axes will be reused.
-    :param yaxis_sequence: A list of y axes to assign series to. Odd numbers
-    starting with 1 are created on the left y axis and even numbers starting
-    with 2 are created on the top y axis. Axes are created up
-    to the maximum number specified. The axes loop, so if there are more series
-    than axes, axes will be reused.
-    :param yaxis_titles: A list of titles to sequentially apply to the
-    y axes. The titles do not loop.
-    :param xaxis_titles: A list of titles to sequentially apply to the
-    x axes. The titles do not loop.
-    :param unsafe_update_figure: An update function that takes a plotly figure
-    as an argument and optionally returns a plotly figure. If a figure is not
-    returned, the plotly figure passed will be assumed to be the return value.
-    Used to add any custom changes to the underlying plotly figure. Note that
-    the existing data traces should not be removed. This may lead to unexpected
-    behavior if traces are modified in a way that break data mappings.
-    :return: A DeephavenFigure that contains the candlestick chart
+        Args:
+      table: Table:  (Default value = None)
+        A table to pull data from.
+      x: str:  (Default value = None)
+        The column containing x-axis data
+      open: str | list[str]: (Default value = None)
+        The column containing the open data
+      high: str | list[str]: (Default value = None)
+        The column containing the high data
+      low: str | list[str]: (Default value = None)
+        The column containing the low data
+      close: str | list[str]: (Default value = None)
+        The column containing the close data
+      increasing_color_sequence: list[str]:  (Default value = None)
+        A list of colors to sequentially apply to
+        the series on increasing bars. The colors loop, so if there are
+        more series than colors, colors will be reused.
+      decreasing_color_sequence: list[str]:  (Default value = None)
+        A list of colors to sequentially apply to
+        the series on decreasing bars. The colors loop, so if there are
+        more series than colors, colors will be reused.
+      xaxis_sequence: list[str]:  (Default value = None)
+        A list of x axes to assign series to. Odd numbers
+        starting with 1 are created on the bottom x axis and even numbers starting
+        with 2 are created on the top x axis. Axes are created up
+        to the maximum number specified. The axes loop, so if there are more series
+        than axes, axes will be reused.
+      yaxis_sequence: list[str]:  (Default value = None)
+        A list of y axes to assign series to. Odd numbers
+        starting with 1 are created on the left y axis and even numbers starting
+        with 2 are created on the top y axis. Axes are created up
+        to the maximum number specified. The axes loop, so if there are more series
+        than axes, axes will be reused.
+      yaxis_titles: list[str]:  (Default value = None)
+        A list of titles to sequentially apply to the y axes. The titles do not
+          loop.
+      xaxis_titles: list[str]:  (Default value = None)
+        A list of titles to sequentially apply to the x axes. The titles do not
+          loop.
+      unsafe_update_figure:  Callable:  (Default value = default_callback)
+        An update function that takes a plotly figure
+        as an argument and optionally returns a plotly figure. If a figure is
+        not returned, the plotly figure passed will be assumed to be the return
+        value. Used to add any custom changes to the underlying plotly figure.
+        Note that the existing data traces should not be removed. This may lead
+        to unexpected behavior if traces are modified in a way that break data
+        mappings.
+
+    Returns:
+      DeephavenFigure: A DeephavenFigure that contains the candlestick chart
+
     """
     args = locals()
 

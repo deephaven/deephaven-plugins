@@ -27,15 +27,21 @@ def preprocess_aggregate(
         names: str,
         values: str
 ) -> Table:
-    """
-    Preprocess a table passed to pie or funnel_area to ensure it only has 1 row
-    per name
+    """Preprocess a table passed to pie or funnel_area to ensure it only has
+     1 row per name
 
-    :param table: The table to preprocess
-    :param names: The column to use for names
-    :param values: The column to sum up for values
-    :return: A new table that contains a single row per name and columns of
-    specified names and values
+    Args:
+      table: Table:
+        The table to preprocess
+      names:  str:
+        The column to use for names
+      values:  str:
+        The column to use for names
+
+    Returns:
+      Table: A new table that contains a single row per name and columns of
+      specified names and values
+
     """
     return table.view([names, values]).sum_by(names)
 
@@ -45,21 +51,29 @@ def create_count_tables(
         columns: list[str],
         range_table: Table,
         histfunc: str,
-        range_,
-        range_index
-) -> Generator[Table, str]:
-    """
-    Generate count tables per column
+        range_: str,
+        range_index: str
+) -> Generator[tuple[Table, str]]:
+    """Generate count tables per column
 
-    :param table: The table to pull data from
-    :param columns: A list of columns to create histograms over
-    :param range_table: A table containing ranges to calculate the bin for each
-    value in the column
-    :param histfunc: The function to aggregate values within each bin
-    :param range_: The name of the range column. Generally range.
-    :param range_index: The name of the range_index column. Generally
-    range_index
-    :returns: Yields a tuple containing (a new count_table, the column name)
+    Args:
+      table: Table:
+        The table to pull data from
+      columns: list[str]:
+        A list of columns to create histograms over
+      range_table: Table:
+        A table containing ranges to calculate the bin for each
+        value in the column
+      histfunc: str:
+        The function to aggregate values within each bin
+      range_: str:
+        The name of the range column. Generally range.
+      range_index: str:
+        The name of the range_index column. Generally range_index
+
+    Yields:
+      tuple[Table, str]]: tuple containing (a new count_table, the column name)
+
     """
     agg_func = HISTFUNC_MAP[histfunc]
     for column in columns:
@@ -80,33 +94,47 @@ def create_hist_tables(
         histfunc: str = 'count',
         barnorm: str = None,
         histnorm: str = None,
-        cumulative: str = None
+        cumulative: bool = False
 ) -> tuple[Table, str, list[str]]:
-    """
-    Create the histogram table that contains aggregated bin counts
+    """Create the histogram table that contains aggregated bin counts
 
-    :param table: The table to pull data from
-    :param columns: A list of columns to create histograms over
-    :param nbins: The number of bins, shared between all histograms
-    :param range_bins: The range that the bins are drawn over. If none, the range
-    will be over all data
-    :param histfunc: The function to use when aggregating within bins. One of
-    'avg', 'count', 'count_distinct', 'max', 'median', 'min', 'std', 'sum',
-    or 'var'
-    :param barnorm: Default None. If 'fraction', the value of the bar is
-    divided by all bars at that location. If 'percentage', the result is the
-    same but multiplied by 100.
-    :param histnorm: Default None. If 'probability', the value at this bin is
-    divided out of the total of all bins in this column. If 'percent', result
-    is the same as 'probability' but multiplied by 100. If 'density', the value
-    is divided by the width of the bin. If 'probability density', the value is
-    divided out of the total of all bins in this column and the width of the
-    bin.
-    :param cumulative: Default False. If True, values are cumulative.
-    :return: A tuple containing (the new counts table,
-    the column of the midpoint, the columns that contain counts)
+    Args:
+      table: Table:
+        The table to pull data from
+      columns: list[str]
+        A list of columns to create histograms over
+      nbins: int: (Default value = 10)
+        The number of bins, shared between all histograms
+      range_bins: list[int]:  (Default value = None)
+        The range that the bins are drawn over. If none, the range
+        will be over all data
+      histfunc: str:  (Default value = 'count')
+        The function to use when aggregating within bins. One of
+        'avg', 'count', 'count_distinct', 'max', 'median', 'min', 'std', 'sum',
+        or 'var'
+      barnorm: str:  (Default value = None)
+        If 'fraction', the value of the bar is
+        divided by all bars at that location. If 'percentage', the result is the
+        same but multiplied by 100.
+      histnorm: str:  (Default value = None)
+        If 'probability', the value at this bin is
+        divided out of the total of all bins in this column. If 'percent',
+        result is the same as 'probability' but multiplied by 100. If
+        'density', the value is divided by the width of the bin. If
+        'probability density', the value is divided out of the total of all
+        bins in this column and the width of the bin.
+      cumulative: bool:  (Default value = False)
+        If True, values are cumulative.
+
+    Returns:
+      tuple[Table, str, list[str]]:
+        A tuple containing (the new counts table,
+        the column of the midpoint, the columns that contain counts)
+
     """
-    names = get_unique_names(table, ["range_index", "range", "bin_min", "bin_max", "value", "total"])
+    names = get_unique_names(table, ["range_index", "range",
+                                     "bin_min", "bin_max",
+                                     "value", "total"])
     range_index, bin_min, bin_max, range_, total = (
         names["range_index"], names["bin_min"], names["bin_max"],
         names["range"], names["total"]
@@ -186,14 +214,20 @@ def get_aggs(
         base: str,
         columns: list[str],
 ) -> tuple[list[str], str]:
-    """
-    Create aggregations over all columns
+    """Create aggregations over all columns
 
-    :param base: The base of the new columns that store the agg per column
-    :param columns: All columns joined for the sake of taking min or max over
-    the columns
-    :return: A tuple containing (a list of the new columns,
-    a joined string of "NewCol, NewCol2...")
+    Args:
+      base: str:
+        The base of the new columns that store the agg per column
+      columns: list[str]:
+        All columns joined for the sake of taking min or max over
+        the columns
+
+    Returns:
+      tuple[list[str], str]:
+        A tuple containing (a list of the new columns,
+        a joined string of "NewCol, NewCol2...")
+
     """
     return ([f"{base}{column}={column}" for column in columns],
             ', '.join([f"{base}{column}" for column in columns]))
@@ -206,16 +240,24 @@ def create_range_table(
         range_bins: list[int],
         range_: str
 ) -> Table:
-    """
-    Create a table that contains the bin ranges
+    """Create a table that contains the bin ranges
 
-    :param table: The table to pull data from
-    :param columns: The column names to create the range table over
-    :param nbins: The number of bins to use
-    :param range_bins: The range that the bins are drawn over. If none, the range
-    will be over all data
-    :param range_: The name of the range column. Generally "range"
-    :return: A new table that contains a range object in a Range column
+    Args:
+      table: Table:
+        The table to pull data from
+      columns: list[str]
+        A list of columns to create histograms over
+      nbins: int: (Default value = 10)
+        The number of bins, shared between all histograms
+      range_bins: list[int]:  (Default value = None)
+        The range that the bins are drawn over. If none, the range
+        will be over all data
+      range_: str:
+        The name of the range column. Generally "range"
+
+    Returns:
+      A new table that contains a range object in a Range column
+
     """
     if range_bins:
         range_min = range_bins[0]
@@ -240,12 +282,17 @@ def time_length(
         start: str,
         end: str
 ) -> int:
-    """
-    Calculate the difference between the start and end times in milliseconds
+    """Calculate the difference between the start and end times in milliseconds
 
-    :param start: The start time
-    :param end: The end time
-    :return: The time in milliseconds
+    Args:
+      start: str:
+        The start time
+      end: str:
+        The end time
+
+    Returns:
+      int: The time in milliseconds
+
     """
     return nanos_to_millis(diff_nanos(start, end))
 
@@ -254,16 +301,23 @@ def preprocess_frequency_bar(
         table: Table,
         column: str
 ) -> tuple[Table, str, str]:
-    """
-    Preprocess frequency bar params into an appropriate table
+    """Preprocess frequency bar params into an appropriate table
     This just sums each value by count
 
-    :param table: The table to pull data from
-    :param column: The column that has counts applied
-    :return: A tuple containing (the new table, the original column name,
-    the name of the count column)
+    Args:
+      table: Table:
+        The table to pull data from
+      column: str:
+        The column that has counts applied
+
+    Returns:
+      tuple[Table, str, str]: A tuple containing
+        (the new table, the original column name, the name of the count column)
+
     """
-    return table.view([column]).count_by("count", by=column), column, "count"
+    names = get_unique_names(table, ["count"])
+
+    return table.view([column]).count_by(names["count"], by=column), column, names["count"]
 
 
 def preprocess_timeline(
@@ -272,37 +326,53 @@ def preprocess_timeline(
         x_end: str,
         y: str
 ) -> tuple[Table, str]:
-    """
-    Preprocess timeline params into an appropriate table
+    """Preprocess timeline params into an appropriate table
     The table should contain the Time_Diff, which is milliseconds between the
     provided x_start and x_end
 
-    :param table: The table to pull data from
-    :param x_start: The column that contains start dates
-    :param x_end: The column that contains end dates
-    :param y: The label for the row
-    :return: A tuple containing (the new table,
-    the name of the new time_diff column)
+    Args:
+      table: Table:
+        The table to pull data from
+      x_start: str:
+        The column that contains start dates
+      x_end: str:
+        The column that contains end dates
+      y: str:
+        The label for the row
+
+    Returns:
+      tuple[Table, str]: A tuple containing
+        (the new table, the name of the new time_diff column)
+
     """
+
+    names = get_unique_names(table, ["Time_Diff"])
+
     new_table = table.view([f"{x_start}",
                             f"{x_end}",
-                            f"Time_Diff = time_length({x_start}, {x_end})",
+                            f"{names['Time_Diff']} = time_length({x_start}, {x_end})",
                             f"{y}"])
-    return new_table, "Time_Diff"
+    return new_table, names['Time_Diff']
 
 
 def preprocess_violin(
         table: Table,
         column: str
 ) -> tuple[Table, str, None]:
-    """
-    Preprocess the violin (or box or strip) params into an appropriate table
+    """Preprocess the violin (or box or strip) params into an appropriate table
     For each column, the data needs to be reshaped so that there is a column
     that contains the column value.
 
-    :param table: The table to pull data from
-    :param column: The column to use for violin data
-    :return: A tuple of new_table, column values, and None
+    Args:
+      table: Table:
+        The table to pull data from
+      column: str:
+        The column to use for violin data
+
+    Returns:
+      tuple[Table, str, None]:
+        A tuple of new_table, column values, and None
+
     """
     # also used for box and strip
     new_table = table.view([
@@ -318,6 +388,16 @@ def preprocess_ecdf(
         table,
         column
 ):
+    """
+
+    Args:
+      table: 
+      column: 
+
+    Returns:
+
+    """
+    #TODO
     col_dup = f"{column}_2"
     tot_count_col = f"TOTAL_COUNT"
     tot_count_dup = f"{tot_count_col}_2"

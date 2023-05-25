@@ -7,18 +7,21 @@ from plotly.graph_objects import Figure
 
 from deephaven.table import Table
 
-from ..deephaven_figure import generate_figure, DeephavenFigure, update_traces
+from ..deephaven_figure import generate_figure, DeephavenFigure
 from ..shared import get_unique_names
 
 
 def default_callback(
-        fig
+        fig: Figure
 ) -> Figure:
-    """
-    A default callback that returns the passed fig
+    """A default callback that returns the passed fig
 
-    :param fig:
-    :return: The same fig
+    Args:
+      fig: Figure: The input figure
+
+    Returns:
+      Figure: The same figure
+
     """
     return fig
 
@@ -27,12 +30,15 @@ def unsafe_figure_update_wrapper(
         unsafe_figure_update: callable,
         dh_fig: DeephavenFigure
 ) -> DeephavenFigure:
-    """
-    Wrap the callback to be applied last before a figure is returned
+    """Wrap the callback to be applied last before a figure is returned
 
-    :param unsafe_figure_update: The function to call on the plotly figure
-    :param dh_fig: The DeephavenFigure to update
-    :return: The resulting DeephavenFigure
+    Args:
+      unsafe_figure_update: The function to call on the plotly figure
+      dh_fig: DeephavenFigure: The DeephavenFigure to update
+
+    Returns:
+      DeephavenFigure: The resulting DeephavenFigure
+
     """
     # allow either returning a new fig or not from callback
     new_fig = unsafe_figure_update(dh_fig.fig)
@@ -45,13 +51,15 @@ def normalize_position(
         chart_start: float,
         chart_range: float
 ) -> float:
-    """
-    Normalize a position so that it falls between 0 and 1 (inclusive)
+    """Normalize a position so that it falls between 0 and 1 (inclusive)
 
-    :param position: The current position
-    :param chart_start: The start of the domain the existing chart has
-    :param chart_range: The range the existing chart has
-    :return:
+    Args:
+      position: float: The current position
+      chart_start: float: The start of the domain the existing chart has
+      chart_range: float: The range the existing chart has
+
+    Returns:
+      float: The normalized position
     """
     return (position - chart_start) / chart_range
 
@@ -61,18 +69,20 @@ def get_new_positions(
         positions: list[float],
         chart_domain: list[float]
 ) -> list[float]:
-    """
-    Get positions within the new domain of an arbitrary list of positions
+    """Get positions within the new domain of an arbitrary list of positions
     The positions will first be normalized to fall between 0 and 1 inclusive
     using the current chart_domain. Then, the positions are mapped onto
     new_domain.
     For example, if a position is at 0.5, chart_domain is [0, 1] and new_domain
     is [0, 0.6], the new position is 0.3.
 
-    :param new_domain: The new domain to map the points to
-    :param positions: The current positions of the points
-    :param chart_domain: The current domain of the whole chart
-    :return:
+    Args:
+      new_domain: list[float]: The new domain to map the points to
+      positions: list[float]: The current positions of the points
+      chart_domain: list[float]: The current domain of the whole chart
+
+    Returns:
+      list[float]: The new positions
     """
     if not isinstance(positions, list):
         positions = [positions]
@@ -90,14 +100,14 @@ def resize_domain(
         obj: dict,
         new_domain: dict[str, list[float]]
 ) -> None:
-    """
-    Resize the domain of the given object
+    """Resize the domain of the given object
 
-    :param obj: The object to resize. It should have a "domain" key that
-    references a dict that has "x" and "y" keys.
-    :param new_domain: The new domain the map the figure to. Contains keys of x
-    and y and values of domains, such as [0,0.5]
-    keys
+    Args:
+      obj: dict: The object to resize. It should have a "domain" key that
+        references a dict that has "x" and "y" keys.
+      new_domain: dict[str, list[float]]: The new domain the map the figure to.
+        Contains keys of x and y and values of domains, such as [0,0.5]
+
     """
     new_domain_x = new_domain.get("x", None)
     new_domain_y = new_domain.get("y", None)
@@ -123,13 +133,14 @@ def resize_xy_axis(
         new_domain: dict[str, list[float]],
         which: str
 ) -> None:
-    """
-    Resize either an x or y axis.
+    """Resize either an x or y axis.
 
-    :param axis: The axis object to resize.
-    :param new_domain: The new domain the map the figure to. Contains keys of x
-    and y and values of domains, such as [0,0.5]
-    :param which: Either "x" or "y"
+    Args:
+      axis: dict: The axis object to resize.
+      new_domain: dict[str, list[float]]: The new domain the map the figure to.
+        Contains keys of x and y and values of domains, such as [0,0.5]
+      which: str: Either "x" or "y"
+
     """
     new_domain_x = new_domain.get("x", None)
     new_domain_y = new_domain.get("y", None)
@@ -159,11 +170,12 @@ def reassign_axes(
         trace: dict,
         axes_remapping: dict[str, str]
 ) -> None:
-    """
-    RUpdate the trace with its new axes using with the remapping
+    """Update the trace with its new axes using with the remapping
 
-    :param trace: The trace to remap axes within
-    :param axes_remapping: The mapping of old to new axes
+    Args:
+      trace: dict: The trace to remap axes within
+      axes_remapping: dict[str, str]: The mapping of old to new axes
+
     """
     if 'xaxis' in trace:
         trace.update(xaxis=axes_remapping[trace['xaxis']])
@@ -185,11 +197,12 @@ def reassign_attributes(
         axis: dict,
         axes_remapping: dict[str, str]
 ) -> None:
-    """
-    Reassign attributes of a layout object using with the remapping
+    """Reassign attributes of a layout object using with the remapping
 
-    :param axis: The axis object to remap attributes from
-    :param axes_remapping: The mapping of old to new axes
+    Args:
+      axis: dict: The axis object to remap attributes from
+      axes_remapping: dict[str, str]: The mapping of old to new axes
+
     """
     # anchor can also be free, which does not need to be modified
     if 'anchor' in axis and axis['anchor'] in axes_remapping:
@@ -206,19 +219,22 @@ def resize_axis(
         num: str,
         new_domain: dict[str, list[float]]
 ) -> tuple[str, str, str]:
-    """
-    Maps the specified axis to new_domain and returns info to help remap axes
+    """Maps the specified axis to new_domain and returns info to help remap axes
 
-    :param type_: The type of axis to resize
-    :param old_axis: The old axis name
-    :param axis: The axis object to resize
-    :param num: The number (possibly empty) of this axis within the new chart
-    :param new_domain: The new domain the map the figure to. Contains keys of x
-    and y and values of domains, such as [0,0.5]
-    :return: A tuple of new axis name, old axis name (for trace remapping),
-    new axis name (for trace remapping). The new axis name isn't always the
-    same within the trace as it is in the layout (such as in the case of xaxis
-    or yaxis), hence the need for both of the names.
+    Args:
+      type_: str: The type of axis to resize
+      old_axis: str: The old axis name
+      axis: dict: The axis object to resize
+      num: str: The number (possibly empty) of this axis within the new chart
+      new_domain: dict[str, list[float]]: The new domain the map the figure to.
+        Contains keys of x and y and values of domains, such as [0,0.5]
+
+    Returns:
+      tuple[str, str, str]: A tuple of new axis name, old axis name (for trace
+        remapping), new axis name (for trace remapping). The new axis name
+        isn't always the same within the trace as it is in the layout (such as
+        in the case of xaxis or yaxis), hence the need for both of the names.
+
     """
     new_axis = f"{type_}{num}"
     if type_ == 'xaxis' or type_ == 'yaxis':
@@ -235,12 +251,15 @@ def get_axis_update(
         spec: dict[str, any],
         type_: str
 ) -> dict[str, any] | None:
-    """
-    Retrieve an axis update from the spec
+    """Retrieve an axis update from the spec
 
-    :param spec: The full spec object
-    :param type_: The type of axis to retrieve the update of
-    :return: A dictionary of updates to make to the x or y-axis
+    Args:
+      spec: dict[str, any]: The full spec object
+      type_: str: The type of axis to retrieve the update of
+
+    Returns:
+      dict[str, any] | None: A dictionary of updates to make to the x or y-axis
+
     """
     if 'xaxis_update' in spec and type_ == "xaxis":
         return spec["xaxis_update"]
@@ -255,20 +274,25 @@ def resize_fig(
         spec: dict[str, str | bool | list[float]],
         new_axes_start: dict[str, int],
 ) -> tuple[dict, dict]:
-    """
-    Resize a figure into new_domain, reindexing with the indices specified in
+    """Resize a figure into new_domain, reindexing with the indices specified in
     new_axes_start
 
-    :param fig_data: The current figure data
-    :param fig_layout: The current figure layout
-    :param spec: A dictionary that contains keys of "x" and "y"
-    that have values that are lists of two floats from 0 to 1. The chart that
-    corresponds with a domain will be resized to that domain. Either x or y can
-    be excluded if only resizing on one axis. Can also specify xaxis_update or
-    yaxis_update with a dictionary value to update all axes with that dict.
-    :param new_axes_start: A dictionary containing the start of new indices to
-    ensure there is no reindexing collisions
-    :return: A tuple of the new figure data, the new figure layout
+    Args:
+      fig_data: dict: The current figure data
+      fig_layout: dict: The current figure layout
+      spec: dict[str, str | bool | list[float]]:
+        A dictionary that contains keys of "x" and "y"
+        that have values that are lists of two floats from 0 to 1. The chart
+        that corresponds with a domain will be resized to that domain. Either
+        x or y can be excluded if only resizing on one axis. Can also specify
+        xaxis_update or yaxis_update with a dictionary value to update all axes
+        with that dict.
+      new_axes_start: dict[str, int]: A dictionary containing the start of
+        new indices to ensure there is no reindexing collisions
+
+    Returns:
+      tuple[dict, dict]: A tuple of the new figure data, the new figure layout
+
     """
     if not spec:
         # if there is no spec, nothing needs to be done
@@ -348,21 +372,26 @@ def fig_data_and_layout(
         which_layout: int,
         new_axes_start: dict[str, int],
 ) -> tuple[tuple | dict, dict]:
-    """
-    Get new data and layout for the specified figure
+    """Get new data and layout for the specified figure
 
-    :param fig: The current figure
-    :param i: The index of the figure, used for which_layout
-    :param which_layout: None to layer layouts, or an index of which arg to
-    take the layout from
-    :param specs: A list of dictionaries that contain keys of "x" and "y"
-    that have values that are lists of two floats from 0 to 1. The chart that
-    corresponds with a domain will be resized to that domain. Either x or y can
-    be excluded if only resizing on one axis. Can also specify xaxis_update or
-    yaxis_update with a dictionary value to update all axes with that dict.
-    :param new_axes_start: A dict that keeps track of starting points when
-    recreating axes
-    :return: A tuple of figure data, figure layout
+    Args:
+      fig: Figure: The current figure
+      i: int: The index of the figure, used for which_layout
+      specs: list[dict[str, str | bool | list[float]]]:
+        A list of dictionaries that contains keys of "x" and "y"
+        that have values that are lists of two floats from 0 to 1. The chart
+        that corresponds with a domain will be resized to that domain. Either
+        x or y can be excluded if only resizing on one axis. Can also specify
+        xaxis_update or yaxis_update with a dictionary value to update all axes
+        with that dict.
+      which_layout: int: None to layer layouts, or an index of which arg to
+        take the layout from
+      new_axes_start: dict[str, int]: A dict that keeps track of starting
+       points when recreating axes
+
+    Returns:
+      tuple[tuple | dict, dict]: A tuple of figure data, figure layout
+
     """
     if specs:
         return resize_fig(fig.to_dict()['data'], fig.to_dict()['layout'],
@@ -381,26 +410,32 @@ def layer(
         specs: list[dict[str, any]] = None,
         unsafe_update_figure: Callable = default_callback
 ) -> DeephavenFigure:
-    """
-    Layers the provided figures. Be default, the layouts are sequentially
+    """Layers the provided figures. Be default, the layouts are sequentially
     applied, so the layouts of later figures will override the layouts of early
     figures.
 
-    :param figs: The charts to layer
-    :param which_layout: None to layer layouts, or an index of which arg to
-    take the layout from. Currently only valid if domains are not specified.
-    :param specs: A list of dictionaries that contain keys of "x" and "y"
-    that have values that are lists of two floats from 0 to 1. The chart that
-    corresponds with a domain will be resized to that domain. Either x or y can
-    be excluded if only resizing on one axis. Can also specify xaxis_update or
-    yaxis_update with a dictionary value to update all axes with that dict.
-    :param unsafe_update_figure: An update function that takes a plotly figure
-    as an argument and optionally returns a plotly figure. If a figure is not
-    returned, the plotly figure passed will be assumed to be the return value.
-    Used to add any custom changes to the underlying plotly figure. Note that
-    the existing data traces should not be removed. This may lead to unexpected
-    behavior if traces are modified in a way that break data mappings.
-    :return: The layered chart
+    Args:
+      *figs: DeephavenFigure | Figure: The charts to layer
+      which_layout: int:  (Default value = None) None to layer layouts, or an
+        index of which arg to take the layout from. Currently only valid if
+        domains are not specified.
+      specs: list[dict[str, str | bool | list[float]]]:
+        A list of dictionaries that contains keys of "x" and "y"
+        that have values that are lists of two floats from 0 to 1. The chart
+        that corresponds with a domain will be resized to that domain. Either
+        x or y can be excluded if only resizing on one axis. Can also specify
+        xaxis_update or yaxis_update with a dictionary value to update all axes
+        with that dict.
+      unsafe_update_figure: An update function that takes a plotly figure
+        as an argument and optionally returns a plotly figure. If a figure is not
+        returned, the plotly figure passed will be assumed to be the return value.
+        Used to add any custom changes to the underlying plotly figure. Note that
+        the existing data traces should not be removed. This may lead to unexpected
+        behavior if traces are modified in a way that break data mappings.
+
+    Returns:
+      DeephavenFigure: The layered chart
+
     """
     if len(figs) == 0:
         raise ValueError("No figures provided to compose")
@@ -468,10 +503,11 @@ def layer(
 def validate_common_args(
         args: dict
 ) -> None:
-    """
-    Validate common args amongst plots
+    """Validate common args amongst plots
 
-    :param args: The args to validate
+    Args:
+      args: dict: The args to validate
+
     """
     if not isinstance(args["table"], Table):
         raise ValueError("Argument table is not of type Table")
@@ -480,45 +516,50 @@ def validate_common_args(
 def remap_scene_args(
         args: dict
 ) -> None:
-    """
-    Remap layout scenes args so that they are not converted to a list
+    """Remap layout scenes args so that they are not converted to a list
 
-    :param args: The args to remap
+    Args:
+      args: dict: The args to remap
+
     """
     for arg in ["range_x", "range_y", "range_z", "log_x", "log_y", "log_z"]:
         args[arg + '_scene'] = args.pop(arg)
 
 
 def preprocessed_fig(
-        draw: Callable,
+        draw: callable,
         keys: list[str],
         args: dict[str, any],
         is_list: bool,
         trace_generator: Generator[dict[str, any]],
         col: str | list[str],
-        preprocesser: Callable = None,
+        preprocesser: callable = None,
         table: Table = None,
         preprocessed_args: tuple[Table, str, list[str]] = None
 ) -> DeephavenFigure:
-    """
-    Preprocess and return a figure
+    """Preprocess and return a figure
     Either both preprocesser and table or just preprocessed_table should be
     specified
 
-    :param preprocesser: A function that returns a tuple that contains
-    (new table, first data columnn, second data column)
-    :param draw: A draw function, generally from plotly express
-    :param args: The args to pass to figure creation
-    :param keys: A list of the variables to assign the preprocessed results to
-    :param table: The table to use
-    :param args: The args to passed to generate_figure
-    :param trace_generator: The trace generator to use to pass to
-    generate_figure
-    :param col: The columns that are being plotted
-    :param preprocessed_args: If the data was already preprocessed, use that
-    tuple of data instead
-    :param is_list: True if the current column is one of a list
-    :return: The resulting DeephavenFigure
+    Args:
+      draw: callable: A draw function, generally from plotly express
+      keys: list[str]: A list of the variables to assign the preprocessed
+        results to
+      args: The args to pass to figure creation
+      is_list: bool: True if the current column is one of a list
+      trace_generator: Generator[dict[str, any]]: The trace generator to use
+        to pass to generate_figure
+      col: str | list[str]: The columns that are being plotted
+      preprocesser: callable: (Default value = None)
+        A function that returns a tuple that contains
+        (new table, first data columnn, second data column)
+      table: Table: The table to use
+      preprocessed_args: tuple[Table, str, list[str]]:  (Default value = None)
+        If the data was already preprocessed, use that tuple of data instead
+
+    Returns:
+      DeephavenFigure: The resulting DeephavenFigure
+
     """
     # if preprocessed args are specified, the table is created,
     # but the list of columns (the last of the preprocessed args)
@@ -545,30 +586,33 @@ def preprocessed_fig(
 
 
 def preprocess_and_layer(
-        preprocesser: Callable,
-        draw: Callable,
+        preprocesser: callable,
+        draw: callable,
         args: dict[str, any],
         var: str,
         orientation: str = None,
         is_hist: bool = False,
 ) -> DeephavenFigure:
-    """
-    Given a preprocessing function, a draw function, and several
+    """Given a preprocessing function, a draw function, and several
     columns, layer up the resulting figures
 
-    :param preprocesser: A function that takes a table, list of cols
-    and returns a tuple that contains
-    (new table, first data columnn, second data column)
-    :param draw: A draw function, generally from plotly express
-    :param args: The args to pass to figure creation
-    :param var: Which var to map to the first column. If "x", then the
-    preprocessor output is mapped to table, x, y. If "y" then preprocessor
-    output is mapped to table, y, x.
-    :param orientation: optional orientation if it is needed
-    :param is_hist: If true, the figure is a histogram and requires custom
-    processing, specifically because the preprocessing returns a single table
-    for all columns.
-    :return: The resulting DeephavenFigure
+    Args:
+      preprocesser: callable: A function that takes a table, list of cols
+        and returns a tuple that contains
+        (new table, first data columnn, second data column)
+      draw: callable: A draw function, generally from plotly express
+      args: dict[str, any]: The args to pass to figure creation
+      var: str: Which var to map to the first column. If "x", then the
+        preprocessor output is mapped to table, x, y. If "y" then preprocessor
+        output is mapped to table, y, x.
+      orientation: str:  (Default value = None)
+        optional orientation if it is needed
+      is_hist: bool:  (Default value = False)
+        If true, the figure is a histogram and requires custom
+
+    Returns:
+      DeephavenFigure: The resulting DeephavenFigure
+
     """
 
     cols = args[var]
@@ -643,12 +687,18 @@ def calculate_mode(
         base_mode: str,
         args: dict[str, any]
 ) -> str:
-    """
-    Calculate the mode of the traces based on the arguments
+    """Calculate the mode of the traces based on the arguments
 
-    :param base_mode: The mode that this trace definitely has, either lines or markers
-    :param args: The args to use to figure out the mode
-    :return: The mode. Some combination of markers, lines, text, joined by '+'.
+    Args:
+      base_mode: The mode that this trace definitely has, either lines or markers
+      args: The args to use to figure out the mode
+      base_mode: str: 
+      args: dict[str: 
+      any]: 
+
+    Returns:
+      The mode. Some combination of markers, lines, text, joined by '+'.
+
     """
     modes = [base_mode]
     if base_mode == "lines" and any([
@@ -667,11 +717,12 @@ def apply_args_groups(
         args: dict[str, any],
         groups: set[str]
 ) -> None:
-    """
-    Transform args depending on groups
+    """Transform args depending on groups
 
-    :param args: A dictionary of args to transform
-    :param groups: A set of groups used to transform the args
+    Args:
+      args: dict[str, any]: A dictionary of args to transform
+      groups: set[str]: A set of groups used to transform the args
+
     """
     groups = groups if isinstance(groups, set) else {groups}
 
@@ -729,15 +780,22 @@ def process_args(
         pop: list[str] = None,
         remap: dict[str, str] = None
 ) -> partial:
-    """
-    Process the provided args
+    """Process the provided args
 
-    :param args: A dictionary of args to process
-    :param groups: A set of groups that apply transformations to the args
-    :param add: A dictionary to add to the args
-    :param pop: A list of keys to remove from the args
-    :param remap: A dictionary mapping of keys to keys
-    :return: The update wrapper, based on the update function in the args
+    Args:
+      args: dict[str, any]: A dictionary of args to process
+      groups: set[str]:  (Default value = None)
+        A set of groups that apply transformations to the args
+      add: dict[str, any] (Default value = None)
+        A dictionary to add to the args
+      pop: list[str]:  (Default value = None)
+        A list of keys to remove from the args
+      remap: dict[str, str]:  (Default value = None)
+        A dictionary mapping of keys to keys
+
+    Returns:
+      partial: The update wrapper, based on the update function in the args
+
     """
     validate_common_args(args)
 
@@ -763,24 +821,44 @@ def process_args(
 
 
 class SyncDict:
-    def __init__(self, d):
+    """A dictionary wrapper that will queue up keys to remove and remove them
+    all at once
+
+
+    Args:
+      d: dict: the dictionary to wrap
+
+
+    """
+    def __init__(
+            self,
+            d: dict
+    ):
         self.d = d
         self.pop_set = set()
 
-    def will_pop(self, key):
-        """
-        Add a key to the set of keys that will eventually be popped
+    def will_pop(
+            self,
+            key: any
+    ) -> any:
+        """Add a key to the set of keys that will eventually be popped
 
-        :param key: The key to add to the set
-        :return: The value associated with the key that will be popped
+        Args:
+          key: The key to add to the set
+
+        Returns:
+          The value associated with the key that will be popped
+
         """
         self.pop_set.add(key)
         return self.d[key]
 
-    def sync_pop(self):
-        """
-        Pop all elements from the dictionary that have been added to the pop
+    def sync_pop(
+            self
+    ):
+        """Pop all elements from the dictionary that have been added to the pop
         set
+
         """
         for k in self.pop_set:
             self.d.pop(k)
