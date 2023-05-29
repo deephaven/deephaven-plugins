@@ -11,10 +11,8 @@ import PlotlyExpressChartPanel, {
   type PlotlyChartWidget,
 } from './PlotlyExpressChartPanel';
 
-export type PlotlyChartPluginProps = Partial<DashboardPluginComponentProps>;
-
 export function DashboardPlugin(
-  props: PlotlyChartPluginProps
+  props: DashboardPluginComponentProps
 ): JSX.Element | null {
   const { id, layout, registerComponent } = props;
 

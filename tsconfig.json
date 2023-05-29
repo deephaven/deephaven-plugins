@@ -1,12 +1,10 @@
 {
   "extends": "@deephaven/tsconfig",
   "include": [
-    "plugins/*/src/**/**.ts",
-    "plugins/*/src/**/**.tsx",
-    "plugins/*/src/**/**.js",
-    "plugins/*/src/**/**.jsx",
+    "plugins/**/**.ts",
+    "plugins/**/**.tsx",
+    "plugins/**/**.js",
+    "plugins/**/**.jsx"
   ],
-  "exclude": [
-    "**/node_modules/**/*"
-  ]
+  "exclude": ["**/node_modules/**/*", "plugins/*/dist/**/*"]
 }

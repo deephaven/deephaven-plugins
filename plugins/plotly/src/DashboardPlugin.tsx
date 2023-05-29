@@ -7,10 +7,7 @@ import {
   useListener,
 } from '@deephaven/dashboard';
 import { VariableDefinition } from '@deephaven/jsapi-shim';
-import Log from '@deephaven/log';
 import PlotlyChartPanel from './PlotlyChartPanel';
-
-const log = Log.module('@deephaven/js-plugin-plotly.DashboardPlugin');
 
 const PANEL_COMPONENT = 'PlotlyChartPanel';
 
@@ -32,7 +29,7 @@ export function DashboardPlugin(
       panelId = shortid.generate(),
       widget,
     }: {
-      dragEvent?: DragEvent;
+      dragEvent?: React.DragEvent;
       fetch: () => Promise<unknown>;
       panelId?: string;
       widget: VariableDefinition;

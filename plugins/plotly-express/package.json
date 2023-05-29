@@ -25,8 +25,12 @@
     "build": "vite build"
   },
   "devDependencies": {
+    "@deephaven/jsapi-types": "0.40.0",
+    "@types/deep-equal": "^1.0.1",
     "@types/plotly.js": "^2.12.18",
+    "@types/plotly.js-dist-min": "^2.3.1",
     "@types/react": "^17.0.2",
+    "@types/react-plotly.js": "^2.6.0",
     "@vitejs/plugin-react-swc": "^3.0.0",
     "react": "^17.0.2",
     "typescript": "^4.5.4",
@@ -36,14 +40,16 @@
     "react": "^17.0.2"
   },
   "dependencies": {
-    "@deephaven/chart": "^0.38.0",
-    "@deephaven/components": "^0.38.0",
-    "@deephaven/dashboard": "^0.38.0",
-    "@deephaven/dashboard-core-plugins": "^0.38.0",
-    "@deephaven/jsapi-shim": "^0.38.0",
-    "@deephaven/log": "^0.38.0",
-    "@deephaven/utils": "^0.38.0",
-    "plotly.js": "^2.20.0",
+    "@deephaven/chart": "0.40.0",
+    "@deephaven/components": "0.40.0",
+    "@deephaven/dashboard": "0.40.0",
+    "@deephaven/dashboard-core-plugins": "0.40.0",
+    "@deephaven/jsapi-bootstrap": "0.40.0",
+    "@deephaven/log": "0.40.0",
+    "@deephaven/utils": "0.40.0",
+    "deep-equal": "^2.2.1",
+    "plotly.js": "^2.23.0",
+    "plotly.js-dist-min": "^2.23.0",
     "react-plotly.js": "^2.4.0",
     "react-redux": "^7.2.9",
     "shortid": "^2.2.16"

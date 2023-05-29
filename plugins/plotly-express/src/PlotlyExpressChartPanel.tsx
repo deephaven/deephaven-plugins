@@ -1,10 +1,15 @@
 import React, { useCallback } from 'react';
 import type { PlotlyDataLayoutConfig } from 'plotly.js';
-import { Table } from '@deephaven/jsapi-shim';
+import Plotly from 'plotly.js-dist-min';
+import {
+  ChartPanel,
+  type ChartPanelProps,
+} from '@deephaven/dashboard-core-plugins';
+import type { Table } from '@deephaven/jsapi-types';
 import { assertNotNull } from '@deephaven/utils';
 import { ChartTheme } from '@deephaven/chart';
+import { useApi } from '@deephaven/jsapi-bootstrap';
 import PlotlyExpressChartModel from './PlotlyExpressChartModel';
-import ChartPanel, { type ChartPanelProps } from './ChartPanel';
 
 export interface PlotlyChartWidget {
   getDataAsBase64(): string;
@@ -60,43 +65,40 @@ async function getDataMappings(
   return tableColumnReplacementMap;
 }
 
-async function makePlotlyModelFromSettings(
-  tableColumnReplacementMap: Map<Table, Map<string, string[]>>,
-  plotlyConfig: PlotlyDataLayoutConfig,
-  isDefaultTemplate = true,
-  theme = ChartTheme
-): Promise<PlotlyExpressChartModel> {
-  return new PlotlyExpressChartModel(
-    tableColumnReplacementMap,
-    plotlyConfig.data,
-    plotlyConfig.layout ?? {},
-    isDefaultTemplate,
-    theme
-  );
-}
-
 export interface PlotlyExpressChartPanelProps extends ChartPanelProps {
   fetch(): Promise<PlotlyChartWidget>;
 }
 
-const PlotlyExpressChartPanel = React.forwardRef<
-  ChartPanel,
-  PlotlyExpressChartPanelProps
->((props, forwardedRef) => {
+function PlotlyExpressChartPanel(props: PlotlyExpressChartPanelProps) {
+  const dh = useApi();
   const { fetch, ...rest } = props;
 
   const makeModel = useCallback(async () => {
     const widgetInfo = await fetch();
     const data = getWidgetData(widgetInfo);
+    const { plotly, deephaven } = data;
+    const isDefaultTemplate = !deephaven.is_user_set_template;
     const tableColumnReplacementMap = await getDataMappings(widgetInfo);
-    return makePlotlyModelFromSettings(
+    return new PlotlyExpressChartModel(
+      dh,
       tableColumnReplacementMap,
-      data.plotly,
-      !data.deephaven.is_user_set_template
+      plotly.data,
+      plotly.layout ?? {},
+      isDefaultTemplate,
+      ChartTheme
     );
-  }, [fetch]);
+  }, [dh, fetch]);
 
-  return <ChartPanel ref={forwardedRef} {...rest} makeModel={makeModel} />;
-});
+  return (
+    <ChartPanel
+      // eslint-disable-next-line react/jsx-props-no-spreading
+      {...rest}
+      makeModel={makeModel}
+      Plotly={Plotly}
+    />
+  );
+}
+
+PlotlyExpressChartPanel.displayName = 'PlotlyExpressChartPanel';
 
 export default PlotlyExpressChartPanel;

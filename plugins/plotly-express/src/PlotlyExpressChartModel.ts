@@ -8,18 +8,14 @@ import type {
   CandlestickData,
   PieData,
 } from 'plotly.js';
-import dh from '@deephaven/jsapi-shim';
+import deepEqual from 'deep-equal';
 import type {
+  dh as DhType,
   ChartData,
   Table,
   TableSubscription,
-} from '@deephaven/jsapi-shim';
-import {
-  ChartModel,
-  type ChartEvent,
-  ChartUtils,
-  ChartTheme,
-} from '@deephaven/chart';
+} from '@deephaven/jsapi-types';
+import { ChartModel, ChartUtils, ChartTheme } from '@deephaven/chart';
 import Log from '@deephaven/log';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
@@ -57,23 +53,25 @@ export function isPiePlotData(data: Data): data is PieData {
 
 class PlotlyExpressChartModel extends ChartModel {
   constructor(
+    dh: DhType,
     tableColumnReplacementMap: ReadonlyMap<Table, Map<string, string[]>>,
     data: Data[],
     plotlyLayout: Partial<Layout>,
     isDefaultTemplate = true,
     theme: typeof ChartTheme = ChartTheme
   ) {
-    super();
+    super(dh);
 
     this.handleFigureUpdated = this.handleFigureUpdated.bind(this);
 
+    this.chartUtils = new ChartUtils(dh);
     this.tableColumnReplacementMap = new Map(tableColumnReplacementMap);
     this.chartDataMap = new Map();
     this.tableSubscriptionMap = new Map();
 
     this.theme = theme;
     this.data = data;
-    const template = { layout: ChartUtils.makeDefaultLayout(theme) };
+    const template = { layout: this.chartUtils.makeDefaultLayout(theme) };
 
     // For now we will only use the plotly theme colorway since most plotly themes are light mode
     if (!isDefaultTemplate) {
@@ -93,6 +91,8 @@ class PlotlyExpressChartModel extends ChartModel {
     this.setTitle(this.getDefaultTitle());
   }
 
+  chartUtils: ChartUtils;
+
   tableSubscriptionMap: Map<Table, TableSubscription>;
 
   tableSubscriptionCleanups: (() => void)[] = [];
@@ -109,7 +109,6 @@ class PlotlyExpressChartModel extends ChartModel {
 
   plotlyLayout: Partial<Layout>;
 
-  /* @ts-ignore */
   getData(): Partial<Data>[] {
     return this.data;
   }
@@ -151,8 +150,10 @@ class PlotlyExpressChartModel extends ChartModel {
     }
   }
 
-  subscribe(callback: (event: ChartEvent) => void): void {
+  subscribe(callback: (event: CustomEvent) => void): void {
     super.subscribe(callback);
+
+    const { dh } = this;
 
     this.tableColumnReplacementMap.forEach((_, table) =>
       this.chartDataMap.set(table, new dh.plot.ChartData(table))
@@ -167,7 +168,7 @@ class PlotlyExpressChartModel extends ChartModel {
     this.startListening();
   }
 
-  unsubscribe(callback: (event: ChartEvent) => void): void {
+  unsubscribe(callback: (event: CustomEvent) => void): void {
     super.unsubscribe(callback);
 
     this.stopListening();
@@ -177,7 +178,7 @@ class PlotlyExpressChartModel extends ChartModel {
   }
 
   handleFigureUpdated(
-    event: ChartEvent,
+    event: CustomEvent,
     chartData: ChartData | undefined,
     columnReplacements: Map<string, string[]> | undefined
   ): void {
@@ -193,7 +194,7 @@ class PlotlyExpressChartModel extends ChartModel {
     columnReplacements.forEach((destinations, column) => {
       const columnData = chartData.getColumn(
         column,
-        val => ChartUtils.unwrapValue(val),
+        val => this.chartUtils.unwrapValue(val),
         figureUpdateEvent
       );
       destinations.forEach(destination => {
