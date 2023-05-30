@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import dh, { Table } from '@deephaven/jsapi-shim';
+import { useApi } from '@deephaven/jsapi-bootstrap';
+import type { Table } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { PanelProps } from '@deephaven/dashboard';
 
@@ -25,7 +26,7 @@ export type MatPlotLibWidget = {
 };
 
 export type MatPlotLibPanelProps = {
-  fetch?: () => Promise<MatPlotLibWidget>;
+  fetch: () => Promise<MatPlotLibWidget>;
 } & PanelProps;
 
 export type MatPlotLibPanelState = {
@@ -41,6 +42,7 @@ export function MatPlotLibPanel(props: MatPlotLibPanelProps): React.ReactNode {
   const [inputTable, setInputTable] = useState<Table>();
   // Set revision to 0 until we're listening to the revision table
   const [revision, setRevision] = useState<number>(0);
+  const dh = useApi();
 
   useEffect(
     function initInputTable() {
@@ -70,7 +72,7 @@ export function MatPlotLibPanel(props: MatPlotLibPanelProps): React.ReactNode {
         table.close();
       };
     },
-    [inputTable]
+    [dh, inputTable]
   );
 
   useEffect(

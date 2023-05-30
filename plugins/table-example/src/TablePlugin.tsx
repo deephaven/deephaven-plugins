@@ -12,7 +12,7 @@ import {
   ModalFooter,
   ModalHeader,
 } from '@deephaven/components';
-import type { Column, Table } from '@deephaven/jsapi-shim';
+import type { Column, Table } from '@deephaven/jsapi-types';
 
 type QuickFilterDefinition = { name: string; type: string; value: string };
 

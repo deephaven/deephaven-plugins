@@ -18,10 +18,10 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@deephaven/components": "^0.38.0",
-    "@deephaven/dashboard": "^0.38.0",
-    "@deephaven/jsapi-shim": "^0.38.0",
-    "@deephaven/log": "^0.38.0",
+    "@deephaven/components": "^0.40.0",
+    "@deephaven/dashboard": "^0.40.0",
+    "@deephaven/jsapi-types": "^0.40.0",
+    "@deephaven/log": "^0.40.0",
     "react-json-view": "^1.21.3",
     "shortid": "^2.2.16"
   },

@@ -6,7 +6,7 @@ import {
   PanelEvent,
   useListener,
 } from '@deephaven/dashboard';
-import { VariableDefinition } from '@deephaven/jsapi-shim';
+import type { VariableDefinition } from '@deephaven/jsapi-types';
 import PlotlyChartPanel from './PlotlyChartPanel';
 
 const PANEL_COMPONENT = 'PlotlyChartPanel';

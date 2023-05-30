@@ -6,7 +6,7 @@ import {
   PanelEvent,
   useListener,
 } from '@deephaven/dashboard';
-import type { VariableDefinition } from '@deephaven/jsapi-shim';
+import type { VariableDefinition } from '@deephaven/jsapi-types';
 import PlotlyExpressChartPanel, {
   type PlotlyChartWidget,
 } from './PlotlyExpressChartPanel';
