@@ -12,14 +12,14 @@ def combined_generator(
     combined into a new dictionary.
 
     Args:
-      generators: Generators to combine. Each should yield
-    either a tuple of a key, value pair or a dictionary.
-      fill: Optional fill when the generators are exhausted
-      generators: list[Generator[tuple | dict]]: 
+      generators: list[Generator[tuple | dict]]:
+        Generators to combine. Each should yield either a tuple of a key, value pair or a dictionary.
       fill: any:  (Default value = None)
+        Optional fill when the generators are exhausted
 
-    Returns:
 
+    Yields:
+      dict: the combined dictionary
     """
     try:
         while True:
@@ -40,19 +40,14 @@ def get_unique_names(
         table: Table,
         orig_names: list[str]
 ) -> dict[str, str]:
-    """Calculate names that do not occur in table, starting from the names in
-    orig_names
+    """Calculate names that do not occur in table, starting from the names in orig_names
 
     Args:
-      table: The table to check against
-      orig_names: return: A dictionary that maps orig_names to new names that are not found
-    in the table
-      table: Table: 
-      orig_names: list[str]: 
+      table: Table: The table to check against
+      orig_names: list[str]: The original names to get unique versions of
 
     Returns:
-      A dictionary that maps orig_names to new names that are not found
-      in the table
+      dict[str, str]: A dictionary that maps orig_names to new names that are not found in the table
 
     """
     new_names = {}
