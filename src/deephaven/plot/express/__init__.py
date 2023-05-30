@@ -8,7 +8,7 @@ from .plots import area, bar, frequency_bar, timeline, histogram, _ecdf, box, \
     funnel_area, line, line_polar, line_ternary, line_3d, scatter, scatter_3d, \
     scatter_polar, scatter_ternary, pie, layer, make_subplots
 
-__version__ = "0.0.4"
+__version__ = "0.0.5"
 
 NAME = "deephaven.plot.express.DeephavenFigure"
 
