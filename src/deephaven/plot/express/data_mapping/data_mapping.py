@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from copy import deepcopy
 from itertools import cycle, product, zip_longest
 from collections.abc import Generator, Iterable

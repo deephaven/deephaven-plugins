@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from deephaven.table import Table
 
 from ._private_utils import default_callback, validate_common_args, process_args

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from itertools import cycle, count
 from collections.abc import Generator
 from math import floor, ceil
@@ -213,7 +215,10 @@ def split_args(
             elif arg.endswith('_scene'):
                 # this scene check needs to be before the range check to
                 # ensure scene args don't get converted to a list
-                new_call_args[arg.removesuffix('_scene')] = val
+                # these are equivalent for removing _scene but removesuffix
+                # was introduced in 3.9
+                # new_call_args[arg.removesuffix('_scene')] = val
+                new_call_args[arg[:-6]] = val
             elif arg.startswith("range_"):
                 # range is a special case as ranges are a list
                 # None can be specified for no range within a list of ranges

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from plotly import express as px
 
 from deephaven.table import Table
