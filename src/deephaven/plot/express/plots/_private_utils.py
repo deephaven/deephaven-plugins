@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import partial
-from typing import Callable
+from typing import Callable, Any
 from collections.abc import Generator
 
 import plotly.express as px
@@ -267,7 +267,52 @@ def get_axis_update(
         return spec["xaxis_update"]
     if 'yaxis_update' in spec and type_ == "yaxis":
         return spec["yaxis_update"]
-    return None
+    return {}
+
+
+def match_axes(
+        type_: str,
+        spec: dict[str, str | bool | list[float]],
+        matches_axes: dict[Any, dict[int, str]],
+        axis_indices: dict[str, int],
+        new_trace_axis: str
+) -> dict[str, str]:
+    """
+    Create an update to the axis if this axis matches another axis
+
+    Args:
+        type_: str: The type of the axis
+        spec: dict[str, str | bool | list[float]]:
+          The spec to retrieve matching axes from
+        matches_axes: dict[Any, dict[int, str]]:
+          A dictionary with keys that are unique per matching dictionary group.
+          The value is a dictionary that maps an axis index to a specific
+        axis_indices: dict[str, int]:
+          The index of the axes within the figure
+        new_trace_axis: str
+          The new trace axes to add to matches_axes if there is
+          not currently an axis at the index defined by axis_indices
+
+    Returns:
+        A dictionary with a key of "matches" and a value of the axis matched to
+          if there is a dictionary to match to
+
+    """
+    match_axis_key = spec.get(f"matched_{type_}")
+    axis_index = axis_indices.get(type_)
+
+    if match_axis_key:
+        # add type to key to ensure uniqueness per axis
+        match_axis_key = (match_axis_key, type_)
+        if match_axis_key not in matches_axes:
+            matches_axes[match_axis_key] = {}
+        if not matches_axes[match_axis_key].get(axis_index, None):
+            # this is the base axis to match to, so matches is not added
+            matches_axes[match_axis_key][axis_index] = new_trace_axis
+            return {}
+        return {"matches": matches_axes[match_axis_key][axis_index]}
+
+    return {}
 
 
 def resize_fig(
@@ -275,6 +320,7 @@ def resize_fig(
         fig_layout: dict,
         spec: dict[str, str | bool | list[float]],
         new_axes_start: dict[str, int],
+        matches_axes: dict[Any, dict[int, str]]
 ) -> tuple[dict, dict]:
     """Resize a figure into new_domain, reindexing with the indices specified in
     new_axes_start
@@ -291,6 +337,9 @@ def resize_fig(
         with that dict.
       new_axes_start: dict[str, int]: A dictionary containing the start of
         new indices to ensure there is no reindexing collisions
+      matches_axes: dict[Any, dict[int, str]]:
+          A dictionary with keys that are unique per matching dictionary group.
+          The value is a dictionary that maps an axis index to a specific
 
     Returns:
       tuple[dict, dict]: A tuple of the new figure data, the new figure layout
@@ -305,12 +354,21 @@ def resize_fig(
     old_axes = []
     type_ = None
 
+    # keep track of the axis number within the chart so these axes can be
+    # appropriately linked across charts
+    axis_indices = {
+        "xaxis": 0,
+        "yaxis": 0
+    }
+
     for name, obj in fig_layout.items():
         # todo: coloraxis; thickness, len, x, y
         if name.startswith("xaxis"):
+            axis_indices["xaxis"] += 1
             type_ = "xaxis"
 
         elif name.startswith("yaxis"):
+            axis_indices["yaxis"] += 1
             type_ = "yaxis"
 
         elif name.startswith("scene"):
@@ -330,15 +388,18 @@ def resize_fig(
 
             update = get_axis_update(spec, type_)
 
-            # this assumes that there is only one axis in plots with matched
-            # axes
-            # TODO: this could be refactored by allowing a dict for the matched
-            #   axis args that bind {axis to bind to matched: matched axis}
             new_axis, old_trace_axis, new_trace_axis = resize_axis(
                 type_, name, obj, num, spec)
 
-            if update:
-                obj.update(update)
+            matches_update = match_axes(
+                type_,
+                spec,
+                matches_axes,
+                axis_indices,
+                new_trace_axis
+            )
+
+            obj.update(**update, **matches_update)
 
             new_axes[new_axis] = obj
             axes_remapping[old_trace_axis] = new_trace_axis
@@ -373,6 +434,7 @@ def fig_data_and_layout(
         specs: list[dict[str, str | bool | list[float]]],
         which_layout: int,
         new_axes_start: dict[str, int],
+        matches_axes: dict[Any, dict[int, str]]
 ) -> tuple[tuple | dict, dict]:
     """Get new data and layout for the specified figure
 
@@ -390,6 +452,9 @@ def fig_data_and_layout(
         take the layout from
       new_axes_start: dict[str, int]: A dict that keeps track of starting
        points when recreating axes
+      matches_axes: dict[Any, dict[int, str]]:
+          A dictionary with keys that are unique per matching dictionary group.
+          The value is a dictionary that maps an axis index to a specific
 
     Returns:
       tuple[tuple | dict, dict]: A tuple of figure data, figure layout
@@ -397,7 +462,7 @@ def fig_data_and_layout(
     """
     if specs:
         return resize_fig(fig.to_dict()['data'], fig.to_dict()['layout'],
-                          specs[i], new_axes_start)
+                          specs[i], new_axes_start, matches_axes)
 
     fig_layout = {}
     if which_layout is None or which_layout == i:
@@ -410,7 +475,7 @@ def layer(
         *figs: DeephavenFigure | Figure,
         which_layout: int = None,
         specs: list[dict[str, any]] = None,
-        unsafe_update_figure: Callable = default_callback
+        unsafe_update_figure: callable = default_callback
 ) -> DeephavenFigure:
     """Layers the provided figures. Be default, the layouts are sequentially
     applied, so the layouts of later figures will override the layouts of early
@@ -425,9 +490,12 @@ def layer(
         A list of dictionaries that contains keys of "x" and "y"
         that have values that are lists of two floats from 0 to 1. The chart
         that corresponds with a domain will be resized to that domain. Either
-        x or y can be excluded if only resizing on one axis. Can also specify
-        xaxis_update or yaxis_update with a dictionary value to update all axes
-        with that dict.
+        x or y can be excluded if only resizing on one axis.
+        Can also specify "xaxis_update" or "yaxis_update" with a dictionary
+        value to update all axes with that dict.
+        Can also specify "matched_xaxis" or "matched_yaxis" to add this figure
+        to a match group. All figures with the same value of this group will
+        have matching axes.
       unsafe_update_figure: An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is not
         returned, the plotly figure passed will be assumed to be the return value.
@@ -457,13 +525,15 @@ def layer(
         "ternary": 1
     }
 
+    matches_axes = {}
+
     for i, arg in enumerate(figs):
         if not arg:
             continue
 
         elif isinstance(arg, Figure):
             fig_data, fig_layout = fig_data_and_layout(
-                arg, i, specs, which_layout, new_axes_start
+                arg, i, specs, which_layout, new_axes_start, matches_axes
             )
 
         elif isinstance(arg, DeephavenFigure):
@@ -471,7 +541,7 @@ def layer(
             if arg.has_subplots:
                 raise NotImplementedError("Cannot currently add figure with subplots as a subplot")
             fig_data, fig_layout = fig_data_and_layout(
-                arg.fig, i, specs, which_layout, new_axes_start
+                arg.fig, i, specs, which_layout, new_axes_start, matches_axes
             )
             new_data_mappings += arg.copy_mappings(offset=offset)
             new_has_template = arg.has_template or new_has_template
@@ -832,6 +902,7 @@ class SyncDict:
 
 
     """
+
     def __init__(
             self,
             d: dict
@@ -864,5 +935,3 @@ class SyncDict:
         """
         for k in self.pop_set:
             self.d.pop(k)
-
-

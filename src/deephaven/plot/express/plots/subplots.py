@@ -8,13 +8,41 @@ from ._private_utils import layer
 from .. import DeephavenFigure
 
 
+def get_shared_key(
+    row: int,
+    col: int,
+    shared_axes: str,
+) -> int | None:
+    """
+    Get a shared key where
+
+    Args:
+        row: int: The row this figure is in
+        col: int: The column this figure is in
+        shared_axes: str: "rows", "cols", "all" or None depending on what axes
+          should be shared
+
+    Returns:
+        The shared key, if shared_axes is specified, otherwise None
+    """
+    if shared_axes == "rows":
+        return row
+    elif shared_axes == "cols":
+        return col
+    elif shared_axes == "all":
+        return 1
+    return None
+
+
 def get_new_specs(
         specs: list[list[dict[str, int | float]]],
         row_starts: list[float],
         row_ends: list[float],
         col_starts: list[float],
         col_ends: list[float],
-) -> list[dict[str, list[float]]]:
+        shared_xaxes: str | bool,
+        shared_yaxes: str | bool
+) -> list[dict[str, list[float] | int]]:
     """Transforms the given specs and row and column lists to specs for layering
 
     Args:
@@ -32,6 +60,12 @@ def get_new_specs(
       col_ends: list[float]:
         A list of domain values on the y-axis where the corresponding
         figure will end
+      shared_xaxes: str | bool
+        "rows", "cols"/True, "all" or None depending on what axes
+        should be shared
+      shared_yaxes: str | bool
+        "rows"/True, "cols", "all" or None depending on what axes
+        should be shared
 
     Returns:
       list[dict[str, list[float]]]:
@@ -39,6 +73,9 @@ def get_new_specs(
 
     """
     new_specs = []
+
+    shared_x_axes = "columns" if shared_xaxes is True else shared_xaxes
+    shared_y_axes = "rows" if shared_yaxes is True else shared_yaxes
 
     for row, (y_0, y_1) in enumerate(zip(row_starts, row_ends)):
         for col, (x_0, x_1) in enumerate(zip(col_starts, col_ends)):
@@ -51,10 +88,19 @@ def get_new_specs(
             colspan = spec.get("colspan", 1)
             y_1 = row_ends[row + rowspan - 1]
             x_1 = col_ends[col + colspan - 1]
-            new_specs.append({
+            new_spec = {
                 "x": [x_0 + l, x_1 - r],
                 "y": [y_0 + t, y_1 - b]
-            })
+            }
+
+            if shared_x_axes and (key := get_shared_key(row, col, shared_x_axes)):
+                new_spec["matched_xaxis"] = key
+
+            if shared_y_axes and (key := get_shared_key(row, col, shared_y_axes)):
+                new_spec["matched_yaxis"] = key
+
+            new_specs.append(new_spec)
+
     return new_specs
 
 
@@ -137,6 +183,8 @@ def make_subplots(
         *figs: Figure | DeephavenFigure,
         rows: int = None,
         cols: int = None,
+        shared_xaxes: bool | int = None,
+        shared_yaxes: bool | int = None,
         grid: list[list[Figure | DeephavenFigure]] = None,
         horizontal_spacing: float = None,
         vertical_spacing: float = None,
@@ -161,6 +209,12 @@ def make_subplots(
         calculated from rows and number of figs provided if not passed
         but rows is.
         One of rows or cols should be provided if passing figs directly.
+      shared_xaxes: str | bool (Default value = None)
+        "rows", "cols"/True, "all" or None depending on what axes
+        should be shared
+      shared_yaxes: str | bool (Default value = None)
+        "rows"/True, "cols", "all" or None depending on what axes
+        should be shared
       grid: list[list[Figure | DeephavenFigure]] (Default value = None)
         A grid (list of lists) of figures to draw. None can be
         provided in a grid entry
@@ -225,4 +279,6 @@ def make_subplots(
     row_starts, row_ends = get_domains(row_heights, vertical_spacing)
 
     return layer(*[fig for fig_row in grid for fig in fig_row],
-                 specs=get_new_specs(specs, row_starts, row_ends, col_starts, col_ends))
+                 specs=get_new_specs(specs, row_starts, row_ends,
+                                     col_starts, col_ends,
+                                     shared_xaxes, shared_yaxes))
