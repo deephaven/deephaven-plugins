@@ -298,10 +298,10 @@ def match_axes(
           if there is a dictionary to match to
 
     """
-    match_axis_key = spec.get(f"matched_{type_}")
+    match_axis_key = spec.get(f"matched_{type_}", None)
     axis_index = axis_indices.get(type_)
 
-    if match_axis_key:
+    if match_axis_key is not None:
         # add type to key to ensure uniqueness per axis
         match_axis_key = (match_axis_key, type_)
         if match_axis_key not in matches_axes:

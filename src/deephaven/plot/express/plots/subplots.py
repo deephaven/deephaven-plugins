@@ -25,9 +25,10 @@ def get_shared_key(
     Returns:
         The shared key, if shared_axes is specified, otherwise None
     """
+
     if shared_axes == "rows":
         return row
-    elif shared_axes == "cols":
+    elif shared_axes == "columns":
         return col
     elif shared_axes == "all":
         return 1
@@ -74,8 +75,8 @@ def get_new_specs(
     """
     new_specs = []
 
-    shared_x_axes = "columns" if shared_xaxes is True else shared_xaxes
-    shared_y_axes = "rows" if shared_yaxes is True else shared_yaxes
+    shared_xaxes = "columns" if shared_xaxes is True else shared_xaxes
+    shared_yaxes = "rows" if shared_yaxes is True else shared_yaxes
 
     for row, (y_0, y_1) in enumerate(zip(row_starts, row_ends)):
         for col, (x_0, x_1) in enumerate(zip(col_starts, col_ends)):
@@ -93,10 +94,10 @@ def get_new_specs(
                 "y": [y_0 + t, y_1 - b]
             }
 
-            if shared_x_axes and (key := get_shared_key(row, col, shared_x_axes)):
+            if shared_xaxes and (key := get_shared_key(row, col, shared_xaxes)) is not None:
                 new_spec["matched_xaxis"] = key
 
-            if shared_y_axes and (key := get_shared_key(row, col, shared_y_axes)):
+            if shared_yaxes and (key := get_shared_key(row, col, shared_yaxes)) is not None:
                 new_spec["matched_yaxis"] = key
 
             new_specs.append(new_spec)
