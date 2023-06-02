@@ -129,22 +129,68 @@ class PlotlyExpressChartModel extends ChartModel {
       return;
     }
 
-    // Remove colors set on traces by plotly on the server
+    /**
+     * We will iterate over the traces with the following expectations
+     * 1. Traces in the same subplot are contiguous in the data array
+     * 2. Traces of different plot types indicate a new subplot
+     * 3. If the domain changes between traces, that indicates a new subplot
+     * 4. Each subplot should start their colors from the beginning of the colorway
+     */
+
+    let startSubplotIndex = 0; // Tracks what index the current subplot started at
+
     for (let i = 0; i < this.data.length; i += 1) {
-      const d = this.data[i];
-      const color = colorway[i % colorway.length];
+      const data = this.data[i];
+
+      // Check if we are starting a new subplot and should restart the color order
+      if (i > 0) {
+        const prevData = this.data[i - 1];
+        const isSamePlotType = data.type === prevData.type;
+        let isSameDomain = true;
+        if (isPlotData(data) && isPlotData(prevData)) {
+          isSameDomain = deepEqual(data.domain, prevData.domain);
+        }
+        if (!isSamePlotType || !isSameDomain) {
+          startSubplotIndex = i;
+        }
+      }
+
+      // The color index for the current subplot
+      const colorIndex = i - startSubplotIndex;
+
+      // Plotly just wraps back to the start of the colorway if numTraces > numColors
+      const themeColor = colorway[colorIndex % colorway.length];
 
       // If length is 0, plotlyColorway[NaN] is undefined and does not throw
-      const plotlyColor = plotlyColorway[i % plotlyColorway.length] ?? '';
+      const plotlyColor =
+        plotlyColorway[colorIndex % plotlyColorway.length] ?? '';
 
-      if (isPlotData(d)) {
-        const { marker, line } = d;
-        if (marker?.color === plotlyColor && color != null) {
-          marker.color = color;
+      // There are multiple datatypes in plotly and some don't contain marker or marker.color
+      if (
+        'marker' in data &&
+        data.marker != null &&
+        'color' in data.marker &&
+        typeof data.marker.color === 'string'
+      ) {
+        if (
+          data.marker.color.toUpperCase() === plotlyColor.toUpperCase() &&
+          themeColor != null
+        ) {
+          data.marker.color = themeColor;
         }
+      }
 
-        if (line?.color === plotlyColor && color != null) {
-          line.color = color;
+      if (
+        'line' in data &&
+        data.line != null &&
+        'color' in data.line &&
+        typeof data.line.color === 'string'
+      ) {
+        if (
+          data.line.color.toUpperCase() === plotlyColor.toUpperCase() &&
+          themeColor != null
+        ) {
+          data.line.color = themeColor;
         }
       }
     }
