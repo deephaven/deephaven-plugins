@@ -23,11 +23,13 @@ export function DashboardPlugin({
     ({
       dragEvent,
       fetch,
+      metadata = {},
       panelId = shortid.generate(),
       widget,
     }: {
       dragEvent?: DragEvent;
       fetch: () => Promise<unknown>;
+      metadata?: Record<string, unknown>;
       panelId?: string;
       widget: VariableDefinition;
     }) => {
@@ -37,14 +39,18 @@ export function DashboardPlugin({
         return;
       }
       log.info('Panel opened of type', type);
-      const metadata = { id: widgetId, name, type };
       const config = {
         type: 'react-component' as const,
         component: MatPlotLibPanel.COMPONENT,
         props: {
           localDashboardId: id,
           id: panelId,
-          metadata,
+          metadata: {
+            ...metadata,
+            id: widgetId,
+            name,
+            type,
+          },
           fetch,
         },
         title: name,

@@ -26,11 +26,13 @@ export function DashboardPlugin(
     ({
       dragEvent,
       fetch,
+      metadata = {},
       panelId = shortid.generate(),
       widget,
     }: {
       dragEvent?: React.DragEvent;
       fetch: () => Promise<unknown>;
+      metadata?: Record<string, unknown>;
       panelId?: string;
       widget: VariableDefinition;
     }) => {
@@ -40,15 +42,18 @@ export function DashboardPlugin(
         return;
       }
 
-      const metadata = { name, figure: name, type };
-
       const config = {
         type: 'react-component' as const,
         component: PANEL_COMPONENT,
         props: {
           localDashboardId: id,
           id: panelId,
-          metadata,
+          metadata: {
+            ...metadata,
+            name,
+            figure: name,
+            type,
+          },
           fetch,
         },
         title: name,

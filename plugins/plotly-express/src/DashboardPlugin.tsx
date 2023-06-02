@@ -20,11 +20,13 @@ export function DashboardPlugin(
     async ({
       dragEvent,
       fetch,
+      metadata = {},
       panelId = shortid.generate(),
       widget,
     }: {
       dragEvent?: DragEvent;
       fetch: () => Promise<PlotlyChartWidget>;
+      metadata?: Record<string, unknown>;
       panelId?: string;
       widget: VariableDefinition;
     }) => {
@@ -33,14 +35,18 @@ export function DashboardPlugin(
         return;
       }
 
-      const metadata = { name: title, figure: title, type };
       const config = {
         type: 'react-component' as const,
         component: 'PlotlyPanel',
         props: {
           localDashboardId: id,
           id: panelId,
-          metadata,
+          metadata: {
+            ...metadata,
+            name: title,
+            figure: title,
+            type,
+          },
           fetch,
         },
         title,
