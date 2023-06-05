@@ -152,6 +152,22 @@ class DeephavenFigure:
         return [links for mapping in self._data_mappings
                 for links in mapping.get_links(exporter)]
 
+    def to_dict(
+            self: DeephavenFigure,
+            exporter: Exporter
+    ) -> dict[str, any]:
+        """Convert the DeephavenFigure to dict
+
+        Args:
+          exporter: Exporter: The exporter to use to send tables
+
+        Returns:
+          str: The DeephavenFigure as a dictionary
+
+        """
+        return json.loads(self.to_json(exporter))
+
+
     def to_json(
             self: DeephavenFigure,
             exporter: Exporter
