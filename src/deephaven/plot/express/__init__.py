@@ -3,10 +3,37 @@ from deephaven.plugin.object import Exporter, ObjectType
 
 from .deephaven_figure import DeephavenFigure, export_figure
 
-from .plots import area, bar, frequency_bar, timeline, histogram, _ecdf, box, \
-    violin, strip, ohlc, candlestick, treemap, sunburst, icicle, funnel, \
-    funnel_area, line, line_polar, line_ternary, line_3d, scatter, scatter_3d, \
-    scatter_polar, scatter_ternary, pie, layer, make_subplots
+from .plots import (
+    area,
+    bar,
+    frequency_bar,
+    timeline,
+    histogram,
+    _ecdf,
+    box,
+    violin,
+    strip,
+    ohlc,
+    candlestick,
+    treemap,
+    sunburst,
+    icicle,
+    funnel,
+    funnel_area,
+    line,
+    line_polar,
+    line_ternary,
+    line_3d,
+    scatter,
+    scatter_3d,
+    scatter_polar,
+    scatter_ternary,
+    pie,
+    layer,
+    make_subplots,
+)
+
+from .data_generator import example_data
 
 __version__ = "0.0.5"
 
@@ -18,10 +45,9 @@ class DeephavenFigureType(ObjectType):
     DeephavenFigureType for plugin registration
 
     """
+
     @property
-    def name(
-            self
-    ) -> str:
+    def name(self) -> str:
         """
         Returns the name of the plugin
 
@@ -31,10 +57,7 @@ class DeephavenFigureType(ObjectType):
         """
         return NAME
 
-    def is_type(
-            self,
-            object: any
-    ) -> bool:
+    def is_type(self, object: any) -> bool:
         """
         Check if an object is a DeephavenFigure
 
@@ -46,11 +69,7 @@ class DeephavenFigureType(ObjectType):
         """
         return isinstance(object, DeephavenFigure)
 
-    def to_bytes(
-            self,
-            exporter: Exporter,
-            figure: DeephavenFigure
-    ) -> bytes:
+    def to_bytes(self, exporter: Exporter, figure: DeephavenFigure) -> bytes:
         """
         Converts a DeephavenFigure to bytes
 
@@ -69,17 +88,14 @@ class ChartRegistration(Registration):
     Register the DeephavenFigureType
 
     """
+
     @classmethod
-    def register_into(
-            cls,
-            callback:
-            Registration.Callback
-    ) -> None:
+    def register_into(cls, callback: Registration.Callback) -> None:
         """
         Register the DeephavenFigureType
 
         Args:
-          callback: Registration.Callback: 
+          callback: Registration.Callback:
             A function to call after registration
 
         """
