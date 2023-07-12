@@ -33,7 +33,7 @@ from .plots import (
     make_subplots,
 )
 
-from .data_generator import example_data
+from .data import data_generators
 
 __version__ = "0.0.5"
 

@@ -14,34 +14,134 @@ from deephaven.updateby import rolling_sum_tick, ema_tick
 import random, math
 
 
-def example_data(ticking: bool = True, hours_of_data: int = 1) -> Table:
+def iris(ticking: bool = True, size: int = 150) -> Table:
+    """
+    Returns a ticking version of the 1936 Iris flower dataset.
+
+    This function generates a deterministically random dataset inspired by the
+    classic 1936 Iris flower dataset commonly used for classification tasks, with an
+    additional "ticking" feature. The ticking feature represents a continuously
+    increasing simulated timestamp.
+
+    Notes:
+        - The ticking feature starts from 1936-01-01T08:00:00UTC and increases
+          by 1 second for each observation.
+        - The dataset contains a default of 150 number of samples but can be
+          set to any size, with 4 original features (sepal length, sepal width,
+          petal length, and petal width), along with a timestamp, id and species.
+        - The original Iris species labels are included (setosa, versicolor, and virginica).
+
+    Args:
+        ticking: bool:  (Default value = True)
+            If true, the table will tick using a replayer, if
+            false the whole table will be returned as a static table.
+        size: int:  (Default value = 150)
+            The number of rows to create for the table
+
+    Returns:
+        A Deephaven Table
+
+    References:
+        - Fisher, R. A. (1936). The use of multiple measurements in taxonomic problems.
+          Annals of Eugenics, 7(2), 179-188.
+
+    Examples:
+        ```
+        import deephaven.plot.express as dx
+        iris = dx.data.iris()
+        ```
+    """
+
+    base_time = parse_instant("1936-01-01T08:00:00 UTC")
+    species_list: list[str] = ["setosa", "versicolor", "virginica"]
+    col_ids = {"sepal_length": 0, "sepal_width": 1, "petal_length": 2, "petal_width": 3}
+    # statistical values extracted from the iris data set https://en.wikipedia.org/wiki/Iris_flower_data_set
+    # average [setosa, versicolor, virginica] and [sepal_length, sepal_width, petal_length, petal_width]
+    avg: list[list[float]] = [
+        [5.01, 3.42, 1.46, 0.24],
+        [5.94, 2.77, 4.26, 1.33],
+        [6.59, 2.97, 5.55, 2.03],
+    ]
+    # std [setosa, versicolor, virginica] and [sepal_length, sepal_width, petal_length, petal_width]
+    std: list[list[float]] = [
+        [0.35, 0.38, 0.17, 0.11],
+        [0.52, 0.31, 0.47, 0.20],
+        [0.64, 0.32, 0.55, 0.27],
+    ]
+
+    def generate_value(seed: int, species_id: int, col: str) -> float:
+        col_id = col_ids[col]
+        if col_id == 0:
+            random.seed(
+                5001 + seed
+            )  # set seed once per row + offset that made it look nice
+        return round(
+            random.gauss(avg[species_id][col_id], std[species_id][col_id]),
+            1,
+        )
+
+    static_table = (
+        empty_table(size)
+        .update(
+            [
+                "timestamp = base_time + (long)(ii * SECOND)",
+                "species_id = i % 3",
+                "species = (String)species_list[species_id]",
+                "sepal_length = generate_value(i, species_id,`sepal_length`)",
+                "sepal_width = generate_value(i, species_id, `sepal_width`)",
+                "petal_length = generate_value(i, species_id,`petal_length`)",
+                "petal_width = generate_value(i, species_id, `petal_width`)",
+            ]
+        )
+        .move_columns_down("species_id")
+    )
+
+    if ticking:
+        result_replayer = TableReplayer(
+            base_time, plus_period(base_time, seconds_to_nanos(size))
+        )
+        replayer_table = result_replayer.add_table(static_table, "timestamp")
+        result_replayer.start()
+        return replayer_table
+    else:
+        return static_table
+
+
+def stocks(ticking: bool = True, hours_of_data: int = 1) -> Table:
     """Returns a Deephaven table containing a generated example data set.
+
     Data is 1 hour of randomly generated (but deterministic) fictional
     stock market data, and starts with the first 5 minutes of data
     already initilized so your example plots won't start empty.
 
-    Contains the following columns:
-    - timestamp: a time column starting from the date deephaven.io was registered
-    - sym: a string representing a fictional stock symbol
-    - exchange: a string representing a fictional stock exchange
-    - size: the number of shares in the trade
-    - price: the transaction price of the trade
-    - dollars: the dollar value of the trade (price * size)
-    - side: buy or sell side of the trade
-    - SPet500: A comparison to a fictional index
-    - index: an incrementing row index
-    - random: A random gaussian value using row index as seed
+    Notes:
+        Containts the following columns:
+        - timestamp: a time column starting from the date deephaven.io was registered
+        - sym: a string representing a fictional stock symbol
+        - exchange: a string representing a fictional stock exchange
+        - size: the number of shares in the trade
+        - price: the transaction price of the trade
+        - dollars: the dollar value of the trade (price * size)
+        - side: buy or sell side of the trade
+        - SPet500: A comparison to a fictional index
+        - index: an incrementing row index
+        - random: A random gaussian value using row index as seed
 
     Args:
-      ticking: bool:  (Default value = True)
-        If true, the table will tick using a replayer, if
-        false the whole table will be returned as a static table.
-      hours_of_data: int: (Default value = 1)
-        The number of hours of data to return
+        ticking: bool:  (Default value = True)
+            If true, the table will tick using a replayer, if
+            false the whole table will be returned as a static table.
+        hours_of_data: int: (Default value = 1)
+            The number of hours of data to return
 
     Returns:
-      A Deephaven Table
+        A Deephaven Table
 
+    Examples:
+        ```
+        import deephaven.plot.express as dx
+        stocks = dx.data.stocks()
+        ```
     """
 
     base_time = parse_instant(
