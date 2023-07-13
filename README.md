@@ -1,6 +1,6 @@
 # Plugin modules
 
-This folder contains internally developed JS Plugin modules. Each plugin should be the following:
+The `plugins` folder contains internally developed JS Plugin modules. Each plugin should be the following:
 
 - Based off the [JS Module Plugin template](https://github.com/deephaven/deephaven-js-plugin-template/)
 - Package name `@deephaven/js-plugin-<folderName>`
@@ -29,9 +29,26 @@ To build for publishing, run
 npm run build
 ```
 
-Next, create a `manifest.json` file in the root directory of this project.
+Next, create a `manifest.json` file in the `plugins` directory of this project or modify the existing one.
 
-In it, there should be JSON containing a plugins object. This plugins object contains of list of plugins with their name, version, and location (main).
+In it, there should be JSON containing a plugins object containing metadata about all plugins to use, e.g.:
+```
+{
+  "plugins": [
+    {
+      /** Name of the plugin, and relative path from this manifest to the plugin's root folder. */
+      "name": "...", 
+
+      /** Version of the plugin. */
+      "version": "...", 
+
+      /** Location of the primary entry point for the plugin. */
+      "main": "..." 
+    },
+    ...
+  ]
+}
+```
 
 For example, if using matplotlib and plotly plugins with version 0.1.0, the file looks like this:
 
@@ -67,10 +84,16 @@ Finally, install the plugin wheels for the plugins, plotly and matplotlib in thi
 pip install <plotly-plugin-path>/deephaven-plugin-plotly/dist/deephaven_plugin_plotly-0.0.1.dev2-py3-none-any.whl <matplotlib-plugin-path>/deephaven-plugin-matplotlib/dist/deephaven_plugin_matplotlib-0.1.1-py3-none-any.whl
 ```
 
-Using the path to your local deephaven-js-plugins repo where the manifest.json is contained, start the server with the following command:
+If you're reinstalling the python wheels without a version bump (generally for the purpose of development), you'll want to add the `--force-reinstall` tag. The `--no-deps` tag is also recommended as `--force-reinstall` will update all the dependencies as well, which is generally unnecessary.
+For example, on reinstalls the above command becomes 
+```
+pip install --force-reinstall --no-deps <plotly-plugin-path>/deephaven-plugin-plotly/dist/deephaven_plugin_plotly-0.0.1.dev2-py3-none-any.whl <matplotlib-plugin-path>/deephaven-plugin-matplotlib/dist/deephaven_plugin_matplotlib-0.1.1-py3-none-any.whl
+```
+
+Using the path to your local deephaven-js-plugins repo where the manifest.json is contained (which will be in the `plugins` directory if you followed the steps above), start the server with the following command:
 
 ```
-START_OPTS="-Ddeephaven.jsPlugins.resourceBase=<js-plugins-path>/deephaven-js-plugins" ./gradlew server-jetty-app:run
+START_OPTS="-Ddeephaven.jsPlugins.resourceBase=<js-plugins-path>/deephaven-js-plugins/plugins" ./gradlew server-jetty-app:run
 ```
 
 The deephaven IDE can then be opened at http://localhost:10000/ide/, with your plugins ready to use.
