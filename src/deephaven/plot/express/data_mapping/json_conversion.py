@@ -79,7 +79,7 @@ def json_link_mapping(
         var_col_dicts: list[dict[str, str]],
         table_index: int,
         start_index: int,
-) -> list[dict[any]]:
+) -> list[dict[Any]]:
     """Create a data mapping of table and cols to json link
     
     Example input:
@@ -107,7 +107,7 @@ def json_link_mapping(
       start_index: int:  What index this data mapping starts at
 
     Returns:
-      list[dict[any]]: A list containing dicts that have a table to ref mapping
+      list[dict[Any]]: A list containing dicts that have a table to ref mapping
         as well as a mapping from originating column to plotly data location
 
     Examples:

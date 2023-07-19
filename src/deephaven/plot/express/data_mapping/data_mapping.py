@@ -3,6 +3,7 @@ from __future__ import annotations
 from copy import deepcopy
 from itertools import cycle, product, zip_longest
 from collections.abc import Generator, Iterable
+from typing import Any
 
 from deephaven.table import Table
 
@@ -108,13 +109,13 @@ def custom_data_args_generator(
 
 def add_custom_data_args(
         var_col_dicts: Generator[dict[str, str]],
-        custom_call_args: dict[str, any] = None
+        custom_call_args: dict[str, Any] = None
 ) -> Generator[dict[str, str]]:
     """Given the existing variable to column mappings, add error bars
 
     Args:
       var_col_dicts: Generator[dict[str, str]]: Existing var to col map
-      custom_call_args: dict[str, any]:  (Default value = None) Arguments to
+      custom_call_args: dict[str, Any]:  (Default value = None) Arguments to
         check for any error bar-related vars
 
     Yields:
@@ -197,7 +198,7 @@ def zip_args(
 
 def create_data_mapping(
         data_dict: dict[str, str | list[str]],
-        custom_call_args: dict[str, any],
+        custom_call_args: dict[str, Any],
         table: Table,
         start_index: int,
 ) -> tuple[DataMapping, list[dict[str, str]]]:
@@ -208,7 +209,7 @@ def create_data_mapping(
       data_dict: dict[str, str | list[str]]: A dictionary containing
         (variable, column) maps that need to be converted to
         (variable, table column) maps
-      custom_call_args: dict[str, any]: Extra args extracted from the call_args
+      custom_call_args: dict[str, Any]: Extra args extracted from the call_args
         that require special processing
       table: Table: The table that contains the data
       start_index: int: what index (of the corresponding traces) that this
@@ -219,6 +220,11 @@ def create_data_mapping(
         the hover mapping
 
     """
+    # color is needed to create the color axis, but might need to set it to
+    # colors if dealing with some types of charts
+    if "colors" in custom_call_args:
+        data_dict["colors"] = data_dict.pop("color")
+
     data_dict = remove_unmapped_args(data_dict)
 
     # in case of finance, zip instead of take product

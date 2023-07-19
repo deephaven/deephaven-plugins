@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import copy
+from typing import Any
 
 from deephaven.table import Table
 from deephaven.plugin.object import Exporter
@@ -11,12 +12,12 @@ from .json_conversion import json_link_mapping
 class DataMapping:
     """A DataMapping that maps plotly variables to table columns
 
-    Args:
-      table: Table: The table to use for this data mapping
-      data_mapping: list[dict[str, str]]: The variable to column
+    Attributes:
+      _table: Table: The table to use for this data mapping
+      _data_mapping: list[dict[str, str]]: The variable to column
         dictionaries used in this mapping. They should map plotly variables
         to table columns. One of these maps to one data trace.
-      start_index: int: The index (which is an index in the plotly data)
+      _start_index: int: The index (which is an index in the plotly data)
         that this DataMapping starts at
     """
     def __init__(
@@ -32,14 +33,14 @@ class DataMapping:
     def get_links(
             self: DataMapping,
             exporter: Exporter
-    ) -> list[dict[any]]:
+    ) -> list[dict[Any]]:
         """Get the json links for this data mapping
 
         Args:
           exporter: Exporter: The exporter, used to get the index of the table
 
         Returns:
-          list[dict[any]]: The column to json link mapping for this DataMapping
+          list[dict[Any]]: The column to json link mapping for this DataMapping
 
         """
         return json_link_mapping(

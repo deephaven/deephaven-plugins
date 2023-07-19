@@ -4,27 +4,41 @@ from plotly import express as px
 
 from deephaven.table import Table
 
-from ._private_utils import default_callback, process_args
-from ..deephaven_figure import generate_figure, DeephavenFigure
+from ._private_utils import process_args
+from ._update_wrapper import default_callback
+from ..deephaven_figure import DeephavenFigure
 
 
-# TODO: support line_shape as a list?
 def line(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
-        error_x: str | list[str] = None,
-        error_x_minus: str | list[str] = None,
-        error_y: str | list[str] = None,
-        error_y_minus: str | list[str] = None,
+        error_x: str = None,
+        error_x_minus: str = None,
+        error_y: str = None,
+        error_y_minus: str = None,
+        by: str | list[str] = None,
+        by_vars: str | list[str] = "color",
         size: str | list[str] = None,
-        text: str | list[str] = None,
-        hover_name: str | list[str] = None,
+        line_dash: str | list[str] = None,
+        width: str | list[str] = None,
+        color: str | list[str] = None,
+        symbol: str | list[str] = None,
+        text: str = None,
+        hover_name: str = None,
         labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
+        color_discrete_map: dict[str | tuple[str], str] = None,
         line_dash_sequence: list[str] = None,
+        line_dash_map: dict[str | tuple[str], str] = None,
         symbol_sequence: list[str] = None,
+        symbol_map: str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] = None,
         size_sequence: list[int] = None,
+        size_map: str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] = None,
+        width_sequence: list[int] = None,
+        width_map: dict[str | tuple[str], str] = None,
         xaxis_sequence: list[str] = None,
         yaxis_sequence: list[str] = None,
         markers: bool = False,
@@ -37,6 +51,7 @@ def line(
         line_shape: str = 'linear',
         title: str = None,
         template: str = None,
+        render_mode="svg",
         unsafe_update_figure: callable = default_callback
 ) -> DeephavenFigure:
     """Returns a line chart
@@ -48,51 +63,106 @@ def line(
         A column or list of columns that contain x-axis values.
       y: str | list[str]:  (Default value = None)
         A column or list of columns that contain y-axis values.
-      error_x: str | list[str]:  (Default value = None)
-        A column or list of columns with x error bar
-        values. These form the error bars in both the positive and negative
+      by: str | list[str]:  (Default value = None)
+        A column or list of columns that contain values to plot the figure traces by.
+        All values or combination of values map to a unique design. The variable
+        by_vars specifies which design elements are used.
+        This is overriden if any specialized design variables such as color are specified
+      by_vars: str | list[str]:  (Default value = "color")
+        A string or list of string that contain design elements to plot by.
+        Can contain size, line_dash, width, color, and symbol.
+        If associated maps or sequences are specified, they are used to map by column values
+        to designs. Otherwise, default values are used.
+      size: str | list[str]:  (Default value = None)
+        A column or list of columns that contain size values.
+        If only one column is passed, and it contains numeric values, the value
+        is used as a size. Otherwise, the value is used for a plot by on size.
+        See size_map for additional behaviors.
+      line_dash: str | list[str]: (Default value = None)
+        A column or list of columns that contain line_dash values.
+        The value is used for a plot by on line_dash.
+        See line_dash_map for additional behaviors.
+      width: str | list[str]: (Default value = None)
+        A column or list of columns that contain width values.
+        The value is used for a plot by on width.
+        See width_map for additional behaviors.
+      color: str | list[str]: (Default value = None)
+        A column or list of columns that contain color values.
+        The value is used for a plot by on color.
+        See color_discrete_map for additional behaviors.
+      symbol: str | list[str]: (Default value = None)
+        A column or list of columns that contain symbol values.
+        The value is used for a plot by on symbol.
+        See color_discrete_map for additional behaviors.
+      error_x: str:  (Default value = None)
+        A column with x error bar values.
+        These form the error bars in both the positive and negative
         direction if error_x_minus is not specified, and the error bars in
         only the positive direction if error_x_minus is specified. None can be
         used to specify no error bars on the corresponding series.
-      error_x_minus: str | list[str]:  (Default value = None)
-        A column or list of columns with x error
-        bar values. These form the error bars in the negative direction,
+      error_x_minus: str:  (Default value = None)
+        A column with x error bar values.
+        These form the error bars in the negative direction,
         and are ignored if error_x is not specified.
-      error_y: str | list[str]:  (Default value = None)
-        A column or list of columns with x error bar
-        values. These form the error bars in both the positive and negative
+      error_y: str:  (Default value = None)
+        A column with x error bar values.
+        These form the error bars in both the positive and negative
         direction if error_y_minus is not specified, and the error bars in
         only the positive direction if error_y_minus is specified. None can be
         used to specify no error bars on the corresponding series.
-      error_y_minus: str | list[str]:  (Default value = None)
-        A column or list of columns with y error
-        bar values. These form the error bars in the negative direction,
+      error_y_minus: str:  (Default value = None)
+        A column with y error bar values.
+        These form the error bars in the negative direction,
         and are ignored if error_y is not specified.
-      size: str | list[str]:  (Default value = None)
-        A column or list of columns that contain size values.
-      text: str | list[str]:  (Default value = None)
-        A column or list of columns that contain text annotations.
-      hover_name: str | list[str]:  (Default value = None)
-        A column or list of columns that contain names to bold in the hover
-          tooltip.
+      text: str:  (Default value = None)
+        A column that contains text annotations.
+      hover_name: str:  (Default value = None)
+        A column that contains names to bold in the hover tooltip.
       labels: dict[str, str]:  (Default value = None)
         A dictionary of labels mapping columns to new labels.
       color_discrete_sequence: list[str]:  (Default value = None)
         A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
         colors will be reused.
+      color_discrete_map: dict[str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to colors.
       line_dash_sequence: list[str]:  (Default value = None)
         A list of line dashes to sequentially apply to
         the series. The dashes loop, so if there are more series than dashes,
         dashes will be reused.
+      line_dash_map: dict[str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to line_dash.
       symbol_sequence: list[str]:  (Default value = None)
         A list of symbols to sequentially apply to the
         markers in the series. The symbols loop, so if there are more series than
         symbols, symbols will be reused.
+      symbol_map:
+        str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to symbols.
+        If "identity", the values are taken as literal symbols.
+        If "by" or ("by", dict) where dict is as described above, the symbols are forced to by
       size_sequence: list[str]:  (Default value = None)
         A list of sizes to sequentially apply to the
         markers in the series. The sizes loop, so if there are more series than
-        symbols, sizes will be reused. This is overriden is "size" is specified.
+        symbols, sizes will be reused.
+      size_map:
+        str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to sizes.
+        If "identity", the values are taken as literal sizes.
+        If "by" or ("by", dict) where dict is as described above, the sizes are forced to by
+      width_sequence: list[str]:  (Default value = None)
+        A list of widths to sequentially apply to
+        the series. The widths loop, so if there are more series than widths,
+        widths will be reused.
+      width_map: dict[str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to width.
       xaxis_sequence: list[str]:  (Default value = None)
         A list of x axes to assign series to. Odd numbers
         starting with 1 are created on the bottom x axis and even numbers starting
@@ -138,6 +208,9 @@ def line(
         The title of the chart
       template: str:  (Default value = None)
         The template for the chart.
+      render_mode: str (Default value = "svg")
+        Either "svg" or "webgl". Setting to "webgl" will lead to a more
+        performant plot but there may be graphical bugs.
       unsafe_update_figure:  callable:  (Default value = default_callback)
         An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is
@@ -154,11 +227,7 @@ def line(
     """
     args = locals()
 
-    update_wrapper = process_args(args, {"line"})
-
-    return update_wrapper(
-        generate_figure(draw=px.line, call_args=args)
-    )
+    return process_args(args, {"line", "supports_lists"}, px_func=px.line)
 
 
 def line_3d(
@@ -172,13 +241,28 @@ def line_3d(
         error_y_minus: str = None,
         error_z: str = None,
         error_z_minus: str = None,
+        by: str | list[str] = None,
+        by_vars: str | list[str] = "color",
         size: str = None,
+        line_dash: str | list[str] = None,
+        width: str | list[str] = None,
+        color: str | list[str] = None,
+        symbol: str | list[str] = None,
         text: str = None,
         hover_name: str = None,
         labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
+        color_discrete_map: dict[str | tuple[str], str] = None,
+        line_dash_sequence: list[str] = None,
+        line_dash_map: dict[str | tuple[str], str] = None,
         symbol_sequence: list[str] = None,
+        symbol_map: str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] = None,
         size_sequence: list[int] = None,
+        size_map: str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] = None,
+        width_sequence: list[int] = None,
+        width_map: dict[str | tuple[str], str] = None,
         markers: bool = False,
         log_x: bool = False,
         log_y: bool = False,
@@ -201,6 +285,37 @@ def line_3d(
         A column that contains y-axis values.
       z: str:  (Default value = None)
         A column that contains z-axis values.
+      by: str | list[str]:  (Default value = None)
+        A column or list of columns that contain values to plot the figure traces by.
+        All values or combination of values map to a unique design. The variable
+        by_vars specifies which design elements are used.
+        This is overriden if any specialized design variables such as color are specified
+      by_vars: str | list[str]:  (Default value = "color")
+        A string or list of string that contain design elements to plot by.
+        Can contain size, line_dash, width, color, and symbol.
+        If associated maps or sequences are specified, they are used to map by column values
+        to designs. Otherwise, default values are used.
+      size: str | list[str]:  (Default value = None)
+        A column or list of columns that contain size values.
+        If only one column is passed, and it contains numeric values, the value
+        is used as a size. Otherwise, the value is used for a plot by on size.
+        See size_map for additional behaviors.
+      line_dash: str | list[str]: (Default value = None)
+        A column or list of columns that contain line_dash values.
+        The value is used for a plot by on line_dash.
+        See line_dash_map for additional behaviors.
+      width: str | list[str]: (Default value = None)
+        A column or list of columns that contain width values.
+        The value is used for a plot by on width.
+        See width_map for additional behaviors.
+      color: str | list[str]: (Default value = None)
+        A column or list of columns that contain color values.
+        The value is used for a plot by on color.
+        See color_discrete_map for additional behaviors.
+      symbol: str | list[str]: (Default value = None)
+        A column or list of columns that contain symbol values.
+        The value is used for a plot by on symbol.
+        See color_discrete_map for additional behaviors.
       error_x: str:  (Default value = None)
         A column with x error bar values. These form the error
         bars in both the positive and negative direction if error_x_minus
@@ -227,28 +342,55 @@ def line_3d(
       error_z_minus: str:  (Default value = None)
         A column with z error bar values. These form
         the error bars in the negative direction, and are ignored if error_z
-        is not specified.
-      size: str:  (Default value = None)
-        A column that contains size values.
       text: str:  (Default value = None)
         A column that contains text annotations.
-      hover_name: str | list[str]:  (Default value = None)
-        A column that contains names to bold in the hover
-          tooltip.
+      hover_name: str:  (Default value = None)
+        A column that contains names to bold in the hover tooltip.
       labels: dict[str, str]:  (Default value = None)
         A dictionary of labels mapping columns to new labels.
       color_discrete_sequence: list[str]:  (Default value = None)
         A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
         colors will be reused.
+      color_discrete_map: dict[str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to colors.
+      line_dash_sequence: list[str]:  (Default value = None)
+        A list of line dashes to sequentially apply to
+        the series. The dashes loop, so if there are more series than dashes,
+        dashes will be reused.
+      line_dash_map: dict[str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to line_dash.
       symbol_sequence: list[str]:  (Default value = None)
         A list of symbols to sequentially apply to the
         markers in the series. The symbols loop, so if there are more series than
         symbols, symbols will be reused.
+      symbol_map:
+        str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to symbols.
+        If "identity", the values are taken as literal symbols.
+        If "by" or ("by", dict) where dict is as described above, the symbols are forced to by
       size_sequence: list[str]:  (Default value = None)
         A list of sizes to sequentially apply to the
         markers in the series. The sizes loop, so if there are more series than
-        symbols, sizes will be reused. This is overriden is "size" is specified.
+        symbols, sizes will be reused.
+      size_map:
+        str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to sizes.
+        If "identity", the values are taken as literal sizes.
+        If "by" or ("by", dict) where dict is as described above, the sizes are forced to by
+      width_sequence: list[str]:  (Default value = None)
+        A list of widths to sequentially apply to
+        the series. The widths loop, so if there are more series than widths,
+        widths will be reused.
+      width_map: dict[str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to width.
       markers: bool:  (Default value = False)
         True to draw markers on the line, False to not. Default False
       log_x: bool:  (Default value = False)
@@ -285,24 +427,35 @@ def line_3d(
     """
     args = locals()
 
-    update_wrapper = process_args(args, {"line", "scene"})
-
-    return update_wrapper(
-        generate_figure(draw=px.line_3d, call_args=args)
-    )
+    return process_args(args, {"line", "scene"}, px_func=px.line_3d)
 
 
 def line_polar(
         table: Table = None,
         r: str = None,
         theta: str = None,
+        by: str | list[str] = None,
+        by_vars: str | list[str] = "color",
         size: str = None,
+        line_dash: str | list[str] = None,
+        width: str | list[str] = None,
+        color: str | list[str] = None,
+        symbol: str | list[str] = None,
         text: str = None,
         hover_name: str = None,
         labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
+        color_discrete_map: dict[str | tuple[str], str] = None,
+        line_dash_sequence: list[str] = None,
+        line_dash_map: dict[str | tuple[str], str] = None,
         symbol_sequence: list[str] = None,
+        symbol_map: str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] = None,
         size_sequence: list[int] = None,
+        size_map: str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] = None,
+        width_sequence: list[int] = None,
+        width_map: dict[str | tuple[str], str] = None,
         markers: bool = False,
         direction: str = 'clockwise',
         start_angle: int = 90,
@@ -313,6 +466,7 @@ def line_polar(
         log_r: bool = False,
         title: str = None,
         template: str = None,
+        render_mode="svg",
         unsafe_update_figure: callable = default_callback
 ) -> DeephavenFigure:
     """Returns a polar scatter chart
@@ -324,27 +478,86 @@ def line_polar(
         A column that contains r values.
       theta: str:  (Default value = None)
         A column that contains theta values.
-      size: str:  (Default value = None)
-        A column that contains size values.
+      by: str | list[str]:  (Default value = None)
+        A column or list of columns that contain values to plot the figure traces by.
+        All values or combination of values map to a unique design. The variable
+        by_vars specifies which design elements are used.
+        This is overriden if any specialized design variables such as color are specified
+      by_vars: str | list[str]:  (Default value = "color")
+        A string or list of string that contain design elements to plot by.
+        Can contain size, line_dash, width, color, and symbol.
+        If associated maps or sequences are specified, they are used to map by column values
+        to designs. Otherwise, default values are used.
+      size: str | list[str]:  (Default value = None)
+        A column or list of columns that contain size values.
+        If only one column is passed, and it contains numeric values, the value
+        is used as a size. Otherwise, the value is used for a plot by on size.
+        See size_map for additional behaviors.
+      line_dash: str | list[str]: (Default value = None)
+        A column or list of columns that contain line_dash values.
+        The value is used for a plot by on line_dash.
+        See line_dash_map for additional behaviors.
+      width: str | list[str]: (Default value = None)
+        A column or list of columns that contain width values.
+        The value is used for a plot by on width.
+        See width_map for additional behaviors.
+      color: str | list[str]: (Default value = None)
+        A column or list of columns that contain color values.
+        The value is used for a plot by on color.
+        See color_discrete_map for additional behaviors.
+      symbol: str | list[str]: (Default value = None)
+        A column or list of columns that contain symbol values.
+        The value is used for a plot by on symbol.
+        See color_discrete_map for additional behaviors.
       text: str:  (Default value = None)
         A column that contains text annotations.
-      hover_name: str | list[str]:  (Default value = None)
-        A column that contains names to bold in the hover
-          tooltip.
+      hover_name: str:  (Default value = None)
+        A column that contains names to bold in the hover tooltip.
       labels: dict[str, str]:  (Default value = None)
         A dictionary of labels mapping columns to new labels.
       color_discrete_sequence: list[str]:  (Default value = None)
         A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
         colors will be reused.
+      color_discrete_map: dict[str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to colors.
+      line_dash_sequence: list[str]:  (Default value = None)
+        A list of line dashes to sequentially apply to
+        the series. The dashes loop, so if there are more series than dashes,
+        dashes will be reused.
+      line_dash_map: dict[str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to line_dash.
       symbol_sequence: list[str]:  (Default value = None)
         A list of symbols to sequentially apply to the
         markers in the series. The symbols loop, so if there are more series than
         symbols, symbols will be reused.
+      symbol_map:
+        str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to symbols.
+        If "identity", the values are taken as literal symbols.
+        If "by" or ("by", dict) where dict is as described above, the symbols are forced to by
       size_sequence: list[str]:  (Default value = None)
         A list of sizes to sequentially apply to the
         markers in the series. The sizes loop, so if there are more series than
-        symbols, sizes will be reused. This is overriden is "size" is specified.
+        symbols, sizes will be reused.
+      size_map:
+        str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to sizes.
+        If "identity", the values are taken as literal sizes.
+        If "by" or ("by", dict) where dict is as described above, the sizes are forced to by
+      width_sequence: list[str]:  (Default value = None)
+        A list of widths to sequentially apply to
+        the series. The widths loop, so if there are more series than widths,
+        widths will be reused.
+      width_map: dict[str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to width.
       markers: bool:  (Default value = False)
         True to draw markers on the line, False to not. Default False
       direction: (Default value = 'clockwise')
@@ -367,6 +580,9 @@ def line_polar(
         The title of the chart
       template: str:  (Default value = None)
         The template for the chart.
+      render_mode: str (Default value = "svg")
+        Either "svg" or "webgl". Setting to "webgl" will lead to a more
+        performant plot but there may be graphical bugs.
       unsafe_update_figure:  callable:  (Default value = default_callback)
         An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is
@@ -384,11 +600,7 @@ def line_polar(
 
     args = locals()
 
-    update_wrapper = process_args(args, {"line"})
-
-    return update_wrapper(
-        generate_figure(draw=px.line_polar, call_args=args)
-    )
+    return process_args(args, {"line"}, px_func=px.line_polar)
 
 
 def line_ternary(
@@ -396,13 +608,28 @@ def line_ternary(
         a: str = None,
         b: str = None,
         c: str = None,
+        by: str | list[str] = None,
+        by_vars: str | list[str] = "color",
         size: str = None,
+        line_dash: str | list[str] = None,
+        width: str | list[str] = None,
+        color: str | list[str] = None,
+        symbol: str | list[str] = None,
         text: str = None,
         hover_name: str = None,
         labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
+        color_discrete_map: dict[str | tuple[str], str] = None,
+        line_dash_sequence: list[str] = None,
+        line_dash_map: dict[str | tuple[str], str] = None,
         symbol_sequence: list[str] = None,
+        symbol_map: str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] = None,
         size_sequence: list[int] = None,
+        size_map: str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] = None,
+        width_sequence: list[int] = None,
+        width_map: dict[str | tuple[str], str] = None,
         markers: bool = False,
         line_shape: str = 'linear',
         title: str = None,
@@ -420,27 +647,86 @@ def line_ternary(
         A column that contains b-axis values.
       c: str:
         A column that contains c-axis values.
-      size: str:  (Default value = None)
-        A column that contains size values.
+      by: str | list[str]:  (Default value = None)
+        A column or list of columns that contain values to plot the figure traces by.
+        All values or combination of values map to a unique design. The variable
+        by_vars specifies which design elements are used.
+        This is overriden if any specialized design variables such as color are specified
+      by_vars: str | list[str]:  (Default value = "color")
+        A string or list of string that contain design elements to plot by.
+        Can contain size, line_dash, width, color, and symbol.
+        If associated maps or sequences are specified, they are used to map by column values
+        to designs. Otherwise, default values are used.
+      size: str | list[str]:  (Default value = None)
+        A column or list of columns that contain size values.
+        If only one column is passed, and it contains numeric values, the value
+        is used as a size. Otherwise, the value is used for a plot by on size.
+        See size_map for additional behaviors.
+      line_dash: str | list[str]: (Default value = None)
+        A column or list of columns that contain line_dash values.
+        The value is used for a plot by on line_dash.
+        See line_dash_map for additional behaviors.
+      width: str | list[str]: (Default value = None)
+        A column or list of columns that contain width values.
+        The value is used for a plot by on width.
+        See width_map for additional behaviors.
+      color: str | list[str]: (Default value = None)
+        A column or list of columns that contain color values.
+        The value is used for a plot by on color.
+        See color_discrete_map for additional behaviors.
+      symbol: str | list[str]: (Default value = None)
+        A column or list of columns that contain symbol values.
+        The value is used for a plot by on symbol.
+        See color_discrete_map for additional behaviors.
       text: str:  (Default value = None)
         A column that contains text annotations.
-      hover_name: str | list[str]:  (Default value = None)
-        A column that contains names to bold in the hover
-          tooltip.
+      hover_name: str:  (Default value = None)
+        A column that contains names to bold in the hover tooltip.
       labels: dict[str, str]:  (Default value = None)
         A dictionary of labels mapping columns to new labels.
       color_discrete_sequence: list[str]:  (Default value = None)
         A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
         colors will be reused.
+      color_discrete_map: dict[str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to colors.
+      line_dash_sequence: list[str]:  (Default value = None)
+        A list of line dashes to sequentially apply to
+        the series. The dashes loop, so if there are more series than dashes,
+        dashes will be reused.
+      line_dash_map: dict[str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to line_dash.
       symbol_sequence: list[str]:  (Default value = None)
         A list of symbols to sequentially apply to the
         markers in the series. The symbols loop, so if there are more series than
         symbols, symbols will be reused.
+      symbol_map:
+        str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to symbols.
+        If "identity", the values are taken as literal symbols.
+        If "by" or ("by", dict) where dict is as described above, the symbols are forced to by
       size_sequence: list[str]:  (Default value = None)
         A list of sizes to sequentially apply to the
         markers in the series. The sizes loop, so if there are more series than
-        symbols, sizes will be reused. This is overriden is "size" is specified.
+        symbols, sizes will be reused.
+      size_map:
+        str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to sizes.
+        If "identity", the values are taken as literal sizes.
+        If "by" or ("by", dict) where dict is as described above, the sizes are forced to by
+      width_sequence: list[str]:  (Default value = None)
+        A list of widths to sequentially apply to
+        the series. The widths loop, so if there are more series than widths,
+        widths will be reused.
+      width_map: dict[str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to width.
       markers: bool:  (Default value = False)
         True to draw markers on the line, False to not. Default False
       line_shape: str:  (Default value = 'linear')
@@ -464,8 +750,4 @@ def line_ternary(
     """
     args = locals()
 
-    update_wrapper = process_args(args, {"line"})
-
-    return update_wrapper(
-        generate_figure(draw=px.line_ternary, call_args=args)
-    )
+    return process_args(args, {"line"}, px_func=px.line_ternary)

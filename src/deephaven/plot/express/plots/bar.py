@@ -1,29 +1,40 @@
 from __future__ import annotations
 
-from functools import partial
+from numbers import Number
 
 from plotly import express as px
 
 from deephaven.table import Table
 
-from ._private_utils import default_callback, validate_common_args, preprocess_and_layer, process_args
+from ._private_utils import validate_common_args, process_args
+from ._update_wrapper import default_callback
 from ..deephaven_figure import generate_figure, DeephavenFigure
-from ..preprocess import preprocess_timeline, preprocess_frequency_bar
 
 
 def bar(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
-        error_x: str | list[str] = None,
-        error_x_minus: str | list[str] = None,
-        error_y: str | list[str] = None,
-        error_y_minus: str | list[str] = None,
-        text: str | list[str] = None,
-        hover_name: str | list[str] = None,
+        by: str | list[str] = None,
+        by_vars: str | list[str] = "color",
+        color: str | list[str] = None,
+        pattern_shape: str | list[str] = None,
+        error_x: str = None,
+        error_x_minus: str = None,
+        error_y: str = None,
+        error_y_minus: str = None,
+        text: str = None,
+        hover_name: str = None,
         labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
+        color_discrete_map: str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] = None,
         pattern_shape_sequence: list[str] = None,
+        pattern_shape_map: str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] = None,
+        color_continuous_scale: list[str] = None,
+        range_color: list[Number] = None,
+        color_continuous_midpoint: Number = None,
         opacity: float = None,
         barmode: str = 'relative',
         log_x: bool = False,
@@ -44,41 +55,80 @@ def bar(
         A column or list of columns that contain x-axis values.
       y: str | list[str]:  (Default value = None)
         A column or list of columns that contain y-axis values.
-      error_x: str | list[str]:  (Default value = None)
-        A column or list of columns with x error bar
-        values. These form the error bars in both the positive and negative
+      by: str | list[str]:  (Default value = None)
+        A column or list of columns that contain values to plot the figure traces by.
+        All values or combination of values map to a unique design. The variable
+        by_vars specifies which design elements are used.
+        This is overriden if any specialized design variables such as color are specified
+      by_vars: str | list[str]:  (Default value = "color")
+        A string or list of string that contain design elements to plot by.
+        Can contain color and pattern_shape.
+        If associated maps or sequences are specified, they are used to map by column values
+        to designs. Otherwise, default values are used.
+      color: str | list[str]: (Default value = None)
+        A column or list of columns that contain color values.
+        If only one column is passed, and it contains numeric values, the value
+        is used as a value on a continuous color scale. Otherwise, the value is
+        used for a plot by on color.
+        See color_discrete_map for additional behaviors.
+      pattern_shape: str | list[str]: (Default value = None)
+        A column or list of columns that contain pattern shape values.
+        The value is used for a plot by on pattern shape.
+        See pattern_shape_map for additional behaviors.
+      error_x: str (Default value = None)
+        A column with x error bar values.
+        These form the error bars in both the positive and negative
         direction if error_x_minus is not specified, and the error bars in
         only the positive direction if error_x_minus is specified. None can be
         used to specify no error bars on the corresponding series.
-      error_x_minus: str | list[str]:  (Default value = None)
-        A column or list of columns with x error
-        bar values. These form the error bars in the negative direction,
+      error_x_minus: str (Default value = None)
+        A column with x error bar values.
+        These form the error bars in the negative direction,
         and are ignored if error_x is not specified.
-      error_y: str | list[str]:  (Default value = None)
-        A column or list of columns with x error bar
-        values. These form the error bars in both the positive and negative
+      error_y: str (Default value = None)
+        A column with x error bar values.
+        These form the error bars in both the positive and negative
         direction if error_y_minus is not specified, and the error bars in
         only the positive direction if error_y_minus is specified. None can be
         used to specify no error bars on the corresponding series.
-      error_y_minus: str | list[str]:  (Default value = None)
-        A column or list of columns with y error
-        bar values. These form the error bars in the negative direction,
+      error_y_minus: str (Default value = None)
+        A column with y error bar values.
+        These form the error bars in the negative direction,
         and are ignored if error_y is not specified.
-      text: str | list[str]:  (Default value = None)
-        A column or list of columns that contain text annotations.
-      hover_name: str | list[str]:  (Default value = None)
-        A column or list of columns that contain names to bold in the hover
-          tooltip.
+      text: str:  (Default value = None)
+        A column that contains text annotations.
+      hover_name: str:  (Default value = None)
+        A column that contains names to bold in the hover tooltip.
       labels: dict[str, str]:  (Default value = None)
         A dictionary of labels mapping columns to new labels.
       color_discrete_sequence: list[str]:  (Default value = None)
         A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
         colors will be reused.
+      color_discrete_map:
+        str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to colors.
+        If "identity", the values are taken as literal colors.
+        If "by" or ("by", dict) where dict is as described above, the colors are forced to by
       pattern_shape_sequence: list[str]:  (Default value = None)
         A list of patterns to sequentially apply
         to the series. The patterns loop, so if there are more series than
         patterns, patterns will be reused.
+      pattern_shape_map:
+        str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to patterns.
+        If "identity", the values are taken as literal patterns.
+        If "by" or ("by", dict) where dict is as described above, the patterns are forced to by
+      color_continuous_scale: list[str]: (Default value = None)
+        A list of colors for a continuous scale
+      range_color: list[Number]: (Default value = None)
+        A list of two numbers that form the endpoints of the color axis
+      color_continuous_midpoint: Number: (Default value = None)
+        A number that is the midpoint of the color axis
       opacity: float:  (Default value = None)
         Opacity to apply to all markers. 0 is completely transparent
         and 1 is completely opaque.
@@ -125,11 +175,7 @@ def bar(
     """
     args = locals()
 
-    update_wrapper = process_args(args, {"bar"})
-
-    return update_wrapper(
-        generate_figure(draw=px.bar, call_args=args)
-    )
+    return process_args(args, {"bar", "supports_lists"}, px_func=px.bar)
 
 
 def _bar_polar(
@@ -186,11 +232,22 @@ def timeline(
         x_start: str = None,
         x_end: str = None,
         y: str = None,
+        by: str | list[str] = None,
+        by_vars: str | list[str] = "color",
+        color: str | list[str] = None,
+        pattern_shape: str | list[str] = None,
         text: str = None,
         hover_name: str = None,
         labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
+        color_discrete_map: str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] = None,
         pattern_shape_sequence: list[str] = None,
+        pattern_shape_map: str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] = None,
+        color_continuous_scale: list[str] = None,
+        range_color: list[Number] = None,
+        color_continuous_midpoint: Number = None,
         opacity: float = None,
         range_x: list[int] = None,
         range_y: list[int] = None,
@@ -207,6 +264,26 @@ def timeline(
         A column that contains starting x-axis values.
       x_end: str:  (Default value = None)
         A column that contains ending x-axis values.
+      by: str | list[str]:  (Default value = None)
+        A column or list of columns that contain values to plot the figure traces by.
+        All values or combination of values map to a unique design. The variable
+        by_vars specifies which design elements are used.
+        This is overriden if any specialized design variables such as color are specified
+      by_vars: str | list[str]:  (Default value = "color")
+        A string or list of string that contain design elements to plot by.
+        Can contain color and pattern_shape.
+        If associated maps or sequences are specified, they are used to map by column values
+        to designs. Otherwise, default values are used.
+      color: str | list[str]: (Default value = None)
+        A column or list of columns that contain color values.
+        If only one column is passed, and it contains numeric values, the value
+        is used as a value on a continuous color scale. Otherwise, the value is
+        used for a plot by on color.
+        See color_discrete_map for additional behaviors.
+      pattern_shape: str | list[str]: (Default value = None)
+        A column or list of columns that contain pattern shape values.
+        The value is used for a plot by on pattern shape.
+        See pattern_shape_map for additional behaviors.
       y: str:  (Default value = None)
         A column that contains y-axis labels
       text: str:  (Default value = None)
@@ -219,10 +296,30 @@ def timeline(
         A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
         colors will be reused.
+      color_discrete_map:
+        str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to colors.
+        If "identity", the values are taken as literal colors.
+        If "by" or ("by", dict) where dict is as described above, the colors are forced to by
       pattern_shape_sequence: list[str]:  (Default value = None)
         A list of patterns to sequentially apply
         to the series. The patterns loop, so if there are more series than
         patterns, patterns will be reused.
+      pattern_shape_map:
+        str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to patterns.
+        If "identity", the values are taken as literal patterns.
+        If "by" or ("by", dict) where dict is as described above, the patterns are forced to by
+      color_continuous_scale: list[str]: (Default value = None)
+        A list of colors for a continuous scale
+      range_color: list[Number]: (Default value = None)
+        A list of two numbers that form the endpoints of the color axis
+      color_continuous_midpoint: Number: (Default value = None)
+        A number that is the midpoint of the color axis
       opacity: float:  (Default value = None)
         Opacity to apply to all markers. 0 is completely transparent
         and 1 is completely opaque.
@@ -253,24 +350,24 @@ def timeline(
       A DeephavenFigure that contains the timeline chart
 
     """
-    # TODO: add resource column?
-    table, x_diff = preprocess_timeline(table, x_start, x_end, y)
     args = locals()
 
-    update_wrapper = process_args(args, {"marker"})
-
-    return update_wrapper(
-        generate_figure(draw=px.timeline, call_args=args)
-    )
+    return process_args(args, {"bar", "preprocess_time"}, px_func=px.timeline)
 
 
 def frequency_bar(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
+        by: str | list[str] = None,
+        by_vars: str | list[str] = "color",
         labels: dict[str, str] = None,
+        color: str | list[str] = None,
+        pattern_shape: str | list[str] = None,
         color_discrete_sequence: list[str] = None,
+        color_discrete_map: dict[str | tuple[str], str] = None,
         pattern_shape_sequence: list[str] = None,
+        pattern_shape_map: dict[str | tuple[str], str] = None,
         opacity: float = None,
         barmode: str = 'relative',
         log_x: bool = False,
@@ -295,16 +392,44 @@ def frequency_bar(
         A column or list of columns that contain y-axis values.
         Only one of x or y can be specified. If y is specified, the bars
         are drawn horizontally.
+      by: str | list[str]:  (Default value = None)
+        A column or list of columns that contain values to plot the figure traces by.
+        All values or combination of values map to a unique design. The variable
+        by_vars specifies which design elements are used.
+        This is overriden if any specialized design variables such as color are specified
+      by_vars: str | list[str]:  (Default value = "color")
+        A string or list of string that contain design elements to plot by.
+        Can contain color and pattern_shape.
+        If associated maps or sequences are specified, they are used to map by column values
+        to designs. Otherwise, default values are used.
+      color: str | list[str]: (Default value = None)
+        A column or list of columns that contain color values.
+        The value is used for a plot by on color.
+        See color_discrete_map for additional behaviors.
+      pattern_shape: str | list[str]: (Default value = None)
+        A column or list of columns that contain pattern shape values.
+        The value is used for a plot by on pattern shape.
+        See pattern_shape_map for additional behaviors.
       labels: dict[str, str]:  (Default value = None)
         A dictionary of labels mapping columns to new labels.
       color_discrete_sequence: list[str]:  (Default value = None)
         A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
         colors will be reused.
+      color_discrete_map:
+        str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to colors.
       pattern_shape_sequence: list[str]:  (Default value = None)
         A list of patterns to sequentially apply
         to the series. The patterns loop, so if there are more series than
         patterns, patterns will be reused.
+      pattern_shape_map:
+        str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to patterns.
       opacity: float:  (Default value = None)
         Opacity to apply to all markers. 0 is completely transparent
         and 1 is completely opaque.
@@ -347,12 +472,5 @@ def frequency_bar(
 
     args = locals()
 
-    update_wrapper = process_args(args, {"bar"})
-
-    create_layered = partial(preprocess_and_layer,
-                             preprocess_frequency_bar,
-                             px.bar, args)
-
-    return update_wrapper(
-        create_layered("x") if x else create_layered("y", orientation="h")
-    )
+    return process_args(
+        args, {"bar", "preprocess_freq", "supports_lists"}, px_func=px.bar)

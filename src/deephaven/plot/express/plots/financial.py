@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from deephaven.table import Table
 
-from ._private_utils import default_callback, validate_common_args, process_args
-from ..deephaven_figure import generate_figure, draw_ohlc, draw_candlestick, DeephavenFigure
+from ._private_utils import process_args
+from ._update_wrapper import default_callback
+from ..deephaven_figure import draw_ohlc, draw_candlestick, DeephavenFigure
 
 
 def ohlc(
@@ -80,13 +81,11 @@ def ohlc(
     # todo: range slider
     #   fig.update(layout_xaxis_rangeslider_visible=False)
     args = locals()
-    update_wrapper = process_args(args, remap={
-        "x": "x_finance"
-    })
 
-    return update_wrapper(
-        generate_figure(draw=draw_ohlc, call_args=args)
-    )
+    return process_args(args, set(), remap={
+        "x": "x_finance"
+    }, px_func=draw_ohlc)
+
 
 
 def candlestick(
@@ -160,12 +159,6 @@ def candlestick(
     """
     args = locals()
 
-    validate_common_args(args)
-
-    update_wrapper = process_args(args, remap={
+    return process_args(args, set(), remap={
         "x": "x_finance"
-    })
-
-    return update_wrapper(
-        generate_figure(draw=draw_candlestick, call_args=args)
-    )
+    }, px_func=draw_candlestick)

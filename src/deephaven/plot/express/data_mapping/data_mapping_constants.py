@@ -11,13 +11,21 @@ CUSTOM_DATA_ARGS = {
     "x_diff": "x",
     "size": "marker/size",
     "text": "text",
-    "hover_name": "hovertext"
+    "hover_name": "hovertext",
+    "attached_pattern_shape_area": "fillpattern/shape",
+    "attached_pattern_shape_bar": "marker/pattern/shape",
+    "attached_color_line": "line/color",
+    "attached_color_marker": "marker/color",
+    "attached_color_markers": "marker/colors",
+    "attached_pattern_shape_markers": "marker/pattern/shape",
 }
 
 # override these data columns with different names
 OVERRIDES = {
     "names": "labels",
     "x_start": "base",
+    "color": "marker/color",
+    "colors": "marker/colors"
 }
 
 # x_end is not used, the calculations are made in preprocessing step and passed to x

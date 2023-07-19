@@ -3,6 +3,7 @@ from __future__ import annotations
 from itertools import cycle, count
 from collections.abc import Generator
 from math import floor, ceil
+from typing import Any
 
 from pandas import DataFrame
 from plotly.graph_objects import Figure
@@ -13,7 +14,7 @@ from deephaven import empty_table
 
 from .DeephavenFigure import DeephavenFigure
 from ..data_mapping import create_data_mapping
-from ..shared import combined_generator, get_unique_names
+from ..shared import combined_generator
 
 TYPE_NULL_MAPPING = {
     "byte": "NULL_BYTE",
@@ -22,7 +23,7 @@ TYPE_NULL_MAPPING = {
     "long": "NULL_LONG",
     "float": "NULL_FLOAT",
     "double": "NULL_DOUBLE",
-    "io.deephaven.time.DateTime": "`2000-01-01`"
+    "java.time.Instant": "`2000-01-01`"
 }
 
 # these are data args that can always be safely converted to lists, mostly for
@@ -42,6 +43,10 @@ DATA_ARGS = {
     "names", "values",
     "parents", "ids",
     "x_start", "x_end",
+    # color itself is only a data arg when there is a color axis
+    # in other cases, the color would already be calculated so this argument
+    # would not be set
+    "color"
 }
 DATA_ARGS.update(DATA_LIST_ARGS)
 
@@ -63,6 +68,9 @@ SEQUENCE_ARGS_MAP = {
     # different locations
     "color_discrete_sequence_line": "line_color",
     "color_discrete_sequence_marker": "marker_color",
+    "color_discrete_sequence_markers": "marker_colors",
+    "pattern_shape_sequence_markers": "marker_pattern_shape",
+    "width_sequence": "line_width",
     "increasing_color_sequence": "increasing_line_color",
     "decreasing_color_sequence": "decreasing_line_color",
     "size_sequence": "marker_size",
@@ -93,7 +101,8 @@ CUSTOM_ARGS = {
     "labels",
     "hist_val_name",
     "pivot_vars",
-    # "rangemode"
+    "current_partition",
+    "colors"
 }
 
 # these are columns that are "attached" sequentially to the traces
@@ -106,7 +115,13 @@ ATTACHED_UPDATE_MAP = {
     "error_z_minus": "error_z_arrayminus",
     "size": "marker_size",
     "text": "text",
-    "hover_name": "hovertext"
+    "hover_name": "hovertext",
+    "attached_pattern_shape_area": "fillpattern_shape",
+    "attached_pattern_shape_bar": "marker_pattern_shape",
+    "attached_color_line": "line_color",
+    "attached_color_marker": "marker_color",
+    "attached_color_markers": "marker_colors",
+    "attached_pattern_shape_markers": "marker_pattern_shape",
 }
 
 
@@ -161,13 +176,13 @@ def construct_min_dataframe(
 
 
 def get_data_cols(
-        call_args: dict[any]
+        call_args: dict[Any]
 ) -> dict[str | list[str]]:
     """Pull out all arguments that contain columns from the table. These need to
     be overriden on the client.
 
     Args:
-      call_args: dict[any]: A dictionary containing arguments that were passed
+      call_args: dict[Any]: A dictionary containing arguments that were passed
         to the chart creation call.
 
     Returns:
@@ -184,16 +199,16 @@ def get_data_cols(
 
 
 def split_args(
-        call_args: dict[str, any]
-) -> tuple[dict[str, any], dict[str, any]]:
+        call_args: dict[str, Any]
+) -> tuple[dict[str, Any], dict[str, Any]]:
     """Remove any custom args that are not supported in plotly express.
     Add these custom args to a separate object, then return both arg dicts
 
     Args:
-      call_args: dict[str, any]: The initial call args
+      call_args: dict[str, Any]: The initial call args
 
     Returns:
-      tuple[dict[str, any], dict[str, any] A tuple containing
+      tuple[dict[str, Any], dict[str, Any] A tuple containing
         (call_args, custom_call_args, data_map_args), where any custom
         arguments have been removed from call_args and are now in
         custom_call_args and any arguments needed for the data mapping are in
@@ -212,6 +227,9 @@ def split_args(
                 if arg == "labels":
                     # plotly express still handles most labeling
                     new_call_args[arg] = val
+                elif arg == "colors":
+                    # plotly needs this to create the color axis
+                    new_call_args["color"] = val
             elif arg.endswith('_scene'):
                 # this scene check needs to be before the range check to
                 # ensure scene args don't get converted to a list
@@ -219,16 +237,18 @@ def split_args(
                 # was introduced in 3.9
                 # new_call_args[arg.removesuffix('_scene')] = val
                 new_call_args[arg[:-6]] = val
-            elif arg.startswith("range_"):
+            elif arg.startswith("range_") and arg != "range_color":
                 # range is a special case as ranges are a list
                 # None can be specified for no range within a list of ranges
                 custom_call_args[arg] = val if \
                     (isinstance(val[0], list) or val[0] is None) else [val]
             elif any([arg in mappable for mappable in
-                      [ATTACHED_UPDATE_MAP, SEQUENCE_ARGS_MAP, CUSTOM_LIST_ARGS]]):
+                      [ATTACHED_UPDATE_MAP, CUSTOM_LIST_ARGS]]):
                 # some of these args should always be lists, so the check is
                 # redundant, but useful if a single valid value is passed
                 custom_call_args[arg] = val if isinstance(val, list) else [val]
+            elif arg in SEQUENCE_ARGS_MAP:
+                custom_call_args[arg] = val
             elif arg in DATA_LIST_ARGS:
                 new_call_args[arg] = val if isinstance(val, list) else [val]
             else:
@@ -295,8 +315,8 @@ def base_y_axis_generator(
 
 def key_val_generator(
         key: str,
-        vals: list[any]
-) -> Generator[tuple[str, any]]:
+        vals: list[Any]
+) -> Generator[tuple[str, Any]]:
     """A simple generator that loops over the provided vals and returns key, value
     for updates
 
@@ -304,10 +324,10 @@ def key_val_generator(
 
     Args:
       key: str: The key to update
-      vals: list[any]: A list to return as a value pair
+      vals: list[Any]: A list to return as a value pair
 
     Yields:
-      tuple[str, any]: A tuple of (key, specific value in vals)
+      tuple[str, Any]: A tuple of (key, specific value in vals)
 
     """
     for val in cycle(vals):
@@ -450,17 +470,42 @@ def get_domain(
 
 def sequence_generator(
         arg: str,
-        ls: list[str]
+        ls: str | list[str],
+        map_: dict[str | tuple[str], str] = None,
+        keys: list[tuple[str]] = None,
 ) -> Generator[tuple[str, str]]:
     """Loops over the provided list to update the argument provided
 
     Args:
       arg: str: The arg to update
       ls: list[str]: The list of values to use
+      map_: dict[str | tuple[str], str]: The map to use to correspond specific keys with specific values
+      keys: list[tuple[str]]: The tuple keys to keep track of what value is assigned to what key
 
     Yields:
       tuple[str, str]: A tuple of (the name from SEQUENCE_ARGS_MAP, the value)
     """
+
+    ls = ls if isinstance(ls, list) else [ls]
+
+    if arg.endswith("markers"):
+        # if dealing with markers like pie just yield the whole list
+        yield SEQUENCE_ARGS_MAP[arg], ls
+
+    if keys:
+        cycled = cycle(ls)
+        found = {}
+        for val in keys:
+            if val not in found:
+                new_val = next(cycled)
+                if map_ and val in map_:
+                    new_val = map_[val]
+                elif map_ and len(val) == 1 and val[0] in map_:
+                    new_val = map_[val[0]]
+                found[val] = new_val
+            yield SEQUENCE_ARGS_MAP[arg], found[val]
+
+    # this should never be hit if keys are specified
     for val in cycle(ls):
         yield SEQUENCE_ARGS_MAP[arg], val
 
@@ -529,35 +574,35 @@ def update_layout_axis(
 
 def handle_custom_args(
         fig: Figure,
-        custom_call_args: dict[str, any],
+        custom_call_args: dict[str, Any],
         step: int = 1,
-        trace_generator: Generator[dict[str, any]] = None,
-        extra_generators: list[Generator[any]] = None
-) -> Generator[dict[str, any]]:
+        trace_generator: Generator[dict[str, Any]] = None,
+        extra_generators: list[Generator[Any]] = None
+) -> Generator[dict[str, Any]]:
     """Modify plotly traces with the specified custom arguments.
 
     Args:
       fig: Figure: The plotly figure to modify
-      custom_call_args: dict[str, any]: Custom arguments to process
+      custom_call_args: dict[str, Any]: Custom arguments to process
       step: int: (Default value = 1) How many steps to skip when applying any
         changes to traces.
-      trace_generator: Generator[dict[str, any]]: (Default value = None)
+      trace_generator: Generator[dict[str, Any]]: (Default value = None)
         Optional, if provided then only use this trace generator and return
         (as layout should already be created)
-      extra_generators: list[Generator[any]]: (Default value = None) Extra
+      extra_generators: list[Generator[Any]]: (Default value = None) Extra
         generators to always update the trace with.
 
     Yields:
-      dict[str, any]: Trace generator, to be used if adding more traces
+      dict[str, Any]: Trace generator, to be used if adding more traces
 
     """
-    # if there is a specified trace generator, use that instead since it
-    # accurately reflects with color, pattern, etc. is next
-    # don't need to adjust layout as that will not change
     if extra_generators:
         for generator in extra_generators:
             update_traces(fig, generator, step)
 
+    # if there is a specified trace generator, use that instead since it
+    # accurately reflects with color, pattern, etc. is next
+    # don't need to adjust layout as that will not change
     if trace_generator:
         update_traces(fig, trace_generator, step)
         return trace_generator
@@ -610,7 +655,10 @@ def handle_custom_args(
                 trace_generators.append(attached_generator(arg, val))
 
             elif arg in SEQUENCE_ARGS_MAP:
-                trace_generators.append(sequence_generator(arg, val))
+                if not isinstance(val, dict):
+                    val = {"ls": val}
+                val["arg"] = arg
+                trace_generators.append(sequence_generator(**val))
 
             elif arg == "log_x":
                 last_x_axis = max(1, last_x_axis)
@@ -657,7 +705,7 @@ def handle_custom_args(
 
 def get_list_var_info(
         data_cols: dict[str, str | list[str]]
-) -> tuple[list[str], str | None, set[str]]:
+) -> set[str]:
     """Extract the variable that is a list.
 
     Args:
@@ -678,74 +726,54 @@ def get_list_var_info(
     # for them
     types.add("finance" if data_cols.get("x_finance", False) else None)
 
-    for var, cols in data_cols.items():
+    """for var, cols in data_cols.items():
         # there should only be at most one data list (with the filtered
         # exception of finance charts) so the first one encountered is the var
         if isinstance(cols, list):
             # the col name here might be overriden during data_mapping
-            return cols, var, types
+            return cols, var, types"""
 
-    return [], None, types
+    return types
 
 
 def relabel_columns(
         labels: dict[str, str],
         hover_mapping: list[dict[str, str]],
-        list_var_cols: list[str],
-        pivot_vars: dict[str, str],
         types: set[str],
-        current_col: str
-        # partitions: dict[str, str],
-) -> str:
+        current_partition: dict[str, str]
+) -> None:
     """Relabel any columns found in data
 
     Args:
       labels: dict[str, str]: The dictionary of labels to use
       hover_mapping: list[dict[str, str]]: The mapping of variables to columns
-      list_var_cols: list[str]: The values of the column data variable that
-        contains a list
-      pivot_vars: dict[str, str]: The mapping of value and variable columns
       types: set[str]: Any types of this chart that require special processing
-      current_col: str: The current column to rename
+      current_partition: dict[str, str]: The columns that this figure is partitioned by
 
     Returns:
       str: The current column renamed
     """
     if labels:
-        for i, col in enumerate(list_var_cols):
-            list_var_cols[i] = labels.get(col, col)
-
         for current_mapping in hover_mapping:
             for var, col in current_mapping.items():
                 if "gantt" in types:
                     current_mapping.pop("x")
                 current_mapping[var] = labels.get(col, col)
 
-        """
-        for col, var in list(partitions.items()):
-            if col in labels:
-                partitions[labels[col]] = partitions.pop(col)
-        """
-
-        for base_col, actual_col in pivot_vars.items():
-            pivot_vars[base_col] = labels.get(actual_col, actual_col)
-
-        return labels.get(current_col, current_col)
+        for i, (col, _) in enumerate(list(current_partition.items())):
+            new_col = labels.get(col, col)
+            current_partition[new_col] = current_partition.pop(col)
 
 
 def get_hover_body(
         current_mapping: dict[str, str],
-        pivot_vars: dict[str, str] = None,
-        current_col: str = None,
+        current_partition: dict[str, str] = None,
 ) -> str:
     """Get the hovertext
 
     Args:
       current_mapping: dict[str, str]: The mapping of variables to columns
-      pivot_vars: dict[str, str]:  (Default value = None) The mapping of value
-        and variable columns. Only applicable if in a list of columns.
-      current_col: str:  (Default value = None) The current column. Only
-        applicable if in a list of columns
+      current_partition: dict[str, str]: The columns that this figure is partitioned by
 
     Returns:
       str: The hovertext
@@ -757,48 +785,42 @@ def get_hover_body(
         hover_name += "<b>%{hovertext}</b><br><br>"
         current_mapping.pop("hovertext")
 
-    hover_body = [
-        f"{pivot_vars['variable']}={current_col}"
-    ] if current_col else []
+    hover_body = []
+    if current_partition:
+        for col, val in current_partition.items():
+            hover_body.append(f"{col}={val}")
     for var, data_col in current_mapping.items():
         # error bars are automatically displayed with the associated variable
-        if var.startswith("error"):
+        # attached values do not show up
+        # attached style args should not show up
+        if var.startswith("error") or "color" in var or "pattern" in var:
             continue
         # "plural" vars ending with s need the s removed in the hover mapping
         var = var[:-1] if var.endswith("s") else var
         # slashes are replaced with dots to lookup variables
         var = var.replace("/", ".")
-        if data_col == current_col:
-            hover_body.append(f"{pivot_vars['value']}=%{{{var}}}")
-        else:
-            hover_body.append(f"{data_col}=%{{{var}}}")
+        hover_body.append(f"{data_col}=%{{{var}}}")
+
     return hover_name + "<br>".join(hover_body) + "<extra></extra>"
 
 
 def hover_text_generator(
         hover_mapping: list[dict[str, str]],
-        pivot_vars: dict[str, str],
         # hover_data - todo, dependent on arrays supported in data mappings
-        current_col: str = None,
-        list_var_cols: list[str] = None,
         types: set[str] = None,
-        # partitions: dict[str, str] = None,
-) -> Generator[dict[str, any]]:
+        current_partition: dict[str, str] = None
+) -> Generator[dict[str, Any]]:
     """Generate hovertext
 
     Args:
       hover_mapping: list[dict[str, str]]: The mapping of variables to columns
-      pivot_vars: dict[str, str]:  (Default value = None) The mapping of value
-        and variable columns. Only applicable if in a list of columns.
-      current_col: str:  (Default value = None) The current column. Only
-        applicable if in a list of columns
-      list_var_cols: list[str]:  (Default value = None) The full list of
-        columns to generate hovertext for
       types: set[str]:  (Default value = None) Any types of this chart that
         require special processing
+      current_partition: dict[str, str]: The columns that this figure is partitioned by
+
 
     Yields:
-      dict[str, any]: A dictionary update
+      dict[str, Any]: A dictionary update
 
     """
     if "finance" in types:
@@ -806,64 +828,43 @@ def hover_text_generator(
         while True:
             yield {}
 
-    if list_var_cols:
-        for current_mapping, current_col in zip(hover_mapping, list_var_cols):
-            yield {
-                "name": current_col,
-                "legendgroup": current_col,
-                "hovertemplate": get_hover_body(
-                    current_mapping, pivot_vars, current_col
-                ),
-                "showlegend": True
-            }
-    elif current_col:
-        # there is a list of columns, but it isn't passed to the generating
-        # function
-        # it is assumed that this is bar_frequency or a distribution plot, and
-        # this may throw errors outside of those plot types
+    if current_partition:
+        name = ", ".join(map(str, current_partition.values()))
+
         yield {
-            "name": current_col,
-            "legendgroup": current_col,
+            "name": name,
+            "legendgroup": name,
             "hovertemplate": get_hover_body(
-                hover_mapping[0], pivot_vars, current_col
+                hover_mapping[0], current_partition,
             ),
             "showlegend": True
         }
 
-    else:
-        while True:
-            yield {
-                "hovertemplate": get_hover_body(hover_mapping[0]),
-            }
+    while True:
+        yield {
+            "hovertemplate": get_hover_body(hover_mapping[0]),
+        }
 
 
 def compute_labels(
         hover_mapping: list[dict[str, str]],
-        current_var: str,
         hist_val_name: str,
-        pivot_vars: dict[str, str],
         # hover_data - todo, dependent on arrays supported in data mappings
-        current_col: str,
-        list_var_cols: list[str],
         types: set[str],
         labels: dict[str, str],
-        # partitions: dict[str, str] = None,
-) -> str:
+        current_partition: dict[str, str],
+) -> None:
     """Compute the labels for this chart, relabling the axis and hovertext.
     Mostly, labels are taken directly from the labels with the exception of
     the histogram.
 
     Args:
       hover_mapping: list[dict[str, str]]: The mapping of variables to columns
-      current_var: str: The current list variable
       hist_val_name: str: The histogram name for the value axis, generally
         histfunc
-      pivot_vars: dict[str, str]: (Default value = None) The mapping of value
-        and variable columns. Only applicable if in a list of columns.
-      current_col: str: The current column
-      list_var_cols: The column that is a list
       types: set[str]: Any types of this chart that require special processing
       labels: A dictionary of old column name to new column name mappings
+      current_partition: dict[str, str]: The columns that this figure is partitioned by
 
     Returns:
         str: the renamed current_col
@@ -871,70 +872,46 @@ def compute_labels(
     """
 
     calculate_hist_labels(
-        current_var,
-        current_col,
         hist_val_name,
         hover_mapping[0]
     )
 
-    # current_col needs to be renamed as well, but it's a string, so return it
-    return relabel_columns(
+    relabel_columns(
         labels,
         hover_mapping,
-        list_var_cols,
-        pivot_vars,
         types,
-        current_col
+        current_partition
     )
 
 
 def calculate_hist_labels(
-        current_var: str,
-        current_col: str,
         hist_val_name: str,
         current_mapping: dict[str, str]
 ) -> None:
     """Calculate the histogram labels
 
     Args:
-      current_var: str: The current list variable
       hist_val_name: str: The histogram name for the value axis, generally
         histfunc
-      current_col: str: The current column
       current_mapping: dict[str, str]: The mapping of variables to columns
 
     """
     if hist_val_name:
-        other_var = "y" if current_var == "x" else "x"
-
-        if not current_col:
-            # if there's no list, the single variable is shown on the axis
-            # rather than "value"
-            current_mapping[current_var] = current_mapping[other_var]
-
-        # no matter what the hist val names should be the other axis name
-        current_mapping[other_var] = hist_val_name
+        # swap the names
+        current_mapping["x"], current_mapping["y"] = current_mapping["y"], current_mapping["x"]
 
 
 def add_axis_titles(
-        custom_call_args: dict[str, any],
-        current_var: str,
+        custom_call_args: dict[str, Any],
         hover_mapping: list[dict[str, str]],
-        pivot_vars: dict[str, str],
-        is_list: bool,
         hist_val_name: str
 ) -> None:
     """Add axis titles. Generally, this only applies when there is a list variable
 
     Args:
-      custom_call_args: dict[str, any]: The custom_call_args that are used to
+      custom_call_args: dict[str, Any]: The custom_call_args that are used to
         create hover and axis titles
-      current_var: str: The current list variable
       hover_mapping: list[dict[str, str]]: The mapping of variables to columns
-      pivot_vars: dict[str, str]: (Default value = None) The mapping of value
-        and variable columns. Only applicable if in a list of columns.
-      is_list: bool: True if the current chart has a list variable, false
-        otherwise
       hist_val_name: str: The histogram name for the value axis, generally
         histfunc
 
@@ -949,13 +926,6 @@ def add_axis_titles(
         # hist names are already set up in the mapping
         new_xaxis_titles = [hover_mapping[0].get("x", None)]
         new_yaxis_titles = [hover_mapping[0].get("y", None)]
-    elif is_list:
-        if current_var == "x":
-            new_xaxis_titles = [pivot_vars["value"]]
-            new_yaxis_titles = [hover_mapping[0].get("y", None)]
-        elif current_var == "y":
-            new_yaxis_titles = [pivot_vars["value"]]
-            new_xaxis_titles = [hover_mapping[0].get("x", None)]
 
     # a specified axis title update should override this
     if new_xaxis_titles:
@@ -972,11 +942,10 @@ def add_axis_titles(
 
 
 def create_hover_and_axis_titles(
-        table: Table,
-        custom_call_args: dict[str, any],
+        custom_call_args: dict[str, Any],
         data_cols: dict[str, str],
         hover_mapping: list[dict[str, str]]
-) -> Generator[dict[str, any]]:
+) -> Generator[dict[str, Any]]:
     """Create hover text and axis titles. There are three main behaviors.
     First is "current_col", "current_var", and "pivot_vars" are specified in
     "custom_call_args".
@@ -990,57 +959,44 @@ def create_hover_and_axis_titles(
     any level.
     Plotly express still handles these cases, with no legend as there is no
     shared axis. The column names are on the axis titles (unless overriden).
-    
+
     Histogram is an exception to the above. If "hist_val_name" is specified,
     the value of this argument ends up on the other axis than the one specified
     (such as the y-axis if the x-axis is specified). Otherwise, there is a
     legend or not depending on if there is a list of columns or not.
 
     Args:
-      table: Table: The table to use, mainly to ensure there are no name
-        collisions
-      custom_call_args: dict[str, any]: The custom_call_args that are used to
+      custom_call_args: dict[str, Any]: The custom_call_args that are used to
         create hover and axis titles
       data_cols: dict[str, str]: The dictionary of data to column mappings
       hover_mapping: list[dict[str, str]]: The mapping of variables to columns
 
     Yields:
-      dict[str, any]: dicts containing hover updates
+      dict[str, Any]: dicts containing hover updates
 
     """
-    list_var_cols, list_var, types = get_list_var_info(data_cols)
-
-    current_col = custom_call_args.get("current_col", None)
-
-    # only one of current_var and list_var should be specified and they have
-    # the same function
-    current_var = custom_call_args.get("current_var", list_var)
-    pivot_vars = custom_call_args.get("pivot_vars", {})
+    types = get_list_var_info(data_cols)
 
     labels = custom_call_args.get("labels", None)
     hist_val_name = custom_call_args.get("hist_val_name", None)
 
-    if (current_col or list_var_cols) and not pivot_vars:
-        pivot_vars = get_unique_names(table, ["variable", "value"])
+    current_partition = custom_call_args.get("current_partition", None)
 
-    current_col = compute_labels(
+    compute_labels(
         hover_mapping,
-        current_var,
-        hist_val_name, pivot_vars,
-        current_col, list_var_cols,
-        types, labels
+        hist_val_name,
+        types, labels,
+        current_partition
     )
 
     hover_text = hover_text_generator(
-        hover_mapping, pivot_vars,
-        current_col, list_var_cols,
-        types,
+        hover_mapping,
+        types, current_partition
     )
 
     add_axis_titles(
-        custom_call_args, current_var,
-        hover_mapping, pivot_vars,
-        bool(list_var_cols or current_col),
+        custom_call_args,
+        hover_mapping,
         hist_val_name
     )
 
@@ -1049,7 +1005,7 @@ def create_hover_and_axis_titles(
 
 def generate_figure(
         draw: callable,
-        call_args: dict[str, any],
+        call_args: dict[str, Any],
         start_index: int = 0,
         trace_generator: Generator[dict] = None,
 ) -> DeephavenFigure:
@@ -1058,7 +1014,7 @@ def generate_figure(
 
     Args:
       draw: Callable: The plotly express function to use to generate the figure
-      call_args: dict[str, any]: Call arguments to use, either passing to
+      call_args: dict[str, Any]: Call arguments to use, either passing to
         plotly express or handled separately
       start_index: int: (Default value = 0) Only needed if there are existing
         traces that this figure is being added to. In that case, the data
@@ -1092,7 +1048,6 @@ def generate_figure(
     )
 
     hover_text = create_hover_and_axis_titles(
-        table,
         custom_call_args,
         data_cols,
         hover_mapping

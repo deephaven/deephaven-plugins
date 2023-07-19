@@ -9,7 +9,6 @@ from .plots import (
     frequency_bar,
     timeline,
     histogram,
-    _ecdf,
     box,
     violin,
     strip,

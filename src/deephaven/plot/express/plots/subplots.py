@@ -1,17 +1,18 @@
 from __future__ import annotations
 
 import math
+from typing import Any
 
 from plotly.graph_objs import Figure
 
-from ._private_utils import layer
+from ._layer import layer
 from .. import DeephavenFigure
 
 
 def get_shared_key(
-    row: int,
-    col: int,
-    shared_axes: str,
+        row: int,
+        col: int,
+        shared_axes: str,
 ) -> int | None:
     """
     Get a shared key where
@@ -106,11 +107,11 @@ def get_new_specs(
 
 
 def make_grid(
-        items: list[any],
+        items: list[Any],
         rows: int,
         cols: int,
-        fill: any = None
-) -> list[list[any]]:
+        fill: Any = None
+) -> list[list[Any]]:
     """Make a grid (list of lists) out of the provided items
 
     Args:
@@ -120,12 +121,12 @@ def make_grid(
         The number of rows in the grid
       cols: int:
         The number of cols in the grid
-      fill: any:  (Default value = None)
+      fill: Any:  (Default value = None)
         If there are more slots (as defined by rows * columns) than
         provided items, then the remaining items in the grid have this value.
 
     Returns:
-      list[list[any]]: The generated grid
+      list[list[Any]]: The generated grid
 
     """
     grid = []

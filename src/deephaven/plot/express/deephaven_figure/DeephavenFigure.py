@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Generator
-from typing import Callable
+from typing import Callable, Any
 
 from plotly.graph_objects import Figure
 
@@ -29,12 +29,12 @@ def export_figure(
 
 
 def has_color_args(
-        call_args: dict[str, any]
+        call_args: dict[str, Any]
 ) -> bool:
     """Check if any of the color args are in call_args
 
     Args:
-      call_args: dict[str, any]: A dictionary of args
+      call_args: dict[str, Any]: A dictionary of args
 
     Returns:
       bool: True if color args are in, false otherwise
@@ -50,14 +50,14 @@ def has_color_args(
 
 
 def has_arg(
-        call_args: dict[str, any],
+        call_args: dict[str, Any],
         check: str | Callable
 ) -> bool:
     """Given either a string to check for in call_args or function to check,
     return True if the arg is in the call_args
 
     Args:
-      call_args: dict[str, any]: A dictionary of args
+      call_args: dict[str, Any]: A dictionary of args
       check: str | Callable: Either a string or a function that takes call_args
 
     Returns:
@@ -76,18 +76,18 @@ class DeephavenFigure:
     """A DeephavenFigure that contains a plotly figure and mapping from Deephaven
     data tables to the plotly figure
 
-    Args:
+    Attributes:
         fig: Figure: (Default value = None) The underlying plotly fig
         call: Callable: (Default value = None) The (usually) px drawing
           function
-        call_args: dict[any]: (Default value = None) The arguments that were
+        call_args: dict[Any]: (Default value = None) The arguments that were
           used to call px
-        data_mappings: list[DataMapping]: (Default value = None) A list of data
+        _data_mappings: list[DataMapping]: (Default value = None) A list of data
           mappings from table column to corresponding plotly variable
         has_template: bool: (Default value = False) If a template is used
         has_color: bool: (Default value = False) True if color was manually
           applied via discrete_color_sequence
-        trace_generator: Generator[dict[str, any]]: (Default value = None)
+        trace_generator: Generator[dict[str, Any]]: (Default value = None)
           A generator for modifications to traces
         has_subplots: bool: (Default value = False) True if has subplots
     """
@@ -96,11 +96,11 @@ class DeephavenFigure:
             self: DeephavenFigure,
             fig: Figure = None,
             call: Callable = None,
-            call_args: dict[any] = None,
+            call_args: dict[Any] = None,
             data_mappings: list[DataMapping] = None,
             has_template: bool = False,
             has_color: bool = False,
-            trace_generator: Generator[dict[str, any]] = None,
+            trace_generator: Generator[dict[str, Any]] = None,
             has_subplots: bool = False,
     ):
         # keep track of function that called this and it's args
@@ -155,7 +155,7 @@ class DeephavenFigure:
     def to_dict(
             self: DeephavenFigure,
             exporter: Exporter
-    ) -> dict[str, any]:
+    ) -> dict[str, Any]:
         """Convert the DeephavenFigure to dict
 
         Args:
@@ -166,7 +166,6 @@ class DeephavenFigure:
 
         """
         return json.loads(self.to_json(exporter))
-
 
     def to_json(
             self: DeephavenFigure,

@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+from numbers import Number
+
 from plotly import express as px
 
 from deephaven.table import Table
 
-from ._private_utils import default_callback, process_args
-from ..deephaven_figure import generate_figure, DeephavenFigure
-from ..preprocess import preprocess_aggregate
+from ._private_utils import process_args
+from ._update_wrapper import default_callback
+from ..deephaven_figure import DeephavenFigure
 
 
 def treemap(
@@ -15,7 +17,13 @@ def treemap(
         values: str = None,
         parents: str = None,
         ids: str = None,
-        hover_name: str | list[str] = None,
+        color: str | list[str] = None,
+        hover_name: str = None,
+        color_discrete_sequence: list[str] = None,
+        color_discrete_map: dict[str | tuple[str], str] = None,
+        color_continuous_scale: list[str] = None,
+        range_color: list[Number] = None,
+        color_continuous_midpoint: Number = None,
         labels: dict[str, str] = None,
         title: str = None,
         template: str = None,
@@ -37,11 +45,29 @@ def treemap(
       ids: str:  (Default value = None)
         The column containing ids of the sections. Unlike values, these
         must be unique. Values are used for ids if ids are not specified.
-      hover_name: str | list[str]:  (Default value = None)
-        A column or list of columns that contain names to bold in the hover
-          tooltip.
+      color: str | list[str]: (Default value = None)
+        A column or list of columns that contain color values.
+        If only one column is passed, and it contains numeric values, the value
+        is used as a value on a continuous color scale. Otherwise, the value is
+        used for a plot by on color.
+        See color_discrete_map for additional behaviors.
+      hover_name: str:  (Default value = None)
+        A column that contains names to bold in the hover tooltip.
       labels: dict[str, str]:  (Default value = None)
         A dictionary of labels mapping columns to new labels.
+      color_discrete_sequence: list[str]:  (Default value = None)
+        A list of colors to sequentially apply to
+        the series. The colors loop, so if there are more series than colors,
+        colors will be reused.
+      color_discrete_map: dict[str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to colors.
+      color_continuous_scale: list[str]: (Default value = None)
+        A list of colors for a continuous scale
+      range_color: list[Number]: (Default value = None)
+        A list of two numbers that form the endpoints of the color axis
+      color_continuous_midpoint: Number: (Default value = None)
+        A number that is the midpoint of the color axis
       title: str: (Default value = None)
         The title of the chart
       template: str:  (Default value = None)
@@ -68,11 +94,7 @@ def treemap(
     """
     args = locals()
 
-    update_wrapper = process_args(args)
-
-    return update_wrapper(
-        generate_figure(draw=px.treemap, call_args=args)
-    )
+    return process_args(args, {"always_attached"}, px_func=px.treemap)
 
 
 def sunburst(
@@ -81,7 +103,13 @@ def sunburst(
         values: str = None,
         parents: str = None,
         ids: str = None,
-        hover_name: str | list[str] = None,
+        color: str | list[str] = None,
+        hover_name: str = None,
+        color_discrete_sequence: list[str] = None,
+        color_discrete_map: dict[str | tuple[str], str] = None,
+        color_continuous_scale: list[str] = None,
+        range_color: list[Number] = None,
+        color_continuous_midpoint: Number = None,
         labels: dict[str, str] = None,
         title: str = None,
         template: str = None,
@@ -103,9 +131,27 @@ def sunburst(
       ids: str:  (Default value = None)
         The column containing ids of the sections. Unlike values, these
         must be unique. Values are used for ids if ids are not specified.
-      hover_name: str | list[str]:  (Default value = None)
-        A column or list of columns that contain names to bold in the hover
-          tooltip.
+      color: str | list[str]: (Default value = None)
+        A column or list of columns that contain color values.
+        If only one column is passed, and it contains numeric values, the value
+        is used as a value on a continuous color scale. Otherwise, the value is
+        used for a plot by on color.
+        See color_discrete_map for additional behaviors.
+      hover_name: str:  (Default value = None)
+        A column that contains names to bold in the hover tooltip.
+      color_discrete_sequence: list[str]:  (Default value = None)
+        A list of colors to sequentially apply to
+        the series. The colors loop, so if there are more series than colors,
+        colors will be reused.
+      color_discrete_map: dict[str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to colors.
+      color_continuous_scale: list[str]: (Default value = None)
+        A list of colors for a continuous scale
+      range_color: list[Number]: (Default value = None)
+        A list of two numbers that form the endpoints of the color axis
+      color_continuous_midpoint: Number: (Default value = None)
+        A number that is the midpoint of the color axis
       labels: dict[str, str]:  (Default value = None)
         A dictionary of labels mapping columns to new labels.
       title: str: (Default value = None)
@@ -134,11 +180,7 @@ def sunburst(
     """
     args = locals()
 
-    update_wrapper = process_args(args)
-
-    return update_wrapper(
-        generate_figure(draw=px.sunburst, call_args=args)
-    )
+    return process_args(args, {"always_attached"}, px_func=px.sunburst)
 
 
 def icicle(
@@ -147,7 +189,13 @@ def icicle(
         values: str = None,
         parents: str = None,
         ids: str = None,
-        hover_name: str | list[str] = None,
+        color: str | list[str] = None,
+        hover_name: str = None,
+        color_discrete_sequence: list[str] = None,
+        color_discrete_map: dict[str | tuple[str], str] = None,
+        color_continuous_scale: list[str] = None,
+        range_color: list[Number] = None,
+        color_continuous_midpoint: Number = None,
         labels: dict[str, str] = None,
         title: str = None,
         template: str = None,
@@ -166,12 +214,30 @@ def icicle(
         The column containing values of the sections
       parents: str:  (Default value = None)
         The column containing parents of the sections
+      color: str | list[str]: (Default value = None)
+        A column or list of columns that contain color values.
+        If only one column is passed, and it contains numeric values, the value
+        is used as a value on a continuous color scale. Otherwise, the value is
+        used for a plot by on color.
+        See color_discrete_map for additional behaviors.
       ids: str:  (Default value = None)
         The column containing ids of the sections. Unlike values, these
         must be unique. Values are used for ids if ids are not specified.
-      hover_name: str | list[str]:  (Default value = None)
-        A column or list of columns that contain names to bold in the hover
-          tooltip.
+      hover_name: str:  (Default value = None)
+        A column that contains names to bold in the hover tooltip.
+      color_discrete_sequence: list[str]:  (Default value = None)
+        A list of colors to sequentially apply to
+        the series. The colors loop, so if there are more series than colors,
+        colors will be reused.
+      color_discrete_map: dict[str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to colors.
+      color_continuous_scale: list[str]: (Default value = None)
+        A list of colors for a continuous scale
+      range_color: list[Number]: (Default value = None)
+        A list of two numbers that form the endpoints of the color axis
+      color_continuous_midpoint: Number: (Default value = None)
+        A number that is the midpoint of the color axis
       labels: dict[str, str]:  (Default value = None)
         A dictionary of labels mapping columns to new labels.
       title: str: (Default value = None)
@@ -200,21 +266,21 @@ def icicle(
     """
     args = locals()
 
-    update_wrapper = process_args(args)
-
-    return update_wrapper(
-        generate_figure(draw=px.icicle, call_args=args)
-    )
+    return process_args(args, {"always_attached"}, px_func=px.icicle)
 
 
 def funnel(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
-        text: str | list[str] = None,
-        hover_name: str | list[str] = None,
+        by: str | list[str] = None,
+        by_vars: str | list[str] = "color",
+        color: str | list[str] = None,
+        text: str = None,
+        hover_name: str = None,
         labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
+        color_discrete_map: dict[str | tuple[str], str] = None,
         opacity: float = None,
         orientation: str = None,
         log_x: bool = False,
@@ -234,17 +300,35 @@ def funnel(
         A column or list of columns that contain x-axis values.
       y: str | list[str]:  (Default value = None)
         A column or list of columns that contain y-axis values.
-      text: str | list[str]:  (Default value = None)
-        A column or list of columns that contain text annotations.
-      hover_name: str | list[str]:  (Default value = None)
-        A column or list of columns that contain names to bold in the hover
-          tooltip.
+      by: str | list[str]:  (Default value = None)
+        A column or list of columns that contain values to plot the figure traces by.
+        All values or combination of values map to a unique design. The variable
+        by_vars specifies which design elements are used.
+        This is overriden if any specialized design variables such as color are specified
+      by_vars: str | list[str]:  (Default value = "color")
+        A string or list of string that contain design elements to plot by.
+        Can contain color and pattern_shape.
+        If associated maps or sequences are specified, they are used to map by column values
+        to designs. Otherwise, default values are used.
+      color: str | list[str]: (Default value = None)
+        A column or list of columns that contain color values.
+        If only one column is passed, and it contains numeric values, the value
+        is used as a value on a continuous color scale. Otherwise, the value is
+        used for a plot by on color.
+        See color_discrete_map for additional behaviors.
+      text: str:  (Default value = None)
+        A column that contains text annotations.
+      hover_name: str:  (Default value = None)
+        A column that contains names to bold in the hover tooltip.
       labels: dict[str, str]:  (Default value = None)
         A dictionary of labels mapping columns to new labels.
       color_discrete_sequence: list[str]:  (Default value = None)
         A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
         colors will be reused.
+      color_discrete_map: dict[str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to colors.
       opacity: float:  (Default value = None)
         Opacity to apply to all markers. 0 is completely transparent
         and 1 is completely opaque.
@@ -279,24 +363,21 @@ def funnel(
     """
     args = locals()
 
-    update_wrapper = process_args(args, {"marker"})
-
-    return update_wrapper(
-        generate_figure(draw=px.funnel, call_args=args)
-    )
+    return process_args(args, {"marker", "supports_lists"}, px_func=px.funnel)
 
 
 def funnel_area(
         table: Table = None,
         names: str = None,
         values: str = None,
+        color: str | list[str] = None,
         hover_name: str = None,
         labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
+        color_discrete_map: dict[str | tuple[str], str] = None,
         title: str = None,
         template: str = None,
         opacity: float = None,
-        aggregate: bool = True,
         unsafe_update_figure: callable = default_callback
 ):
     """Returns a funnel area chart
@@ -308,14 +389,23 @@ def funnel_area(
         The column containing names of the sections
       values: str:  (Default value = None)
         The column containing values of the sections
-      hover_name: str | list[str]:  (Default value = None)
-        A column that contain names to bold in the hover tooltip.
+      color: str | list[str]: (Default value = None)
+        A column or list of columns that contain color values.
+        If only one column is passed, and it contains numeric values, the value
+        is used as a value on a continuous color scale. Otherwise, the value is
+        used for a plot by on color.
+        See color_discrete_map for additional behaviors.
+      hover_name: str:  (Default value = None)
+        A column that contains names to bold in the hover tooltip.
       labels: dict[str, str]:  (Default value = None)
         A dictionary of labels mapping columns to new labels.
       color_discrete_sequence: list[str]:  (Default value = None)
         A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
         colors will be reused.
+      color_discrete_map: dict[str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to colors.
       title: str: (Default value = None)
         The title of the chart
       template: str:  (Default value = None)
@@ -323,13 +413,6 @@ def funnel_area(
       opacity: float:  (Default value = None)
         Opacity to apply to all markers. 0 is completely transparent
         and 1 is completely opaque.
-      aggregate: bool:  (Default value = True)
-        Default True, aggregate the table names by total values. Can
-        be set to False if the table is already aggregated by name.
-      opacity: Opacity to apply to all points. 0 is completely transparent
-        and 1 is completely opaque.
-      aggregate: Default True, aggregate the table names by total values. Can
-        be set to False if the table is already aggregated by name.
       unsafe_update_figure: callable:  (Default value = default_callback)
         An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is
@@ -346,11 +429,4 @@ def funnel_area(
 
     args = locals()
 
-    if aggregate:
-        args["table"] = preprocess_aggregate(table, names, values)
-
-    update_wrapper = process_args(args, {"marker"}, pop=["aggregate"])
-
-    return update_wrapper(
-        generate_figure(draw=px.funnel_area, call_args=args)
-    )
+    return process_args(args, {"always_attached"}, px_func=px.funnel_area)

@@ -4,26 +4,37 @@ from plotly import express as px
 
 from deephaven.table import Table
 
-from ._private_utils import default_callback, process_args
-from ..deephaven_figure import generate_figure, DeephavenFigure
+from ._private_utils import process_args
+from ._update_wrapper import default_callback
+from ..deephaven_figure import DeephavenFigure
 
 
 def area(
         table: Table = None,
         x: str | list[str] = None,
         y: str | list[str] = None,
+        by: str | list[str] = None,
+        by_vars: str | list[str] = "color",
+        color: str | list[str] = None,
+        pattern_shape: str | list[str] = None,
+        symbol: str | list[str] = None,
         size: str | list[str] = None,
-        text: str | list[str] = None,
-        hover_name: str | list[str] = None,
+        text: str = None,
+        hover_name: str = None,
         labels: dict[str, str] = None,
         color_discrete_sequence: list[str] = None,
+        color_discrete_map: dict[str | tuple[str], str] = None,
         pattern_shape_sequence: list[str] = None,
+        pattern_shape_map: dict[str | tuple[str], str] = None,
         symbol_sequence: list[str] = None,
+        symbol_map: str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] = None,
         size_sequence: list[int] = None,
+        size_map: str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] = None,
         xaxis_sequence: list[str] = None,
         yaxis_sequence: list[str] = None,
         markers: bool = False,
-        # todo: groupnorm in engine
         groupnorm: str = None,
         log_x: bool | list[bool] = False,
         log_y: bool | list[bool] = False,
@@ -45,31 +56,75 @@ def area(
         A column or list of columns that contain x-axis values.
       y: str | list[str]:  (Default value = None)
         A column or list of columns that contain y-axis values.
+      by: str | list[str]:  (Default value = None)
+        A column or list of columns that contain values to plot the figure traces by.
+        All values or combination of values map to a unique design. The variable
+        by_vars specifies which design elements are used.
+        This is overriden if any specialized design variables such as color are specified
+      by_vars: str | list[str]:  (Default value = "color")
+        A string or list of string that contain design elements to plot by.
+        Can contain size, color, pattern_shape, and symbol.
+        If associated maps or sequences are specified, they are used to map by column values
+        to designs. Otherwise, default values are used.
+      color: str | list[str]: (Default value = None)
+        A column or list of columns that contain color values.
+        The value is used for a plot by on color.
+        See color_discrete_map for additional behaviors.
+      pattern_shape: str | list[str]: (Default value = None)
+        A column or list of columns that contain pattern shape values.
+        The value is used for a plot by on pattern shape.
+        See pattern_shape_map for additional behaviors.
+      symbol: str | list[str]: (Default value = None)
+        A column or list of columns that contain symbol values.
+        The value is used for a plot by on symbol.
+        See symbol_map for additional behaviors.
       size: str | list[str]:  (Default value = None)
         A column or list of columns that contain size values.
-      text: str | list[str]:  (Default value = None)
-        A column or list of columns that contain text annotations.
-      hover_name: str | list[str]:  (Default value = None)
-        A column or list of columns that contain names to bold in the hover
-          tooltip.
+        If only one column is passed, and it contains numeric values, the value
+        is used as a size. Otherwise, the value is used for a plot by on size.
+        See size_map for additional behaviors.
+      text: str:  (Default value = None)
+        A column that contains text annotations.
+      hover_name: str:  (Default value = None)
+        A column that contains names to bold in the hover tooltip.
       labels: dict[str, str]:  (Default value = None)
         A dictionary of labels mapping columns to new labels.
       color_discrete_sequence: list[str]:  (Default value = None)
         A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
         colors will be reused.
+      color_discrete_map: dict[str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to colors.
       pattern_shape_sequence: list[str]:  (Default value = None)
         A list of patterns to sequentially apply
         to the series. The patterns loop, so if there are more series than
         patterns, patterns will be reused.
+      pattern_shape_map: dict[str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to patterns.
       symbol_sequence: list[str]:  (Default value = None)
         A list of symbols to sequentially apply to the
         markers in the series. The symbols loop, so if there are more series
         than symbols, symbols will be reused.
+      symbol_map:
+        str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to symbols.
+        If "identity", the values are taken as literal symbols.
+        If "by" or ("by", dict) where dict is as described above, the symbols are forced to by
       size_sequence: list[str]:  (Default value = None)
         A list of sizes to sequentially apply to the
         markers in the series. The sizes loop, so if there are more series than
-        symbols, sizes will be reused. This is overriden is "size" is specified.
+        symbols, sizes will be reused.
+      size_map:
+        str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
+            str | tuple[str], str] (Default value = None)
+        If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to sizes.
+        If "identity", the values are taken as literal sizes.
+        If "by" or ("by", dict) where dict is as described above, the sizes are forced to by
       xaxis_sequence: list[str]:  (Default value = None)
         A list of x axes to assign series to. Odd numbers
         starting with 1 are created on the bottom x axis and even numbers starting
@@ -135,8 +190,4 @@ def area(
     """
     args = locals()
 
-    update_wrapper = process_args(args, {"area", "line"})
-
-    return update_wrapper(
-        generate_figure(draw=px.area, call_args=args)
-    )
+    return process_args(args, {"area", "line", "supports_lists"}, px_func=px.area)
