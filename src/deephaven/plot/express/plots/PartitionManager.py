@@ -4,6 +4,7 @@ from collections.abc import Generator, Callable
 from typing import Any
 
 import plotly.express as px
+from pandas import DataFrame
 
 from deephaven.table import Table, PartitionedTable
 from deephaven import pandas as dhpd
@@ -48,8 +49,18 @@ STYLE_DEFAULTS = {
 
 
 def get_partition_key_column_tuples(
-        key_column_table, columns
-):
+        key_column_table: DataFrame,
+        columns: list[str]
+) -> list[tuple[Any]]:
+    """
+
+    Args:
+        key_column_table: DataFrame: The table containing the key columns
+        columns: list[str]: The columns to pull from the table
+
+    Returns:
+        A list of tuples of the columns
+    """
     list_columns = []
     for column in columns:
         list_columns.append(key_column_table[column].tolist())
@@ -364,7 +375,8 @@ class PartitionManager:
         by_vars = args.get("by_vars", None)
         if by_vars:
             self.by_vars = set([by_vars] if isinstance(by_vars, str) else by_vars)
-        args.pop("by_vars", None)
+        else:
+            self.by_vars = set()
 
         if isinstance(args["table"], PartitionedTable):
             partitioned_table = args["table"]
@@ -384,6 +396,12 @@ class PartitionManager:
                     self.facet_row = val
                 else:
                     self.facet_col = val
+
+        # it's possible that pivot vars are set but by_vars is None,
+        # so partitioning is still needed on that column but it won't
+        # affect styles
+        if self.pivot_vars:
+            partition_cols.add(self.pivot_vars["variable"])
 
         # preprocessor needs to be initialized after the always attached arguments are found
         self.preprocessor = Preprocesser(args, self.groups, self.always_attached, self.pivot_vars)
