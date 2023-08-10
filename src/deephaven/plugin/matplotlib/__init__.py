@@ -1,5 +1,5 @@
 from deephaven import numpy as dhnp
-from deephaven.plugin import Registration
+from deephaven.plugin import Registration, Callback
 from deephaven.table_listener import listen
 from importlib import resources
 import matplotlib.pyplot as plt
@@ -7,6 +7,7 @@ from matplotlib.animation import Animation
 import itertools
 
 __version__ = "0.1.2"
+
 
 def _init_theme():
     # Set the Deephaven style globally.
@@ -17,13 +18,15 @@ def _init_theme():
     with resources.path(__package__, 'deephaven.mplstyle') as p:
         plt.style.use(['dark_background',p])
 
+
 class MatplotlibRegistration(Registration):
     @classmethod
-    def register_into(cls, callback: Registration.Callback) -> None:
+    def register_into(cls, callback: Callback) -> None:
         _init_theme()
         plt.switch_backend('AGG')
         from . import figure_type
         callback.register(figure_type.FigureType)
+
 
 class TableEventSource:
     """
@@ -87,6 +90,7 @@ class TableEventSource:
         if self._listener is not None:
             self._listener.stop()
             self._listener = None
+
 
 class TableAnimation(Animation):
     """

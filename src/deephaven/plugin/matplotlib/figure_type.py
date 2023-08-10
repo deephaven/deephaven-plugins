@@ -1,7 +1,7 @@
 from io import BytesIO
 from weakref import WeakKeyDictionary, WeakSet
 from matplotlib.figure import Figure
-from deephaven.plugin.object import Exporter, ObjectType
+from deephaven.plugin.object_type import Exporter, FetchOnlyObjectType
 from threading import Timer
 
 # Name of the matplotlib figure object that was export
@@ -15,6 +15,7 @@ _figure_tables = WeakKeyDictionary()
 
 # Track the currently drawing figures, otherwise the stale_callback gets called when we call `savefig`
 _exporting_figures = WeakSet()
+
 
 def debounce(wait):
     """Postpone a functions execution until after some time has elapsed
@@ -38,6 +39,7 @@ def debounce(wait):
         return debounced
 
     return decorator
+
 
 # Creates an input table that will update a figures size when the input is set
 # Has three different key value pairs:
@@ -76,10 +78,12 @@ def _make_input_table(figure):
 
     return input_table
 
+
 def _get_input_table(figure):
     if not figure in _figure_tables:
         _figure_tables[figure] = _make_input_table(figure)
     return _figure_tables[figure]
+
 
 def _export_figure(figure):
     buf = BytesIO()
@@ -93,7 +97,8 @@ def _export_figure(figure):
 
     return buf.getvalue()
 
-class FigureType(ObjectType):
+
+class FigureType(FetchOnlyObjectType):
     @property
     def name(self) -> str:
         return NAME
