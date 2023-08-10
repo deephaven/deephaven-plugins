@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import Animation
 import itertools
 
-__version__ = "0.1.2"
+__version__ = "0.2.0.dev0"
 
 
 def _init_theme():
