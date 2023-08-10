@@ -6,7 +6,7 @@ from typing import Callable, Any
 
 from plotly.graph_objects import Figure
 
-from deephaven.plugin.object import Exporter
+from deephaven.plugin.object_type import Exporter
 
 from ..data_mapping import DataMapping
 

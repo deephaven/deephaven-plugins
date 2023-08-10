@@ -4,7 +4,7 @@ from copy import copy
 from typing import Any
 
 from deephaven.table import Table
-from deephaven.plugin.object import Exporter
+from deephaven.plugin.object_type import Exporter
 
 from .json_conversion import json_link_mapping
 
@@ -45,7 +45,7 @@ class DataMapping:
         """
         return json_link_mapping(
             self._data_mapping,
-            exporter.reference(self._table)._index,
+            exporter.reference(self._table).index,
             self._start_index)
 
     def copy(

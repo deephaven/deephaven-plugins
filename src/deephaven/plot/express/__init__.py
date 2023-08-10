@@ -1,5 +1,5 @@
-from deephaven.plugin import Registration
-from deephaven.plugin.object import Exporter, ObjectType
+from deephaven.plugin import Registration, Callback
+from deephaven.plugin.object_type import Exporter, FetchOnlyObjectType
 
 from .deephaven_figure import DeephavenFigure, export_figure
 
@@ -39,7 +39,7 @@ __version__ = "0.0.5"
 NAME = "deephaven.plot.express.DeephavenFigure"
 
 
-class DeephavenFigureType(ObjectType):
+class DeephavenFigureType(FetchOnlyObjectType):
     """
     DeephavenFigureType for plugin registration
 
@@ -56,17 +56,17 @@ class DeephavenFigureType(ObjectType):
         """
         return NAME
 
-    def is_type(self, object: any) -> bool:
+    def is_type(self, obj: any) -> bool:
         """
         Check if an object is a DeephavenFigure
 
         Args:
-          object: any: The object to check
+          obj: any: The object to check
 
         Returns:
             bool: True if the object is of the correct type, False otherwise
         """
-        return isinstance(object, DeephavenFigure)
+        return isinstance(obj, DeephavenFigure)
 
     def to_bytes(self, exporter: Exporter, figure: DeephavenFigure) -> bytes:
         """
@@ -89,7 +89,7 @@ class ChartRegistration(Registration):
     """
 
     @classmethod
-    def register_into(cls, callback: Registration.Callback) -> None:
+    def register_into(cls, callback: Callback) -> None:
         """
         Register the DeephavenFigureType
 

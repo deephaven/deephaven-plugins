@@ -14,8 +14,8 @@ class BaseTestCase(unittest.TestCase):
         cls.setup_exporter_mock()
 
     @classmethod
-    @patch('deephaven.plugin.object.Exporter')
-    @patch('deephaven.plugin.object.Reference')
+    @patch('deephaven.plugin.object_type.Exporter')
+    @patch('deephaven.plugin.object_type.Reference')
     def setup_exporter_mock(cls, MockExporter, MockReference):
         cls.exporter = MockExporter()
         cls.reference = MockReference()
