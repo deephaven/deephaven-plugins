@@ -34,7 +34,7 @@ from .plots import (
 
 from .data import data_generators
 
-__version__ = "0.0.6.dev0"
+__version__ = "0.0.6"
 
 NAME = "deephaven.plot.express.DeephavenFigure"
 
