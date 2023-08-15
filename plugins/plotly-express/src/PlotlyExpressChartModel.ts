@@ -1,14 +1,12 @@
 import type {
   Layout,
   Data,
-  PlotData,
   BoxPlotData,
   ViolinData,
   OhlcData,
   CandlestickData,
   PieData,
 } from 'plotly.js';
-import deepEqual from 'deep-equal';
 import type {
   dh as DhType,
   ChartData,
@@ -19,17 +17,6 @@ import { ChartModel, ChartUtils, ChartTheme } from '@deephaven/chart';
 import Log from '@deephaven/log';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
-
-function isPlotData(data: Data): data is PlotData {
-  return (
-    // BoxPlot extends PlotData
-    // The rest do not extend PlotData
-    !isViolinPlotData(data) &&
-    !isOhlcPlotData(data) &&
-    !isCandlestickPlotData(data) &&
-    !isPiePlotData(data)
-  );
-}
 
 export function isBoxPlotData(data: Data): data is BoxPlotData {
   return data.type === 'box';
@@ -129,41 +116,25 @@ class PlotlyExpressChartModel extends ChartModel {
       return;
     }
 
-    /**
-     * We will iterate over the traces with the following expectations
-     * 1. Traces in the same subplot are contiguous in the data array
-     * 2. Traces of different plot types indicate a new subplot
-     * 3. If the domain changes between traces, that indicates a new subplot
-     * 4. Each subplot should start their colors from the beginning of the colorway
-     */
+    if (plotlyColorway.length > colorway.length) {
+      log.warn(
+        "Plotly's colorway is longer than the web UI colorway. May result in incorrect colors for some series"
+      );
+    }
 
-    let startSubplotIndex = 0; // Tracks what index the current subplot started at
+    const colorMap = new Map(
+      plotlyColorway.map((color, i) => [
+        color.toUpperCase(),
+        colorway[i] ?? color,
+      ])
+    );
+
+    const plotlyColors = new Set(
+      plotlyColorway.map(color => color.toUpperCase())
+    );
 
     for (let i = 0; i < this.data.length; i += 1) {
       const data = this.data[i];
-
-      // Check if we are starting a new subplot and should restart the color order
-      if (i > 0) {
-        const prevData = this.data[i - 1];
-        const isSamePlotType = data.type === prevData.type;
-        let isSameDomain = true;
-        if (isPlotData(data) && isPlotData(prevData)) {
-          isSameDomain = deepEqual(data.domain, prevData.domain);
-        }
-        if (!isSamePlotType || !isSameDomain) {
-          startSubplotIndex = i;
-        }
-      }
-
-      // The color index for the current subplot
-      const colorIndex = i - startSubplotIndex;
-
-      // Plotly just wraps back to the start of the colorway if numTraces > numColors
-      const themeColor = colorway[colorIndex % colorway.length];
-
-      // If length is 0, plotlyColorway[NaN] is undefined and does not throw
-      const plotlyColor =
-        plotlyColorway[colorIndex % plotlyColorway.length] ?? '';
 
       // There are multiple datatypes in plotly and some don't contain marker or marker.color
       if (
@@ -172,11 +143,8 @@ class PlotlyExpressChartModel extends ChartModel {
         'color' in data.marker &&
         typeof data.marker.color === 'string'
       ) {
-        if (
-          data.marker.color.toUpperCase() === plotlyColor.toUpperCase() &&
-          themeColor != null
-        ) {
-          data.marker.color = themeColor;
+        if (plotlyColors.has(data.marker.color.toUpperCase())) {
+          data.marker.color = colorMap.get(data.marker.color.toUpperCase());
         }
       }
 
@@ -186,11 +154,8 @@ class PlotlyExpressChartModel extends ChartModel {
         'color' in data.line &&
         typeof data.line.color === 'string'
       ) {
-        if (
-          data.line.color.toUpperCase() === plotlyColor.toUpperCase() &&
-          themeColor != null
-        ) {
-          data.line.color = themeColor;
+        if (plotlyColors.has(data.line.color.toUpperCase())) {
+          data.line.color = colorMap.get(data.line.color.toUpperCase());
         }
       }
     }
@@ -267,7 +232,7 @@ class PlotlyExpressChartModel extends ChartModel {
   startListening(): void {
     this.tableSubscriptionMap.forEach((sub, table) => {
       this.tableSubscriptionCleanups.push(
-        sub.addEventListener(dh.Table.EVENT_UPDATED, e =>
+        sub.addEventListener(this.dh.Table.EVENT_UPDATED, e =>
           this.handleFigureUpdated(
             e,
             this.chartDataMap.get(table),
