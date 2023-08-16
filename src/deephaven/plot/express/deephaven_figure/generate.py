@@ -138,7 +138,6 @@ def col_null_mapping(
     Yields:
       tuple[str, str]: tuple of the form (column name, associated null value)
     """
-    # TODO: catch "unsupported" types
     for col in table.columns:
         if col.name in cols:
             type_ = col.data_type.j_name
@@ -172,7 +171,7 @@ def construct_min_dataframe(
 
     update_result = empty_table(1).update(update)
 
-    return dhpd.to_pandas(update_result)
+    return dhpd.to_pandas(update_result, conv_null=False)
 
 
 def get_data_cols(

@@ -24,6 +24,10 @@ The wheel is stored in `dist/`.
 To test within [deephaven-core](https://github.com/deephaven/deephaven-core), note where this wheel is stored (using `pwd`, for example).
 Then, follow the directions in the [deephaven-js-plugins](https://github.com/deephaven/deephaven-js-plugins) repo.
 
+To unit test, run the following command from the root of the repo:
+```sh
+tox -e py
+```
 
 ## Usage
 Once you have the plugin installed and the server started, the recommended way to import the package mirrors plotly express:

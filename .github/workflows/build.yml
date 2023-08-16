@@ -8,6 +8,26 @@ on:
     tags: [ 'v*' ]
 
 jobs:
+  test:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        python: [ "3.8", "3.9", "3.10", "3.11" ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install tox
+        run: pip install tox
+
+      - name: Run tox
+        run: tox -e py
+
   build-dist:
     runs-on: ubuntu-22.04
     steps:

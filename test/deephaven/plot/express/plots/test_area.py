@@ -2,7 +2,6 @@ import unittest
 
 from ..BaseTest import BaseTestCase
 
-
 class AreaTestCase(BaseTestCase):
     def setUp(self) -> None:
         from deephaven import new_table
@@ -20,11 +19,12 @@ class AreaTestCase(BaseTestCase):
 
     def test_basic_area(self):
         import src.deephaven.plot.express as dx
+        from deephaven.constants import NULL_INT
 
         chart = dx.area(self.source, x="X", y="Y").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
 
-        # pop template as we currently do not modify at
+        # pop template as we currently do not modify it
         plotly["layout"].pop("template")
 
         expected_data = [
@@ -39,9 +39,9 @@ class AreaTestCase(BaseTestCase):
                 'orientation': 'v',
                 'showlegend': False,
                 'stackgroup': '1',
-                'x': [-2147483648],
+                'x': [NULL_INT],
                 'xaxis': 'x',
-                'y': [-2147483648],
+                'y': [NULL_INT],
                 'yaxis': 'y',
                 'type': 'scatter'}
         ]
