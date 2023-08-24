@@ -12,6 +12,16 @@
   "author": "Deephaven Data Labs LLC",
   "license": "Apache-2.0",
   "main": "dist/index.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/bundle/index.js",
+      "default": "./dist/bundle/index.js"
+    },
+    "./*.js": "./dist/*.js",
+    "./*": "./dist/*.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/deephaven/deephaven-js-plugins"
@@ -22,10 +32,10 @@
   "homepage": "https://github.com/deephaven/deephaven-js-plugins",
   "scripts": {
     "start": "vite build --watch",
-    "build": "vite build"
+    "build": "tsc && vite build"
   },
   "devDependencies": {
-    "@deephaven/jsapi-types": "0.40.0",
+    "@deephaven/jsapi-types": "0.46.0",
     "@types/deep-equal": "^1.0.1",
     "@types/plotly.js": "^2.12.18",
     "@types/plotly.js-dist-min": "^2.3.1",
@@ -40,13 +50,13 @@
     "react": "^17.0.2"
   },
   "dependencies": {
-    "@deephaven/chart": "0.40.0",
-    "@deephaven/components": "0.40.0",
-    "@deephaven/dashboard": "0.40.0",
-    "@deephaven/dashboard-core-plugins": "0.40.0",
-    "@deephaven/jsapi-bootstrap": "0.40.0",
-    "@deephaven/log": "0.40.0",
-    "@deephaven/utils": "0.40.0",
+    "@deephaven/chart": "0.46.0",
+    "@deephaven/components": "0.46.0",
+    "@deephaven/dashboard": "0.46.0",
+    "@deephaven/dashboard-core-plugins": "0.46.0",
+    "@deephaven/jsapi-bootstrap": "0.46.0",
+    "@deephaven/log": "0.46.0",
+    "@deephaven/utils": "0.46.0",
     "deep-equal": "^2.2.1",
     "plotly.js": "^2.23.0",
     "plotly.js-dist-min": "^2.23.0",

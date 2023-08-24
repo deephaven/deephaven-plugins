@@ -7,9 +7,8 @@ import {
   useListener,
 } from '@deephaven/dashboard';
 import type { VariableDefinition } from '@deephaven/jsapi-types';
-import PlotlyExpressChartPanel, {
-  type PlotlyChartWidget,
-} from './PlotlyExpressChartPanel';
+import PlotlyExpressChartPanel from './PlotlyExpressChartPanel.js';
+import type { PlotlyChartWidget } from './PlotlyExpressChartUtils.js';
 
 export function DashboardPlugin(
   props: DashboardPluginComponentProps
