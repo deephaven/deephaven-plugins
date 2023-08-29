@@ -39,8 +39,12 @@ type TablePluginProps = {
  *
  * @example
  * from deephaven import empty_table
- * t = empty_table(5).update("X=i")
- * t.j_table.setAttribute("PluginName", "@deephaven/js-plugin-module-template")
+ *
+ * t = (
+ *     empty_table(5)
+ *     .update("X=i")
+ *     .with_attributes({"PluginName": "@deephaven/js-plugin-table-example"})
+ * )
  */
 const TablePlugin = (
   props: TablePluginProps,
