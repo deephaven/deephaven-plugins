@@ -4,8 +4,8 @@ from .StyleManager import StyleManager
 from ..shared import get_unique_names
 
 
-class AttachedPreprocesser():
-    """A AttachedPreprocesser that adds styles to "always_attached" plot tables
+class AttachedPreprocessor:
+    """A AttachedPreprocessor that adds styles to "always_attached" plot tables
     such as treemap and pie.
 
     Attributes:

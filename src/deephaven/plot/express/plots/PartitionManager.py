@@ -12,7 +12,7 @@ from deephaven import merge
 
 from ._layer import layer
 from .. import DeephavenFigure
-from ..preprocess.Preprocesser import Preprocesser
+from ..preprocess.Preprocessor import Preprocessor
 from ..shared import get_unique_names
 
 PARTITION_ARGS = {
@@ -404,7 +404,7 @@ class PartitionManager:
             partition_cols.add(self.pivot_vars["variable"])
 
         # preprocessor needs to be initialized after the always attached arguments are found
-        self.preprocessor = Preprocesser(args, self.groups, self.always_attached, self.pivot_vars)
+        self.preprocessor = Preprocessor(args, self.groups, self.always_attached, self.pivot_vars)
 
         if partition_cols:
             if not partitioned_table:

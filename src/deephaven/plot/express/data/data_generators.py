@@ -1,17 +1,18 @@
 from __future__ import annotations
 
+import pandas as pd
 from deephaven.replay import TableReplayer
-from deephaven.time import parse_instant
 from deephaven.table import Table
 from deephaven import empty_table
 from deephaven.time import (
-    parse_instant,
-    plus_period,
-    MINUTE,
-    seconds_to_nanos,
+    to_j_instant,
+    to_pd_timestamp,
 )
 from deephaven.updateby import rolling_sum_tick, ema_tick
 import random, math
+
+SECOND = 1000000000  #: One second in nanoseconds.
+MINUTE = 60 * SECOND  #: One minute in nanoseconds.
 
 
 def iris(ticking: bool = True, size: int = 150) -> Table:
@@ -52,7 +53,9 @@ def iris(ticking: bool = True, size: int = 150) -> Table:
         ```
     """
 
-    base_time = parse_instant("1936-01-01T08:00:00 UTC")
+    base_time = to_j_instant("1936-01-01T08:00:00 UTC")
+    pd_base_time = to_pd_timestamp(base_time)
+
     species_list: list[str] = ["setosa", "versicolor", "virginica"]
     col_ids = {"sepal_length": 0, "sepal_width": 1, "petal_length": 2, "petal_width": 3}
     # statistical values extracted from the iris data set https://en.wikipedia.org/wiki/Iris_flower_data_set
@@ -98,7 +101,7 @@ def iris(ticking: bool = True, size: int = 150) -> Table:
 
     if ticking:
         result_replayer = TableReplayer(
-            base_time, plus_period(base_time, seconds_to_nanos(size))
+            pd_base_time, pd_base_time + pd.Timedelta(size * SECOND)
         )
         replayer_table = result_replayer.add_table(static_table, "timestamp")
         result_replayer.start()
@@ -144,9 +147,10 @@ def stocks(ticking: bool = True, hours_of_data: int = 1) -> Table:
         ```
     """
 
-    base_time = parse_instant(
+    base_time = to_j_instant(
         "2018-06-01T08:00:00 ET"
     )  # day deephaven.io was registered
+    pd_base_time = to_pd_timestamp(base_time)
     sym_list = ["CAT", "DOG", "FISH", "BIRD", "LIZARD"]
     sym_dict = {v: i for i, v in enumerate(sym_list)}
     sym_weights = [95, 100, 70, 45, 35]
@@ -158,8 +162,8 @@ def stocks(ticking: bool = True, hours_of_data: int = 1) -> Table:
     size_in_seconds: int = hours_of_data * 60 * 60 * ticks_per_second
 
     # base time is 8am, start at 9am so there's already data showing and tick until 5pm
-    start_time = plus_period(base_time, (int)(MINUTE * 5))
-    end_time = plus_period(base_time, seconds_to_nanos(size_in_seconds))
+    start_time = pd_base_time + pd.Timedelta((int)(MINUTE * 5))
+    end_time = pd_base_time + pd.Timedelta(size_in_seconds * SECOND)
 
     def random_gauss(seed: int) -> float:
         random.seed(seed)  # set seed once per row
@@ -176,7 +180,7 @@ def stocks(ticking: bool = True, hours_of_data: int = 1) -> Table:
         Random distribution of trade size, approximately mirroring market data
         """
         # cubic
-        abs_rand = abs(rand**3)
+        abs_rand = abs(rand ** 3)
         # rough model of the distribution of trade sizes in real market data
         # they bucket into human sized trade blocks
         size_dist = random.choices(

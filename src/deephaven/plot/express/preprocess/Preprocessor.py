@@ -5,13 +5,13 @@ from typing import Any
 
 from deephaven.table import Table
 
-from .AttachedPreprocesser import AttachedPreprocesser
-from .FreqPreprocesser import FreqPreprocesser
-from .HistPreprocesser import HistPreprocesser
-from .TimePreprocesser import TimePreprocesser
+from .AttachedPreprocessor import AttachedPreprocessor
+from .FreqPreprocessor import FreqPreprocessor
+from .HistPreprocessor import HistPreprocessor
+from .TimePreprocessor import TimePreprocessor
 
 
-class Preprocesser:
+class Preprocessor:
     """
     Preprocessor for tables
 
@@ -49,13 +49,13 @@ class Preprocesser:
 
         """
         if "preprocess_hist" in self.groups:
-            self.preprocesser = HistPreprocesser(self.args, self.pivot_vars)
+            self.preprocesser = HistPreprocessor(self.args, self.pivot_vars)
         elif "preprocess_freq" in self.groups:
-            self.preprocesser = FreqPreprocesser(self.args)
+            self.preprocesser = FreqPreprocessor(self.args)
         elif "always_attached" in self.groups and self.always_attached:
-            AttachedPreprocesser(self.args, self.always_attached)
+            AttachedPreprocessor(self.args, self.always_attached)
         elif "preprocess_time" in self.groups:
-            self.preprocesser = TimePreprocesser(self.args)
+            self.preprocesser = TimePreprocessor(self.args)
 
     def preprocess_partitioned_tables(
             self,

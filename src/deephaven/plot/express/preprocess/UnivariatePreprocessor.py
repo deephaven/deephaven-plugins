@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 
-class UnivariatePreprocesser:
+class UnivariatePreprocessor:
     """
     A univariate preprocessor that stores useful args. Should be inherited from.
 

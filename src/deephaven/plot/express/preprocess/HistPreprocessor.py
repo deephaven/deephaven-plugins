@@ -5,7 +5,7 @@ from typing import Any
 from deephaven import agg, empty_table, new_table
 from deephaven.table import PartitionedTable, Table
 
-from .UnivariatePreprocesser import UnivariatePreprocesser
+from .UnivariatePreprocessor import UnivariatePreprocessor
 from ..shared import get_unique_names
 from deephaven.column import long_col
 from deephaven.updateby import cum_sum
@@ -47,7 +47,7 @@ def get_aggs(
             ', '.join([f"{base}{column}" for column in columns]))
 
 
-class HistPreprocesser(UnivariatePreprocesser):
+class HistPreprocessor(UnivariatePreprocessor):
     """
     Preprocessor for histograms.
 

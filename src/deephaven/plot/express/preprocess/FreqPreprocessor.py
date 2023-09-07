@@ -4,11 +4,11 @@ from typing import Any
 
 from deephaven.table import Table
 
-from .UnivariatePreprocesser import UnivariatePreprocesser
+from .UnivariatePreprocessor import UnivariatePreprocessor
 from ..shared import get_unique_names
 
 
-class FreqPreprocesser(UnivariatePreprocesser):
+class FreqPreprocessor(UnivariatePreprocessor):
     """
     A type of univariate preprocessor for frequency bar plots
 

@@ -228,7 +228,7 @@ def _bar_polar(
 
 
 def timeline(
-        table: str = None,
+        table: Table = None,
         x_start: str = None,
         x_end: str = None,
         y: str = None,

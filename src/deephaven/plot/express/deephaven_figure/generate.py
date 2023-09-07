@@ -23,7 +23,11 @@ TYPE_NULL_MAPPING = {
     "long": "NULL_LONG",
     "float": "NULL_FLOAT",
     "double": "NULL_DOUBLE",
-    "java.time.Instant": "`2000-01-01`"
+    "java.time.Instant": "`2000-01-01`",
+    "java.time.ZonedDateTime": "`2000-01-01`",
+    "pandas.Timestamp": "`2000-01-01`",
+    "numpy.datetime64": "`2000-01-01`",
+    "python.datetime":"`2000-01-01`",
 }
 
 # these are data args that can always be safely converted to lists, mostly for
