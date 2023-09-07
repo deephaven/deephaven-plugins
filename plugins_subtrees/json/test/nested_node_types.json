@@ -1,0 +1,23 @@
+{
+    "inner_1": {
+        "foo": "bar",
+        "baz": 3.14
+    },
+    "inner_1_ref": {
+        "type": "deephaven.plugin.json.Node",
+        "index": 0
+    },
+    "inner_2": "Hello world",
+    "inner_2_ref_1": {
+        "type": "deephaven.plugin.json.Node",
+        "index": 1
+    },
+    "inner_2_ref_2": {
+        "type": "deephaven.plugin.json.Node",
+        "index": 2
+    },
+    "inner_2_ref_1_again": {
+        "type": "deephaven.plugin.json.Node",
+        "index": 1
+    }
+}

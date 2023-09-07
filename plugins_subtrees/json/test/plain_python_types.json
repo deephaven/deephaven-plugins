@@ -1,0 +1,23 @@
+{
+    "str": "bar",
+    "int": 1,
+    "float": 3.14,
+    "None": null,
+    "True": true,
+    "False": false,
+    "empty_list": [],
+    "empty_tuple": [],
+    "empty_dict": {},
+    "list": [
+        "hello",
+        "world"
+    ],
+    "tuple": [
+        "Devin",
+        1987
+    ],
+    "dict": {
+        "foo": "bar",
+        "baz": 31337
+    }
+}
