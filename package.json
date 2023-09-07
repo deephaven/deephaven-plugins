@@ -1,7 +1,7 @@
 {
   "name": "deephaven-js-plugins",
   "workspaces": [
-    "./plugins/*"
+    "./plugins/*/src/js/"
   ],
   "scripts": {
     "start": "lerna run start --stream",

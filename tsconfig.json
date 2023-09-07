@@ -6,5 +6,5 @@
     "plugins/**/**.js",
     "plugins/**/**.jsx"
   ],
-  "exclude": ["**/node_modules/**/*", "plugins/*/dist/**/*"]
+  "exclude": ["**/node_modules/**/*", "plugins/*/src/js/dist/**/*"]
 }

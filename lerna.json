@@ -3,5 +3,5 @@
   "useWorkspaces": true,
   "useNx": true,
   "version": "independent",
-  "packages": ["plugins/*"]
+  "packages": ["plugins/*/src/js/"]
 }

@@ -1,0 +1,47 @@
+name: Build Plotly Plugin
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'plugins/plotly/**'
+  push:
+    branches: [ main ]
+    tags: [ 'plotly-v*' ]
+
+defaults:
+  run:
+    working-directory: 'plugins/plotly'
+
+jobs:
+  build-dist:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install build dependencies
+        run: python -m pip install --upgrade setuptools wheel build
+
+      - name: Build wheel
+        run: python -m build
+
+      - name: Upload dist
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: 'plugins/plotly/dist/'
+          if-no-files-found: error
+
+      - name: Publish package
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/plotly-v')
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_PLOTLY_TOKEN }}
+          packages-dir: 'plugins/plotly/dist/'

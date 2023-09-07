@@ -1,0 +1,47 @@
+name: Build Matplotlib Plugin
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'plugins/matplotlib/**'
+  push:
+    branches: [ main ]
+    tags: [ 'matplotlib-v*' ]
+
+defaults:
+  run:
+    working-directory: 'plugins/matplotlib'
+
+jobs:
+  build-dist:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install build dependencies
+        run: python -m pip install --upgrade setuptools wheel build
+
+      - name: Build wheel
+        run: python -m build
+
+      - name: Upload dist
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: 'plugins/matplotlib/dist/'
+          if-no-files-found: error
+
+      - name: Publish package
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/matplotlib-v')
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_MATPLOTLIB_TOKEN }}
+          packages-dir: 'plugins/matplotlib/dist/'

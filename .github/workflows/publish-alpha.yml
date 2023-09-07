@@ -1,4 +1,4 @@
-name: Publish Alpha
+name: Publish Alpha JS
 on:
   workflow_dispatch:
     inputs:
