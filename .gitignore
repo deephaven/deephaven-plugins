@@ -1,3 +1,9 @@
 node_modules
 .vscode/
 tsconfig.tsbuildinfo
+
+# Ignore user IntelliJ settings
+.idea/
+
+# Ignore users local python venvs
+.venv/
