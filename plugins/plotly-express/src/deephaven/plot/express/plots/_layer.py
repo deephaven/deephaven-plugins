@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from functools import partial
-from typing import Any
+from typing import Any, Callable
 
 from plotly.graph_objs import Figure
 
 from ..deephaven_figure import DeephavenFigure
-from ._update_wrapper import default_callback, unsafe_figure_update_wrapper
+from ..shared import default_callback, unsafe_figure_update_wrapper
+from deephaven.execution_context import get_exec_ctx
 
 
 def normalize_position(
@@ -415,41 +416,29 @@ def fig_data_and_layout(
     return fig.data, fig_layout
 
 
-def layer(
+def atomic_layer(
     *figs: DeephavenFigure | Figure,
     which_layout: int = None,
     specs: list[dict[str, Any]] = None,
     unsafe_update_figure: callable = default_callback,
 ) -> DeephavenFigure:
-    """Layers the provided figures. Be default, the layouts are sequentially
-    applied, so the layouts of later figures will override the layouts of early
-    figures.
+    """
+    Layers the provided figures. This is an atomic version of layer, so the
+    figures will be layered immediately and not added to the graph. This is
+    used by plot by.
+    See layer for more details about arguments.
 
     Args:
-      *figs: DeephavenFigure | Figure: The charts to layer
-      which_layout: int:  (Default value = None) None to layer layouts, or an
-        index of which arg to take the layout from. Currently only valid if
-        domains are not specified.
-      specs: list[dict[str, str | bool | list[float]]]:
-        A list of dictionaries that contains keys of "x" and "y"
-        that have values that are lists of two floats from 0 to 1. The chart
-        that corresponds with a domain will be resized to that domain. Either
-        x or y can be excluded if only resizing on one axis.
-        Can also specify "xaxis_update" or "yaxis_update" with a dictionary
-        value to update all axes with that dict.
-        Can also specify "matched_xaxis" or "matched_yaxis" to add this figure
-        to a match group. All figures with the same value of this group will
-        have matching axes.
-      unsafe_update_figure: An update function that takes a plotly figure
-        as an argument and optionally returns a plotly figure. If a figure is not
-        returned, the plotly figure passed will be assumed to be the return value.
-        Used to add any custom changes to the underlying plotly figure. Note that
-        the existing data traces should not be removed. This may lead to unexpected
-        behavior if traces are modified in a way that break data mappings.
+        *figs: DeephavenFigure | Figure: The charts to layer
+        which_layout: int:  (Default value = None):
+            See layer
+        specs: list[dict[str, str | bool | list[float]]]:
+            See layer
+        unsafe_update_figure:
+            See layer
 
     Returns:
-      DeephavenFigure: The layered chart
-
+        DeephavenFigure: The layered chart
     """
     if len(figs) == 0:
         raise ValueError("No figures provided to compose")
@@ -476,16 +465,21 @@ def layer(
 
         elif isinstance(arg, DeephavenFigure):
             offset = len(new_data)
-            if arg.has_subplots:
+            if arg.get_has_subplots():
                 raise NotImplementedError(
                     "Cannot currently add figure with subplots as a subplot"
                 )
             fig_data, fig_layout = fig_data_and_layout(
-                arg.fig, i, specs, which_layout, new_axes_start, matches_axes
+                arg.get_plotly_fig(),
+                i,
+                specs,
+                which_layout,
+                new_axes_start,
+                matches_axes,
             )
             new_data_mappings += arg.copy_mappings(offset=offset)
-            new_has_template = arg.has_template or new_has_template
-            new_has_color = arg.has_color or new_has_color
+            new_has_template = arg.get_has_template() or new_has_template
+            new_has_color = arg.get_has_color() or new_has_color
 
         else:
             raise TypeError("All arguments must be of type Figure or DeephavenFigure")
@@ -497,7 +491,6 @@ def layer(
 
     update_wrapper = partial(unsafe_figure_update_wrapper, unsafe_update_figure)
 
-    # todo: this doesn't maintain call args, but that isn't currently needed
     return update_wrapper(
         DeephavenFigure(
             fig=new_fig,
@@ -507,3 +500,62 @@ def layer(
             has_subplots=True if specs else False,
         )
     )
+    pass
+
+
+def layer(
+    *figs: DeephavenFigure | Figure,
+    which_layout: int = None,
+    specs: list[dict[str, Any]] = None,
+    unsafe_update_figure: Callable = default_callback,
+) -> DeephavenFigure:
+    """Layers the provided figures. Be default, the layouts are sequentially
+    applied, so the layouts of later figures will override the layouts of early
+    figures.
+
+    Args:
+      *figs: DeephavenFigure | Figure: The charts to layer
+      which_layout: int:  (Default value = None) None to layer layouts, or an
+        index of which arg to take the layout from. Currently only valid if
+        domains are not specified.
+      specs: list[dict[str, str | bool | list[float]]]:
+        A list of dictionaries that contains keys of "x" and "y"
+        that have values that are lists of two floats from 0 to 1. The chart
+        that corresponds with a domain will be resized to that domain. Either
+        x or y can be excluded if only resizing on one axis.
+        Can also specify "xaxis_update" or "yaxis_update" with a dictionary
+        value to update all axes with that dict.
+        Can also specify "matched_xaxis" or "matched_yaxis" to add this figure
+        to a match group. All figures with the same value of this group will
+        have matching axes.
+        atomic: bool:  (Default value = False) If True, this layer call will be
+        treated as an atomic part of a figure creation call, and the figure will not be updated until
+        This should almost certainly always be False
+      unsafe_update_figure: Callable: An update function that takes a plotly figure
+        as an argument and optionally returns a plotly figure. If a figure is not
+        returned, the plotly figure passed will be assumed to be the return value.
+        Used to add any custom changes to the underlying plotly figure. Note that
+        the existing data traces should not be removed. This may lead to unexpected
+        behavior if traces are modified in a way that break data mappings.
+
+    Returns:
+      DeephavenFigure: The layered chart
+
+    """
+
+    args = locals()
+
+    func = atomic_layer
+
+    new_fig = atomic_layer(
+        *figs,
+        which_layout=which_layout,
+        specs=specs,
+        unsafe_update_figure=unsafe_update_figure,
+    )
+
+    exec_ctx = get_exec_ctx()
+
+    new_fig.add_layer_to_graph(func, args, exec_ctx)
+
+    return new_fig

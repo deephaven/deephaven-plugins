@@ -112,6 +112,7 @@ CUSTOM_ARGS = {
     "pivot_vars",
     "current_partition",
     "colors",
+    "unsafe_update_figure",
 }
 
 # these are columns that are "attached" sequentially to the traces
@@ -1011,7 +1012,6 @@ def generate_figure(
     dh_fig = DeephavenFigure(
         px_fig,
         call_args=call_args,
-        call=draw,
         data_mappings=[data_mapping],
         trace_generator=trace_generator,
     )

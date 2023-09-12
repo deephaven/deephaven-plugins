@@ -32,6 +32,6 @@ def unsafe_figure_update_wrapper(
 
     """
     # allow either returning a new fig or not from callback
-    new_fig = unsafe_figure_update(dh_fig.fig)
-    dh_fig.fig = new_fig if new_fig else dh_fig.fig
+    new_fig = unsafe_figure_update(dh_fig.get_plotly_fig())
+    dh_fig._plotly_fig = new_fig if new_fig else dh_fig.get_plotly_fig()
     return dh_fig

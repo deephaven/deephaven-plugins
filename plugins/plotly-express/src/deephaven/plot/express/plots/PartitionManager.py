@@ -10,7 +10,7 @@ from deephaven.table import Table, PartitionedTable
 from deephaven import pandas as dhpd
 from deephaven import merge
 
-from ._layer import layer
+from ._layer import layer, atomic_layer
 from .. import DeephavenFigure
 from ..preprocess.Preprocessor import Preprocessor
 from ..shared import get_unique_names
@@ -569,7 +569,7 @@ class PartitionManager:
         for i, args in enumerate(self.partition_generator()):
             fig = self.draw_figure(call_args=args, trace_generator=trace_generator)
             if not trace_generator:
-                trace_generator = fig.trace_generator
+                trace_generator = fig.get_trace_generator()
 
             facet_key = []
             if "current_partition" in args:
@@ -584,7 +584,7 @@ class PartitionManager:
                     # violin, etc. leads to extra spacing in each marginal
                     # offsetgroup needs to be unique within the subchart as columns
                     # could have the same name
-                    fig.fig.update_traces(
+                    fig.get_plotly_fig().update_traces(
                         offsetgroup=f"{'-'.join(args['current_partition'])}{i}"
                     )
                 facet_key.extend(
@@ -597,16 +597,16 @@ class PartitionManager:
 
             if "preprocess_hist" in self.groups or "preprocess_violin" in self.groups:
                 if "current_partition" in args:
-                    fig.fig.update_layout(legend_tracegroupgap=0)
+                    fig.get_plotly_fig().update_layout(legend_tracegroupgap=0)
                 else:
-                    fig.fig.update_layout(showlegend=False)
+                    fig.get_plotly_fig().update_layout(showlegend=False)
 
             figs.append(fig)
 
-        layered_fig = layer(*figs, which_layout=0)
+        layered_fig = atomic_layer(*figs, which_layout=0)
 
         if self.has_color is False:
-            layered_fig.has_color = False
+            layered_fig._has_color = False
 
         if self.marg_args:
             # the marginals need to use the already partitioned table as they
