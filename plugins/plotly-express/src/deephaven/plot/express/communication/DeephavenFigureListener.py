@@ -5,9 +5,9 @@ from functools import partial
 from typing import Any
 
 from deephaven.plugin.object_type import MessageStream
-from deephaven.table_listener import listen
+from deephaven.table_listener import listen, TableUpdate
 
-from ..deephaven_figure import Exporter, DeephavenFigure
+from ..deephaven_figure import Exporter, DeephavenFigure, DeephavenFigureNode
 
 
 class DeephavenFigureListener:
@@ -15,7 +15,9 @@ class DeephavenFigureListener:
     Listener for DeephavenFigure
     """
 
-    def __init__(self, figure, connection, liveness_scope):
+    def __init__(
+        self, figure: DeephavenFigure, connection: MessageStream, liveness_scope: Any
+    ):
         self._connection: MessageStream = connection
         self._figure = figure
         self._exporter = Exporter()
@@ -28,7 +30,7 @@ class DeephavenFigureListener:
 
         self._setup_listeners()
 
-    def _setup_listeners(self):
+    def _setup_listeners(self) -> None:
         """
         Setup listeners for the partitioned tables
         """
@@ -39,9 +41,7 @@ class DeephavenFigureListener:
 
         self._figure.listener = self
 
-    def _get_figure(
-        self,
-    ) -> DeephavenFigure:
+    def _get_figure(self) -> DeephavenFigure:
         """
         Get the current figure
 
@@ -50,15 +50,17 @@ class DeephavenFigureListener:
         """
         return self._figure.get_figure()
 
-    def _on_update(self, node, update, is_replay):
+    def _on_update(
+        self, node: DeephavenFigureNode, update: TableUpdate, is_replay: bool
+    ) -> None:
         """
         Update the figure. Because this is called when the PartitionedTable
         meta table is updated, it will always trigger a rerender.
 
         Args:
-            node: The node to update. Changes will propagate up from this node.
-            update: Not used. Required for the listener.
-            is_replay: Not used. Required for the listener.
+            node: DeephavenFigureNode: The node to update. Changes will propagate up from this node.
+            update: TableUpdate: Not used. Required for the listener.
+            is_replay: bool: Not used. Required for the listener.
         """
         if self._connection:
             node.recreate_figure()
@@ -75,12 +77,12 @@ class DeephavenFigureListener:
         """
         return self._build_figure_message(self._get_figure())
 
-    def _build_figure_message(self, figure) -> tuple[bytes, list[Any]]:
+    def _build_figure_message(self, figure: DeephavenFigure) -> tuple[bytes, list[Any]]:
         """
         Build a message to send to the client with the current figure.
 
         Args:
-            figure: The figure to send
+            figure: DeephavenFigure: The figure to send
 
         Returns:
             tuple[bytes, list[Any]]: The result of the message as a tuple of

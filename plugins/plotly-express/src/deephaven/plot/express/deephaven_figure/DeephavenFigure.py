@@ -130,7 +130,6 @@ class DeephavenNode:
         """
         Recreate the figure. This is called when an underlying partition or
         child figure changes.
-
         """
         pass
 
@@ -168,6 +167,15 @@ class DeephavenNode:
 class DeephavenFigureNode(DeephavenNode):
     """
     A node in the DeephavenFigure graph that represents a figure.
+
+    Attributes:
+        parent: DeephavenNode | DeephavenHeadNode: The parent node
+        exec_ctx: ExecutionContext: The execution context
+        args: dict[str, Any]: The arguments to the function
+        table: PartitionedTable: The table to pull data from
+        func: Callable: The function to call
+        cached_figure: DeephavenFigure: The cached figure
+        node_lock: threading.Lock: A lock to ensure that the figure is updated safely
     """
 
     def __init__(
@@ -178,6 +186,16 @@ class DeephavenFigureNode(DeephavenNode):
         table: PartitionedTable = None,
         func: Callable = None,
     ):
+        """
+        Create a new DeephavenFigureNode
+
+        Args:
+            parent: DeephavenNode | DeephavenHeadNode: The parent node
+            exec_ctx: ExecutionContext: The execution context
+            args: dict[str, Any]: The arguments to the function
+            table: PartitionedTable: The table to pull data from
+            func: Callable: The function to call
+        """
         self.parent = parent
         self.exec_ctx = exec_ctx
         self.args = args
@@ -191,6 +209,10 @@ class DeephavenFigureNode(DeephavenNode):
         """
         Recreate the figure. This is called when the underlying partition
         changes
+
+        Args:
+            update_parent: bool: (Default value = True): If the parent should
+            be updated
         """
         with self.exec_ctx, self.node_lock:
             table = self.table
@@ -216,7 +238,7 @@ class DeephavenFigureNode(DeephavenNode):
                 A dictionary mapping node ids to partitioned tables and nodes
 
         Returns:
-            The new node
+            DeephavenFigureNode: The new node
         """
         # args need to be copied as the table key is modified
         new_args = args_copy(self.args)
@@ -248,20 +270,36 @@ class DeephavenFigureNode(DeephavenNode):
 class DeephavenLayerNode(DeephavenNode):
     """
     A node in the DeephavenFigure graph that represents a layer.
+
+    Attributes:
+        parent: DeephavenNode | DeephavenHeadNode: The parent node
+        nodes: list[DeephavenNode]: The child nodes
+        layer_func: Callable: The layer function
+        args: dict[str, Any]: The arguments to the function
+        cached_figure: DeephavenFigure: The cached figure
+        exec_ctx: ExecutionContext: The execution context
+        node_lock: threading.Lock: A lock to ensure that the figure is updated safely
+
     """
 
     def __init__(
         self, layer_func: Callable, args: dict[str, Any], exec_ctx: ExecutionContext
     ):
+        """
+        Create a new DeephavenLayerNode
+
+        Args:
+            layer_func: Callable: The layer function
+            args: dict[str, Any]: The arguments to the function
+            exec_ctx: ExecutionContext: The execution context
+        """
         self.parent = None
         self.nodes = []
         self.layer_func = layer_func
         self.args = args
-        self.figs = []
         self.cached_figure = None
         self.exec_ctx = exec_ctx
         self.node_lock = threading.Lock()
-        pass
 
     def recreate_figure(self, update_parent=True) -> None:
         """
@@ -304,7 +342,7 @@ class DeephavenLayerNode(DeephavenNode):
         new_node.parent = parent
         return new_node
 
-    def get_figure(self):
+    def get_figure(self: DeephavenLayerNode):
         """
         Get the figure for this node. It will be generated if not cached
 
@@ -322,9 +360,19 @@ class DeephavenLayerNode(DeephavenNode):
 class DeephavenHeadNode:
     """
     A node in the DeephavenFigure graph that represents the head of the graph.
+
+    Attributes:
+        node: DeephavenNode: The child node
+        partitioned_tables: dict[int, tuple[PartitionedTable, DeephavenNode]]:
+            A dictionary mapping node ids to partitioned table and nodes that
+            need to be updated
+        cached_figure: DeephavenFigure: The cached figure
     """
 
     def __init__(self):
+        """
+        Create a new DeephavenHeadNode
+        """
         # there is only one child node of the head, either a layer or a figure
         self.node = None
         self.partitioned_tables = {}
@@ -344,9 +392,7 @@ class DeephavenHeadNode:
         new_head.partitioned_tables = new_partitioned_tables
         return new_head
 
-    def recreate_figure(
-        self,
-    ) -> None:
+    def recreate_figure(self) -> None:
         """
         Recreate the figure. This is called when the underlying partition
         or a child node changes
@@ -358,7 +404,7 @@ class DeephavenHeadNode:
         Get the figure for this node. This will be called by a communication to get
         the initial figure.
         Returns:
-
+            DeephavenFigure: The figure
         """
         if not self.cached_figure and self.node:
             self.cached_figure = self.node.get_figure()
@@ -368,6 +414,15 @@ class DeephavenHeadNode:
 class DeephavenFigure:
     """A DeephavenFigure that contains a plotly figure and mapping from Deephaven
     data tables to the plotly figure
+
+    Attributes:
+        _head_node: DeephavenHeadNode: The head node of the graph
+        _plotly_fig: Figure: The plotly figure
+        _trace_generator: Generator[dict[str, Any]]: The trace generator
+        _has_template: bool: If this figure has a template
+        _has_color: bool: If this figure has color
+        _data_mappings: list[DataMapping]: The data mappings
+        _has_subplots: bool: If this figure has subplots
     """
 
     def __init__(
@@ -380,6 +435,19 @@ class DeephavenFigure:
         trace_generator: Generator[dict[str, Any]] = None,
         has_subplots: bool = False,
     ):
+        """
+        Create a new DeephavenFigure
+
+        Args:
+            fig: Figure: The plotly figure
+            call_args: dict[Any]: Call args, used to determine if the figure
+                has a template or color
+            data_mappings: list[DataMapping]: The data mappings
+            has_template: bool: If this figure has a template
+            has_color: bool: If this figure has color
+            trace_generator: Generator[dict[str, Any]]: The trace generator
+            has_subplots: bool: If this figure has subplots
+        """
         # keep track of function that called this, and it's args
         self._head_node = DeephavenHeadNode()
 

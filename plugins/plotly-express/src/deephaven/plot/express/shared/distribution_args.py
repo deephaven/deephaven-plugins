@@ -1,5 +1,9 @@
 from ._update_wrapper import default_callback
 
+# This file contains the default arguments for the distribution plots, which
+# have multiple entry points because they can be created from either a
+# marginal or a user-created plot.
+
 SHARED_DEFAULTS = {
     "by_vars": "color",
     "unsafe_update_figure": default_callback,

@@ -189,7 +189,7 @@ def create_deephaven_figure(
       px_func: Callable: the function (generally from px) to use to create the figure
 
     Returns:
-      partial: The new figure
+      tuple[DeephavenFigure, Table | PartitionedTable]: A tuple of the figure and the table
 
     """
     validate_common_args(args)
@@ -247,7 +247,7 @@ def process_args(
       px_func: Callable: the function (generally from px) to use to create the figure
 
     Returns:
-      partial: The new figure
+        DeephavenFigure: The new figure
 
     """
     use_args = locals()
@@ -264,27 +264,36 @@ def process_args(
     return new_fig
 
 
-# JUST create table
-# create dom to create figs on demand
-# add one click filter that returns a new figure
-
-
 class SyncDict:
     """A dictionary wrapper that will queue up keys to remove and remove them
     all at once
 
-
-    Args:
+    Attributes:
       d: dict: the dictionary to wrap
-
+      pop_set: set: the set of keys to pop
 
     """
 
     def __init__(self, d: dict):
+        """
+        Create a SyncDict
+        Args:
+            d: dict: The dictionary to wrap
+        """
         self.d = d
         self.pop_set = set()
 
-    def __contains__(self, item):
+    def __contains__(self, item: Any) -> bool:
+        """
+        Check if the item is in the dictionary
+
+        Args:
+            item: Any: The item to check
+
+        Returns:
+            bool: True if the item is in the dictionary, False otherwise
+
+        """
         return item in self.d
 
     def will_pop(self, key: Any) -> Any:
@@ -309,7 +318,7 @@ class SyncDict:
             self.d.pop(k)
 
 
-def set_all(args: dict[str, Any], pairs: dict[str, Any]):
+def set_all(args: dict[str, Any], pairs: dict[str, Any]) -> None:
     """
     Set all the pairs in the args if they are not already set
 
