@@ -1,7 +1,5 @@
 from .DeephavenFigure import (
-    Exporter,
     DeephavenFigure,
-    export_figure,
     DeephavenFigureNode,
 )
 from .generate import generate_figure, update_traces

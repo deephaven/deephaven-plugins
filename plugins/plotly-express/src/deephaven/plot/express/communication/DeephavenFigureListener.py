@@ -7,17 +7,35 @@ from typing import Any
 from deephaven.plugin.object_type import MessageStream
 from deephaven.table_listener import listen, TableUpdate
 
-from ..deephaven_figure import Exporter, DeephavenFigure, DeephavenFigureNode
+from .export import Exporter
+from ..deephaven_figure import DeephavenFigure, DeephavenFigureNode
 
 
 class DeephavenFigureListener:
     """
     Listener for DeephavenFigure
+
+    Attributes:
+        _connection: MessageStream: The connection to send messages to
+        _figure: DeephavenFigure: The figure to listen to
+        _exporter: Exporter: The exporter to use for exporting the figure
+        _liveness_scope: Any: The liveness scope to use for the listeners
+        _listeners: list[Any]: The listeners for the partitioned tables
+        _partitioned_tables: dict[str, tuple[PartitionedTable, DeephavenFigureNode]]:
+            The partitioned tables to listen to
     """
 
     def __init__(
         self, figure: DeephavenFigure, connection: MessageStream, liveness_scope: Any
     ):
+        """
+        Create a new listener for the figure
+
+        Args:
+            figure: DeephavenFigure: The figure to listen to
+            connection: MessageStream: The connection to send messages to
+            liveness_scope: The liveness scope to use for the listeners
+        """
         self._connection: MessageStream = connection
         self._figure = figure
         self._exporter = Exporter()

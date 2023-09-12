@@ -11,7 +11,7 @@ from deephaven.time import (
 from deephaven.updateby import rolling_sum_tick, ema_tick
 import random, math
 
-SECOND = 1000000000  #: One second in nanoseconds.
+SECOND = 1_000_000_000  #: One second in nanoseconds.
 MINUTE = 60 * SECOND  #: One minute in nanoseconds.
 
 

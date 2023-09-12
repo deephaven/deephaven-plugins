@@ -15,72 +15,6 @@ from ..shared import args_copy
 from ..data_mapping import DataMapping
 
 
-class Reference:
-    """A reference to an object
-
-    Attributes:
-        index: int: The index of the reference
-        obj: object: The object that the reference points to
-    """
-
-    def __init__(self: Reference, index: int, obj: object):
-        self.index = index
-        self.obj = obj
-
-
-class Exporter:
-    """
-    An exporter that keeps track of references to objects that need to be sent
-    """
-
-    def __init__(
-        self,
-    ):
-        self.references = {}
-        pass
-
-    def reference(self: Exporter, obj: object) -> Reference:
-        """Creates a reference for an object, ensuring that it is exported for
-        use on the client. Each time this is called, a new reference will be
-        returned, with the index of the export in the data to be sent to the
-        client.
-
-        Args:
-        obj: object: The object to create a reference for
-
-        Returns:
-            Reference: The reference to the object
-
-        """
-        if obj not in self.references:
-            self.references[obj] = Reference(len(self.references), obj)
-        return self.references[obj]
-
-    def reference_list(self: Exporter) -> list[Any]:
-        """
-        Creates a list of references for a list of objects
-
-        Returns:
-            list[Reference]: The list of references to the objects
-
-        """
-        return list(self.references.keys())
-
-
-def export_figure(exporter: Exporter, figure: DeephavenFigure) -> bytes:
-    """Helper to export a DeephavenFigure as json
-
-    Args:
-      exporter: Exporter: The exporter to use
-      figure: DeephavenFigure: The figure to export
-
-    Returns:
-      bytes: The figure as bytes
-
-    """
-    return figure.to_json(exporter).encode()
-
-
 def has_color_args(call_args: dict[str, Any]) -> bool:
     """Check if any of the color args are in call_args
 
@@ -254,7 +188,7 @@ class DeephavenFigureNode(DeephavenNode):
         new_node.parent = parent
         return new_node
 
-    def get_figure(self):
+    def get_figure(self) -> DeephavenFigure:
         """
         Get the figure for this node. It will be generated if not cached
 
@@ -342,7 +276,7 @@ class DeephavenLayerNode(DeephavenNode):
         new_node.parent = parent
         return new_node
 
-    def get_figure(self: DeephavenLayerNode):
+    def get_figure(self: DeephavenLayerNode) -> DeephavenFigure:
         """
         Get the figure for this node. It will be generated if not cached
 
