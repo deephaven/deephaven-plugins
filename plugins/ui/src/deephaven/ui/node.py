@@ -4,16 +4,19 @@ import functools
 import logging
 from .render import RenderContext
 from ._internal.shared import get_context, set_context
+from .utils import get_component_name
 
 logger = logging.getLogger(__name__)
 
 
-class ComponentNode:
+class UINode:
     def __init__(self, component_type, render):
         """
         Create a component node.
-        :param component_type: Type of the component. Typically, the module joined with the name of the function.
-        :param render: The render function to call when the component needs to be rendered.
+
+        Args:
+            component_type: Type of the component. Typically, the module joined with the name of the function.
+            render: The render function to call when the component needs to be rendered.
         """
         self._type = component_type
         self._render = render
@@ -21,13 +24,17 @@ class ComponentNode:
     def render(self, context: RenderContext, render_deep=True):
         """
         Render the component.
-        :param context: The context to render the component in.
-        :param render_deep: Whether to render the component's children.
-        :return: The rendered component.
+
+        Args:
+            context: The context to render the component in.
+            render_deep: Whether to render the component's children.
+
+        Returns:
+            The rendered component.
         """
 
         def render_child(child, child_context):
-            if isinstance(child, ComponentNode):
+            if isinstance(child, UINode):
                 return child.render(child_context, render_deep)
             else:
                 return child
@@ -52,13 +59,6 @@ class ComponentNode:
         return self._type
 
 
-def _get_component_type(func):
-    """
-    Get the type of the component from the passed in function.
-    """
-    return func.__module__ + "." + func.__qualname__
-
-
 def component(func):
     """
     Create a ComponentNode from the passed in function.
@@ -66,7 +66,7 @@ def component(func):
 
     @functools.wraps(func)
     def make_component_node(*args, **kwargs):
-        component_type = _get_component_type(func)
+        component_type = get_component_name(func)
 
         def render(context: RenderContext):
             """
@@ -89,6 +89,6 @@ def component(func):
             set_context(old_context)
             return result
 
-        return ComponentNode(component_type, render)
+        return UINode(component_type, render)
 
     return make_component_node

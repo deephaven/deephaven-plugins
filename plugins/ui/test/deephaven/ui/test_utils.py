@@ -16,14 +16,14 @@ class UtilsTest(BaseTestCase):
         )
 
     def test_verify_component_names(self):
-        from deephaven.ui.components import text_field, text
+        from deephaven.ui import text_field, text
         from deephaven.ui.utils import get_component_name
 
         def verify_component(component, expected_name):
             self.assertEqual(get_component_name(component), expected_name)
 
-        verify_component(text_field, "deephaven.ui.components.text_field")
-        verify_component(text, "deephaven.ui.components.text")
+        verify_component(text_field, "deephaven.ui.components.text_field.text_field")
+        verify_component(text, "deephaven.ui.components.text.text")
 
 
 if __name__ == "__main__":

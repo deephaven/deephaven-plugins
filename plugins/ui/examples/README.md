@@ -6,6 +6,28 @@ import deephaven.plot.express as dx
 stocks = dx.data.stocks()
 ```
 
+# Simple table with input filter
+
+```python
+import deephaven.ui as ui
+from deephaven.ui.hooks import use_state
+
+
+@ui.component
+def text_filter_table(source, column):
+    value, set_value = use_state("FISH")
+    t = source.where(f"{column}=`{value}`")
+    return [ui.text_field(value, on_change=set_value), t]
+
+
+import deephaven.plot.express as dx
+
+stocks = dx.data.stocks()
+
+pp = text_filter_table(stocks, "sym")
+```
+
+
 # Simple table with required filters
 
 ```python

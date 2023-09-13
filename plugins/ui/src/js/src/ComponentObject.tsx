@@ -36,9 +36,9 @@ function ComponentObject(props: ComponentObjectProps) {
   }
 
   switch (object.type) {
-    case 'deephaven.ui.components.TextField':
+    case 'deephaven.ui.components.text_field.TextField':
       return <TextFieldObject object={object as TextFieldWidget} />;
-    case 'deephaven.ui.components.Text':
+    case 'deephaven.ui.components.text.Text':
       return <TextObject object={object as TextWidget} />;
     default:
       // TODO: Need to handle other types of objects registered by other plugins (e.g. Deephaven Express)
