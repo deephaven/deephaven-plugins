@@ -3,7 +3,7 @@
 import functools
 import logging
 from .render import RenderContext
-from .shared_internal import get_context, set_context
+from ._internal.shared import get_context, set_context
 
 logger = logging.getLogger(__name__)
 

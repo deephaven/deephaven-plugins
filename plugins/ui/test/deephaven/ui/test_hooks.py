@@ -15,7 +15,7 @@ def render_hook(fn: Callable):
         Re-render will call the same function but with the new args passed in.
     """
     from deephaven.ui.render import RenderContext
-    from deephaven.ui.shared_internal import get_context, set_context
+    from deephaven.ui._internal.shared import get_context, set_context
 
     context = RenderContext()
 
