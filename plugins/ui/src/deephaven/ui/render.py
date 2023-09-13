@@ -14,6 +14,9 @@ class RenderContext:
         self._children_context = {}
         self._on_change = lambda: None
 
+        # Will be initialized on render
+        self._hook_count = None
+
     def _notify_change(self):
         """
         Notify the parent context that this context has changed.
@@ -70,7 +73,14 @@ class RenderContext:
         """
         Finish rendering this component.
         """
-        # TODO: Should verify that the correct number of hooks were called, state is correct etc
+        if self._hook_count is None:
+            self._hook_count = self._hook_index + 1
+        if self._hook_count != self._hook_index + 1:
+            raise Exception(
+                "Expected to use {} hooks, but used {}".format(
+                    self._hook_count, self._hook_index + 1
+                )
+            )
         pass
 
     def next_hook_index(self):

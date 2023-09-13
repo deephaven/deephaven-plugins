@@ -22,7 +22,7 @@ def use_state(initial_value):
         context.set_state(hook_index, value)
 
     def set_value(new_value):
-        # Set the value in the context state and trigger a rerender
+        # Set the value in the context state and trigger a re-render
         logger.debug("use_state set_value called with %s", new_value)
         context.set_state(hook_index, new_value)
 

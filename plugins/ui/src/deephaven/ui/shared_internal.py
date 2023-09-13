@@ -13,6 +13,7 @@ class UiSharedInternals:
 _deephaven_ui_shared_internals: UiSharedInternals = UiSharedInternals()
 
 
+# TODO: Get/set need to be thread safe
 def _get_context() -> RenderContext:
     return _deephaven_ui_shared_internals.current_context
 
