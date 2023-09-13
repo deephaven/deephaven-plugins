@@ -73,7 +73,11 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   plotlyLayout: Partial<Layout>;
 
-  getData(): Partial<Data>[] {
+  isPaused = false;
+
+  hasPendingUpdate = false;
+
+  override getData(): Partial<Data>[] {
     return this.data;
   }
 
@@ -146,6 +150,12 @@ export class PlotlyExpressChartModel extends ChartModel {
     });
 
     const { data } = this;
+
+    if (this.isPaused) {
+      this.hasPendingUpdate = true;
+      return;
+    }
+
     this.fireUpdate(data);
   }
 
@@ -165,6 +175,26 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   stopListening(): void {
     this.tableSubscriptionCleanups.forEach(cleanup => cleanup());
+  }
+
+  override fireUpdate(data: unknown): void {
+    super.fireUpdate(data);
+    this.hasPendingUpdate = false;
+  }
+
+  pauseUpdates(): void {
+    this.isPaused = true;
+  }
+
+  resumeUpdates(): void {
+    this.isPaused = false;
+    if (this.hasPendingUpdate) {
+      this.fireUpdate(this.data);
+    }
+  }
+
+  has3D(): boolean {
+    return this.data.some(({ type }) => type != null && type.includes('3d'));
   }
 
   getPlotWidth(): number {
