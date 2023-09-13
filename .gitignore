@@ -7,3 +7,6 @@ tsconfig.tsbuildinfo
 
 # Ignore users local python venvs
 .venv/
+
+# Ignore any local tox virtualenvs
+.tox/

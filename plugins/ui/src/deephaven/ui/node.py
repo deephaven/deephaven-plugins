@@ -1,8 +1,11 @@
 # Prototype for programmatic layouts/callbacks
 # Uses a React-like syntax, with hooks
 import functools
+import logging
 from .render import RenderContext
 from .shared_internal import _get_context, _set_context
+
+logger = logging.getLogger(__name__)
 
 
 class ComponentNode:
@@ -29,8 +32,10 @@ class ComponentNode:
             else:
                 return child
 
-        # print("MJB ComponentNode.render")
+        logger.debug("ComponentNode.render")
+
         result = self._render(context)
+
         if render_deep:
             # Array of children returned, render them all
             if isinstance(result, list):
@@ -70,7 +75,9 @@ def component(func):
             :return: The rendered component.
             """
             old_context = _get_context()
-            # print("MJB old context is " + str(old_context) + " and new context is " + str(context))
+            logger.debug(
+                "old context is %s and new context is %s", old_context, context
+            )
 
             _set_context(context)
             context.start_render()
@@ -78,7 +85,7 @@ def component(func):
             result = func(*args, **kwargs)
 
             context.finish_render()
-            # print("Resetting to old context" + str(old_context))
+            logger.debug("Resetting to old context %s", old_context)
             _set_context(old_context)
             return result
 

@@ -1,8 +1,11 @@
+import logging
+from threading import Timer
+from typing import Callable
 from .shared_internal import _get_context
 from deephaven.table import Table
 from deephaven.table_listener import listen
-from typing import Callable
-from threading import Timer
+
+logger = logging.getLogger(__name__)
 
 
 def use_state(initial_value):
@@ -20,7 +23,7 @@ def use_state(initial_value):
 
     def set_value(new_value):
         # Set the value in the context state and trigger a rerender
-        # print("MJB use_state set_value called with " + str(new_value))
+        logger.debug("use_state set_value called with %s", new_value)
         context.set_state(hook_index, new_value)
 
     return value, set_value

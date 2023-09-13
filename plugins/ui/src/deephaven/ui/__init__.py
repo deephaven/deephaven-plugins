@@ -1,4 +1,4 @@
-# The UI widget plugin
+# The deephaven.ui plugin
 
 from deephaven.plugin import Registration, Callback
 from deephaven.plugin.object_type import (
@@ -7,11 +7,13 @@ from deephaven.plugin.object_type import (
     MessageStream,
 )
 from typing import List, Any
-import json
+import logging
 import io
 from .render import RenderContext
 from .node import ComponentNode, component
 from .components import *
+
+logger = logging.getLogger(__name__)
 
 __version__ = "0.0.1.dev0"
 

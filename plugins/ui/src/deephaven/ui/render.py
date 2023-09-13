@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 class RenderContext:
     """
     Context for rendering a component.
@@ -15,7 +20,7 @@ class RenderContext:
         Note that we're just re-rendering the whole tree on change.
         TODO: We should be able to do better than this, and only re-render the parts that have actually changed.
         """
-        # print("MJB _notify_change")
+        logger.debug("Notifying parent context that child context has changed")
         self._on_change()
 
     def set_on_change(self, on_change):
