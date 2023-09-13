@@ -3,6 +3,13 @@ from typing import Optional
 
 
 class UiSharedInternals:
+    """
+    Shared internal context for the deephaven.ui plugin to use when rendering.
+    Should be set at the start of a render call, and unset at the end.
+
+    TODO: Need to keep track of context for each given thread, in case we have multiple threads rendering at once.
+    """
+
     _current_context: Optional[RenderContext] = None
 
     @property
@@ -13,10 +20,9 @@ class UiSharedInternals:
 _deephaven_ui_shared_internals: UiSharedInternals = UiSharedInternals()
 
 
-# TODO: Get/set need to be thread safe
-def _get_context() -> RenderContext:
+def get_context() -> RenderContext:
     return _deephaven_ui_shared_internals.current_context
 
 
-def _set_context(context):
+def set_context(context):
     _deephaven_ui_shared_internals._current_context = context

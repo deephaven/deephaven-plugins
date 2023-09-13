@@ -1,7 +1,7 @@
 import logging
 from threading import Timer
 from typing import Callable
-from .shared_internal import _get_context
+from .shared_internal import get_context
 from deephaven.table import Table
 from deephaven.table_listener import listen
 
@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 def use_state(initial_value):
-    context = _get_context()
+    context = get_context()
     hook_index = context.next_hook_index()
 
     value = initial_value

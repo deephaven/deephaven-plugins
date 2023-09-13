@@ -1,4 +1,3 @@
-import unittest
 from unittest.mock import Mock
 from .BaseTest import BaseTestCase
 

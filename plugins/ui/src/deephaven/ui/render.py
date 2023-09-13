@@ -5,7 +5,8 @@ logger = logging.getLogger(__name__)
 
 class RenderContext:
     """
-    Context for rendering a component.
+    Context for rendering a component. Keeps track of state and child contexts.
+    Used by hooks to get and set state.
     """
 
     def __init__(self):
@@ -50,6 +51,7 @@ class RenderContext:
         """
         Set the state for the given key.
         """
+        # TODO: Should we throw here if it's called when we're in the middle of a render?
         self._state[key] = value
         self._notify_change()
 

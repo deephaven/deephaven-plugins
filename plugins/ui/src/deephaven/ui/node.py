@@ -3,7 +3,7 @@
 import functools
 import logging
 from .render import RenderContext
-from .shared_internal import _get_context, _set_context
+from .shared_internal import get_context, set_context
 
 logger = logging.getLogger(__name__)
 
@@ -74,19 +74,19 @@ def component(func):
             :param context: Context to render the component in
             :return: The rendered component.
             """
-            old_context = _get_context()
+            old_context = get_context()
             logger.debug(
                 "old context is %s and new context is %s", old_context, context
             )
 
-            _set_context(context)
+            set_context(context)
             context.start_render()
 
             result = func(*args, **kwargs)
 
             context.finish_render()
             logger.debug("Resetting to old context %s", old_context)
-            _set_context(old_context)
+            set_context(old_context)
             return result
 
         return ComponentNode(component_type, render)
