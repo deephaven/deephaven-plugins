@@ -12,19 +12,14 @@ import io
 from .render import RenderContext
 from .node import ComponentNode, component
 from .components import *
+from .hooks import *
+from .utils import get_component_name as _get_component_name
 
 logger = logging.getLogger(__name__)
 
 __version__ = "0.0.1.dev0"
 
 # TODO: Everything needs tests, docstrings, etc
-
-
-def _get_component_name(comp):
-    """
-    Get the name of the component
-    """
-    return comp.__module__ + "." + comp.__qualname__
 
 
 class ComponentNodeMessageStream(MessageStream):

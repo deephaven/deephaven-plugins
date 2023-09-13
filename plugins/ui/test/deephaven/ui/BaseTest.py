@@ -12,6 +12,7 @@ class BaseTestCase(unittest.TestCase):
             cls.s.start()
         except Exception as e:
             # server is already running
+            print(f"Exception {e}")
             pass
 
         # these mocks need to be setup after the deephaven server is
