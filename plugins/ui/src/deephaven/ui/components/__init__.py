@@ -22,8 +22,12 @@ def component(func):
         def render(context: RenderContext):
             """
             Render the component. Should only be called when actually rendering the component, e.g. exporting it to the client.
-            :param context: Context to render the component in
-            :return: The rendered component.
+
+            Args:
+                context: Context to render the component in
+
+            Returns:
+                The rendered component.
             """
             old_context = get_context()
             logger.debug(
