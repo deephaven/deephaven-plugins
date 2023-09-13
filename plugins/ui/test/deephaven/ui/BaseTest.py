@@ -8,7 +8,8 @@ class BaseTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         try:
-            cls.s = Server(port=10000, jvm_args=["-Xmx4g"])
+            # Use port 11000 so it doesn't conflict with another server
+            cls.s = Server(port=11000, jvm_args=["-Xmx4g"])
             cls.s.start()
         except Exception as e:
             # server is already running
