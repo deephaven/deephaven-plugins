@@ -68,9 +68,9 @@ It is up to the plugin to handle any issues with multi-client access to the obje
 
 ```mermaid
 sequenceDiagram
-  participant S as Server
-  participant P as Plugin
   participant J as JS Plugin
+  participant P as Plugin
+  participant S as Server
   J ->> S: Fetch object info
   S ->> P: create_client_connection(object)
   P -->> S: MessageStream
@@ -84,9 +84,9 @@ The server may send unsolicited messages to the client in a bidirectional commun
 
 ```mermaid
 sequenceDiagram
-  participant S as Server
-  participant P as Plugin
   participant J as JS Plugin
+  participant P as Plugin
+  participant S as Server
   J ->> S: Fetch object info
   S -->> J: Widget data and exports
   J ->> J: widget.addEventListener('message', fn)
@@ -102,9 +102,9 @@ The message should either be a UTF-8 encoded string or a `Uint8Array`. The serve
 
 ```mermaid
 sequenceDiagram
-  participant S as Server
-  participant P as Plugin
   participant J as JS Plugin
+  participant P as Plugin
+  participant S as Server
   J ->> S: Fetch object info
   S -->> J: Widget data and exports
   J ->> S: widget.sendMessage('message', [references])
