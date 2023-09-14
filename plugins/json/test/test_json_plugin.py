@@ -7,10 +7,7 @@ from deephaven.plugin.object_type import Exporter, Reference
 
 
 def read_text(resource: str):
-    return (importlib.resources
-            .files(__package__)
-            .joinpath(resource)
-            .read_bytes())
+    return importlib.resources.files(__package__).joinpath(resource).read_bytes()
 
 
 def read_json(resource: str):
