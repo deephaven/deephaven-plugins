@@ -9,6 +9,7 @@ def create():
     return Node(
         {
             "inner_1": inner_1,
+            "inner_1_again": inner_1,
             "inner_1_ref": inner_1.as_ref,
             "inner_2": inner_2,
             "inner_2_ref_1": inner_2_ref_1,
