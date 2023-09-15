@@ -1,6 +1,6 @@
 import logging
-from .._internal import RenderContext
-from ..components import UINode
+from .._internal import RenderContext, get_component_qualname
+from ..components import Element, UINode
 from .rendered_node import RenderedNode
 
 logger = logging.getLogger(__name__)
@@ -20,6 +20,10 @@ def _render(context: RenderContext, node: UINode):
     def render_child(child, child_context):
         if isinstance(child, UINode):
             return child.render(child_context)
+        elif isinstance(child, Element):
+            return RenderedNode(
+                get_component_qualname(child), child.children, child.props
+            )
         else:
             return child
 

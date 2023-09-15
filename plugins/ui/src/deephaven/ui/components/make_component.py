@@ -1,6 +1,6 @@
 import functools
 import logging
-from .._internal import RenderContext, get_context, set_context, get_component_name
+from .._internal import RenderContext, get_context, set_context, get_component_qualname
 from .node import UINode
 
 logger = logging.getLogger(__name__)
@@ -13,7 +13,7 @@ def make_component(func):
 
     @functools.wraps(func)
     def make_component_node(*args, **kwargs):
-        component_type = get_component_name(func)
+        component_type = get_component_qualname(func)
 
         def render(context: RenderContext):
             """
