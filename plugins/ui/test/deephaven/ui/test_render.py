@@ -4,7 +4,7 @@ from .BaseTest import BaseTestCase
 
 class RenderTestCase(BaseTestCase):
     def test_empty_render(self):
-        from deephaven.ui.render import RenderContext
+        from deephaven.ui._internal.context import RenderContext
 
         rc = RenderContext()
         self.assertEqual(rc._hook_index, -1)
@@ -13,7 +13,7 @@ class RenderTestCase(BaseTestCase):
         self.assertEqual(rc._on_change(), None)
 
     def test_hook_index(self):
-        from deephaven.ui.render import RenderContext
+        from deephaven.ui._internal.context import RenderContext
 
         rc = RenderContext()
 
@@ -48,7 +48,7 @@ class RenderTestCase(BaseTestCase):
             rc.finish_render()
 
     def test_state(self):
-        from deephaven.ui.render import RenderContext
+        from deephaven.ui._internal.context import RenderContext
 
         rc = RenderContext()
 
@@ -70,7 +70,7 @@ class RenderTestCase(BaseTestCase):
         self.assertEqual(on_change.call_count, 1)
 
     def test_context(self):
-        from deephaven.ui.render import RenderContext
+        from deephaven.ui._internal.context import RenderContext
 
         rc = RenderContext()
 

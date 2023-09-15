@@ -1,7 +1,7 @@
 from typing import List, Any
 import io
 from deephaven.plugin.object_type import BidirectionalObjectType, MessageStream
-from ..utils import get_component_name as _get_component_name
+from .._internal import get_component_name
 
 
 class TextField:
@@ -35,7 +35,7 @@ class TextFieldMessageStream(MessageStream):
 class TextFieldType(BidirectionalObjectType):
     @property
     def name(self) -> str:
-        return _get_component_name(TextField)
+        return get_component_name(TextField)
 
     def is_type(self, obj: any) -> bool:
         return isinstance(obj, TextField)

@@ -1,6 +1,6 @@
 from typing import List, Any
 from deephaven.plugin.object_type import BidirectionalObjectType, MessageStream
-from ..utils import get_component_name as _get_component_name
+from .._internal import get_component_name
 
 
 class Text:
@@ -27,7 +27,7 @@ class TextMessageStream(MessageStream):
 class TextType(BidirectionalObjectType):
     @property
     def name(self) -> str:
-        return _get_component_name(Text)
+        return get_component_name(Text)
 
     def is_type(self, obj: any) -> bool:
         return isinstance(obj, Text)
