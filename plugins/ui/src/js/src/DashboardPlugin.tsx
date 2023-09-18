@@ -2,18 +2,18 @@ import {
   DashboardPluginComponentProps,
   useDashboardPanel,
 } from '@deephaven/dashboard';
-import ComponentPanel from './ComponentPanel';
+import ElementPanel from './ElementPanel';
 
-const NAME_UI_NODE = 'deephaven.ui.components.node.UINode';
+const NAME_ELEMENT = 'deephaven.ui.elements.Element.Element';
 
 export function DashboardPlugin(
   props: DashboardPluginComponentProps
 ): JSX.Element | null {
   useDashboardPanel({
     dashboardProps: props,
-    component: ComponentPanel,
-    componentName: ComponentPanel.displayName,
-    supportedTypes: [NAME_UI_NODE],
+    component: ElementPanel,
+    componentName: ElementPanel.displayName,
+    supportedTypes: [NAME_ELEMENT],
   });
 
   return null;

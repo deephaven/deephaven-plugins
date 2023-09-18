@@ -92,6 +92,13 @@ class DocumentTest(BaseTestCase):
             [obj1],
         )
 
+    def exported_null(self):
+        self.expect_document(
+            make_node("test_exported", [None]),
+            {"name": "test_exported", "children": [None]},
+            [],
+        )
+
     def test_children_with_exported(self):
         obj1 = TestObject()
         obj2 = TestObject()

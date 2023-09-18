@@ -29,7 +29,7 @@ def export_node(node: RenderedNode, exported_objects: list):
             exported_node["props"] = node.props
 
         return exported_node
-    elif is_primitive(node):
+    elif node is None or is_primitive(node):
         return node
     else:
         exported_objects.append(node)
