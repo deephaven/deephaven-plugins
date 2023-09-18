@@ -1,9 +1,12 @@
 import json
+import logging
 from typing import List, Any
 from deephaven.plugin.object_type import BidirectionalObjectType, MessageStream
 from ..elements import Element
 from ..renderer import Document, Renderer, RenderedNode
 from .._internal import RenderContext
+
+logger = logging.getLogger(__name__)
 
 
 class ElementMessageStream(MessageStream):
@@ -34,6 +37,9 @@ class ElementMessageStream(MessageStream):
     def _send_result(self, result: RenderedNode) -> None:
         document = Document(result)
         payload = json.dumps(document.root, separators=(",", ":")).encode()
+
+        logger.debug(f"Sending payload: {payload}")
+
         self._connection.on_data(payload, document.exported_objects)
 
     def on_close(self) -> None:

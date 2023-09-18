@@ -1,4 +1,7 @@
+import logging
 from .RenderedNode import RenderedNode
+
+logger = logging.getLogger(__name__)
 
 
 def is_primitive(value):
@@ -19,6 +22,8 @@ def export_node(node: RenderedNode, exported_objects: list):
 
     """
     if isinstance(node, RenderedNode):
+        logger.debug("export_node rendered_node: %s", node)
+
         exported_node = {
             "name": node.name,
             "children": [
@@ -30,8 +35,10 @@ def export_node(node: RenderedNode, exported_objects: list):
 
         return exported_node
     elif node is None or is_primitive(node):
+        logger.debug("export_node primitive: %s", node)
         return node
     else:
+        logger.debug("export_node object: %s", node)
         exported_objects.append(node)
         return {
             "object_id": len(exported_objects) - 1,

@@ -19,16 +19,22 @@ def _render(context: RenderContext, element: Element):
 
     def render_child(child, child_context):
         if isinstance(child, Element):
-            return RenderedNode(child.name, child.render(child_context), child.props)
+            logger.debug(
+                "render_child element %s: %s",
+                type(child),
+                child,
+            )
+            return _render(child_context, child)
         else:
+            logger.debug("render_child returning child (%s): %s", type(child), child)
             return child
 
-    logger.debug("render")
+    logger.debug("Rendering %s: ", element.name)
 
     result = element.render(context)
 
-    # Make it an array if it's not already.
-    if not isinstance(result, list):
+    # Make it an array or tuple if it's not already.
+    if not isinstance(result, list) and not isinstance(result, tuple):
         result = [result]
 
     # Render all children and store in the result
