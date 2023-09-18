@@ -1,4 +1,5 @@
 from .Element import Element
+from .._internal import RenderContext
 
 
 class HTMLElement(Element):
@@ -8,7 +9,7 @@ class HTMLElement(Element):
 
     def __init__(self, tag, /, *children, **attributes):
         """
-        Create a new HTML element.
+        Create a new HTML element. Render just returns the children that are passed in.
 
         Args:
             tag: The HTML tag for this element.
@@ -36,3 +37,6 @@ class HTMLElement(Element):
             "attributes": self.attributes,
             "tag": self._tag,
         }
+
+    def render(self, context: RenderContext):
+        return self._children

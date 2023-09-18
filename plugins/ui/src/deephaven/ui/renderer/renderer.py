@@ -1,12 +1,12 @@
 import logging
 from .._internal import RenderContext, get_component_qualname
-from ..components import Element, UINode
-from .rendered_node import RenderedNode
+from ..elements import Element, FunctionElement
+from .RenderedNode import RenderedNode
 
 logger = logging.getLogger(__name__)
 
 
-def _render(context: RenderContext, node: UINode):
+def _render(context: RenderContext, node: FunctionElement):
     """
     Render the component.
 
@@ -18,7 +18,7 @@ def _render(context: RenderContext, node: UINode):
     """
 
     def render_child(child, child_context):
-        if isinstance(child, UINode):
+        if isinstance(child, FunctionElement):
             return child.render(child_context)
         elif isinstance(child, Element):
             return RenderedNode(
@@ -27,7 +27,7 @@ def _render(context: RenderContext, node: UINode):
         else:
             return child
 
-    logger.debug("UINode.render")
+    logger.debug("render")
 
     result = node.render(context)
 
@@ -48,5 +48,5 @@ class Renderer:
     def __init__(self, context: RenderContext = RenderContext()):
         self._context = context
 
-    def render(self, component: UINode):
+    def render(self, component: FunctionElement):
         return _render(self._context, component)

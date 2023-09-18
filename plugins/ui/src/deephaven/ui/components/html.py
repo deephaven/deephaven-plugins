@@ -1,4 +1,4 @@
-from .HTMLElement import HTMLElement
+from ..elements import HTMLElement
 
 
 def div(*children, **attributes):

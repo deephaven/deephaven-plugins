@@ -4,11 +4,11 @@ from .BaseTest import BaseTestCase
 
 class HtmlTest(BaseTestCase):
     def test_html_element(self):
-        from deephaven.ui.components.Element import ElementType
-        from deephaven.ui.components.HTMLElement import HTMLElement
+        from deephaven.ui.object_types import ElementType
+        from deephaven.ui.elements import HTMLElement
 
         element_type = ElementType()
-        self.assertEqual(element_type.name, "deephaven.ui.components.Element.Element")
+        self.assertEqual(element_type.name, "deephaven.ui.elements.Element.Element")
 
         def expect_exported(html_element: HTMLElement, expected: str):
             self.assertTrue(element_type.is_type(html_element))
