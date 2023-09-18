@@ -1,5 +1,4 @@
+from .ElementMessageStream import ElementMessageStream
 from .ElementType import ElementType
-from .FunctionElementMessageStream import FunctionElementMessageStream
-from .FunctionElementType import FunctionElementType
 from .TextFieldType import TextFieldType
 from .TextFieldMessageStream import TextFieldMessageStream

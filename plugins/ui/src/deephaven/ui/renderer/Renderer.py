@@ -1,12 +1,12 @@
 import logging
 from .._internal import RenderContext, get_component_qualname
-from ..elements import Element, FunctionElement
+from ..elements import Element
 from .RenderedNode import RenderedNode
 
 logger = logging.getLogger(__name__)
 
 
-def _render(context: RenderContext, node: FunctionElement):
+def _render(context: RenderContext, element: Element):
     """
     Render the component.
 
@@ -18,18 +18,14 @@ def _render(context: RenderContext, node: FunctionElement):
     """
 
     def render_child(child, child_context):
-        if isinstance(child, FunctionElement):
-            return child.render(child_context)
-        elif isinstance(child, Element):
-            return RenderedNode(
-                get_component_qualname(child), child.children, child.props
-            )
+        if isinstance(child, Element):
+            return RenderedNode(child.name, child.render(child_context), child.props)
         else:
             return child
 
     logger.debug("render")
 
-    result = node.render(context)
+    result = element.render(context)
 
     # Make it an array if it's not already.
     if not isinstance(result, list):
@@ -41,12 +37,12 @@ def _render(context: RenderContext, node: FunctionElement):
         for i, child in enumerate(result)
     ]
 
-    return RenderedNode(node.name, result)
+    return RenderedNode(element.name, result, element.props)
 
 
 class Renderer:
     def __init__(self, context: RenderContext = RenderContext()):
         self._context = context
 
-    def render(self, component: FunctionElement):
-        return _render(self._context, component)
+    def render(self, element: Element):
+        return _render(self._context, element)

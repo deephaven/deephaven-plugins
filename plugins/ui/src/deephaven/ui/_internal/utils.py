@@ -22,6 +22,3 @@ def get_component_qualname(component):
         The name of the component.
     """
     return component.__module__ + "." + component.__qualname__
-
-
-__all__ = ["get_component_name", "get_component_qualname"]

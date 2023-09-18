@@ -18,7 +18,7 @@ class FunctionElement(Element):
         self._name = name
         self._render = render
 
-    def render(self, context: RenderContext):
+    def render(self, context: RenderContext) -> List[Element]:
         """
         Render the component. Should only be called when actually rendering the component, e.g. exporting it to the client.
 

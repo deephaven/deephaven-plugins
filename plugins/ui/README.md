@@ -1,3 +1,5 @@
+⚠️__WARNING__: This plugin is a work in progress and is subject to change. Use at your own risk.⚠️
+
 # deephaven.ui Plugin
 
 Plugin prototype for programmatic layouts and callbacks. Currently calling it `deephaven.ui` but that's not set in stone.
