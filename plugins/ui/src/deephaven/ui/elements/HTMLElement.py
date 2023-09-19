@@ -1,8 +1,8 @@
-from .Element import Element
+from .BaseElement import BaseElement
 from .._internal import RenderContext
 
 
-class HTMLElement(Element):
+class HTMLElement(BaseElement):
     """
     Base class for all HTML elements
     """
@@ -14,29 +14,6 @@ class HTMLElement(Element):
         Args:
             tag: The HTML tag for this element.
             *children: The children of the element.
+            **attributes: Attributes to set on the element.
         """
-        self._tag = tag
-        self._children = children
-        self._attributes = attributes
-
-    @property
-    def tag(self):
-        return self._tag
-
-    @property
-    def children(self):
-        return self._children
-
-    @property
-    def attributes(self):
-        return self._attributes
-
-    @property
-    def props(self):
-        return {
-            "attributes": self.attributes,
-            "tag": self._tag,
-        }
-
-    def render(self, context: RenderContext):
-        return self._children
+        super().__init__(f"deephaven.ui.html.{tag}", *children, **attributes)

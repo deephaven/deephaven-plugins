@@ -6,7 +6,7 @@ import UIElement, {
   isRenderedNode,
 } from './UIElement';
 import ObjectView from './ObjectView';
-import { isHTMLElementNode } from './UIHTMLElement';
+import { getHTMLTag, isHTMLElementNode } from './UIHTMLElement';
 
 export type ElementViewProps = {
   element: UIElement;
@@ -23,11 +23,10 @@ export function ElementView({ element }: ElementViewProps): JSX.Element | null {
       return <ElementView key={index} element={childElement} />;
     });
     if (isHTMLElementNode(root)) {
-      const { props } = root;
-      // eslint-disable-next-line react/prop-types
-      const { tag: Tag, attributes } = props;
+      const { name, props } = root;
+      const Tag = getHTMLTag(name);
       // eslint-disable-next-line react/jsx-props-no-spreading
-      return <Tag {...attributes}>{inner}</Tag>;
+      return <Tag {...props}>{inner}</Tag>;
     }
     switch (root.name) {
       case 'deephaven.ui.spectrum.Flex':
