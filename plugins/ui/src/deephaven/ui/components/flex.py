@@ -1,23 +1,15 @@
 from ..elements import HTMLElement
 
 
-def flex(*children, **attributes):
-    return HTMLElement("div", *children, style={"display": "flex"}, **attributes)
-
-
-def flex_row(*children, **attributes):
+def flex(*children, style: dict = {}, **attributes):
     return HTMLElement(
-        "div",
-        *children,
-        style={"display": "flex", "flex-direction": "row"},
-        **attributes
+        "div", *children, style={"display": "flex", **style}, **attributes
     )
 
 
-def flex_col(*children, **attributes):
-    return HTMLElement(
-        "div",
-        *children,
-        style={"display": "flex", "flex-direction": "column"},
-        **attributes
-    )
+def flex_row(*children, style: dict = {}, **attributes):
+    return flex(*children, style={"flex-direction": "row", **style}, **attributes)
+
+
+def flex_col(*children, style: dict = {}, **attributes):
+    return flex(*children, style={"flex-direction": "column", **style}, **attributes)

@@ -1,4 +1,21 @@
+"""
+Provides a set of functions for creating raw HTML elements.
+
+The components provided in deephaven.ui should be preferred over this module.
+"""
 from ..elements import HTMLElement
+
+
+def create_element(tag, *children, **attributes):
+    """
+    Create a new HTML element. Render just returns the children that are passed in.
+
+    Args:
+        tag: The HTML tag for this element.
+        *children: The children of the element.
+        **attributes: Attributes to set on the element
+    """
+    return HTMLElement(tag, *children, **attributes)
 
 
 def div(*children, **attributes):
@@ -75,3 +92,63 @@ def th(*children, **attributes):
 
 def td(*children, **attributes):
     return HTMLElement("td", *children, **attributes)
+
+
+def b(*children, **attributes):
+    return HTMLElement("b", *children, **attributes)
+
+
+def i(*children, **attributes):
+    return HTMLElement("i", *children, **attributes)
+
+
+def br(*children, **attributes):
+    return HTMLElement("br", *children, **attributes)
+
+
+def hr(*children, **attributes):
+    return HTMLElement("hr", *children, **attributes)
+
+
+def pre(*children, **attributes):
+    return HTMLElement("pre", *children, **attributes)
+
+
+def code(*children, **attributes):
+    return HTMLElement("code", *children, **attributes)
+
+
+def img(*children, **attributes):
+    return HTMLElement("img", *children, **attributes)
+
+
+def button(*children, **attributes):
+    return HTMLElement("button", *children, **attributes)
+
+
+def input(*children, **attributes):
+    return HTMLElement("input", *children, **attributes)
+
+
+def form(*children, **attributes):
+    return HTMLElement("form", *children, **attributes)
+
+
+def label(*children, **attributes):
+    return HTMLElement("label", *children, **attributes)
+
+
+def select(*children, **attributes):
+    return HTMLElement("select", *children, **attributes)
+
+
+def option(*children, **attributes):
+    return HTMLElement("option", *children, **attributes)
+
+
+def textarea(*children, **attributes):
+    return HTMLElement("textarea", *children, **attributes)
+
+
+def style(*children, **attributes):
+    return HTMLElement("style", *children, **attributes)
