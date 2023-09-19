@@ -45,4 +45,4 @@ class ElementMessageStream(MessageStream):
         pass
 
     def on_data(self, payload: bytes, references: List[Any]) -> None:
-        print("Payload received: %s", payload)
+        logger.debug("Payload received: %s", payload)
