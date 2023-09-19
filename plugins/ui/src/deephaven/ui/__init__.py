@@ -1,4 +1,8 @@
-# The deephaven.ui plugin
+"""
+deephaven.ui is a plugin for Deephaven that provides a Python API for creating UIs.
+
+The API is designed to be similar to React, but with some differences to make it more Pythonic.
+"""
 
 from deephaven.plugin import Registration, Callback
 from .components import *
