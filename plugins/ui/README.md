@@ -1,4 +1,4 @@
-⚠️__WARNING__: This plugin is a work in progress and is subject to change. Use at your own risk.⚠️
+# ⚠️This plugin is a work in progress and is subject to change. Use at your own risk.⚠️
 
 # deephaven.ui Plugin
 
@@ -21,17 +21,19 @@ To build:
 python -m build --wheel
 ```
 
-The wheel is stored in `dist/`. 
+The wheel is stored in `dist/`.
 
 To test within [deephaven-core](https://github.com/deephaven/deephaven-core), note where this wheel is stored (using `pwd`, for example).
 Then, follow the directions in the top-level README.md to install the wheel into your Deephaven environment.
 
 To unit test, run the following command from the root of the repo:
+
 ```sh
 tox -e py
 ```
 
 ## Usage
+
 Once you have the JS and python plugins installed and the server started, you can use deephaven.ui. See [EXAMPLES.md](EXAMPLES.md) for examples.
 
 ## Logging

@@ -30,8 +30,9 @@ def export_node(node: RenderedNode, exported_objects: list):
                 export_node(child, exported_objects) for child in node.children
             ],
         }
-        if node.props:
-            exported_node["props"] = node.props
+        props = node.props
+        if props:
+            exported_node["props"] = props
 
         return exported_node
     elif node is None or is_primitive(node):

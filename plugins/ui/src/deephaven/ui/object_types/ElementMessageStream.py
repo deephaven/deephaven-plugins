@@ -26,13 +26,12 @@ class ElementMessageStream(MessageStream):
         context = RenderContext()
         renderer = Renderer(context)
 
-        def handle_change():
+        def update():
             result = renderer.render(self._element)
             self._send_result(result)
 
-        context.set_on_change(handle_change)
-        result = renderer.render(self._element)
-        self._send_result(result)
+        context.set_on_change(update)
+        update()
 
     def _send_result(self, result: RenderedNode) -> None:
         document = Document(result)
@@ -46,4 +45,4 @@ class ElementMessageStream(MessageStream):
         pass
 
     def on_data(self, payload: bytes, references: List[Any]) -> None:
-        print(f"Data received: {payload}")
+        print("Payload received: %s", payload)

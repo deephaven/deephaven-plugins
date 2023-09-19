@@ -1,8 +1,11 @@
 export type PrimitiveNode = string | number | boolean;
 
 export type RenderedNode = {
+  /** Name of the type of node */
   name: string;
+  /** Children of the node */
   children?: RenderedNode[];
+  /** Properties of the node */
   props?: { [key: string]: unknown };
 };
 

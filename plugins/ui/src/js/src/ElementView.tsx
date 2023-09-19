@@ -1,4 +1,5 @@
 import React from 'react';
+import { Flex } from '@adobe/react-spectrum';
 import UIElement, {
   isObjectNode,
   isPrimitiveNode,
@@ -28,8 +29,14 @@ export function ElementView({ element }: ElementViewProps): JSX.Element | null {
       // eslint-disable-next-line react/jsx-props-no-spreading
       return <Tag {...attributes}>{inner}</Tag>;
     }
-    // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <>{inner}</>;
+    switch (root.name) {
+      case 'deephaven.ui.spectrum.Flex':
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        return <Flex {...(root.props ?? {})}>{inner}</Flex>;
+      default:
+        // eslint-disable-next-line react/jsx-no-useless-fragment
+        return <>{inner}</>;
+    }
   }
   if (isObjectNode(root)) {
     const object = objects[root.object_id];

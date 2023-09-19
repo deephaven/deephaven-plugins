@@ -18,6 +18,7 @@ class Element(ABC):
         """
         return None
 
+    @abstractmethod
     def render(self, context: RenderContext) -> Union[None, List["Element"]]:
         """
         Renders this element, and returns the result (the `children` of this element).
@@ -26,7 +27,7 @@ class Element(ABC):
         Returns:
             The children of this element.
         """
-        return []
+        pass
 
     @property
     def name(self) -> str:
