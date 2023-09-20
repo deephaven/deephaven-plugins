@@ -999,7 +999,7 @@ tft = text_filter_table(t, "sym")
 
 Which should result in a UI like this:
 
-![Double Text Filter Tables](double-tft.png)
+![Double Text Filter Tables](examples/double-tft.png)
 
 How does that look when the notebook is executed? When does each code block execute?
 
@@ -1035,6 +1035,26 @@ sequenceDiagram
   Note over SP: sym_exchange executes, text_filter_table only <br/>runs once for the one changed input
   SP-->>UIP: Result (flex([tft1', tft2]))
   UIP-->>W: Display (flex([tft1', tft2]))
+```
+
+##### Communication/Callbacks
+
+When the document is first rendered, it will pass the entire document to the client. When the client makes a callback, it needs to send a message to the server indicating which callback it wants to trigger, and with which parameters. For this, we use [JSON-RPC](https://www.jsonrpc.org/specification). When the client opens the message stream to the server, the communication looks like:
+
+```mermaid
+sequenceDiagram
+  participant UIP as UI Plugin
+  participant SP as Server Plugin
+
+  UIP->>SP: obj.getDataAsString()
+  SP-->>UIP: updateDocument(Document)
+
+  loop Callback
+    UIP->>SP: foo(params)
+    SP-->>UIP: foo result
+
+    SP-->>UIP: updateDocument(Document)
+  end
 ```
 
 #### Other Decisions
