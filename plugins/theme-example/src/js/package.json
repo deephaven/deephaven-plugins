@@ -1,0 +1,16 @@
+{
+  "name": "@deephaven/theme-example",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "npm run build -- -w",
+    "build": "tsc && vite build"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react-swc": "^3.0.0",
+    "typescript": "^5.0.2",
+    "vite": "~4.1.4"
+  }
+}
