@@ -10,11 +10,16 @@ class BaseElement(Element):
 
     def __init__(self, name: str, *children, **props):
         self._name = name
-        self._children = children
+        if len(children) == 0:
+            self._children = None
+        elif len(children) == 1:
+            self._children = children[0]
+        else:
+            self._children = list(children)
         self._props = props
 
     def render(self, context: RenderContext):
-        return self._children if self._children is not None else []
+        return self._children
 
     @property
     def props(self):

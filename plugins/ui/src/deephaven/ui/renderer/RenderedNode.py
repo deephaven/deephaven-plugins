@@ -1,8 +1,8 @@
-from typing import Any, List
+from typing import Any, List, Union
 
 
 class RenderedNode:
-    def __init__(self, name: str, children: List[Any], props: dict = None):
+    def __init__(self, name: str, children: Union[Any, List[Any]], props: dict = None):
         """
         Stores the result of a rendered node
 
@@ -16,13 +16,13 @@ class RenderedNode:
         self._props = props
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
 
     @property
-    def children(self):
+    def children(self) -> Union[Any, List[Any]]:
         return self._children
 
     @property
-    def props(self):
+    def props(self) -> Union[dict, None]:
         return self._props

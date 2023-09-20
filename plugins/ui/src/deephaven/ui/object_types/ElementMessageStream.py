@@ -1,7 +1,7 @@
 import json
 import logging
 from typing import List, Any
-from deephaven.plugin.object_type import BidirectionalObjectType, MessageStream
+from deephaven.plugin.object_type import MessageStream
 from ..elements import Element
 from ..renderer import Document, Renderer, RenderedNode
 from .._internal import RenderContext

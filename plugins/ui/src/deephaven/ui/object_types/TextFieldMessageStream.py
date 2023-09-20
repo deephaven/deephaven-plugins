@@ -1,6 +1,6 @@
 from typing import List, Any
 import io
-from deephaven.plugin.object_type import BidirectionalObjectType, MessageStream
+from deephaven.plugin.object_type import MessageStream
 from ..elements import TextField
 
 

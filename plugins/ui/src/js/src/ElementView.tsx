@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import {
+  ElementNode,
   isObjectNode,
   isPrimitiveNode,
   isRenderedNode,
@@ -21,12 +22,20 @@ export function ElementView({ element }: ElementViewProps): JSX.Element | null {
   const { root, objects } = element;
 
   if (isRenderedNode(root)) {
-    const { children: elementChildren = [] } = root;
-    const children = elementChildren.map((child, index) => {
-      const childElement = { root: child, objects };
-      // eslint-disable-next-line react/no-array-index-key
-      return <ElementView key={index} element={childElement} />;
-    });
+    const { children: elementChildren } = root;
+    let children: ReactNode = null;
+    if (elementChildren != null) {
+      if (Array.isArray(elementChildren)) {
+        children = elementChildren.map((child, index) => {
+          const childElement = { root: child, objects };
+          // eslint-disable-next-line react/no-array-index-key
+          return <ElementView key={index} element={childElement} />;
+        });
+      } else {
+        const childElement: UIElement = { root: elementChildren, objects };
+        children = <ElementView element={childElement} />;
+      }
+    }
     if (isHTMLElementNode(root)) {
       return <HTMLElementView node={root}>{children}</HTMLElementView>;
     }

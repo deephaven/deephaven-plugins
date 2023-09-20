@@ -24,11 +24,20 @@ def export_node(node: RenderedNode, exported_objects: list):
     if isinstance(node, RenderedNode):
         logger.debug("export_node rendered_node: %s", node)
 
+        children = node.children
+        if children is not None:
+            # if children is an array
+            if isinstance(children, list):
+                children = [
+                    export_node(child, exported_objects) for child in node.children
+                ]
+            # if children is a single node
+            else:
+                children = export_node(children, exported_objects)
+
         exported_node = {
             "name": node.name,
-            "children": [
-                export_node(child, exported_objects) for child in node.children
-            ],
+            "children": children,
         }
         props = node.props
         if props:

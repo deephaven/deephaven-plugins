@@ -19,7 +19,7 @@ class Element(ABC):
         return None
 
     @abstractmethod
-    def render(self, context: RenderContext) -> Union[None, List["Element"]]:
+    def render(self, context: RenderContext) -> Union[None, "Element", List["Element"]]:
         """
         Renders this element, and returns the result (the `children` of this element).
         The children must also be `Element`s, or another exportable object type registered with the deephaven.plugin framework.

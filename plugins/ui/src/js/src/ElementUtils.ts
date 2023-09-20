@@ -4,7 +4,7 @@ export type RenderedNode = {
   /** Name of the type of node */
   name: string;
   /** Children of the node */
-  children?: RenderedNode[];
+  children?: RenderedNode | RenderedNode[];
   /** Properties of the node */
   props?: { [key: string]: unknown };
 };

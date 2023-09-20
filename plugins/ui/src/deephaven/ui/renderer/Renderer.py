@@ -33,15 +33,15 @@ def _render(context: RenderContext, element: Element):
 
     result = element.render(context)
 
-    # Make it an array or tuple if it's not already.
-    if not isinstance(result, list) and not isinstance(result, tuple):
-        result = [result]
-
-    # Render all children and store in the result
-    result = [
-        render_child(child, context.get_child_context(i))
-        for i, child in enumerate(result)
-    ]
+    if result is not None:
+        if isinstance(result, list):
+            # Render all children and store in the result
+            result = [
+                render_child(child, context.get_child_context(i))
+                for i, child in enumerate(result)
+            ]
+        else:
+            result = render_child(result, context.get_child_context(0))
 
     return RenderedNode(element.name, result, element.props)
 
