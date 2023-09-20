@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { type ChartPanelProps } from '@deephaven/dashboard-core-plugins';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
-import UIElement, { ExportedObject } from './UIElement';
+import UIElement, { ExportedObject } from './ElementUtils';
 import ElementView from './ElementView';
 
 const log = Log.module('@deephaven/js-plugin-ui/ElementPanel');

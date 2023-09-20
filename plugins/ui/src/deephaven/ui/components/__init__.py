@@ -1,11 +1,20 @@
-from .flex import flex
+from .icon import icon
 from .make_component import make_component as component
-from .text_field import text_field
+from .spectrum import *
 
 
 __all__ = [
     "component",
+    "content",
     "flex",
+    "grid",
+    "heading",
+    "icon",
+    "icon_wrapper",
+    "illustrated_message",
     "html",
+    "spectrum_element",
+    "text",
     "text_field",
+    "view",
 ]

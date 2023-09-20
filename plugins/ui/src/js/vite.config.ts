@@ -20,6 +20,7 @@ export default defineConfig(({ mode }) => ({
         '@adobe/react-spectrum',
         '@deephaven/chart',
         '@deephaven/components',
+        '@deephaven/icons',
         '@deephaven/iris-grid',
         '@deephaven/jsapi-bootstrap',
       ],

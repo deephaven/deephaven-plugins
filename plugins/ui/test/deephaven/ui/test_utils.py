@@ -22,7 +22,9 @@ class UtilsTest(BaseTestCase):
         def verify_component(component, expected_name):
             self.assertEqual(get_component_name(component), expected_name)
 
-        verify_component(text_field, "deephaven.ui.components.text_field.text_field")
+        verify_component(
+            text_field, "deephaven.ui.components.spectrum.text_field.text_field"
+        )
 
     def test_to_camel_case(self):
         from deephaven.ui._internal.utils import to_camel_case

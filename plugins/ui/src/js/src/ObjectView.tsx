@@ -5,7 +5,7 @@ import TableObject from './TableObject';
 import FigureObject from './FigureObject';
 import TextFieldObject from './TextFieldObject';
 import TextFieldWidget from './TextFieldWidget';
-import { ExportedObject } from './UIElement';
+import { ExportedObject } from './ElementUtils';
 
 const log = Log.module('@deephaven/js-plugin-ui/ObjectView');
 

@@ -1,6 +1,5 @@
 from typing import Literal, Optional, Union
-from ..elements import SpectrumElement
-from .._internal import dict_to_camel_case
+from .basic import spectrum_element
 
 
 def flex(
@@ -60,7 +59,7 @@ def flex(
     Python implementation for the Adobe React Spectrum Flex component.
     https://react-spectrum.adobe.com/react-spectrum/Flex.html
     """
-    return SpectrumElement(
+    return spectrum_element(
         "Flex",
         *children,
         direction=direction,

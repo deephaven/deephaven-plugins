@@ -1,12 +1,17 @@
 import React from 'react';
-import { Flex } from '@adobe/react-spectrum';
-import UIElement, {
+import {
   isObjectNode,
   isPrimitiveNode,
   isRenderedNode,
-} from './UIElement';
+  UIElement,
+} from './ElementUtils';
 import ObjectView from './ObjectView';
-import { getHTMLTag, isHTMLElementNode } from './UIHTMLElement';
+import { isHTMLElementNode } from './HTMLElementUtils';
+import HTMLElementView from './HTMLElementView';
+import { isSpectrumElementNode } from './SpectrumElementUtils';
+import SpectrumElementView from './SpectrumElementView';
+import { isIconElementNode } from './IconElementUtils';
+import IconElementView from './IconElementView';
 
 export type ElementViewProps = {
   element: UIElement;
@@ -16,26 +21,25 @@ export function ElementView({ element }: ElementViewProps): JSX.Element | null {
   const { root, objects } = element;
 
   if (isRenderedNode(root)) {
-    const { children = [] } = root;
-    const inner = children.map((child, index) => {
+    const { children: elementChildren = [] } = root;
+    const children = elementChildren.map((child, index) => {
       const childElement = { root: child, objects };
       // eslint-disable-next-line react/no-array-index-key
       return <ElementView key={index} element={childElement} />;
     });
     if (isHTMLElementNode(root)) {
-      const { name, props } = root;
-      const Tag = getHTMLTag(name);
-      // eslint-disable-next-line react/jsx-props-no-spreading
-      return <Tag {...props}>{inner}</Tag>;
+      return <HTMLElementView node={root}>{children}</HTMLElementView>;
     }
-    switch (root.name) {
-      case 'deephaven.ui.spectrum.Flex':
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        return <Flex {...(root.props ?? {})}>{inner}</Flex>;
-      default:
-        // eslint-disable-next-line react/jsx-no-useless-fragment
-        return <>{inner}</>;
+    if (isSpectrumElementNode(root)) {
+      return <SpectrumElementView node={root}>{children}</SpectrumElementView>;
     }
+    if (isIconElementNode(root)) {
+      return <IconElementView node={root}>{children}</IconElementView>;
+    }
+
+    // No special rendering for this node, just render the children
+    // eslint-disable-next-line react/jsx-no-useless-fragment
+    return <>{children}</>;
   }
   if (isObjectNode(root)) {
     const object = objects[root.object_id];

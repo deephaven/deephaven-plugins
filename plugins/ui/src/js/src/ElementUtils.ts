@@ -49,5 +49,3 @@ export type UIElement = {
   root: ElementNode;
   objects: ExportedObject[];
 };
-
-export default UIElement;
