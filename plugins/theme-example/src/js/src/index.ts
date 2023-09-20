@@ -13,7 +13,7 @@ interface ThemePluginConfig {
 interface ThemePlugin {
   name: string;
   type: 'ThemePlugin';
-  config: ThemePluginConfig | ThemePluginConfig[];
+  themes: ThemePluginConfig | ThemePluginConfig[];
 }
 
 /** Plugin */
@@ -21,7 +21,7 @@ interface ThemePlugin {
 const plugin: ThemePlugin = {
   name: 'Acme Theme Plugin',
   type: 'ThemePlugin',
-  config: [
+  themes: [
     {
       name: 'Acme Dark',
       baseTheme: 'dark',
