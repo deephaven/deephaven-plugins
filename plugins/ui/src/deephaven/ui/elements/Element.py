@@ -9,27 +9,6 @@ class Element(ABC):
     """
 
     @property
-    def props(self) -> Union[dict, None]:
-        """
-        Get the props of this element. Must be serializable to JSON.
-
-        Returns:
-            The props of this element.
-        """
-        return None
-
-    @abstractmethod
-    def render(self, context: RenderContext) -> Union[None, "Element", List["Element"]]:
-        """
-        Renders this element, and returns the result (the `children` of this element).
-        The children must also be `Element`s, or another exportable object type registered with the deephaven.plugin framework.
-
-        Returns:
-            The children of this element.
-        """
-        pass
-
-    @property
     def name(self) -> str:
         """
         Get the name of this element.
@@ -38,3 +17,14 @@ class Element(ABC):
             The unique name of this element.
         """
         return get_component_qualname(self)
+
+    @abstractmethod
+    def render(self, context: RenderContext) -> dict:
+        """
+        Renders this element, and returns the result as a dictionary of props for the element.
+        If you just want to render children, pass back a dict with children only, e.g. { "children": ... }
+
+        Returns:
+            The props of this element.
+        """
+        pass

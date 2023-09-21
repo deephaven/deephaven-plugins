@@ -10,21 +10,18 @@ class BaseElement(Element):
 
     def __init__(self, name: str, *children, **props):
         self._name = name
-        if len(children) == 0:
-            self._children = None
-        elif len(children) == 1:
-            self._children = children[0]
-        else:
-            self._children = list(children)
+        if len(children) > 0 and props.get("children") is not None:
+            raise ValueError("Cannot provide both children and props.children")
+
+        if len(children) > 1:
+            props["children"] = list(children)
+        if len(children) == 1:
+            props["children"] = children[0]
         self._props = props
-
-    def render(self, context: RenderContext):
-        return self._children
-
-    @property
-    def props(self):
-        return self._props
 
     @property
     def name(self) -> str:
         return self._name
+
+    def render(self, context: RenderContext):
+        return self._props

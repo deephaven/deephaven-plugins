@@ -18,6 +18,10 @@ class FunctionElement(Element):
         self._name = name
         self._render = render
 
+    @property
+    def name(self):
+        return self._name
+
     def render(self, context: RenderContext) -> List[Element]:
         """
         Render the component. Should only be called when actually rendering the component, e.g. exporting it to the client.
@@ -34,18 +38,10 @@ class FunctionElement(Element):
         set_context(context)
         context.start_render()
 
-        result = self._render()
+        children = self._render()
 
         context.finish_render()
         logger.debug("Resetting to old context %s", old_context)
         set_context(old_context)
 
-        return result
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def props(self):
-        return None
+        return {"children": children}

@@ -3,8 +3,9 @@ import logging
 from typing import List, Any
 from deephaven.plugin.object_type import MessageStream
 from ..elements import Element
-from ..renderer import Document, Renderer, RenderedNode
+from ..renderer import NodeEncoder, Renderer, RenderedNode
 from .._internal import RenderContext
+from ..renderer.NodeEncoder import NodeEncoder
 
 logger = logging.getLogger(__name__)
 
@@ -21,28 +22,31 @@ class ElementMessageStream(MessageStream):
         """
         self._element = element
         self._connection = connection
+        self._callables = []
 
     def start(self) -> None:
         context = RenderContext()
         renderer = Renderer(context)
 
         def update():
-            result = renderer.render(self._element)
-            self._send_result(result)
+            node = renderer.render(self._element)
+            self._send_node(node)
 
         context.set_on_change(update)
         update()
 
-    def _send_result(self, result: RenderedNode) -> None:
-        document = Document(result)
-        payload = json.dumps(document.root, separators=(",", ":")).encode()
+    def _send_node(self, node: RenderedNode) -> None:
+        encoder = NodeEncoder(separators=(",", ":"))
+        payload = encoder.encode(node)
 
         logger.debug(f"Sending payload: {payload}")
 
-        self._connection.on_data(payload, document.exported_objects)
+        self._callables = encoder.callables
+        self._connection.on_data(payload, encoder.objects)
 
     def on_close(self) -> None:
         pass
 
     def on_data(self, payload: bytes, references: List[Any]) -> None:
         logger.debug("Payload received: %s", payload)
+        # TODO: Use JSON rpc to handle calling the right method
