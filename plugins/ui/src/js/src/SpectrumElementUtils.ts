@@ -9,7 +9,7 @@ import {
   View,
 } from '@adobe/react-spectrum';
 import { ValueOf } from '@deephaven/utils';
-import { RenderedNode, isRenderedNode } from './ElementUtils';
+import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
 
 export const SPECTRUM_ELEMENT_TYPE_PREFIX = 'deephaven.ui.spectrum.';
 
@@ -27,16 +27,18 @@ export const SpectrumSupportedTypes = {
 export type SpectrumElementName =
   `${typeof SPECTRUM_ELEMENT_TYPE_PREFIX}${keyof typeof SpectrumSupportedTypes}`;
 
-export type SpectrumElementNode = RenderedNode & {
-  name: SpectrumElementName;
+export type SpectrumElementNode = ElementNode & {
+  [ELEMENT_KEY]: SpectrumElementName;
 };
 
 export function isSpectrumElementNode(
   obj: unknown
 ): obj is SpectrumElementNode {
   return (
-    isRenderedNode(obj) &&
-    (obj as SpectrumElementNode).name.startsWith(SPECTRUM_ELEMENT_TYPE_PREFIX)
+    isElementNode(obj) &&
+    (obj as SpectrumElementNode)[ELEMENT_KEY].startsWith(
+      SPECTRUM_ELEMENT_TYPE_PREFIX
+    )
   );
 }
 

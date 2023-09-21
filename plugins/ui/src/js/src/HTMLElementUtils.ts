@@ -1,18 +1,18 @@
-import { RenderedNode, isRenderedNode } from './ElementUtils';
+import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
 
 export const HTML_ELEMENT_TYPE_PREFIX = 'deephaven.ui.html.';
 
 export type HTMLElementName =
   `${typeof HTML_ELEMENT_TYPE_PREFIX}${keyof JSX.IntrinsicElements}`;
 
-export type HTMLElementNode = RenderedNode & {
-  name: HTMLElementName;
+export type HTMLElementNode = ElementNode & {
+  [ELEMENT_KEY]: HTMLElementName;
 };
 
 export function isHTMLElementNode(obj: unknown): obj is HTMLElementNode {
   return (
-    isRenderedNode(obj) &&
-    (obj as HTMLElementNode).name.startsWith(HTML_ELEMENT_TYPE_PREFIX)
+    isElementNode(obj) &&
+    (obj as HTMLElementNode)[ELEMENT_KEY].startsWith(HTML_ELEMENT_TYPE_PREFIX)
   );
 }
 

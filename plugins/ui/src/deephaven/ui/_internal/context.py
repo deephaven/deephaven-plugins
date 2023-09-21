@@ -55,11 +55,13 @@ class RenderContext:
         self._state[key] = value
         self._notify_change()
 
-    def get_child_context(self, key):
+    def get_child_context(self, key) -> "RenderContext":
         """
         Get the child context for the given key.
         """
+        logger.debug("Getting child context for key %s", key)
         if key not in self._children_context:
+            logger.debug("Creating new child context for key %s", key)
             child_context = RenderContext()
             child_context.set_on_change(self._notify_change)
             self._children_context[key] = child_context

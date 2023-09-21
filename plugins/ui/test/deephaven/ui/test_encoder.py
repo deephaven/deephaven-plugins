@@ -25,10 +25,11 @@ class EncoderTest(BaseTestCase):
         expected_payload: dict,
         expected_callables: list = [],
         expected_objects: list = [],
+        callable_id_prefix="cb",
     ):
         from deephaven.ui.renderer import NodeEncoder
 
-        encoder = NodeEncoder()
+        encoder = NodeEncoder(callable_id_prefix=callable_id_prefix)
         payload = encoder.encode(node)
         self.assertDictEqual(
             json.loads(payload), expected_payload, "payloads don't match"
@@ -213,14 +214,14 @@ class EncoderTest(BaseTestCase):
 
         self.expect_result(
             make_node("test0", {"foo": cb1}),
-            {"__dh_elem": "test0", "props": {"foo": {"__dh_cbid": 0}}},
+            {"__dh_elem": "test0", "props": {"foo": {"__dh_cbid": "cb0"}}},
             expected_callables=[cb1],
         )
 
     def test_children_with_callables(self):
-        cb1 = lambda: "hello"
-        cb2 = lambda: "world"
-        cb3 = lambda: "there"
+        cb1 = lambda: None
+        cb2 = lambda: None
+        cb3 = lambda: None
 
         # Should use a depth-first traversal to find all exported objects and their indices
         self.expect_result(
@@ -240,12 +241,12 @@ class EncoderTest(BaseTestCase):
                     "children": [
                         {
                             "__dh_elem": "test1",
-                            "props": {"foo": [{"__dh_cbid": 0}]},
+                            "props": {"foo": [{"__dh_cbid": "cb0"}]},
                         },
-                        {"__dh_cbid": 1},
+                        {"__dh_cbid": "cb1"},
                         {
                             "__dh_elem": "test3",
-                            "props": {"bar": {"__dh_cbid": 2}},
+                            "props": {"bar": {"__dh_cbid": "cb2"}},
                         },
                     ],
                 },
@@ -278,14 +279,17 @@ class EncoderTest(BaseTestCase):
                     "children": [
                         {
                             "__dh_elem": "test1",
-                            "props": {"foo": [{"__dh_cbid": 0}]},
+                            "props": {"foo": [{"__dh_cbid": "cb0"}]},
                         },
-                        {"__dh_cbid": 1},
+                        {"__dh_cbid": "cb1"},
                         {
                             "__dh_elem": "test3",
                             "props": {
-                                "bar": {"__dh_cbid": 2},
-                                "children": [{"__dh_obid": 0}, {"__dh_obid": 1}],
+                                "bar": {"__dh_cbid": "cb2"},
+                                "children": [
+                                    {"__dh_obid": 0},
+                                    {"__dh_obid": 1},
+                                ],
                             },
                         },
                     ],
@@ -305,9 +309,46 @@ class EncoderTest(BaseTestCase):
             make_node("test0", {"foo": [cb1, cb1]}),
             {
                 "__dh_elem": "test0",
-                "props": {"foo": [{"__dh_cbid": 0}, {"__dh_cbid": 0}]},
+                "props": {"foo": [{"__dh_cbid": "cb0"}, {"__dh_cbid": "cb0"}]},
             },
             expected_callables=[cb1],
+        )
+
+    def test_callable_id_prefix(self):
+        cb1 = lambda: None
+        cb2 = lambda: None
+        cb3 = lambda: None
+
+        # Should use a depth-first traversal to find all exported objects and their indices
+        self.expect_result(
+            make_node(
+                "test0",
+                {
+                    "children": [
+                        make_node("test1", {"foo": [cb1]}),
+                        cb2,
+                        make_node("test3", {"bar": cb3}),
+                    ]
+                },
+            ),
+            {
+                "__dh_elem": "test0",
+                "props": {
+                    "children": [
+                        {
+                            "__dh_elem": "test1",
+                            "props": {"foo": [{"__dh_cbid": "d2c0"}]},
+                        },
+                        {"__dh_cbid": "d2c1"},
+                        {
+                            "__dh_elem": "test3",
+                            "props": {"bar": {"__dh_cbid": "d2c2"}},
+                        },
+                    ],
+                },
+            },
+            expected_callables=[cb1, cb2, cb3],
+            callable_id_prefix="d2c",
         )
 
 

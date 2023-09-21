@@ -2,8 +2,16 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { type ChartPanelProps } from '@deephaven/dashboard-core-plugins';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
-import UIElement, { ExportedObject } from './ElementUtils';
+import UIElement, {
+  CALLABLE_KEY,
+  ExportedObject,
+  OBJECT_KEY,
+  isCallableNode,
+  isElementNode,
+  isObjectNode,
+} from './ElementUtils';
 import ElementView from './ElementView';
+import ObjectView from './ObjectView';
 
 const log = Log.module('@deephaven/js-plugin-ui/ElementPanel');
 
@@ -30,15 +38,45 @@ function ElementPanel(props: ElementPanelProps) {
   const dh = useApi();
 
   const [widget, setWidget] = useState<JsWidget>();
-  const [element, setElement] = useState<UIElement>();
+  const [element, setElement] = useState<React.ReactNode>();
 
   const makeElement = useCallback(
-    (details: WidgetMessageDetails): UIElement => {
-      const root = JSON.parse(details.getDataAsString());
-      return {
-        root,
-        objects: details.exportedObjects,
-      };
+    (details: WidgetMessageDetails): React.ReactNode => {
+      const data = details.getDataAsString();
+      log.debug2('Widget data is', data);
+      const root = JSON.parse(data, (key, value) => {
+        // Need to re-hydrate any objects that are defined
+        if (isCallableNode(value)) {
+          // Replace this object with a function that will call this callable on the server
+          return (...args: unknown[]) => {
+            const callableId = value[CALLABLE_KEY];
+            // TODO: Send the message to the server
+            log.warn('XXX Callable called', callableId, ...args);
+          };
+        }
+        if (isObjectNode(value)) {
+          // Replace this node with the exported object
+          const exportedObject = details.exportedObjects[value[OBJECT_KEY]];
+          log.info(
+            "XXX ObjectNode's on key",
+            key,
+            'exporting object',
+            exportedObject
+          );
+
+          // TODO: Only export the object view if it's being rendered as a child or is the root...
+          // Should probably just return it as just the object here, then parse the tree after looking for all exported objects rendered as nodes...
+          return <ObjectView object={exportedObject} />;
+        }
+        if (isElementNode(value)) {
+          return <ElementView element={value} />;
+        }
+
+        return value;
+      });
+      // Returned:
+      log.info('XXX Widget parsed', root);
+      return root;
     },
     []
   );
@@ -88,7 +126,7 @@ function ElementPanel(props: ElementPanelProps) {
         width: '100%',
       }}
     >
-      {element != null && <ElementView element={element} />}
+      {element}
     </div>
   );
 }

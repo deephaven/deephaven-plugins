@@ -3,17 +3,30 @@ import json
 from typing import Any
 from .RenderedNode import RenderedNode
 
+CALLABLE_KEY = "__dh_cbid"
+OBJECT_KEY = "__dh_obid"
+ELEMENT_KEY = "__dh_elem"
+
 
 class NodeEncoder(json.JSONEncoder):
     """
     Encode the node in JSON. Store any replaced objects and callables in their respective arrays.
-    - RenderedNodes in the tree are replaced with a dict with property "__dh_elem" set to the name of the element, and props set to the props key.
-    - callables in the tree are replaced with an object with property "__dh_cbid" set to the index in the callables array.
-    - non-serializable objects in the tree are replaced wtih an object with property "__dh_obid" set to the index in the objects array.
+    - RenderedNodes in the tree are replaced with a dict with property `ELEMENT_KEY` set to the name of the element, and props set to the props key.
+    - callables in the tree are replaced with an object with property `CALLABLE_KEY` set to the index in the callables array.
+    - non-serializable objects in the tree are replaced wtih an object with property `OBJECT_KEY` set to the index in the objects array.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, callable_id_prefix="cb", **kwargs):
+        """
+        Create a new NodeEncoder.
+
+        Args:
+            *args: Arguments to pass to the JSONEncoder constructor
+            callable_id_prefix: Prefix to use for callable ids. Used to ensure callables used in stream are unique.
+            **kwargs: Args to pass to the JSONEncoder constructor
+        """
         super().__init__(*args, **kwargs)
+        self._callable_id_prefix = callable_id_prefix
         self._callables = []
         self._objects = []
 
@@ -38,7 +51,7 @@ class NodeEncoder(json.JSONEncoder):
         return self._objects
 
     def _convert_rendered_node(self, node: RenderedNode):
-        result = {"__dh_elem": node.name}
+        result = {ELEMENT_KEY: node.name}
         if node.props is not None:
             result["props"] = node.props
         return result
@@ -55,7 +68,7 @@ class NodeEncoder(json.JSONEncoder):
             self._callables.append(cb)
 
         return {
-            "__dh_cbid": callable_id,
+            CALLABLE_KEY: f"{self._callable_id_prefix}{callable_id}",
         }
 
     def _convert_object(self, obj: Any):
@@ -70,5 +83,5 @@ class NodeEncoder(json.JSONEncoder):
             self._objects.append(obj)
 
         return {
-            "__dh_obid": object_id,
+            OBJECT_KEY: object_id,
         }

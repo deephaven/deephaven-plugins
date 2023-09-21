@@ -20,6 +20,7 @@ def _render(context: RenderContext, element: Element):
     """
 
     def render_child(child: Any, child_context: RenderContext):
+        logger.debug("child_context is %s", child_context)
         if isinstance(child, list) or isinstance(child, tuple):
             logger.debug("render_child list: %s", child)
             return [
@@ -29,7 +30,7 @@ def _render(context: RenderContext, element: Element):
         if isinstance(child, dict):
             logger.debug("render_child dict: %s", child)
             return {
-                key: render_child(value, lambda: child_context.get_child_context(key))
+                key: render_child(value, child_context.get_child_context(key))
                 for key, value in child.items()
             }
         if isinstance(child, Element):

@@ -23,6 +23,7 @@ class ElementMessageStream(MessageStream):
         self._element = element
         self._connection = connection
         self._callables = []
+        self._update_count = 0
 
     def start(self) -> None:
         context = RenderContext()
@@ -36,13 +37,17 @@ class ElementMessageStream(MessageStream):
         update()
 
     def _send_node(self, node: RenderedNode) -> None:
-        encoder = NodeEncoder(separators=(",", ":"))
+        # We use an ID prefix to ensure that the callable ids are unique across each document render/update
+        # That way we don't have to worry about callables from previous renders being called accidentally
+        self._update_count += 1
+        id_prefix = f"cb_{self._update_count}_"
+        encoder = NodeEncoder(callable_id_prefix=id_prefix, separators=(",", ":"))
         payload = encoder.encode(node)
 
         logger.debug(f"Sending payload: {payload}")
 
         self._callables = encoder.callables
-        self._connection.on_data(payload, encoder.objects)
+        self._connection.on_data(payload.encode(), encoder.objects)
 
     def on_close(self) -> None:
         pass

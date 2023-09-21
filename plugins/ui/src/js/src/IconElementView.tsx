@@ -1,17 +1,16 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { getIcon, IconElementNode } from './IconElementUtils';
+import { ELEMENT_KEY } from './ElementUtils';
 
 export type IconElementViewProps = {
-  children?: React.ReactNode;
-  node: IconElementNode;
+  element: IconElementNode;
 };
 
 export function IconElementView({
-  children,
-  node,
+  element,
 }: IconElementViewProps): JSX.Element | null {
-  const { name, props } = node;
+  const { [ELEMENT_KEY]: name, props = {} } = element;
   const icon = getIcon(name);
   if (icon == null) {
     throw new Error(`Unknown icon ${name}`);
@@ -19,9 +18,7 @@ export function IconElementView({
 
   return (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <FontAwesomeIcon icon={icon} {...props}>
-      {children}
-    </FontAwesomeIcon>
+    <FontAwesomeIcon icon={icon} {...props} />
   );
 }
 
