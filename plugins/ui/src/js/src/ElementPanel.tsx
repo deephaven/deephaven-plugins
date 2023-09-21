@@ -1,5 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { JSONRPCClient } from 'json-rpc-2.0';
+import {
+  JSONRPCClient,
+  JSONRPCServer,
+  JSONRPCServerAndClient,
+} from 'json-rpc-2.0';
 import { type ChartPanelProps } from '@deephaven/dashboard-core-plugins';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
@@ -22,10 +26,14 @@ export interface WidgetMessageDetails {
   exportedObjects: ExportedObject[];
 }
 
+export interface WidgetMessageEvent {
+  detail: WidgetMessageDetails;
+}
+
 export interface JsWidget extends WidgetMessageDetails {
   addEventListener: (
     type: string,
-    listener: (event: unknown) => void
+    listener: (event: WidgetMessageEvent) => void
   ) => () => void;
   sendMessage: (message: string, args: unknown[]) => void;
 }
@@ -41,43 +49,43 @@ function ElementPanel(props: ElementPanelProps) {
   const [widget, setWidget] = useState<JsWidget>();
   const [element, setElement] = useState<React.ReactNode>();
 
+  // Bi-directional communication as defined in https://www.npmjs.com/package/json-rpc-2.0
   const jsonClient = useMemo(
     () =>
-      new JSONRPCClient(request => {
-        log.info('Sending request', request);
-
-        widget?.sendMessage(JSON.stringify(request), []);
-      }),
+      widget != null
+        ? new JSONRPCServerAndClient(
+            new JSONRPCServer(),
+            new JSONRPCClient(request => {
+              log.info('Sending request', request);
+              widget.sendMessage(JSON.stringify(request), []);
+            })
+          )
+        : null,
     [widget]
   );
 
-  const makeElement = useCallback(
-    (details: WidgetMessageDetails): React.ReactNode => {
-      const data = details.getDataAsString();
-      log.debug2('Widget data is', data);
-      const root = JSON.parse(data, (key, value) => {
+  /**
+   * Parse the data from the server, replacing any callable nodes with functions that call the server.
+   */
+  const parseData = useCallback(
+    (data: string, exportedObjects: ExportedObject[]) =>
+      JSON.parse(data, (key, value) => {
         // Need to re-hydrate any objects that are defined
         if (isCallableNode(value)) {
-          // Replace this object with a function that will call this callable on the server
-          return (...args: unknown[]) => {
-            const callableId = value[CALLABLE_KEY];
-            log.warn('XXX Callable called', callableId, ...args);
-            // TODO: Actually listen for a response from the server and return it async
-            jsonClient.request(callableId, args);
+          const callableId = value[CALLABLE_KEY];
+          log.info('Registering callableId', callableId);
+          return async (...args: unknown[]) => {
+            log.debug('Callable called', callableId, ...args);
+            return jsonClient?.request(callableId, args);
           };
         }
         if (isObjectNode(value)) {
           // Replace this node with the exported object
-          const exportedObject = details.exportedObjects[value[OBJECT_KEY]];
-          log.info(
-            "XXX ObjectNode's on key",
-            key,
-            'exporting object',
-            exportedObject
-          );
+          const exportedObject = exportedObjects[value[OBJECT_KEY]];
 
           // TODO: Only export the object view if it's being rendered as a child or is the root...
           // Should probably just return it as just the object here, then parse the tree after looking for all exported objects rendered as nodes...
+          // Or get ElementView to handle it instead...
           return <ObjectView object={exportedObject} />;
         }
         if (isElementNode(value)) {
@@ -85,49 +93,80 @@ function ElementPanel(props: ElementPanelProps) {
         }
 
         return value;
-      });
-      // Returned:
-      log.info('XXX Widget parsed', root);
-      return root;
+      }),
+    [jsonClient]
+  );
+
+  useEffect(
+    function initMethods() {
+      if (jsonClient == null) {
+        return;
+      }
+
+      log.info('Adding methods to jsonClient');
+      jsonClient.addMethod(
+        'documentUpdated',
+        async (newDocument: React.ReactNode) => {
+          log.info('documentUpdated', newDocument);
+          setElement(newDocument);
+        }
+      );
+
+      return () => {
+        jsonClient.rejectAllPendingRequests('Widget was changed');
+      };
     },
     [jsonClient]
   );
 
-  const reloadObjects = useCallback(async () => {
-    if (widget == null) {
-      return;
-    }
-
-    const newElement = makeElement(widget);
-    log.info('Loaded Element', newElement);
-    setElement(newElement);
-  }, [makeElement, widget]);
-
-  const reloadWidget = useCallback(async () => {
-    const widgetInfo = await fetch();
-    log.info('widgetInfo', widgetInfo);
-    setWidget(widgetInfo);
-  }, [fetch]);
-
   useEffect(() => {
     if (widget == null) {
       return;
     }
-    reloadObjects();
-    return widget.addEventListener(dh.Widget.EVENT_MESSAGE, async event => {
-      log.info('event is', event);
+    function receiveData(data: string, exportedObjects: ExportedObject[]) {
+      log.info('Data received', data, exportedObjects);
+      const parsedData = parseData(data, exportedObjects);
+      jsonClient?.receiveAndSend(parsedData);
+    }
 
-      const newElement = makeElement(
-        (event as any).detail as WidgetMessageDetails
-      );
-      log.info('Updated Element', newElement);
-      setElement(newElement);
-    });
-  }, [dh, makeElement, reloadObjects, reloadWidget, widget]);
+    const cleanup = widget.addEventListener(
+      dh.Widget.EVENT_MESSAGE,
+      async (event: WidgetMessageEvent) => {
+        receiveData(
+          event.detail.getDataAsString(),
+          event.detail.exportedObjects
+        );
+      }
+    );
 
-  useEffect(() => {
-    reloadWidget();
-  }, [reloadWidget]);
+    log.info('Receiving initial data');
+    // We need to get the initial data and process it. It should be a documentUpdated command.
+    receiveData(widget.getDataAsString(), widget.exportedObjects);
+
+    return () => {
+      log.info('Cleaning up listener');
+      cleanup();
+    };
+  }, [dh, jsonClient, parseData, widget]);
+
+  useEffect(
+    function loadWidget() {
+      let isCancelled = false;
+      async function loadWidgetInternal() {
+        const newWidget = await fetch();
+        if (isCancelled) {
+          return;
+        }
+        log.info('newWidget', newWidget);
+        setWidget(newWidget);
+      }
+      loadWidgetInternal();
+      return () => {
+        isCancelled = true;
+      };
+    },
+    [fetch]
+  );
 
   return (
     <div

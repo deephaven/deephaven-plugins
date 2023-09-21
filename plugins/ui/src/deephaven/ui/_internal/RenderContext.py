@@ -52,8 +52,13 @@ class RenderContext:
         Set the state for the given key.
         """
         # TODO: Should we throw here if it's called when we're in the middle of a render?
+        should_notify = False
+        if key in self._state:
+            # We only want to notify of a change when the value actually changes, not on the initial render
+            should_notify = True
         self._state[key] = value
-        self._notify_change()
+        if should_notify:
+            self._notify_change()
 
     def get_child_context(self, key) -> "RenderContext":
         """

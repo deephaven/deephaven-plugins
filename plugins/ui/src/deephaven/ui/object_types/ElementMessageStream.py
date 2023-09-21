@@ -1,3 +1,4 @@
+import json
 import io
 from jsonrpc import JSONRPCResponseManager, Dispatcher
 import logging
@@ -24,6 +25,7 @@ class ElementMessageStream(MessageStream):
         self._element = element
         self._connection = connection
         self._update_count = 0
+        self._message_id = 0
         self._manager = JSONRPCResponseManager()
         self._dispatcher = Dispatcher()
 
@@ -32,19 +34,78 @@ class ElementMessageStream(MessageStream):
         renderer = Renderer(context)
 
         def update():
+            logger.debug("ElementMessageStream update")
             node = renderer.render(self._element)
-            self._send_node(node)
+            self._send_document_update(node)
 
         context.set_on_change(update)
         update()
 
-    def _send_node(self, node: RenderedNode) -> None:
+    def on_close(self) -> None:
+        pass
+
+    def on_data(self, payload: bytes, references: List[Any]) -> None:
+        decoded_payload = io.BytesIO(payload).read().decode()
+        logger.debug("Payload received: %s", decoded_payload)
+
+        response = self._manager.handle(decoded_payload, self._dispatcher)
+
+        if response is None:
+            return
+
+        payload = response.json
+        logger.debug("Response: %s, %s", type(payload), payload)
+        self._connection.on_data(payload.encode(), [])
+
+    def _get_next_message_id(self) -> int:
+        self._message_id += 1
+        return self._message_id
+
+    def _make_notification(self, method: str, *params: List[Any]) -> None:
+        """
+        Make a JSON-RPC notification. Can notify the client without expecting a response.
+
+        Args:
+            method: The method to call
+            params: The parameters to pass to the method
+        """
+        return {
+            "jsonrpc": "2.0",
+            "method": method,
+            "params": params,
+        }
+
+    def _make_request(self, method: str, *params: List[Any]) -> None:
+        """
+        Make a JSON-RPC request. Messages the client and expects a response.
+
+        Args:
+            method: The method to call
+            params: The parameters to pass to the method
+        """
+        return {
+            "jsonrpc": "2.0",
+            "method": method,
+            "params": params,
+            "id": self._get_next_message_id(),
+        }
+
+    def _send_document_update(self, root: RenderedNode) -> None:
+        """
+        Send a document update to the client. Currently just sends the entire document for each update.
+
+        Args:
+            root: The root node of the document to send
+        """
         # We use an ID prefix to ensure that the callable ids are unique across each document render/update
         # That way we don't have to worry about callables from previous renders being called accidentally
         self._update_count += 1
         id_prefix = f"cb_{self._update_count}_"
+
+        # TODO(#67): Send a diff of the document instead of the entire document.
+        request = self._make_notification("documentUpdated", root)
         encoder = NodeEncoder(callable_id_prefix=id_prefix, separators=(",", ":"))
-        payload = encoder.encode(node)
+        payload = encoder.encode(request)
 
         logger.debug(f"Sending payload: {payload}")
 
@@ -55,13 +116,3 @@ class ElementMessageStream(MessageStream):
             dispatcher[key] = callable
         self._dispatcher = dispatcher
         self._connection.on_data(payload.encode(), encoder.objects)
-
-    def on_close(self) -> None:
-        pass
-
-    def on_data(self, payload: bytes, references: List[Any]) -> None:
-        decoded_payload = io.BytesIO(payload).read().decode()
-        logger.debug("Payload received: %s", decoded_payload)
-        response = self._manager.handle(decoded_payload, self._dispatcher)
-        logger.debug("Response: %s", response.json)
-        # TODO: Actually send the response back to client... need to make document updates as a "request" to the client as well.
