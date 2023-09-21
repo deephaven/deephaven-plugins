@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { JSONRPCClient } from 'json-rpc-2.0';
 import { type ChartPanelProps } from '@deephaven/dashboard-core-plugins';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
-import UIElement, {
+import {
   CALLABLE_KEY,
   ExportedObject,
   OBJECT_KEY,
@@ -40,6 +41,16 @@ function ElementPanel(props: ElementPanelProps) {
   const [widget, setWidget] = useState<JsWidget>();
   const [element, setElement] = useState<React.ReactNode>();
 
+  const jsonClient = useMemo(
+    () =>
+      new JSONRPCClient(request => {
+        log.info('Sending request', request);
+
+        widget?.sendMessage(JSON.stringify(request), []);
+      }),
+    [widget]
+  );
+
   const makeElement = useCallback(
     (details: WidgetMessageDetails): React.ReactNode => {
       const data = details.getDataAsString();
@@ -50,8 +61,9 @@ function ElementPanel(props: ElementPanelProps) {
           // Replace this object with a function that will call this callable on the server
           return (...args: unknown[]) => {
             const callableId = value[CALLABLE_KEY];
-            // TODO: Send the message to the server
             log.warn('XXX Callable called', callableId, ...args);
+            // TODO: Actually listen for a response from the server and return it async
+            jsonClient.request(callableId, args);
           };
         }
         if (isObjectNode(value)) {
@@ -78,7 +90,7 @@ function ElementPanel(props: ElementPanelProps) {
       log.info('XXX Widget parsed', root);
       return root;
     },
-    []
+    [jsonClient]
   );
 
   const reloadObjects = useCallback(async () => {

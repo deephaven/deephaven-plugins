@@ -1,4 +1,5 @@
-import json
+import io
+from jsonrpc import JSONRPCResponseManager, Dispatcher
 import logging
 from typing import List, Any
 from deephaven.plugin.object_type import MessageStream
@@ -22,8 +23,9 @@ class ElementMessageStream(MessageStream):
         """
         self._element = element
         self._connection = connection
-        self._callables = []
         self._update_count = 0
+        self._manager = JSONRPCResponseManager()
+        self._dispatcher = Dispatcher()
 
     def start(self) -> None:
         context = RenderContext()
@@ -46,12 +48,20 @@ class ElementMessageStream(MessageStream):
 
         logger.debug(f"Sending payload: {payload}")
 
-        self._callables = encoder.callables
+        dispatcher = Dispatcher()
+        for i, callable in enumerate(encoder.callables):
+            key = f"{id_prefix}{i}"
+            logger.debug("Registering callable %s", key)
+            dispatcher[key] = callable
+        self._dispatcher = dispatcher
         self._connection.on_data(payload.encode(), encoder.objects)
 
     def on_close(self) -> None:
         pass
 
     def on_data(self, payload: bytes, references: List[Any]) -> None:
-        logger.debug("Payload received: %s", payload)
-        # TODO: Use JSON rpc to handle calling the right method
+        decoded_payload = io.BytesIO(payload).read().decode()
+        logger.debug("Payload received: %s", decoded_payload)
+        response = self._manager.handle(decoded_payload, self._dispatcher)
+        logger.debug("Response: %s", response.json)
+        # TODO: Actually send the response back to client... need to make document updates as a "request" to the client as well.

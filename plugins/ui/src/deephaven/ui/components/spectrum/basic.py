@@ -59,6 +59,14 @@ def text(*children, **props):
     return spectrum_element("Text", *children, **props)
 
 
+def text_field(*children, **props):
+    """
+    Python implementation for the Adobe React Spectrum TextField component.
+    https://react-spectrum.adobe.com/react-spectrum/TextField.html
+    """
+    return spectrum_element("TextField", *children, **props)
+
+
 def view(*children, **props):
     """
     Python implementation for the Adobe React Spectrum View component.

@@ -16,4 +16,3 @@ class UIRegistration(Registration):
     @classmethod
     def register_into(cls, callback: Callback) -> None:
         callback.register(ElementType)
-        callback.register(TextFieldType)

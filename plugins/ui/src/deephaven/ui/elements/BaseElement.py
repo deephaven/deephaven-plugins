@@ -1,5 +1,5 @@
 from .Element import Element
-from .._internal import RenderContext
+from .._internal import dict_to_camel_case, RenderContext
 
 
 class BaseElement(Element):
@@ -17,7 +17,7 @@ class BaseElement(Element):
             props["children"] = list(children)
         if len(children) == 1:
             props["children"] = children[0]
-        self._props = props
+        self._props = dict_to_camel_case(props)
 
     @property
     def name(self) -> str:

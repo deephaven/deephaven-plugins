@@ -9,6 +9,7 @@ import {
   View,
 } from '@adobe/react-spectrum';
 import { ValueOf } from '@deephaven/utils';
+import { TextField } from './spectrum_wrappers';
 import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
 
 export const SPECTRUM_ELEMENT_TYPE_PREFIX = 'deephaven.ui.spectrum.';
@@ -21,6 +22,7 @@ export const SpectrumSupportedTypes = {
   Icon,
   IllustratedMessage,
   Text,
+  TextField,
   View,
 } as const;
 

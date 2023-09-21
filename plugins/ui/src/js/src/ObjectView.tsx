@@ -3,8 +3,6 @@ import type { Figure, Table } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import TableObject from './TableObject';
 import FigureObject from './FigureObject';
-import TextFieldObject from './TextFieldObject';
-import TextFieldWidget from './TextFieldWidget';
 import { ExportedObject } from './ElementUtils';
 
 const log = Log.module('@deephaven/js-plugin-ui/ObjectView');
@@ -38,8 +36,6 @@ function ObjectView(props: ObjectViewProps) {
       return <TableObject object={widget as Table} />;
     case 'Figure':
       return <FigureObject object={widget as Figure} />;
-    case 'deephaven.ui.elements.TextField.TextField':
-      return <TextFieldObject object={widget as TextFieldWidget} />;
     default:
       // TODO: Need to handle other types of objects registered by other plugins (e.g. Deephaven Express)
       log.warn('Unknown object type', object.type);
