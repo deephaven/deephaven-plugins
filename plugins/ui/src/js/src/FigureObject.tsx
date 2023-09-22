@@ -28,7 +28,12 @@ function FigureObject(props: FigureObjectProps) {
   return (
     <div
       className="ui-figure-object"
-      style={{ position: 'relative', flexGrow: 1, flexShrink: 1, flexBasis: 1 }}
+      style={{
+        position: 'relative',
+        flexGrow: 1,
+        flexShrink: 1,
+        flexBasis: 100,
+      }}
     >
       {model && <Chart model={model} key={key} />}
     </div>
