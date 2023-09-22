@@ -1047,15 +1047,26 @@ sequenceDiagram
   participant SP as Server Plugin
 
   UIP->>SP: obj.getDataAsString()
-  SP-->>UIP: updateDocument(Document)
+    Note over UIP, SP: Uses json-rpc
+  SP-->>UIP: documentUpdated(Document)
 
   loop Callback
     UIP->>SP: foo(params)
     SP-->>UIP: foo result
-
-    SP-->>UIP: updateDocument(Document)
+    SP->>UIP: documentUpdated(Document)
   end
 ```
+
+##### Communication Layers
+
+A component that is created on the server side runs through a few steps before it is rendered on the client side:
+
+1. Element - The basis for all UI components. Generally a `FunctionElement`, and does not run the function until it is requested by the UI. The result can change depending on the context that it is rendered in (e.g. what "state" is set).
+2. RenderedNode - After an element has been rendered using a renderer, it becomes a `RenderedNode`. This is an immutable representation of the document.
+3. JSONEncodedNode - The `RenderedNode` is then encoded into JSON using `NodeEncoder`. It pulls out all the objects and maps them to exported objects, and all the callables to be mapped to commands that can be accepted by JSON-RPC. This is the final representation of the document that is sent to the client.
+4. ElementPanel - Client side where it's receiving the `documentUpdated` from the server plugin, and then rendering the `JSONEncodedNode` into a `ElementPanel` (e.g. a `GoldenLayout` panel). Decodes the JSON, maps all the exported objects to the actual objects, and all the callables to async methods that will call to the server.
+5. ElementView - Renders the decoded panel into the UI. Picks the element based on the name of it.
+6. ObjectView - Render an exported object
 
 #### Other Decisions
 
