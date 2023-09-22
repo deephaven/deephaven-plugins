@@ -1,4 +1,5 @@
 import {
+  Checkbox,
   Content,
   ContextualHelp,
   Flex,
@@ -6,6 +7,7 @@ import {
   Heading,
   Icon,
   IllustratedMessage,
+  Switch,
   Text,
   ToggleButton,
   View,
@@ -18,6 +20,7 @@ export const SPECTRUM_ELEMENT_TYPE_PREFIX = 'deephaven.ui.spectrum.';
 
 export const SpectrumSupportedTypes = {
   ActionButton,
+  Checkbox,
   Content,
   ContextualHelp,
   Flex,
@@ -26,6 +29,7 @@ export const SpectrumSupportedTypes = {
   Icon,
   IllustratedMessage,
   Slider,
+  Switch,
   Text,
   TextField,
   ToggleButton,

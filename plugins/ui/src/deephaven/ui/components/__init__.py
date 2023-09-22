@@ -5,6 +5,7 @@ from .spectrum import *
 
 __all__ = [
     "action_button",
+    "checkbox",
     "component",
     "content",
     "contextual_help",
@@ -17,6 +18,7 @@ __all__ = [
     "html",
     "slider",
     "spectrum_element",
+    "switch",
     "text",
     "text_field",
     "toggle_button",
