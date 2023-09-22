@@ -5,6 +5,7 @@ import {
   Heading,
   Icon,
   IllustratedMessage,
+  Slider,
   Text,
   View,
 } from '@adobe/react-spectrum';
@@ -21,6 +22,7 @@ export const SpectrumSupportedTypes = {
   Heading,
   Icon,
   IllustratedMessage,
+  Slider,
   Text,
   TextField,
   View,

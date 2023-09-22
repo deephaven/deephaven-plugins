@@ -51,6 +51,14 @@ def illustrated_message(*children, **props):
     return spectrum_element("IllustratedMessage", *children, **props)
 
 
+def slider(*children, **props):
+    """
+    Python implementation for the Adobe React Spectrum Slider component.
+    https://react-spectrum.adobe.com/react-spectrum/Slider.html
+    """
+    return spectrum_element("Slider", *children, **props)
+
+
 def text(*children, **props):
     """
     Python implementation for the Adobe React Spectrum Text component.

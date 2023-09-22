@@ -13,6 +13,7 @@ __all__ = [
     "icon_wrapper",
     "illustrated_message",
     "html",
+    "slider",
     "spectrum_element",
     "text",
     "text_field",
