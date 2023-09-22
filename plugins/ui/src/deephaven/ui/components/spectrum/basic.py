@@ -9,12 +9,28 @@ def spectrum_element(name: str, *children, **props):
     return BaseElement(f"deephaven.ui.spectrum.{name}", *children, **props)
 
 
+def action_button(*children, **props):
+    """
+    Python implementation for the Adobe React Spectrum ActionButton component.
+    https://react-spectrum.adobe.com/react-spectrum/ActionButton.html
+    """
+    return spectrum_element("ActionButton", *children, **props)
+
+
 def content(*children, **props):
     """
     Python implementation for the Adobe React Spectrum Content component.
     https://react-spectrum.adobe.com/react-spectrum/Content.html
     """
     return spectrum_element("Content", *children, **props)
+
+
+def contextual_help(*children, **props):
+    """
+    Python implementation for the Adobe React Spectrum ContextualHelp component.
+    https://react-spectrum.adobe.com/react-spectrum/ContextualHelp.html
+    """
+    return spectrum_element("ContextualHelp", *children, **props)
 
 
 def grid(*children, **props):
@@ -73,6 +89,14 @@ def text_field(*children, **props):
     https://react-spectrum.adobe.com/react-spectrum/TextField.html
     """
     return spectrum_element("TextField", *children, **props)
+
+
+def toggle_button(*children, **props):
+    """
+    Python implementation for the Adobe React Spectrum ToggleButton component.
+    https://react-spectrum.adobe.com/react-spectrum/ToggleButton.html
+    """
+    return spectrum_element("ToggleButton", *children, **props)
 
 
 def view(*children, **props):

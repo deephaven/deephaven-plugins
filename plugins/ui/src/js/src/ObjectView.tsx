@@ -33,6 +33,7 @@ function ObjectView(props: ObjectViewProps) {
   switch (object.type) {
     case 'Table':
     case 'TreeTable':
+    case 'HierarchicalTable':
       return <TableObject object={widget as Table} />;
     case 'Figure':
       return <FigureObject object={widget as Figure} />;

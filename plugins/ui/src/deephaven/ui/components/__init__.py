@@ -4,8 +4,10 @@ from .spectrum import *
 
 
 __all__ = [
+    "action_button",
     "component",
     "content",
+    "contextual_help",
     "flex",
     "grid",
     "heading",
@@ -17,5 +19,6 @@ __all__ = [
     "spectrum_element",
     "text",
     "text_field",
+    "toggle_button",
     "view",
 ]
