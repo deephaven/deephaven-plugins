@@ -53,6 +53,8 @@ def stock_table(source):
             ),
             align_items="center",
             gap="size-100",
+            margin="size-100",
+            margin_bottom="0",
         ),
         t,
         direction="column",
