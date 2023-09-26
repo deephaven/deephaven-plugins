@@ -56,6 +56,9 @@ DATA_ARGS = {
     # in other cases, the color would already be calculated so this argument
     # would not be set
     "color",
+    "lat",
+    "lon",
+    "locations",
 }
 DATA_ARGS.update(DATA_LIST_ARGS)
 

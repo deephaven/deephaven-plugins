@@ -30,6 +30,11 @@ from .plots import (
     pie,
     layer,
     make_subplots,
+    scatter_geo,
+    scatter_mapbox,
+    density_mapbox,
+    line_geo,
+    line_mapbox,
 )
 
 from .data import data_generators
