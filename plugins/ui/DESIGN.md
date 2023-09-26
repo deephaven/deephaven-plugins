@@ -999,7 +999,7 @@ tft = text_filter_table(t, "sym")
 
 Which should result in a UI like this:
 
-![Double Text Filter Tables](examples/double-tft.png)
+![Double Text Filter Tables](examples/assets/double-tft.png)
 
 How does that look when the notebook is executed? When does each code block execute?
 
