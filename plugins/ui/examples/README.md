@@ -376,7 +376,7 @@ def waves_with_plot():
 wp = waves_with_plot()
 ```
 
-![Waves with plot](waves_with_plot.png)
+![Waves with plot](assets/waves_with_plot.png)
 
 ## Re-using components
 
