@@ -10,7 +10,7 @@ def waves():
     phase, set_phase = use_state(1)
 
     tt = use_memo(lambda: time_table("PT1s").update("x=i"), [])
-    t = tt.update([f"y_sin={amplitude}*Math.sin({frequency}*x+{phase})"])
+    t = tt.update_view([f"y_sin={amplitude}*Math.sin({frequency}*x+{phase})"])
 
     return ui.flex(
         ui.flex(

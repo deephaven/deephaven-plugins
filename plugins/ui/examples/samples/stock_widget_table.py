@@ -1,5 +1,5 @@
 import deephaven.ui as ui
-from deephaven.ui import html, use_state
+from deephaven.ui import use_state
 
 
 @ui.component
@@ -17,7 +17,7 @@ def stock_widget_table(source, default_sym="", default_exchange=""):
         source.where([f"sym=`{sym.upper()}`", f"exchange=`{exchange.upper()}`"])
         if sym and exchange
         else ui.illustrated_message(
-            ui.icon_wrapper(ui.icon("vsWarning"), size="XXL"),
+            ui.icon("vsWarning", style={"fontSize": "48px"}),
             ui.heading("Invalid Input"),
             ui.content("Please enter 'Sym' and 'Exchange' above"),
         )
@@ -25,9 +25,5 @@ def stock_widget_table(source, default_sym="", default_exchange=""):
 
     return [ui.flex(ti1, ti2), t1]
 
-
-import deephaven.plot.express as dx
-
-stocks = dx.data.stocks()
 
 swt = stock_widget_table(stocks, "", "")
