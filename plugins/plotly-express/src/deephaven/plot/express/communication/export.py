@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+import threading
 
 
 class Reference:
@@ -25,12 +26,21 @@ class Reference:
 class Exporter:
     """
     An exporter that keeps track of references to objects that need to be sent
+
+    Attributes:
+        _ref_count: int: The number of references that have been created
+        _references: dict[object, Reference]: A map of objects to their references
+        _new_references: list[Reference]: A list of new references that have been created
+        _ref_lock: threading.Lock: A lock to ensure that references are created atomically
     """
 
     def __init__(
         self,
     ):
-        self.references = {}
+        self._ref_count: int = 0
+        self._references: dict[object, Reference] = {}
+        self._new_references: list[Reference] = []
+        self._ref_lock: threading.Lock = threading.Lock()
         pass
 
     def reference(self, obj: object) -> Reference:
@@ -40,15 +50,19 @@ class Exporter:
         client.
 
         Args:
-        obj: object: The object to create a reference for
+            obj: object: The object to create a reference for
 
         Returns:
             Reference: The reference to the object
 
         """
-        if obj not in self.references:
-            self.references[obj] = Reference(len(self.references), obj)
-        return self.references[obj]
+        with self._ref_lock:
+            if obj not in self._references:
+                new_ref = self._ref_count
+                self._ref_count += 1
+                self._references[obj] = Reference(new_ref, obj)
+                self._new_references.append(self._references[obj])
+        return self._references[obj]
 
     def reference_list(self) -> list[Any]:
         """
@@ -58,4 +72,7 @@ class Exporter:
             list[Reference]: The list of references to the objects
 
         """
-        return list(self.references.keys())
+        with self._ref_lock:
+            new_references = self._new_references
+            self._new_references = []
+        return new_references
