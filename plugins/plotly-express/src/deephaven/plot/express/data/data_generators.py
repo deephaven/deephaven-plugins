@@ -15,7 +15,7 @@ SECOND = 1000000000  #: One second in nanoseconds.
 MINUTE = 60 * SECOND  #: One minute in nanoseconds.
 
 
-def iris(ticking: bool = True, size: int = 150) -> Table:
+def iris(ticking: bool = True, size: int = 300) -> Table:
     """
     Returns a ticking version of the 1936 Iris flower dataset.
 
@@ -27,16 +27,17 @@ def iris(ticking: bool = True, size: int = 150) -> Table:
     Notes:
         - The ticking feature starts from 1936-01-01T08:00:00UTC and increases
           by 1 second for each observation.
-        - The dataset contains a default of 150 number of samples but can be
+        - The dataset contains a default of 300 number of samples but can be
           set to any size, with 4 original features (sepal length, sepal width,
           petal length, and petal width), along with a timestamp, id and species.
         - The original Iris species labels are included (setosa, versicolor, and virginica).
 
     Args:
         ticking: bool:  (Default value = True)
-            If true, the table will tick using a replayer, if
-            false the whole table will be returned as a static table.
-        size: int:  (Default value = 150)
+            If true, the table will tick using a replayer starting
+            with a third of the table already ticked. If false the
+            whole table will be returned as a static table.
+        size: int:  (Default value = 300)
             The number of rows to create for the table
 
     Returns:
@@ -101,7 +102,9 @@ def iris(ticking: bool = True, size: int = 150) -> Table:
 
     if ticking:
         result_replayer = TableReplayer(
-            pd_base_time, pd_base_time + pd.Timedelta(size * SECOND)
+            # start with one third of the table already ticked
+            pd_base_time + pd.Timedelta(round(size * 0.33) * SECOND),
+            pd_base_time + pd.Timedelta(size * SECOND),
         )
         replayer_table = result_replayer.add_table(static_table, "timestamp")
         result_replayer.start()
