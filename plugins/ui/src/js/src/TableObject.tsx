@@ -24,17 +24,7 @@ function TableObject(props: TableObjectProps) {
     loadModel();
   }, [dh, object]);
   return (
-    <div
-      className="ui-table-object"
-      style={{
-        position: 'relative',
-        flexGrow: 1,
-        flexShrink: 1,
-        flexBasis: 100,
-      }}
-    >
-      {model && <IrisGrid model={model} />}
-    </div>
+    <div className="ui-table-object">{model && <IrisGrid model={model} />}</div>
   );
 }
 

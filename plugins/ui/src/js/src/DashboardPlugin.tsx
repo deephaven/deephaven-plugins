@@ -1,8 +1,10 @@
+import React from 'react';
 import {
   DashboardPluginComponentProps,
   useDashboardPanel,
 } from '@deephaven/dashboard';
 import ElementPanel from './ElementPanel';
+import styles from './styles.scss?inline';
 
 const NAME_ELEMENT = 'deephaven.ui.elements.Element.Element';
 
@@ -16,7 +18,7 @@ export function DashboardPlugin(
     supportedTypes: [NAME_ELEMENT],
   });
 
-  return null;
+  return <style>{styles}</style>;
 }
 
 export default DashboardPlugin;
