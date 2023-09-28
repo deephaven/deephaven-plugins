@@ -323,7 +323,7 @@ def scatter_mapbox(
     """
     args = locals()
 
-    return process_args(args, {"line"}, px_func=px.scatter_mapbox)
+    return process_args(args, {"scatter"}, px_func=px.scatter_mapbox)
 
 
 def line_geo(
