@@ -448,12 +448,15 @@ def stock_table(source):
 
     by = get_by_filter(sym=is_sym, exchange=is_exchange)
 
-    t = use_memo(
+    formatted_table = use_memo(
         lambda: source.format_row_where(f"sym=`{highlight}`", "LEMONCHIFFON"),
         [source, highlight],
     )
-    t = use_memo(
-        lambda: t if len(by) == 0 else t.rollup(aggs=aggs, by=by), [t, aggs, by]
+    rolled_table = use_memo(
+        lambda: formatted_table
+        if len(by) == 0
+        else formatted_table.rollup(aggs=aggs, by=by),
+        [formatted_table, aggs, by],
     )
 
     return ui.flex(
@@ -477,7 +480,7 @@ def stock_table(source):
             margin="size-100",
             margin_bottom="0",
         ),
-        t,
+        rolled_table,
         direction="column",
         flex_grow=1,
     )
