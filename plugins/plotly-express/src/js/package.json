@@ -11,7 +11,7 @@
   ],
   "author": "Deephaven Data Labs LLC",
   "license": "Apache-2.0",
-  "main": "dist/index.js",
+  "main": "dist/bundle/index.js",
   "type": "module",
   "exports": {
     ".": {
