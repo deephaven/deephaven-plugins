@@ -193,8 +193,26 @@ export class PlotlyExpressChartModel extends ChartModel {
     }
   }
 
-  has3D(): boolean {
-    return this.data.some(({ type }) => type != null && type.includes('3d'));
+  shouldPauseOnUserInteraction(): boolean {
+    return (
+      this.hasScene() || this.hasGeo() || this.hasMapbox() || this.hasPolar()
+    );
+  }
+
+  hasScene(): boolean {
+    return this.data.some(d => 'scene' in d && d.scene != null);
+  }
+
+  hasGeo(): boolean {
+    return this.data.some(d => 'geo' in d && d.geo != null);
+  }
+
+  hasMapbox(): boolean {
+    return this.data.some(({ type }) => type?.includes('mapbox'));
+  }
+
+  hasPolar(): boolean {
+    return this.data.some(({ type }) => type?.includes('polar'));
   }
 
   getPlotWidth(): number {
