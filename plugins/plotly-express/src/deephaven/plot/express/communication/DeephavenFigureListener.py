@@ -7,7 +7,7 @@ from typing import Any
 from deephaven.plugin.object_type import MessageStream
 from deephaven.table_listener import listen, TableUpdate
 
-from .export import Exporter
+from ..exporter import Exporter, CoreExporter
 from ..deephaven_figure import DeephavenFigure, DeephavenFigureNode
 
 
@@ -38,7 +38,7 @@ class DeephavenFigureListener:
         """
         self._connection: MessageStream = connection
         self._figure = figure
-        self._exporter = Exporter()
+        self._exporter = CoreExporter()
         self._liveness_scope = liveness_scope
 
         self._listeners = []
@@ -81,37 +81,67 @@ class DeephavenFigureListener:
             is_replay: bool: Not used. Required for the listener.
         """
         if self._connection:
+            # new exporter needs to be created before the figure is recreated
+            # this ensures that the references are correct as the exporter
+            # stores a revision number
+            # technically, there could be a race in acquiring revision numbers
+            # such that an older revision has a higher revision number
+            # but as long as the revision number is created before the figure
+            # is recreated this is not an issue as the same (newer) figure
+            # would be created for both figures
+            exporter = self._exporter.get_new_exporter()
             node.recreate_figure()
-            self._connection.on_data(*self._build_figure_message(self._get_figure()))
+            self._connection.on_data(
+                *self._build_figure_message(self._get_figure(), exporter)
+            )
 
-    def _handle_retrieve_figure(self) -> tuple[bytes, list[Any]]:
+    def _handle_retrieve_figure(self, exporter: Exporter) -> tuple[bytes, list[Any]]:
         """
         Handle a retrieve message. This will return a message with the current
         figure.
+
+        Args:
+            exporter: Exporter: The exporter to use for exporting the figure
 
         Returns:
             tuple[bytes, list[Any]]: The result of the message as a tuple of
               (new payload, new references)
         """
-        return self._build_figure_message(self._get_figure())
+        return self._build_figure_message(self._get_figure(), exporter)
 
-    def _build_figure_message(self, figure: DeephavenFigure) -> tuple[bytes, list[Any]]:
+    def _build_figure_message(
+        self, figure: DeephavenFigure, exporter: Exporter
+    ) -> tuple[bytes, list[Any]]:
         """
         Build a message to send to the client with the current figure.
 
         Args:
             figure: DeephavenFigure: The figure to send
+            exporter: Exporter: The exporter to use for exporting the figure
 
         Returns:
             tuple[bytes, list[Any]]: The result of the message as a tuple of
               (new payload, new references)
         """
+        # only one export can be done at a time to ensure that the references
+        # are correct
+        exporter.acquire()
+
+        new_figure = figure.to_dict(exporter=exporter)
+
+        new_objects, new_references, removed_references = exporter.references()
+
         message = {
             "type": "NEW_FIGURE",
-            "figure": figure.to_dict(exporter=self._exporter),
+            "figure": new_figure,
+            "revision": exporter.revision(),
+            "new_references": new_references,
+            "removed_references": removed_references,
         }
 
-        return json.dumps(message).encode(), self._exporter.reference_list()
+        exporter.release()
+
+        return json.dumps(message).encode(), new_objects
 
     def process_message(
         self, payload: bytes, references: list[Any]
@@ -123,12 +153,15 @@ class DeephavenFigureListener:
         Args:
             payload: bytes: The payload to process
             references:  list[Any]: References to objects on the server
+            exporter: Exporter: The exporter to use for exporting the figure
 
         Returns:
             tuple[bytes, list[Any]]: The result of the message as a tuple of
               (new payload, new references)
 
         """
+        # need to create a new exporter for each message
+        exporter = self._exporter.get_new_exporter()
         message = json.loads(payload.decode())
         if message["type"] == "RETRIEVE":
-            return self._handle_retrieve_figure()
+            return self._handle_retrieve_figure(exporter)

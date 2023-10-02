@@ -13,6 +13,7 @@ from deephaven.execution_context import ExecutionContext
 
 from ..shared import args_copy
 from ..data_mapping import DataMapping
+from ..exporter import Exporter
 
 
 def has_color_args(call_args: dict[str, Any]) -> bool:
