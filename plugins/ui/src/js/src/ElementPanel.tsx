@@ -56,7 +56,7 @@ function ElementPanel(props: ElementPanelProps) {
         ? new JSONRPCServerAndClient(
             new JSONRPCServer(),
             new JSONRPCClient(request => {
-              log.info('Sending request', request);
+              log.debug('Sending request', request);
               widget.sendMessage(JSON.stringify(request), []);
             })
           )
@@ -73,7 +73,7 @@ function ElementPanel(props: ElementPanelProps) {
         // Need to re-hydrate any objects that are defined
         if (isCallableNode(value)) {
           const callableId = value[CALLABLE_KEY];
-          log.info('Registering callableId', callableId);
+          log.debug2('Registering callableId', callableId);
           return async (...args: unknown[]) => {
             log.debug('Callable called', callableId, ...args);
             return jsonClient?.request(callableId, args);
@@ -103,11 +103,11 @@ function ElementPanel(props: ElementPanelProps) {
         return;
       }
 
-      log.info('Adding methods to jsonClient');
+      log.debug('Adding methods to jsonClient');
       jsonClient.addMethod(
         'documentUpdated',
         async (newDocument: React.ReactNode) => {
-          log.info('documentUpdated', newDocument);
+          log.debug('documentUpdated', newDocument);
           setElement(newDocument);
         }
       );
@@ -124,7 +124,7 @@ function ElementPanel(props: ElementPanelProps) {
       return;
     }
     function receiveData(data: string, exportedObjects: ExportedObject[]) {
-      log.info('Data received', data, exportedObjects);
+      log.debug('Data received', data, exportedObjects);
       const parsedData = parseData(data, exportedObjects);
       jsonClient?.receiveAndSend(parsedData);
     }
@@ -157,7 +157,7 @@ function ElementPanel(props: ElementPanelProps) {
         if (isCancelled) {
           return;
         }
-        log.info('newWidget', newWidget);
+        log.debug('newWidget', newWidget);
         setWidget(newWidget);
       }
       loadWidgetInternal();

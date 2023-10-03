@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Union
-from .._internal import RenderContext, get_component_qualname
+from .._internal import RenderContext
 
 
 class Element(ABC):
@@ -11,12 +10,12 @@ class Element(ABC):
     @property
     def name(self) -> str:
         """
-        Get the name of this element.
+        Get the name of this element. Custom subclasses that want to be rendered differently on the client should override this a provide their own unique name.
 
         Returns:
             The unique name of this element.
         """
-        return get_component_qualname(self)
+        return "deephaven.ui.Element"
 
     @abstractmethod
     def render(self, context: RenderContext) -> dict:

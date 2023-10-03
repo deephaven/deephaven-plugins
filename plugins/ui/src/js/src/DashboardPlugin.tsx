@@ -6,7 +6,7 @@ import {
 import ElementPanel from './ElementPanel';
 import styles from './styles.scss?inline';
 
-const NAME_ELEMENT = 'deephaven.ui.elements.Element.Element';
+const NAME_ELEMENT = 'deephaven.ui.Element';
 
 export function DashboardPlugin(
   props: DashboardPluginComponentProps

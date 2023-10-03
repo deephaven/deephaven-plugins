@@ -11,7 +11,7 @@ class ElementType(BidirectionalObjectType):
 
     @property
     def name(self) -> str:
-        return get_component_name(Element)
+        return "deephaven.ui.Element"
 
     def is_type(self, obj: any) -> bool:
         return isinstance(obj, Element)

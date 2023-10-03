@@ -1,6 +1,6 @@
 import functools
 import logging
-from .._internal import RenderContext, get_context, set_context, get_component_qualname
+from .._internal import get_component_qualname
 from ..elements import FunctionElement
 
 logger = logging.getLogger(__name__)

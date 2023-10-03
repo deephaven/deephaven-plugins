@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import {
-  Slider as SpectrumSlider,
-  SpectrumSliderProps,
+  SpectrumTextFieldProps,
+  TextField as SpectrumTextField,
 } from '@adobe/react-spectrum';
 import { useDebouncedCallback } from '@deephaven/react-hooks';
 
@@ -9,15 +9,15 @@ const VALUE_CHANGE_DEBOUNCE = 250;
 
 const EMPTY_FUNCTION = () => undefined;
 
-function Slider(props: SpectrumSliderProps) {
+function TextField(props: SpectrumTextFieldProps) {
   const {
-    defaultValue,
+    defaultValue = '',
     value: propValue,
     onChange: propOnChange = EMPTY_FUNCTION,
     ...otherProps
   } = props;
 
-  const [value, setValue] = useState(propValue ?? defaultValue ?? 0);
+  const [value, setValue] = useState(propValue ?? defaultValue);
 
   const debouncedOnChange = useDebouncedCallback(
     propOnChange,
@@ -34,10 +34,10 @@ function Slider(props: SpectrumSliderProps) {
 
   return (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <SpectrumSlider value={value} onChange={onChange} {...otherProps} />
+    <SpectrumTextField value={value} onChange={onChange} {...otherProps} />
   );
 }
 
-Slider.displayName = 'Slider';
+TextField.displayName = 'TextField';
 
-export default Slider;
+export default TextField;

@@ -1,7 +1,7 @@
 import logging
 from typing import Callable, List
 from .Element import Element
-from .._internal import RenderContext, get_context, set_context, get_component_qualname
+from .._internal import RenderContext, get_context, set_context
 
 logger = logging.getLogger(__name__)
 

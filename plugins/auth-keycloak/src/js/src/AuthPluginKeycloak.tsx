@@ -6,8 +6,7 @@ import {
   AuthPluginProps,
 } from '@deephaven/auth-plugins';
 import { useBroadcastLoginListener } from '@deephaven/jsapi-components';
-import { LoginOptions } from '@deephaven/jsapi-types';
-import { Log } from '@deephaven/log';
+import Log from '@deephaven/log';
 
 const log = Log.module('@deephaven/js-plugin-auth-keycloak.AuthPluginKeycloak');
 
