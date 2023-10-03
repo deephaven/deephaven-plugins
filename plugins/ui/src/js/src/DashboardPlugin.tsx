@@ -1,14 +1,16 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import shortid from 'shortid';
 import {
   DashboardPluginComponentProps,
-  LayoutUtils,
   useListener,
 } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
 import type { VariableDefinition } from '@deephaven/jsapi-types';
 import ElementPanel from './ElementPanel';
 import styles from './styles.scss?inline';
+import { JsWidget } from './WidgetTypes';
+import PortalPanel from './PortalPanel';
+import WidgetHandler from './WidgetHandler';
 
 const NAME_ELEMENT = 'deephaven.ui.Element';
 
@@ -19,6 +21,10 @@ export function DashboardPlugin({
   layout,
   registerComponent,
 }: DashboardPluginComponentProps): JSX.Element | null {
+  // Keep track of the widgets we've got opened.
+  const [widgetMap, setWidgetMap] = useState<
+    ReadonlyMap<string, () => Promise<JsWidget>>
+  >(new Map());
   const handlePanelOpen = useCallback(
     ({
       dragEvent,
@@ -28,44 +34,29 @@ export function DashboardPlugin({
       widget,
     }: {
       dragEvent?: React.DragEvent;
-      fetch: () => Promise<unknown>;
+      fetch: () => Promise<JsWidget>;
       metadata?: Record<string, unknown>;
       panelId?: string;
       widget: VariableDefinition;
     }) => {
-      const { id: widgetId, name, type } = widget;
+      const { type } = widget;
       if ((type as string) !== NAME_ELEMENT) {
-        // Only want to listen for matplotlib panels
+        // Only want to listen for Element panels trying to be opened
         return;
       }
-      log.info('Panel opened of type', type);
-      const config = {
-        type: 'react-component' as const,
-        component: ElementPanel.displayName,
-        props: {
-          localDashboardId: id,
-          id: panelId,
-          metadata: {
-            ...metadata,
-            id: widgetId,
-            name,
-            type,
-          },
-          fetch,
-        },
-        title: name,
-        id: panelId,
-      };
-
-      const { root } = layout;
-      LayoutUtils.openComponent({ root, config, dragEvent });
+      log.info('Opening element with ID', panelId);
+      const newWidgetMap = new Map<string, () => Promise<JsWidget>>(widgetMap);
+      // Use the panelId to track the widget mapping, as that's already plumbed through and we can then replace the document fairly easily
+      newWidgetMap.set(panelId, fetch);
+      setWidgetMap(newWidgetMap);
     },
-    [id, layout]
+    []
   );
 
   useEffect(() => {
     const cleanups = [
       registerComponent(ElementPanel.displayName, ElementPanel),
+      registerComponent(PortalPanel.displayName, PortalPanel),
     ];
 
     return () => {
@@ -73,9 +64,23 @@ export function DashboardPlugin({
     };
   }, [registerComponent]);
 
+  // TODO: We need to change up the event system for how objects are opened, since in this case it could be opening multiple panels
   useListener(layout.eventHub, 'PanelEvent.OPEN', handlePanelOpen);
 
-  return <style>{styles}</style>;
+  const widgetHandlers = useMemo(
+    () =>
+      [...widgetMap.entries()].map(([panelId, fetch]) => (
+        <WidgetHandler key={panelId} fetch={fetch} layout={layout} />
+      )),
+    [layout, widgetMap]
+  );
+
+  return (
+    <>
+      <style>{styles}</style>
+      {widgetHandlers}
+    </>
+  );
 }
 
 export default DashboardPlugin;

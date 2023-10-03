@@ -45,7 +45,6 @@
     "@deephaven/chart": "^0.49.0",
     "@deephaven/components": "^0.49.0",
     "@deephaven/dashboard": "^0.49.0",
-    "@deephaven/dashboard-core-plugins": "^0.49.0",
     "@deephaven/icons": "^0.49.0",
     "@deephaven/iris-grid": "^0.49.0",
     "@deephaven/jsapi-bootstrap": "^0.49.0",

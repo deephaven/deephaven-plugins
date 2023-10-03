@@ -1,36 +1,42 @@
+/**
+ * Handles document events for one widget.
+ */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   JSONRPCClient,
   JSONRPCServer,
   JSONRPCServerAndClient,
 } from 'json-rpc-2.0';
-import { DashboardPanelProps } from '@deephaven/dashboard';
+import { DashboardPluginComponentProps } from '@deephaven/dashboard';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
 import {
   CALLABLE_KEY,
+  ElementNode,
   ExportedObject,
   OBJECT_KEY,
   isCallableNode,
-  isElementNode,
   isObjectNode,
 } from './ElementUtils';
-import ElementView from './ElementView';
-import ObjectView from './ObjectView';
-import { JsWidget } from './WidgetTypes';
+import { JsWidget, WidgetMessageEvent } from './WidgetTypes';
+import DocumentHandler from './DocumentHandler';
 
-const log = Log.module('@deephaven/js-plugin-ui/ElementPanel');
+const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
-export interface ElementPanelProps extends DashboardPanelProps {
+export interface WidgetHandlerProps {
+  /** Fetch a widget thats an Element type */
   fetch(): Promise<JsWidget>;
+
+  /** Layout this widget is attached to */
+  layout: DashboardPluginComponentProps['layout'];
 }
 
-function ElementPanel(props: ElementPanelProps) {
-  const { fetch } = props;
+function WidgetHandler(props: WidgetHandlerProps) {
+  const { fetch, layout } = props;
   const dh = useApi();
 
   const [widget, setWidget] = useState<JsWidget>();
-  const [element, setElement] = useState<React.ReactNode>();
+  const [element, setElement] = useState<ElementNode>();
 
   // Bi-directional communication as defined in https://www.npmjs.com/package/json-rpc-2.0
   const jsonClient = useMemo(
@@ -39,24 +45,30 @@ function ElementPanel(props: ElementPanelProps) {
         ? new JSONRPCServerAndClient(
             new JSONRPCServer(),
             new JSONRPCClient(request => {
-              log.debug('Sending request', request);
+              log.info('Sending request', request);
               widget.sendMessage(JSON.stringify(request), []);
             })
           )
         : null,
     [widget]
   );
-
-  /**
-   * Parse the data from the server, replacing any callable nodes with functions that call the server.
-   */
   const parseData = useCallback(
+    /**
+     * Parse the data from the server, replacing any callable nodes with functions that call the server.
+     * Replaces all Callables with an async callback that will automatically call the server use JSON-RPC.
+     * Replaces all Objects with the exported object from the server.
+     * Element nodes are not replaced. Those are handled in `ElementHandler`.
+     *
+     * @param data The data to parse
+     * @param exportedObjects The exported objects to use for re-hydrating objects
+     * @returns The parsed data
+     */
     (data: string, exportedObjects: ExportedObject[]) =>
       JSON.parse(data, (key, value) => {
         // Need to re-hydrate any objects that are defined
         if (isCallableNode(value)) {
           const callableId = value[CALLABLE_KEY];
-          log.debug2('Registering callableId', callableId);
+          log.info('Registering callableId', callableId);
           return async (...args: unknown[]) => {
             log.debug('Callable called', callableId, ...args);
             return jsonClient?.request(callableId, args);
@@ -64,15 +76,7 @@ function ElementPanel(props: ElementPanelProps) {
         }
         if (isObjectNode(value)) {
           // Replace this node with the exported object
-          const exportedObject = exportedObjects[value[OBJECT_KEY]];
-
-          // TODO: Only export the object view if it's being rendered as a child or is the root...
-          // Should probably just return it as just the object here, then parse the tree after looking for all exported objects rendered as nodes...
-          // Or get ElementView to handle it instead...
-          return <ObjectView object={exportedObject} />;
-        }
-        if (isElementNode(value)) {
-          return <ElementView element={value} />;
+          return exportedObjects[value[OBJECT_KEY]];
         }
 
         return value;
@@ -86,11 +90,11 @@ function ElementPanel(props: ElementPanelProps) {
         return;
       }
 
-      log.debug('Adding methods to jsonClient');
+      log.info('Adding methods to jsonClient');
       jsonClient.addMethod(
         'documentUpdated',
-        async (newDocument: React.ReactNode) => {
-          log.debug('documentUpdated', newDocument);
+        async (newDocument: ElementNode) => {
+          log.info('documentUpdated', newDocument);
           setElement(newDocument);
         }
       );
@@ -107,7 +111,7 @@ function ElementPanel(props: ElementPanelProps) {
       return;
     }
     function receiveData(data: string, exportedObjects: ExportedObject[]) {
-      log.debug('Data received', data, exportedObjects);
+      log.info('Data received', data, exportedObjects);
       const parsedData = parseData(data, exportedObjects);
       jsonClient?.receiveAndSend(parsedData);
     }
@@ -140,7 +144,7 @@ function ElementPanel(props: ElementPanelProps) {
         if (isCancelled) {
           return;
         }
-        log.debug('newWidget', newWidget);
+        log.info('newWidget', newWidget);
         setWidget(newWidget);
       }
       loadWidgetInternal();
@@ -151,20 +155,9 @@ function ElementPanel(props: ElementPanelProps) {
     [fetch]
   );
 
-  return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        width: '100%',
-      }}
-    >
-      {element}
-    </div>
-  );
+  return element ? <DocumentHandler element={element} layout={layout} /> : null;
 }
 
-ElementPanel.displayName = '@deephaven/js-plugin-ui/ElementPanel';
+WidgetHandler.displayName = '@deephaven/js-plugin-ui/WidgetHandler';
 
-export default ElementPanel;
+export default WidgetHandler;
