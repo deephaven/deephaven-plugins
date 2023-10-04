@@ -23,7 +23,7 @@ from deephaven import time_table
 from deephaven.plugin.matplotlib import TableAnimation
 
 # Create a ticking table with the sin function
-tt = time_table("00:00:01").update(["x=i", "y=Math.sin(x)"])
+tt = time_table("PT00:00:01").update(["x=i", "y=Math.sin(x)"])
 
 fig = plt.figure()  # Create a new figure
 ax = fig.subplots()  # Add an axes to the figure
@@ -51,7 +51,7 @@ import matplotlib.pyplot as plt
 from deephaven import time_table
 from deephaven.plugin.matplotlib import TableAnimation
 
-tt = time_table("00:00:01").update(
+tt = time_table("PT00:00:01").update(
     ["x=Math.random()", "y=Math.random()", "z=Math.random()*50"]
 )
 
@@ -88,7 +88,7 @@ import matplotlib.pyplot as plt
 from deephaven import time_table
 from deephaven.plugin.matplotlib import TableAnimation
 
-tt = time_table("00:00:01").update(
+tt = time_table("PT00:00:01").update(
     ["x=i", "y=Math.sin(x)", "z=Math.cos(x)", "r=Math.random()", "s=Math.random()*100"]
 )
 

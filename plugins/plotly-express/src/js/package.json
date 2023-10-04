@@ -1,6 +1,6 @@
 {
   "name": "@deephaven/js-plugin-plotly-express",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Deephaven plotly express plugin",
   "keywords": [
     "Deephaven",
@@ -35,7 +35,7 @@
     "build": "tsc && vite build"
   },
   "devDependencies": {
-    "@deephaven/jsapi-types": "0.46.0",
+    "@deephaven/jsapi-types": "0.48.0",
     "@types/deep-equal": "^1.0.1",
     "@types/plotly.js": "^2.12.18",
     "@types/plotly.js-dist-min": "^2.3.1",
@@ -50,13 +50,13 @@
     "react": "^17.0.2"
   },
   "dependencies": {
-    "@deephaven/chart": "0.46.0",
-    "@deephaven/components": "0.46.0",
-    "@deephaven/dashboard": "0.46.0",
-    "@deephaven/dashboard-core-plugins": "0.46.0",
-    "@deephaven/jsapi-bootstrap": "0.46.0",
-    "@deephaven/log": "0.46.0",
-    "@deephaven/utils": "0.46.0",
+    "@deephaven/chart": "0.48.0",
+    "@deephaven/components": "0.48.0",
+    "@deephaven/dashboard": "0.48.0",
+    "@deephaven/dashboard-core-plugins": "0.48.0",
+    "@deephaven/jsapi-bootstrap": "0.48.0",
+    "@deephaven/log": "0.48.0",
+    "@deephaven/utils": "0.48.0",
     "deep-equal": "^2.2.1",
     "plotly.js": "^2.23.0",
     "plotly.js-dist-min": "^2.23.0",

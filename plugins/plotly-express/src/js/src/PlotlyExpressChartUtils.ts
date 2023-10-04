@@ -8,6 +8,10 @@ const log = Log.module('@deephaven/js-plugin-plotly-express.ChartUtils');
 export interface PlotlyChartWidget {
   getDataAsBase64(): string;
   exportedObjects: { fetch(): Promise<Table> }[];
+  addEventListener(
+    type: string,
+    fn: (event: CustomEvent<PlotlyChartWidget>) => () => void
+  ): void;
 }
 
 export interface PlotlyChartWidgetData {

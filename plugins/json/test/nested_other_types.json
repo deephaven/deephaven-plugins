@@ -1,7 +1,0 @@
-{
-    "name": "My Matplotlib figure",
-    "figure": {
-        "type": "matplotlib.figure.Figure",
-        "index": 0
-    }
-}
