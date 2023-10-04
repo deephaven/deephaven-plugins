@@ -168,14 +168,15 @@ def stock_widget_table(source, default_sym="", default_exchange=""):
     ti2 = ui.text_field(
         label="Exchange", label_position="side", value=exchange, on_change=set_exchange
     )
+    error_message = ui.illustrated_message(
+        ui.icon("vsWarning", style={"fontSize": "48px"}),
+        ui.heading("Invalid Input"),
+        ui.content("Please enter 'Sym' and 'Exchange' above"),
+    )
     t1 = (
         source.where([f"sym=`{sym.upper()}`", f"exchange=`{exchange.upper()}`"])
         if sym and exchange
-        else ui.illustrated_message(
-            ui.icon("vsWarning", style={"fontSize": "48px"}),
-            ui.heading("Invalid Input"),
-            ui.content("Please enter 'Sym' and 'Exchange' above"),
-        )
+        else error_message
     )
 
     return [ui.flex(ti1, ti2), t1]
