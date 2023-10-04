@@ -430,10 +430,11 @@ stocks = dx.data.stocks()
 def get_by_filter(**byargs):
     """
     Gets a by filter where the arguments are all args passed in where the value is true.
-    e.g.
-    get_by_filter(sym=True, exchange=False) == ["sym"]
-    get_by_filter(exchange=False) == []
-    get_by_filter(sym=True, exchange=True) == ["sym", "exchange"]
+
+    Examples:
+        get_by_filter(sym=True, exchange=False) == ["sym"]
+        get_by_filter(exchange=False) == []
+        get_by_filter(sym=True, exchange=True) == ["sym", "exchange"]
 
     """
     return [k for k in byargs if byargs[k]]

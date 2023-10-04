@@ -1,8 +1,9 @@
+from __future__ import annotations
 import json
 import io
 from jsonrpc import JSONRPCResponseManager, Dispatcher
 import logging
-from typing import List, Any
+from typing import Any
 from deephaven.plugin.object_type import MessageStream
 from ..elements import Element
 from ..renderer import NodeEncoder, Renderer, RenderedNode
@@ -44,7 +45,7 @@ class ElementMessageStream(MessageStream):
     def on_close(self) -> None:
         pass
 
-    def on_data(self, payload: bytes, references: List[Any]) -> None:
+    def on_data(self, payload: bytes, references: list[Any]) -> None:
         decoded_payload = io.BytesIO(payload).read().decode()
         logger.debug("Payload received: %s", decoded_payload)
 
@@ -61,7 +62,7 @@ class ElementMessageStream(MessageStream):
         self._message_id += 1
         return self._message_id
 
-    def _make_notification(self, method: str, *params: List[Any]) -> None:
+    def _make_notification(self, method: str, *params: list[Any]) -> None:
         """
         Make a JSON-RPC notification. Can notify the client without expecting a response.
 
@@ -75,7 +76,7 @@ class ElementMessageStream(MessageStream):
             "params": params,
         }
 
-    def _make_request(self, method: str, *params: List[Any]) -> None:
+    def _make_request(self, method: str, *params: list[Any]) -> None:
         """
         Make a JSON-RPC request. Messages the client and expects a response.
 

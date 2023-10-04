@@ -18,34 +18,30 @@ class RenderTestCase(BaseTestCase):
         rc = RenderContext()
 
         # Set up the hooks used with initial render (3 hooks)
-        rc.start_render()
-        self.assertEqual(rc.next_hook_index(), 0)
-        self.assertEqual(rc.next_hook_index(), 1)
-        self.assertEqual(rc.next_hook_index(), 2)
-        rc.finish_render()
+        with rc:
+            self.assertEqual(rc.next_hook_index(), 0)
+            self.assertEqual(rc.next_hook_index(), 1)
+            self.assertEqual(rc.next_hook_index(), 2)
 
         # Verify it's the same on the next render
-        rc.start_render()
-        self.assertEqual(rc.next_hook_index(), 0)
-        self.assertEqual(rc.next_hook_index(), 1)
-        self.assertEqual(rc.next_hook_index(), 2)
-        rc.finish_render()
+        with rc:
+            self.assertEqual(rc.next_hook_index(), 0)
+            self.assertEqual(rc.next_hook_index(), 1)
+            self.assertEqual(rc.next_hook_index(), 2)
 
         # Check that an error is thrown if we don't use enough hooks
-        rc.start_render()
-        self.assertEqual(rc.next_hook_index(), 0)
-        self.assertEqual(rc.next_hook_index(), 1)
         with self.assertRaises(Exception):
-            rc.finish_render()
+            with rc:
+                self.assertEqual(rc.next_hook_index(), 0)
+                self.assertEqual(rc.next_hook_index(), 1)
 
         # Check that an error is thrown if we use too many hooks
-        rc.start_render()
-        self.assertEqual(rc.next_hook_index(), 0)
-        self.assertEqual(rc.next_hook_index(), 1)
-        self.assertEqual(rc.next_hook_index(), 2)
-        self.assertEqual(rc.next_hook_index(), 3)
         with self.assertRaises(Exception):
-            rc.finish_render()
+            with rc:
+                self.assertEqual(rc.next_hook_index(), 0)
+                self.assertEqual(rc.next_hook_index(), 1)
+                self.assertEqual(rc.next_hook_index(), 2)
+                self.assertEqual(rc.next_hook_index(), 3)
 
     def test_state(self):
         from deephaven.ui._internal.RenderContext import RenderContext
@@ -82,7 +78,11 @@ class RenderTestCase(BaseTestCase):
 
         self.assertEqual(on_change.call_count, 0)
 
-        # Check that setting state triggers a change event
+        # Check that setting the initial state does not trigger a change event
+        rc.set_state(0, 0)
+        self.assertEqual(on_change.call_count, 0)
+
+        # Check that changing state triggers a change event
         rc.set_state(0, 1)
         self.assertEqual(on_change.call_count, 1)
         self.assertEqual(rc.has_state(0), True)

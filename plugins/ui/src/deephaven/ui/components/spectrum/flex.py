@@ -1,4 +1,5 @@
-from typing import Literal, Optional, Union
+from __future__ import annotations
+from typing import Literal, Optional
 from .basic import spectrum_element
 
 
@@ -44,16 +45,17 @@ def flex(
             "stretch",
             "self-start",
             "self-end",
-            "baseline" "first baseline",
+            "baseline",
+            "first baseline",
             "last baseline",
             "safe center",
             "unsafe center",
         ]
     ] = None,
-    gap: Optional[Union[str, int, float]] = None,
-    column_gap: Optional[Union[str, int, float]] = None,
-    row_gap: Optional[Union[str, int, float]] = None,
-    **props
+    gap: Optional[str | int | float] = None,
+    column_gap: Optional[str | int | float] = None,
+    row_gap: Optional[str | int | float] = None,
+    **props,
 ):
     """
     Python implementation for the Adobe React Spectrum Flex component.
@@ -70,5 +72,5 @@ def flex(
         gap=gap,
         column_gap=column_gap,
         row_gap=row_gap,
-        **props
+        **props,
     )

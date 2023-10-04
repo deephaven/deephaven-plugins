@@ -1,24 +1,72 @@
 import logging
+from typing import Any, Callable
+from contextlib import AbstractContextManager
 
 logger = logging.getLogger(__name__)
 
+OnChangeCallable = Callable[[], None]
+StateKey = int
+ContextKey = str
 
-class RenderContext:
+
+class RenderContext(AbstractContextManager):
     """
     Context for rendering a component. Keeps track of state and child contexts.
     Used by hooks to get and set state.
     """
 
+    _hook_index: int
+    """
+    The index of the current hook for this render. Should only be set while rendering.
+    """
+
+    _hook_count: int
+    """
+    Count of hooks used in the render. Should only be set after initial render.
+    """
+
+    _state: dict[StateKey, Any]
+    """
+    The state for this context.
+    """
+
+    _children_context: dict[ContextKey, "RenderContext"]
+    """
+    The child contexts for this context. 
+    """
+    _on_change: OnChangeCallable
+    """
+    The on_change callback to call when the context changes.
+    """
+
     def __init__(self):
         self._hook_index = -1
+        self._hook_count = -1
         self._state = {}
         self._children_context = {}
         self._on_change = lambda: None
 
-        # Will be initialized on render
-        self._hook_count = None
+    def __enter__(self) -> None:
+        """
+        Start rendering this component.
+        """
+        self._hook_index = -1
 
-    def _notify_change(self):
+    def __exit__(self, type, value, traceback) -> None:
+        """
+        Finish rendering this component.
+        """
+        hook_count = self._hook_index + 1
+        if self._hook_count < 0:
+            self._hook_count = hook_count
+        elif self._hook_count != hook_count:
+            raise Exception(
+                "Expected to use {} hooks, but used {}".format(
+                    self._hook_count, hook_count
+                )
+            )
+
+    def _notify_change(self) -> None:
         """
         Notify the parent context that this context has changed.
         Note that we're just re-rendering the whole tree on change.
@@ -27,19 +75,19 @@ class RenderContext:
         logger.debug("Notifying parent context that child context has changed")
         self._on_change()
 
-    def set_on_change(self, on_change):
+    def set_on_change(self, on_change: OnChangeCallable) -> None:
         """
         Set the on_change callback.
         """
         self._on_change = on_change
 
-    def has_state(self, key):
+    def has_state(self, key: StateKey) -> bool:
         """
         Check if the given key is in the state.
         """
         return key in self._state
 
-    def get_state(self, key, default=None):
+    def get_state(self, key: StateKey, default: Any = None) -> None:
         """
         Get the state for the given key.
         """
@@ -47,7 +95,7 @@ class RenderContext:
             self._state[key] = default
         return self._state[key]
 
-    def set_state(self, key, value):
+    def set_state(self, key: StateKey, value: Any) -> None:
         """
         Set the state for the given key.
         """
@@ -60,7 +108,7 @@ class RenderContext:
         if should_notify:
             self._notify_change()
 
-    def get_child_context(self, key) -> "RenderContext":
+    def get_child_context(self, key: ContextKey) -> "RenderContext":
         """
         Get the child context for the given key.
         """
@@ -72,27 +120,7 @@ class RenderContext:
             self._children_context[key] = child_context
         return self._children_context[key]
 
-    def start_render(self):
-        """
-        Start rendering this component.
-        """
-        self._hook_index = -1
-
-    def finish_render(self):
-        """
-        Finish rendering this component.
-        """
-        if self._hook_count is None:
-            self._hook_count = self._hook_index + 1
-        if self._hook_count != self._hook_index + 1:
-            raise Exception(
-                "Expected to use {} hooks, but used {}".format(
-                    self._hook_count, self._hook_index + 1
-                )
-            )
-        pass
-
-    def next_hook_index(self):
+    def next_hook_index(self) -> int:
         """
         Increment the hook index.
         """

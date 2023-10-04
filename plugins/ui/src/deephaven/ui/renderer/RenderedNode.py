@@ -1,7 +1,11 @@
-from typing import Any, List, Union
-
-
 class RenderedNode:
+    """
+    Represents the result of rendering a node.
+    """
+
+    _name: str
+    _props: dict | None
+
     def __init__(self, name: str, props: dict = None):
         """
         Stores the result of a rendered node
@@ -15,8 +19,14 @@ class RenderedNode:
 
     @property
     def name(self) -> str:
+        """
+        Get the name of the node.
+        """
         return self._name
 
     @property
-    def props(self) -> Union[dict, None]:
+    def props(self) -> dict | None:
+        """
+        Get the props of the node.
+        """
         return self._props

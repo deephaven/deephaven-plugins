@@ -1,5 +1,6 @@
+from __future__ import annotations
 import logging
-from typing import Callable, List
+from typing import Callable
 from .Element import Element
 from .._internal import RenderContext, get_context, set_context
 
@@ -7,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class FunctionElement(Element):
-    def __init__(self, name: str, render: Callable[[], List[Element]]):
+    def __init__(self, name: str, render: Callable[[], list[Element]]):
         """
         Create an element that takes a function to render.
 
@@ -22,7 +23,7 @@ class FunctionElement(Element):
     def name(self):
         return self._name
 
-    def render(self, context: RenderContext) -> List[Element]:
+    def render(self, context: RenderContext) -> list[Element]:
         """
         Render the component. Should only be called when actually rendering the component, e.g. exporting it to the client.
 
@@ -36,11 +37,9 @@ class FunctionElement(Element):
         logger.debug("old context is %s and new context is %s", old_context, context)
 
         set_context(context)
-        context.start_render()
+        with context:
+            children = self._render()
 
-        children = self._render()
-
-        context.finish_render()
         logger.debug("Resetting to old context %s", old_context)
         set_context(old_context)
 

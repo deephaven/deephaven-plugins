@@ -1,10 +1,19 @@
+from __future__ import annotations
 import logging
+from typing import Callable, TypeVar, overload
 from .._internal.shared import get_context
 
 logger = logging.getLogger(__name__)
 
+T = TypeVar("T")
 
-def use_state(initial_value):
+
+@overload
+def use_state(initial_value: T) -> (T, Callable[[T], None]):
+    ...
+
+
+def use_state(initial_value: T | None = None) -> (T | None, Callable[[T], None]):
     context = get_context()
     hook_index = context.next_hook_index()
 

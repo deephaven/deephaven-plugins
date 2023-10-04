@@ -1,6 +1,6 @@
 from collections.abc import Iterator
 import json
-from typing import Any
+from typing import Any, Callable
 from .RenderedNode import RenderedNode
 
 CALLABLE_KEY = "__dh_cbid"
@@ -16,7 +16,32 @@ class NodeEncoder(json.JSONEncoder):
     - non-serializable objects in the tree are replaced wtih an object with property `OBJECT_KEY` set to the index in the objects array.
     """
 
-    def __init__(self, *args, callable_id_prefix="cb", **kwargs):
+    _callable_id_prefix: str
+    """
+    Prefix to use for callable ids. Used to ensure callables used in stream are unique.
+    """
+
+    _callables: list[Callable]
+    """
+    List of callables parsed out of the document
+    """
+
+    _callable_id_dict: dict[int, int]
+    """
+    Dictionary from a callables id to the index in the callables array.
+    """
+
+    _objects: list[Any]
+    """
+    List of objects parsed out of the document
+    """
+
+    _object_id_dict: dict[int, int]
+    """
+    Dictionary from an objects id to the index in the objects array.
+    """
+
+    def __init__(self, *args, callable_id_prefix: str = "cb", **kwargs):
         """
         Create a new NodeEncoder.
 
@@ -28,7 +53,9 @@ class NodeEncoder(json.JSONEncoder):
         super().__init__(*args, **kwargs)
         self._callable_id_prefix = callable_id_prefix
         self._callables = []
+        self._callable_id_dict = {}
         self._objects = []
+        self._object_id_dict = {}
 
     def default(self, node: Any):
         if isinstance(node, RenderedNode):
@@ -43,11 +70,11 @@ class NodeEncoder(json.JSONEncoder):
                 return self._convert_object(node)
 
     @property
-    def callables(self):
+    def callables(self) -> list[Callable]:
         return self._callables
 
     @property
-    def objects(self):
+    def objects(self) -> list[Any]:
         return self._objects
 
     def _convert_rendered_node(self, node: RenderedNode):
@@ -57,31 +84,23 @@ class NodeEncoder(json.JSONEncoder):
         return result
 
     def _convert_callable(self, cb: callable):
-        callable_id = None
-
-        try:
-            # Reference an existing callable if it's already in the array
-            callable_id = self._callables.index(cb)
-        except ValueError:
-            # Add it to the array and reference it
-            callable_id = len(self._callables)
+        callable_id = id(cb)
+        callable_index = self._callable_id_dict.get(callable_id, len(self._callables))
+        if callable_index == len(self._callables):
             self._callables.append(cb)
+            self._callable_id_dict[callable_id] = callable_index
 
         return {
-            CALLABLE_KEY: f"{self._callable_id_prefix}{callable_id}",
+            CALLABLE_KEY: f"{self._callable_id_prefix}{callable_index}",
         }
 
     def _convert_object(self, obj: Any):
-        object_id = None
-
-        try:
-            # Reference an existing object if it's already in the array
-            object_id = self._objects.index(obj)
-        except ValueError:
-            # Add it to the array and reference it
-            object_id = len(self._objects)
+        object_id = id(obj)
+        object_index = self._object_id_dict.get(object_id, len(self._objects))
+        if object_index == len(self._objects):
             self._objects.append(obj)
+            self._object_id_dict[object_id] = object_index
 
         return {
-            OBJECT_KEY: object_id,
+            OBJECT_KEY: object_index,
         }

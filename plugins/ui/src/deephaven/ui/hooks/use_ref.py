@@ -1,17 +1,27 @@
 from .use_state import use_state
+from typing import Generic, overload, TypeVar
+
+T = TypeVar("T")
 
 
-class Ref:
+class Ref(Generic[T]):
     """
     A simple object that just stores a reference to a value in `current`
     Use it with a `use_ref` hook.
     """
 
-    def __init__(self, current):
+    current: T
+
+    def __init__(self, current: T):
         self.current = current
 
 
-def use_ref(initial_value):
+@overload
+def use_ref(initial_value: T) -> Ref[T]:
+    ...
+
+
+def use_ref(initial_value: T | None = None) -> Ref[T | None]:
     """
     Store a reference to a value that will persist across renders.
 

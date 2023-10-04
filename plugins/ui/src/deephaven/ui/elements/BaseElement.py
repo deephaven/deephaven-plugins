@@ -16,6 +16,8 @@ class BaseElement(Element):
         if len(children) > 1:
             props["children"] = list(children)
         if len(children) == 1:
+            # If there's only one child, we pass it as a single child, not a list
+            # There are many React elements that expect only a single child, and will fail if they get a list (even if it only has one element)
             props["children"] = children[0]
         self._props = dict_to_camel_case(props)
 

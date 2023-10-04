@@ -23,10 +23,9 @@ def render_hook(fn: Callable):
 
     def _rerender(*args, **kwargs):
         set_context(context)
-        context.start_render()
-        new_result = fn(*args, **kwargs)
-        return_dict["result"] = new_result
-        context.finish_render()
+        with context:
+            new_result = fn(*args, **kwargs)
+            return_dict["result"] = new_result
         return new_result
 
     return_dict["rerender"] = _rerender
