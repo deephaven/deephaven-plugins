@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import json
+import functools
 
-from deephaven.plugin import Registration
-from deephaven.plugin.object import Exporter, ObjectType, Reference
+from deephaven.plugin import Registration, Callback, object_type
 
-__version__ = "0.0.1.dev4"
+__version__ = "0.0.2.dev0"
 
 
 class Node:
@@ -31,31 +31,26 @@ class Node:
         return Node(self._object, is_ref=True, **self._kw)
 
 
-class Encoder(json.JSONEncoder):
-    def __init__(self, exporter: Exporter, **kw):
-        super().__init__(**kw)
+class CachedExporter:
+    def __init__(self, exporter: object_type.Exporter) -> None:
         self._exporter = exporter
+
+    @functools.lru_cache(maxsize=None)
+    def reference(self, obj) -> object_type.Reference:
+        return self._exporter.reference(obj)
+
+
+class Encoder(json.JSONEncoder):
+    def __init__(self, exporter: object_type.Exporter, **kw):
+        super().__init__(**kw)
+        self._exporter = CachedExporter(exporter)
 
     def default(self, obj):
         if isinstance(obj, Node):
-            if obj.is_ref:
-                ref = self._exporter.reference(obj)
-                if not ref:
-                    raise RuntimeError("Unable to create reference to Node")
-                return ref
-            else:
-                return obj.object
+            return self._exporter.reference(obj) if obj.is_ref else obj.object
 
-        if isinstance(obj, Reference):
-            # Note: serializing type is extraneous,
-            # but it makes our testing easier. Should
-            # we provide a way to turn type serialization on/off?
-            return {"type": obj.type, "index": obj.index}
-
-        # Try to create a reference with a known type
-        ref = self._exporter.reference(obj, allow_unknown_type=False)
-        if ref:
-            return ref
+        if isinstance(obj, object_type.Reference):
+            return {"ref": obj.index}
 
         # Try the default JSON (python) types
         try:
@@ -63,14 +58,10 @@ class Encoder(json.JSONEncoder):
         except TypeError:
             pass
 
-        # Fallback to unknown reference types
-        ref = self._exporter.reference(obj, allow_unknown_type=True)
-        if not ref:
-            raise RuntimeError("Unable to create reference from exporter")
-        return ref
+        return self._exporter.reference(obj)
 
 
-class JsonType(ObjectType):
+class JsonType(object_type.FetchOnlyObjectType):
     @property
     def name(self) -> str:
         return "deephaven.plugin.json.Node"
@@ -78,7 +69,7 @@ class JsonType(ObjectType):
     def is_type(self, object) -> bool:
         return isinstance(object, Node)
 
-    def to_bytes(self, exporter: Exporter, node: Node) -> bytes:
+    def to_bytes(self, exporter: object_type.Exporter, node: Node) -> bytes:
         encoder_kw = dict(node.kw)
         encoder_cls = encoder_kw.pop("cls", Encoder)
         if issubclass(encoder_cls, Encoder):
@@ -86,11 +77,11 @@ class JsonType(ObjectType):
         else:
             # todo: should this be an error case?
             encoder = encoder_cls(**encoder_kw)
-        json_text = encoder.encode(node.object)
+        json_text = encoder.encode(node)
         return str.encode(json_text)
 
 
 class JsonRegistration(Registration):
     @classmethod
-    def register_into(cls, callback: Registration.Callback) -> None:
+    def register_into(cls, callback: Callback) -> None:
         callback.register(JsonType)
