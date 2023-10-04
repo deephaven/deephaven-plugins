@@ -32,7 +32,6 @@ function FigureObject(props: FigureObjectProps) {
         position: 'relative',
         flexGrow: 1,
         flexShrink: 1,
-        flexBasis: 100,
       }}
     >
       {model && <Chart model={model} key={key} />}
