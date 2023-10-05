@@ -892,6 +892,299 @@ def my_dashboard():
 d = my_dashboard()
 ```
 
+#### ui.table
+
+`ui.table` is a wrapper for a Deephaven `Table` object where you can add customizations or callbacks to the table that the UI will handle. The basic syntax for creating a `UITable` is:
+
+```py
+import deephaven.ui as ui
+ui_table = ui.table(table: Table) -> UITable
+```
+
+It has an [immutable fluent](https://en.wikipedia.org/wiki/Fluent_interface#Immutability) interface, similar to Deephaven `Table`. That means each method below will return a new `UITable` object, rather than modifying the existing one. This allows you to chain multiple customizations together, e.g.:
+
+```py
+from deephaven import ui
+
+# Create a table with some customizations
+ui_table = (
+    ui.table(source)
+    .format_columns(["X = Y > 5 ? RED : NO_FORMATTING"])
+    .column_group("Group 1", ["Col1", "Col2"], "RED")
+)
+```
+
+`ui.table` will support the below methods.
+
+##### always_fetch_columns
+
+Set the columns to always fetch from the server. These will not be affected by the users current viewport/horizontal scrolling. Useful if you have a column with key value data that you want to always include in the data sent for row click operations.
+
+###### Syntax
+
+```py
+ui_table.always_fetch_columns(columns: Union[str, list[str]]) -> UITable
+```
+
+###### Parameters
+
+| Parameter | Type                    | Description                                                               |
+| --------- | ----------------------- | ------------------------------------------------------------------------- |
+| `columns` | `Union[str, list[str]]` | The columns to always fetch from the server. May be a single column name. |
+
+##### back_columns
+
+Set the columns to show at the back of the table.
+
+###### Syntax
+
+```py
+ui_table.back_columns(columns: Union[str, list[str]]) -> UITable
+```
+
+###### Parameters
+
+| Parameter | Type                    | Description                                                                |
+| --------- | ----------------------- | -------------------------------------------------------------------------- |
+| `columns` | `Union[str, list[str]]` | The columns to show at the back of the table. May be a single column name. |
+
+##### column_group
+
+Create a group for columns in the table.
+
+###### Syntax
+
+```py
+ui_table.column_group(name: str, children: list[str], color: Optional[str]) -> UITable
+```
+
+###### Parameters
+
+| Parameter  | Type            | Description                                                                                                                |
+| ---------- | --------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `name`     | `str`           | The group name. Must be a valid column name and not a duplicate of another column or group.                                |
+| `children` | `list[str]`     | The children in the group. May contain column names or other group names. Each item may only be specified as a child once. |
+| `color`    | `Optional[str]` | The hex color string or Deephaven color name.                                                                              |
+
+##### context_menu
+
+Add custom items to the context menu. You can provide a list of actions that always appear, or a callback that can process the selected rows and send back menu items asynchronously.
+
+###### Syntax
+
+```py
+ui_table.context_menu(
+    items: Union[
+        list[ContextMenuAction],
+        Callable[[int, dict[str, Any]], list[ContextMenuAction]],
+    ]
+) -> UITable
+```
+
+###### Parameters
+
+| Parameter | Type                                                                                       | Description                                                                                                                                                                                         |
+| --------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `items`   | `Union[list[ContextMenuAction], Callable[[int, dict[str, Any]], list[ContextMenuAction]]]` | The items to add to the context menu. May be a list of `ContextMenuAction` objects, or a callback function that takes the row index and row data and returns a list of `ContextMenuAction` objects. |
+
+##### format_columns
+
+Applies color formatting to the columns of the table.
+
+###### Syntax
+
+```py
+ui_table.format_columns(column_formats: Union[str, list[str]]) -> UITable
+```
+
+###### Parameters
+
+| Parameter        | Type                    | Description                                                                                              |
+| ---------------- | ----------------------- | -------------------------------------------------------------------------------------------------------- |
+| `column_formats` | `Union[str, list[str]]` | Formulas to compute formats for columns or rows in the table; e.g., `"X = Y > 5 ? RED : NO_FORMATTING"`. |
+
+##### format_column_where
+
+Applies color formatting to the specified column conditionally.
+
+###### Syntax
+
+```py
+ui_table.format_column_where(self,    col: str,    cond: str,    formula: str) -> UITable
+```
+
+###### Parameters
+
+| Parameter | Type  | Description                                                                          |
+| --------- | ----- | ------------------------------------------------------------------------------------ |
+| `col`     | `str` | The column name                                                                      |
+| `cond`    | `str` | The condition expression                                                             |
+| `formula` | `str` | The formatting string in the form of assignment expression "column=color expression" |
+
+##### format_row_where
+
+Applies color formatting to rows of the table conditionally.
+
+###### Syntax
+
+```py
+ui_table.format_row_where(self,    cond: str,    formula: str) -> UITable
+```
+
+###### Parameters
+
+| Parameter | Type  | Description                                                                          |
+| --------- | ----- | ------------------------------------------------------------------------------------ |
+| `cond`    | `str` | The condition expression                                                             |
+| `formula` | `str` | The formatting string in the form of assignment expression "column=color expression" |
+
+##### format_data_bar
+
+Applies data bar formatting to the specified column.
+
+###### Syntax
+
+```py
+ui_table.format_data_bar(self,
+    col: str,
+    value_col: str = None,
+    min: Union[float, str] = NULL_DOUBLE,
+    max: Union[float, str] = NULL_DOUBLE,
+    axis: Union[DataBarAxisOption, str] = None,
+    positive_color: Union['Color', List['Color']] = None,
+    negative_color: Union['Color', List['Color']] = None,
+    value_placement: Union[DataBarValuePlacementOption, str] = None,
+    direction: Union[DataBarDirectionOption, str] = None,
+    opacity: float = NULL_DOUBLE,
+    marker_col: str = None,
+    marker_color: 'Color' = None
+) -> UITable
+```
+
+###### Parameters
+
+| Parameter         | Type                                      | Description                                                    |
+| ----------------- | ----------------------------------------- | -------------------------------------------------------------- |
+| `col`             | `str`                                     | column to generate data bars in                                |
+| `value_col`       | `str`                                     | column containing the values to generate data bars from        |
+| `min`             | `Union[float, str]`                       | minimum value for data bar scaling or column to get value from |
+| `max`             | `Union[float, str]`                       | maximum value for data bar scaling or column to get value from |
+| `axis`            | `Union[DataBarAxisOption, str]`           | orientation of data bar relative to cell                       |
+| `positive_color`  | `Union['Color', List['Color']]`           | color for positive bars. Use list of colors to form a gradient |
+| `negative_color`  | `Union['Color', List['Color']]`           | color for negative bars. Use list of colors to form a gradient |
+| `value_placement` | `Union[DataBarValuePlacementOption, str]` | orientation of values relative to data bar                     |
+| `direction`       | `Union[DataBarDirectionOption, str]`      | orientation of data bar relative to horizontal axis            |
+| `opacity`         | `float`                                   | opacity of data bars. Accepts values from 0 to 1               |
+| `marker_col`      | `str`                                     | column containing the values to generate markers from          |
+| `marker_color`    | `'Color'`                                 | color for markers                                              |
+
+##### freeze_columns
+
+Set the columns to freeze to the front of the table. These will not be affected by horizontal scrolling.
+
+###### Syntax
+
+```py
+ui_table.freeze_columns(columns: Union[str, list[str]]) -> UITable
+```
+
+###### Parameters
+
+| Parameter | Type                    | Description                                                                   |
+| --------- | ----------------------- | ----------------------------------------------------------------------------- |
+| `columns` | `Union[str, list[str]]` | The columns to freeze to the front of the table. May be a single column name. |
+
+##### front_columns
+
+Set the columns to show at the front of the table.
+
+###### Syntax
+
+```py
+ui_table.front_columns(columns: Union[str, list[str]]) -> UITable
+```
+
+###### Parameters
+
+| Parameter | Type                    | Description                                                                 |
+| --------- | ----------------------- | --------------------------------------------------------------------------- |
+| `columns` | `Union[str, list[str]]` | The columns to show at the front of the table. May be a single column name. |
+
+##### hide_columns
+
+Set the columns to hide from the table.
+
+###### Syntax
+
+```py
+ui_table.hide_columns(columns: Union[str, list[str]]) -> UITable
+```
+
+###### Parameters
+
+| Parameter | Type                    | Description                                                      |
+| --------- | ----------------------- | ---------------------------------------------------------------- |
+| `columns` | `Union[str, list[str]]` | The columns to hide from the table. May be a single column name. |
+
+##### on_row_click
+
+Add a callback for when a row is clicked.
+
+###### Syntax
+
+```py
+ui_table.on_row_click(callback: Callable[[int, dict[str, Any]], None]) -> UITable
+```
+
+###### Parameters
+
+| Parameter  | Type                                    | Description                                                                                                                                                                            |
+| ---------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `callback` | `Callable[[int, dict[str, Any]], None]` | The callback function to run when a row is clicked. The first parameter is the row index, and the second is the row data provided in a dictionary where the column names are the keys. |
+
+##### on_row_double_click
+
+Add a callback for when a row is double clicked.
+
+###### Syntax
+
+```py
+ui_table.on_row_double_click(callback: Callable[[int, dict[str, Any]], None]) -> UITable
+```
+
+###### Parameters
+
+| Parameter  | Type                                    | Description                                                                                                                                                                                   |
+| ---------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `callback` | `Callable[[int, dict[str, Any]], None]` | The callback function to run when a row is double clicked. The first parameter is the row index, and the second is the row data provided in a dictionary where the column names are the keys. |
+
+##### search_display_mode
+
+Set the search bar to explicitly be accessible or inaccessible, or use the system default.
+
+###### Syntax
+
+```py
+ui_table.search_display_mode(mode: Literal["show", "hide", "default"]) -> UITable
+```
+
+###### Parameters
+
+| Parameter | Type                                 | Description                                                                                |
+| --------- | ------------------------------------ | ------------------------------------------------------------------------------------------ |
+| `mode`    | `Literal["show", "hide", "default"]` | set the search bar to explicitly be accessible or inaccessible, or use the system default. |
+
+#### Deprecations
+
+The functionality provided my `ui.table` replaces many of the existing functions on `Table`. Below are the functions that are planned for deprecation/deletion of the `Table` interface, and their replacements with the new `ui.table` interface.
+
+| Table Function        | ui.table Replacement                                                                                                                                                                                                         |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format_columns`      | [format_columns](#format_columns)                                                                                                                                                                                            |
+| `format_column_where` | [format_column_where](#format_column_where)                                                                                                                                                                                  |
+| `format_row_where`    | [format_row_where](#format_row_where)                                                                                                                                                                                        |
+| `layout_hints`        | [back_columns](#back_columns)<br/>[front_columns](#front_columns)<br/>[column_group](#column_groups)<br/>[freeze_columns](#freeze_columns)<br/>[hide_columns](#hide_columns)<br/>[search_display_mode](#search_display_mode) |
+
 #### Context
 
 By default, the context of a `@ui.component` will be created per client session (same as [Parameterized Query's "parallel universe" today](https://github.com/deephaven-ent/iris/blob/868b868fc9e180ee948137b10b6addbac043605e/ParameterizedQuery/src/main/java/io/deephaven/query/parameterized/impl/ParameterizedQueryServerImpl.java#L140)). However, it would be interesting if it were possible to share a context among all sessions for the current user, and/or share a context with other users even; e.g. if one user selects and applies a filter, it updates immediately for all other users with that dashboard open. So three cases:
