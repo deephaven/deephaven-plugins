@@ -923,14 +923,14 @@ Set the columns to always fetch from the server. These will not be affected by t
 ###### Syntax
 
 ```py
-ui_table.always_fetch_columns(columns: Union[str, list[str]]) -> UITable
+ui_table.always_fetch_columns(columns: str | list[str]) -> UITable
 ```
 
 ###### Parameters
 
-| Parameter | Type                    | Description                                                               |
-| --------- | ----------------------- | ------------------------------------------------------------------------- |
-| `columns` | `Union[str, list[str]]` | The columns to always fetch from the server. May be a single column name. |
+| Parameter | Type               | Description                                                               |
+| --------- | ------------------ | ------------------------------------------------------------------------- |
+| `columns` | `str \| list[str]` | The columns to always fetch from the server. May be a single column name. |
 
 ##### back_columns
 
@@ -939,14 +939,14 @@ Set the columns to show at the back of the table.
 ###### Syntax
 
 ```py
-ui_table.back_columns(columns: Union[str, list[str]]) -> UITable
+ui_table.back_columns(columns: str | list[str]) -> UITable
 ```
 
 ###### Parameters
 
-| Parameter | Type                    | Description                                                                |
-| --------- | ----------------------- | -------------------------------------------------------------------------- |
-| `columns` | `Union[str, list[str]]` | The columns to show at the back of the table. May be a single column name. |
+| Parameter | Type               | Description                                                                |
+| --------- | ------------------ | -------------------------------------------------------------------------- |
+| `columns` | `str \| list[str]` | The columns to show at the back of the table. May be a single column name. |
 
 ##### column_group
 
@@ -974,18 +974,15 @@ Add custom items to the context menu. You can provide a list of actions that alw
 
 ```py
 ui_table.context_menu(
-    items: Union[
-        list[ContextMenuAction],
-        Callable[[int, dict[str, Any]], list[ContextMenuAction]],
-    ]
+    items: list[ContextMenuAction] | Callable[[int, dict[str, Any]], list[ContextMenuAction]]
 ) -> UITable
 ```
 
 ###### Parameters
 
-| Parameter | Type                                                                                       | Description                                                                                                                                                                                         |
-| --------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `items`   | `Union[list[ContextMenuAction], Callable[[int, dict[str, Any]], list[ContextMenuAction]]]` | The items to add to the context menu. May be a list of `ContextMenuAction` objects, or a callback function that takes the row index and row data and returns a list of `ContextMenuAction` objects. |
+| Parameter | Type                                                                                  | Description                                                                                                                                                                                         |
+| --------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `items`   | `list[ContextMenuAction] \| Callable[[int, dict[str, Any]], list[ContextMenuAction]]` | The items to add to the context menu. May be a list of `ContextMenuAction` objects, or a callback function that takes the row index and row data and returns a list of `ContextMenuAction` objects. |
 
 ##### format_columns
 
@@ -994,14 +991,14 @@ Applies color formatting to the columns of the table.
 ###### Syntax
 
 ```py
-ui_table.format_columns(column_formats: Union[str, list[str]]) -> UITable
+ui_table.format_columns(column_formats: str | list[str]) -> UITable
 ```
 
 ###### Parameters
 
-| Parameter        | Type                    | Description                                                                                              |
-| ---------------- | ----------------------- | -------------------------------------------------------------------------------------------------------- |
-| `column_formats` | `Union[str, list[str]]` | Formulas to compute formats for columns or rows in the table; e.g., `"X = Y > 5 ? RED : NO_FORMATTING"`. |
+| Parameter        | Type               | Description                                                                                              |
+| ---------------- | ------------------ | -------------------------------------------------------------------------------------------------------- |
+| `column_formats` | `str \| list[str]` | Formulas to compute formats for columns or rows in the table; e.g., `"X = Y > 5 ? RED : NO_FORMATTING"`. |
 
 ##### format_column_where
 
@@ -1048,35 +1045,35 @@ Applies data bar formatting to the specified column.
 ui_table.format_data_bar(self,
     col: str,
     value_col: str = None,
-    min: Union[float, str] = NULL_DOUBLE,
-    max: Union[float, str] = NULL_DOUBLE,
-    axis: Union[DataBarAxisOption, str] = None,
-    positive_color: Union['Color', List['Color']] = None,
-    negative_color: Union['Color', List['Color']] = None,
-    value_placement: Union[DataBarValuePlacementOption, str] = None,
-    direction: Union[DataBarDirectionOption, str] = None,
-    opacity: float = NULL_DOUBLE,
+    min: float | str = None,
+    max: float | str = None,
+    axis: Literal["Proportional", "Middle", "Directional"] = None,
+    positive_color: Color | list[Color] = None,
+    negative_color: Color | list[Color] = None,
+    value_placement: Literal["Beside", "Overlap", "Hide"] = None,
+    direction: Literal["LTR", "RTL"] = None,
+    opacity: float = None,
     marker_col: str = None,
-    marker_color: 'Color' = None
+    marker_color: Color = None
 ) -> UITable
 ```
 
 ###### Parameters
 
-| Parameter         | Type                                      | Description                                                    |
-| ----------------- | ----------------------------------------- | -------------------------------------------------------------- |
-| `col`             | `str`                                     | column to generate data bars in                                |
-| `value_col`       | `str`                                     | column containing the values to generate data bars from        |
-| `min`             | `Union[float, str]`                       | minimum value for data bar scaling or column to get value from |
-| `max`             | `Union[float, str]`                       | maximum value for data bar scaling or column to get value from |
-| `axis`            | `Union[DataBarAxisOption, str]`           | orientation of data bar relative to cell                       |
-| `positive_color`  | `Union['Color', List['Color']]`           | color for positive bars. Use list of colors to form a gradient |
-| `negative_color`  | `Union['Color', List['Color']]`           | color for negative bars. Use list of colors to form a gradient |
-| `value_placement` | `Union[DataBarValuePlacementOption, str]` | orientation of values relative to data bar                     |
-| `direction`       | `Union[DataBarDirectionOption, str]`      | orientation of data bar relative to horizontal axis            |
-| `opacity`         | `float`                                   | opacity of data bars. Accepts values from 0 to 1               |
-| `marker_col`      | `str`                                     | column containing the values to generate markers from          |
-| `marker_color`    | `'Color'`                                 | color for markers                                              |
+| Parameter         | Type                                                               | Description                                                    |
+| ----------------- | ------------------------------------------------------------------ | -------------------------------------------------------------- |
+| `col`             | `str`                                                              | column to generate data bars in                                |
+| `value_col`       | `str`                                                              | column containing the values to generate data bars from        |
+| `min`             | `float                                             \| str`         | minimum value for data bar scaling or column to get value from |
+| `max`             | `float                                             \| str`         | maximum value for data bar scaling or column to get value from |
+| `axis`            | `Literal["Proportional", "Middle", "Directional"]`                 | orientation of data bar relative to cell                       |
+| `positive_color`  | `Color                                             \| list[Color]` | color for positive bars. Use list of colors to form a gradient |
+| `negative_color`  | `Color                                             \| list[Color]` | color for negative bars. Use list of colors to form a gradient |
+| `value_placement` | `Literal["Beside", "Overlap", "Hide"]`                             | orientation of values relative to data bar                     |
+| `direction`       | `Literal["LTR", "RTL"]`                                            | orientation of data bar relative to horizontal axis            |
+| `opacity`         | `float`                                                            | opacity of data bars. Accepts values from 0 to 1               |
+| `marker_col`      | `str`                                                              | column containing the values to generate markers from          |
+| `marker_color`    | `'Color'`                                                          | color for markers                                              |
 
 ##### freeze_columns
 
@@ -1085,14 +1082,14 @@ Set the columns to freeze to the front of the table. These will not be affected 
 ###### Syntax
 
 ```py
-ui_table.freeze_columns(columns: Union[str, list[str]]) -> UITable
+ui_table.freeze_columns(columns: str | list[str]) -> UITable
 ```
 
 ###### Parameters
 
-| Parameter | Type                    | Description                                                                   |
-| --------- | ----------------------- | ----------------------------------------------------------------------------- |
-| `columns` | `Union[str, list[str]]` | The columns to freeze to the front of the table. May be a single column name. |
+| Parameter | Type               | Description                                                                   |
+| --------- | ------------------ | ----------------------------------------------------------------------------- |
+| `columns` | `str \| list[str]` | The columns to freeze to the front of the table. May be a single column name. |
 
 ##### front_columns
 
@@ -1101,14 +1098,14 @@ Set the columns to show at the front of the table.
 ###### Syntax
 
 ```py
-ui_table.front_columns(columns: Union[str, list[str]]) -> UITable
+ui_table.front_columns(columns: str | list[str]) -> UITable
 ```
 
 ###### Parameters
 
-| Parameter | Type                    | Description                                                                 |
-| --------- | ----------------------- | --------------------------------------------------------------------------- |
-| `columns` | `Union[str, list[str]]` | The columns to show at the front of the table. May be a single column name. |
+| Parameter | Type               | Description                                                                 |
+| --------- | ------------------ | --------------------------------------------------------------------------- |
+| `columns` | `str \| list[str]` | The columns to show at the front of the table. May be a single column name. |
 
 ##### hide_columns
 
@@ -1117,14 +1114,14 @@ Set the columns to hide from the table.
 ###### Syntax
 
 ```py
-ui_table.hide_columns(columns: Union[str, list[str]]) -> UITable
+ui_table.hide_columns(columns: str | list[str]) -> UITable
 ```
 
 ###### Parameters
 
-| Parameter | Type                    | Description                                                      |
-| --------- | ----------------------- | ---------------------------------------------------------------- |
-| `columns` | `Union[str, list[str]]` | The columns to hide from the table. May be a single column name. |
+| Parameter | Type               | Description                                                      |
+| --------- | ------------------ | ---------------------------------------------------------------- |
+| `columns` | `str \| list[str]` | The columns to hide from the table. May be a single column name. |
 
 ##### on_row_click
 
@@ -1158,6 +1155,25 @@ ui_table.on_row_double_click(callback: Callable[[int, dict[str, Any]], None]) ->
 | ---------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `callback` | `Callable[[int, dict[str, Any]], None]` | The callback function to run when a row is double clicked. The first parameter is the row index, and the second is the row data provided in a dictionary where the column names are the keys. |
 
+##### quick_filter
+
+Add a quick filter for the UI to apply to the table.
+
+###### Syntax
+
+```py
+ColumnName = str
+QuickFilterExpression = str
+
+ui_table.quick_filter(filter: dict[ColumnName, QuickFilterExpression]) -> UITable
+```
+
+###### Parameters
+
+| Parameter | Type                                      | Description                             |
+| --------- | ----------------------------------------- | --------------------------------------- |
+| `filter`  | `dict[ColumnName, QuickFilterExpression]` | The quick filter to apply to the table. |
+
 ##### search_display_mode
 
 Set the search bar to explicitly be accessible or inaccessible, or use the system default.
@@ -1174,6 +1190,35 @@ ui_table.search_display_mode(mode: Literal["show", "hide", "default"]) -> UITabl
 | --------- | ------------------------------------ | ------------------------------------------------------------------------------------------ |
 | `mode`    | `Literal["show", "hide", "default"]` | set the search bar to explicitly be accessible or inaccessible, or use the system default. |
 
+##### totals_table
+
+Set the totals table to display below the main table.
+
+###### Syntax
+
+```py
+ColumnName = str
+AggregationOperation = Literal["Count", "CountDistinct", "Distinct", "Min", "Max", "Sum", "AbsSum", "Var", "Avg", "Std", "First", "Last", "Unique"]
+
+ui_table.totals_table(
+    operations: dict[ColumnName, list[AggregationOperation]],
+    operation_order: list[AggregationOperation] = [],
+    default_operation: "Sum",
+    group_by: list[ColumnName] = [],
+    show_on_top: bool = False,
+) -> UITable
+```
+
+###### Parameters
+
+| Parameter           | Type                                           | Description                                                                        |
+| ------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `operations`        | `dict[ColumnName, list[AggregationOperation]]` | The operations to apply to the columns of the table.                               |
+| `operation_order`   | `list[AggregationOperation]`                   | The order in which to display the operations.                                      |
+| `default_operation` | `AggregationOperation`                         | The default operation to apply to columns that do not have an operation specified. |
+| `group_by`          | `list[ColumnName]`                             | The columns to group by.                                                           |
+| `show_on_top`       | `bool`                                         | Whether to show the totals table above the main table.                             |
+
 #### Deprecations
 
 The functionality provided my `ui.table` replaces many of the existing functions on `Table`. Below are the functions that are planned for deprecation/deletion of the `Table` interface, and their replacements with the new `ui.table` interface.
@@ -1184,6 +1229,30 @@ The functionality provided my `ui.table` replaces many of the existing functions
 | `format_column_where` | [format_column_where](#format_column_where)                                                                                                                                                                                  |
 | `format_row_where`    | [format_row_where](#format_row_where)                                                                                                                                                                                        |
 | `layout_hints`        | [back_columns](#back_columns)<br/>[front_columns](#front_columns)<br/>[column_group](#column_groups)<br/>[freeze_columns](#freeze_columns)<br/>[hide_columns](#hide_columns)<br/>[search_display_mode](#search_display_mode) |
+| `dropColumnFormats`   | No replacement                                                                                                                                                                                                               |
+| `setTotalsTable`      | [totals_table](#totals_table)                                                                                                                                                                                                |
+
+##### sort
+
+Provide the default sort that will be used by the UI.
+
+###### Syntax
+
+```py
+SortDirection = Literal["ASC", "DESC"]
+
+ui_table.sort(
+    order_by: str | Sequence[str],
+    order: Optional[SortDirection | Sequence[SortDirection]]
+) -> UITable
+```
+
+###### Parameters
+
+| Parameter  | Type                                                 | Description                                                                                                 |
+| ---------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `order_by` | `str                    \| Sequence[str]`            | The column(s) to sort by. May be a single column name, or a list of column names.                           |
+| `order`    | `Optional[SortDirection \| Sequence[SortDirection]]` | The sort direction(s) to use. If provided, that must match up with the columns provided. Defaults to "ASC". |
 
 #### Context
 
