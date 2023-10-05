@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "child": {
+      "anyOf": [
+        { "$ref": "#/defs/element" },
+        { "$ref": "#/defs/exported_object" },
+        { "$ref": "#/defs/callable" },
+        { "type": "number" },
+        { "type": "string" },
+        { "type": "boolean" },
+        { "type": "null" },
+        { "type": "object" },
+        { "type": "any" }
+      ]
+    },
+    "element": {
+      "type": "object",
+      "properties": {
+        "__dh_elem": { "type": "string" },
+        "props": {
+          "type": "object",
+          "properties": {
+            "children": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": { "$ref": "#/defs/child" }
+                },
+                { "$ref": "#/defs/child" }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "callable": {
+      "type": "object",
+      "properties": {
+        "__dh_cbid": { "type": "string" }
+      }
+    },
+    "exportedObject": {
+      "type": "object",
+      "properties": {
+        "__dh_obid": { "type": "number" }
+      }
+    },
+
+    "documentUpdatedParams": {
+      "type": "array",
+      "prefixItems": [{ "$ref": "#/defs/element" }],
+      "items": false
+    }
+  },
+  "type": "object",
+  "properties": {
+    "jsonrpc": "2.0",
+    "method": {
+      "anyOf": [
+        { "enum": ["documentUpdated"] },
+        { "pattern": "^cb_(0-9)+_(0-9)+$" }
+      ]
+    },
+    "allOf": [
+      {
+        "if": {
+          "properties": {
+            "method": { "const": "documentUpdated" }
+          }
+        },
+        "then": {
+          "properties": {
+            "params": { "$ref": "#/defs/documentUpdatedParams" }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "method": { "pattern": "^cb_(0-9)+_(0-9)+$" }
+          }
+        },
+        "then": {
+          "properties": {
+            "params": {
+              "type": "array",
+              "items": { "type": "any" }
+            }
+          }
+        }
+      }
+    ]
+  }
+}
