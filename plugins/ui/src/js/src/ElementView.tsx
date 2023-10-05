@@ -6,6 +6,7 @@ import { isSpectrumElementNode } from './SpectrumElementUtils';
 import SpectrumElementView from './SpectrumElementView';
 import { isIconElementNode } from './IconElementUtils';
 import IconElementView from './IconElementView';
+import renderElementChildren from './renderElementChildren';
 
 export type ElementViewProps = {
   element: ElementNode;
@@ -24,8 +25,12 @@ export function ElementView({ element }: ElementViewProps): JSX.Element | null {
 
   // No special rendering for this node, just render the children
   const { props } = element;
-  // eslint-disable-next-line react/jsx-no-useless-fragment, react/prop-types
-  return <>{props?.children ?? null}</>;
+  if (props == null) {
+    return null;
+  }
+  // eslint-disable-next-line react/prop-types
+  const { children } = props;
+  return renderElementChildren(children);
 }
 
 export default ElementView;

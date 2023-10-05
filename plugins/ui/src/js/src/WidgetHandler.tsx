@@ -18,21 +18,21 @@ import {
   isCallableNode,
   isObjectNode,
 } from './ElementUtils';
-import { JsWidget, WidgetMessageEvent } from './WidgetTypes';
+import { JsWidget, WidgetMessageEvent, WidgetWrapper } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
 export interface WidgetHandlerProps {
-  /** Fetch a widget thats an Element type */
-  fetch(): Promise<JsWidget>;
+  /** Widget for this to handle */
+  widget: WidgetWrapper;
 
   /** Layout this widget is attached to */
   layout: DashboardPluginComponentProps['layout'];
 }
 
 function WidgetHandler(props: WidgetHandlerProps) {
-  const { fetch, layout } = props;
+  const { layout, widget: wrapper } = props;
   const dh = useApi();
 
   const [widget, setWidget] = useState<JsWidget>();
@@ -57,7 +57,7 @@ function WidgetHandler(props: WidgetHandlerProps) {
      * Parse the data from the server, replacing any callable nodes with functions that call the server.
      * Replaces all Callables with an async callback that will automatically call the server use JSON-RPC.
      * Replaces all Objects with the exported object from the server.
-     * Element nodes are not replaced. Those are handled in `ElementHandler`.
+     * Element nodes are not replaced. Those are handled in `DocumentHandler`.
      *
      * @param data The data to parse
      * @param exportedObjects The exported objects to use for re-hydrating objects
@@ -91,13 +91,10 @@ function WidgetHandler(props: WidgetHandlerProps) {
       }
 
       log.info('Adding methods to jsonClient');
-      jsonClient.addMethod(
-        'documentUpdated',
-        async (newDocument: ElementNode) => {
-          log.info('documentUpdated', newDocument);
-          setElement(newDocument);
-        }
-      );
+      jsonClient.addMethod('documentUpdated', async (params: [ElementNode]) => {
+        log.info('documentUpdated', params[0]);
+        setElement(params[0]);
+      });
 
       return () => {
         jsonClient.rejectAllPendingRequests('Widget was changed');
@@ -140,7 +137,7 @@ function WidgetHandler(props: WidgetHandlerProps) {
     function loadWidget() {
       let isCancelled = false;
       async function loadWidgetInternal() {
-        const newWidget = await fetch();
+        const newWidget = await wrapper.fetch();
         if (isCancelled) {
           return;
         }
@@ -152,10 +149,16 @@ function WidgetHandler(props: WidgetHandlerProps) {
         isCancelled = true;
       };
     },
-    [fetch]
+    [wrapper]
   );
 
-  return element ? <DocumentHandler element={element} layout={layout} /> : null;
+  return element ? (
+    <DocumentHandler
+      definition={wrapper.definition}
+      element={element}
+      layout={layout}
+    />
+  ) : null;
 }
 
 WidgetHandler.displayName = '@deephaven/js-plugin-ui/WidgetHandler';

@@ -6,9 +6,8 @@ import {
 } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
 import type { VariableDefinition } from '@deephaven/jsapi-types';
-import ElementPanel from './ElementPanel';
 import styles from './styles.scss?inline';
-import { JsWidget } from './WidgetTypes';
+import { JsWidget, WidgetWrapper } from './WidgetTypes';
 import PortalPanel from './PortalPanel';
 import WidgetHandler from './WidgetHandler';
 
@@ -23,7 +22,7 @@ export function DashboardPlugin({
 }: DashboardPluginComponentProps): JSX.Element | null {
   // Keep track of the widgets we've got opened.
   const [widgetMap, setWidgetMap] = useState<
-    ReadonlyMap<string, () => Promise<JsWidget>>
+    ReadonlyMap<string, WidgetWrapper>
   >(new Map());
   const handlePanelOpen = useCallback(
     ({
@@ -45,19 +44,17 @@ export function DashboardPlugin({
         return;
       }
       log.info('Opening element with ID', panelId);
-      const newWidgetMap = new Map<string, () => Promise<JsWidget>>(widgetMap);
-      // Use the panelId to track the widget mapping, as that's already plumbed through and we can then replace the document fairly easily
-      newWidgetMap.set(panelId, fetch);
-      setWidgetMap(newWidgetMap);
+      setWidgetMap(prevWidgetMap => {
+        const newWidgetMap = new Map<string, WidgetWrapper>(prevWidgetMap);
+        newWidgetMap.set(panelId, { definition: widget, fetch });
+        return newWidgetMap;
+      });
     },
     []
   );
 
   useEffect(() => {
-    const cleanups = [
-      registerComponent(ElementPanel.displayName, ElementPanel),
-      registerComponent(PortalPanel.displayName, PortalPanel),
-    ];
+    const cleanups = [registerComponent(PortalPanel.displayName, PortalPanel)];
 
     return () => {
       cleanups.forEach(cleanup => cleanup());
@@ -69,8 +66,8 @@ export function DashboardPlugin({
 
   const widgetHandlers = useMemo(
     () =>
-      [...widgetMap.entries()].map(([panelId, fetch]) => (
-        <WidgetHandler key={panelId} fetch={fetch} layout={layout} />
+      [...widgetMap.entries()].map(([panelId, widget]) => (
+        <WidgetHandler key={panelId} widget={widget} layout={layout} />
       )),
     [layout, widgetMap]
   );

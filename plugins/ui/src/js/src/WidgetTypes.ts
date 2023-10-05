@@ -1,3 +1,4 @@
+import { WidgetDefinition } from '@deephaven/dashboard';
 import { ExportedObject } from './ElementUtils';
 
 export interface WidgetMessageDetails {
@@ -19,3 +20,8 @@ export interface JsWidget extends WidgetMessageDetails {
 }
 
 export type WidgetFetch = () => Promise<JsWidget>;
+
+export type WidgetWrapper = {
+  definition: WidgetDefinition;
+  fetch: WidgetFetch;
+};

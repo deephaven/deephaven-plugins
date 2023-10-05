@@ -4,7 +4,10 @@ import {
   JSONRPCServer,
   JSONRPCServerAndClient,
 } from 'json-rpc-2.0';
-import { DashboardPluginComponentProps } from '@deephaven/dashboard';
+import {
+  DashboardPluginComponentProps,
+  WidgetDefinition,
+} from '@deephaven/dashboard';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
 import {
@@ -20,10 +23,13 @@ import {
 import ElementView from './ElementView';
 import ObjectView from './ObjectView';
 import { JsWidget } from './WidgetTypes';
+import LayoutPanel from './LayoutPanel';
 
 const log = Log.module('@deephaven/js-plugin-ui/ElementHandler');
 
 export interface DocumentHandlerProps {
+  definition: WidgetDefinition;
+
   /** The root element to render */
   element: ElementNode;
 
@@ -31,40 +37,19 @@ export interface DocumentHandlerProps {
   layout: DashboardPluginComponentProps['layout'];
 }
 
-function DocumentHandler({ element, layout }: DocumentHandlerProps) {
-  const dh = useApi();
-
-  // TODO: Need to fill this all in... create LayoutPanels
-  useEffect(
-    function loadWidget() {
-      let isCancelled = false;
-      async function loadWidgetInternal() {
-        const newWidget = await fetch();
-        if (isCancelled) {
-          return;
-        }
-        log.info('newWidget', newWidget);
-        setWidget(newWidget);
-      }
-      loadWidgetInternal();
-      return () => {
-        isCancelled = true;
-      };
-    },
-    [fetch]
-  );
-
+function DocumentHandler({
+  definition,
+  element,
+  layout,
+}: DocumentHandlerProps) {
+  // TODO: Check for different panels, dashboards, etc.
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        width: '100%',
-      }}
+    <LayoutPanel
+      layout={layout}
+      title={definition.title ?? definition.id ?? definition.type}
     >
-      {element}
-    </div>
+      <ElementView element={element} />
+    </LayoutPanel>
   );
 }
 
