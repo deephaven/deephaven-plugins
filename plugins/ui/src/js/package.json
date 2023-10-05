@@ -5,6 +5,7 @@
   "keywords": [
     "Deephaven",
     "plugin",
+    "deephaven-plugin",
     "deephaven-js-plugin",
     "ui",
     "layout",
@@ -16,12 +17,12 @@
   "main": "dist/index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/deephaven/deephaven-js-plugins"
+    "url": "git+https://github.com/deephaven/deephaven-plugins"
   },
   "bugs": {
-    "url": "https://github.com/deephaven/deephaven-js-plugins/issues"
+    "url": "https://github.com/deephaven/deephaven-plugins/issues"
   },
-  "homepage": "https://github.com/deephaven/deephaven-js-plugins",
+  "homepage": "https://github.com/deephaven/deephaven-plugins/tree/main/plugins/ui",
   "scripts": {
     "start": "vite build --watch",
     "build": "vite build"
