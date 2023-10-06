@@ -42,3 +42,19 @@ export type ExportedObject<T = unknown> = {
   fetch(): Promise<T>;
   type: string;
 };
+
+/**
+ * Create a key for an element.
+ * @param child Child element
+ * @param itemTypeCount Map of item types to counts. Will update the map with this type.
+ * @returns A key that can be used for rendering an item.
+ */
+export function makeElementKey(
+  child: unknown,
+  itemTypeCount: Map<string, number>
+): string {
+  const type = isElementNode(child) ? child[ELEMENT_KEY] : 'unknown';
+  const currentCount = itemTypeCount.get(type) ?? 0;
+  itemTypeCount.set(type, currentCount + 1);
+  return `${type}-${currentCount}`;
+}

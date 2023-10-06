@@ -1,5 +1,6 @@
 from .icon import icon
 from .make_component import make_component as component
+from .panel import panel
 from .spectrum import *
 
 
@@ -16,6 +17,7 @@ __all__ = [
     "icon_wrapper",
     "illustrated_message",
     "html",
+    "panel",
     "slider",
     "spectrum_element",
     "switch",

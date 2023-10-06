@@ -9,13 +9,14 @@ import IconElementView from './IconElementView';
 import ObjectView from './ObjectView';
 
 export type ElementViewProps = {
+  /** The element to render. */
   element: React.ReactNode;
 };
 
 /**
  * Take an object from within a document and attempt to render it.
- * If it's an element, then render it as an element and any special handling that may require.
- * If it's an object, then render it as an object, and/or let a plugin handle it.
+ * If it's an `ElementNode`, then render it as an element and any special handling that may require.
+ * If it's an `ExportedObject`, then render it as an object, and/or let a plugin handle it.
  */
 export function ElementView({ element }: ElementViewProps): JSX.Element | null {
   if (element == null) {

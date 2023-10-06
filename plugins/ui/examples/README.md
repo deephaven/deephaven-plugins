@@ -379,6 +379,55 @@ wp = waves_with_plot()
 
 ![Waves with plot](assets/waves_with_plot.png)
 
+## Using Panels
+
+When you return an array of elements, they automatically get created as individual panels. You can use the `ui.panel` component to name the panel.
+
+```python
+from deephaven import ui
+from deephaven.ui import use_state
+from deephaven.plot.figure import Figure
+
+
+@ui.component
+def multiwave():
+    amplitude, frequency, phase, wave_input = use_wave_input()
+
+    tt = use_memo(lambda: time_table("PT1s").update("x=i"), [])
+    t = use_memo(
+        lambda: tt.update(
+            [
+                f"y_sin={amplitude}*Math.sin({frequency}*x+{phase})",
+                f"y_cos={amplitude}*Math.cos({frequency}*x+{phase})",
+                f"y_tan={amplitude}*Math.tan({frequency}*x+{phase})",
+            ]
+        ),
+        [amplitude, frequency, phase],
+    )
+    p_sin = use_memo(
+        lambda: Figure().plot_xy(series_name="Sine", t=t, x="x", y="y_sin").show(), [t]
+    )
+    p_cos = use_memo(
+        lambda: Figure().plot_xy(series_name="Cosine", t=t, x="x", y="y_cos").show(),
+        [t],
+    )
+    p_tan = use_memo(
+        lambda: Figure().plot_xy(series_name="Tangent", t=t, x="x", y="y_tan").show(),
+        [t],
+    )
+
+    return [
+        ui.panel(wave_input, title="Wave Input"),
+        ui.panel(t, title="Wave Table"),
+        ui.panel(p_sin, title="Sine"),
+        ui.panel(p_cos, title="Cosine"),
+        ui.panel(p_tan, title="Tangent"),
+    ]
+
+
+mw = multiwave()
+```
+
 ## Re-using components
 
 In a previous example, we created a text_filter_table component. We can re-use that component, and display two tables with an input filter side-by-side:

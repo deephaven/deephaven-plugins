@@ -1,11 +1,11 @@
 import React from 'react';
 import { WidgetDefinition } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
-import { ElementNode } from './ElementUtils';
+import { ElementNode, makeElementKey } from './ElementUtils';
 
 import ReactPanel from './ReactPanel';
-import renderElement from './renderElement';
 import ElementView from './ElementView';
+import { isPanelElementNode } from './PanelUtils';
 
 const log = Log.module('@deephaven/js-plugin-ui/DocumentHandler');
 
@@ -18,11 +18,24 @@ export interface DocumentHandlerProps {
 
 function DocumentHandler({ definition, element }: DocumentHandlerProps) {
   log.debug('Rendering document', element);
-  return (
-    <ReactPanel title={definition.title ?? definition.id ?? definition.type}>
-      <ElementView element={element} />
-    </ReactPanel>
-  );
+
+  const { children } = element.props ?? {};
+  const childrenArray = Array.isArray(children) ? children : [children];
+  // Count of each item type to correctly allocate them a key
+
+  const itemTypeCount = new Map<string, number>();
+  return childrenArray.map((child, i) => {
+    const key = makeElementKey(child, itemTypeCount);
+    let title = `${definition.title ?? definition.id ?? definition.type}-${i}`;
+    if (isPanelElementNode(child)) {
+      title = child.props.title ?? title;
+    }
+    return (
+      <ReactPanel title={title} key={key}>
+        <ElementView element={child} />
+      </ReactPanel>
+    );
+  });
 }
 
 DocumentHandler.displayName = '@deephaven/js-plugin-ui/DocumentHandler';
