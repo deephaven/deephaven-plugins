@@ -1,0 +1,42 @@
+name: Test Modified Python Packages
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'plugins/plotly-express/**'
+      - 'plugins/plotly/**'
+      - 'plugins/matplotlib/**'
+      - 'plugins/json/**'
+
+jobs:
+  changes:
+    runs-on: ubuntu-22.04
+    permissions:
+      pull-requests: read
+    outputs:
+      packages: ${{ steps.filter.outputs.changes }}
+    steps:
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            plotly-express: plugins/plotly-express
+            plotly: plugins/plotly
+            matplotlib: plugins/matplotlib
+            json: plugins/json
+
+  build:
+    needs: changes
+    strategy:
+      matrix:
+        package: ${{ fromJSON(needs.changes.outputs.packages) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: test-python-package.yml@main
+        with:
+          package: ${{ matrix.package }}
+
+
+
+
