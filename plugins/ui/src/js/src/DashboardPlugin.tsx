@@ -10,6 +10,7 @@ import styles from './styles.scss?inline';
 import { JsWidget, WidgetWrapper } from './WidgetTypes';
 import PortalPanel from './PortalPanel';
 import WidgetHandler from './WidgetHandler';
+import LayoutContext from './LayoutContext';
 
 const NAME_ELEMENT = 'deephaven.ui.Element';
 
@@ -67,16 +68,16 @@ export function DashboardPlugin({
   const widgetHandlers = useMemo(
     () =>
       [...widgetMap.entries()].map(([panelId, widget]) => (
-        <WidgetHandler key={panelId} widget={widget} layout={layout} />
+        <WidgetHandler key={panelId} widget={widget} />
       )),
-    [layout, widgetMap]
+    [widgetMap]
   );
 
   return (
-    <>
+    <LayoutContext.Provider value={layout}>
       <style>{styles}</style>
       {widgetHandlers}
-    </>
+    </LayoutContext.Provider>
   );
 }
 

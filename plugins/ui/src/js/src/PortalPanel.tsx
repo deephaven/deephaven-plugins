@@ -19,10 +19,8 @@ function PortalPanel({ element }: PortalPanelProps): JSX.Element {
       return;
     }
 
-    console.log('MJB PortalPanel adding element to panel');
     current.appendChild(element);
     return () => {
-      console.log('MJB PortalPanel removing element from panel');
       current.removeChild(element);
     };
   }, [element, ref]);

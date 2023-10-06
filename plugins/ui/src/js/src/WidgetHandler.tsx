@@ -26,13 +26,10 @@ const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 export interface WidgetHandlerProps {
   /** Widget for this to handle */
   widget: WidgetWrapper;
-
-  /** Layout this widget is attached to */
-  layout: DashboardPluginComponentProps['layout'];
 }
 
 function WidgetHandler(props: WidgetHandlerProps) {
-  const { layout, widget: wrapper } = props;
+  const { widget: wrapper } = props;
   const dh = useApi();
 
   const [widget, setWidget] = useState<JsWidget>();
@@ -153,11 +150,7 @@ function WidgetHandler(props: WidgetHandlerProps) {
   );
 
   return element ? (
-    <DocumentHandler
-      definition={wrapper.definition}
-      element={element}
-      layout={layout}
-    />
+    <DocumentHandler definition={wrapper.definition} element={element} />
   ) : null;
 }
 

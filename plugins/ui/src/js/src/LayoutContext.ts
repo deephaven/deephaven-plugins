@@ -1,6 +1,10 @@
 import React from 'react';
-// import { Layout } from '';
+import { DashboardPluginComponentProps } from '@deephaven/dashboard';
 
-export const LayoutContext: React.Context<>;
+export const LayoutContext: React.Context<
+  DashboardPluginComponentProps['layout'] | undefined
+> = React.createContext<DashboardPluginComponentProps['layout'] | undefined>(
+  undefined
+);
 
 export default LayoutContext;

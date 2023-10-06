@@ -8,25 +8,17 @@ import { isIconElementNode } from './IconElementUtils';
 import IconElementView from './IconElementView';
 import ObjectView from './ObjectView';
 
-export type ElementViewProps = {
-  element: unknown;
-};
-
 /**
- * Take an object from within a document and attempt to render it.
- * If it's an element, then render it as an element and any special handling that may require.
- * If it's an object, then render it as an object, and/or let a plugin handle it.
+ * Function to render an element that is part of a deephaven.ui document.
+ * Handles nulls, arrays, elements, objects, and valid React elements. Throws for unknown elements.
+ * @param element The element to render
  */
-export function ElementView({ element }: ElementViewProps): JSX.Element | null {
+function renderElement(element: React.ReactNode): React.ReactNode {
+  if (element == null) {
+    return null;
+  }
   if (Array.isArray(element)) {
-    return (
-      <>
-        {element.map((child, i) => (
-          // eslint-disable-next-line react/no-array-index-key
-          <ElementView element={child} key={i} />
-        ))}
-      </>
-    );
+    return <>{element.map((child, i) => renderElement(child))}</>;
   }
   if (isElementNode(element)) {
     if (isHTMLElementNode(element)) {
@@ -46,19 +38,15 @@ export function ElementView({ element }: ElementViewProps): JSX.Element | null {
     }
     // eslint-disable-next-line react/prop-types
     const { children } = props;
-    return <ElementView element={children} />;
+    return renderElement(children);
   }
 
   if (isExportedObject(element)) {
     return <ObjectView object={element} />;
   }
 
-  if (React.isValidElement(element)) {
-    // Just render it if it's a valid element
-    return element;
-  }
-
-  throw new Error(`Unknown element: ${element}`);
+  // Just try and return the element, assume it is renderable. If not, this will throw.
+  return element;
 }
 
-export default ElementView;
+export default renderElement;
