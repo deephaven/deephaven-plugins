@@ -27,35 +27,28 @@ function ReactPanel({ children, title }: ReactPanelProps) {
 
   log.debug('Rendering panel', panelId);
 
-  useEffect(() => {
-    const { eventHub } = layout;
-
-    function handlePanelClosed(closedPanelId: string): void {
-      if (closedPanelId === panelId) {
-        panelOpenRef.current = false;
-        setElement(undefined);
-      }
-    }
-
-    eventHub.on(PanelEvent.CLOSED, handlePanelClosed);
-    return () => {
-      eventHub.off(PanelEvent.CLOSED, handlePanelClosed);
+  useEffect(
+    () => () => {
       if (panelOpenRef.current) {
         LayoutUtils.closeComponent(layout.root, { id: panelId });
         panelOpenRef.current = false;
       }
-    };
-  }, [layout, panelId]);
+    },
+    [layout, panelId]
+  );
 
   useEffect(() => {
     if (panelOpenRef.current === false) {
-      const newElement = document.createElement('div');
       const config = {
         type: 'react-component' as const,
         component: PortalPanel.displayName,
         props: {
           id: panelId,
-          element: newElement,
+          onClose: () => {
+            panelOpenRef.current = false;
+            setElement(undefined);
+          },
+          onOpen: setElement,
         },
         title,
         id: panelId,
@@ -65,7 +58,6 @@ function ReactPanel({ children, title }: ReactPanelProps) {
       LayoutUtils.openComponent({ root, config });
       log.debug('Opened panel', panelId, config);
       panelOpenRef.current = true;
-      setElement(newElement);
     }
   }, [children, layout, panelId, title]);
 

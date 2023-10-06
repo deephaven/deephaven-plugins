@@ -4,3 +4,18 @@
   overflow: hidden;
   position: relative;
 }
+
+.ui-figure-object {
+  position: 'relative';
+  flex-grow: 1;
+  flex-shrink: 1;
+}
+
+.ui-portal-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
