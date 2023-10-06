@@ -4,7 +4,7 @@ import {
   SpectrumElementNode,
 } from './SpectrumElementUtils';
 import { ELEMENT_KEY } from './ElementUtils';
-import renderElement from './renderElement';
+import ElementView from './ElementView';
 
 export type SpectrumElementViewProps = {
   element: SpectrumElementNode;
@@ -22,7 +22,9 @@ export function SpectrumElementView({
   const { children, ...otherProps } = props;
   return (
     // eslint-disable-next-line react/jsx-props-no-spreading, @typescript-eslint/no-explicit-any
-    <Component {...otherProps}>{renderElement(children) as any}</Component>
+    <Component {...otherProps}>
+      <ElementView element={children} />
+    </Component>
   );
 }
 

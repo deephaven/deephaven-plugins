@@ -9,7 +9,7 @@ import IconElementView from './IconElementView';
 import ObjectView from './ObjectView';
 
 export type ElementViewProps = {
-  element: unknown;
+  element: React.ReactNode;
 };
 
 /**
@@ -18,6 +18,9 @@ export type ElementViewProps = {
  * If it's an object, then render it as an object, and/or let a plugin handle it.
  */
 export function ElementView({ element }: ElementViewProps): JSX.Element | null {
+  if (element == null) {
+    return null;
+  }
   if (Array.isArray(element)) {
     return (
       <>
@@ -53,12 +56,8 @@ export function ElementView({ element }: ElementViewProps): JSX.Element | null {
     return <ObjectView object={element} />;
   }
 
-  if (React.isValidElement(element)) {
-    // Just render it if it's a valid element
-    return element;
-  }
-
-  throw new Error(`Unknown element: ${element}`);
+  // Just try and return the element, assume it is renderable. If not, this will throw.
+  return element as JSX.Element;
 }
 
 export default ElementView;
