@@ -8,6 +8,13 @@ on:
       - 'plugins/plotly/**'
       - 'plugins/matplotlib/**'
       - 'plugins/json/**'
+  push:
+    branches: [ main ]
+    tags:
+      - 'plotly-express-v*'
+      - 'plotly-v*'
+      - 'matplotlib-v*'
+      - 'json-v*'
 
 jobs:
   changes:
@@ -36,6 +43,27 @@ jobs:
       - uses: test-python-package.yml@main
         with:
           package: ${{ matrix.package }}
+
+  release:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        package_info:
+        - { package: "plotly-express", token: "PYPI_PLOTLY_EXPRESS_TOKEN" }
+        - { package: "plotly", token: "PYPI_PLOTLY_TOKEN" }
+        - { package: "matplotlib", token: "PYPI_MATPLOTLIB_TOKEN" }
+        - { package: "json",  token: "PYPI_JSON_TOKEN" }
+
+    steps:
+      - name: Publish Package
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/${{ matrix.package_info.package }}-v')
+        steps:
+          - uses: release-python-package.yml@main
+            with:
+              package: ${{ matrix.package_info.package }}
+              token: ${{ secrets.${{ matrix.package_info.token }} }}
+
+
 
 
 
