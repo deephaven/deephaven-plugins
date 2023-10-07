@@ -4,14 +4,9 @@ import {
   ChartPanel,
   type ChartPanelProps,
 } from '@deephaven/dashboard-core-plugins';
-import { ChartTheme } from '@deephaven/chart';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import PlotlyExpressChartModel from './PlotlyExpressChartModel.js';
-import {
-  getWidgetData,
-  getDataMappings,
-  type PlotlyChartWidget,
-} from './PlotlyExpressChartUtils.js';
+import { type PlotlyChartWidget } from './PlotlyExpressChartUtils.js';
 
 export interface PlotlyExpressChartPanelProps extends ChartPanelProps {
   fetch(): Promise<PlotlyChartWidget>;
@@ -22,19 +17,8 @@ function PlotlyExpressChartPanel(props: PlotlyExpressChartPanelProps) {
   const { fetch, ...rest } = props;
 
   const makeModel = useCallback(async () => {
-    const widgetInfo = await fetch();
-    const data = getWidgetData(widgetInfo);
-    const { plotly, deephaven } = data;
-    const isDefaultTemplate = !deephaven.is_user_set_template;
-    const tableColumnReplacementMap = await getDataMappings(widgetInfo);
-    return new PlotlyExpressChartModel(
-      dh,
-      tableColumnReplacementMap,
-      plotly.data,
-      plotly.layout ?? {},
-      isDefaultTemplate,
-      ChartTheme
-    );
+    const widgetData = await fetch();
+    return new PlotlyExpressChartModel(dh, widgetData, fetch);
   }, [dh, fetch]);
 
   return (
