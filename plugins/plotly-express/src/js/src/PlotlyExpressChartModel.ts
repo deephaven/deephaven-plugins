@@ -92,6 +92,10 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   plotlyLayout: Partial<Layout> = {};
 
+  isPaused = false;
+
+  hasPendingUpdate = false;
+
   override getData(): Partial<Data>[] {
     const hydratedData = [...this.plotlyData];
 
@@ -251,6 +255,11 @@ export class PlotlyExpressChartModel extends ChartModel {
       tableData[column.name] = columnData;
     });
 
+    if (this.isPaused) {
+      this.hasPendingUpdate = true;
+      return;
+    }
+
     this.fireUpdate(this.getData());
   }
 
@@ -299,6 +308,28 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.tableSubscriptionMap.delete(id);
     this.chartDataMap.delete(id);
     this.tableDataMap.delete(id);
+  }
+
+  override fireUpdate(data: unknown): void {
+    super.fireUpdate(data);
+    this.hasPendingUpdate = false;
+  }
+
+  pauseUpdates(): void {
+    this.isPaused = true;
+  }
+
+  resumeUpdates(): void {
+    this.isPaused = false;
+    if (this.hasPendingUpdate) {
+      this.fireUpdate(this.getData());
+    }
+  }
+
+  has3D(): boolean {
+    return this.plotlyData.some(
+      ({ type }) => type != null && type.includes('3d')
+    );
   }
 
   getPlotWidth(): number {

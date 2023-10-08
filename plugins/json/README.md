@@ -24,3 +24,11 @@ produces the wheel into `dist/`.
 
 To test within [deephaven-core](https://github.com/deephaven/deephaven-core), note where this wheel is stored (using `pwd`, for example).
 Then, follow the directions in the top-level README.md to install the wheel into your Deephaven environment.
+
+## Test
+
+In test:
+
+```sh
+tox
+```

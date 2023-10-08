@@ -138,4 +138,4 @@ Using the path to your local deephaven-js-plugins repo where the manifest.json i
 START_OPTS="-Ddeephaven.jsPlugins.resourceBase=<deephaven-plugins-path>deephaven-js-plugins/plugins" ./gradlew server-jetty-app:run
 ```
 
-The deephaven IDE can then be opened at http://localhost:10000/ide/, with your plugins ready to use.
+The Deephaven IDE can then be opened at http://localhost:10000/ide/, with your plugins ready to use.
