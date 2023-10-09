@@ -40,7 +40,8 @@ jobs:
         package: ${{ fromJSON(needs.changes.outputs.packages) }}
     runs-on: ubuntu-latest
     steps:
-      - uses: ./test-python-package.yml
+      - name: Run tests
+        uses: ./test-python-package.yml
         with:
           package: ${{ matrix.package }}
 
@@ -58,7 +59,8 @@ jobs:
       - name: Publish Package
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/${{ matrix.package_info.package }}-v')
         steps:
-          - uses: release-python-package.yml@main
+          - name: Release Python Package
+            uses: ./release-python-package.yml
             with:
               package: ${{ matrix.package_info.package }}
               token: ${{ secrets.${{ matrix.package_info.token }} }}
