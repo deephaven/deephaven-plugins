@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Run tests
-        uses: ./test-python-package.yml
+        uses: ./.github/workflows/test-python-package.yml
         with:
           package: ${{ inputs.package }}
 

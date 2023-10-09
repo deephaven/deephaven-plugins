@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Run tests
-        uses: ./test-python-package.yml
+        uses: ./.github/workflows/test-python-package.yml
         with:
           package: ${{ matrix.package }}
 
@@ -61,7 +61,7 @@ jobs:
     steps:
       - name: Publish Package
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/${{ matrix.package_info.package }}-v')
-        uses: ./release-python-package.yml
+        uses: ./.github/workflows/release-python-package.yml
         with:
           package: ${{ matrix.package_info.package }}
           token: echo ${{ secrets[format('PYPI_{0}_TOKEN', matrix.package_info.token)] }}
