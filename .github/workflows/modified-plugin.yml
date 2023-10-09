@@ -24,7 +24,10 @@ jobs:
     outputs:
       packages: ${{ steps.filter.outputs.changes }}
     steps:
-      - uses: dorny/paths-filter@v2
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Filter paths
+        uses: dorny/paths-filter@v2
         id: filter
         with:
           filters: |
@@ -38,7 +41,7 @@ jobs:
     strategy:
       matrix:
         package: ${{ fromJSON(needs.changes.outputs.packages) }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Run tests
         uses: ./test-python-package.yml
@@ -50,10 +53,10 @@ jobs:
     strategy:
       matrix:
         package_info:
-        - { package: "plotly-express", token: "PYPI_PLOTLY_EXPRESS_TOKEN" }
-        - { package: "plotly", token: "PYPI_PLOTLY_TOKEN" }
-        - { package: "matplotlib", token: "PYPI_MATPLOTLIB_TOKEN" }
-        - { package: "json",  token: "PYPI_JSON_TOKEN" }
+        - { package: "plotly-express", token: "PLOTLY_EXPRESS" }
+        - { package: "plotly", token: "PLOTLY" }
+        - { package: "matplotlib", token: "MATPLOTLIB" }
+        - { package: "json",  token: "JSON" }
 
     steps:
       - name: Publish Package
@@ -61,7 +64,7 @@ jobs:
         uses: ./release-python-package.yml
         with:
           package: ${{ matrix.package_info.package }}
-          token:  echo ${{ secrets[format('PYPI_{0}_TOKEN', matrix.package_info.token)] }}
+          token: echo ${{ secrets[format('PYPI_{0}_TOKEN', matrix.package_info.token)] }}
 
 
 
