@@ -7,10 +7,6 @@ on:
           required: true
           type: string
 
-defaults:
-  run:
-    working-directory: 'plugins/${{ inputs.package }}'
-
 jobs:
   test:
     runs-on: ubuntu-22.04
@@ -28,8 +24,10 @@ jobs:
 
       - name: Install tox
         run: pip install tox
+        working-directory: "plugins/${{ github.event.inputs.package }}"
 
       - name: Run tox
         run: tox -e py
+        working-directory: "plugins/${{ github.event.inputs.package }}"
 
 

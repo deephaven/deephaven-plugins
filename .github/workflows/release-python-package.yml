@@ -9,7 +9,6 @@ on:
     secrets:
       token:
         required: true
-        type: string
 
 jobs:
   test:
