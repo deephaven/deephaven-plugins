@@ -1,4 +1,4 @@
-name: Test Modified Python Packages
+name: Test Modified Plugin
 
 on:
   pull_request:
@@ -40,7 +40,7 @@ jobs:
         package: ${{ fromJSON(needs.changes.outputs.packages) }}
     runs-on: ubuntu-latest
     steps:
-      - uses: test-python-package.yml@main
+      - uses: ./test-python-package.yml
         with:
           package: ${{ matrix.package }}
 

@@ -15,7 +15,7 @@ jobs:
   test:
     runs-on: ubuntu-22.04
     steps:
-      - uses: test-python-package.yml@main
+      - uses: ./test-python-package.yml
         with:
           package: ${{ inputs.package }}
 
