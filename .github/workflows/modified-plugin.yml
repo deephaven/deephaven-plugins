@@ -38,6 +38,7 @@ jobs:
 
   build:
     needs: changes
+    if: ${{ needs.changes.outputs.services != '[]' }}
     strategy:
       matrix:
         package: ${{ fromJSON(needs.changes.outputs.packages) }}
