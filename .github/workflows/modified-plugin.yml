@@ -31,10 +31,10 @@ jobs:
         id: filter
         with:
           filters: |
-            plotly-express: plugins/plotly-express
-            plotly: plugins/plotly
-            matplotlib: plugins/matplotlib
-            json: plugins/json
+            plotly-express: plugins/plotly-express/**
+            plotly: plugins/plotly/**
+            matplotlib: plugins/matplotlib/**
+            json: plugins/json/**
 
   build:
     needs: changes
