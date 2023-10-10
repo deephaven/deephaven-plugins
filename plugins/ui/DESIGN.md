@@ -894,7 +894,7 @@ d = my_dashboard()
 
 #### ui.table
 
-`ui.table` is a wrapper for a Deephaven `Table` object where you can add customizations or callbacks to the table that the UI will handle. The basic syntax for creating a `UITable` is:
+`ui.table` is a wrapper for a Deephaven `Table` object that allows you to add UI customizations or callbacks. The basic syntax for creating a `UITable` is:
 
 ```py
 import deephaven.ui as ui
@@ -934,7 +934,7 @@ ui_table.always_fetch_columns(columns: str | list[str]) -> UITable
 
 ##### back_columns
 
-Set the columns to show at the back of the table.
+Set the columns to show at the back of the table. These will not be moveable in the UI.
 
 ###### Syntax
 
@@ -973,16 +973,23 @@ Add custom items to the context menu. You can provide a list of actions that alw
 ###### Syntax
 
 ```py
+# Index will be -1 for the header row/column
+RowIndex = int
+ColumnIndex = int
+CellIndex = [RowIndex, ColumnIndex]
+RowData = dict[str, Any]
+ContextMenuAction = dict[str, Any]
+
 ui_table.context_menu(
-    items: list[ContextMenuAction] | Callable[[int, dict[str, Any]], list[ContextMenuAction]]
+    items: list[ContextMenuAction] | Callable[[CellIndex, RowData], list[ContextMenuAction]]
 ) -> UITable
 ```
 
 ###### Parameters
 
-| Parameter | Type                                                                                  | Description                                                                                                                                                                                         |
-| --------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `items`   | `list[ContextMenuAction] \| Callable[[int, dict[str, Any]], list[ContextMenuAction]]` | The items to add to the context menu. May be a list of `ContextMenuAction` objects, or a callback function that takes the row index and row data and returns a list of `ContextMenuAction` objects. |
+| Parameter | Type                                                                                 | Description                                                                                                                                                                                          |
+| --------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `items`   | `list[ContextMenuAction] \| Callable[[CellIndex, RowData], list[ContextMenuAction]]` | The items to add to the context menu. May be a list of `ContextMenuAction` objects, or a callback function that takes the cell index and row data and returns a list of `ContextMenuAction` objects. |
 
 ##### format_columns
 
@@ -996,9 +1003,9 @@ ui_table.format_columns(column_formats: str | list[str]) -> UITable
 
 ###### Parameters
 
-| Parameter        | Type               | Description                                                                                              |
-| ---------------- | ------------------ | -------------------------------------------------------------------------------------------------------- |
-| `column_formats` | `str \| list[str]` | Formulas to compute formats for columns or rows in the table; e.g., `"X = Y > 5 ? RED : NO_FORMATTING"`. |
+| Parameter        | Type               | Description                                                                                                                                                                                     |
+| ---------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `column_formats` | `str \| list[str]` | Formulas to compute formats for columns or rows in the table; e.g., `"X = Y > 5 ? RED : NO_FORMATTING"` which makes the cells in column X red if the value for Y in that row is greater than 5. |
 
 ##### format_column_where
 
@@ -1007,7 +1014,7 @@ Applies color formatting to the specified column conditionally.
 ###### Syntax
 
 ```py
-ui_table.format_column_where(self,    col: str,    cond: str,    formula: str) -> UITable
+ui_table.format_column_where(self, col: str, cond: str, formula: str) -> UITable
 ```
 
 ###### Parameters
@@ -1077,7 +1084,7 @@ ui_table.format_data_bar(self,
 
 ##### freeze_columns
 
-Set the columns to freeze to the front of the table. These will not be affected by horizontal scrolling.
+Set the columns to freeze to the front of the table. These will always be visible and not affected by horizontal scrolling.
 
 ###### Syntax
 
@@ -1093,7 +1100,7 @@ ui_table.freeze_columns(columns: str | list[str]) -> UITable
 
 ##### front_columns
 
-Set the columns to show at the front of the table.
+Set the columns to show at the front of the table. These will not be moveable in the UI.
 
 ###### Syntax
 
@@ -1174,14 +1181,14 @@ ui_table.quick_filter(filter: dict[ColumnName, QuickFilterExpression]) -> UITabl
 | --------- | ----------------------------------------- | --------------------------------------- |
 | `filter`  | `dict[ColumnName, QuickFilterExpression]` | The quick filter to apply to the table. |
 
-##### search_display_mode
+##### search_display
 
 Set the search bar to explicitly be accessible or inaccessible, or use the system default.
 
 ###### Syntax
 
 ```py
-ui_table.search_display_mode(mode: Literal["show", "hide", "default"]) -> UITable
+ui_table.search_display(mode: Literal["show", "hide", "default"]) -> UITable
 ```
 
 ###### Parameters
@@ -1190,7 +1197,7 @@ ui_table.search_display_mode(mode: Literal["show", "hide", "default"]) -> UITabl
 | --------- | ------------------------------------ | ------------------------------------------------------------------------------------------ |
 | `mode`    | `Literal["show", "hide", "default"]` | set the search bar to explicitly be accessible or inaccessible, or use the system default. |
 
-##### totals_table
+##### show_totals
 
 Set the totals table to display below the main table.
 
@@ -1198,12 +1205,12 @@ Set the totals table to display below the main table.
 
 ```py
 ColumnName = str
-AggregationOperation = Literal["Count", "CountDistinct", "Distinct", "Min", "Max", "Sum", "AbsSum", "Var", "Avg", "Std", "First", "Last", "Unique"]
+AggregationOperation = Literal["Count", "CountDistinct", "Distinct", "Min", "Max", "Sum", "AbsSum", "Var", "Avg", "Std", "First", "Last", "Unique", "Skip"]
 
-ui_table.totals_table(
+ui_table.show_totals(
     operations: dict[ColumnName, list[AggregationOperation]],
     operation_order: list[AggregationOperation] = [],
-    default_operation: "Sum",
+    default_operation: AggregationOperation = "Skip",
     group_by: list[ColumnName] = [],
     show_on_top: bool = False,
 ) -> UITable
@@ -1218,19 +1225,6 @@ ui_table.totals_table(
 | `default_operation` | `AggregationOperation`                         | The default operation to apply to columns that do not have an operation specified. |
 | `group_by`          | `list[ColumnName]`                             | The columns to group by.                                                           |
 | `show_on_top`       | `bool`                                         | Whether to show the totals table above the main table.                             |
-
-#### Deprecations
-
-The functionality provided my `ui.table` replaces many of the existing functions on `Table`. Below are the functions that are planned for deprecation/deletion of the `Table` interface, and their replacements with the new `ui.table` interface.
-
-| Table Function        | ui.table Replacement                                                                                                                                                                                                         |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format_columns`      | [format_columns](#format_columns)                                                                                                                                                                                            |
-| `format_column_where` | [format_column_where](#format_column_where)                                                                                                                                                                                  |
-| `format_row_where`    | [format_row_where](#format_row_where)                                                                                                                                                                                        |
-| `layout_hints`        | [back_columns](#back_columns)<br/>[front_columns](#front_columns)<br/>[column_group](#column_groups)<br/>[freeze_columns](#freeze_columns)<br/>[hide_columns](#hide_columns)<br/>[search_display_mode](#search_display_mode) |
-| `dropColumnFormats`   | No replacement                                                                                                                                                                                                               |
-| `setTotalsTable`      | [totals_table](#totals_table)                                                                                                                                                                                                |
 
 ##### sort
 
@@ -1249,10 +1243,23 @@ ui_table.sort(
 
 ###### Parameters
 
-| Parameter  | Type                                                 | Description                                                                                                 |
-| ---------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `order_by` | `str                    \| Sequence[str]`            | The column(s) to sort by. May be a single column name, or a list of column names.                           |
-| `order`    | `Optional[SortDirection \| Sequence[SortDirection]]` | The sort direction(s) to use. If provided, that must match up with the columns provided. Defaults to "ASC". |
+| Parameter   | Type                                                 | Description                                                                                                 |
+| ----------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `by`        | `str                    \| Sequence[str]`            | The column(s) to sort by. May be a single column name, or a list of column names.                           |
+| `direction` | `Optional[SortDirection \| Sequence[SortDirection]]` | The sort direction(s) to use. If provided, that must match up with the columns provided. Defaults to "ASC". |
+
+#### Deprecations
+
+The functionality provided my `ui.table` replaces many of the existing functions on `Table`. Below are the functions that are planned for deprecation/deletion of the `Table` interface, and their replacements with the new `ui.table` interface.
+
+| Table Function        | ui.table Replacement                                                                                                                                                                                               |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `format_columns`      | [format_columns](#format_columns)                                                                                                                                                                                  |
+| `format_column_where` | [format_column_where](#format_column_where)                                                                                                                                                                        |
+| `format_row_where`    | [format_row_where](#format_row_where)                                                                                                                                                                              |
+| `layout_hints`        | [back_columns](#back_columns)<br/>[front_columns](#front_columns)<br/>[column_group](#column_groups)<br/>[freeze_columns](#freeze_columns)<br/>[hide_columns](#hide_columns)<br/>[search_display](#search_display) |
+| `dropColumnFormats`   | No replacement                                                                                                                                                                                                     |
+| `setTotalsTable`      | [show_totals](#show_totals)                                                                                                                                                                                        |
 
 #### Context
 
