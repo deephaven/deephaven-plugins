@@ -1111,20 +1111,20 @@ ui_table.data_bar(self,
 
 ###### Parameters
 
-| Parameter         | Type                                                               | Description                                                    |
-| ----------------- | ------------------------------------------------------------------ | -------------------------------------------------------------- |
-| `col`             | `str`                                                              | column to generate data bars in                                |
-| `value_col`       | `str`                                                              | column containing the values to generate data bars from        |
-| `min`             | `float                                             \| str`         | minimum value for data bar scaling or column to get value from |
-| `max`             | `float                                             \| str`         | maximum value for data bar scaling or column to get value from |
-| `axis`            | `Literal["Proportional", "Middle", "Directional"]`                 | orientation of data bar relative to cell                       |
-| `positive_color`  | `Color                                             \| list[Color]` | color for positive bars. Use list of colors to form a gradient |
-| `negative_color`  | `Color                                             \| list[Color]` | color for negative bars. Use list of colors to form a gradient |
-| `value_placement` | `Literal["Beside", "Overlap", "Hide"]`                             | orientation of values relative to data bar                     |
-| `direction`       | `Literal["LTR", "RTL"]`                                            | orientation of data bar relative to horizontal axis            |
-| `opacity`         | `float`                                                            | opacity of data bars. Accepts values from 0 to 1               |
-| `marker_col`      | `str`                                                              | column containing the values to generate markers from          |
-| `marker_color`    | `'Color'`                                                          | color for markers                                              |
+| Parameter         | Type                                               | Description                                                    |
+| ----------------- | -------------------------------------------------- | -------------------------------------------------------------- |
+| `col`             | `str`                                              | column to generate data bars in                                |
+| `value_col`       | `str`                                              | column containing the values to generate data bars from        |
+| `min`             | `float \| str`                                     | minimum value for data bar scaling or column to get value from |
+| `max`             | `float \| str`                                     | maximum value for data bar scaling or column to get value from |
+| `axis`            | `Literal["Proportional", "Middle", "Directional"]` | orientation of data bar relative to cell                       |
+| `positive_color`  | `Color \| list[Color]`                             | color for positive bars. Use list of colors to form a gradient |
+| `negative_color`  | `Color \| list[Color]`                             | color for negative bars. Use list of colors to form a gradient |
+| `value_placement` | `Literal["Beside", "Overlap", "Hide"]`             | orientation of values relative to data bar                     |
+| `direction`       | `Literal["LTR", "RTL"]`                            | orientation of data bar relative to horizontal axis            |
+| `opacity`         | `float`                                            | opacity of data bars. Accepts values from 0 to 1               |
+| `marker_col`      | `str`                                              | column containing the values to generate markers from          |
+| `marker_color`    | `'Color'`                                          | color for markers                                              |
 
 ##### format
 
@@ -1263,7 +1263,7 @@ ui_table.sort(
 
 | Parameter   | Type                                                 | Description                                                                                                 |
 | ----------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `by`        | `str                    \| Sequence[str]`            | The column(s) to sort by. May be a single column name, or a list of column names.                           |
+| `by`        | `str \| Sequence[str]`                               | The column(s) to sort by. May be a single column name, or a list of column names.                           |
 | `direction` | `Optional[SortDirection \| Sequence[SortDirection]]` | The sort direction(s) to use. If provided, that must match up with the columns provided. Defaults to "ASC". |
 
 #### Deprecations
