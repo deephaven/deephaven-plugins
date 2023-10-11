@@ -1011,6 +1011,56 @@ ui_table.column_group(name: str, children: list[str], color: Optional[str]) -> U
 | `children` | `list[str]`     | The children in the group. May contain column names or other group names. Each item may only be specified as a child once. |
 | `color`    | `Optional[str]` | The hex color string or Deephaven color name.                                                                              |
 
+##### color_column
+
+Applies color formatting to a column of the table.
+
+###### Syntax
+
+```py
+ui_table.color_column(
+    column: ColumnName,
+    where: QuickFilterExpression | None = None,
+    color: Color | None = None,
+    background_color: Color | None = None,
+) -> UITable
+```
+
+###### Parameters
+
+| Parameter          | Type                            | Description                                                                   |
+| ------------------ | ------------------------------- | ----------------------------------------------------------------------------- |
+| `column`           | `ColumnName`                    | The column name                                                               |
+| `where`            | `QuickFilterExpression \| None` | The filter to apply to the expression. Uses quick filter format (e.g. `>10`). |
+| `color`            | `Color \| None`                 | The text color. Accepts hex color strings or Deephaven color names.           |
+| `background_color` | `Color \| None`                 | The background color. Accepts hex color strings or Deephaven color names.     |
+
+<!-- TODO: For ranges, such as "In Between", how should we specify that? Should we define a quick filter format for that? (e.g. `(5, 20)`, and `[5, 20]`, matching how you'd notate an interval) -->
+
+##### color_row
+
+Applies color formatting to rows of the table conditionally based on the value of a column.
+
+###### Syntax
+
+```py
+ui_table.color_row(
+    column: ColumnName,
+    where: QuickFilterExpression,
+    color: Color | None = None,
+    background_color: Color | None = None
+) -> UITable
+```
+
+###### Parameters
+
+| Parameter          | Type                    | Description                                                                   |
+| ------------------ | ----------------------- | ----------------------------------------------------------------------------- |
+| `column`           | `str`                   | The column name                                                               |
+| `where`            | `QuickFilterExpression` | The filter to apply to the expression. Uses quick filter format (e.g. `>10`). |
+| `color`            | `Color \| None`         | The text color. Accepts hex color strings or Deephaven color names.           |
+| `background_color` | `Color \| None`         | The background color. Accepts hex color strings or Deephaven color names.     |
+
 ##### context_menu
 
 Add custom items to the context menu. You can provide a list of actions that always appear, or a callback that can process the selected rows and send back menu items asynchronously.
@@ -1036,65 +1086,14 @@ ui_table.context_menu(
 | --------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `items`   | `list[ContextMenuAction] \| Callable[[CellIndex, RowData], list[ContextMenuAction]]` | The items to add to the context menu. May be a list of `ContextMenuAction` objects, or a callback function that takes the cell index and row data and returns a list of `ContextMenuAction` objects. |
 
-##### format_columns
-
-Applies color formatting to the columns of the table.
-
-###### Syntax
-
-```py
-ui_table.format_columns(column_formats: str | list[str]) -> UITable
-```
-
-###### Parameters
-
-| Parameter        | Type               | Description                                                                                                                                                                                     |
-| ---------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `column_formats` | `str \| list[str]` | Formulas to compute formats for columns or rows in the table; e.g., `"X = Y > 5 ? RED : NO_FORMATTING"` which makes the cells in column X red if the value for Y in that row is greater than 5. |
-
-##### format_column_where
-
-Applies color formatting to the specified column conditionally.
-
-###### Syntax
-
-```py
-ui_table.format_column_where(self, col: str, cond: str, formula: str) -> UITable
-```
-
-###### Parameters
-
-| Parameter | Type  | Description                                                                          |
-| --------- | ----- | ------------------------------------------------------------------------------------ |
-| `col`     | `str` | The column name                                                                      |
-| `cond`    | `str` | The condition expression                                                             |
-| `formula` | `str` | The formatting string in the form of assignment expression "column=color expression" |
-
-##### format_row_where
-
-Applies color formatting to rows of the table conditionally.
-
-###### Syntax
-
-```py
-ui_table.format_row_where(self,    cond: str,    formula: str) -> UITable
-```
-
-###### Parameters
-
-| Parameter | Type  | Description                                                                          |
-| --------- | ----- | ------------------------------------------------------------------------------------ |
-| `cond`    | `str` | The condition expression                                                             |
-| `formula` | `str` | The formatting string in the form of assignment expression "column=color expression" |
-
-##### format_data_bar
+##### data_bar
 
 Applies data bar formatting to the specified column.
 
 ###### Syntax
 
 ```py
-ui_table.format_data_bar(self,
+ui_table.data_bar(self,
     col: str,
     value_col: str = None,
     min: float | str = None,
@@ -1126,6 +1125,25 @@ ui_table.format_data_bar(self,
 | `opacity`         | `float`                                                            | opacity of data bars. Accepts values from 0 to 1               |
 | `marker_col`      | `str`                                                              | column containing the values to generate markers from          |
 | `marker_color`    | `'Color'`                                                          | color for markers                                              |
+
+##### format
+
+Specify the formatting to display a column in.
+
+###### Syntax
+
+```py
+ui_table.format(column: ColumnName,format: str) -> UITable
+```
+
+###### Parameters
+
+| Parameter | Type  | Description                                                              |
+| --------- | ----- | ------------------------------------------------------------------------ |
+| `column`  | `str` | The column name                                                          |
+| `format`  | `str` | The format to display the column in. Valid format depends on column type |
+
+<!-- TODO: Give more details on what the format string can be for different column types. Seems to be lacking in existing documentation as well. -->
 
 ##### freeze_columns
 
@@ -1252,14 +1270,12 @@ ui_table.sort(
 
 The functionality provided my `ui.table` replaces some of the existing functions on `Table`. Below are the functions that are planned for deprecation/deletion of the `Table` interface, and their replacements with the new `ui.table` interface.
 
-| Table Function        | ui.table Replacement                                                                                                                                                                                               |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `format_columns`      | [format_columns](#format_columns)                                                                                                                                                                                  |
-| `format_column_where` | [format_column_where](#format_column_where)                                                                                                                                                                        |
-| `format_row_where`    | [format_row_where](#format_row_where)                                                                                                                                                                              |
-| `layout_hints`        | [back_columns](#back_columns)<br/>[front_columns](#front_columns)<br/>[column_group](#column_groups)<br/>[freeze_columns](#freeze_columns)<br/>[hide_columns](#hide_columns)<br/>[search_display](#search_display) |
-| `dropColumnFormats`   | No replacement                                                                                                                                                                                                     |
-| `setTotalsTable`      | [aggregations](#aggregations)                                                                                                                                                                                      |
+| Table Function                                                    | ui.table Replacement                                                                                                                                                                                               |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `format_columns`<br/>`format_column_where`<br/>`format_row_where` | [color_column](#color_column)<br/>[color_row](#color_row)<br/>[format](#format)                                                                                                                                    |
+| `layout_hints`                                                    | [back_columns](#back_columns)<br/>[front_columns](#front_columns)<br/>[column_group](#column_groups)<br/>[freeze_columns](#freeze_columns)<br/>[hide_columns](#hide_columns)<br/>[search_display](#search_display) |
+| `dropColumnFormats`                                               | No replacement                                                                                                                                                                                                     |
+| `setTotalsTable`                                                  | [aggregations](#aggregations)                                                                                                                                                                                      |
 
 #### Context
 
