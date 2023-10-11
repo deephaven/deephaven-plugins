@@ -7,6 +7,8 @@ import SpectrumElementView from './SpectrumElementView';
 import { isIconElementNode } from './IconElementUtils';
 import IconElementView from './IconElementView';
 import ObjectView from './ObjectView';
+import { isTableElementNode } from './TableElementUtils';
+import TableElementView from './TableElementView';
 
 export type ElementViewProps = {
   /** The element to render. */
@@ -51,6 +53,9 @@ export function ElementView({ element }: ElementViewProps): JSX.Element | null {
     // eslint-disable-next-line react/prop-types
     const { children } = props;
     return <ElementView element={children} />;
+  }
+  if (isTableElementNode(element)) {
+    return <TableElementView element={element} />;
   }
 
   if (isExportedObject(element)) {
