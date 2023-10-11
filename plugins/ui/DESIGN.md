@@ -916,6 +916,35 @@ ui_table = (
 
 `ui.table` will support the below methods.
 
+##### aggregations
+
+Set the totals table to display below the main table.
+
+###### Syntax
+
+```py
+ColumnName = str
+AggregationOperation = Literal["Count", "CountDistinct", "Distinct", "Min", "Max", "Sum", "AbsSum", "Var", "Avg", "Std", "First", "Last", "Unique", "Skip"]
+
+ui_table.aggregations(
+    operations: dict[ColumnName, list[AggregationOperation]],
+    operation_order: list[AggregationOperation] = [],
+    default_operation: AggregationOperation = "Skip",
+    group_by: list[ColumnName] = [],
+    show_on_top: bool = False,
+) -> UITable
+```
+
+###### Parameters
+
+| Parameter           | Type                                           | Description                                                                        |
+| ------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `operations`        | `dict[ColumnName, list[AggregationOperation]]` | The operations to apply to the columns of the table.                               |
+| `operation_order`   | `list[AggregationOperation]`                   | The order in which to display the operations.                                      |
+| `default_operation` | `AggregationOperation`                         | The default operation to apply to columns that do not have an operation specified. |
+| `group_by`          | `list[ColumnName]`                             | The columns to group by.                                                           |
+| `show_on_top`       | `bool`                                         | Whether to show the totals table above the main table.                             |
+
 ##### always_fetch_columns
 
 Set the columns to always fetch from the server. These will not be affected by the users current viewport/horizontal scrolling. Useful if you have a column with key value data that you want to always include in the data sent for row click operations.
@@ -947,6 +976,22 @@ ui_table.back_columns(columns: str | list[str]) -> UITable
 | Parameter | Type               | Description                                                                |
 | --------- | ------------------ | -------------------------------------------------------------------------- |
 | `columns` | `str \| list[str]` | The columns to show at the back of the table. May be a single column name. |
+
+##### can_search
+
+Set the search bar to explicitly be accessible or inaccessible, or use the system default.
+
+###### Syntax
+
+```py
+ui_table.can_search(mode: Literal["show", "hide", "default"]) -> UITable
+```
+
+###### Parameters
+
+| Parameter | Type                                 | Description                                                                                |
+| --------- | ------------------------------------ | ------------------------------------------------------------------------------------------ |
+| `mode`    | `Literal["show", "hide", "default"]` | set the search bar to explicitly be accessible or inaccessible, or use the system default. |
 
 ##### column_group
 
@@ -1116,7 +1161,7 @@ ui_table.front_columns(columns: str | list[str]) -> UITable
 
 ##### hide_columns
 
-Set the columns to hide from the table.
+Set the columns to hide by default in the table. The user can still resize the columns to view them.
 
 ###### Syntax
 
@@ -1130,14 +1175,14 @@ ui_table.hide_columns(columns: str | list[str]) -> UITable
 | --------- | ------------------ | ---------------------------------------------------------------- |
 | `columns` | `str \| list[str]` | The columns to hide from the table. May be a single column name. |
 
-##### on_row_click
+##### on_row_press
 
-Add a callback for when a row is clicked.
+Add a callback for when a press on a row is released (e.g. a row is clicked).
 
 ###### Syntax
 
 ```py
-ui_table.on_row_click(callback: Callable[[int, dict[str, Any]], None]) -> UITable
+ui_table.on_row_press(callback: Callable[[int, dict[str, Any]], None]) -> UITable
 ```
 
 ###### Parameters
@@ -1146,14 +1191,14 @@ ui_table.on_row_click(callback: Callable[[int, dict[str, Any]], None]) -> UITabl
 | ---------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `callback` | `Callable[[int, dict[str, Any]], None]` | The callback function to run when a row is clicked. The first parameter is the row index, and the second is the row data provided in a dictionary where the column names are the keys. |
 
-##### on_row_double_click
+##### on_row_double_press
 
 Add a callback for when a row is double clicked.
 
 ###### Syntax
 
 ```py
-ui_table.on_row_double_click(callback: Callable[[int, dict[str, Any]], None]) -> UITable
+ui_table.on_row_double_press(callback: Callable[[int, dict[str, Any]], None]) -> UITable
 ```
 
 ###### Parameters
@@ -1181,51 +1226,6 @@ ui_table.quick_filter(filter: dict[ColumnName, QuickFilterExpression]) -> UITabl
 | --------- | ----------------------------------------- | --------------------------------------- |
 | `filter`  | `dict[ColumnName, QuickFilterExpression]` | The quick filter to apply to the table. |
 
-##### search_display
-
-Set the search bar to explicitly be accessible or inaccessible, or use the system default.
-
-###### Syntax
-
-```py
-ui_table.search_display(mode: Literal["show", "hide", "default"]) -> UITable
-```
-
-###### Parameters
-
-| Parameter | Type                                 | Description                                                                                |
-| --------- | ------------------------------------ | ------------------------------------------------------------------------------------------ |
-| `mode`    | `Literal["show", "hide", "default"]` | set the search bar to explicitly be accessible or inaccessible, or use the system default. |
-
-##### show_totals
-
-Set the totals table to display below the main table.
-
-###### Syntax
-
-```py
-ColumnName = str
-AggregationOperation = Literal["Count", "CountDistinct", "Distinct", "Min", "Max", "Sum", "AbsSum", "Var", "Avg", "Std", "First", "Last", "Unique", "Skip"]
-
-ui_table.show_totals(
-    operations: dict[ColumnName, list[AggregationOperation]],
-    operation_order: list[AggregationOperation] = [],
-    default_operation: AggregationOperation = "Skip",
-    group_by: list[ColumnName] = [],
-    show_on_top: bool = False,
-) -> UITable
-```
-
-###### Parameters
-
-| Parameter           | Type                                           | Description                                                                        |
-| ------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `operations`        | `dict[ColumnName, list[AggregationOperation]]` | The operations to apply to the columns of the table.                               |
-| `operation_order`   | `list[AggregationOperation]`                   | The order in which to display the operations.                                      |
-| `default_operation` | `AggregationOperation`                         | The default operation to apply to columns that do not have an operation specified. |
-| `group_by`          | `list[ColumnName]`                             | The columns to group by.                                                           |
-| `show_on_top`       | `bool`                                         | Whether to show the totals table above the main table.                             |
-
 ##### sort
 
 Provide the default sort that will be used by the UI.
@@ -1250,7 +1250,7 @@ ui_table.sort(
 
 #### Deprecations
 
-The functionality provided my `ui.table` replaces many of the existing functions on `Table`. Below are the functions that are planned for deprecation/deletion of the `Table` interface, and their replacements with the new `ui.table` interface.
+The functionality provided my `ui.table` replaces some of the existing functions on `Table`. Below are the functions that are planned for deprecation/deletion of the `Table` interface, and their replacements with the new `ui.table` interface.
 
 | Table Function        | ui.table Replacement                                                                                                                                                                                               |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -1259,7 +1259,7 @@ The functionality provided my `ui.table` replaces many of the existing functions
 | `format_row_where`    | [format_row_where](#format_row_where)                                                                                                                                                                              |
 | `layout_hints`        | [back_columns](#back_columns)<br/>[front_columns](#front_columns)<br/>[column_group](#column_groups)<br/>[freeze_columns](#freeze_columns)<br/>[hide_columns](#hide_columns)<br/>[search_display](#search_display) |
 | `dropColumnFormats`   | No replacement                                                                                                                                                                                                     |
-| `setTotalsTable`      | [show_totals](#show_totals)                                                                                                                                                                                        |
+| `setTotalsTable`      | [aggregations](#aggregations)                                                                                                                                                                                      |
 
 #### Context
 
