@@ -1215,14 +1215,14 @@ Add a callback for when a press on a row is released (e.g. a row is clicked).
 ###### Syntax
 
 ```py
-ui_table.on_row_press(callback: Callable[[int, dict[str, Any]], None]) -> UITable
+ui_table.on_row_press(callback: Callable[[RowIndex, RowData], None]) -> UITable
 ```
 
 ###### Parameters
 
-| Parameter  | Type                                    | Description                                                                                                                                                                            |
-| ---------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `callback` | `Callable[[int, dict[str, Any]], None]` | The callback function to run when a row is clicked. The first parameter is the row index, and the second is the row data provided in a dictionary where the column names are the keys. |
+| Parameter  | Type                                  | Description                                                                                                                                                                            |
+| ---------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `callback` | `Callable[[RowIndex, RowData], None]` | The callback function to run when a row is clicked. The first parameter is the row index, and the second is the row data provided in a dictionary where the column names are the keys. |
 
 ##### on_row_double_press
 
@@ -1231,14 +1231,14 @@ Add a callback for when a row is double clicked.
 ###### Syntax
 
 ```py
-ui_table.on_row_double_press(callback: Callable[[int, dict[str, Any]], None]) -> UITable
+ui_table.on_row_double_press(callback: Callable[[RowIndex, RowData], None]) -> UITable
 ```
 
 ###### Parameters
 
-| Parameter  | Type                                    | Description                                                                                                                                                                                   |
-| ---------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `callback` | `Callable[[int, dict[str, Any]], None]` | The callback function to run when a row is double clicked. The first parameter is the row index, and the second is the row data provided in a dictionary where the column names are the keys. |
+| Parameter  | Type                                  | Description                                                                                                                                                                                   |
+| ---------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `callback` | `Callable[[RowIndex, RowData], None]` | The callback function to run when a row is double clicked. The first parameter is the row index, and the second is the row data provided in a dictionary where the column names are the keys. |
 
 ##### quick_filter
 
