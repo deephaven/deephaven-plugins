@@ -898,7 +898,7 @@ d = my_dashboard()
 
 ```py
 import deephaven.ui as ui
-ui_table = ui.table(table: Table) -> UITable
+ui_table = ui.table(table: Table, **view_args: dict) -> UITable
 ```
 
 It has an [immutable fluent](https://en.wikipedia.org/wiki/Fluent_interface#Immutability) interface, similar to Deephaven `Table`. That means each method below will return a new `UITable` object, rather than modifying the existing one. This allows you to chain multiple customizations together, e.g.:
@@ -909,9 +909,15 @@ from deephaven import ui
 # Create a table with some customizations
 ui_table = (
     ui.table(source)
-    .format_columns(["X = Y > 5 ? RED : NO_FORMATTING"])
+    .color_column("X", ["X = Y > 5 ? RED : NO_FORMATTING"])
     .column_group("Group 1", ["Col1", "Col2"], "RED")
 )
+```
+
+You can also set margins and padding by passing in the appropriate arguments to the `ui.table` function:
+
+```py
+ui_table = ui.table(source, padding="size-250")
 ```
 
 `ui.table` will support the below methods.
@@ -1036,6 +1042,10 @@ ui_table.color_column(
 | `background_color` | `Color \| None`                 | The background color. Accepts hex color strings or Deephaven color names.     |
 
 <!-- TODO: For ranges, such as "In Between", how should we specify that? Should we define a quick filter format for that? (e.g. `(5, 20)`, and `[5, 20]`, matching how you'd notate an interval) -->
+<!--
+    TODO: We also don't allow conditional formatting that sets a colour on one column depending on the value on another column; eg. `source.format_columns(["A = B > 2 ? BLUE : NO_FORMATTING"])`
+    That seems like a limitation of our UI - should we build support for that in the UI?
+-->
 
 ##### color_row
 
@@ -1051,6 +1061,11 @@ ui_table.color_row(
     background_color: Color | None = None
 ) -> UITable
 ```
+
+<!--
+    TODO: This doesn't allow for formatting by row index like we could do previously, e.g. `t4.formatRowWhere("i % 2 == 0", "VIVID_PURPLE")`
+    This is a limitation in our UI - should we build support for that in the UI?
+-->
 
 ###### Parameters
 
