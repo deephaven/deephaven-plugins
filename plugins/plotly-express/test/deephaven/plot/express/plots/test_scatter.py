@@ -25,53 +25,45 @@ class ScatterTestCase(BaseTestCase):
         import src.deephaven.plot.express as dx
         from deephaven.constants import NULL_INT
 
-        chart = dx.area(self.source, x="X", y="Y").to_dict(self.exporter)
+        chart = dx.scatter(self.source, x="X", y="Y").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
 
         # pop template as we currently do not modify it
         plotly["layout"].pop("template")
 
-        print("basic scatter")
-        print(plotly["data"])
-        print(plotly["layout"])
-
         expected_data = [
             {
-                "fillpattern": {"shape": ""},
                 "hovertemplate": "X=%{x}<br>Y=%{y}<extra></extra>",
                 "legendgroup": "",
-                "line": {"color": "#636efa", "shape": "linear"},
-                "marker": {"symbol": "circle"},
-                "mode": "lines",
+                "marker": {"color": "#636efa", "symbol": "circle"},
+                "mode": "markers",
                 "name": "",
-                "orientation": "v",
                 "showlegend": False,
-                "stackgroup": "1",
                 "x": [NULL_INT],
                 "xaxis": "x",
                 "y": [NULL_INT],
                 "yaxis": "y",
-                "type": "scatter",
+                "type": "scattergl",
             }
         ]
 
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
+            "legend": {"tracegroupgap": 0},
+            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
-                "title": {"text": "X"},
                 "side": "bottom",
+                "title": {"text": "X"},
             },
             "yaxis": {
                 "anchor": "x",
                 "domain": [0.0, 1.0],
-                "title": {"text": "Y"},
                 "side": "left",
+                "title": {"text": "Y"},
             },
-            "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
         }
 
         self.assertEqual(plotly["layout"], expected_layout)
@@ -92,53 +84,58 @@ class ScatterTestCase(BaseTestCase):
         import src.deephaven.plot.express as dx
         from deephaven.constants import NULL_INT
 
-        chart = dx.area(self.source, x="X", y="Y").to_dict(self.exporter)
+        chart = dx.scatter(self.source, x="X", y=["Y", "Y2"]).to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
 
         # pop template as we currently do not modify it
         plotly["layout"].pop("template")
 
-        print("list scatter")
-        print(plotly["data"])
-        print(plotly["layout"])
-
         expected_data = [
             {
-                "fillpattern": {"shape": ""},
-                "hovertemplate": "X=%{x}<br>Y=%{y}<extra></extra>",
-                "legendgroup": "",
-                "line": {"color": "#636efa", "shape": "linear"},
-                "marker": {"symbol": "circle"},
-                "mode": "lines",
-                "name": "",
-                "orientation": "v",
-                "showlegend": False,
-                "stackgroup": "1",
+                "hovertemplate": "variable=Y<br>X=%{x}<br>value=%{y}<extra></extra>",
+                "legendgroup": "Y",
+                "marker": {"color": "#636EFA", "symbol": "circle"},
+                "mode": "markers",
+                "name": "Y",
+                "showlegend": True,
                 "x": [NULL_INT],
                 "xaxis": "x",
                 "y": [NULL_INT],
                 "yaxis": "y",
-                "type": "scatter",
-            }
+                "type": "scattergl",
+            },
+            {
+                "hovertemplate": "variable=Y2<br>X=%{x}<br>value=%{y}<extra></extra>",
+                "legendgroup": "Y2",
+                "marker": {"color": "#EF553B", "symbol": "circle"},
+                "mode": "markers",
+                "name": "Y2",
+                "showlegend": True,
+                "x": [NULL_INT],
+                "xaxis": "x",
+                "y": [NULL_INT],
+                "yaxis": "y",
+                "type": "scattergl",
+            },
         ]
 
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
+            "legend": {"tracegroupgap": 0},
+            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
-                "title": {"text": "X"},
                 "side": "bottom",
+                "title": {"text": "X"},
             },
             "yaxis": {
                 "anchor": "x",
                 "domain": [0.0, 1.0],
-                "title": {"text": "Y"},
                 "side": "left",
+                "title": {"text": "value"},
             },
-            "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
         }
 
         self.assertEqual(plotly["layout"], expected_layout)
@@ -146,66 +143,83 @@ class ScatterTestCase(BaseTestCase):
         expected_mappings = [
             {
                 "table": 0,
-                "data_columns": {"X": ["/plotly/data/0/x"], "Y": ["/plotly/data/0/y"]},
-            }
+                "data_columns": {
+                    "X": ["/plotly/data/0/x"],
+                    "value": ["/plotly/data/0/y"],
+                },
+            },
+            {
+                "table": 0,
+                "data_columns": {
+                    "X": ["/plotly/data/1/x"],
+                    "value": ["/plotly/data/1/y"],
+                },
+            },
         ]
 
         self.assertEqual(deephaven["mappings"], expected_mappings)
 
         self.assertEqual(deephaven["is_user_set_template"], False)
-        self.assertEqual(deephaven["is_user_set_color"], False)
+        self.assertEqual(deephaven["is_user_set_color"], True)
 
     def test_by_scatter(self):
         import src.deephaven.plot.express as dx
         from deephaven.constants import NULL_INT
 
-        chart = dx.area(self.source, x="X", y="Y").to_dict(self.exporter)
+        chart = dx.scatter(self.source, x="X", y="Y", by="category").to_dict(
+            self.exporter
+        )
         plotly, deephaven = chart["plotly"], chart["deephaven"]
 
         # pop template as we currently do not modify it
         plotly["layout"].pop("template")
 
-        print("by scatter")
-        print(plotly["data"])
-        print(plotly["layout"])
-
         expected_data = [
             {
-                "fillpattern": {"shape": ""},
-                "hovertemplate": "X=%{x}<br>Y=%{y}<extra></extra>",
-                "legendgroup": "",
-                "line": {"color": "#636efa", "shape": "linear"},
-                "marker": {"symbol": "circle"},
-                "mode": "lines",
-                "name": "",
-                "orientation": "v",
-                "showlegend": False,
-                "stackgroup": "1",
+                "hovertemplate": "category=1<br>X=%{x}<br>Y=%{y}<extra></extra>",
+                "legendgroup": "1",
+                "marker": {"color": "#636EFA", "symbol": "circle"},
+                "mode": "markers",
+                "name": "1",
+                "showlegend": True,
                 "x": [NULL_INT],
                 "xaxis": "x",
                 "y": [NULL_INT],
                 "yaxis": "y",
-                "type": "scatter",
-            }
+                "type": "scattergl",
+            },
+            {
+                "hovertemplate": "category=2<br>X=%{x}<br>Y=%{y}<extra></extra>",
+                "legendgroup": "2",
+                "marker": {"color": "#EF553B", "symbol": "circle"},
+                "mode": "markers",
+                "name": "2",
+                "showlegend": True,
+                "x": [NULL_INT],
+                "xaxis": "x",
+                "y": [NULL_INT],
+                "yaxis": "y",
+                "type": "scattergl",
+            },
         ]
 
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
+            "legend": {"tracegroupgap": 0},
+            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
-                "title": {"text": "X"},
                 "side": "bottom",
+                "title": {"text": "X"},
             },
             "yaxis": {
                 "anchor": "x",
                 "domain": [0.0, 1.0],
-                "title": {"text": "Y"},
                 "side": "left",
+                "title": {"text": "Y"},
             },
-            "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
         }
 
         self.assertEqual(plotly["layout"], expected_layout)
@@ -214,65 +228,76 @@ class ScatterTestCase(BaseTestCase):
             {
                 "table": 0,
                 "data_columns": {"X": ["/plotly/data/0/x"], "Y": ["/plotly/data/0/y"]},
-            }
+            },
+            {
+                "table": 0,
+                "data_columns": {"X": ["/plotly/data/1/x"], "Y": ["/plotly/data/1/y"]},
+            },
         ]
 
         self.assertEqual(deephaven["mappings"], expected_mappings)
 
         self.assertEqual(deephaven["is_user_set_template"], False)
-        self.assertEqual(deephaven["is_user_set_color"], False)
+        self.assertEqual(deephaven["is_user_set_color"], True)
 
     def test_by_none_scatter(self):
         import src.deephaven.plot.express as dx
         from deephaven.constants import NULL_INT
 
-        chart = dx.area(self.source, x="X", y="Y").to_dict(self.exporter)
+        chart = dx.scatter(
+            self.source, x="X", y="Y", by="category", by_vars=None
+        ).to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
 
         # pop template as we currently do not modify it
         plotly["layout"].pop("template")
 
-        print("none scatter")
-        print(plotly["data"])
-        print(plotly["layout"])
-
         expected_data = [
             {
-                "fillpattern": {"shape": ""},
-                "hovertemplate": "X=%{x}<br>Y=%{y}<extra></extra>",
-                "legendgroup": "",
-                "line": {"color": "#636efa", "shape": "linear"},
-                "marker": {"symbol": "circle"},
-                "mode": "lines",
-                "name": "",
-                "orientation": "v",
-                "showlegend": False,
-                "stackgroup": "1",
+                "hovertemplate": "category=1<br>X=%{x}<br>Y=%{y}<extra></extra>",
+                "legendgroup": "1",
+                "marker": {"color": "#636efa", "symbol": "circle"},
+                "mode": "markers",
+                "name": "1",
+                "showlegend": True,
                 "x": [NULL_INT],
                 "xaxis": "x",
                 "y": [NULL_INT],
                 "yaxis": "y",
-                "type": "scatter",
-            }
+                "type": "scattergl",
+            },
+            {
+                "hovertemplate": "category=2<br>X=%{x}<br>Y=%{y}<extra></extra>",
+                "legendgroup": "2",
+                "marker": {"color": "#636efa", "symbol": "circle"},
+                "mode": "markers",
+                "name": "2",
+                "showlegend": True,
+                "x": [NULL_INT],
+                "xaxis": "x",
+                "y": [NULL_INT],
+                "yaxis": "y",
+                "type": "scattergl",
+            },
         ]
 
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
+            "legend": {"tracegroupgap": 0},
+            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
-                "title": {"text": "X"},
                 "side": "bottom",
+                "title": {"text": "X"},
             },
             "yaxis": {
                 "anchor": "x",
                 "domain": [0.0, 1.0],
-                "title": {"text": "Y"},
                 "side": "left",
+                "title": {"text": "Y"},
             },
-            "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
         }
 
         self.assertEqual(plotly["layout"], expected_layout)
@@ -281,7 +306,11 @@ class ScatterTestCase(BaseTestCase):
             {
                 "table": 0,
                 "data_columns": {"X": ["/plotly/data/0/x"], "Y": ["/plotly/data/0/y"]},
-            }
+            },
+            {
+                "table": 0,
+                "data_columns": {"X": ["/plotly/data/1/x"], "Y": ["/plotly/data/1/y"]},
+            },
         ]
 
         self.assertEqual(deephaven["mappings"], expected_mappings)
@@ -293,53 +322,60 @@ class ScatterTestCase(BaseTestCase):
         import src.deephaven.plot.express as dx
         from deephaven.constants import NULL_INT
 
-        chart = dx.area(self.source, x="X", y="Y").to_dict(self.exporter)
+        chart = dx.scatter(self.source, x="X", y=["Y", "Y2"], by="category").to_dict(
+            self.exporter
+        )
         plotly, deephaven = chart["plotly"], chart["deephaven"]
 
         # pop template as we currently do not modify it
         plotly["layout"].pop("template")
 
-        print("list by scatter")
-        print(plotly["data"])
-        print(plotly["layout"])
-
         expected_data = [
             {
-                "fillpattern": {"shape": ""},
-                "hovertemplate": "X=%{x}<br>Y=%{y}<extra></extra>",
-                "legendgroup": "",
-                "line": {"color": "#636efa", "shape": "linear"},
-                "marker": {"symbol": "circle"},
-                "mode": "lines",
-                "name": "",
-                "orientation": "v",
-                "showlegend": False,
-                "stackgroup": "1",
+                "hovertemplate": "category=1<br>X=%{x}<br>value=%{y}<extra></extra>",
+                "legendgroup": "1",
+                "marker": {"color": "#636EFA", "symbol": "circle"},
+                "mode": "markers",
+                "name": "1",
+                "showlegend": True,
                 "x": [NULL_INT],
                 "xaxis": "x",
                 "y": [NULL_INT],
                 "yaxis": "y",
-                "type": "scatter",
-            }
+                "type": "scattergl",
+            },
+            {
+                "hovertemplate": "category=2<br>X=%{x}<br>value=%{y}<extra></extra>",
+                "legendgroup": "2",
+                "marker": {"color": "#EF553B", "symbol": "circle"},
+                "mode": "markers",
+                "name": "2",
+                "showlegend": True,
+                "x": [NULL_INT],
+                "xaxis": "x",
+                "y": [NULL_INT],
+                "yaxis": "y",
+                "type": "scattergl",
+            },
         ]
 
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
+            "legend": {"tracegroupgap": 0},
+            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
-                "title": {"text": "X"},
                 "side": "bottom",
+                "title": {"text": "X"},
             },
             "yaxis": {
                 "anchor": "x",
                 "domain": [0.0, 1.0],
-                "title": {"text": "Y"},
                 "side": "left",
+                "title": {"text": "value"},
             },
-            "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
         }
 
         self.assertEqual(plotly["layout"], expected_layout)
@@ -347,14 +383,24 @@ class ScatterTestCase(BaseTestCase):
         expected_mappings = [
             {
                 "table": 0,
-                "data_columns": {"X": ["/plotly/data/0/x"], "Y": ["/plotly/data/0/y"]},
-            }
+                "data_columns": {
+                    "X": ["/plotly/data/0/x"],
+                    "value": ["/plotly/data/0/y"],
+                },
+            },
+            {
+                "table": 0,
+                "data_columns": {
+                    "X": ["/plotly/data/1/x"],
+                    "value": ["/plotly/data/1/y"],
+                },
+            },
         ]
 
         self.assertEqual(deephaven["mappings"], expected_mappings)
 
         self.assertEqual(deephaven["is_user_set_template"], False)
-        self.assertEqual(deephaven["is_user_set_color"], False)
+        self.assertEqual(deephaven["is_user_set_color"], True)
 
 
 if __name__ == "__main__":
