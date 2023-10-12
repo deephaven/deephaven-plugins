@@ -64,7 +64,7 @@ def get_unique_names(table: Table, orig_names: list[str]) -> dict[str, str]:
     return new_names
 
 
-def args_copy(args: dict[dict[str, Any]]) -> dict[dict[str, Any]]:
+def args_copy(args: dict[str, Any]) -> dict[str, Any]:
     """Copy the args dictionary, copying any dictionaries one layer deep
     but not deeper so the table is not copied.
 

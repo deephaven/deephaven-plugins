@@ -173,7 +173,7 @@ def create_deephaven_figure(
     pop: list[str] = None,
     remap: dict[str, str] = None,
     px_func: Callable = None,
-) -> tuple[DeephavenFigure, Table | PartitionedTable]:
+) -> tuple[DeephavenFigure, Table | PartitionedTable, str, str]:
     """Process the provided args
 
     Args:
@@ -189,7 +189,9 @@ def create_deephaven_figure(
       px_func: Callable: the function (generally from px) to use to create the figure
 
     Returns:
-      tuple[DeephavenFigure, Table | PartitionedTable]: A tuple of the figure and the table
+      tuple[DeephavenFigure, Table | PartitionedTable]: A tuple of the figure, the table, the list variable,
+        and the pivot column. If list_var is not None, then a list was passed and needs to be replaced with the pivot
+        column
 
     """
     validate_common_args(args)
@@ -221,7 +223,17 @@ def create_deephaven_figure(
 
     update_wrapper = partial(unsafe_figure_update_wrapper, args["unsafe_update_figure"])
 
-    return update_wrapper(partitioned.create_figure()), partitioned.partitioned_table
+    list_var = partitioned.list_var
+    pivot_col = partitioned.pivot_vars["value"] if partitioned.pivot_vars else None
+    by = partitioned.by
+
+    return (
+        update_wrapper(partitioned.create_figure()),
+        partitioned.partitioned_table,
+        list_var,
+        pivot_col,
+        by,
+    )
 
 
 def process_args(
@@ -251,15 +263,22 @@ def process_args(
 
     """
     use_args = locals()
-    orig_args = args_copy(use_args)
-    orig_func = lambda **local_args: create_deephaven_figure(**local_args)[0]
+    orig_process_args = args_copy(use_args)
+    orig_process_func = lambda **local_args: create_deephaven_figure(**local_args)[0]
 
-    new_fig, table = create_deephaven_figure(**use_args)
+    new_fig, table, list_var, pivot_col, by = create_deephaven_figure(**use_args)
+
+    # a bit hacky, but if a list is passed in, we need to make sure that the
+    # list variable is always replaced with the pivot variable, so modify the args
+    # by might or might not be replaced, so we need to check for that
+    if list_var is not None:
+        orig_process_args["args"][list_var] = pivot_col
+        orig_process_args["args"]["by"] = by
 
     exec_ctx = get_exec_ctx()
 
     # these are needed for when partitions are added
-    new_fig.add_figure_to_graph(exec_ctx, orig_args, table, orig_func)
+    new_fig.add_figure_to_graph(exec_ctx, orig_process_args, table, orig_process_func)
 
     return new_fig
 

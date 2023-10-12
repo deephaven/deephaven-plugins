@@ -138,7 +138,7 @@ class PartitionManager:
         marg_args: dict[str, any],
         marg_func: Callable,
     ):
-
+        self.by = None
         self.by_vars = None
         self.list_var = None
         self.cols = None
@@ -298,7 +298,7 @@ class PartitionManager:
             elif (
                 val
                 and is_single_numeric_col(val, numeric_cols)
-                and "color_continuous_scale" in self.args
+                and "color_continuous_scalxe" in self.args
             ):
                 if "always_attached" in self.groups:
                     args["colors"] = args.pop("color")
@@ -378,8 +378,12 @@ class PartitionManager:
         if isinstance(args["table"], PartitionedTable):
             partitioned_table = args["table"]
 
+        # save the by arg so it can be reused in renders,
+        # especially if it was overriden
+        self.by = args.get("by", None)
+
         for arg, val in list(args.items()):
-            if (val or args.get("by", None)) and arg in PARTITION_ARGS:
+            if (val or self.by) and arg in PARTITION_ARGS:
                 arg_by, cols = self.handle_plot_by_arg(arg, val)
                 if cols:
                     partition_map[arg_by] = cols
@@ -397,8 +401,8 @@ class PartitionManager:
         # it's possible that pivot vars are set but by_vars is None,
         # so partitioning is still needed on that column but it won't
         # affect styles
-        if self.pivot_vars:
-            partition_cols.add(self.pivot_vars["variable"])
+        # if self.pivot_vars:
+        #    partition_cols.add(self.pivot_vars["variable"])
 
         # preprocessor needs to be initialized after the always attached arguments are found
         self.preprocessor = Preprocessor(
