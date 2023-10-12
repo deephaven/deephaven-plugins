@@ -398,11 +398,10 @@ class PartitionManager:
                 else:
                     self.facet_col = val
 
-        # it's possible that pivot vars are set but by_vars is None,
-        # so partitioning is still needed on that column but it won't
-        # affect styles
-        # if self.pivot_vars:
-        #    partition_cols.add(self.pivot_vars["variable"])
+        # it's possible that by vars are set but by_vars is None,
+        # so partitioning is still needed but it won't affect styles
+        if not self.by_vars:
+            partition_cols.update(self.by if isinstance(self.by, list) else [self.by])
 
         # preprocessor needs to be initialized after the always attached arguments are found
         self.preprocessor = Preprocessor(

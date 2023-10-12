@@ -270,7 +270,7 @@ def process_args(
 
     # a bit hacky, but if a list is passed in, we need to make sure that the
     # list variable is always replaced with the pivot variable, so modify the args
-    # by might or might not be replaced, so we need to check for that
+    # by might or might not be replaced, so we need to check for that too
     if list_var is not None:
         orig_process_args["args"][list_var] = pivot_col
         orig_process_args["args"]["by"] = by
