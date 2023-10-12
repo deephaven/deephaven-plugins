@@ -44,6 +44,9 @@ export function ElementView({ element }: ElementViewProps): JSX.Element | null {
     if (isIconElementNode(element)) {
       return <IconElementView element={element} />;
     }
+    if (isTableElementNode(element)) {
+      return <TableElementView element={element} />;
+    }
 
     // No special rendering for this node, just render the children
     const { props } = element;
@@ -53,9 +56,6 @@ export function ElementView({ element }: ElementViewProps): JSX.Element | null {
     // eslint-disable-next-line react/prop-types
     const { children } = props;
     return <ElementView element={children} />;
-  }
-  if (isTableElementNode(element)) {
-    return <TableElementView element={element} />;
   }
 
   if (isExportedObject(element)) {

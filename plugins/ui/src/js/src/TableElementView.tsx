@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import IrisGrid, {
+import {
+  IrisGrid,
   IrisGridModel,
   IrisGridModelFactory,
 } from '@deephaven/iris-grid';

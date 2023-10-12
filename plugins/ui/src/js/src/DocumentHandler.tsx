@@ -23,7 +23,6 @@ function DocumentHandler({ definition, element }: DocumentHandlerProps) {
   const childrenArray = Array.isArray(children) ? children : [children];
 
   // Count of each item type to correctly allocate them a key
-  log.debug('MJB just saying hey');
   const itemTypeCount = new Map<string, number>();
   return childrenArray.map((child, i) => {
     const key = makeElementKey(child, itemTypeCount);
