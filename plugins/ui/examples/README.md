@@ -428,6 +428,49 @@ def multiwave():
 mw = multiwave()
 ```
 
+## Using ui.table
+
+You can use `ui.table` to add interactivity to a table, or give other instructions to the UI. Here's an example that will create two tables and a plot. The first table `t1` is an unfiltered view of the stocks table, with a row double-press listener so if you double-click on a row, it will filter the second table `t2` to only show that row and the plot to show that selected sym and exchange.
+
+```py
+import deephaven.ui as ui
+from deephaven.ui import use_state
+from deephaven.plot.figure import Figure
+import deephaven.plot.express as dx
+
+stocks = dx.data.stocks()
+
+
+@ui.component
+def stock_table_input(source, default_sym="", default_exchange=""):
+    sym, set_sym = use_state(default_sym)
+    exchange, set_exchange = use_state(default_exchange)
+
+    t1 = source
+    t2 = source.where([f"sym=`{sym.upper()}`", f"exchange=`{exchange}`"])
+    p = (
+        Figure()
+        .plot_xy(series_name=f"{sym}-{exchange}", t=t2, x="timestamp", y="price")
+        .show()
+    )
+
+    def handle_row_double_press(row, data):
+        set_sym(data["sym"]["value"])
+        set_exchange(data["exchange"]["value"])
+
+    return [
+        ui.panel(
+            ui.table(t1).on_row_double_press(handle_row_double_press),
+            title="Stock Table Input",
+        ),
+        ui.panel(t2, title="Stock Filtered Table"),
+        ui.panel(p, title="Stock Plot"),
+    ]
+
+
+sti = stock_table_input(stocks, "CAT", "TPET")
+```
+
 ## Re-using components
 
 In a previous example, we created a text_filter_table component. We can re-use that component, and display two tables with an input filter side-by-side:

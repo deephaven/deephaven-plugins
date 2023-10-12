@@ -42,11 +42,11 @@ class UITable(Element):
         return "deephaven.ui.elements.TableElement"
 
     def _with_prop(self, key: str, value: Any) -> "UITable":
-        print(f"_with_prop({key}, {value})")
+        logger.debug("_with_prop(%s, %s)", key, value)
         return UITable(self._table, {**self._props, key: value})
 
     def render(self, context: RenderContext) -> dict[str, Any]:
-        print(f"Returning props {self._props}")
+        logger.debug("Returning props %s", self._props)
         return dict_to_camel_case({**self._props, "table": self._table})
 
     def on_row_double_press(

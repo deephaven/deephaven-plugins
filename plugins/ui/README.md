@@ -34,7 +34,7 @@ tox -e py
 
 ## Usage
 
-Once you have the JS and python plugins installed and the server started, you can use deephaven.ui. See [EXAMPLES.md](EXAMPLES.md) for examples.
+Once you have the JS and python plugins installed and the server started, you can use deephaven.ui. See [examples](examples/README.md) for examples.
 
 ## Logging
 
