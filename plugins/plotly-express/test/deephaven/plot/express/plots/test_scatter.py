@@ -402,6 +402,214 @@ class ScatterTestCase(BaseTestCase):
         self.assertEqual(deephaven["is_user_set_template"], False)
         self.assertEqual(deephaven["is_user_set_color"], True)
 
+    def test_by_variable_scatter(self):
+        import src.deephaven.plot.express as dx
+        from deephaven.constants import NULL_INT
+
+        chart = dx.scatter(self.source, x="X", y=["Y", "Y2"], by="variable").to_dict(
+            self.exporter
+        )
+        plotly, deephaven = chart["plotly"], chart["deephaven"]
+
+        # pop template as we currently do not modify it
+        plotly["layout"].pop("template")
+
+        expected_data = [
+            {
+                "hovertemplate": "variable=Y<br>X=%{x}<br>value=%{y}<extra></extra>",
+                "legendgroup": "Y",
+                "marker": {"color": "#636EFA", "symbol": "circle"},
+                "mode": "markers",
+                "name": "Y",
+                "showlegend": True,
+                "x": [NULL_INT],
+                "xaxis": "x",
+                "y": [NULL_INT],
+                "yaxis": "y",
+                "type": "scattergl",
+            },
+            {
+                "hovertemplate": "variable=Y2<br>X=%{x}<br>value=%{y}<extra></extra>",
+                "legendgroup": "Y2",
+                "marker": {"color": "#EF553B", "symbol": "circle"},
+                "mode": "markers",
+                "name": "Y2",
+                "showlegend": True,
+                "x": [NULL_INT],
+                "xaxis": "x",
+                "y": [NULL_INT],
+                "yaxis": "y",
+                "type": "scattergl",
+            },
+        ]
+
+        self.assertEqual(plotly["data"], expected_data)
+
+        expected_layout = {
+            "legend": {"tracegroupgap": 0},
+            "margin": {"t": 60},
+            "xaxis": {
+                "anchor": "y",
+                "domain": [0.0, 1.0],
+                "side": "bottom",
+                "title": {"text": "X"},
+            },
+            "yaxis": {
+                "anchor": "x",
+                "domain": [0.0, 1.0],
+                "side": "left",
+                "title": {"text": "value"},
+            },
+        }
+
+        self.assertEqual(plotly["layout"], expected_layout)
+
+        expected_mappings = [
+            {
+                "table": 0,
+                "data_columns": {
+                    "X": ["/plotly/data/0/x"],
+                    "value": ["/plotly/data/0/y"],
+                },
+            },
+            {
+                "table": 0,
+                "data_columns": {
+                    "X": ["/plotly/data/1/x"],
+                    "value": ["/plotly/data/1/y"],
+                },
+            },
+        ]
+
+        self.assertEqual(deephaven["mappings"], expected_mappings)
+
+        self.assertEqual(deephaven["is_user_set_template"], False)
+        self.assertEqual(deephaven["is_user_set_color"], True)
+
+    def test_list_by_variable_scatter(self):
+        import src.deephaven.plot.express as dx
+        from deephaven.constants import NULL_INT
+
+        chart = dx.scatter(
+            self.source, x="X", y=["Y", "Y2"], by=["variable", "category"]
+        ).to_dict(self.exporter)
+        plotly, deephaven = chart["plotly"], chart["deephaven"]
+
+        # pop template as we currently do not modify it
+        plotly["layout"].pop("template")
+
+        expected_data = [
+            {
+                "hovertemplate": "category=1<br>variable=Y<br>X=%{x}<br>value=%{y}<extra></extra>",
+                "legendgroup": "1, Y",
+                "marker": {"color": "#636EFA", "symbol": "circle"},
+                "mode": "markers",
+                "name": "1, Y",
+                "showlegend": True,
+                "x": [-2147483648],
+                "xaxis": "x",
+                "y": [-2147483648],
+                "yaxis": "y",
+                "type": "scattergl",
+            },
+            {
+                "hovertemplate": "category=2<br>variable=Y<br>X=%{x}<br>value=%{y}<extra></extra>",
+                "legendgroup": "2, Y",
+                "marker": {"color": "#EF553B", "symbol": "circle"},
+                "mode": "markers",
+                "name": "2, Y",
+                "showlegend": True,
+                "x": [-2147483648],
+                "xaxis": "x",
+                "y": [-2147483648],
+                "yaxis": "y",
+                "type": "scattergl",
+            },
+            {
+                "hovertemplate": "category=1<br>variable=Y2<br>X=%{x}<br>value=%{y}<extra></extra>",
+                "legendgroup": "1, Y2",
+                "marker": {"color": "#00CC96", "symbol": "circle"},
+                "mode": "markers",
+                "name": "1, Y2",
+                "showlegend": True,
+                "x": [-2147483648],
+                "xaxis": "x",
+                "y": [-2147483648],
+                "yaxis": "y",
+                "type": "scattergl",
+            },
+            {
+                "hovertemplate": "category=2<br>variable=Y2<br>X=%{x}<br>value=%{y}<extra></extra>",
+                "legendgroup": "2, Y2",
+                "marker": {"color": "#AB63FA", "symbol": "circle"},
+                "mode": "markers",
+                "name": "2, Y2",
+                "showlegend": True,
+                "x": [-2147483648],
+                "xaxis": "x",
+                "y": [-2147483648],
+                "yaxis": "y",
+                "type": "scattergl",
+            },
+        ]
+
+        self.assertEqual(plotly["data"], expected_data)
+
+        expected_layout = {
+            "legend": {"tracegroupgap": 0},
+            "margin": {"t": 60},
+            "xaxis": {
+                "anchor": "y",
+                "domain": [0.0, 1.0],
+                "side": "bottom",
+                "title": {"text": "X"},
+            },
+            "yaxis": {
+                "anchor": "x",
+                "domain": [0.0, 1.0],
+                "side": "left",
+                "title": {"text": "value"},
+            },
+        }
+
+        self.assertEqual(plotly["layout"], expected_layout)
+
+        expected_mappings = [
+            {
+                "table": 0,
+                "data_columns": {
+                    "X": ["/plotly/data/0/x"],
+                    "value": ["/plotly/data/0/y"],
+                },
+            },
+            {
+                "table": 0,
+                "data_columns": {
+                    "X": ["/plotly/data/1/x"],
+                    "value": ["/plotly/data/1/y"],
+                },
+            },
+            {
+                "table": 0,
+                "data_columns": {
+                    "X": ["/plotly/data/2/x"],
+                    "value": ["/plotly/data/2/y"],
+                },
+            },
+            {
+                "table": 0,
+                "data_columns": {
+                    "X": ["/plotly/data/3/x"],
+                    "value": ["/plotly/data/3/y"],
+                },
+            },
+        ]
+
+        self.assertEqual(deephaven["mappings"], expected_mappings)
+
+        self.assertEqual(deephaven["is_user_set_template"], False)
+        self.assertEqual(deephaven["is_user_set_color"], True)
+
 
 if __name__ == "__main__":
     unittest.main()

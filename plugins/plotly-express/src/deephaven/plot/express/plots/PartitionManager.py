@@ -493,9 +493,11 @@ class PartitionManager:
             dict[str, str]: The partition dictionary mapping column to value
         """
         for table in self.partitioned_table.constituent_tables:
-            key_column_table = dhpd.to_pandas(
-                table.select_distinct(self.partitioned_table.key_columns)
-            )
+            # sort the columns so the order is consistent
+            key_columns = self.partitioned_table.key_columns
+            key_columns.sort()
+
+            key_column_table = dhpd.to_pandas(table.select_distinct(key_columns))
             current_partition = dict(
                 zip(
                     self.partitioned_table.key_columns,
