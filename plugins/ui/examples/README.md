@@ -9,7 +9,7 @@ Below are some examples to demonstrate some of the functionality you can do so f
 You can run the example Docker container with the following command:
 
 ```
-docker run --rm --name deephaven-ui -p 10000:10000 ghcr.io/deephaven/server-ui:edge
+docker run --rm --name deephaven-ui -p 10000:10000 --pull=always ghcr.io/deephaven/server-ui:edge
 ```
 
 You'll need to find the link to open the UI in the Docker logs:
