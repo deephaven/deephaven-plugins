@@ -3,6 +3,7 @@ from weakref import WeakKeyDictionary, WeakSet
 from matplotlib.figure import Figure
 from deephaven.plugin.object_type import Exporter, FetchOnlyObjectType
 from threading import Timer
+from deephaven.liveness_scope import liveness_scope
 
 # Name of the matplotlib figure object that was export
 NAME = "matplotlib.figure.Figure"
@@ -116,6 +117,8 @@ class FigureType(FetchOnlyObjectType):
         return isinstance(object, Figure)
 
     def to_bytes(self, exporter: Exporter, figure: Figure) -> bytes:
-        input_table = _get_input_table(figure)
-        exporter.reference(input_table)
+        with liveness_scope() as scope:
+            input_table = _get_input_table(figure)
+            exporter.reference(input_table)
+            scope.preserve(input_table)
         return _export_figure(figure)
