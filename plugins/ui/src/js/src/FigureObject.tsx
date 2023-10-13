@@ -43,8 +43,8 @@ function FigureObject({ object }: FigureObjectProps) {
 
   return (
     <View
-      width="100%"
-      height="100%"
+      flexGrow={1}
+      flexShrink={1}
       overflow="hidden"
       position="relative"
       ref={viewComponent}
