@@ -44,17 +44,10 @@ export type ExportedObject<T = unknown> = {
 };
 
 /**
- * Create a key for an element.
- * @param child Child element
- * @param itemTypeCount Map of item types to counts. Will update the map with this type.
- * @returns A key that can be used for rendering an item.
+ * Gets the type of an element object, or `unknown` if it is not an element.
+ * @param node A node in a document, element or unknown object.
+ * @returns The type of the element
  */
-export function makeElementKey(
-  child: unknown,
-  itemTypeCount: Map<string, number>
-): string {
-  const type = isElementNode(child) ? child[ELEMENT_KEY] : 'unknown';
-  const currentCount = itemTypeCount.get(type) ?? 0;
-  itemTypeCount.set(type, currentCount + 1);
-  return `${type}-${currentCount}`;
+export function getElementType(node: unknown): string {
+  return isElementNode(node) ? node[ELEMENT_KEY] : 'unknown';
 }
