@@ -27,7 +27,7 @@ class UITable(Element):
 
     def __init__(self, table: Table, props: dict[str, Any] = {}):
         """
-        Create a TableElement from the passed in table. TableElement provides an [immutable fluent interface](https://en.wikipedia.org/wiki/Fluent_interface#Immutability) for adding UI hints to a table.
+        Create a UITable from the passed in table. UITable provides an [immutable fluent interface](https://en.wikipedia.org/wiki/Fluent_interface#Immutability) for adding UI hints to a table.
 
         Args:
             table: The table to wrap
@@ -39,7 +39,7 @@ class UITable(Element):
 
     @property
     def name(self):
-        return "deephaven.ui.elements.TableElement"
+        return "deephaven.ui.elements.UITable"
 
     def _with_prop(self, key: str, value: Any) -> "UITable":
         logger.debug("_with_prop(%s, %s)", key, value)

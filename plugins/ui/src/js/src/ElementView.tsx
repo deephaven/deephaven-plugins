@@ -7,8 +7,8 @@ import SpectrumElementView from './SpectrumElementView';
 import { isIconElementNode } from './IconElementUtils';
 import IconElementView from './IconElementView';
 import ObjectView from './ObjectView';
-import { isTableElementNode } from './TableElementUtils';
-import TableElementView from './TableElementView';
+import { isUITable } from './UITableUtils';
+import UITable from './UITable';
 
 export type ElementViewProps = {
   /** The element to render. */
@@ -44,8 +44,8 @@ export function ElementView({ element }: ElementViewProps): JSX.Element | null {
     if (isIconElementNode(element)) {
       return <IconElementView element={element} />;
     }
-    if (isTableElementNode(element)) {
-      return <TableElementView element={element} />;
+    if (isUITable(element)) {
+      return <UITable element={element} />;
     }
 
     // No special rendering for this node, just render the children

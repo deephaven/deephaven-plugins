@@ -6,12 +6,12 @@ import {
   isElementNode,
 } from './ElementUtils';
 
-export const TABLE_ELEMENT_TYPE = 'deephaven.ui.elements.TableElement';
+export const UITABLE_ELEMENT_TYPE = 'deephaven.ui.elements.UITable';
 
-export type TableElementName = `${typeof TABLE_ELEMENT_TYPE}`;
+export type UITableElementName = `${typeof UITABLE_ELEMENT_TYPE}`;
 
-export type TableElementNode = ElementNode & {
-  [ELEMENT_KEY]: TableElementName;
+export type UITableNode = ElementNode & {
+  [ELEMENT_KEY]: UITableElementName;
   props: {
     table: ExportedObject<Table>;
     onRowDoublePress?: (
@@ -22,9 +22,9 @@ export type TableElementNode = ElementNode & {
   };
 };
 
-export function isTableElementNode(obj: unknown): obj is TableElementNode {
+export function isUITable(obj: unknown): obj is UITableNode {
   return (
     isElementNode(obj) &&
-    (obj as TableElementNode)[ELEMENT_KEY] === TABLE_ELEMENT_TYPE
+    (obj as UITableNode)[ELEMENT_KEY] === UITABLE_ELEMENT_TYPE
   );
 }
