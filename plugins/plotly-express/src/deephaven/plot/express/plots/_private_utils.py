@@ -173,7 +173,7 @@ def create_deephaven_figure(
     pop: list[str] = None,
     remap: dict[str, str] = None,
     px_func: Callable = None,
-) -> tuple[DeephavenFigure, Table | PartitionedTable, str, str]:
+) -> tuple[DeephavenFigure, Table | PartitionedTable, dict[str, Any]]:
     """Process the provided args
 
     Args:
@@ -189,9 +189,9 @@ def create_deephaven_figure(
       px_func: Callable: the function (generally from px) to use to create the figure
 
     Returns:
-      tuple[DeephavenFigure, Table | PartitionedTable]: A tuple of the figure, the table, the list variable,
-        and the pivot column. If list_var is not None, then a list was passed and needs to be replaced with the pivot
-        column
+      tuple[DeephavenFigure, Table | PartitionedTable]: A tuple of the figure, the table, and an update that needs to be
+      applied to all calls that regenerate this figure. If "by" is set, there is a plot by column. If "x" or "y" are
+      set, there is a list variable which needs to be replaced.
 
     """
     validate_common_args(args)
@@ -227,12 +227,20 @@ def create_deephaven_figure(
     pivot_col = partitioned.pivot_vars["value"] if partitioned.pivot_vars else None
     by = partitioned.by
 
+    update = {}
+
+    if by:
+        # by needs to be updated as if there is a list variable but by is None, the pivot column is used as the by
+        update["by"] = by
+
+    if list_var:
+        # if there is a list variable, update the list variable to the pivot column
+        update[list_var] = pivot_col
+
     return (
         update_wrapper(partitioned.create_figure()),
         partitioned.partitioned_table,
-        list_var,
-        pivot_col,
-        by,
+        update,
     )
 
 
@@ -266,14 +274,9 @@ def process_args(
     orig_process_args = args_copy(use_args)
     orig_process_func = lambda **local_args: create_deephaven_figure(**local_args)[0]
 
-    new_fig, table, list_var, pivot_col, by = create_deephaven_figure(**use_args)
+    new_fig, table, update = create_deephaven_figure(**use_args)
 
-    # a bit hacky, but if a list is passed in, we need to make sure that the
-    # list variable is always replaced with the pivot variable, so modify the args
-    # by might or might not be replaced, so we need to check for that too
-    if list_var is not None:
-        orig_process_args["args"][list_var] = pivot_col
-        orig_process_args["args"]["by"] = by
+    orig_process_args["args"].update(update)
 
     exec_ctx = get_exec_ctx()
 
