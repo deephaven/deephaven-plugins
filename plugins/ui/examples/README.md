@@ -47,7 +47,7 @@ c = counter()
 
 ## Text field (string)
 
-You can create a [TextField](https://react-spectrum.adobe.com/react-spectrum/TextField.html) that takes input from the user.
+You can create a [TextField](https://react-spectrum.adobe.com/react-spectrum/TextField.html) that takes input from the user. You can also use a [Flex](https://react-spectrum.adobe.com/react-spectrum/Flex.html) component to display multiple components in a row (or column, depending on the `direction` argument).
 
 ```python
 import deephaven.ui as ui
@@ -58,7 +58,11 @@ from deephaven.ui import use_state
 def my_input():
     text, set_text = use_state("hello")
 
-    return [ui.text_field(value=text, on_change=set_text), ui.text(f"You typed {text}")]
+    return ui.flex(
+        ui.text_field(value=text, on_change=set_text),
+        ui.text(f"You typed {text}"),
+        direction="column",
+    )
 
 
 mi = my_input()
@@ -78,10 +82,11 @@ from deephaven.ui import use_state
 @ui.component
 def checkbox_example():
     liked, set_liked = use_state(True)
-    return [
+    return ui.flex(
         ui.checkbox("I liked this", is_selected=liked, on_change=set_liked),
         ui.text("You liked this" if liked else "You didn't like this"),
-    ]
+        direction="column",
+    )
 
 
 ce = checkbox_example()
@@ -103,11 +108,12 @@ def form_example():
     name, set_name = use_state("Homer")
     age, set_age = use_state(36)
 
-    return [
+    return ui.flex(
         ui.text_field(value=name, on_change=set_name),
         ui.slider(value=age, on_change=set_age),
         ui.text(f"Hello {name}, you are {age} years old"),
-    ]
+        direction="column",
+    )
 
 
 fe = form_example()
@@ -136,7 +142,12 @@ from deephaven.ui import use_state
 def text_filter_table(source, column):
     value, set_value = use_state("FISH")
     t = source.where(f"{column}=`{value}`")
-    return [ui.text_field(value=value, on_change=set_value), t]
+    return ui.flex(
+        ui.text_field(value=value, on_change=set_value),
+        t,
+        direction="column",
+        flex_grow=1,
+    )
 
 
 pp = text_filter_table(stocks, "sym")
@@ -179,7 +190,7 @@ def stock_widget_table(source, default_sym="", default_exchange=""):
         else error_message
     )
 
-    return [ui.flex(ti1, ti2), t1]
+    return ui.flex(ui.flex(ti1, ti2), t1, direction="column", flex_grow=1)
 
 
 swt = stock_widget_table(stocks, "", "")
@@ -217,7 +228,7 @@ def stock_widget_plot(source, default_sym="", default_exchange=""):
         .show()
     )
 
-    return [ui.flex(ti1, ti2), t1, p]
+    return ui.flex(ui.flex(ti1, ti2), t1, p, direction="column", flex_grow=1)
 
 
 swp = stock_widget_plot(stocks, "CAT", "TPET")
