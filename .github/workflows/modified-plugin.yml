@@ -57,10 +57,10 @@ jobs:
     strategy:
       matrix:
         package_info:
-        - { package: "plotly-express", token: "PLOTLY_EXPRESS" }
-        - { package: "plotly", token: "PLOTLY" }
-        - { package: "matplotlib", token: "MATPLOTLIB" }
-        - { package: "json",  token: "JSON" }
+        - { package: "plotly-express" }
+        - { package: "plotly" }
+        - { package: "matplotlib" }
+        - { package: "json" }
 
     steps:
       - name: Publish Package
@@ -68,7 +68,6 @@ jobs:
         uses: ./.github/workflows/release-python-package.yml
         with:
           package: ${{ matrix.package_info.package }}
-          token: echo ${{ secrets[format('PYPI_{0}_TOKEN', matrix.package_info.token)] }}
 
 
 

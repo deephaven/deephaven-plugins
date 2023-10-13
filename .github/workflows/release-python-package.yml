@@ -62,3 +62,4 @@ jobs:
           user: __token__
           password: ${{ secrets.token }}
           packages-dir: plugins/${{ inputs.package }}/dist/
+          package: "deephaven-plugin-${{ inputs.package }}"
