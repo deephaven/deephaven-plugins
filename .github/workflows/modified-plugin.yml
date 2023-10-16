@@ -42,32 +42,28 @@ jobs:
     strategy:
       matrix:
         package: ${{ fromJSON(needs.changes.outputs.packages) }}
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Run tests
-        uses: ./.github/workflows/test-python-package.yml
-        with:
-          package: ${{ matrix.package }}
+    uses: ./.github/workflows/test-python-package.yml
+    with:
+      package: ${{ matrix.package }}
 
-  release:
+  filter-release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        package_info:
-        - { package: "plotly-express" }
-        - { package: "plotly" }
-        - { package: "matplotlib" }
-        - { package: "json" }
-
     steps:
-      - name: Publish Package
-        if: startsWith(github.ref, 'refs/tags/${{ matrix.package_info.package }}-v')
-        uses: ./.github/workflows/release-python-package.yml
-        with:
-          package: ${{ matrix.package_info.package }}
+      - name: Filter tag
+        id: filter-tag
+        run: |
+          # TODO: proper filter here for /refs/tags/plotly-express-v1.0.0 and capture plotly-express etc
+          echo "::set-output name=package::$(echo ${{ github.ref }} | sed 's/refs\/tags\///g')"
+    outputs:
+      package: ${{ steps.filter-tag.outputs.package }}
+
+  release:
+    needs: filter-release
+    if: ${{ needs.filter-release.outputs.package != '' }}
+    uses: ./.github/workflows/release-python-package.yml
+    with:
+      package: ${{ needs.filter-release.outputs.package }}
 
 
 

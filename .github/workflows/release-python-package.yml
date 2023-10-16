@@ -6,9 +6,6 @@ on:
       package:
         required: true
         type: string
-    secrets:
-      token:
-        required: true
 
 jobs:
   test:
@@ -22,6 +19,8 @@ jobs:
   build-dist:
     needs: test
     runs-on: ubuntu-22.04
+    permissions:
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -59,7 +58,4 @@ jobs:
       - name: Publish package
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          user: __token__
-          password: ${{ secrets.token }}
           packages-dir: plugins/${{ inputs.package }}/dist/
-          package: "deephaven-plugin-${{ inputs.package }}"
