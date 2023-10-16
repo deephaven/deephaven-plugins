@@ -59,3 +59,4 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: plugins/${{ inputs.package }}/dist/
+          repository-url: https://pypi.org/project/deephaven-plugin-${{ inputs.package }}

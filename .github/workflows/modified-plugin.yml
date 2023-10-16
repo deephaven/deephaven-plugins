@@ -53,8 +53,7 @@ jobs:
       - name: Filter tag
         id: filter-tag
         run: |
-          # TODO: proper filter here for /refs/tags/plotly-express-v1.0.0 and capture plotly-express etc
-          echo "::set-output name=package::$(echo ${{ github.ref }} | sed 's/refs\/tags\///g')"
+          echo "::set-output name=package::$(echo ${{ github.ref }} | sed -E 's|^refs/tags/([^/]+)-v[0-9]+\.[0-9]+\.[0-9]+$|\1|')"
     outputs:
       package: ${{ steps.filter-tag.outputs.package }}
 
