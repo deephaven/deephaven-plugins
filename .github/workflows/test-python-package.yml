@@ -29,5 +29,3 @@ jobs:
       - name: Run tox
         run: tox -e py
         working-directory: "plugins/${{ github.event.inputs.package }}"
-
-

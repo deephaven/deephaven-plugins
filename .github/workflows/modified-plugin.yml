@@ -53,7 +53,7 @@ jobs:
       - name: Filter tag
         id: filter-tag
         run: |
-          echo "::set-output name=package::$(echo ${{ github.ref }} | sed -E 's|^refs/tags/([^/]+)-v[0-9]+\.[0-9]+\.[0-9]+$|\1|')"
+          echo "package=$(echo ${{ github.ref }} | sed -E 's|^refs/tags/([^/]+)-v[0-9]+\.[0-9]+\.[0-9]+$|\1|')" >> $GITHUB_OUTPUT
     outputs:
       package: ${{ steps.filter-tag.outputs.package }}
 
@@ -63,9 +63,3 @@ jobs:
     uses: ./.github/workflows/release-python-package.yml
     with:
       package: ${{ needs.filter-release.outputs.package }}
-
-
-
-
-
-
