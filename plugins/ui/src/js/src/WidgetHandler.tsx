@@ -7,7 +7,6 @@ import {
   JSONRPCServer,
   JSONRPCServerAndClient,
 } from 'json-rpc-2.0';
-import { DashboardPluginComponentProps } from '@deephaven/dashboard';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
 import {
@@ -20,6 +19,7 @@ import {
 } from './ElementUtils';
 import { JsWidget, WidgetMessageEvent, WidgetWrapper } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
+import shortid from 'shortid';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
@@ -138,7 +138,7 @@ function WidgetHandler(props: WidgetHandlerProps) {
         if (isCancelled) {
           return;
         }
-        log.info('newWidget', newWidget);
+        log.info('newWidget', wrapper.definition, newWidget);
         setWidget(newWidget);
       }
       loadWidgetInternal();
@@ -149,9 +149,13 @@ function WidgetHandler(props: WidgetHandlerProps) {
     [wrapper]
   );
 
-  return element ? (
-    <DocumentHandler definition={wrapper.definition} element={element} />
-  ) : null;
+  return useMemo(
+    () =>
+      element ? (
+        <DocumentHandler definition={wrapper.definition} element={element} />
+      ) : null,
+    [element, wrapper]
+  );
 }
 
 WidgetHandler.displayName = '@deephaven/js-plugin-ui/WidgetHandler';
