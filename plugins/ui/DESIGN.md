@@ -818,7 +818,7 @@ A panel cannot be nested within other components (other than the layout ones suc
 import deephaven.ui as ui
 ui_panel = ui.panel(
     component: Element,
-    title: str | Element | None = None,
+    label: str | Element | None = None,
     description: str | None = None,
     background_color: Color | None = None,
     tab_background_color: Color | None = None,
