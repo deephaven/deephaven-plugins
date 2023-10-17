@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import shortid from 'shortid';
 import {
   DashboardPluginComponentProps,
+  PanelEvent,
   useListener,
 } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
@@ -30,7 +31,7 @@ export function DashboardPlugin({
       dragEvent,
       fetch,
       metadata = {},
-      panelId = shortid.generate(),
+      panelId: widgetId = shortid.generate(),
       widget,
     }: {
       dragEvent?: React.DragEvent;
@@ -44,15 +45,24 @@ export function DashboardPlugin({
         // Only want to listen for Element panels trying to be opened
         return;
       }
-      log.info('Opening element with ID', panelId);
+      log.info('Opening widget with ID', widgetId);
       setWidgetMap(prevWidgetMap => {
         const newWidgetMap = new Map<string, WidgetWrapper>(prevWidgetMap);
-        newWidgetMap.set(panelId, { definition: widget, fetch });
+        newWidgetMap.set(widgetId, { definition: widget, fetch, id: widgetId });
         return newWidgetMap;
       });
     },
     []
   );
+
+  const handleWidgetClose = useCallback((widget: WidgetWrapper) => {
+    log.debug('Closing widget', widget);
+    setWidgetMap(prevWidgetMap => {
+      const newWidgetMap = new Map<string, WidgetWrapper>(prevWidgetMap);
+      newWidgetMap.delete(widget.id);
+      return newWidgetMap;
+    });
+  }, []);
 
   useEffect(() => {
     const cleanups = [registerComponent(PortalPanel.displayName, PortalPanel)];
@@ -63,14 +73,18 @@ export function DashboardPlugin({
   }, [registerComponent]);
 
   // TODO: We need to change up the event system for how objects are opened, since in this case it could be opening multiple panels
-  useListener(layout.eventHub, 'PanelEvent.OPEN', handlePanelOpen);
+  useListener(layout.eventHub, PanelEvent.OPEN, handlePanelOpen);
 
   const widgetHandlers = useMemo(
     () =>
-      [...widgetMap.entries()].map(([panelId, widget]) => (
-        <WidgetHandler key={panelId} widget={widget} />
+      [...widgetMap.entries()].map(([widgetId, widget]) => (
+        <WidgetHandler
+          key={widgetId}
+          widget={widget}
+          onClose={handleWidgetClose}
+        />
       )),
-    [widgetMap]
+    [handleWidgetClose, widgetMap]
   );
 
   return (

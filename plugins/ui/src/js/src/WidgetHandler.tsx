@@ -19,21 +19,29 @@ import {
 } from './ElementUtils';
 import { JsWidget, WidgetMessageEvent, WidgetWrapper } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
-import shortid from 'shortid';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
 export interface WidgetHandlerProps {
   /** Widget for this to handle */
   widget: WidgetWrapper;
+
+  /** Triggered when all panels opened from this widget have closed */
+  onClose?: (widget: WidgetWrapper) => void;
 }
 
-function WidgetHandler(props: WidgetHandlerProps) {
-  const { widget: wrapper } = props;
+function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
   const dh = useApi();
 
   const [widget, setWidget] = useState<JsWidget>();
   const [element, setElement] = useState<ElementNode>();
+
+  useEffect(
+    () => () => {
+      widget?.close();
+    },
+    [widget]
+  );
 
   // Bi-directional communication as defined in https://www.npmjs.com/package/json-rpc-2.0
   const jsonClient = useMemo(
@@ -42,7 +50,7 @@ function WidgetHandler(props: WidgetHandlerProps) {
         ? new JSONRPCServerAndClient(
             new JSONRPCServer(),
             new JSONRPCClient(request => {
-              log.info('Sending request', request);
+              log.debug('Sending request', request);
               widget.sendMessage(JSON.stringify(request), []);
             })
           )
@@ -65,7 +73,7 @@ function WidgetHandler(props: WidgetHandlerProps) {
         // Need to re-hydrate any objects that are defined
         if (isCallableNode(value)) {
           const callableId = value[CALLABLE_KEY];
-          log.info('Registering callableId', callableId);
+          log.debug2('Registering callableId', callableId);
           return async (...args: unknown[]) => {
             log.debug('Callable called', callableId, ...args);
             return jsonClient?.request(callableId, args);
@@ -87,9 +95,9 @@ function WidgetHandler(props: WidgetHandlerProps) {
         return;
       }
 
-      log.info('Adding methods to jsonClient');
+      log.debug('Adding methods to jsonClient');
       jsonClient.addMethod('documentUpdated', async (params: [ElementNode]) => {
-        log.info('documentUpdated', params[0]);
+        log.debug2('documentUpdated', params[0]);
         setElement(params[0]);
       });
 
@@ -105,7 +113,7 @@ function WidgetHandler(props: WidgetHandlerProps) {
       return;
     }
     function receiveData(data: string, exportedObjects: ExportedObject[]) {
-      log.info('Data received', data, exportedObjects);
+      log.debug2('Data received', data, exportedObjects);
       const parsedData = parseData(data, exportedObjects);
       jsonClient?.receiveAndSend(parsedData);
     }
@@ -120,12 +128,12 @@ function WidgetHandler(props: WidgetHandlerProps) {
       }
     );
 
-    log.info('Receiving initial data');
+    log.debug('Receiving initial data');
     // We need to get the initial data and process it. It should be a documentUpdated command.
     receiveData(widget.getDataAsString(), widget.exportedObjects);
 
     return () => {
-      log.info('Cleaning up listener');
+      log.debug('Cleaning up listener');
       cleanup();
     };
   }, [dh, jsonClient, parseData, widget]);
@@ -136,9 +144,10 @@ function WidgetHandler(props: WidgetHandlerProps) {
       async function loadWidgetInternal() {
         const newWidget = await wrapper.fetch();
         if (isCancelled) {
+          newWidget.close();
           return;
         }
-        log.info('newWidget', wrapper.definition, newWidget);
+        log.debug('newWidget', wrapper.definition, newWidget);
         setWidget(newWidget);
       }
       loadWidgetInternal();
@@ -149,12 +158,21 @@ function WidgetHandler(props: WidgetHandlerProps) {
     [wrapper]
   );
 
+  const handleDocumentClose = useCallback(() => {
+    log.debug('Widget document closed', wrapper.definition);
+    onClose?.(wrapper);
+  }, [onClose, wrapper]);
+
   return useMemo(
     () =>
       element ? (
-        <DocumentHandler definition={wrapper.definition} element={element} />
+        <DocumentHandler
+          definition={wrapper.definition}
+          element={element}
+          onClose={handleDocumentClose}
+        />
       ) : null,
-    [element, wrapper]
+    [element, handleDocumentClose, wrapper]
   );
 }
 

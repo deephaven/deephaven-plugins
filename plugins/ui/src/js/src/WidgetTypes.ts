@@ -17,6 +17,7 @@ export interface JsWidget extends WidgetMessageDetails {
     listener: (event: WidgetMessageEvent) => void
   ) => () => void;
   sendMessage: (message: string, args: unknown[]) => void;
+  close: () => void;
 }
 
 export type WidgetFetch = () => Promise<JsWidget>;
@@ -24,4 +25,5 @@ export type WidgetFetch = () => Promise<JsWidget>;
 export type WidgetWrapper = {
   definition: WidgetDefinition;
   fetch: WidgetFetch;
+  id: string;
 };

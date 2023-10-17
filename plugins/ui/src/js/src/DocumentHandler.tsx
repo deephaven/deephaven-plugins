@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import { WidgetDefinition } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
 import { ElementNode, getElementType } from './ElementUtils';
@@ -14,10 +14,32 @@ export interface DocumentHandlerProps {
 
   /** The root element to render */
   element: ElementNode;
+
+  /** Triggered when all panels opened from this document have closed */
+  onClose?: () => void;
 }
 
-function DocumentHandler({ definition, element }: DocumentHandlerProps) {
+function DocumentHandler({
+  definition,
+  element,
+  onClose,
+}: DocumentHandlerProps) {
   log.debug('Rendering document', element);
+  const panelOpenCountRef = useRef(0);
+
+  const handlePanelOpen = useCallback(() => {
+    panelOpenCountRef.current += 1;
+  }, []);
+
+  const handlePanelClose = useCallback(() => {
+    panelOpenCountRef.current -= 1;
+    if (panelOpenCountRef.current < 0) {
+      throw new Error('Panel open count when negative');
+    }
+    if (panelOpenCountRef.current === 0) {
+      onClose?.();
+    }
+  }, [onClose]);
 
   const { children } = element.props ?? {};
   const childrenArray = Array.isArray(children) ? children : [children];
@@ -39,7 +61,12 @@ function DocumentHandler({ definition, element }: DocumentHandlerProps) {
           title = child.props.title ?? title;
         }
         return (
-          <ReactPanel title={title} key={key}>
+          <ReactPanel
+            title={title}
+            key={key}
+            onOpen={handlePanelOpen}
+            onClose={handlePanelClose}
+          >
             <ElementView element={child} />
           </ReactPanel>
         );

@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 import shortid from 'shortid';
-import { LayoutUtils, PanelEvent } from '@deephaven/dashboard';
+import { LayoutUtils, PanelEvent, useListener } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
 import PortalPanel from './PortalPanel';
 import useLayout from './useLayout';
@@ -14,12 +14,18 @@ export interface ReactPanelProps {
 
   /** Title of the panel */
   title: string;
+
+  /** Triggered when this panel is opened */
+  onOpen?: () => void;
+
+  /** Triggered when this panel is closed */
+  onClose?: () => void;
 }
 
 /**
  * Adds and tracks a panel to the GoldenLayout. When the child element is updated, the contents of the panel will also be updated. When unmounted, the panel will be removed.
  */
-function ReactPanel({ children, title }: ReactPanelProps) {
+function ReactPanel({ children, onClose, onOpen, title }: ReactPanelProps) {
   const layout = useLayout();
   const panelId = useMemo(() => shortid(), []);
   const [element, setElement] = useState<HTMLElement>();
@@ -32,10 +38,23 @@ function ReactPanel({ children, title }: ReactPanelProps) {
       if (panelOpenRef.current) {
         LayoutUtils.closeComponent(layout.root, { id: panelId });
         panelOpenRef.current = false;
+        onClose?.();
       }
     },
-    [layout, panelId]
+    [layout, onClose, panelId]
   );
+
+  const handlePanelClosed = useCallback(
+    closedPanelId => {
+      if (closedPanelId === panelId) {
+        log.debug('Panel closed', panelId);
+        onClose?.();
+      }
+    },
+    [onClose, panelId]
+  );
+
+  useListener(layout.eventHub, PanelEvent.CLOSED, handlePanelClosed);
 
   useEffect(() => {
     if (panelOpenRef.current === false) {
@@ -58,8 +77,10 @@ function ReactPanel({ children, title }: ReactPanelProps) {
       LayoutUtils.openComponent({ root, config });
       log.debug('Opened panel', panelId, config);
       panelOpenRef.current = true;
+
+      onOpen?.();
     }
-  }, [children, layout, panelId, title]);
+  }, [children, layout, onOpen, panelId, title]);
 
   return element ? ReactDOM.createPortal(children, element) : null;
 }
