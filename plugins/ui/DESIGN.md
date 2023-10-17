@@ -805,18 +805,58 @@ We should be able to map these by using `ui.panel`, `ui.row`, `ui.column`, `ui.s
 
 ##### ui.panel
 
-By default, the top level `@ui.component` will automatically be wrapped in a panel, so no need to define it unless you want custom panel functionality, such as giving the tab a custom name, e.g.:
+By default, the top level `@ui.component` will automatically be wrapped in a panel, so no need to define it unless you want custom panel functionality, such as giving the tab a custom name or color, e.g.:
 
-```python
-import deephaven.ui as ui
-
+```py
 # The only difference between this and `p = my_component()` is that the title of the panel will be set to `My Title`
 p = ui.panel(my_component(), title="My Title")
 ```
 
-Note that a panel can only have one root component, and cannot be nested within other components (other than the layout ones `ui.row`, `ui.column`, `ui.stack`, `ui.dashboard`)
+A panel cannot be nested within other components (other than the layout ones such as `ui.row`, `ui.column`, `ui.stack`, `ui.dashboard`). The basic syntax for creating a `UIPanel` is:
 
-TBD: How do you specify a title and/or tooltip for your panel? How do panels get a title or tooltip by default?
+```py
+import deephaven.ui as ui
+ui_panel = ui.panel(
+    component: Element,
+    title: str | Element | None = None,
+    description: str | None = None,
+    background_color: Color | None = None,
+    color: Color | None = None,
+    tab_background_color: Color | None = None,
+    tab_color: Color | None = None,
+    is_closable: bool = True,
+    on_focus: Callable[[UIPanel], None] | None = None,
+    on_blur: Callable[[UIPanel], None] | None = None,
+    on_hide: Callable[[UIPanel], None] | None = None,
+    on_show: Callable[[UIPanel], None] | None = None,
+    on_open: Callable[[UIPanel], None] | None = None,
+    on_close: Callable[[UIPanel], None] | None = None,
+) -> UIPanel
+```
+
+###### Parameters
+
+| Parameter              | Type                                | Description                                                                                                                                                                                                   |
+| ---------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `component`            | `Element`                           | The component(s) to render within the panel.                                                                                                                                                                  |
+| `label`                | `(str \| Element)[] \| None`        | The label of the panel. If not provided, a name will be created based on the variable name the top-level component is assigned to. Icons can also be added as children, with a sibling element for the label. |
+| `description`          | `str \| Element \| None`            | A description of the panel. Will appear in the tooltip when hovering the panel tab. Can also include an element here.                                                                                         |
+| `background_color`     | `Color \| None`                     | Custom background color of the panel.                                                                                                                                                                         |
+| `tab_background_color` | `Color \| None`                     | Custom background color of the tab for the panel.                                                                                                                                                             |
+| `is_closable`          | `bool`                              | Whether the panel can be closed when part of a dashboard layout, panels will always be closeable as part of consoles.                                                                                         |
+| `on_focus`             | `Callable[[UIPanel], None] \| None` | Callback function to be called when the panel is focused.                                                                                                                                                     |
+| `on_blur`              | `Callable[[UIPanel], None] \| None` | Callback function to be called when the panel is blurred.                                                                                                                                                     |
+| `on_hide`              | `Callable[[UIPanel], None] \| None` | Callback function to be called when the panel is hidden.                                                                                                                                                      |
+| `on_show`              | `Callable[[UIPanel], None] \| None` | Callback function to be called when the panel is shown.                                                                                                                                                       |
+| `on_open`              | `Callable[[UIPanel], None] \| None` | Callback function to be called when the panel is opened.                                                                                                                                                      |
+| `on_close`             | `Callable[[UIPanel], None] \| None` | Callback function to be called when the panel is closed.                                                                                                                                                      |
+
+###### Methods
+
+| Method    | Description        |
+| --------- | ------------------ |
+| `close()` | Closes the panel.  |
+| `focus()` | Focuses the panel. |
 
 ##### ui.row, ui.column, ui.stack, ui.dashboard
 
