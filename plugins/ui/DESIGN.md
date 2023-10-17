@@ -805,7 +805,7 @@ We should be able to map these by using `ui.panel`, `ui.row`, `ui.column`, `ui.s
 
 ##### ui.panel
 
-By default, the top level `@ui.component` will automatically be wrapped in a panel, so no need to define it unless you want custom panel functionality, such as giving the tab a custom name or color, e.g.:
+By default, the top level `@ui.component` will automatically be wrapped in a panel, so no need to define it unless you want custom panel functionality, such as giving the tab a custom name, color or calling a method such as focus  e.g.:
 
 ```py
 # The only difference between this and `p = my_component()` is that the title of the panel will be set to `My Title`
