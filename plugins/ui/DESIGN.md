@@ -809,7 +809,7 @@ By default, the top level `@ui.component` will automatically be wrapped in a pan
 
 ```py
 # The only difference between this and `p = my_component()` is that the title of the panel will be set to `My Title`
-p = ui.panel(my_component(), title="My Title")
+p = ui.panel(my_component(), label="My Tab Label")
 ```
 
 A panel cannot be nested within other components (other than the layout ones such as `ui.row`, `ui.column`, `ui.stack`, `ui.dashboard`). The basic syntax for creating a `UIPanel` is:
