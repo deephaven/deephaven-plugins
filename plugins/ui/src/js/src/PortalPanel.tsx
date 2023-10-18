@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { DashboardPanelProps } from '@deephaven/dashboard';
+import { Panel } from '@deephaven/dashboard-core-plugins';
 
 export interface PortalPanelProps extends DashboardPanelProps {
   /** Listener for when the portal panel is unmounted/closed */
@@ -13,7 +14,12 @@ export interface PortalPanelProps extends DashboardPanelProps {
  * Adds and tracks a panel to the GoldenLayout.
  * Takes an HTMLElement that can be used as a Portal in another component.
  */
-function PortalPanel({ onClose, onOpen }: PortalPanelProps): JSX.Element {
+function PortalPanel({
+  glContainer,
+  glEventHub,
+  onClose,
+  onOpen,
+}: PortalPanelProps): JSX.Element {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -27,7 +33,17 @@ function PortalPanel({ onClose, onOpen }: PortalPanelProps): JSX.Element {
       onClose();
     };
   }, [onClose, onOpen]);
-  return <div className="ui-portal-panel" ref={ref} />;
+
+  return (
+    <Panel
+      glContainer={glContainer}
+      glEventHub={glEventHub}
+      // TODO: Need Matt's change: https://github.com/deephaven/web-client-ui/pull/1564
+      componentPanel={undefined as any}
+    >
+      <div className="ui-portal-panel" ref={ref} />
+    </Panel>
+  );
 }
 
 PortalPanel.displayName = '@deephaven/js-plugin-ui/PortalPanel';
