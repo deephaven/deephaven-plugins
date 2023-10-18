@@ -929,9 +929,6 @@ Set the totals table to display below the main table.
 ###### Syntax
 
 ```py
-ColumnName = str
-AggregationOperation = Literal["Count", "CountDistinct", "Distinct", "Min", "Max", "Sum", "AbsSum", "Var", "Avg", "Std", "First", "Last", "Unique", "Skip"]
-
 ui_table.aggregations(
     operations: dict[ColumnName, list[AggregationOperation]],
     operation_order: list[AggregationOperation] = [],
@@ -990,14 +987,14 @@ Set the search bar to explicitly be accessible or inaccessible, or use the syste
 ###### Syntax
 
 ```py
-ui_table.can_search(mode: Literal["show", "hide", "default"]) -> UITable
+ui_table.can_search(mode: SearchMode) -> UITable
 ```
 
 ###### Parameters
 
-| Parameter | Type                                 | Description                                                                                |
-| --------- | ------------------------------------ | ------------------------------------------------------------------------------------------ |
-| `mode`    | `Literal["show", "hide", "default"]` | set the search bar to explicitly be accessible or inaccessible, or use the system default. |
+| Parameter | Type         | Description                                                                                |
+| --------- | ------------ | ------------------------------------------------------------------------------------------ |
+| `mode`    | `SearchMode` | Set the search bar to explicitly be accessible or inaccessible, or use the system default. |
 
 ##### column_group
 
@@ -1006,16 +1003,16 @@ Create a group for columns in the table.
 ###### Syntax
 
 ```py
-ui_table.column_group(name: str, children: list[str], color: Optional[str]) -> UITable
+ui_table.column_group(name: str, children: list[str], color: str | None) -> UITable
 ```
 
 ###### Parameters
 
-| Parameter  | Type            | Description                                                                                                                |
-| ---------- | --------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `name`     | `str`           | The group name. Must be a valid column name and not a duplicate of another column or group.                                |
-| `children` | `list[str]`     | The children in the group. May contain column names or other group names. Each item may only be specified as a child once. |
-| `color`    | `Optional[str]` | The hex color string or Deephaven color name.                                                                              |
+| Parameter  | Type          | Description                                                                                                                |
+| ---------- | ------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `name`     | `str`         | The group name. Must be a valid column name and not a duplicate of another column or group.                                |
+| `children` | `list[str]`   | The children in the group. May contain column names or other group names. Each item may only be specified as a child once. |
+| `color`    | `str \| None` | The hex color string or Deephaven color name.                                                                              |
 
 ##### color_column
 
@@ -1084,12 +1081,6 @@ Add custom items to the context menu. You can provide a list of actions that alw
 
 ```py
 # Index will be -1 for the header row/column
-RowIndex = int
-ColumnIndex = int
-CellIndex = [RowIndex, ColumnIndex]
-RowData = dict[str, Any]
-ContextMenuAction = dict[str, Any]
-
 ui_table.context_menu(
     items: list[ContextMenuAction] | Callable[[CellIndex, RowData], list[ContextMenuAction]]
 ) -> UITable
@@ -1113,11 +1104,11 @@ ui_table.data_bar(self,
     value_col: str = None,
     min: float | str = None,
     max: float | str = None,
-    axis: Literal["Proportional", "Middle", "Directional"] = None,
+    axis: DataBarAxis | None = None,
     positive_color: Color | list[Color] = None,
     negative_color: Color | list[Color] = None,
-    value_placement: Literal["Beside", "Overlap", "Hide"] = None,
-    direction: Literal["LTR", "RTL"] = None,
+    value_placement: DataBarValuePlacement | None = None,
+    direction: DataBarDirection | None = None,
     opacity: float = None,
     marker_col: str = None,
     marker_color: Color = None
@@ -1126,20 +1117,20 @@ ui_table.data_bar(self,
 
 ###### Parameters
 
-| Parameter         | Type                                               | Description                                                    |
-| ----------------- | -------------------------------------------------- | -------------------------------------------------------------- |
-| `col`             | `str`                                              | column to generate data bars in                                |
-| `value_col`       | `str`                                              | column containing the values to generate data bars from        |
-| `min`             | `float \| str`                                     | minimum value for data bar scaling or column to get value from |
-| `max`             | `float \| str`                                     | maximum value for data bar scaling or column to get value from |
-| `axis`            | `Literal["Proportional", "Middle", "Directional"]` | orientation of data bar relative to cell                       |
-| `positive_color`  | `Color \| list[Color]`                             | color for positive bars. Use list of colors to form a gradient |
-| `negative_color`  | `Color \| list[Color]`                             | color for negative bars. Use list of colors to form a gradient |
-| `value_placement` | `Literal["Beside", "Overlap", "Hide"]`             | orientation of values relative to data bar                     |
-| `direction`       | `Literal["LTR", "RTL"]`                            | orientation of data bar relative to horizontal axis            |
-| `opacity`         | `float`                                            | opacity of data bars. Accepts values from 0 to 1               |
-| `marker_col`      | `str`                                              | column containing the values to generate markers from          |
-| `marker_color`    | `'Color'`                                          | color for markers                                              |
+| Parameter         | Type                            | Description                                                    |
+| ----------------- | ------------------------------- | -------------------------------------------------------------- |
+| `col`             | `str`                           | Column to generate data bars in                                |
+| `value_col`       | `str`                           | Column containing the values to generate data bars from        |
+| `min`             | `float \| str`                  | Minimum value for data bar scaling or column to get value from |
+| `max`             | `float \| str`                  | Maximum value for data bar scaling or column to get value from |
+| `axis`            | `DataBarAxis \| None`           | Orientation of data bar relative to cell                       |
+| `positive_color`  | `Color \| list[Color]`          | Color for positive bars. Use list of colors to form a gradient |
+| `negative_color`  | `Color \| list[Color]`          | Color for negative bars. Use list of colors to form a gradient |
+| `value_placement` | `DataBarValuePlacement \| None` | Orientation of values relative to data bar                     |
+| `direction`       | `DataBarDirection \| None`      | Orientation of data bar relative to horizontal axis            |
+| `opacity`         | `float`                         | Opacity of data bars. Accepts values from 0 to 1               |
+| `marker_col`      | `str`                           | Column containing the values to generate markers from          |
+| `marker_color`    | `'Color'`                       | Color for markers                                              |
 
 ##### format
 
@@ -1247,9 +1238,6 @@ Add a quick filter for the UI to apply to the table.
 ###### Syntax
 
 ```py
-ColumnName = str
-QuickFilterExpression = str
-
 ui_table.quick_filter(filter: dict[ColumnName, QuickFilterExpression]) -> UITable
 ```
 
@@ -1259,6 +1247,22 @@ ui_table.quick_filter(filter: dict[ColumnName, QuickFilterExpression]) -> UITabl
 | --------- | ----------------------------------------- | --------------------------------------- |
 | `filter`  | `dict[ColumnName, QuickFilterExpression]` | The quick filter to apply to the table. |
 
+##### selection_mode
+
+Set the selection mode for the table.
+
+###### Syntax
+
+```py
+ui_table.selection_mode(mode: SelectionMode) -> UITable
+```
+
+###### Parameters
+
+| Parameter | Type            | Description                                                                                                                                                                                                                                                               |
+| --------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mode`    | `SelectionMode` | The selection mode to use. Must be one of `"ROW"`, `"COLUMN"`, or `"CELL"`:<li>`"ROW"` selects the entire row of the cell you click on.</li><li>`"COLUMN"` selects the entire column of the cell you click on.</li><li>`"CELL"` selects only the cells you click on.</li> |
+
 ##### sort
 
 Provide the default sort that will be used by the UI.
@@ -1266,20 +1270,18 @@ Provide the default sort that will be used by the UI.
 ###### Syntax
 
 ```py
-SortDirection = Literal["ASC", "DESC"]
-
 ui_table.sort(
     order_by: str | Sequence[str],
-    order: Optional[SortDirection | Sequence[SortDirection]]
+    order: SortDirection | Sequence[SortDirection] | None = None
 ) -> UITable
 ```
 
 ###### Parameters
 
-| Parameter   | Type                                                 | Description                                                                                                 |
-| ----------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `by`        | `str \| Sequence[str]`                               | The column(s) to sort by. May be a single column name, or a list of column names.                           |
-| `direction` | `Optional[SortDirection \| Sequence[SortDirection]]` | The sort direction(s) to use. If provided, that must match up with the columns provided. Defaults to "ASC". |
+| Parameter   | Type                                               | Description                                                                                                 |
+| ----------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `by`        | `str \| Sequence[str]`                             | The column(s) to sort by. May be a single column name, or a list of column names.                           |
+| `direction` | `SortDirection \| Sequence[SortDirection] \| None` | The sort direction(s) to use. If provided, that must match up with the columns provided. Defaults to "ASC". |
 
 #### Deprecations
 
@@ -1291,6 +1293,31 @@ The functionality provided my `ui.table` replaces some of the existing functions
 | `layout_hints`                                                    | [back_columns](#back_columns)<br/>[front_columns](#front_columns)<br/>[column_group](#column_groups)<br/>[freeze_columns](#freeze_columns)<br/>[hide_columns](#hide_columns)<br/>[search_display](#search_display) |
 | `dropColumnFormats`                                               | No replacement                                                                                                                                                                                                     |
 | `setTotalsTable`                                                  | [aggregations](#aggregations)                                                                                                                                                                                      |
+
+#### Custom Types
+
+Below are some of the custom types that are used in the above API definitions:
+
+```py
+AggregationOperation = Literal["Count", "CountDistinct", "Distinct", "Min", "Max", "Sum", "AbsSum", "Var", "Avg", "Std", "First", "Last", "Unique", "Skip"]
+CellIndex = [RowIndex, ColumnIndex]
+Color = DeephavenColor | HexColor
+ColumnIndex = int
+ColumnName = str
+ContextMenuAction = dict[str, Any]
+DataBarAxis = Literal["Proportional", "Middle", "Directional"]
+DataBarDirection = Literal["LTR", "RTL"]
+DataBarValuePlacement = Literal["Beside", "Overlap", "Hide"]
+# TODO: Fill in the list of Deephaven Colors we allow
+DeephavenColor = Literal[...]
+HexColor = str
+QuickFilterExpression = str
+RowData = dict[str, Any]
+RowIndex = int
+SearchMode = Literal["show", "hide", "default"]
+SelectionMode = Literal["CELL", "ROW", "COLUMN"]
+SortDirection = Literal["ASC", "DESC"]
+```
 
 #### Context
 
