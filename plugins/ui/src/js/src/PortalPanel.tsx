@@ -39,6 +39,7 @@ function PortalPanel({
       glContainer={glContainer}
       glEventHub={glEventHub}
       // TODO: Need Matt's change: https://github.com/deephaven/web-client-ui/pull/1564
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       componentPanel={undefined as any}
     >
       <div className="ui-portal-panel" ref={ref} />

@@ -140,6 +140,7 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
 
   useEffect(
     function loadWidget() {
+      log.debug('loadWidget', wrapper.id, wrapper.definition);
       let isCancelled = false;
       async function loadWidgetInternal() {
         const newWidget = await wrapper.fetch();
@@ -147,7 +148,7 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
           newWidget.close();
           return;
         }
-        log.debug('newWidget', wrapper.definition, newWidget);
+        log.debug('newWidget', wrapper.id, wrapper.definition, newWidget);
         setWidget(newWidget);
       }
       loadWidgetInternal();
@@ -159,7 +160,7 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
   );
 
   const handleDocumentClose = useCallback(() => {
-    log.debug('Widget document closed', wrapper.definition);
+    log.debug('Widget document closed', wrapper.id, wrapper.definition);
     onClose?.(wrapper);
   }, [onClose, wrapper]);
 
