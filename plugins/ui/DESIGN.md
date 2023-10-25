@@ -1075,14 +1075,14 @@ ui_table.color_row(
 
 ##### context_menu
 
-Add custom items to the context menu. You can provide a list of actions that always appear, or a callback that can process the selected rows and send back menu items asynchronously.
+Add custom items to the context menu. You can provide a list of actions that always appear, or a callback that can process the selection and send back menu items asynchronously. You can also specify whether you want the menu items provided for a cell context menu, a header context menu, or some combination of those. You can also chain multiple sets of menu items by calling `.context_menu` multiple times.
 
 ###### Syntax
 
 ```py
-# Index will be -1 for the header row/column
 ui_table.context_menu(
-    items: list[ContextMenuAction] | Callable[[CellIndex, RowData], list[ContextMenuAction]]
+    items: list[ContextMenuAction] | Callable[[CellIndex, RowData], list[ContextMenuAction]],
+    mode: SelectionMode | List[SelectionMode] | None = None
 ) -> UITable
 ```
 
@@ -1091,6 +1091,7 @@ ui_table.context_menu(
 | Parameter | Type                                                                                 | Description                                                                                                                                                                                          |
 | --------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `items`   | `list[ContextMenuAction] \| Callable[[CellIndex, RowData], list[ContextMenuAction]]` | The items to add to the context menu. May be a list of `ContextMenuAction` objects, or a callback function that takes the cell index and row data and returns a list of `ContextMenuAction` objects. |
+| `mode`    | `SelectionMode \| List[SelectionMode]`                                               | The selection mode(s) to add the context menu to. Using `None` will trigger these menu items in all cases.                                                                                           |
 
 ##### data_bar
 
@@ -1302,7 +1303,8 @@ Below are some of the custom types that are used in the above API definitions:
 AggregationOperation = Literal["Count", "CountDistinct", "Distinct", "Min", "Max", "Sum", "AbsSum", "Var", "Avg", "Std", "First", "Last", "Unique", "Skip"]
 CellIndex = [RowIndex, ColumnIndex]
 Color = DeephavenColor | HexColor
-ColumnIndex = int
+# A ColumnIndex of None indicates a header row
+ColumnIndex = int | None
 ColumnName = str
 ContextMenuAction = dict[str, Any]
 DataBarAxis = Literal["Proportional", "Middle", "Directional"]
@@ -1313,7 +1315,8 @@ DeephavenColor = Literal[...]
 HexColor = str
 QuickFilterExpression = str
 RowData = dict[str, Any]
-RowIndex = int
+# A RowIndex of None indicates a header column
+RowIndex = int | None
 SearchMode = Literal["show", "hide", "default"]
 SelectionMode = Literal["CELL", "ROW", "COLUMN"]
 SortDirection = Literal["ASC", "DESC"]
