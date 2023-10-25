@@ -8,6 +8,7 @@ on:
       - 'plugins/plotly/**'
       - 'plugins/matplotlib/**'
       - 'plugins/json/**'
+      - 'plugins/ui/**'
   push:
     branches: [ main ]
     tags:
@@ -15,6 +16,7 @@ on:
       - 'plotly-v*'
       - 'matplotlib-v*'
       - 'json-v*'
+      - 'ui-v*'
 
 jobs:
   changes:
@@ -35,6 +37,7 @@ jobs:
             plotly: plugins/plotly/**
             matplotlib: plugins/matplotlib/**
             json: plugins/json/**
+            ui: plugins/ui/**
 
   build:
     needs: changes
