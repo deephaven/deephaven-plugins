@@ -1088,10 +1088,10 @@ ui_table.context_menu(
 
 ###### Parameters
 
-| Parameter | Type                                                                                 | Description                                                                                                                                                                                          |
-| --------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `items`   | `list[ContextMenuAction] \| Callable[[CellIndex, RowData], list[ContextMenuAction]]` | The items to add to the context menu. May be a list of `ContextMenuAction` objects, or a callback function that takes the cell index and row data and returns a list of `ContextMenuAction` objects. |
-| `mode`    | `SelectionMode \| List[SelectionMode]`                                               | The selection mode(s) to add the context menu to. Using `None` will trigger these menu items in all cases.                                                                                           |
+| Parameter | Type                                                                                 | Description                                                                                                                                                                                                                                                                            |
+| --------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `items`   | `list[ContextMenuAction] \| Callable[[CellIndex, RowData], list[ContextMenuAction]]` | The items to add to the context menu. May be a list of `ContextMenuAction` objects, or a callback function that takes the cell index and row data and returns a list of `ContextMenuAction` objects.                                                                                   |
+| `mode`    | `SelectionMode \| List[SelectionMode]`                                               | The selection mode(s) to add the context menu to, depending on how the context menu was triggered. Using `None` will add these menu items in all cases.<br/>- `CELL`: Triggered from a cell.<br/>- `ROW`: Triggered from a row header.<br/>- `COLUMN`: Triggered from a column header. |
 
 ##### data_bar
 
