@@ -1081,17 +1081,19 @@ Add custom items to the context menu. You can provide a list of actions that alw
 
 ```py
 ui_table.context_menu(
-    items: list[ContextMenuAction] | Callable[[CellIndex, RowData], list[ContextMenuAction]],
-    mode: SelectionMode | List[SelectionMode] | None = None
+    items: ContextMenuAction
+    | list[ContextMenuAction]
+    | Callable[[CellIndex, RowData], ContextMenuAction | list[ContextMenuAction]],
+    mode: ContextMenuMode = "CELL",
 ) -> UITable
 ```
 
 ###### Parameters
 
-| Parameter | Type                                                                                 | Description                                                                                                                                                                                                                                                                            |
-| --------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `items`   | `list[ContextMenuAction] \| Callable[[CellIndex, RowData], list[ContextMenuAction]]` | The items to add to the context menu. May be a list of `ContextMenuAction` objects, or a callback function that takes the cell index and row data and returns a list of `ContextMenuAction` objects.                                                                                   |
-| `mode`    | `SelectionMode \| List[SelectionMode]`                                               | The selection mode(s) to add the context menu to, depending on how the context menu was triggered. Using `None` will add these menu items in all cases.<br/>- `CELL`: Triggered from a cell.<br/>- `ROW`: Triggered from a row header.<br/>- `COLUMN`: Triggered from a column header. |
+| Parameter | Type                                                                                                                           | Description                                                                                                                                                                                                                                                                      |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `items`   | `ContextMenuAction \| list[ContextMenuAction] \| Callable[[CellIndex, RowData], ContextMenuAction \| list[ContextMenuAction]]` | The items to add to the context menu. May be a single `ContextMenuAction`, a list of `ContextMenuAction` objects, or a callback function that takes the cell index and row data and returns either a single `ContextMenuAction` or a list of `ContextMenuAction` objects.        |
+| `mode`    | `ContextMenuMode`                                                                                                              | Which specific context menu(s) to add the menu item(s) to. Can be one or more modes. Using `None` will add menu items in all cases.<br/>- `CELL`: Triggered from a cell.<br/>- `ROW_HEADER`: Triggered from a row header.<br/>- `COLUMN_HEADER`: Triggered from a column header. |
 
 ##### data_bar
 
@@ -1300,16 +1302,18 @@ The functionality provided my `ui.table` replaces some of the existing functions
 Below are some of the custom types that are used in the above API definitions:
 
 ```py
-AggregationOperation = Literal["Count", "CountDistinct", "Distinct", "Min", "Max", "Sum", "AbsSum", "Var", "Avg", "Std", "First", "Last", "Unique", "Skip"]
+AggregationOperation = Literal["COUNT", "COUNT_DISTINCT", "DISTINCT", "MIN", "MAX", "SUM", "ABS_SUM", "VAR", "AVG", "STD", "FIRST", "LAST", "UNIQUE", "SKIP"]
 CellIndex = [RowIndex, ColumnIndex]
 Color = DeephavenColor | HexColor
 # A ColumnIndex of None indicates a header row
 ColumnIndex = int | None
 ColumnName = str
 ContextMenuAction = dict[str, Any]
-DataBarAxis = Literal["Proportional", "Middle", "Directional"]
+ContextMenuModeOption = Literal["CELL", "ROW_HEADER", "COLUMN_HEADER"]
+ContextMenuMode = ContextMenuModeOption | list[ContextMenuModeOption] | None
+DataBarAxis = Literal["PROPORTIONAL", "MIDDLE", "DIRECTIONAL"]
 DataBarDirection = Literal["LTR", "RTL"]
-DataBarValuePlacement = Literal["Beside", "Overlap", "Hide"]
+DataBarValuePlacement = Literal["BESIDE", "OVERLAP", "HIDE"]
 # TODO: Fill in the list of Deephaven Colors we allow
 DeephavenColor = Literal[...]
 HexColor = str
@@ -1317,7 +1321,7 @@ QuickFilterExpression = str
 RowData = dict[str, Any]
 # A RowIndex of None indicates a header column
 RowIndex = int | None
-SearchMode = Literal["show", "hide", "default"]
+SearchMode = Literal["SHOW", "HIDE", "DEFAULT"]
 SelectionMode = Literal["CELL", "ROW", "COLUMN"]
 SortDirection = Literal["ASC", "DESC"]
 ```
