@@ -6,7 +6,9 @@
   "scripts": {
     "start": "lerna run start --stream",
     "build": "lerna run build --stream",
-    "test": "jest --watch --changedSince origin/main"
+    "test": "jest --watch --changedSince origin/main",
+    "test:unit": "jest --config jest.config.unit.cjs",
+    "test:lint": "jest --config jest.config.lint.cjs"
   },
   "devDependencies": {
     "@deephaven/babel-preset": "^0.40.0",
