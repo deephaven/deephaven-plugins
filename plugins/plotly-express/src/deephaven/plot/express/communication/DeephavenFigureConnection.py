@@ -3,10 +3,10 @@ from __future__ import annotations
 from typing import Any
 
 from deephaven.plugin.object_type import MessageStream
+from deephaven.liveness_scope import LivenessScope
 
 from ..deephaven_figure import DeephavenFigure
 from .DeephavenFigureListener import DeephavenFigureListener
-import jpy
 
 
 class DeephavenFigureConnection(MessageStream):
@@ -16,8 +16,7 @@ class DeephavenFigureConnection(MessageStream):
 
     def __init__(self, figure: DeephavenFigure, client_connection: MessageStream):
         super().__init__()
-        JLivenessScope = jpy.get_type("io.deephaven.engine.liveness.LivenessScope")
-        self._liveness_scope = JLivenessScope()
+        self._liveness_scope = LivenessScope()
 
         self._listener = DeephavenFigureListener(
             figure, client_connection, self._liveness_scope

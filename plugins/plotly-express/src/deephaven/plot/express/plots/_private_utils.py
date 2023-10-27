@@ -7,7 +7,7 @@ from typing import Any
 import plotly.express as px
 
 from deephaven.table import Table, PartitionedTable
-from deephaven.execution_context import get_exec_ctx
+from deephaven.execution_context import make_user_exec_ctx
 
 from ._layer import layer
 from .PartitionManager import PartitionManager
@@ -278,7 +278,7 @@ def process_args(
 
     orig_process_args["args"].update(update)
 
-    exec_ctx = get_exec_ctx()
+    exec_ctx = make_user_exec_ctx()
 
     # these are needed for when partitions are added
     new_fig.add_figure_to_graph(exec_ctx, orig_process_args, table, orig_process_func)

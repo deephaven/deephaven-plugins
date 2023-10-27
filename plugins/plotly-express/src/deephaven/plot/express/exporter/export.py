@@ -39,10 +39,6 @@ class CoreExporter:
         _used_references: set[int]: A set of references that have been used
         _revision: int: The current revision. Used to ensure that revisions are
             correctly ordered
-        _ref_lock: threading.Lock: A lock to ensure that references are created
-            atomically
-        _rev_lock: threading.Lock: A lock to ensure that revisions are
-            correctly ordered
 
     """
 
@@ -53,10 +49,6 @@ class CoreExporter:
         self._new_objects: list[object] = []
         self._used_references: set[int] = set()
         self._revision: int = 0
-        # ref lock is for atomic reference creation
-        # whereas rev lock ensures revisions are correctly ordered
-        self._ref_lock: threading.Lock = threading.Lock()
-        self._rev_lock: threading.Lock = threading.Lock()
         pass
 
     def reference(self, obj: object) -> Reference:
@@ -85,10 +77,7 @@ class CoreExporter:
         Returns:
             Exporter: The new exporter
         """
-        with self._rev_lock:
-            revision = self._revision
-            self._revision += 1
-            return Exporter(self, revision)
+        return Exporter(self)
 
     def references(self) -> tuple[list[Any], list[int], list[int]]:
         """
@@ -114,18 +103,6 @@ class CoreExporter:
 
         return new_objects, new_references, removed_references
 
-    def acquire(self):
-        """
-        Acquire the reference lock
-        """
-        self._ref_lock.acquire()
-
-    def release(self):
-        """
-        Release the reference lock
-        """
-        self._ref_lock.release()
-
 
 class Exporter:
     """
@@ -133,20 +110,14 @@ class Exporter:
 
     Attributes:
         core_exporter: CoreExporter: The core exporter that this exporter
-        uses to keep track of references. This is shared across all exporters
-        but should be locked when used
-        _revision: int: The revision of this exporter
+        uses to keep track of references.
     """
 
     def __init__(
         self,
         core_exporter: CoreExporter = None,
-        revision: int = None,
     ):
         self.core_exporter = core_exporter
-        self._revision = revision
-
-        pass
 
     def reference(self, obj: object) -> Reference:
         """
@@ -167,23 +138,3 @@ class Exporter:
 
         """
         return self.core_exporter.references()
-
-    def acquire(self):
-        """
-        Acquire the reference lock
-        """
-        self.core_exporter.acquire()
-
-    def release(self):
-        """
-        Release the reference lock
-        """
-        self.core_exporter.release()
-
-    def revision(self):
-        """
-        Get the revision of this exporter
-        Returns:
-            int: The revision of this exporter
-        """
-        return self._revision

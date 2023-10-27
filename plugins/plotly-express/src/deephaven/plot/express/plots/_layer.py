@@ -7,7 +7,7 @@ from plotly.graph_objs import Figure
 
 from ..deephaven_figure import DeephavenFigure
 from ..shared import default_callback, unsafe_figure_update_wrapper
-from deephaven.execution_context import get_exec_ctx
+from deephaven.execution_context import make_user_exec_ctx
 
 
 def normalize_position(
@@ -554,7 +554,7 @@ def layer(
         unsafe_update_figure=unsafe_update_figure,
     )
 
-    exec_ctx = get_exec_ctx()
+    exec_ctx = make_user_exec_ctx()
 
     new_fig.add_layer_to_graph(func, args, exec_ctx)
 

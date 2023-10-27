@@ -36,7 +36,7 @@ class DeephavenFigureListener:
             connection: MessageStream: The connection to send messages to
             liveness_scope: The liveness scope to use for the listeners
         """
-        self._connection: MessageStream = connection
+        self._connection = connection
         self._figure = figure
         self._exporter = CoreExporter()
         self._liveness_scope = liveness_scope
@@ -81,14 +81,6 @@ class DeephavenFigureListener:
             is_replay: bool: Not used. Required for the listener.
         """
         if self._connection:
-            # new exporter needs to be created before the figure is recreated
-            # this ensures that the references are correct as the exporter
-            # stores a revision number
-            # technically, there could be a race in acquiring revision numbers
-            # such that an older revision has a higher revision number
-            # but as long as the revision number is created before the figure
-            # is recreated this is not an issue as the same (newer) figure
-            # would be created for both figures
             exporter = self._exporter.get_new_exporter()
             node.recreate_figure()
             self._connection.on_data(
@@ -123,10 +115,6 @@ class DeephavenFigureListener:
             tuple[bytes, list[Any]]: The result of the message as a tuple of
               (new payload, new references)
         """
-        # only one export can be done at a time to ensure that the references
-        # are correct
-        exporter.acquire()
-
         new_figure = figure.to_dict(exporter=exporter)
 
         new_objects, new_references, removed_references = exporter.references()
@@ -134,12 +122,9 @@ class DeephavenFigureListener:
         message = {
             "type": "NEW_FIGURE",
             "figure": new_figure,
-            "revision": exporter.revision(),
             "new_references": new_references,
             "removed_references": removed_references,
         }
-
-        exporter.release()
 
         return json.dumps(message).encode(), new_objects
 
@@ -153,7 +138,6 @@ class DeephavenFigureListener:
         Args:
             payload: bytes: The payload to process
             references:  list[Any]: References to objects on the server
-            exporter: Exporter: The exporter to use for exporting the figure
 
         Returns:
             tuple[bytes, list[Any]]: The result of the message as a tuple of
