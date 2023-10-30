@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react';
-import { LayoutUtils } from '@deephaven/dashboard';
+import { LayoutUtils, useListener } from '@deephaven/dashboard';
 import ReactPanel, { ReactPanelProps } from './ReactPanel';
 
 // Mock LayoutUtils, useListener, and PanelEvent from @deephaven/dashboard package
@@ -18,7 +18,12 @@ jest.mock('@deephaven/dashboard', () => {
     default: jest.fn(),
   };
 });
-jest.mock('./useLayout', () => jest.fn(() => ({ root: {}, eventHub: {} })));
+
+const mockLayout = { root: {}, eventHub: {} };
+jest.mock('./useLayout', () => jest.fn(() => mockLayout));
+
+const mockPanelId = 'test-panel-id';
+jest.mock('shortid', () => jest.fn(() => mockPanelId));
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -43,6 +48,13 @@ function makeReactPanel({
   );
 }
 
+/**
+ * Simulate the panel CLOSED event. Assumes the `useListener` has only been called with that event listener.
+ */
+function simulatePanelClosed() {
+  (useListener as jest.Mock).mock.calls[0][2](mockPanelId);
+}
+
 it('opens panel on mount, and closes panel on unmount', async () => {
   const onOpen = jest.fn();
   const onClose = jest.fn();
@@ -57,5 +69,83 @@ it('opens panel on mount, and closes panel on unmount', async () => {
   expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
   expect(LayoutUtils.closeComponent).toHaveBeenCalledTimes(1);
   expect(onOpen).toHaveBeenCalledTimes(1);
+  expect(onClose).toHaveBeenCalledTimes(1);
+});
+
+it('only calls open once if the panel has not closed and only children change', async () => {
+  const onOpen = jest.fn();
+  const onClose = jest.fn();
+  const metadata = { foo: 'bar' };
+  const children = 'hello';
+  const { rerender } = render(
+    makeReactPanel({ children, onOpen, onClose, metadata })
+  );
+  expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
+  expect(LayoutUtils.closeComponent).not.toHaveBeenCalled();
+  expect(onOpen).toHaveBeenCalledTimes(1);
+  expect(onClose).not.toHaveBeenCalled();
+
+  rerender(makeReactPanel({ children: 'world', onOpen, onClose, metadata }));
+
+  expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
+  expect(LayoutUtils.closeComponent).not.toHaveBeenCalled();
+  expect(onOpen).toHaveBeenCalledTimes(1);
+  expect(onClose).not.toHaveBeenCalled();
+});
+
+it('calls openComponent again after panel is closed only if the metadata changes', async () => {
+  const onOpen = jest.fn();
+  const onClose = jest.fn();
+  const metadata = { foo: 'bar' };
+  const children = 'hello';
+  const { rerender } = render(
+    makeReactPanel({
+      children,
+      onOpen,
+      onClose,
+      metadata,
+    })
+  );
+  expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
+  expect(LayoutUtils.closeComponent).not.toHaveBeenCalled();
+  expect(onOpen).toHaveBeenCalledTimes(1);
+  expect(onClose).not.toHaveBeenCalled();
+  expect(useListener).toHaveBeenCalledTimes(1);
+
+  simulatePanelClosed();
+
+  expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
+  expect(LayoutUtils.closeComponent).toHaveBeenCalledTimes(0);
+  expect(onOpen).toHaveBeenCalledTimes(1);
+  expect(onClose).toHaveBeenCalledTimes(1);
+
+  // Should not re-open if just the children change but the metadata stays the same
+  rerender(
+    makeReactPanel({
+      children: 'world',
+      onOpen,
+      onClose,
+      metadata,
+    })
+  );
+
+  expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
+  expect(LayoutUtils.closeComponent).toHaveBeenCalledTimes(0);
+  expect(onOpen).toHaveBeenCalledTimes(1);
+  expect(onClose).toHaveBeenCalledTimes(1);
+
+  // Should re-open after the metadata change
+  rerender(
+    makeReactPanel({
+      children,
+      onOpen,
+      onClose,
+      metadata: { fiz: 'baz' },
+    })
+  );
+
+  expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(2);
+  expect(LayoutUtils.closeComponent).toHaveBeenCalledTimes(0);
+  expect(onOpen).toHaveBeenCalledTimes(2);
   expect(onClose).toHaveBeenCalledTimes(1);
 });

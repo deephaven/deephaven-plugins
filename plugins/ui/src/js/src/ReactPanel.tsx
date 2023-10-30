@@ -43,7 +43,7 @@ function ReactPanel({
   const panelId = useMemo(() => shortid(), []);
   const [element, setElement] = useState<HTMLElement>();
   const isPanelOpenRef = useRef(false);
-  const openedMetadataRef = useRef();
+  const openedMetadataRef = useRef<Record<string, unknown>>();
 
   log.debug2('Rendering panel', panelId);
 
@@ -63,6 +63,7 @@ function ReactPanel({
     closedPanelId => {
       if (closedPanelId === panelId) {
         log.debug('Panel closed', panelId);
+        isPanelOpenRef.current = false;
         onClose?.();
       }
     },
@@ -96,10 +97,11 @@ function ReactPanel({
       LayoutUtils.openComponent({ root, config });
       log.debug('Opened panel', panelId, config);
       isPanelOpenRef.current = true;
+      openedMetadataRef.current = metadata;
 
       onOpen?.();
     }
-  }, [children, layout, metadata, onOpen, panelId, title]);
+  }, [layout, metadata, onOpen, panelId, title]);
 
   return element ? ReactDOM.createPortal(children, element) : null;
 }
