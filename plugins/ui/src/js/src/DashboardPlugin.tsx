@@ -55,11 +55,11 @@ export function DashboardPlugin({
     []
   );
 
-  const handleWidgetClose = useCallback((widget: WidgetWrapper) => {
-    log.debug('Closing widget', widget);
+  const handleWidgetClose = useCallback((widgetId: string) => {
+    log.debug('Closing widget', widgetId);
     setWidgetMap(prevWidgetMap => {
       const newWidgetMap = new Map<string, WidgetWrapper>(prevWidgetMap);
-      newWidgetMap.delete(widget.id);
+      newWidgetMap.delete(widgetId);
       return newWidgetMap;
     });
   }, []);

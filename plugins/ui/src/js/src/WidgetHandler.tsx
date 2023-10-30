@@ -27,7 +27,7 @@ export interface WidgetHandlerProps {
   widget: WidgetWrapper;
 
   /** Triggered when all panels opened from this widget have closed */
-  onClose?: (widget: WidgetWrapper) => void;
+  onClose?: (widgetId: string) => void;
 }
 
 function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
@@ -160,9 +160,9 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
   );
 
   const handleDocumentClose = useCallback(() => {
-    log.debug('Widget document closed', wrapper.id, wrapper.definition);
-    onClose?.(wrapper);
-  }, [onClose, wrapper]);
+    log.debug('Widget document closed', wrapper.id);
+    onClose?.(wrapper.id);
+  }, [onClose, wrapper.id]);
 
   return useMemo(
     () =>

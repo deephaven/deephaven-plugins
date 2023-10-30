@@ -12,7 +12,7 @@ jest.mock('@deephaven/jsapi-bootstrap', () => ({
 }));
 
 const mockDocumentHandler = jest.fn((props: DocumentHandlerProps) => (
-  <div>Document Handler</div>
+  <div>DocumentHandler</div>
 ));
 jest.mock(
   './DocumentHandler',

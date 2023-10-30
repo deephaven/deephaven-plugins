@@ -14,7 +14,7 @@ export type ObjectNode = {
 
 export type ElementNode = {
   [ELEMENT_KEY]: string;
-  props?: { [key: string]: unknown };
+  props?: Record<string, unknown>;
 };
 
 export function isObjectNode(obj: unknown): obj is ObjectNode {

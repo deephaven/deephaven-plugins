@@ -15,6 +15,13 @@ export interface ReactPanelProps {
   /** Title of the panel */
   title: string;
 
+  /**
+   * Metadata to pass to the panel.
+   * Updating the metadata will cause the panel to be re-opened, or replaced if it is closed.
+   * Can also be used for rehydration.
+   */
+  metadata?: Record<string, unknown>;
+
   /** Triggered when this panel is opened */
   onOpen?: () => void;
 
@@ -25,19 +32,27 @@ export interface ReactPanelProps {
 /**
  * Adds and tracks a panel to the GoldenLayout. When the child element is updated, the contents of the panel will also be updated. When unmounted, the panel will be removed.
  */
-function ReactPanel({ children, onClose, onOpen, title }: ReactPanelProps) {
+function ReactPanel({
+  children,
+  metadata,
+  onClose,
+  onOpen,
+  title,
+}: ReactPanelProps) {
   const layout = useLayout();
   const panelId = useMemo(() => shortid(), []);
   const [element, setElement] = useState<HTMLElement>();
-  const panelOpenRef = useRef(false);
+  const isPanelOpenRef = useRef(false);
+  const openedMetadataRef = useRef();
 
   log.debug('Rendering panel', panelId);
 
   useEffect(
     () => () => {
-      if (panelOpenRef.current) {
+      if (isPanelOpenRef.current) {
+        log.debug('Closing panel', panelId);
         LayoutUtils.closeComponent(layout.root, { id: panelId });
-        panelOpenRef.current = false;
+        isPanelOpenRef.current = false;
         onClose?.();
       }
     },
@@ -57,17 +72,21 @@ function ReactPanel({ children, onClose, onOpen, title }: ReactPanelProps) {
   useListener(layout.eventHub, PanelEvent.CLOSED, handlePanelClosed);
 
   useEffect(() => {
-    if (panelOpenRef.current === false) {
+    if (
+      isPanelOpenRef.current === false ||
+      openedMetadataRef.current !== metadata
+    ) {
       const config = {
         type: 'react-component' as const,
         component: PortalPanel.displayName,
         props: {
           id: panelId,
           onClose: () => {
-            panelOpenRef.current = false;
+            isPanelOpenRef.current = false;
             setElement(undefined);
           },
           onOpen: setElement,
+          metadata,
         },
         title,
         id: panelId,
@@ -76,11 +95,11 @@ function ReactPanel({ children, onClose, onOpen, title }: ReactPanelProps) {
       const { root } = layout;
       LayoutUtils.openComponent({ root, config });
       log.debug('Opened panel', panelId, config);
-      panelOpenRef.current = true;
+      isPanelOpenRef.current = true;
 
       onOpen?.();
     }
-  }, [children, layout, onOpen, panelId, title]);
+  }, [children, layout, metadata, onOpen, panelId, title]);
 
   return element ? ReactDOM.createPortal(children, element) : null;
 }

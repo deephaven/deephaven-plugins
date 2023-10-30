@@ -2,16 +2,15 @@ const path = require('path');
 
 module.exports = {
   transform: {
-    '.(ts|tsx|js|jsx)': ['babel-jest', { rootMode: 'upward' }],
+    '^.+\\.(ts|tsx|js|jsx)$': ['babel-jest', { rootMode: 'upward' }],
   },
-  // Makes jest transform monaco, but continue ignoring other node_modules. Used for MonacoUtils test
   transformIgnorePatterns: [
-    'node_modules/(?!(monaco-editor|d3-interpolate|d3-color)/)',
+    '/node_modules/(?!(@deephaven|monaco-editor|d3-interpolate|d3-color)/)',
   ],
   moduleNameMapper: {
-    'SpectrumTheme([^.]+)\\.module\\.scss$': path.join(
+    'theme-([^/]+?)\\.css(\\?inline)?$': path.join(
       __dirname,
-      './__mocks__/spectrumTheme$1Mock.js'
+      './__mocks__/mockTheme.js'
     ),
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
@@ -28,11 +27,6 @@ module.exports = {
     '^@deephaven/js-plugin-(.*)$': path.join(
       __dirname,
       './plugins/$1/src/js/src'
-    ),
-    // All packages except icons use src code
-    '^@deephaven/(?!icons)(.*)$': path.join(
-      __dirname,
-      '../web-client-ui/main/packages/$1/src'
     ),
   },
   testEnvironment: 'jsdom',
