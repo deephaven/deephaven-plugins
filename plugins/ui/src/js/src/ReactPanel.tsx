@@ -45,7 +45,7 @@ function ReactPanel({
   const isPanelOpenRef = useRef(false);
   const openedMetadataRef = useRef();
 
-  log.debug('Rendering panel', panelId);
+  log.debug2('Rendering panel', panelId);
 
   useEffect(
     () => () => {

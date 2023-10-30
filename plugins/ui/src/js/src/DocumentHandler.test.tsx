@@ -43,7 +43,7 @@ function makeDocumentHandler({
 }
 
 beforeEach(() => {
-  mockReactPanel.mockClear();
+  jest.clearAllMocks();
 });
 
 it('should throw an error if no children to render', () => {
