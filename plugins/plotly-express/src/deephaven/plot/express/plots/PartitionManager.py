@@ -298,7 +298,7 @@ class PartitionManager:
             elif (
                 val
                 and is_single_numeric_col(val, numeric_cols)
-                and "color_continuous_scalxe" in self.args
+                and "color_continuous_scale" in self.args
             ):
                 if "always_attached" in self.groups:
                     args["colors"] = args.pop("color")

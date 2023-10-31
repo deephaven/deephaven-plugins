@@ -7,7 +7,7 @@ from typing import Any
 from deephaven.plugin.object_type import MessageStream
 from deephaven.table_listener import listen, TableUpdate
 
-from ..exporter import Exporter, CoreExporter
+from ..exporter import Exporter
 from ..deephaven_figure import DeephavenFigure, DeephavenFigureNode
 
 
@@ -38,9 +38,8 @@ class DeephavenFigureListener:
         """
         self._connection = connection
         self._figure = figure
-        self._exporter = CoreExporter()
+        self._exporter = Exporter()
         self._liveness_scope = liveness_scope
-
         self._listeners = []
 
         head_node = figure.get_head_node()
@@ -81,10 +80,9 @@ class DeephavenFigureListener:
             is_replay: bool: Not used. Required for the listener.
         """
         if self._connection:
-            exporter = self._exporter.get_new_exporter()
             node.recreate_figure()
             self._connection.on_data(
-                *self._build_figure_message(self._get_figure(), exporter)
+                *self._build_figure_message(self._get_figure(), self._exporter)
             )
 
     def _handle_retrieve_figure(self, exporter: Exporter) -> tuple[bytes, list[Any]]:
@@ -145,7 +143,6 @@ class DeephavenFigureListener:
 
         """
         # need to create a new exporter for each message
-        exporter = self._exporter.get_new_exporter()
         message = json.loads(payload.decode())
         if message["type"] == "RETRIEVE":
-            return self._handle_retrieve_figure(exporter)
+            return self._handle_retrieve_figure(Exporter())

@@ -271,7 +271,7 @@ class DeephavenLayerNode(DeephavenNode):
         new_node.parent = parent
         return new_node
 
-    def get_figure(self: DeephavenLayerNode) -> DeephavenFigure:
+    def get_figure(self) -> DeephavenFigure:
         """
         Get the figure for this node. It will be generated if not cached
 
@@ -463,6 +463,7 @@ class DeephavenFigure:
         self, layer_func: Callable, args: dict[str, Any], exec_ctx: ExecutionContext
     ) -> None:
         """
+        Add a layer to the graph
 
         Args:
             layer_func: Callable: The layer function

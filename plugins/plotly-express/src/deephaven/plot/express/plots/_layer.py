@@ -500,7 +500,6 @@ def atomic_layer(
             has_subplots=True if specs else False,
         )
     )
-    pass
 
 
 def layer(

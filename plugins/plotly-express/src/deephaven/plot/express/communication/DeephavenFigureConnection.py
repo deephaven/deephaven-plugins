@@ -12,6 +12,11 @@ from .DeephavenFigureListener import DeephavenFigureListener
 class DeephavenFigureConnection(MessageStream):
     """
     Connection for DeephavenFigure
+
+    Attributes:
+        _listener: DeephavenFigureListener: The listener for the figure
+        _client_connection: MessageStream: The connection to the client
+        _liveness_scope: LivenessScope: The liveness scope to use for the listeners
     """
 
     def __init__(self, figure: DeephavenFigure, client_connection: MessageStream):
@@ -28,6 +33,10 @@ class DeephavenFigureConnection(MessageStream):
         Args:
             payload: Payload to execute
             references: References to objects on the server
+
+        Returns:
+            tuple[bytes, list[Any]]: The payload to send to the client and the
+                references to send to the client
         """
         return self._listener.process_message(payload, references)
 

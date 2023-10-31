@@ -23,7 +23,7 @@ class Reference:
         self.obj = obj
 
 
-class CoreExporter:
+class Exporter:
     """
     An exporter that keeps track of references to objects that need to be sent
 
@@ -39,7 +39,6 @@ class CoreExporter:
         _used_references: set[int]: A set of references that have been used
         _revision: int: The current revision. Used to ensure that revisions are
             correctly ordered
-
     """
 
     def __init__(self):
@@ -49,7 +48,6 @@ class CoreExporter:
         self._new_objects: list[object] = []
         self._used_references: set[int] = set()
         self._revision: int = 0
-        pass
 
     def reference(self, obj: object) -> Reference:
         """
@@ -69,15 +67,6 @@ class CoreExporter:
             self._new_objects.append(obj)
         self._used_references.add(self._references[obj].id)
         return self._references[obj]
-
-    def get_new_exporter(self) -> Exporter:
-        """
-        Get a new exporter with a new revision
-
-        Returns:
-            Exporter: The new exporter
-        """
-        return Exporter(self)
 
     def references(self) -> tuple[list[Any], list[int], list[int]]:
         """
@@ -102,39 +91,3 @@ class CoreExporter:
         self._used_references = set()
 
         return new_objects, new_references, removed_references
-
-
-class Exporter:
-    """
-    An exporter that keeps track of references to objects that need to be sent
-
-    Attributes:
-        core_exporter: CoreExporter: The core exporter that this exporter
-        uses to keep track of references.
-    """
-
-    def __init__(
-        self,
-        core_exporter: CoreExporter = None,
-    ):
-        self.core_exporter = core_exporter
-
-    def reference(self, obj: object) -> Reference:
-        """
-        Get a reference to an object
-
-        Args:
-            obj: The object to get a reference to
-
-        Returns:
-            Reference: The reference to the object
-        """
-        return self.core_exporter.reference(obj)
-
-    def references(self) -> tuple[list[Any], list[int], list[int]]:
-        """
-
-        Returns:
-
-        """
-        return self.core_exporter.references()
