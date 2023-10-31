@@ -154,11 +154,12 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.isSubscribed = true;
     this.widgetUnsubscribe = this.widget.addEventListener(
       'message',
-      ({ detail }) =>
+      ({ detail }) => {
         this.handleWidgetUpdated(
           JSON.parse(detail.getDataAsString()),
           detail.exportedObjects
-        )
+        );
+      }
     );
 
     this.tableReferenceMap.forEach((_, id) => this.subscribeTable(id));
@@ -169,9 +170,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.widgetUnsubscribe?.();
     this.isSubscribed = false;
 
-    this.subscriptionCleanupMap.forEach(cleanup => cleanup());
-    this.tableSubscriptionMap.forEach(sub => sub.close());
-    this.chartDataMap.clear();
+    this.tableReferenceMap.forEach((_, id) => this.removeTable(id));
 
     // TODO: Add this back when JsWidget doesn't log a Python error when already closed
     // This issue occurs when you recreate a plot in the REPL as the engine closes its side
@@ -308,6 +307,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.tableSubscriptionMap.delete(id);
     this.chartDataMap.delete(id);
     this.tableDataMap.delete(id);
+    this.tableColumnReplacementMap.delete(id);
   }
 
   override fireUpdate(data: unknown): void {

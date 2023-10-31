@@ -1,8 +1,10 @@
 import { useCallback, DragEvent, useEffect } from 'react';
 import shortid from 'shortid';
 import {
+  type DashboardPanelProps,
   DashboardPluginComponentProps,
   LayoutUtils,
+  type PanelComponentType,
   PanelEvent,
   useListener,
 } from '@deephaven/dashboard';
@@ -61,7 +63,10 @@ export function DashboardPlugin(
   useEffect(
     function registerComponentsAndReturnCleanup() {
       const cleanups = [
-        registerComponent('PlotlyPanel', PlotlyExpressChartPanel),
+        registerComponent(
+          'PlotlyPanel',
+          PlotlyExpressChartPanel as unknown as PanelComponentType<DashboardPanelProps>
+        ),
       ];
       return () => {
         cleanups.forEach(cleanup => cleanup());

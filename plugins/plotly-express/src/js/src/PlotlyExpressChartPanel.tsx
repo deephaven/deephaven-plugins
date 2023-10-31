@@ -8,7 +8,17 @@ import { useApi } from '@deephaven/jsapi-bootstrap';
 import PlotlyExpressChartModel from './PlotlyExpressChartModel.js';
 import { type PlotlyChartWidget } from './PlotlyExpressChartUtils.js';
 
-export interface PlotlyExpressChartPanelProps extends ChartPanelProps {
+export interface PlotlyExpressChartPanelProps
+  extends Pick<
+    ChartPanelProps,
+    | 'Plotly'
+    | 'containerRef'
+    | 'metadata'
+    | 'glContainer'
+    | 'glEventHub'
+    | 'localDashboardId'
+    | 'panelState'
+  > {
   fetch(): Promise<PlotlyChartWidget>;
 }
 
