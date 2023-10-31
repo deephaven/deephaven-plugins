@@ -44,7 +44,7 @@ function PortalPanel({
     <Panel
       glContainer={glContainer}
       glEventHub={glEventHub}
-      // TODO: Need Matt's change: https://github.com/deephaven/web-client-ui/pull/1564
+      // TODO: Need this fix: https://github.com/deephaven/web-client-ui/issues/1604
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       componentPanel={MOCK_PANEL as any}
     >
