@@ -110,7 +110,6 @@ class DeephavenFigureNode(DeephavenNode):
         table: PartitionedTable: The table to pull data from
         func: Callable: The function to call
         cached_figure: DeephavenFigure: The cached figure
-        node_lock: threading.Lock: A lock to ensure that the figure is updated safely
     """
 
     def __init__(
@@ -137,8 +136,6 @@ class DeephavenFigureNode(DeephavenNode):
         self.table = table
         self.func = func
         self.cached_figure = None
-        self.node_lock = threading.Lock()
-        pass
 
     def recreate_figure(self, update_parent: bool = True) -> None:
         """
@@ -149,7 +146,7 @@ class DeephavenFigureNode(DeephavenNode):
             update_parent: bool: (Default value = True): If the parent should
             be updated
         """
-        with self.exec_ctx, self.node_lock:
+        with self.exec_ctx:
             table = self.table
             copied_args = args_copy(self.args)
             copied_args["args"]["table"] = table
@@ -213,8 +210,6 @@ class DeephavenLayerNode(DeephavenNode):
         args: dict[str, Any]: The arguments to the function
         cached_figure: DeephavenFigure: The cached figure
         exec_ctx: ExecutionContext: The execution context
-        node_lock: threading.Lock: A lock to ensure that the figure is updated safely
-
     """
 
     def __init__(
@@ -234,7 +229,6 @@ class DeephavenLayerNode(DeephavenNode):
         self.args = args
         self.cached_figure = None
         self.exec_ctx = exec_ctx
-        self.node_lock = threading.Lock()
 
     def recreate_figure(self, update_parent=True) -> None:
         """
@@ -245,7 +239,7 @@ class DeephavenLayerNode(DeephavenNode):
             update_parent: bool: (Default value = True)
             If the parent should be updated
         """
-        with self.exec_ctx, self.node_lock:
+        with self.exec_ctx:
             figs = [node.cached_figure for node in self.nodes]
             self.cached_figure = self.layer_func(*figs, **self.args)
 
