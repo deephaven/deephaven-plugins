@@ -500,10 +500,8 @@ class PartitionManager:
             key_column_table = dhpd.to_pandas(table.select_distinct(key_columns))
             current_partition = dict(
                 zip(
-                    self.partitioned_table.key_columns,
-                    get_partition_key_column_tuples(
-                        key_column_table, self.partitioned_table.key_columns
-                    )[0],
+                    key_columns,
+                    get_partition_key_column_tuples(key_column_table, key_columns)[0],
                 )
             )
             yield current_partition

@@ -4,7 +4,6 @@ import json
 from collections.abc import Generator
 from typing import Callable, Any
 from plotly.graph_objects import Figure
-import threading
 from abc import abstractmethod
 from copy import copy
 
@@ -14,6 +13,7 @@ from deephaven.execution_context import ExecutionContext
 from ..shared import args_copy
 from ..data_mapping import DataMapping
 from ..exporter import Exporter
+from .RevisionManager import RevisionManager
 
 
 def has_color_args(call_args: dict[str, Any]) -> bool:
@@ -136,6 +136,7 @@ class DeephavenFigureNode(DeephavenNode):
         self.table = table
         self.func = func
         self.cached_figure = None
+        self.revision_manager = RevisionManager()
 
     def recreate_figure(self, update_parent: bool = True) -> None:
         """
@@ -146,11 +147,19 @@ class DeephavenFigureNode(DeephavenNode):
             update_parent: bool: (Default value = True): If the parent should
             be updated
         """
+        revision = self.revision_manager.get_revision()
+
+        # release the lock to ensure there is no deadlock
+        # as for some table operations an exclusive lock is required
         with self.exec_ctx:
             table = self.table
             copied_args = args_copy(self.args)
             copied_args["args"]["table"] = table
-            self.cached_figure = self.func(**copied_args)
+            new_figure = self.func(**copied_args)
+
+        with self.revision_manager:
+            if self.revision_manager.updated_revision(revision):
+                self.cached_figure = new_figure
 
         if update_parent:
             self.parent.recreate_figure()
@@ -229,6 +238,7 @@ class DeephavenLayerNode(DeephavenNode):
         self.args = args
         self.cached_figure = None
         self.exec_ctx = exec_ctx
+        self.revision_manager = RevisionManager()
 
     def recreate_figure(self, update_parent=True) -> None:
         """
@@ -239,9 +249,17 @@ class DeephavenLayerNode(DeephavenNode):
             update_parent: bool: (Default value = True)
             If the parent should be updated
         """
+        revision = self.revision_manager.get_revision()
+
+        # release the lock to ensure there is no deadlock
+        # as for some table operations an exclusive lock is required
         with self.exec_ctx:
             figs = [node.cached_figure for node in self.nodes]
-            self.cached_figure = self.layer_func(*figs, **self.args)
+            new_figure = self.layer_func(*figs, **self.args)
+
+        with self.revision_manager:
+            if self.revision_manager.updated_revision(revision):
+                self.cached_figure = new_figure
 
         if update_parent:
             self.parent.recreate_figure()

@@ -8,7 +8,7 @@ from deephaven.plugin.object_type import MessageStream
 from deephaven.table_listener import listen, TableUpdate
 
 from ..exporter import Exporter
-from ..deephaven_figure import DeephavenFigure, DeephavenFigureNode
+from ..deephaven_figure import DeephavenFigure, DeephavenFigureNode, RevisionManager
 
 
 class DeephavenFigureListener:
@@ -41,6 +41,7 @@ class DeephavenFigureListener:
         self._exporter = Exporter()
         self._liveness_scope = liveness_scope
         self._listeners = []
+        self.revision_manager = RevisionManager()
 
         head_node = figure.get_head_node()
         self._partitioned_tables = head_node.partitioned_tables
@@ -80,51 +81,57 @@ class DeephavenFigureListener:
             is_replay: bool: Not used. Required for the listener.
         """
         if self._connection:
+            revision = self.revision_manager.get_revision()
             node.recreate_figure()
             self._connection.on_data(
-                *self._build_figure_message(self._get_figure(), self._exporter)
+                *self._build_figure_message(self._get_figure(), revision)
             )
 
-    def _handle_retrieve_figure(self, exporter: Exporter) -> tuple[bytes, list[Any]]:
+    def _handle_retrieve_figure(self) -> tuple[bytes, list[Any]]:
         """
         Handle a retrieve message. This will return a message with the current
         figure.
-
-        Args:
-            exporter: Exporter: The exporter to use for exporting the figure
 
         Returns:
             tuple[bytes, list[Any]]: The result of the message as a tuple of
               (new payload, new references)
         """
-        return self._build_figure_message(self._get_figure(), exporter)
+        return self._build_figure_message(self._get_figure())
 
     def _build_figure_message(
-        self, figure: DeephavenFigure, exporter: Exporter
+        self, figure: DeephavenFigure, revision: int = None
     ) -> tuple[bytes, list[Any]]:
         """
         Build a message to send to the client with the current figure.
 
         Args:
             figure: DeephavenFigure: The figure to send
-            exporter: Exporter: The exporter to use for exporting the figure
 
         Returns:
             tuple[bytes, list[Any]]: The result of the message as a tuple of
               (new payload, new references)
         """
-        new_figure = figure.to_dict(exporter=exporter)
+        exporter = self._exporter
 
-        new_objects, new_references, removed_references = exporter.references()
+        with self.revision_manager:
+            # if revision is None, just send the figure
+            if revision is not None:
+                self.revision_manager.updated_revision(revision)
 
-        message = {
-            "type": "NEW_FIGURE",
-            "figure": new_figure,
-            "new_references": new_references,
-            "removed_references": removed_references,
-        }
+            new_figure = figure.to_dict(exporter=exporter)
 
-        return json.dumps(message).encode(), new_objects
+            new_objects, new_references, removed_references = exporter.references()
+
+            message = {
+                "type": "NEW_FIGURE",
+                "figure": new_figure,
+                "revision": self.revision_manager.current_revision,
+                "new_references": new_references,
+                "removed_references": removed_references,
+            }
+            return json.dumps(message).encode(), new_objects
+            # otherwise, don't need to send anything, as a newer revision has
+            # already been sent
 
     def process_message(
         self, payload: bytes, references: list[Any]
@@ -145,4 +152,4 @@ class DeephavenFigureListener:
         # need to create a new exporter for each message
         message = json.loads(payload.decode())
         if message["type"] == "RETRIEVE":
-            return self._handle_retrieve_figure(Exporter())
+            return self._handle_retrieve_figure()
