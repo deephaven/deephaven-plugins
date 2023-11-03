@@ -1,3 +1,4 @@
+from typing import Any
 from .Element import Element
 from .._internal import dict_to_camel_case, RenderContext
 
@@ -8,7 +9,7 @@ class BaseElement(Element):
     Must provide a name for the element.
     """
 
-    def __init__(self, name: str, *children, **props):
+    def __init__(self, name: str, *children: Element, **props: Any):
         self._name = name
         if len(children) > 0 and props.get("children") is not None:
             raise ValueError("Cannot provide both children and props.children")

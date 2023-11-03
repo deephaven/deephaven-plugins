@@ -1,7 +1,7 @@
-from ..elements import BaseElement
+from ..elements import BaseElement, Element
 
 
-def panel(*children, title=None):
+def panel(*children: Element, title: str | None = None):
     """
     A panel is a container that can be used to group elements.
 
