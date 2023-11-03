@@ -9,6 +9,7 @@ from copy import copy
 
 from deephaven.table import PartitionedTable
 from deephaven.execution_context import ExecutionContext
+from deephaven.liveness_scope import LivenessScope
 
 from ..shared import args_copy
 from ..data_mapping import DataMapping
@@ -73,6 +74,7 @@ class DeephavenNode:
         self,
         parent: DeephavenNode | DeephavenHeadNode,
         partitioned_tables: dict[int, tuple[PartitionedTable, DeephavenNode]],
+        liveness_scope: LivenessScope,
     ) -> DeephavenNode:
         """
         Copy this node and all children nodes
@@ -82,6 +84,8 @@ class DeephavenNode:
             partitioned_tables:
                 dict[int, tuple[PartitionedTable, DeephavenNode]]:
                 A dictionary mapping node ids to partitioned tables and nodes
+            liveness_scope: LivenessScope: The liveness scope to use for the
+                copied nodes
 
         Returns:
             DeephavenNode: The new node
@@ -137,6 +141,7 @@ class DeephavenFigureNode(DeephavenNode):
         self.func = func
         self.cached_figure = None
         self.revision_manager = RevisionManager()
+        self.liveness_scope = LivenessScope()
 
     def recreate_figure(self, update_parent: bool = True) -> None:
         """
@@ -168,6 +173,7 @@ class DeephavenFigureNode(DeephavenNode):
         self,
         parent: DeephavenNode | DeephavenHeadNode,
         partitioned_tables: dict[int, tuple[PartitionedTable, DeephavenNode]],
+        liveness_scope: LivenessScope,
     ) -> DeephavenFigureNode:
         """
         Copy this node
@@ -177,6 +183,7 @@ class DeephavenFigureNode(DeephavenNode):
             partitioned_tables:
                 dict[int, tuple[PartitionedTable, DeephavenNode]]:
                 A dictionary mapping node ids to partitioned tables and nodes
+            liveness_scope: LivenessScope: The liveness scope to use for the copied nodes
 
         Returns:
             DeephavenFigureNode: The new node
@@ -186,6 +193,9 @@ class DeephavenFigureNode(DeephavenNode):
         new_node = DeephavenFigureNode(
             self.parent, self.exec_ctx, new_args, self.table, self.func
         )
+        if liveness_scope:
+            # many copies will not have a liveness scope, so we need to check
+            liveness_scope.manage(self.table)
         if id(self) in partitioned_tables:
             table, _ = partitioned_tables[id(self)]
             partitioned_tables.pop(id(self))
@@ -268,6 +278,7 @@ class DeephavenLayerNode(DeephavenNode):
         self,
         parent: DeephavenNode | DeephavenHeadNode,
         partitioned_tables: dict[int, tuple[PartitionedTable, DeephavenNode]],
+        liveness_scope: LivenessScope,
     ) -> DeephavenLayerNode:
         """
         Copy this node and all children nodes
@@ -277,13 +288,15 @@ class DeephavenLayerNode(DeephavenNode):
             partitioned_tables: dict[int, tuple[PartitionedTable, DeephavenNode]]:
               A dictionary mapping node ids to partitioned table and nodes that
               need to be updated
+            liveness_scope: LivenessScope: The liveness scope to use for the copied nodes
 
         Returns:
             DeephavenLayerNode: The new node
         """
         new_node = DeephavenLayerNode(self.layer_func, self.args, self.exec_ctx)
         new_node.nodes = [
-            node.copy(new_node, partitioned_tables) for node in self.nodes
+            node.copy(new_node, partitioned_tables, liveness_scope)
+            for node in self.nodes
         ]
         new_node.cached_figure = self.cached_figure
         new_node.parent = parent
@@ -324,9 +337,8 @@ class DeephavenHeadNode:
         self.node = None
         self.partitioned_tables = {}
         self.cached_figure = None
-        pass
 
-    def copy_graph(self) -> DeephavenHeadNode:
+    def copy_graph(self, liveness_scope: LivenessScope = None) -> DeephavenHeadNode:
         """
         Copy this node and all children nodes
 
@@ -335,7 +347,7 @@ class DeephavenHeadNode:
         """
         new_head = DeephavenHeadNode()
         new_partitioned_tables = copy(self.partitioned_tables)
-        new_head.node = self.node.copy(new_head, new_partitioned_tables)
+        new_head.node = self.node.copy(new_head, new_partitioned_tables, liveness_scope)
         new_head.partitioned_tables = new_partitioned_tables
         return new_head
 
@@ -344,6 +356,7 @@ class DeephavenHeadNode:
         Recreate the figure. This is called when the underlying partition
         or a child node changes
         """
+        self.node.recreate_figure(update_parent=False)
         self.cached_figure = self.node.cached_figure
 
     def get_figure(self) -> DeephavenFigure:
@@ -412,6 +425,8 @@ class DeephavenFigure:
         self._data_mappings = data_mappings if data_mappings else []
 
         self._has_subplots = has_subplots
+
+        self._liveness_scopes = []
 
     def copy_mappings(self: DeephavenFigure, offset: int = 0) -> list[DataMapping]:
         """Copy all DataMappings within this figure, adding a specific offset
@@ -630,3 +645,46 @@ class DeephavenFigure:
         if not self.get_figure():
             return self._has_subplots
         return self.get_figure().get_has_subplots()
+
+    def __del__(self):
+        self._head_node = None
+        self._plotly_fig = None
+        self._trace_generator = None
+        self._data_mappings = None
+        for scope in self._liveness_scopes:
+            scope.release()
+
+    def copy_with_liveness_scope(
+        self, liveness_scope: LivenessScope
+    ) -> DeephavenFigure:
+        """
+        Copy the figure with a new liveness scope
+        This will recreate the figure as well to ensure and updates are caught
+
+        Returns:
+            DeephavenFigure: The new figure
+        """
+        new_figure = DeephavenFigure(
+            self._plotly_fig,
+            None,
+            self._data_mappings,
+            self._has_template,
+            self._has_color,
+            self._trace_generator,
+            self._has_subplots,
+        )
+        new_figure._head_node = self._head_node.copy_graph(
+            liveness_scope=liveness_scope
+        )
+
+        # these scopes should be cleaned up when either the core figure or
+        # the copied figure is cleaned up
+        new_figure._liveness_scopes.append(liveness_scope)
+        self._liveness_scopes.append(liveness_scope)
+        return new_figure
+
+    def recreate_figure(self) -> None:
+        """
+        Recreate the figure. This is called to ensure the figure is up-to-date
+        """
+        self._head_node.recreate_figure()

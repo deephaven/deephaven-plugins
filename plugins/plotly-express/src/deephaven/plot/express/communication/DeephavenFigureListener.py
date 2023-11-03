@@ -6,6 +6,7 @@ from typing import Any
 
 from deephaven.plugin.object_type import MessageStream
 from deephaven.table_listener import listen, TableUpdate
+from deephaven.liveness_scope import LivenessScope
 
 from ..exporter import Exporter
 from ..deephaven_figure import DeephavenFigure, DeephavenFigureNode, RevisionManager
@@ -26,7 +27,10 @@ class DeephavenFigureListener:
     """
 
     def __init__(
-        self, figure: DeephavenFigure, connection: MessageStream, liveness_scope: Any
+        self,
+        figure: DeephavenFigure,
+        connection: MessageStream,
+        liveness_scope: LivenessScope,
     ):
         """
         Create a new listener for the figure
@@ -37,16 +41,25 @@ class DeephavenFigureListener:
             liveness_scope: The liveness scope to use for the listeners
         """
         self._connection = connection
-        self._figure = figure
+
+        # copy the figure so only this session's figure is updated
+        # the liveness scope is needed to keep any tables alive
+        self._figure = figure.copy_with_liveness_scope(liveness_scope)
         self._exporter = Exporter()
         self._liveness_scope = liveness_scope
+
         self._listeners = []
         self.revision_manager = RevisionManager()
 
-        head_node = figure.get_head_node()
+        head_node = self._figure.get_head_node()
         self._partitioned_tables = head_node.partitioned_tables
 
         self._setup_listeners()
+
+        # force figure to be recreated after listeners are setup
+        # this ensures the figures are created correctly
+        # such as when partitions have been added but no listeners have been running
+        self._figure.recreate_figure()
 
     def _setup_listeners(self) -> None:
         """
@@ -56,8 +69,6 @@ class DeephavenFigureListener:
             listen_func = partial(self._on_update, node)
             handle = listen(table.table, listen_func)
             self._liveness_scope.manage(handle.listener)
-
-        self._figure.listener = self
 
     def _get_figure(self) -> DeephavenFigure:
         """
