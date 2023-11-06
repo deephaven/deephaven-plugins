@@ -36,8 +36,14 @@ function PlotlyExpressChartPanel(props: PlotlyExpressChartPanelProps) {
   }, [dh, fetch]);
 
   useEffect(
-    function handle3DTicks() {
-      if (!model || !containerRef.current || !model.has3D()) {
+    function handleSceneTicks() {
+      // Plotly scenes and geo views reset when our data ticks
+      // Pause rendering data updates when the user is manipulating a scene
+      if (
+        !model ||
+        !containerRef.current ||
+        !model.shouldPauseOnUserInteraction()
+      ) {
         return;
       }
 

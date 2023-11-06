@@ -35,11 +35,16 @@ from .plots import (
     pie,
     layer,
     make_subplots,
+    scatter_geo,
+    scatter_mapbox,
+    density_mapbox,
+    line_geo,
+    line_mapbox,
 )
 
 from .data import data_generators
 
-__version__ = "0.0.7.dev0"
+__version__ = "0.1.0"
 
 NAME = "deephaven.plot.express.DeephavenFigure"
 

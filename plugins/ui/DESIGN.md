@@ -805,18 +805,56 @@ We should be able to map these by using `ui.panel`, `ui.row`, `ui.column`, `ui.s
 
 ##### ui.panel
 
-By default, the top level `@ui.component` will automatically be wrapped in a panel, so no need to define it unless you want custom panel functionality, such as giving the tab a custom name, e.g.:
+By default, the top level `@ui.component` will automatically be wrapped in a panel, so no need to define it unless you want custom panel functionality, such as giving the tab a custom name, color or calling a method such as focus  e.g.:
 
-```python
-import deephaven.ui as ui
-
+```py
 # The only difference between this and `p = my_component()` is that the title of the panel will be set to `My Title`
-p = ui.panel(my_component(), title="My Title")
+p = ui.panel(my_component(), label="My Tab Label")
 ```
 
-Note that a panel can only have one root component, and cannot be nested within other components (other than the layout ones `ui.row`, `ui.column`, `ui.stack`, `ui.dashboard`)
+A panel cannot be nested within other components (other than the layout ones such as `ui.row`, `ui.column`, `ui.stack`, `ui.dashboard`). The basic syntax for creating a `UIPanel` is:
 
-TBD: How do you specify a title and/or tooltip for your panel? How do panels get a title or tooltip by default?
+```py
+import deephaven.ui as ui
+ui_panel = ui.panel(
+    component: Element,
+    label: str | Element | None = None,
+    description: str | None = None,
+    background_color: Color | None = None,
+    tab_background_color: Color | None = None,
+    is_closable: bool = True,
+    on_focus: Callable[[UIPanel], None] | None = None,
+    on_blur: Callable[[UIPanel], None] | None = None,
+    on_hide: Callable[[UIPanel], None] | None = None,
+    on_show: Callable[[UIPanel], None] | None = None,
+    on_open: Callable[[UIPanel], None] | None = None,
+    on_close: Callable[[UIPanel], None] | None = None,
+) -> UIPanel
+```
+
+###### Parameters
+
+| Parameter              | Type                                | Description                                                                                                                                                                                                                                                                                           |
+| ---------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `component`            | `Element`                           | The component(s) to render within the panel.                                                                                                                                                                                                                                                          |
+| `label`                | `(str \| Element)[] \| None`        | The label of the panel. If not provided, a name will be created based on the variable name the top-level component is assigned to. Icons can also be added as children, with a sibling element for the label.                                                                                         |
+| `description`          | `str \| Element \| None`            | A description of the panel. Will appear in the tooltip when hovering the panel tab. Can also include an element here.                                                                                                                                                                                 |
+| `background_color`     | `Color \| None`                     | Custom background color of the panel.                                                                                                                                                                                                                                                                 |
+| `tab_background_color` | `Color \| None`                     | Custom background color of the tab for the panel.                                                                                                                                                                                                                                                     |
+| `is_closable`          | `bool`                              | Whether the panel can be closed when part of a dashboard layout, panels will always be closeable as part of consoles.                                                                                                                                                                                 |
+| `on_focus`             | `Callable[[UIPanel], None] \| None` | Callback function to be called when the panel is focused. Triggered when user clicks within the panel or clicks the panel tab. If the panel was previously hidden, this will fire after `on_show` fires for this panel. Will also fire after the `on_blur` triggers for the previously focused panel. |
+| `on_blur`              | `Callable[[UIPanel], None] \| None` | Callback function to be called when the panel is blurred and something else in the UI takes focus. If the panel is now hidden, the `on_blur` will fire after the `on_hide` event.                                                                                                                     |
+| `on_hide`              | `Callable[[UIPanel], None] \| None` | Callback function to be called when the panel is hidden. If the panel was in focus, `on_hide` will fire before `on_blur` is fired.                                                                                                                                                                    |
+| `on_show`              | `Callable[[UIPanel], None] \| None` | Callback function to be called when the panel is shown. If the panel is also focused, the `on_show` event will fire first.                                                                                                                                                                            |
+| `on_open`              | `Callable[[UIPanel], None] \| None` | Callback function to be called when the panel is opened.                                                                                                                                                                                                                                              |
+| `on_close`             | `Callable[[UIPanel], None] \| None` | Callback function to be called when the panel is closed.                                                                                                                                                                                                                                              |
+
+###### Methods
+
+| Method    | Description        |
+| --------- | ------------------ |
+| `close()` | Closes the panel.  |
+| `focus()` | Focuses the panel. |
 
 ##### ui.row, ui.column, ui.stack, ui.dashboard
 
@@ -890,6 +928,440 @@ def my_dashboard():
 
 
 d = my_dashboard()
+```
+
+#### ui.table
+
+`ui.table` is a wrapper for a Deephaven `Table` object that allows you to add UI customizations or callbacks. The basic syntax for creating a `UITable` is:
+
+```py
+import deephaven.ui as ui
+ui_table = ui.table(table: Table, **view_args: dict) -> UITable
+```
+
+It has an [immutable fluent](https://en.wikipedia.org/wiki/Fluent_interface#Immutability) interface, similar to Deephaven `Table`. That means each method below will return a new `UITable` object, rather than modifying the existing one. This allows you to chain multiple customizations together, e.g.:
+
+```py
+from deephaven import ui
+
+# Create a table with some customizations
+ui_table = (
+    ui.table(source)
+    .color_column("X", ["X = Y > 5 ? RED : NO_FORMATTING"])
+    .column_group("Group 1", ["Col1", "Col2"], "RED")
+)
+```
+
+You can also set margins and padding by passing in the appropriate arguments to the `ui.table` function:
+
+```py
+ui_table = ui.table(source, padding="size-250")
+```
+
+`ui.table` will support the below methods.
+
+##### aggregations
+
+Set the totals table to display below the main table.
+
+###### Syntax
+
+```py
+ui_table.aggregations(
+    operations: dict[ColumnName, list[AggregationOperation]],
+    operation_order: list[AggregationOperation] = [],
+    default_operation: AggregationOperation = "Skip",
+    group_by: list[ColumnName] = [],
+    show_on_top: bool = False,
+) -> UITable
+```
+
+###### Parameters
+
+| Parameter           | Type                                           | Description                                                                        |
+| ------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `operations`        | `dict[ColumnName, list[AggregationOperation]]` | The operations to apply to the columns of the table.                               |
+| `operation_order`   | `list[AggregationOperation]`                   | The order in which to display the operations.                                      |
+| `default_operation` | `AggregationOperation`                         | The default operation to apply to columns that do not have an operation specified. |
+| `group_by`          | `list[ColumnName]`                             | The columns to group by.                                                           |
+| `show_on_top`       | `bool`                                         | Whether to show the totals table above the main table.                             |
+
+##### always_fetch_columns
+
+Set the columns to always fetch from the server. These will not be affected by the users current viewport/horizontal scrolling. Useful if you have a column with key value data that you want to always include in the data sent for row click operations.
+
+###### Syntax
+
+```py
+ui_table.always_fetch_columns(columns: str | list[str]) -> UITable
+```
+
+###### Parameters
+
+| Parameter | Type               | Description                                                               |
+| --------- | ------------------ | ------------------------------------------------------------------------- |
+| `columns` | `str \| list[str]` | The columns to always fetch from the server. May be a single column name. |
+
+##### back_columns
+
+Set the columns to show at the back of the table. These will not be moveable in the UI.
+
+###### Syntax
+
+```py
+ui_table.back_columns(columns: str | list[str]) -> UITable
+```
+
+###### Parameters
+
+| Parameter | Type               | Description                                                                |
+| --------- | ------------------ | -------------------------------------------------------------------------- |
+| `columns` | `str \| list[str]` | The columns to show at the back of the table. May be a single column name. |
+
+##### can_search
+
+Set the search bar to explicitly be accessible or inaccessible, or use the system default.
+
+###### Syntax
+
+```py
+ui_table.can_search(mode: SearchMode) -> UITable
+```
+
+###### Parameters
+
+| Parameter | Type         | Description                                                                                |
+| --------- | ------------ | ------------------------------------------------------------------------------------------ |
+| `mode`    | `SearchMode` | Set the search bar to explicitly be accessible or inaccessible, or use the system default. |
+
+##### column_group
+
+Create a group for columns in the table.
+
+###### Syntax
+
+```py
+ui_table.column_group(name: str, children: list[str], color: str | None) -> UITable
+```
+
+###### Parameters
+
+| Parameter  | Type          | Description                                                                                                                |
+| ---------- | ------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `name`     | `str`         | The group name. Must be a valid column name and not a duplicate of another column or group.                                |
+| `children` | `list[str]`   | The children in the group. May contain column names or other group names. Each item may only be specified as a child once. |
+| `color`    | `str \| None` | The hex color string or Deephaven color name.                                                                              |
+
+##### color_column
+
+Applies color formatting to a column of the table.
+
+###### Syntax
+
+```py
+ui_table.color_column(
+    column: ColumnName,
+    where: QuickFilterExpression | None = None,
+    color: Color | None = None,
+    background_color: Color | None = None,
+) -> UITable
+```
+
+###### Parameters
+
+| Parameter          | Type                            | Description                                                                   |
+| ------------------ | ------------------------------- | ----------------------------------------------------------------------------- |
+| `column`           | `ColumnName`                    | The column name                                                               |
+| `where`            | `QuickFilterExpression \| None` | The filter to apply to the expression. Uses quick filter format (e.g. `>10`). |
+| `color`            | `Color \| None`                 | The text color. Accepts hex color strings or Deephaven color names.           |
+| `background_color` | `Color \| None`                 | The background color. Accepts hex color strings or Deephaven color names.     |
+
+<!-- TODO: For ranges, such as "In Between", how should we specify that? Should we define a quick filter format for that? (e.g. `(5, 20)`, and `[5, 20]`, matching how you'd notate an interval) -->
+<!--
+    TODO: We also don't allow conditional formatting that sets a colour on one column depending on the value on another column; eg. `source.format_columns(["A = B > 2 ? BLUE : NO_FORMATTING"])`
+    That seems like a limitation of our UI - should we build support for that in the UI?
+-->
+
+##### color_row
+
+Applies color formatting to rows of the table conditionally based on the value of a column.
+
+###### Syntax
+
+```py
+ui_table.color_row(
+    column: ColumnName,
+    where: QuickFilterExpression,
+    color: Color | None = None,
+    background_color: Color | None = None
+) -> UITable
+```
+
+<!--
+    TODO: This doesn't allow for formatting by row index like we could do previously, e.g. `t4.formatRowWhere("i % 2 == 0", "VIVID_PURPLE")`
+    This is a limitation in our UI - should we build support for that in the UI?
+-->
+
+###### Parameters
+
+| Parameter          | Type                    | Description                                                                   |
+| ------------------ | ----------------------- | ----------------------------------------------------------------------------- |
+| `column`           | `str`                   | The column name                                                               |
+| `where`            | `QuickFilterExpression` | The filter to apply to the expression. Uses quick filter format (e.g. `>10`). |
+| `color`            | `Color \| None`         | The text color. Accepts hex color strings or Deephaven color names.           |
+| `background_color` | `Color \| None`         | The background color. Accepts hex color strings or Deephaven color names.     |
+
+##### context_menu
+
+Add custom items to the context menu. You can provide a list of actions that always appear, or a callback that can process the selection and send back menu items asynchronously. You can also specify whether you want the menu items provided for a cell context menu, a header context menu, or some combination of those. You can also chain multiple sets of menu items by calling `.context_menu` multiple times.
+
+###### Syntax
+
+```py
+ui_table.context_menu(
+    items: ContextMenuAction
+    | list[ContextMenuAction]
+    | Callable[[CellIndex, RowData], ContextMenuAction | list[ContextMenuAction]],
+    mode: ContextMenuMode = "CELL",
+) -> UITable
+```
+
+###### Parameters
+
+| Parameter | Type                                                                                                                           | Description                                                                                                                                                                                                                                                                      |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `items`   | `ContextMenuAction \| list[ContextMenuAction] \| Callable[[CellIndex, RowData], ContextMenuAction \| list[ContextMenuAction]]` | The items to add to the context menu. May be a single `ContextMenuAction`, a list of `ContextMenuAction` objects, or a callback function that takes the cell index and row data and returns either a single `ContextMenuAction` or a list of `ContextMenuAction` objects.        |
+| `mode`    | `ContextMenuMode`                                                                                                              | Which specific context menu(s) to add the menu item(s) to. Can be one or more modes. Using `None` will add menu items in all cases.<br/>- `CELL`: Triggered from a cell.<br/>- `ROW_HEADER`: Triggered from a row header.<br/>- `COLUMN_HEADER`: Triggered from a column header. |
+
+##### data_bar
+
+Applies data bar formatting to the specified column.
+
+###### Syntax
+
+```py
+ui_table.data_bar(self,
+    col: str,
+    value_col: str = None,
+    min: float | str = None,
+    max: float | str = None,
+    axis: DataBarAxis | None = None,
+    positive_color: Color | list[Color] = None,
+    negative_color: Color | list[Color] = None,
+    value_placement: DataBarValuePlacement | None = None,
+    direction: DataBarDirection | None = None,
+    opacity: float = None,
+    marker_col: str = None,
+    marker_color: Color = None
+) -> UITable
+```
+
+###### Parameters
+
+| Parameter         | Type                            | Description                                                    |
+| ----------------- | ------------------------------- | -------------------------------------------------------------- |
+| `col`             | `str`                           | Column to generate data bars in                                |
+| `value_col`       | `str`                           | Column containing the values to generate data bars from        |
+| `min`             | `float \| str`                  | Minimum value for data bar scaling or column to get value from |
+| `max`             | `float \| str`                  | Maximum value for data bar scaling or column to get value from |
+| `axis`            | `DataBarAxis \| None`           | Orientation of data bar relative to cell                       |
+| `positive_color`  | `Color \| list[Color]`          | Color for positive bars. Use list of colors to form a gradient |
+| `negative_color`  | `Color \| list[Color]`          | Color for negative bars. Use list of colors to form a gradient |
+| `value_placement` | `DataBarValuePlacement \| None` | Orientation of values relative to data bar                     |
+| `direction`       | `DataBarDirection \| None`      | Orientation of data bar relative to horizontal axis            |
+| `opacity`         | `float`                         | Opacity of data bars. Accepts values from 0 to 1               |
+| `marker_col`      | `str`                           | Column containing the values to generate markers from          |
+| `marker_color`    | `'Color'`                       | Color for markers                                              |
+
+##### format
+
+Specify the formatting to display a column in.
+
+###### Syntax
+
+```py
+ui_table.format(column: ColumnName,format: str) -> UITable
+```
+
+###### Parameters
+
+| Parameter | Type  | Description                                                              |
+| --------- | ----- | ------------------------------------------------------------------------ |
+| `column`  | `str` | The column name                                                          |
+| `format`  | `str` | The format to display the column in. Valid format depends on column type |
+
+<!-- TODO: Give more details on what the format string can be for different column types. Seems to be lacking in existing documentation as well. -->
+
+##### freeze_columns
+
+Set the columns to freeze to the front of the table. These will always be visible and not affected by horizontal scrolling.
+
+###### Syntax
+
+```py
+ui_table.freeze_columns(columns: str | list[str]) -> UITable
+```
+
+###### Parameters
+
+| Parameter | Type               | Description                                                                   |
+| --------- | ------------------ | ----------------------------------------------------------------------------- |
+| `columns` | `str \| list[str]` | The columns to freeze to the front of the table. May be a single column name. |
+
+##### front_columns
+
+Set the columns to show at the front of the table. These will not be moveable in the UI.
+
+###### Syntax
+
+```py
+ui_table.front_columns(columns: str | list[str]) -> UITable
+```
+
+###### Parameters
+
+| Parameter | Type               | Description                                                                 |
+| --------- | ------------------ | --------------------------------------------------------------------------- |
+| `columns` | `str \| list[str]` | The columns to show at the front of the table. May be a single column name. |
+
+##### hide_columns
+
+Set the columns to hide by default in the table. The user can still resize the columns to view them.
+
+###### Syntax
+
+```py
+ui_table.hide_columns(columns: str | list[str]) -> UITable
+```
+
+###### Parameters
+
+| Parameter | Type               | Description                                                      |
+| --------- | ------------------ | ---------------------------------------------------------------- |
+| `columns` | `str \| list[str]` | The columns to hide from the table. May be a single column name. |
+
+##### on_row_press
+
+Add a callback for when a press on a row is released (e.g. a row is clicked).
+
+###### Syntax
+
+```py
+ui_table.on_row_press(callback: Callable[[RowIndex, RowData], None]) -> UITable
+```
+
+###### Parameters
+
+| Parameter  | Type                                  | Description                                                                                                                                                                            |
+| ---------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `callback` | `Callable[[RowIndex, RowData], None]` | The callback function to run when a row is clicked. The first parameter is the row index, and the second is the row data provided in a dictionary where the column names are the keys. |
+
+##### on_row_double_press
+
+Add a callback for when a row is double clicked.
+
+###### Syntax
+
+```py
+ui_table.on_row_double_press(callback: Callable[[RowIndex, RowData], None]) -> UITable
+```
+
+###### Parameters
+
+| Parameter  | Type                                  | Description                                                                                                                                                                                   |
+| ---------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `callback` | `Callable[[RowIndex, RowData], None]` | The callback function to run when a row is double clicked. The first parameter is the row index, and the second is the row data provided in a dictionary where the column names are the keys. |
+
+##### quick_filter
+
+Add a quick filter for the UI to apply to the table.
+
+###### Syntax
+
+```py
+ui_table.quick_filter(filter: dict[ColumnName, QuickFilterExpression]) -> UITable
+```
+
+###### Parameters
+
+| Parameter | Type                                      | Description                             |
+| --------- | ----------------------------------------- | --------------------------------------- |
+| `filter`  | `dict[ColumnName, QuickFilterExpression]` | The quick filter to apply to the table. |
+
+##### selection_mode
+
+Set the selection mode for the table.
+
+###### Syntax
+
+```py
+ui_table.selection_mode(mode: SelectionMode) -> UITable
+```
+
+###### Parameters
+
+| Parameter | Type            | Description                                                                                                                                                                                                                                                               |
+| --------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mode`    | `SelectionMode` | The selection mode to use. Must be one of `"ROW"`, `"COLUMN"`, or `"CELL"`:<li>`"ROW"` selects the entire row of the cell you click on.</li><li>`"COLUMN"` selects the entire column of the cell you click on.</li><li>`"CELL"` selects only the cells you click on.</li> |
+
+##### sort
+
+Provide the default sort that will be used by the UI.
+
+###### Syntax
+
+```py
+ui_table.sort(
+    order_by: str | Sequence[str],
+    order: SortDirection | Sequence[SortDirection] | None = None
+) -> UITable
+```
+
+###### Parameters
+
+| Parameter   | Type                                               | Description                                                                                                 |
+| ----------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `by`        | `str \| Sequence[str]`                             | The column(s) to sort by. May be a single column name, or a list of column names.                           |
+| `direction` | `SortDirection \| Sequence[SortDirection] \| None` | The sort direction(s) to use. If provided, that must match up with the columns provided. Defaults to "ASC". |
+
+#### Deprecations
+
+The functionality provided my `ui.table` replaces some of the existing functions on `Table`. Below are the functions that are planned for deprecation/deletion of the `Table` interface, and their replacements with the new `ui.table` interface.
+
+| Table Function                                                    | ui.table Replacement                                                                                                                                                                                               |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `format_columns`<br/>`format_column_where`<br/>`format_row_where` | [color_column](#color_column)<br/>[color_row](#color_row)<br/>[format](#format)                                                                                                                                    |
+| `layout_hints`                                                    | [back_columns](#back_columns)<br/>[front_columns](#front_columns)<br/>[column_group](#column_groups)<br/>[freeze_columns](#freeze_columns)<br/>[hide_columns](#hide_columns)<br/>[search_display](#search_display) |
+| `dropColumnFormats`                                               | No replacement                                                                                                                                                                                                     |
+| `setTotalsTable`                                                  | [aggregations](#aggregations)                                                                                                                                                                                      |
+
+#### Custom Types
+
+Below are some of the custom types that are used in the above API definitions:
+
+```py
+AggregationOperation = Literal["COUNT", "COUNT_DISTINCT", "DISTINCT", "MIN", "MAX", "SUM", "ABS_SUM", "VAR", "AVG", "STD", "FIRST", "LAST", "UNIQUE", "SKIP"]
+CellIndex = [RowIndex, ColumnIndex]
+Color = DeephavenColor | HexColor
+# A ColumnIndex of None indicates a header row
+ColumnIndex = int | None
+ColumnName = str
+ContextMenuAction = dict[str, Any]
+ContextMenuModeOption = Literal["CELL", "ROW_HEADER", "COLUMN_HEADER"]
+ContextMenuMode = ContextMenuModeOption | list[ContextMenuModeOption] | None
+DataBarAxis = Literal["PROPORTIONAL", "MIDDLE", "DIRECTIONAL"]
+DataBarDirection = Literal["LTR", "RTL"]
+DataBarValuePlacement = Literal["BESIDE", "OVERLAP", "HIDE"]
+# TODO: Fill in the list of Deephaven Colors we allow
+DeephavenColor = Literal[...]
+HexColor = str
+QuickFilterExpression = str
+RowData = dict[str, Any]
+# A RowIndex of None indicates a header column
+RowIndex = int | None
+SearchMode = Literal["SHOW", "HIDE", "DEFAULT"]
+SelectionMode = Literal["CELL", "ROW", "COLUMN"]
+SortDirection = Literal["ASC", "DESC"]
 ```
 
 #### Context
