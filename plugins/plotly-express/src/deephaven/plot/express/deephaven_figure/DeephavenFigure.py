@@ -195,7 +195,7 @@ class DeephavenFigureNode(DeephavenNode):
         )
         if liveness_scope:
             # many copies will not have a liveness scope, so we need to check
-            liveness_scope.manage(self.table)
+            liveness_scope.preserve(self.table)
         if id(self) in partitioned_tables:
             table, _ = partitioned_tables[id(self)]
             partitioned_tables.pop(id(self))
