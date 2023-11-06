@@ -1,6 +1,7 @@
 from __future__ import annotations
 import logging
 from typing import Callable
+from deephaven.liveness_scope import LivenessScope
 from .Element import Element
 from .._internal import RenderContext, get_context, set_context
 
@@ -18,10 +19,22 @@ class FunctionElement(Element):
         """
         self._name = name
         self._render = render
+        self._liveness_scope = LivenessScope()
+
 
     @property
     def name(self):
         return self._name
+
+    def release_liveness_scope(self):
+        try: # May not have an active liveness scope or already been released
+            self._liveness_scope.release()
+            self._liveness_scope = None
+        except:
+            pass
+
+    def __del__(self):
+        self.release_liveness_scope()
 
     def render(self, context: RenderContext) -> list[Element]:
         """
@@ -37,8 +50,17 @@ class FunctionElement(Element):
         logger.debug("old context is %s and new context is %s", old_context, context)
 
         set_context(context)
-        with context:
+
+        new_liveness_scope = LivenessScope()
+
+        with context, new_liveness_scope.open():
             children = self._render()
+
+        # Release after in case of memoized tables
+        # Ref count goes 1 -> 2 -> 1 by releasing after
+        # instead of 1 -> 0 -> 1 which would release the table
+        self.release_liveness_scope()
+        self._liveness_scope = new_liveness_scope
 
         logger.debug("Resetting to old context %s", old_context)
         set_context(old_context)
