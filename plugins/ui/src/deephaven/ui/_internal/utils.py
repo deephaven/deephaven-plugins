@@ -1,4 +1,7 @@
-def get_component_name(component):
+from typing import Any
+
+
+def get_component_name(component: Any) -> str:
     """
     Get the name of the component
 
@@ -10,11 +13,11 @@ def get_component_name(component):
     """
     try:
         return component.__module__ + "." + component.__name__
-    except Exception as e:
+    except Exception:
         return component.__class__.__module__ + "." + component.__class__.__name__
 
 
-def get_component_qualname(component):
+def get_component_qualname(component: Any) -> str:
     """
     Get the name of the component
 
@@ -26,11 +29,11 @@ def get_component_qualname(component):
     """
     try:
         return component.__module__ + "." + component.__qualname__
-    except Exception as e:
+    except Exception:
         return component.__class__.__module__ + "." + component.__class__.__qualname__
 
 
-def to_camel_case(snake_case_text: str):
+def to_camel_case(snake_case_text: str) -> str:
     """
     Convert a snake_case string to camelCase.
 
@@ -44,7 +47,7 @@ def to_camel_case(snake_case_text: str):
     return components[0] + "".join(x.title() for x in components[1:])
 
 
-def dict_to_camel_case(snake_case_dict: dict):
+def dict_to_camel_case(snake_case_dict: dict[str, Any]) -> dict[str, Any]:
     """
     Convert a dict with snake_case keys to a dict with camelCase keys.
 
@@ -54,13 +57,13 @@ def dict_to_camel_case(snake_case_dict: dict):
     Returns:
         The camelCase dict.
     """
-    camel_case_dict = {}
+    camel_case_dict: dict[str, Any] = {}
     for key, value in snake_case_dict.items():
         camel_case_dict[to_camel_case(key)] = value
     return camel_case_dict
 
 
-def remove_empty_keys(dict):
+def remove_empty_keys(dict: dict[str, Any]) -> dict[str, Any]:
     """
     Remove keys from a dict that have a value of None.
 

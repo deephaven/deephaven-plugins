@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 def make_component(func):
     """
-    Create a ComponentNode from the passed in function.
+    Create a FunctionalElement from the passed in function.
     """
 
     @functools.wraps(func)
