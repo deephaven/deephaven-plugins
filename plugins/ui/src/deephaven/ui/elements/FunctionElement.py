@@ -21,13 +21,12 @@ class FunctionElement(Element):
         self._render = render
         self._liveness_scope = LivenessScope()
 
-
     @property
     def name(self):
         return self._name
 
     def release_liveness_scope(self):
-        try: # May not have an active liveness scope or already been released
+        try:  # May not have an active liveness scope or already been released
             self._liveness_scope.release()
             self._liveness_scope = None
         except:
