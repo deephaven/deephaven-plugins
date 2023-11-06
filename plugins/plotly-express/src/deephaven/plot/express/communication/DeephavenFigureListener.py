@@ -44,7 +44,7 @@ class DeephavenFigureListener:
 
         # copy the figure so only this session's figure is updated
         # the liveness scope is needed to keep any tables alive
-        self._figure = figure.copy_with_liveness_scope(liveness_scope)
+        self._figure = figure.copy()
         self._exporter = Exporter()
         self._liveness_scope = liveness_scope
 
