@@ -17,7 +17,7 @@
     "element": {
       "type": "object",
       "properties": {
-        "__dh_elem_name": { "type": "string" },
+        "__dhElemName": { "type": "string" },
         "props": {
           "type": "object",
           "properties": {
@@ -37,13 +37,13 @@
     "callable": {
       "type": "object",
       "properties": {
-        "__dh_cbid": { "type": "string" }
+        "__dhCbid": { "type": "string" }
       }
     },
     "exportedObject": {
       "type": "object",
       "properties": {
-        "__dh_obid": { "type": "number" }
+        "__dhObid": { "type": "number" }
       }
     },
 

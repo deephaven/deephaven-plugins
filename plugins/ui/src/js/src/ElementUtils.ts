@@ -1,6 +1,6 @@
-export const CALLABLE_KEY = '__dh_cbid';
-export const OBJECT_KEY = '__dh_obid';
-export const ELEMENT_KEY = '__dh_elem_name';
+export const CALLABLE_KEY = '__dhCbid';
+export const OBJECT_KEY = '__dhObid';
+export const ELEMENT_KEY = '__dhElemName';
 
 export type CallableNode = {
   /** The name of the callable to call */

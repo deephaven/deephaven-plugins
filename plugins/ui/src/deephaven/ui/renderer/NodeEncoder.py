@@ -3,9 +3,9 @@ import json
 from typing import Any, Callable
 from .RenderedNode import RenderedNode
 
-CALLABLE_KEY = "__dh_cbid"
-OBJECT_KEY = "__dh_obid"
-ELEMENT_KEY = "__dh_elem_name"
+CALLABLE_KEY = "__dhCbid"
+OBJECT_KEY = "__dhObid"
+ELEMENT_KEY = "__dhElemName"
 
 
 class NodeEncoder(json.JSONEncoder):

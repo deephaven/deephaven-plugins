@@ -21,14 +21,14 @@ function makeElement(
   props: Record<string, unknown> = {}
 ): ElementNode {
   return {
-    __dh_elem_name: type,
+    __dhElemName: type,
     props,
   };
 }
 
 function makeDocument(children: ElementNode[] = []): ElementNode {
   return {
-    __dh_elem_name: 'test-element',
+    __dhElemName: 'test-element',
     props: {
       children,
     },
