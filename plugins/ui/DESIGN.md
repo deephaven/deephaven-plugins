@@ -1364,6 +1364,33 @@ SelectionMode = Literal["CELL", "ROW", "COLUMN"]
 SortDirection = Literal["ASC", "DESC"]
 ```
 
+#### Custom Hooks
+
+Many hooks mirror React implementations (such as `use_memo` and `use_state`) but there are custom hooks that are useful for interacting with Deephaven data and structures.
+
+##### use_table_listener
+
+Call a callback function or `on_update` in a `TableListener` when the table is updated.
+
+###### Syntax
+
+```py
+use_table_listener(
+    table: Table,
+    listener: Callable | TableListener,
+    description: str = None,
+) -> None
+```
+
+###### Parameters
+
+| Parameter     | Type                                | Description                                                                                                                                                                                                                                   |
+|---------------|-------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `table`       | `Table`                             | The table to listen to.                                                                                                                                                                                                                       |
+| `listener`    | `Callable \| TableListener`         | Either a function or a TableListener with an on_update function. The function or TableListener must match the requirements for a Listener function or class. [Listener Info](https://deephaven.io/core/docs/how-to-guides/table-listeners-python/) |
+| `description` | `str \| None`                       | An optional description for the UpdatePerformanceTracker to append to the listener’s entry description, default is None.                                                                                                                      |
+
+
 #### Context
 
 By default, the context of a `@ui.component` will be created per client session (same as [Parameterized Query's "parallel universe" today](https://github.com/deephaven-ent/iris/blob/868b868fc9e180ee948137b10b6addbac043605e/ParameterizedQuery/src/main/java/io/deephaven/query/parameterized/impl/ParameterizedQueryServerImpl.java#L140)). However, it would be interesting if it were possible to share a context among all sessions for the current user, and/or share a context with other users even; e.g. if one user selects and applies a filter, it updates immediately for all other users with that dashboard open. So three cases:
