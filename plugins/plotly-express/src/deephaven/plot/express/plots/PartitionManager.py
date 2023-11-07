@@ -8,9 +8,9 @@ from pandas import DataFrame
 
 from deephaven.table import Table, PartitionedTable
 from deephaven import pandas as dhpd
-from deephaven import merge
+from deephaven import merge, empty_table
 
-from ._layer import layer, atomic_layer
+from ._layer import atomic_layer
 from .. import DeephavenFigure
 from ..preprocess.Preprocessor import Preprocessor
 from ..shared import get_unique_names
@@ -50,6 +50,7 @@ def get_partition_key_column_tuples(
     key_column_table: DataFrame, columns: list[str]
 ) -> list[tuple[Any]]:
     """
+    Get partition key column tuples from a table
 
     Args:
         key_column_table: DataFrame: The table containing the key columns
@@ -66,7 +67,7 @@ def get_partition_key_column_tuples(
 
 
 def numeric_column_set(
-    table: Table,
+    table: Table | PartitionedTable,
 ) -> set[str]:
     """Gets the set of numeric columns in the table
 
@@ -76,8 +77,11 @@ def numeric_column_set(
     Returns:
       set[str]: set of numeric columns
     """
+    cols = (
+        table.columns if isinstance(table, Table) else table.constituent_table_columns
+    )
     numeric_cols = set()
-    for col in table.columns:
+    for col in cols:
         type_ = col.data_type.j_name
         if type_ in NUMERIC_TYPES:
             numeric_cols.add(col.name)
@@ -161,6 +165,7 @@ class PartitionManager:
         self.convert_table_to_long_mode()
         self.partitioned_table = self.process_partitions()
         self.draw_figure = draw_figure
+        self.constituents = None
 
     def set_long_mode_variables(self) -> None:
         """
@@ -282,7 +287,6 @@ class PartitionManager:
         """
         args = self.args
         table = args["table"]
-        table = table if isinstance(table, Table) else table.constituent_tables[0]
         numeric_cols = numeric_column_set(table)
 
         plot_by_cols = args.get("by", None)
@@ -492,16 +496,19 @@ class PartitionManager:
         Yields:
             dict[str, str]: The partition dictionary mapping column to value
         """
-        for table in self.partitioned_table.constituent_tables:
+        for table in self.constituents:
             # sort the columns so the order is consistent
             key_columns = self.partitioned_table.key_columns
             key_columns.sort()
 
             key_column_table = dhpd.to_pandas(table.select_distinct(key_columns))
+            key_column_tuples = get_partition_key_column_tuples(
+                key_column_table, key_columns
+            )
             current_partition = dict(
                 zip(
                     key_columns,
-                    get_partition_key_column_tuples(key_column_table, key_columns)[0],
+                    key_column_tuples[0],
                 )
             )
             yield current_partition
@@ -515,9 +522,10 @@ class PartitionManager:
             tuple[Table, dict[str, str]: The tuple of table and current partition
 
         """
-        constituents = self.partitioned_table.constituent_tables
         column = self.pivot_vars["value"] if self.pivot_vars else None
-        tables = self.preprocessor.preprocess_partitioned_tables(constituents, column)
+        tables = self.preprocessor.preprocess_partitioned_tables(
+            self.constituents, column
+        )
         for table, current_partition in zip(tables, self.current_partition_generator()):
             yield table, current_partition
 
@@ -567,6 +575,18 @@ class PartitionManager:
         Returns:
             DeephavenFigure: The new figure
         """
+        if isinstance(self.partitioned_table, PartitionedTable):
+            # lock constituents in case tables are deleted
+            self.constituents = self.partitioned_table.constituent_tables
+
+            if len(self.constituents) == 0:
+                # this is very hacky but it's needed to prevent errors when
+                # there are no partitions until a better solution can be done
+                # also need the px template to be set
+                default_fig = px.scatter(x=[0], y=[0])
+                default_fig.update_traces(x=[], y=[])
+                return DeephavenFigure(default_fig)
+
         trace_generator = None
         figs = []
         for i, args in enumerate(self.partition_generator()):
