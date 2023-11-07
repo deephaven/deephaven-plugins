@@ -1,18 +1,9 @@
 import type { Data, PlotlyDataLayoutConfig } from 'plotly.js';
-import type { Table } from '@deephaven/jsapi-types';
+import type { JsWidget, Table } from '@deephaven/jsapi-types';
 import { assertNotNull } from '@deephaven/utils';
 import Log from '@deephaven/log';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartUtils');
-
-export interface PlotlyChartWidget {
-  getDataAsBase64(): string;
-  exportedObjects: { fetch(): Promise<Table> }[];
-  addEventListener(
-    type: string,
-    fn: (event: CustomEvent<PlotlyChartWidget>) => () => void
-  ): void;
-}
 
 export interface PlotlyChartWidgetData {
   deephaven: {
@@ -26,18 +17,16 @@ export interface PlotlyChartWidgetData {
   plotly: PlotlyDataLayoutConfig;
 }
 
-export function getWidgetData(
-  widgetInfo: PlotlyChartWidget
-): PlotlyChartWidgetData {
-  return JSON.parse(atob(widgetInfo.getDataAsBase64()));
+export function getWidgetData(widgetInfo: JsWidget): PlotlyChartWidgetData {
+  return JSON.parse(widgetInfo.getDataAsString());
 }
 
 export async function getDataMappings(
-  widgetInfo: PlotlyChartWidget
+  widgetInfo: JsWidget
 ): Promise<Map<Table, Map<string, string[]>>> {
   const data = getWidgetData(widgetInfo);
   const tables = await Promise.all(
-    widgetInfo.exportedObjects.map(obj => obj.fetch())
+    widgetInfo.exportedObjects.map(obj => obj.fetch() as Promise<Table>)
   );
 
   // Maps a table to a map of column name to an array of the paths where its data should be
