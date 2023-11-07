@@ -1,12 +1,7 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 import { WidgetDefinition } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
-import {
-  ElementNode,
-  getElementKey,
-  getElementType,
-  isElementNode,
-} from './ElementUtils';
+import { ElementNode, getElementKey } from './ElementUtils';
 
 import ReactPanel from './ReactPanel';
 import ElementView from './ElementView';

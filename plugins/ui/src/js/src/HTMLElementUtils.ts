@@ -6,6 +6,12 @@ export const HTML_ELEMENT_NAME_PREFIX = 'deephaven.ui.html.';
 export type HTMLElementType =
   `${typeof HTML_ELEMENT_NAME_PREFIX}${keyof ReactHTML}`;
 
+/**
+ * Describes an HTML element that can be rendered in the UI.
+ * The tag used for the HTML element is the name of the element without the prefix.
+ * For example, `deephaven.ui.html.div` would be rendered as `<div>`.
+ * The props are passed directly to the HTML element as attributes.
+ */
 export type HTMLElementNode = ElementNode & {
   [ELEMENT_KEY]: HTMLElementType;
 };

@@ -6,6 +6,7 @@ export type PanelElementType = typeof PANEL_ELEMENT_NAME;
 
 /**
  * Describes a panel element that can be rendered in the UI.
+ * Will be placed in the current dashboard, or within a user created dashboard if specified.
  */
 export type PanelElementNode = ElementNode & {
   [ELEMENT_KEY]: PanelElementType;
