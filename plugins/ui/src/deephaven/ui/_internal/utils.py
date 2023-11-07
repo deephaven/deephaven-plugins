@@ -47,6 +47,7 @@ def to_camel_case(snake_case_text: str) -> str:
     return components[0] + "".join(x.title() for x in components[1:])
 
 
+# TODO: Take an exclusion regex? function? for keys we do not want to convert
 def dict_to_camel_case(snake_case_dict: dict[str, Any]) -> dict[str, Any]:
     """
     Convert a dict with snake_case keys to a dict with camelCase keys.
