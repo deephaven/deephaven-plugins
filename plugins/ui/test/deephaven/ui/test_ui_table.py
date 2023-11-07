@@ -21,20 +21,20 @@ class UITableTestCase(BaseTestCase):
 
         t = ui.table(self.source)
 
-        self.expect_render(t, {"children": self.source})
+        self.expect_render(t, {"table": self.source})
 
-    def test_on_row_double_click(self):
+    def test_on_row_double_press(self):
         import deephaven.ui as ui
 
         def callback(row):
             pass
 
-        t = ui.table(self.source).on_row_double_click(callback)
+        t = ui.table(self.source).on_row_double_press(callback)
 
         self.expect_render(
             t,
             {
-                "children": self.source,
-                "on_row_double_click": callback,
+                "table": self.source,
+                "onRowDoublePress": callback,
             },
         )

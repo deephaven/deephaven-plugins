@@ -12,6 +12,11 @@ export type ObjectNode = {
   [OBJECT_KEY]: number;
 };
 
+/**
+ * Describes an element that can be rendered in the UI.
+ * Extend this type with stricter rules on the element key type to provide types.
+ * See `SpectrumElementNode` for an example.
+ */
 export type ElementNode = {
   /**
    * The type of this element. Can be something like `deephaven.ui.components.Panel`, or

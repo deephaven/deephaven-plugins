@@ -8,7 +8,7 @@ module.exports = {
     '/node_modules/(?!(@deephaven|monaco-editor|d3-interpolate|d3-color)/)',
   ],
   moduleNameMapper: {
-    'theme-([^/]+?)\\.css(\\?inline)?$': path.join(
+    'theme-([^/]+?)\\.css(\\?(?:inline|raw))?$': path.join(
       __dirname,
       './__mocks__/mockTheme.js'
     ),
