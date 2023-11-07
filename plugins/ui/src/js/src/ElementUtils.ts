@@ -55,3 +55,10 @@ export type ExportedObject<T = unknown> = {
 export function getElementType(node: unknown): string {
   return isElementNode(node) ? node[ELEMENT_KEY] : 'unknown';
 }
+
+export function getElementKey(node: unknown, defaultKey: string): string {
+  if (!isElementNode(node) || node.props?.key == null) {
+    return defaultKey;
+  }
+  return `${node.props?.key}`;
+}

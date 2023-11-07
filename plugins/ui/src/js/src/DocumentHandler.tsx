@@ -1,7 +1,12 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 import { WidgetDefinition } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
-import { ElementNode, getElementType, isElementNode } from './ElementUtils';
+import {
+  ElementNode,
+  getElementKey,
+  getElementType,
+  isElementNode,
+} from './ElementUtils';
 
 import ReactPanel from './ReactPanel';
 import ElementView from './ElementView';
@@ -84,9 +89,7 @@ function DocumentHandler({
   return (
     <>
       {childrenArray.map((child, i) => {
-        const key = `${
-          (isElementNode(child) ? child.props?.key : undefined) ?? i
-        }`;
+        const key = getElementKey(child, `${i}`);
         let title = `${definition.title ?? definition.id ?? definition.type}`;
         if (childrenArray.length > 1) {
           title = `${title} ${i + 1}`;

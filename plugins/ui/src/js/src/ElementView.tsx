@@ -1,5 +1,5 @@
 import React from 'react';
-import { isElementNode, isExportedObject } from './ElementUtils';
+import { getElementKey, isElementNode, isExportedObject } from './ElementUtils';
 import { isHTMLElementNode } from './HTMLElementUtils';
 import HTMLElementView from './HTMLElementView';
 import { isSpectrumElementNode } from './SpectrumElementUtils';
@@ -12,7 +12,7 @@ import UITable from './UITable';
 
 export type ElementViewProps = {
   /** The element to render. */
-  element: React.ReactNode;
+  element: unknown;
 };
 
 /**
@@ -28,8 +28,7 @@ export function ElementView({ element }: ElementViewProps): JSX.Element | null {
     return (
       <>
         {element.map((child, i) => (
-          // eslint-disable-next-line react/no-array-index-key
-          <ElementView element={child} key={i} />
+          <ElementView element={child} key={getElementKey(child, `${i}`)} />
         ))}
       </>
     );
