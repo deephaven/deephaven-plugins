@@ -20,7 +20,7 @@ export function HTMLElementView({
   return React.createElement(
     tag,
     otherProps,
-    <ElementView element={element} />
+    <ElementView element={children} />
   );
 }
 

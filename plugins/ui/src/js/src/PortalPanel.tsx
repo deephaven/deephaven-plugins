@@ -10,12 +10,6 @@ export interface PortalPanelProps extends DashboardPanelProps {
   onOpen: (element: HTMLElement) => void;
 }
 
-const MOCK_PANEL = {
-  props: {
-    title: 'Portal',
-  },
-};
-
 /**
  * Adds and tracks a panel to the GoldenLayout.
  * Takes an HTMLElement that can be used as a Portal in another component.
@@ -41,13 +35,7 @@ function PortalPanel({
   }, [onClose, onOpen]);
 
   return (
-    <Panel
-      glContainer={glContainer}
-      glEventHub={glEventHub}
-      // TODO: need fix https://github.com/deephaven/web-client-ui/issues/1604
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      componentPanel={null as any}
-    >
+    <Panel glContainer={glContainer} glEventHub={glEventHub}>
       <div className="ui-portal-panel" ref={ref} />
     </Panel>
   );

@@ -1,9 +1,10 @@
+import { ReactHTML } from 'react';
 import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
 
 export const HTML_ELEMENT_NAME_PREFIX = 'deephaven.ui.html.';
 
 export type HTMLElementType =
-  `${typeof HTML_ELEMENT_NAME_PREFIX}${keyof JSX.IntrinsicElements}`;
+  `${typeof HTML_ELEMENT_NAME_PREFIX}${keyof ReactHTML}`;
 
 export type HTMLElementNode = ElementNode & {
   [ELEMENT_KEY]: HTMLElementType;
@@ -21,8 +22,6 @@ export function isHTMLElementNode(obj: unknown): obj is HTMLElementNode {
  * @param name Name of the element
  * @returns The HTML tag name for the element
  */
-export function getHTMLTag(name: HTMLElementType): keyof JSX.IntrinsicElements {
-  return name.substring(
-    HTML_ELEMENT_NAME_PREFIX.length
-  ) as keyof JSX.IntrinsicElements;
+export function getHTMLTag(name: HTMLElementType): keyof ReactHTML {
+  return name.substring(HTML_ELEMENT_NAME_PREFIX.length) as keyof ReactHTML;
 }

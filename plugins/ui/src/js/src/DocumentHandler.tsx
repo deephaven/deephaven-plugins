@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 import { WidgetDefinition } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
-import { ElementNode, getElementType } from './ElementUtils';
+import { ElementNode, getElementType, isElementNode } from './ElementUtils';
 
 import ReactPanel from './ReactPanel';
 import ElementView from './ElementView';
@@ -23,7 +23,9 @@ export interface DocumentHandlerProps {
 
 /**
  * Handles rendering a document for one widget.
- * Responsible for opening and placing all the panels that are part of the document.
+ * The document is a tree of elements. From the root node, the children are either all panels (opening more than one panel),
+ * or all non-panels, which will automatically be wrapped in one panel.
+ * Responsible for opening any panels or dashboards specified in the document.
  */
 function DocumentHandler({
   definition,
@@ -40,7 +42,7 @@ function DocumentHandler({
   const handlePanelClose = useCallback(() => {
     panelOpenCountRef.current -= 1;
     if (panelOpenCountRef.current < 0) {
-      throw new Error('Panel open count when negative');
+      throw new Error('Panel open count is negative');
     }
     log.debug('Panel closed, open count', panelOpenCountRef.current);
     if (panelOpenCountRef.current === 0) {
@@ -68,7 +70,7 @@ function DocumentHandler({
     throw new MixedPanelsError('Cannot mix panel and non-panel elements');
   }
   if (childPanelCount === 0) {
-    // No panels, add them all to one panel and just render it
+    // No panels, just add the root element to one panel are render it
     return (
       <ReactPanel
         title={definition.title ?? definition.id ?? definition.type}
@@ -79,15 +81,12 @@ function DocumentHandler({
     );
   }
 
-  // Count of each item type to correctly allocate them a key/title for the panel
-  const itemTypeCount = new Map<string, number>();
   return (
     <>
       {childrenArray.map((child, i) => {
-        const elementType = getElementType(child);
-        const currentCount = itemTypeCount.get(elementType) ?? 0;
-        itemTypeCount.set(elementType, currentCount + 1);
-        const key = `${elementType}-${currentCount}`;
+        const key = `${
+          (isElementNode(child) ? child.props?.key : undefined) ?? i
+        }`;
         let title = `${definition.title ?? definition.id ?? definition.type}`;
         if (childrenArray.length > 1) {
           title = `${title} ${i + 1}`;

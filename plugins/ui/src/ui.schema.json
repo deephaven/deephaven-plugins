@@ -17,7 +17,7 @@
     "element": {
       "type": "object",
       "properties": {
-        "__dh_elem": { "type": "string" },
+        "__dh_elem_name": { "type": "string" },
         "props": {
           "type": "object",
           "properties": {

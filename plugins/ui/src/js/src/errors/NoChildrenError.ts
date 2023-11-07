@@ -3,11 +3,7 @@ export class NoChildrenError extends Error {
 }
 
 export function isNoChildrenError(error: unknown): error is NoChildrenError {
-  return (
-    error != null &&
-    typeof error === 'object' &&
-    (error as NoChildrenError).isNoChildrenError === true
-  );
+  return error instanceof isNoChildrenError;
 }
 
 export default NoChildrenError;

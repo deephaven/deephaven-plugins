@@ -3,11 +3,7 @@ export class MixedPanelsError extends Error {
 }
 
 export function isMixedPanelsError(error: unknown): error is MixedPanelsError {
-  return (
-    error != null &&
-    typeof error === 'object' &&
-    (error as MixedPanelsError).isMixedPanelsError === true
-  );
+  return error instanceof MixedPanelsError;
 }
 
 export default MixedPanelsError;

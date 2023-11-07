@@ -5,7 +5,7 @@ from .RenderedNode import RenderedNode
 
 CALLABLE_KEY = "__dh_cbid"
 OBJECT_KEY = "__dh_obid"
-ELEMENT_KEY = "__dh_elem"
+ELEMENT_KEY = "__dh_elem_name"
 
 
 class NodeEncoder(json.JSONEncoder):

@@ -16,7 +16,7 @@ export interface JsWidget extends WidgetMessageDetails {
     type: string,
     listener: (event: WidgetMessageEvent) => void
   ) => () => void;
-  sendMessage: (message: string, args: unknown[]) => void;
+  sendMessage: (message: string, args: never[]) => void;
   close: () => void;
 }
 

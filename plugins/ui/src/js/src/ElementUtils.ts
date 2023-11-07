@@ -1,6 +1,6 @@
 export const CALLABLE_KEY = '__dh_cbid';
 export const OBJECT_KEY = '__dh_obid';
-export const ELEMENT_KEY = '__dh_elem';
+export const ELEMENT_KEY = '__dh_elem_name';
 
 export type CallableNode = {
   /** The name of the callable to call */
@@ -13,6 +13,10 @@ export type ObjectNode = {
 };
 
 export type ElementNode = {
+  /**
+   * The type of this element. Can be something like `deephaven.ui.components.Panel`, or
+   * a custom component type defined by the user in their plugin.
+   */
   [ELEMENT_KEY]: string;
   props?: Record<string, unknown>;
 };

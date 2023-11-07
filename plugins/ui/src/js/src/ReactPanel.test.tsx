@@ -115,7 +115,7 @@ it('calls openComponent again after panel is closed only if the metadata changes
   simulatePanelClosed();
 
   expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
-  expect(LayoutUtils.closeComponent).toHaveBeenCalledTimes(0);
+  expect(LayoutUtils.closeComponent).not.toHaveBeenCalled();
   expect(onOpen).toHaveBeenCalledTimes(1);
   expect(onClose).toHaveBeenCalledTimes(1);
 
@@ -130,7 +130,7 @@ it('calls openComponent again after panel is closed only if the metadata changes
   );
 
   expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
-  expect(LayoutUtils.closeComponent).toHaveBeenCalledTimes(0);
+  expect(LayoutUtils.closeComponent).not.toHaveBeenCalled();
   expect(onOpen).toHaveBeenCalledTimes(1);
   expect(onClose).toHaveBeenCalledTimes(1);
 
@@ -145,7 +145,7 @@ it('calls openComponent again after panel is closed only if the metadata changes
   );
 
   expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(2);
-  expect(LayoutUtils.closeComponent).toHaveBeenCalledTimes(0);
+  expect(LayoutUtils.closeComponent).not.toHaveBeenCalled();
   expect(onOpen).toHaveBeenCalledTimes(2);
   expect(onClose).toHaveBeenCalledTimes(1);
 });
