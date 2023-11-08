@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .use_state import use_state
 from typing import Generic, overload, TypeVar
 

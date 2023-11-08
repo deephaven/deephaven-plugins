@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Any
 from .Element import Element
 from .._internal import dict_to_camel_case, RenderContext
