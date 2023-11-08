@@ -102,8 +102,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.tableColumnReplacementMap.forEach((columnReplacements, tableId) => {
       const tableData = this.tableDataMap.get(tableId);
       if (tableData == null) {
-        // log.warn('No tableData for this event. Skipping update');
-        return;
+        throw new Error(`No tableData for table ID ${tableId}`);
       }
 
       // Replace placeholder arrays with actual data
@@ -153,7 +152,7 @@ export class PlotlyExpressChartModel extends ChartModel {
 
     this.isSubscribed = true;
     this.widgetUnsubscribe = this.widget.addEventListener(
-      'message',
+      this.dh.Widget.EVENT_MESSAGE,
       ({ detail }) => {
         this.handleWidgetUpdated(
           JSON.parse(detail.getDataAsString()),
@@ -172,10 +171,7 @@ export class PlotlyExpressChartModel extends ChartModel {
 
     this.tableReferenceMap.forEach((_, id) => this.removeTable(id));
 
-    // TODO: Add this back when JsWidget doesn't log a Python error when already closed
-    // This issue occurs when you recreate a plot in the REPL as the engine closes its side
-    // but the widget doesn't know and unsubscribe on panel unmount causes this close
-    // this.widget?.close();
+    this.widget?.close();
     this.widget = undefined;
   }
 
