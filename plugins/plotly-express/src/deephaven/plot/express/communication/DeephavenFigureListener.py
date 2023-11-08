@@ -24,13 +24,14 @@ class DeephavenFigureListener:
         _listeners: list[Any]: The listeners for the partitioned tables
         _partitioned_tables: dict[str, tuple[PartitionedTable, DeephavenFigureNode]]:
             The partitioned tables to listen to
+        _revision_manager: RevisionManager: The revision manager to use for the figure
+        _handles: list[Any]: The handles for the listeners
     """
 
     def __init__(
         self,
         figure: DeephavenFigure,
         connection: MessageStream,
-        liveness_scope: LivenessScope,
     ):
         """
         Create a new listener for the figure
@@ -38,7 +39,6 @@ class DeephavenFigureListener:
         Args:
             figure: DeephavenFigure: The figure to listen to
             connection: MessageStream: The connection to send messages to
-            liveness_scope: The liveness scope to use for the listeners
         """
         self._connection = connection
 
@@ -46,10 +46,11 @@ class DeephavenFigureListener:
         # the liveness scope is needed to keep any tables alive
         self._figure = figure.copy()
         self._exporter = Exporter()
-        self._liveness_scope = liveness_scope
-
+        self._liveness_scope = LivenessScope()
+        # store hard references to the handles so they don't get garbage collected
+        self._handles = []
         self._listeners = []
-        self.revision_manager = RevisionManager()
+        self._revision_manager = RevisionManager()
 
         head_node = self._figure.get_head_node()
         self._partitioned_tables = head_node.partitioned_tables
@@ -68,7 +69,8 @@ class DeephavenFigureListener:
         for table, node in self._partitioned_tables.values():
             listen_func = partial(self._on_update, node)
             handle = listen(table.table, listen_func)
-            self._liveness_scope.manage(handle.listener)
+            self._handles.append(handle)
+            self._liveness_scope.manage(handle)
 
     def _get_figure(self) -> DeephavenFigure:
         """
@@ -92,7 +94,7 @@ class DeephavenFigureListener:
             is_replay: bool: Not used. Required for the listener.
         """
         if self._connection:
-            revision = self.revision_manager.get_revision()
+            revision = self._revision_manager.get_revision()
             node.recreate_figure()
             self._connection.on_data(
                 *self._build_figure_message(self._get_figure(), revision)
@@ -124,10 +126,10 @@ class DeephavenFigureListener:
         """
         exporter = self._exporter
 
-        with self.revision_manager:
+        with self._revision_manager:
             # if revision is None, just send the figure
             if revision is not None:
-                self.revision_manager.updated_revision(revision)
+                self._revision_manager.updated_revision(revision)
 
             new_figure = figure.to_dict(exporter=exporter)
 
@@ -136,7 +138,7 @@ class DeephavenFigureListener:
             message = {
                 "type": "NEW_FIGURE",
                 "figure": new_figure,
-                "revision": self.revision_manager.current_revision,
+                "revision": self._revision_manager.current_revision,
                 "new_references": new_references,
                 "removed_references": removed_references,
             }
@@ -164,3 +166,6 @@ class DeephavenFigureListener:
         message = json.loads(payload.decode())
         if message["type"] == "RETRIEVE":
             return self._handle_retrieve_figure()
+
+    def __del__(self):
+        self._liveness_scope.release()

@@ -132,6 +132,7 @@ class PartitionManager:
         partitioned_table: PartitionedTable: The partitioned table created (or
           passed in if already created)
         draw_figure: Callable: The function used to draw the figure
+        constituents: list[Table]: The list of constituent tables
     """
 
     def __init__(
@@ -404,7 +405,7 @@ class PartitionManager:
 
         # it's possible that by vars are set but by_vars is None,
         # so partitioning is still needed but it won't affect styles
-        if not self.by_vars:
+        if not self.by_vars and self.by:
             partition_cols.update(self.by if isinstance(self.by, list) else [self.by])
 
         # preprocessor needs to be initialized after the always attached arguments are found
@@ -505,6 +506,12 @@ class PartitionManager:
             key_column_tuples = get_partition_key_column_tuples(
                 key_column_table, key_columns
             )
+
+            if len(key_column_tuples) < 1:
+                # this partition might have been deleted, so it will
+                # just be removed from the figure
+                return
+
             current_partition = dict(
                 zip(
                     key_columns,
@@ -599,7 +606,7 @@ class PartitionManager:
                 partition = args["current_partition"]
                 if (
                     "preprocess_hist" in self.groups
-                    or "preprocess_violin" in self.groups
+                    or "preprocess_spread" in self.groups
                 ):
                     # offsetgroup is needed mostly to prevent spacing issues in
                     # marginals
@@ -618,7 +625,7 @@ class PartitionManager:
                 )
             facet_key = tuple(facet_key)
 
-            if "preprocess_hist" in self.groups or "preprocess_violin" in self.groups:
+            if "preprocess_hist" in self.groups or "preprocess_spread" in self.groups:
                 if "current_partition" in args:
                     fig.get_plotly_fig().update_layout(legend_tracegroupgap=0)
                 else:

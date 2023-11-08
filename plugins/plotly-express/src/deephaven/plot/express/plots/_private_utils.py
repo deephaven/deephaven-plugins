@@ -19,6 +19,7 @@ from ..shared.distribution_args import (
     BOX_DEFAULTS,
     STRIP_DEFAULTS,
     HISTOGRAM_DEFAULTS,
+    SPREAD_GROUPS,
 )
 
 
@@ -400,7 +401,7 @@ def shared_violin(
     set_all(args, VIOLIN_DEFAULTS)
 
     func = px.violin
-    groups = {"marker", "preprocess_violin", "supports_lists"}
+    groups = SPREAD_GROUPS
 
     return shared_marginal(marginal, func, groups, **args)
 
@@ -420,7 +421,7 @@ def shared_box(marginal=True, **args: Any) -> DeephavenFigure:
     set_all(args, BOX_DEFAULTS)
 
     func = px.box
-    groups = {"marker", "preprocess_violin", "supports_lists"}
+    groups = SPREAD_GROUPS
 
     return shared_marginal(marginal, func, groups, **args)
 
@@ -440,7 +441,7 @@ def shared_strip(marginal=True, **args: Any) -> DeephavenFigure:
     set_all(args, STRIP_DEFAULTS)
 
     func = px.strip
-    groups = {"marker", "preprocess_violin", "supports_lists"}
+    groups = SPREAD_GROUPS
 
     return shared_marginal(marginal, func, groups, **args)
 

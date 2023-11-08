@@ -113,6 +113,7 @@ class DeephavenFigureNode(DeephavenNode):
         table: PartitionedTable: The table to pull data from
         func: Callable: The function to call
         cached_figure: DeephavenFigure: The cached figure
+        revision_manager: RevisionManager: The revision manager to use for the figure node
     """
 
     def __init__(
@@ -223,6 +224,7 @@ class DeephavenLayerNode(DeephavenNode):
         args: dict[str, Any]: The arguments to the function
         cached_figure: DeephavenFigure: The cached figure
         exec_ctx: ExecutionContext: The execution context
+        revision_manager: RevisionManager: The revision manager to use for the layer node
     """
 
     def __init__(

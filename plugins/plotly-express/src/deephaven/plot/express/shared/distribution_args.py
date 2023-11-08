@@ -38,3 +38,5 @@ HISTOGRAM_DEFAULTS = {
     "barnorm": None,
     **SHARED_DEFAULTS,
 }
+
+SPREAD_GROUPS = {"marker", "preprocess_spread", "supports_lists"}

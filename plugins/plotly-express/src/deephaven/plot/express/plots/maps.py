@@ -7,7 +7,7 @@ from plotly import express as px
 from deephaven.table import Table
 
 from ._private_utils import process_args
-from ._update_wrapper import default_callback
+from ..shared import default_callback
 
 
 def scatter_geo(
