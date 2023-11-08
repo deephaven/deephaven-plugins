@@ -1,17 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 import shortid from 'shortid';
-import { LayoutUtils, PanelEvent, useListener } from '@deephaven/dashboard';
+import {
+  LayoutUtils,
+  PanelEvent,
+  useLayoutManager,
+  useListener,
+} from '@deephaven/dashboard';
 import Log from '@deephaven/log';
 import PortalPanel from './PortalPanel';
-import useLayout from './useLayout';
 
 const log = Log.module('@deephaven/js-plugin-ui/ReactPanel');
 
-export interface ReactPanelProps {
-  /** What to render in the panel */
-  children: React.ReactNode;
-
+export type ReactPanelProps = React.PropsWithChildren<{
   /** Title of the panel */
   title: string;
 
@@ -27,7 +28,7 @@ export interface ReactPanelProps {
 
   /** Triggered when this panel is closed */
   onClose?: () => void;
-}
+}>;
 
 /**
  * Adds and tracks a panel to the GoldenLayout. When the child element is updated, the contents of the panel will also be updated. When unmounted, the panel will be removed.
@@ -39,7 +40,7 @@ function ReactPanel({
   onOpen,
   title,
 }: ReactPanelProps) {
-  const layout = useLayout();
+  const layoutManager = useLayoutManager();
   const panelId = useMemo(() => shortid(), []);
   const [element, setElement] = useState<HTMLElement>();
   const isPanelOpenRef = useRef(false);
@@ -51,12 +52,12 @@ function ReactPanel({
     () => () => {
       if (isPanelOpenRef.current) {
         log.debug('Closing panel', panelId);
-        LayoutUtils.closeComponent(layout.root, { id: panelId });
+        LayoutUtils.closeComponent(layoutManager.root, { id: panelId });
         isPanelOpenRef.current = false;
         onClose?.();
       }
     },
-    [layout, onClose, panelId]
+    [layoutManager, onClose, panelId]
   );
 
   const handlePanelClosed = useCallback(
@@ -70,7 +71,7 @@ function ReactPanel({
     [onClose, panelId]
   );
 
-  useListener(layout.eventHub, PanelEvent.CLOSED, handlePanelClosed);
+  useListener(layoutManager.eventHub, PanelEvent.CLOSED, handlePanelClosed);
 
   useEffect(() => {
     if (
@@ -93,7 +94,7 @@ function ReactPanel({
         id: panelId,
       };
 
-      const { root } = layout;
+      const { root } = layoutManager;
       LayoutUtils.openComponent({ root, config });
       log.debug('Opened panel', panelId, config);
       isPanelOpenRef.current = true;
@@ -101,7 +102,7 @@ function ReactPanel({
 
       onOpen?.();
     }
-  }, [layout, metadata, onOpen, panelId, title]);
+  }, [layoutManager, metadata, onOpen, panelId, title]);
 
   return element ? ReactDOM.createPortal(children, element) : null;
 }

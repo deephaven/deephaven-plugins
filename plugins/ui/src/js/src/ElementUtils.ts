@@ -1,3 +1,5 @@
+import { WidgetExportedObject } from '@deephaven/jsapi-types';
+
 export const CALLABLE_KEY = '__dhCbid';
 export const OBJECT_KEY = '__dhObid';
 export const ELEMENT_KEY = '__dhElemName';
@@ -38,19 +40,14 @@ export function isCallableNode(obj: unknown): obj is CallableNode {
   return obj != null && typeof obj === 'object' && CALLABLE_KEY in obj;
 }
 
-export function isExportedObject(obj: unknown): obj is ExportedObject {
+export function isExportedObject(obj: unknown): obj is WidgetExportedObject {
   return (
     obj != null &&
     typeof obj === 'object' &&
-    typeof (obj as ExportedObject).fetch === 'function' &&
-    typeof (obj as ExportedObject).type === 'string'
+    typeof (obj as WidgetExportedObject).fetch === 'function' &&
+    typeof (obj as WidgetExportedObject).type === 'string'
   );
 }
-
-export type ExportedObject<T = unknown> = {
-  fetch(): Promise<T>;
-  type: string;
-};
 
 /**
  * Gets the type of an element object, or `unknown` if it is not an element.

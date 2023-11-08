@@ -1,24 +1,13 @@
 import { WidgetDefinition } from '@deephaven/dashboard';
-import { ExportedObject } from './ElementUtils';
+import { JsWidget, WidgetExportedObject } from '@deephaven/jsapi-types';
 
 export interface WidgetMessageDetails {
   getDataAsBase64(): string;
   getDataAsString(): string;
-  exportedObjects: ExportedObject[];
+  exportedObjects: WidgetExportedObject[];
 }
 
-export interface WidgetMessageEvent {
-  detail: WidgetMessageDetails;
-}
-
-export interface JsWidget extends WidgetMessageDetails {
-  addEventListener: (
-    type: string,
-    listener: (event: WidgetMessageEvent) => void
-  ) => () => void;
-  sendMessage: (message: string, args: never[]) => void;
-  close: () => void;
-}
+export type WidgetMessageEvent = CustomEvent<WidgetMessageDetails>;
 
 export type WidgetFetch = () => Promise<JsWidget>;
 

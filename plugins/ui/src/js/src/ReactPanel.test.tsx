@@ -4,6 +4,7 @@ import { LayoutUtils, useListener } from '@deephaven/dashboard';
 import ReactPanel, { ReactPanelProps } from './ReactPanel';
 
 // Mock LayoutUtils, useListener, and PanelEvent from @deephaven/dashboard package
+const mockLayout = { root: {}, eventHub: {} };
 jest.mock('@deephaven/dashboard', () => {
   const DashboardActual = jest.requireActual('@deephaven/dashboard');
   return {
@@ -13,14 +14,12 @@ jest.mock('@deephaven/dashboard', () => {
       openComponent: jest.fn(),
       closeComponent: jest.fn(),
     },
+    useLayoutManager: jest.fn(() => mockLayout),
     useListener: jest.fn(),
     __esModule: true,
     default: jest.fn(),
   };
 });
-
-const mockLayout = { root: {}, eventHub: {} };
-jest.mock('./useLayout', () => jest.fn(() => mockLayout));
 
 const mockPanelId = 'test-panel-id';
 jest.mock('shortid', () => jest.fn(() => mockPanelId));

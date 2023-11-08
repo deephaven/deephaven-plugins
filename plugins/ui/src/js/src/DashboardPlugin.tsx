@@ -2,16 +2,17 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import shortid from 'shortid';
 import {
   DashboardPluginComponentProps,
+  LayoutManagerContext,
   PanelEvent,
   useListener,
 } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
+import { JsWidget } from '@deephaven/jsapi-types';
 import type { VariableDefinition } from '@deephaven/jsapi-types';
 import styles from './styles.scss?inline';
-import { JsWidget, WidgetWrapper } from './WidgetTypes';
+import { WidgetWrapper } from './WidgetTypes';
 import PortalPanel from './PortalPanel';
 import WidgetHandler from './WidgetHandler';
-import LayoutContext from './LayoutContext';
 
 const NAME_ELEMENT = 'deephaven.ui.Element';
 
@@ -88,10 +89,11 @@ export function DashboardPlugin({
   );
 
   return (
-    <LayoutContext.Provider value={layout}>
+    // We'll need to change up how the layout is provided once we have widgets that can open other dashboards...
+    <LayoutManagerContext.Provider value={layout}>
       <style>{styles}</style>
       {widgetHandlers}
-    </LayoutContext.Provider>
+    </LayoutManagerContext.Provider>
   );
 }
 

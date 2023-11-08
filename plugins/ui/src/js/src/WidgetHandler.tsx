@@ -8,16 +8,16 @@ import {
   JSONRPCServerAndClient,
 } from 'json-rpc-2.0';
 import { useApi } from '@deephaven/jsapi-bootstrap';
+import { Widget, WidgetExportedObject } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import {
   CALLABLE_KEY,
   ElementNode,
-  ExportedObject,
   OBJECT_KEY,
   isCallableNode,
   isObjectNode,
 } from './ElementUtils';
-import { JsWidget, WidgetMessageEvent, WidgetWrapper } from './WidgetTypes';
+import { WidgetMessageEvent, WidgetWrapper } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
@@ -33,7 +33,7 @@ export interface WidgetHandlerProps {
 function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
   const dh = useApi();
 
-  const [widget, setWidget] = useState<JsWidget>();
+  const [widget, setWidget] = useState<Widget>();
   const [element, setElement] = useState<ElementNode>();
 
   useEffect(
@@ -68,7 +68,7 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
      * @param exportedObjects The exported objects to use for re-hydrating objects
      * @returns The parsed data
      */
-    (data: string, exportedObjects: ExportedObject[]) =>
+    (data: string, exportedObjects: WidgetExportedObject[]) =>
       JSON.parse(data, (key, value) => {
         // Need to re-hydrate any objects that are defined
         if (isCallableNode(value)) {
@@ -112,7 +112,10 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
     if (widget == null) {
       return;
     }
-    function receiveData(data: string, exportedObjects: ExportedObject[]) {
+    function receiveData(
+      data: string,
+      exportedObjects: WidgetExportedObject[]
+    ) {
       log.debug2('Data received', data, exportedObjects);
       const parsedData = parseData(data, exportedObjects);
       jsonClient?.receiveAndSend(parsedData);
@@ -120,7 +123,7 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
 
     const cleanup = widget.addEventListener(
       dh.Widget.EVENT_MESSAGE,
-      async (event: WidgetMessageEvent) => {
+      (event: WidgetMessageEvent) => {
         receiveData(
           event.detail.getDataAsString(),
           event.detail.exportedObjects

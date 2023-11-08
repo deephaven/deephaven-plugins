@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, render } from '@testing-library/react';
+import { JsWidget } from '@deephaven/jsapi-types';
 import WidgetHandler, { WidgetHandlerProps } from './WidgetHandler';
-import { JsWidget } from './WidgetTypes';
 import { DocumentHandlerProps } from './DocumentHandler';
 import {
   makeDocumentUpdatedJsonRpcString,
