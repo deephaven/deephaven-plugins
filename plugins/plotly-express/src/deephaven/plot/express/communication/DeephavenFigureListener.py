@@ -68,7 +68,8 @@ class DeephavenFigureListener:
         for table, node in self._partitioned_tables.values():
             listen_func = partial(self._on_update, node)
             handle = listen(table.table, listen_func)
-            self._liveness_scope.manage(handle.listener)
+            self._handle = handle
+            self._liveness_scope.manage(handle)
 
     def _get_figure(self) -> DeephavenFigure:
         """
