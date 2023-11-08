@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any
 from .._internal import RenderContext
 
 
@@ -18,7 +19,7 @@ class Element(ABC):
         return "deephaven.ui.Element"
 
     @abstractmethod
-    def render(self, context: RenderContext) -> dict:
+    def render(self, context: RenderContext) -> dict[str, Any]:
         """
         Renders this element, and returns the result as a dictionary of props for the element.
         If you just want to render children, pass back a dict with children only, e.g. { "children": ... }

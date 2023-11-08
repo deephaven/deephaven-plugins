@@ -1,20 +1,8 @@
 import type { Data, PlotlyDataLayoutConfig } from 'plotly.js';
-import type { Table } from '@deephaven/jsapi-types';
+import type { JsWidget } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartUtils');
-
-export interface PlotlyChartWidget {
-  getDataAsString(): string;
-  exportedObjects: { fetch(): Promise<Table> }[];
-  addEventListener(
-    type: string,
-    listener: (
-      event: CustomEvent<Omit<PlotlyChartWidget, 'addEventListener' | 'close'>>
-    ) => void
-  ): () => void;
-  close(): void;
-}
 
 export interface PlotlyChartWidgetData {
   type: string;
@@ -34,15 +22,13 @@ export interface PlotlyChartWidgetData {
   removed_references: number[];
 }
 
-export function getWidgetData(
-  widgetInfo: PlotlyChartWidget
-): PlotlyChartWidgetData {
+export function getWidgetData(widgetInfo: JsWidget): PlotlyChartWidgetData {
   return JSON.parse(widgetInfo.getDataAsString());
 }
 
-export function getDataMappings(
+export async function getDataMappings(
   widgetData: PlotlyChartWidgetData
-): Map<number, Map<string, string[]>> {
+): Promise<Map<number, Map<string, string[]>>> {
   const data = widgetData.figure;
 
   // Maps a reference index to a map of column name to an array of the paths where its data should be
