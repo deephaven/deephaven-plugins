@@ -2,7 +2,7 @@ from typing import Any
 from ..elements import BaseElement
 
 
-def panel(*children: list[Any], title: str | None = None, **kwargs: dict[str, Any]):
+def panel(*children: Any, title: str | None = None, **kwargs: Any):
     """
     A panel is a container that can be used to group elements.
 

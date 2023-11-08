@@ -3,16 +3,16 @@ name: Test Python Package
 on:
   workflow_call:
     inputs:
-        package:
-          required: true
-          type: string
+      package:
+        required: true
+        type: string
 
 jobs:
   test:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        python: [ "3.8", "3.9", "3.10", "3.11" ]
+        python: ['3.8', '3.9', '3.10', '3.11']
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -24,8 +24,8 @@ jobs:
 
       - name: Install tox
         run: pip install tox
-        working-directory: "plugins/${{ github.event.inputs.package }}"
+        working-directory: 'plugins/${{ inputs.package }}'
 
       - name: Run tox
         run: tox -e py
-        working-directory: "plugins/${{ github.event.inputs.package }}"
+        working-directory: 'plugins/${{ inputs.package }}'
