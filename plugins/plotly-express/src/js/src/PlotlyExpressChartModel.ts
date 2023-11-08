@@ -2,6 +2,7 @@ import type { Layout, Data } from 'plotly.js';
 import type {
   dh as DhType,
   ChartData,
+  JsWidget,
   Table,
   TableSubscription,
   TableData,
@@ -9,7 +10,6 @@ import type {
 import { ChartModel, ChartUtils, ChartTheme } from '@deephaven/chart';
 import Log from '@deephaven/log';
 import {
-  PlotlyChartWidget,
   PlotlyChartWidgetData,
   applyColorwayToData,
   getDataMappings,
@@ -21,8 +21,8 @@ const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
 export class PlotlyExpressChartModel extends ChartModel {
   constructor(
     dh: DhType,
-    widget: PlotlyChartWidget,
-    refetch: () => Promise<PlotlyChartWidget>,
+    widget: JsWidget,
+    refetch: () => Promise<JsWidget>,
     theme: typeof ChartTheme = ChartTheme
   ) {
     super(dh);
@@ -47,9 +47,9 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   chartUtils: ChartUtils;
 
-  refetch: () => Promise<PlotlyChartWidget>;
+  refetch: () => Promise<JsWidget>;
 
-  widget?: PlotlyChartWidget;
+  widget?: JsWidget;
 
   widgetUnsubscribe?: () => void;
 
@@ -202,7 +202,7 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   handleWidgetUpdated(
     data: PlotlyChartWidgetData,
-    references: { fetch(): Promise<Table> }[]
+    references: JsWidget['exportedObjects']
   ): void {
     const {
       figure,
@@ -222,7 +222,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     );
 
     newReferences.forEach(async (id, i) => {
-      const table = await references[i].fetch();
+      const table = (await references[i].fetch()) as Table;
       this.addTable(id, table);
     });
 

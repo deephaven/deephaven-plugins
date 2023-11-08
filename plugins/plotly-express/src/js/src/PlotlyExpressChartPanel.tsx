@@ -72,7 +72,7 @@ function PlotlyExpressChartPanel(props: WidgetComponentProps) {
       containerRef={containerRef}
       makeModel={makeModel}
       Plotly={Plotly}
-      metadata={metadata}
+      metadata={metadata as ChartPanelProps['metadata']}
     />
   );
 }

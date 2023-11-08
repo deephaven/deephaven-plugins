@@ -26,9 +26,9 @@ export function getWidgetData(widgetInfo: JsWidget): PlotlyChartWidgetData {
   return JSON.parse(widgetInfo.getDataAsString());
 }
 
-export async function getDataMappings(
+export function getDataMappings(
   widgetData: PlotlyChartWidgetData
-): Promise<Map<number, Map<string, string[]>>> {
+): Map<number, Map<string, string[]>> {
   const data = widgetData.figure;
 
   // Maps a reference index to a map of column name to an array of the paths where its data should be
