@@ -1,6 +1,6 @@
 import acmeDark from './theme_dark.scss?inline';
 import acmeLight from './theme_light.scss?inline';
-import acmeCool from './theme_cool.scss?inline';
+import acmeOrange from './theme_orange.scss?inline';
 
 /** TODO: Define these types in @deephaven/plugin */
 
@@ -18,7 +18,7 @@ interface ThemePlugin {
 
 /** Plugin */
 
-const plugin: ThemePlugin = {
+export const plugin: ThemePlugin = {
   name: 'Acme Theme Plugin',
   type: 'ThemePlugin',
   themes: [
@@ -33,9 +33,9 @@ const plugin: ThemePlugin = {
       styleContent: acmeLight,
     },
     {
-      name: 'Acme Cool',
-      baseTheme: 'light',
-      styleContent: acmeCool,
+      name: 'Acme Orange',
+      baseTheme: 'dark',
+      styleContent: acmeOrange,
     },
   ],
 };
