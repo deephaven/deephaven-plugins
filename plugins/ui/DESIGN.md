@@ -801,25 +801,25 @@ The above examples focussed solely on defining components, all of which are simp
 - **Stack**: A stack of panels that overlap one another. Click the tab header to switch between them.
 - **Dashboard**: A layout of an entire dashboard
 
-We should be able to map these by using `ui.panel`, `ui.row`, `ui.column`, `ui.stack`, and `ui.dashboard`.
+We should be able to map these by using [ui.panel](#uipanel), [ui.row](#uirow), [ui.column](#uicolumn), [ui.stack](#uistack), and [ui.dashboard](#uidashboard).
 
 ##### ui.panel
 
-By default, the top level `@ui.component` will automatically be wrapped in a panel, so no need to define it unless you want custom panel functionality, such as giving the tab a custom name, color or calling a method such as focus  e.g.:
+By default, the top level `@ui.component` will automatically be wrapped in a panel, so no need to define it unless you want custom panel functionality, such as giving the tab a custom name, color or calling a method such as focus e.g.:
 
 ```py
 # The only difference between this and `p = my_component()` is that the title of the panel will be set to `My Title`
 p = ui.panel(my_component(), label="My Tab Label")
 ```
 
-A panel cannot be nested within other components (other than the layout ones such as `ui.row`, `ui.column`, `ui.stack`, `ui.dashboard`). The basic syntax for creating a `UIPanel` is:
+A panel cannot be nested within other components (other than the layout ones such as [ui.row](#uirow), [ui.column](#uicolumn), [ui.stack](#uistack), [ui.dashboard](#uidashboard)). The basic syntax for creating a `UIPanel` is:
 
 ```py
 import deephaven.ui as ui
 ui_panel = ui.panel(
-    component: Element,
-    label: str | Element | None = None,
-    description: str | None = None,
+    *children: Element,
+    label: (str | Element)[] | None = None,
+    description: str | Element | None = None,
     background_color: Color | None = None,
     tab_background_color: Color | None = None,
     is_closable: bool = True,
@@ -836,7 +836,7 @@ ui_panel = ui.panel(
 
 | Parameter              | Type                                | Description                                                                                                                                                                                                                                                                                           |
 | ---------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `component`            | `Element`                           | The component(s) to render within the panel.                                                                                                                                                                                                                                                          |
+| `*children`            | `Element`                           | The component(s) to render within the panel.                                                                                                                                                                                                                                                          |
 | `label`                | `(str \| Element)[] \| None`        | The label of the panel. If not provided, a name will be created based on the variable name the top-level component is assigned to. Icons can also be added as children, with a sibling element for the label.                                                                                         |
 | `description`          | `str \| Element \| None`            | A description of the panel. Will appear in the tooltip when hovering the panel tab. Can also include an element here.                                                                                                                                                                                 |
 | `background_color`     | `Color \| None`                     | Custom background color of the panel.                                                                                                                                                                                                                                                                 |
@@ -856,17 +856,11 @@ ui_panel = ui.panel(
 | `close()` | Closes the panel.  |
 | `focus()` | Focuses the panel. |
 
-##### ui.row, ui.column, ui.stack, ui.dashboard
+##### ui.dashboard
 
-You can define a dashboard using these functions. By wrapping in a `ui.dashboard`, you are defining a whole dashboard. If you omit the `ui.dashboard`, it will add the layouts you've defined to the existing dashboard:
+You can use the `ui.dashboard` function to define a dashboard, along with [ui.row](#ui_row), [ui.column](#uicolumn), and [ui.stack](#uistack). A dashboard will be opened in a separate dashboard tab instead of within your current code studio. For example, to define a dashboard with an input panel in the top left, a table in the top right, and a stack of plots across the bottom, you could define it like so:
 
-- `ui.row` will add a new row of the panels defined at the bottom of the current dashboard
-- `ui.column` will add a new column of panels defined at the right of the current dashboard
-- `ui.stack` will add a new stack of panels at the next spot in the dashboard
-
-Defining these without a `ui.dashboard` is likely only going to be applicable to testing/iterating purposes, and in most cases you'll want to define the whole dashboard. For example, to define a dashboard with an input panel in the top left, a table in the top right, and a stack of plots across the bottom, you could define it like so:
-
-```python
+```py
 import deephaven.ui as ui
 
 # ui.dashboard takes only one root element
@@ -880,33 +874,85 @@ d = ui.dashboard(
 )
 ```
 
-Much like handling other components, you can do a prop/state thing to handle changing inputs/filtering appropriately:
+The `ui.dashboard` function requires a single argument, which is the root element of the dashboard. This can be a single component, or a layout of components. The `ui.dashboard` function also takes the following optional parameters:
 
-```python
+```py
 import deephaven.ui as ui
-
-# Need to add the `@ui.component` decorator so we can keep track of state
-@ui.component
-def my_dashboard():
-    value, set_value = use_state("")
-
-    return ui.dashboard(
-        ui.column(
-            [
-                ui.row(
-                    [
-                        my_input_panel(value=value, on_change=set_value),
-                        my_table_panel(value=value),
-                    ]
-                ),
-                ui.stack([my_plot1(value=value), my_plot2(value=value)]),
-            ]
-        )
-    )
-
-
-d = my_dashboard()
+ui_panel = ui.panel(
+    root: Element,
+    label: str | None = None,
+    settings: DashboardSettings | None = None,
+) -> UIDashboard
 ```
+
+###### Parameters
+
+| Parameter              | Type                        | Description                                                                                                                                                                                                         |
+| ---------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `root`                 | `Element`                   | The root element of the dashboard. Can be a [ui.row](#uirow), [ui.column](#uicolumn), or [ui.stack](#uistack) to build a dashboard with multiple panels, or can just be a widget that takes up the whole dashboard. |
+| `label`                | `str \| None`               | The label of the dashboard. If not provided, a name will be created based on the variable name the top-level component is assigned to. Icons can also be added as children, with a sibling element for the label.   |
+| `settings`             | `DashboardSettings \| None` | Settings for the dashboard. Pass in a dictionary with the appropriate keys.                                                                                                                                         |
+| `settings.has_headers` | `bool`                      | Whether the dashboard should have headers.                                                                                                                                                                          |
+| `settings.has_popout`  | `bool`                      | Whether the dashboard should have a popout button.                                                                                                                                                                  |
+
+##### ui.row
+
+Define a row of panels to add to a [UIDashboard](#uidashboard).
+
+```py
+import deephaven.ui as ui
+ui_row = ui.row(
+    *children: Element,
+    height: int | None = None
+) -> UIRow
+```
+
+###### Parameters
+
+| Parameter   | Type      | Description                                                                                                                           |
+| ----------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `*children` | `Element` | The components to render within the row.                                                                                              |
+| `height`    | `int`     | The height of the row, relative to the other children of its parent in percent. If not provided, the row will be sized automatically. |
+
+##### ui.column
+
+Define a column of panels to add to a [UIDashboard](#uidashboard).
+
+```py
+import deephaven.ui as ui
+ui_column = ui.column(
+    *children: Element,
+    width: int | None = None
+) -> UIColumn
+```
+
+###### Parameters
+
+| Parameter   | Type      | Description                                                                                                                                |
+| ----------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `*children` | `Element` | The components to render within the column.                                                                                                |
+| `width`     | `int`     | The width of the column, relative to the other children of its parent in percent. If not provided, the column will be sized automatically. |
+
+##### ui.stack
+
+Define a stack of panels to add to a [UIDashboard](#uidashboard).
+
+```py
+import deephaven.ui as ui
+ui_stack = ui.stack(
+    *children: Element,
+    height: int | None = None,
+    width: int | None = None
+) -> UIStack
+```
+
+###### Parameters
+
+| Parameter   | Type      | Description                                                                                                                               |
+| ----------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `*children` | `Element` | The components to render within the stack.                                                                                                |
+| `height`    | `int`     | The height of the stack, relative to the other children of its parent in percent. If not provided, the stack will be sized automatically. |
+| `width`     | `int`     | The width of the stack, relative to the other children of its parent in percent. If not provided, the stack will be sized automatically.  |
 
 ##### ui.link
 
@@ -1362,6 +1408,16 @@ RowIndex = int | None
 SearchMode = Literal["SHOW", "HIDE", "DEFAULT"]
 SelectionMode = Literal["CELL", "ROW", "COLUMN"]
 SortDirection = Literal["ASC", "DESC"]
+
+# Typed dictionary for settings that can be passed into a Dashboards initialization
+class DashboardSettings(TypedDict):
+    # Whether to show headers on the panels. Defaults to `True`
+    # Note that if you use stacks with this option enabled, you will not be able to see all of the tabs in the stack
+    has_headers: Optional[bool]
+
+    # Whether the panels can be re-organized or resized by dragging. Defaults to `True`
+    reorder_enabled: Optional[bool]
+
 ```
 
 #### Context
