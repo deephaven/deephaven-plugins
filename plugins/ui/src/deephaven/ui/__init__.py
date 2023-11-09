@@ -6,6 +6,7 @@ The API is designed to be similar to React, but with some differences to make it
 
 from deephaven.plugin import Registration, Callback
 from .components import *
+from .elements import *
 from .hooks import *
 from .object_types import *
 

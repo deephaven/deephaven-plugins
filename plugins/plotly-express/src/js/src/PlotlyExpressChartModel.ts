@@ -2,6 +2,7 @@ import type { Layout, Data } from 'plotly.js';
 import type {
   dh as DhType,
   ChartData,
+  JsWidget,
   Table,
   TableSubscription,
   TableData,
@@ -9,7 +10,6 @@ import type {
 import { ChartModel, ChartUtils, ChartTheme } from '@deephaven/chart';
 import Log from '@deephaven/log';
 import {
-  PlotlyChartWidget,
   PlotlyChartWidgetData,
   applyColorwayToData,
   getDataMappings,
@@ -21,8 +21,8 @@ const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
 export class PlotlyExpressChartModel extends ChartModel {
   constructor(
     dh: DhType,
-    widget: PlotlyChartWidget,
-    refetch: () => Promise<PlotlyChartWidget>,
+    widget: JsWidget,
+    refetch: () => Promise<JsWidget>,
     theme: typeof ChartTheme = ChartTheme
   ) {
     super(dh);
@@ -47,9 +47,9 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   chartUtils: ChartUtils;
 
-  refetch: () => Promise<PlotlyChartWidget>;
+  refetch: () => Promise<JsWidget>;
 
-  widget?: PlotlyChartWidget;
+  widget?: JsWidget;
 
   widgetUnsubscribe?: () => void;
 
@@ -102,8 +102,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.tableColumnReplacementMap.forEach((columnReplacements, tableId) => {
       const tableData = this.tableDataMap.get(tableId);
       if (tableData == null) {
-        // log.warn('No tableData for this event. Skipping update');
-        return;
+        throw new Error(`No tableData for table ID ${tableId}`);
       }
 
       // Replace placeholder arrays with actual data
@@ -153,7 +152,7 @@ export class PlotlyExpressChartModel extends ChartModel {
 
     this.isSubscribed = true;
     this.widgetUnsubscribe = this.widget.addEventListener(
-      'message',
+      this.dh.Widget.EVENT_MESSAGE,
       ({ detail }) => {
         this.handleWidgetUpdated(
           JSON.parse(detail.getDataAsString()),
@@ -172,10 +171,7 @@ export class PlotlyExpressChartModel extends ChartModel {
 
     this.tableReferenceMap.forEach((_, id) => this.removeTable(id));
 
-    // TODO: Add this back when JsWidget doesn't log a Python error when already closed
-    // This issue occurs when you recreate a plot in the REPL as the engine closes its side
-    // but the widget doesn't know and unsubscribe on panel unmount causes this close
-    // this.widget?.close();
+    this.widget?.close();
     this.widget = undefined;
   }
 
@@ -202,7 +198,7 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   handleWidgetUpdated(
     data: PlotlyChartWidgetData,
-    references: { fetch(): Promise<Table> }[]
+    references: JsWidget['exportedObjects']
   ): void {
     const {
       figure,
@@ -222,7 +218,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     );
 
     newReferences.forEach(async (id, i) => {
-      const table = await references[i].fetch();
+      const table = (await references[i].fetch()) as Table;
       this.addTable(id, table);
     });
 

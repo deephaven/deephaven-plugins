@@ -1,30 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Plotly from 'plotly.js-dist-min';
-import {
-  ChartPanel,
-  type ChartPanelProps,
-} from '@deephaven/dashboard-core-plugins';
+import { ChartPanel, ChartPanelProps } from '@deephaven/dashboard-core-plugins';
+import { type WidgetComponentProps } from '@deephaven/plugin';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import PlotlyExpressChartModel from './PlotlyExpressChartModel.js';
-import { type PlotlyChartWidget } from './PlotlyExpressChartUtils.js';
 
-export interface PlotlyExpressChartPanelProps
-  extends Pick<
-    ChartPanelProps,
-    | 'Plotly'
-    | 'containerRef'
-    | 'metadata'
-    | 'glContainer'
-    | 'glEventHub'
-    | 'localDashboardId'
-    | 'panelState'
-  > {
-  fetch(): Promise<PlotlyChartWidget>;
-}
-
-function PlotlyExpressChartPanel(props: PlotlyExpressChartPanelProps) {
+function PlotlyExpressChartPanel(props: WidgetComponentProps) {
   const dh = useApi();
-  const { fetch, ...rest } = props;
+  const { fetch, metadata = {}, ...rest } = props;
   const containerRef = useRef<HTMLDivElement>(null);
   const [model, setModel] = useState<PlotlyExpressChartModel>();
 
@@ -85,10 +68,11 @@ function PlotlyExpressChartPanel(props: PlotlyExpressChartPanelProps) {
   return (
     <ChartPanel
       // eslint-disable-next-line react/jsx-props-no-spreading
-      {...rest}
+      {...(rest as ChartPanelProps)}
       containerRef={containerRef}
       makeModel={makeModel}
       Plotly={Plotly}
+      metadata={metadata as ChartPanelProps['metadata']}
     />
   );
 }
