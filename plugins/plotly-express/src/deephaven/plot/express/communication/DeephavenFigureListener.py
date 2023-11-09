@@ -7,7 +7,6 @@ from typing import Any
 from deephaven.plugin.object_type import MessageStream
 from deephaven.table_listener import listen, TableUpdate
 from deephaven.liveness_scope import LivenessScope
-import deephaven.pandas as dhpd
 
 from ..exporter import Exporter
 from ..deephaven_figure import DeephavenFigure, DeephavenFigureNode, RevisionManager

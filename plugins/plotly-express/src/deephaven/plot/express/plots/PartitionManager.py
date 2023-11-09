@@ -9,7 +9,6 @@ from pandas import DataFrame
 from deephaven.table import Table, PartitionedTable
 from deephaven import pandas as dhpd
 from deephaven import merge, empty_table
-from deephaven.liveness_scope import LivenessScope
 
 from ._layer import atomic_layer
 from .. import DeephavenFigure
@@ -607,11 +606,6 @@ class PartitionManager:
             if len(self.constituents) == 0:
                 return self.default_figure()
 
-        liveness_scope = LivenessScope()
-
-        for constituent in self.constituents:
-            liveness_scope.manage(constituent)
-
         trace_generator = None
         figs = []
         for i, args in enumerate(self.partition_generator()):
@@ -654,7 +648,6 @@ class PartitionManager:
         try:
             layered_fig = atomic_layer(*figs, which_layout=0)
         except ValueError:
-            liveness_scope.release()
             return self.default_figure()
 
         if self.has_color is False:
@@ -671,10 +664,8 @@ class PartitionManager:
 
             self.marg_args["color"] = self.marg_color
 
-            liveness_scope.release()
             return self.attach_marginals(
                 layered_fig, self.marg_args, self.marginal_x, self.marginal_y
             )
 
-        liveness_scope.release()
         return layered_fig
