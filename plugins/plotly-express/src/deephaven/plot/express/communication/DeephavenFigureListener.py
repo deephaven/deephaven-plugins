@@ -7,6 +7,7 @@ from typing import Any
 from deephaven.plugin.object_type import MessageStream
 from deephaven.table_listener import listen, TableUpdate
 from deephaven.liveness_scope import LivenessScope
+import deephaven.pandas as dhpd
 
 from ..exporter import Exporter
 from ..deephaven_figure import DeephavenFigure, DeephavenFigureNode, RevisionManager
@@ -67,10 +68,14 @@ class DeephavenFigureListener:
         Setup listeners for the partitioned tables
         """
         for table, node in self._partitioned_tables.values():
-            listen_func = partial(self._on_update, node)
+            print("listening to table", id(table.table))
+            listen_func = partial(self._some_function, table)
             handle = listen(table.table, listen_func)
             self._handles.append(handle)
             self._liveness_scope.manage(handle)
+
+    def _some_function(self, ptable, update: TableUpdate, is_replay: bool) -> None:
+        dhpd.to_pandas(ptable.table.select(ptable.key_columns))
 
     def _get_figure(self) -> DeephavenFigure:
         """

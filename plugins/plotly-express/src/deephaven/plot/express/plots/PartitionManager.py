@@ -9,6 +9,7 @@ from pandas import DataFrame
 from deephaven.table import Table, PartitionedTable
 from deephaven import pandas as dhpd
 from deephaven import merge, empty_table
+from deephaven.liveness_scope import LivenessScope
 
 from ._layer import atomic_layer
 from .. import DeephavenFigure
@@ -417,8 +418,10 @@ class PartitionManager:
             if not partitioned_table:
                 partitioned_table = args["table"].partition_by(list(partition_cols))
 
+            print("on table", id(partitioned_table.table))
+
             key_column_table = dhpd.to_pandas(
-                partitioned_table.table.select_distinct(partitioned_table.key_columns)
+                partitioned_table.table.select(partitioned_table.key_columns)
             )
             for arg_by, val in partition_map.items():
                 # remove "by" from arg
@@ -502,15 +505,14 @@ class PartitionManager:
             key_columns = self.partitioned_table.key_columns
             key_columns.sort()
 
-            key_column_table = dhpd.to_pandas(table.select_distinct(key_columns))
+            key_column_table = dhpd.to_pandas(table.select(key_columns))
             key_column_tuples = get_partition_key_column_tuples(
                 key_column_table, key_columns
             )
 
             if len(key_column_tuples) < 1:
-                # this partition might have been deleted, so it will
-                # just be removed from the figure
-                return
+                # this partition might have no data, so skip it
+                continue
 
             current_partition = dict(
                 zip(
@@ -574,6 +576,20 @@ class PartitionManager:
         else:
             yield args
 
+    def default_figure(self) -> DeephavenFigure:
+        """
+        Create a default figure if there are no partitions
+
+        Returns:
+            DeephavenFigure: The default figure
+        """
+        # this is very hacky but it's needed to prevent errors when
+        # there are no partitions until a better solution can be done
+        # also need the px template to be set
+        default_fig = px.scatter(x=[0], y=[0])
+        default_fig.update_traces(x=[], y=[])
+        return DeephavenFigure(default_fig)
+
     def create_figure(self) -> DeephavenFigure:
         """
         Create a figure. This handles layering different partitions as necessary as well
@@ -583,16 +599,16 @@ class PartitionManager:
             DeephavenFigure: The new figure
         """
         if isinstance(self.partitioned_table, PartitionedTable):
-            # lock constituents in case tables are deleted
+            # lock constituents in case they are deleted
             self.constituents = self.partitioned_table.constituent_tables
 
             if len(self.constituents) == 0:
-                # this is very hacky but it's needed to prevent errors when
-                # there are no partitions until a better solution can be done
-                # also need the px template to be set
-                default_fig = px.scatter(x=[0], y=[0])
-                default_fig.update_traces(x=[], y=[])
-                return DeephavenFigure(default_fig)
+                return self.default_figure()
+
+        liveness_scope = LivenessScope()
+
+        for constituent in self.constituents:
+            liveness_scope.manage(constituent)
 
         trace_generator = None
         figs = []
@@ -633,7 +649,11 @@ class PartitionManager:
 
             figs.append(fig)
 
-        layered_fig = atomic_layer(*figs, which_layout=0)
+        try:
+            layered_fig = atomic_layer(*figs, which_layout=0)
+        except ValueError:
+            liveness_scope.release()
+            return self.default_figure()
 
         if self.has_color is False:
             layered_fig._has_color = False
@@ -649,8 +669,10 @@ class PartitionManager:
 
             self.marg_args["color"] = self.marg_color
 
+            liveness_scope.release()
             return self.attach_marginals(
                 layered_fig, self.marg_args, self.marginal_x, self.marginal_y
             )
 
+        liveness_scope.release()
         return layered_fig
