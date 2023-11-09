@@ -1335,6 +1335,36 @@ The functionality provided my `ui.table` replaces some of the existing functions
 | `dropColumnFormats`                                               | No replacement                                                                                                                                                                                                     |
 | `setTotalsTable`                                                  | [aggregations](#aggregations)                                                                                                                                                                                      |
 
+#### Custom Hooks
+
+Many hooks mirror React implementations (such as `use_memo` and `use_state`) but there are custom hooks that are useful for interacting with Deephaven data and structures.
+
+##### use_table_listener
+
+Call a callback function or `on_update` in a `TableListener` when the table is updated.
+
+###### Syntax
+
+```py
+use_table_listener(
+    table: Table,
+    listener: Callable[[TableUpdate, bool], None] | TableListener,
+    description: str | None = None,
+    do_replay: bool = False,
+    replay_lock: LockType = "shared",
+) -> None
+```
+
+###### Parameters
+
+| Parameter     | Type                                                   | Description                                                                                                                                                                                                                                   |
+|---------------|--------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `table`       | `Table`                                                | The table to listen to.                                                                                                                                                                                                                       |
+| `listener`    | `Callable[[TableUpdate, bool], None] \| TableListener` | Either a function or a [TableListener](https://deephaven.io/core/pydoc/code/deephaven.table_listener.html#deephaven.table_listener.TableListener) with an on_update function. The function must take a [TableUpdate](https://deephaven.io/core/pydoc/code/deephaven.table_listener.html#deephaven.table_listener.TableUpdate) and is_replay bool. [More table listener info](https://deephaven.io/core/docs/how-to-guides/table-listeners-python/)  |
+| `description` | `str \| None`                                          | An optional description for the UpdatePerformanceTracker to append to the listener’s entry description, default is None.
+| `do_replay`   | `bool`                                                 | Whether to replay the initial snapshot of the table, default is False.                                                                                                                                                                                               |
+| `replay_lock` | `LockType`                                             | The lock type used during replay, default is ‘shared’, can also be ‘exclusive’.                                                                                                                                                                           |
+
 #### Custom Types
 
 Below are some of the custom types that are used in the above API definitions:
@@ -1355,6 +1385,7 @@ DataBarValuePlacement = Literal["BESIDE", "OVERLAP", "HIDE"]
 # TODO: Fill in the list of Deephaven Colors we allow
 DeephavenColor = Literal[...]
 HexColor = str
+LockType = Literal["shared", "exclusive"]
 QuickFilterExpression = str
 RowData = dict[str, Any]
 # A RowIndex of None indicates a header column
@@ -1363,6 +1394,9 @@ SearchMode = Literal["SHOW", "HIDE", "DEFAULT"]
 SelectionMode = Literal["CELL", "ROW", "COLUMN"]
 SortDirection = Literal["ASC", "DESC"]
 ```
+
+                                                                                                                      |
+
 
 #### Context
 
