@@ -165,6 +165,7 @@ class PartitionManager:
         self.preprocessor = None
         self.set_long_mode_variables()
         self.convert_table_to_long_mode()
+        self.key_column_table = None
         self.partitioned_table = self.process_partitions()
         self.draw_figure = draw_figure
         self.constituents = None
@@ -417,12 +418,13 @@ class PartitionManager:
         if partition_cols:
             if not partitioned_table:
                 partitioned_table = args["table"].partition_by(list(partition_cols))
+            if not self.key_column_table:
+                self.key_column_table = partitioned_table.table.drop_columns(
+                    "__CONSTITUENT__"
+                )
 
-            print("on table", id(partitioned_table.table))
+            key_column_pandas = dhpd.to_pandas(self.key_column_table)
 
-            key_column_table = dhpd.to_pandas(
-                partitioned_table.table.select(partitioned_table.key_columns)
-            )
             for arg_by, val in partition_map.items():
                 # remove "by" from arg
                 arg = arg_by[:-3]
@@ -430,7 +432,7 @@ class PartitionManager:
                     # replace the sequence with the sequence, map and distinct keys
                     # so they can be easily used together
                     keys = get_partition_key_column_tuples(
-                        key_column_table, val if isinstance(val, list) else [val]
+                        key_column_pandas, val if isinstance(val, list) else [val]
                     )
                     sequence, map_ = PARTITION_ARGS[arg]
                     args[sequence] = {
@@ -600,7 +602,7 @@ class PartitionManager:
         """
         if isinstance(self.partitioned_table, PartitionedTable):
             # lock constituents in case they are deleted
-            self.constituents = self.partitioned_table.constituent_tables
+            self.constituents = [*self.partitioned_table.constituent_tables]
 
             if len(self.constituents) == 0:
                 return self.default_figure()

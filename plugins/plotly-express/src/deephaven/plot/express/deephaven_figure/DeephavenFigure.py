@@ -498,7 +498,6 @@ class DeephavenFigure:
             layer_func: Callable: The layer function
             args: dict[str, Any]: The arguments to the function
             exec_ctx: ExecutionContext: The execution context
-
         """
 
         new_head = DeephavenHeadNode()
@@ -536,6 +535,7 @@ class DeephavenFigure:
         exec_ctx: ExecutionContext,
         args: dict[str, Any],
         table: Table | PartitionedTable,
+        key_column_table: Table,
         func: Callable,
     ) -> None:
         """
@@ -545,6 +545,7 @@ class DeephavenFigure:
             exec_ctx: ExecutionContext: The execution context
             args: dict[str, Any]: The arguments to the function
             table: Table | PartitionedTable: The table to pull data from
+            key_column_table: Table: The table with partitions, used by the DeephavenFigureListener
             func: Callable: The function to call
 
         """
@@ -554,7 +555,7 @@ class DeephavenFigure:
 
         partitioned_tables = {}
         if isinstance(table, PartitionedTable):
-            partitioned_tables = {id(node): (table, node)}
+            partitioned_tables = {id(node): (key_column_table, node)}
 
         self._head_node.node = node
         self._head_node.partitioned_tables = partitioned_tables

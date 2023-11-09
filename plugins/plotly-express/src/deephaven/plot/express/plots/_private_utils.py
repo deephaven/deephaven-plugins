@@ -174,7 +174,7 @@ def create_deephaven_figure(
     pop: list[str] = None,
     remap: dict[str, str] = None,
     px_func: Callable = None,
-) -> tuple[DeephavenFigure, Table | PartitionedTable, dict[str, Any]]:
+) -> tuple[DeephavenFigure, Table | PartitionedTable, Table, dict[str, Any]]:
     """Process the provided args
 
     Args:
@@ -190,9 +190,9 @@ def create_deephaven_figure(
       px_func: Callable: the function (generally from px) to use to create the figure
 
     Returns:
-      tuple[DeephavenFigure, Table | PartitionedTable]: A tuple of the figure, the table, and an update that needs to be
-      applied to all calls that regenerate this figure. If "by" is set, there is a plot by column. If "x" or "y" are
-      set, there is a list variable which needs to be replaced.
+      tuple[DeephavenFigure, Table | PartitionedTable]: A tuple of the figure, the table, a table to listen to, and an
+      update that needs to be applied to all calls that regenerate this figure. If "by" is set, there is a plot by
+      column. If "x" or "y" are set, there is a list variable which needs to be replaced.
 
     """
     validate_common_args(args)
@@ -241,6 +241,7 @@ def create_deephaven_figure(
     return (
         update_wrapper(partitioned.create_figure()),
         partitioned.partitioned_table,
+        partitioned.key_column_table,
         update,
     )
 
@@ -275,14 +276,16 @@ def process_args(
     orig_process_args = args_copy(use_args)
     orig_process_func = lambda **local_args: create_deephaven_figure(**local_args)[0]
 
-    new_fig, table, update = create_deephaven_figure(**use_args)
+    new_fig, table, key_column_table, update = create_deephaven_figure(**use_args)
 
     orig_process_args["args"].update(update)
 
     exec_ctx = make_user_exec_ctx()
 
     # these are needed for when partitions are added
-    new_fig.add_figure_to_graph(exec_ctx, orig_process_args, table, orig_process_func)
+    new_fig.add_figure_to_graph(
+        exec_ctx, orig_process_args, table, key_column_table, orig_process_func
+    )
 
     return new_fig
 

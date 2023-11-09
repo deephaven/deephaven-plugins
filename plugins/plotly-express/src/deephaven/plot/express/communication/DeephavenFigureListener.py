@@ -68,14 +68,10 @@ class DeephavenFigureListener:
         Setup listeners for the partitioned tables
         """
         for table, node in self._partitioned_tables.values():
-            print("listening to table", id(table.table))
-            listen_func = partial(self._some_function, table)
-            handle = listen(table.table, listen_func)
+            listen_func = partial(self._on_update, node)
+            handle = listen(table, listen_func)
             self._handles.append(handle)
             self._liveness_scope.manage(handle)
-
-    def _some_function(self, ptable, update: TableUpdate, is_replay: bool) -> None:
-        dhpd.to_pandas(ptable.table.select(ptable.key_columns))
 
     def _get_figure(self) -> DeephavenFigure:
         """
@@ -101,9 +97,13 @@ class DeephavenFigureListener:
         if self._connection:
             revision = self._revision_manager.get_revision()
             node.recreate_figure()
-            self._connection.on_data(
-                *self._build_figure_message(self._get_figure(), revision)
-            )
+            try:
+                self._connection.on_data(
+                    *self._build_figure_message(self._get_figure(), revision)
+                )
+            except RuntimeError:
+                # trying to send data when the connection is closed, ignore
+                pass
 
     def _handle_retrieve_figure(self) -> tuple[bytes, list[Any]]:
         """
