@@ -143,10 +143,13 @@ export class PlotlyExpressChartModel extends ChartModel {
   override async subscribe(
     callback: (event: CustomEvent) => void
   ): Promise<void> {
+    if (this.isSubscribed) {
+      return;
+    }
     super.subscribe(callback);
     if (this.widget == null) {
       this.widget = await this.refetch();
-      const widgetData = JSON.parse(this.widget.getDataAsString());
+      const widgetData = getWidgetData(this.widget);
       this.handleWidgetUpdated(widgetData, this.widget.exportedObjects);
     }
 
@@ -162,9 +165,19 @@ export class PlotlyExpressChartModel extends ChartModel {
     );
 
     this.tableReferenceMap.forEach((_, id) => this.subscribeTable(id));
+
+    // If there are no tables to fetch data from, the chart is ready to render
+    // Normally this event only fires once at least 1 table has fetched data
+    // Without this, the chart shows an infinite loader if there are no tables
+    if (this.tableColumnReplacementMap.size === 0) {
+      this.fireUpdate(this.getData());
+    }
   }
 
   override unsubscribe(callback: (event: CustomEvent) => void): void {
+    if (!this.isSubscribed) {
+      return;
+    }
     super.unsubscribe(callback);
     this.widgetUnsubscribe?.();
     this.isSubscribed = false;
@@ -218,6 +231,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     );
 
     newReferences.forEach(async (id, i) => {
+      this.tableDataMap.set(id, {}); // Plot may render while tables are being fetched. Set this to avoid a render error
       const table = (await references[i].fetch()) as Table;
       this.addTable(id, table);
     });
