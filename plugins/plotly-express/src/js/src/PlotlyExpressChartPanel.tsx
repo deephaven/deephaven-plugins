@@ -1,11 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Plotly from 'plotly.js-dist-min';
 import { ChartPanel, ChartPanelProps } from '@deephaven/dashboard-core-plugins';
-import { ChartTheme } from '@deephaven/chart';
 import { type WidgetComponentProps } from '@deephaven/plugin';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import PlotlyExpressChartModel from './PlotlyExpressChartModel.js';
-import { getWidgetData, getDataMappings } from './PlotlyExpressChartUtils.js';
 
 function PlotlyExpressChartPanel(props: WidgetComponentProps) {
   const dh = useApi();
@@ -14,19 +12,8 @@ function PlotlyExpressChartPanel(props: WidgetComponentProps) {
   const [model, setModel] = useState<PlotlyExpressChartModel>();
 
   const makeModel = useCallback(async () => {
-    const widgetInfo = await fetch();
-    const data = getWidgetData(widgetInfo);
-    const { plotly, deephaven } = data;
-    const isDefaultTemplate = !deephaven.is_user_set_template;
-    const tableColumnReplacementMap = await getDataMappings(widgetInfo);
-    const m = new PlotlyExpressChartModel(
-      dh,
-      tableColumnReplacementMap,
-      plotly.data,
-      plotly.layout ?? {},
-      isDefaultTemplate,
-      ChartTheme
-    );
+    const widgetData = await fetch();
+    const m = new PlotlyExpressChartModel(dh, widgetData, fetch);
     setModel(m);
     return m;
   }, [dh, fetch]);
@@ -85,7 +72,7 @@ function PlotlyExpressChartPanel(props: WidgetComponentProps) {
       containerRef={containerRef}
       makeModel={makeModel}
       Plotly={Plotly}
-      metadata={metadata}
+      metadata={metadata as ChartPanelProps['metadata']}
     />
   );
 }

@@ -14,9 +14,17 @@ from ._private_utils import (
     shared_strip,
     shared_histogram,
 )
-from ._update_wrapper import default_callback, unsafe_figure_update_wrapper
 from ..deephaven_figure import DeephavenFigure
 from ..preprocess import preprocess_ecdf
+
+from ..shared import (
+    VIOLIN_DEFAULTS,
+    BOX_DEFAULTS,
+    STRIP_DEFAULTS,
+    HISTOGRAM_DEFAULTS,
+    default_callback,
+    unsafe_figure_update_wrapper,
+)
 
 
 def violin(
@@ -24,22 +32,22 @@ def violin(
     x: str | list[str] = None,
     y: str | list[str] = None,
     by: str | list[str] = None,
-    by_vars: str | list[str] = "color",
+    by_vars: str | list[str] = VIOLIN_DEFAULTS["by_vars"],
     color: str | list[str] = None,
     hover_name: str = None,
     labels: dict[str, str] = None,
     color_discrete_sequence: list[str] = None,
     color_discrete_map: dict[str | tuple[str], str] = None,
-    violinmode: str = "group",
+    violinmode: str = VIOLIN_DEFAULTS["violinmode"],
     log_x: bool = False,
     log_y: bool = False,
     range_x: list[int] = None,
     range_y: list[int] = None,
-    points: bool | str = "outliers",
+    points: bool | str = VIOLIN_DEFAULTS["points"],
     box: bool = False,
     title: str = None,
     template: str = None,
-    unsafe_update_figure: callable = default_callback,
+    unsafe_update_figure: callable = VIOLIN_DEFAULTS["unsafe_update_figure"],
 ) -> DeephavenFigure:
     """Returns a violin chart
 
@@ -120,7 +128,7 @@ def violin(
 
     args = locals()
 
-    return shared_violin(**args)
+    return shared_violin(marginal=False, **args)
 
 
 def box(
@@ -128,22 +136,22 @@ def box(
     x: str | list[str] = None,
     y: str | list[str] = None,
     by: str | list[str] = None,
-    by_vars: str | list[str] = "color",
+    by_vars: str | list[str] = BOX_DEFAULTS["by_vars"],
     color: str | list[str] = None,
     hover_name: str = None,
     labels: dict[str, str] = None,
     color_discrete_sequence: list[str] = None,
     color_discrete_map: dict[str | tuple[str], str] = None,
-    boxmode: str = "group",
+    boxmode: str = BOX_DEFAULTS["boxmode"],
     log_x: bool = False,
     log_y: bool = False,
     range_x: list[int] = None,
     range_y: list[int] = None,
-    points: bool | str = "outliers",
+    points: bool | str = BOX_DEFAULTS["points"],
     notched: bool = False,
     title: str = None,
     template: str = None,
-    unsafe_update_figure: Callable = default_callback,
+    unsafe_update_figure: Callable = BOX_DEFAULTS["unsafe_update_figure"],
 ) -> DeephavenFigure:
     """Returns a box chart
 
@@ -224,7 +232,7 @@ def box(
 
     args = locals()
 
-    return shared_box(**args)
+    return shared_box(marginal=False, **args)
 
 
 def strip(
@@ -232,20 +240,20 @@ def strip(
     x: str | list[str] = None,
     y: str | list[str] = None,
     by: str | list[str] = None,
-    by_vars: str | list[str] = "color",
+    by_vars: str | list[str] = STRIP_DEFAULTS["by_vars"],
     color: str | list[str] = None,
     hover_name: str = None,
     labels: dict[str, str] = None,
     color_discrete_sequence: list[str] = None,
     color_discrete_map: dict[str | tuple[str], str] = None,
-    stripmode: bool | str = "group",
+    stripmode: bool | str = STRIP_DEFAULTS["stripmode"],
     log_x: bool = False,
     log_y: bool = False,
     range_x: list[int] = None,
     range_y: list[int] = None,
     title: str = None,
     template: str = None,
-    unsafe_update_figure: Callable = default_callback,
+    unsafe_update_figure: Callable = STRIP_DEFAULTS["unsafe_update_figure"],
 ) -> DeephavenFigure:
     """Returns a strip chart
 
@@ -320,7 +328,7 @@ def strip(
 
     args = locals()
 
-    return shared_strip(**args)
+    return shared_strip(marginal=False, **args)
 
 
 def _ecdf(
@@ -398,7 +406,7 @@ def histogram(
     x: str | list[str] = None,
     y: str | list[str] = None,
     by: str | list[str] = None,
-    by_vars: str | list[str] = "color",
+    by_vars: str | list[str] = HISTOGRAM_DEFAULTS["by_vars"],
     color: str | list[str] = None,
     pattern_shape: str | list[str] = None,
     labels: dict[str, str] = None,
@@ -408,17 +416,17 @@ def histogram(
     pattern_shape_map: dict[str | tuple[str], str] = None,
     marginal: str = None,
     opacity: float = None,
-    barmode: str = "relative",
-    barnorm: str = None,
-    histnorm: str = None,
+    barmode: str = HISTOGRAM_DEFAULTS["barmode"],
+    barnorm: str = HISTOGRAM_DEFAULTS["barnorm"],
+    histnorm: str = HISTOGRAM_DEFAULTS["histnorm"],
     log_x: bool = False,
     log_y: bool = False,
     range_x: list[int] = None,
     range_y: list[int] = None,
-    range_bins: list[int] = None,
-    histfunc: str = "count",
-    cumulative: bool = False,
-    nbins: int = 10,
+    range_bins: list[int] = HISTOGRAM_DEFAULTS["range_bins"],
+    histfunc: str = HISTOGRAM_DEFAULTS["histfunc"],
+    cumulative: bool = HISTOGRAM_DEFAULTS["cumulative"],
+    nbins: int = HISTOGRAM_DEFAULTS["nbins"],
     text_auto: bool | str = False,
     title: str = None,
     template: str = None,
@@ -532,4 +540,4 @@ def histogram(
     """
     args = locals()
 
-    return shared_histogram(**args)
+    return shared_histogram(marginal=False, **args)

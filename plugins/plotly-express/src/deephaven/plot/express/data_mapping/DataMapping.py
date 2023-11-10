@@ -42,7 +42,7 @@ class DataMapping:
 
         """
         return json_link_mapping(
-            self._data_mapping, exporter.reference(self._table).index, self._start_index
+            self._data_mapping, exporter.reference(self._table).id, self._start_index
         )
 
     def copy(self: DataMapping, offset: int) -> DataMapping:

@@ -1,43 +1,45 @@
 import type { Data, PlotlyDataLayoutConfig } from 'plotly.js';
-import type { JsWidget, Table } from '@deephaven/jsapi-types';
-import { assertNotNull } from '@deephaven/utils';
+import type { JsWidget } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartUtils');
 
 export interface PlotlyChartWidgetData {
-  deephaven: {
-    mappings: Array<{
-      table: number;
-      data_columns: Record<string, string[]>;
-    }>;
-    is_user_set_template: boolean;
-    is_user_set_color: boolean;
+  type: string;
+  figure: {
+    deephaven: {
+      mappings: Array<{
+        table: number;
+        data_columns: Record<string, string[]>;
+      }>;
+      is_user_set_template: boolean;
+      is_user_set_color: boolean;
+    };
+    plotly: PlotlyDataLayoutConfig;
   };
-  plotly: PlotlyDataLayoutConfig;
+  revision: number;
+  new_references: number[];
+  removed_references: number[];
 }
 
 export function getWidgetData(widgetInfo: JsWidget): PlotlyChartWidgetData {
   return JSON.parse(widgetInfo.getDataAsString());
 }
 
-export async function getDataMappings(
-  widgetInfo: JsWidget
-): Promise<Map<Table, Map<string, string[]>>> {
-  const data = getWidgetData(widgetInfo);
-  const tables = await Promise.all(
-    widgetInfo.exportedObjects.map(obj => obj.fetch() as Promise<Table>)
-  );
+export function getDataMappings(
+  widgetData: PlotlyChartWidgetData
+): Map<number, Map<string, string[]>> {
+  const data = widgetData.figure;
 
-  // Maps a table to a map of column name to an array of the paths where its data should be
-  const tableColumnReplacementMap = new Map<Table, Map<string, string[]>>();
-  tables.forEach(table => tableColumnReplacementMap.set(table, new Map()));
+  // Maps a reference index to a map of column name to an array of the paths where its data should be
+  const tableColumnReplacementMap = new Map<number, Map<string, string[]>>();
 
   data.deephaven.mappings.forEach(
     ({ table: tableIndex, data_columns: dataColumns }) => {
-      const table = tables[tableIndex];
-      const existingColumnMap = tableColumnReplacementMap.get(table);
-      assertNotNull(existingColumnMap);
+      const existingColumnMap =
+        tableColumnReplacementMap.get(tableIndex) ??
+        new Map<string, string[]>();
+      tableColumnReplacementMap.set(tableIndex, existingColumnMap);
 
       // For each { columnName: [replacePaths] } in the object, add to the tableColumnReplacementMap
       Object.entries(dataColumns).forEach(([columnName, paths]) => {
