@@ -8,9 +8,9 @@ from pandas import DataFrame
 
 from deephaven.table import Table, PartitionedTable
 from deephaven import pandas as dhpd
-from deephaven import merge
+from deephaven import merge, empty_table
 
-from ._layer import layer
+from ._layer import atomic_layer
 from .. import DeephavenFigure
 from ..preprocess.Preprocessor import Preprocessor
 from ..shared import get_unique_names
@@ -50,6 +50,7 @@ def get_partition_key_column_tuples(
     key_column_table: DataFrame, columns: list[str]
 ) -> list[tuple[Any]]:
     """
+    Get partition key column tuples from a table
 
     Args:
         key_column_table: DataFrame: The table containing the key columns
@@ -66,7 +67,7 @@ def get_partition_key_column_tuples(
 
 
 def numeric_column_set(
-    table: Table,
+    table: Table | PartitionedTable,
 ) -> set[str]:
     """Gets the set of numeric columns in the table
 
@@ -76,8 +77,11 @@ def numeric_column_set(
     Returns:
       set[str]: set of numeric columns
     """
+    cols = (
+        table.columns if isinstance(table, Table) else table.constituent_table_columns
+    )
     numeric_cols = set()
-    for col in table.columns:
+    for col in cols:
         type_ = col.data_type.j_name
         if type_ in NUMERIC_TYPES:
             numeric_cols.add(col.name)
@@ -128,6 +132,7 @@ class PartitionManager:
         partitioned_table: PartitionedTable: The partitioned table created (or
           passed in if already created)
         draw_figure: Callable: The function used to draw the figure
+        constituents: list[Table]: The list of constituent tables
     """
 
     def __init__(
@@ -138,7 +143,7 @@ class PartitionManager:
         marg_args: dict[str, any],
         marg_func: Callable,
     ):
-
+        self.by = None
         self.by_vars = None
         self.list_var = None
         self.cols = None
@@ -159,8 +164,10 @@ class PartitionManager:
         self.preprocessor = None
         self.set_long_mode_variables()
         self.convert_table_to_long_mode()
+        self.key_column_table = None
         self.partitioned_table = self.process_partitions()
         self.draw_figure = draw_figure
+        self.constituents = None
 
     def set_long_mode_variables(self) -> None:
         """
@@ -282,7 +289,6 @@ class PartitionManager:
         """
         args = self.args
         table = args["table"]
-        table = table if isinstance(table, Table) else table.constituent_tables[0]
         numeric_cols = numeric_column_set(table)
 
         plot_by_cols = args.get("by", None)
@@ -378,8 +384,12 @@ class PartitionManager:
         if isinstance(args["table"], PartitionedTable):
             partitioned_table = args["table"]
 
+        # save the by arg so it can be reused in renders,
+        # especially if it was overriden
+        self.by = args.get("by", None)
+
         for arg, val in list(args.items()):
-            if (val or args.get("by", None)) and arg in PARTITION_ARGS:
+            if (val or self.by) and arg in PARTITION_ARGS:
                 arg_by, cols = self.handle_plot_by_arg(arg, val)
                 if cols:
                     partition_map[arg_by] = cols
@@ -394,11 +404,10 @@ class PartitionManager:
                 else:
                     self.facet_col = val
 
-        # it's possible that pivot vars are set but by_vars is None,
-        # so partitioning is still needed on that column but it won't
-        # affect styles
-        if self.pivot_vars:
-            partition_cols.add(self.pivot_vars["variable"])
+        # it's possible that by vars are set but by_vars is None,
+        # so partitioning is still needed but it won't affect styles
+        if not self.by_vars and self.by:
+            partition_cols.update(self.by if isinstance(self.by, list) else [self.by])
 
         # preprocessor needs to be initialized after the always attached arguments are found
         self.preprocessor = Preprocessor(
@@ -408,10 +417,13 @@ class PartitionManager:
         if partition_cols:
             if not partitioned_table:
                 partitioned_table = args["table"].partition_by(list(partition_cols))
+            if not self.key_column_table:
+                self.key_column_table = partitioned_table.table.drop_columns(
+                    "__CONSTITUENT__"
+                )
 
-            key_column_table = dhpd.to_pandas(
-                partitioned_table.table.select_distinct(partitioned_table.key_columns)
-            )
+            key_column_pandas = dhpd.to_pandas(self.key_column_table)
+
             for arg_by, val in partition_map.items():
                 # remove "by" from arg
                 arg = arg_by[:-3]
@@ -419,7 +431,7 @@ class PartitionManager:
                     # replace the sequence with the sequence, map and distinct keys
                     # so they can be easily used together
                     keys = get_partition_key_column_tuples(
-                        key_column_table, val if isinstance(val, list) else [val]
+                        key_column_pandas, val if isinstance(val, list) else [val]
                     )
                     sequence, map_ = PARTITION_ARGS[arg]
                     args[sequence] = {
@@ -489,16 +501,24 @@ class PartitionManager:
         Yields:
             dict[str, str]: The partition dictionary mapping column to value
         """
-        for table in self.partitioned_table.constituent_tables:
-            key_column_table = dhpd.to_pandas(
-                table.select_distinct(self.partitioned_table.key_columns)
+        for table in self.constituents:
+            # sort the columns so the order is consistent
+            key_columns = self.partitioned_table.key_columns
+            key_columns.sort()
+
+            key_column_table = dhpd.to_pandas(table.select(key_columns))
+            key_column_tuples = get_partition_key_column_tuples(
+                key_column_table, key_columns
             )
+
+            if len(key_column_tuples) < 1:
+                # this partition might have no data, so skip it
+                continue
+
             current_partition = dict(
                 zip(
-                    self.partitioned_table.key_columns,
-                    get_partition_key_column_tuples(
-                        key_column_table, self.partitioned_table.key_columns
-                    )[0],
+                    key_columns,
+                    key_column_tuples[0],
                 )
             )
             yield current_partition
@@ -512,9 +532,10 @@ class PartitionManager:
             tuple[Table, dict[str, str]: The tuple of table and current partition
 
         """
-        constituents = self.partitioned_table.constituent_tables
         column = self.pivot_vars["value"] if self.pivot_vars else None
-        tables = self.preprocessor.preprocess_partitioned_tables(constituents, column)
+        tables = self.preprocessor.preprocess_partitioned_tables(
+            self.constituents, column
+        )
         for table, current_partition in zip(tables, self.current_partition_generator()):
             yield table, current_partition
 
@@ -556,6 +577,20 @@ class PartitionManager:
         else:
             yield args
 
+    def default_figure(self) -> DeephavenFigure:
+        """
+        Create a default figure if there are no partitions
+
+        Returns:
+            DeephavenFigure: The default figure
+        """
+        # this is very hacky but it's needed to prevent errors when
+        # there are no partitions until a better solution can be done
+        # also need the px template to be set
+        default_fig = px.scatter(x=[0], y=[0])
+        default_fig.update_traces(x=[], y=[])
+        return DeephavenFigure(default_fig)
+
     def create_figure(self) -> DeephavenFigure:
         """
         Create a figure. This handles layering different partitions as necessary as well
@@ -564,19 +599,26 @@ class PartitionManager:
         Returns:
             DeephavenFigure: The new figure
         """
+        if isinstance(self.partitioned_table, PartitionedTable):
+            # lock constituents in case they are deleted
+            self.constituents = [*self.partitioned_table.constituent_tables]
+
+            if len(self.constituents) == 0:
+                return self.default_figure()
+
         trace_generator = None
         figs = []
         for i, args in enumerate(self.partition_generator()):
             fig = self.draw_figure(call_args=args, trace_generator=trace_generator)
             if not trace_generator:
-                trace_generator = fig.trace_generator
+                trace_generator = fig.get_trace_generator()
 
             facet_key = []
             if "current_partition" in args:
                 partition = args["current_partition"]
                 if (
                     "preprocess_hist" in self.groups
-                    or "preprocess_violin" in self.groups
+                    or "preprocess_spread" in self.groups
                 ):
                     # offsetgroup is needed mostly to prevent spacing issues in
                     # marginals
@@ -584,7 +626,7 @@ class PartitionManager:
                     # violin, etc. leads to extra spacing in each marginal
                     # offsetgroup needs to be unique within the subchart as columns
                     # could have the same name
-                    fig.fig.update_traces(
+                    fig.get_plotly_fig().update_traces(
                         offsetgroup=f"{'-'.join(args['current_partition'])}{i}"
                     )
                 facet_key.extend(
@@ -595,18 +637,21 @@ class PartitionManager:
                 )
             facet_key = tuple(facet_key)
 
-            if "preprocess_hist" in self.groups or "preprocess_violin" in self.groups:
+            if "preprocess_hist" in self.groups or "preprocess_spread" in self.groups:
                 if "current_partition" in args:
-                    fig.fig.update_layout(legend_tracegroupgap=0)
+                    fig.get_plotly_fig().update_layout(legend_tracegroupgap=0)
                 else:
-                    fig.fig.update_layout(showlegend=False)
+                    fig.get_plotly_fig().update_layout(showlegend=False)
 
             figs.append(fig)
 
-        layered_fig = layer(*figs, which_layout=0)
+        try:
+            layered_fig = atomic_layer(*figs, which_layout=0)
+        except ValueError:
+            return self.default_figure()
 
         if self.has_color is False:
-            layered_fig.has_color = False
+            layered_fig._has_color = False
 
         if self.marg_args:
             # the marginals need to use the already partitioned table as they

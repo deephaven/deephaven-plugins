@@ -7,7 +7,7 @@ from plotly import express as px
 from deephaven.table import Table
 
 from ._private_utils import validate_common_args, process_args
-from ._update_wrapper import default_callback
+from ..shared import default_callback
 from ..deephaven_figure import generate_figure, DeephavenFigure
 
 

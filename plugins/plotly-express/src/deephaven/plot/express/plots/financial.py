@@ -3,7 +3,7 @@ from __future__ import annotations
 from deephaven.table import Table
 
 from ._private_utils import process_args
-from ._update_wrapper import default_callback
+from ..shared import default_callback
 from ..deephaven_figure import draw_ohlc, draw_candlestick, DeephavenFigure
 
 

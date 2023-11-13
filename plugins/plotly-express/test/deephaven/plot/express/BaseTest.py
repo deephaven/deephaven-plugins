@@ -25,7 +25,7 @@ class BaseTestCase(unittest.TestCase):
         cls.exporter = MockExporter()
         cls.reference = MockReference()
 
-        cls.reference.index = 0
+        cls.reference.id = 0
         cls.exporter.reference.return_value = MockReference()
 
 

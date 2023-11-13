@@ -1,7 +1,12 @@
-from deephaven.plugin import Registration, Callback
-from deephaven.plugin.object_type import Exporter, FetchOnlyObjectType
+from __future__ import annotations
 
-from .deephaven_figure import DeephavenFigure, export_figure
+import json
+
+from deephaven.plugin import Registration, Callback
+from deephaven.plugin.object_type import BidirectionalObjectType, MessageStream
+
+from .communication.DeephavenFigureConnection import DeephavenFigureConnection
+from .deephaven_figure import DeephavenFigure
 
 from .plots import (
     area,
@@ -44,7 +49,7 @@ __version__ = "0.1.0"
 NAME = "deephaven.plot.express.DeephavenFigure"
 
 
-class DeephavenFigureType(FetchOnlyObjectType):
+class DeephavenFigureType(BidirectionalObjectType):
     """
     DeephavenFigureType for plugin registration
 
@@ -73,18 +78,29 @@ class DeephavenFigureType(FetchOnlyObjectType):
         """
         return isinstance(obj, DeephavenFigure)
 
-    def to_bytes(self, exporter: Exporter, figure: DeephavenFigure) -> bytes:
+    def create_client_connection(
+        self, obj: DeephavenFigure, connection: MessageStream
+    ) -> MessageStream:
         """
-        Converts a DeephavenFigure to bytes
+        Create a client connection for the DeephavenFigure.
+        This sends an initial figure to the client.
 
         Args:
-          exporter: Exporter: The exporter to use
-          figure: DeephavenFigure: The figure to convert
+          obj: object: The object to create the connection for
+          connection: MessageStream: The connection to use
 
         Returns:
-            bytes: The Figure as bytes
+            MessageStream: The client connection
         """
-        return export_figure(exporter, figure)
+        figure_connection = DeephavenFigureConnection(obj, connection)
+        initial_message = json.dumps(
+            {
+                "type": "RETRIEVE",
+            }
+        ).encode()
+        payload, references = figure_connection.on_data(initial_message, [])
+        connection.on_data(payload, references)
+        return figure_connection
 
 
 class ChartRegistration(Registration):
