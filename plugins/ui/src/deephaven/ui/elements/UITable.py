@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import logging
-from typing import Any, Callable
+from typing import Any, Callable, Dict
 from deephaven.table import Table
 from .Element import Element
 from .._internal import dict_to_camel_case, RenderContext
@@ -7,7 +9,7 @@ from .._internal import dict_to_camel_case, RenderContext
 logger = logging.getLogger(__name__)
 
 RowIndex = int
-RowDataMap = dict[str, Any]
+RowDataMap = Dict[str, Any]
 
 
 class UITable(Element):
@@ -50,7 +52,7 @@ class UITable(Element):
         return dict_to_camel_case({**self._props, "table": self._table})
 
     def on_row_double_press(
-        self, callback: Callable[[int, dict[str, Any]], None]
+        self, callback: Callable[[RowIndex, RowDataMap], None]
     ) -> "UITable":
         """
         Add a callback to be invoked when a row is double-clicked.

@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 class RenderedNode:
     """
     Represents the result of rendering a node.
