@@ -878,7 +878,7 @@ The `ui.dashboard` function requires a single argument, which is the root elemen
 
 ```py
 import deephaven.ui as ui
-ui_panel = ui.panel(
+ui_dashboard= ui.dashboard(
     root: Element,
     label: str | None = None,
     settings: DashboardSettings | None = None,
