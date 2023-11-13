@@ -1,5 +1,6 @@
 import unittest
 from operator import itemgetter
+from time import sleep
 from typing import Callable
 from unittest.mock import Mock
 from .BaseTest import BaseTestCase
@@ -132,6 +133,39 @@ class HooksTest(BaseTestCase):
         result = rerender(mock, b=4)
         self.assertEqual(result, "biz")
         self.assertEqual(mock.call_count, 1)
+
+    def test_table_listener(self):
+        from deephaven.ui.hooks import use_table_listener
+        from deephaven import time_table, new_table
+        from deephaven.replay import TableReplayer
+        from deephaven.time import to_j_instant
+        from deephaven.column import datetime_col
+        from deephaven.table_listener import TableUpdate
+
+        start_time = to_j_instant("2020-01-01T20:20:20.000000000 UTC")
+        end_time = to_j_instant("2020-01-01T20:20:20.000000002 UTC")
+
+        times = new_table(
+            [datetime_col("Time", [to_j_instant("2020-01-01T20:20:20.000000001 UTC")])]
+        )
+
+        replayer = TableReplayer(start_time, end_time)
+        replayed_table = replayer.add_table(times, "Time")
+
+        updated = False
+
+        def listener(update: TableUpdate, is_replay: bool) -> None:
+            nonlocal updated
+            updated = True
+
+        use_table_listener(replayed_table, listener)
+
+        replayer.start()
+
+        # Slight delay to make sure the listener has time to run
+        sleep(1)
+
+        self.assertEqual(updated, True)
 
 
 if __name__ == "__main__":
