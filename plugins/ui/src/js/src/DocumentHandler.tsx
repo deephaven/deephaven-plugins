@@ -37,6 +37,7 @@ function DocumentHandler({
 
   const handlePanelOpen = useCallback(() => {
     panelOpenCountRef.current += 1;
+    log.debug('Panel opened, open count', panelOpenCountRef.current);
   }, []);
 
   const handlePanelClose = useCallback(() => {
@@ -75,6 +76,8 @@ function DocumentHandler({
       <ReactPanel
         title={definition.title ?? definition.id ?? definition.type}
         metadata={metadata}
+        onOpen={handlePanelOpen}
+        onClose={handlePanelClose}
       >
         <ElementView element={element} />
       </ReactPanel>
