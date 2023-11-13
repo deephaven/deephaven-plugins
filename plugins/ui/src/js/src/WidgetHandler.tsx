@@ -8,7 +8,7 @@ import {
   JSONRPCServerAndClient,
 } from 'json-rpc-2.0';
 import { useApi } from '@deephaven/jsapi-bootstrap';
-import { Widget, WidgetExportedObject } from '@deephaven/jsapi-types';
+import type { Widget, WidgetExportedObject } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import {
   CALLABLE_KEY,

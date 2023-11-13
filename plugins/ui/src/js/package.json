@@ -50,6 +50,7 @@
     "@deephaven/jsapi-bootstrap": "^0.54.0",
     "@deephaven/jsapi-types": "^0.54.0",
     "@deephaven/log": "^0.54.0",
+    "@deephaven/plugin": "^0.54.0",
     "@deephaven/react-hooks": "^0.54.0",
     "@deephaven/utils": "^0.54.0",
     "@fortawesome/react-fontawesome": "^0.2.0",

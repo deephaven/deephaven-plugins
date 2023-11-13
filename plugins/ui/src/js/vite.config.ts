@@ -25,6 +25,7 @@ export default defineConfig(({ mode }) => ({
         '@deephaven/iris-grid',
         '@deephaven/jsapi-bootstrap',
         '@deephaven/log',
+        '@deephaven/plugin',
       ],
     },
   },
