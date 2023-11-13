@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Any
 from .Element import Element
 from .._internal import dict_to_camel_case, RenderContext
@@ -9,7 +11,7 @@ class BaseElement(Element):
     Must provide a name for the element.
     """
 
-    def __init__(self, name: str, *children: Element, **props: Any):
+    def __init__(self, name: str, *children: Any, **props: Any):
         self._name = name
         if len(children) > 0 and props.get("children") is not None:
             raise ValueError("Cannot provide both children and props.children")
@@ -26,5 +28,5 @@ class BaseElement(Element):
     def name(self) -> str:
         return self._name
 
-    def render(self, context: RenderContext):
+    def render(self, context: RenderContext) -> dict[str, Any]:
         return self._props

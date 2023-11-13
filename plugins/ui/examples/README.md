@@ -9,7 +9,7 @@ Below are some examples to demonstrate some of the functionality you can do so f
 You can run the example Docker container with the following command:
 
 ```
-docker run --rm --name deephaven-ui -p 10000:10000 ghcr.io/deephaven/server-ui:edge
+docker run --rm --name deephaven-ui -p 10000:10000 --pull=always ghcr.io/deephaven/server-ui:edge
 ```
 
 You'll need to find the link to open the UI in the Docker logs:
@@ -47,7 +47,7 @@ c = counter()
 
 ## Text field (string)
 
-You can create a [TextField](https://react-spectrum.adobe.com/react-spectrum/TextField.html) that takes input from the user.
+You can create a [TextField](https://react-spectrum.adobe.com/react-spectrum/TextField.html) that takes input from the user. You can also use a [Flex](https://react-spectrum.adobe.com/react-spectrum/Flex.html) component to display multiple components in a row (or column, depending on the `direction` argument).
 
 ```python
 import deephaven.ui as ui
@@ -58,7 +58,11 @@ from deephaven.ui import use_state
 def my_input():
     text, set_text = use_state("hello")
 
-    return [ui.text_field(value=text, on_change=set_text), ui.text(f"You typed {text}")]
+    return ui.flex(
+        ui.text_field(value=text, on_change=set_text),
+        ui.text(f"You typed {text}"),
+        direction="column",
+    )
 
 
 mi = my_input()
@@ -78,10 +82,11 @@ from deephaven.ui import use_state
 @ui.component
 def checkbox_example():
     liked, set_liked = use_state(True)
-    return [
+    return ui.flex(
         ui.checkbox("I liked this", is_selected=liked, on_change=set_liked),
         ui.text("You liked this" if liked else "You didn't like this"),
-    ]
+        direction="column",
+    )
 
 
 ce = checkbox_example()
@@ -103,11 +108,12 @@ def form_example():
     name, set_name = use_state("Homer")
     age, set_age = use_state(36)
 
-    return [
+    return ui.flex(
         ui.text_field(value=name, on_change=set_name),
         ui.slider(value=age, on_change=set_age),
         ui.text(f"Hello {name}, you are {age} years old"),
-    ]
+        direction="column",
+    )
 
 
 fe = form_example()
@@ -136,7 +142,12 @@ from deephaven.ui import use_state
 def text_filter_table(source, column):
     value, set_value = use_state("FISH")
     t = source.where(f"{column}=`{value}`")
-    return [ui.text_field(value=value, on_change=set_value), t]
+    return ui.flex(
+        ui.text_field(value=value, on_change=set_value),
+        t,
+        direction="column",
+        flex_grow=1,
+    )
 
 
 pp = text_filter_table(stocks, "sym")
@@ -179,7 +190,7 @@ def stock_widget_table(source, default_sym="", default_exchange=""):
         else error_message
     )
 
-    return [ui.flex(ti1, ti2), t1]
+    return ui.flex(ui.flex(ti1, ti2), t1, direction="column", flex_grow=1)
 
 
 swt = stock_widget_table(stocks, "", "")
@@ -217,7 +228,7 @@ def stock_widget_plot(source, default_sym="", default_exchange=""):
         .show()
     )
 
-    return [ui.flex(ti1, ti2), t1, p]
+    return ui.flex(ui.flex(ti1, ti2), t1, p, direction="column", flex_grow=1)
 
 
 swp = stock_widget_plot(stocks, "CAT", "TPET")
@@ -378,6 +389,98 @@ wp = waves_with_plot()
 ```
 
 ![Waves with plot](assets/waves_with_plot.png)
+
+## Using Panels
+
+When you return an array of elements, they automatically get created as individual panels. You can use the `ui.panel` component to name the panel.
+
+```python
+from deephaven import ui
+from deephaven.ui import use_state
+from deephaven.plot.figure import Figure
+
+
+@ui.component
+def multiwave():
+    amplitude, frequency, phase, wave_input = use_wave_input()
+
+    tt = use_memo(lambda: time_table("PT1s").update("x=i"), [])
+    t = use_memo(
+        lambda: tt.update(
+            [
+                f"y_sin={amplitude}*Math.sin({frequency}*x+{phase})",
+                f"y_cos={amplitude}*Math.cos({frequency}*x+{phase})",
+                f"y_tan={amplitude}*Math.tan({frequency}*x+{phase})",
+            ]
+        ),
+        [amplitude, frequency, phase],
+    )
+    p_sin = use_memo(
+        lambda: Figure().plot_xy(series_name="Sine", t=t, x="x", y="y_sin").show(), [t]
+    )
+    p_cos = use_memo(
+        lambda: Figure().plot_xy(series_name="Cosine", t=t, x="x", y="y_cos").show(),
+        [t],
+    )
+    p_tan = use_memo(
+        lambda: Figure().plot_xy(series_name="Tangent", t=t, x="x", y="y_tan").show(),
+        [t],
+    )
+
+    return [
+        ui.panel(wave_input, title="Wave Input"),
+        ui.panel(t, title="Wave Table"),
+        ui.panel(p_sin, title="Sine"),
+        ui.panel(p_cos, title="Cosine"),
+        ui.panel(p_tan, title="Tangent"),
+    ]
+
+
+mw = multiwave()
+```
+
+## Using ui.table
+
+You can use `ui.table` to add interactivity to a table, or give other instructions to the UI. Here's an example that will create two tables and a plot. The first table `t1` is an unfiltered view of the stocks table, with a row double-press listener so if you double-click on a row, it will filter the second table `t2` to only show that row and the plot to show that selected sym and exchange.
+
+```py
+import deephaven.ui as ui
+from deephaven.ui import use_state
+from deephaven.plot.figure import Figure
+import deephaven.plot.express as dx
+
+stocks = dx.data.stocks()
+
+
+@ui.component
+def stock_table_input(source, default_sym="", default_exchange=""):
+    sym, set_sym = use_state(default_sym)
+    exchange, set_exchange = use_state(default_exchange)
+
+    t1 = source
+    t2 = source.where([f"sym=`{sym.upper()}`", f"exchange=`{exchange}`"])
+    p = (
+        Figure()
+        .plot_xy(series_name=f"{sym}-{exchange}", t=t2, x="timestamp", y="price")
+        .show()
+    )
+
+    def handle_row_double_press(row, data):
+        set_sym(data["sym"]["value"])
+        set_exchange(data["exchange"]["value"])
+
+    return [
+        ui.panel(
+            ui.table(t1).on_row_double_press(handle_row_double_press),
+            title="Stock Table Input",
+        ),
+        ui.panel(t2, title="Stock Filtered Table"),
+        ui.panel(p, title="Stock Plot"),
+    ]
+
+
+sti = stock_table_input(stocks, "CAT", "TPET")
+```
 
 ## Re-using components
 

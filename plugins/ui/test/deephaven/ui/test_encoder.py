@@ -40,20 +40,20 @@ class EncoderTest(BaseTestCase):
         self.assertListEqual(encoder.objects, expected_objects, "objects don't match")
 
     def test_empty_document(self):
-        self.expect_result(make_node(""), {"__dh_elem": ""})
+        self.expect_result(make_node(""), {"__dhElemName": ""})
 
     def test_props(self):
         self.expect_result(
             make_node("test_node", {"foo": "bar"}),
-            {"__dh_elem": "test_node", "props": {"foo": "bar"}},
+            {"__dhElemName": "test_node", "props": {"foo": "bar"}},
         )
 
     def test_child(self):
         self.expect_result(
             make_node("test0", {"children": make_node("test1")}),
             {
-                "__dh_elem": "test0",
-                "props": {"children": {"__dh_elem": "test1"}},
+                "__dhElemName": "test0",
+                "props": {"children": {"__dhElemName": "test1"}},
             },
         )
 
@@ -88,30 +88,30 @@ class EncoderTest(BaseTestCase):
                 },
             ),
             {
-                "__dh_elem": "test0",
+                "__dhElemName": "test0",
                 "props": {
                     "children": [
                         {
-                            "__dh_elem": "test1",
+                            "__dhElemName": "test1",
                             "props": {
                                 "children": [
                                     {
-                                        "__dh_elem": "test2",
+                                        "__dhElemName": "test2",
                                         "props": {
-                                            "children": [{"__dh_elem": "test3"}],
+                                            "children": [{"__dhElemName": "test3"}],
                                         },
                                     }
                                 ],
                             },
                         },
                         {
-                            "__dh_elem": "test11",
+                            "__dhElemName": "test11",
                             "props": {
                                 "children": [
                                     {
-                                        "__dh_elem": "test22",
+                                        "__dhElemName": "test22",
                                         "props": {
-                                            "children": [{"__dh_elem": "test33"}],
+                                            "children": [{"__dhElemName": "test33"}],
                                         },
                                     }
                                 ],
@@ -128,14 +128,17 @@ class EncoderTest(BaseTestCase):
 
         self.expect_result(
             make_node("test_exported", {"children": [obj1]}),
-            {"__dh_elem": "test_exported", "props": {"children": [{"__dh_obid": 0}]}},
+            {
+                "__dhElemName": "test_exported",
+                "props": {"children": [{"__dhObid": 0}]},
+            },
             expected_objects=[obj1],
         )
 
     def exported_null(self):
         self.expect_result(
             make_node("test_exported", {"children": [None]}),
-            {"__dh_elem": "test_exported", "props": {"children": [None]}},
+            {"__dhElemName": "test_exported", "props": {"children": [None]}},
         )
 
     def test_children_with_exported(self):
@@ -156,17 +159,17 @@ class EncoderTest(BaseTestCase):
                 },
             ),
             {
-                "__dh_elem": "test0",
+                "__dhElemName": "test0",
                 "props": {
                     "children": [
                         {
-                            "__dh_elem": "test1",
-                            "props": {"children": [{"__dh_obid": 0}]},
+                            "__dhElemName": "test1",
+                            "props": {"children": [{"__dhObid": 0}]},
                         },
-                        {"__dh_obid": 1},
+                        {"__dhObid": 1},
                         {
-                            "__dh_elem": "test3",
-                            "props": {"children": [{"__dh_obid": 2}]},
+                            "__dhElemName": "test3",
+                            "props": {"children": [{"__dhObid": 2}]},
                         },
                     ],
                 },
@@ -177,7 +180,7 @@ class EncoderTest(BaseTestCase):
     def test_primitive_children(self):
         self.expect_result(
             make_node("test0", {"children": ["foo", 1, 2.0]}),
-            {"__dh_elem": "test0", "props": {"children": ["foo", 1, 2.0]}},
+            {"__dhElemName": "test0", "props": {"children": ["foo", 1, 2.0]}},
             [],
         )
 
@@ -188,8 +191,8 @@ class EncoderTest(BaseTestCase):
         self.expect_result(
             make_node("test0", {"children": ["foo", obj1, obj2, 2.0]}),
             {
-                "__dh_elem": "test0",
-                "props": {"children": ["foo", {"__dh_obid": 0}, {"__dh_obid": 1}, 2.0]},
+                "__dhElemName": "test0",
+                "props": {"children": ["foo", {"__dhObid": 0}, {"__dhObid": 1}, 2.0]},
             },
             expected_objects=[obj1, obj2],
         )
@@ -203,8 +206,8 @@ class EncoderTest(BaseTestCase):
         self.expect_result(
             make_node("test0", {"children": [obj1, obj1]}),
             {
-                "__dh_elem": "test0",
-                "props": {"children": [{"__dh_obid": 0}, {"__dh_obid": 0}]},
+                "__dhElemName": "test0",
+                "props": {"children": [{"__dhObid": 0}, {"__dhObid": 0}]},
             },
             expected_objects=[obj1],
         )
@@ -214,7 +217,7 @@ class EncoderTest(BaseTestCase):
 
         self.expect_result(
             make_node("test0", {"foo": cb1}),
-            {"__dh_elem": "test0", "props": {"foo": {"__dh_cbid": "cb0"}}},
+            {"__dhElemName": "test0", "props": {"foo": {"__dhCbid": "cb0"}}},
             expected_callables=[cb1],
         )
 
@@ -236,17 +239,17 @@ class EncoderTest(BaseTestCase):
                 },
             ),
             {
-                "__dh_elem": "test0",
+                "__dhElemName": "test0",
                 "props": {
                     "children": [
                         {
-                            "__dh_elem": "test1",
-                            "props": {"foo": [{"__dh_cbid": "cb0"}]},
+                            "__dhElemName": "test1",
+                            "props": {"foo": [{"__dhCbid": "cb0"}]},
                         },
-                        {"__dh_cbid": "cb1"},
+                        {"__dhCbid": "cb1"},
                         {
-                            "__dh_elem": "test3",
-                            "props": {"bar": {"__dh_cbid": "cb2"}},
+                            "__dhElemName": "test3",
+                            "props": {"bar": {"__dhCbid": "cb2"}},
                         },
                     ],
                 },
@@ -274,21 +277,21 @@ class EncoderTest(BaseTestCase):
                 },
             ),
             {
-                "__dh_elem": "test0",
+                "__dhElemName": "test0",
                 "props": {
                     "children": [
                         {
-                            "__dh_elem": "test1",
-                            "props": {"foo": [{"__dh_cbid": "cb0"}]},
+                            "__dhElemName": "test1",
+                            "props": {"foo": [{"__dhCbid": "cb0"}]},
                         },
-                        {"__dh_cbid": "cb1"},
+                        {"__dhCbid": "cb1"},
                         {
-                            "__dh_elem": "test3",
+                            "__dhElemName": "test3",
                             "props": {
-                                "bar": {"__dh_cbid": "cb2"},
+                                "bar": {"__dhCbid": "cb2"},
                                 "children": [
-                                    {"__dh_obid": 0},
-                                    {"__dh_obid": 1},
+                                    {"__dhObid": 0},
+                                    {"__dhObid": 1},
                                 ],
                             },
                         },
@@ -308,8 +311,8 @@ class EncoderTest(BaseTestCase):
         self.expect_result(
             make_node("test0", {"foo": [cb1, cb1]}),
             {
-                "__dh_elem": "test0",
-                "props": {"foo": [{"__dh_cbid": "cb0"}, {"__dh_cbid": "cb0"}]},
+                "__dhElemName": "test0",
+                "props": {"foo": [{"__dhCbid": "cb0"}, {"__dhCbid": "cb0"}]},
             },
             expected_callables=[cb1],
         )
@@ -332,17 +335,17 @@ class EncoderTest(BaseTestCase):
                 },
             ),
             {
-                "__dh_elem": "test0",
+                "__dhElemName": "test0",
                 "props": {
                     "children": [
                         {
-                            "__dh_elem": "test1",
-                            "props": {"foo": [{"__dh_cbid": "d2c0"}]},
+                            "__dhElemName": "test1",
+                            "props": {"foo": [{"__dhCbid": "d2c0"}]},
                         },
-                        {"__dh_cbid": "d2c1"},
+                        {"__dhCbid": "d2c1"},
                         {
-                            "__dh_elem": "test3",
-                            "props": {"bar": {"__dh_cbid": "d2c2"}},
+                            "__dhElemName": "test3",
+                            "props": {"bar": {"__dhCbid": "d2c2"}},
                         },
                     ],
                 },

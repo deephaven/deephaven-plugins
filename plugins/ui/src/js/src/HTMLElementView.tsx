@@ -1,6 +1,7 @@
 import React from 'react';
 import { HTMLElementNode, getHTMLTag } from './HTMLElementUtils';
 import { ELEMENT_KEY } from './ElementUtils';
+import ElementView from './ElementView';
 
 export type HTMLElementViewProps = {
   element: HTMLElementNode;
@@ -16,7 +17,11 @@ export function HTMLElementView({
   }
   // eslint-disable-next-line react/prop-types
   const { children, ...otherProps } = props;
-  return React.createElement(tag, otherProps, children);
+  return React.createElement(
+    tag,
+    otherProps,
+    <ElementView element={children} />
+  );
 }
 
 export default HTMLElementView;

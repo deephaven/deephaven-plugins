@@ -1,11 +1,7 @@
 from __future__ import annotations
-import typing
+
 from typing import Any
 from .BaseTest import BaseTestCase
-
-
-if typing.TYPE_CHECKING:
-    from deephaven.ui import UITable
 
 
 class UITableTestCase(BaseTestCase):
@@ -14,7 +10,7 @@ class UITableTestCase(BaseTestCase):
 
         self.source = empty_table(100).update(["X = i", "Y = i * 2"])
 
-    def expect_render(self, ui_table: UITable, expected_props: dict[str, Any]):
+    def expect_render(self, ui_table, expected_props: dict[str, Any]):
         from deephaven.ui._internal import RenderContext
 
         context = RenderContext()

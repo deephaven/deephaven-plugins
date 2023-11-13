@@ -39,6 +39,13 @@ export const SpectrumSupportedTypes = {
 export type SpectrumElementName =
   `${typeof SPECTRUM_ELEMENT_TYPE_PREFIX}${keyof typeof SpectrumSupportedTypes}`;
 
+/**
+ * Describes a Spectrum element that can be rendered in the UI.
+ * The type of Spectrum element loaded is the name of the element without the prefix.
+ * For example, `deephaven.ui.spectrum.Text` will render the Text component.
+ * The props are passed directly to the Spectrum component.
+ * @see SpectrumSupportedTypes
+ */
 export type SpectrumElementNode = ElementNode & {
   [ELEMENT_KEY]: SpectrumElementName;
 };

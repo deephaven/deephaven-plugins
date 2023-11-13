@@ -1,11 +1,13 @@
+from __future__ import annotations
+
 from collections.abc import Iterator
 import json
 from typing import Any, Callable
 from .RenderedNode import RenderedNode
 
-CALLABLE_KEY = "__dh_cbid"
-OBJECT_KEY = "__dh_obid"
-ELEMENT_KEY = "__dh_elem"
+CALLABLE_KEY = "__dhCbid"
+OBJECT_KEY = "__dhObid"
+ELEMENT_KEY = "__dhElemName"
 
 
 class NodeEncoder(json.JSONEncoder):

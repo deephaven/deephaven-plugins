@@ -10,3 +10,6 @@ tsconfig.tsbuildinfo
 
 # Ignore any local tox virtualenvs
 .tox/
+
+.eslintcache
+.stylelintcache
