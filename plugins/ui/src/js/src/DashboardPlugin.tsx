@@ -49,7 +49,15 @@ export function DashboardPlugin({
       log.info('Opening widget with ID', widgetId);
       setWidgetMap(prevWidgetMap => {
         const newWidgetMap = new Map<string, WidgetWrapper>(prevWidgetMap);
-        newWidgetMap.set(widgetId, { definition: widget, fetch, id: widgetId });
+        // We need to create a new definition object, otherwise the layout will think it's already open
+        // Can't use a spread operator because the widget definition uses property accessors
+        const definition = {
+          type: widget.type,
+          title: widget.title,
+          id: widget.id,
+          name: widget.name,
+        };
+        newWidgetMap.set(widgetId, { definition, fetch, id: widgetId });
         return newWidgetMap;
       });
     },
