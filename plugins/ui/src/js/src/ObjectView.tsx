@@ -1,19 +1,22 @@
 import React, { useMemo } from 'react';
 import Log from '@deephaven/log';
 import { isWidgetPlugin, usePlugins } from '@deephaven/plugin';
-import { ExportedObject } from './ElementUtils';
+import type { Widget, WidgetExportedObject } from '@deephaven/jsapi-types';
 
 const log = Log.module('@deephaven/js-plugin-ui/ObjectView');
 
 export interface ObjectViewProps {
-  object: ExportedObject;
+  object: WidgetExportedObject;
 }
 
 function ObjectView(props: ObjectViewProps) {
   const { object } = props;
   log.info('Object is', object);
 
-  const fetch = useMemo(() => object.fetch.bind(object), [object]);
+  const fetch = useMemo(
+    () => object.fetch.bind(object) as () => Promise<Widget>,
+    [object]
+  );
 
   const plugins = usePlugins();
 

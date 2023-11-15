@@ -1,4 +1,4 @@
-import { Widget, WidgetExportedObject } from '@deephaven/jsapi-types';
+import type { WidgetExportedObject } from '@deephaven/jsapi-types';
 
 export const CALLABLE_KEY = '__dhCbid';
 export const OBJECT_KEY = '__dhObid';
