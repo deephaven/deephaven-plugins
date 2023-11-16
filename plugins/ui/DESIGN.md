@@ -1376,20 +1376,20 @@ use_viewport_data(
     table: Table,
     first_row: int,
     last_row: int,
-    columns: str | Sequence[str],
+    columns: str | Sequence[str] = None,
     sentinel: SentinelType = None
 ) -> TableData | SentinelType:
 ```
 
 ###### Parameters
 
-| Parameter   | Type               | Description                                      |
-|-------------|--------------------|--------------------------------------------------|
-| `table`     | `Table`            | The table to create a viewport on.               |
-| `first_row` | `int`              | The row to start the viewport on.                |
-| `last_row`  | `int`              | The row to end the viewport on.                  |
-| `columns`   | `str \| Sequence[str]` | The column or columns to create the viewport on. |
-| `sentinel`  | `Sentinel`         | A sentinel value. Default `None`.                  |
+| Parameter   | Type                   | Description                                                                                         |
+|-------------|------------------------|-----------------------------------------------------------------------------------------------------|
+| `table`     | `Table`                | The table to create a viewport on.                                                                  |
+| `first_row` | `int`                  | The row to start the viewport on.                                                                   |
+| `last_row`  | `int`                  | The row to end the viewport on.                                                                     |
+| `columns`   | `str |\ Sequence[str]` | The column or columns to create the viewport on. `None` by default, which will return all columns.  |
+| `sentinel`  | `Sentinel`             | A sentinel value to return if the table is empty. Default `None`.                                   |
 
 #### Custom Types
 
