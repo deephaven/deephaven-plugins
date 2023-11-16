@@ -35,7 +35,7 @@
     "build": "tsc && vite build"
   },
   "devDependencies": {
-    "@deephaven/jsapi-types": "0.53.0",
+    "@deephaven/jsapi-types": "0.54.1-ui.1",
     "@types/deep-equal": "^1.0.1",
     "@types/plotly.js": "^2.12.18",
     "@types/plotly.js-dist-min": "^2.3.1",
@@ -50,15 +50,15 @@
     "react": "^17.0.2"
   },
   "dependencies": {
-    "@deephaven/chart": "0.53.0",
-    "@deephaven/components": "0.53.0",
-    "@deephaven/dashboard": "0.53.0",
-    "@deephaven/dashboard-core-plugins": "0.53.0",
-    "@deephaven/icons": "0.53.0",
-    "@deephaven/jsapi-bootstrap": "0.53.0",
-    "@deephaven/log": "0.53.0",
-    "@deephaven/plugin": "0.53.0",
-    "@deephaven/utils": "0.53.0",
+    "@deephaven/chart": "0.54.1-ui.1",
+    "@deephaven/components": "0.54.1-ui.1",
+    "@deephaven/dashboard": "0.54.1-ui.1",
+    "@deephaven/dashboard-core-plugins": "0.54.1-ui.1",
+    "@deephaven/icons": "0.54.1-ui.1",
+    "@deephaven/jsapi-bootstrap": "0.54.1-ui.1",
+    "@deephaven/log": "0.54.1-ui.1",
+    "@deephaven/plugin": "0.54.1-ui.1",
+    "@deephaven/utils": "0.54.1-ui.1",
     "deep-equal": "^2.2.1",
     "plotly.js": "^2.23.0",
     "plotly.js-dist-min": "^2.23.0",

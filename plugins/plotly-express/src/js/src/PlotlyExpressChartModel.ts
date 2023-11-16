@@ -2,12 +2,17 @@ import type { Layout, Data } from 'plotly.js';
 import type {
   dh as DhType,
   ChartData,
-  JsWidget,
+  Widget,
   Table,
   TableSubscription,
   TableData,
 } from '@deephaven/jsapi-types';
-import { ChartModel, ChartUtils, ChartTheme } from '@deephaven/chart';
+import {
+  ChartModel,
+  ChartUtils,
+  ChartTheme,
+  defaultChartTheme,
+} from '@deephaven/chart';
 import Log from '@deephaven/log';
 import {
   PlotlyChartWidgetData,
@@ -21,15 +26,16 @@ const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
 export class PlotlyExpressChartModel extends ChartModel {
   constructor(
     dh: DhType,
-    widget: JsWidget,
-    refetch: () => Promise<JsWidget>,
-    theme: typeof ChartTheme = ChartTheme
+    widget: Widget,
+    refetch: () => Promise<Widget>,
+    theme: ChartTheme = defaultChartTheme()
   ) {
     super(dh);
 
     this.widget = widget;
     this.refetch = refetch;
     this.chartUtils = new ChartUtils(dh);
+    this.theme = theme;
 
     this.handleFigureUpdated = this.handleFigureUpdated.bind(this);
     this.handleWidgetUpdated = this.handleWidgetUpdated.bind(this);
@@ -39,7 +45,6 @@ export class PlotlyExpressChartModel extends ChartModel {
     // before the widget is subscribed to.
     this.handleWidgetUpdated(getWidgetData(widget), widget.exportedObjects);
 
-    this.theme = theme;
     this.setTitle(this.getDefaultTitle());
   }
 
@@ -47,9 +52,9 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   chartUtils: ChartUtils;
 
-  refetch: () => Promise<JsWidget>;
+  refetch: () => Promise<Widget>;
 
-  widget?: JsWidget;
+  widget?: Widget;
 
   widgetUnsubscribe?: () => void;
 
@@ -84,7 +89,7 @@ export class PlotlyExpressChartModel extends ChartModel {
    */
   tableDataMap: Map<number, { [key: string]: unknown[] }> = new Map();
 
-  theme: typeof ChartTheme;
+  theme: ChartTheme;
 
   plotlyData: Data[] = [];
 
@@ -154,7 +159,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     }
 
     this.isSubscribed = true;
-    this.widgetUnsubscribe = this.widget.addEventListener(
+    this.widgetUnsubscribe = this.widget.addEventListener<Widget>(
       this.dh.Widget.EVENT_MESSAGE,
       ({ detail }) => {
         this.handleWidgetUpdated(
@@ -211,7 +216,7 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   handleWidgetUpdated(
     data: PlotlyChartWidgetData,
-    references: JsWidget['exportedObjects']
+    references: Widget['exportedObjects']
   ): void {
     const {
       figure,
@@ -301,8 +306,9 @@ export class PlotlyExpressChartModel extends ChartModel {
       this.tableSubscriptionMap.set(id, subscription);
       this.subscriptionCleanupMap.set(
         id,
-        subscription.addEventListener(this.dh.Table.EVENT_UPDATED, e =>
-          this.handleFigureUpdated(e, id)
+        subscription.addEventListener<TableData>(
+          this.dh.Table.EVENT_UPDATED,
+          e => this.handleFigureUpdated(e, id)
         )
       );
     }
