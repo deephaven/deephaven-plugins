@@ -134,12 +134,10 @@ pip install --force-reinstall --no-deps <deephaven-plugins-path>/plugins/*/dist/
 
 ##### Start deephaven-core
 
-START_OPTS="-Ddeephaven.jsPlugins.@deephaven/js-plugin-matplotlib=/home/bender/dev/deephaven/iris-oss/deephaven-plugins/plugins/matplotlib/src/js -Ddeephaven.jsPlugins.@deephaven/js-plugin-ui=/home/bender/dev/deephaven/iris-oss/deephaven-plugins/plugins/ui/src/js"
-
-Finally, start up Deephaven with the appropriate js-plugin flags using the path to your local deephaven-js-plugins repo. For example, to start wtih the matplotlib and plotly plugins, start the server with the following command:
+Finally, start up Deephaven with the appropriate js-plugin flags using the path to your deephaven-plugins repo. For example, to start with the matplotlib and plotly plugins, start the server with the following command:
 
 ```
-START_OPTS="-Ddeephaven.jsPlugins.@deephaven/js-plugin-matplotlib=<deephaven-plugins-path>deephaven-js-plugins/plugins/matploltib/src/js -Ddeephaven.jsPlugins.@deephaven/js-plugin-plotly=<deephaven-plugins-path>deephaven-js-plugins/plugins/plotly/src/js" ./gradlew server-jetty-app:run
+START_OPTS="-Ddeephaven.jsPlugins.@deephaven/js-plugin-matplotlib=<deephaven-plugins-path>/plugins/matploltib/src/js -Ddeephaven.jsPlugins.@deephaven/js-plugin-plotly=<deephaven-plugins-path>/plugins/plotly/src/js" ./gradlew server-jetty-app:run
 ```
 
 The Deephaven IDE can then be opened at http://localhost:10000/ide/, with your plugins ready to use.
