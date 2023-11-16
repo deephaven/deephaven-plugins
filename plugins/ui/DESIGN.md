@@ -1365,6 +1365,32 @@ use_table_listener(
 | `do_replay`   | `bool`                                                 | Whether to replay the initial snapshot of the table, default is False.                                                                                                                                                                                               |
 | `replay_lock` | `LockType`                                             | The lock type used during replay, default is ‘shared’, can also be ‘exclusive’.                                                                                                                                                                           |
 
+##### use_viewport_data
+
+Capture the data in a specific viewport. If there is no data in the viewport, a sentinel value will be returned.
+
+###### Syntax
+
+```py
+use_viewport_data(
+    table: Table,
+    first_row: int,
+    last_row: int,
+    columns: str | Sequence[str],
+    sentinel: SentinelType = None
+) -> TableData | SentinelType:
+```
+
+###### Parameters
+
+| Parameter   | Type               | Description                                      |
+|-------------|--------------------|--------------------------------------------------|
+| `table`     | `Table`            | The table to create a viewport on.               |
+| `first_row` | `int`              | The row to start the viewport on.                |
+| `last_row`  | `int`              | The row to end the viewport on.                  |
+| `columns`   | `str \| Sequence[str]` | The column or columns to create the viewport on. |
+| `sentinel`  | `Sentinel`         | A sentinel value. Default `None`.                  |
+
 #### Custom Types
 
 Below are some of the custom types that are used in the above API definitions:
@@ -1392,10 +1418,12 @@ RowData = dict[str, Any]
 RowIndex = int | None
 SearchMode = Literal["SHOW", "HIDE", "DEFAULT"]
 SelectionMode = Literal["CELL", "ROW", "COLUMN"]
+Sentinel = Any
 SortDirection = Literal["ASC", "DESC"]
+TableData = dict[ColumnName, RowData]
 ```
 
-                                                                                                                      |
+                                                                                                                      
 
 
 #### Context
