@@ -822,6 +822,8 @@ ui_panel = ui.panel(
     description: str | Element | None = None,
     background_color: Color | None = None,
     tab_background_color: Color | None = None,
+    height: int | None = None,
+    width: int | None = None,
     is_closable: bool = True,
     on_focus: Callable[[UIPanel], None] | None = None,
     on_blur: Callable[[UIPanel], None] | None = None,
@@ -839,6 +841,8 @@ ui_panel = ui.panel(
 | `*children`            | `Element`                           | The component(s) to render within the panel.                                                                                                                                                                                                                                                          |
 | `label`                | `(str \| Element)[] \| None`        | The label of the panel. If not provided, a name will be created based on the variable name the top-level component is assigned to. Icons can also be added as children, with a sibling element for the label.                                                                                         |
 | `description`          | `str \| Element \| None`            | A description of the panel. Will appear in the tooltip when hovering the panel tab. Can also include an element here.                                                                                                                                                                                 |
+| `height`               | `int \| None`                       | The height of the panel, within the current column, relative to the other children of its parent in percent. Only applies if the panel is the child of a column element. If not provided, the panel will be sized automatically.                                                                      |
+| `width`                | `int \| None`                       | The width of the panel, relative to the other children of its parent in percent. Only applies if the panel is the child of a row element. If not provided, the panel will be sized automatically.                                                                                                     |
 | `background_color`     | `Color \| None`                     | Custom background color of the panel.                                                                                                                                                                                                                                                                 |
 | `tab_background_color` | `Color \| None`                     | Custom background color of the tab for the panel.                                                                                                                                                                                                                                                     |
 | `is_closable`          | `bool`                              | Whether the panel can be closed when part of a dashboard layout, panels will always be closeable as part of consoles.                                                                                                                                                                                 |
@@ -858,7 +862,7 @@ ui_panel = ui.panel(
 
 ##### ui.dashboard
 
-You can use the `ui.dashboard` function to define a dashboard, along with [ui.row](#ui_row), [ui.column](#uicolumn), and [ui.stack](#uistack). A dashboard will be opened in a separate dashboard tab instead of within your current code studio. For example, to define a dashboard with an input panel in the top left, a table in the top right, and a stack of plots across the bottom, you could define it like so:
+You can use the `ui.dashboard` function to define a dashboard, along with [ui.row](#uirow), [ui.column](#uicolumn), and [ui.stack](#uistack). A dashboard will be opened in a separate dashboard tab instead of within your current code studio. For example, to define a dashboard with an input panel in the top left, a table in the top right, and a stack of plots across the bottom, you could define it like so:
 
 ```py
 import deephaven.ui as ui
@@ -880,20 +884,46 @@ The `ui.dashboard` function requires a single argument, which is the root elemen
 import deephaven.ui as ui
 ui_dashboard= ui.dashboard(
     root: Element,
-    label: str | None = None,
-    settings: DashboardSettings | None = None,
+    label: Optional[str] = None,
+    background_color: Optional[Color] = None,
+    filters: Optional[DashboardFilter[]] = None,
+    links: Optional[Link[]] = None,
+    settings: Optional[DashboardSettings] = None,
+    on_focus: Optional[Callable[[UIDashboard], None]] = None,
+    on_blur: Optional[Callable[[UIDashboard], None]] = None,
+    on_hide: Optional[Callable[[UIDashboard], None]] = None,
+    on_show: Optional[Callable[[UIDashboard], None]] = None,
+    on_open: Optional[Callable[[UIDashboard], None]] = None,
+    on_close: Optional[Callable[[UIDashboard], None]] = None,
 ) -> UIDashboard
 ```
 
 ###### Parameters
 
-| Parameter              | Type                        | Description                                                                                                                                                                                                         |
-| ---------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `root`                 | `Element`                   | The root element of the dashboard. Can be a [ui.row](#uirow), [ui.column](#uicolumn), or [ui.stack](#uistack) to build a dashboard with multiple panels, or can just be a widget that takes up the whole dashboard. |
-| `label`                | `str \| None`               | The label of the dashboard. If not provided, a name will be created based on the variable name the top-level component is assigned to. Icons can also be added as children, with a sibling element for the label.   |
-| `settings`             | `DashboardSettings \| None` | Settings for the dashboard. Pass in a dictionary with the appropriate keys.                                                                                                                                         |
-| `settings.has_headers` | `bool`                      | Whether the dashboard should have headers.                                                                                                                                                                          |
-| `settings.has_popout`  | `bool`                      | Whether the dashboard should have a popout button.                                                                                                                                                                  |
+| Parameter              | Type                                      | Description                                                                                                                                                                                                         |
+| ---------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `root`                 | `Element`                                 | The root element of the dashboard. Can be a [ui.row](#uirow), [ui.column](#uicolumn), or [ui.stack](#uistack) to build a dashboard with multiple panels, or can just be a widget that takes up the whole dashboard. |
+| `label`                | `Optional[str]`                           | The label of the dashboard. If not provided, a name will be created based on the variable name the top-level component is assigned to. Icons can also be added as children, with a sibling element for the label.   |
+| `background_color`     | `Optional[Color]`                         | Custom background color of the dashboard.                                                                                                                                                                           |
+| `filters`              | `Optional[list[DashboardFilter]]`         | Filters to apply to every item in the dashboard.                                                                                                                                                                    |
+| `links`                | `Optional[list[Link]]`                    | Links between items on the dashboard. User will be able to see these links and modify them using the Linker tool.                                                                                                   |
+| `settings`             | `Optional[DashboardSettings]`             | Settings for the dashboard. Pass in a dictionary with the appropriate keys.                                                                                                                                         |
+| `settings.has_headers` | `Optional[bool]`                          | Whether the dashboard should have headers.                                                                                                                                                                          |
+| `settings.has_popout`  | `Optional[bool]`                          | Whether the dashboard should have a popout button.                                                                                                                                                                  |
+| `on_focus`             | `Optional[Callable[[UIDashboard], None]]` | Callback function to be called when the dashboard is focused. Triggered when user clicks within the dashboard. If the dashboard was previously hidden, this will fire after `on_show` fires for this dashboard.     |
+| `on_blur`              | `Optional[Callable[[UIDashboard], None]]` | Callback function to be called when the dashboard is blurred and something else in the UI takes focus. If the dashboard is now hidden, the `on_blur` will fire after the `on_hide` event.                           |
+| `on_hide`              | `Optional[Callable[[UIDashboard], None]]` | Callback function to be called when the dashboard is hidden. If the dashboard was in focus, `on_hide` will fire before `on_blur` is fired.                                                                          |
+| `on_show`              | `Optional[Callable[[UIDashboard], None]]` | Callback function to be called when the dashboard is shown. If the dashboard is also focused, the `on_show` event will fire first.                                                                                  |
+| `on_open`              | `Optional[Callable[[UIDashboard], None]]` | Callback function to be called when the dashboard is opened.                                                                                                                                                        |
+| `on_close`             | `Optional[Callable[[UIDashboard], None]]` | Callback function to be called when the dashboard is closed.                                                                                                                                                        |
+
+###### Methods
+
+| Method    | Description            |
+| --------- | ---------------------- |
+| `close()` | Closes the dashboard.  |
+| `focus()` | Focuses the dashboard. |
+| `open()`  | Opens the dashboard.   |
 
 ##### ui.row
 
@@ -1409,6 +1439,13 @@ SearchMode = Literal["SHOW", "HIDE", "DEFAULT"]
 SelectionMode = Literal["CELL", "ROW", "COLUMN"]
 SortDirection = Literal["ASC", "DESC"]
 
+# Set a filter for a dashboard
+class DashboardFilter(TypedDict):
+  name: str
+  type: str
+  value: str
+  exclude_ids: Optional[string | string[]];
+
 # Typed dictionary for settings that can be passed into a Dashboards initialization
 class DashboardSettings(TypedDict):
     # Whether to show headers on the panels. Defaults to `True`
@@ -1417,6 +1454,19 @@ class DashboardSettings(TypedDict):
 
     # Whether the panels can be re-organized or resized by dragging. Defaults to `True`
     reorder_enabled: Optional[bool]
+
+# Typed dictionary for links that can be added to a dashboard
+class Link(TypeDict):
+    start: LinkPoint
+    end: LinkPoint
+
+# Typed dictionary for a link point
+class LinkPoint(TypedDict):
+    # ID of the item to link to
+    id: str
+
+    # Column to link to
+    column: str
 
 ```
 
