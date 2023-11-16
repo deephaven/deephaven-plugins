@@ -905,7 +905,7 @@ ui_dashboard= ui.dashboard(
 | `root`                 | `Element`                                 | The root element of the dashboard. Can be a [ui.row](#uirow), [ui.column](#uicolumn), or [ui.stack](#uistack) to build a dashboard with multiple panels, or can just be a widget that takes up the whole dashboard. |
 | `label`                | `Optional[str]`                           | The label of the dashboard. If not provided, a name will be created based on the variable name the top-level component is assigned to. Icons can also be added as children, with a sibling element for the label.   |
 | `background_color`     | `Optional[Color]`                         | Custom background color of the dashboard.                                                                                                                                                                           |
-| `filters`              | `Optional[list[DashboardFilter]]`         | Filters to apply to every item in the dashboard.                                                                                                                                                                    |
+| `filters`              | `Optional[list[DashboardFilter]]`         | Filters to apply to every item with a matching column/type, to match the filter value specified.                                                                                                                    |
 | `links`                | `Optional[list[Link]]`                    | Links between items on the dashboard. User will be able to see these links and modify them using the Linker tool.                                                                                                   |
 | `settings`             | `Optional[DashboardSettings]`             | Settings for the dashboard. Pass in a dictionary with the appropriate keys.                                                                                                                                         |
 | `settings.has_headers` | `Optional[bool]`                          | Whether the dashboard should have headers.                                                                                                                                                                          |
@@ -1439,11 +1439,18 @@ SearchMode = Literal["SHOW", "HIDE", "DEFAULT"]
 SelectionMode = Literal["CELL", "ROW", "COLUMN"]
 SortDirection = Literal["ASC", "DESC"]
 
-# Set a filter for a dashboard
+# Set a filter for a dashboard. Filter will apply to all items with a matching column/type, except for items specified in the `exclude_ids` parameter
 class DashboardFilter(TypedDict):
+  # Name of column to filter on
   name: str
+
+  # Type of column to filter on
   type: str
-  value: str
+
+  # Quick filter value to apply to the column
+  value: QuickFilterExpression
+
+  # Do not apply the filter to these items specified, even if they have a matching colum/type
   exclude_ids: Optional[string | string[]];
 
 # Typed dictionary for settings that can be passed into a Dashboards initialization
