@@ -986,6 +986,8 @@ ui_stack = ui.stack(
 
 ##### ui.link
 
+You can add links between components as well. Add the `id` property to components you wish to link, then specify the links on the dashboard itself:
+
 ```python
 @ui.component
 def my_dashboard():
@@ -993,8 +995,9 @@ def my_dashboard():
     t2 = empty_table(100).update("b=i", "c=Math.sin(i)")
 
     return ui.dashboard(
-        ui.row([ui.table(t1, _id="t1"), ui.table(t2, _id="t2")]),
+        ui.row([ui.table(t1, id="t1"), ui.table(t2, id="t2")]),
         links=[
+            # Create a link from the "a" column of t1 to the "b" column of t2
             ui.link(
                 start=ui.link_point("t1", column="a"),
                 end=ui.link_point("t2", column="b"),
@@ -1422,6 +1425,8 @@ Color = DeephavenColor | HexColor
 # A ColumnIndex of None indicates a header row
 ColumnIndex = int | None
 ColumnName = str
+# ID of a component. Used for linking.
+ComponentId = str
 ContextMenuAction = dict[str, Any]
 ContextMenuModeOption = Literal["CELL", "ROW_HEADER", "COLUMN_HEADER"]
 ContextMenuMode = ContextMenuModeOption | list[ContextMenuModeOption] | None
@@ -1442,7 +1447,7 @@ SortDirection = Literal["ASC", "DESC"]
 # Set a filter for a dashboard. Filter will apply to all items with a matching column/type, except for items specified in the `exclude_ids` parameter
 class DashboardFilter(TypedDict):
   # Name of column to filter on
-  name: str
+  name: ColumnName
 
   # Type of column to filter on
   type: str
@@ -1451,7 +1456,7 @@ class DashboardFilter(TypedDict):
   value: QuickFilterExpression
 
   # Do not apply the filter to these items specified, even if they have a matching colum/type
-  exclude_ids: Optional[string | string[]];
+  exclude_ids: Optional[ComponentId | ComponentId[]];
 
 # Typed dictionary for settings that can be passed into a Dashboards initialization
 class DashboardSettings(TypedDict):
@@ -1469,8 +1474,8 @@ class Link(TypeDict):
 
 # Typed dictionary for a link point
 class LinkPoint(TypedDict):
-    # ID of the item to link to
-    id: str
+    # ID of the component to link to
+    id: ComponentId
 
     # Column to link to
     column: str
