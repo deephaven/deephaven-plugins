@@ -5,7 +5,7 @@ from typing import Callable, Literal
 
 from deephaven.table import Table
 from deephaven.table_listener import listen, TableUpdate, TableListener
-from deephaven.execution_context import make_user_exec_ctx, ExecutionContext
+from deephaven.execution_context import get_exec_ctx, ExecutionContext
 
 from .use_effect import use_effect
 
@@ -43,7 +43,7 @@ def with_ctx(
     Returns:
         partial[[TableUpdate, bool], None]: The wrapped listener.
     """
-    return partial(listener_with_ctx, make_user_exec_ctx(), listener)
+    return partial(listener_with_ctx, get_exec_ctx(), listener)
 
 
 def wrap_listener(
