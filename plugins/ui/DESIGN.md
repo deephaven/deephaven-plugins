@@ -1367,54 +1367,34 @@ use_table_listener(
 
 ##### use_viewport_data
 
-Capture the data in a specific viewport. If there is no data in the viewport, a sentinel value will be returned.
-Only one of the following groups of parameters may be specified:
-1. `first_row` and `last_row`
-2. `slice_start_pct` and `slice_end_pct`
-3. `head_rows` 
-4. `head_pct`
-5. `tail_rows` 
-6. `tail_pct`
-If none of the above are specified, all rows will be returned.
+Capture the data in a specific viewport. If the viewport is still loading, a sentinel value will be returned.
 
 ###### Syntax
 
 ```py
 use_viewport_data(
     table: Table,
-    first_row: int = None,
-    last_row: int = None,
-    slice_start_pct: float = None,
-    slice_end_pct: float = None,
-    head_rows: int = None,
-    head_pct: float = None,
-    tail_rows: int = None,
-    tail_pct: float = None,
-    columns: str | Sequence[str] = None,
+    first_row: RowIndex = None,
+    last_row: RowIndex = None,
+    columns: ColumnName | Sequence[ColumnName] = None,
     sentinel: Sentinel = None
 ) -> TableData | Sentinel:
 ```
 
 ###### Parameters
 
-| Parameter          | Type                   | Description                                                                                        |
-|--------------------|------------------------|----------------------------------------------------------------------------------------------------|
-| `table`            | `Table`                | The table to create a viewport on.                                                                 |
-| `first_row`        | `int`                  | The row to start the viewport on. Must be specified if `last_row` is specified.                    |
-| `last_row`         | `int`                  | The row to end the viewport on. Must be specified if `first_row` is specified.                     |
-| `slice_start_pct`  | `float`                | The percent to start the viewport on. Must be specified if `slice_end_pct` is specified.           |
-| `slice_end_pct`    | `float`                | The percent to end the viewport on. Must be specified if `slice_start_pct` is specified.           |
-| `head_rows`        | `int`                  | The number of rows to take from the head.                                                          |
-| `head_pct`         | `float`                | The percent of rows to take from the head.                                                         |
-| `tail_rows`        | `int`                  | The number of columns to take from the tail.                                                       |
-| `tail_pct`         | `float`                | The percent of rows to take from the tail.                                                         |
-| `columns`          | `str \\ Sequence[str]` | The column or columns to create the viewport on. `None` by default, which will return all columns. |
-| `sentinel`         | `Sentinel`             | A sentinel value to return if the table is empty. Default `None`.                                  |
+| Parameter          | Type                                 | Description                                                                                                                    |
+|--------------------|--------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
+| `table`            | `Table`                              | The table to create a viewport on.                                                                                             |
+| `first_row`        | `RowIndex`                           | The row to start the viewport on. Must be specified if `last_row` is specified. `None` by default, which will return all rows. |
+| `last_row`         | `RowIndex`                           | The row to end the viewport on. Must be specified if `first_row` is specified. `None` by default, which will return all rows.  |
+| `columns`          | `ColumnName |\ Sequence[ColumnName]` | The column or columns to create the viewport on. `None` by default, which will return all columns.                             |
+| `sentinel`         | `Sentinel`                           | A sentinel value to return if the viewport is still loading. Default `None`.                                                   |
 
 
 ##### use_column_data
 
-Capture the data in a specific column. If there is no data in the column, a sentinel value will be returned.
+Capture the data in a specific column. If the column is still loading, a sentinel value will be returned.
 This returns the data as a list of values.
 
 ###### Syntax
@@ -1422,47 +1402,35 @@ This returns the data as a list of values.
 ```py
 use_column_data(
     table: Table,
-    first_row: int = None,
-    last_row: int = None,
-    slice_start_pct: float = None,
-    slice_end_pct: float = None,
-    head_rows: int = None,
-    head_pct: float = None,
-    tail_rows: int = None,
-    tail_pct: float = None,
-    column: str = None,
+    column: ColumnName,
+    first_row: RowIndex = None,
+    last_row: RowIndex = None,
     sentinel: Sentinel = None
-) -> list[Any]:
+) -> list[Any] | Sentinel:
 ```
 
 ###### Parameters
 
-| Parameter         | Type        | Description                                                                              |
-|-------------------|-------------|------------------------------------------------------------------------------------------|
-| `table`           | `Table`     | The table to create a viewport on.                                                       |
-| `first_row`       | `int`       | The row to start the viewport on. Must be specified if `last_row` is specified.          |
-| `last_row`        | `int`       | The row to end the viewport on. Must be specified if `first_row` is specified.           |
-| `slice_start_pct` | `float`     | The percent to start the viewport on. Must be specified if `slice_end_pct` is specified. |
-| `slice_end_pct`   | `float`     | The percent to end the viewport on. Must be specified if `slice_start_pct` is specified. |
-| `head_rows`       | `int`       | The number of rows to take from the head.                                                |
-| `head_pct`        | `float`     | The percent of rows to take from the head.                                               |
-| `tail_rows`       | `int`       | The number of columns to take from the tail.                                             |
-| `tail_pct`        | `float`     | The percent of rows to take from the tail.                                               |
-| `column`          | `str`       | The column to create the viewport on. `None` by default, which will return all columns.  |
-| `sentinel`        | `Sentinel`  | A sentinel value to return if the table is empty. Default `None`.                        |
+| Parameter         | Type            | Description                                                                                                                    |
+|-------------------|-----------------|--------------------------------------------------------------------------------------------------------------------------------|
+| `table`           | `Table`         | The table to create a viewport on.                                                                                             |
+| `column`          | `ColumnName`    | The column to create the viewport on.                                                                                          |
+| `first_row`       | `RowIndex`      | The row to start the viewport on. Must be specified if `last_row` is specified. `None` by default, which will return all rows. |
+| `last_row`        | `RowIndex`      | The row to end the viewport on. Must be specified if `first_row` is specified.  `None` by default, which will return all rows. |
+| `sentinel`        | `Sentinel`      | A sentinel value to return if the column is still loading. Default `None`.                                                     |
 
 
 ##### use_row_data
 
-Capture the data in a specific row. If there is no data in the row, a sentinel value will be returned.
+Capture the data in a specific row. If the row is still loading, a sentinel value will be returned.
 
 ###### Syntax
 
 ```py
 use_row_data(
     table: Table,
-    row: int,
-    columns: str | Sequence[str] = None,
+    row: RowIndex,
+    columns: ColumnName | Sequence[ColumnName] = None,
     as_list: bool = False,
     sentinel: SentinelType = None
 ) -> list[Any] | RowData | Sentinel:
@@ -1470,36 +1438,36 @@ use_row_data(
 
 ###### Parameters
 
-| Parameter  | Type                   | Description                                                                                        |
-|------------|------------------------|----------------------------------------------------------------------------------------------------|
-| `table`    | `Table`                | The table to create a viewport on.                                                                 |
-| `row`      | `int`                  | The row to use.                                                                                    |
-| `columns`  | `str \\ Sequence[str]` | The column or columns to create the viewport on. `None` by default, which will return all columns. |
-| `as_list`  | `bool`                 | `True` to return the data in a list instead of as `RowData`. `False` by default.                   |
-| `sentinel` | `Sentinel`             | A sentinel value to return if the table is empty. Default `None`.                                  |
+| Parameter  | Type                                 | Description                                                                                        |
+|------------|--------------------------------------|----------------------------------------------------------------------------------------------------|
+| `table`    | `Table`                              | The table to create a viewport on.                                                                 |
+| `row`      | `RowIndex`                           | The row to use.                                                                                    |
+| `columns`  | `ColumnName |\ Sequence[ColumnName]` | The column or columns to create the viewport on. `None` by default, which will return all columns. |
+| `as_list`  | `bool`                               | `True` to return the data in a list instead of as `RowData`. `False` by default.                   |
+| `sentinel` | `Sentinel`                           | A sentinel value to return if the row is still loading. Default `None`.                            |
 
 
 ##### use_cell_data
 
-Capture the data in a specific cell. If there is no data in the cell, a sentinel value will be returned.
+Capture the data in a specific cell. If the cell is still loading, a sentinel value will be returned.
 
 ```py
 use_cell_data(
     table: Table,
-    row: int,
-    column: str,
+    row: RowIndex,
+    column: ColumnName,
     sentinel: Sentinel = None
 ) -> Any | Sentinel:
 ```
 
 ###### Parameters
 
-| Parameter   | Type                   | Description                                                       |
-|-------------|------------------------|-------------------------------------------------------------------|
-| `table`     | `Table`                | The table to create a viewport on.                                |
-| `row`       | `int`                  | The row to use.                                                   |
-| `column`    | `str \\ Sequence[str]` | The column to use.                                                |
-| `sentinel`  | `Sentinel`             | A sentinel value to return if the table is empty. Default `None`. |
+| Parameter   | Type                                 | Description                                                              |
+|-------------|--------------------------------------|--------------------------------------------------------------------------|
+| `table`     | `Table`                              | The table to create a viewport on.                                       |
+| `row`       | `RowIndex`                           | The row to use.                                                          |
+| `column`    | `ColumnName |\ Sequence[ColumnName]` | The column to use.                                                       |
+| `sentinel`  | `Sentinel`                           | A sentinel value to return if the cell is still loading. Default `None`. |
 
 
 #### Custom Types
@@ -1513,6 +1481,7 @@ Color = DeephavenColor | HexColor
 # A ColumnIndex of None indicates a header row
 ColumnIndex = int | None
 ColumnName = str
+ColumnData = list[Any]
 ContextMenuAction = dict[str, Any]
 ContextMenuModeOption = Literal["CELL", "ROW_HEADER", "COLUMN_HEADER"]
 ContextMenuMode = ContextMenuModeOption | list[ContextMenuModeOption] | None
@@ -1524,14 +1493,14 @@ DeephavenColor = Literal[...]
 HexColor = str
 LockType = Literal["shared", "exclusive"]
 QuickFilterExpression = str
-RowData = dict[str, Any]
+RowData = dict[ColumnName, Any]
 # A RowIndex of None indicates a header column
 RowIndex = int | None
 SearchMode = Literal["SHOW", "HIDE", "DEFAULT"]
 SelectionMode = Literal["CELL", "ROW", "COLUMN"]
 Sentinel = Any
 SortDirection = Literal["ASC", "DESC"]
-TableData = dict[ColumnName, RowData]
+TableData = dict[ColumnName, ColumnData]
 ```
 
                                                                                                                       
