@@ -17,6 +17,14 @@ def action_button(*children, **props):
     return spectrum_element("ActionButton", *children, **props)
 
 
+def button(*children, **props):
+    """
+    Python implementation for the Adobe React Spectrum Button component.
+    https://react-spectrum.adobe.com/react-spectrum/Button.html
+    """
+    return spectrum_element("Button", *children, **props)
+
+
 def checkbox(*children, **props):
     """
     Python implementation for the Adobe React Spectrum Checkbox component.

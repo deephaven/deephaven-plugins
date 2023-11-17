@@ -13,13 +13,20 @@ import {
   View,
 } from '@adobe/react-spectrum';
 import { ValueOf } from '@deephaven/utils';
-import { ActionButton, RangeSlider, Slider, TextField } from './spectrum';
+import {
+  ActionButton,
+  Button,
+  RangeSlider,
+  Slider,
+  TextField,
+} from './spectrum';
 import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
 
 export const SPECTRUM_ELEMENT_TYPE_PREFIX = 'deephaven.ui.spectrum.';
 
 export const SpectrumSupportedTypes = {
   ActionButton,
+  Button,
   Checkbox,
   Content,
   ContextualHelp,

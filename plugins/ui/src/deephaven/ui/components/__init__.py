@@ -8,6 +8,7 @@ from . import html
 
 __all__ = [
     "action_button",
+    "button",
     "checkbox",
     "component",
     "content",
