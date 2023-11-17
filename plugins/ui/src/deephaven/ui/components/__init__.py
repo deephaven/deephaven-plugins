@@ -3,6 +3,7 @@ from .make_component import make_component as component
 from .panel import panel
 from .spectrum import *
 from .table import table
+from . import html
 
 
 __all__ = [
@@ -19,6 +20,7 @@ __all__ = [
     "illustrated_message",
     "html",
     "panel",
+    "range_slider",
     "slider",
     "spectrum_element",
     "switch",
