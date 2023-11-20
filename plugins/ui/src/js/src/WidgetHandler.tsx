@@ -117,8 +117,8 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
       exportedObjects: WidgetExportedObject[]
     ) {
       log.debug2('Data received', data, exportedObjects);
-      // const parsedData = parseData(data, exportedObjects);
-      // jsonClient?.receiveAndSend(parsedData);
+      const parsedData = parseData(data, exportedObjects);
+      jsonClient?.receiveAndSend(parsedData);
     }
 
     const cleanup = widget.addEventListener(
