@@ -4,27 +4,13 @@ name: Test JS Packages
 
 on:
   workflow_dispatch:
-    inputs:
-      packages:
-        required: true
-        description: 'Space separated list of packages to test (e.g. "matplotly plotly-express ui")'
-        type: string
   workflow_call:
-    inputs:
-      packages:
-        required: true
-        type: string
 jobs:
   unit:
     runs-on: ubuntu-22.04
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: true
-    # We only want to run on the packages that were specified
-    # The setup steps should all be cached between tests on the separate packages
-    strategy:
-      matrix:
-        package: ${{ fromJSON(inputs.packages) }}
     steps:
       - uses: actions/checkout@v3
 
@@ -73,7 +59,7 @@ jobs:
       # Caching with the absolute path b/c Jest will make a folder in each project
       # Then there's caches in all plugin folders
       - name: Unit Test
-        run: npm run test:unit -- --cacheDirectory $PWD/.jest-cache plugins/${{ matrix.package }}
+        run: npm run test:unit -- --cacheDirectory $PWD/.jest-cache
 
       - name: Lint Test
-        run: npm run test:lint -- --cacheDirectory $PWD/.jest-cache plugins/${{ matrix.package }}
+        run: npm run test:lint -- --cacheDirectory $PWD/.jest-cache
