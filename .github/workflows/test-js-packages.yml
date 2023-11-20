@@ -4,21 +4,28 @@ name: Test JS Packages
 
 on:
   workflow_dispatch:
+    inputs:
+      packages:
+        required: true
+        type: string
   workflow_call:
+    inputs:
+      packages:
+        required: true
+        type: string
 jobs:
   unit:
     runs-on: ubuntu-22.04
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: true
+    # We only want to run on the packages that were specified
+    # The setup steps should all be cached between tests on the separate packages
+    strategy:
+      matrix:
+        package: ${{ inputs.packages }}
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: '0' # This action defaults to only getting the latest commit. Setting to 0 makes it retrieve the full git commit history
-
-      - name: Fetch base branch (PR)
-        if: ${{ github.event_name == 'pull_request' }}
-        run: git fetch --no-tags origin ${{ github.event.pull_request.base.ref }}
 
       - name: Use Node.js
         uses: actions/setup-node@v3
@@ -65,7 +72,7 @@ jobs:
       # Caching with the absolute path b/c Jest will make a folder in each project
       # Then there's caches in all plugin folders
       - name: Unit Test
-        run: npm run test:unit -- --cacheDirectory $PWD/.jest-cache
+        run: npm run test:unit -- --cacheDirectory $PWD/.jest-cache plugins/${{ matrix.package }}
 
       - name: Lint Test
-        run: npm run test:lint -- --cacheDirectory $PWD/.jest-cache
+        run: npm run test:lint -- --cacheDirectory $PWD/.jest-cache plugins/${{ matrix.package }}
