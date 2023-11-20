@@ -1365,72 +1365,63 @@ use_table_listener(
 | `do_replay`   | `bool`                                                 | Whether to replay the initial snapshot of the table, default is False.                                                                                                                                                                                               |
 | `replay_lock` | `LockType`                                             | The lock type used during replay, default is ‘shared’, can also be ‘exclusive’.                                                                                                                                                                           |
 
-##### use_viewport_data
+##### use_table_data
 
-Capture the data in a specific viewport. If the viewport is still loading, a sentinel value will be returned.
+Capture the data in a table. If the table is still loading, a sentinel value will be returned.
+Data should already be filtered to the desired rows and columns before passing to this hook as
+it is best to filter before data is retrieved.
 
 ###### Syntax
 
 ```py
-use_viewport_data(
+use_table_data(
     table: Table,
-    first_row: RowIndex = None,
-    last_row: RowIndex = None,
-    columns: ColumnName | Sequence[ColumnName] = None,
     sentinel: Sentinel = None
 ) -> TableData | Sentinel:
 ```
 
 ###### Parameters
 
-| Parameter          | Type                                 | Description                                                                                                                    |
-|--------------------|--------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
-| `table`            | `Table`                              | The table to create a viewport on.                                                                                             |
-| `first_row`        | `RowIndex`                           | The row to start the viewport on. Must be specified if `last_row` is specified. `None` by default, which will return all rows. |
-| `last_row`         | `RowIndex`                           | The row to end the viewport on. Must be specified if `first_row` is specified. `None` by default, which will return all rows.  |
-| `columns`          | `ColumnName |\ Sequence[ColumnName]` | The column or columns to create the viewport on. `None` by default, which will return all columns.                             |
-| `sentinel`         | `Sentinel`                           | A sentinel value to return if the viewport is still loading. Default `None`.                                                   |
+| Parameter          | Type                                 | Description                                                                  |
+|--------------------|--------------------------------------|------------------------------------------------------------------------------|
+| `table`            | `Table`                              | The table to retrieve data from.                                             |
+| `sentinel`         | `Sentinel`                           | A sentinel value to return if the viewport is still loading. Default `None`. |
 
 
 ##### use_column_data
 
-Capture the data in a specific column. If the column is still loading, a sentinel value will be returned.
-This returns the data as a list of values.
+Capture the data in a column. If the table is still loading, a sentinel value will be returned.
+Data should already be filtered to desired rows and a specific column before passing to this hook as
+it is best to filter before data is retrieved and this hook will only return data for the first column.
 
 ###### Syntax
 
 ```py
 use_column_data(
     table: Table,
-    column: ColumnName,
-    first_row: RowIndex = None,
-    last_row: RowIndex = None,
     sentinel: Sentinel = None
 ) -> ColumnData | Sentinel:
 ```
 
 ###### Parameters
 
-| Parameter         | Type            | Description                                                                                                                    |
-|-------------------|-----------------|--------------------------------------------------------------------------------------------------------------------------------|
-| `table`           | `Table`         | The table to create a viewport on.                                                                                             |
-| `column`          | `ColumnName`    | The column to create the viewport on.                                                                                          |
-| `first_row`       | `RowIndex`      | The row to start the viewport on. Must be specified if `last_row` is specified. `None` by default, which will return all rows. |
-| `last_row`        | `RowIndex`      | The row to end the viewport on. Must be specified if `first_row` is specified.  `None` by default, which will return all rows. |
-| `sentinel`        | `Sentinel`      | A sentinel value to return if the column is still loading. Default `None`.                                                     |
+| Parameter         | Type            | Description                                                                |
+|-------------------|-----------------|----------------------------------------------------------------------------|
+| `table`           | `Table`         | The table to create a viewport on.                                         |
+| `sentinel`        | `Sentinel`      | A sentinel value to return if the column is still loading. Default `None`. |
 
 
 ##### use_row_data
 
-Capture the data in a specific row. If the row is still loading, a sentinel value will be returned.
+Capture the data in a column. If the table is still loading, a sentinel value will be returned.
+Data should already be filtered to a single row and desired columns before passing to this hook as
+it is best to filter before data is retrieved and this hook will only return data for the first row.
 
 ###### Syntax
 
 ```py
 use_row_data(
     table: Table,
-    row: RowIndex,
-    columns: ColumnName | Sequence[ColumnName] = None,
     as_list: bool = False,
     sentinel: SentinelType = None
 ) -> list[Any] | RowData | Sentinel:
@@ -1438,24 +1429,22 @@ use_row_data(
 
 ###### Parameters
 
-| Parameter  | Type                                 | Description                                                                                        |
-|------------|--------------------------------------|----------------------------------------------------------------------------------------------------|
-| `table`    | `Table`                              | The table to create a viewport on.                                                                 |
-| `row`      | `RowIndex`                           | The row to use.                                                                                    |
-| `columns`  | `ColumnName |\ Sequence[ColumnName]` | The column or columns to create the viewport on. `None` by default, which will return all columns. |
-| `as_list`  | `bool`                               | `True` to return the data in a list instead of as `RowData`. `False` by default.                   |
-| `sentinel` | `Sentinel`                           | A sentinel value to return if the row is still loading. Default `None`.                            |
+| Parameter  | Type                                 | Description                                                                      |
+|------------|--------------------------------------|----------------------------------------------------------------------------------|
+| `table`    | `Table`                              | The table to create a viewport on.                                               |
+| `as_list`  | `bool`                               | `True` to return the data in a list instead of as `RowData`. `False` by default. |
+| `sentinel` | `Sentinel`                           | A sentinel value to return if the row is still loading. Default `None`.          |
 
 
 ##### use_cell_data
 
-Capture the data in a specific cell. If the cell is still loading, a sentinel value will be returned.
+Capture the data in a cell. If the table is still loading, a sentinel value will be returned.
+Data should already be filtered to a single row and column before passing to this hook as
+it is best to filter before data is retrieved and this hook will only return data for the first cell.
 
 ```py
 use_cell_data(
     table: Table,
-    row: RowIndex,
-    column: ColumnName,
     sentinel: Sentinel = None
 ) -> Any | Sentinel:
 ```
@@ -1465,8 +1454,6 @@ use_cell_data(
 | Parameter   | Type                                 | Description                                                              |
 |-------------|--------------------------------------|--------------------------------------------------------------------------|
 | `table`     | `Table`                              | The table to create a viewport on.                                       |
-| `row`       | `RowIndex`                           | The row to use.                                                          |
-| `column`    | `ColumnName |\ Sequence[ColumnName]` | The column to use.                                                       |
 | `sentinel`  | `Sentinel`                           | A sentinel value to return if the cell is still loading. Default `None`. |
 
 
