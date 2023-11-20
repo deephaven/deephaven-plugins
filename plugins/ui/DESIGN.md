@@ -1406,7 +1406,7 @@ use_column_data(
     first_row: RowIndex = None,
     last_row: RowIndex = None,
     sentinel: Sentinel = None
-) -> list[Any] | Sentinel:
+) -> ColumnData | Sentinel:
 ```
 
 ###### Parameters
