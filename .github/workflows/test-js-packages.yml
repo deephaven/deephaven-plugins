@@ -24,7 +24,7 @@ jobs:
     # The setup steps should all be cached between tests on the separate packages
     strategy:
       matrix:
-        package: ${{ inputs.packages }}
+        package: ${{ fromJSON(inputs.packages) }}
     steps:
       - uses: actions/checkout@v3
 
