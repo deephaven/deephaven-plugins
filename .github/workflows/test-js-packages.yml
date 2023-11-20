@@ -65,6 +65,7 @@ jobs:
       # Caching with the absolute path b/c Jest will make a folder in each project
       # Then there's caches in all plugin folders
       - name: Unit Test
-        run: |
-          npm run test:unit -- --cacheDirectory $PWD/.jest-cache
-          npm run test:lint -- --cacheDirectory $PWD/.jest-cache
+        run: npm run test:unit -- --cacheDirectory $PWD/.jest-cache
+
+      - name: Lint Test
+        run: npm run test:lint -- --cacheDirectory $PWD/.jest-cache
