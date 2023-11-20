@@ -13,3 +13,6 @@ tsconfig.tsbuildinfo
 
 .eslintcache
 .stylelintcache
+
+# Ignore the test reports
+junit.xml

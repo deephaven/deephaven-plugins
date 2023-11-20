@@ -60,3 +60,10 @@ jobs:
       # Then there's caches in all plugin folders
       - name: Run Tests
         run: npm run test:ci -- --cacheDirectory $PWD/.jest-cache
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure() # run this step even if previous step failed
+        with:
+          path: reports/jest-*.xml # Path to test results
+          reporter: jest-junit # Format of test results
