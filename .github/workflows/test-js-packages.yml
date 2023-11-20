@@ -7,6 +7,7 @@ on:
     inputs:
       packages:
         required: true
+        description: 'Space separated list of packages to test (e.g. "matplotly plotly-express ui")'
         type: string
   workflow_call:
     inputs:
