@@ -158,7 +158,12 @@ class HooksTest(BaseTestCase):
             nonlocal updated
             updated = True
 
-        use_table_listener(replayed_table, listener)
+        def _test_table_listener(
+            replayed_table_val=replayed_table, listener_val=listener
+        ):
+            use_table_listener(replayed_table_val, listener_val)
+
+        render_hook(_test_table_listener)
 
         replayer.start()
 

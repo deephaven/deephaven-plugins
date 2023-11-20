@@ -595,3 +595,69 @@ st = stock_table(stocks)
 ```
 
 ![Stock Rollup](assets/stock_rollup.png)
+
+## Listening to Table Updates
+
+You can use the `use_table_listener` hook to listen to changes to a table. In this example, we use the `use_table_listener` hook to listen to changes to the table then display the last changes.
+
+```python
+import deephaven.ui as ui
+from deephaven.table import Table
+from deephaven import time_table, empty_table, merge
+from deephaven import pandas as dhpd
+import pandas as pd
+
+
+def to_table(update):
+    return dhpd.to_table(pd.DataFrame.from_dict(update))
+
+
+def add_as_op(ls, t, op):
+    t = t.update(f"type=`{op}`")
+    ls.append(t)
+
+
+@ui.component
+def monitor_changed_data(source: Table):
+
+    changed, set_changed = ui.use_state(empty_table(0))
+
+    show_added, set_show_added = ui.use_state(True)
+    show_removed, set_show_removed = ui.use_state(True)
+
+    def listener(update, is_replay):
+
+        to_merge = []
+
+        if (added_dict := update.added()) and show_added:
+            added = to_table(added_dict)
+            add_as_op(to_merge, added, "added")
+
+        if (removed_dict := update.removed()) and show_removed:
+            removed = to_table(removed_dict)
+            add_as_op(to_merge, removed, "removed")
+
+        if to_merge:
+            set_changed(merge(to_merge))
+        else:
+            set_changed(empty_table(0))
+
+    ui.use_table_listener(source, listener)
+
+    added_check = ui.checkbox(
+        "Show Added", isSelected=show_added, on_change=set_show_added
+    )
+
+    removed_check = ui.checkbox(
+        "Show Removed", isSelected=show_removed, on_change=set_show_removed
+    )
+
+    return [added_check, removed_check, changed]
+
+
+t = time_table("PT1S").update(formulas=["X=i"]).tail(5)
+
+monitor = monitor_changed_data(t)
+```
+
+![Stock Rollup](assets/change_monitor.png)
