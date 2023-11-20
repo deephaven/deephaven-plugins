@@ -1,0 +1,81 @@
+# This workflow will perform unit tests of the javascript plugins
+
+name: Test JS Packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      packages:
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      packages:
+        required: true
+        type: string
+jobs:
+  unit:
+    runs-on: ubuntu-22.04
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: '0' # This action defaults to only getting the latest commit. Setting to 0 makes it retrieve the full git commit history
+
+      - name: Fetch base branch (PR)
+        if: ${{ github.event_name == 'pull_request' }}
+        run: git fetch --no-tags origin ${{ github.event.pull_request.base.ref }}
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Cache jest
+        uses: actions/cache@v3
+        with:
+          path: |
+            .jest-cache
+            plugins/*/.jest-cache
+          key: ${{ runner.os }}-jestcache-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-jestcache-
+
+      - name: Cache linters
+        uses: actions/cache@v3
+        with:
+          path: |
+            .eslintcache
+            plugins/*/.eslintcache
+            .stylelintcache
+            plugins/*/.stylelintcache
+          key: ${{ runner.os }}-lintcache-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-lintcache-
+
+      - name: Cache node modules
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            plugins/*/node_modules
+          key: unit-node-modules-${{ hashFiles('package-lock.json')}}
+
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --no-audit
+
+      # Run all tests for the packages that have changes
+      # Caching with the absolute path b/c Jest will make a folder in each project
+      # Then there's caches in all plugin folders
+      - name: Unit Test
+        strategy:
+          matrix:
+            package: ${{ inputs.packages }}
+        run: |
+          npm run test:unit -- --cacheDirectory $PWD/.jest-cache plugins/${{ matrix.package }}
+          npm run test:lint -- --cacheDirectory $PWD/.jest-cache plugins/${{ matrix.package }}

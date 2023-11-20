@@ -2,7 +2,7 @@ name: Test Modified Plugin
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'plugins/plotly-express/**'
       - 'plugins/plotly/**'
@@ -10,7 +10,7 @@ on:
       - 'plugins/json/**'
       - 'plugins/ui/**'
   push:
-    branches: [ main ]
+    branches: [main]
     tags:
       - 'plotly-express-v*'
       - 'plotly-v*'
@@ -39,7 +39,8 @@ jobs:
             json: plugins/json/**
             ui: plugins/ui/**
 
-  build:
+  # Test all python packages that have been modified individually
+  test-python:
     needs: changes
     if: ${{ needs.changes.outputs.packages != '[]' && needs.changes.outputs.packages != '' }}
     strategy:
@@ -48,6 +49,14 @@ jobs:
     uses: ./.github/workflows/test-python-package.yml
     with:
       package: ${{ matrix.package }}
+
+  # Test all JS packages at once. We run jest from the root.
+  test-js:
+    needs: changes
+    if: ${{ needs.changes.outputs.packages != '[]' && needs.changes.outputs.packages != '' }}
+    uses: ./.github/workflows/test-js-packages.yml
+    with:
+      packages: ${{ fromJSON(needs.changes.outputs.packages) }}
 
   filter-release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
