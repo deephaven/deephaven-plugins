@@ -4,15 +4,7 @@ name: Test JS Packages
 
 on:
   workflow_dispatch:
-    inputs:
-      packages:
-        required: true
-        type: string
   workflow_call:
-    inputs:
-      packages:
-        required: true
-        type: string
 jobs:
   unit:
     runs-on: ubuntu-22.04
@@ -69,13 +61,10 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --no-audit
 
-      # Run all tests for the packages that have changes
+      # Run all tests for all the packages
       # Caching with the absolute path b/c Jest will make a folder in each project
       # Then there's caches in all plugin folders
       - name: Unit Test
-        strategy:
-          matrix:
-            package: ${{ inputs.packages }}
         run: |
-          npm run test:unit -- --cacheDirectory $PWD/.jest-cache plugins/${{ matrix.package }}
-          npm run test:lint -- --cacheDirectory $PWD/.jest-cache plugins/${{ matrix.package }}
+          npm run test:unit -- --cacheDirectory $PWD/.jest-cache
+          npm run test:lint -- --cacheDirectory $PWD/.jest-cache
