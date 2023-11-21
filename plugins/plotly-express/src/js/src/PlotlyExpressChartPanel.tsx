@@ -1,11 +1,12 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import Plotly from 'plotly.js-dist-min';
 import { ChartPanel, ChartPanelProps } from '@deephaven/dashboard-core-plugins';
-import { type WidgetComponentProps } from '@deephaven/plugin';
+import { type WidgetPanelProps } from '@deephaven/plugin';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import PlotlyExpressChartModel from './PlotlyExpressChartModel.js';
+import { useHandleSceneTicks } from './useHandleSceneTicks.js';
 
-function PlotlyExpressChartPanel(props: WidgetComponentProps) {
+export function PlotlyExpressChartPanel(props: WidgetPanelProps) {
   const dh = useApi();
   const { fetch, metadata = {}, ...rest } = props;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -18,52 +19,7 @@ function PlotlyExpressChartPanel(props: WidgetComponentProps) {
     return m;
   }, [dh, fetch]);
 
-  useEffect(
-    function handleSceneTicks() {
-      // Plotly scenes and geo views reset when our data ticks
-      // Pause rendering data updates when the user is manipulating a scene
-      if (
-        !model ||
-        !containerRef.current ||
-        !model.shouldPauseOnUserInteraction()
-      ) {
-        return;
-      }
-
-      const container = containerRef.current;
-
-      function handleMouseDown() {
-        model?.pauseUpdates();
-        // The once option removes the listener after it is called
-        window.addEventListener('mouseup', handleMouseUp, { once: true });
-      }
-
-      function handleMouseUp() {
-        model?.resumeUpdates();
-      }
-
-      let wheelTimeout = 0;
-
-      function handleWheel() {
-        model?.pauseUpdates();
-        window.clearTimeout(wheelTimeout);
-        wheelTimeout = window.setTimeout(() => {
-          model?.resumeUpdates();
-        }, 300);
-      }
-
-      container.addEventListener('mousedown', handleMouseDown);
-      container.addEventListener('wheel', handleWheel);
-
-      return () => {
-        window.clearTimeout(wheelTimeout);
-        window.removeEventListener('mouseup', handleMouseUp);
-        container.removeEventListener('mousedown', handleMouseDown);
-        container.removeEventListener('wheel', handleWheel);
-      };
-    },
-    [model]
-  );
+  useHandleSceneTicks(model, containerRef.current);
 
   return (
     <ChartPanel
@@ -76,7 +32,5 @@ function PlotlyExpressChartPanel(props: WidgetComponentProps) {
     />
   );
 }
-
-PlotlyExpressChartPanel.displayName = 'PlotlyExpressChartPanel';
 
 export default PlotlyExpressChartPanel;
