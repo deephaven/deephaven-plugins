@@ -1,3 +1,4 @@
+/* eslint-disable no-alert */
 import React, {
   forwardRef,
   useCallback,
@@ -46,127 +47,128 @@ type TablePluginProps = {
  *     .with_attributes({"PluginName": "@deephaven/js-plugin-table-example"})
  * )
  */
-const TablePlugin = (
-  props: TablePluginProps,
-  ref: React.Ref<unknown>
-): JSX.Element => {
-  const { filter, table } = props;
-  const [isModalOpen, setModalOpen] = useState(false);
-  const confirmButton = useRef<HTMLButtonElement>(null);
+const TablePlugin = forwardRef(
+  (props: TablePluginProps, ref: React.Ref<unknown>): JSX.Element => {
+    const { filter, table } = props;
+    const [isModalOpen, setModalOpen] = useState(false);
+    const confirmButton = useRef<HTMLButtonElement>(null);
 
-  const handleOpenModal = useCallback(() => {
-    setModalOpen(true);
-  }, []);
+    const handleOpenModal = useCallback(() => {
+      setModalOpen(true);
+    }, []);
 
-  const handleCloseModal = useCallback(() => {
-    setModalOpen(false);
-  }, []);
+    const handleCloseModal = useCallback(() => {
+      setModalOpen(false);
+    }, []);
 
-  const getMenu = useCallback(
-    (data: IrisGridContextMenuData) => {
-      const { value, column, model } = data;
-      const { name, type } = column;
-      const actions: ContextAction[] = [];
+    const getMenu = useCallback(
+      (data: IrisGridContextMenuData) => {
+        const { value, column, model } = data;
+        const { name, type } = column;
+        const actions: ContextAction[] = [];
 
-      actions.push({
-        title: 'Display value',
-        group: 0,
-        order: 0,
-        action: () => alert(`${value}`),
-      });
+        actions.push({
+          title: 'Display value',
+          group: 0,
+          order: 0,
+          action: () => alert(`${value}`),
+        });
 
-      actions.push({
-        title: 'Show Dialog',
-        group: 0,
-        order: 10,
-        action: handleOpenModal,
-      });
+        actions.push({
+          title: 'Show Dialog',
+          group: 0,
+          order: 10,
+          action: handleOpenModal,
+        });
 
-      actions.push({
-        title: 'Display Table',
-        group: 0,
-        order: 20,
-        action: () => alert(table),
-      });
+        actions.push({
+          title: 'Display Table',
+          group: 0,
+          order: 20,
+          action: () => alert(table),
+        });
 
-      actions.push({
-        title: 'Display Model',
-        group: 0,
-        order: 30,
-        action: () => alert(model),
-      });
+        actions.push({
+          title: 'Display Model',
+          group: 0,
+          order: 30,
+          action: () => alert(model),
+        });
 
-      const subMenu: ContextAction[] = [];
+        const subMenu: ContextAction[] = [];
 
-      actions.push({
-        title: 'Filter Sub Menu',
-        group: 0,
-        order: 40,
-        actions: subMenu,
-      });
+        actions.push({
+          title: 'Filter Sub Menu',
+          group: 0,
+          order: 40,
+          actions: subMenu,
+        });
 
-      subMenu.push({
-        title: 'Filter by value',
-        group: 0,
-        order: 0,
-        action: () =>
-          filter([
-            {
-              name,
-              type,
-              value: `${value}`,
-            },
-          ]),
-      });
+        subMenu.push({
+          title: 'Filter by value',
+          group: 0,
+          order: 0,
+          action: () =>
+            filter([
+              {
+                name,
+                type,
+                value: `${value}`,
+              },
+            ]),
+        });
 
-      subMenu.push({
-        title: 'Clear Filter',
-        group: 0,
-        order: 10,
-        action: () => filter([]),
-      });
+        subMenu.push({
+          title: 'Clear Filter',
+          group: 0,
+          order: 10,
+          action: () => filter([]),
+        });
 
-      return actions;
-    },
-    [filter, handleOpenModal, table]
-  );
-  useImperativeHandle(ref, () => ({
-    getMenu,
-  }));
+        return actions;
+      },
+      [filter, handleOpenModal, table]
+    );
+    useImperativeHandle(ref, () => ({
+      getMenu,
+    }));
 
-  return (
-    <div>
-      <label>Example Plugin</label>
-      <Modal
-        isOpen={isModalOpen}
-        className="theme-bg-light"
-        onOpened={() => {
-          confirmButton.current?.focus();
-        }}
-      >
-        <ModalHeader>Plugin Modal Title</ModalHeader>
-        <ModalBody>Plugin Modal Body</ModalBody>
-        <ModalFooter>
-          <button
-            type="button"
-            className="btn btn-outline-primary"
-            data-dismiss="modal"
-            onClick={handleCloseModal}
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleCloseModal}
-            ref={confirmButton}
-          >
-            Confirm
-          </button>
-        </ModalFooter>
-      </Modal>
-    </div>
-  );
-};
+    return (
+      <div>
+        <label>Example Plugin</label>
+        <Modal
+          isOpen={isModalOpen}
+          className="theme-bg-light"
+          onOpened={() => {
+            confirmButton.current?.focus();
+          }}
+        >
+          <ModalHeader>Plugin Modal Title</ModalHeader>
+          <ModalBody>Plugin Modal Body</ModalBody>
+          <ModalFooter>
+            <button
+              type="button"
+              className="btn btn-outline-primary"
+              data-dismiss="modal"
+              onClick={handleCloseModal}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleCloseModal}
+              ref={confirmButton}
+            >
+              Confirm
+            </button>
+          </ModalFooter>
+        </Modal>
+      </div>
+    );
+  }
+);
 
-export default forwardRef(TablePlugin);
+TablePlugin.displayName = '@deephaven/js-plugin-table-example/TablePlugin';
+
+export default TablePlugin;
