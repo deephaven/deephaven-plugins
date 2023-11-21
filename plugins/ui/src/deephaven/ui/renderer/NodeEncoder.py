@@ -1,16 +1,15 @@
 from __future__ import annotations
 
-from collections.abc import Iterator
 import json
 from typing import Any, Callable
-from weakref import WeakKeyDictionary, WeakValueDictionary
+from weakref import WeakKeyDictionary
 from .RenderedNode import RenderedNode
 
 CALLABLE_KEY = "__dhCbid"
 OBJECT_KEY = "__dhObid"
 ELEMENT_KEY = "__dhElemName"
 
-CALLABLE_ID_PREFIX = "cb_"
+DEFALT_CALLABLE_ID_PREFIX = "cb"
 
 # IDs for callables are prefixes with a string and then use the `id` of the callable itself
 CallableId = str
@@ -32,7 +31,7 @@ class NodeEncoder(json.JSONEncoder):
     Prefix to use for callable ids. Used to ensure callables used in stream are unique.
     """
 
-    _callable_dict: WeakKeyDictionary[Callable, str]
+    _callable_dict: WeakKeyDictionary[Callable[..., Any], str]
     """
     Dictionary from a callable to the ID assigned to the callable.
     """
@@ -52,7 +51,12 @@ class NodeEncoder(json.JSONEncoder):
     Dictionary from an object to the ID assigned to it
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(
+        self,
+        callable_id_prefix: str = DEFALT_CALLABLE_ID_PREFIX,
+        *args: Any,
+        **kwargs: Any,
+    ):
         """
         Create a new NodeEncoder.
 
@@ -61,46 +65,47 @@ class NodeEncoder(json.JSONEncoder):
             **kwargs: Args to pass to the JSONEncoder constructor
         """
         super().__init__(*args, **kwargs)
+        self._callable_id_prefix = callable_id_prefix
         self._next_callable_id = 0
-        self._callable_dict = WeakValueDictionary()
+        self._callable_dict = WeakKeyDictionary()
         self._new_objects = []
         self._next_object_id = 0
         self._object_id_dict = WeakKeyDictionary()
 
-    def default(self, node: Any):
-        if isinstance(node, RenderedNode):
-            return self._convert_rendered_node(node)
-        elif callable(node):
-            return self._convert_callable(node)
+    def default(self, o: Any):
+        if isinstance(o, RenderedNode):
+            return self._convert_rendered_node(o)
+        elif callable(o):
+            return self._convert_callable(o)
         else:
             try:
-                return super().default(node)
+                return super().default(o)
             except TypeError:
                 # This is a non-serializable object. We'll store a reference to the object in the objects array.
-                return self._convert_object(node)
+                return self._convert_object(o)
 
     def encode(self, o: Any) -> str:
         self._new_objects = []
         return super().encode(o)
 
     @property
-    def callable_dict(self) -> WeakValueDictionary[Callable, str]:
-        return self._callables
+    def callable_dict(self) -> WeakKeyDictionary[Callable[..., Any], str]:
+        return self._callable_dict
 
     @property
     def new_objects(self) -> list[Any]:
         return self._new_objects
 
     def _convert_rendered_node(self, node: RenderedNode):
-        result = {ELEMENT_KEY: node.name}
+        result: dict[str, Any] = {ELEMENT_KEY: node.name}
         if node.props is not None:
             result["props"] = node.props
         return result
 
-    def _convert_callable(self, cb: callable):
+    def _convert_callable(self, cb: Callable[..., Any]):
         callable_id = self._callable_dict.get(cb)
         if callable_id == None:
-            callable_id = f"{CALLABLE_ID_PREFIX}{self._next_callable_id}"
+            callable_id = f"{self._callable_id_prefix}{self._next_callable_id}"
             self._next_callable_id += 1
             self._callable_dict[cb] = callable_id
 
