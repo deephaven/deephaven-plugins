@@ -1444,6 +1444,123 @@ use_table_listener(
 | `do_replay`   | `bool`                                                 | Whether to replay the initial snapshot of the table, default is False.                                                                                                                                                                                               |
 | `replay_lock` | `LockType`                                             | The lock type used during replay, default is ‘shared’, can also be ‘exclusive’.                                                                                                                                                                           |
 
+##### use_table_data
+
+Capture the data in a table. If the table is still loading, a sentinel value will be returned.
+Data should already be filtered to the desired rows and columns before passing to this hook as it is best to filter before data is retrieved.
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve specific rows and functions such 
+as [select or view](https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve specific columns.
+
+###### Syntax
+
+```py
+use_table_data(
+    table: Table,
+    sentinel: Sentinel = None
+) -> TableData | Sentinel:
+```
+
+###### Parameters
+
+| Parameter          | Type                                 | Description                                                                  |
+|--------------------|--------------------------------------|------------------------------------------------------------------------------|
+| `table`            | `Table`                              | The table to retrieve data from.                                             |
+| `sentinel`         | `Sentinel`                           | A sentinel value to return if the viewport is still loading. Default `None`. |
+
+
+##### use_column_data
+
+Capture the data in a column. If the table is still loading, a sentinel value will be returned.
+Data should already be filtered to desired rows and a specific column before passing to this hook as it is best to filter before data is retrieved and this hook will only return data for the first column.
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve specific rows and functions such 
+as [select or view](https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve a specific column.
+
+###### Syntax
+
+```py
+use_column_data(
+    table: Table,
+    sentinel: Sentinel = None
+) -> ColumnData | Sentinel:
+```
+
+###### Parameters
+
+| Parameter         | Type            | Description                                                                |
+|-------------------|-----------------|----------------------------------------------------------------------------|
+| `table`           | `Table`         | The table to create a viewport on.                                         |
+| `sentinel`        | `Sentinel`      | A sentinel value to return if the column is still loading. Default `None`. |
+
+
+##### use_row_data
+
+Capture the data in a row. If the table is still loading, a sentinel value will be returned.
+Data should already be filtered to a single row and desired columns before passing to this hook as it is best to filter before data is retrieved and this hook will only return data for the first row.
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve a specific row and functions such 
+as [select or view](https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve specific columns.
+
+###### Syntax
+
+```py
+use_row_data(
+    table: Table,
+    sentinel: SentinelType = None
+) -> RowData | Sentinel:
+```
+
+###### Parameters
+
+| Parameter  | Type                                 | Description                                                                      |
+|------------|--------------------------------------|----------------------------------------------------------------------------------|
+| `table`    | `Table`                              | The table to create a viewport on.                                               |
+| `sentinel` | `Sentinel`                           | A sentinel value to return if the row is still loading. Default `None`.          |
+
+
+##### use_row_list
+
+Capture the data in a row. If the table is still loading, a sentinel value will be returned. This function is identical to `use_row_data` except that it always returns a list of data instead of a `RowData` object for convenience.
+Data should already be filtered to a single row and desired columns before passing to this hook as it is best to filter before data is retrieved and this hook will only return data for the first row.
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve a specific row and functions such 
+as [select or view](https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve specific columns.
+
+###### Syntax
+
+```py
+use_row_list(
+    table: Table,
+    sentinel: SentinelType = None
+) -> list[Any] | Sentinel:
+```
+
+###### Parameters
+
+| Parameter  | Type                                 | Description                                                                      |
+|------------|--------------------------------------|----------------------------------------------------------------------------------|
+| `table`    | `Table`                              | The table to create a viewport on.                                               |
+| `sentinel` | `Sentinel`                           | A sentinel value to return if the row is still loading. Default `None`.          |
+
+
+##### use_cell_data
+
+Capture the data in a cell. If the table is still loading, a sentinel value will be returned.
+Data should already be filtered to a single row and column before passing to this hook as it is best to filter before data is retrieved and this hook will only return data for the first cell.
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve a specific row and functions such 
+as [select or view](#https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve a specific column.
+```py
+use_cell_data(
+    table: Table,
+    sentinel: Sentinel = None
+) -> Any | Sentinel:
+```
+
+###### Parameters
+
+| Parameter   | Type                                 | Description                                                              |
+|-------------|--------------------------------------|--------------------------------------------------------------------------|
+| `table`     | `Table`                              | The table to create a viewport on.                                       |
+| `sentinel`  | `Sentinel`                           | A sentinel value to return if the cell is still loading. Default `None`. |
+
+
 #### Custom Types
 
 Below are some of the custom types that are used in the above API definitions:
@@ -1455,6 +1572,7 @@ Color = DeephavenColor | HexColor
 # A ColumnIndex of None indicates a header row
 ColumnIndex = int | None
 ColumnName = str
+ColumnData = list[Any]
 # ID of a component. Used for linking.
 ComponentId = str
 ContextMenuAction = dict[str, Any]
@@ -1468,12 +1586,14 @@ DeephavenColor = Literal[...]
 HexColor = str
 LockType = Literal["shared", "exclusive"]
 QuickFilterExpression = str
-RowData = dict[str, Any]
+RowData = dict[ColumnName, Any]
 # A RowIndex of None indicates a header column
 RowIndex = int | None
 SearchMode = Literal["SHOW", "HIDE", "DEFAULT"]
 SelectionMode = Literal["CELL", "ROW", "COLUMN"]
+Sentinel = Any
 SortDirection = Literal["ASC", "DESC"]
+TableData = dict[ColumnName, ColumnData]
 
 # Set a filter for a dashboard. Filter will apply to all items with a matching column/type, except for items specified in the `exclude_ids` parameter
 class DashboardFilter(TypedDict):
@@ -1513,7 +1633,7 @@ class LinkPoint(TypedDict):
 
 ```
 
-                                                                                                                      |
+                                                                                                                      
 
 
 #### Context
