@@ -1,7 +1,13 @@
 /**
  * Handles document events for one widget.
  */
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   JSONRPCClient,
   JSONRPCServer,
@@ -35,6 +41,13 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
 
   const [widget, setWidget] = useState<Widget>();
   const [element, setElement] = useState<ElementNode>();
+  // We keep a weak reference to all the exported objects so they can be garbage collected when we no longer need them
+  const exportedObjectMap = useRef<Map<number, WeakRef<WidgetExportedObject>>>(
+    new Map()
+  );
+  const exportedObjectCount = useRef(0);
+  // We keep a ref to all the exported objects in the current render so they are _not_ garbage collected
+  const liveObjects = useRef<WidgetExportedObject[]>([]);
 
   useEffect(
     () => () => {
@@ -65,11 +78,11 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
      * Element nodes are not replaced. Those are handled in `DocumentHandler`.
      *
      * @param data The data to parse
-     * @param exportedObjects The exported objects to use for re-hydrating objects
      * @returns The parsed data
      */
-    (data: string, exportedObjects: WidgetExportedObject[]) =>
-      JSON.parse(data, (key, value) => {
+    (data: string) => {
+      const newLiveObjects: WidgetExportedObject[] = [];
+      const parsedData = JSON.parse(data, (key, value) => {
         // Need to re-hydrate any objects that are defined
         if (isCallableNode(value)) {
           const callableId = value[CALLABLE_KEY];
@@ -81,11 +94,23 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
         }
         if (isObjectNode(value)) {
           // Replace this node with the exported object
-          return exportedObjects[value[OBJECT_KEY]];
+          const objectKey = value[OBJECT_KEY];
+          const exportedObject = exportedObjectMap.current
+            .get(objectKey)
+            ?.deref();
+          if (exportedObject === undefined) {
+            // The map should always have the exported object for a key, otherwise the protocol is broken
+            throw new Error(`Invalid exported object key ${objectKey}`);
+          }
+          newLiveObjects.push(exportedObject);
+          return exportedObject;
         }
 
         return value;
-      }),
+      });
+      liveObjects.current = newLiveObjects;
+      return parsedData;
+    },
     [jsonClient]
   );
 
@@ -114,10 +139,19 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
     }
     function receiveData(
       data: string,
-      exportedObjects: WidgetExportedObject[]
+      newExportedObjects: WidgetExportedObject[]
     ) {
-      log.debug2('Data received', data, exportedObjects);
-      const parsedData = parseData(data, exportedObjects);
+      log.debug2('Data received', data, newExportedObjects);
+      for (let i = 0; i < newExportedObjects.length; i += 1) {
+        const exportedObject = newExportedObjects[i];
+        const exportedObjectKey = exportedObjectCount.current;
+        exportedObjectCount.current += 1;
+        exportedObjectMap.current.set(
+          exportedObjectKey,
+          new WeakRef(exportedObject)
+        );
+      }
+      const parsedData = parseData(data);
       jsonClient?.receiveAndSend(parsedData);
     }
 

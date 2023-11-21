@@ -3,11 +3,20 @@ from __future__ import annotations
 from collections.abc import Iterator
 import json
 from typing import Any, Callable
+from weakref import WeakKeyDictionary, WeakValueDictionary
 from .RenderedNode import RenderedNode
 
 CALLABLE_KEY = "__dhCbid"
 OBJECT_KEY = "__dhObid"
 ELEMENT_KEY = "__dhElemName"
+
+CALLABLE_ID_PREFIX = "cb_"
+
+# IDs for callables are prefixes with a string and then use the `id` of the callable itself
+CallableId = str
+
+# IDs for objects is just an incrementing ID. We should only send new exported objects with each render
+ObjectId = int
 
 
 class NodeEncoder(json.JSONEncoder):
@@ -18,46 +27,45 @@ class NodeEncoder(json.JSONEncoder):
     - non-serializable objects in the tree are replaced wtih an object with property `OBJECT_KEY` set to the index in the objects array.
     """
 
-    _callable_id_prefix: str
+    _next_callable_id: int
     """
     Prefix to use for callable ids. Used to ensure callables used in stream are unique.
     """
 
-    _callables: list[Callable]
+    _callable_dict: WeakKeyDictionary[Callable, str]
     """
-    List of callables parsed out of the document
-    """
-
-    _callable_id_dict: dict[int, int]
-    """
-    Dictionary from a callables id to the index in the callables array.
+    Dictionary from a callable to the ID assigned to the callable.
     """
 
-    _objects: list[Any]
+    _new_objects: list[Any]
     """
-    List of objects parsed out of the document
-    """
-
-    _object_id_dict: dict[int, int]
-    """
-    Dictionary from an objects id to the index in the objects array.
+    List of objects parsed out of the most recently encoded document.
     """
 
-    def __init__(self, *args, callable_id_prefix: str = "cb", **kwargs):
+    _next_object_id: int
+    """
+    The next object id to use. Increment for each new object encountered.
+    """
+
+    _object_id_dict: WeakKeyDictionary[Any, int]
+    """
+    Dictionary from an object to the ID assigned to it
+    """
+
+    def __init__(self, *args, **kwargs):
         """
         Create a new NodeEncoder.
 
         Args:
             *args: Arguments to pass to the JSONEncoder constructor
-            callable_id_prefix: Prefix to use for callable ids. Used to ensure callables used in stream are unique.
             **kwargs: Args to pass to the JSONEncoder constructor
         """
         super().__init__(*args, **kwargs)
-        self._callable_id_prefix = callable_id_prefix
-        self._callables = []
-        self._callable_id_dict = {}
-        self._objects = []
-        self._object_id_dict = {}
+        self._next_callable_id = 0
+        self._callable_dict = WeakValueDictionary()
+        self._new_objects = []
+        self._next_object_id = 0
+        self._object_id_dict = WeakKeyDictionary()
 
     def default(self, node: Any):
         if isinstance(node, RenderedNode):
@@ -71,13 +79,17 @@ class NodeEncoder(json.JSONEncoder):
                 # This is a non-serializable object. We'll store a reference to the object in the objects array.
                 return self._convert_object(node)
 
+    def encode(self, o: Any) -> str:
+        self._new_objects = []
+        return super().encode(o)
+
     @property
-    def callables(self) -> list[Callable]:
+    def callable_dict(self) -> WeakValueDictionary[Callable, str]:
         return self._callables
 
     @property
-    def objects(self) -> list[Any]:
-        return self._objects
+    def new_objects(self) -> list[Any]:
+        return self._new_objects
 
     def _convert_rendered_node(self, node: RenderedNode):
         result = {ELEMENT_KEY: node.name}
@@ -86,23 +98,24 @@ class NodeEncoder(json.JSONEncoder):
         return result
 
     def _convert_callable(self, cb: callable):
-        callable_id = id(cb)
-        callable_index = self._callable_id_dict.get(callable_id, len(self._callables))
-        if callable_index == len(self._callables):
-            self._callables.append(cb)
-            self._callable_id_dict[callable_id] = callable_index
+        callable_id = self._callable_dict.get(cb)
+        if callable_id == None:
+            callable_id = f"{CALLABLE_ID_PREFIX}{self._next_callable_id}"
+            self._next_callable_id += 1
+            self._callable_dict[cb] = callable_id
 
         return {
-            CALLABLE_KEY: f"{self._callable_id_prefix}{callable_index}",
+            CALLABLE_KEY: callable_id,
         }
 
     def _convert_object(self, obj: Any):
-        object_id = id(obj)
-        object_index = self._object_id_dict.get(object_id, len(self._objects))
-        if object_index == len(self._objects):
-            self._objects.append(obj)
-            self._object_id_dict[object_id] = object_index
+        object_id = self._object_id_dict.get(obj)
+        if object_id == None:
+            object_id = self._next_object_id
+            self._next_object_id += 1
+            self._object_id_dict[obj] = object_id
+            self._new_objects.append(obj)
 
         return {
-            OBJECT_KEY: object_index,
+            OBJECT_KEY: object_id,
         }

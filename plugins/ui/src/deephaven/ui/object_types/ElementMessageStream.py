@@ -25,7 +25,6 @@ class ElementMessageStream(MessageStream):
         """
         self._element = element
         self._connection = connection
-        self._update_count = 0
         self._message_id = 0
         self._manager = JSONRPCResponseManager()
         self._dispatcher = Dispatcher()
@@ -98,22 +97,16 @@ class ElementMessageStream(MessageStream):
         Args:
             root: The root node of the document to send
         """
-        # We use an ID prefix to ensure that the callable ids are unique across each document render/update
-        # That way we don't have to worry about callables from previous renders being called accidentally
-        self._update_count += 1
-        id_prefix = f"cb_{self._update_count}_"
-
         # TODO(#67): Send a diff of the document instead of the entire document.
         request = self._make_notification("documentUpdated", root)
-        encoder = NodeEncoder(callable_id_prefix=id_prefix, separators=(",", ":"))
+        encoder = NodeEncoder(separators=(",", ":"))
         payload = encoder.encode(request)
 
         logger.debug(f"Sending payload: {payload}")
 
         dispatcher = Dispatcher()
-        for i, callable in enumerate(encoder.callables):
-            key = f"{id_prefix}{i}"
-            logger.debug("Registering callable %s", key)
-            dispatcher[key] = callable
+        for cb, callable_id in encoder.callable_dict.items():
+            logger.debug("Registering callable %s", callable_id)
+            dispatcher[callable_id] = cb
         self._dispatcher = dispatcher
-        self._connection.on_data(payload.encode(), encoder.objects)
+        self._connection.on_data(payload.encode(), encoder.new_objects)
