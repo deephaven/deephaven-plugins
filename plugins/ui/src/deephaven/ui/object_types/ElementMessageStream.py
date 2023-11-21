@@ -1,5 +1,4 @@
 from __future__ import annotations
-import json
 import io
 from jsonrpc import JSONRPCResponseManager, Dispatcher
 import logging
@@ -28,6 +27,7 @@ class ElementMessageStream(MessageStream):
         self._message_id = 0
         self._manager = JSONRPCResponseManager()
         self._dispatcher = Dispatcher()
+        self._encoder = NodeEncoder(separators=(",", ":"))
 
     def start(self) -> None:
         context = RenderContext()
@@ -61,7 +61,7 @@ class ElementMessageStream(MessageStream):
         self._message_id += 1
         return self._message_id
 
-    def _make_notification(self, method: str, *params: list[Any]) -> None:
+    def _make_notification(self, method: str, *params: Any) -> dict[str, Any]:
         """
         Make a JSON-RPC notification. Can notify the client without expecting a response.
 
@@ -75,7 +75,7 @@ class ElementMessageStream(MessageStream):
             "params": params,
         }
 
-    def _make_request(self, method: str, *params: list[Any]) -> None:
+    def _make_request(self, method: str, *params: Any) -> dict[str, Any]:
         """
         Make a JSON-RPC request. Messages the client and expects a response.
 
@@ -97,16 +97,16 @@ class ElementMessageStream(MessageStream):
         Args:
             root: The root node of the document to send
         """
+
         # TODO(#67): Send a diff of the document instead of the entire document.
         request = self._make_notification("documentUpdated", root)
-        encoder = NodeEncoder(separators=(",", ":"))
-        payload = encoder.encode(request)
+        payload = self._encoder.encode(request)
 
         logger.debug(f"Sending payload: {payload}")
 
         dispatcher = Dispatcher()
-        for cb, callable_id in encoder.callable_dict.items():
+        for callable, callable_id in self._encoder.callable_dict.items():
             logger.debug("Registering callable %s", callable_id)
-            dispatcher[callable_id] = cb
+            dispatcher[callable_id] = callable
         self._dispatcher = dispatcher
-        self._connection.on_data(payload.encode(), encoder.new_objects)
+        self._connection.on_data(payload.encode(), self._encoder.new_objects)

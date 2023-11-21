@@ -9,7 +9,7 @@ CALLABLE_KEY = "__dhCbid"
 OBJECT_KEY = "__dhObid"
 ELEMENT_KEY = "__dhElemName"
 
-DEFALT_CALLABLE_ID_PREFIX = "cb"
+DEFAULT_CALLABLE_ID_PREFIX = "cb"
 
 # IDs for callables are prefixes with a string and then use the `id` of the callable itself
 CallableId = str
@@ -53,7 +53,7 @@ class NodeEncoder(json.JSONEncoder):
 
     def __init__(
         self,
-        callable_id_prefix: str = DEFALT_CALLABLE_ID_PREFIX,
+        callable_id_prefix: str = DEFAULT_CALLABLE_ID_PREFIX,
         *args: Any,
         **kwargs: Any,
     ):
