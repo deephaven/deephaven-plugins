@@ -13,6 +13,36 @@ logger = logging.getLogger(__name__)
 
 
 class ElementMessageStream(MessageStream):
+    _manager: JSONRPCResponseManager
+    """
+    Handle incoming requests from the client.
+    """
+
+    _dispatcher: Dispatcher
+    """
+    The dispatcher to use when client calls callables.
+    """
+
+    _encoder: NodeEncoder
+    """
+    Encoder to use to encode the document.
+    """
+
+    _message_id: int
+    """
+    The next message ID to use.
+    """
+
+    _element: Element
+    """
+    The element to render.
+    """
+
+    _connection: MessageStream
+    """
+    The connection to send the rendered element to.
+    """
+
     def __init__(self, element: Element, connection: MessageStream):
         """
         Create a new ElementMessageStream. Renders the element in a render context, and sends the rendered result to the
