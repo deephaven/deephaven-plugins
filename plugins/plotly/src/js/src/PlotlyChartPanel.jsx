@@ -165,7 +165,6 @@ export class PlotlyChartPanel extends Component {
 
 PlotlyChartPanel.propTypes = {
   glContainer: GLPropTypes.Container.isRequired,
-  glEventHub: GLPropTypes.EventHub.isRequired,
   fetch: PropTypes.func.isRequired,
 };
 
