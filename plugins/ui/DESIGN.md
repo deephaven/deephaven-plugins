@@ -1368,8 +1368,9 @@ use_table_listener(
 ##### use_table_data
 
 Capture the data in a table. If the table is still loading, a sentinel value will be returned.
-Data should already be filtered to the desired rows and columns before passing to this hook as
-it is best to filter before data is retrieved.
+Data should already be filtered to the desired rows and columns before passing to this hook as it is best to filter before data is retrieved.
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve specific rows and functions such 
+as [select or view](https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve specific columns.
 
 ###### Syntax
 
@@ -1391,8 +1392,9 @@ use_table_data(
 ##### use_column_data
 
 Capture the data in a column. If the table is still loading, a sentinel value will be returned.
-Data should already be filtered to desired rows and a specific column before passing to this hook as
-it is best to filter before data is retrieved and this hook will only return data for the first column.
+Data should already be filtered to desired rows and a specific column before passing to this hook as it is best to filter before data is retrieved and this hook will only return data for the first column.
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve specific rows and functions such 
+as [select or view](https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve a specific column.
 
 ###### Syntax
 
@@ -1413,18 +1415,18 @@ use_column_data(
 
 ##### use_row_data
 
-Capture the data in a column. If the table is still loading, a sentinel value will be returned.
-Data should already be filtered to a single row and desired columns before passing to this hook as
-it is best to filter before data is retrieved and this hook will only return data for the first row.
+Capture the data in a row. If the table is still loading, a sentinel value will be returned.
+Data should already be filtered to a single row and desired columns before passing to this hook as it is best to filter before data is retrieved and this hook will only return data for the first row.
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve a specific row and functions such 
+as [select or view](https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve specific columns.
 
 ###### Syntax
 
 ```py
 use_row_data(
     table: Table,
-    as_list: bool = False,
     sentinel: SentinelType = None
-) -> list[Any] | RowData | Sentinel:
+) -> RowData | Sentinel:
 ```
 
 ###### Parameters
@@ -1432,16 +1434,39 @@ use_row_data(
 | Parameter  | Type                                 | Description                                                                      |
 |------------|--------------------------------------|----------------------------------------------------------------------------------|
 | `table`    | `Table`                              | The table to create a viewport on.                                               |
-| `as_list`  | `bool`                               | `True` to return the data in a list instead of as `RowData`. `False` by default. |
+| `sentinel` | `Sentinel`                           | A sentinel value to return if the row is still loading. Default `None`.          |
+
+
+##### use_row_list
+
+Capture the data in a row. If the table is still loading, a sentinel value will be returned. This function is identical to `use_row_data` except that it always returns a list of data instead of a `RowData` object for convenience.
+Data should already be filtered to a single row and desired columns before passing to this hook as it is best to filter before data is retrieved and this hook will only return data for the first row.
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve a specific row and functions such 
+as [select or view](https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve specific columns.
+
+###### Syntax
+
+```py
+use_row_list(
+    table: Table,
+    sentinel: SentinelType = None
+) -> list[Any] | Sentinel:
+```
+
+###### Parameters
+
+| Parameter  | Type                                 | Description                                                                      |
+|------------|--------------------------------------|----------------------------------------------------------------------------------|
+| `table`    | `Table`                              | The table to create a viewport on.                                               |
 | `sentinel` | `Sentinel`                           | A sentinel value to return if the row is still loading. Default `None`.          |
 
 
 ##### use_cell_data
 
 Capture the data in a cell. If the table is still loading, a sentinel value will be returned.
-Data should already be filtered to a single row and column before passing to this hook as
-it is best to filter before data is retrieved and this hook will only return data for the first cell.
-
+Data should already be filtered to a single row and column before passing to this hook as it is best to filter before data is retrieved and this hook will only return data for the first cell.
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve a specific row and functions such 
+as [select or view](#https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve a specific column.
 ```py
 use_cell_data(
     table: Table,
