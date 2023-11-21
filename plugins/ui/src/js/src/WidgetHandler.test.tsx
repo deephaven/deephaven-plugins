@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, render } from '@testing-library/react';
-import { JsWidget } from '@deephaven/jsapi-types';
+import type { Widget } from '@deephaven/jsapi-types';
 import WidgetHandler, { WidgetHandlerProps } from './WidgetHandler';
 import { DocumentHandlerProps } from './DocumentHandler';
 import {
@@ -40,8 +40,8 @@ it('mounts and unmounts', async () => {
 });
 
 it('updates the document when event is received', async () => {
-  let fetchResolve: (value: JsWidget | PromiseLike<JsWidget>) => void;
-  const fetchPromise = new Promise<JsWidget>(resolve => {
+  let fetchResolve: (value: Widget | PromiseLike<Widget>) => void;
+  const fetchPromise = new Promise<Widget>(resolve => {
     fetchResolve = resolve;
   });
   const fetch = jest.fn(() => fetchPromise);

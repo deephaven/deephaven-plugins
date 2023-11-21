@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import Log from '@deephaven/log';
 import { isWidgetPlugin, usePlugins } from '@deephaven/plugin';
 import type { Widget, WidgetExportedObject } from '@deephaven/jsapi-types';
@@ -13,10 +13,7 @@ function ObjectView(props: ObjectViewProps) {
   const { object } = props;
   log.info('Object is', object);
 
-  const fetch = useMemo(
-    () => object.fetch.bind(object) as () => Promise<Widget>,
-    [object]
-  );
+  const fetch = useCallback(() => object.fetch() as Promise<Widget>, [object]);
 
   const plugins = usePlugins();
 

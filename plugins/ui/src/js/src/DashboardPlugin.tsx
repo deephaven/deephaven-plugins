@@ -7,7 +7,7 @@ import {
   useListener,
 } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
-import { JsWidget } from '@deephaven/jsapi-types';
+import { Widget } from '@deephaven/jsapi-types';
 import type { VariableDefinition } from '@deephaven/jsapi-types';
 import styles from './styles.scss?inline';
 import { WidgetWrapper } from './WidgetTypes';
@@ -36,7 +36,7 @@ export function DashboardPlugin({
       widget,
     }: {
       dragEvent?: React.DragEvent;
-      fetch: () => Promise<JsWidget>;
+      fetch: () => Promise<Widget>;
       metadata?: Record<string, unknown>;
       panelId?: string;
       widget: VariableDefinition;
