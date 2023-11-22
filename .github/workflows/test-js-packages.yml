@@ -1,0 +1,62 @@
+# This workflow will perform unit tests of the javascript plugins
+
+name: Test JS Packages
+
+on:
+  workflow_dispatch:
+  workflow_call:
+jobs:
+  unit:
+    runs-on: ubuntu-22.04
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Cache jest
+        uses: actions/cache@v3
+        with:
+          path: |
+            .jest-cache
+            plugins/*/.jest-cache
+          key: ${{ runner.os }}-jestcache-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-jestcache-
+
+      - name: Cache linters
+        uses: actions/cache@v3
+        with:
+          path: |
+            .eslintcache
+            plugins/*/.eslintcache
+            .stylelintcache
+            plugins/*/.stylelintcache
+          key: ${{ runner.os }}-lintcache-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-lintcache-
+
+      - name: Cache node modules
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            plugins/*/node_modules
+          key: unit-node-modules-${{ hashFiles('package-lock.json')}}
+
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --no-audit
+
+      # Run all tests for all the packages
+      # Caching with the absolute path b/c Jest will make a folder in each project
+      # Then there's caches in all plugin folders
+      - name: Run Tests
+        run: npm run test:ci
