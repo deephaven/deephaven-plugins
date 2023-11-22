@@ -18,7 +18,7 @@ class UtilsTest(BaseTestCase):
     def test_to_camel_case(self):
         from deephaven.ui._internal.utils import to_camel_case
 
-        self.assertEqual(to_camel_case("test_string"), "testString")
+        self.assertEqual(to_camel_case("test_string"), "testStringfailulre")
         self.assertEqual(to_camel_case("test_string_2"), "testString2")
         self.assertEqual(to_camel_case("align_items"), "alignItems")
         self.assertEqual(to_camel_case("First_Word"), "FirstWord")
