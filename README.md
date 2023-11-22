@@ -102,6 +102,7 @@ Build [deephaven-core](https://github.com/deephaven/deephaven-core) using the di
 
 ##### Install python plugin wheels
 
+blah
 Then, install the python plugin wheels for the plugins, plotly and matplotlib in this example, into the deephaven-core venv.
 See READMEs in the directories of the python plugins you're working with for specific packages to install for development with that plugin.
 
