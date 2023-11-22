@@ -3,12 +3,6 @@ name: Test Modified Plugin
 on:
   pull_request:
     branches: [main]
-    paths:
-      - 'plugins/plotly-express/**'
-      - 'plugins/plotly/**'
-      - 'plugins/matplotlib/**'
-      - 'plugins/json/**'
-      - 'plugins/ui/**'
   push:
     branches: [main]
     tags:
