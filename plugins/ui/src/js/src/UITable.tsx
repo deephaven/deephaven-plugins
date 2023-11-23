@@ -21,7 +21,7 @@ function UITable({ element }: UITableProps) {
   useEffect(() => {
     async function loadModel() {
       log.debug('Loading table from props', element.props);
-      const newTable = await element.props.table.fetch();
+      const newTable = (await element.props.table.fetch()) as Table;
       setTable(newTable);
     }
     loadModel();

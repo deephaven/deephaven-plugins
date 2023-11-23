@@ -1,5 +1,5 @@
 import { WidgetDefinition } from '@deephaven/dashboard';
-import { JsWidget, WidgetExportedObject } from '@deephaven/jsapi-types';
+import { Widget, WidgetExportedObject } from '@deephaven/jsapi-types';
 
 export interface WidgetMessageDetails {
   getDataAsBase64(): string;
@@ -9,7 +9,7 @@ export interface WidgetMessageDetails {
 
 export type WidgetMessageEvent = CustomEvent<WidgetMessageDetails>;
 
-export type WidgetFetch = () => Promise<JsWidget>;
+export type WidgetFetch = () => Promise<Widget>;
 
 export type WidgetWrapper = {
   definition: WidgetDefinition;

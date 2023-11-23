@@ -1,47 +1,43 @@
-import React, { useEffect, useState } from 'react';
-import type { Figure, Table } from '@deephaven/jsapi-types';
+import React, { useCallback, useMemo } from 'react';
 import Log from '@deephaven/log';
-import TableObject from './TableObject';
-import FigureObject from './FigureObject';
-import { ExportedObject } from './ElementUtils';
+import { isWidgetPlugin, usePlugins } from '@deephaven/plugin';
+import type { Widget, WidgetExportedObject } from '@deephaven/jsapi-types';
 
 const log = Log.module('@deephaven/js-plugin-ui/ObjectView');
 
 export interface ObjectViewProps {
-  object: ExportedObject;
+  object: WidgetExportedObject;
 }
 
 function ObjectView(props: ObjectViewProps) {
   const { object } = props;
-  const [widget, setWidget] = useState<unknown>();
   log.info('Object is', object);
 
-  // Just load the object on mount
-  useEffect(() => {
-    async function loadWidget() {
-      const newWidget = await object.fetch();
-      setWidget(newWidget);
-    }
-    loadWidget();
-  }, [object]);
+  const fetch = useCallback(() => object.fetch() as Promise<Widget>, [object]);
 
-  if (widget == null) {
+  const plugins = usePlugins();
+
+  const plugin = useMemo(
+    () =>
+      [...plugins.values()]
+        .filter(isWidgetPlugin)
+        .find(p => [p.supportedTypes].flat().includes(object.type)),
+    [plugins, object.type]
+  );
+
+  if (object == null) {
     // Still loading
     return null;
   }
 
-  switch (object.type) {
-    case 'Table':
-    case 'TreeTable':
-    case 'HierarchicalTable':
-      return <TableObject object={widget as Table} />;
-    case 'Figure':
-      return <FigureObject object={widget as Figure} />;
-    default:
-      // TODO: Need to handle other types of objects registered by other plugins (e.g. Deephaven Express)
-      log.warn('Unknown object type', object.type);
-      return <div>Unknown object type: {object.type}</div>;
+  if (plugin != null) {
+    const Component = plugin.component;
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return <Component {...props} fetch={fetch} />;
   }
+
+  log.warn('Unknown object type', object.type);
+  return <div>Unknown object type: {object.type}</div>;
 }
 
 ObjectView.displayName = 'ObjectView';
