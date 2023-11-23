@@ -570,7 +570,7 @@ dt = double_table(stocks)
 
 ## Stock rollup
 
-You can use the `rollup` method to create a rollup table. In this example, we create a rollup table that shows the average price of each stock and/or exchange. You can toggle the rollup by clicking on the [ToggleButton](https://react-spectrum.adobe.com/react-spectrum/ToggleButton.html). You can also highlight a specific stock by entering the symbol in the text field.
+You can use the `rollup` method to create a rollup table. In this example, we create a rollup table that shows the average price of each stock and/or exchange. You can toggle the rollup by clicking on the [ToggleButton](https://react-spectrum.adobe.com/react-spectrum/ToggleButton.html). You can also highlight a specific stock by entering the symbol in the text field, but only when a rollup option isn't selected. We wrap the highlight input field with a `ui.fragment` that is conditionally used so that it doesn't appear when the rollup is selected. We also use the `ui.contextual_help` component to display a help message when you hover over the help icon.
 
 ```python
 import deephaven.ui as ui
@@ -584,11 +584,10 @@ stocks = dx.data.stocks()
 def get_by_filter(**byargs):
     """
     Gets a by filter where the arguments are all args passed in where the value is true.
-
-    Examples:
-        get_by_filter(sym=True, exchange=False) == ["sym"]
-        get_by_filter(exchange=False) == []
-        get_by_filter(sym=True, exchange=True) == ["sym", "exchange"]
+    e.g.
+    get_by_filter(sym=True, exchange=False) == ["sym"]
+    get_by_filter(exchange=False) == []
+    get_by_filter(sym=True, exchange=True) == ["sym", "exchange"]
 
     """
     return [k for k in byargs if byargs[k]]
@@ -608,10 +607,7 @@ def stock_table(source):
         [source, highlight],
     )
     rolled_table = use_memo(
-        lambda: formatted_table
-        if len(by) == 0
-        else formatted_table.rollup(aggs=aggs, by=by),
-        [formatted_table, aggs, by],
+        lambda: t if len(by) == 0 else t.rollup(aggs=aggs, by=by), [t, aggs, by]
     )
 
     return ui.flex(
@@ -620,16 +616,20 @@ def stock_table(source):
             ui.toggle_button(
                 ui.icon("vsBell"), "By Exchange", on_change=set_is_exchange
             ),
-            ui.text_field(
-                label="Highlight Sym",
-                label_position="side",
-                value=highlight,
-                on_change=set_highlight,
-            ),
-            ui.contextual_help(
-                ui.heading("Highlight Sym"),
-                ui.content("Enter a sym you would like highlighted."),
-            ),
+            ui.fragment(
+                ui.text_field(
+                    label="Highlight Sym",
+                    label_position="side",
+                    value=highlight,
+                    on_change=set_highlight,
+                ),
+                ui.contextual_help(
+                    ui.heading("Highlight Sym"),
+                    ui.content("Enter a sym you would like highlighted."),
+                ),
+            )
+            if not is_sym and not is_exchange
+            else None,
             align_items="center",
             gap="size-100",
             margin="size-100",
@@ -711,3 +711,40 @@ monitor = monitor_changed_data(t)
 ```
 
 ![Stock Rollup](assets/change_monitor.png)
+
+## Tabs
+
+You can add [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html) within a panel by using the `ui.tabs` method. In this example, we create a tabbed panel with multiple tabs:
+
+- Unfiltered table
+- Table filtered on sym `CAT`. We also include an icon in the tab header.
+- Table filtered on sym `DOG`
+
+```python
+from deephaven import ui
+from deephaven.plot import express as dx
+
+stocks = dx.data.stocks()
+
+
+@ui.component
+def table_tabs(source):
+    return ui.panel(
+        ui.tabs(
+            ui.tab_list(
+                ui.item("Unfiltered", key="Unfiltered"),
+                ui.item(ui.icon("vsGithubAlt"), "CAT", key="CAT"),
+                ui.item("DOG", key="DOG"),
+            ),
+            ui.tab_panels(
+                ui.item(source, key="Unfiltered"),
+                ui.item(source.where("sym=`CAT`"), key="CAT"),
+                ui.item(source.where("sym=`DOG`"), key="DOG"),
+            ),
+            flex_grow=1,
+        )
+    )
+
+
+tt = table_tabs(stocks)
+```

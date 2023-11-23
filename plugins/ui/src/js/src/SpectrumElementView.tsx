@@ -4,7 +4,7 @@ import {
   SpectrumElementNode,
 } from './SpectrumElementUtils';
 import { ELEMENT_KEY } from './ElementUtils';
-import ElementView from './ElementView';
+import { mapSpectrumProps } from './spectrum/mapSpectrumProps';
 
 export type SpectrumElementViewProps = {
   element: SpectrumElementNode;
@@ -18,13 +18,9 @@ export function SpectrumElementView({
   if (Component == null) {
     throw new Error(`Unknown Spectrum component ${name}`);
   }
-  // eslint-disable-next-line react/prop-types
-  const { children, ...otherProps } = props;
   return (
     // eslint-disable-next-line react/jsx-props-no-spreading, @typescript-eslint/no-explicit-any
-    <Component {...otherProps}>
-      <ElementView element={children} />
-    </Component>
+    <Component {...mapSpectrumProps(props)} />
   );
 }
 

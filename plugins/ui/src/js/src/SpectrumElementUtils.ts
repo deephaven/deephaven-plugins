@@ -7,9 +7,13 @@ import {
   Grid,
   Heading,
   Icon,
+  Item,
   IllustratedMessage,
   NumberField,
   Switch,
+  Tabs,
+  TabList,
+  TabPanels,
   Text,
   ToggleButton,
   View,
@@ -41,9 +45,13 @@ export const SpectrumSupportedTypes = {
   Icon,
   IllustratedMessage,
   NumberField,
+  Item,
   RangeSlider,
   Slider,
   Switch,
+  Tabs,
+  TabList,
+  TabPanels,
   Text,
   TextField,
   ToggleButton,
@@ -60,9 +68,7 @@ export type SpectrumElementName =
  * The props are passed directly to the Spectrum component.
  * @see SpectrumSupportedTypes
  */
-export type SpectrumElementNode = ElementNode & {
-  [ELEMENT_KEY]: SpectrumElementName;
-};
+export type SpectrumElementNode = ElementNode<SpectrumElementName>;
 
 export function isSpectrumElementNode(
   obj: unknown

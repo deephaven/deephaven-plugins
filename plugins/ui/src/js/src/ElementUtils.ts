@@ -1,4 +1,5 @@
 import type { WidgetExportedObject } from '@deephaven/jsapi-types';
+import { ReactNode } from 'react';
 
 export const CALLABLE_KEY = '__dhCbid';
 export const OBJECT_KEY = '__dhObid';
@@ -19,13 +20,25 @@ export type ObjectNode = {
  * Extend this type with stricter rules on the element key type to provide types.
  * See `SpectrumElementNode` for an example.
  */
-export type ElementNode = {
+export type ElementNode<
+  K extends string = string,
+  P extends Record<string, unknown> = Record<string, unknown>
+> = {
   /**
    * The type of this element. Can be something like `deephaven.ui.components.Panel`, or
    * a custom component type defined by the user in their plugin.
    */
-  [ELEMENT_KEY]: string;
-  props?: Record<string, unknown>;
+  [ELEMENT_KEY]: K;
+  props?: P;
+};
+
+export type ElementNodeWithChildren<
+  K extends string = string,
+  P extends Record<string, unknown> = Record<string, unknown>
+> = ElementNode<K, P> & {
+  props: P & {
+    children: ReactNode;
+  };
 };
 
 export function isObjectNode(obj: unknown): obj is ObjectNode {
@@ -63,4 +76,28 @@ export function getElementKey(node: unknown, defaultKey: string): string {
     return defaultKey;
   }
   return `${node.props?.key}`;
+}
+
+export const FRAGMENT_ELEMENT_NAME = 'deephaven.ui.components.Fragment';
+
+export type FragmentElementType = typeof FRAGMENT_ELEMENT_NAME;
+
+/**
+ * Describes a fragment element that can be rendered in the UI.
+ * Will be placed in the current dashboard, or within a user created dashboard if specified.
+ */
+export type FragmentElementNode = ElementNode<FragmentElementType>;
+
+/**
+ * Check if an object is a FragmentElementNode
+ * @param obj Object to check
+ * @returns True if the object is a FragmentElementNode
+ */
+export function isFragmentElementNode(
+  obj: unknown
+): obj is FragmentElementNode {
+  return (
+    isElementNode(obj) &&
+    (obj as ElementNode)[ELEMENT_KEY] === FRAGMENT_ELEMENT_NAME
+  );
 }

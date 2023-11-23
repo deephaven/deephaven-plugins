@@ -1,47 +1,54 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { IrisGridProps } from '@deephaven/iris-grid';
+import {
+  IrisGrid,
+  IrisGridModel,
+  IrisGridModelFactory,
+  IrisGridProps,
+} from '@deephaven/iris-grid';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { Table } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
-import { UITableNode } from './UITableUtils';
-import TableObject from './TableObject';
+import { UITableProps } from './UITableUtils';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
 
-export interface UITableProps {
-  element: UITableNode;
-}
-
-function UITable({ element }: UITableProps) {
+function UITable({ onRowDoublePress, table: exportedTable }: UITableProps) {
   const dh = useApi();
-  const [table, setTable] = useState<Table>();
-  const { props: elementProps } = element;
+  const [model, setModel] = useState<IrisGridModel>();
 
   // Just load the object on mount
   useEffect(() => {
     let isCancelled = false;
     async function loadModel() {
-      log.debug('Loading table from props', element.props);
-      const reexportedTable = await element.props.table.reexport();
+      log.debug('Loading table from props', exportedTable);
+      const reexportedTable = await exportedTable.reexport();
       const newTable = (await reexportedTable.fetch()) as Table;
-      if (isCancelled) {
-        newTable.close();
+      const newModel = await IrisGridModelFactory.makeModel(dh, newTable);
+      if (!isCancelled) {
+        setModel(newModel);
+      } else {
+        newModel.close();
       }
-      setTable(newTable);
     }
     loadModel();
     return () => {
       isCancelled = true;
     };
-  }, [dh, element]);
+  }, [dh, exportedTable]);
 
-  const irisGridProps: Partial<IrisGridProps> = useMemo(() => {
-    const { onRowDoublePress } = elementProps;
-    return { onDataSelected: onRowDoublePress };
-  }, [elementProps]);
+  const irisGridProps: Partial<IrisGridProps> = useMemo(
+    () => ({ onDataSelected: onRowDoublePress }),
+    [onRowDoublePress]
+  );
 
-  return table ? (
-    <TableObject object={table} irisGridProps={irisGridProps} />
+  // We want to clean up the model when we unmount or get a new model
+  useEffect(() => () => model?.close(), [model]);
+
+  return model ? (
+    <div className="ui-object-container">
+      {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+      <IrisGrid model={model} {...irisGridProps} />
+    </div>
   ) : null;
 }
 

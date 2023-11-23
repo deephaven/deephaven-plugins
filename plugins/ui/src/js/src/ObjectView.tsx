@@ -1,13 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
 import Log from '@deephaven/log';
 import { isWidgetPlugin, usePlugins } from '@deephaven/plugin';
-import type { Widget, WidgetExportedObject } from '@deephaven/jsapi-types';
+import type { Widget } from '@deephaven/jsapi-types';
+import { ObjectViewProps } from './ObjectUtils';
 
 const log = Log.module('@deephaven/js-plugin-ui/ObjectView');
-
-export interface ObjectViewProps {
-  object: WidgetExportedObject;
-}
 
 function ObjectView(props: ObjectViewProps) {
   const { object } = props;

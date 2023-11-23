@@ -69,7 +69,7 @@ it('updates the document when event is received', async () => {
   expect(mockDocumentHandler).toHaveBeenCalledWith(
     expect.objectContaining({
       definition,
-      element: initialDocument,
+      children: initialDocument,
     })
   );
 
@@ -91,7 +91,7 @@ it('updates the document when event is received', async () => {
   expect(mockDocumentHandler).toHaveBeenCalledWith(
     expect.objectContaining({
       definition,
-      element: updatedDocument,
+      children: updatedDocument,
     })
   );
 
