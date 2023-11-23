@@ -17,6 +17,14 @@ def action_button(*children, **props):
     return spectrum_element("ActionButton", *children, **props)
 
 
+def button(*children, **props):
+    """
+    Python implementation for the Adobe React Spectrum Button component.
+    https://react-spectrum.adobe.com/react-spectrum/Button.html
+    """
+    return spectrum_element("Button", *children, **props)
+
+
 def checkbox(*children, **props):
     """
     Python implementation for the Adobe React Spectrum Checkbox component.
@@ -73,6 +81,14 @@ def illustrated_message(*children, **props):
     https://react-spectrum.adobe.com/react-spectrum/IllustratedMessage.html
     """
     return spectrum_element("IllustratedMessage", *children, **props)
+
+
+def range_slider(*children, **props):
+    """
+    Python implementation for the Adobe React Spectrum RangeSlider component.
+    https://react-spectrum.adobe.com/react-spectrum/RangeSlider.html
+    """
+    return spectrum_element("RangeSlider", *children, **props)
 
 
 def slider(*children, **props):

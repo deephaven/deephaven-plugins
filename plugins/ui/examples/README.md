@@ -155,6 +155,32 @@ pp = text_filter_table(stocks, "sym")
 
 ![Text Filter Table](assets/text_filter_table.png)
 
+## Table with range filter
+
+You can also filter a table based on a range. In this example, we have a [range slider](https://react-spectrum.adobe.com/react-spectrum/RangeSlider.html) that takes input from the user, and we filter the table by price based on the input. By simply returning the table `t` from the component, it will be displayed in the UI (as if we had set it to a variable name).
+
+```python
+import deephaven.ui as ui
+from deephaven.ui import use_state
+
+
+@ui.component
+def range_table(source, column):
+    range, set_range = use_state({"start": 1000, "end": 10000})
+    t = source.where(f"{column} >= {range['start']} && {column} <= {range['end']}")
+    return ui.flex(
+        ui.range_slider(
+            value=range, on_change=set_range, label=column, min_value=0, max_value=50000
+        ),
+        t,
+        direction="column",
+        flex_grow=1,
+    )
+
+
+srt = range_table(stocks, "size")
+```
+
 ## Table with required filters
 
 In the previous example, we took a users input. But we didn't display anything if the user didn't enter any text. We can display a different message prompting the user for input if they haven't entered anything. We use a few new components in this example:
