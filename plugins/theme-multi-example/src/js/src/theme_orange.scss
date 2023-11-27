@@ -1,5 +1,13 @@
 :root {
-  --dh-color-gray-50: orange;
-  --dh-color-editor-bg: var(--dh-color-default-orange-bg);
-  --dh-semantic-grid-background-color: var(--dh-color-seafoam-900);
+  --dh-color-background: var(--dh-color-orange-100);
+  --dh-color-foreground: var(--dh-color-orange-800);
+  --dh-color-editor-bg: var(--dh-color-background);
+  --dh-color-grid-bg: var(--dh-color-background);
+
+  --dh-color-form-control-error: hsl(40, 100%, 50%);
+  --dh-color-form-control-error-shadow: hsl(40, 100%, 35%);
+
+  --dh-color-selector-fg: hsla(var(--dh-color-orange-800-hsl), 0.4);
+  --dh-color-selector-hover-fg: hsl(var(--dh-color-orange-800-hsl));
+  --dh-color-selector-disabled-fg: hsla(var(--dh-color-orange-800-hsl), 0.26);
 }
