@@ -1,3 +1,4 @@
+import threading
 import unittest
 from operator import itemgetter
 from time import sleep
@@ -136,41 +137,30 @@ class HooksTest(BaseTestCase):
 
     def test_table_listener(self):
         from deephaven.ui.hooks import use_table_listener
-        from deephaven import time_table, new_table
-        from deephaven.replay import TableReplayer
-        from deephaven.time import to_j_instant
-        from deephaven.column import datetime_col
+        from deephaven import time_table, new_table, DynamicTableWriter
         from deephaven.table_listener import TableUpdate
+        import deephaven.dtypes as dht
 
-        start_time = to_j_instant("2020-01-01T20:20:20.000000000 UTC")
-        end_time = to_j_instant("2020-01-01T20:20:20.000000002 UTC")
+        column_definitions = {"Numbers": dht.int32, "Words": dht.string}
 
-        times = new_table(
-            [datetime_col("Time", [to_j_instant("2020-01-01T20:20:20.000000001 UTC")])]
-        )
+        table_writer = DynamicTableWriter(column_definitions)
+        table = table_writer.table
 
-        replayer = TableReplayer(start_time, end_time)
-        replayed_table = replayer.add_table(times, "Time")
-
-        updated = False
+        event = threading.Event()
 
         def listener(update: TableUpdate, is_replay: bool) -> None:
-            nonlocal updated
-            updated = True
+            nonlocal event
+            event.set()
 
-        def _test_table_listener(
-            replayed_table_val=replayed_table, listener_val=listener
-        ):
+        def _test_table_listener(replayed_table_val=table, listener_val=listener):
             use_table_listener(replayed_table_val, listener_val)
 
         render_hook(_test_table_listener)
 
-        replayer.start()
+        table_writer.write_row(1, "Testing")
 
-        # Slight delay to make sure the listener has time to run
-        sleep(1)
-
-        self.assertEqual(updated, True)
+        if not event.wait(timeout=1.0):
+            assert False, "listener was not called"
 
 
 if __name__ == "__main__":
