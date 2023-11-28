@@ -6,6 +6,8 @@
   "scripts": {
     "start": "lerna run start --stream",
     "build": "lerna run build --stream",
+    "serve": "run-p start serve:plugins",
+    "serve:plugins": "vite",
     "test": "jest --watch --changedSince origin/main",
     "test:unit": "jest --config jest.config.unit.cjs",
     "test:lint": "jest --config jest.config.lint.cjs",
@@ -37,7 +39,8 @@
     "lerna": "^6.6.1",
     "npm-run-all": "^4.1.5",
     "nx": "15.9.2",
-    "prettier": "^2.8.7"
+    "prettier": "^2.8.7",
+    "vite": "~4.1.4"
   },
   "prettier": "@deephaven/prettier-config"
 }
