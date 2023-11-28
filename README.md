@@ -92,7 +92,38 @@ cd plugins/plugin
 npm start # starts just the current directory plugin in watch mode
 ```
 
-This will rebuild the plugin(s) any time the source changes. However, you still need to restart the deephaven-core server each time a change is made for the change to be picked up.
+This will rebuild the plugin(s) any time the source changes. If you are mapping the folder directly via DHC start options, you will need to restart the deephaven-core server each time a change is made for the change to be picked up.
+
+##### Serve Plugins
+
+Vite supports a proxy configuration that can be used to point local DHC or DHE to another url when loading plugins. This has the benefit of not requiring a server restart when developing plugins. If you would like to use this option, you can run:
+
+```shell
+npm serve
+```
+
+This will serve the `plugins` directory at `http://localhost:5173`
+
+The vite proxy can be configured in DHC with something like:
+
+```typescript
+proxy['/js-plugins'] = {
+  target: 'http://localhost:5173',
+  changeOrigin: true,
+  rewrite: path => path.replace(/^\/js-plugins/, ''),
+};
+```
+
+The proxy can be configured in DHE for DeephavenCommunity worker with:
+
+```typescript
+proxy['/iriside/worker-kind/DeephavenCommunity/plugins'] = {
+  target: 'http://localhost:5173',
+  changeOrigin: true,
+  rewrite: path =>
+    path.replace(/^\/iriside\/worker-kind\/DeephavenCommunity\/plugins/, ''),
+};
+```
 
 #### Running deephaven-core
 
