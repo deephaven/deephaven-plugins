@@ -373,7 +373,7 @@ def shared_marginal(
     Create a marginal figure
 
     Args:
-        marginal: True if this is a marginal figure, False otherwise
+        is_marginal: True if this is a marginal figure, False otherwise
         func: The function to use to create the figure
         groups: The groups to apply to the figure
         **args: Other args to pass to the figure
@@ -394,7 +394,7 @@ def shared_violin(
     Create a violin figure
 
     Args:
-                marginal: bool:  (Default value = True) Whether this is a marginal figure or not
+        is_marginal: bool:  (Default value = True) Whether this is a marginal figure or not
         **args: Any: The args used for the figure
 
     Returns:
@@ -414,7 +414,7 @@ def shared_box(is_marginal=True, **args: Any) -> DeephavenFigure:
     Create a box figure
 
     Args:
-        marginal: bool:  (Default value = True) Whether this is a marginal figure or not
+        is_marginal: bool:  (Default value = True) Whether this is a marginal figure or not
         **args: Any: The args used for the figure
 
     Returns:
@@ -434,7 +434,7 @@ def shared_strip(is_marginal=True, **args: Any) -> DeephavenFigure:
     Create a strip figure
 
     Args:
-        marginal: bool:  (Default value = True) Whether this is a marginal figure or not
+        is_marginal: bool:  (Default value = True) Whether this is a marginal figure or not
         **args: Any: The args used for the figure
 
     Returns:
@@ -454,7 +454,7 @@ def shared_histogram(is_marginal=True, **args: Any) -> DeephavenFigure:
     Create a histogram figure
 
     Args:
-        marginal: bool:  (Default value = True) Whether this is a marginal figure or not
+        is_marginal: bool:  (Default value = True) Whether this is a marginal figure or not
         **args: Any: The args used for the figure
 
     Returns:
