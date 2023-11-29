@@ -466,7 +466,7 @@ def shared_histogram(is_marginal=True, **args: Any) -> DeephavenFigure:
     args["bargap"] = 0
     args["hist_val_name"] = args["histfunc"]
 
-    func = px.histogram
+    func = px.bar
     groups = {"bar", "preprocess_hist", "supports_lists"}
 
     return shared_marginal(is_marginal, func, groups, **args)
