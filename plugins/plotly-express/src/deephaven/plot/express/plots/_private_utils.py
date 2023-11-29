@@ -352,7 +352,7 @@ def set_all(args: dict[str, Any], pairs: dict[str, Any]) -> None:
         args: dict[str, Any]: The args to set the pairs on
         pairs: dict[str, Any]: The pairs to set
     """
-    for k, v in pairs:
+    for k, v in pairs.items():
         args.get(k, v)
 
 
@@ -367,7 +367,7 @@ def set_shared_defaults(args: dict[str, Any]) -> None:
 
 
 def shared_marginal(
-    marginal: bool, func: Callable, groups: set[str], **args: Any
+    is_marginal: bool, func: Callable, groups: set[str], **args: Any
 ) -> DeephavenFigure:
     """
     Create a marginal figure
@@ -381,13 +381,13 @@ def shared_marginal(
     Returns:
         The DeephavenFigure created
     """
-    if not marginal:
+    if not is_marginal:
         return process_args(args, groups, px_func=func)
     return create_deephaven_figure(args, groups, px_func=func)[0]
 
 
 def shared_violin(
-    marginal=True,
+    is_marginal=True,
     **args: Any,
 ) -> DeephavenFigure:
     """
@@ -406,10 +406,10 @@ def shared_violin(
     func = px.violin
     groups = SPREAD_GROUPS
 
-    return shared_marginal(marginal, func, groups, **args)
+    return shared_marginal(is_marginal, func, groups, **args)
 
 
-def shared_box(marginal=True, **args: Any) -> DeephavenFigure:
+def shared_box(is_marginal=True, **args: Any) -> DeephavenFigure:
     """
     Create a box figure
 
@@ -426,10 +426,10 @@ def shared_box(marginal=True, **args: Any) -> DeephavenFigure:
     func = px.box
     groups = SPREAD_GROUPS
 
-    return shared_marginal(marginal, func, groups, **args)
+    return shared_marginal(is_marginal, func, groups, **args)
 
 
-def shared_strip(marginal=True, **args: Any) -> DeephavenFigure:
+def shared_strip(is_marginal=True, **args: Any) -> DeephavenFigure:
     """
     Create a strip figure
 
@@ -446,10 +446,10 @@ def shared_strip(marginal=True, **args: Any) -> DeephavenFigure:
     func = px.strip
     groups = SPREAD_GROUPS
 
-    return shared_marginal(marginal, func, groups, **args)
+    return shared_marginal(is_marginal, func, groups, **args)
 
 
-def shared_histogram(marginal=True, **args: Any) -> DeephavenFigure:
+def shared_histogram(is_marginal=True, **args: Any) -> DeephavenFigure:
     """
     Create a histogram figure
 
@@ -469,7 +469,7 @@ def shared_histogram(marginal=True, **args: Any) -> DeephavenFigure:
     func = px.histogram
     groups = {"bar", "preprocess_hist", "supports_lists"}
 
-    return shared_marginal(marginal, func, groups, **args)
+    return shared_marginal(is_marginal, func, groups, **args)
 
 
 def marginal_axis_update(matches: str = None) -> dict[str, Any]:
