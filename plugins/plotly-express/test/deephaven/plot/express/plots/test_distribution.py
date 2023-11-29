@@ -157,6 +157,217 @@ class DistributionTestCase(BaseTestCase):
         self.assertEqual(deephaven["is_user_set_template"], False)
         self.assertEqual(deephaven["is_user_set_color"], False)
 
+    def test_marginal_histogram_x(self):
+        import src.deephaven.plot.express as dx
+        from deephaven.constants import NULL_LONG, NULL_DOUBLE, NULL_INT
+
+        chart = dx.histogram(self.source, x="X", marginal="violin").to_dict(
+            self.exporter
+        )
+        plotly, deephaven = chart["plotly"], chart["deephaven"]
+
+        # pop template as we currently do not modify it
+        plotly["layout"].pop("template")
+
+        expected_data = [
+            {
+                "alignmentgroup": "True",
+                "hovertemplate": "X=%{x}<br>count=%{y}<extra></extra>",
+                "legendgroup": "",
+                "marker": {"color": "#636efa", "pattern": {"shape": ""}},
+                "name": "",
+                "offsetgroup": "",
+                "orientation": "v",
+                "showlegend": False,
+                "textposition": "auto",
+                "x": [NULL_DOUBLE],
+                "xaxis": "x",
+                "y": [NULL_LONG],
+                "yaxis": "y",
+                "type": "bar",
+            },
+            {
+                "alignmentgroup": "True",
+                "box": {"visible": False},
+                "hovertemplate": "X=%{x}<extra></extra>",
+                "legendgroup": "",
+                "marker": {"color": "#636efa"},
+                "name": "",
+                "offsetgroup": "",
+                "orientation": "h",
+                "scalegroup": "True",
+                "showlegend": False,
+                "x": [NULL_INT],
+                "x0": " ",
+                "xaxis": "x2",
+                "y0": " ",
+                "yaxis": "y2",
+                "type": "violin",
+            },
+        ]
+
+        self.assertEqual(plotly["data"], expected_data)
+
+        expected_layout = {
+            "bargap": 0,
+            "barmode": "group",
+            "legend": {"tracegroupgap": 0},
+            "margin": {"t": 60},
+            "showlegend": False,
+            "violinmode": "group",
+            "xaxis": {
+                "anchor": "y",
+                "domain": [0.0, 1.0],
+                "side": "bottom",
+                "title": {"text": "X"},
+            },
+            "yaxis": {
+                "anchor": "x",
+                "domain": [0.0, 0.74],
+                "side": "left",
+                "title": {"text": "count"},
+            },
+            "xaxis2": {
+                "anchor": "y2",
+                "domain": [0.0, 1.0],
+                "matches": "x",
+                "showgrid": False,
+                "showline": False,
+                "showticklabels": False,
+                "ticks": "",
+            },
+            "yaxis2": {
+                "anchor": "x2",
+                "domain": [0.75, 1.0],
+                "showgrid": False,
+                "showline": False,
+                "showticklabels": False,
+                "ticks": "",
+            },
+        }
+
+        self.assertEqual(plotly["layout"], expected_layout)
+
+        expected_mappings = [
+            {
+                "table": 0,
+                "data_columns": {
+                    "count": ["/plotly/data/0/x"],
+                    "X": ["/plotly/data/0/y"],
+                },
+            },
+            {"table": 0, "data_columns": {"X": ["/plotly/data/1/x"]}},
+        ]
+
+        self.assertEqual(deephaven["mappings"], expected_mappings)
+
+        self.assertEqual(deephaven["is_user_set_template"], False)
+        self.assertEqual(deephaven["is_user_set_color"], False)
+
+    def test_marginal_histogram_y(self):
+        import src.deephaven.plot.express as dx
+        from deephaven.constants import NULL_LONG, NULL_DOUBLE, NULL_INT
+
+        chart = dx.histogram(self.source, x="X", marginal="box").to_dict(self.exporter)
+        plotly, deephaven = chart["plotly"], chart["deephaven"]
+
+        # pop template as we currently do not modify it
+        plotly["layout"].pop("template")
+
+        expected_data = [
+            {
+                "alignmentgroup": "True",
+                "hovertemplate": "X=%{x}<br>count=%{y}<extra></extra>",
+                "legendgroup": "",
+                "marker": {"color": "#636efa", "pattern": {"shape": ""}},
+                "name": "",
+                "offsetgroup": "",
+                "orientation": "v",
+                "showlegend": False,
+                "textposition": "auto",
+                "x": [NULL_DOUBLE],
+                "xaxis": "x",
+                "y": [NULL_LONG],
+                "yaxis": "y",
+                "type": "bar",
+            },
+            {
+                "alignmentgroup": "True",
+                "hovertemplate": "X=%{x}<extra></extra>",
+                "legendgroup": "",
+                "marker": {"color": "#636efa"},
+                "name": "",
+                "notched": False,
+                "offsetgroup": "",
+                "orientation": "h",
+                "showlegend": False,
+                "x": [NULL_INT],
+                "x0": " ",
+                "xaxis": "x2",
+                "y0": " ",
+                "yaxis": "y2",
+                "type": "box",
+            },
+        ]
+
+        self.assertEqual(plotly["data"], expected_data)
+
+        expected_layout = {
+            "bargap": 0,
+            "barmode": "group",
+            "boxmode": "group",
+            "legend": {"tracegroupgap": 0},
+            "margin": {"t": 60},
+            "showlegend": False,
+            "xaxis": {
+                "anchor": "y",
+                "domain": [0.0, 1.0],
+                "side": "bottom",
+                "title": {"text": "X"},
+            },
+            "yaxis": {
+                "anchor": "x",
+                "domain": [0.0, 0.74],
+                "side": "left",
+                "title": {"text": "count"},
+            },
+            "xaxis2": {
+                "anchor": "y2",
+                "domain": [0.0, 1.0],
+                "matches": "x",
+                "showgrid": False,
+                "showline": False,
+                "showticklabels": False,
+                "ticks": "",
+            },
+            "yaxis2": {
+                "anchor": "x2",
+                "domain": [0.75, 1.0],
+                "showgrid": False,
+                "showline": False,
+                "showticklabels": False,
+                "ticks": "",
+            },
+        }
+
+        self.assertEqual(plotly["layout"], expected_layout)
+
+        expected_mappings = [
+            {
+                "table": 0,
+                "data_columns": {
+                    "count": ["/plotly/data/0/x"],
+                    "X": ["/plotly/data/0/y"],
+                },
+            },
+            {"table": 0, "data_columns": {"X": ["/plotly/data/1/x"]}},
+        ]
+
+        self.assertEqual(deephaven["mappings"], expected_mappings)
+
+        self.assertEqual(deephaven["is_user_set_template"], False)
+        self.assertEqual(deephaven["is_user_set_color"], False)
+
     def test_basic_violin_x(self):
         import src.deephaven.plot.express as dx
         from deephaven.constants import NULL_INT

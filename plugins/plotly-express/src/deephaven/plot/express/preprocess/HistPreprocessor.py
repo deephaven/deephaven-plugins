@@ -70,11 +70,11 @@ class HistPreprocessor(UnivariatePreprocessor):
         self.range_table = None
         self.names = None
         self.nbins = args.pop("nbins", 10)
-        self.range_bins = args.pop("range_bins")
-        self.histfunc = args.pop("histfunc")
-        self.barnorm = args.pop("barnorm")
-        self.histnorm = args.pop("histnorm")
-        self.cumulative = args.pop("cumulative")
+        self.range_bins = args.pop("range_bins", None)
+        self.histfunc = args.pop("histfunc", "count")
+        self.barnorm = args.pop("barnorm", None)
+        self.histnorm = args.pop("histnorm", None)
+        self.cumulative = args.pop("cumulative", False)
         self.prepare_preprocess()
 
     def prepare_preprocess(self) -> None:

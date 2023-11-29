@@ -179,7 +179,9 @@ class PartitionManager:
             return
 
         args = self.args
-        table, x, y = args["table"], args["x"], args["y"]
+        table = args["table"]
+        x = args.get("x", None)
+        y = args.get("y", None)
 
         if isinstance(table, PartitionedTable):
             # if given a partitioned table, pivoting is not supported

@@ -9,7 +9,7 @@ import plotly.express as px
 from deephaven.table import Table, PartitionedTable
 from deephaven.execution_context import make_user_exec_ctx
 
-from ._layer import layer
+from ._layer import atomic_layer
 from .PartitionManager import PartitionManager
 from ..deephaven_figure import generate_figure, DeephavenFigure
 from ..shared import args_copy, unsafe_figure_update_wrapper
@@ -222,7 +222,13 @@ def create_deephaven_figure(
         for old_arg, new_arg in remap.items():
             args[new_arg] = args.pop(old_arg)
 
-    update_wrapper = partial(unsafe_figure_update_wrapper, args["unsafe_update_figure"])
+    if "unsafe_update_figure" in args:
+        update_wrapper = partial(
+            unsafe_figure_update_wrapper, args["unsafe_update_figure"]
+        )
+    else:
+        # this is a marginal, so provide an empty update function
+        update_wrapper = lambda x: x
 
     list_var = partitioned.list_var
     pivot_col = partitioned.pivot_vars["value"] if partitioned.pivot_vars else None
@@ -464,7 +470,7 @@ def shared_histogram(is_marginal=True, **args: Any) -> DeephavenFigure:
     set_all(args, HISTOGRAM_DEFAULTS)
 
     args["bargap"] = 0
-    args["hist_val_name"] = args["histfunc"]
+    args["hist_val_name"] = args.get("histfunc", "count")
 
     func = px.bar
     groups = {"bar", "preprocess_hist", "supports_lists"}
@@ -588,7 +594,7 @@ def attach_marginals(
                 },
             ]
 
-    return layer(*figs, specs=specs) if specs else fig
+    return atomic_layer(*figs, specs=specs) if specs else fig
 
 
 def get_marg_args(args: dict[str, Any]) -> dict[str, Any]:
