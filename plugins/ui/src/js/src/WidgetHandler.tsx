@@ -97,22 +97,34 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
         const exportedObjectKey = exportedObjectCount.current;
         exportedObjectCount.current += 1;
 
-        if (exportedObject.type === 'Table') {
-          // Table has some special handling compared to other widgets
-          // We want to return a copy of the table, and only release the table object when the widget is actually closed
-        }
+        // if (exportedObject.type === 'Table') {
+        //   // Table has some special handling compared to other widgets
+        //   // We want to return a copy of the table, and only release the table object when the widget is actually closed
+        // }
         // Some elements may fetch the object, then be hidden and close the object temporarily, and then shown again.
         // We can only fetch each exported object once, so just fetch it once and cache it, then subscribe/unsubscribe as needed.
         const cachedObject: [Promise<unknown> | undefined] = [undefined];
         const proxyObject = new Proxy(exportedObject, {
           get: (target, prop, ...rest) => {
             if (prop === 'fetch') {
-              return () => {
-                if (cachedObject[0] === undefined) {
-                  cachedObject[0] = target.fetch();
-                }
-                return cachedObject[0];
+              return async () => {
+                const newObject = await target.fetch();
+                console.log('XXX newObj', newObject);
+                const newObj2 = await target.fetch();
+                console.log('XXX newObj2', newObj2);
+                (newObject as any).close();
+                console.log('XXX newObj closed');
+                const newObj3 = await target.fetch();
+                console.log('XXX newObj3', newObj3);
+                (newObj2 as any).close();
+                return newObj3;
               };
+              // return () => {
+              //   if (cachedObject[0] === undefined) {
+              //     cachedObject[0] = target.fetch();
+              //   }
+              //   return cachedObject[0];
+              // };
             }
             // if (prop === 'close') {
             //   return () => {
