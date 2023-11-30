@@ -172,3 +172,7 @@ START_OPTS="-Ddeephaven.jsPlugins.@deephaven/js-plugin-matplotlib=<deephaven-plu
 ```
 
 The Deephaven IDE can then be opened at http://localhost:10000/ide/, with your plugins ready to use.
+
+### Running with Docker container
+
+Instead of running deephaven-core from source and building all plugins yourself, you can run a docker container that automatically builds the plugins and installs them in an instance of deephaven-core, then serving it up at http://localhost:10000. Run `npm run docker` to start up the docker container, or just run `./docker-scripts/run.sh` if you do not have `npm` installed.

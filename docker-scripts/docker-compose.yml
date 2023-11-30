@@ -5,7 +5,5 @@ services:
     build:
       context: ../
       dockerfile: ./docker-scripts/server/Dockerfile
-    volumes:
-      - ./data:/data
     ports:
       - '10000:10000'

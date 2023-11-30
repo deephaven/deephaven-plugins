@@ -6,9 +6,8 @@
 # because docker compose run starts dependent containers, but does not stop them
 
 pushd "$(dirname "$0")" # Set pwd to this directory
-# docker compose run --service-ports --build --rm "$@" # Passes all arguments to the compose file
-docker compose run --service-ports --build "$@" # Passes all arguments to the compose file
+docker compose run --service-ports --build --rm "$@" # Passes all arguments to the compose file
 exit_code=$?
-# docker compose down
+docker compose down
 popd # Reset pwd
 exit $exit_code
