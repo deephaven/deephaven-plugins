@@ -119,6 +119,30 @@ def form_example():
 fe = form_example()
 ```
 
+## Form with Submit
+
+You can also create a form that user can click Submit on and react to that on a callback you specify. In this example, we create a [Form](https://react-spectrum.adobe.com/react-spectrum/forms.html) that takes a name and age, and when the user clicks Submit, the values entered in the form are sent to the user on the forms `on_submit` callback.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def form_submit_example():
+    def handle_submit(data):
+        print(f"Hello {data['name']}, you are {data['age']} years old")
+
+    return ui.form(
+        ui.text_field(default_value="Douglas", name="name"),
+        ui.number_field(default_value=42, name="age"),
+        ui.button("Submit", type="submit"),
+        on_submit=handle_submit,
+    )
+
+
+fs = form_submit_example()
+```
+
 # Data Examples
 
 Many of the examples below use the stocks table provided by `deephaven.plot.express` package:
