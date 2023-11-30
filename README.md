@@ -99,7 +99,7 @@ This will rebuild the plugin(s) any time the source changes. If you are mapping 
 Vite supports a proxy configuration that can be used to point local DHC or DHE to another url when loading plugins. This has the benefit of not requiring a server restart when developing plugins. If you would like to use this option, you can run:
 
 ```shell
-npm serve
+npm run serve
 ```
 
 This will serve the `plugins` directory at `http://localhost:5173`
