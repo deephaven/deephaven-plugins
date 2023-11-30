@@ -108,7 +108,7 @@ The vite proxy can be configured in DHC with something like:
 
 ```typescript
 proxy['/js-plugins'] = {
-  target: 'http://localhost:5173',
+  target: 'http://localhost:4100',
   changeOrigin: true,
   rewrite: path => path.replace(/^\/js-plugins/, ''),
 };
@@ -118,7 +118,7 @@ The proxy can be configured in DHE for DeephavenCommunity worker with:
 
 ```typescript
 proxy['/iriside/worker-kind/DeephavenCommunity/plugins'] = {
-  target: 'http://localhost:5173',
+  target: 'http://localhost:4100',
   changeOrigin: true,
   rewrite: path =>
     path.replace(/^\/iriside\/worker-kind\/DeephavenCommunity\/plugins/, ''),
