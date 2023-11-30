@@ -1,7 +1,8 @@
 {
   "name": "deephaven-js-plugins",
   "workspaces": [
-    "./plugins/*/src/js/"
+    "./plugins/*/src/js/",
+    "./plugins/@deephaven/*/src/js/"
   ],
   "scripts": {
     "docker": "docker compose up --build",

@@ -17,12 +17,12 @@
     },
     { "name": "ui", "version": "0.1.0", "main": "src/js/dist/index.js" },
     {
-      "name": "theme-multi-example",
+      "name": "@deephaven/theme-multi-example",
       "version": "0.0.0",
       "main": "src/js/dist/index.js"
     },
     {
-      "name": "theme-single-example",
+      "name": "@deephaven/theme-single-example",
       "version": "0.0.0",
       "main": "src/js/dist/index.js"
     }
