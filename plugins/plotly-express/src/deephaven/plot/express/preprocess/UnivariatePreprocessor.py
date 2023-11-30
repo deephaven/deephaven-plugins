@@ -24,7 +24,7 @@ class UnivariatePreprocessor:
     def __init__(self, args: dict[str, Any], pivot_vars: dict[str, str] = None):
         self.args = args
         self.table = args["table"]
-        self.var = "x" if args["x"] else "y"
+        self.var = "x" if args.get("x", None) else "y"
         self.other_var = "y" if self.var == "x" else "x"
         self.args["orientation"] = "h" if self.var == "y" else "v"
         self.col_val = pivot_vars["value"] if pivot_vars else args[self.var]

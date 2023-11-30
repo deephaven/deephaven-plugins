@@ -128,7 +128,7 @@ def violin(
 
     args = locals()
 
-    return shared_violin(marginal=False, **args)
+    return shared_violin(is_marginal=False, **args)
 
 
 def box(
@@ -232,7 +232,7 @@ def box(
 
     args = locals()
 
-    return shared_box(marginal=False, **args)
+    return shared_box(is_marginal=False, **args)
 
 
 def strip(
@@ -328,7 +328,7 @@ def strip(
 
     args = locals()
 
-    return shared_strip(marginal=False, **args)
+    return shared_strip(is_marginal=False, **args)
 
 
 def _ecdf(
@@ -540,4 +540,4 @@ def histogram(
     """
     args = locals()
 
-    return shared_histogram(marginal=False, **args)
+    return shared_histogram(is_marginal=False, **args)
