@@ -1,7 +1,7 @@
 from ...elements import BaseElement
 
 
-def spectrum_element(name: str, *children, **props):
+def spectrum_element(name: str, /, *children, **props):
     """
     Base class for UI elements that are part of the Spectrum design system.
     All names are automatically prefixed with "deephaven.ui.spectrum.", and all props are automatically camelCased.
@@ -23,6 +23,14 @@ def button(*children, **props):
     https://react-spectrum.adobe.com/react-spectrum/Button.html
     """
     return spectrum_element("Button", *children, **props)
+
+
+def button_group(*children, **props):
+    """
+    Python implementation for the Adobe React Spectrum ButtonGroup component.
+    https://react-spectrum.adobe.com/react-spectrum/ButtonGroup.html
+    """
+    return spectrum_element("ButtonGroup", *children, **props)
 
 
 def checkbox(*children, **props):
@@ -81,6 +89,22 @@ def illustrated_message(*children, **props):
     https://react-spectrum.adobe.com/react-spectrum/IllustratedMessage.html
     """
     return spectrum_element("IllustratedMessage", *children, **props)
+
+
+def form(*children, **props):
+    """
+    Python implementation for the Adobe React Spectrum Form component.
+    https://react-spectrum.adobe.com/react-spectrum/Form.html
+    """
+    return spectrum_element("Form", *children, **props)
+
+
+def number_field(*children, **props):
+    """
+    Python implementation for the Adobe React Spectrum NumberField component.
+    https://react-spectrum.adobe.com/react-spectrum/NumberField.html
+    """
+    return spectrum_element("NumberField", *children, **props)
 
 
 def range_slider(*children, **props):

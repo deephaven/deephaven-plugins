@@ -11,7 +11,7 @@ class BaseElement(Element):
     Must provide a name for the element.
     """
 
-    def __init__(self, name: str, *children: Any, **props: Any):
+    def __init__(self, name: str, /, *children: Any, **props: Any):
         self._name = name
         if len(children) > 0 and props.get("children") is not None:
             raise ValueError("Cannot provide both children and props.children")
