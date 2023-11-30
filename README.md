@@ -102,7 +102,7 @@ Vite supports a proxy configuration that can be used to point local DHC or DHE t
 npm run serve
 ```
 
-This will serve the `plugins` directory at `http://localhost:5173`
+This will serve the `plugins` directory at `http://localhost:4100` by default. The port can be configured via the `PORT` env variable.
 
 The vite proxy can be configured in DHC with something like:
 
