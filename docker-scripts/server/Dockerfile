@@ -13,7 +13,7 @@ RUN set -eux; \
 # This is a workaround for copying all package.json files w/ directory structure
 # without needing to list every file as a COPY command
 # The copy --from=copy-plugins command will be a cache hit if the package.json files didn't change
-FROM alpine AS copy-js-plugins
+FROM alpine AS copy-plugins
 WORKDIR /work/
 COPY . /tmp/deephaven-plugins
 COPY requirements.txt package.json package-lock.json ./
@@ -22,7 +22,7 @@ RUN cd /tmp/deephaven-plugins && cp --parents ./plugins/*/src/js/package.json /w
 
 FROM base as build
 WORKDIR /work/
-COPY --from=copy-js-plugins /work/ .
+COPY --from=copy-plugins /work/ .
 
 # Install the python requirements
 RUN pip3 install -r requirements.txt --break-system-packages
