@@ -6,6 +6,8 @@
   "scripts": {
     "start": "lerna run start --stream",
     "build": "lerna run build --stream",
+    "serve": "run-p start serve:plugins",
+    "serve:plugins": "vite",
     "test": "jest --watch --changedSince origin/main",
     "test:unit": "jest --config jest.config.unit.cjs",
     "test:lint": "jest --config jest.config.lint.cjs",
@@ -23,8 +25,8 @@
     "@testing-library/react-hooks": "^8.0.1",
     "@testing-library/user-event": "^14.4.3",
     "@types/jest": "^29.2.5",
-    "@types/shortid": "^0.0.29",
     "@types/prop-types": "^15.7.10",
+    "@types/shortid": "^0.0.29",
     "eslint": "^8.37.0",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^29.6.2",
@@ -37,7 +39,8 @@
     "lerna": "^6.6.1",
     "npm-run-all": "^4.1.5",
     "nx": "15.9.2",
-    "prettier": "^2.8.7"
+    "prettier": "^2.8.7",
+    "vite": "~4.1.4"
   },
   "prettier": "@deephaven/prettier-config"
 }
