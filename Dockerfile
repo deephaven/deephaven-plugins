@@ -15,10 +15,10 @@ RUN set -eux; \
 # The copy --from=copy-plugins command will be a cache hit if the package.json files didn't change
 FROM alpine AS copy-plugins
 WORKDIR /work/
-COPY . /tmp/deephaven-plugins
-COPY requirements.txt package.json package-lock.json ./
+COPY plugins /tmp/deephaven-plugins
+COPY package.json package-lock.json requirements.txt ./
 # cd first so the cp doesn't include /tmp/deephaven-plugins in the paths
-RUN cd /tmp/deephaven-plugins && cp --parents ./plugins/*/src/js/package.json /work/ && cp --parents ./plugins/*/setup.* /work/
+RUN cd /tmp/deephaven-plugins && cp --parents ./*/src/js/package.json /work/ && cp --parents ./*/setup.* /work/
 
 FROM base as build
 WORKDIR /work/
@@ -30,11 +30,13 @@ RUN pip3 install -r requirements.txt --break-system-packages
 # Install the npm packages
 RUN npm ci
 
-# Copy the web-client-ui src folder to the docker image
+COPY babel.config.js lerna.json nx.json tsconfig.json ./
+
+# Copy the deephaven-plugins source files to the docker image
 # We do this last because the source files are the most likely to change
 # This requires the Dockerfile to be built in the context of the root of the web-client-ui repository
 # https://stackoverflow.com/a/34300129
-COPY . .
+COPY plugins plugins
 
 # Build the JS
 RUN npm run build
@@ -44,5 +46,7 @@ RUN find ./plugins -maxdepth 1 -mindepth 1 -type d -exec python3 -m build --whee
 
 FROM ghcr.io/deephaven/server:edge
 COPY --link --from=build /work/ /opt/deephaven/config/plugins/
-COPY --link docker-scripts/server/deephaven.prop /opt/deephaven/config/deephaven.prop
-RUN pip install --force-reinstall /opt/deephaven/config/plugins/plugins/*/dist/*.whl
+RUN pip install /opt/deephaven/config/plugins/plugins/*/dist/*.whl
+
+COPY --link docker/config/deephaven.prop /opt/deephaven/config/deephaven.prop
+COPY --link docker/data /data
