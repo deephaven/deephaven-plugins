@@ -1,0 +1,8 @@
+includefiles=dh-defaults.prop
+
+deephaven.console.type=python
+
+# deephaven.jsPlugins.resourceBase=/opt/deephaven/config/js-plugins
+
+deephaven.jsPlugins.@deephaven/js-plugin-ui=/opt/deephaven/config/plugins/plugins/ui/src/js
+deephaven.jsPlugins.@deephaven/js-plugin-plotly-express=/opt/deephaven/config/plugins/plugins/plotly-express/src/js
