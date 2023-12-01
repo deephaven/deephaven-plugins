@@ -33,7 +33,7 @@ def counter():
     )
 
 
-c = counter()
+result = counter()
 ```
 
 ## Text field (string)
@@ -44,15 +44,21 @@ You can create a [TextField](https://react-spectrum.adobe.com/react-spectrum/Tex
 @ui.component
 def my_input():
     text, set_text = ui.use_state("hello")
+    count, set_count = ui.use_state(0)
 
     return ui.flex(
+        ui.action_button(
+            f"You pressed me {count} times", on_press=lambda: set_count(count + 1)
+        ),
         ui.text_field(value=text, on_change=set_text),
         ui.text(f"You typed {text}"),
+        gap=10,
+        margin=10,
         direction="column",
     )
 
 
-mi = my_input()
+result = my_input()
 ```
 
 ## Using Tables
@@ -91,6 +97,7 @@ def groupable_table(source, column, aggs, default_value=""):
             ),
             ui.toggle_button(ui.text("Group"), on_change=set_grouped),
             gap=10,
+            margin=4,
         ),
         t if not grouped else t.rollup(aggs=aggs, by=column),
         direction="column",
@@ -98,7 +105,9 @@ def groupable_table(source, column, aggs, default_value=""):
     )
 
 
-gt = groupable_table(stocks, "sym", agg.avg(cols=["size", "price", "dollars"]), "fish")
+result = groupable_table(
+    stocks, "sym", agg.avg(cols=["size", "price", "dollars"]), "fish"
+)
 ```
 
 ## Using Plots
@@ -118,12 +127,14 @@ def filterable_plot(source):
             on_change=set_value,
             label="Sym",
             label_position="side",
+            marginX=10,
+            marginTop=10,
         ),
         dx.line(t, x="timestamp", y="price", by=["exchange"]),
     ]
 
 
-fp = filterable_plot(stocks)
+result = filterable_plot(stocks)
 ```
 
 ## Table Actions
@@ -148,7 +159,7 @@ def stock_table_input(source, default_sym="", default_exchange=""):
         ui.panel(
             # Add a callback for when user double clicks a row in the table
             ui.table(t1).on_row_double_press(handle_row_double_press),
-            title="Stock Table Input",
+            title="Stock Row Press",
         ),
         ui.panel(t2, title="Stock Filtered Table"),
         ui.panel(p, title="Stock Plot"),
@@ -190,13 +201,14 @@ def hist_demo(source, column):
                 max_value=100000,
             ),
             gap=20,
-            margin=20,
+            marginX=20,
+            marginTop=10,
         ),
         p,
     ]
 
 
-hd = hist_demo(stocks, "size")
+result = hist_demo(stocks, "size")
 ```
 
 ## Creating an Order Table
@@ -235,7 +247,7 @@ def order_table():
     def handle_sell():
         submit_order(sym, size, "sell")
 
-    return ui.panel(
+    return [
         ui.flex(
             ui.text_field(
                 label="Sym", label_position="side", value=sym, on_change=set_sym
@@ -246,12 +258,13 @@ def order_table():
             ui.button("Buy", on_press=handle_buy, variant="accent", style="fill"),
             ui.button("Sell", on_press=handle_sell, variant="negative", style="fill"),
             gap=10,
+            marginX=10,
+            marginTop=4,
             wrap=True,
         ),
         t,
-        title="Order Table",
-    )
+    ]
 
 
-ot = order_table()
+result = order_table()
 ```
