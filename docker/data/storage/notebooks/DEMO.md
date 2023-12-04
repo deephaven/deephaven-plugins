@@ -2,7 +2,7 @@
 
 ## A Python web framework for building real-time data focused apps
 
-Deephaven is a new framework for building reactive UI components for real-time data apps, entirely in Python. No front-end engineering needed. Users can turn kafka feeds, event streams, and data lakes into live BI dashboards and data apps in minutes, not days. The new python framework, deephaven.ui, allows users to build interactive interfaces composed of reactive components and includes a library of pre-built real-time data compatible components.
+deephaven.ui is a new framework for building reactive UI components for real-time data apps, entirely in Python. No front-end engineering needed. Users can turn kafka feeds, event streams, and data lakes into live BI dashboards and data apps in minutes, not days.
 
 Below are some examples to demonstrate some of the functionality you can do so far with deephaven.ui. At this point it is only showcasing the subset of the planned functionality that has been implemented, but should give an idea of what is possible.
 

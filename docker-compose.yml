@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  deephaven-plugins:
+    build:
+      dockerfile: ./Dockerfile
+    ports:
+      - '10000:10000'

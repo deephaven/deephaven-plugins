@@ -34,7 +34,7 @@ COPY babel.config.js lerna.json nx.json tsconfig.json ./
 
 # Copy the deephaven-plugins source files to the docker image
 # We do this last because the source files are the most likely to change
-# This requires the Dockerfile to be built in the context of the root of the web-client-ui repository
+# This requires the Dockerfile to be built in the context of the root of the deephaven-plugins repository
 # https://stackoverflow.com/a/34300129
 COPY plugins plugins
 
@@ -49,4 +49,7 @@ COPY --link --from=build /work/ /opt/deephaven/config/plugins/
 RUN pip install /opt/deephaven/config/plugins/plugins/*/dist/*.whl
 
 COPY --link docker/config/deephaven.prop /opt/deephaven/config/deephaven.prop
+
+# We copy our data directory in from the data container in case we're publishing the image
+# However, you can mount a volume to override this in the docker-compose.override.yml
 COPY --link docker/data /data
