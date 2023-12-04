@@ -9,7 +9,7 @@ export function makeDocumentUpdatedJsonRpc(
   return {
     jsonrpc: '2.0',
     method: 'documentUpdated',
-    params: [document],
+    params: [JSON.stringify(document)],
   };
 }
 

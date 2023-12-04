@@ -1,5 +1,6 @@
 from __future__ import annotations
 import io
+import json
 from jsonrpc import JSONRPCResponseManager, Dispatcher
 import logging
 from typing import Any
@@ -83,9 +84,9 @@ class ElementMessageStream(MessageStream):
         if response is None:
             return
 
-        payload = response.json
-        logger.debug("Response: %s, %s", type(payload), payload)
-        self._connection.on_data(payload.encode(), [])
+        response_payload = response.json
+        logger.debug("Response: %s, %s", type(response_payload), response_payload)
+        self._connection.on_data(response_payload.encode(), [])
 
     def _get_next_message_id(self) -> int:
         self._message_id += 1
@@ -129,9 +130,9 @@ class ElementMessageStream(MessageStream):
         """
 
         # TODO(#67): Send a diff of the document instead of the entire document.
-        request = self._make_notification("documentUpdated", root)
-        payload = self._encoder.encode(request)
-
+        encoded_document = self._encoder.encode(root)
+        request = self._make_notification("documentUpdated", encoded_document)
+        payload = json.dumps(request)
         logger.debug(f"Sending payload: {payload}")
 
         dispatcher = Dispatcher()

@@ -50,17 +50,6 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
   );
   const exportedObjectCount = useRef(0);
 
-  useEffect(
-    () =>
-      function closeWidget() {
-        exportedObjectMap.current.forEach(exportedObject => {
-          exportedObject.close();
-        });
-        widget?.close();
-      },
-    [widget]
-  );
-
   // Bi-directional communication as defined in https://www.npmjs.com/package/json-rpc-2.0
   const jsonClient = useMemo(
     () =>
@@ -75,7 +64,7 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
         : null,
     [widget]
   );
-  const parseData = useCallback(
+  const parseDocument = useCallback(
     /**
      * Parse the data from the server, replacing any callable nodes with functions that call the server.
      * Replaces all Callables with an async callback that will automatically call the server use JSON-RPC.
@@ -83,61 +72,12 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
      * Element nodes are not replaced. Those are handled in `DocumentHandler`.
      *
      * @param data The data to parse
-     * @param newExportedObjects New exported objects to add to the map
      * @returns The parsed data
      */
-    (data: string, newExportedObjects: WidgetExportedObject[]) => {
+    (data: string) => {
       // Keep track of exported objects that are no longer in use after this render.
       // We close those objects that are no longer referenced, as they will never be referenced again.
       const deadObjectMap = new Map(exportedObjectMap.current);
-      const newExportedObjectMap = new Map(exportedObjectMap.current);
-
-      for (let i = 0; i < newExportedObjects.length; i += 1) {
-        const exportedObject = newExportedObjects[i];
-        const exportedObjectKey = exportedObjectCount.current;
-        exportedObjectCount.current += 1;
-
-        // if (exportedObject.type === 'Table') {
-        //   // Table has some special handling compared to other widgets
-        //   // We want to return a copy of the table, and only release the table object when the widget is actually closed
-        // }
-        // Some elements may fetch the object, then be hidden and close the object temporarily, and then shown again.
-        // We can only fetch each exported object once, so just fetch it once and cache it, then subscribe/unsubscribe as needed.
-        const cachedObject: [Promise<unknown> | undefined] = [undefined];
-        const proxyObject = new Proxy(exportedObject, {
-          get: (target, prop, ...rest) => {
-            if (prop === 'fetch') {
-              return async () => {
-                const newObject = await target.fetch();
-                console.log('XXX newObj', newObject);
-                const newObj2 = await target.fetch();
-                console.log('XXX newObj2', newObj2);
-                (newObject as any).close();
-                console.log('XXX newObj closed');
-                const newObj3 = await target.fetch();
-                console.log('XXX newObj3', newObj3);
-                (newObj2 as any).close();
-                return newObj3;
-              };
-              // return () => {
-              //   if (cachedObject[0] === undefined) {
-              //     cachedObject[0] = target.fetch();
-              //   }
-              //   return cachedObject[0];
-              // };
-            }
-            // if (prop === 'close') {
-            //   return () => {
-            //     // We only want to unsubscribe from the object here, not close it. We will close it when the widget is closed, but until then the object may be needed again.
-            //     (cachedObject[0] as any).unsubscribe();
-            //   };
-            // }
-            return Reflect.get(target, prop, ...rest);
-          },
-        });
-
-        newExportedObjectMap.set(exportedObjectKey, proxyObject);
-      }
 
       const parsedData = JSON.parse(data, (key, value) => {
         // Need to re-hydrate any objects that are defined
@@ -152,7 +92,7 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
         if (isObjectNode(value)) {
           // Replace this node with the exported object
           const objectKey = value[OBJECT_KEY];
-          const exportedObject = newExportedObjectMap.get(objectKey);
+          const exportedObject = exportedObjectMap.current.get(objectKey);
           if (exportedObject === undefined) {
             // The map should always have the exported object for a key, otherwise the protocol is broken
             throw new Error(`Invalid exported object key ${objectKey}`);
@@ -168,13 +108,32 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
       deadObjectMap.forEach((deadObject, objectKey) => {
         log.debug('Closing dead object', objectKey);
         deadObject.close();
-        newExportedObjectMap.delete(objectKey);
+        exportedObjectMap.current.delete(objectKey);
       });
 
-      exportedObjectMap.current = newExportedObjectMap;
+      log.debug2(
+        'Parsed data',
+        parsedData,
+        'exportedObjectMap',
+        exportedObjectMap.current,
+        'deadObjectMap',
+        deadObjectMap
+      );
       return parsedData;
     },
     [jsonClient]
+  );
+
+  const updateExportedObjects = useCallback(
+    (newExportedObjects: WidgetExportedObject[]) => {
+      for (let i = 0; i < newExportedObjects.length; i += 1) {
+        const exportedObject = newExportedObjects[i];
+        const exportedObjectKey = exportedObjectCount.current;
+        exportedObjectCount.current += 1;
+        exportedObjectMap.current.set(exportedObjectKey, exportedObject);
+      }
+    },
+    []
   );
 
   useEffect(
@@ -184,16 +143,17 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
       }
 
       log.debug('Adding methods to jsonClient');
-      jsonClient.addMethod('documentUpdated', async (params: [ElementNode]) => {
+      jsonClient.addMethod('documentUpdated', async (params: [string]) => {
         log.debug2('documentUpdated', params[0]);
-        setElement(params[0]);
+        const newDocument = parseDocument(params[0]);
+        setElement(newDocument);
       });
 
       return () => {
         jsonClient.rejectAllPendingRequests('Widget was changed');
       };
     },
-    [jsonClient]
+    [jsonClient, parseDocument]
   );
 
   useEffect(() => {
@@ -205,8 +165,8 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
       newExportedObjects: WidgetExportedObject[]
     ) {
       log.debug2('Data received', data, newExportedObjects);
-      const parsedData = parseData(data, newExportedObjects);
-      jsonClient?.receiveAndSend(parsedData);
+      updateExportedObjects(newExportedObjects);
+      jsonClient?.receiveAndSend(JSON.parse(data));
     }
 
     const cleanup = widget.addEventListener(
@@ -227,7 +187,7 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
       log.debug('Cleaning up listener');
       cleanup();
     };
-  }, [dh, jsonClient, parseData, widget]);
+  }, [dh, jsonClient, parseDocument, updateExportedObjects, widget]);
 
   useEffect(
     function loadWidget() {
@@ -248,6 +208,14 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
       };
     },
     [wrapper]
+  );
+
+  useEffect(
+    () =>
+      function closeWidget() {
+        widget?.close();
+      },
+    [widget]
   );
 
   const handleDocumentClose = useCallback(() => {
