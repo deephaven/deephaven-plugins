@@ -885,6 +885,7 @@ import deephaven.ui as ui
 ui_dashboard= ui.dashboard(
     root: Element,
     label: Optional[str] = None,
+    description: Optional[str] = None,
     background_color: Optional[Color] = None,
     filters: Optional[DashboardFilter[]] = None,
     links: Optional[Link[]] = None,
@@ -904,6 +905,7 @@ ui_dashboard= ui.dashboard(
 | ---------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `root`                 | `Element`                                 | The root element of the dashboard. Can be a [ui.row](#uirow), [ui.column](#uicolumn), or [ui.stack](#uistack) to build a dashboard with multiple panels, or can just be a widget that takes up the whole dashboard. |
 | `label`                | `Optional[str]`                           | The label of the dashboard. If not provided, a name will be created based on the variable name the top-level component is assigned to. Icons can also be added as children, with a sibling element for the label.   |
+| `description`          | `Optional[str]`                           | A description of the dashboard purpose or contents. Shown to users in the dashboard tooltip, or a directory listing of dashboards.                                                                                  |
 | `background_color`     | `Optional[Color]`                         | Custom background color of the dashboard.                                                                                                                                                                           |
 | `filters`              | `Optional[list[DashboardFilter]]`         | Filters to apply to every item with a matching column/type, to match the filter value specified.                                                                                                                    |
 | `links`                | `Optional[list[Link]]`                    | Links between items on the dashboard. User will be able to see these links and modify them using the Linker tool.                                                                                                   |
