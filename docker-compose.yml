@@ -4,5 +4,6 @@ services:
   deephaven-plugins:
     build:
       dockerfile: ./Dockerfile
+      pull: true
     ports:
       - '${DEEPHAVEN_PORT:-10000}:10000'
