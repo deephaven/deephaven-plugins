@@ -4,6 +4,7 @@ import pathlib
 import importlib.metadata
 import importlib.resources
 import json
+import sys
 from typing import Callable
 
 from deephaven.plugin.js import JsPlugin
@@ -39,7 +40,7 @@ class ExpressJsPlugin(JsPlugin):
         return self._root_provider()
 
 
-def create_from_npm(
+def _create_from_npm_package_json(
     root_provider: Callable[[], typing.Generator[pathlib.Path, None, None]]
 ) -> JsPlugin:
     with root_provider() as root, (root / "package.json").open("rb") as f:
@@ -52,19 +53,22 @@ def create_from_npm(
     )
 
 
-def production_root() -> typing.Generator[pathlib.Path, None, None]:
-    # todo: better location
-    # todo: need to make sure this works w/ 3.8+
-    return importlib.resources.as_file(
-        importlib.resources.files("js").joinpath("plotly-express")
-    )
+def _production_root() -> typing.Generator[pathlib.Path, None, None]:
+    # TODO: Js content should be in same package directory
+    # https://github.com/deephaven/deephaven-plugins/issues/139
+    if sys.version_info < (3, 9):
+        return importlib.resources.path("js", "plotly-express")
+    else:
+        return importlib.resources.as_file(
+            importlib.resources.files("js").joinpath("plotly-express")
+        )
 
 
-def development_root() -> typing.Generator[pathlib.Path, None, None]:
+def _development_root() -> typing.Generator[pathlib.Path, None, None]:
     raise NotImplementedError("TODO")
 
 
 def create_js_plugin() -> JsPlugin:
     # todo: some mode to switch into development mode / editable mode?
     # or, some may to skip creating JsPlugin, and have developer add deephaven configuration property
-    return create_from_npm(production_root)
+    return _create_from_npm_package_json(_production_root)
