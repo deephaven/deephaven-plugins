@@ -194,7 +194,7 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
       log.debug('loadWidget', wrapper.id, wrapper.definition);
       let isCancelled = false;
       async function loadWidgetInternal() {
-        const newWidget = await wrapper.fetch();
+        const newWidget = await wrapper.fetch(false);
         if (isCancelled) {
           newWidget.close();
           return;

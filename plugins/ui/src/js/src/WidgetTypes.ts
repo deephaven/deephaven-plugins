@@ -9,7 +9,7 @@ export interface WidgetMessageDetails {
 
 export type WidgetMessageEvent = CustomEvent<WidgetMessageDetails>;
 
-export type WidgetFetch = () => Promise<Widget>;
+export type WidgetFetch = (takeOwnership?: boolean) => Promise<Widget>;
 
 export type WidgetWrapper = {
   definition: WidgetDefinition;
