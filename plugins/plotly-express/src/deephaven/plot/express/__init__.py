@@ -8,7 +8,7 @@ from deephaven.plugin.object_type import BidirectionalObjectType, MessageStream
 
 from .communication.DeephavenFigureConnection import DeephavenFigureConnection
 from .deephaven_figure import DeephavenFigure
-from .js import ExpressJsPlugin
+from .js import create_js_plugin
 
 from .plots import (
     area,
@@ -125,4 +125,4 @@ class ExpressRegistration(Registration):
 
         """
         callback.register(DeephavenFigureType)
-        callback.register(ExpressJsPlugin)
+        callback.register(create_js_plugin())

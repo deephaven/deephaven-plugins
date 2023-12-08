@@ -17,7 +17,9 @@ if os.path.exists(dist_dir):
     os.makedirs(dest_dir, exist_ok=True)
 
     # pack and unpack into the js plotly-express directory
-    subprocess.run(["npm", "pack", "--pack-destination", project], cwd=js_dir, check=True)
+    subprocess.run(
+        ["npm", "pack", "--pack-destination", project], cwd=js_dir, check=True
+    )
     # it is assumed that there is only one tarball in the directory
     files = os.listdir(dest_dir)
     for file in files:
