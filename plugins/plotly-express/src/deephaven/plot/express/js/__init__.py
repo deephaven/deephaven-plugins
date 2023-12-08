@@ -36,7 +36,8 @@ class ExpressJsPlugin(JsPlugin):
         return self._main
 
     def distribution_path(self) -> typing.Generator[pathlib.Path, None, None]:
-        # todo: should rename this method in JsPlugin
+        # TODO: Finalize JsPlugin
+        # https://github.com/deephaven/deephaven-plugin/issues/15
         return self._root_provider()
 
 
@@ -69,6 +70,7 @@ def _development_root() -> typing.Generator[pathlib.Path, None, None]:
 
 
 def create_js_plugin() -> JsPlugin:
-    # todo: some mode to switch into development mode / editable mode?
-    # or, some may to skip creating JsPlugin, and have developer add deephaven configuration property
+    # TODO: Include developer instructions for installing in editable mode
+    # https://github.com/deephaven/deephaven-plugins/issues/93
+    # TBD what editable mode looks like for JsPlugin
     return _create_from_npm_package_json(_production_root)
