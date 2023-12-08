@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import json
+import importlib.metadata
 
 from deephaven.plugin import Registration, Callback
 from deephaven.plugin.object_type import BidirectionalObjectType, MessageStream
 
 from .communication.DeephavenFigureConnection import DeephavenFigureConnection
 from .deephaven_figure import DeephavenFigure
+from .js import ExpressJsPlugin
 
 from .plots import (
     area,
@@ -44,7 +46,10 @@ from .plots import (
 
 from .data import data_generators
 
-__version__ = "0.2.0dev1"
+# Note: this is the _distribution_ name, not the _package_ name. Until 3.10, there is not an easy way to get the
+# distribution name from the package name.
+# https://docs.python.org/3/library/importlib.metadata.html#package-distributions
+__version__ = importlib.metadata.version("deephaven-plugin-plotly-express")
 
 NAME = "deephaven.plot.express.DeephavenFigure"
 
@@ -103,16 +108,16 @@ class DeephavenFigureType(BidirectionalObjectType):
         return figure_connection
 
 
-class ChartRegistration(Registration):
+class ExpressRegistration(Registration):
     """
-    Register the DeephavenFigureType
+    Register the DeephavenFigureType and ExpressJsPlugin
 
     """
 
     @classmethod
     def register_into(cls, callback: Callback) -> None:
         """
-        Register the DeephavenFigureType
+        Register the DeephavenFigureType and ExpressJsPlugin
 
         Args:
           callback: Registration.Callback:
@@ -120,3 +125,4 @@ class ChartRegistration(Registration):
 
         """
         callback.register(DeephavenFigureType)
+        callback.register(ExpressJsPlugin)
