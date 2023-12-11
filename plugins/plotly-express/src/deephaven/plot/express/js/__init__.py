@@ -5,7 +5,7 @@ import importlib.metadata
 import importlib.resources
 import json
 import sys
-from typing import Callable
+from typing import Callable, ContextManager
 
 from deephaven.plugin.js import JsPlugin
 
@@ -16,7 +16,7 @@ class ExpressJsPlugin(JsPlugin):
         name: str,
         version: str,
         main: str,
-        root_provider: Callable[[], typing.Generator[pathlib.Path, None, None]],
+        root_provider: Callable[[], ContextManager[pathlib.Path]],
     ) -> None:
         self._name = name
         self._version = version
@@ -35,14 +35,14 @@ class ExpressJsPlugin(JsPlugin):
     def main(self) -> str:
         return self._main
 
-    def distribution_path(self) -> typing.Generator[pathlib.Path, None, None]:
+    def distribution_path(self) -> ContextManager[pathlib.Path]:
         # TODO: Finalize JsPlugin
         # https://github.com/deephaven/deephaven-plugin/issues/15
         return self._root_provider()
 
 
 def _create_from_npm_package_json(
-    root_provider: Callable[[], typing.Generator[pathlib.Path, None, None]]
+    root_provider: Callable[[], ContextManager[pathlib.Path]]
 ) -> JsPlugin:
     with root_provider() as root, (root / "package.json").open("rb") as f:
         package_json = json.load(f)
@@ -54,7 +54,7 @@ def _create_from_npm_package_json(
     )
 
 
-def _production_root() -> typing.Generator[pathlib.Path, None, None]:
+def _production_root() -> ContextManager[pathlib.Path]:
     # TODO: Js content should be in same package directory
     # https://github.com/deephaven/deephaven-plugins/issues/139
     if sys.version_info < (3, 9):
@@ -65,7 +65,7 @@ def _production_root() -> typing.Generator[pathlib.Path, None, None]:
         )
 
 
-def _development_root() -> typing.Generator[pathlib.Path, None, None]:
+def _development_root() -> ContextManager[pathlib.Path]:
     raise NotImplementedError("TODO")
 
 
