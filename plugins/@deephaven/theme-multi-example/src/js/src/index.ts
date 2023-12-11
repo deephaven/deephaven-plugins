@@ -1,4 +1,3 @@
-import acmeDark from './theme_dark.scss?inline';
 import acmeLight from './theme_light.scss?inline';
 import acmeOrange from './theme_orange.scss?inline';
 
