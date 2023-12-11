@@ -178,7 +178,7 @@ def stocks(ticking: bool = True, hours_of_data: int = 1) -> Table:
     def random_list_exchange(seed: int) -> str:
         return random.choices(exchange, exchange_weights)[0]
 
-    def random_trade_size(rand: int) -> int:
+    def random_trade_size(rand: float) -> int:
         """
         Random distribution of trade size, approximately mirroring market data
         """
