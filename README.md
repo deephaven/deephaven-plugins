@@ -163,3 +163,7 @@ services:
       # Specifying a data volume here will override the default data folder, and you will not be able to access the default data files (such as the demo data)
       - /path/to/mydata/:/data
 ```
+
+### Developing a Theme Plugin
+
+./scripts/new-theme-plugin.sh
