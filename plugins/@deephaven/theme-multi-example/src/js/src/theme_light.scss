@@ -1,3 +1,19 @@
 :root {
-  --dh-foreground-color: #d5ea1e;
+  /* Semantic */
+  --dh-color-bg-hsl: var(--dh-color-white-hsl);
+  --dh-color-fg-hsl: var(--dh-color-black-hsl);
+  --dh-color-content-bg: var(--dh-color-gray-900);
+  --dh-color-text: var(--dh-color-fg);
+
+  /* Actions */
+  --dh-color-action-hsl: var(--dh-color-bg-hsl);
+  --dh-color-action-contrast-hsl: var(--dh-color-contrast-dark-hsl);
+
+  /* Editor */
+
+  /* Grid */
+  --dh-color-grid-bg: var(--dh-color-bg);
+
+  /* Components */
+  --dh-color-loading-spinner-secondary: hsl(var(--dh-color-gray-500-hsl));
 }

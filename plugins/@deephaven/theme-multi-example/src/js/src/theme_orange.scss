@@ -1,8 +1,8 @@
 :root {
-  --dh-color-background: var(--dh-color-orange-100);
-  --dh-color-foreground: var(--dh-color-orange-800);
-  --dh-color-editor-bg: var(--dh-color-background);
-  --dh-color-grid-bg: var(--dh-color-background);
+  --dh-color-bg: var(--dh-color-orange-100);
+  --dh-color-fg: var(--dh-color-orange-800);
+  --dh-color-editor-bg: var(--dh-color-bg);
+  --dh-color-grid-bg: var(--dh-color-bg);
 
   --dh-color-form-control-error: hsl(40, 100%, 50%);
   --dh-color-form-control-error-shadow: hsl(40, 100%, 35%);

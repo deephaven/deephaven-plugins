@@ -22,14 +22,14 @@ export const plugin: ThemePlugin = {
   name: 'Acme Theme Plugin',
   type: 'ThemePlugin',
   themes: [
-    {
-      name: 'Acme Dark',
-      baseTheme: 'dark',
-      styleContent: acmeDark,
-    },
+    // {
+    //   name: 'Acme Dark',
+    //   baseTheme: 'dark',
+    //   styleContent: acmeDark,
+    // },
     {
       name: 'Acme Light',
-      baseTheme: 'light',
+      baseTheme: 'dark',
       styleContent: acmeLight,
     },
     {
