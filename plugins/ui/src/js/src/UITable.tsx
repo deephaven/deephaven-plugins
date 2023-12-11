@@ -19,12 +19,20 @@ function UITable({ element }: UITableProps) {
 
   // Just load the object on mount
   useEffect(() => {
+    let isCancelled = false;
     async function loadModel() {
       log.debug('Loading table from props', element.props);
-      const newTable = (await element.props.table.fetch()) as Table;
+      const reexportedTable = await element.props.table.reexport();
+      const newTable = (await reexportedTable.fetch()) as Table;
+      if (isCancelled) {
+        newTable.close();
+      }
       setTable(newTable);
     }
     loadModel();
+    return () => {
+      isCancelled = true;
+    };
   }, [dh, element]);
 
   const irisGridProps: Partial<IrisGridProps> = useMemo(() => {

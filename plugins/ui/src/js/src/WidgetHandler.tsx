@@ -160,6 +160,10 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
     if (widget == null) {
       return;
     }
+    // Need to reset the exported object map and count
+    const widgetExportedObjectMap = new Map<number, WidgetExportedObject>();
+    exportedObjectMap.current = widgetExportedObjectMap;
+    exportedObjectCount.current = 0;
     function receiveData(
       data: string,
       newExportedObjects: WidgetExportedObject[]
@@ -184,8 +188,14 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
     receiveData(widget.getDataAsString(), widget.exportedObjects);
 
     return () => {
-      log.debug('Cleaning up listener');
+      log.debug('Cleaning up widget', widget);
       cleanup();
+      widget.close();
+
+      // Clean up any exported objects that haven't been closed yet
+      Array.from(widgetExportedObjectMap.values()).forEach(exportedObject => {
+        exportedObject.close();
+      });
     };
   }, [dh, jsonClient, parseDocument, updateExportedObjects, widget]);
 
@@ -194,9 +204,12 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
       log.debug('loadWidget', wrapper.id, wrapper.definition);
       let isCancelled = false;
       async function loadWidgetInternal() {
-        const newWidget = await wrapper.fetch(false);
+        const newWidget = await wrapper.fetch();
         if (isCancelled) {
           newWidget.close();
+          newWidget.exportedObjects.forEach(exportedObject => {
+            exportedObject.close();
+          });
           return;
         }
         log.debug('newWidget', wrapper.id, wrapper.definition, newWidget);
@@ -208,14 +221,6 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
       };
     },
     [wrapper]
-  );
-
-  useEffect(
-    () =>
-      function closeWidget() {
-        widget?.close();
-      },
-    [widget]
   );
 
   const handleDocumentClose = useCallback(() => {
