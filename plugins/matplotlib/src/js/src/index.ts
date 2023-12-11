@@ -1,2 +1,2 @@
-export * from './MatPlotLibPanel';
+export * from './MatplotlibPanel';
 export * from './DashboardPlugin';

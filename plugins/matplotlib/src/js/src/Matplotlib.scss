@@ -1,8 +1,9 @@
 @import '@deephaven/components/scss/custom.scss';
 
-.mat-plot-lib-panel {
+.matplotlib-view {
   height: 100%;
   width: 100%;
+  display: contents;
 
   img {
     height: 100%;

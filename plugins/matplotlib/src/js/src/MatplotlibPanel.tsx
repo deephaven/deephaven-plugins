@@ -4,7 +4,7 @@ import type { Table } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { PanelProps } from '@deephaven/dashboard';
 
-const log = Log.module('@deephaven/js-plugin-matplotlib.MatPlotLibPanel');
+const log = Log.module('@deephaven/js-plugin-matplotlib.MatplotlibPanel');
 
 enum InputColumn {
   key = 'key',
@@ -15,28 +15,28 @@ enum InputKey {
   revision = 'revision',
 }
 
-export type MatPlotLibExportedObject = {
+export type MatplotlibExportedObject = {
   fetch: () => unknown;
 };
 
-export type MatPlotLibWidget = {
+export type MatplotlibWidget = {
   type: string;
   getDataAsBase64: () => string;
-  exportedObjects: MatPlotLibExportedObject[];
+  exportedObjects: MatplotlibExportedObject[];
 };
 
-export type MatPlotLibPanelProps = {
-  fetch: () => Promise<MatPlotLibWidget>;
+export type MatplotlibPanelProps = {
+  fetch: () => Promise<MatplotlibWidget>;
 } & PanelProps;
 
-export type MatPlotLibPanelState = {
+export type MatplotlibPanelState = {
   imageData?: string;
 };
 
 /**
  * Displays a rendered matplotlib from the server
  */
-export function MatPlotLibPanel(props: MatPlotLibPanelProps): React.ReactNode {
+export function MatplotlibPanel(props: MatplotlibPanelProps): React.ReactNode {
   const { fetch } = props;
   const [imageSrc, setImageSrc] = useState<string>();
   const [inputTable, setInputTable] = useState<Table>();
@@ -97,11 +97,11 @@ export function MatPlotLibPanel(props: MatPlotLibPanelProps): React.ReactNode {
 
   return (
     <div className="mat-plot-lib-panel">
-      {imageSrc !== undefined && <img src={imageSrc} alt="MatPlotLib render" />}
+      {imageSrc !== undefined && <img src={imageSrc} alt="Matplotlib render" />}
     </div>
   );
 }
 
-MatPlotLibPanel.COMPONENT = 'MatPlotLibPanel';
+MatplotlibPanel.COMPONENT = 'MatplotlibPanel';
 
-export default MatPlotLibPanel;
+export default MatplotlibPanel;

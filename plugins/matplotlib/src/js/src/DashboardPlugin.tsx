@@ -7,8 +7,8 @@ import {
 } from '@deephaven/dashboard';
 import type { VariableDefinition } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
-import MatPlotLibPanel from './MatPlotLibPanel';
-import styles from './MatPlotLibPanel.scss?inline';
+import { MatplotlibPanel } from './MatplotlibPanel';
+import styles from './Matplotlib.scss?inline';
 
 const VARIABLE_TYPE = 'matplotlib.figure.Figure';
 
@@ -41,7 +41,7 @@ export function DashboardPlugin({
       log.info('Panel opened of type', type);
       const config = {
         type: 'react-component' as const,
-        component: MatPlotLibPanel.COMPONENT,
+        component: MatplotlibPanel.COMPONENT,
         props: {
           localDashboardId: id,
           id: panelId,
@@ -65,7 +65,7 @@ export function DashboardPlugin({
 
   useEffect(() => {
     const cleanups = [
-      registerComponent(MatPlotLibPanel.COMPONENT, MatPlotLibPanel),
+      registerComponent(MatplotlibPanel.COMPONENT, MatplotlibPanel),
     ];
 
     return () => {
