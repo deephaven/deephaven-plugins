@@ -1,3 +1,12 @@
+# This script will create a new theme plugin in the plugins directory. The plugin
+# name + theme name can optioally be provided as arguments. Otherwise, the script
+# will prompt for them.
+#
+# e.g
+# ./scripts/new-theme-plugin.sh my-plugin "My Cool Theme"
+#
+# See "Developing a Theme Plugin" section of the README for additional details
+
 plugin_name=$1
 theme_name=$2
 
