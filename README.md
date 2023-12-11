@@ -166,4 +166,17 @@ services:
 
 ### Developing a Theme Plugin
 
+To start developing a new theme plugin:
+
+1. Run `./scripts/new-theme-plugin.sh` . This will scaffold a new plugin.
+1. Add plugin config to `plugins/manifest.json` (this can be copy / pasted from the ouput of the script run in step 1)
+1. Run `npm start` to build and serve the `plugins` folder
+1. See the `Serve Plugins` section above for pointing DHC or DHE to the plugins server.
+
+A new theme plugin can be scafolded by running:
+
+```sh
 ./scripts/new-theme-plugin.sh
+```
+
+This command will output a json snippet that can be copy / pasted into the `plugins/manifest.json`.
