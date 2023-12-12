@@ -86,7 +86,7 @@ Run `npm install` to install js dependencies.
 You can build the js plugin(s) in watch mode from the root directory of this repo by using the following commands:
 
 ```shell
-npm start # starts all plugins in watch mode
+npm start # starts all plugins in watch mode and serves the plugins directory
 # OR
 cd plugins/plugin
 npm start # starts just the current directory plugin in watch mode
@@ -96,34 +96,9 @@ This will rebuild the plugin(s) any time the source changes. If you are mapping 
 
 ##### Serve Plugins
 
-Vite supports a proxy configuration that can be used to point local DHC or DHE to another url when loading plugins. This has the benefit of not requiring a server restart when developing plugins. If you would like to use this option, you can run:
+Running `npm start` will also will also serve the `plugins` directory using Vite's local dev server. The default host + port is `http://localhost:4100`, but the port can be configured via the `PORT` env variable.
 
-```shell
-npm run serve
-```
-
-This will serve the `plugins` directory at `http://localhost:4100` by default. The port can be configured via the `PORT` env variable.
-
-The vite proxy can be configured in DHC with something like:
-
-```typescript
-proxy['/js-plugins'] = {
-  target: 'http://localhost:4100',
-  changeOrigin: true,
-  rewrite: path => path.replace(/^\/js-plugins/, ''),
-};
-```
-
-The proxy can be configured in DHE for DeephavenCommunity worker with:
-
-```typescript
-proxy['/iriside/worker-kind/DeephavenCommunity/plugins'] = {
-  target: 'http://localhost:4100',
-  changeOrigin: true,
-  rewrite: path =>
-    path.replace(/^\/iriside\/worker-kind\/DeephavenCommunity\/plugins/, ''),
-};
-```
+DHC and DHE can be configured when running locally to target the local `plugins` server. This has the benefit of not requiring a server restart when developing plugins. See [DHC](https://github.com/deephaven/web-client-ui/blob/main/README.md#local-plugin-development) or [DHE](https://github.com/deephaven-ent/iris/blob/rc/grizzly/web/client-ui/README.md#local-plugin-development) README for details on using this configuration.
 
 #### Running deephaven-core
 
