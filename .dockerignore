@@ -1,0 +1,44 @@
+# dependencies
+**/node_modules/
+
+# testing
+/coverage
+jest*
+__mocks__/
+.github/
+
+# venvs
+**/.venv/
+
+# production
+**/build/
+**/dist/
+**/*.egg-info/
+
+# misc
+.git/
+.vscode/
+.DS_Store
+**/.env*.local
+.project
+.settings/
+.eslintcache
+.stylelintcache
+lerna-debug.log
+Lerna-Profile-*.json
+
+npm-debug.log*
+
+**/tsconfig.tsbuildinfo
+test-results/
+playwright-report/
+playwright/.cache/
+**/CHANGELOG.md
+
+# Ignore Dockerfile as well, since we don't need to copy that into the snapshot container
+**/Dockerfile
+.dockerignore
+**/.gitignore
+
+# Tests are copied to the docker container, as it modifies them
+tests/

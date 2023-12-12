@@ -172,3 +172,19 @@ START_OPTS="-Ddeephaven.jsPlugins.@deephaven/js-plugin-matplotlib=<deephaven-plu
 ```
 
 The Deephaven IDE can then be opened at http://localhost:10000/ide/, with your plugins ready to use.
+
+### Running with Docker container
+
+Instead of running deephaven-core from source and building all plugins yourself, you can run a docker container that automatically builds the plugins and installs them in an instance of deephaven-core, then serving it up at http://localhost:10000. JS Plugins are specified in [./docker/config/deephaven.prop](./docker/config/deephaven.prop) as to which ones are loaded. Run `npm run docker` to start up the docker container, or just run `docker compose up --build` if you do not have `npm` installed. It will open at port 10000 by default, and use the demo data from [./docker/data](./docker/data) as the data folder.
+If you wish to change the port it opens on, you can specify the `DEEPHAVEN_PORT` environment variable. For example, to open on port 11000, you would run `DEEPHAVEN_PORT=11000 npm run docker`.
+If you wish to customize what data is used for the docker container, you can create a [docker-compose.override.yml file](https://docs.docker.com/compose/multiple-compose-files/merge/) to override the default values. For example, if you want to use `/path/to/mydata/` as the data folder instead of the default, you would add a `volumes` property to your docker-compose.override.yml:
+
+```yml
+version: '3'
+
+services:
+  deephaven-plugins:
+    volumes:
+      # Specifying a data volume here will override the default data folder, and you will not be able to access the default data files (such as the demo data)
+      - /path/to/mydata/:/data
+```

@@ -4,6 +4,7 @@
     "./plugins/*/src/js/"
   ],
   "scripts": {
+    "docker": "docker compose up --build",
     "start": "lerna run start --stream",
     "build": "lerna run build --stream",
     "serve": "run-p start serve:plugins",
