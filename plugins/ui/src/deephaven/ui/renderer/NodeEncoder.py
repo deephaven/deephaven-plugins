@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Callable
+from typing import Any, Callable, TypedDict
 from weakref import WeakKeyDictionary
 from .RenderedNode import RenderedNode
 
@@ -11,11 +11,32 @@ ELEMENT_KEY = "__dhElemName"
 
 DEFAULT_CALLABLE_ID_PREFIX = "cb"
 
-# IDs for callables are prefixes with a string and then use the `id` of the callable itself
+# IDs for callables are a string of a callable prefix set and an incrementing ID
 CallableId = str
 
 # IDs for objects is just an incrementing ID. We should only send new exported objects with each render
 ObjectId = int
+
+
+class NodeEncoderResult(TypedDict):
+    """
+    Result of encoding a node. Contains the encoded node, list of new objects, and callables dictionary.
+    """
+
+    encoded_node: str
+    """
+    The encoded node.
+    """
+
+    new_objects: list[Any]
+    """
+    The list of new objects.
+    """
+
+    callable_id_dict: WeakKeyDictionary[Callable[..., Any], CallableId]
+    """
+    Dictionary from a callable to the ID assigned to the callable.
+    """
 
 
 class NodeEncoder(json.JSONEncoder):
@@ -26,12 +47,17 @@ class NodeEncoder(json.JSONEncoder):
     - non-serializable objects in the tree are replaced wtih an object with property `OBJECT_KEY` set to the index in the objects array.
     """
 
-    _next_callable_id: int
+    _callable_id_prefix: str
     """
-    Prefix to use for callable ids. Used to ensure callables used in stream are unique.
+    Prefix to use for callable ids.
     """
 
-    _callable_dict: WeakKeyDictionary[Callable[..., Any], str]
+    _next_callable_id: int
+    """
+    Incrementing ID that is used to assign IDs to callables. Needs to be prefixed with the `_callable_id_prefix` to get an ID.
+    """
+
+    _callable_dict: WeakKeyDictionary[Callable[..., Any], CallableId]
     """
     Dictionary from a callable to the ID assigned to the callable.
     """
@@ -62,6 +88,7 @@ class NodeEncoder(json.JSONEncoder):
 
         Args:
             *args: Arguments to pass to the JSONEncoder constructor
+            callable_id_prefix: Prefix to use for callable ids. Used to ensure callables used in stream are unique.
             **kwargs: Args to pass to the JSONEncoder constructor
         """
         super().__init__(*args, **kwargs)
@@ -85,16 +112,24 @@ class NodeEncoder(json.JSONEncoder):
                 return self._convert_object(o)
 
     def encode(self, o: Any) -> str:
+        # Raise an error - should call encode_node instead
+        raise NotImplementedError("Use encode_node instead")
+
+    def encode_node(self, node: RenderedNode) -> NodeEncoderResult:
+        """
+        Encode the document, and return the encoded document and the list of new objects.
+
+        Args:
+            o: The document to encode
+        """
+        # Reset the new objects list - they will get set when encoding
         self._new_objects = []
-        return super().encode(o)
-
-    @property
-    def callable_dict(self) -> WeakKeyDictionary[Callable[..., Any], str]:
-        return self._callable_dict
-
-    @property
-    def new_objects(self) -> list[Any]:
-        return self._new_objects
+        encoded_node = super().encode(node)
+        return {
+            "encoded_node": encoded_node,
+            "new_objects": self._new_objects,
+            "callable_id_dict": self._callable_dict,
+        }
 
     def _convert_rendered_node(self, node: RenderedNode):
         result: dict[str, Any] = {ELEMENT_KEY: node.name}

@@ -30,17 +30,17 @@ class EncoderTest(BaseTestCase):
         from deephaven.ui.renderer import NodeEncoder
 
         encoder = NodeEncoder(callable_id_prefix=callable_id_prefix)
-        payload = encoder.encode(node)
+        result = encoder.encode_node(node)
         self.assertDictEqual(
-            json.loads(payload), expected_payload, "payloads don't match"
+            json.loads(result["encoded_node"]), expected_payload, "payloads don't match"
         )
         self.assertListEqual(
-            list(encoder.callable_dict.keys()),
+            list(result["callable_id_dict"].keys()),
             expected_callables,
             "callables don't match",
         )
         self.assertListEqual(
-            encoder.new_objects, expected_objects, "objects don't match"
+            result["new_objects"], expected_objects, "objects don't match"
         )
 
     def test_empty_document(self):
@@ -385,7 +385,8 @@ class EncoderTest(BaseTestCase):
             },
         )
 
-        payload = encoder.encode(node)
+        result = encoder.encode_node(node)
+
         expected_payload = {
             "__dhElemName": "test0",
             "props": {
@@ -419,12 +420,12 @@ class EncoderTest(BaseTestCase):
         }
 
         self.assertDictEqual(
-            json.loads(payload), expected_payload, "payloads don't match"
+            json.loads(result["encoded_node"]), expected_payload, "payloads don't match"
         )
         self.assertListEqual(
-            list(encoder.callable_dict.keys()), cbs, "callables don't match"
+            list(result["callable_id_dict"].keys()), cbs, "callables don't match"
         )
-        self.assertListEqual(encoder.new_objects, objs, "objects don't match")
+        self.assertListEqual(result["new_objects"], objs, "objects don't match")
 
         # Add some new objects and callables to the mix for next encoding
         delta_objs = [TestObject()]
@@ -447,7 +448,7 @@ class EncoderTest(BaseTestCase):
             },
         )
 
-        payload = encoder.encode(node)
+        result = encoder.encode_node(node)
         expected_payload = {
             "__dhElemName": "test0",
             "props": {
@@ -481,14 +482,14 @@ class EncoderTest(BaseTestCase):
         }
 
         self.assertDictEqual(
-            json.loads(payload), expected_payload, "payloads don't match"
+            json.loads(result["encoded_node"]), expected_payload, "payloads don't match"
         )
         self.assertListEqual(
-            list(encoder.callable_dict.keys()),
+            list(result["callable_id_dict"].keys()),
             [cbs[0], cbs[2], cbs[3]],
             "callables don't match",
         )
-        self.assertListEqual(encoder.new_objects, delta_objs, "objects don't match")
+        self.assertListEqual(result["new_objects"], delta_objs, "objects don't match")
 
 
 if __name__ == "__main__":

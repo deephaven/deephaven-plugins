@@ -34,10 +34,12 @@ export function makeWidgetDefinition({
 export function makeWidget({
   addEventListener = jest.fn(() => jest.fn()),
   getDataAsString = () => makeDocumentUpdatedJsonRpcString(),
+  exportedObjects = [],
 }: Partial<Widget> = {}): Widget {
   return TestUtils.createMockProxy<Widget>({
     addEventListener,
     getDataAsString,
+    exportedObjects,
   });
 }
 

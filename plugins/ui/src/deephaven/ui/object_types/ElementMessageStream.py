@@ -130,14 +130,18 @@ class ElementMessageStream(MessageStream):
         """
 
         # TODO(#67): Send a diff of the document instead of the entire document.
-        encoded_document = self._encoder.encode(root)
+        encoder_result = self._encoder.encode_node(root)
+        encoded_document = encoder_result["encoded_node"]
+        new_objects = encoder_result["new_objects"]
+        callable_id_dict = encoder_result["callable_id_dict"]
+
         request = self._make_notification("documentUpdated", encoded_document)
         payload = json.dumps(request)
         logger.debug(f"Sending payload: {payload}")
 
         dispatcher = Dispatcher()
-        for callable, callable_id in self._encoder.callable_dict.items():
+        for callable, callable_id in callable_id_dict.items():
             logger.debug("Registering callable %s", callable_id)
             dispatcher[callable_id] = callable
         self._dispatcher = dispatcher
-        self._connection.on_data(payload.encode(), self._encoder.new_objects)
+        self._connection.on_data(payload.encode(), new_objects)
