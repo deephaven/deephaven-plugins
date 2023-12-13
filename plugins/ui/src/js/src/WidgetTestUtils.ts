@@ -9,7 +9,7 @@ export function makeDocumentUpdatedJsonRpc(
   return {
     jsonrpc: '2.0',
     method: 'documentUpdated',
-    params: [document],
+    params: [JSON.stringify(document)],
   };
 }
 
@@ -34,10 +34,12 @@ export function makeWidgetDefinition({
 export function makeWidget({
   addEventListener = jest.fn(() => jest.fn()),
   getDataAsString = () => makeDocumentUpdatedJsonRpcString(),
+  exportedObjects = [],
 }: Partial<Widget> = {}): Widget {
   return TestUtils.createMockProxy<Widget>({
     addEventListener,
     getDataAsString,
+    exportedObjects,
   });
 }
 
