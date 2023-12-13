@@ -64,6 +64,17 @@ export function DashboardPlugin({
     []
   );
 
+  const handlePanelClose = useCallback((panelId: string) => {
+    setWidgetMap(prevWidgetMap => {
+      if (!prevWidgetMap.has(panelId)) {
+        return prevWidgetMap;
+      }
+      const newWidgetMap = new Map<string, WidgetWrapper>(prevWidgetMap);
+      newWidgetMap.delete(panelId);
+      return newWidgetMap;
+    });
+  }, []);
+
   const handleWidgetClose = useCallback((widgetId: string) => {
     log.debug('Closing widget', widgetId);
     setWidgetMap(prevWidgetMap => {
@@ -83,6 +94,7 @@ export function DashboardPlugin({
 
   // TODO: We need to change up the event system for how objects are opened, since in this case it could be opening multiple panels
   useListener(layout.eventHub, PanelEvent.OPEN, handlePanelOpen);
+  useListener(layout.eventHub, PanelEvent.CLOSE, handlePanelClose);
 
   const widgetHandlers = useMemo(
     () =>
