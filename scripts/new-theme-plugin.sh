@@ -30,7 +30,7 @@ echo "Creating new theme plugin: $plugin_name..."
 mkdir -p $plugin_root
 cd $plugin_root
 
-npm create vite@latest . -- --template vanilla-ts > /dev/null
+npm create vite@latest . -- --template vanilla-ts
 npm pkg set name="$plugin_name" scripts.start='npm run build -- -w'
 
 # Remove unnecessary files
