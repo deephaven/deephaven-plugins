@@ -729,20 +729,18 @@ stocks = dx.data.stocks()
 
 @ui.component
 def table_tabs(source):
-    return ui.panel(
-        ui.tabs(
-            ui.tab_list(
-                ui.item("Unfiltered", key="Unfiltered"),
-                ui.item(ui.icon("vsGithubAlt"), "CAT", key="CAT"),
-                ui.item("DOG", key="DOG"),
-            ),
-            ui.tab_panels(
-                ui.item(source, key="Unfiltered"),
-                ui.item(source.where("sym=`CAT`"), key="CAT"),
-                ui.item(source.where("sym=`DOG`"), key="DOG"),
-            ),
-            flex_grow=1,
-        )
+    return ui.tabs(
+        ui.tab_list(
+            ui.item("Unfiltered", key="Unfiltered"),
+            ui.item(ui.icon("vsGithubAlt"), "CAT", key="CAT"),
+            ui.item("DOG", key="DOG"),
+        ),
+        ui.tab_panels(
+            ui.item(source, key="Unfiltered"),
+            ui.item(source.where("sym=`CAT`"), key="CAT"),
+            ui.item(source.where("sym=`DOG`"), key="DOG"),
+        ),
+        flex_grow=1,
     )
 
 
