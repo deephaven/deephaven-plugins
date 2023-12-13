@@ -14,7 +14,7 @@ function ObjectView(props: ObjectViewProps) {
   log.info('Object is', object);
 
   const fetch = useCallback(async () => {
-    // We reexport the object in case this object is used in multiplate places or closed/opened multiple times
+    // We re-export the object in case this object is used in multiple places or closed/opened multiple times
     const reexportedObject = await object.reexport();
     return reexportedObject.fetch() as Promise<Widget>;
   }, [object]);
