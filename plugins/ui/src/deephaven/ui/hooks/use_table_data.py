@@ -6,6 +6,8 @@ from deephaven.table import Table
 from deephaven.table_listener import TableListener, listen, TableUpdate
 from deephaven.pandas import to_pandas
 from deephaven.execution_context import ExecutionContext, get_exec_ctx
+from deephaven.server.executors import submit_task
+from deephaven.update_graph import has_exclusive_lock
 
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
@@ -38,6 +40,7 @@ def _deferred_update(ctx: ExecutionContext, func: Callable[[], None]) -> None:
 def _on_update(
     ctx: ExecutionContext,
     func: Callable[[], None],
+    executor_name: str,
     update: TableUpdate,
     is_replay: bool,
 ) -> None:
@@ -47,10 +50,11 @@ def _on_update(
     Args:
         ctx: ExecutionContext: The execution context to use.
         func: Callable[[], None]: The function to call.
+        executor_name: str: The name of the executor to use.
         update: TableUpdate: The update to pass to the function.
         is_replay: True if the update is a replay, False otherwise.
     """
-    _executor.submit(partial(_deferred_update, ctx, func))
+    submit_task(executor_name, partial(_deferred_update, ctx, func))
 
 
 def _get_data_values(table: Table, sentinel: Sentinel):
@@ -101,8 +105,7 @@ def _use_table_data(
     """
     Internal hook for all table data hooks. This hook will listen to the table and return the
     table data as a pandas dataframe. The hook will also return a boolean indicating whether
-    the sentinel value was returned. This is useful for determining if the sentinel value was
-    returned as a sentinel could be a pandas dataframe.
+    the sentinel value was returned. This is useful as a sentinel could be a pandas dataframe.
 
     Args:
         table: Table: The table to listen to.
@@ -117,10 +120,20 @@ def _use_table_data(
     is_sentinel, set_is_sentinel = ui.use_state(initial_is_sentinel)
 
     if table.is_refreshing:
+        ctx = get_exec_ctx()
+
+        # Decide which executor to submit callbacks to now, while we hold any locks from the caller
+        if has_exclusive_lock(ctx.update_graph):
+            executor_name = "serial"
+        else:
+            executor_name = "concurrent"
+
         table_updated = lambda: _set_new_data(
             table, sentinel, set_data, set_is_sentinel
         )
-        ui.use_table_listener(table, partial(_on_update, get_exec_ctx(), table_updated))
+        ui.use_table_listener(
+            table, partial(_on_update, ctx, table_updated, executor_name)
+        )
 
     return data, is_sentinel
 
