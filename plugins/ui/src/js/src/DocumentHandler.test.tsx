@@ -3,7 +3,7 @@ import { WidgetDefinition } from '@deephaven/dashboard';
 import { TestUtils } from '@deephaven/utils';
 import { render } from '@testing-library/react';
 import DocumentHandler, { DocumentHandlerProps } from './DocumentHandler';
-import { PANEL_ELEMENT_NAME, ReactPanelProps } from './PanelUtils';
+import { PANEL_ELEMENT_NAME, ReactPanelProps } from './layout/LayoutUtils';
 import { MixedPanelsError, NoChildrenError } from './errors';
 import { getComponentForElement } from './WidgetUtils';
 
