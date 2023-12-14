@@ -4,7 +4,7 @@
     "./plugins/*/src/js/"
   ],
   "scripts": {
-    "docker": "docker compose up --build",
+    "docker": "docker compose up --renew-anon-volumes --build",
     "start": "run-p start:packages serve:plugins",
     "build": "lerna run build --stream",
     "serve:plugins": "vite",
