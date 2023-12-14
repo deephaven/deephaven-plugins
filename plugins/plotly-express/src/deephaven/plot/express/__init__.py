@@ -2,12 +2,10 @@ from __future__ import annotations
 
 import json
 
-from deephaven.plugin import Registration, Callback
 from deephaven.plugin.object_type import BidirectionalObjectType, MessageStream
 
 from .communication.DeephavenFigureConnection import DeephavenFigureConnection
 from .deephaven_figure import DeephavenFigure
-from .js import create_js_plugin
 
 from .plots import (
     area,
@@ -101,23 +99,3 @@ class DeephavenFigureType(BidirectionalObjectType):
         payload, references = figure_connection.on_data(initial_message, [])
         connection.on_data(payload, references)
         return figure_connection
-
-
-class ExpressRegistration(Registration):
-    """
-    Register the DeephavenFigureType and ExpressJsPlugin
-
-    """
-
-    @classmethod
-    def register_into(cls, callback: Callback) -> None:
-        """
-        Register the DeephavenFigureType and ExpressJsPlugin
-
-        Args:
-          callback: Registration.Callback:
-            A function to call after registration
-
-        """
-        callback.register(DeephavenFigureType)
-        callback.register(create_js_plugin())
