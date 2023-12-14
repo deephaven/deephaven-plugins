@@ -119,6 +119,30 @@ def form_example():
 fe = form_example()
 ```
 
+## Form with Submit
+
+You can also create a form that user can click Submit on and react to that on a callback you specify. In this example, we create a [Form](https://react-spectrum.adobe.com/react-spectrum/forms.html) that takes a name and age, and when the user clicks Submit, the values entered in the form are sent to the user on the forms `on_submit` callback.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def form_submit_example():
+    def handle_submit(data):
+        print(f"Hello {data['name']}, you are {data['age']} years old")
+
+    return ui.form(
+        ui.text_field(default_value="Douglas", name="name"),
+        ui.number_field(default_value=42, name="age"),
+        ui.button("Submit", type="submit"),
+        on_submit=handle_submit,
+    )
+
+
+fs = form_submit_example()
+```
+
 # Data Examples
 
 Many of the examples below use the stocks table provided by `deephaven.plot.express` package:
@@ -154,6 +178,32 @@ pp = text_filter_table(stocks, "sym")
 ```
 
 ![Text Filter Table](assets/text_filter_table.png)
+
+## Table with range filter
+
+You can also filter a table based on a range. In this example, we have a [range slider](https://react-spectrum.adobe.com/react-spectrum/RangeSlider.html) that takes input from the user, and we filter the table by price based on the input. By simply returning the table `t` from the component, it will be displayed in the UI (as if we had set it to a variable name).
+
+```python
+import deephaven.ui as ui
+from deephaven.ui import use_state
+
+
+@ui.component
+def range_table(source, column):
+    range, set_range = use_state({"start": 1000, "end": 10000})
+    t = source.where(f"{column} >= {range['start']} && {column} <= {range['end']}")
+    return ui.flex(
+        ui.range_slider(
+            value=range, on_change=set_range, label=column, min_value=0, max_value=50000
+        ),
+        t,
+        direction="column",
+        flex_grow=1,
+    )
+
+
+srt = range_table(stocks, "size")
+```
 
 ## Table with required filters
 
@@ -595,3 +645,69 @@ st = stock_table(stocks)
 ```
 
 ![Stock Rollup](assets/stock_rollup.png)
+
+## Listening to Table Updates
+
+You can use the `use_table_listener` hook to listen to changes to a table. In this example, we use the `use_table_listener` hook to listen to changes to the table then display the last changes.
+
+```python
+import deephaven.ui as ui
+from deephaven.table import Table
+from deephaven import time_table, empty_table, merge
+from deephaven import pandas as dhpd
+import pandas as pd
+
+
+def to_table(update):
+    return dhpd.to_table(pd.DataFrame.from_dict(update))
+
+
+def add_as_op(ls, t, op):
+    t = t.update(f"type=`{op}`")
+    ls.append(t)
+
+
+@ui.component
+def monitor_changed_data(source: Table):
+
+    changed, set_changed = ui.use_state(empty_table(0))
+
+    show_added, set_show_added = ui.use_state(True)
+    show_removed, set_show_removed = ui.use_state(True)
+
+    def listener(update, is_replay):
+
+        to_merge = []
+
+        if (added_dict := update.added()) and show_added:
+            added = to_table(added_dict)
+            add_as_op(to_merge, added, "added")
+
+        if (removed_dict := update.removed()) and show_removed:
+            removed = to_table(removed_dict)
+            add_as_op(to_merge, removed, "removed")
+
+        if to_merge:
+            set_changed(merge(to_merge))
+        else:
+            set_changed(empty_table(0))
+
+    ui.use_table_listener(source, listener)
+
+    added_check = ui.checkbox(
+        "Show Added", isSelected=show_added, on_change=set_show_added
+    )
+
+    removed_check = ui.checkbox(
+        "Show Removed", isSelected=show_removed, on_change=set_show_removed
+    )
+
+    return [added_check, removed_check, changed]
+
+
+t = time_table("PT1S").update(formulas=["X=i"]).tail(5)
+
+monitor = monitor_changed_data(t)
+```
+
+![Stock Rollup](assets/change_monitor.png)

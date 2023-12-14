@@ -1,5 +1,6 @@
 import logging
 from typing import Any
+from deephaven.liveness_scope import LivenessScope
 from .._internal import RenderContext
 from ..elements import Element
 from .RenderedNode import RenderedNode
@@ -57,6 +58,27 @@ def _render(context: RenderContext, element: Element):
 class Renderer:
     def __init__(self, context: RenderContext = RenderContext()):
         self._context = context
+        self._liveness_scope = LivenessScope()
+
+    def __del__(self):
+        self.release_liveness_scope()
+
+    def release_liveness_scope(self):
+        try:  # May not have an active liveness scope or already been released
+            self._liveness_scope.release()
+            self._liveness_scope = None
+        except:
+            pass
 
     def render(self, element: Element):
-        return _render(self._context, element)
+        new_liveness_scope = LivenessScope()
+        with new_liveness_scope.open():
+            render_res = _render(self._context, element)
+
+        # Release after in case of memoized tables
+        # Ref count goes 1 -> 2 -> 1 by releasing after
+        # instead of 1 -> 0 -> 1 which would release the table
+        self.release_liveness_scope()
+        self._liveness_scope = new_liveness_scope
+
+        return render_res

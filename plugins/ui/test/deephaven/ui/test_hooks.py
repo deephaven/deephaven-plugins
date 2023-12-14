@@ -1,5 +1,7 @@
+import threading
 import unittest
 from operator import itemgetter
+from time import sleep
 from typing import Callable
 from unittest.mock import Mock
 from .BaseTest import BaseTestCase
@@ -132,6 +134,33 @@ class HooksTest(BaseTestCase):
         result = rerender(mock, b=4)
         self.assertEqual(result, "biz")
         self.assertEqual(mock.call_count, 1)
+
+    def test_table_listener(self):
+        from deephaven.ui.hooks import use_table_listener
+        from deephaven import time_table, new_table, DynamicTableWriter
+        from deephaven.table_listener import TableUpdate
+        import deephaven.dtypes as dht
+
+        column_definitions = {"Numbers": dht.int32, "Words": dht.string}
+
+        table_writer = DynamicTableWriter(column_definitions)
+        table = table_writer.table
+
+        event = threading.Event()
+
+        def listener(update: TableUpdate, is_replay: bool) -> None:
+            nonlocal event
+            event.set()
+
+        def _test_table_listener(replayed_table_val=table, listener_val=listener):
+            use_table_listener(replayed_table_val, listener_val)
+
+        render_hook(_test_table_listener)
+
+        table_writer.write_row(1, "Testing")
+
+        if not event.wait(timeout=1.0):
+            assert False, "listener was not called"
 
 
 if __name__ == "__main__":

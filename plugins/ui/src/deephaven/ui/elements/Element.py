@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Dict
 from .._internal import RenderContext
+
+PropsType = Dict[str, Any]
 
 
 class Element(ABC):
@@ -21,7 +23,7 @@ class Element(ABC):
         return "deephaven.ui.Element"
 
     @abstractmethod
-    def render(self, context: RenderContext) -> dict[str, Any]:
+    def render(self, context: RenderContext) -> PropsType:
         """
         Renders this element, and returns the result as a dictionary of props for the element.
         If you just want to render children, pass back a dict with children only, e.g. { "children": ... }

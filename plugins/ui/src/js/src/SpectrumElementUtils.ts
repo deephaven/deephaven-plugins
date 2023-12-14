@@ -1,4 +1,5 @@
 import {
+  ButtonGroup,
   Checkbox,
   Content,
   ContextualHelp,
@@ -7,27 +8,40 @@ import {
   Heading,
   Icon,
   IllustratedMessage,
+  NumberField,
   Switch,
   Text,
   ToggleButton,
   View,
 } from '@adobe/react-spectrum';
 import { ValueOf } from '@deephaven/utils';
-import { ActionButton, Slider, TextField } from './spectrum';
+import {
+  ActionButton,
+  Button,
+  Form,
+  RangeSlider,
+  Slider,
+  TextField,
+} from './spectrum';
 import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
 
 export const SPECTRUM_ELEMENT_TYPE_PREFIX = 'deephaven.ui.spectrum.';
 
 export const SpectrumSupportedTypes = {
   ActionButton,
+  Button,
+  ButtonGroup,
   Checkbox,
   Content,
   ContextualHelp,
   Flex,
+  Form,
   Grid,
   Heading,
   Icon,
   IllustratedMessage,
+  NumberField,
+  RangeSlider,
   Slider,
   Switch,
   Text,

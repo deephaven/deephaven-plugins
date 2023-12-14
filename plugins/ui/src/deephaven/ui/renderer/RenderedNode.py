@@ -1,4 +1,6 @@
 from __future__ import annotations
+from typing import Optional
+from ..elements import PropsType
 
 
 class RenderedNode:
@@ -7,9 +9,9 @@ class RenderedNode:
     """
 
     _name: str
-    _props: dict | None
+    _props: Optional[PropsType]
 
-    def __init__(self, name: str, props: dict = None):
+    def __init__(self, name: str, props: Optional[PropsType] = None):
         """
         Stores the result of a rendered node
 
@@ -28,7 +30,7 @@ class RenderedNode:
         return self._name
 
     @property
-    def props(self) -> dict | None:
+    def props(self) -> Optional[PropsType]:
         """
         Get the props of the node.
         """

@@ -180,7 +180,7 @@ def construct_min_dataframe(table: Table, data_cols: list[str]) -> DataFrame:
 
     update_result = empty_table(1).update(update)
 
-    return dhpd.to_pandas(update_result, conv_null=False)
+    return dhpd.to_pandas(update_result, dtype_backend=None, conv_null=False)
 
 
 def get_data_cols(call_args: dict[Any]) -> dict[str | list[str]]:

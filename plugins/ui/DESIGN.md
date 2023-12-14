@@ -801,27 +801,29 @@ The above examples focussed solely on defining components, all of which are simp
 - **Stack**: A stack of panels that overlap one another. Click the tab header to switch between them.
 - **Dashboard**: A layout of an entire dashboard
 
-We should be able to map these by using `ui.panel`, `ui.row`, `ui.column`, `ui.stack`, and `ui.dashboard`.
+We should be able to map these by using [ui.panel](#uipanel), [ui.row](#uirow), [ui.column](#uicolumn), [ui.stack](#uistack), and [ui.dashboard](#uidashboard).
 
 ##### ui.panel
 
-By default, the top level `@ui.component` will automatically be wrapped in a panel, so no need to define it unless you want custom panel functionality, such as giving the tab a custom name, color or calling a method such as focus  e.g.:
+By default, the top level `@ui.component` will automatically be wrapped in a panel, so no need to define it unless you want custom panel functionality, such as giving the tab a custom name, color or calling a method such as focus e.g.:
 
 ```py
 # The only difference between this and `p = my_component()` is that the title of the panel will be set to `My Title`
 p = ui.panel(my_component(), label="My Tab Label")
 ```
 
-A panel cannot be nested within other components (other than the layout ones such as `ui.row`, `ui.column`, `ui.stack`, `ui.dashboard`). The basic syntax for creating a `UIPanel` is:
+A panel cannot be nested within other components (other than the layout ones such as [ui.row](#uirow), [ui.column](#uicolumn), [ui.stack](#uistack), [ui.dashboard](#uidashboard)). The basic syntax for creating a `UIPanel` is:
 
 ```py
 import deephaven.ui as ui
 ui_panel = ui.panel(
-    component: Element,
-    label: str | Element | None = None,
-    description: str | None = None,
+    *children: Element,
+    label: (str | Element)[] | None = None,
+    description: str | Element | None = None,
     background_color: Color | None = None,
     tab_background_color: Color | None = None,
+    height: int | None = None,
+    width: int | None = None,
     is_closable: bool = True,
     on_focus: Callable[[UIPanel], None] | None = None,
     on_blur: Callable[[UIPanel], None] | None = None,
@@ -836,9 +838,11 @@ ui_panel = ui.panel(
 
 | Parameter              | Type                                | Description                                                                                                                                                                                                                                                                                           |
 | ---------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `component`            | `Element`                           | The component(s) to render within the panel.                                                                                                                                                                                                                                                          |
+| `*children`            | `Element`                           | The component(s) to render within the panel.                                                                                                                                                                                                                                                          |
 | `label`                | `(str \| Element)[] \| None`        | The label of the panel. If not provided, a name will be created based on the variable name the top-level component is assigned to. Icons can also be added as children, with a sibling element for the label.                                                                                         |
 | `description`          | `str \| Element \| None`            | A description of the panel. Will appear in the tooltip when hovering the panel tab. Can also include an element here.                                                                                                                                                                                 |
+| `height`               | `int \| None`                       | The height of the panel, within the current column, relative to the other children of its parent in percent. Only applies if the panel is the child of a column element. If not provided, the panel will be sized automatically.                                                                      |
+| `width`                | `int \| None`                       | The width of the panel, relative to the other children of its parent in percent. Only applies if the panel is the child of a row element. If not provided, the panel will be sized automatically.                                                                                                     |
 | `background_color`     | `Color \| None`                     | Custom background color of the panel.                                                                                                                                                                                                                                                                 |
 | `tab_background_color` | `Color \| None`                     | Custom background color of the tab for the panel.                                                                                                                                                                                                                                                     |
 | `is_closable`          | `bool`                              | Whether the panel can be closed when part of a dashboard layout, panels will always be closeable as part of consoles.                                                                                                                                                                                 |
@@ -856,17 +860,11 @@ ui_panel = ui.panel(
 | `close()` | Closes the panel.  |
 | `focus()` | Focuses the panel. |
 
-##### ui.row, ui.column, ui.stack, ui.dashboard
+##### ui.dashboard
 
-You can define a dashboard using these functions. By wrapping in a `ui.dashboard`, you are defining a whole dashboard. If you omit the `ui.dashboard`, it will add the layouts you've defined to the existing dashboard:
+You can use the `ui.dashboard` function to define a dashboard, along with [ui.row](#uirow), [ui.column](#uicolumn), and [ui.stack](#uistack). A dashboard will be opened in a separate dashboard tab instead of within your current code studio. For example, to define a dashboard with an input panel in the top left, a table in the top right, and a stack of plots across the bottom, you could define it like so:
 
-- `ui.row` will add a new row of the panels defined at the bottom of the current dashboard
-- `ui.column` will add a new column of panels defined at the right of the current dashboard
-- `ui.stack` will add a new stack of panels at the next spot in the dashboard
-
-Defining these without a `ui.dashboard` is likely only going to be applicable to testing/iterating purposes, and in most cases you'll want to define the whole dashboard. For example, to define a dashboard with an input panel in the top left, a table in the top right, and a stack of plots across the bottom, you could define it like so:
-
-```python
+```py
 import deephaven.ui as ui
 
 # ui.dashboard takes only one root element
@@ -880,35 +878,117 @@ d = ui.dashboard(
 )
 ```
 
-Much like handling other components, you can do a prop/state thing to handle changing inputs/filtering appropriately:
+The `ui.dashboard` function requires a single argument, which is the root element of the dashboard. This can be a single component, or a layout of components. The `ui.dashboard` function also takes the following optional parameters:
 
-```python
+```py
 import deephaven.ui as ui
-
-# Need to add the `@ui.component` decorator so we can keep track of state
-@ui.component
-def my_dashboard():
-    value, set_value = use_state("")
-
-    return ui.dashboard(
-        ui.column(
-            [
-                ui.row(
-                    [
-                        my_input_panel(value=value, on_change=set_value),
-                        my_table_panel(value=value),
-                    ]
-                ),
-                ui.stack([my_plot1(value=value), my_plot2(value=value)]),
-            ]
-        )
-    )
-
-
-d = my_dashboard()
+ui_dashboard= ui.dashboard(
+    root: Element,
+    label: Optional[str] = None,
+    description: Optional[str] = None,
+    background_color: Optional[Color] = None,
+    filters: Optional[DashboardFilter[]] = None,
+    links: Optional[Link[]] = None,
+    settings: Optional[DashboardSettings] = None,
+    on_focus: Optional[Callable[[UIDashboard], None]] = None,
+    on_blur: Optional[Callable[[UIDashboard], None]] = None,
+    on_hide: Optional[Callable[[UIDashboard], None]] = None,
+    on_show: Optional[Callable[[UIDashboard], None]] = None,
+    on_open: Optional[Callable[[UIDashboard], None]] = None,
+    on_close: Optional[Callable[[UIDashboard], None]] = None,
+) -> UIDashboard
 ```
 
+###### Parameters
+
+| Parameter              | Type                                      | Description                                                                                                                                                                                                         |
+| ---------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `root`                 | `Element`                                 | The root element of the dashboard. Can be a [ui.row](#uirow), [ui.column](#uicolumn), or [ui.stack](#uistack) to build a dashboard with multiple panels, or can just be a widget that takes up the whole dashboard. |
+| `label`                | `Optional[str]`                           | The label of the dashboard. If not provided, a name will be created based on the variable name the top-level component is assigned to. Icons can also be added as children, with a sibling element for the label.   |
+| `description`          | `Optional[str]`                           | A description of the dashboard purpose or contents. Shown to users in the dashboard tooltip, or a directory listing of dashboards.                                                                                  |
+| `background_color`     | `Optional[Color]`                         | Custom background color of the dashboard.                                                                                                                                                                           |
+| `filters`              | `Optional[list[DashboardFilter]]`         | Filters to apply to every item with a matching column/type, to match the filter value specified.                                                                                                                    |
+| `links`                | `Optional[list[Link]]`                    | Links between items on the dashboard. User will be able to see these links and modify them using the Linker tool.                                                                                                   |
+| `settings`             | `Optional[DashboardSettings]`             | Settings for the dashboard. Pass in a dictionary with the appropriate keys.                                                                                                                                         |
+| `settings.has_headers` | `Optional[bool]`                          | Whether the dashboard should have headers.                                                                                                                                                                          |
+| `settings.has_popout`  | `Optional[bool]`                          | Whether the dashboard should have a popout button.                                                                                                                                                                  |
+| `on_focus`             | `Optional[Callable[[UIDashboard], None]]` | Callback function to be called when the dashboard is focused. Triggered when user clicks within the dashboard. If the dashboard was previously hidden, this will fire after `on_show` fires for this dashboard.     |
+| `on_blur`              | `Optional[Callable[[UIDashboard], None]]` | Callback function to be called when the dashboard is blurred and something else in the UI takes focus. If the dashboard is now hidden, the `on_blur` will fire after the `on_hide` event.                           |
+| `on_hide`              | `Optional[Callable[[UIDashboard], None]]` | Callback function to be called when the dashboard is hidden. If the dashboard was in focus, `on_hide` will fire before `on_blur` is fired.                                                                          |
+| `on_show`              | `Optional[Callable[[UIDashboard], None]]` | Callback function to be called when the dashboard is shown. If the dashboard is also focused, the `on_show` event will fire first.                                                                                  |
+| `on_open`              | `Optional[Callable[[UIDashboard], None]]` | Callback function to be called when the dashboard is opened.                                                                                                                                                        |
+| `on_close`             | `Optional[Callable[[UIDashboard], None]]` | Callback function to be called when the dashboard is closed.                                                                                                                                                        |
+
+###### Methods
+
+| Method    | Description            |
+| --------- | ---------------------- |
+| `close()` | Closes the dashboard.  |
+| `focus()` | Focuses the dashboard. |
+| `open()`  | Opens the dashboard.   |
+
+##### ui.row
+
+Define a row of panels to add to a [UIDashboard](#uidashboard).
+
+```py
+import deephaven.ui as ui
+ui_row = ui.row(
+    *children: Element,
+    height: int | None = None
+) -> UIRow
+```
+
+###### Parameters
+
+| Parameter   | Type      | Description                                                                                                                           |
+| ----------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `*children` | `Element` | The components to render within the row.                                                                                              |
+| `height`    | `int`     | The height of the row, relative to the other children of its parent in percent. If not provided, the row will be sized automatically. |
+
+##### ui.column
+
+Define a column of panels to add to a [UIDashboard](#uidashboard).
+
+```py
+import deephaven.ui as ui
+ui_column = ui.column(
+    *children: Element,
+    width: int | None = None
+) -> UIColumn
+```
+
+###### Parameters
+
+| Parameter   | Type      | Description                                                                                                                                |
+| ----------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `*children` | `Element` | The components to render within the column.                                                                                                |
+| `width`     | `int`     | The width of the column, relative to the other children of its parent in percent. If not provided, the column will be sized automatically. |
+
+##### ui.stack
+
+Define a stack of panels to add to a [UIDashboard](#uidashboard).
+
+```py
+import deephaven.ui as ui
+ui_stack = ui.stack(
+    *children: Element,
+    height: int | None = None,
+    width: int | None = None
+) -> UIStack
+```
+
+###### Parameters
+
+| Parameter   | Type      | Description                                                                                                                               |
+| ----------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `*children` | `Element` | The components to render within the stack.                                                                                                |
+| `height`    | `int`     | The height of the stack, relative to the other children of its parent in percent. If not provided, the stack will be sized automatically. |
+| `width`     | `int`     | The width of the stack, relative to the other children of its parent in percent. If not provided, the stack will be sized automatically.  |
+
 ##### ui.link
+
+You can add links between components as well. Add the `id` property to components you wish to link, then specify the links on the dashboard itself:
 
 ```python
 @ui.component
@@ -917,8 +997,9 @@ def my_dashboard():
     t2 = empty_table(100).update("b=i", "c=Math.sin(i)")
 
     return ui.dashboard(
-        ui.row([ui.table(t1, _id="t1"), ui.table(t2, _id="t2")]),
+        ui.row([ui.table(t1, id="t1"), ui.table(t2, id="t2")]),
         links=[
+            # Create a link from the "a" column of t1 to the "b" column of t2
             ui.link(
                 start=ui.link_point("t1", column="a"),
                 end=ui.link_point("t2", column="b"),
@@ -1357,13 +1438,130 @@ use_table_listener(
 
 ###### Parameters
 
-| Parameter     | Type                                                   | Description                                                                                                                                                                                                                                   |
-|---------------|--------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `table`       | `Table`                                                | The table to listen to.                                                                                                                                                                                                                       |
-| `listener`    | `Callable[[TableUpdate, bool], None] \| TableListener` | Either a function or a [TableListener](https://deephaven.io/core/pydoc/code/deephaven.table_listener.html#deephaven.table_listener.TableListener) with an on_update function. The function must take a [TableUpdate](https://deephaven.io/core/pydoc/code/deephaven.table_listener.html#deephaven.table_listener.TableUpdate) and is_replay bool. [More table listener info](https://deephaven.io/core/docs/how-to-guides/table-listeners-python/)  |
-| `description` | `str \| None`                                          | An optional description for the UpdatePerformanceTracker to append to the listener’s entry description, default is None.
-| `do_replay`   | `bool`                                                 | Whether to replay the initial snapshot of the table, default is False.                                                                                                                                                                                               |
-| `replay_lock` | `LockType`                                             | The lock type used during replay, default is ‘shared’, can also be ‘exclusive’.                                                                                                                                                                           |
+| Parameter     | Type                                                   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `table`       | `Table`                                                | The table to listen to.                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `listener`    | `Callable[[TableUpdate, bool], None] \| TableListener` | Either a function or a [TableListener](https://deephaven.io/core/pydoc/code/deephaven.table_listener.html#deephaven.table_listener.TableListener) with an on_update function. The function must take a [TableUpdate](https://deephaven.io/core/pydoc/code/deephaven.table_listener.html#deephaven.table_listener.TableUpdate) and is_replay bool. [More table listener info](https://deephaven.io/core/docs/how-to-guides/table-listeners-python/) |
+| `description` | `str \| None`                                          | An optional description for the UpdatePerformanceTracker to append to the listener’s entry description, default is None.                                                                                                                                                                                                                                                                                                                           |
+| `do_replay`   | `bool`                                                 | Whether to replay the initial snapshot of the table, default is False.                                                                                                                                                                                                                                                                                                                                                                             |
+| `replay_lock` | `LockType`                                             | The lock type used during replay, default is ‘shared’, can also be ‘exclusive’.                                                                                                                                                                                                                                                                                                                                                                    |
+
+##### use_table_data
+
+Capture the data in a table. If the table is still loading, a sentinel value will be returned.
+Data should already be filtered to the desired rows and columns before passing to this hook as it is best to filter before data is retrieved.
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve specific rows and functions such 
+as [select or view](https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve specific columns.
+
+###### Syntax
+
+```py
+use_table_data(
+    table: Table,
+    sentinel: Sentinel = None
+) -> TableData | Sentinel:
+```
+
+###### Parameters
+
+| Parameter          | Type                                 | Description                                                                  |
+|--------------------|--------------------------------------|------------------------------------------------------------------------------|
+| `table`            | `Table`                              | The table to retrieve data from.                                             |
+| `sentinel`         | `Sentinel`                           | A sentinel value to return if the viewport is still loading. Default `None`. |
+
+
+##### use_column_data
+
+Capture the data in a column. If the table is still loading, a sentinel value will be returned.
+Data should already be filtered to desired rows and a specific column before passing to this hook as it is best to filter before data is retrieved and this hook will only return data for the first column.
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve specific rows and functions such 
+as [select or view](https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve a specific column.
+
+###### Syntax
+
+```py
+use_column_data(
+    table: Table,
+    sentinel: Sentinel = None
+) -> ColumnData | Sentinel:
+```
+
+###### Parameters
+
+| Parameter         | Type            | Description                                                                |
+|-------------------|-----------------|----------------------------------------------------------------------------|
+| `table`           | `Table`         | The table to create a viewport on.                                         |
+| `sentinel`        | `Sentinel`      | A sentinel value to return if the column is still loading. Default `None`. |
+
+
+##### use_row_data
+
+Capture the data in a row. If the table is still loading, a sentinel value will be returned.
+Data should already be filtered to a single row and desired columns before passing to this hook as it is best to filter before data is retrieved and this hook will only return data for the first row.
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve a specific row and functions such 
+as [select or view](https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve specific columns.
+
+###### Syntax
+
+```py
+use_row_data(
+    table: Table,
+    sentinel: SentinelType = None
+) -> RowData | Sentinel:
+```
+
+###### Parameters
+
+| Parameter  | Type                                 | Description                                                                      |
+|------------|--------------------------------------|----------------------------------------------------------------------------------|
+| `table`    | `Table`                              | The table to create a viewport on.                                               |
+| `sentinel` | `Sentinel`                           | A sentinel value to return if the row is still loading. Default `None`.          |
+
+
+##### use_row_list
+
+Capture the data in a row. If the table is still loading, a sentinel value will be returned. This function is identical to `use_row_data` except that it always returns a list of data instead of a `RowData` object for convenience.
+Data should already be filtered to a single row and desired columns before passing to this hook as it is best to filter before data is retrieved and this hook will only return data for the first row.
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve a specific row and functions such 
+as [select or view](https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve specific columns.
+
+###### Syntax
+
+```py
+use_row_list(
+    table: Table,
+    sentinel: SentinelType = None
+) -> list[Any] | Sentinel:
+```
+
+###### Parameters
+
+| Parameter  | Type                                 | Description                                                                      |
+|------------|--------------------------------------|----------------------------------------------------------------------------------|
+| `table`    | `Table`                              | The table to create a viewport on.                                               |
+| `sentinel` | `Sentinel`                           | A sentinel value to return if the row is still loading. Default `None`.          |
+
+
+##### use_cell_data
+
+Capture the data in a cell. If the table is still loading, a sentinel value will be returned.
+Data should already be filtered to a single row and column before passing to this hook as it is best to filter before data is retrieved and this hook will only return data for the first cell.
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve a specific row and functions such 
+as [select or view](#https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve a specific column.
+```py
+use_cell_data(
+    table: Table,
+    sentinel: Sentinel = None
+) -> Any | Sentinel:
+```
+
+###### Parameters
+
+| Parameter   | Type                                 | Description                                                              |
+|-------------|--------------------------------------|--------------------------------------------------------------------------|
+| `table`     | `Table`                              | The table to create a viewport on.                                       |
+| `sentinel`  | `Sentinel`                           | A sentinel value to return if the cell is still loading. Default `None`. |
+
 
 #### Custom Types
 
@@ -1376,6 +1574,9 @@ Color = DeephavenColor | HexColor
 # A ColumnIndex of None indicates a header row
 ColumnIndex = int | None
 ColumnName = str
+ColumnData = list[Any]
+# ID of a component. Used for linking.
+ComponentId = str
 ContextMenuAction = dict[str, Any]
 ContextMenuModeOption = Literal["CELL", "ROW_HEADER", "COLUMN_HEADER"]
 ContextMenuMode = ContextMenuModeOption | list[ContextMenuModeOption] | None
@@ -1387,16 +1588,54 @@ DeephavenColor = Literal[...]
 HexColor = str
 LockType = Literal["shared", "exclusive"]
 QuickFilterExpression = str
-RowData = dict[str, Any]
+RowData = dict[ColumnName, Any]
 # A RowIndex of None indicates a header column
 RowIndex = int | None
 SearchMode = Literal["SHOW", "HIDE", "DEFAULT"]
 SelectionMode = Literal["CELL", "ROW", "COLUMN"]
+Sentinel = Any
 SortDirection = Literal["ASC", "DESC"]
+TableData = dict[ColumnName, ColumnData]
+
+# Set a filter for a dashboard. Filter will apply to all items with a matching column/type, except for items specified in the `exclude_ids` parameter
+class DashboardFilter(TypedDict):
+  # Name of column to filter on
+  name: ColumnName
+
+  # Type of column to filter on
+  type: str
+
+  # Quick filter value to apply to the column
+  value: QuickFilterExpression
+
+  # Do not apply the filter to these items specified, even if they have a matching colum/type
+  exclude_ids: Optional[ComponentId | ComponentId[]];
+
+# Typed dictionary for settings that can be passed into a Dashboards initialization
+class DashboardSettings(TypedDict):
+    # Whether to show headers on the panels. Defaults to `True`
+    # Note that if you use stacks with this option enabled, you will not be able to see all of the tabs in the stack
+    has_headers: Optional[bool]
+
+    # Whether the panels can be re-organized or resized by dragging. Defaults to `True`
+    reorder_enabled: Optional[bool]
+
+# Typed dictionary for links that can be added to a dashboard
+class Link(TypeDict):
+    start: LinkPoint
+    end: LinkPoint
+
+# Typed dictionary for a link point
+class LinkPoint(TypedDict):
+    # ID of the component to link to
+    id: ComponentId
+
+    # Column to link to
+    column: str
+
 ```
 
-                                                                                                                      |
-
+                                                                                                                      
 
 #### Context
 
@@ -1532,15 +1771,15 @@ sequenceDiagram
   UIP->>SP: Render tft
   SP->>SP: Run sym_exchange
   Note over SP: sym_exchange executes, running text_filter_table twice
-  SP-->>UIP: Result (flex([tft1, tft2]))
-  UIP-->>W: Display (flex([tft1, tft2]))
+  SP-->>UIP: Result (document=flex([tft1, tft2]), exported_objects=[tft1, tft2])
+  UIP-->>W: Display Result
 
   U->>UIP: Change text input 1
   UIP->>SP: Change state
   SP->>SP: Run sym_exchange
-  Note over SP: sym_exchange executes, text_filter_table only <br/>runs once for the one changed input
-  SP-->>UIP: Result (flex([tft1', tft2]))
-  UIP-->>W: Display (flex([tft1', tft2]))
+  Note over SP: sym_exchange executes, text_filter_table only <br/>runs once for the one changed input<br/>only exports the new table, as client already has previous tables
+  SP-->>UIP: Result (document=flex([tft1', tft2], exported_objects=[tft1']))
+  UIP-->>W: Display Result
 ```
 
 ##### Communication/Callbacks
@@ -1567,12 +1806,11 @@ sequenceDiagram
 
 A component that is created on the server side runs through a few steps before it is rendered on the client side:
 
-1. Element - The basis for all UI components. Generally a `FunctionElement`, and does not run the function until it is requested by the UI. The result can change depending on the context that it is rendered in (e.g. what "state" is set).
-2. RenderedNode - After an element has been rendered using a renderer, it becomes a `RenderedNode`. This is an immutable representation of the document.
-3. JSONEncodedNode - The `RenderedNode` is then encoded into JSON using `NodeEncoder`. It pulls out all the objects and maps them to exported objects, and all the callables to be mapped to commands that can be accepted by JSON-RPC. This is the final representation of the document that is sent to the client.
-4. ElementPanel - Client side where it's receiving the `documentUpdated` from the server plugin, and then rendering the `JSONEncodedNode` into a `ElementPanel` (e.g. a `GoldenLayout` panel). Decodes the JSON, maps all the exported objects to the actual objects, and all the callables to async methods that will call to the server.
-5. ElementView - Renders the decoded panel into the UI. Picks the element based on the name of it.
-6. ObjectView - Render an exported object
+1. [Element](./src/deephaven/ui/elements/Element.py) - The basis for all UI components. Generally a [FunctionElement](./src/deephaven/ui/elements/FunctionElement.py) created by a script using the [@ui.component](./src/deephaven/ui/components/make_component.py) decorator, and does not run the function until it is rendered. The result can change depending on the context that it is rendered in (e.g. what "state" is set).
+2. [ElementMessageStream](./src/deephaven/ui/object_types/ElementMessageStream.py) - The `ElementMessageStream` is responsible for rendering one instance of an element in a specific rendering context and handling the server-client communication. The element is rendered to create a [RenderedNode](./src/deephaven/ui/renderer/RenderedNode.py), which is an immutable representation of a rendered document. The `RenderedNode` is then encoded into JSON using [NodeEncoder](./src/deephaven/ui/renderer/NodeEncoder.py), which pulls out all the non-serializable objects (such as Tables) and maps them to exported objects, and all the callables to be mapped to commands that can be accepted by JSON-RPC. This is the final representation of the document that is sent to the client, and ultimately handled by the `WidgetHandler`.
+3. [DashboardPlugin](./src/js/src/DashboardPlugin.tsx) - Client side `DashboardPlugin` that listens for when a widget of type `Element` is opened, and manage the `WidgetHandler` instances that are created for each widget.
+4. [WidgetHandler](./src/js/src/WidgetHandler.tsx) - Uses JSON-RPC communication with an `ElementMessageStream` instance to load the initial rendered document and associated exported objects. Listens for any changes and updates the document accordingly.
+5. [DocumentHandler](./src/js/src/DocumentHandler.tsx) - Handles the root of a rendered document, laying out the appropriate panels or dashboard specified.
 
 #### Other Decisions
 

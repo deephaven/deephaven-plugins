@@ -5,5 +5,8 @@
  * Or in the case of event handlers, we may want to wrap the event handler to serialize the event correctly.
  */
 export { default as ActionButton } from './ActionButton';
+export { default as Button } from './Button';
+export { default as Form } from './Form';
+export { default as RangeSlider } from './RangeSlider';
 export { default as Slider } from './Slider';
 export { default as TextField } from './TextField';

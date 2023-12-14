@@ -1,5 +1,5 @@
 import type { Data, PlotlyDataLayoutConfig } from 'plotly.js';
-import type { JsWidget } from '@deephaven/jsapi-types';
+import type { Widget } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartUtils');
@@ -22,7 +22,7 @@ export interface PlotlyChartWidgetData {
   removed_references: number[];
 }
 
-export function getWidgetData(widgetInfo: JsWidget): PlotlyChartWidgetData {
+export function getWidgetData(widgetInfo: Widget): PlotlyChartWidgetData {
   return JSON.parse(widgetInfo.getDataAsString());
 }
 

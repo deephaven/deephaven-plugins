@@ -4,11 +4,17 @@
     "./plugins/*/src/js/"
   ],
   "scripts": {
-    "start": "lerna run start --stream",
+    "docker": "docker compose up --build",
+    "start": "run-p start:packages serve:plugins",
     "build": "lerna run build --stream",
+    "serve:plugins": "vite",
+    "start:packages": "lerna run start --stream",
     "test": "jest --watch --changedSince origin/main",
     "test:unit": "jest --config jest.config.unit.cjs",
-    "test:lint": "jest --config jest.config.lint.cjs"
+    "test:lint": "jest --config jest.config.lint.cjs",
+    "test:ci": "run-p test:ci:*",
+    "test:ci:unit": "jest --config jest.config.unit.cjs --ci --cacheDirectory $PWD/.jest-cache",
+    "test:ci:lint": "jest --config jest.config.lint.cjs --ci --cacheDirectory $PWD/.jest-cache"
   },
   "devDependencies": {
     "@deephaven/babel-preset": "^0.40.0",
@@ -20,6 +26,7 @@
     "@testing-library/react-hooks": "^8.0.1",
     "@testing-library/user-event": "^14.4.3",
     "@types/jest": "^29.2.5",
+    "@types/prop-types": "^15.7.10",
     "@types/shortid": "^0.0.29",
     "eslint": "^8.37.0",
     "identity-obj-proxy": "^3.0.0",
@@ -31,8 +38,10 @@
     "jest-watch-select-projects": "^2.0.0",
     "jest-watch-typeahead": "^2.2.2",
     "lerna": "^6.6.1",
+    "npm-run-all": "^4.1.5",
     "nx": "15.9.2",
-    "prettier": "^2.8.7"
+    "prettier": "^2.8.7",
+    "vite": "~4.1.4"
   },
   "prettier": "@deephaven/prettier-config"
 }
