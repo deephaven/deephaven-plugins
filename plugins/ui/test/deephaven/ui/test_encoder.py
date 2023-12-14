@@ -30,14 +30,18 @@ class EncoderTest(BaseTestCase):
         from deephaven.ui.renderer import NodeEncoder
 
         encoder = NodeEncoder(callable_id_prefix=callable_id_prefix)
-        payload = encoder.encode(node)
+        result = encoder.encode_node(node)
         self.assertDictEqual(
-            json.loads(payload), expected_payload, "payloads don't match"
+            json.loads(result["encoded_node"]), expected_payload, "payloads don't match"
         )
         self.assertListEqual(
-            encoder.callables, expected_callables, "callables don't match"
+            list(result["callable_id_dict"].keys()),
+            expected_callables,
+            "callables don't match",
         )
-        self.assertListEqual(encoder.objects, expected_objects, "objects don't match")
+        self.assertListEqual(
+            result["new_objects"], expected_objects, "objects don't match"
+        )
 
     def test_empty_document(self):
         self.expect_result(make_node(""), {"__dhElemName": ""})
@@ -353,6 +357,139 @@ class EncoderTest(BaseTestCase):
             expected_callables=[cb1, cb2, cb3],
             callable_id_prefix="d2c",
         )
+
+    def test_delta_objects(self):
+        """
+        Test that the encoder retains IDs for objects and callables that are the same between encodings.
+        Also check that the encoder only sends new objects in the most recent encoding.
+        """
+
+        from deephaven.ui.renderer import NodeEncoder
+
+        objs = [TestObject(), TestObject(), TestObject()]
+        cbs = [lambda: None, lambda: None, lambda: None]
+
+        # Should use a depth-first traversal to find all exported objects and their indices
+        encoder = NodeEncoder()
+        node = make_node(
+            "test0",
+            {
+                "children": [
+                    make_node("test1", {"foo": [cbs[0]]}),
+                    cbs[1],
+                    make_node("test3", {"bar": cbs[2], "children": [objs[0], objs[1]]}),
+                    make_node("test4", {"children": [objs[0], objs[2]]}),
+                    objs[1],
+                    make_node("test6", {"children": [objs[2]]}),
+                ]
+            },
+        )
+
+        result = encoder.encode_node(node)
+
+        expected_payload = {
+            "__dhElemName": "test0",
+            "props": {
+                "children": [
+                    {
+                        "__dhElemName": "test1",
+                        "props": {"foo": [{"__dhCbid": "cb0"}]},
+                    },
+                    {"__dhCbid": "cb1"},
+                    {
+                        "__dhElemName": "test3",
+                        "props": {
+                            "bar": {"__dhCbid": "cb2"},
+                            "children": [
+                                {"__dhObid": 0},
+                                {"__dhObid": 1},
+                            ],
+                        },
+                    },
+                    {
+                        "__dhElemName": "test4",
+                        "props": {"children": [{"__dhObid": 0}, {"__dhObid": 2}]},
+                    },
+                    {"__dhObid": 1},
+                    {
+                        "__dhElemName": "test6",
+                        "props": {"children": [{"__dhObid": 2}]},
+                    },
+                ],
+            },
+        }
+
+        self.assertDictEqual(
+            json.loads(result["encoded_node"]), expected_payload, "payloads don't match"
+        )
+        self.assertListEqual(
+            list(result["callable_id_dict"].keys()), cbs, "callables don't match"
+        )
+        self.assertListEqual(result["new_objects"], objs, "objects don't match")
+
+        # Add some new objects and callables to the mix for next encoding
+        delta_objs = [TestObject()]
+        delta_cbs = [lambda: None]
+        objs = [objs[0], None, objs[2], delta_objs[0]]
+        cbs = [cbs[0], None, cbs[2], delta_cbs[0]]
+
+        # Replace cb[1] and obj[1] with the new callable/object and encode again
+        node = make_node(
+            "test0",
+            {
+                "children": [
+                    make_node("test1", {"foo": [cbs[0]]}),
+                    cbs[3],
+                    make_node("test3", {"bar": cbs[2], "children": [objs[0], objs[3]]}),
+                    make_node("test4", {"children": [objs[0], objs[2]]}),
+                    objs[3],
+                    make_node("test6", {"children": [objs[2]]}),
+                ]
+            },
+        )
+
+        result = encoder.encode_node(node)
+        expected_payload = {
+            "__dhElemName": "test0",
+            "props": {
+                "children": [
+                    {
+                        "__dhElemName": "test1",
+                        "props": {"foo": [{"__dhCbid": "cb0"}]},
+                    },
+                    {"__dhCbid": "cb3"},
+                    {
+                        "__dhElemName": "test3",
+                        "props": {
+                            "bar": {"__dhCbid": "cb2"},
+                            "children": [
+                                {"__dhObid": 0},
+                                {"__dhObid": 3},
+                            ],
+                        },
+                    },
+                    {
+                        "__dhElemName": "test4",
+                        "props": {"children": [{"__dhObid": 0}, {"__dhObid": 2}]},
+                    },
+                    {"__dhObid": 3},
+                    {
+                        "__dhElemName": "test6",
+                        "props": {"children": [{"__dhObid": 2}]},
+                    },
+                ],
+            },
+        }
+
+        self.assertDictEqual(
+            json.loads(result["encoded_node"]), expected_payload, "payloads don't match"
+        )
+        self.assertListEqual(
+            list(result["callable_id_dict"].keys()),
+            [cbs[0], cbs[2], cbs[3]],
+            "callables don't match",
+        )
+        self.assertListEqual(result["new_objects"], delta_objs, "objects don't match")
 
 
 if __name__ == "__main__":
