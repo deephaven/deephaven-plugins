@@ -12,20 +12,6 @@ export interface UITableProps {
   element: UITableNode;
 }
 
-export interface UITableElementProps {
-  aggregationSettings?: AggregationSettings
-  alwaysFetchColumns?: string[];
-  backColumns?: string[];
-  canSearch?: boolean;
-  columnGroups?: ColumnGroup[];
-  colorColumns?: string[];
-  frozenColumns?: string[];
-  frontColumns?: string[];
-  hiddenColumns?: string[];
-  onRowPress?: (rows: number[]) => void;
-  onRowDoublePress?: (rows: number[]) => void;
-}
-
 function UITable({ element }: UITableProps) {
   const dh = useApi();
   const [table, setTable] = useState<Table>();

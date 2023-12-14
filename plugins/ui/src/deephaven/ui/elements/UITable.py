@@ -1,59 +1,42 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, Dict, Literal, Sequence, Union, List
+from typing import Any, Callable, Literal, Sequence
 from deephaven.table import Table
 from deephaven import SortDirection
 from .Element import Element
+from .types import (
+    ColumnName,
+    AggregationOperation,
+    SearchMode,
+    QuickFilterExpression,
+    Color,
+    ContextMenuAction,
+    CellIndex,
+    RowData,
+    ContextMenuMode,
+    DataBarAxis,
+    DataBarValuePlacement,
+    DataBarDirection,
+    RowIndex,
+    RowDataMap,
+    SelectionMode,
+)
 from .._internal import dict_to_camel_case, RenderContext
 
 logger = logging.getLogger(__name__)
 
-RowIndex = Union[int, None]
-RowDataMap = Dict[str, Any]
-AggregationOperation = Literal[
-    "COUNT",
-    "COUNT_DISTINCT",
-    "DISTINCT",
-    "MIN",
-    "MAX",
-    "SUM",
-    "ABS_SUM",
-    "VAR",
-    "AVG",
-    "STD",
-    "FIRST",
-    "LAST",
-    "UNIQUE",
-    "SKIP",
-]
-ColumnIndex = Union[int, None]
-CellIndex = [RowIndex, ColumnIndex]
-DeephavenColor = Literal["salmon", "lemonchiffon"]
-HexColor = str
-Color = Union[DeephavenColor, HexColor]
-# A ColumnIndex of None indicates a header row
-ColumnName = str
-ContextMenuAction = Dict[str, Any]
-ContextMenuModeOption = Literal["CELL", "ROW_HEADER", "COLUMN_HEADER"]
-ContextMenuMode = Union[ContextMenuModeOption, List[ContextMenuModeOption], None]
-DataBarAxis = Literal["PROPORTIONAL", "MIDDLE", "DIRECTIONAL"]
-DataBarDirection = Literal["LTR", "RTL"]
-DataBarValuePlacement = Literal["BESIDE", "OVERLAP", "HIDE"]
-# TODO: Fill in the list of Deephaven Colors we allow
-LockType = Literal["shared", "exclusive"]
-QuickFilterExpression = str
-RowData = Dict[str, Any]
-# A RowIndex of None indicates a header column
-RowIndex = Union[int, None]
-SearchMode = Literal["SHOW", "HIDE", "DEFAULT"]
-SelectionMode = Literal["CELL", "ROW", "COLUMN"]
-
-
-# SortDirection = Literal["ASC", "DESC"]
-
 
 def remap_sort_direction(direction: SortDirection) -> Literal["ASC", "DESC"] | None:
+    """
+    Remap the deephaven sort direction to the grid sort direction
+
+    Args:
+        direction: SortDirection: The deephaven sort direction
+
+    Returns:
+        Literal["ASC", "DESC"] | None: The grid sort direction
+    """
     if direction == SortDirection.ASCENDING:
         return "ASC"
     elif direction == SortDirection.DESCENDING:
@@ -136,7 +119,7 @@ class UITable(Element):
 
 
         Args:
-            key: str: The key to add to the props
+            prop_name: str: The key to add to the props
             value: Any: The value to add with the associated key
 
         Returns:
@@ -177,19 +160,7 @@ class UITable(Element):
         Returns:
             UITable: A new UITable
         """
-        aggregations = {
-            "operations": operations,
-            "operation_order": operation_order,
-            "group_by": group_by,
-        }
-
-        aggregation_settings = {
-            "show_on_top": show_on_top,
-            "aggregations": aggregations,
-            "default_operation": default_operation,
-        }
-
-        return self._with_prop("aggregation_settings", aggregation_settings)
+        raise NotImplementedError()
 
     def always_fetch_columns(self, columns: str | list[str]) -> "UITable":
         """
@@ -198,7 +169,7 @@ class UITable(Element):
         Useful if you have a column with key value data that you want to always include
         in the data sent for row click operations.
 
-        Args:x
+        Args:
             columns: str | list[str]: The columns to always fetch from the server.
                 May be a single column name.
 
@@ -219,7 +190,7 @@ class UITable(Element):
         Returns:
             UITable: A new UITable
         """
-        return self._with_appendable_prop("back_columns", columns)
+        raise NotImplementedError()
 
     def can_search(self, mode: SearchMode) -> "UITable":
         """
@@ -259,8 +230,7 @@ class UITable(Element):
         Returns:
             UITable: A new UITable
         """
-        group = {"name": name, "children": children, "color": color}
-        return self._with_appendable_prop("column_groups", group)
+        raise NotImplementedError()
 
     def color_column(
         self,
@@ -282,13 +252,7 @@ class UITable(Element):
         Returns:
             UITable: A new UITable
         """
-        column = {
-            "column": column,
-            "where": where,
-            "color": color,
-            "background_color": background_color,
-        }
-        return self._with_appendable_prop("sorts", column)
+        raise NotImplementedError()
 
     def color_row(
         self,
@@ -310,14 +274,7 @@ class UITable(Element):
         Returns:
             UITable: A new UITable
         """
-        row = {
-            "column": column,
-            "where": where,
-            "color": color,
-            "background_color": background_color,
-        }
-
-        return self._with_appendable_prop("color_rows", row)
+        raise NotImplementedError()
 
     def context_menu(
         self,
@@ -351,9 +308,7 @@ class UITable(Element):
         Returns:
             UITable: A new UITable
         """
-        action = {"items": items, "mode": mode}
-
-        return self._with_appendable_prop("context_menu_actions", action)
+        raise NotImplementedError()
 
     def data_bar(
         self,
@@ -390,21 +345,7 @@ class UITable(Element):
         Returns:
             UITable: A new UITable
         """
-        data_bar = {
-            "col": col,
-            "value_col": value_col,
-            "min": min,
-            "max": max,
-            "axis": axis,
-            "positive_color": positive_color,
-            "negative_color": negative_color,
-            "value_placement": value_placement,
-            "direction": direction,
-            "opacity": opacity,
-            "marker_col": marker_col,
-            "marker_color": marker_color,
-        }
-        return self._with_appendable_prop("data_bars", data_bar)
+        raise NotImplementedError()
 
     def format(self, column: ColumnName, format: str) -> "UITable":
         """
@@ -417,7 +358,7 @@ class UITable(Element):
         Returns:
             UITable: A new UITable
         """
-        return self._with_appendable_prop("format", {column: format})
+        raise NotImplementedError()
 
     def freeze_columns(self, columns: str | list[str]) -> "UITable":
         """
@@ -430,7 +371,7 @@ class UITable(Element):
         Returns:
             UITable: A new UITable
         """
-        return self._with_appendable_prop("frozen_columns", columns)
+        raise NotImplementedError()
 
     def front_columns(self, columns: str | list[str]) -> "UITable":
         """
@@ -442,7 +383,7 @@ class UITable(Element):
         Returns:
             UITable: A new UITable
         """
-        return self._with_appendable_prop("front_columns", columns)
+        raise NotImplementedError()
 
     def hide_columns(self, columns: str | list[str]) -> "UITable":
         """
@@ -454,7 +395,7 @@ class UITable(Element):
         Returns:
             UITable: A new UITable
         """
-        return self._with_appendable_prop("hidden_columns", columns)
+        raise NotImplementedError()
 
     def on_row_press(
         self, callback: Callable[[RowIndex, RowDataMap], None]
@@ -470,7 +411,7 @@ class UITable(Element):
         Returns:
             UITable: A new UITable
         """
-        return self._with_prop("on_row_press", callback)
+        raise NotImplementedError()
 
     def on_row_double_press(
         self, callback: Callable[[RowIndex, RowDataMap], None]
@@ -515,7 +456,7 @@ class UITable(Element):
         Returns:
             UITable: A new UITable
         """
-        return self._with_prop("mode", mode)
+        raise NotImplementedError()
 
     def sort(
         self,
