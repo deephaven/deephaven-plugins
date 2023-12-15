@@ -7,3 +7,5 @@ services:
       pull: true
     ports:
       - '${DEEPHAVEN_PORT:-10000}:10000'
+    volumes:
+      - ./docker/data/:/data
