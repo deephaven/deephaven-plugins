@@ -3,7 +3,9 @@ from __future__ import annotations
 import pandas as pd
 
 from deephaven.table import Table
-from .use_table_data import _use_table_data, Sentinel, ColumnData
+
+from .use_table_data import _use_table_data
+from ..types import Sentinel, ColumnData
 
 
 def _column_data(data: pd.DataFrame) -> ColumnData:
@@ -29,7 +31,7 @@ def use_column_data(table: Table, sentinel: Sentinel = None) -> ColumnData | Sen
 
     Args:
         table: Table: The table to extract the column from.
-        sentinel: Sentinel: The sentinel value to return if the table is empty. Defaults to None.
+        sentinel: Sentinel: The sentinel value to return if the table is ticking but empty. Defaults to None.
 
     Returns:
         ColumnData | Sentinel: The first column of the table as a list or the

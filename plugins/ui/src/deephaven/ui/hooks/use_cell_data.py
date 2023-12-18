@@ -4,7 +4,9 @@ from typing import Any
 import pandas as pd
 
 from deephaven.table import Table
-from .use_table_data import _use_table_data, Sentinel
+
+from .use_table_data import _use_table_data
+from ..types import Sentinel
 
 
 def _cell_data(data: pd.DataFrame) -> None:
@@ -30,7 +32,7 @@ def use_cell_data(table: Table, sentinel: Sentinel = None) -> Any:
 
     Args:
         table: Table: The table to extract the cell from.
-        sentinel: Sentinel: The sentinel value to return if the table is empty. Defaults to None.
+        sentinel: Sentinel: The sentinel value to return if the table is ticking but empty. Defaults to None.
 
     Returns:
         Any: The first cell of the table.

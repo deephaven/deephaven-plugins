@@ -1,28 +1,19 @@
 from __future__ import annotations
 
-import deephaven.ui as ui
+from functools import partial
+from typing import Callable
+import pandas as pd
 
 from deephaven.table import Table
-from deephaven.table_listener import TableListener, listen, TableUpdate
+from deephaven.table_listener import TableUpdate
 from deephaven.pandas import to_pandas
 from deephaven.execution_context import ExecutionContext, get_exec_ctx
 from deephaven.server.executors import submit_task
 from deephaven.update_graph import has_exclusive_lock
 
-from concurrent.futures import ThreadPoolExecutor
-from functools import partial
-from typing import Callable, Any
-from typing import List, Dict
+import deephaven.ui as ui
 
-import pandas as pd
-
-_executor = ThreadPoolExecutor(max_workers=1)
-
-Sentinel = Any
-ColumnName = str
-ColumnData = List[Any]
-RowData = Dict[ColumnName, Any]
-TableData = Dict[ColumnName, ColumnData]
+from ..types import Sentinel, TableData
 
 
 def _deferred_update(ctx: ExecutionContext, func: Callable[[], None]) -> None:
@@ -159,7 +150,7 @@ def use_table_data(table: Table, sentinel: Sentinel = None) -> TableData | Senti
 
     Args:
         table: Table: The table to listen to.
-        sentinel: Sentinel: The sentinel value to return if the table is empty. Defaults to None.
+        sentinel: Sentinel: The sentinel value to return if the table is ticking but empty. Defaults to None.
 
     Returns:
         pd.DataFrame | Sentinel: The table data or the sentinel value.

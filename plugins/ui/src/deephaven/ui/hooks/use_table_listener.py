@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 from functools import partial
-from typing import Callable, Literal
+from typing import Callable
 
 from deephaven.table import Table
 from deephaven.table_listener import listen, TableUpdate, TableListener
 from deephaven.execution_context import get_exec_ctx, ExecutionContext
 
 from .use_effect import use_effect
-
-LockType: Literal["shared", "exclusive"]
+from ..types import LockType
 
 
 def listener_with_ctx(

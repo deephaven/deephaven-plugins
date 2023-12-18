@@ -4,7 +4,8 @@ import pandas as pd
 
 from deephaven.table import Table
 
-from .use_table_data import _use_table_data, RowData, Sentinel
+from .use_table_data import _use_table_data
+from ..types import Sentinel, RowData
 
 
 def _row_data(data: pd.DataFrame) -> RowData:
@@ -30,7 +31,7 @@ def use_row_data(table: Table, sentinel: Sentinel = None) -> RowData | Sentinel:
 
     Args:
         table: Table: The table to extract the row from.
-        sentinel: Sentinel: The sentinel value to return if the table is empty. Defaults to None.
+        sentinel: Sentinel: The sentinel value to return if the table is ticking but empty. Defaults to None.
 
     Returns:
         RowData | Sentinel: The first row of the table as a dictionary or the sentinel value.

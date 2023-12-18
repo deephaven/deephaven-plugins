@@ -4,7 +4,9 @@ from typing import Any
 import pandas as pd
 
 from deephaven.table import Table
-from .use_table_data import _use_table_data, Sentinel
+
+from .use_table_data import _use_table_data
+from ..types import Sentinel
 
 
 def _row_list(data: pd.DataFrame) -> None:
@@ -30,7 +32,7 @@ def use_row_list(table: Table, sentinel: Sentinel = None) -> list[Any] | Sentine
 
     Args:
         table: Table: The table to extract the row from.
-        sentinel: Sentinel: The sentinel value to return if the table is empty. Defaults to None.
+        sentinel: Sentinel: The sentinel value to return if the table is ticking but empty. Defaults to None.
 
     Returns:
         list[Any] | Sentinel: The first row of the table as a list or the sentinel value.
