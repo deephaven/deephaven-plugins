@@ -10,6 +10,7 @@ import { MixedPanelsError, NoChildrenError } from './errors';
  *
  *
  * @param children Root children of the document.
+ * @param definition Definition of the widget used to create this document. Used for titling panels if necessary.
  */
 export function getRootChildren(
   children: React.ReactNode,
@@ -20,14 +21,13 @@ export function getRootChildren(
   }
 
   const childrenArray = Array.isArray(children) ? children : [children];
-  const childPanelCount = childrenArray.filter(
-    child => child?.type === ReactPanel
-  ).length;
-
   if (childrenArray.length === 0) {
     throw new NoChildrenError('No children to render');
   }
-  if (childPanelCount !== 0 && childPanelCount !== childrenArray.length) {
+  const childPanelCount = childrenArray.filter(
+    child => child?.type === ReactPanel
+  ).length;
+  if (childPanelCount > 0 && childPanelCount !== childrenArray.length) {
     throw new MixedPanelsError('Cannot mix panel and non-panel elements');
   }
 

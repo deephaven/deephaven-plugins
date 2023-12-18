@@ -2,8 +2,8 @@ import { PropsWithChildren } from 'react';
 import mapSpectrumChildren from './mapSpectrumChildren';
 
 /**
- * Map the children of an element to Spectrum children, automatically wrapping strings and numbers in `Text` elements.
- * @param children Children to map as spectrum children
+ * Map the props of an element to Spectrum props, automatically wrapping children strings and numbers in `Text` elements.
+ * @param props Props to map as spectrum props
  */
 export function mapSpectrumProps<
   T extends PropsWithChildren<Record<string, unknown>>

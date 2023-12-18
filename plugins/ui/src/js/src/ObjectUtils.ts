@@ -8,9 +8,7 @@ export type ObjectElementType = typeof OBJECT_ELEMENT_NAME;
 export type ObjectViewProps = { object: WidgetExportedObject };
 
 /** Describes an object that can be rendered in the UI. */
-export type ObjectElementNode = ElementNode<ObjectElementType> & {
-  props: ObjectViewProps;
-};
+export type ObjectElementNode = ElementNode<ObjectElementType, ObjectViewProps>;
 
 /**
  * Check if an object is a ObjectElementNode

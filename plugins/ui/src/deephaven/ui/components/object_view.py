@@ -6,7 +6,7 @@ from ..elements import BaseElement
 
 def object_view(obj: Any):
     """
-    A wrapper for an exported object that can be rendered as a view.
+    A wrapper for an exported object that should be rendered as a view.
     E.g. A Table will be rendered as a Grid view.
 
     Args:

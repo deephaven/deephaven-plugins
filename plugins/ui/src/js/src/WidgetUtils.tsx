@@ -26,9 +26,14 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
   if (newElement.props?.children != null) {
     const { children } = newElement.props;
     if (Array.isArray(children)) {
+      const typeMap = new Map<string, number>();
       newElement.props.children = children.map((child, i) => {
         if (isExportedObject(child)) {
-          return <ObjectView key={child.type} object={child} />;
+          const { type } = child;
+          const typeCount = typeMap.get(type) ?? 0;
+          typeMap.set(type, typeCount + 1);
+          const key = `${type}-${typeCount}`;
+          return <ObjectView key={key} object={child} />;
         }
         return child;
       });

@@ -14,9 +14,7 @@ export interface UITableProps {
   [key: string]: unknown;
 }
 
-export type UITableNode = ElementNode<UITableElementName> & {
-  props: UITableProps;
-};
+export type UITableNode = ElementNode<UITableElementName, UITableProps>;
 
 export function isUITable(obj: unknown): obj is UITableNode {
   return (

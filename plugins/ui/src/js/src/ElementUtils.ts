@@ -1,5 +1,4 @@
 import type { WidgetExportedObject } from '@deephaven/jsapi-types';
-import { ReactNode } from 'react';
 
 export const CALLABLE_KEY = '__dhCbid';
 export const OBJECT_KEY = '__dhObid';
@@ -36,9 +35,7 @@ export type ElementNodeWithChildren<
   K extends string = string,
   P extends Record<string, unknown> = Record<string, unknown>
 > = ElementNode<K, P> & {
-  props: P & {
-    children: ReactNode;
-  };
+  props: React.PropsWithChildren<P>;
 };
 
 export function isObjectNode(obj: unknown): obj is ObjectNode {
