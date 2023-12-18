@@ -153,7 +153,7 @@ def use_table_data(table: Table, sentinel: Sentinel = None) -> TableData | Senti
         sentinel: Sentinel: The sentinel value to return if the table is ticking but empty. Defaults to None.
 
     Returns:
-        pd.DataFrame | Sentinel: The table data or the sentinel value.
+        TableData | Sentinel: The table data or the sentinel value.
     """
     data, is_sentinel = _use_table_data(table, sentinel)
 

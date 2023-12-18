@@ -710,4 +710,70 @@ t = time_table("PT1S").update(formulas=["X=i"]).tail(5)
 monitor = monitor_changed_data(t)
 ```
 
-![Stock Rollup](assets/change_monitor.png)
+![Change Monitor](assets/change_monitor.png)
+
+## Using Table Data Hooks
+
+There are five different hooks that can be used to get data from a table:
+1. `use_table_data`: Returns a dictionary of rows and columns from the table. 
+2. `use_row_data`: Returns a single row from the table as a dictionary
+3. `use_row_list`: Returns a single row from the table as a list
+4. `use_column_data`: Returns a single column from the table as a list
+5. `use_cell_data`: Returns a single cell from the table
+
+In this example, the hooks are used to display various pieces of information about LIZARD trades.
+
+```python
+import deephaven.ui as ui
+from deephaven.table import Table
+from deephaven import time_table, agg
+import deephaven.plot.express as dx
+
+stocks = dx.data.stocks()
+
+
+@ui.component
+def watch_lizards(source: Table):
+
+    sold_lizards = source.where(["side in `sell`", "sym in `LIZARD`"])
+    exchange_count_table = sold_lizards.view(["exchange"]).count_by(
+        "count", by=["exchange"]
+    )
+    last_sell_table = sold_lizards.tail(1)
+    max_size_and_price_table = sold_lizards.agg_by([agg.max_(cols=["size", "price"])])
+    last_ten_sizes_table = sold_lizards.view("size").tail(10)
+    average_sell_table = (
+        sold_lizards.view(["size", "dollars"])
+        .tail(100)
+        .sum_by()
+        .view("average = dollars/size")
+    )
+
+    exchange_count = ui.use_table_data(exchange_count_table)
+    last_sell = ui.use_row_data(last_sell_table)
+    max_size_and_price = ui.use_row_list(max_size_and_price_table)
+    last_ten_sizes = ui.use_column_data(last_ten_sizes_table)
+    average_sell = ui.use_cell_data(average_sell_table)
+
+    exchange_count_view = ui.view(f"Exchange counts {exchange_count}")
+    last_sell_view = ui.view(f"Last Sold LIZARD: {last_sell}")
+    max_size_and_price_view = ui.view(f"Max size and max price: {max_size_and_price}")
+    last_ten_sizes_view = ui.view(f"Last Ten Sizes: {last_ten_sizes}")
+    average_sell_view = ui.view(f"Average LIZARD price: {average_sell}")
+
+    return ui.flex(
+        exchange_count_view,
+        last_sell_view,
+        max_size_and_price_view,
+        last_ten_sizes_view,
+        average_sell_view,
+        margin=10,
+        gap=10,
+        direction="column",
+    )
+
+
+watch = watch_lizards(stocks)
+```
+
+![Table Hooks](assets/table_hooks.png)
