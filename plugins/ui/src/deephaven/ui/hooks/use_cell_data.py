@@ -5,22 +5,23 @@ import pandas as pd
 
 from deephaven.table import Table
 
-from .use_table_data import _use_table_data
+from .use_table_data import use_table_data
 from ..types import Sentinel
 
 
-def _cell_data(data: pd.DataFrame) -> None:
+def _cell_data(data: pd.DataFrame, is_sentinel: bool) -> None:
     """
     Return the first cell of the table.
 
     Args:
         data: pd.DataFrame: The table to extract the cell from.
+        is_sentinel: bool: Whether the sentinel value was returned.
 
     Returns:
         Any: The first cell of the table.
     """
     try:
-        return data.iloc[0, 0]
+        return data if is_sentinel else data.iloc[0, 0]
     except IndexError:
         # if there is a static table with no rows, we will get an IndexError
         raise IndexError("Cannot get row list from an empty table")
@@ -37,6 +38,4 @@ def use_cell_data(table: Table, sentinel: Sentinel = None) -> Any:
     Returns:
         Any: The first cell of the table.
     """
-    data, is_sentinel = _use_table_data(table, sentinel)
-
-    return data if is_sentinel else _cell_data(data)
+    return use_table_data(table, sentinel, _cell_data)
