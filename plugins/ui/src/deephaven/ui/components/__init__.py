@@ -1,7 +1,6 @@
 from .icon import icon
 from .make_component import make_component as component
 from .fragment import fragment
-from .object_view import object_view
 from .panel import panel
 from .spectrum import *
 from .table import table
@@ -27,7 +26,6 @@ __all__ = [
     "html",
     "number_field",
     "item",
-    "object_view",
     "panel",
     "range_slider",
     "slider",

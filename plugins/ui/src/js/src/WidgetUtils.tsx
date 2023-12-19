@@ -17,7 +17,6 @@ import UITable from './UITable';
 import { isPanelElementNode } from './PanelUtils';
 import ReactPanel from './ReactPanel';
 import ObjectView from './ObjectView';
-import { isObjectElementNode } from './ObjectUtils';
 
 export function getComponentForElement(element: ElementNode): React.ReactNode {
   // Need to convert the children of the element if they are exported objects to an ObjectView
@@ -55,9 +54,6 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
   }
   if (isPanelElementNode(newElement)) {
     return <ReactPanel {...newElement.props} />;
-  }
-  if (isObjectElementNode(newElement)) {
-    return <ObjectView object={newElement.props?.object} />;
   }
   if (isFragmentElementNode(newElement)) {
     // eslint-disable-next-line react/jsx-no-useless-fragment
