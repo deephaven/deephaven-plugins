@@ -19,7 +19,7 @@ def render_hook(fn: Callable):
     from deephaven.ui._internal.RenderContext import RenderContext
     from deephaven.ui._internal.shared import get_context, set_context
 
-    context = RenderContext(lambda x: None)
+    context = RenderContext(lambda x: x())
 
     return_dict = {"context": context, "result": None, "rerender": None}
 
