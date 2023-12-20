@@ -40,14 +40,15 @@ class TimePreprocessorTestCase(BaseTestCase):
 
         expected_df = pd.DataFrame(
             {
-                "Start": ["2021-07-04 12:00:00"],
-                "End": ["2021-07-04 13:00:00"],
+                "Start": ["2021-07-04 12:00:00+00:00"],
+                "End": ["2021-07-04 13:00:00+00:00"],
                 "Category": ["A"],
                 "x_diff": [3600000.0],
             }
         )
         expected_df["Start"] = pd.to_datetime(expected_df["Start"])
         expected_df["End"] = pd.to_datetime(expected_df["End"])
+        expected_df["Category"] = expected_df["Category"].astype("string")
         expected_df["x_diff"] = expected_df["x_diff"].astype("Float64")
 
         new_df = dhpd.to_pandas(new_table)
