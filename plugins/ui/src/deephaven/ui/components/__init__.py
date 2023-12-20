@@ -1,5 +1,6 @@
 from .icon import icon
 from .make_component import make_component as component
+from .fragment import fragment
 from .panel import panel
 from .spectrum import *
 from .table import table
@@ -16,6 +17,7 @@ __all__ = [
     "contextual_help",
     "flex",
     "form",
+    "fragment",
     "grid",
     "heading",
     "icon",
@@ -23,12 +25,16 @@ __all__ = [
     "illustrated_message",
     "html",
     "number_field",
+    "item",
     "panel",
     "range_slider",
     "slider",
     "spectrum_element",
     "switch",
     "table",
+    "tab_list",
+    "tab_panels",
+    "tabs",
     "text",
     "text_field",
     "toggle_button",
