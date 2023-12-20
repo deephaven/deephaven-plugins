@@ -3,16 +3,39 @@ import io
 import json
 from jsonrpc import JSONRPCResponseManager, Dispatcher
 import logging
-from typing import Any
+import threading
+from queue import Queue
+from typing import Any, Callable
 from deephaven.plugin.object_type import MessageStream
 from ..elements import Element
 from ..renderer import NodeEncoder, Renderer, RenderedNode
-from .._internal import RenderContext
+from .._internal import RenderContext, StateUpdateCallable
 from ..renderer.NodeEncoder import NodeEncoder
 
 logger = logging.getLogger(__name__)
 
-# TODO: Get a thread from a thread pool here for rendering and callbacks?
+_render_queue: Queue[Callable[[], None]] = Queue()
+
+_render_thread: threading.Thread | None = None
+
+
+def _render_loop():
+    global _render_queue
+    while True:
+        item = _render_queue.get()
+        try:
+            item()
+        except Exception as e:
+            logger.exception(e)
+
+
+def _start_render_loop():
+    global _render_thread
+    if _render_thread is None or _render_thread.is_alive() is False:
+        _render_thread = threading.Thread(
+            target=_render_loop, name="deephaven.ui render loop"
+        )
+        _render_thread.start()
 
 
 class ElementMessageStream(MessageStream):
@@ -46,6 +69,26 @@ class ElementMessageStream(MessageStream):
     The connection to send the rendered element to.
     """
 
+    _context: RenderContext
+    """
+    Render context for this element
+    """
+
+    _renderer: Renderer
+    """
+    Renderer for this element
+    """
+
+    _queued_updates: Queue[StateUpdateCallable]
+    """
+    State updates that need to be applied on the next render.
+    """
+
+    _is_render_queued: bool
+    """
+    Whether or not a render is queued.
+    """
+
     def __init__(self, element: Element, connection: MessageStream):
         """
         Create a new ElementMessageStream. Renders the element in a render context, and sends the rendered result to the
@@ -61,18 +104,42 @@ class ElementMessageStream(MessageStream):
         self._manager = JSONRPCResponseManager()
         self._dispatcher = Dispatcher()
         self._encoder = NodeEncoder(separators=(",", ":"))
+        self._context = RenderContext(self._queue_state_update)
+        self._renderer = Renderer(self._context)
+        self._queued_updates = Queue()
+        self._is_render_queued = False
+
+    def _render(self) -> None:
+        logger.debug("ElementMessageStream._render")
+
+        # Resolve any pending state updates first
+        while not self._queued_updates.empty():
+            state_update = self._queued_updates.get()
+            state_update()
+
+        node = self._renderer.render(self._element)
+        self._send_document_update(node)
+        self._is_render_queued = False
+
+    def _queue_render(self) -> None:
+        """
+        Queue a render to be resolved on the next render.
+        """
+        if self._is_render_queued:
+            return
+        self._is_render_queued = True
+        _render_queue.put(self._render)
+
+    def _queue_state_update(self, state_update: StateUpdateCallable) -> None:
+        """
+        Queue a state update to be resolved on the next render.
+        """
+        self._queued_updates.put(state_update)
+        self._queue_render()
 
     def start(self) -> None:
-        context = RenderContext()
-        renderer = Renderer(context)
-
-        def update():
-            logger.debug("ElementMessageStream update")
-            node = renderer.render(self._element)
-            self._send_document_update(node)
-
-        context.set_on_change(update)
-        update()
+        _start_render_loop()
+        self._queue_render()
 
     def on_close(self) -> None:
         pass
@@ -144,6 +211,12 @@ class ElementMessageStream(MessageStream):
         dispatcher = Dispatcher()
         for callable, callable_id in callable_id_dict.items():
             logger.debug("Registering callable %s", callable_id)
-            dispatcher[callable_id] = callable
+
+            def wrapped_callable(*args, **kwargs):
+                # We want all callables to be triggered from the deephaven.ui render thread
+                logger.debug("Calling callable %s", callable_id)
+                _render_queue.put(lambda: callable(*args, **kwargs))
+
+            dispatcher[callable_id] = wrapped_callable
         self._dispatcher = dispatcher
         self._connection.on_data(payload.encode(), new_objects)
