@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 
-from deephaven.plugin import Registration, Callback
 from deephaven.plugin.object_type import BidirectionalObjectType, MessageStream
 
 from .communication.DeephavenFigureConnection import DeephavenFigureConnection
@@ -44,7 +43,6 @@ from .plots import (
 
 from .data import data_generators
 
-__version__ = "0.3.0.dev0"
 
 NAME = "deephaven.plot.express.DeephavenFigure"
 
@@ -101,22 +99,3 @@ class DeephavenFigureType(BidirectionalObjectType):
         payload, references = figure_connection.on_data(initial_message, [])
         connection.on_data(payload, references)
         return figure_connection
-
-
-class ChartRegistration(Registration):
-    """
-    Register the DeephavenFigureType
-
-    """
-
-    @classmethod
-    def register_into(cls, callback: Callback) -> None:
-        """
-        Register the DeephavenFigureType
-
-        Args:
-          callback: Registration.Callback:
-            A function to call after registration
-
-        """
-        callback.register(DeephavenFigureType)
