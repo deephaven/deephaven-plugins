@@ -6,7 +6,17 @@ from contextlib import AbstractContextManager
 
 logger = logging.getLogger(__name__)
 
-OnChangeCallable = Callable[[], None]
+StateUpdateCallable = Callable[[], None]
+"""
+A callable that updates the state. Used to queue up state changes.
+"""
+
+OnChangeCallable = Callable[[StateUpdateCallable], None]
+"""
+Callable that is called when there is a change in the context (setting the state).
+"""
+
+
 StateKey = int
 ContextKey = Union[str, int]
 
@@ -36,17 +46,25 @@ class RenderContext(AbstractContextManager):
     """
     The child contexts for this context. 
     """
+
     _on_change: OnChangeCallable
     """
     The on_change callback to call when the context changes.
     """
 
-    def __init__(self):
+    def __init__(self, on_change: OnChangeCallable):
+        """
+        Create a new render context.
+
+        Args:
+            on_change: The on_change callback to call when the state in the context has changes.
+        """
+
         self._hook_index = -1
         self._hook_count = -1
         self._state = {}
         self._children_context = {}
-        self._on_change = lambda: None
+        self._on_change = on_change
 
     def __enter__(self) -> None:
         """
@@ -68,21 +86,6 @@ class RenderContext(AbstractContextManager):
                 )
             )
 
-    def _notify_change(self) -> None:
-        """
-        Notify the parent context that this context has changed.
-        Note that we're just re-rendering the whole tree on change.
-        TODO: We should be able to do better than this, and only re-render the parts that have actually changed.
-        """
-        logger.debug("Notifying parent context that child context has changed")
-        self._on_change()
-
-    def set_on_change(self, on_change: OnChangeCallable) -> None:
-        """
-        Set the on_change callback.
-        """
-        self._on_change = on_change
-
     def has_state(self, key: StateKey) -> bool:
         """
         Check if the given key is in the state.
@@ -101,15 +104,17 @@ class RenderContext(AbstractContextManager):
         """
         Set the state for the given key.
         """
-        # TODO: Should we throw here if it's called when we're in the middle of a render?
-        # TODO: How do we batch the state changes so they run on the next loop?
-        should_notify = False
-        if key in self._state:
-            # We only want to notify of a change when the value actually changes, not on the initial render
-            should_notify = True
-        self._state[key] = value
-        if should_notify:
-            self._notify_change()
+
+        # We queue up the state change in a callable that will get called from the render loop
+        def update_state():
+            self._state[key] = value
+
+        if key not in self._state:
+            # We haven't set the state for this key yet, this is the initial render. We can just set the state immediately, we don't need to queue it for notification
+            update_state()
+        else:
+            # This is not the initial state, queue up the state change on the render loop
+            self._on_change(update_state)
 
     def get_child_context(self, key: ContextKey) -> "RenderContext":
         """
@@ -118,8 +123,7 @@ class RenderContext(AbstractContextManager):
         logger.debug("Getting child context for key %s", key)
         if key not in self._children_context:
             logger.debug("Creating new child context for key %s", key)
-            child_context = RenderContext()
-            child_context.set_on_change(self._notify_change)
+            child_context = RenderContext(self._on_change)
             self._children_context[key] = child_context
         return self._children_context[key]
 

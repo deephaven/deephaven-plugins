@@ -76,7 +76,7 @@ def _render_element(element: Element, context: RenderContext) -> RenderedNode:
 class Renderer:
     _liveness_scope: LivenessScope
 
-    def __init__(self, context: RenderContext = RenderContext()):
+    def __init__(self, context: RenderContext):
         self._context = context
         self._liveness_scope = LivenessScope()
 
