@@ -59,7 +59,7 @@ class UITable(Element):
     The extra props that are added by each method
     """
 
-    def __init__(self, table: Table, props: dict[str, Any] = None):
+    def __init__(self, table: Table, props: dict[str, Any] = {}):
         """
         Create a UITable from the passed in table. UITable provides an [immutable fluent interface](https://en.wikipedia.org/wiki/Fluent_interface#Immutability) for adding UI hints to a table.
 
@@ -69,7 +69,8 @@ class UITable(Element):
         self._table = table
 
         # Store the extra props that are added by each method
-        self._props = props if props is not None else {}
+        # This is a shallow copy of the props so that we don't mutate the passed in props dict
+        self._props = {**props}
 
     @property
     def name(self):
