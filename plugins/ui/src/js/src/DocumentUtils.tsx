@@ -11,6 +11,7 @@ import { MixedPanelsError, NoChildrenError } from './errors';
  *
  * @param children Root children of the document.
  * @param definition Definition of the widget used to create this document. Used for titling panels if necessary.
+ * @returns The children, wrapped in a panel if necessary.
  */
 export function getRootChildren(
   children: React.ReactNode,
