@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from unittest.mock import Mock
 from typing import Any
 from .BaseTest import BaseTestCase
 
@@ -13,7 +14,8 @@ class UITableTestCase(BaseTestCase):
     def expect_render(self, ui_table, expected_props: dict[str, Any]):
         from deephaven.ui._internal import RenderContext
 
-        context = RenderContext()
+        on_change = Mock()
+        context = RenderContext(on_change)
         result = ui_table.render(context)
 
         self.assertDictEqual(result, expected_props)
