@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { IrisGridProps, IrisGridUtils } from '@deephaven/iris-grid';
 import { useApi } from '@deephaven/jsapi-bootstrap';
-import type { Table, ColumnGroup } from '@deephaven/jsapi-types';
+import type { Table } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { UITableNode } from './UITableUtils';
 import TableObject from './TableObject';
@@ -16,25 +16,30 @@ function UITable({ element }: UITableProps) {
   const dh = useApi();
   const [table, setTable] = useState<Table>();
   const { props: elementProps } = element;
-  const [hydratedSorts, setHydratedSorts] = useState<undefined>();
+  const { filters } = elementProps;
+
+  const hydratedSorts = useMemo(() => {
+    const { sorts = null } = elementProps;
+
+    if (sorts !== null && table !== undefined) {
+      log.debug('Hydrating sorts', sorts);
+
+      const { columns } = table;
+      const utils = new IrisGridUtils(dh);
+
+      return utils.hydrateSort(columns, sorts);
+    }
+    return undefined;
+  }, [elementProps, table, dh]);
 
   // Just load the object on mount
   useEffect(() => {
     let isCancelled = false;
     async function loadModel() {
       log.debug('Loading table from props', element.props);
-      const reexportedTable = await element.props.table.reexport();
-      const newTable = (await reexportedTable.fetch()) as Table;
+      const newTable = (await element.props.table.fetch()) as Table;
       if (isCancelled) {
         newTable.close();
-      }
-
-      const utils = new IrisGridUtils(dh);
-      const { columns } = newTable;
-      const { sorts = null } = elementProps;
-      if (sorts != null) {
-        log.debug('Hydrating sorts', element.props);
-        setHydratedSorts(utils.hydrateSort(columns, sorts));
       }
 
       setTable(newTable);
@@ -46,18 +51,21 @@ function UITable({ element }: UITableProps) {
   }, [dh, element, elementProps]);
 
   const irisGridProps: Partial<IrisGridProps> = useMemo(() => {
-    const { alwaysFetchColumns, onRowDoublePress, canSearch, filters } = elementProps;
+    const { alwaysFetchColumns, onRowDoublePress, canSearch } = elementProps;
     return {
       onDataSelected: onRowDoublePress,
       alwaysFetchColumns,
       showSearchBar: canSearch,
       sorts: hydratedSorts,
-      filters,
     };
   }, [elementProps, hydratedSorts]);
 
   return table ? (
-    <TableObject object={table} irisGridProps={irisGridProps} />
+    <TableObject
+      object={table}
+      irisGridProps={irisGridProps}
+      filters={filters}
+    />
   ) : null;
 }
 

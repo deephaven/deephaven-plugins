@@ -5,7 +5,7 @@ from typing import Any, Callable, Literal, Sequence
 from deephaven.table import Table
 from deephaven import SortDirection
 from .Element import Element
-from .types import (
+from ..types import (
     ColumnName,
     AggregationOperation,
     SearchMode,
