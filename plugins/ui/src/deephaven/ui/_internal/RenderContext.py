@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable
+from typing import Any, Callable, Union
 from contextlib import AbstractContextManager
 
 logger = logging.getLogger(__name__)
 
 OnChangeCallable = Callable[[], None]
 StateKey = int
-ContextKey = str
+ContextKey = Union[str, int]
 
 
 class RenderContext(AbstractContextManager):
@@ -102,6 +102,7 @@ class RenderContext(AbstractContextManager):
         Set the state for the given key.
         """
         # TODO: Should we throw here if it's called when we're in the middle of a render?
+        # TODO: How do we batch the state changes so they run on the next loop?
         should_notify = False
         if key in self._state:
             # We only want to notify of a change when the value actually changes, not on the initial render
