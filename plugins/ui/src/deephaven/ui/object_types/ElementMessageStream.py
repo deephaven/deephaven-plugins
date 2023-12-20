@@ -12,6 +12,8 @@ from ..renderer.NodeEncoder import NodeEncoder
 
 logger = logging.getLogger(__name__)
 
+# TODO: Get a thread from a thread pool here for rendering and callbacks?
+
 
 class ElementMessageStream(MessageStream):
     _manager: JSONRPCResponseManager
