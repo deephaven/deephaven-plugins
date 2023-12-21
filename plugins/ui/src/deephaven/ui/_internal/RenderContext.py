@@ -52,12 +52,13 @@ class RenderContext(AbstractContextManager):
     The on_change callback to call when the context changes.
     """
 
-    def __init__(self, on_change: OnChangeCallable):
+    def __init__(self, on_change: OnChangeCallable, on_queue_render: OnChangeCallable):
         """
         Create a new render context.
 
         Args:
-            on_change: The on_change callback to call when the state in the context has changes.
+            on_change: The callback to call when the state in the context has changes.
+            on_queue_render: The callback to call when work is being requested for the render loop.
         """
 
         self._hook_index = -1
@@ -65,6 +66,7 @@ class RenderContext(AbstractContextManager):
         self._state = {}
         self._children_context = {}
         self._on_change = on_change
+        self._on_queue_render = on_queue_render
 
     def __enter__(self) -> None:
         """
@@ -123,7 +125,7 @@ class RenderContext(AbstractContextManager):
         logger.debug("Getting child context for key %s", key)
         if key not in self._children_context:
             logger.debug("Creating new child context for key %s", key)
-            child_context = RenderContext(self._on_change)
+            child_context = RenderContext(self._on_change, self._on_queue_render)
             self._children_context[key] = child_context
         return self._children_context[key]
 
@@ -133,3 +135,9 @@ class RenderContext(AbstractContextManager):
         """
         self._hook_index += 1
         return self._hook_index
+
+    def queue_render(self, update: Callable[[], None]) -> None:
+        """
+        Queue up a state update. Needed in multi-threading scenarios.
+        """
+        self._on_queue_render(update)
