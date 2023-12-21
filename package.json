@@ -4,10 +4,11 @@
     "./plugins/*/src/js/"
   ],
   "scripts": {
-    "start": "lerna run start --stream",
+    "docker": "docker compose up --build",
+    "start": "run-p start:packages serve:plugins",
     "build": "lerna run build --stream",
-    "serve": "run-p start serve:plugins",
     "serve:plugins": "vite",
+    "start:packages": "lerna run start --stream",
     "test": "jest --watch --changedSince origin/main",
     "test:unit": "jest --config jest.config.unit.cjs",
     "test:lint": "jest --config jest.config.lint.cjs",

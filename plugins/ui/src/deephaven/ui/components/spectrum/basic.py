@@ -83,6 +83,14 @@ def icon_wrapper(*children, **props):
     return spectrum_element("Icon", *children, **props)
 
 
+def item(*children, **props):
+    """
+    Python implementation for the Adobe React Spectrum Item component.
+    Used with Tabs: https://react-spectrum.adobe.com/react-spectrum/Tabs.html
+    """
+    return spectrum_element("Item", *children, **props)
+
+
 def illustrated_message(*children, **props):
     """
     Python implementation for the Adobe React Spectrum IllustratedMessage component.
@@ -129,6 +137,30 @@ def switch(*children, **props):
     https://react-spectrum.adobe.com/react-spectrum/Switch.html
     """
     return spectrum_element("Switch", *children, **props)
+
+
+def tabs(*children, **props):
+    """
+    Python implementation for the Adobe React Spectrum Tabs component.
+    https://react-spectrum.adobe.com/react-spectrum/Tabs.html
+    """
+    return spectrum_element("Tabs", *children, **props)
+
+
+def tab_list(*children, **props):
+    """
+    Python implementation for the Adobe React Spectrum TabList component.
+    https://react-spectrum.adobe.com/react-spectrum/Tabs.html
+    """
+    return spectrum_element("TabList", *children, **props)
+
+
+def tab_panels(*children, **props):
+    """
+    Python implementation for the Adobe React Spectrum TabPanels component.
+    https://react-spectrum.adobe.com/react-spectrum/Tabs.html
+    """
+    return spectrum_element("TabPanels", *children, **props)
 
 
 def text(*children, **props):

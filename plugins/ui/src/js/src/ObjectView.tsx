@@ -5,15 +5,16 @@ import type { Widget, WidgetExportedObject } from '@deephaven/jsapi-types';
 
 const log = Log.module('@deephaven/js-plugin-ui/ObjectView');
 
-export interface ObjectViewProps {
-  object: WidgetExportedObject;
-}
-
+export type ObjectViewProps = { object: WidgetExportedObject };
 function ObjectView(props: ObjectViewProps) {
   const { object } = props;
   log.info('Object is', object);
 
-  const fetch = useCallback(() => object.fetch() as Promise<Widget>, [object]);
+  const fetch = useCallback(async () => {
+    // We re-export the object in case this object is used in multiple places or closed/opened multiple times
+    const reexportedObject = await object.reexport();
+    return reexportedObject.fetch() as Promise<Widget>;
+  }, [object]);
 
   const plugins = usePlugins();
 

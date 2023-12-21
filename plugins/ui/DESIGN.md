@@ -1405,6 +1405,15 @@ ui_table.sort(
 | `by`        | `str \| Sequence[str]`                             | The column(s) to sort by. May be a single column name, or a list of column names.                           |
 | `direction` | `SortDirection \| Sequence[SortDirection] \| None` | The sort direction(s) to use. If provided, that must match up with the columns provided. Defaults to "ASC". |
 
+#### ui.fragment
+
+A fragment maps to a [React.Fragment](https://react.dev/reference/react/Fragment). This lets you group elements without using a wrapper node. It only takes children, and does not take any additional props.
+
+```py
+import deephaven.ui as ui
+ui_fragment = ui.fragment(*children: Element) -> Element
+```
+
 #### Deprecations
 
 The functionality provided my `ui.table` replaces some of the existing functions on `Table`. Below are the functions that are planned for deprecation/deletion of the `Table` interface, and their replacements with the new `ui.table` interface.
@@ -1438,13 +1447,13 @@ use_table_listener(
 
 ###### Parameters
 
-| Parameter     | Type                                                   | Description                                                                                                                                                                                                                                   |
-|---------------|--------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `table`       | `Table`                                                | The table to listen to.                                                                                                                                                                                                                       |
-| `listener`    | `Callable[[TableUpdate, bool], None] \| TableListener` | Either a function or a [TableListener](https://deephaven.io/core/pydoc/code/deephaven.table_listener.html#deephaven.table_listener.TableListener) with an on_update function. The function must take a [TableUpdate](https://deephaven.io/core/pydoc/code/deephaven.table_listener.html#deephaven.table_listener.TableUpdate) and is_replay bool. [More table listener info](https://deephaven.io/core/docs/how-to-guides/table-listeners-python/)  |
-| `description` | `str \| None`                                          | An optional description for the UpdatePerformanceTracker to append to the listener’s entry description, default is None.
-| `do_replay`   | `bool`                                                 | Whether to replay the initial snapshot of the table, default is False.                                                                                                                                                                                               |
-| `replay_lock` | `LockType`                                             | The lock type used during replay, default is ‘shared’, can also be ‘exclusive’.                                                                                                                                                                           |
+| Parameter     | Type                                                   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `table`       | `Table`                                                | The table to listen to.                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `listener`    | `Callable[[TableUpdate, bool], None] \| TableListener` | Either a function or a [TableListener](https://deephaven.io/core/pydoc/code/deephaven.table_listener.html#deephaven.table_listener.TableListener) with an on_update function. The function must take a [TableUpdate](https://deephaven.io/core/pydoc/code/deephaven.table_listener.html#deephaven.table_listener.TableUpdate) and is_replay bool. [More table listener info](https://deephaven.io/core/docs/how-to-guides/table-listeners-python/) |
+| `description` | `str \| None`                                          | An optional description for the UpdatePerformanceTracker to append to the listener’s entry description, default is None.                                                                                                                                                                                                                                                                                                                           |
+| `do_replay`   | `bool`                                                 | Whether to replay the initial snapshot of the table, default is False.                                                                                                                                                                                                                                                                                                                                                                             |
+| `replay_lock` | `LockType`                                             | The lock type used during replay, default is ‘shared’, can also be ‘exclusive’.                                                                                                                                                                                                                                                                                                                                                                    |
 
 ##### use_table_data
 
@@ -1452,7 +1461,7 @@ Capture the data in a table. If the table is still loading, a sentinel value wil
 A transform function can be used to transform the data from a pandas Dataframe to a custom object, but this should
 not be used to perform large filtering operations.
 Data should already be filtered to the desired rows and columns before passing to this hook as it is best to filter before data is retrieved.
-Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve specific rows and functions such 
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve specific rows and functions such
 as [select or view](https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve specific columns.
 
 ###### Syntax
@@ -1475,12 +1484,11 @@ use_table_data(
 | `sentinel`         | `Sentinel`                                                                | A sentinel value to return if the viewport is still loading. Default `None`.                                                                                                                                                            |
 | `transform`        | `Callable[[pd.DataFrame \| Sentinel, bool], TransformedData \| Sentinel]` | A function to transform the data from a pandas Dataframe to a custom object. The function takes a pandas dataframe or `Sentinel` as the first value and as a second value `bool` that is `True` if the the first value is the sentinel. |
 
-
 ##### use_column_data
 
 Capture the data in a column. If the table is still loading, a sentinel value will be returned.
 Data should already be filtered to desired rows and a specific column before passing to this hook as it is best to filter before data is retrieved and this hook will only return data for the first column.
-Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve specific rows and functions such 
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve specific rows and functions such
 as [select or view](https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve a specific column.
 
 ###### Syntax
@@ -1494,17 +1502,16 @@ use_column_data(
 
 ###### Parameters
 
-| Parameter         | Type            | Description                                                                |
-|-------------------|-----------------|----------------------------------------------------------------------------|
-| `table`           | `Table`         | The table to create a viewport on.                                         |
-| `sentinel`        | `Sentinel`      | A sentinel value to return if the column is still loading. Default `None`. |
-
+| Parameter  | Type       | Description                                                                |
+| ---------- | ---------- | -------------------------------------------------------------------------- |
+| `table`    | `Table`    | The table to create a viewport on.                                         |
+| `sentinel` | `Sentinel` | A sentinel value to return if the column is still loading. Default `None`. |
 
 ##### use_row_data
 
 Capture the data in a row. If the table is still loading, a sentinel value will be returned.
 Data should already be filtered to a single row and desired columns before passing to this hook as it is best to filter before data is retrieved and this hook will only return data for the first row.
-Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve a specific row and functions such 
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve a specific row and functions such
 as [select or view](https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve specific columns.
 
 ###### Syntax
@@ -1518,17 +1525,16 @@ use_row_data(
 
 ###### Parameters
 
-| Parameter  | Type                                 | Description                                                                      |
-|------------|--------------------------------------|----------------------------------------------------------------------------------|
-| `table`    | `Table`                              | The table to create a viewport on.                                               |
-| `sentinel` | `Sentinel`                           | A sentinel value to return if the row is still loading. Default `None`.          |
-
+| Parameter  | Type       | Description                                                             |
+| ---------- | ---------- | ----------------------------------------------------------------------- |
+| `table`    | `Table`    | The table to create a viewport on.                                      |
+| `sentinel` | `Sentinel` | A sentinel value to return if the row is still loading. Default `None`. |
 
 ##### use_row_list
 
 Capture the data in a row. If the table is still loading, a sentinel value will be returned. This function is identical to `use_row_data` except that it always returns a list of data instead of a `RowData` object for convenience.
 Data should already be filtered to a single row and desired columns before passing to this hook as it is best to filter before data is retrieved and this hook will only return data for the first row.
-Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve a specific row and functions such 
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve a specific row and functions such
 as [select or view](https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve specific columns.
 
 ###### Syntax
@@ -1542,18 +1548,18 @@ use_row_list(
 
 ###### Parameters
 
-| Parameter  | Type                                 | Description                                                                      |
-|------------|--------------------------------------|----------------------------------------------------------------------------------|
-| `table`    | `Table`                              | The table to create a viewport on.                                               |
-| `sentinel` | `Sentinel`                           | A sentinel value to return if the row is still loading. Default `None`.          |
-
+| Parameter  | Type       | Description                                                             |
+| ---------- | ---------- | ----------------------------------------------------------------------- |
+| `table`    | `Table`    | The table to create a viewport on.                                      |
+| `sentinel` | `Sentinel` | A sentinel value to return if the row is still loading. Default `None`. |
 
 ##### use_cell_data
 
 Capture the data in a cell. If the table is still loading, a sentinel value will be returned.
 Data should already be filtered to a single row and column before passing to this hook as it is best to filter before data is retrieved and this hook will only return data for the first cell.
-Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve a specific row and functions such 
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve a specific row and functions such
 as [select or view](#https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve a specific column.
+
 ```py
 use_cell_data(
     table: Table,
@@ -1563,11 +1569,10 @@ use_cell_data(
 
 ###### Parameters
 
-| Parameter   | Type                                 | Description                                                              |
-|-------------|--------------------------------------|--------------------------------------------------------------------------|
-| `table`     | `Table`                              | The table to create a viewport on.                                       |
-| `sentinel`  | `Sentinel`                           | A sentinel value to return if the cell is still loading. Default `None`. |
-
+| Parameter  | Type       | Description                                                              |
+| ---------- | ---------- | ------------------------------------------------------------------------ |
+| `table`    | `Table`    | The table to create a viewport on.                                       |
+| `sentinel` | `Sentinel` | A sentinel value to return if the cell is still loading. Default `None`. |
 
 #### Custom Types
 
@@ -1641,9 +1646,6 @@ class LinkPoint(TypedDict):
     column: str
 
 ```
-
-                                                                                                                      
-
 
 #### Context
 
@@ -1779,15 +1781,15 @@ sequenceDiagram
   UIP->>SP: Render tft
   SP->>SP: Run sym_exchange
   Note over SP: sym_exchange executes, running text_filter_table twice
-  SP-->>UIP: Result (flex([tft1, tft2]))
-  UIP-->>W: Display (flex([tft1, tft2]))
+  SP-->>UIP: Result (document=flex([tft1, tft2]), exported_objects=[tft1, tft2])
+  UIP-->>W: Display Result
 
   U->>UIP: Change text input 1
   UIP->>SP: Change state
   SP->>SP: Run sym_exchange
-  Note over SP: sym_exchange executes, text_filter_table only <br/>runs once for the one changed input
-  SP-->>UIP: Result (flex([tft1', tft2]))
-  UIP-->>W: Display (flex([tft1', tft2]))
+  Note over SP: sym_exchange executes, text_filter_table only <br/>runs once for the one changed input<br/>only exports the new table, as client already has previous tables
+  SP-->>UIP: Result (document=flex([tft1', tft2], exported_objects=[tft1']))
+  UIP-->>W: Display Result
 ```
 
 ##### Communication/Callbacks
@@ -1814,12 +1816,11 @@ sequenceDiagram
 
 A component that is created on the server side runs through a few steps before it is rendered on the client side:
 
-1. Element - The basis for all UI components. Generally a `FunctionElement`, and does not run the function until it is requested by the UI. The result can change depending on the context that it is rendered in (e.g. what "state" is set).
-2. RenderedNode - After an element has been rendered using a renderer, it becomes a `RenderedNode`. This is an immutable representation of the document.
-3. JSONEncodedNode - The `RenderedNode` is then encoded into JSON using `NodeEncoder`. It pulls out all the objects and maps them to exported objects, and all the callables to be mapped to commands that can be accepted by JSON-RPC. This is the final representation of the document that is sent to the client.
-4. ElementPanel - Client side where it's receiving the `documentUpdated` from the server plugin, and then rendering the `JSONEncodedNode` into a `ElementPanel` (e.g. a `GoldenLayout` panel). Decodes the JSON, maps all the exported objects to the actual objects, and all the callables to async methods that will call to the server.
-5. ElementView - Renders the decoded panel into the UI. Picks the element based on the name of it.
-6. ObjectView - Render an exported object
+1. [Element](./src/deephaven/ui/elements/Element.py) - The basis for all UI components. Generally a [FunctionElement](./src/deephaven/ui/elements/FunctionElement.py) created by a script using the [@ui.component](./src/deephaven/ui/components/make_component.py) decorator, and does not run the function until it is rendered. The result can change depending on the context that it is rendered in (e.g. what "state" is set).
+2. [ElementMessageStream](./src/deephaven/ui/object_types/ElementMessageStream.py) - The `ElementMessageStream` is responsible for rendering one instance of an element in a specific rendering context and handling the server-client communication. The element is rendered to create a [RenderedNode](./src/deephaven/ui/renderer/RenderedNode.py), which is an immutable representation of a rendered document. The `RenderedNode` is then encoded into JSON using [NodeEncoder](./src/deephaven/ui/renderer/NodeEncoder.py), which pulls out all the non-serializable objects (such as Tables) and maps them to exported objects, and all the callables to be mapped to commands that can be accepted by JSON-RPC. This is the final representation of the document that is sent to the client, and ultimately handled by the `WidgetHandler`.
+3. [DashboardPlugin](./src/js/src/DashboardPlugin.tsx) - Client side `DashboardPlugin` that listens for when a widget of type `Element` is opened, and manage the `WidgetHandler` instances that are created for each widget.
+4. [WidgetHandler](./src/js/src/WidgetHandler.tsx) - Uses JSON-RPC communication with an `ElementMessageStream` instance to load the initial rendered document and associated exported objects. Listens for any changes and updates the document accordingly.
+5. [DocumentHandler](./src/js/src/DocumentHandler.tsx) - Handles the root of a rendered document, laying out the appropriate panels or dashboard specified.
 
 #### Other Decisions
 
