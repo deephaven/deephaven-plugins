@@ -15,7 +15,8 @@ class UITableTestCase(BaseTestCase):
         from deephaven.ui._internal import RenderContext
 
         on_change = Mock()
-        context = RenderContext(on_change)
+        on_queue = Mock()
+        context = RenderContext(on_change, on_queue)
         result = ui_table.render(context)
 
         self.assertDictEqual(result, expected_props)
