@@ -1469,11 +1469,11 @@ use_table_data(
 
 ###### Parameters
 
-| Parameter          | Type                                   | Description                                                                                                                                                                                                                             |
-|--------------------|----------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `table`            | `Table`                                | The table to retrieve data from.                                                                                                                                                                                                        |
-| `sentinel`         | `Sentinel`                             | A sentinel value to return if the viewport is still loading. Default `None`.                                                                                                                                                            |
-| `transform`        | `Callable[[pd.DataFrame, bool], Any]`  | A function to transform the data from a pandas Dataframe to a custom object. The function takes a pandas dataframe or `Sentinel` as the first value and as a second value `bool` that is `True` if the the first value is the sentinel. |
+| Parameter          | Type                                                                      | Description                                                                                                                                                                                                                             |
+|--------------------|---------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `table`            | `Table`                                                                   | The table to retrieve data from.                                                                                                                                                                                                        |
+| `sentinel`         | `Sentinel`                                                                | A sentinel value to return if the viewport is still loading. Default `None`.                                                                                                                                                            |
+| `transform`        | `Callable[[pd.DataFrame \| Sentinel, bool], TransformedData \| Sentinel]` | A function to transform the data from a pandas Dataframe to a custom object. The function takes a pandas dataframe or `Sentinel` as the first value and as a second value `bool` that is `True` if the the first value is the sentinel. |
 
 
 ##### use_column_data
