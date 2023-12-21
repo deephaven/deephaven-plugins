@@ -12,9 +12,7 @@ export type IconElementName =
  * For example, `deephaven.ui.icons.vsBell` will render the icon named `vsBell`.
  * The props are passed directly to the icon component.
  */
-export type IconElementNode = ElementNode & {
-  [ELEMENT_KEY]: IconElementName;
-};
+export type IconElementNode = ElementNode<IconElementName>;
 
 export function isIconElementNode(obj: unknown): obj is IconElementNode {
   return (

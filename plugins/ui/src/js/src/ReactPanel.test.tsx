@@ -1,7 +1,12 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { LayoutUtils, useListener } from '@deephaven/dashboard';
-import ReactPanel, { ReactPanelProps } from './ReactPanel';
+import ReactPanel from './ReactPanel';
+import {
+  ReactPanelManager,
+  ReactPanelManagerContext,
+} from './ReactPanelManager';
+import { ReactPanelProps } from './PanelUtils';
 
 // Mock LayoutUtils, useListener, and PanelEvent from @deephaven/dashboard package
 const mockLayout = { root: {}, eventHub: {} };
@@ -30,20 +35,21 @@ beforeEach(() => {
 
 function makeReactPanel({
   children,
-  metadata,
-  onClose,
-  onOpen,
+  metadata = { name: 'test-name', type: 'test-type' },
+  onClose = jest.fn(),
+  onOpen = jest.fn(),
   title = 'test title',
-}: Partial<ReactPanelProps> = {}) {
+}: Partial<ReactPanelProps> & Partial<ReactPanelManager> = {}) {
   return (
-    <ReactPanel
-      metadata={metadata}
-      onClose={onClose}
-      onOpen={onOpen}
-      title={title}
+    <ReactPanelManagerContext.Provider
+      value={{
+        metadata,
+        onClose,
+        onOpen,
+      }}
     >
-      {children}
-    </ReactPanel>
+      <ReactPanel title={title}>{children}</ReactPanel>
+    </ReactPanelManagerContext.Provider>
   );
 }
 

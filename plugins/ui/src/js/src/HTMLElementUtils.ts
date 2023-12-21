@@ -12,9 +12,7 @@ export type HTMLElementType =
  * For example, `deephaven.ui.html.div` would be rendered as `<div>`.
  * The props are passed directly to the HTML element as attributes.
  */
-export type HTMLElementNode = ElementNode & {
-  [ELEMENT_KEY]: HTMLElementType;
-};
+export type HTMLElementNode = ElementNode<HTMLElementType>;
 
 export function isHTMLElementNode(obj: unknown): obj is HTMLElementNode {
   return (

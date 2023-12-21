@@ -1,4 +1,5 @@
 import React from 'react';
+import { Icon } from '@adobe/react-spectrum';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { getIcon, IconElementNode } from './IconElementUtils';
 import { ELEMENT_KEY } from './ElementUtils';
@@ -17,8 +18,10 @@ export function IconElementView({
   }
 
   return (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <FontAwesomeIcon icon={icon} {...props} />
+    <Icon>
+      {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+      <FontAwesomeIcon icon={icon} {...props} />
+    </Icon>
   );
 }
 

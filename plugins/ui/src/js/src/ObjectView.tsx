@@ -5,10 +5,7 @@ import type { Widget, WidgetExportedObject } from '@deephaven/jsapi-types';
 
 const log = Log.module('@deephaven/js-plugin-ui/ObjectView');
 
-export interface ObjectViewProps {
-  object: WidgetExportedObject;
-}
-
+export type ObjectViewProps = { object: WidgetExportedObject };
 function ObjectView(props: ObjectViewProps) {
   const { object } = props;
   log.info('Object is', object);

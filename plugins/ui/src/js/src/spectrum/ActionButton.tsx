@@ -3,6 +3,7 @@ import {
   ActionButton as SpectrumActionButton,
   SpectrumActionButtonProps,
 } from '@adobe/react-spectrum';
+import { mapSpectrumProps } from './mapSpectrumProps';
 
 function ActionButton(
   props: SpectrumActionButtonProps & { onPress?: () => void }
@@ -20,10 +21,8 @@ function ActionButton(
 
   return (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <SpectrumActionButton onPress={onPress} {...otherProps} />
+    <SpectrumActionButton onPress={onPress} {...mapSpectrumProps(otherProps)} />
   );
 }
-
-ActionButton.displayName = 'ActionButton';
 
 export default ActionButton;

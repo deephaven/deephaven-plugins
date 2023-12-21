@@ -2,6 +2,7 @@
  * Handles document events for one widget.
  */
 import React, {
+  ReactNode,
   useCallback,
   useEffect,
   useMemo,
@@ -18,13 +19,14 @@ import type { Widget, WidgetExportedObject } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import {
   CALLABLE_KEY,
-  ElementNode,
   OBJECT_KEY,
   isCallableNode,
+  isElementNode,
   isObjectNode,
 } from './ElementUtils';
 import { WidgetMessageEvent, WidgetWrapper } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
+import { getComponentForElement } from './WidgetUtils';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
@@ -40,7 +42,7 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
   const dh = useApi();
 
   const [widget, setWidget] = useState<Widget>();
-  const [element, setElement] = useState<ElementNode>();
+  const [document, setDocument] = useState<ReactNode>();
 
   // When we fetch a widget, the client is then responsible for the exported objects.
   // These objects could stay alive even after the widget is closed if we wanted to,
@@ -66,10 +68,10 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
   );
   const parseDocument = useCallback(
     /**
-     * Parse the data from the server, replacing any callable nodes with functions that call the server.
+     * Parse the data from the server, replacing some of the nodes on the way.
      * Replaces all Callables with an async callback that will automatically call the server use JSON-RPC.
      * Replaces all Objects with the exported object from the server.
-     * Element nodes are not replaced. Those are handled in `DocumentHandler`.
+     * Replaces all Element nodes with the ReactNode derived from that Element.
      *
      * @param data The data to parse
      * @returns The parsed data
@@ -99,6 +101,16 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
           }
           deadObjectMap.delete(objectKey);
           return exportedObject;
+        }
+
+        if (isElementNode(value)) {
+          // Replace the elements node with the Component it maps to
+          try {
+            return getComponentForElement(value);
+          } catch (e) {
+            log.warn('Error getting component for element', e);
+            return value;
+          }
         }
 
         return value;
@@ -146,7 +158,7 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
       jsonClient.addMethod('documentUpdated', async (params: [string]) => {
         log.debug2('documentUpdated', params[0]);
         const newDocument = parseDocument(params[0]);
-        setElement(newDocument);
+        setDocument(newDocument);
       });
 
       return () => {
@@ -230,14 +242,15 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
 
   return useMemo(
     () =>
-      element ? (
+      document != null ? (
         <DocumentHandler
           definition={wrapper.definition}
-          element={element}
           onClose={handleDocumentClose}
-        />
+        >
+          {document}
+        </DocumentHandler>
       ) : null,
-    [element, handleDocumentClose, wrapper]
+    [document, handleDocumentClose, wrapper]
   );
 }
 

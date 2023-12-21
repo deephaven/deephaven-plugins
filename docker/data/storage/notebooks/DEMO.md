@@ -268,3 +268,32 @@ def order_table():
 
 result = order_table()
 ```
+
+## Using Tabs
+
+You can add [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html) within a panel by using the `ui.tabs` method. In this example, we create a tabbed panel with multiple tabs:
+
+- Unfiltered table
+- Table filtered on sym `CAT`. We also include an icon in the tab header.
+- Table filtered on sym `DOG`
+
+```python
+@ui.component
+def table_tabs(source):
+    return ui.tabs(
+        ui.tab_list(
+            ui.item("Unfiltered", key="Unfiltered"),
+            ui.item(ui.icon("vsGithubAlt"), "CAT", key="CAT"),
+            ui.item("DOG", key="DOG"),
+        ),
+        ui.tab_panels(
+            ui.item(source, key="Unfiltered"),
+            ui.item(source.where("sym=`CAT`"), key="CAT"),
+            ui.item(source.where("sym=`DOG`"), key="DOG"),
+        ),
+        flex_grow=1,
+    )
+
+
+result = table_tabs(stocks)
+```

@@ -1405,6 +1405,15 @@ ui_table.sort(
 | `by`        | `str \| Sequence[str]`                             | The column(s) to sort by. May be a single column name, or a list of column names.                           |
 | `direction` | `SortDirection \| Sequence[SortDirection] \| None` | The sort direction(s) to use. If provided, that must match up with the columns provided. Defaults to "ASC". |
 
+#### ui.fragment
+
+A fragment maps to a [React.Fragment](https://react.dev/reference/react/Fragment). This lets you group elements without using a wrapper node. It only takes children, and does not take any additional props.
+
+```py
+import deephaven.ui as ui
+ui_fragment = ui.fragment(*children: Element) -> Element
+```
+
 #### Deprecations
 
 The functionality provided my `ui.table` replaces some of the existing functions on `Table`. Below are the functions that are planned for deprecation/deletion of the `Table` interface, and their replacements with the new `ui.table` interface.
@@ -1450,7 +1459,7 @@ use_table_listener(
 
 Capture the data in a table. If the table is still loading, a sentinel value will be returned.
 Data should already be filtered to the desired rows and columns before passing to this hook as it is best to filter before data is retrieved.
-Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve specific rows and functions such 
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve specific rows and functions such
 as [select or view](https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve specific columns.
 
 ###### Syntax
@@ -1464,17 +1473,16 @@ use_table_data(
 
 ###### Parameters
 
-| Parameter          | Type                                 | Description                                                                  |
-|--------------------|--------------------------------------|------------------------------------------------------------------------------|
-| `table`            | `Table`                              | The table to retrieve data from.                                             |
-| `sentinel`         | `Sentinel`                           | A sentinel value to return if the viewport is still loading. Default `None`. |
-
+| Parameter  | Type       | Description                                                                  |
+| ---------- | ---------- | ---------------------------------------------------------------------------- |
+| `table`    | `Table`    | The table to retrieve data from.                                             |
+| `sentinel` | `Sentinel` | A sentinel value to return if the viewport is still loading. Default `None`. |
 
 ##### use_column_data
 
 Capture the data in a column. If the table is still loading, a sentinel value will be returned.
 Data should already be filtered to desired rows and a specific column before passing to this hook as it is best to filter before data is retrieved and this hook will only return data for the first column.
-Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve specific rows and functions such 
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve specific rows and functions such
 as [select or view](https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve a specific column.
 
 ###### Syntax
@@ -1488,17 +1496,16 @@ use_column_data(
 
 ###### Parameters
 
-| Parameter         | Type            | Description                                                                |
-|-------------------|-----------------|----------------------------------------------------------------------------|
-| `table`           | `Table`         | The table to create a viewport on.                                         |
-| `sentinel`        | `Sentinel`      | A sentinel value to return if the column is still loading. Default `None`. |
-
+| Parameter  | Type       | Description                                                                |
+| ---------- | ---------- | -------------------------------------------------------------------------- |
+| `table`    | `Table`    | The table to create a viewport on.                                         |
+| `sentinel` | `Sentinel` | A sentinel value to return if the column is still loading. Default `None`. |
 
 ##### use_row_data
 
 Capture the data in a row. If the table is still loading, a sentinel value will be returned.
 Data should already be filtered to a single row and desired columns before passing to this hook as it is best to filter before data is retrieved and this hook will only return data for the first row.
-Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve a specific row and functions such 
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve a specific row and functions such
 as [select or view](https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve specific columns.
 
 ###### Syntax
@@ -1512,17 +1519,16 @@ use_row_data(
 
 ###### Parameters
 
-| Parameter  | Type                                 | Description                                                                      |
-|------------|--------------------------------------|----------------------------------------------------------------------------------|
-| `table`    | `Table`                              | The table to create a viewport on.                                               |
-| `sentinel` | `Sentinel`                           | A sentinel value to return if the row is still loading. Default `None`.          |
-
+| Parameter  | Type       | Description                                                             |
+| ---------- | ---------- | ----------------------------------------------------------------------- |
+| `table`    | `Table`    | The table to create a viewport on.                                      |
+| `sentinel` | `Sentinel` | A sentinel value to return if the row is still loading. Default `None`. |
 
 ##### use_row_list
 
 Capture the data in a row. If the table is still loading, a sentinel value will be returned. This function is identical to `use_row_data` except that it always returns a list of data instead of a `RowData` object for convenience.
 Data should already be filtered to a single row and desired columns before passing to this hook as it is best to filter before data is retrieved and this hook will only return data for the first row.
-Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve a specific row and functions such 
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve a specific row and functions such
 as [select or view](https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve specific columns.
 
 ###### Syntax
@@ -1536,18 +1542,18 @@ use_row_list(
 
 ###### Parameters
 
-| Parameter  | Type                                 | Description                                                                      |
-|------------|--------------------------------------|----------------------------------------------------------------------------------|
-| `table`    | `Table`                              | The table to create a viewport on.                                               |
-| `sentinel` | `Sentinel`                           | A sentinel value to return if the row is still loading. Default `None`.          |
-
+| Parameter  | Type       | Description                                                             |
+| ---------- | ---------- | ----------------------------------------------------------------------- |
+| `table`    | `Table`    | The table to create a viewport on.                                      |
+| `sentinel` | `Sentinel` | A sentinel value to return if the row is still loading. Default `None`. |
 
 ##### use_cell_data
 
 Capture the data in a cell. If the table is still loading, a sentinel value will be returned.
 Data should already be filtered to a single row and column before passing to this hook as it is best to filter before data is retrieved and this hook will only return data for the first cell.
-Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve a specific row and functions such 
+Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve a specific row and functions such
 as [select or view](#https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve a specific column.
+
 ```py
 use_cell_data(
     table: Table,
@@ -1557,11 +1563,10 @@ use_cell_data(
 
 ###### Parameters
 
-| Parameter   | Type                                 | Description                                                              |
-|-------------|--------------------------------------|--------------------------------------------------------------------------|
-| `table`     | `Table`                              | The table to create a viewport on.                                       |
-| `sentinel`  | `Sentinel`                           | A sentinel value to return if the cell is still loading. Default `None`. |
-
+| Parameter  | Type       | Description                                                              |
+| ---------- | ---------- | ------------------------------------------------------------------------ |
+| `table`    | `Table`    | The table to create a viewport on.                                       |
+| `sentinel` | `Sentinel` | A sentinel value to return if the cell is still loading. Default `None`. |
 
 #### Custom Types
 
@@ -1634,8 +1639,6 @@ class LinkPoint(TypedDict):
     column: str
 
 ```
-
-                                                                                                                      
 
 #### Context
 

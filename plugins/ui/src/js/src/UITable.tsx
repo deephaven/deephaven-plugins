@@ -1,71 +1,109 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { IrisGridProps, IrisGridUtils } from '@deephaven/iris-grid';
+import {
+  DehydratedQuickFilter,
+  IrisGrid,
+  IrisGridModel,
+  IrisGridModelFactory,
+  IrisGridProps,
+  IrisGridUtils
+} from '@deephaven/iris-grid';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { Table } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
-import { UITableNode } from './UITableUtils';
-import TableObject from './TableObject';
+import { UITableProps } from './UITableUtils';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
 
-export interface UITableProps {
-  element: UITableNode;
-}
-
-function UITable({ element }: UITableProps) {
+function UITable({
+  onRowDoublePress,
+  canSearch,
+  filters,
+  sorts,
+  alwaysFetchColumns,
+  table: exportedTable,
+}: UITableProps) {
   const dh = useApi();
-  const [table, setTable] = useState<Table>();
-  const { props: elementProps } = element;
-  const { filters } = elementProps;
+  const [model, setModel] = useState<IrisGridModel>();
+  const [columns, setColumns] = useState<Table['columns']>();
 
   const hydratedSorts = useMemo(() => {
-    const { sorts = null } = elementProps;
-
-    if (sorts !== null && table !== undefined) {
+    if (sorts !== undefined && columns !== undefined) {
       log.debug('Hydrating sorts', sorts);
 
-      const { columns } = table;
       const utils = new IrisGridUtils(dh);
 
       return utils.hydrateSort(columns, sorts);
     }
     return undefined;
-  }, [elementProps, table, dh]);
+  }, [columns, dh, sorts]);
+
+  const hydratedQuickFilters = useMemo(() => {
+    let quickFilters;
+
+    if (filters !== undefined && model !== undefined && columns !== undefined) {
+      log.debug('Hydrating filters', filters);
+
+      const dehydratedQuickFilters: DehydratedQuickFilter[] = [];
+      quickFilters = {};
+      const utils = new IrisGridUtils(dh);
+
+      Object.entries(filters).forEach(([columnName, filter]) => {
+        const columnIndex = model.getColumnIndexByName(columnName);
+        if (columnIndex !== undefined) {
+          dehydratedQuickFilters.push([columnIndex, { text: filter }]);
+        }
+      });
+
+      quickFilters = utils.hydrateQuickFilters(columns, dehydratedQuickFilters);
+    }
+    return quickFilters;
+  }, [filters, model, columns, dh]);
 
   // Just load the object on mount
   useEffect(() => {
     let isCancelled = false;
     async function loadModel() {
-      log.debug('Loading table from props', element.props);
-      const newTable = (await element.props.table.fetch()) as Table;
-      if (isCancelled) {
-        newTable.close();
+      const reexportedTable = await exportedTable.reexport();
+      const newTable = (await reexportedTable.fetch()) as Table;
+      const newModel = await IrisGridModelFactory.makeModel(dh, newTable);
+      if (!isCancelled) {
+        setModel(newModel);
+        setColumns(newTable.columns);
+      } else {
+        newModel.close();
       }
-
-      setTable(newTable);
     }
     loadModel();
     return () => {
       isCancelled = true;
     };
-  }, [dh, element, elementProps]);
+  }, [dh, exportedTable]);
 
-  const irisGridProps: Partial<IrisGridProps> = useMemo(() => {
-    const { alwaysFetchColumns, onRowDoublePress, canSearch } = elementProps;
-    return {
+  const irisGridProps: Partial<IrisGridProps> = useMemo(
+    () => ({
       onDataSelected: onRowDoublePress,
       alwaysFetchColumns,
       showSearchBar: canSearch,
       sorts: hydratedSorts,
-    };
-  }, [elementProps, hydratedSorts]);
+      quickFilters: hydratedQuickFilters,
+    }),
+    [
+      onRowDoublePress,
+      alwaysFetchColumns,
+      canSearch,
+      hydratedSorts,
+      hydratedQuickFilters,
+    ]
+  );
 
-  return table ? (
-    <TableObject
-      object={table}
-      irisGridProps={irisGridProps}
-      filters={filters}
-    />
+  // We want to clean up the model when we unmount or get a new model
+  useEffect(() => () => model?.close(), [model]);
+
+  return model ? (
+    <div className="ui-object-container">
+      {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+      <IrisGrid model={model} {...irisGridProps} />
+    </div>
   ) : null;
 }
 
