@@ -30,8 +30,11 @@ def _render_loop():
 
 
 def _start_render_loop():
+    """
+    Start the render loop if it is not already running.
+    """
     global _render_thread
-    if _render_thread is None or _render_thread.is_alive() is False:
+    if not (_render_thread and _render_thread.is_alive()):
         _render_thread = threading.Thread(
             target=_render_loop, name="deephaven.ui render loop"
         )
@@ -133,10 +136,13 @@ class ElementMessageStream(MessageStream):
     def _queue_state_update(self, state_update: StateUpdateCallable) -> None:
         """
         Queue a state update to be resolved on the next render.
+
+        Args:
+            state_update: The state update to queue
         """
         current_thread = threading.current_thread()
         if current_thread is not _render_thread:
-            raise Exception(
+            raise ValueError(
                 f"State update called from non-render thread '{current_thread.name}'. Use the `use_render_queue` hook to queue state updates when multi-threading."
             )
         self._queued_updates.put(state_update)
@@ -145,10 +151,16 @@ class ElementMessageStream(MessageStream):
     def _queue_callable(self, callable: Callable[[], None]) -> None:
         """
         Queue a callable to put on the render queue.
+
+        Args:
+            callable: The callable to queue
         """
         _render_queue.put(callable)
 
     def start(self) -> None:
+        """
+        Start the message stream. This will start the render loop and queue up the initial render.
+        """
         _start_render_loop()
         self._queue_render()
 
@@ -156,6 +168,13 @@ class ElementMessageStream(MessageStream):
         pass
 
     def on_data(self, payload: bytes, references: list[Any]) -> None:
+        """
+        Handle incoming data from the client. Dispatches commands on the render thread.
+
+        Args:
+            payload: The payload from the client
+            references: The references from the client
+        """
         decoded_payload = io.BytesIO(payload).read().decode()
         logger.debug("Payload received: %s", decoded_payload)
 
@@ -173,6 +192,12 @@ class ElementMessageStream(MessageStream):
         _render_queue.put(handle_message)
 
     def _get_next_message_id(self) -> int:
+        """
+        Get the next message ID to use for JSON-RPC requests. Increments after each call.
+
+        Returns:
+            The next message ID to use
+        """
         self._message_id += 1
         return self._message_id
 

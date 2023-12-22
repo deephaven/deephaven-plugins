@@ -139,5 +139,8 @@ class RenderContext(AbstractContextManager):
     def queue_render(self, update: Callable[[], None]) -> None:
         """
         Queue up a state update. Needed in multi-threading scenarios.
+
+        Args:
+            update: The update to queue up.
         """
         self._on_queue_render(update)
