@@ -8,7 +8,7 @@ import itertools
 from deephaven.execution_context import get_exec_ctx
 
 
-__version__ = "0.3.0.dev0"
+__version__ = "0.3.0"
 
 
 def _init_theme():
