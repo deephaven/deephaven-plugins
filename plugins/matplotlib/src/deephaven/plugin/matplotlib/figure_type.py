@@ -2,6 +2,7 @@ from io import BytesIO
 from weakref import WeakKeyDictionary, WeakSet
 from matplotlib.figure import Figure
 from deephaven.plugin.object_type import Exporter, FetchOnlyObjectType
+from deephaven.execution_context import get_exec_ctx
 from threading import Timer
 from deephaven.liveness_scope import liveness_scope
 from deephaven import input_table, new_table
@@ -54,6 +55,9 @@ def _make_input_table(figure):
     input_t = None
     revision = 0
 
+    # Need to track the execution context used so we can use it again when updating the revision
+    exec_ctx = get_exec_ctx()
+
     t = new_table(
         [
             string_col("key", ["revision", "width", "height"]),
@@ -67,11 +71,14 @@ def _make_input_table(figure):
 
     @debounce(0.1)
     def update_revision():
-        nonlocal revision
-        revision = revision + 1
-        input_t.add(
-            new_table([string_col("key", ["revision"]), int_col("value", [revision])])
-        )
+        with exec_ctx:
+            nonlocal revision
+            revision = revision + 1
+            input_t.add(
+                new_table(
+                    [string_col("key", ["revision"]), int_col("value", [revision])]
+                )
+            )
 
     def handle_figure_update(self, value):
         # Check if we're already drawing this figure, and the stale callback was triggered because of our call to savefig
@@ -112,7 +119,7 @@ class FigureType(FetchOnlyObjectType):
         return isinstance(object, Figure)
 
     def to_bytes(self, exporter: Exporter, figure: Figure) -> bytes:
-        with liveness_scope() as scope:
+        with liveness_scope() as scope, get_exec_ctx():
             input_t = _get_input_table(figure)
             exporter.reference(input_t)
             scope.preserve(input_t)
