@@ -5,7 +5,7 @@ import {
   IrisGridModel,
   IrisGridModelFactory,
   IrisGridProps,
-  IrisGridUtils
+  IrisGridUtils,
 } from '@deephaven/iris-grid';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { Table } from '@deephaven/jsapi-types';
