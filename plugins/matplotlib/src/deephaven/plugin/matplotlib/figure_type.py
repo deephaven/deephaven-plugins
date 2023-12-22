@@ -4,6 +4,7 @@ from matplotlib.figure import Figure
 from deephaven.plugin.object_type import Exporter, FetchOnlyObjectType
 from threading import Timer
 from deephaven.liveness_scope import liveness_scope
+from deephaven.execution_context import get_exec_ctx
 
 # Name of the matplotlib figure object that was export
 NAME = "matplotlib.figure.Figure"
@@ -16,6 +17,9 @@ _figure_tables = WeakKeyDictionary()
 
 # Track the currently drawing figures, otherwise the stale_callback gets called when we call `savefig`
 _exporting_figures = WeakSet()
+
+# Exec context for the current thread
+_exec_ctx = get_exec_ctx()
 
 
 def debounce(wait):
@@ -63,7 +67,7 @@ def _make_input_table(figure):
         ]
     )
     input_table = jpy.get_type(
-        "io.deephaven.engine.table.impl.util.KeyedArrayBackedMutableTable"
+        "io.deephaven.engine.table.impl.util.KeyedArrayBackedInputTable"
     ).make(t.j_table, "key")
 
     # TODO: Add listener to input table to update figure width/height
@@ -117,7 +121,7 @@ class FigureType(FetchOnlyObjectType):
         return isinstance(object, Figure)
 
     def to_bytes(self, exporter: Exporter, figure: Figure) -> bytes:
-        with liveness_scope() as scope:
+        with liveness_scope() as scope, _exec_ctx:
             input_table = _get_input_table(figure)
             exporter.reference(input_table)
             scope.preserve(input_table)
