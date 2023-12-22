@@ -38,13 +38,10 @@ function UITable({
   }, [columns, dh, sorts]);
 
   const hydratedQuickFilters = useMemo(() => {
-    let quickFilters;
-
     if (filters !== undefined && model !== undefined && columns !== undefined) {
       log.debug('Hydrating filters', filters);
 
       const dehydratedQuickFilters: DehydratedQuickFilter[] = [];
-      quickFilters = {};
       const utils = new IrisGridUtils(dh);
 
       Object.entries(filters).forEach(([columnName, filter]) => {
@@ -54,9 +51,9 @@ function UITable({
         }
       });
 
-      quickFilters = utils.hydrateQuickFilters(columns, dehydratedQuickFilters);
+      return utils.hydrateQuickFilters(columns, dehydratedQuickFilters);
     }
-    return quickFilters;
+    return undefined;
   }, [filters, model, columns, dh]);
 
   // Just load the object on mount
