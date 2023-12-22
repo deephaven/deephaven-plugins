@@ -5,6 +5,8 @@ from importlib import resources
 import matplotlib.pyplot as plt
 from matplotlib.animation import Animation
 import itertools
+from deephaven.execution_context import get_exec_ctx
+
 
 __version__ = "0.3.0.dev0"
 
@@ -22,6 +24,7 @@ def _init_theme():
 class MatplotlibRegistration(Registration):
     @classmethod
     def register_into(cls, callback: Callback) -> None:
+        print(get_exec_ctx().update_graph)
         _init_theme()
         plt.switch_backend("AGG")
         from . import figure_type
