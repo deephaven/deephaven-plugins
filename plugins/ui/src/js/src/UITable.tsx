@@ -25,24 +25,22 @@ function UITable({
   const dh = useApi();
   const [model, setModel] = useState<IrisGridModel>();
   const [columns, setColumns] = useState<Table['columns']>();
+  const [utils] = useState(new IrisGridUtils(dh));
 
   const hydratedSorts = useMemo(() => {
     if (sorts !== undefined && columns !== undefined) {
       log.debug('Hydrating sorts', sorts);
 
-      const utils = new IrisGridUtils(dh);
-
       return utils.hydrateSort(columns, sorts);
     }
     return undefined;
-  }, [columns, dh, sorts]);
+  }, [columns, utils, sorts]);
 
   const hydratedQuickFilters = useMemo(() => {
     if (filters !== undefined && model !== undefined && columns !== undefined) {
       log.debug('Hydrating filters', filters);
 
       const dehydratedQuickFilters: DehydratedQuickFilter[] = [];
-      const utils = new IrisGridUtils(dh);
 
       Object.entries(filters).forEach(([columnName, filter]) => {
         const columnIndex = model.getColumnIndexByName(columnName);
@@ -54,7 +52,7 @@ function UITable({
       return utils.hydrateQuickFilters(columns, dehydratedQuickFilters);
     }
     return undefined;
-  }, [filters, model, columns, dh]);
+  }, [filters, model, columns, utils]);
 
   // Just load the object on mount
   useEffect(() => {
