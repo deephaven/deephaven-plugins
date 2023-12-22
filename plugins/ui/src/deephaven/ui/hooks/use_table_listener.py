@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 from functools import partial
-from typing import Callable, Literal
+from typing import Callable
 
 from deephaven.table import Table
 from deephaven.table_listener import listen, TableUpdate, TableListener
 from deephaven.execution_context import get_exec_ctx, ExecutionContext
 
 from .use_effect import use_effect
-
-LockType: Literal["shared", "exclusive"]
+from ..types import LockType
 
 
 def listener_with_ctx(
@@ -83,6 +82,10 @@ def use_table_listener(
         do_replay: bool: Whether to replay the initial snapshot of the table, default is False.
         replay_lock: LockType: The lock type used during replay, default is ‘shared’, can also be ‘exclusive’.
     """
+
+    if not table.is_refreshing:
+        # if the table is not refreshing, there is nothing to listen to
+        return
 
     def start_listener() -> Callable[[], None]:
         """

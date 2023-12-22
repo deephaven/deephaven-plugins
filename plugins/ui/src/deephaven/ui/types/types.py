@@ -34,8 +34,12 @@ DataBarValuePlacement = Literal["BESIDE", "OVERLAP", "HIDE"]
 # TODO: Fill in the list of Deephaven Colors we allow
 LockType = Literal["shared", "exclusive"]
 QuickFilterExpression = str
-RowData = Dict[str, Any]
+RowData = Dict[ColumnName, Any]
 # A RowIndex of None indicates a header column
 RowIndex = Union[int, None]
+ColumnData = List[Any]
+TableData = Dict[ColumnName, ColumnData]
 SearchMode = Literal["SHOW", "HIDE", "DEFAULT"]
 SelectionMode = Literal["CELL", "ROW", "COLUMN"]
+Sentinel = Any
+TransformedData = Any

@@ -135,16 +135,9 @@ class HooksTest(BaseTestCase):
         self.assertEqual(result, "biz")
         self.assertEqual(mock.call_count, 1)
 
-    def test_table_listener(self):
+    def verify_table_updated(self, table_writer, table, update):
         from deephaven.ui.hooks import use_table_listener
-        from deephaven import time_table, new_table, DynamicTableWriter
         from deephaven.table_listener import TableUpdate
-        import deephaven.dtypes as dht
-
-        column_definitions = {"Numbers": dht.int32, "Words": dht.string}
-
-        table_writer = DynamicTableWriter(column_definitions)
-        table = table_writer.table
 
         event = threading.Event()
 
@@ -157,10 +150,345 @@ class HooksTest(BaseTestCase):
 
         render_hook(_test_table_listener)
 
-        table_writer.write_row(1, "Testing")
+        table_writer.write_row(*update)
 
         if not event.wait(timeout=1.0):
             assert False, "listener was not called"
+
+    def test_table_listener(self):
+        from deephaven import time_table, new_table, DynamicTableWriter
+        import deephaven.dtypes as dht
+
+        column_definitions = {"Numbers": dht.int32, "Words": dht.string}
+
+        table_writer = DynamicTableWriter(column_definitions)
+        table = table_writer.table
+
+        self.verify_table_updated(table_writer, table, (1, "Testing"))
+
+    def test_table_data(self):
+        from deephaven.ui.hooks import use_table_data
+        from deephaven import new_table
+        from deephaven.column import int_col
+
+        table = new_table(
+            [
+                int_col("X", [1, 2, 3]),
+                int_col("Y", [2, 4, 6]),
+            ]
+        )
+
+        def _test_table_data(t=table):
+            return use_table_data(t)
+
+        render_result = render_hook(_test_table_data)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        expected = {"X": [1, 2, 3], "Y": [2, 4, 6]}
+
+        self.assertEqual(result, expected)
+
+    def test_empty_table_data(self):
+        from deephaven.ui.hooks import use_table_data
+        from deephaven import new_table
+
+        empty = new_table([])
+
+        def _test_table_data(t=empty):
+            return use_table_data(t)
+
+        render_result = render_hook(_test_table_data)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        expected = {}
+
+        self.assertEqual(result, expected)
+
+    def test_ticking_table_data(self):
+        from deephaven.ui.hooks import use_table_data
+        from deephaven import DynamicTableWriter
+        import deephaven.dtypes as dht
+
+        column_definitions = {"Numbers": dht.int32, "Words": dht.string}
+
+        table_writer = DynamicTableWriter(column_definitions)
+        table = table_writer.table
+
+        def _test_table_data(t=table):
+            return use_table_data(t, sentinel="sentinel")
+
+        render_result = render_hook(_test_table_data)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        # the initial render should return the sentinel value since the table is empty
+        self.assertEqual(result, "sentinel")
+
+        self.verify_table_updated(table_writer, table, (1, "Testing"))
+
+        render_result = render_hook(_test_table_data)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        expected = {"Numbers": [1], "Words": ["Testing"]}
+
+        self.assertEqual(result, expected)
+
+    def test_column_data(self):
+        from deephaven.ui.hooks import use_column_data
+        from deephaven import new_table
+        from deephaven.column import int_col
+
+        table = new_table(
+            [
+                int_col("X", [1, 2, 3]),
+            ]
+        )
+
+        def _test_column_data(t=table):
+            return use_column_data(t)
+
+        render_result = render_hook(_test_column_data)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        expected = [1, 2, 3]
+
+        self.assertEqual(result, expected)
+
+    def test_empty_column_data(self):
+        from deephaven.ui.hooks import use_column_data
+        from deephaven import new_table
+
+        empty = new_table([])
+
+        def _test_column_data(t=empty):
+            return use_column_data(t)
+
+        self.assertRaises(IndexError, render_hook, _test_column_data)
+
+    def test_ticking_column_data(self):
+        from deephaven.ui.hooks import use_column_data
+        from deephaven import DynamicTableWriter
+        import deephaven.dtypes as dht
+
+        column_definitions = {"Words": dht.string}
+
+        table_writer = DynamicTableWriter(column_definitions)
+        table = table_writer.table
+
+        def _test_column_data(t=table):
+            return use_column_data(t, sentinel="sentinel")
+
+        render_result = render_hook(_test_column_data)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        # the initial render should return the sentinel value
+        self.assertEqual(result, "sentinel")
+
+        self.verify_table_updated(table_writer, table, ("Testing",))
+
+        render_result = render_hook(_test_column_data)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        expected = ["Testing"]
+
+        self.assertEqual(result, expected)
+
+    def test_row_data(self):
+        from deephaven.ui.hooks import use_row_data
+        from deephaven import new_table
+        from deephaven.column import int_col
+
+        table = new_table(
+            [
+                int_col("X", [1]),
+                int_col("Y", [2]),
+            ]
+        )
+
+        def _test_row_data(t=table):
+            return use_row_data(t)
+
+        render_result = render_hook(_test_row_data)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        expected = {"X": 1, "Y": 2}
+
+        self.assertEqual(result, expected)
+
+    def test_empty_row_data(self):
+        from deephaven.ui.hooks import use_row_data
+        from deephaven import new_table
+
+        empty = new_table([])
+
+        def _test_row_data(t=empty):
+            return use_row_data(t)
+
+        self.assertRaises(IndexError, render_hook, _test_row_data)
+
+    def test_ticking_row_data(self):
+        from deephaven.ui.hooks import use_row_data
+        from deephaven import DynamicTableWriter
+        import deephaven.dtypes as dht
+
+        column_definitions = {"Numbers": dht.int32, "Words": dht.string}
+
+        table_writer = DynamicTableWriter(column_definitions)
+        table = table_writer.table
+
+        def _test_row_data(t=table):
+            return use_row_data(t, sentinel="sentinel")
+
+        render_result = render_hook(_test_row_data)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        # the initial render should return the sentinel value
+        self.assertEqual(result, "sentinel")
+
+        self.verify_table_updated(table_writer, table, (1, "Testing"))
+
+        render_result = render_hook(_test_row_data)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        expected = {"Numbers": 1, "Words": "Testing"}
+
+        self.assertEqual(result, expected)
+
+    def test_row_list(self):
+        from deephaven.ui.hooks import use_row_list
+        from deephaven import new_table
+        from deephaven.column import int_col
+
+        table = new_table(
+            [
+                int_col("X", [1]),
+                int_col("Y", [2]),
+            ]
+        )
+
+        def _use_row_list(t=table):
+            return use_row_list(t)
+
+        render_result = render_hook(_use_row_list)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        expected = [1, 2]
+
+        self.assertEqual(result, expected)
+
+    def test_empty_row_list(self):
+        from deephaven.ui.hooks import use_row_list
+        from deephaven import new_table
+
+        empty = new_table([])
+
+        def _test_row_list(t=empty):
+            return use_row_list(t)
+
+        self.assertRaises(IndexError, render_hook, _test_row_list)
+
+    def test_ticking_row_list(self):
+        from deephaven.ui.hooks import use_row_list
+        from deephaven import DynamicTableWriter
+        import deephaven.dtypes as dht
+
+        column_definitions = {"Numbers": dht.int32, "Words": dht.string}
+
+        table_writer = DynamicTableWriter(column_definitions)
+        table = table_writer.table
+
+        def _test_row_list(t=table):
+            return use_row_list(t, sentinel="sentinel")
+
+        render_result = render_hook(_test_row_list)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        # the initial render should return the sentinel value
+        self.assertEqual(result, "sentinel")
+
+        self.verify_table_updated(table_writer, table, (1, "Testing"))
+
+        render_result = render_hook(_test_row_list)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        expected = [1, "Testing"]
+
+        self.assertEqual(result, expected)
+
+    def test_cell_data(self):
+        from deephaven.ui.hooks import use_cell_data
+        from deephaven import new_table
+        from deephaven.column import int_col
+
+        table = new_table(
+            [
+                int_col("X", [1]),
+            ]
+        )
+
+        def _test_cell_data(t=table):
+            return use_cell_data(t)
+
+        render_result = render_hook(_test_cell_data)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        expected = 1
+
+        self.assertEqual(result, expected)
+
+    def test_empty_cell_data(self):
+        from deephaven.ui.hooks import use_cell_data
+        from deephaven import new_table
+
+        empty = new_table([])
+
+        def _use_cell_data(t=empty):
+            return use_cell_data(t)
+
+        self.assertRaises(IndexError, render_hook, _use_cell_data)
+
+    def test_ticking_cell_data(self):
+        from deephaven.ui.hooks import use_cell_data
+        from deephaven import DynamicTableWriter
+        import deephaven.dtypes as dht
+
+        column_definitions = {"Words": dht.string}
+
+        table_writer = DynamicTableWriter(column_definitions)
+        table = table_writer.table
+
+        def _test_cell_data(t=table):
+            return use_cell_data(t, sentinel="sentinel")
+
+        render_result = render_hook(_test_cell_data)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        # the initial render should return the sentinel value
+        self.assertEqual(result, "sentinel")
+
+        self.verify_table_updated(table_writer, table, ("Testing",))
+
+        render_result = render_hook(_test_cell_data)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        expected = "Testing"
+
+        self.assertEqual(result, expected)
 
 
 if __name__ == "__main__":
