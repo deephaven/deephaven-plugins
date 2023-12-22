@@ -24,7 +24,6 @@ def _init_theme():
 class MatplotlibRegistration(Registration):
     @classmethod
     def register_into(cls, callback: Callback) -> None:
-        print(get_exec_ctx().update_graph)
         _init_theme()
         plt.switch_backend("AGG")
         from . import figure_type
