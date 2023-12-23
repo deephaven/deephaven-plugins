@@ -3,13 +3,13 @@ import { vsGraph } from '@deephaven/icons';
 import { MatplotlibView } from './MatplotlibView';
 import { MatplotlibPanel } from './MatplotlibPanel';
 
-export const PlotlyExpressPlugin: WidgetPlugin = {
-  name: '@deephaven/plotly-express',
+export const MatplotlibPlugin: WidgetPlugin = {
+  name: '@deephaven/js-plugin-matplotlib',
   type: PluginType.WIDGET_PLUGIN,
-  supportedTypes: 'deephaven.plot.express.DeephavenFigure',
+  supportedTypes: 'matplotlib.figure.Figure',
   component: MatplotlibView,
   panelComponent: MatplotlibPanel,
   icon: vsGraph,
 };
 
-export default PlotlyExpressPlugin;
+export default MatplotlibPlugin;
