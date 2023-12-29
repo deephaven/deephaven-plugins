@@ -209,7 +209,7 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
         exportedObject.close();
       });
     };
-  }, [dh, jsonClient, parseDocument, updateExportedObjects, widget]);
+  }, [jsonClient, parseDocument, updateExportedObjects, widget]);
 
   useEffect(
     function loadWidget() {
