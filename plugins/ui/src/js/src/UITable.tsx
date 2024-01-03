@@ -11,7 +11,6 @@ import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { Table } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { UITableProps } from './UITableUtils';
-import { View } from '@adobe/react-spectrum';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
 
