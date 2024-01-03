@@ -1,0 +1,13 @@
+:root {
+  --dh-color-bg: var(--dh-color-orange-100);
+  --dh-color-fg: var(--dh-color-orange-800);
+  --dh-color-editor-bg: var(--dh-color-bg);
+  --dh-color-grid-bg: var(--dh-color-bg);
+
+  --dh-color-form-control-error: hsl(40, 100%, 50%);
+  --dh-color-form-control-error-shadow: hsl(40, 100%, 35%);
+
+  --dh-color-selector-fg: hsla(var(--dh-color-orange-800-hsl), 0.4);
+  --dh-color-selector-hover-fg: hsl(var(--dh-color-orange-800-hsl));
+  --dh-color-selector-disabled-fg: hsla(var(--dh-color-orange-800-hsl), 0.26);
+}
