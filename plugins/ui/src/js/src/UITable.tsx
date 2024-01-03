@@ -11,6 +11,7 @@ import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { Table } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { UITableProps } from './UITableUtils';
+import { View } from '@adobe/react-spectrum';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
 
@@ -25,7 +26,7 @@ function UITable({
   const dh = useApi();
   const [model, setModel] = useState<IrisGridModel>();
   const [columns, setColumns] = useState<Table['columns']>();
-  const [utils] = useState(new IrisGridUtils(dh));
+  const utils = useMemo(() => new IrisGridUtils(dh), [dh]);
 
   const hydratedSorts = useMemo(() => {
     if (sorts !== undefined && columns !== undefined) {
