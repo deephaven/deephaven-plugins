@@ -1,4 +1,5 @@
 from typing import Any, Dict, Literal, Union, List
+from deephaven import SortDirection
 
 RowIndex = Union[int, None]
 RowDataMap = Dict[str, Any]
@@ -43,3 +44,4 @@ SearchMode = Literal["SHOW", "HIDE", "DEFAULT"]
 SelectionMode = Literal["CELL", "ROW", "COLUMN"]
 Sentinel = Any
 TransformedData = Any
+TableSortDirection = Union[Literal["ASC", "DESC"], SortDirection]

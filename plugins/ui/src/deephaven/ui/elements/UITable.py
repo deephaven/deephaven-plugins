@@ -21,27 +21,31 @@ from ..types import (
     RowIndex,
     RowDataMap,
     SelectionMode,
+    TableSortDirection,
 )
 from .._internal import dict_to_camel_case, RenderContext
 
 logger = logging.getLogger(__name__)
 
 
-def remap_sort_direction(direction: SortDirection) -> Literal["ASC", "DESC"] | None:
+def remap_sort_direction(direction: TableSortDirection) -> Literal["ASC", "DESC"]:
     """
-    Remap the deephaven sort direction to the grid sort direction
+    Remap the sort direction to the grid sort direction
 
     Args:
-        direction: SortDirection: The deephaven sort direction
+        direction: TableSortDirection: The deephaven sort direction or
+        grid sort direction to remap
 
     Returns:
-        Literal["ASC", "DESC"] | None: The grid sort direction
+        Literal["ASC", "DESC"]: The grid sort direction
     """
     if direction == SortDirection.ASCENDING:
         return "ASC"
     elif direction == SortDirection.DESCENDING:
         return "DESC"
-    return None
+    elif direction in {"ASC", "DESC"}:
+        return direction
+    raise ValueError(f"Invalid table sort direction: {direction}")
 
 
 class UITable(Element):
@@ -462,7 +466,7 @@ class UITable(Element):
     def sort(
         self,
         by: str | Sequence[str],
-        direction: SortDirection | Sequence[SortDirection] | None = None,
+        direction: TableSortDirection | Sequence[TableSortDirection] | None = None,
     ) -> "UITable":
         """
         Provide the default sort that will be used by the UI.
@@ -470,12 +474,14 @@ class UITable(Element):
         Args:
             by: The column(s) to sort by. May be a single column name, or a list of column names.
             direction: The sort direction(s) to use. If provided, that must match up with the columns provided.
+                May be a single sort direction, or a list of sort directions. The possible sort directions are
+                `"ASC"` `"DESC"`, `SortDirection.ASCENDING`, and `SortDirection.DESCENDING`.
                 Defaults to "ASC".
 
         Returns:
             UITable: A new UITable
         """
-        direction_list = []
+        direction_list: Sequence[TableSortDirection] = []
         if direction:
             direction_list = direction if isinstance(direction, list) else [direction]
             # map deephaven sort direction to frontend sort direction

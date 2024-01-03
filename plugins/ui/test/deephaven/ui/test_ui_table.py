@@ -212,3 +212,18 @@ class UITableTestCase(BaseTestCase):
                 ],
             },
         )
+
+        t = ui_table.sort(["X", "Y"], ["DESC", "ASC"])
+
+        self.expect_render(
+            t,
+            {
+                "table": self.source,
+                "sorts": [
+                    {"column": "X", "direction": "DESC", "is_abs": False},
+                    {"column": "Y", "direction": "ASC", "is_abs": False},
+                ],
+            },
+        )
+
+        self.assertRaises(ValueError, ui_table.sort, ["X", "Y"], ["INVALID"])
