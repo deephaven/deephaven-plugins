@@ -1,7 +1,8 @@
 import React, { CSSProperties, useEffect, useState } from 'react';
 import { useApi } from '@deephaven/jsapi-bootstrap';
-import type { Table, ViewportData, Widget } from '@deephaven/jsapi-types';
+import type { Table, ViewportData } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
+import { WidgetComponentProps } from '@deephaven/plugin';
 
 const log = Log.module('@deephaven/js-plugin-matplotlib.MatplotlibView');
 
@@ -26,18 +27,10 @@ export const MatplotlibViewImageStyle: CSSProperties = {
   objectFit: 'contain',
 };
 
-export type MatplotlibViewProps = {
-  fetch: () => Promise<unknown>;
-};
-
-export type MatplotlibPanelState = {
-  imageData?: string;
-};
-
 /**
  * Displays a rendered matplotlib from the server
  */
-export function MatplotlibView(props: MatplotlibViewProps): JSX.Element {
+export function MatplotlibView(props: WidgetComponentProps): JSX.Element {
   const { fetch } = props;
   const [imageSrc, setImageSrc] = useState<string>();
   const [inputTable, setInputTable] = useState<Table>();
@@ -83,7 +76,7 @@ export function MatplotlibView(props: MatplotlibViewProps): JSX.Element {
     function updateData() {
       async function fetchData() {
         log.debug('fetchData');
-        const widget = (await fetch()) as Widget;
+        const widget = await fetch();
         const imageData = widget.getDataAsBase64();
         setImageSrc(`data:image/png;base64,${imageData}`);
         if (revision <= 0) {
@@ -111,7 +104,5 @@ export function MatplotlibView(props: MatplotlibViewProps): JSX.Element {
     </div>
   );
 }
-
-MatplotlibView.COMPONENT = 'MatplotlibView';
 
 export default MatplotlibView;
