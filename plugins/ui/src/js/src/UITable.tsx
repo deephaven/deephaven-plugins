@@ -62,8 +62,8 @@ function UITable({
       const newTable = (await reexportedTable.fetch()) as Table;
       const newModel = await IrisGridModelFactory.makeModel(dh, newTable);
       if (!isCancelled) {
-        setModel(newModel);
         setColumns(newTable.columns);
+        setModel(newModel);
       } else {
         newModel.close();
       }
