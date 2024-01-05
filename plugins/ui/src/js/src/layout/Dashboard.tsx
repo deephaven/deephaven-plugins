@@ -5,7 +5,7 @@ import { ParentItemContext } from './ParentItemContext';
 
 function Dashboard({ children }: StackElementProps): JSX.Element | null {
   const layoutManager = useLayoutManager();
-  const [dashboard, setDashboard] = useState(false);
+  const [dashboard, setDashboard] = useState(true);
 
   useEffect(() => {
     layoutManager.root.callDownwards('_$destroy', [], true, true);

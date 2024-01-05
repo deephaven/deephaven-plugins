@@ -1,5 +1,6 @@
 from .icon import icon
 from .make_component import make_component as component
+from .make_dashboard import make_dashboard as dashboard
 from .fragment import fragment
 from .panel import panel
 from .spectrum import *
@@ -7,7 +8,8 @@ from .table import table
 from .row import row
 from .column import column
 from .stack import stack
-from .dashboard import dashboard
+
+# from .dashboard import dashboard
 from . import html
 
 

@@ -16,4 +16,5 @@ __version__ = "0.0.1.dev2"
 class UIRegistration(Registration):
     @classmethod
     def register_into(cls, callback: Callback) -> None:
+        callback.register(DashboardType)
         callback.register(ElementType)

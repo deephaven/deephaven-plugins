@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useLayoutManager } from '@deephaven/dashboard';
 import type { ColumnElementProps } from './LayoutUtils';
 import { ParentItemContext, useParentItem } from './ParentItemContext';
@@ -6,7 +6,7 @@ import { ParentItemContext, useParentItem } from './ParentItemContext';
 function Column({ children, width }: ColumnElementProps): JSX.Element | null {
   const layoutManager = useLayoutManager();
   const parent = useParentItem();
-  const [column] = useState(() => {
+  const column = useMemo(() => {
     const newColumn = layoutManager.createContentItem(
       {
         type: 'column',
@@ -18,7 +18,7 @@ function Column({ children, width }: ColumnElementProps): JSX.Element | null {
     parent.addChild(newColumn, undefined, true);
 
     return newColumn;
-  });
+  }, [layoutManager, parent, width]);
 
   useEffect(() => {
     column.setSize();
