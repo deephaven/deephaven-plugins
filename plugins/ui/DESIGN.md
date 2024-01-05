@@ -1388,22 +1388,24 @@ ui_table.selection_mode(mode: SelectionMode) -> UITable
 ##### sort
 
 Provide the default sort that will be used by the UI.
+Can use Deephaven [SortDirection](https://deephaven.io/core/pydoc/code/deephaven.html#deephaven.SortDirection) used in 
+a table [sort](https://deephaven.io/core/docs/reference/table-operations/sort/) operation or`"ASC"` or `"DESC"`.
 
 ###### Syntax
 
 ```py
 ui_table.sort(
     order_by: str | Sequence[str],
-    order: SortDirection | Sequence[SortDirection] | None = None
+    order: TableSortDirection | Sequence[TableSortDirection] | None = None
 ) -> UITable
 ```
 
 ###### Parameters
 
-| Parameter   | Type                                               | Description                                                                                                 |
-| ----------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `by`        | `str \| Sequence[str]`                             | The column(s) to sort by. May be a single column name, or a list of column names.                           |
-| `direction` | `SortDirection \| Sequence[SortDirection] \| None` | The sort direction(s) to use. If provided, that must match up with the columns provided. Defaults to "ASC". |
+| Parameter   | Type                                                         | Description                                                                                                 |
+| ----------- |--------------------------------------------------------------| ----------------------------------------------------------------------------------------------------------- |
+| `by`        | `str \| Sequence[str]`                                       | The column(s) to sort by. May be a single column name, or a list of column names.                           |
+| `direction` | `TableSortDirection \| Sequence[TableSortDirection] \| None` | The sort direction(s) to use. If provided, that must match up with the columns provided. Defaults to "ASC". |
 
 #### ui.fragment
 
@@ -1458,6 +1460,8 @@ use_table_listener(
 ##### use_table_data
 
 Capture the data in a table. If the table is still loading, a sentinel value will be returned.
+A transform function can be used to transform the data from a pandas Dataframe to a custom object, but this should
+not be used to perform large filtering operations.
 Data should already be filtered to the desired rows and columns before passing to this hook as it is best to filter before data is retrieved.
 Use functions such as [head](https://deephaven.io/core/docs/reference/table-operations/filter/head/) or [slice](https://deephaven.io/core/docs/reference/table-operations/filter/slice/) to retrieve specific rows and functions such
 as [select or view](https://deephaven.io/core/docs/how-to-guides/use-select-view-update/) to retrieve specific columns.
@@ -1467,16 +1471,20 @@ as [select or view](https://deephaven.io/core/docs/how-to-guides/use-select-view
 ```py
 use_table_data(
     table: Table,
-    sentinel: Sentinel = None
-) -> TableData | Sentinel:
+    sentinel: Sentinel = None,
+    transform: Callable[
+        [pd.DataFrame | Sentinel, bool], TransformedData | Sentinel
+    ] = None,
+) -> TableData | Sentinel | TransformedData:
 ```
 
 ###### Parameters
 
-| Parameter  | Type       | Description                                                                  |
-| ---------- | ---------- | ---------------------------------------------------------------------------- |
-| `table`    | `Table`    | The table to retrieve data from.                                             |
-| `sentinel` | `Sentinel` | A sentinel value to return if the viewport is still loading. Default `None`. |
+| Parameter          | Type                                                                      | Description                                                                                                                                                                                                                             |
+|--------------------|---------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `table`            | `Table`                                                                   | The table to retrieve data from.                                                                                                                                                                                                        |
+| `sentinel`         | `Sentinel`                                                                | A sentinel value to return if the viewport is still loading. Default `None`.                                                                                                                                                            |
+| `transform`        | `Callable[[pd.DataFrame \| Sentinel, bool], TransformedData \| Sentinel]` | A function to transform the data from a pandas Dataframe to a custom object. The function takes a pandas dataframe or `Sentinel` as the first value and as a second value `bool` that is `True` if the the first value is the sentinel. |
 
 ##### use_column_data
 
@@ -1599,8 +1607,9 @@ RowIndex = int | None
 SearchMode = Literal["SHOW", "HIDE", "DEFAULT"]
 SelectionMode = Literal["CELL", "ROW", "COLUMN"]
 Sentinel = Any
-SortDirection = Literal["ASC", "DESC"]
+TableSortDirection = Union[Literal["ASC", "DESC"], SortDirection]
 TableData = dict[ColumnName, ColumnData]
+TransformedData = Any
 
 # Set a filter for a dashboard. Filter will apply to all items with a matching column/type, except for items specified in the `exclude_ids` parameter
 class DashboardFilter(TypedDict):

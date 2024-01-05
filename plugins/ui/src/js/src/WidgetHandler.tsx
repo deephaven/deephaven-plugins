@@ -14,7 +14,6 @@ import {
   JSONRPCServer,
   JSONRPCServerAndClient,
 } from 'json-rpc-2.0';
-import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { Widget, WidgetExportedObject } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import {
@@ -39,8 +38,6 @@ export interface WidgetHandlerProps {
 }
 
 function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
-  const dh = useApi();
-
   const [widget, setWidget] = useState<Widget>();
   const [document, setDocument] = useState<ReactNode>();
 
@@ -186,7 +183,10 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
     }
 
     const cleanup = widget.addEventListener(
-      dh.Widget.EVENT_MESSAGE,
+      // This is defined as dh.Widget.EVENT_MESSAGE in Core, but that constant doesn't exist on the Enterprise API
+      // Dashboard plugins in Enterprise are loaded with the Enterprise API in the context of the dashboard, so trying to fetch the constant fails
+      // Just use the constant value here instead. Another option would be to add the Widget constants to Enterprise, but we don't want to port over all that functionality.
+      'message',
       (event: WidgetMessageEvent) => {
         receiveData(
           event.detail.getDataAsString(),
@@ -209,7 +209,7 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
         exportedObject.close();
       });
     };
-  }, [dh, jsonClient, parseDocument, updateExportedObjects, widget]);
+  }, [jsonClient, parseDocument, updateExportedObjects, widget]);
 
   useEffect(
     function loadWidget() {

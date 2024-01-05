@@ -2,8 +2,11 @@ from io import BytesIO
 from weakref import WeakKeyDictionary, WeakSet
 from matplotlib.figure import Figure
 from deephaven.plugin.object_type import Exporter, FetchOnlyObjectType
+from deephaven.execution_context import get_exec_ctx
 from threading import Timer
 from deephaven.liveness_scope import liveness_scope
+from deephaven import input_table, new_table
+from deephaven.column import string_col, int_col
 
 # Name of the matplotlib figure object that was export
 NAME = "matplotlib.figure.Figure"
@@ -49,12 +52,11 @@ def debounce(wait):
 # width: The width of panel displaying the figure
 # height: The height of the panel displaying the figure
 def _make_input_table(figure):
-    from deephaven import new_table
-    from deephaven.column import string_col, int_col
-    import jpy
-
-    input_table = None
+    input_t = None
     revision = 0
+
+    # Need to track the execution context used so we can use it again when updating the revision
+    exec_ctx = get_exec_ctx()
 
     t = new_table(
         [
@@ -62,21 +64,21 @@ def _make_input_table(figure):
             int_col("value", [revision, 640, 480]),
         ]
     )
-    input_table = jpy.get_type(
-        "io.deephaven.engine.table.impl.util.KeyedArrayBackedMutableTable"
-    ).make(t.j_table, "key")
+
+    input_t = input_table(init_table=t, key_cols=["key"])
 
     # TODO: Add listener to input table to update figure width/height
 
     @debounce(0.1)
     def update_revision():
-        nonlocal revision
-        revision = revision + 1
-        input_table.getAttribute("InputTable").add(
-            new_table(
-                [string_col("key", ["revision"]), int_col("value", [revision])]
-            ).j_table
-        )
+        with exec_ctx:
+            nonlocal revision
+            revision = revision + 1
+            input_t.add(
+                new_table(
+                    [string_col("key", ["revision"]), int_col("value", [revision])]
+                )
+            )
 
     def handle_figure_update(self, value):
         # Check if we're already drawing this figure, and the stale callback was triggered because of our call to savefig
@@ -86,7 +88,7 @@ def _make_input_table(figure):
 
     figure.stale_callback = handle_figure_update
 
-    return input_table
+    return input_t
 
 
 def _get_input_table(figure):
@@ -117,8 +119,8 @@ class FigureType(FetchOnlyObjectType):
         return isinstance(object, Figure)
 
     def to_bytes(self, exporter: Exporter, figure: Figure) -> bytes:
-        with liveness_scope() as scope:
-            input_table = _get_input_table(figure)
-            exporter.reference(input_table)
-            scope.preserve(input_table)
+        with liveness_scope() as scope, get_exec_ctx():
+            input_t = _get_input_table(figure)
+            exporter.reference(input_t)
+            scope.preserve(input_t)
         return _export_figure(figure)
