@@ -35,11 +35,13 @@
     "react": "^17.0.2"
   },
   "dependencies": {
-    "@deephaven/components": "^0.40.0",
-    "@deephaven/dashboard": "^0.40.0",
-    "@deephaven/jsapi-bootstrap": "^0.40.0",
-    "@deephaven/jsapi-types": "^0.40.0",
-    "@deephaven/log": "^0.40.0",
+    "@deephaven/components": "^0.58.0",
+    "@deephaven/dashboard": "^0.58.0",
+    "@deephaven/icons": "^0.58.0",
+    "@deephaven/jsapi-bootstrap": "^0.58.0",
+    "@deephaven/jsapi-types": "^0.58.0",
+    "@deephaven/log": "^0.58.0",
+    "@deephaven/plugin": "^0.58.0",
     "shortid": "^2.2.16"
   },
   "publishConfig": {

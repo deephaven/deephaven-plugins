@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { CSSProperties, useEffect, useState } from 'react';
 import { useApi } from '@deephaven/jsapi-bootstrap';
-import type { Table } from '@deephaven/jsapi-types';
+import type { Table, ViewportData } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
-import { PanelProps } from '@deephaven/dashboard';
+import { WidgetComponentProps } from '@deephaven/plugin';
 
-const log = Log.module('@deephaven/js-plugin-matplotlib.MatPlotLibPanel');
+const log = Log.module('@deephaven/js-plugin-matplotlib.MatplotlibView');
 
 enum InputColumn {
   key = 'key',
@@ -15,28 +15,22 @@ enum InputKey {
   revision = 'revision',
 }
 
-export type MatPlotLibExportedObject = {
-  fetch: () => unknown;
+export const MatplotlibViewStyle: CSSProperties = {
+  height: '100%',
+  width: '100%',
+  display: 'contents',
 };
 
-export type MatPlotLibWidget = {
-  type: string;
-  getDataAsBase64: () => string;
-  exportedObjects: MatPlotLibExportedObject[];
-};
-
-export type MatPlotLibPanelProps = {
-  fetch: () => Promise<MatPlotLibWidget>;
-} & PanelProps;
-
-export type MatPlotLibPanelState = {
-  imageData?: string;
+export const MatplotlibViewImageStyle: CSSProperties = {
+  height: '100%',
+  width: '100%',
+  objectFit: 'contain',
 };
 
 /**
  * Displays a rendered matplotlib from the server
  */
-export function MatPlotLibPanel(props: MatPlotLibPanelProps): React.ReactNode {
+export function MatplotlibView(props: WidgetComponentProps): JSX.Element {
   const { fetch } = props;
   const [imageSrc, setImageSrc] = useState<string>();
   const [inputTable, setInputTable] = useState<Table>();
@@ -59,11 +53,14 @@ export function MatPlotLibPanel(props: MatPlotLibPanelProps): React.ReactNode {
         table.applyFilter([
           keyColumn.filter().eq(dh.FilterValue.ofString(InputKey.revision)),
         ]);
-        table.addEventListener(dh.Table.EVENT_UPDATED, ({ detail: data }) => {
-          const newRevision = data.rows[0].get(valueColumn);
-          log.debug('New revision', newRevision);
-          setRevision(newRevision);
-        });
+        table.addEventListener(
+          dh.Table.EVENT_UPDATED,
+          ({ detail: data }: CustomEvent<ViewportData>) => {
+            const newRevision = data.rows[0].get(valueColumn);
+            log.debug('New revision', newRevision);
+            setRevision(newRevision);
+          }
+        );
         table.setViewport(0, 0, [valueColumn]);
       }
       openTable();
@@ -96,12 +93,16 @@ export function MatPlotLibPanel(props: MatPlotLibPanelProps): React.ReactNode {
   );
 
   return (
-    <div className="mat-plot-lib-panel">
-      {imageSrc !== undefined && <img src={imageSrc} alt="MatPlotLib render" />}
+    <div className="matplotlib-view" style={MatplotlibViewStyle}>
+      {imageSrc !== undefined && (
+        <img
+          src={imageSrc}
+          alt="Matplotlib render"
+          style={MatplotlibViewImageStyle}
+        />
+      )}
     </div>
   );
 }
 
-MatPlotLibPanel.COMPONENT = 'MatPlotLibPanel';
-
-export default MatPlotLibPanel;
+export default MatplotlibView;
