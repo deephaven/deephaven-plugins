@@ -6,7 +6,7 @@ import {
   ReactPanelManager,
   ReactPanelManagerContext,
 } from './ReactPanelManager';
-import { ReactPanelProps } from './PanelUtils';
+import { ReactPanelProps } from './layout/LayoutUtils';
 
 // Mock LayoutUtils, useListener, and PanelEvent from @deephaven/dashboard package
 const mockLayout = { root: {}, eventHub: {} };

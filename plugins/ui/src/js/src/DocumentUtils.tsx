@@ -32,17 +32,17 @@ export function getRootChildren(
     throw new MixedPanelsError('Cannot mix panel and non-panel elements');
   }
 
-  if (childPanelCount === 0) {
-    // Just wrap it in a panel
-    return (
-      <ReactPanel
-        key="root"
-        title={definition.title ?? definition.id ?? definition.type}
-      >
-        {children}
-      </ReactPanel>
-    );
-  }
+  // if (childPanelCount === 0) {
+  //   // Just wrap it in a panel
+  //   return (
+  //     <ReactPanel
+  //       key="root"
+  //       title={definition.title ?? definition.id ?? definition.type}
+  //     >
+  //       {children}
+  //     </ReactPanel>
+  //   );
+  // }
 
   // It's already got panels defined, just return it
   return children;

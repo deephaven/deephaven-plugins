@@ -10,7 +10,8 @@ import {
 import Log from '@deephaven/log';
 import PortalPanel from './PortalPanel';
 import { useReactPanelManager } from './ReactPanelManager';
-import { ReactPanelProps } from './PanelUtils';
+import { ReactPanelProps } from './layout/LayoutUtils';
+import { useParentItem } from './layout/ParentItemContext';
 
 const log = Log.module('@deephaven/js-plugin-ui/ReactPanel');
 
@@ -25,6 +26,7 @@ function ReactPanel({ children, title }: ReactPanelProps) {
   const [element, setElement] = useState<HTMLElement>();
   const isPanelOpenRef = useRef(false);
   const openedMetadataRef = useRef<Record<string, unknown>>();
+  const parent = useParentItem();
 
   log.debug2('Rendering panel', panelId);
 
@@ -32,12 +34,12 @@ function ReactPanel({ children, title }: ReactPanelProps) {
     () => () => {
       if (isPanelOpenRef.current) {
         log.debug('Closing panel', panelId);
-        LayoutUtils.closeComponent(layoutManager.root, { id: panelId });
+        LayoutUtils.closeComponent(parent, { id: panelId });
         isPanelOpenRef.current = false;
         onClose(panelId);
       }
     },
-    [layoutManager, onClose, panelId]
+    [parent, onClose, panelId]
   );
 
   const handlePanelClosed = useCallback(
@@ -76,15 +78,14 @@ function ReactPanel({ children, title }: ReactPanelProps) {
         id: panelId,
       };
 
-      const { root } = layoutManager;
-      LayoutUtils.openComponent({ root, config });
+      LayoutUtils.openComponent({ root: parent, config });
       log.debug('Opened panel', panelId, config);
       isPanelOpenRef.current = true;
       openedMetadataRef.current = metadata;
 
       onOpen(panelId);
     }
-  }, [layoutManager, metadata, onOpen, panelId, title]);
+  }, [parent, metadata, onOpen, panelId, title]);
 
   return element ? ReactDOM.createPortal(children, element) : null;
 }

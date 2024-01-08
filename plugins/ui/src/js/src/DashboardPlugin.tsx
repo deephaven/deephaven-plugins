@@ -15,6 +15,7 @@ import PortalPanel from './PortalPanel';
 import WidgetHandler from './WidgetHandler';
 
 const NAME_ELEMENT = 'deephaven.ui.Element';
+const DASHBOARD_ELEMENT = 'deephaven.ui.Dashboard';
 
 const log = Log.module('@deephaven/js-plugin-ui.DashboardPlugin');
 
@@ -42,11 +43,54 @@ export function DashboardPlugin({
       widget: VariableDefinition;
     }) => {
       const { type } = widget;
-      if ((type as string) !== NAME_ELEMENT) {
+      if (type === DASHBOARD_ELEMENT) {
+        console.log('dashboard element');
+        console.log(layout);
+        layout.eventHub.emit('ui.dashboard', widget);
+      }
+      if (type !== NAME_ELEMENT) {
         // Only want to listen for Element panels trying to be opened
         return;
       }
       log.info('Opening widget with ID', widgetId);
+      setWidgetMap(prevWidgetMap => {
+        const newWidgetMap = new Map<string, WidgetWrapper>(prevWidgetMap);
+        // We need to create a new definition object, otherwise the layout will think it's already open
+        // Can't use a spread operator because the widget definition uses property accessors
+        const definition = {
+          type: widget.type,
+          title: widget.title,
+          id: widget.id,
+          name: widget.name,
+        };
+        newWidgetMap.set(widgetId, { definition, fetch, id: widgetId });
+        return newWidgetMap;
+      });
+    },
+    []
+  );
+
+  const handleDashboardOpen = useCallback(
+    ({
+      dragEvent,
+      fetch,
+      metadata = {},
+      panelId: widgetId = shortid.generate(),
+      widget,
+    }: {
+      dragEvent?: React.DragEvent;
+      fetch: () => Promise<Widget>;
+      metadata?: Record<string, unknown>;
+      panelId?: string;
+      widget: VariableDefinition;
+    }) => {
+      const { type } = widget;
+      console.log('dashboard open', type, DASHBOARD_ELEMENT);
+      if (type !== DASHBOARD_ELEMENT) {
+        // Only want to listen for Element panels trying to be opened
+        return;
+      }
+      log.info('Opening dashboard with ID', widgetId);
       setWidgetMap(prevWidgetMap => {
         const newWidgetMap = new Map<string, WidgetWrapper>(prevWidgetMap);
         // We need to create a new definition object, otherwise the layout will think it's already open
@@ -94,6 +138,7 @@ export function DashboardPlugin({
 
   // TODO: We need to change up the event system for how objects are opened, since in this case it could be opening multiple panels
   useListener(layout.eventHub, PanelEvent.OPEN, handlePanelOpen);
+  useListener(layout.eventHub, 'dashboardOpen', handleDashboardOpen);
   useListener(layout.eventHub, PanelEvent.CLOSE, handlePanelClose);
 
   const widgetHandlers = useMemo(
