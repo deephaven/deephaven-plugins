@@ -1413,7 +1413,7 @@ ui_table.sort(
 
 ##### add_event_listener
 
-Add a listener for an event on the table. You can listen to multiple events by passing in a list of events, or listen to all events by passing in `"all"`.
+Add a listener for an event on the table. You can listen to multiple events by passing in a list of events, or listen to all events by passing in `"ALL"`.
 
 ###### Syntax
 
@@ -1427,7 +1427,7 @@ ui_table.add_event_listener(
 ##### Parameters
 | Parameter         | Type                      | Description                                                                             |
 |-------------------|---------------------------|-----------------------------------------------------------------------------------------|
-| `event_type`      | `EventTypeCombination`     | The event type or a group of events to listen to. May be "all" to listen to all events. |
+| `event_type`      | `EventTypeCombination`     | The event type or a group of events to listen to. May be "ALL" to listen to all events. |
 | `listener`        | `Callable[[Event], None]` | The function to call when the event is fired.                                           |
 
 ##### column_display_names
@@ -1444,18 +1444,18 @@ ui_table.column_display_names(
 
 ##### Parameters
 
-| Parameter       | Type                                                    | Description                                                                                                                                                     |
-|-----------------|---------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `display_names` | `dict[ColumnName, ColumnName \| Sequence[ColumnName]]`  | The display names. If a sequence of column names is provided for a column, the display name will be set to the longest column name that can be fully displayed. |
+| Parameter       | Type                                      | Description                                                                                                                                                     |
+|-----------------|-------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `display_names` | `dict[ColumnName, ColumnNameCombination]` | The display names. If a sequence of column names is provided for a column, the display name will be set to the longest column name that can be fully displayed. |
 
-##### show_column_headers
+##### display_column_headers
 
 Set the column headers for the table to be visible, hidden, or use the system default.
 
 ###### Syntax
 
 ```py
-ui_table.show_column_headers(
+ui_table.display_column_headers(
     mode: ColumnHeaderMode
 ) -> UITable
 ```
@@ -1466,14 +1466,14 @@ ui_table.show_column_headers(
 |-----------|---------------------|-----------------------------------------------------------------------------------------------------------------------------|
 | `mode`    | `ColumnHeaderMode`  | `"SHOW"`  for the headers to be visible, `"HIDDEN"` for the headers to be hidden, and `"DEFAULT"` to use the system default |
 
-##### show_quick_filters
+##### display_quick_filters
 
 Set the quick filters for the table to be visible, hidden, or use the system default.
 
 ###### Syntax
 
 ```py
-ui_table.show_quick_filters(
+ui_table.display_quick_filters(
     mode: QuickFilterMode
 ) -> UITable
 ```
@@ -1751,7 +1751,7 @@ TableSortDirection = Union[Literal["ASC", "DESC"], SortDirection]
 TableData = dict[ColumnName, ColumnData]
 TransformedData = Any
 # todo: fill in the list of events we allow
-EventType = Literal["all", "sort", "quick_filter", "can_search", "on_row_double_press"]
+EventType = Literal["ALL", "SORT", "QUICK_FILTER", "CAN_SEARCH", "ON_ROW_DOUBLE_PRESS"]
 # todo: flesh out actual event object types as we define them
 Event = dict[str, Any]
 
