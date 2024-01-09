@@ -1,62 +1,113 @@
+from __future__ import annotations
 import logging
 from typing import Any
 from deephaven.liveness_scope import LivenessScope
 from .._internal import RenderContext
-from ..elements import Element
+from ..elements import Element, PropsType
 from .RenderedNode import RenderedNode
 
 logger = logging.getLogger(__name__)
 
 
-def _render(context: RenderContext, element: Element):
+def _render_item(item: Any, context: RenderContext) -> Any:
+    """
+    Render an item. If the item is a list or tuple, render each item in the list.
+
+    Args:
+        item: The item to render.
+        context: The context to render the item in.
+    """
+    logger.debug("_render_item context is %s", context)
+    if isinstance(item, (list, tuple)):
+        # I couldn't figure out how to map a `list[Unknown]` to a `list[Any]`, or to accept a `list[Unknown]` as a parameter
+        return _render_list(item, context)  # type: ignore
+    if isinstance(item, dict):
+        return _render_dict(item, context)  # type: ignore
+    if isinstance(item, Element):
+        logger.debug(
+            "render_child element %s: %s",
+            type(item),
+            item,
+        )
+        return _render_element(item, context)
+    else:
+        logger.debug("render_item returning child (%s): %s", type(item), item)
+        return item
+
+
+def _render_list(
+    item: list[Any] | tuple[Any, ...], context: RenderContext
+) -> list[Any]:
+    """
+    Render a list. You may be able to pass in an element as a prop that needs to be rendered, not just as a child.
+    For example, a `label` prop of a button can accept a string or an element.
+
+    Args:
+        item: The list to render.
+        context: The context to render the list in.
+    """
+    logger.debug("_render_list %s", item)
+    return [
+        _render_item(value, context.get_child_context(key))
+        for key, value in enumerate(item)
+    ]
+
+
+def _render_dict(item: PropsType, context: RenderContext) -> PropsType:
+    """
+    Render a dictionary. You may be able to pass in an element as a prop that needs to be rendered, not just as a child.
+    For example, a `label` prop of a button can accept a string or an element.
+
+    Args:
+        item: The dictionary to render.
+        context: The context to render the dictionary in.
+    """
+    logger.debug("_render_props %s", item)
+    return {
+        key: _render_item(value, context.get_child_context(key))
+        for key, value in item.items()
+    }
+
+
+def _render_element(element: Element, context: RenderContext) -> RenderedNode:
     """
     Render an Element.
 
     Args:
-        context: The context to render the component in.
         element: The element to render.
+        context: The context to render the component in.
 
     Returns:
         The RenderedNode representing the element.
     """
-
-    def render_child(child: Any, child_context: RenderContext):
-        logger.debug("child_context is %s", child_context)
-        if isinstance(child, list) or isinstance(child, tuple):
-            logger.debug("render_child list: %s", child)
-            return [
-                render_child(child, child_context.get_child_context(i))
-                for i, child in enumerate(child)
-            ]
-        if isinstance(child, dict):
-            logger.debug("render_child dict: %s", child)
-            return {
-                key: render_child(value, child_context.get_child_context(key))
-                for key, value in child.items()
-            }
-        if isinstance(child, Element):
-            logger.debug(
-                "render_child element %s: %s",
-                type(child),
-                child,
-            )
-            return _render(child_context, child)
-        else:
-            logger.debug("render_child returning child (%s): %s", type(child), child)
-            return child
-
     logger.debug("Rendering %s: ", element.name)
 
     props = element.render(context)
 
     # We also need to render any elements that are passed in as props
-    props = render_child(props, context)
+    props = _render_dict(props, context)
 
     return RenderedNode(element.name, props)
 
 
 class Renderer:
-    def __init__(self, context: RenderContext = RenderContext()):
+    """
+    Renders Elements provided into the RenderContext provided and returns a RenderedNode.
+    At this step it executing the render() method of the Element within the RenderContext state to generate the
+    realized Document tree for the Element provided.
+    """
+
+    _context: RenderContext
+    """
+    Context to render the element into. This is essentially the state of the element.
+    """
+
+    _liveness_scope: LivenessScope
+    """
+    Liveness scope to create Deephaven items in. Need to retain the liveness scope so we don't release objects prematurely.
+    """
+
+    def __init__(self, context: RenderContext):
         self._context = context
         self._liveness_scope = LivenessScope()
 
@@ -64,16 +115,21 @@ class Renderer:
         self.release_liveness_scope()
 
     def release_liveness_scope(self):
+        """
+        Release the liveness scope.
+        """
         try:  # May not have an active liveness scope or already been released
             self._liveness_scope.release()
-            self._liveness_scope = None
         except:
             pass
 
-    def render(self, element: Element):
+    def render(self, element: Element) -> RenderedNode:
+        """
+        Render an element. Will update the liveness scope with the new objects from the render.
+        """
         new_liveness_scope = LivenessScope()
         with new_liveness_scope.open():
-            render_res = _render(self._context, element)
+            render_res = _render_element(element, self._context)
 
         # Release after in case of memoized tables
         # Ref count goes 1 -> 2 -> 1 by releasing after

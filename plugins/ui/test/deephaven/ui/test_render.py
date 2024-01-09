@@ -2,20 +2,26 @@ from unittest.mock import Mock
 from .BaseTest import BaseTestCase
 
 
+def make_render_context(on_change=lambda x: x(), on_queue=lambda x: x()):
+    from deephaven.ui._internal.RenderContext import RenderContext
+
+    return RenderContext(on_change, on_queue)
+
+
 class RenderTestCase(BaseTestCase):
     def test_empty_render(self):
-        from deephaven.ui._internal.RenderContext import RenderContext
-
-        rc = RenderContext()
+        on_change = Mock(side_effect=lambda x: x())
+        rc = make_render_context(on_change)
         self.assertEqual(rc._hook_index, -1)
         self.assertEqual(rc._state, {})
         self.assertEqual(rc._children_context, {})
-        self.assertEqual(rc._on_change(), None)
+        on_change.assert_not_called()
 
     def test_hook_index(self):
         from deephaven.ui._internal.RenderContext import RenderContext
 
-        rc = RenderContext()
+        on_change = Mock(side_effect=lambda x: x())
+        rc = make_render_context(on_change)
 
         # Set up the hooks used with initial render (3 hooks)
         with rc:
@@ -46,10 +52,8 @@ class RenderTestCase(BaseTestCase):
     def test_state(self):
         from deephaven.ui._internal.RenderContext import RenderContext
 
-        rc = RenderContext()
-
-        on_change = Mock()
-        rc.set_on_change(on_change)
+        on_change = Mock(side_effect=lambda x: x())
+        rc = make_render_context(on_change)
 
         self.assertEqual(rc.has_state(0), False)
         self.assertEqual(rc.get_state(0), None)
@@ -68,10 +72,8 @@ class RenderTestCase(BaseTestCase):
     def test_context(self):
         from deephaven.ui._internal.RenderContext import RenderContext
 
-        rc = RenderContext()
-
-        on_change = Mock()
-        rc.set_on_change(on_change)
+        on_change = Mock(side_effect=lambda x: x())
+        rc = make_render_context(on_change)
 
         child_context0 = rc.get_child_context(0)
         child_context1 = rc.get_child_context(1)

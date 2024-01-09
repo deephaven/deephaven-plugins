@@ -9,11 +9,11 @@ T = TypeVar("T")
 
 
 @overload
-def use_state(initial_value: T) -> (T, Callable[[T], None]):
+def use_state(initial_value: T) -> tuple[T, Callable[[T], None]]:
     ...
 
 
-def use_state(initial_value: T | None = None) -> (T | None, Callable[[T], None]):
+def use_state(initial_value: T | None = None) -> tuple[T | None, Callable[[T], None]]:
     context = get_context()
     hook_index = context.next_hook_index()
 
