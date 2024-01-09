@@ -1371,19 +1371,23 @@ ui_table.quick_filter(filter: dict[ColumnName, QuickFilterExpression]) -> UITabl
 
 ##### selection_mode
 
-Set the selection mode for the table.
+Set the selection mode for the table and whether or not multiple selections are the default
 
 ###### Syntax
 
 ```py
-ui_table.selection_mode(mode: SelectionMode) -> UITable
+ui_table.selection_mode(
+    mode: SelectionMode, 
+    multi_select: bool = False
+) -> UITable
 ```
 
 ###### Parameters
 
-| Parameter | Type            | Description                                                                                                                                                                                                                                                               |
-| --------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mode`    | `SelectionMode` | The selection mode to use. Must be one of `"ROW"`, `"COLUMN"`, or `"CELL"`:<li>`"ROW"` selects the entire row of the cell you click on.</li><li>`"COLUMN"` selects the entire column of the cell you click on.</li><li>`"CELL"` selects only the cells you click on.</li> |
+| Parameter      | Type             | Description                                                                                                                                                                                                                                                               |
+|----------------|------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `mode`         | `SelectionMode`  | The selection mode to use. Must be one of `"ROW"`, `"COLUMN"`, or `"CELL"`:<li>`"ROW"` selects the entire row of the cell you click on.</li><li>`"COLUMN"` selects the entire column of the cell you click on.</li><li>`"CELL"` selects only the cells you click on.</li> |
+| `multi_select` | `bool`           | True if always multiple select on press. False by default.                                                                                                                                                                                                                |
 
 ##### sort
 
@@ -1406,6 +1410,138 @@ ui_table.sort(
 | ----------- |--------------------------------------------------------------| ----------------------------------------------------------------------------------------------------------- |
 | `by`        | `str \| Sequence[str]`                                       | The column(s) to sort by. May be a single column name, or a list of column names.                           |
 | `direction` | `TableSortDirection \| Sequence[TableSortDirection] \| None` | The sort direction(s) to use. If provided, that must match up with the columns provided. Defaults to "ASC". |
+
+##### add_event_listener
+
+Add a listener for an event on the table. You can listen to multiple events by passing in a list of events, or listen to all events by passing in `"all"`.
+
+###### Syntax
+
+```py
+ui_table.add_event_listener(
+    event_type: EventTypeCombination,
+    listener: Callable[[Event], None]
+) -> UITable
+```
+
+##### Parameters
+| Parameter         | Type                      | Description                                                                             |
+|-------------------|---------------------------|-----------------------------------------------------------------------------------------|
+| `event_type`      | `EventTypeCombination`     | The event type or a group of events to listen to. May be "all" to listen to all events. |
+| `listener`        | `Callable[[Event], None]` | The function to call when the event is fired.                                           |
+
+##### column_display_names
+
+Set the display names for columns in the table. If a sequence of column names is provided for a column, the display name will be set to the longest column name that can be fully displayed.
+
+###### Syntax
+
+```py
+ui_table.column_display_names(
+    display_names: dict[ColumnName, ColumnNameCombination]
+) -> UITable
+```
+
+##### Parameters
+
+| Parameter       | Type                                                    | Description                                                                                                                                                     |
+|-----------------|---------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `display_names` | `dict[ColumnName, ColumnName \| Sequence[ColumnName]]`  | The display names. If a sequence of column names is provided for a column, the display name will be set to the longest column name that can be fully displayed. |
+
+##### show_column_headers
+
+Set the column headers for the table to be visible, hidden, or use the system default.
+
+###### Syntax
+
+```py
+ui_table.show_column_headers(
+    mode: ColumnHeaderMode
+) -> UITable
+```
+
+##### Parameters
+
+| Parameter | Type                | Description                                                                                                                 |
+|-----------|---------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| `mode`    | `ColumnHeaderMode`  | `"SHOW"`  for the headers to be visible, `"HIDDEN"` for the headers to be hidden, and `"DEFAULT"` to use the system default |
+
+##### show_quick_filters
+
+Set the quick filters for the table to be visible, hidden, or use the system default.
+
+###### Syntax
+
+```py
+ui_table.show_quick_filters(
+    mode: QuickFilterMode
+) -> UITable
+```
+
+##### Parameters
+
+| Parameter | Type                | Description                                                                                                                |
+|-----------|---------------------|----------------------------------------------------------------------------------------------------------------------------|
+| `mode`    | `QuickFilterMode`  | `"SHOW"` for the filters to be visible, `"HIDDEN"` for the filters to be hidden, and `"DEFAULT"` to use the system default |
+
+##### selected
+
+Set the selected rows, columns, or cells in the table. This must match the mode set by [selection_mode](#selection_mode).
+Only one of `rows`, `columns`, or `cells` may be provided.
+
+###### Syntax
+
+```py
+ui_table.selected(
+    rows: RowIndexCombination | None = None, 
+    columns: ColumnIndexCombination | None = None, 
+    cells: CellIndexCombination | None = None
+) -> UITable
+```
+##### Parameters
+
+| Parameter | Type                                         | Description                     |
+|-----------|----------------------------------------------|---------------------------------|
+| `rows`    | `RowIndex \| Sequence[RowIndex] \| None`     | The selected row or rows.       |
+| `columns` | `ColumnName \| Sequence[ColumnName] \| None` | The selected column or columns. |
+| `cells`   | `CellIndex \| Sequence[CellIndex] \| None`   | The selected cell or cells.     |
+
+##### selection_style
+
+Specify the style that is used to show that data is selected. This can by `"HIGHLIGHT"`, `"CHECKBOX"`, a combination of those, or `"DEFAULT"` to use the system default.
+
+###### Syntax
+
+```py
+ui_table.selection_style(
+    modes: SelectionStyleModeCombination
+) -> UITable
+```
+
+##### Parameters
+
+| Parameter | Type                   | Description                                                                                                                                                            |
+|-----------|------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `mode`    | `SelectionStyleMode`   | `"HIGHLIGHT"` to highlight the selected data, `"CHECKBOX"` to show checkboxes for the selected data, a combination of those, or `"DEFAULT"` to use the system default  |
+
+##### density
+
+Set the density of the table to be `"COMPACT"`, `"REGULAR"`, `"SPACIOUS"`, or `"DEFAULT"`, the system default. 
+
+###### Syntax
+
+```py
+ui_table.density(
+    mode: DensityMode
+) -> UITable
+```
+
+##### Parameters
+
+| Parameter | Type          | Description                                           |
+|-----------|---------------|-------------------------------------------------------|
+| `mode`    | `DensityMode` | `"COMPACT"`, `"REGULAR"`, `"SPACIOUS"`, or `"DEFAULT"`|
+
 
 #### ui.fragment
 
@@ -1605,11 +1741,31 @@ RowData = dict[ColumnName, Any]
 # A RowIndex of None indicates a header column
 RowIndex = int | None
 SearchMode = Literal["SHOW", "HIDE", "DEFAULT"]
+ColumnHeaderMode = Literal["SHOW", "HIDE", "DEFAULT"]
+QuickFilterMode = Literal["SHOW", "HIDE", "DEFAULT"]
+SelectionStyleMode = Literal["HIGHLIGHT", "CHECKBOX", "DEFAULT"]   
 SelectionMode = Literal["CELL", "ROW", "COLUMN"]
+DensityMode = Literal["COMPACT", "REGULAR", "SPACIOUS", "DEFAULT"]
 Sentinel = Any
 TableSortDirection = Union[Literal["ASC", "DESC"], SortDirection]
 TableData = dict[ColumnName, ColumnData]
 TransformedData = Any
+# todo: fill in the list of events we allow
+EventType = Literal["all", "sort", "quick_filter", "can_search", "on_row_double_press"]
+# todo: flesh out actual event object types as we define them
+Event = dict[str, Any]
+
+T = TypeVar("T")
+Combination: TypeAlias = T | set[T] | Sequence[T]
+
+RowIndexCombination = Combination[RowIndex]
+ColumnNameCombination = Combination[ColumnName]
+ColumnIndexCombination = Combination[ColumnIndex]
+CellIndexCombination = Combination[CellIndex]
+SelectionStyleModeCombination = Combination[SelectionStyleMode]
+EventTypeCombination = Combination[EventType]
+
+```
 
 # Set a filter for a dashboard. Filter will apply to all items with a matching column/type, except for items specified in the `exclude_ids` parameter
 class DashboardFilter(TypedDict):
