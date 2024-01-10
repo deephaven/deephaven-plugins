@@ -150,9 +150,6 @@ class ElementMessageStream(MessageStream):
         Process any queued callables, then re-renders the element if it is dirty.
         """
         with self._render_lock:
-            if self._render_state is _RenderState.RENDERING:
-                # We're already rendering, so we don't need to do anything
-                return
             self._render_thread = threading.current_thread()
             self._render_state = _RenderState.RENDERING
 
@@ -175,14 +172,20 @@ class ElementMessageStream(MessageStream):
             else:
                 self._render_state = _RenderState.IDLE
 
-    def _queue_render(self) -> None:
+    def _mark_dirty(self) -> None:
         """
-        Queue a render to be resolved on the next render.
+        Mark the element as dirty and queue up a render
         """
         if self._is_dirty:
             return
         self._is_dirty = True
-        self._queue_callable(self._render)
+        self._queue_render()
+
+    def _queue_render(self) -> None:
+        with self._render_lock:
+            if self._render_state is _RenderState.IDLE:
+                self._render_state = _RenderState.QUEUED
+                submit_task("concurrent", self._process_callable_queue)
 
     def _queue_state_update(self, state_update: StateUpdateCallable) -> None:
         """
@@ -197,7 +200,7 @@ class ElementMessageStream(MessageStream):
                 f"State update called from non-render thread '{current_thread.name}'. Use the `use_render_queue` hook to queue state updates when multi-threading."
             )
         self._update_queue.put(state_update)
-        self._queue_render()
+        self._mark_dirty()
 
     def _queue_callable(self, callable: Callable[[], None]) -> None:
         """
@@ -206,17 +209,14 @@ class ElementMessageStream(MessageStream):
         Args:
             callable: The callable to queue
         """
-        with self._render_lock:
-            self._callable_queue.put(callable)
-            if self._render_state is _RenderState.IDLE:
-                self._render_state = _RenderState.QUEUED
-                submit_task("concurrent", self._process_callable_queue)
+        self._callable_queue.put(callable)
+        self._queue_render()
 
     def start(self) -> None:
         """
         Start the message stream. This will start the render loop and queue up the initial render.
         """
-        self._queue_render()
+        self._mark_dirty()
 
     def on_close(self) -> None:
         pass
