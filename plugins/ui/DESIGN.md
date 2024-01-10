@@ -1388,7 +1388,7 @@ ui_table.selection_mode(mode: SelectionMode) -> UITable
 ##### sort
 
 Provide the default sort that will be used by the UI.
-Can use Deephaven [SortDirection](https://deephaven.io/core/pydoc/code/deephaven.html#deephaven.SortDirection) used in 
+Can use Deephaven [SortDirection](https://deephaven.io/core/pydoc/code/deephaven.html#deephaven.SortDirection) used in
 a table [sort](https://deephaven.io/core/docs/reference/table-operations/sort/) operation or`"ASC"` or `"DESC"`.
 
 ###### Syntax
@@ -1403,7 +1403,7 @@ ui_table.sort(
 ###### Parameters
 
 | Parameter   | Type                                                         | Description                                                                                                 |
-| ----------- |--------------------------------------------------------------| ----------------------------------------------------------------------------------------------------------- |
+| ----------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
 | `by`        | `str \| Sequence[str]`                                       | The column(s) to sort by. May be a single column name, or a list of column names.                           |
 | `direction` | `TableSortDirection \| Sequence[TableSortDirection] \| None` | The sort direction(s) to use. If provided, that must match up with the columns provided. Defaults to "ASC". |
 
@@ -1480,11 +1480,11 @@ use_table_data(
 
 ###### Parameters
 
-| Parameter          | Type                                                                      | Description                                                                                                                                                                                                                             |
-|--------------------|---------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `table`            | `Table`                                                                   | The table to retrieve data from.                                                                                                                                                                                                        |
-| `sentinel`         | `Sentinel`                                                                | A sentinel value to return if the viewport is still loading. Default `None`.                                                                                                                                                            |
-| `transform`        | `Callable[[pd.DataFrame \| Sentinel, bool], TransformedData \| Sentinel]` | A function to transform the data from a pandas Dataframe to a custom object. The function takes a pandas dataframe or `Sentinel` as the first value and as a second value `bool` that is `True` if the the first value is the sentinel. |
+| Parameter   | Type                                                                      | Description                                                                                                                                                                                                                             |
+| ----------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `table`     | `Table`                                                                   | The table to retrieve data from.                                                                                                                                                                                                        |
+| `sentinel`  | `Sentinel`                                                                | A sentinel value to return if the viewport is still loading. Default `None`.                                                                                                                                                            |
+| `transform` | `Callable[[pd.DataFrame \| Sentinel, bool], TransformedData \| Sentinel]` | A function to transform the data from a pandas Dataframe to a custom object. The function takes a pandas dataframe or `Sentinel` as the first value and as a second value `bool` that is `True` if the the first value is the sentinel. |
 
 ##### use_column_data
 
