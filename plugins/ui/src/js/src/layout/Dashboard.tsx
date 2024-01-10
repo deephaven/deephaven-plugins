@@ -24,4 +24,6 @@ function Dashboard({ children }: StackElementProps): JSX.Element | null {
   );
 }
 
+type test = (string | string[])[];
+
 export default Dashboard;

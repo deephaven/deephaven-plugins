@@ -5,8 +5,10 @@ import {
   LayoutManagerContext,
   PanelEvent,
   useListener,
+  useDashboardData,
 } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
+import { useConnection } from '@deephaven/jsapi-components';
 import { Widget } from '@deephaven/jsapi-types';
 import type { VariableDefinition } from '@deephaven/jsapi-types';
 import styles from './styles.scss?inline';
@@ -24,30 +26,24 @@ export function DashboardPlugin({
   layout,
   registerComponent,
 }: DashboardPluginComponentProps): JSX.Element | null {
+  const connection = useConnection();
+  const dashboardData = useDashboardData(id);
+
   // Keep track of the widgets we've got opened.
   const [widgetMap, setWidgetMap] = useState<
     ReadonlyMap<string, WidgetWrapper>
   >(new Map());
   const handlePanelOpen = useCallback(
     ({
-      dragEvent,
       fetch,
-      metadata = {},
       panelId: widgetId = shortid.generate(),
       widget,
     }: {
-      dragEvent?: React.DragEvent;
       fetch: () => Promise<Widget>;
-      metadata?: Record<string, unknown>;
       panelId?: string;
       widget: VariableDefinition;
     }) => {
       const { type } = widget;
-      if (type === DASHBOARD_ELEMENT) {
-        console.log('dashboard element');
-        console.log(layout);
-        layout.eventHub.emit('ui.dashboard', widget);
-      }
       if (type !== NAME_ELEMENT) {
         // Only want to listen for Element panels trying to be opened
         return;
@@ -71,42 +67,44 @@ export function DashboardPlugin({
   );
 
   const handleDashboardOpen = useCallback(
-    ({
-      dragEvent,
-      fetch,
-      metadata = {},
-      panelId: widgetId = shortid.generate(),
-      widget,
-    }: {
-      dragEvent?: React.DragEvent;
-      fetch: () => Promise<Widget>;
-      metadata?: Record<string, unknown>;
-      panelId?: string;
-      widget: VariableDefinition;
-    }) => {
+    ({ widget }: { widget: VariableDefinition }) => {
       const { type } = widget;
-      console.log('dashboard open', type, DASHBOARD_ELEMENT);
-      if (type !== DASHBOARD_ELEMENT) {
-        // Only want to listen for Element panels trying to be opened
-        return;
-      }
-      log.info('Opening dashboard with ID', widgetId);
-      setWidgetMap(prevWidgetMap => {
-        const newWidgetMap = new Map<string, WidgetWrapper>(prevWidgetMap);
-        // We need to create a new definition object, otherwise the layout will think it's already open
-        // Can't use a spread operator because the widget definition uses property accessors
-        const definition = {
-          type: widget.type,
+      if (type === DASHBOARD_ELEMENT) {
+        layout.eventHub.emit('ui.dashboard', {
+          pluginId: DASHBOARD_ELEMENT,
           title: widget.title,
-          id: widget.id,
-          name: widget.name,
-        };
-        newWidgetMap.set(widgetId, { definition, fetch, id: widgetId });
-        return newWidgetMap;
-      });
+          data: {
+            type: widget.type,
+            title: widget.title,
+            id: widget.id,
+          },
+        });
+      }
     },
-    []
+    [layout.eventHub]
   );
+
+  useEffect(function loadDashboard() {
+    const pluginData = dashboardData.pluginData?.[DASHBOARD_ELEMENT];
+
+    if (pluginData == null) {
+      return;
+    }
+
+    setWidgetMap(prevWidgetMap => {
+      const newWidgetMap = new Map<string, WidgetWrapper>(prevWidgetMap);
+      // We need to create a new definition object, otherwise the layout will think it's already open
+      // Can't use a spread operator because the widget definition uses property accessors
+
+      newWidgetMap.set(id, {
+        definition: pluginData,
+        fetch: () =>
+          connection.getObject(pluginData) as unknown as Promise<Widget>,
+        id,
+      });
+      return newWidgetMap;
+    });
+  }, []);
 
   const handlePanelClose = useCallback((panelId: string) => {
     setWidgetMap(prevWidgetMap => {
@@ -138,7 +136,7 @@ export function DashboardPlugin({
 
   // TODO: We need to change up the event system for how objects are opened, since in this case it could be opening multiple panels
   useListener(layout.eventHub, PanelEvent.OPEN, handlePanelOpen);
-  useListener(layout.eventHub, 'dashboardOpen', handleDashboardOpen);
+  useListener(layout.eventHub, PanelEvent.OPEN, handleDashboardOpen);
   useListener(layout.eventHub, PanelEvent.CLOSE, handlePanelClose);
 
   const widgetHandlers = useMemo(
