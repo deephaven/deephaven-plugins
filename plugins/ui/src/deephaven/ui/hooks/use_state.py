@@ -2,6 +2,7 @@ from __future__ import annotations
 import logging
 from typing import Callable, TypeVar, overload
 from .._internal.shared import get_context
+from .._internal.RenderContext import StateValue
 
 logger = logging.getLogger(__name__)
 
@@ -9,11 +10,15 @@ T = TypeVar("T")
 
 
 @overload
-def use_state(initial_value: T) -> tuple[T, Callable[[T], None]]:
+def use_state(
+    initial_value: T,
+) -> tuple[T, Callable[[StateValue[T]], None]]:
     ...
 
 
-def use_state(initial_value: T | None = None) -> tuple[T | None, Callable[[T], None]]:
+def use_state(
+    initial_value: StateValue[T] | None = None,
+) -> tuple[T | None, Callable[[StateValue[T]], None]]:
     context = get_context()
     hook_index = context.next_hook_index()
 
@@ -22,8 +27,6 @@ def use_state(initial_value: T | None = None) -> tuple[T | None, Callable[[T], N
         value = context.get_state(hook_index)
     else:
         # Initialize the state
-        if callable(value):
-            value = value()
         context.set_state(hook_index, value)
 
     def set_value(new_value):
