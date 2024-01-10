@@ -4,9 +4,11 @@ import json
 from jsonrpc import JSONRPCResponseManager, Dispatcher
 import logging
 import threading
+from enum import Enum
 from queue import Queue
 from typing import Any, Callable
 from deephaven.plugin.object_type import MessageStream
+from deephaven.server.executors import submit_task
 from ..elements import Element
 from ..renderer import NodeEncoder, Renderer, RenderedNode
 from .._internal import RenderContext, StateUpdateCallable
@@ -14,31 +16,26 @@ from ..renderer.NodeEncoder import NodeEncoder
 
 logger = logging.getLogger(__name__)
 
-_render_queue: Queue[Callable[[], None]] = Queue()
 
-_render_thread: threading.Thread | None = None
-
-
-def _render_loop():
-    global _render_queue
-    while True:
-        item = _render_queue.get()
-        try:
-            item()
-        except Exception as e:
-            logger.exception(e)
-
-
-def _start_render_loop():
+class _RenderState(Enum):
     """
-    Start the render loop if it is not already running.
+    The state of the render loop.
     """
-    global _render_thread
-    if not (_render_thread and _render_thread.is_alive()):
-        _render_thread = threading.Thread(
-            target=_render_loop, name="deephaven.ui render loop"
-        )
-        _render_thread.start()
+
+    IDLE = 0
+    """
+    The render loop is idle.
+    """
+
+    RENDERING = 1
+    """
+    The render loop is currently rendering.
+    """
+
+    QUEUED = 2
+    """
+    The render loop has a render queued.
+    """
 
 
 class ElementMessageStream(MessageStream):
@@ -82,14 +79,35 @@ class ElementMessageStream(MessageStream):
     Renderer for this element
     """
 
-    _queued_updates: Queue[StateUpdateCallable]
+    _update_queue: Queue[StateUpdateCallable]
     """
-    State updates that need to be applied on the next render.
+    State updates that need to be applied on the next render. 
+    These are stored in their own queue so all updates are batched together.
     """
 
-    _is_render_queued: bool
+    _callable_queue: Queue[Callable[[], None]]
     """
-    Whether or not a render is queued.
+    Callables and render functions to be called on the next render loop.
+    """
+
+    _render_lock: threading.Lock
+    """
+    Lock to ensure only one thread is rendering at a time.
+    """
+
+    _render_state: _RenderState
+    """
+    The state of the render loop.
+    """
+
+    _render_thread: threading.Thread | None
+    """
+    The thread the render loop is running on.
+    """
+
+    _is_dirty: bool
+    """
+    Whether or not the element needs a re-render.
     """
 
     def __init__(self, element: Element, connection: MessageStream):
@@ -109,29 +127,62 @@ class ElementMessageStream(MessageStream):
         self._encoder = NodeEncoder(separators=(",", ":"))
         self._context = RenderContext(self._queue_state_update, self._queue_callable)
         self._renderer = Renderer(self._context)
-        self._queued_updates = Queue()
-        self._is_render_queued = False
+        self._update_queue = Queue()
+        self._callable_queue = Queue()
+        self._render_lock = threading.Lock()
+        self._is_dirty = False
+        self._render_state = _RenderState.IDLE
 
     def _render(self) -> None:
         logger.debug("ElementMessageStream._render")
 
         # Resolve any pending state updates first
-        while not self._queued_updates.empty():
-            state_update = self._queued_updates.get()
+        while not self._update_queue.empty():
+            state_update = self._update_queue.get()
             state_update()
 
+        self._is_dirty = False
         node = self._renderer.render(self._element)
         self._send_document_update(node)
-        self._is_render_queued = False
+
+    def _process_callable_queue(self) -> None:
+        """
+        Process any queued callables, then re-renders the element if it is dirty.
+        """
+        with self._render_lock:
+            if self._render_state is _RenderState.RENDERING:
+                # We're already rendering, so we don't need to do anything
+                return
+            self._render_thread = threading.current_thread()
+            self._render_state = _RenderState.RENDERING
+
+        while not self._callable_queue.empty():
+            item = self._callable_queue.get()
+            try:
+                item()
+            except Exception as e:
+                logger.exception(e)
+
+        if self._is_dirty:
+            self._render()
+
+        with self._render_lock:
+            self._render_thread = None
+            if not self._callable_queue.empty() or self._is_dirty:
+                # There are still callables to process, so queue up another render
+                self._render_state = _RenderState.QUEUED
+                submit_task("concurrent", self._process_callable_queue)
+            else:
+                self._render_state = _RenderState.IDLE
 
     def _queue_render(self) -> None:
         """
         Queue a render to be resolved on the next render.
         """
-        if self._is_render_queued:
+        if self._is_dirty:
             return
-        self._is_render_queued = True
-        _render_queue.put(self._render)
+        self._is_dirty = True
+        self._queue_callable(self._render)
 
     def _queue_state_update(self, state_update: StateUpdateCallable) -> None:
         """
@@ -141,11 +192,11 @@ class ElementMessageStream(MessageStream):
             state_update: The state update to queue
         """
         current_thread = threading.current_thread()
-        if current_thread is not _render_thread:
+        if current_thread is not self._render_thread:
             raise ValueError(
                 f"State update called from non-render thread '{current_thread.name}'. Use the `use_render_queue` hook to queue state updates when multi-threading."
             )
-        self._queued_updates.put(state_update)
+        self._update_queue.put(state_update)
         self._queue_render()
 
     def _queue_callable(self, callable: Callable[[], None]) -> None:
@@ -155,13 +206,16 @@ class ElementMessageStream(MessageStream):
         Args:
             callable: The callable to queue
         """
-        _render_queue.put(callable)
+        with self._render_lock:
+            self._callable_queue.put(callable)
+            if self._render_state is _RenderState.IDLE:
+                self._render_state = _RenderState.QUEUED
+                submit_task("concurrent", self._process_callable_queue)
 
     def start(self) -> None:
         """
         Start the message stream. This will start the render loop and queue up the initial render.
         """
-        _start_render_loop()
         self._queue_render()
 
     def on_close(self) -> None:
@@ -189,7 +243,7 @@ class ElementMessageStream(MessageStream):
             self._connection.on_data(response_payload.encode(), [])
 
         # Queue up handling of all incoming messages from the client onto the render thread
-        _render_queue.put(handle_message)
+        self._queue_callable(handle_message)
 
     def _get_next_message_id(self) -> int:
         """
