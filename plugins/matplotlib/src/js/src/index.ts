@@ -1,2 +1,3 @@
-export * from './MatPlotLibPanel';
-export * from './DashboardPlugin';
+import { MatplotlibPlugin } from './MatplotlibPlugin';
+
+export default MatplotlibPlugin;
