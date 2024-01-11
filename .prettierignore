@@ -1,1 +1,2 @@
+# These json files should not be auto-formatted to avoid breaking CI tests
 plugins/json/test/*.json
