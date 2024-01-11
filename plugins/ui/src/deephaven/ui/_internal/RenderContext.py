@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, Union, TypeVar
+from types import TracebackType
+from typing import Any, Callable, Optional, TypeVar, Union
 from contextlib import AbstractContextManager
 
 logger = logging.getLogger(__name__)
@@ -23,9 +24,14 @@ The key for a state value. Should be the hook index.
 """
 
 T = TypeVar("T")
-StateValue = T | Callable[[T | None], T]
+InitializerFunction = Callable[[], T]
 """
-The value for a state. Can be a callable that takes the old value and returns the new value.
+A function that returns the initial value for a state.
+"""
+
+UpdaterFunction = Callable[[T], T]
+"""
+A function that takes the old value and returns the new value for a state.
 """
 
 ContextKey = Union[str, int]
@@ -34,7 +40,7 @@ The key for a child context.
 """
 
 
-class RenderContext(AbstractContextManager):
+class RenderContext(AbstractContextManager[None]):
     """
     Context for rendering a component. Keeps track of state and child contexts.
     Used by hooks to get and set state.
@@ -87,7 +93,12 @@ class RenderContext(AbstractContextManager):
         """
         self._hook_index = -1
 
-    def __exit__(self, type, value, traceback) -> None:
+    def __exit__(
+        self,
+        type: Optional[type[BaseException]],
+        value: Optional[BaseException],
+        traceback: Optional[TracebackType],
+    ) -> None:
         """
         Finish rendering this component.
         """
@@ -113,7 +124,7 @@ class RenderContext(AbstractContextManager):
         """
         return self._state[key]
 
-    def set_state(self, key: StateKey, value: StateValue[T]) -> None:
+    def set_state(self, key: StateKey, value: T | UpdaterFunction[T]) -> None:
         """
         Set the state for the given key.
 
@@ -132,7 +143,7 @@ class RenderContext(AbstractContextManager):
 
         if key not in self._state:
             # We haven't set the state for this key yet, this is the initial render. We can just set the state immediately, we don't need to queue it for notification
-            update_state()
+            self._state[key] = value
         else:
             # This is not the initial state, queue up the state change on the render loop
             self._on_change(update_state)
