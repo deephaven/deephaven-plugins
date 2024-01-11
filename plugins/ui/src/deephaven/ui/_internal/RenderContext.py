@@ -40,7 +40,7 @@ The key for a child context.
 """
 
 
-class RenderContext(AbstractContextManager[None]):
+class RenderContext(AbstractContextManager):
     """
     Context for rendering a component. Keeps track of state and child contexts.
     Used by hooks to get and set state.
