@@ -750,7 +750,8 @@ tt = table_tabs(stocks)
 ## Using Table Data Hooks
 
 There are five different hooks that can be used to get data from a table:
-1. `use_table_data`: Returns a dictionary of rows and columns from the table. 
+
+1. `use_table_data`: Returns a dictionary of rows and columns from the table.
 2. `use_row_data`: Returns a single row from the table as a dictionary
 3. `use_row_list`: Returns a single row from the table as a list
 4. `use_column_data`: Returns a single column from the table as a list
@@ -812,4 +813,3 @@ watch = watch_lizards(stocks)
 ```
 
 ![Table Hooks](assets/table_hooks.png)
-

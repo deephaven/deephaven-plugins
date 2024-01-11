@@ -5,7 +5,7 @@
   ],
   "scripts": {
     "docker": "docker compose up --build",
-    "start": "run-p start:packages serve:plugins",
+    "start": "run-p \"start:packages -- {@}\" serve:plugins --",
     "build": "lerna run build --stream",
     "serve:plugins": "vite",
     "start:packages": "lerna run start --stream",

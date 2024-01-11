@@ -4,6 +4,7 @@ The Deephaven Plugin for Plotly. Allows for opening Plotly plots in a Deephaven 
 should be viewable by default. For example:
 
 ### Scatter Plot
+
 ```python
 import plotly.express as px
 
@@ -19,6 +20,7 @@ fig = px.scatter(
 ```
 
 ### Box Plot
+
 ```python
 import plotly.express as px
 
@@ -27,7 +29,9 @@ fig = px.box(df, x="time", y="total_bill")
 ```
 
 ### Multiple Series
+
 It's possible to have multiple kinds of series in the same figure. Here is an example driving a line and a bar plot:
+
 ```python
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
@@ -45,6 +49,7 @@ fig.update_layout(title_text="Side By Side Subplots", showlegend=False)
 ```
 
 ### Plot data from a Deephaven table
+
 ```python
 from deephaven import empty_table, numpy
 import plotly.express as px
@@ -71,8 +76,7 @@ To build:
 python -m build --wheel
 ```
 
-The wheel is stored in `dist/`. 
+The wheel is stored in `dist/`.
 
 To test within [deephaven-core](https://github.com/deephaven/deephaven-core), note where this wheel is stored (using `pwd`, for example).
 Then, follow the directions in the top-level README.md to install the wheel into your Deephaven environment.
-
