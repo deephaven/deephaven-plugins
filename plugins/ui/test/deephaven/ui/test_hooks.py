@@ -490,6 +490,54 @@ class HooksTest(BaseTestCase):
 
         self.assertEqual(result, expected)
 
+    def test_execution_context(self):
+        from deephaven.ui.hooks import use_execution_context
+
+        called = False
+
+        def execution_context_callback():
+            nonlocal called
+            called = True
+
+        def _test_execution_context(exec_ctx=None):
+            use_execution_context(execution_context_callback, exec_ctx=exec_ctx)
+
+        render_hook(_test_execution_context)
+
+        self.assertTrue(called)
+
+    def test_execution_context_passed(self):
+        from deephaven.ui.hooks import use_execution_context
+        from deephaven.execution_context import make_user_exec_ctx
+
+        called = False
+
+        def execution_context_callback():
+            nonlocal called
+            called = True
+
+        def _test_execution_context():
+            use_execution_context(
+                execution_context_callback, exec_ctx=make_user_exec_ctx()
+            )
+
+        render_hook(_test_execution_context)
+
+        self.assertTrue(called)
+
+    def test_execution_context_error(self):
+        from deephaven.ui.hooks import use_execution_context
+
+        def execution_context_callback():
+            pass
+
+        def _test_execution_context():
+            use_execution_context(
+                execution_context_callback, exec_ctx="invalid execution context"
+            )
+
+        self.assertRaises(AttributeError, render_hook, _test_execution_context)
+
 
 if __name__ == "__main__":
     unittest.main()
