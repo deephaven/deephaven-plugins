@@ -107,12 +107,10 @@ class RenderContext(AbstractContextManager):
         """
         return key in self._state
 
-    def get_state(self, key: StateKey, default: Any = None) -> None:
+    def get_state(self, key: StateKey) -> Any:
         """
         Get the state for the given key.
         """
-        if key not in self._state:
-            self._state[key] = default
         return self._state[key]
 
     def set_state(self, key: StateKey, value: StateValue[T]) -> None:

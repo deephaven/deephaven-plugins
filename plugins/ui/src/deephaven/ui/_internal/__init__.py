@@ -4,7 +4,7 @@ from .RenderContext import (
     StateUpdateCallable,
     OnChangeCallable,
 )
-from .shared import get_context, set_context
+from .shared import get_context, set_context, NoContextException
 from .utils import (
     get_component_name,
     get_component_qualname,
