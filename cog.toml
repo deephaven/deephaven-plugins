@@ -1,8 +1,11 @@
 from_latest_tag = true
 ignore_merge_commits = false
 disable_changelog = false
-generate_mono_repository_global_tag = true
+# we never tag any code outside the plugins/ directory. Everything else is build glue.
+generate_mono_repository_global_tag = false
+# limit which branches to perform bumps from
 branch_whitelist = [ "main" ]
+# we don't really use [skip ci] action filtering, but leaving here in case we decide to someday
 skip_ci = "[skip ci]"
 skip_untracked = false
 tag_prefix = "v"
@@ -14,7 +17,6 @@ post_bump_hooks = []
 # bump hooks for package versions, which is what we actually use
 pre_package_bump_hooks = [
     "echo Updating {{package}} to version {{version}}",
-    "rm -f GITHUB_CHANGELOG.md",
     # make sure user has correct software installed and is authenticated with `gh` cli tool
     "../../tools/validate.sh",
     # change the version number of the given plugin in source, and commit it as a chore(version): commit
@@ -41,10 +43,11 @@ post_package_bump_hooks = [
 
 [changelog]
 path = "CHANGELOG.md"
+# TODO: commit everyone's handle
 authors = []
 
-
 [bump_profiles]
+
 
 [packages]
 auth-keyclock = { path = "plugins/auth-keyclock", public_api=false }
