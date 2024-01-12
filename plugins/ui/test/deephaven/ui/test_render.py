@@ -57,11 +57,13 @@ class RenderTestCase(BaseTestCase):
 
         self.assertEqual(rc.has_state(0), False)
         self.assertRaises(KeyError, rc.get_state, 0)
+        self.assertRaises(KeyError, rc.set_state, 0, 2)
         self.assertEqual(on_change.call_count, 0)
 
-        rc.set_state(0, 2)
+        rc.init_state(0, 2)
         self.assertEqual(rc.has_state(0), True)
         self.assertEqual(rc.get_state(0), 2)
+        self.assertRaises(KeyError, rc.init_state, 0, 3)
         self.assertEqual(on_change.call_count, 0)
 
     def test_context(self):
@@ -76,7 +78,7 @@ class RenderTestCase(BaseTestCase):
         self.assertEqual(on_change.call_count, 0)
 
         # Check that setting the initial state does not trigger a change event
-        rc.set_state(0, 0)
+        rc.init_state(0, 0)
         self.assertEqual(on_change.call_count, 0)
 
         # Check that changing state triggers a change event
@@ -87,7 +89,7 @@ class RenderTestCase(BaseTestCase):
         self.assertEqual(on_change.call_count, 1)
         self.assertEqual(child_context0.has_state(0), False)
         self.assertRaises(KeyError, child_context0.get_state, 0)
-        child_context0.set_state(0, 2)
+        child_context0.init_state(0, 2)
         self.assertEqual(child_context0.has_state(0), True)
         self.assertEqual(child_context0.get_state(0), 2)
         # The initial setting of the child context state shouldn't trigger a change, so we should still be at 1
@@ -99,7 +101,7 @@ class RenderTestCase(BaseTestCase):
 
         self.assertEqual(child_context1.has_state(0), False)
         self.assertRaises(KeyError, child_context1.get_state, 0)
-        child_context1.set_state(0, 3)
+        child_context1.init_state(0, 3)
         self.assertEqual(rc.get_state(0), 1)
         self.assertEqual(child_context0.get_state(0), 20)
         self.assertEqual(child_context1.get_state(0), 3)

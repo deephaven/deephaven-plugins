@@ -124,14 +124,27 @@ class RenderContext(AbstractContextManager):
         """
         return self._state[key]
 
+    def init_state(self, key: StateKey, value: T | InitializerFunction[T]) -> None:
+        """
+        Set the initial state for the given key. Will throw if the key has already been set.
+        """
+        if key in self._state:
+            raise KeyError(f"Key {key} is already initialized")
+
+        # Just set the key value, we don't need to trigger an on_change or anything special on initialization
+        self._state[key] = value if not callable(value) else value()
+
     def set_state(self, key: StateKey, value: T | UpdaterFunction[T]) -> None:
         """
-        Set the state for the given key.
+        Update the state for the given key. If the key is not initialized via `init_state` yet, throw.
 
         Args:
             key: The key to set the state for.
             value: The value to set the state to. Can be a callable that takes the old value and returns the new value.
         """
+
+        if key not in self._state:
+            raise KeyError(f"Key {key} not initialized")
 
         # We queue up the state change in a callable that will get called from the render loop
         def update_state():
@@ -141,12 +154,8 @@ class RenderContext(AbstractContextManager):
                 new_value = value(old_value)
             self._state[key] = new_value
 
-        if key not in self._state:
-            # We haven't set the state for this key yet, this is the initial render. We can just set the state immediately, we don't need to queue it for notification
-            self._state[key] = value
-        else:
-            # This is not the initial state, queue up the state change on the render loop
-            self._on_change(update_state)
+        # This is not the initial state, queue up the state change on the render loop
+        self._on_change(update_state)
 
     def get_child_context(self, key: ContextKey) -> "RenderContext":
         """

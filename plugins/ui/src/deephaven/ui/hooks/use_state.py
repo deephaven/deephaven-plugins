@@ -31,10 +31,7 @@ def use_state(
 
     if not context.has_state(hook_index):
         # This is the first render, initialize the value
-        context.set_state(
-            hook_index,
-            initial_value if not callable(initial_value) else initial_value(),
-        )
+        context.init_state(hook_index, initial_value)
 
     value: T = context.get_state(hook_index)
 
