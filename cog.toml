@@ -1,0 +1,58 @@
+from_latest_tag = true
+ignore_merge_commits = false
+disable_changelog = false
+generate_mono_repository_global_tag = true
+branch_whitelist = [ "main" ]
+skip_ci = "[skip ci]"
+skip_untracked = false
+tag_prefix = "v"
+
+# bump hooks for global versions only; we don't use global version, but leaving here for posterity
+pre_bump_hooks = []
+post_bump_hooks = []
+
+# bump hooks for package versions, which is what we actually use
+pre_package_bump_hooks = [
+    "echo Updating {{package}} to version {{version}}",
+    "rm -f GITHUB_CHANGELOG.md",
+    # make sure user has correct software installed and is authenticated with `gh` cli tool
+    "../../tools/validate.sh",
+    # change the version number of the given plugin in source, and commit it as a chore(version): commit
+    "../../tools/update_version.sh {{package}} {{version}}",
+]
+# between pre_ and post_ bump hooks, cog itself will update the checked in CHANGELOG.md file, per updated plugin.
+post_package_bump_hooks = [
+    # prepare the github release changelog file
+    "mkdir -p ../../releases",
+    "cog changelog --at {{package}}-v{{version}} -t full_hash > ../../releases/GITHUB_CHANGELOG-{{package}}.md",
+    # update the version number to have a .dev0 suffix (when possible, only done for python plugins)
+    "../../tools/update_version.sh {{package}} {{version}} --dev",
+    # push the tag and the commits to main 
+    "git push origin {{package}}-v{{version}}",
+    "git push origin main",
+    # cut a github release using our conventional-commit changelog
+    "gh release create {{package}}-v{{version}} --notes-file ../../releases/GITHUB_CHANGELOG-{{package}}.md --title '@deephaven/'{{package}}-v{{version}} --verify-tag"
+]
+
+[git_hooks]
+
+
+[commit_types]
+
+[changelog]
+path = "CHANGELOG.md"
+authors = []
+
+
+[bump_profiles]
+
+[packages]
+auth-keyclock = { path = "plugins/auth-keyclock" }
+dashboard-object-viewer = { path = "plugins/dashboard-object-viewer" }
+json = { path = "plugins/json" }
+matplotlib = { path = "plugins/matplotlib" }
+plotly = { path = "plugins/plotly" }
+plotly-express = { path = "plugins/plotly-express" }
+table-example = { path = "plugins/table-example" }
+ui = { path = "plugins/ui" }
+

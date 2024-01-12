@@ -163,3 +163,30 @@ services:
       # Specifying a data volume here will override the default data folder, and you will not be able to access the default data files (such as the demo data)
       - /path/to/mydata/:/data
 ```
+
+## Release Management
+
+In order to manage changelogs, version bumps and github releases, we use cocogitto, or `cog` for short. [https://github.com/cocogitto/cocogitto]
+
+The main configuration file is cog.toml, which we run using some helper scripts located in the `tools/` directory.
+
+### Cutting a New Release
+
+In order to release a given plugin, you will run the script: `tools/release.sh <pluginName>`.  
+The must be done on a branch named `main` and will publish to the `git remote -v` named `origin` (you can do test releases on your fork).
+
+`tools/release.sh` will validate that your system has the necessary software installed and setup correctly, then invoke `cog bump --auto --package <pluginName>`,  
+which will invoke the necessary programs and scripts to automate a version bump and github release.
+
+During development, it is expected that all commit message will adhere to `conventional commit` ([https://www.conventionalcommits.org/en/about/]) formats.  
+`cog` will then uses your commit messages to compute a new version number, assemble a changelog, update our version in source code, create and push git tags, and perform a github release for the given plugin.
+
+See `cog.toml` to understand the full details of the release process.
+
+### Updating Versions in Source Code
+
+As part of the release process, `cog` will, per our `cog.toml` configuration, invoke `tools/update_version.sh <packageName> <newVersion>`, which is a script that uses `sed` to update a plugin's version number in whatever source file we happen to use as the source of truth for version information in the given plugin.
+
+*[WARNING]* If you change where the source of truth for a plugin's version is located, you must update `tools/update_version.sh` to update the correct file with a new version number.
+
+We use `tools/update_version.sh` to remove any `.dev0` "developer version" suffix before creating a release, and to put the `.dev0` version suffix back after completing the release.
