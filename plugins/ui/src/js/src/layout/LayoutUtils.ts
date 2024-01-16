@@ -131,9 +131,3 @@ export function isDashboardElementNode(
     (obj as ElementNode)[ELEMENT_KEY] === DASHBOARD_ELEMENT_NAME
   );
 }
-
-// export function createLayoutElement(
-//   type: 'column' | 'row' | 'stack',
-//   root: RowOrColumn | Stack,
-//   props: Record<string, unknown> = {}
-// ) {}

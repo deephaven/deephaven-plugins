@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useLayoutManager } from '@deephaven/dashboard';
-import type { Stack as StackType } from '@deephaven/golden-layout';
+import type { Stack as StackType, RowOrColumn } from '@deephaven/golden-layout';
 import type { StackElementProps } from './LayoutUtils';
 import { ParentItemContext, useParentItem } from './ParentItemContext';
 
@@ -12,7 +12,7 @@ function Stack({
 }: StackElementProps): JSX.Element | null {
   const layoutManager = useLayoutManager();
   const parent = useParentItem();
-  const [stack] = useState<StackType>(() => {
+  const stack = useMemo(() => {
     const newStack = layoutManager.createContentItem(
       {
         type: 'stack',
@@ -23,27 +23,18 @@ function Stack({
       parent
     );
 
-    parent.addChild(newStack, undefined, true);
+    // The 3rd param prevents golden-layout from calling setSize
+    // until we've mounted all of the rows and columns
+    (parent as RowOrColumn).addChild(newStack, undefined, true);
 
     return newStack as StackType;
-  });
+  }, [layoutManager, parent, height, width, activeItemIndex]);
 
   useEffect(() => {
-    stack.setSize();
-
-    parent.setSize();
-
     if (activeItemIndex != null) {
       stack.setActiveContentItem(stack.contentItems[activeItemIndex]);
     }
   }, [activeItemIndex, parent, stack]);
-
-  useEffect(
-    () => () => {
-      stack.remove();
-    },
-    [stack]
-  );
 
   return (
     <ParentItemContext.Provider value={stack}>

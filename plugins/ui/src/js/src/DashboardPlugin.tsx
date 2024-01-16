@@ -70,6 +70,7 @@ export function DashboardPlugin({
     ({ widget }: { widget: VariableDefinition }) => {
       const { type } = widget;
       if (type === DASHBOARD_ELEMENT) {
+        log.debug('Emitting dashboard open event for', widget);
         layout.eventHub.emit('ui.dashboard', {
           pluginId: DASHBOARD_ELEMENT,
           title: widget.title,
@@ -84,27 +85,32 @@ export function DashboardPlugin({
     [layout.eventHub]
   );
 
-  useEffect(function loadDashboard() {
-    const pluginData = dashboardData.pluginData?.[DASHBOARD_ELEMENT];
+  useEffect(
+    function loadDashboard() {
+      const pluginData = dashboardData.pluginData?.[DASHBOARD_ELEMENT];
 
-    if (pluginData == null) {
-      return;
-    }
+      log.info('Loading dashboard', pluginData);
 
-    setWidgetMap(prevWidgetMap => {
-      const newWidgetMap = new Map<string, WidgetWrapper>(prevWidgetMap);
-      // We need to create a new definition object, otherwise the layout will think it's already open
-      // Can't use a spread operator because the widget definition uses property accessors
+      if (pluginData == null) {
+        return;
+      }
 
-      newWidgetMap.set(id, {
-        definition: pluginData,
-        fetch: () =>
-          connection.getObject(pluginData) as unknown as Promise<Widget>,
-        id,
+      setWidgetMap(prevWidgetMap => {
+        const newWidgetMap = new Map<string, WidgetWrapper>(prevWidgetMap);
+        // We need to create a new definition object, otherwise the layout will think it's already open
+        // Can't use a spread operator because the widget definition uses property accessors
+
+        newWidgetMap.set(id, {
+          definition: pluginData,
+          fetch: () =>
+            connection.getObject(pluginData) as unknown as Promise<Widget>,
+          id,
+        });
+        return newWidgetMap;
       });
-      return newWidgetMap;
-    });
-  }, []);
+    },
+    [connection, dashboardData.pluginData, id]
+  );
 
   const handlePanelClose = useCallback((panelId: string) => {
     setWidgetMap(prevWidgetMap => {
