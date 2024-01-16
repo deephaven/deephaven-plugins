@@ -11,27 +11,42 @@ T = TypeVar("T")
 
 @overload
 def use_state(
-    initial_value: T | InitializerFunction[T],
+    initial_state: T | InitializerFunction[T],
 ) -> tuple[T, Callable[[T | UpdaterFunction[T]], None]]:
     ...
 
 
 @overload
 def use_state(
-    initial_value: T | InitializerFunction[T] | None = None,
+    initial_state: T | InitializerFunction[T] | None = None,
 ) -> tuple[T | None, Callable[[T | UpdaterFunction[T]], None]]:
     ...
 
 
 def use_state(
-    initial_value: T | InitializerFunction[T] | None = None,
+    initial_state: T | InitializerFunction[T] | None = None,
 ) -> tuple[T | None, Callable[[T | UpdaterFunction[T]], None]]:
+    """
+    Hook to add a state variable to your component. The state will persist across renders.
+
+    Args:
+        initial_state: The initial value for the state.
+        It can be any type, but passing a function will treat it as an initializer function.
+        An initializer function is called with no parameters once on the first render to get the initial value.
+        After the initial render the argument is ignored.
+
+    Returns:
+        A tuple containing the current value of the state and a function to set the state.
+        The set state function can take a new value or an updater function.
+        If the set state function is called with a new value, the state will be set to that value.
+        If the set state function is called with an updater function, the updater function will be called with the current state value and the new state will be set to the return value of the updater function.
+    """
     context = get_context()
     hook_index = context.next_hook_index()
 
     if not context.has_state(hook_index):
         # This is the first render, initialize the value
-        context.init_state(hook_index, initial_value)
+        context.init_state(hook_index, initial_state)
 
     value: T = context.get_state(hook_index)
 
