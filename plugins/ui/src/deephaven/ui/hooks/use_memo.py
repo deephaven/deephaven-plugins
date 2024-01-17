@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .use_ref import use_ref, Ref
 from typing import Any, Callable, TypeVar
 
