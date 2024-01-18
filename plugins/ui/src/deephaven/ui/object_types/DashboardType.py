@@ -6,7 +6,7 @@ from .ElementType import ElementType
 
 class DashboardType(ElementType):
     """
-    Defines the Element type for the Deephaven plugin system.
+    Defines the Dashboard type for the Deephaven plugin system.
     """
 
     @property

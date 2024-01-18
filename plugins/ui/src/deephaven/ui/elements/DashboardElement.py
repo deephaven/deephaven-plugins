@@ -1,14 +1,14 @@
 from __future__ import annotations
+
+from typing import Any
 import logging
-from .FunctionElement import FunctionElement
+from .BaseElement import BaseElement
 
 logger = logging.getLogger(__name__)
 
 
-class DashboardElement(FunctionElement):
-    def __init__(self, *args, **kwargs):
-        super(DashboardElement, self).__init__(*args, **kwargs)
-
-    @property
-    def name(self):
-        return self._name
+class DashboardElement(BaseElement):
+    def __init__(self, *children: Any, **props: Any):
+        super(DashboardElement, self).__init__(
+            "deephaven.ui.components.Dashboard", *children, **props
+        )

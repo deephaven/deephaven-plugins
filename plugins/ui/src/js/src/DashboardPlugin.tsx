@@ -6,6 +6,7 @@ import {
   PanelEvent,
   useListener,
   useDashboardData,
+  emitCreateDashboard,
 } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
 import { useConnection } from '@deephaven/jsapi-components';
@@ -69,18 +70,20 @@ export function DashboardPlugin({
   const handleDashboardOpen = useCallback(
     ({ widget }: { widget: VariableDefinition }) => {
       const { type } = widget;
-      if (type === DASHBOARD_ELEMENT) {
-        log.debug('Emitting dashboard open event for', widget);
-        layout.eventHub.emit('ui.dashboard', {
-          pluginId: DASHBOARD_ELEMENT,
-          title: widget.title,
-          data: {
-            type: widget.type,
-            title: widget.title,
-            id: widget.id,
-          },
-        });
+      if (type !== DASHBOARD_ELEMENT) {
+        return;
       }
+
+      log.debug('Emitting create dashboard event for', widget);
+      emitCreateDashboard(layout.eventHub, {
+        pluginId: DASHBOARD_ELEMENT,
+        title: widget.title,
+        data: {
+          type: widget.type,
+          title: widget.title,
+          id: widget.id,
+        },
+      });
     },
     [layout.eventHub]
   );
