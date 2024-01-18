@@ -1,4 +1,4 @@
-import { createContext, useContext, useRef } from 'react';
+import { createContext, useContext, useMemo } from 'react';
 import { useLayoutManager } from '@deephaven/dashboard';
 import type { ContentItem } from '@deephaven/golden-layout';
 
@@ -7,10 +7,12 @@ export const ParentItemContext = createContext<ContentItem | null>(null);
 export function useParentItem() {
   const layoutManager = useLayoutManager();
   const parentContextItem = useContext(ParentItemContext);
-  const parentItem = useRef(
-    parentContextItem ??
+  const parentItem = useMemo(
+    () =>
+      parentContextItem ??
       layoutManager.root.contentItems[0] ??
-      layoutManager.root
+      layoutManager.root,
+    [layoutManager.root, parentContextItem]
   );
-  return parentItem.current;
+  return parentItem;
 }
