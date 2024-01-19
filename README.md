@@ -183,6 +183,8 @@ During development, it is expected that all commit message will adhere to `conve
 
 See `cog.toml` to understand the full details of the release process.
 
+After you have successfully run `tools/release.sh` once, you should be able to directly invoke `cog bump --auto --package <pluginName>`, or omit the `--package` to release all plugins which have updated files.
+
 ### Updating Versions in Source Code
 
 As part of the release process, `cog` will, per our `cog.toml` configuration, invoke `tools/update_version.sh <packageName> <newVersion>`, which is a script that uses `sed` to update a plugin's version number in whatever source file we happen to use as the source of truth for version information in the given plugin.
