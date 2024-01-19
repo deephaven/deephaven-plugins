@@ -61,10 +61,10 @@ fi
 package=
 while (( $# > 0 )); do
     case "$1" in
-        --debug) ;&
-        -d) set -o xtrace ;;
-        --help) ;&
-        -h) usage ; exit 0 ;;
+        --debug | -d)
+            set -o xtrace ;;
+        --help | -h)
+            usage ; exit 0 ;;
         *)
             if [ -n "$package" ]; then
                 {
