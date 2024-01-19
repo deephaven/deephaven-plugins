@@ -129,6 +129,7 @@ case "$package" in
             update_file table-example/src/js/package.json '"version": "' '",'
             ;;
         ui)
+            update_file ui/src/deephaven/ui/src/js/package.json '"version": "' '",'
             update_file ui/src/deephaven/ui/__init__.py '__version__ = "' '"' "$extra"
             ;;
         *)
