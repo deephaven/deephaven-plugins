@@ -2,6 +2,7 @@ import React from 'react';
 import { WidgetDefinition } from '@deephaven/dashboard';
 import ReactPanel from './ReactPanel';
 import { MixedPanelsError, NoChildrenError } from './errors';
+import Dashboard from './layout/Dashboard';
 
 /**
  * Convert the children passed as the Document root to a valid root node, or throw if it's an invalid root configuration.
@@ -25,26 +26,38 @@ export function getRootChildren(
   if (childrenArray.length === 0) {
     throw new NoChildrenError('No children to render');
   }
-  const childPanelCount = childrenArray.filter(
+
+  const panelCount = childrenArray.filter(
     child => child?.type === ReactPanel
   ).length;
-  if (childPanelCount > 0 && childPanelCount !== childrenArray.length) {
-    throw new MixedPanelsError('Cannot mix panel and non-panel elements');
+
+  const dashboardCount = childrenArray.filter(
+    child => child?.type === Dashboard
+  ).length;
+
+  const nonLayoutCount = childrenArray.length - panelCount - dashboardCount;
+
+  if (nonLayoutCount > 0 && nonLayoutCount !== childrenArray.length) {
+    throw new MixedPanelsError('Cannot mix layout and non-layout elements');
   }
 
-  // if (childPanelCount === 0) {
-  //   // Just wrap it in a panel
-  //   return (
-  //     <ReactPanel
-  //       key="root"
-  //       title={definition.title ?? definition.id ?? definition.type}
-  //     >
-  //       {children}
-  //     </ReactPanel>
-  //   );
-  // }
+  if (panelCount > 0 && dashboardCount > 0) {
+    throw new MixedPanelsError('Cannot mix Panel and Dashboard elements');
+  }
 
-  // It's already got panels defined, just return it
+  if (nonLayoutCount === childrenArray.length) {
+    // Just wrap it in a panel
+    return (
+      <ReactPanel
+        key="root"
+        title={definition.title ?? definition.id ?? definition.type}
+      >
+        {children}
+      </ReactPanel>
+    );
+  }
+
+  // It's already got layout defined, just return it
   return children;
 }
 
