@@ -26,14 +26,14 @@ pre_package_bump_hooks = [
 post_package_bump_hooks = [
     # prepare the github release changelog file
     "mkdir -p ../../releases",
-    "cog changelog --at {{package}}-v{{version}} -t full_hash > ../../releases/GITHUB_CHANGELOG-{{package}}.md",
+    "cog changelog --package {{package}} --at {{package}}-v{{version}} -t full_hash > ../../releases/GITHUB_CHANGELOG-{{package}}.md",
     # update the version number to have a .dev0 suffix (when possible, only done for python plugins)
     "../../tools/update_version.sh {{package}} {{version}} --dev",
     # push the tag and the commits to main 
     "git push origin {{package}}-v{{version}}",
     "git push origin main",
     # cut a github release using our conventional-commit changelog
-    "gh release create {{package}}-v{{version}} --notes-file ../../releases/GITHUB_CHANGELOG-{{package}}.md --title '@deephaven/'{{package}}-v{{version}} --verify-tag"
+    "gh release create {{package}}-v{{version}} --notes-file ../../releases/GITHUB_CHANGELOG-{{package}}.md --title {{package}}-v{{version}} --verify-tag"
 ]
 
 [git_hooks]
