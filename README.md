@@ -170,6 +170,8 @@ In order to manage changelogs, version bumps and github releases, we use [cocogi
 
 The main configuration file is cog.toml, which we run using some helper scripts located in the `tools/` directory.
 
+You will also need the [GitHub CLI](https://cli.github.com/) tool installed to create and push releases to GitHub.
+
 ### Cutting a New Release
 
 In order to release a given plugin, you will run the script: `tools/release.sh <pluginName>`.  
