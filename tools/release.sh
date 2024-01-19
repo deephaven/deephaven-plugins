@@ -105,6 +105,16 @@ if ! grep -q "plugins/$package" "$ROOT_DIR/cog.toml"; then
     exit 91
 fi
 
+if [ -n "$(git status --short)" ]; then
+    {
+        log_error "Detected uncommitted files via git status:"
+        git status --short
+        log_error "Releases can only be performed with a clean git status"
+        log_error 'You must commit/stash your changes, or `git reset --hard` to erase them'
+        exit 95
+    } 2>/dev/null
+fi
+
 # Perform release
 { log_info "Releasing package '$package'" ; } 2>/dev/null
 (
