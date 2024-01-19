@@ -2,7 +2,7 @@
 
 # This script is used to update the version of a given plugin in its source code.
 # Because this differs for various plugins, this script is used to hide all that complexity
-# behind a very simply API.  `update_version.sh <plugin-name> <new-version>`
+# behind a very simple API.  `update_version.sh <plugin-name> <new-version>`
 
 # You should not need to call this script directly.
 # It is invoked for you when calling the release.sh script located next to this one.
