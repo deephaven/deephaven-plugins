@@ -166,7 +166,7 @@ services:
 
 ## Release Management
 
-In order to manage changelogs, version bumps and github releases, we use cocogitto, or `cog` for short. [https://github.com/cocogitto/cocogitto]
+In order to manage changelogs, version bumps and github releases, we use [cocogitto](https://github.com/cocogitto/cocogitto), or `cog` for short. Follow the [Installation instructions](https://github.com/cocogitto/cocogitto?tab=readme-ov-file#installation) to install `cog`. For Linux and Windows, we recommend using [cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) to install. For MacOS, we recommend using [brew](https://brew.sh/).
 
 The main configuration file is cog.toml, which we run using some helper scripts located in the `tools/` directory.
 
