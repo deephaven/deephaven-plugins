@@ -179,7 +179,7 @@ This must be done on a branch named `main` and will publish to the `git remote -
 which will invoke the necessary programs and scripts to automate a version bump and GitHub release.
 
 During development, it is expected that all commit message will adhere to [conventional commits]([https://www.conventionalcommits.org/en/about/]).
-`cog` will then uses your commit messages to compute a new version number, assemble a changelog, update our version in source code, create and push git tags, and perform a github release for the given plugin.
+`cog` will then uses your commit messages to compute a new version number, assemble a changelog, update our version in source code, create and push git tags, and perform a GitHub release for the given plugin.
 
 See `cog.toml` to understand the full details of the release process.
 
