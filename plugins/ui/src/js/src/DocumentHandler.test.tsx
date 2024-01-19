@@ -3,7 +3,11 @@ import { WidgetDefinition } from '@deephaven/dashboard';
 import { TestUtils } from '@deephaven/utils';
 import { render } from '@testing-library/react';
 import DocumentHandler, { DocumentHandlerProps } from './DocumentHandler';
-import { PANEL_ELEMENT_NAME, ReactPanelProps } from './layout/LayoutUtils';
+import {
+  DASHBOARD_ELEMENT_NAME,
+  PANEL_ELEMENT_NAME,
+  ReactPanelProps,
+} from './layout/LayoutUtils';
 import { MixedPanelsError, NoChildrenError } from './errors';
 import { getComponentForElement } from './WidgetUtils';
 
@@ -80,4 +84,20 @@ it('should render multiple panels', () => {
   ]);
   render(makeDocumentHandler({ children }));
   expect(mockReactPanel).toHaveBeenCalledTimes(2);
+});
+
+it('should throw an error if the document mixes dashboard and non-dashboard elements', () => {
+  const children = makeDocument([
+    makeElement(PANEL_ELEMENT_NAME),
+    makeElement(DASHBOARD_ELEMENT_NAME),
+  ]);
+  expect(() => render(makeDocumentHandler({ children }))).toThrow(
+    MixedPanelsError
+  );
+});
+
+it('should render a dashboard', () => {
+  const children = makeDocument([makeElement(DASHBOARD_ELEMENT_NAME)]);
+  render(makeDocumentHandler({ children }));
+  expect(mockReactPanel).toHaveBeenCalledTimes(0);
 });
