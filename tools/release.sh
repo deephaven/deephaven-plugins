@@ -73,7 +73,7 @@ while (( $# > 0 )); do
                 } 2>/dev/null
                 exit 94
             fi
-            if grep -q "$1" <<< "$all_plugins"; then
+            if grep -qE "^$1\$" <<< "$all_plugins"; then
                 package="$1"
             else
                 {

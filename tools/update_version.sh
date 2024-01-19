@@ -56,7 +56,7 @@ while (( $# > 0 )); do
             usage ; exit 0 ;;
         *)
             if [ -z "$package" ]; then
-                if grep -q "$1" <<< "$all_plugins"; then
+                if grep -qE "^$1\$" <<< "$all_plugins"; then
                     package="$1"
                 else
                     {
