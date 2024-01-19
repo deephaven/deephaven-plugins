@@ -20,12 +20,12 @@ def _render(context: RenderContext, element: Element):
         The RenderedNode representing the element.
     """
 
-    def render_child(child: Any, child_context: RenderContext):
+    def render_child(child: Any, child_context: RenderContext) -> Any:
         logger.debug("child_context is %s", child_context)
         if isinstance(child, list) or isinstance(child, tuple):
             logger.debug("render_child list: %s", child)
             return [
-                render_child(child, child_context.get_child_context(i))
+                render_child(child, child_context.get_child_context(str(i)))
                 for i, child in enumerate(child)
             ]
         if isinstance(child, dict):

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Callable
+
 from plotly import express as px
 
 from deephaven.table import Table
@@ -10,57 +12,55 @@ from ..deephaven_figure import DeephavenFigure
 
 
 def pie(
-    table: Table = None,
-    names: str = None,
-    values: str = None,
-    color: str | list[str] = None,
-    hover_name: str = None,
-    labels: dict[str, str] = None,
-    color_discrete_sequence: list[str] = None,
-    color_discrete_map: dict[str, str] = None,
-    title: str = None,
-    template: str = None,
-    opacity: float = None,
-    hole: float = None,
-    unsafe_update_figure: callable = default_callback,
+    table: Table | None = None,
+    names: str | None = None,
+    values: str | None = None,
+    color: str | list[str] | None = None,
+    hover_name: str | None = None,
+    labels: dict[str, str] | None = None,
+    color_discrete_sequence: list[str] | None = None,
+    color_discrete_map: dict[str, str] | None = None,
+    title: str | None = None,
+    template: str | None = None,
+    opacity: float | None = None,
+    hole: float | None = None,
+    unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """Returns a pie chart
 
 
     Args:
-      table: Table:  (Default value = None)
+      table: Table | None:  (Default value = None)
         A table to pull data from.
-      names: str:  (Default value = None)
+      names: str | None:  (Default value = None)
         The column containing names of the pie slices
-      values: str:  (Default value = None)
+      values: str | None:  (Default value = None)
         The column containing values of the pie slices
-      color: str | list[str]: (Default value = None)
+      color: str | list[str] | None: (Default value = None)
         A column or list of columns that contain color values.
         The value is used for a plot by on color.
         See color_discrete_map for additional behaviors.
-      hover_name: str:  (Default value = None)
+      hover_name: str | None:  (Default value = None)
         A column that contain names to bold in the hover tooltip..
-      labels: dict[str, str]:  (Default value = None)
+      labels: dict[str, str] | None:  (Default value = None)
         A dictionary of labels mapping columns to new labels.
-      color_discrete_sequence: list[str]:  (Default value = None)
+      color_discrete_sequence: list[str] | None:  (Default value = None)
         A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
         colors will be reused.
-      color_discrete_map: dict[str | tuple[str], str] (Default value = None)
+      color_discrete_map: dict[str | tuple[str], str] | None: (Default value = None)
         If dict, the keys should be strings of the column values (or a tuple
         of combinations of column values) which map to colors.
-      title: str: (Default value = None)
+      title: str | None: (Default value = None)
         The title of the chart
-      template: str:  (Default value = None)
+      template: str | None:  (Default value = None)
         The template for the chart.
-      opacity: float:  (Default value = None)
+      opacity: float | None:  (Default value = None)
         Opacity to apply to all markers. 0 is completely transparent
         and 1 is completely opaque.
-      opacity: Opacity to apply to all points. 0 is completely transparent
-        and 1 is completely opaque.
-      hole: float:  (Default value = None)
+      hole: float | None:  (Default value = None)
         Fraction of the radius to cut out of the center of the pie.
-      unsafe_update_figure: callable:  (Default value = default_callback)
+      unsafe_update_figure: Callable:  (Default value = default_callback)
         An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is
         not returned, the plotly figure passed will be assumed to be the return

@@ -9,8 +9,8 @@ class StyleManager:
       always_attached type charts.
 
     Args:
-        ls: list[str]: The list of styles
-        map: dict[str, str]: The mapping of value to style
+        ls: list[str] | None: The list of styles
+        map: dict[str, str] | None: The mapping of value to style
 
     Attributes:
         ls: list[str]: The list of styles
@@ -22,8 +22,8 @@ class StyleManager:
 
     def __init__(
         self,
-        ls: list[str] = None,
-        map: dict[str, str] = None,
+        ls: list[str] | None = None,
+        map: dict[str, str] | None = None,
     ):
         self.ls = ls if isinstance(ls, list) else [ls]
         self.map = map

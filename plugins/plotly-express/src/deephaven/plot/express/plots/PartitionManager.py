@@ -140,14 +140,14 @@ class PartitionManager:
         args: dict[str, Any],
         draw_figure: Callable,
         groups: set[str],
-        marg_args: dict[str, any],
+        marg_args: dict[str, Any],
         marg_func: Callable,
     ):
         self.by = None
         self.by_vars = None
         self.list_var = None
         self.cols = None
-        self.pivot_vars = None
+        self.pivot_vars = {}
         self.has_color = None
         self.facet_row = None
         self.facet_col = None
@@ -495,7 +495,7 @@ class PartitionManager:
 
         return transposed.drop_columns(cols)
 
-    def current_partition_generator(self) -> Generator[dict[str, str]]:
+    def current_partition_generator(self) -> Generator[dict[str, str], None, None]:
         """
         Generate a partition dictionary for the current partition that maps
         column to value
@@ -525,7 +525,9 @@ class PartitionManager:
             )
             yield current_partition
 
-    def table_partition_generator(self) -> Generator[tuple[Table, dict[str, str]]]:
+    def table_partition_generator(
+        self,
+    ) -> Generator[tuple[Table, dict[str, str]], None, None]:
         """
         Generates a tuple of (table, current partition). The table is the possibly
         preprocessed partition of the current_partition
@@ -541,7 +543,7 @@ class PartitionManager:
         for table, current_partition in zip(tables, self.current_partition_generator()):
             yield table, current_partition
 
-    def partition_generator(self) -> Generator[dict[str, Any]]:
+    def partition_generator(self) -> Generator[dict[str, Any], None, None]:
         """
         Generates args that can be used to create one layer of a partitioned
         figure.

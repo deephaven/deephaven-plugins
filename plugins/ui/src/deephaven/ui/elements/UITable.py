@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, Literal, Sequence
+from typing import Any, Callable, Literal, Sequence, Optional
 from deephaven.table import Table
 from deephaven import SortDirection
 from .Element import Element
@@ -143,7 +143,7 @@ class UITable(Element):
         self,
         operations: dict[ColumnName, list[AggregationOperation]],
         operation_order: list[AggregationOperation] | None = None,
-        default_operation: AggregationOperation = "Skip",
+        default_operation: AggregationOperation | None = None,
         group_by: list[ColumnName] | None = None,
         show_on_top: bool = False,
     ) -> "UITable":
@@ -155,7 +155,7 @@ class UITable(Element):
                 The operations to apply to the columns of the table.
             operation_order: list[AggregationOperation] | None:
                 The order in which to display the operations.
-            default_operation: AggregationOperation:
+            default_operation: AggregationOperation | None:
                 The default operation to apply to columns that do not have an operation specified.
             group_by: list[ColumnName] | None:
                 The columns to group by.
@@ -318,34 +318,34 @@ class UITable(Element):
     def data_bar(
         self,
         col: str,
-        value_col: str = None,
-        min: float | str = None,
-        max: float | str = None,
+        value_col: str | None = None,
+        min: float | str | None = None,
+        max: float | str | None = None,
         axis: DataBarAxis | None = None,
-        positive_color: Color | list[Color] = None,
-        negative_color: Color | list[Color] = None,
+        positive_color: Color | list[Color] | None = None,
+        negative_color: Color | list[Color] | None = None,
         value_placement: DataBarValuePlacement | None = None,
         direction: DataBarDirection | None = None,
-        opacity: float = None,
-        marker_col: str = None,
-        marker_color: Color = None,
+        opacity: float | None = None,
+        marker_col: str | None = None,
+        marker_color: Color | None = None,
     ) -> "UITable":
         """
         Applies data bar formatting to the specified column.
 
         Args:
             col: str: Column to generate data bars in
-            value_col: str: Column containing the values to generate data bars from
-            min: float | str: Minimum value for data bar scaling or column to get value from
-            max: float | str: Maximum value for data bar scaling or column to get value from
+            value_col: str | None: Column containing the values to generate data bars from
+            min: float | str | None: Minimum value for data bar scaling or column to get value from
+            max: float | str | None: Maximum value for data bar scaling or column to get value from
             axis: DataBarAxis | None: Orientation of data bar relative to cell
-            positive_color: Color | list[Color]: Color for positive bars. Use list of colors to form a gradient
-            negative_color: Color | list[Color]: Color for negative bars. Use list of colors to form a gradient
+            positive_color: Color | list[Color] | None: Color for positive bars. Use list of colors to form a gradient
+            negative_color: Color | list[Color] | None: Color for negative bars. Use list of colors to form a gradient
             value_placement: DataBarValuePlacement | None: Orientation of values relative to data bar
             direction: DataBarDirection | None: Orientation of data bar relative to horizontal axis
-            opacity: float: Opacity of data bar. Accepts values from 0 to 1
-            marker_col: str: Column containing the values to generate markers from
-            marker_color: Color: Color for markers
+            opacity: float | None: Opacity of data bar. Accepts values from 0 to 1
+            marker_col: str | None: Column containing the values to generate markers from
+            marker_color: Color | None: Color for markers
 
         Returns:
             UITable: A new UITable

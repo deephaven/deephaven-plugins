@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Generator
 
 from deephaven import agg, empty_table, new_table
 from deephaven.table import PartitionedTable, Table
@@ -68,7 +68,7 @@ class HistPreprocessor(UnivariatePreprocessor):
     def __init__(self, args: dict[str, Any], pivot_vars: dict[str, str]):
         super().__init__(args, pivot_vars)
         self.range_table = None
-        self.names = None
+        self.names = {}
         self.nbins = args.pop("nbins", 10)
         self.range_bins = args.pop("range_bins", None)
         self.histfunc = args.pop("histfunc", "count")
@@ -80,7 +80,6 @@ class HistPreprocessor(UnivariatePreprocessor):
     def prepare_preprocess(self) -> None:
         """
         Prepare for preprocessing by creating a range table over all values
-
         """
         self.names = get_unique_names(
             self.args["table"],
@@ -89,7 +88,12 @@ class HistPreprocessor(UnivariatePreprocessor):
         self.range_table = self.create_range_table()
 
     def create_range_table(self) -> Table:
-        """Create a table that contains the bin ranges"""
+        """
+        Create a table that contains the bin ranges
+
+        Returns:
+            Table: A table containing the bin ranges
+        """
         # partitioned tables need range calculated on all
         table = (
             self.table.merge()
@@ -119,13 +123,18 @@ class HistPreprocessor(UnivariatePreprocessor):
 
     def create_count_tables(
         self, tables: list[Table], column: str = None
-    ) -> tuple[Table, dict[str, str]]:
+    ) -> Generator[tuple[Table, dict[str, str]], None, None]:
         """
         Create count tables that aggregate up values.
 
         Args:
             tables: list[Table]: List of tables to create counts for
             column: str: the column used
+
+        Yields:
+            tuple[Table, dict[str, str]]: A tuple containing the table and a
+                temporary column
+
         """
         range_index, range_ = self.names["range_index"], self.names["range"]
         agg_func = HISTFUNC_MAP[self.histfunc]
@@ -144,9 +153,20 @@ class HistPreprocessor(UnivariatePreprocessor):
             yield count_table, tmp_col
 
     def preprocess_partitioned_tables(
-        self, tables: list[Table], column: str = None
-    ) -> tuple[Table, dict[str, str]]:
-        """Preprocess tables into histogram tables"""
+        self, tables: list[Table], column: str | None = None
+    ) -> Generator[tuple[Table, dict[str, str]], None, None]:
+        """
+        Preprocess tables into histogram tables
+
+        Args:
+            tables: list[Table]: List of tables to preprocess
+            column: str: the column used
+
+        Yields:
+            tuple[Table, dict[str, str]]: A tuple containing the table and a
+                mapping of metadata
+
+        """
         # column will only be set if there's a pivot var, which means the table has been restructured
         column = self.col_val if not column else column
 

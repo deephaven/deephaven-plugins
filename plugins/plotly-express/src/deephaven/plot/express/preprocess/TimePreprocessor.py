@@ -20,15 +20,15 @@ class TimePreprocessor:
         self.args = args
 
     def preprocess_partitioned_tables(
-        self, tables: list[Table], column: str = None
-    ) -> Generator[tuple[Table, dict[str, str]]]:
+        self, tables: list[Table], column: str | None = None
+    ) -> Generator[tuple[Table, dict[str, str]], None, None]:
         """Preprocess frequency bar params into an appropriate table
         This just sums each value by count
 
         Args:
           tables: Table:
             The tables to process
-          column: str:
+          column: str | None:
             The column to process
 
         Returns:

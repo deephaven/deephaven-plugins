@@ -32,7 +32,7 @@ def listener_with_ctx(
 
 def with_ctx(
     listener: Callable[[TableUpdate, bool], None]
-) -> partial[[TableUpdate, bool], None]:
+) -> Callable[[TableUpdate, bool], None]:
     """
     Wrap the listener in an execution context.
 
@@ -47,7 +47,7 @@ def with_ctx(
 
 def wrap_listener(
     listener: Callable[[TableUpdate, bool], None] | TableListener
-) -> partial[[TableUpdate, bool], None]:
+) -> Callable[[TableUpdate, bool], None] | None:
     """
     Wrap the listener in an execution context.
 
@@ -55,12 +55,13 @@ def wrap_listener(
         listener: Callable[[TableUpdate, bool], None]: The listener to wrap.
 
     Returns:
-        partial[[TableUpdate, bool], None]: The wrapped listener.
+        Callable[[TableUpdate, bool], None] | None: The wrapped listener.
     """
     if isinstance(listener, TableListener):
         return with_ctx(listener.on_update)
     elif callable(listener):
         return with_ctx(listener)
+    return None
 
 
 def use_table_listener(

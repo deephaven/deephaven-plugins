@@ -116,13 +116,14 @@ class DeephavenFigureListener:
         return self._build_figure_message(self._get_figure())
 
     def _build_figure_message(
-        self, figure: DeephavenFigure, revision: int = None
+        self, figure: DeephavenFigure, revision: int | None = None
     ) -> tuple[bytes, list[Any]]:
         """
         Build a message to send to the client with the current figure.
 
         Args:
-            figure: DeephavenFigure: The figure to send
+            figure: DeephavenFigure: The figure to send\
+            revision: int | None: The revision to send
 
         Returns:
             tuple[bytes, list[Any]]: The result of the message as a tuple of
@@ -170,6 +171,7 @@ class DeephavenFigureListener:
         message = json.loads(payload.decode())
         if message["type"] == "RETRIEVE":
             return self._handle_retrieve_figure()
+        return b"", []
 
     def __del__(self):
         self._liveness_scope.release()

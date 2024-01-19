@@ -5,8 +5,8 @@ from .basic import spectrum_element
 
 def flex(
     *children,
-    direction: Literal["row", "column", "row-reverse", "column-reverse"] = None,
-    wrap: Literal["wrap", "nowrap", "wrap-reverse"] = None,
+    direction: Literal["row", "column", "row-reverse", "column-reverse"] | None = None,
+    wrap: Literal["wrap", "nowrap", "wrap-reverse"] | None = None,
     justify_content: Literal[
         "start",
         "end",
@@ -22,7 +22,8 @@ def flex(
         "last baseline",
         "safe center",
         "unsafe center",
-    ] = None,
+    ]
+    | None = None,
     align_content: Literal[
         "start",
         "end",
@@ -36,25 +37,25 @@ def flex(
         "last baseline",
         "safe center",
         "unsafe center",
-    ] = None,
-    align_items: Optional[
-        Literal[
-            "start",
-            "end",
-            "center",
-            "stretch",
-            "self-start",
-            "self-end",
-            "baseline",
-            "first baseline",
-            "last baseline",
-            "safe center",
-            "unsafe center",
-        ]
-    ] = None,
-    gap: Optional[str | int | float] = None,
-    column_gap: Optional[str | int | float] = None,
-    row_gap: Optional[str | int | float] = None,
+    ]
+    | None = None,
+    align_items: Literal[
+        "start",
+        "end",
+        "center",
+        "stretch",
+        "self-start",
+        "self-end",
+        "baseline",
+        "first baseline",
+        "last baseline",
+        "safe center",
+        "unsafe center",
+    ]
+    | None = None,
+    gap: str | int | float | None = None,
+    column_gap: str | int | float | None = None,
+    row_gap: str | int | float | None = None,
     **props,
 ):
     """

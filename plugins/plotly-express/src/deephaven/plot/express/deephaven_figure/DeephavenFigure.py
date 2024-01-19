@@ -35,12 +35,12 @@ def has_color_args(call_args: dict[str, Any]) -> bool:
     return False
 
 
-def has_arg(call_args: dict[str, Any], check: str | Callable) -> bool:
+def has_arg(call_args: dict[str, Any] | None, check: str | Callable) -> bool:
     """Given either a string to check for in call_args or function to check,
     return True if the arg is in the call_args
 
     Args:
-      call_args: dict[str, Any]: A dictionary of args
+      call_args: dict[str, Any] | None: A dictionary of args
       check: str | Callable: Either a string or a function that takes call_args
 
     Returns:
@@ -118,21 +118,21 @@ class DeephavenFigureNode(DeephavenNode):
 
     def __init__(
         self,
-        parent: DeephavenNode | DeephavenHeadNode = None,
-        exec_ctx: ExecutionContext = None,
-        args: dict[str, Any] = None,
-        table: Table | PartitionedTable = None,
-        func: Callable = None,
+        parent: DeephavenNode | DeephavenHeadNode | None = None,
+        exec_ctx: ExecutionContext | None = None,
+        args: dict[str, Any] | None = None,
+        table: Table | PartitionedTable | None = None,
+        func: Callable | None = None,
     ):
         """
         Create a new DeephavenFigureNode
 
         Args:
-            parent: DeephavenNode | DeephavenHeadNode: The parent node
-            exec_ctx: ExecutionContext: The execution context
-            args: dict[str, Any]: The arguments to the function
-            table: PartitionedTable: The table to pull data from
-            func: Callable: The function to call
+            parent: DeephavenNode | DeephavenHeadNode | None: The parent node
+            exec_ctx: ExecutionContext | None: The execution context
+            args: dict[str, Any] | None: The arguments to the function
+            table: PartitionedTable | None: The table to pull data from
+            func: Callable | None: The function to call
         """
         self.parent = parent
         self.exec_ctx = exec_ctx
@@ -381,25 +381,25 @@ class DeephavenFigure:
 
     def __init__(
         self: DeephavenFigure,
-        fig: Figure = None,
-        call_args: dict[Any] = None,
-        data_mappings: list[DataMapping] = None,
+        fig: Figure | None = None,
+        call_args: dict[str, Any] | None = None,
+        data_mappings: list[DataMapping] | None = None,
         has_template: bool = False,
         has_color: bool = False,
-        trace_generator: Generator[dict[str, Any]] = None,
+        trace_generator: Generator[dict[str, Any]] | None = None,
         has_subplots: bool = False,
     ):
         """
         Create a new DeephavenFigure
 
         Args:
-            fig: Figure: The plotly figure
-            call_args: dict[Any]: Call args, used to determine if the figure
+            fig: Figure | None: The plotly figure
+            call_args: dict[str, Any] | None: Call args, used to determine if the figure
                 has a template or color
-            data_mappings: list[DataMapping]: The data mappings
+            data_mappings: list[DataMapping] | None: The data mappings
             has_template: bool: If this figure has a template
             has_color: bool: If this figure has color
-            trace_generator: Generator[dict[str, Any]]: The trace generator
+            trace_generator: Generator[dict[str, Any]] | None: The trace generator
             has_subplots: bool: If this figure has subplots
         """
         # keep track of function that called this, and it's args
@@ -601,12 +601,12 @@ class DeephavenFigure:
             return self._data_mappings
         return self.get_figure().get_data_mappings()
 
-    def get_trace_generator(self) -> Generator[dict[str, Any]]:
+    def get_trace_generator(self) -> Generator[dict[str, Any], None, None] | None:
         """
         Get the trace generator for this figure
 
         Returns:
-            Generator[dict[str, Any]]: The trace generator
+            Generator[dict[str, Any], None, None] | None: The trace generator
         """
         if not self.get_figure():
             return self._trace_generator

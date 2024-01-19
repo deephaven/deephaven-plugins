@@ -31,14 +31,14 @@ class DataMapping:
         self._data_mapping = data_mapping
         self._start_index = start_index
 
-    def get_links(self: DataMapping, exporter: Exporter) -> list[dict[Any]]:
+    def get_links(self: DataMapping, exporter: Exporter) -> list[dict[Any, Any]]:
         """Get the json links for this data mapping
 
         Args:
           exporter: Exporter: The exporter, used to get the index of the table
 
         Returns:
-          list[dict[Any]]: The column to json link mapping for this DataMapping
+          list[dict[Any, Any]]: The column to json link mapping for this DataMapping
 
         """
         return json_link_mapping(

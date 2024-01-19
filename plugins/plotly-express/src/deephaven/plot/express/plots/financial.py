@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Callable
+
 from deephaven.table import Table
 
 from ._private_utils import process_args
@@ -8,59 +10,59 @@ from ..deephaven_figure import draw_ohlc, draw_candlestick, DeephavenFigure
 
 
 def ohlc(
-    table: Table = None,
-    x: str = None,
-    open: str | list[str] = None,
-    high: str | list[str] = None,
-    low: str | list[str] = None,
-    close: str | list[str] = None,
-    increasing_color_sequence: list[str] = None,
-    decreasing_color_sequence: list[str] = None,
-    xaxis_sequence: list[int] = None,
-    yaxis_sequence: list[int] = None,
-    yaxis_titles: list[str] = None,
-    xaxis_titles: list[str] = None,
-    unsafe_update_figure: callable = default_callback,
+    table: Table | None = None,
+    x: str | None = None,
+    open: str | list[str] | None = None,
+    high: str | list[str] | None = None,
+    low: str | list[str] | None = None,
+    close: str | list[str] | None = None,
+    increasing_color_sequence: list[str] | None = None,
+    decreasing_color_sequence: list[str] | None = None,
+    xaxis_sequence: list[int] | None = None,
+    yaxis_sequence: list[int] | None = None,
+    yaxis_titles: list[str] | None = None,
+    xaxis_titles: list[str] | None = None,
+    unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """Returns an ohlc chart
 
     Args:
-      table: Table:  (Default value = None)
+      table: Table | None:  (Default value = None)
         A table to pull data from.
-      x: str:  (Default value = None)
+      x: str | None:  (Default value = None)
         The column containing x-axis data
-      open: str | list[str]: (Default value = None)
+      open: str | list[str] | None: (Default value = None)
         The column containing the open data
-      high: str | list[str]: (Default value = None)
+      high: str | list[str] | None: (Default value = None)
         The column containing the high data
-      low: str | list[str]: (Default value = None)
+      low: str | list[str] | None: (Default value = None)
         The column containing the low data
-      close: str | list[str]: (Default value = None)
+      close: str | list[str] | None: (Default value = None)
         The column containing the close data
-      increasing_color_sequence: list[str]:  (Default value = None)
+      increasing_color_sequence: list[str] | None:  (Default value = None)
         A list of colors to sequentially apply to
         the series on increasing bars. The colors loop, so if there are
         more series than colors, colors will be reused.
-      decreasing_color_sequence: list[str]:  (Default value = None)
+      decreasing_color_sequence: list[str] | None:  (Default value = None)
         A list of colors to sequentially apply to
         the series on decreasing bars. The colors loop, so if there are
         more series than colors, colors will be reused.
-      xaxis_sequence: list[str]:  (Default value = None)
+      xaxis_sequence: list[str] | None:  (Default value = None)
         A list of x axes to assign series to. Odd numbers
         starting with 1 are created on the bottom x axis and even numbers starting
         with 2 are created on the top x axis. Axes are created up
         to the maximum number specified. The axes loop, so if there are more series
         than axes, axes will be reused.
-      yaxis_sequence: list[str]:  (Default value = None)
+      yaxis_sequence: list[str] | None:  (Default value = None)
         A list of y axes to assign series to. Odd numbers
         starting with 1 are created on the left y axis and even numbers starting
         with 2 are created on the top y axis. Axes are created up
         to the maximum number specified. The axes loop, so if there are more series
         than axes, axes will be reused.
-      yaxis_titles: list[str]:  (Default value = None)
+      yaxis_titles: list[str] | None:  (Default value = None)
         A list of titles to sequentially apply to the y axes. The titles do not
           loop.
-      xaxis_titles: list[str]:  (Default value = None)
+      xaxis_titles: list[str] | None:  (Default value = None)
         A list of titles to sequentially apply to the x axes. The titles do not
           loop.
       unsafe_update_figure:  Callable:  (Default value = default_callback)
@@ -86,59 +88,59 @@ def ohlc(
 
 
 def candlestick(
-    table: Table = None,
-    x: str = None,
-    open: str | list[str] = None,
-    high: str | list[str] = None,
-    low: str | list[str] = None,
-    close: str | list[str] = None,
-    increasing_color_sequence: list[str] = None,
-    decreasing_color_sequence: list[str] = None,
-    xaxis_sequence: list[int] = None,
-    yaxis_sequence: list[int] = None,
-    yaxis_titles: list[str] = None,
-    xaxis_titles: list[str] = None,
-    unsafe_update_figure: callable = default_callback,
+    table: Table | None = None,
+    x: str | None = None,
+    open: str | list[str] | None = None,
+    high: str | list[str] | None = None,
+    low: str | list[str] | None = None,
+    close: str | list[str] | None = None,
+    increasing_color_sequence: list[str] | None = None,
+    decreasing_color_sequence: list[str] | None = None,
+    xaxis_sequence: list[int] | None = None,
+    yaxis_sequence: list[int] | None = None,
+    yaxis_titles: list[str] | None = None,
+    xaxis_titles: list[str] | None = None,
+    unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """Returns a candlestick chart
 
         Args:
-      table: Table:  (Default value = None)
+      table: Table | None:  (Default value = None)
         A table to pull data from.
-      x: str:  (Default value = None)
+      x: str | None:  (Default value = None)
         The column containing x-axis data
-      open: str | list[str]: (Default value = None)
+      open: str | list[str] | None: (Default value = None)
         The column containing the open data
-      high: str | list[str]: (Default value = None)
+      high: str | list[str] | None: (Default value = None)
         The column containing the high data
-      low: str | list[str]: (Default value = None)
+      low: str | list[str] | None: (Default value = None)
         The column containing the low data
-      close: str | list[str]: (Default value = None)
+      close: str | list[str] | None: (Default value = None)
         The column containing the close data
-      increasing_color_sequence: list[str]:  (Default value = None)
+      increasing_color_sequence: list[str] | None:  (Default value = None)
         A list of colors to sequentially apply to
         the series on increasing bars. The colors loop, so if there are
         more series than colors, colors will be reused.
-      decreasing_color_sequence: list[str]:  (Default value = None)
+      decreasing_color_sequence: list[str] | None:  (Default value = None)
         A list of colors to sequentially apply to
         the series on decreasing bars. The colors loop, so if there are
         more series than colors, colors will be reused.
-      xaxis_sequence: list[str]:  (Default value = None)
+      xaxis_sequence: list[str] | None:  (Default value = None)
         A list of x axes to assign series to. Odd numbers
         starting with 1 are created on the bottom x axis and even numbers starting
         with 2 are created on the top x axis. Axes are created up
         to the maximum number specified. The axes loop, so if there are more series
         than axes, axes will be reused.
-      yaxis_sequence: list[str]:  (Default value = None)
+      yaxis_sequence: list[str] | None:  (Default value = None)
         A list of y axes to assign series to. Odd numbers
         starting with 1 are created on the left y axis and even numbers starting
         with 2 are created on the top y axis. Axes are created up
         to the maximum number specified. The axes loop, so if there are more series
         than axes, axes will be reused.
-      yaxis_titles: list[str]:  (Default value = None)
+      yaxis_titles: list[str] | None:  (Default value = None)
         A list of titles to sequentially apply to the y axes. The titles do not
           loop.
-      xaxis_titles: list[str]:  (Default value = None)
+      xaxis_titles: list[str] | None:  (Default value = None)
         A list of titles to sequentially apply to the x axes. The titles do not
           loop.
       unsafe_update_figure:  Callable:  (Default value = default_callback)

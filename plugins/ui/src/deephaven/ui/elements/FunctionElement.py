@@ -23,7 +23,7 @@ class FunctionElement(Element):
     def name(self):
         return self._name
 
-    def render(self, context: RenderContext) -> list[Element]:
+    def render(self, context: RenderContext) -> dict[str, list[Element]]:
         """
         Render the component. Should only be called when actually rendering the component, e.g. exporting it to the client.
 

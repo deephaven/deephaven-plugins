@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from typing import Any
 
 from deephaven.plugin.object_type import BidirectionalObjectType, MessageStream
 
@@ -64,12 +65,12 @@ class DeephavenFigureType(BidirectionalObjectType):
         """
         return NAME
 
-    def is_type(self, obj: any) -> bool:
+    def is_type(self, obj: Any) -> bool:
         """
         Check if an object is a DeephavenFigure
 
         Args:
-          obj: any: The object to check
+          obj: Any: The object to check
 
         Returns:
             bool: True if the object is of the correct type, False otherwise

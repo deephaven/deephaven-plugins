@@ -169,23 +169,23 @@ def apply_args_groups(args: dict[str, Any], groups: set[str]) -> None:
 
 def create_deephaven_figure(
     args: dict[str, Any],
-    groups: set[str] = None,
-    add: dict[str, Any] = None,
-    pop: list[str] = None,
-    remap: dict[str, str] = None,
-    px_func: Callable = None,
+    groups: set[str] | None = None,
+    add: dict[str, Any] | None = None,
+    pop: list[str] | None = None,
+    remap: dict[str, str] | None = None,
+    px_func: Callable = lambda: None,
 ) -> tuple[DeephavenFigure, Table | PartitionedTable, Table, dict[str, Any]]:
     """Process the provided args
 
     Args:
       args: dict[str, Any]: A dictionary of args to process
-      groups: set[str]:  (Default value = None)
+      groups: set[str] | None:  (Default value = None)
         A set of groups that apply transformations to the args
-      add: dict[str, Any] (Default value = None)
+      add: dict[str, Any] | None: (Default value = None)
         A dictionary to add to the args
-      pop: list[str]:  (Default value = None)
+      pop: list[str] | None:  (Default value = None)
         A list of keys to remove from the args
-      remap: dict[str, str]:  (Default value = None)
+      remap: dict[str, str] | None:  (Default value = None)
         A dictionary mapping of keys to keys
       px_func: Callable: the function (generally from px) to use to create the figure
 
@@ -254,23 +254,23 @@ def create_deephaven_figure(
 
 def process_args(
     args: dict[str, Any],
-    groups: set[str] = None,
-    add: dict[str, Any] = None,
-    pop: list[str] = None,
-    remap: dict[str, str] = None,
-    px_func: Callable = None,
+    groups: set[str] | None = None,
+    add: dict[str, Any] | None = None,
+    pop: list[str] | None = None,
+    remap: dict[str, str] | None = None,
+    px_func: Callable = lambda: None,
 ) -> DeephavenFigure:
     """Process the provided args
 
     Args:
       args: dict[str, Any]: A dictionary of args to process
-      groups: set[str]:  (Default value = None)
+      groups: set[str] | None:  (Default value = None)
         A set of groups that apply transformations to the args
-      add: dict[str, Any] (Default value = None)
+      add: dict[str, Any] | None (Default value = None)
         A dictionary to add to the args
-      pop: list[str]:  (Default value = None)
+      pop: list[str] | None:  (Default value = None)
         A list of keys to remove from the args
-      remap: dict[str, str]:  (Default value = None)
+      remap: dict[str, str] | None:  (Default value = None)
         A dictionary mapping of keys to keys
       px_func: Callable: the function (generally from px) to use to create the figure
 
@@ -478,11 +478,11 @@ def shared_histogram(is_marginal=True, **args: Any) -> DeephavenFigure:
     return shared_marginal(is_marginal, func, groups, **args)
 
 
-def marginal_axis_update(matches: str = None) -> dict[str, Any]:
+def marginal_axis_update(matches: str | None = None) -> dict[str, Any]:
     """Create an update to a marginal axis so it hides much of the axis info
 
     Args:
-      matches: str:  (Default value = None)
+      matches: str | None:  (Default value = None)
         An optional axis, such as x, y, x2 to match this axis to
 
     Returns:
@@ -533,17 +533,17 @@ def create_marginal(marginal: str, args: dict[str, Any], which: str) -> Deephave
 def attach_marginals(
     fig: DeephavenFigure,
     args: dict[str, Any],
-    marginal_x: str = None,
-    marginal_y: str = None,
+    marginal_x: str | None = None,
+    marginal_y: str | None = None,
 ) -> DeephavenFigure:
     """Create and attach marginals to the provided figure.
 
     Args:
       fig: DeephavenFigure: The figure to attach marginals to
       args: dict[str, Any]: The data args to use
-      marginal_x: str:  (Default value = None)
+      marginal_x: str | None:  (Default value = None)
         The type of marginal; histogram, violin, rug, box
-      marginal_y: str:  (Default value = None)
+      marginal_y: str | None:  (Default value = None)
         The type of marginal; histogram, violin, rug, box
 
     Returns:

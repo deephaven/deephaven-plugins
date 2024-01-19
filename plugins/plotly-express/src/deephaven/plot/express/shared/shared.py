@@ -8,8 +8,8 @@ from deephaven.table import Table, PartitionedTable
 
 
 def combined_generator(
-    generators: list[Generator[tuple | dict]], fill: any = None
-) -> Generator[dict]:
+    generators: list[Generator[tuple | dict, None, None]], fill: Any = None
+) -> Generator[dict, None, None]:
     """Combines generators into dictionary updates iteratively
     One yield of this combined generator yields one yield from each dictionary,
     combined into a new dictionary.
@@ -17,7 +17,7 @@ def combined_generator(
     Args:
       generators: list[Generator[tuple | dict]]:
         Generators to combine. Each should yield either a tuple of a key, value pair or a dictionary.
-      fill: any:  (Default value = None)
+      fill: Any:  (Default value = None)
         Optional fill when the generators are exhausted
 
 

@@ -35,7 +35,7 @@ def get_data_groups(data_vals: Iterable[str | list[str]]) -> Iterable[tuple[str,
     return product(*data_groups)
 
 
-def overriden_keys(keys: list[str]) -> Generator[str]:
+def overriden_keys(keys: list[str]) -> Generator[str, None, None]:
     """Override all keys provided with values in OVERRIDES if applicable
 
     Args:
@@ -51,7 +51,7 @@ def overriden_keys(keys: list[str]) -> Generator[str]:
 
 def get_var_col_dicts(
     data_dict: dict[str, str | list[str]]
-) -> Generator[dict[str, str]]:
+) -> Generator[dict[str, str], None, None]:
     """Generate variable to column mappings. The keys in the dictionary will be
     the keys in the new dictionary items, and a cartesian product will be
     computed on the dictionary values to create the new values.
@@ -85,7 +85,9 @@ def get_var_col_dicts(
         yield dict(zip(overriden_keys(list(data_dict.keys())), data_group))
 
 
-def custom_data_args_generator(var: str, cols: list[str]) -> Generator[tuple[str, str]]:
+def custom_data_args_generator(
+    var: str, cols: list[str]
+) -> Generator[tuple[str, str], None, None]:
     """Generate data mappings for custom data args
 
     Args:
@@ -101,12 +103,13 @@ def custom_data_args_generator(var: str, cols: list[str]) -> Generator[tuple[str
 
 
 def add_custom_data_args(
-    var_col_dicts: Generator[dict[str, str]], custom_call_args: dict[str, Any] = None
-) -> Generator[dict[str, str]]:
+    var_col_dicts: Generator[dict[str, str], None, None],
+    custom_call_args: dict[str, Any] | None = None,
+) -> Generator[dict[str, str], None, None]:
     """Given the existing variable to column mappings, add error bars
 
     Args:
-      var_col_dicts: Generator[dict[str, str]]: Existing var to col map
+      var_col_dicts: Generator[dict[str, str], None, None]: Existing var to col map
       custom_call_args: dict[str, Any]:  (Default value = None) Arguments to
         check for any error bar-related vars
 
@@ -127,7 +130,9 @@ def add_custom_data_args(
         yield {**var_col_dict, **custom_dict}
 
 
-def filter_none(var_col_dicts: Generator[dict[str, str]]) -> Generator[dict[str, str]]:
+def filter_none(
+    var_col_dicts: Generator[dict[str, str], None, None]
+) -> Generator[dict[str, str], None, None]:
     """Filters key, value pairs that have None values from the dictionaries.
 
     Args:
@@ -160,7 +165,9 @@ def remove_unmapped_args(
     return data_dict
 
 
-def zip_args(data_dict: dict[str, str | list[str]]) -> Generator[dict[str, str]]:
+def zip_args(
+    data_dict: dict[str, str | list[str]]
+) -> Generator[dict[str, str], None, None]:
     """Yields var_col_dicts, similarly to get_var_col_dicts
     Special case for OHLC and Candlestick as their data mappings are applied
     sequentially rather than in a product

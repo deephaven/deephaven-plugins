@@ -59,14 +59,14 @@ class Preprocessor:
             self.preprocesser = TimePreprocessor(self.args)
 
     def preprocess_partitioned_tables(
-        self, tables: list[Table], column: str = None
-    ) -> Generator[Table]:
+        self, tables: list[Table], column: str | None = None
+    ) -> Generator[Table, None, None]:
         """
         Preprocess the passed table, depending on the type of preprocessor used
 
         Args:
             tables: list[Table]
-            column: column: str: The column to use
+            column: str | None: The column to use
 
         Yields:
             Table: the preprocessed table

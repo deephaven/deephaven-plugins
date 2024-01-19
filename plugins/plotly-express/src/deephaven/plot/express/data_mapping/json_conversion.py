@@ -3,9 +3,10 @@ from __future__ import annotations
 from collections import defaultdict
 from itertools import count
 from collections.abc import Generator, Iterable
+from typing import Any
 
 
-def json_links(i: int, _vars: Iterable[str]) -> Generator[str]:
+def json_links(i: int, _vars: Iterable[str]) -> Generator[str, None, None]:
     """Create json links to a plotly data object at a specific index and with a
     list of variables to link at that index
 
@@ -23,7 +24,7 @@ def json_links(i: int, _vars: Iterable[str]) -> Generator[str]:
 
 def convert_to_json_links(
     var_col_dicts: list[dict[str, str]], start_index: int
-) -> Generator[dict[str, str]]:
+) -> Generator[dict[str, str], None, None]:
     """Convert the provided dictionaries to json links
 
     Args:
@@ -73,7 +74,7 @@ def json_link_mapping(
     var_col_dicts: list[dict[str, str]],
     table_index: int,
     start_index: int,
-) -> list[dict[Any]]:
+) -> list[dict[Any, Any]]:
     """Create a data mapping of table and cols to json link
 
     Example input:
@@ -101,7 +102,7 @@ def json_link_mapping(
       start_index: int:  What index this data mapping starts at
 
     Returns:
-      list[dict[Any]]: A list containing dicts that have a table to ref mapping
+      list[dict[Any, Any]]: A list containing dicts that have a table to ref mapping
         as well as a mapping from originating column to plotly data location
 
     Examples:

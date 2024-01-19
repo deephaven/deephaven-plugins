@@ -418,9 +418,9 @@ def fig_data_and_layout(
 
 def atomic_layer(
     *figs: DeephavenFigure | Figure,
-    which_layout: int = None,
-    specs: list[dict[str, Any]] = None,
-    unsafe_update_figure: callable = default_callback,
+    which_layout: int | None = None,
+    specs: list[dict[str, Any]] | None = None,
+    unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """
     Layers the provided figures. This is an atomic version of layer, so the
@@ -430,9 +430,9 @@ def atomic_layer(
 
     Args:
         *figs: DeephavenFigure | Figure: The charts to layer
-        which_layout: int:  (Default value = None):
+        which_layout: int | None:  (Default value = None):
             See layer
-        specs: list[dict[str, str | bool | list[float]]]:
+        specs: list[dict[str, Any]] | None:
             See layer
         unsafe_update_figure:
             See layer
@@ -504,8 +504,8 @@ def atomic_layer(
 
 def layer(
     *figs: DeephavenFigure | Figure,
-    which_layout: int = None,
-    specs: list[dict[str, Any]] = None,
+    which_layout: int | None = None,
+    specs: list[dict[str, Any]] | None = None,
     unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """Layers the provided figures. Be default, the layouts are sequentially
@@ -514,10 +514,10 @@ def layer(
 
     Args:
       *figs: DeephavenFigure | Figure: The charts to layer
-      which_layout: int:  (Default value = None) None to layer layouts, or an
+      which_layout: int | None:  (Default value = None) None to layer layouts, or an
         index of which arg to take the layout from. Currently only valid if
         domains are not specified.
-      specs: list[dict[str, str | bool | list[float]]]:
+      specs: list[dict[str, Any]] | None:
         A list of dictionaries that contains keys of "x" and "y"
         that have values that are lists of two floats from 0 to 1. The chart
         that corresponds with a domain will be resized to that domain. Either
