@@ -175,8 +175,8 @@ The main configuration file is cog.toml, which we run using some helper scripts 
 In order to release a given plugin, you will run the script: `tools/release.sh <pluginName>`.  
 This must be done on a branch named `main` and will publish to the `git remote -v` named `origin` (you can do test releases on your fork).
 
-`tools/release.sh` will validate that your system has the necessary software installed and setup correctly, then invoke `cog bump --auto --package <pluginName>`,  
-which will invoke the necessary programs and scripts to automate a version bump and github release.
+`tools/release.sh <pluginName>` will validate that your system has the necessary software installed and setup correctly, then invoke `cog bump --auto --package <pluginName>`,  
+which will invoke the necessary programs and scripts to automate a version bump and GitHub release.
 
 During development, it is expected that all commit message will adhere to `conventional commit` ([https://www.conventionalcommits.org/en/about/]) formats.  
 `cog` will then uses your commit messages to compute a new version number, assemble a changelog, update our version in source code, create and push git tags, and perform a github release for the given plugin.
