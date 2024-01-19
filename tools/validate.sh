@@ -60,13 +60,3 @@ if ! gh release list --limit 1 2>/dev/stdout; then
 fi
 echo
 
-if [ -n "$(git status --short)" ]; then
-    {
-        log_error "Detected uncommitted files via git status:"
-        git status --short
-        log_error "Releases can only be performed with a clean git status"
-        log_error 'You must commit/stash your changes, or `git reset --hard` to erase them'
-        exit 95
-    } 2>/dev/null
-fi
-

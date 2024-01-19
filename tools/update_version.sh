@@ -56,7 +56,7 @@ while (( $# > 0 )); do
             usage ; exit 0 ;;
         *)
             if [ -z "$package" ]; then
-                if grep -q "$1" <<< "$all_plugins"; then
+                if grep -qE "^$1\$" <<< "$all_plugins"; then
                     package="$1"
                 else
                     {
@@ -94,14 +94,18 @@ if [ -z "$version" ]; then
     exit 91
 fi
 
+need_commit=false
 function update_file() {
     local file="$1"
     local prefix="$2"
     local suffix="$3"
     local extra="${4:-}"
-    sed -i "s/${prefix}.*/${prefix}${version}${extra}${suffix}/g" "$ROOT_DIR/plugins/$file"
-    git add "$ROOT_DIR/plugins/$file"
-    git commit -m "chore(version): update $package to version $version${extra}"
+    local expected="${prefix}${version}${extra}${suffix}"
+    if ! grep -q "$expected" "$ROOT_DIR/plugins/$file"; then
+        sed "s/${prefix}.*/${expected}/g" -i "$ROOT_DIR/plugins/$file"
+        git add "$ROOT_DIR/plugins/$file"
+        need_commit=true
+    fi
 }
 
 extra=
@@ -129,7 +133,7 @@ case "$package" in
             update_file table-example/src/js/package.json '"version": "' '",'
             ;;
         ui)
-            update_file ui/src/deephaven/ui/src/js/package.json '"version": "' '",'
+            update_file ui/src/js/package.json '"version": "' '",'
             update_file ui/src/deephaven/ui/__init__.py '__version__ = "' '"' "$extra"
             ;;
         *)
@@ -138,5 +142,9 @@ case "$package" in
             exit 90
         }
 esac
+
+if [ "$need_commit" = true ]; then
+    git commit -m "chore(version): update $package to version $version${extra}"
+fi
 
 log_info "Done updating $package version to $version${extra}"
