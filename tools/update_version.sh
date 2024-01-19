@@ -99,9 +99,8 @@ function update_file() {
     local prefix="$2"
     local suffix="$3"
     local extra="${4:-}"
-    sed -i "s/${prefix}.*/${prefix}${version}${extra}${suffix}/g" "$ROOT_DIR/plugins/$file"
+    sed "s/${prefix}.*/${prefix}${version}${extra}${suffix}/g" -i "$ROOT_DIR/plugins/$file"
     git add "$ROOT_DIR/plugins/$file"
-    git commit -m "chore(version): update $package to version $version${extra}"
 }
 
 extra=
@@ -129,7 +128,7 @@ case "$package" in
             update_file table-example/src/js/package.json '"version": "' '",'
             ;;
         ui)
-            update_file ui/src/deephaven/ui/src/js/package.json '"version": "' '",'
+            update_file ui/src/js/package.json '"version": "' '",'
             update_file ui/src/deephaven/ui/__init__.py '__version__ = "' '"' "$extra"
             ;;
         *)
@@ -138,5 +137,7 @@ case "$package" in
             exit 90
         }
 esac
+
+git commit -m "chore(version): update $package to version $version${extra}"
 
 log_info "Done updating $package version to $version${extra}"
