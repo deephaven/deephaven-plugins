@@ -173,7 +173,7 @@ The main configuration file is cog.toml, which we run using some helper scripts 
 ### Cutting a New Release
 
 In order to release a given plugin, you will run the script: `tools/release.sh <pluginName>`.  
-The must be done on a branch named `main` and will publish to the `git remote -v` named `origin` (you can do test releases on your fork).
+This must be done on a branch named `main` and will publish to the `git remote -v` named `origin` (you can do test releases on your fork).
 
 `tools/release.sh` will validate that your system has the necessary software installed and setup correctly, then invoke `cog bump --auto --package <pluginName>`,  
 which will invoke the necessary programs and scripts to automate a version bump and github release.
