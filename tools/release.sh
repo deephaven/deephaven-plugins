@@ -1,4 +1,4 @@
-#!/bin/bash -i
+#!/bin/bash
 
 # This script is designed to automate the version bump + github release process.
 # It requires for you to have installed both the [GitHub CLI tool](https://cli.github.com/) `gh` and the [cocogitto tool](https://github.com/cocogitto/cocogitto#installation) `cog`
@@ -34,7 +34,7 @@ fi
 
 # todo: enforce git remote named origin 
 
-all_plugins="$(cd "$ROOT_DIR/plugins" ; find ./ -mindepth 1 -maxdepth 1 -type d | sed  's|./||g')"
+all_plugins="$(cd "$ROOT_DIR/plugins" ; find . -mindepth 1 -maxdepth 1 -type d | sed  's|./||g')"
 
 function usage() {
     log_info "Simple utility to automate version bump + release process"

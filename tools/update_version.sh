@@ -1,4 +1,4 @@
-#!/bin/bash -i
+#!/bin/bash
 
 # This script is used to update the version of a given plugin in its source code.
 # Because this differs for various plugins, this script is used to hide all that complexity
@@ -27,7 +27,7 @@ function log_info() {
     { echo "$log_prefix $(date "+%Y-%m-%d %H:%M:%S")$tab |--- $*" ; } 2>/dev/null
 } 2>/dev/null
 
-all_plugins="$(cd "$ROOT_DIR/plugins" ; find ./ -mindepth 1 -maxdepth 1 -type d | sed  's|./||g')"
+all_plugins="$(cd "$ROOT_DIR/plugins" ; find . -mindepth 1 -maxdepth 1 -type d | sed  's|./||g')"
 
 function usage() {
     log_info "Simple utility to update plugin file in order to change versions."
@@ -102,7 +102,12 @@ function update_file() {
     local extra="${4:-}"
     local expected="${prefix}${version}${extra}${suffix}"
     if ! grep -q "$expected" "$ROOT_DIR/plugins/$file"; then
-        sed "s/${prefix}.*/${expected}/g" -i "$ROOT_DIR/plugins/$file"
+    	# annoyingly, sed on mac is extremely old, so we have to handle it differently.
+    	if [[ "$(uname)" == Darwin* ]]; then
+            sed -e "s/${prefix}.*/${expected}/g" -i '' "$ROOT_DIR/plugins/$file"
+        else
+            sed -e "s/${prefix}.*/${expected}/g" -i "$ROOT_DIR/plugins/$file"
+        fi
         git add "$ROOT_DIR/plugins/$file"
         need_commit=true
     fi

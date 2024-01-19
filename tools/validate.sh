@@ -1,4 +1,4 @@
-#!/bin/bash -i
+#!/bin/bash
 
 # This script is called as a cog pre-bump hook to validate that your runtime environment
 # has the necessary programs installed, and github auth status to successful perform a release.

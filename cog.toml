@@ -20,7 +20,7 @@ pre_package_bump_hooks = [
     # make sure user has correct software installed and is authenticated with `gh` cli tool
     "../../tools/validate.sh",
     # change the version number of the given plugin in source, and commit it as a chore(version): commit
-    "../../tools/update_version.sh {{package}} {{version}}",
+    "../../tools/update_version.sh {{package}} {{version}} -d",
 ]
 # between pre_ and post_ bump hooks, cog itself will update the checked in CHANGELOG.md file, per updated plugin.
 post_package_bump_hooks = [
