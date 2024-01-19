@@ -1,7 +1,7 @@
 #!/bin/bash -i
 
 # This script is designed to automate the version bump + github release process.
-# It requires for you to have installed both the github tool `gh` and to cocogitto tool `cog`
+# It requires for you to have installed both the [GitHub CLI tool](https://cli.github.com/) `gh` and the [cocogitto tool](https://github.com/cocogitto/cocogitto#installation) `cog`
 
 tab=$'\t'
 log_prefix="$(id -un)$tab - "
