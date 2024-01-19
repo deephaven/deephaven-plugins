@@ -26,7 +26,7 @@ pre_package_bump_hooks = [
 post_package_bump_hooks = [
     # prepare the github release changelog file
     "mkdir -p ../../releases",
-    "cog changelog --package {{package}} --at {{package}}-v{{version}} -t full_hash > ../../releases/GITHUB_CHANGELOG-{{package}}.md",
+    "../../tools/extract_changelog.sh CHANGELOG.md > ../../releases/GITHUB_CHANGELOG-{{package}}.md",
     # update the version number to have a .dev0 suffix (when possible, only done for python plugins)
     "../../tools/update_version.sh {{package}} {{version}} --dev",
     # push the tag and the commits to main 

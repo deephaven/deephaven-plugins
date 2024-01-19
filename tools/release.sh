@@ -119,5 +119,5 @@ fi
 { log_info "Releasing package '$package'" ; } 2>/dev/null
 (
 cd "$ROOT_DIR"
-cog bump --package "$package" --auto
+cog bump --package "$package" --template full_hash --auto
 )
