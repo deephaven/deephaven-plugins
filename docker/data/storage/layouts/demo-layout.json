@@ -1,1 +1,109 @@
-{"filterSets":[],"layoutConfig":[{"type":"row","height":100,"isClosable":true,"isFocusOnShow":true,"reorderEnabled":true,"title":"","content":[{"type":"stack","isClosable":true,"isFocusOnShow":true,"reorderEnabled":true,"title":"","width":47.87172011661808,"activeItemIndex":0,"content":[{"type":"react-component","component":"ConsolePanel","title":"Console","isClosable":false,"id":"EwmgpXQqE","props":{"metadata":{},"panelState":{"consoleSettings":{},"itemIds":[]}},"componentName":"lm-react-component","isFocusOnShow":true,"reorderEnabled":true,"componentState":null},{"type":"react-component","component":"LogPanel","title":"Log","isClosable":false,"id":"l9Ll30LIS8","props":{"metadata":{}},"componentName":"lm-react-component","isFocusOnShow":true,"reorderEnabled":true,"componentState":null}]},{"type":"stack","width":52.12827988338192,"isClosable":true,"isFocusOnShow":true,"reorderEnabled":true,"title":"","activeItemIndex":2,"content":[{"type":"react-component","component":"CommandHistoryPanel","title":"Command History","isClosable":false,"id":"qfsNtUkwNG","props":{"metadata":{},"panelState":{}},"componentName":"lm-react-component","isFocusOnShow":true,"reorderEnabled":true,"componentState":null},{"type":"react-component","component":"FileExplorerPanel","title":"File Explorer","isClosable":false,"id":"x0ISsm_Crj","props":{"metadata":{}},"componentName":"lm-react-component","isFocusOnShow":true,"reorderEnabled":true,"componentState":null},{"type":"react-component","component":"NotebookPanel","isFocusOnShow":false,"props":{"metadata":{"id":"KfJJtrr0G"},"panelState":{"settings":{"language":""},"fileMetadata":{"id":"/DEMO.md","itemName":"/DEMO.md"},"isPreview":true}},"title":"DEMO.md","id":"KfJJtrr0G","componentName":"lm-react-component","isClosable":true,"reorderEnabled":true,"componentState":null}]}]}],"links":[],"version":2}
+{
+  "filterSets": [],
+  "layoutConfig": [
+    {
+      "type": "row",
+      "height": 100,
+      "isClosable": true,
+      "isFocusOnShow": true,
+      "reorderEnabled": true,
+      "title": "",
+      "content": [
+        {
+          "type": "stack",
+          "isClosable": true,
+          "isFocusOnShow": true,
+          "reorderEnabled": true,
+          "title": "",
+          "width": 47.87172011661808,
+          "activeItemIndex": 0,
+          "content": [
+            {
+              "type": "react-component",
+              "component": "ConsolePanel",
+              "title": "Console",
+              "isClosable": false,
+              "id": "EwmgpXQqE",
+              "props": {
+                "metadata": {},
+                "panelState": { "consoleSettings": {}, "itemIds": [] }
+              },
+              "componentName": "lm-react-component",
+              "isFocusOnShow": true,
+              "reorderEnabled": true,
+              "componentState": null
+            },
+            {
+              "type": "react-component",
+              "component": "LogPanel",
+              "title": "Log",
+              "isClosable": false,
+              "id": "l9Ll30LIS8",
+              "props": { "metadata": {} },
+              "componentName": "lm-react-component",
+              "isFocusOnShow": true,
+              "reorderEnabled": true,
+              "componentState": null
+            }
+          ]
+        },
+        {
+          "type": "stack",
+          "width": 52.12827988338192,
+          "isClosable": true,
+          "isFocusOnShow": true,
+          "reorderEnabled": true,
+          "title": "",
+          "activeItemIndex": 2,
+          "content": [
+            {
+              "type": "react-component",
+              "component": "CommandHistoryPanel",
+              "title": "Command History",
+              "isClosable": false,
+              "id": "qfsNtUkwNG",
+              "props": { "metadata": {}, "panelState": {} },
+              "componentName": "lm-react-component",
+              "isFocusOnShow": true,
+              "reorderEnabled": true,
+              "componentState": null
+            },
+            {
+              "type": "react-component",
+              "component": "FileExplorerPanel",
+              "title": "File Explorer",
+              "isClosable": false,
+              "id": "x0ISsm_Crj",
+              "props": { "metadata": {} },
+              "componentName": "lm-react-component",
+              "isFocusOnShow": true,
+              "reorderEnabled": true,
+              "componentState": null
+            },
+            {
+              "type": "react-component",
+              "component": "NotebookPanel",
+              "isFocusOnShow": false,
+              "props": {
+                "metadata": { "id": "KfJJtrr0G" },
+                "panelState": {
+                  "settings": { "language": "" },
+                  "fileMetadata": { "id": "/DEMO.md", "itemName": "/DEMO.md" },
+                  "isPreview": true
+                }
+              },
+              "title": "DEMO.md",
+              "id": "KfJJtrr0G",
+              "componentName": "lm-react-component",
+              "isClosable": true,
+              "reorderEnabled": true,
+              "componentState": null
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "links": [],
+  "version": 2
+}

@@ -19,23 +19,27 @@ To build:
 python -m build --wheel
 ```
 
-The wheel is stored in `dist/`. 
+The wheel is stored in `dist/`.
 
 To test within [deephaven-core](https://github.com/deephaven/deephaven-core), note where this wheel is stored (using `pwd`, for example).
 Then, follow the directions in the top-level README.md to install the wheel into your Deephaven environment.
 
 To unit test, run the following command from the root of the repo:
+
 ```sh
 tox -e py
 ```
 
 ## Usage
+
 Once you have the plugin installed and the server started, the recommended way to import the package mirrors plotly express:
+
 ```python
 import deephaven.plot.express as dx
 ```
 
 Then, you can create a table (or use an existing one) and start plotting
+
 ```python
 from deephaven.column import int_col, string_col
 import deephaven.plot.express as dx
