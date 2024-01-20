@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.15.0 - 2024-01-20
+#### Features
+- ui - (03194d6) - James X Nelson
+
+- - -
+
 ## ui-v0.14.0 - 2024-01-19
 #### Continuous Integration
 - :Merge remote-tracking branch 'dh/jxn/cocogitto' into jxn/cocogitto - (91b31fc) - James Nelson
