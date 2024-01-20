@@ -43,6 +43,10 @@ post_package_bump_hooks = [
 
 [changelog]
 path = "CHANGELOG.md"
+template = "remote"
+remote = "github.com"
+repository = "deephaven-plugins"
+owner = "deephaven"
 # TODO: commit everyone's handle
 authors = []
 
