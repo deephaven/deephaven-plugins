@@ -94,7 +94,6 @@ if [ -z "$version" ]; then
     exit 91
 fi
 
-need_commit=false
 function update_file() {
     local file="$1"
     local prefix="$2"
@@ -109,7 +108,6 @@ function update_file() {
             sed -e "s/${prefix}.*/${expected}/g" -i "$ROOT_DIR/plugins/$file"
         fi
         git add "$ROOT_DIR/plugins/$file"
-        need_commit=true
     fi
 }
 
@@ -147,9 +145,5 @@ case "$package" in
             exit 90
         }
 esac
-
-if [ "$need_commit" = true ]; then
-    git commit -m "chore(version): update $package to version $version${extra}"
-fi
 
 log_info "Done updating $package version to $version${extra}"
