@@ -50,8 +50,19 @@ template = "remote"
 remote = "github.com"
 repository = "deephaven-plugins"
 owner = "deephaven"
-# TODO: commit everyone's handle
-authors = []
+authors = [
+    { username = "jnumainville", signature = "Joe Numainville" },
+    { username = "mofojed", signature = "Mike Bender" },
+    { username = "devinrsmith", signature = "Devin Smith" },
+    { username = "mattrunyon", signature = "Matt Runyon" },
+    { username = "vbabich", signature = "Vlad Babich" },
+    { username = "dsmmcken", signature = "Don McKenzie" },
+    { username = "bmingles", signature = "Brian Ingles" },
+    { username = "niloc132", signature = "Colin Alworth" },
+    { username = "rachelmbrubaker", signature = "Rachel Brubaker" },
+    { username = "JamesXNelson", signature = "James Nelson" },
+
+]
 
 [bump_profiles]
 
