@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.16.0 - 2024-01-20
+#### Features
+- ui - (051c56e) - James X Nelson
+#### Miscellaneous Chores
+- **(version)** update ui to version 0.15.0.dev0 - (bf80483) - James X Nelson
+
+- - -
+
 ## ui-v0.15.0 - 2024-01-20
 #### Features
 - ui - (03194d6) - James X Nelson
