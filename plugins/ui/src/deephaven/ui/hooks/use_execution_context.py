@@ -5,7 +5,7 @@ from typing import Callable
 
 from deephaven.execution_context import get_exec_ctx, ExecutionContext
 
-from .use_ref import use_ref
+from . import use_memo
 
 
 def func_with_ctx(
@@ -31,6 +31,6 @@ def use_execution_context(exec_ctx: ExecutionContext = None) -> None:
         exec_ctx: ExecutionContext: The execution context to use. Defaults to
             the current execution context if not provided.
     """
-    exec_ctx = use_ref(exec_ctx if exec_ctx else get_exec_ctx())
-
-    return partial(func_with_ctx, exec_ctx.current)
+    exec_ctx = use_memo(lambda: exec_ctx if exec_ctx else get_exec_ctx(), [exec_ctx])
+    exec_fn = use_memo(lambda: partial(func_with_ctx, exec_ctx), [exec_ctx])
+    return exec_fn
