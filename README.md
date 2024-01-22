@@ -188,3 +188,34 @@ services:
       # Specifying a data volume here will override the default data folder, and you will not be able to access the default data files (such as the demo data)
       - /path/to/mydata/:/data
 ```
+
+## Release Management
+
+In order to manage changelogs, version bumps and github releases, we use [cocogitto](https://github.com/cocogitto/cocogitto), or `cog` for short. Follow the [Installation instructions](https://github.com/cocogitto/cocogitto?tab=readme-ov-file#installation) to install `cog`. For Linux and Windows, we recommend using [cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) to install. For MacOS, we recommend using [brew](https://brew.sh/).
+
+The main configuration file is cog.toml, which we run using some helper scripts located in the `tools/` directory.
+
+You will also need the [GitHub CLI](https://cli.github.com/) tool installed to create and push releases to GitHub.
+
+### Cutting a New Release
+
+In order to release a given plugin, you will run the script: `tools/release.sh <pluginName>`.  
+This must be done on a branch named `main` and will publish to the `git remote -v` named `origin` (you can do test releases on your fork).
+
+`tools/release.sh <pluginName>` will validate that your system has the necessary software installed and setup correctly, then invoke `cog bump --auto --package <pluginName>`,  
+which will invoke the necessary programs and scripts to automate a version bump and GitHub release.
+
+During development, it is expected that all commit message will adhere to [conventional commits]([https://www.conventionalcommits.org/en/about/]).
+`cog` will then uses your commit messages to compute a new version number, assemble a changelog, update our version in source code, create and push git tags, and perform a GitHub release for the given plugin.
+
+See `cog.toml` to understand the full details of the release process.
+
+After you have successfully run `tools/release.sh` once, you should be able to directly invoke `cog bump --auto --package <pluginName>`, or omit the `--package` to release all plugins which have updated files.
+
+### Updating Versions in Source Code
+
+As part of the release process, `cog` will, per our `cog.toml` configuration, invoke `tools/update_version.sh <packageName> <newVersion>`, which is a script that uses `sed` to update a plugin's version number in whatever source file we happen to use as the source of truth for version information in the given plugin.
+
+*[WARNING]* If you change where the source of truth for a plugin's version is located, you must update `tools/update_version.sh` to update the correct file with a new version number.
+
+We use `tools/update_version.sh` to remove any `.dev0` "developer version" suffix before creating a release, and to put the `.dev0` version suffix back after completing the release.

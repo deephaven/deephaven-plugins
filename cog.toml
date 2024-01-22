@@ -1,0 +1,79 @@
+from_latest_tag = true
+ignore_merge_commits = false
+disable_changelog = false
+# we never tag any code outside the plugins/ directory. Everything else is build glue.
+generate_mono_repository_global_tag = false
+# limit which branches to perform bumps from
+branch_whitelist = [ "main" ]
+# we don't really use [skip ci] action filtering, but leaving here in case we decide to someday
+skip_ci = "[skip ci]"
+skip_untracked = false
+tag_prefix = "v"
+
+# bump hooks for global versions only; we don't use global version, but leaving here for posterity
+pre_bump_hooks = []
+post_bump_hooks = []
+
+# bump hooks for package versions, which is what we actually use
+pre_package_bump_hooks = [
+    "echo Updating {{package}} to version {{version}}",
+    # make sure user has correct software installed and is authenticated with `gh` cli tool
+    "../../tools/validate.sh",
+    # change the version number of the given plugin in source, and commit it as a chore(version): commit
+    "../../tools/update_version.sh {{package}} {{version}} -d",
+]
+# between pre_ and post_ bump hooks, cog itself will update the checked in CHANGELOG.md file, per updated plugin.
+post_package_bump_hooks = [
+    # prepare the github release changelog file
+    "mkdir -p ../../releases",
+    "../../tools/extract_changelog.sh CHANGELOG.md > ../../releases/GITHUB_CHANGELOG-{{package}}.md",
+    # update the version number to have a .dev0 suffix (when possible, only done for python plugins)
+    "../../tools/update_version.sh {{package}} {{version}} --dev",
+    "git commit -m 'chore(version): update {{package}} version to {{version}}'",
+    # push the tag and the commits to main 
+    "git push origin {{package}}-v{{version}}",
+    "git push origin main",
+    # cut a github release using our conventional-commit changelog
+    "gh release create {{package}}-v{{version}} --notes-file ../../releases/GITHUB_CHANGELOG-{{package}}.md --title {{package}}-v{{version}} --verify-tag"
+]
+
+[git_hooks]
+
+[commit_types]
+# exclude chore and ci commits from changelog entries
+chore = { changelog_title = "", omit_from_changelog = true }
+ci = { changelog_title = "", omit_from_changelog = true }
+
+[changelog]
+path = "CHANGELOG.md"
+template = "remote"
+remote = "github.com"
+repository = "deephaven-plugins"
+owner = "deephaven"
+authors = [
+    { username = "jnumainville", signature = "Joe Numainville" },
+    { username = "mofojed", signature = "Mike Bender" },
+    { username = "devinrsmith", signature = "Devin Smith" },
+    { username = "mattrunyon", signature = "Matt Runyon" },
+    { username = "vbabich", signature = "Vlad Babich" },
+    { username = "dsmmcken", signature = "Don McKenzie" },
+    { username = "bmingles", signature = "Brian Ingles" },
+    { username = "niloc132", signature = "Colin Alworth" },
+    { username = "rachelmbrubaker", signature = "Rachel Brubaker" },
+    { username = "JamesXNelson", signature = "James Nelson" },
+
+]
+
+[bump_profiles]
+
+
+[packages]
+auth-keyclock = { path = "plugins/auth-keyclock", public_api=false }
+dashboard-object-viewer = { path = "plugins/dashboard-object-viewer", public_api=false }
+json = { path = "plugins/json", public_api=false }
+matplotlib = { path = "plugins/matplotlib", public_api=false }
+plotly = { path = "plugins/plotly", public_api=false }
+plotly-express = { path = "plugins/plotly-express", public_api=false }
+table-example = { path = "plugins/table-example", public_api=false }
+ui = { path = "plugins/ui", public_api=false }
+

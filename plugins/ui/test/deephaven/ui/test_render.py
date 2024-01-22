@@ -2,20 +2,26 @@ from unittest.mock import Mock
 from .BaseTest import BaseTestCase
 
 
+def make_render_context(on_change=lambda x: x(), on_queue=lambda x: x()):
+    from deephaven.ui._internal.RenderContext import RenderContext
+
+    return RenderContext(on_change, on_queue)
+
+
 class RenderTestCase(BaseTestCase):
     def test_empty_render(self):
-        from deephaven.ui._internal.RenderContext import RenderContext
-
-        rc = RenderContext()
+        on_change = Mock(side_effect=lambda x: x())
+        rc = make_render_context(on_change)
         self.assertEqual(rc._hook_index, -1)
         self.assertEqual(rc._state, {})
         self.assertEqual(rc._children_context, {})
-        self.assertEqual(rc._on_change(), None)
+        on_change.assert_not_called()
 
     def test_hook_index(self):
         from deephaven.ui._internal.RenderContext import RenderContext
 
-        rc = RenderContext()
+        on_change = Mock(side_effect=lambda x: x())
+        rc = make_render_context(on_change)
 
         # Set up the hooks used with initial render (3 hooks)
         with rc:
@@ -46,32 +52,25 @@ class RenderTestCase(BaseTestCase):
     def test_state(self):
         from deephaven.ui._internal.RenderContext import RenderContext
 
-        rc = RenderContext()
-
-        on_change = Mock()
-        rc.set_on_change(on_change)
+        on_change = Mock(side_effect=lambda x: x())
+        rc = make_render_context(on_change)
 
         self.assertEqual(rc.has_state(0), False)
-        self.assertEqual(rc.get_state(0), None)
-        self.assertEqual(rc.get_state(0, 1), None)
-        self.assertEqual(rc.get_state(1, 1), 1)
+        self.assertRaises(KeyError, rc.get_state, 0)
+        self.assertRaises(KeyError, rc.set_state, 0, 2)
         self.assertEqual(on_change.call_count, 0)
 
-        rc.set_state(0, 2)
+        rc.init_state(0, 2)
         self.assertEqual(rc.has_state(0), True)
         self.assertEqual(rc.get_state(0), 2)
-        self.assertEqual(rc.get_state(0, 1), 2)
-        self.assertEqual(rc.get_state(1), 1)
-        self.assertEqual(rc.get_state(1, 1), 1)
-        self.assertEqual(on_change.call_count, 1)
+        self.assertRaises(KeyError, rc.init_state, 0, 3)
+        self.assertEqual(on_change.call_count, 0)
 
     def test_context(self):
         from deephaven.ui._internal.RenderContext import RenderContext
 
-        rc = RenderContext()
-
-        on_change = Mock()
-        rc.set_on_change(on_change)
+        on_change = Mock(side_effect=lambda x: x())
+        rc = make_render_context(on_change)
 
         child_context0 = rc.get_child_context(0)
         child_context1 = rc.get_child_context(1)
@@ -79,7 +78,7 @@ class RenderTestCase(BaseTestCase):
         self.assertEqual(on_change.call_count, 0)
 
         # Check that setting the initial state does not trigger a change event
-        rc.set_state(0, 0)
+        rc.init_state(0, 0)
         self.assertEqual(on_change.call_count, 0)
 
         # Check that changing state triggers a change event
@@ -89,15 +88,22 @@ class RenderTestCase(BaseTestCase):
         self.assertEqual(rc.get_state(0), 1)
         self.assertEqual(on_change.call_count, 1)
         self.assertEqual(child_context0.has_state(0), False)
-        self.assertEqual(child_context0.get_state(0), None)
-        child_context0.set_state(0, 2)
+        self.assertRaises(KeyError, child_context0.get_state, 0)
+        child_context0.init_state(0, 2)
         self.assertEqual(child_context0.has_state(0), True)
         self.assertEqual(child_context0.get_state(0), 2)
+        # The initial setting of the child context state shouldn't trigger a change, so we should still be at 1
+        self.assertEqual(on_change.call_count, 1)
+        child_context0.set_state(0, 20)
+        self.assertEqual(child_context0.get_state(0), 20)
+        # Now it should have been triggered after calling it again
         self.assertEqual(on_change.call_count, 2)
+
         self.assertEqual(child_context1.has_state(0), False)
-        self.assertEqual(child_context1.get_state(0), None)
-        child_context1.set_state(0, 3)
+        self.assertRaises(KeyError, child_context1.get_state, 0)
+        child_context1.init_state(0, 3)
         self.assertEqual(rc.get_state(0), 1)
-        self.assertEqual(child_context0.get_state(0), 2)
+        self.assertEqual(child_context0.get_state(0), 20)
         self.assertEqual(child_context1.get_state(0), 3)
-        self.assertEqual(on_change.call_count, 3)
+        # Shouldn't have triggered a change
+        self.assertEqual(on_change.call_count, 2)

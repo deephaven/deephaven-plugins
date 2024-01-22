@@ -1,28 +1,27 @@
 from .RenderContext import RenderContext
 from typing import Optional
+import threading
 
 
-class UiSharedInternals:
-    """
-    Shared internal context for the deephaven.ui plugin to use when rendering.
-    Should be set at the start of a render call, and unset at the end.
-
-    TODO: Need to keep track of context for each given thread, in case we have multiple threads rendering at once.
-    """
-
-    _current_context: Optional[RenderContext] = None
-
-    @property
-    def current_context(self) -> RenderContext:
-        return self._current_context
+class NoContextException(Exception):
+    pass
 
 
-_deephaven_ui_shared_internals: UiSharedInternals = UiSharedInternals()
+_local_data = threading.local()
 
 
 def get_context() -> RenderContext:
-    return _deephaven_ui_shared_internals.current_context
+    try:
+        return _local_data.context
+    except AttributeError:
+        raise NoContextException("No context set")
 
 
-def set_context(context):
-    _deephaven_ui_shared_internals._current_context = context
+def set_context(context: Optional[RenderContext]):
+    """
+    Set the current context for the thread. Can be set to None to unset the context for a thread
+    """
+    if context is None:
+        del _local_data.context
+    else:
+        _local_data.context = context
