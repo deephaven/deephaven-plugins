@@ -16,6 +16,10 @@
       "main": "src/js/dist/index.js"
     },
     { "name": "ui", "version": "0.1.0", "main": "src/js/dist/index.js" },
-    { "name": "ft-theme", "version": "0.1.0", "main": "src/js/dist/index.js" }
+    {
+      "name": "example-theme",
+      "version": "0.1.0",
+      "main": "src/js/dist/index.js"
+    }
   ]
 }
