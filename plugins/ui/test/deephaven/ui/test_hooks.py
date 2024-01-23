@@ -1,7 +1,6 @@
 import threading
 import unittest
 from operator import itemgetter
-from time import sleep
 from typing import Callable
 from unittest.mock import Mock
 from .BaseTest import BaseTestCase
@@ -17,15 +16,13 @@ def render_hook(fn: Callable):
         Re-render will call the same function but with the new args passed in.
     """
     from deephaven.ui._internal.RenderContext import RenderContext
-    from deephaven.ui._internal.shared import get_context, set_context
 
     context = RenderContext(lambda x: x(), lambda x: x())
 
     return_dict = {"context": context, "result": None, "rerender": None}
 
     def _rerender(*args, **kwargs):
-        set_context(context)
-        with context:
+        with context.open():
             new_result = fn(*args, **kwargs)
             return_dict["result"] = new_result
         return new_result
@@ -156,7 +153,7 @@ class HooksTest(BaseTestCase):
             assert False, "listener was not called"
 
     def test_table_listener(self):
-        from deephaven import time_table, new_table, DynamicTableWriter
+        from deephaven import DynamicTableWriter
         import deephaven.dtypes as dht
 
         column_definitions = {"Numbers": dht.int32, "Words": dht.string}

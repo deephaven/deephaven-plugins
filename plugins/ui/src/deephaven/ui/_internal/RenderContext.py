@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import threading
 import logging
-from types import TracebackType
 from typing import Any, Callable, Optional, TypeVar, Union
-from contextlib import AbstractContextManager
+from deephaven.liveness_scope import LivenessScope
+from contextlib import AbstractContextManager, contextmanager
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,31 @@ The key for a child context.
 """
 
 
-class RenderContext(AbstractContextManager):
+_local_data = threading.local()
+
+
+class NoContextException(Exception):
+    pass
+
+
+def get_context() -> RenderContext:
+    try:
+        return _local_data.context
+    except AttributeError:
+        raise NoContextException("No context set")
+
+
+def set_context(context: Optional[RenderContext]):
+    """
+    Set the current context for the thread. Can be set to None to unset the context for a thread
+    """
+    if context is None:
+        del _local_data.context
+    else:
+        _local_data.context = context
+
+
+class RenderContext:
     """
     Context for rendering a component. Keeps track of state and child contexts.
     Used by hooks to get and set state.
@@ -70,6 +95,10 @@ class RenderContext(AbstractContextManager):
     """
     The on_change callback to call when the context changes.
     """
+    _liveness_scope: LivenessScope
+    """
+    Liveness scope to create Deephaven items in. Need to retain the liveness scope so we don't release objects prematurely.
+    """
 
     def __init__(self, on_change: OnChangeCallable, on_queue_render: OnChangeCallable):
         """
@@ -86,22 +115,40 @@ class RenderContext(AbstractContextManager):
         self._children_context = {}
         self._on_change = on_change
         self._on_queue_render = on_queue_render
+        self._liveness_scope = LivenessScope()
 
-    def __enter__(self) -> None:
+    @contextmanager
+    def open(self) -> AbstractContextManager:
         """
-        Start rendering this component.
+        Opens this context to track hook creation, sets this context as active on
+        this thread, and opens the liveness scope for user-created objects
+        :return:
         """
         self._hook_index = -1
 
-    def __exit__(
-        self,
-        type: Optional[type[BaseException]],
-        value: Optional[BaseException],
-        traceback: Optional[TracebackType],
-    ) -> None:
-        """
-        Finish rendering this component.
-        """
+        old_context: Optional[RenderContext] = None
+        try:
+            old_context = get_context()
+        except NoContextException:
+            pass
+        logger.debug("old context is %s and new context is %s", old_context, self)
+        set_context(self)
+
+        try:
+            new_liveness_scope = LivenessScope()
+            with new_liveness_scope.open():
+                yield self
+
+            # Following the "yield" so we don't do this if there was an error, we want to keep the old scope and kill
+            # the new one
+            self._liveness_scope.release()
+            self._liveness_scope = new_liveness_scope
+        finally:
+            # Do this even if there was an error, old context must be restored
+            logger.debug("Resetting to old context %s", old_context)
+            set_context(old_context)
+
+        # Outside the "finally" so we don't do this if there was an error, we don't want an incorrect hook count
         hook_count = self._hook_index + 1
         if self._hook_count < 0:
             self._hook_count = hook_count

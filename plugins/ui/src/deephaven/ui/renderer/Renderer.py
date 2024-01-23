@@ -1,7 +1,6 @@
 from __future__ import annotations
 import logging
 from typing import Any
-from deephaven.liveness_scope import LivenessScope
 from .._internal import RenderContext
 from ..elements import Element, PropsType
 from .RenderedNode import RenderedNode
@@ -102,39 +101,11 @@ class Renderer:
     Context to render the element into. This is essentially the state of the element.
     """
 
-    _liveness_scope: LivenessScope
-    """
-    Liveness scope to create Deephaven items in. Need to retain the liveness scope so we don't release objects prematurely.
-    """
-
     def __init__(self, context: RenderContext):
         self._context = context
-        self._liveness_scope = LivenessScope()
-
-    def __del__(self):
-        self.release_liveness_scope()
-
-    def release_liveness_scope(self):
-        """
-        Release the liveness scope.
-        """
-        try:  # May not have an active liveness scope or already been released
-            self._liveness_scope.release()
-        except:
-            pass
 
     def render(self, element: Element) -> RenderedNode:
         """
         Render an element. Will update the liveness scope with the new objects from the render.
         """
-        new_liveness_scope = LivenessScope()
-        with new_liveness_scope.open():
-            render_res = _render_element(element, self._context)
-
-        # Release after in case of memoized tables
-        # Ref count goes 1 -> 2 -> 1 by releasing after
-        # instead of 1 -> 0 -> 1 which would release the table
-        self.release_liveness_scope()
-        self._liveness_scope = new_liveness_scope
-
-        return render_res
+        return  _render_element(element, self._context)
