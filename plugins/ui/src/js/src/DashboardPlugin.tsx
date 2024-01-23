@@ -34,7 +34,8 @@ export function DashboardPlugin({
   const [widgetMap, setWidgetMap] = useState<
     ReadonlyMap<string, WidgetWrapper>
   >(new Map());
-  const handlePanelOpen = useCallback(
+
+  const handleWidgetOpen = useCallback(
     ({
       fetch,
       panelId: widgetId = shortid.generate(),
@@ -44,11 +45,6 @@ export function DashboardPlugin({
       panelId?: string;
       widget: VariableDefinition;
     }) => {
-      const { type } = widget;
-      if (type !== NAME_ELEMENT) {
-        // Only want to listen for Element panels trying to be opened
-        return;
-      }
       log.info('Opening widget with ID', widgetId);
       setWidgetMap(prevWidgetMap => {
         const newWidgetMap = new Map<string, WidgetWrapper>(prevWidgetMap);
@@ -69,11 +65,6 @@ export function DashboardPlugin({
 
   const handleDashboardOpen = useCallback(
     ({ widget }: { widget: VariableDefinition }) => {
-      const { type } = widget;
-      if (type !== DASHBOARD_ELEMENT) {
-        return;
-      }
-
       log.debug('Emitting create dashboard event for', widget);
       emitCreateDashboard(layout.eventHub, {
         pluginId: DASHBOARD_ELEMENT,
@@ -88,15 +79,44 @@ export function DashboardPlugin({
     [layout.eventHub]
   );
 
+  const handlePanelOpen = useCallback(
+    ({
+      fetch,
+      panelId: widgetId = shortid.generate(),
+      widget,
+    }: {
+      fetch: () => Promise<Widget>;
+      panelId?: string;
+      widget: VariableDefinition;
+    }) => {
+      const { type } = widget;
+
+      switch (type) {
+        case NAME_ELEMENT: {
+          handleWidgetOpen({ fetch, panelId: widgetId, widget });
+          break;
+        }
+        case DASHBOARD_ELEMENT: {
+          handleDashboardOpen({ widget });
+          break;
+        }
+        default: {
+          log.error('Unknown widget type', type);
+        }
+      }
+    },
+    [handleDashboardOpen, handleWidgetOpen]
+  );
+
   useEffect(
     function loadDashboard() {
       const pluginData = dashboardData.pluginData?.[DASHBOARD_ELEMENT];
 
-      log.info('Loading dashboard', pluginData);
-
       if (pluginData == null) {
         return;
       }
+
+      log.info('Loading dashboard', pluginData);
 
       setWidgetMap(prevWidgetMap => {
         const newWidgetMap = new Map<string, WidgetWrapper>(prevWidgetMap);
@@ -145,7 +165,6 @@ export function DashboardPlugin({
 
   // TODO: We need to change up the event system for how objects are opened, since in this case it could be opening multiple panels
   useListener(layout.eventHub, PanelEvent.OPEN, handlePanelOpen);
-  useListener(layout.eventHub, PanelEvent.OPEN, handleDashboardOpen);
   useListener(layout.eventHub, PanelEvent.CLOSE, handlePanelClose);
 
   const widgetHandlers = useMemo(
