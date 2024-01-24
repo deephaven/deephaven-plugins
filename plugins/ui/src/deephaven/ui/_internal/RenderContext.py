@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import threading
 import logging
-from typing import Any, Callable, Optional, TypeVar, Union
+from functools import partial
+from typing import Any, Callable, Optional, TypeVar, Union, Generic
 from deephaven.liveness_scope import LivenessScope
 from contextlib import AbstractContextManager, contextmanager
+from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +41,21 @@ ContextKey = Union[str, int]
 """
 The key for a child context.
 """
+
+@dataclass
+class ValueWithLiveness(Generic[T]):
+    """A value with an associated liveness scope, if any."""
+    value: T
+    liveness_scope: Union[LivenessScope, None]
+
+
+def value_or_call(value: T | None | Callable[[], T | None]) -> ValueWithLiveness[T]:
+    if callable(value):
+        scope = LivenessScope()
+        with scope.open():
+            value = value()
+        return ValueWithLiveness(value=value, liveness_scope=scope)
+    return ValueWithLiveness(value=value, liveness_scope=None)
 
 
 _local_data = threading.local()
@@ -81,7 +98,7 @@ class RenderContext:
     Count of hooks used in the render. Should only be set after initial render.
     """
 
-    _state: dict[StateKey, Any]
+    _state: dict[StateKey, ValueWithLiveness[Any]]
     """
     The state for this context.
     """
@@ -169,7 +186,14 @@ class RenderContext:
         """
         Get the state for the given key.
         """
-        return self._state[key]
+        wrapper = self._state[key]
+
+        # This value (and any objects created when this value was created) must be retained in the current context's
+        # liveness scope
+        if wrapper.liveness_scope:
+            self.manage(wrapper.liveness_scope)
+
+        return wrapper.value
 
     def init_state(self, key: StateKey, value: T | InitializerFunction[T]) -> None:
         """
@@ -179,7 +203,7 @@ class RenderContext:
             raise KeyError(f"Key {key} is already initialized")
 
         # Just set the key value, we don't need to trigger an on_change or anything special on initialization
-        self._state[key] = value if not callable(value) else value()
+        self._state[key] = value_or_call(value)
 
     def set_state(self, key: StateKey, value: T | UpdaterFunction[T]) -> None:
         """
@@ -197,8 +221,10 @@ class RenderContext:
         def update_state():
             new_value = value
             if callable(value):
-                old_value = self._state[key]
-                new_value = value(old_value)
+                old_value = self._state[key].value
+                new_value = value_or_call(partial(value, old_value))
+            else:
+                new_value = value_or_call(new_value)
             self._state[key] = new_value
 
         # This is not the initial state, queue up the state change on the render loop
@@ -230,3 +256,6 @@ class RenderContext:
             update: The update to queue up.
         """
         self._on_queue_render(update)
+
+    def manage(self, liveness_scope: LivenessScope) -> None:
+        self._liveness_scope.manage(liveness_scope.j_scope)
