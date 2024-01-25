@@ -7,7 +7,7 @@ from .RenderContext import (
     UpdaterFunction,
     get_context,
     NoContextException,
-    ValueWithLiveness
+    ValueWithLiveness,
 )
 from .utils import (
     get_component_name,

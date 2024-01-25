@@ -2,7 +2,9 @@ from unittest.mock import Mock
 from .BaseTest import BaseTestCase
 
 
-def make_render_context(on_change=lambda x: x(), on_queue=lambda x: x()) -> 'deephaven.ui._internal.RenderContext':
+def make_render_context(
+    on_change=lambda x: x(), on_queue=lambda x: x()
+) -> "deephaven.ui._internal.RenderContext":
     from deephaven.ui._internal.RenderContext import RenderContext
 
     return RenderContext(on_change, on_queue)

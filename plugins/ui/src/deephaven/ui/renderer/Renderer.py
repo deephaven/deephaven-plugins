@@ -108,4 +108,4 @@ class Renderer:
         """
         Render an element. Will update the liveness scope with the new objects from the render.
         """
-        return  _render_element(element, self._context)
+        return _render_element(element, self._context)

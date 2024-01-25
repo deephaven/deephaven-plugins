@@ -42,9 +42,11 @@ ContextKey = Union[str, int]
 The key for a child context.
 """
 
+
 @dataclass
 class ValueWithLiveness(Generic[T]):
     """A value with an associated liveness scope, if any."""
+
     value: T
     liveness_scope: Union[LivenessScope, None]
 

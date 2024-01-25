@@ -20,13 +20,17 @@ def use_memo(func: Callable[[], T], dependencies: set[Any]) -> T:
         The memoized result of the function call.
     """
     deps_ref: Ref[set[Any] | None] = use_ref(None)
-    value_ref: Ref[ValueWithLiveness[T | None]] = use_ref(ValueWithLiveness(value=None,liveness_scope=None))
+    value_ref: Ref[ValueWithLiveness[T | None]] = use_ref(
+        ValueWithLiveness(value=None, liveness_scope=None)
+    )
 
     if deps_ref.current != dependencies:
         liveness_scope = LivenessScope()
         with liveness_scope.open():
             new_value = func()
-        value_ref.current = ValueWithLiveness(value=new_value, liveness_scope=liveness_scope)
+        value_ref.current = ValueWithLiveness(
+            value=new_value, liveness_scope=liveness_scope
+        )
 
         # Own everything in the newly returned scope, then release the scope so our RenderContext is the only thing
         # to own it

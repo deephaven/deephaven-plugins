@@ -39,14 +39,4 @@ __all__ = [
     "text_field",
     "toggle_button",
     "view",
-    'row',
-    'col'
 ]
-
-
-def row(*args, **kwargs):
-    return flex(direction="row", flex_grow=1, *args, **kwargs)
-
-
-def col(*args, **kwargs):
-    return flex(direction="column", flex_grow=1, *args, **kwargs)

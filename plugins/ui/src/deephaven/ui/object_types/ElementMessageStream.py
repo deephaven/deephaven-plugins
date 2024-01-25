@@ -313,6 +313,6 @@ class ElementMessageStream(MessageStream):
         dispatcher = Dispatcher()
         for callable, callable_id in callable_id_dict.items():
             logger.debug("Registering callable %s", callable_id)
-            dispatcher[callable_id] = callable # liveness wrapper here?
+            dispatcher[callable_id] = callable  # liveness wrapper here?
         self._dispatcher = dispatcher
         self._connection.on_data(payload.encode(), new_objects)
