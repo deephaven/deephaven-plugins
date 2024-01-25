@@ -9,6 +9,7 @@ from queue import Queue
 from typing import Any, Callable
 from deephaven.plugin.object_type import MessageStream
 from deephaven.server.executors import submit_task
+from deephaven.execution_context import ExecutionContext, get_exec_ctx
 from ..elements import Element
 from ..renderer import NodeEncoder, Renderer, RenderedNode
 from .._internal import RenderContext, StateUpdateCallable
@@ -110,6 +111,11 @@ class ElementMessageStream(MessageStream):
     Whether or not the element needs a re-render.
     """
 
+    _exec_context: ExecutionContext
+    """
+    Captured ExecutionContext for this stream, to wrap all user code.
+    """
+
     def __init__(self, element: Element, connection: MessageStream):
         """
         Create a new ElementMessageStream. Renders the element in a render context, and sends the rendered result to the
@@ -132,6 +138,7 @@ class ElementMessageStream(MessageStream):
         self._render_lock = threading.Lock()
         self._is_dirty = False
         self._render_state = _RenderState.IDLE
+        self._exec_context = get_exec_ctx()
 
     def _render(self) -> None:
         logger.debug("ElementMessageStream._render")
@@ -149,28 +156,29 @@ class ElementMessageStream(MessageStream):
         """
         Process any queued callables, then re-renders the element if it is dirty.
         """
-        with self._render_lock:
-            self._render_thread = threading.current_thread()
-            self._render_state = _RenderState.RENDERING
+        with self._exec_context:
+            with self._render_lock:
+                self._render_thread = threading.current_thread()
+                self._render_state = _RenderState.RENDERING
 
-        while not self._callable_queue.empty():
-            item = self._callable_queue.get()
-            try:
-                item()
-            except Exception as e:
-                logger.exception(e)
+            while not self._callable_queue.empty():
+                item = self._callable_queue.get()
+                try:
+                    item()
+                except Exception as e:
+                    logger.exception(e)
 
-        if self._is_dirty:
-            self._render()
+            if self._is_dirty:
+                self._render()
 
-        with self._render_lock:
-            self._render_thread = None
-            if not self._callable_queue.empty() or self._is_dirty:
-                # There are still callables to process, so queue up another render
-                self._render_state = _RenderState.QUEUED
-                submit_task("concurrent", self._process_callable_queue)
-            else:
-                self._render_state = _RenderState.IDLE
+            with self._render_lock:
+                self._render_thread = None
+                if not self._callable_queue.empty() or self._is_dirty:
+                    # There are still callables to process, so queue up another render
+                    self._render_state = _RenderState.QUEUED
+                    submit_task("concurrent", self._process_callable_queue)
+                else:
+                    self._render_state = _RenderState.IDLE
 
     def _mark_dirty(self) -> None:
         """
