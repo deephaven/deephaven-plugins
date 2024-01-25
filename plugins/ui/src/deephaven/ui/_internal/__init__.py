@@ -6,7 +6,7 @@ from .RenderContext import (
     InitializerFunction,
     UpdaterFunction,
     get_context,
-    NoContextException
+    NoContextException,
 )
 from .utils import (
     get_component_name,
