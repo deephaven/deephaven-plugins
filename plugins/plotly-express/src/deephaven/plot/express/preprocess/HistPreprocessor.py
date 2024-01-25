@@ -31,14 +31,13 @@ def get_aggs(
     """Create aggregations over all columns
 
     Args:
-      base: str:
+      base:
         The base of the new columns that store the agg per column
-      columns: list[str]:
+      columns:
         All columns joined for the sake of taking min or max over
         the columns
 
     Returns:
-      tuple[list[str], str]:
         A tuple containing (a list of the new columns,
         a joined string of "NewCol, NewCol2...")
 
@@ -54,15 +53,14 @@ class HistPreprocessor(UnivariatePreprocessor):
     Preprocessor for histograms.
 
     Attributes:
-        range_table: Table: The range table, calculated over the whole original
-            table
-        names: dict[str, str]: A mapping of ideal name to unique names
-        nbins: int: the number of bins in the histogram
-        range_bins: list[Number, Number]: The range the bins are created over
-        histfunc: str: The histfunc to create the histogram with
-        barnorm: str: The barnorm to create the histogram with
-        histnorm: str: The histnorm to create the histogram with
-        cumulative: bool: If truek, the bins are cumulative
+        range_table: The range table, calculated over the whole original table
+        names: A mapping of ideal name to unique names
+        nbins: the number of bins in the histogram
+        range_bins: The range the bins are created over
+        histfunc: The histfunc to create the histogram with
+        barnorm: The barnorm to create the histogram with
+        histnorm: The histnorm to create the histogram with
+        cumulative: If True, the bins are cumulative
     """
 
     def __init__(self, args: dict[str, Any], pivot_vars: dict[str, str]):
@@ -92,7 +90,7 @@ class HistPreprocessor(UnivariatePreprocessor):
         Create a table that contains the bin ranges
 
         Returns:
-            Table: A table containing the bin ranges
+            A table containing the bin ranges
         """
         # partitioned tables need range calculated on all
         table = (
@@ -128,12 +126,11 @@ class HistPreprocessor(UnivariatePreprocessor):
         Create count tables that aggregate up values.
 
         Args:
-            tables: list[Table]: List of tables to create counts for
-            column: str: the column used
+            tables: List of tables to create counts for
+            column: the column used
 
         Yields:
-            tuple[Table, dict[str, str]]: A tuple containing the table and a
-                temporary column
+            A tuple containing the table and a temporary column
 
         """
         range_index, range_ = self.names["range_index"], self.names["range"]
@@ -159,12 +156,11 @@ class HistPreprocessor(UnivariatePreprocessor):
         Preprocess tables into histogram tables
 
         Args:
-            tables: list[Table]: List of tables to preprocess
-            column: str: the column used
+            tables: List of tables to preprocess
+            column: the column used
 
         Yields:
-            tuple[Table, dict[str, str]]: A tuple containing the table and a
-                mapping of metadata
+            A tuple containing the table and a mapping of metadata
 
         """
         # column will only be set if there's a pivot var, which means the table has been restructured

@@ -8,6 +8,9 @@ from ._private_utils import process_args
 from ..shared import default_callback
 from ..deephaven_figure import draw_ohlc, draw_candlestick, DeephavenFigure
 
+# The functions in this file are exempt from the styleguide rule that types should not be in the description if there
+# is a type annotation.
+
 
 def ohlc(
     table: Table | None = None,

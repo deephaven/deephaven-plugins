@@ -15,14 +15,14 @@ def combined_generator(
     combined into a new dictionary.
 
     Args:
-      generators: list[Generator[tuple | dict]]:
+      generators:
         Generators to combine. Each should yield either a tuple of a key, value pair or a dictionary.
-      fill: Any:  (Default value = None)
+      fill:
         Optional fill when the generators are exhausted
 
 
     Yields:
-      dict: the combined dictionary
+      the combined dictionary
     """
     try:
         while True:
@@ -43,11 +43,11 @@ def get_unique_names(table: Table, orig_names: list[str]) -> dict[str, str]:
     """Calculate names that do not occur in table, starting from the names in orig_names
 
     Args:
-      table: Table: The table to check against
-      orig_names: list[str]: The original names to get unique versions of
+      table: The table to check against
+      orig_names: The original names to get unique versions of
 
     Returns:
-      dict[str, str]: A dictionary that maps orig_names to new names that are not found in the table
+      A dictionary that maps orig_names to new names that are not found in the table
 
     """
     if isinstance(table, PartitionedTable):
@@ -69,10 +69,10 @@ def args_copy(args: dict[str, Any]) -> dict[str, Any]:
     but not deeper so the table is not copied.
 
     Args:
-        args: dict[dict[str: Any]]: The args dictionary to copy
+        args: The args dictionary to copy
 
     Returns:
-        dict[dict[str, Any]]: The copied args dictionary
+        The copied args dictionary
 
     """
     copy_dict = {}

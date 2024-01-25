@@ -14,7 +14,6 @@ class FreqPreprocessor(UnivariatePreprocessor):
 
     Args:
         args: dict[str, Any]: The figure creation args
-
     """
 
     def __init__(self, args: dict[str, Any]):
@@ -27,12 +26,11 @@ class FreqPreprocessor(UnivariatePreprocessor):
         This just sums each value by count
 
         Args:
-            tables: list[Table]: a list of tables to preprocess
-            column: str | None: the column to aggregate on
+            tables: a list of tables to preprocess
+            column: the column to aggregate on
 
         Returns:
-          tuple[Table, dict[str, str]]: A tuple containing
-            (the new table, an update to make to the args)
+          A tuple containing (the new table, an update to make to the args)
 
         """
         column = self.col_val if not column else column

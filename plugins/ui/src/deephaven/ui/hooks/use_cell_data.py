@@ -14,11 +14,11 @@ def _cell_data(data: pd.DataFrame, is_sentinel: bool) -> None:
     Return the first cell of the table.
 
     Args:
-        data: pd.DataFrame: The table to extract the cell from.
-        is_sentinel: bool: Whether the sentinel value was returned.
+        data: The table to extract the cell from.
+        is_sentinel: Whether the sentinel value was returned.
 
     Returns:
-        Any: The first cell of the table.
+        The first cell of the table.
     """
     try:
         return data if is_sentinel else data.iloc[0, 0]
@@ -32,8 +32,8 @@ def use_cell_data(table: Table, sentinel: Sentinel = None) -> Any:
     Return the first cell of the table. The table should already be filtered to only have a single cell.
 
     Args:
-        table: Table: The table to extract the cell from.
-        sentinel: Sentinel: The sentinel value to return if the table is ticking but empty. Defaults to None.
+        table: The table to extract the cell from.
+        sentinel: The sentinel value to return if the table is ticking but empty. Defaults to None.
 
     Returns:
         Any: The first cell of the table.

@@ -9,6 +9,10 @@ from ._layer import layer
 from .. import DeephavenFigure
 
 
+# The function make_subplots in this file is exempt from the styleguide rule that types should not be in the
+# description if there is a type annotation.
+
+
 def get_shared_key(
     row: int,
     col: int,
@@ -18,9 +22,9 @@ def get_shared_key(
     Get a shared key where
 
     Args:
-        row: int: The row this figure is in
-        col: int: The column this figure is in
-        shared_axes: str: "rows", "cols", "all" or None depending on what axes
+        row: The row this figure is in
+        col: The column this figure is in
+        shared_axes: "rows", "cols", "all" or None depending on what axes
           should be shared
 
     Returns:
@@ -48,30 +52,29 @@ def get_new_specs(
     """Transforms the given specs and row and column lists to specs for layering
 
     Args:
-      specs: list[list[dict[str, int | float]]]
+      specs:
         A 2 dimensional list that contains the specs per figure
-      row_starts: list[float]:
+      row_starts:
         A list of domain values on the y-axis where the corresponding
         figure will start
-      row_ends: list[float]:
+      row_ends:
         A list of domain values on the y-axis where the corresponding
         figure will end
-      col_starts: list[float]:
+      col_starts:
         A list of domain values on the y-axis where the corresponding
         figure will start
-      col_ends: list[float]:
+      col_ends:
         A list of domain values on the y-axis where the corresponding
         figure will end
-      shared_xaxes: str | bool
+      shared_xaxes:
         "rows", "cols"/True, "all" or None depending on what axes
         should be shared
-      shared_yaxes: str | bool
+      shared_yaxes:
         "rows"/True, "cols", "all" or None depending on what axes
         should be shared
 
     Returns:
-      list[dict[str, list[float]]]:
-        The new specs with x and y domains, to be passed to layering
+      The new specs with x and y domains, to be passed to layering
 
     """
     new_specs = []
@@ -115,18 +118,18 @@ def make_grid(
     """Make a grid (list of lists) out of the provided items
 
     Args:
-      items: int:
+      items:
         A list of items to put in the grid
-      rows: int:
+      rows:
         The number of rows in the grid
-      cols: int:
+      cols:
         The number of cols in the grid
-      fill: Any:  (Default value = None)
+      fill:
         If there are more slots (as defined by rows * columns) than
         provided items, then the remaining items in the grid have this value.
 
     Returns:
-      list[list[Any]]: The generated grid
+      The generated grid
 
     """
     grid = []
@@ -149,14 +152,13 @@ def get_domains(values: list[float], spacing: float) -> tuple[list[float], list[
     cumulative and account for spacing.
 
     Args:
-      values: list[float]:
+      values:
         The list of values to scale due to spacing then
-      spacing: float:
+      spacing:
         The spacing between each value.
 
     Returns:
-      tuple[list[float], list[float]]
-        A tuple of (list of domain starts, list of domain ends)
+      A tuple of (list of domain starts, list of domain ends)
 
     """
     # scale the values by however much the spacing uses between each col or row

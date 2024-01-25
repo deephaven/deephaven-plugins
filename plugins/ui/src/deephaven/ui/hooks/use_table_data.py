@@ -21,8 +21,8 @@ def _deferred_update(ctx: ExecutionContext, func: Callable[[], None]) -> None:
     Call the function within an execution context.
 
     Args:
-        ctx: ExecutionContext: The execution context to use.
-        func: Callable[[], None]: The function to call.
+        ctx: The execution context to use.
+        func: The function to call.
     """
     with ctx:
         func()
@@ -39,10 +39,10 @@ def _on_update(
     Call the function within an execution context, deferring the call to a thread pool.
 
     Args:
-        ctx: ExecutionContext: The execution context to use.
-        func: Callable[[], None]: The function to call.
-        executor_name: str: The name of the executor to use.
-        update: TableUpdate: The update to pass to the function.
+        ctx: The execution context to use.
+        func: The function to call.
+        executor_name: The name of the executor to use.
+        update: The update to pass to the function.
         is_replay: True if the update is a replay, False otherwise.
     """
     submit_task(executor_name, partial(_deferred_update, ctx, func))
@@ -53,12 +53,11 @@ def _get_data_values(table: Table, sentinel: Sentinel):
     Called to get the new data and is_sentinel values when the table updates.
 
     Args:
-        table: Table: The table that updated.
-        sentinel: Sentinel: The sentinel value to return if the table is empty and refreshing.
+        table: The table that updated.
+        sentinel: The sentinel value to return if the table is empty and refreshing.
 
     Returns:
-        tuple[pd.DataFrame | Sentinel, bool]: The table data and whether the sentinel value was
-            returned.
+        The table data and whether the sentinel value was returned.
     """
     data = to_pandas(table)
     if table.is_refreshing:
@@ -80,10 +79,10 @@ def _set_new_data(
     Called to set the new data and is_sentinel values when the table updates.
 
     Args:
-        table: Table: The table that updated.
-        sentinel: Sentinel: The sentinel value to return if the table is empty.
-        set_data: Callable[[pd.DataFrame | Sentinel], None]: The function to call to set the new data.
-        set_is_sentinel: Callable[[bool], None]: The function to call to set the is_sentinel value.
+        table: The table that updated.
+        sentinel: The sentinel value to return if the table is empty.
+        set_data: The function to call to set the new data.
+        set_is_sentinel: The function to call to set the is_sentinel value.
     """
     new_data, new_is_sentinel = _get_data_values(table, sentinel)
     set_data(new_data)
@@ -95,12 +94,11 @@ def _table_data(data: pd.DataFrame, is_sentinel: bool) -> TableData:
     Returns the table as a dictionary.
 
     Args:
-        data: pd.DataFrame | Sentinel: The dataframe to extract the table data from or the
-            sentinel value.
-        is_sentinel: bool: Whether the sentinel value was returned.
+        data: The dataframe to extract the table data from or the sentinel value.
+        is_sentinel: Whether the sentinel value was returned.
 
     Returns:
-        TableData: The table data.
+        The table data.
     """
     return data if is_sentinel else data.to_dict(orient="list")
 
@@ -116,14 +114,13 @@ def use_table_data(
     changes, resulting in an updated frame.
 
     Args:
-        table: Table: The table to listen to.
-        sentinel: Sentinel | None: The sentinel value to return if the table is ticking but empty. Defaults to None.
-        transform: Callable[[pd.DataFrame | Sentinel, bool], tuple[pd.DataFrame | Sentinel, bool]] | None: A
-            function to transform the table data and is_sentinel values. Defaults to None, which will
+        table: The table to listen to.
+        sentinel: The sentinel value to return if the table is ticking but empty. Defaults to None.
+        transform: A function to transform the table data and is_sentinel values. Defaults to None, which will
             return the data as TableData.
 
     Returns:
-        TableData | Sentinel: The table data or the sentinel value.
+        The table data or the sentinel value.
     """
     initial_data, initial_is_sentinel = _get_data_values(table, sentinel)
     data, set_data = ui.use_state(initial_data)

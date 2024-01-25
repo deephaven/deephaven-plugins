@@ -26,6 +26,9 @@ from ..shared import (
     unsafe_figure_update_wrapper,
 )
 
+# The functions in this file are exempt from the styleguide rule that types should not be in the description if there
+# is a type annotation.
+
 
 def violin(
     table: Table | None = None,

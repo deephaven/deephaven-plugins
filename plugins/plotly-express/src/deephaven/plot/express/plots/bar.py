@@ -11,6 +11,9 @@ from ._private_utils import validate_common_args, process_args
 from ..shared import default_callback
 from ..deephaven_figure import generate_figure, DeephavenFigure
 
+# The functions in this file are exempt from the styleguide rule that types should not be in the description if there
+# is a type annotation.
+
 
 def bar(
     table: Table | None = None,

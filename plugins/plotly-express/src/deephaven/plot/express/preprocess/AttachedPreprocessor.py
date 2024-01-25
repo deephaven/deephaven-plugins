@@ -24,7 +24,6 @@ class AttachedPreprocessor:
     def prepare_preprocess(self):
         """
         Create a table with styles attached
-
         """
         # create new columns
         table = self.args["table"]

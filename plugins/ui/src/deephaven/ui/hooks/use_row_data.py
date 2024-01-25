@@ -13,11 +13,11 @@ def _row_data(data: pd.DataFrame, is_sentinel: bool) -> RowData:
     Return the first row of the table as a dictionary.
 
     Args:
-        data: pd.DataFrame: The dataframe to extract the row from or the sentinel value.
-        is_sentinel: bool: Whether the sentinel value was returned.
+        data: The dataframe to extract the row from or the sentinel value.
+        is_sentinel: Whether the sentinel value was returned.
 
     Returns:
-        RowData: The first row of the table as a dictionary.
+        The first row of the table as a dictionary.
     """
     try:
         return data if is_sentinel else data.iloc[0].to_dict()
@@ -31,10 +31,10 @@ def use_row_data(table: Table, sentinel: Sentinel = None) -> RowData | Sentinel:
     Return the first row of the table as a dictionary. The table should already be filtered to only have a single row.
 
     Args:
-        table: Table: The table to extract the row from.
-        sentinel: Sentinel: The sentinel value to return if the table is ticking but empty. Defaults to None.
+        table: The table to extract the row from.
+        sentinel: The sentinel value to return if the table is ticking but empty. Defaults to None.
 
     Returns:
-        RowData | Sentinel: The first row of the table as a dictionary or the sentinel value.
+        The first row of the table as a dictionary or the sentinel value.
     """
     return use_table_data(table, sentinel, _row_data)

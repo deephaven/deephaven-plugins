@@ -13,7 +13,7 @@ class TimePreprocessor:
     Used to preprocess times for a gantt plot.
 
     Attributes:
-        args: dict[str, str]: Figure creation args
+        args: Figure creation args
     """
 
     def __init__(self, args: dict[str, Any]):
@@ -26,14 +26,13 @@ class TimePreprocessor:
         This just sums each value by count
 
         Args:
-          tables: Table:
+          tables:
             The tables to process
-          column: str | None:
+          column:
             The column to process
 
         Returns:
-          tuple[Table, dict[str, str]]: A tuple containing
-            (the new table, an update to make to the args)
+          A tuple containing (the new table, an update to make to the args)
 
         """
         x_start, x_end, y, table = (

@@ -10,6 +10,9 @@ from deephaven.table import Table
 from ._private_utils import process_args
 from ..shared import default_callback
 
+# The functions in this file are exempt from the styleguide rule that types should not be in the description if there
+# is a type annotation.
+
 
 def scatter_geo(
     table: Table | None = None,

@@ -33,7 +33,7 @@ class RevisionManager:
         Get the next revision
 
         Returns:
-            int: The next revision
+            The next revision
 
         """
         with self.rev_lock:
@@ -46,10 +46,10 @@ class RevisionManager:
         current revision. This should be called with the node lock held
 
         Args:
-            revision: int: The revision to update to
+            revision: The revision to update to
 
         Returns:
-            bool: True if the revision was updated, False otherwise
+            True if the revision was updated, False otherwise
 
         """
         can_update = self.current_revision < revision

@@ -21,10 +21,10 @@ def listener_with_ctx(
     Call the listener within an execution context.
 
     Args:
-        exec_ctx: ExecutionContext: The execution context to use.
-        listener: Callable[[TableUpdate, bool], None]: The listener to call.
-        update: TableUpdate: The update to pass to the listener.
-        is_replay: bool: Whether the update is a replay.
+        exec_ctx: The execution context to use.
+        listener: The listener to call.
+        update: The update to pass to the listener.
+        is_replay: Whether the update is a replay.
     """
     with exec_ctx:
         listener(update, is_replay)
@@ -40,7 +40,7 @@ def with_ctx(
         listener: The listener to wrap.
 
     Returns:
-        partial[[TableUpdate, bool], None]: The wrapped listener.
+        The wrapped listener.
     """
     return partial(listener_with_ctx, get_exec_ctx(), listener)
 
@@ -52,10 +52,10 @@ def wrap_listener(
     Wrap the listener in an execution context.
 
     Args:
-        listener: Callable[[TableUpdate, bool], None]: The listener to wrap.
+        listener: The listener to wrap.
 
     Returns:
-        Callable[[TableUpdate, bool], None] | None: The wrapped listener.
+        The wrapped listener.
     """
     if isinstance(listener, TableListener):
         return with_ctx(listener.on_update)
@@ -75,13 +75,13 @@ def use_table_listener(
     Listen to a table and call a listener when the table updates.
 
     Args:
-        table: Table: The table to listen to.
-        listener: Callable[[TableUpdate, bool], None] | TableListener: Either a function or a TableListener with an
-        on_update function. The function must take a TableUpdate and is_replay bool.
-        description: str | None: An optional description for the UpdatePerformanceTracker to append to the listener’s
-        entry description, default is None.
-        do_replay: bool: Whether to replay the initial snapshot of the table, default is False.
-        replay_lock: LockType: The lock type used during replay, default is ‘shared’, can also be ‘exclusive’.
+        table: The table to listen to.
+        listener: Either a function or a TableListener with an on_update function.
+          The function must take a TableUpdate and is_replay bool.
+        description: An optional description for the UpdatePerformanceTracker to append to the listener’s
+          entry description, default is None.
+        do_replay: Whether to replay the initial snapshot of the table, default is False.
+        replay_lock: The lock type used during replay, default is ‘shared’, can also be ‘exclusive’.
     """
 
     if not table.is_refreshing:
@@ -93,7 +93,7 @@ def use_table_listener(
         Start the listener. Returns a function that can be called to stop the listener by the use_effect hook.
 
         Returns:
-            Callable[[], None]: A function that can be called to stop the listener by the use_effect hook.
+            A function that can be called to stop the listener by the use_effect hook.
         """
         handle = listen(
             table,

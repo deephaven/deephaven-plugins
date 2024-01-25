@@ -13,11 +13,11 @@ class DataMapping:
     """A DataMapping that maps plotly variables to table columns
 
     Attributes:
-      _table: Table: The table to use for this data mapping
-      _data_mapping: list[dict[str, str]]: The variable to column
+      _table: The table to use for this data mapping
+      _data_mapping: The variable to column
         dictionaries used in this mapping. They should map plotly variables
         to table columns. One of these maps to one data trace.
-      _start_index: int: The index (which is an index in the plotly data)
+      _start_index: The index (which is an index in the plotly data)
         that this DataMapping starts at
     """
 
@@ -35,10 +35,10 @@ class DataMapping:
         """Get the json links for this data mapping
 
         Args:
-          exporter: Exporter: The exporter, used to get the index of the table
+          exporter: The exporter, used to get the index of the table
 
         Returns:
-          list[dict[Any, Any]]: The column to json link mapping for this DataMapping
+          The column to json link mapping for this DataMapping
 
         """
         return json_link_mapping(
@@ -49,10 +49,10 @@ class DataMapping:
         """Copy this DataMapping, adding a specific offset to the start_index
 
         Args:
-          offset: int: The offset to offset the copy by
+          offset: The offset to offset the copy by
 
         Returns:
-          DataMapping: The new DataMapping
+          The new DataMapping
 
         """
         # only need a shallow copy as the underlying data mappings are

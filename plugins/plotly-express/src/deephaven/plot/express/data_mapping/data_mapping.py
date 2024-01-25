@@ -16,12 +16,10 @@ def get_data_groups(data_vals: Iterable[str | list[str]]) -> Iterable[tuple[str,
     """Generate a cartesian product between all items in the provided iterable
 
     Args:
-      data_vals: Iterable[str | list[str]]: An iterable to generate the
-        cartesian product with
+      data_vals: An iterable to generate the cartesian product with
 
     Returns:
-      Iterable[tuple[str, ...]]: An iterable containing tuples that contain
-        all possible combinations of the values in the data_vals
+      An iterable containing tuples that contain all possible combinations of the values in the data_vals
 
     """
 
@@ -39,10 +37,10 @@ def overriden_keys(keys: list[str]) -> Generator[str, None, None]:
     """Override all keys provided with values in OVERRIDES if applicable
 
     Args:
-      keys: list[str]: The keys to override
+      keys: The keys to override
 
     Yields:
-      str: the overriden keys
+      The overriden keys
 
     """
     for key in keys:
@@ -57,11 +55,10 @@ def get_var_col_dicts(
     computed on the dictionary values to create the new values.
 
     Args:
-      data_dict: dict[str, str | list[str]]: A dictionary contain var to column
-        or column list mappings
+      data_dict: A dictionary contain var to column or column list mappings
 
     Yields:
-      dict[str, str]: Generated var to column mappings
+      Generated var to column mappings
 
     Examples:
         Input:
@@ -91,11 +88,11 @@ def custom_data_args_generator(
     """Generate data mappings for custom data args
 
     Args:
-      var: str: The arg to map to columns
-      cols: list[str]: The columns to map to
+      var: The arg to map to columns
+      cols: The columns to map to
 
     Yields:
-      tuple[str, str]: A tuple pair of (variable, column value)
+      A tuple pair of (variable, column value)
 
     """
     for col in cycle(cols):
@@ -109,13 +106,11 @@ def add_custom_data_args(
     """Given the existing variable to column mappings, add error bars
 
     Args:
-      var_col_dicts: Generator[dict[str, str], None, None]: Existing var to col map
-      custom_call_args: dict[str, Any]:  (Default value = None) Arguments to
-        check for any error bar-related vars
+      var_col_dicts: Existing var to col map
+      custom_call_args: Arguments to check for any error bar-related vars
 
     Yields:
-      dict[str, str]: New dictionary with var_col_dicts modified to have
-        error bars if needed
+      New dictionary with var_col_dicts modified to have error bars if needed
 
     """
     generators = []
@@ -136,10 +131,10 @@ def filter_none(
     """Filters key, value pairs that have None values from the dictionaries.
 
     Args:
-      var_col_dicts: Generator[dict[str, str]]: The dictionaries to filter
+      var_col_dicts: The dictionaries to filter
 
     Yields:
-      dict[str, str]: The filtered dicts
+      The filtered dicts
 
     """
     for var_col_dict in var_col_dicts:
@@ -152,10 +147,10 @@ def remove_unmapped_args(
     """Removed any args that do not need to be in the data mapping
 
     Args:
-      data_dict: dict[str, str | list[str]]: The dict to remove args from
+      data_dict: The dict to remove args from
 
     Returns:
-      dict[str, str | list[str]]: The filtered dict
+      The filtered dict
 
     """
     for arg in REMOVE:
@@ -173,10 +168,10 @@ def zip_args(
     sequentially rather than in a product
 
     Args:
-      data_dict: dict[str, str | list[str]]: The data
+      data_dict: The data
 
     Yields:
-        dict[str, str]: A dictionary with zipped args
+      A dictionary with zipped args
     """
     for x_f, o, h, l, c in zip_longest(
         data_dict["x_finance"],
@@ -205,18 +200,17 @@ def create_data_mapping(
     copy for the hover text.
 
     Args:
-      data_dict: dict[str, str | list[str]]: A dictionary containing
+      data_dict: A dictionary containing
         (variable, column) maps that need to be converted to
         (variable, table column) maps
-      custom_call_args: dict[str, Any]: Extra args extracted from the call_args
+      custom_call_args: Extra args extracted from the call_args
         that require special processing
-      table: Table: The table that contains the data
-      start_index: int: what index (of the corresponding traces) that this
+      table: The table that contains the data
+      start_index: what index (of the corresponding traces) that this
         mapping starts with
 
     Returns:
-      DataMapping, list[dict[str, str]]: A DataMapping for a specific table and
-        the hover mapping
+      A DataMapping for a specific table and the hover mapping
 
     """
     # color is needed to create the color axis, but might need to set it to
