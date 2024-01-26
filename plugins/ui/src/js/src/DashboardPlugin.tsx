@@ -7,6 +7,7 @@ import {
   useListener,
 } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
+import { DeferredApiBootstrap } from '@deephaven/jsapi-bootstrap';
 import { Widget } from '@deephaven/jsapi-types';
 import type { VariableDefinition } from '@deephaven/jsapi-types';
 import styles from './styles.scss?inline';
@@ -46,7 +47,7 @@ export function DashboardPlugin({
         // Only want to listen for Element panels trying to be opened
         return;
       }
-      log.info('Opening widget with ID', widgetId);
+      log.info('Opening widget with ID', widgetId, metadata);
       setWidgetMap(prevWidgetMap => {
         const newWidgetMap = new Map<string, WidgetWrapper>(prevWidgetMap);
         // We need to create a new definition object, otherwise the layout will think it's already open
@@ -57,7 +58,12 @@ export function DashboardPlugin({
           id: widget.id,
           name: widget.name,
         };
-        newWidgetMap.set(widgetId, { definition, fetch, id: widgetId });
+        newWidgetMap.set(widgetId, {
+          definition,
+          fetch,
+          id: widgetId,
+          metadata,
+        });
         return newWidgetMap;
       });
     },
@@ -99,11 +105,9 @@ export function DashboardPlugin({
   const widgetHandlers = useMemo(
     () =>
       [...widgetMap.entries()].map(([widgetId, widget]) => (
-        <WidgetHandler
-          key={widgetId}
-          widget={widget}
-          onClose={handleWidgetClose}
-        />
+        <DeferredApiBootstrap key={widgetId} options={widget.metadata}>
+          <WidgetHandler widget={widget} onClose={handleWidgetClose} />
+        </DeferredApiBootstrap>
       )),
     [handleWidgetClose, widgetMap]
   );
