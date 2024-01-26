@@ -86,13 +86,28 @@ Run `npm install` to install js dependencies.
 You can build the js plugin(s) in watch mode from the root directory of this repo by using the following commands:
 
 ```shell
-npm start # starts all plugins in watch mode and serves the plugins directory
-# OR
-cd plugins/plugin
-npm start # starts just the current directory plugin in watch mode
+# build all plugins in watch mode and serves the plugins directory
+npm start
 ```
 
-This will rebuild the plugin(s) any time the source changes. If you are mapping the folder directly via DHC start options, you will need to restart the deephaven-core server each time a change is made for the change to be picked up.
+This will serve the plugins using Vite's dev server. You can optionally provide a `--scope` argument to filter which .js plugins will be built in watch mode:
+
+e.g. To run all packages containing "theme" in the name:
+
+```shell
+# include a scope to filter which plugins to build in watch mode
+npm start -- --scope *theme*
+```
+
+Alternatively, you can also run individual plugins in watch mode. Note that this will only build the plugin and won't start the dev server.
+
+```shell
+# build a single plugin in watch mode
+cd plugins/plugin
+npm start
+```
+
+Note that if you are mapping the `plugins` folder directly via DHC start options, the plugins dev server won't actually be used, and you will need to restart the deephaven-core server each time a change is made for the change to be picked up.
 
 ##### Serve Plugins
 
@@ -114,28 +129,36 @@ See READMEs in the directories of the python plugins you're working with for spe
 You can build the wheels using the following commands (or similar for other plugins) from the root directory of this repo:
 
 ```
+
 python -m build --wheel plugins/matplotlib
 python -m build --wheel plugins/plotly
+
 ```
 
 Substitute in your local wheel locations for the wheels in the following command.
 Note that `<deephaven-plugins-path>` is the path to this repo.
 
 ```
+
 pip install <deephaven-plugins-path>/plotly/plugins/dist/deephaven_plugin_plotly-0.0.1.dev2-py3-none-any.whl <deephaven-plugins-path>/plugins/matplotlib/dist/deephaven_plugin_matplotlib-0.1.1-py3-none-any.whl
+
 ```
 
 If installing multiple wheels, you can use the following shorthand to install all built wheels:
 
 ```
-pip install <deephaven-plugins-path>/plugins/*/dist/*.whl
+
+pip install <deephaven-plugins-path>/plugins/_/dist/_.whl
+
 ```
 
 If you're reinstalling the python wheels without a version bump (generally for the purpose of development), you'll want to add the `--force-reinstall` tag. The `--no-deps` tag is also recommended as `--force-reinstall` will update all the dependencies as well, which is generally unnecessary.
 For example, on reinstalls the above command becomes
 
 ```
-pip install --force-reinstall --no-deps <deephaven-plugins-path>/plugins/*/dist/*.whl
+
+pip install --force-reinstall --no-deps <deephaven-plugins-path>/plugins/_/dist/_.whl
+
 ```
 
 ##### Start deephaven-core
@@ -143,7 +166,9 @@ pip install --force-reinstall --no-deps <deephaven-plugins-path>/plugins/*/dist/
 Finally, start up Deephaven with the appropriate js-plugin flags using the path to your deephaven-plugins repo. For example, to start with the matplotlib and plotly plugins, start the server with the following command:
 
 ```
+
 START_OPTS="-Ddeephaven.jsPlugins.@deephaven/js-plugin-matplotlib=<deephaven-plugins-path>/plugins/matploltib/src/js -Ddeephaven.jsPlugins.@deephaven/js-plugin-plotly=<deephaven-plugins-path>/plugins/plotly/src/js" ./gradlew server-jetty-app:run
+
 ```
 
 The Deephaven IDE can then be opened at http://localhost:10000/ide/, with your plugins ready to use.
@@ -163,3 +188,34 @@ services:
       # Specifying a data volume here will override the default data folder, and you will not be able to access the default data files (such as the demo data)
       - /path/to/mydata/:/data
 ```
+
+## Release Management
+
+In order to manage changelogs, version bumps and github releases, we use [cocogitto](https://github.com/cocogitto/cocogitto), or `cog` for short. Follow the [Installation instructions](https://github.com/cocogitto/cocogitto?tab=readme-ov-file#installation) to install `cog`. For Linux and Windows, we recommend using [cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) to install. For MacOS, we recommend using [brew](https://brew.sh/).
+
+The main configuration file is cog.toml, which we run using some helper scripts located in the `tools/` directory.
+
+You will also need the [GitHub CLI](https://cli.github.com/) tool installed to create and push releases to GitHub.
+
+### Cutting a New Release
+
+In order to release a given plugin, you will run the script: `tools/release.sh <pluginName>`.  
+This must be done on a branch named `main` and will publish to the `git remote -v` named `origin` (you can do test releases on your fork).
+
+`tools/release.sh <pluginName>` will validate that your system has the necessary software installed and setup correctly, then invoke `cog bump --auto --package <pluginName>`,  
+which will invoke the necessary programs and scripts to automate a version bump and GitHub release.
+
+During development, it is expected that all commit message will adhere to [conventional commits]([https://www.conventionalcommits.org/en/about/]).
+`cog` will then uses your commit messages to compute a new version number, assemble a changelog, update our version in source code, create and push git tags, and perform a GitHub release for the given plugin.
+
+See `cog.toml` to understand the full details of the release process.
+
+After you have successfully run `tools/release.sh` once, you should be able to directly invoke `cog bump --auto --package <pluginName>`, or omit the `--package` to release all plugins which have updated files.
+
+### Updating Versions in Source Code
+
+As part of the release process, `cog` will, per our `cog.toml` configuration, invoke `tools/update_version.sh <packageName> <newVersion>`, which is a script that uses `sed` to update a plugin's version number in whatever source file we happen to use as the source of truth for version information in the given plugin.
+
+*[WARNING]* If you change where the source of truth for a plugin's version is located, you must update `tools/update_version.sh` to update the correct file with a new version number.
+
+We use `tools/update_version.sh` to remove any `.dev0` "developer version" suffix before creating a release, and to put the `.dev0` version suffix back after completing the release.

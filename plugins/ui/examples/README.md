@@ -750,7 +750,8 @@ tt = table_tabs(stocks)
 ## Using Table Data Hooks
 
 There are five different hooks that can be used to get data from a table:
-1. `use_table_data`: Returns a dictionary of rows and columns from the table. 
+
+1. `use_table_data`: Returns a dictionary of rows and columns from the table.
 2. `use_row_data`: Returns a single row from the table as a dictionary
 3. `use_row_list`: Returns a single row from the table as a list
 4. `use_column_data`: Returns a single column from the table as a list
@@ -813,3 +814,92 @@ watch = watch_lizards(stocks)
 
 ![Table Hooks](assets/table_hooks.png)
 
+## Multi-threading
+
+State updates must be called from the render thread. All callbacks are automatically called from the render thread, but sometimes you will need to do some long-running operations asynchronously. You can use the `use_render_queue` hook to run a callback on the render thread. In this example, we create a form that takes a URL as input, and loads the CSV file from another thread before updating the state on the current thread.
+
+```python
+import logging
+import threading
+import time
+from deephaven import read_csv, ui
+
+
+@ui.component
+def csv_loader():
+    # The render_queue we fetch using the `use_render_queue` hook at the top of the component
+    render_queue = ui.use_render_queue()
+    table, set_table = ui.use_state()
+    error, set_error = ui.use_state()
+
+    def handle_submit(data):
+        # We define a callable that we'll queue up on our own thread
+        def load_table():
+            try:
+                # Read the table from the URL
+                t = read_csv(data["url"])
+
+                # Define our state updates in another callable. We'll need to call this on the render thread
+                def update_state():
+                    set_error(None)
+                    set_table(t)
+
+                # Queue up the state update on the render thread
+                render_queue(update_state)
+            except Exception as e:
+                # In case we have any errors, we should show the error to the user. We still need to call this from the render thread,
+                # so we must assign the exception to a variable and call the render_queue with a callable that will set the error
+                error_message = e
+
+                def update_state():
+                    set_table(None)
+                    set_error(error_message)
+
+                # Queue up the state update on the render thread
+                render_queue(update_state)
+
+        # Start our own thread loading the table
+        threading.Thread(target=load_table).start()
+
+    return [
+        # Our form displaying input from the user
+        ui.form(
+            ui.flex(
+                ui.text_field(
+                    default_value="https://media.githubusercontent.com/media/deephaven/examples/main/DeNiro/csv/deniro.csv",
+                    label="Enter URL",
+                    label_position="side",
+                    name="url",
+                    flex_grow=1,
+                ),
+                ui.button(f"Load Table", type="submit"),
+                gap=10,
+            ),
+            on_submit=handle_submit,
+        ),
+        (
+            # Display a hint if the table is not loaded yet and we don't have an error
+            ui.illustrated_message(
+                ui.heading("Enter URL above"),
+                ui.content("Enter a URL of a CSV above and click 'Load' to load it"),
+            )
+            if error is None and table is None
+            else None
+        ),
+        # The loaded table. Doesn't show anything if it is not loaded yet
+        table,
+        # An error message if there is an error
+        (
+            ui.illustrated_message(
+                ui.icon("vsWarning"),
+                ui.heading("Error loading table"),
+                ui.content(f"{error}"),
+            )
+            if error != None
+            else None
+        ),
+    ]
+
+
+my_loader = csv_loader()
+```

@@ -10,7 +10,7 @@ from .elements import *
 from .hooks import *
 from .object_types import *
 
-__version__ = "0.0.1.dev2"
+__version__ = "0.1.0"
 
 
 class UIRegistration(Registration):

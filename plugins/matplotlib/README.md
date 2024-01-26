@@ -2,6 +2,7 @@
 
 The Deephaven Plugin for matplotlib. Allows for opening matplotlib plots in a Deephaven environment. Any matplotlib plot
 should be viewable by default. For example:
+
 ```python
 import matplotlib.pyplot as plt
 
@@ -9,6 +10,7 @@ fig = plt.figure()
 ax = fig.subplots()  # Create a figure containing a single axes.
 ax.plot([1, 2, 3, 4], [4, 2, 6, 7])  # Plot some data on the axes.
 ```
+
 You can also use `TableAnimation`, which allows updating a plot whenever a Deephaven Table is updated.
 
 ## `TableAnimation` Usage
@@ -17,6 +19,7 @@ You can also use `TableAnimation`, which allows updating a plot whenever a Deeph
 is being listened to updates, the provided function will run again.
 
 ### Line Plot
+
 ```python
 import matplotlib.pyplot as plt
 from deephaven import time_table
@@ -45,7 +48,9 @@ ani = TableAnimation(fig, tt, update_fig)
 ```
 
 ### Scatter Plot
+
 Scatter plots require data in a different format that Line plots, so need to pass in the data differently.
+
 ```python
 import matplotlib.pyplot as plt
 from deephaven import time_table
@@ -82,7 +87,9 @@ ani = TableAnimation(fig, tt, update_fig)
 ```
 
 ### Multiple Series
+
 It's possible to have multiple kinds of series in the same figure. Here is an example driving a line and a scatter plot:
+
 ```python
 import matplotlib.pyplot as plt
 from deephaven import time_table
@@ -134,7 +141,7 @@ To build:
 python -m build --wheel
 ```
 
-The wheel is stored in `dist/`. 
+The wheel is stored in `dist/`.
 
 To test within [deephaven-core](https://github.com/deephaven/deephaven-core), note where this wheel is stored (using `pwd`, for example).
 Then, follow the directions in the top-level README.md to install the wheel into your Deephaven environment.

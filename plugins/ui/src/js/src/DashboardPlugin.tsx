@@ -10,6 +10,7 @@ import {
 } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
 import { useConnection } from '@deephaven/jsapi-components';
+import { DeferredApiBootstrap } from '@deephaven/jsapi-bootstrap';
 import { Widget } from '@deephaven/jsapi-types';
 import type { VariableDefinition } from '@deephaven/jsapi-types';
 import styles from './styles.scss?inline';
@@ -22,13 +23,26 @@ const DASHBOARD_ELEMENT = 'deephaven.ui.Dashboard';
 
 const log = Log.module('@deephaven/js-plugin-ui.DashboardPlugin');
 
+/**
+ * The data stored in redux when the user creates a ui.dashboard.
+ */
+interface DashboardPluginData {
+  type: string;
+  title: string;
+  id: string;
+  metadata: Record<string, unknown>;
+}
+
 export function DashboardPlugin({
   id,
   layout,
   registerComponent,
 }: DashboardPluginComponentProps): JSX.Element | null {
   const connection = useConnection();
-  const [pluginData] = useDashboardPluginData(id, DASHBOARD_ELEMENT);
+  const [pluginData] = useDashboardPluginData(
+    id,
+    DASHBOARD_ELEMENT
+  ) as unknown as [DashboardPluginData];
 
   // Keep track of the widgets we've got opened.
   const [widgetMap, setWidgetMap] = useState<
@@ -38,14 +52,16 @@ export function DashboardPlugin({
   const handleWidgetOpen = useCallback(
     ({
       fetch,
+      metadata,
       panelId: widgetId = shortid.generate(),
       widget,
     }: {
       fetch: () => Promise<Widget>;
+      metadata: Record<string, unknown>;
       panelId?: string;
       widget: VariableDefinition;
     }) => {
-      log.info('Opening widget with ID', widgetId);
+      log.info('Opening widget with ID', widgetId, metadata);
       setWidgetMap(prevWidgetMap => {
         const newWidgetMap = new Map<string, WidgetWrapper>(prevWidgetMap);
         // We need to create a new definition object, otherwise the layout will think it's already open
@@ -56,7 +72,12 @@ export function DashboardPlugin({
           id: widget.id,
           name: widget.name,
         };
-        newWidgetMap.set(widgetId, { definition, fetch, id: widgetId });
+        newWidgetMap.set(widgetId, {
+          definition,
+          fetch,
+          id: widgetId,
+          metadata,
+        });
         return newWidgetMap;
       });
     },
@@ -64,16 +85,28 @@ export function DashboardPlugin({
   );
 
   const handleDashboardOpen = useCallback(
-    ({ widget }: { widget: VariableDefinition }) => {
+    ({
+      widget,
+      metadata,
+    }: {
+      widget: VariableDefinition;
+      metadata: Record<string, unknown>;
+    }) => {
+      const { id: dashboardId, type, title = 'Untitled' } = widget;
+      if (dashboardId == null) {
+        log.error("Can't open dashboard without an ID", widget);
+        return;
+      }
       log.debug('Emitting create dashboard event for', widget);
       emitCreateDashboard(layout.eventHub, {
         pluginId: DASHBOARD_ELEMENT,
-        title: widget.title,
+        title,
         data: {
-          type: widget.type,
-          title: widget.title,
-          id: widget.id,
-        },
+          type,
+          title,
+          id: dashboardId,
+          metadata,
+        } satisfies DashboardPluginData,
       });
     },
     [layout.eventHub]
@@ -84,20 +117,22 @@ export function DashboardPlugin({
       fetch,
       panelId: widgetId = shortid.generate(),
       widget,
+      metadata = {},
     }: {
       fetch: () => Promise<Widget>;
       panelId?: string;
       widget: VariableDefinition;
+      metadata: Record<string, unknown>;
     }) => {
       const { type } = widget;
 
       switch (type) {
         case NAME_ELEMENT: {
-          handleWidgetOpen({ fetch, panelId: widgetId, widget });
+          handleWidgetOpen({ fetch, panelId: widgetId, widget, metadata });
           break;
         }
         case DASHBOARD_ELEMENT: {
-          handleDashboardOpen({ widget });
+          handleDashboardOpen({ widget, metadata });
           break;
         }
         default: {
@@ -126,6 +161,7 @@ export function DashboardPlugin({
           fetch: () =>
             connection.getObject(pluginData) as unknown as Promise<Widget>,
           id,
+          metadata: {},
         });
         return newWidgetMap;
       });
@@ -168,11 +204,9 @@ export function DashboardPlugin({
   const widgetHandlers = useMemo(
     () =>
       [...widgetMap.entries()].map(([widgetId, widget]) => (
-        <WidgetHandler
-          key={widgetId}
-          widget={widget}
-          onClose={handleWidgetClose}
-        />
+        <DeferredApiBootstrap key={widgetId} options={widget.metadata}>
+          <WidgetHandler widget={widget} onClose={handleWidgetClose} />
+        </DeferredApiBootstrap>
       )),
     [handleWidgetClose, widgetMap]
   );

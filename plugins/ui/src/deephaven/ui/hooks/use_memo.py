@@ -1,7 +1,12 @@
-from .use_ref import use_ref
+from __future__ import annotations
+
+from .use_ref import use_ref, Ref
+from typing import Any, Callable, TypeVar
+
+T = TypeVar("T")
 
 
-def use_memo(func, dependencies):
+def use_memo(func: Callable[[], T], dependencies: set[Any]) -> T:
     """
     Memoize the result of a function call. The function will only be called again if the dependencies change.
 
@@ -12,11 +17,11 @@ def use_memo(func, dependencies):
     Returns:
         The memoized result of the function call.
     """
-    deps_ref = use_ref(None)
-    value_ref = use_ref(None)
+    deps_ref: Ref[set[Any] | None] = use_ref(None)
+    value_ref: Ref[T | None] = use_ref(None)
 
     if deps_ref.current != dependencies:
         value_ref.current = func()
         deps_ref.current = dependencies
 
-    return value_ref.current
+    return value_ref.current  # type: ignore

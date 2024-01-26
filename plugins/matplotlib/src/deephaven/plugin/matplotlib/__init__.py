@@ -6,8 +6,6 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import Animation
 import itertools
 
-__version__ = "0.3.0.dev0"
-
 
 def _init_theme():
     # Set the Deephaven style globally.

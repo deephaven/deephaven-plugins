@@ -1,7 +1,6 @@
 import threading
 import unittest
 from operator import itemgetter
-from time import sleep
 from typing import Callable
 from unittest.mock import Mock
 from .BaseTest import BaseTestCase
@@ -17,15 +16,13 @@ def render_hook(fn: Callable):
         Re-render will call the same function but with the new args passed in.
     """
     from deephaven.ui._internal.RenderContext import RenderContext
-    from deephaven.ui._internal.shared import get_context, set_context
 
-    context = RenderContext()
+    context = RenderContext(lambda x: x(), lambda x: x())
 
     return_dict = {"context": context, "result": None, "rerender": None}
 
     def _rerender(*args, **kwargs):
-        set_context(context)
-        with context:
+        with context.open():
             new_result = fn(*args, **kwargs)
             return_dict["result"] = new_result
         return new_result
@@ -156,7 +153,7 @@ class HooksTest(BaseTestCase):
             assert False, "listener was not called"
 
     def test_table_listener(self):
-        from deephaven import time_table, new_table, DynamicTableWriter
+        from deephaven import DynamicTableWriter
         import deephaven.dtypes as dht
 
         column_definitions = {"Numbers": dht.int32, "Words": dht.string}
@@ -489,6 +486,54 @@ class HooksTest(BaseTestCase):
         expected = "Testing"
 
         self.assertEqual(result, expected)
+
+    def test_execution_context(self):
+        from deephaven.ui.hooks import use_execution_context, use_state, use_memo
+        from deephaven import empty_table
+
+        def _test_execution_context():
+            with_exec_ctx = use_execution_context()
+
+            def table_func():
+                # This would fail if not using an execution context
+                empty_table(0).update("X=1")
+
+            def thread_func():
+                with_exec_ctx(table_func)
+
+            def start_thread():
+                thread = threading.Thread(target=thread_func)
+                thread.start()
+                thread.join()
+
+            use_memo(start_thread, [])
+
+        render_hook(_test_execution_context)
+
+    def test_execution_context_custom(self):
+        from deephaven.ui.hooks import use_execution_context, use_state, use_memo
+        from deephaven import empty_table
+        from deephaven.execution_context import make_user_exec_ctx
+
+        table = None
+
+        def _test_execution_context():
+            with_exec_ctx = use_execution_context(make_user_exec_ctx())
+
+            def table_func():
+                # This would fail if not using an execution context
+                empty_table(0).update("X=1")
+
+            def thread_func():
+                with_exec_ctx(table_func)
+
+            def start_thread():
+                thread = threading.Thread(target=thread_func)
+                thread.start()
+
+            use_memo(start_thread, [])
+
+        render_hook(_test_execution_context)
 
 
 if __name__ == "__main__":
