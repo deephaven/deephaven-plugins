@@ -35,15 +35,10 @@ def use_memo(func: Callable[[], T], dependencies: set[Any]) -> T:
         # Own everything in the newly returned scope, then release the scope so our RenderContext is the only thing
         # to own it
         get_context().manage(value_ref.current.liveness_scope)
-        # value_ref.current.liveness_scope.j_scope.release()
 
         deps_ref.current = dependencies
     elif value_ref.current.liveness_scope:
         # Using a cached value, and it has a liveness scope, RenderContext needs to own it
-        # print(value_ref)
-        # print(value_ref.current)
-        # print(value_ref.current.liveness_scope)
-        # print(value_ref.current.liveness_scope)
         get_context().manage(value_ref.current.liveness_scope)
 
     return value_ref.current.value  # type: ignore

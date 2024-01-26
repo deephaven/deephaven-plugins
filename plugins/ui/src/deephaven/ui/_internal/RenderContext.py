@@ -124,9 +124,11 @@ class RenderContext:
     """
     The on_change callback to call when the context changes.
     """
-    _liveness_scope: LivenessScope
+
+    _collected_scopes: set[LivenessScope]
     """
-    Liveness scope to create Deephaven items in. Need to retain the liveness scope so we don't release objects prematurely.
+    Liveness scopes currently owned by this RenderContext. If currently open and rendering, this will be a fresh set,
+    representing the new rendered state.
     """
 
     def __init__(self, on_change: OnChangeCallable, on_queue_render: OnChangeCallable):
@@ -144,7 +146,11 @@ class RenderContext:
         self._children_context = {}
         self._on_change = on_change
         self._on_queue_render = on_queue_render
-        self._liveness_scope = LivenessScope()
+        self._collected_scopes = set()
+
+    def __del__(self):
+        for scope in self._collected_scopes:
+            scope.release()
 
     @contextmanager
     def open(self) -> AbstractContextManager:
@@ -172,16 +178,29 @@ class RenderContext:
         logger.debug("old context is %s and new context is %s", old_context, self)
         _set_context(self)
 
+        # Keep a reference to old liveness scopes, and make a collection to track our new ones
+        old_liveness_scopes = self._collected_scopes
+        new_top_level_scope = LivenessScope()
+        self._collected_scopes = {new_top_level_scope}
         try:
-            new_liveness_scope = LivenessScope()
-            with new_liveness_scope.open():
+            with new_top_level_scope.open():
                 yield self
 
-            # Following the "yield" so we don't do this if there was an error, we want to keep the old scope and kill
-            # the new one. We always release after creating the new one, so that each table/etc has its ref count go
-            # from 1 -> 2 -> 1, instead of 1 -> 0 -> 1 which would release the table prematurely
-            self._liveness_scope.release()
-            self._liveness_scope = new_liveness_scope
+            # Following the "yield" so we don't do this if there was an error, remove all scopes we're still using.
+            # Then, release all leftover scopes that are no longer referenced - we always release after creating new
+            # ones, so that each reused object's refcount goes from 1 -> 2 -> 1, instead of 1 -> 0 -> 1 which would
+            # release the object prematurely.
+            old_liveness_scopes -= self._collected_scopes
+            for scope in old_liveness_scopes:
+                scope.release()
+        except Exception as e:
+            # An error occurred at some point when executing the FunctionElement - we don't know what parts of the
+            # function were successful, so also keep around old liveness scopes, they'll be cleared after the next
+            # successful render.
+            self._collected_scopes |= old_liveness_scopes
+
+            # re-raise the exception
+            raise e
         finally:
             # Do this even if there was an error, old context must be restored
             logger.debug("Resetting to old context %s", old_context)
@@ -286,7 +305,8 @@ class RenderContext:
         """
         Indicates that the given LivenessScope must live until the end of the next
         successful open() call. This RenderContext must be open to call this method.
-        :param liveness_scope:
-        :return:
+        Params:
+            liveness_scope: the new LivenessScope to track
         """
-        self._liveness_scope.manage(liveness_scope.j_scope)
+        assert self is get_context()
+        self._collected_scopes.add(liveness_scope.j_scope)
