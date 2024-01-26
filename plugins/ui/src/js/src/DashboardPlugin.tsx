@@ -5,7 +5,7 @@ import {
   LayoutManagerContext,
   PanelEvent,
   useListener,
-  useDashboardData,
+  useDashboardPluginData,
   emitCreateDashboard,
 } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
@@ -28,7 +28,7 @@ export function DashboardPlugin({
   registerComponent,
 }: DashboardPluginComponentProps): JSX.Element | null {
   const connection = useConnection();
-  const dashboardData = useDashboardData(id);
+  const [pluginData] = useDashboardPluginData(id, DASHBOARD_ELEMENT);
 
   // Keep track of the widgets we've got opened.
   const [widgetMap, setWidgetMap] = useState<
@@ -110,8 +110,6 @@ export function DashboardPlugin({
 
   useEffect(
     function loadDashboard() {
-      const pluginData = dashboardData.pluginData?.[DASHBOARD_ELEMENT];
-
       if (pluginData == null) {
         return;
       }
@@ -132,7 +130,7 @@ export function DashboardPlugin({
         return newWidgetMap;
       });
     },
-    [connection, dashboardData.pluginData, id]
+    [connection, pluginData, id]
   );
 
   const handlePanelClose = useCallback((panelId: string) => {
