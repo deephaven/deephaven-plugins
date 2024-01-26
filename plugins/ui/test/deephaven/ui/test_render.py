@@ -2,7 +2,9 @@ from unittest.mock import Mock
 from .BaseTest import BaseTestCase
 
 
-def make_render_context(on_change=lambda x: x(), on_queue=lambda x: x()):
+def make_render_context(
+    on_change=lambda x: x(), on_queue=lambda x: x()
+) -> "deephaven.ui._internal.RenderContext":
     from deephaven.ui._internal.RenderContext import RenderContext
 
     return RenderContext(on_change, on_queue)
@@ -12,7 +14,7 @@ class RenderTestCase(BaseTestCase):
     def test_empty_render(self):
         on_change = Mock(side_effect=lambda x: x())
         rc = make_render_context(on_change)
-        self.assertEqual(rc._hook_index, -1)
+        self.assertEqual(rc._hook_index, -2)
         self.assertEqual(rc._state, {})
         self.assertEqual(rc._children_context, {})
         on_change.assert_not_called()
@@ -24,26 +26,26 @@ class RenderTestCase(BaseTestCase):
         rc = make_render_context(on_change)
 
         # Set up the hooks used with initial render (3 hooks)
-        with rc:
+        with rc.open():
             self.assertEqual(rc.next_hook_index(), 0)
             self.assertEqual(rc.next_hook_index(), 1)
             self.assertEqual(rc.next_hook_index(), 2)
 
         # Verify it's the same on the next render
-        with rc:
+        with rc.open():
             self.assertEqual(rc.next_hook_index(), 0)
             self.assertEqual(rc.next_hook_index(), 1)
             self.assertEqual(rc.next_hook_index(), 2)
 
         # Check that an error is thrown if we don't use enough hooks
         with self.assertRaises(Exception):
-            with rc:
+            with rc.open():
                 self.assertEqual(rc.next_hook_index(), 0)
                 self.assertEqual(rc.next_hook_index(), 1)
 
         # Check that an error is thrown if we use too many hooks
         with self.assertRaises(Exception):
-            with rc:
+            with rc.open():
                 self.assertEqual(rc.next_hook_index(), 0)
                 self.assertEqual(rc.next_hook_index(), 1)
                 self.assertEqual(rc.next_hook_index(), 2)

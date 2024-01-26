@@ -1,8 +1,7 @@
 from __future__ import annotations
 import logging
 from typing import Any, Callable, TypeVar, overload
-from .._internal.shared import get_context
-from .._internal.RenderContext import InitializerFunction, UpdaterFunction
+from .._internal import InitializerFunction, UpdaterFunction, get_context
 
 logger = logging.getLogger(__name__)
 
