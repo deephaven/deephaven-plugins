@@ -134,7 +134,7 @@ class RenderContext:
         this thread, and opens the liveness scope for user-created objects.
 
         This is not reentrant and not safe across threads, ensure it is only opened
-        once at a time.
+        once at a time. After it has been closed, it is safe to be opened again.
 
         Returns:
             A context manager to manage RenderContext resources.
