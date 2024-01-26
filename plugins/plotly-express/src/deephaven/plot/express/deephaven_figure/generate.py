@@ -145,7 +145,7 @@ def col_null_mapping(
     then yield a tuple with the column name and associated null value.
 
     Args:
-      table: TThe table to pull columns from
+      table: The table to pull columns from
       cols: The column set to check against
 
     Yields:
