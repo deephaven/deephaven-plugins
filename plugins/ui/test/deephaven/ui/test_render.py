@@ -14,7 +14,7 @@ class RenderTestCase(BaseTestCase):
     def test_empty_render(self):
         on_change = Mock(side_effect=lambda x: x())
         rc = make_render_context(on_change)
-        self.assertEqual(rc._hook_index, -1)
+        self.assertEqual(rc._hook_index, -2)
         self.assertEqual(rc._state, {})
         self.assertEqual(rc._children_context, {})
         on_change.assert_not_called()
