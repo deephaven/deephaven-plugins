@@ -15,4 +15,5 @@ export type WidgetWrapper = {
   definition: WidgetDefinition;
   fetch: WidgetFetch;
   id: string;
+  metadata: Record<string, unknown>;
 };
