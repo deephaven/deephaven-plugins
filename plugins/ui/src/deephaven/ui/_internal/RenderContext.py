@@ -283,4 +283,10 @@ class RenderContext:
         self._on_queue_render(update)
 
     def manage(self, liveness_scope: LivenessScope) -> None:
+        """
+        Indicates that the given LivenessScope must live until the end of the next
+        successful open() call. This RenderContext must be open to call this method.
+        :param liveness_scope:
+        :return:
+        """
         self._liveness_scope.manage(liveness_scope.j_scope)
