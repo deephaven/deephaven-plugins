@@ -49,20 +49,30 @@ class NoContextException(Exception):
 
 
 def get_context() -> RenderContext:
+    """
+    Gets the currently active context, or throws NoContextException if none is set.
+
+    Returns:
+        The active RenderContext, or throws if none is present.
+    """
     try:
         return _local_data.context
     except AttributeError:
         raise NoContextException("No context set")
 
 
-def set_context(context: Optional[RenderContext]):
+def _set_context(context: Optional[RenderContext]):
     """
-    Set the current context for the thread. Can be set to None to unset the context for a thread
+    Set the current context for the thread. Can be set to None to unset the context for a thread.
     """
     if context is None:
         del _local_data.context
     else:
         _local_data.context = context
+
+
+_READY_TO_OPEN: int = -2
+_OPENED_AND_UNUSED: int = -1
 
 
 class RenderContext:
@@ -109,7 +119,7 @@ class RenderContext:
             on_queue_render: The callback to call when work is being requested for the render loop.
         """
 
-        self._hook_index = -1
+        self._hook_index = _READY_TO_OPEN
         self._hook_count = -1
         self._state = {}
         self._children_context = {}
@@ -121,10 +131,19 @@ class RenderContext:
     def open(self) -> AbstractContextManager:
         """
         Opens this context to track hook creation, sets this context as active on
-        this thread, and opens the liveness scope for user-created objects
-        :return:
+        this thread, and opens the liveness scope for user-created objects.
+
+        This is not reentrant and not safe across threads, ensure it is only opened
+        once at a time.
+
+        Returns:
+            A context manager to manage RenderContext resources.
         """
-        self._hook_index = -1
+        if self._hook_index != _READY_TO_OPEN:
+            raise RuntimeError(
+                "RenderContext.open() was already called, and is not reentrant"
+            )
+        self._hook_index = _OPENED_AND_UNUSED
 
         old_context: Optional[RenderContext] = None
         try:
@@ -132,7 +151,7 @@ class RenderContext:
         except NoContextException:
             pass
         logger.debug("old context is %s and new context is %s", old_context, self)
-        set_context(self)
+        _set_context(self)
 
         try:
             new_liveness_scope = LivenessScope()
@@ -140,13 +159,14 @@ class RenderContext:
                 yield self
 
             # Following the "yield" so we don't do this if there was an error, we want to keep the old scope and kill
-            # the new one
+            # the new one. We always release after creating the new one, so that each table/etc has its ref count go
+            # from 1 -> 2 -> 1, instead of 1 -> 0 -> 1 which would release the table prematurely
             self._liveness_scope.release()
             self._liveness_scope = new_liveness_scope
         finally:
             # Do this even if there was an error, old context must be restored
             logger.debug("Resetting to old context %s", old_context)
-            set_context(old_context)
+            _set_context(old_context)
 
         # Outside the "finally" so we don't do this if there was an error, we don't want an incorrect hook count
         hook_count = self._hook_index + 1
@@ -158,6 +178,9 @@ class RenderContext:
                     self._hook_count, hook_count
                 )
             )
+
+        # Reset count for next use to safeguard double-opening
+        self._hook_index = _READY_TO_OPEN
 
     def has_state(self, key: StateKey) -> bool:
         """
