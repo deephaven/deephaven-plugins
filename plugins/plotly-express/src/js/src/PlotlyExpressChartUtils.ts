@@ -103,6 +103,7 @@ export function applyColorwayToData(
       if (plotlyColors.has(trace.marker.color.toUpperCase())) {
         trace.marker.color = colorMap.get(trace.marker.color.toUpperCase());
       }
+      trace.marker.color = undefined;
     }
 
     if (
@@ -114,6 +115,7 @@ export function applyColorwayToData(
       if (plotlyColors.has(trace.line.color.toUpperCase())) {
         trace.line.color = colorMap.get(trace.line.color.toUpperCase());
       }
+      trace.line.color = undefined;
     }
   }
 }
