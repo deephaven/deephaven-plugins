@@ -9,8 +9,12 @@ import {
   emitCreateDashboard,
 } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
-import { useConnection } from '@deephaven/jsapi-components';
-import { DeferredApiBootstrap } from '@deephaven/jsapi-bootstrap';
+import {
+  DeferredApiBootstrap,
+  ObjectMetadata,
+  getObjectMetadata,
+  useObjectFetcher,
+} from '@deephaven/jsapi-bootstrap';
 import { Widget } from '@deephaven/jsapi-types';
 import type { VariableDefinition } from '@deephaven/jsapi-types';
 import { ErrorBoundary } from '@deephaven/components';
@@ -39,7 +43,6 @@ export function DashboardPlugin({
   layout,
   registerComponent,
 }: DashboardPluginComponentProps): JSX.Element | null {
-  const connection = useConnection();
   const [pluginData] = useDashboardPluginData(
     id,
     DASHBOARD_ELEMENT
@@ -73,11 +76,15 @@ export function DashboardPlugin({
           id: widget.id,
           name: widget.name,
         };
+        const objectMetadata = {
+          ...getObjectMetadata(widget),
+          ...metadata,
+        };
         newWidgetMap.set(widgetId, {
           definition,
           fetch,
           id: widgetId,
-          metadata,
+          metadata: objectMetadata,
         });
         return newWidgetMap;
       });
@@ -99,6 +106,10 @@ export function DashboardPlugin({
         return;
       }
       log.debug('Emitting create dashboard event for', widget);
+      const objectMetadata = {
+        ...getObjectMetadata(widget),
+        ...metadata,
+      };
       emitCreateDashboard(layout.eventHub, {
         pluginId: DASHBOARD_ELEMENT,
         title,
@@ -106,7 +117,7 @@ export function DashboardPlugin({
           type,
           title,
           id: dashboardId,
-          metadata,
+          metadata: objectMetadata,
         } satisfies DashboardPluginData,
       });
     },
@@ -144,6 +155,8 @@ export function DashboardPlugin({
     [handleDashboardOpen, handleWidgetOpen]
   );
 
+  const objectFetcher = useObjectFetcher();
+
   useEffect(
     function loadDashboard() {
       if (pluginData == null) {
@@ -157,17 +170,17 @@ export function DashboardPlugin({
         // We need to create a new definition object, otherwise the layout will think it's already open
         // Can't use a spread operator because the widget definition uses property accessors
 
+        const metadata = pluginData as unknown as ObjectMetadata;
         newWidgetMap.set(id, {
           definition: pluginData,
-          fetch: () =>
-            connection.getObject(pluginData) as unknown as Promise<Widget>,
+          fetch: () => objectFetcher(metadata) as unknown as Promise<Widget>,
           id,
-          metadata: {},
+          metadata,
         });
         return newWidgetMap;
       });
     },
-    [connection, pluginData, id]
+    [objectFetcher, pluginData, id]
   );
 
   const handlePanelClose = useCallback((panelId: string) => {

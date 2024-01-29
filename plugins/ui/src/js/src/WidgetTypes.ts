@@ -1,4 +1,5 @@
 import { WidgetDefinition } from '@deephaven/dashboard';
+import { ObjectMetadata } from '@deephaven/jsapi-bootstrap';
 import { Widget, WidgetExportedObject } from '@deephaven/jsapi-types';
 
 export interface WidgetMessageDetails {
@@ -15,5 +16,5 @@ export type WidgetWrapper = {
   definition: WidgetDefinition;
   fetch: WidgetFetch;
   id: string;
-  metadata: Record<string, unknown>;
+  metadata: ObjectMetadata;
 };
