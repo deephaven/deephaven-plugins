@@ -124,6 +124,10 @@ class RenderContext:
     """
     The on_change callback to call when the context changes.
     """
+    _liveness_scope: LivenessScope
+    """
+    Liveness scope to create Deephaven items in. Need to retain the liveness scope so we don't release objects prematurely.
+    """
 
     _collected_scopes: set[LivenessScope]
     """

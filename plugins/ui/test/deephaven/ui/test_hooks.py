@@ -511,11 +511,9 @@ class HooksTest(BaseTestCase):
         render_hook(_test_execution_context)
 
     def test_execution_context_custom(self):
-        from deephaven.ui.hooks import use_execution_context, use_state, use_memo
+        from deephaven.ui.hooks import use_execution_context, use_memo
         from deephaven import empty_table
         from deephaven.execution_context import make_user_exec_ctx
-
-        table = None
 
         def _test_execution_context():
             with_exec_ctx = use_execution_context(make_user_exec_ctx())
