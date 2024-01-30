@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
+_UNSAFE_PREFIX = "UNSAFE_"
+
 
 def get_component_name(component: Any) -> str:
     """
@@ -46,21 +48,21 @@ def to_camel_case(snake_case_text: str) -> str:
         The camelCase string.
     """
     components = snake_case_text.split("_")
-    return components[0] + "".join(x.title() for x in components[1:])
+    return components[0] + "".join((x[0].upper() + x[1:]) for x in components[1:])
 
 
 def to_camel_case_skip_unsafe(snake_case_text: str) -> str:
     """
-    Convert a snake_case string to camelCase. Does not convert it if the string starts with `UNSAFE_`
+    Convert a snake_case string to camelCase. Leaves the `UNSAFE_` prefix intact if present.
 
     Args:
         snake_case_text: The snake_case string to convert.
 
     Returns:
-        The camelCase string, or the original string if it starts with `UNSAFE_`.
+        The camelCase string with the `UNSAFE_` prefix intact if present.
     """
-    if snake_case_text.startswith("UNSAFE_"):
-        return snake_case_text
+    if snake_case_text.startswith(_UNSAFE_PREFIX):
+        return _UNSAFE_PREFIX + to_camel_case(snake_case_text[len(_UNSAFE_PREFIX) :])
     return to_camel_case(snake_case_text)
 
 

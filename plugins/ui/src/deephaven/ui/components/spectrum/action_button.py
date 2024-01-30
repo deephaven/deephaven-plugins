@@ -73,7 +73,7 @@ def action_button(
     right: DimensionValue | None = None,
     z_index: Number | None = None,
     is_hidden: bool | None = None,
-    UNSAFE_className: str | None = None,
+    UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
 ) -> Element:
     """
@@ -133,7 +133,7 @@ def action_button(
         right: The distance from the right of the containing element.
         z_index: The stack order of the element.
         is_hidden: Whether the element is hidden.
-        UNSAFE_className: A CSS class to apply to the element.
+        UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
     """
     return spectrum_element(
@@ -190,6 +190,6 @@ def action_button(
         right=right,
         z_index=z_index,
         is_hidden=is_hidden,
-        UNSAFE_className=UNSAFE_className,
+        UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
     )
