@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Literal
+from typing import Any, Dict, Literal, Union
 
 # Layout typings
 
@@ -80,14 +80,14 @@ JustifySelf = Literal[
     "stretch",
 ]
 
-Number = int | float
+Number = Union[int, float]
 
-LayoutFlex = str | Number | bool
+LayoutFlex = Union[str, Number, bool]
 """
 The flex CSS shorthand property sets how a flex item will grow or shrink to fit the space available in its flex container.
 """
 
-DimensionValue = str | Number
+DimensionValue = Union[str, Number]
 """
 A dimension value can be a string providing a unit, such as "10px", or a number, which is assumed to be in pixels.
 """
@@ -97,7 +97,7 @@ Position = Literal["static", "relative", "absolute", "fixed", "sticky"]
 The position CSS property sets how an element is positioned in a document. The top, right, bottom, and left properties determine the final location of positioned elements.
 """
 
-CSSProperties = dict[str, Any]
+CSSProperties = Dict[str, Any]
 """
 A dictionary of CSS properties.
 """
