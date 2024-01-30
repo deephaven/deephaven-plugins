@@ -4,6 +4,7 @@ import threading
 import logging
 from functools import partial
 from typing import Any, Callable, Optional, TypeVar, Union, Generic
+from deephaven import DHError
 from deephaven.liveness_scope import LivenessScope
 from contextlib import AbstractContextManager, contextmanager
 from dataclasses import dataclass
@@ -124,9 +125,10 @@ class RenderContext:
     """
     The on_change callback to call when the context changes.
     """
-    _liveness_scope: LivenessScope
+
+    _top_level_scope: LivenessScope
     """
-    Liveness scope to create Deephaven items in. Need to retain the liveness scope so we don't release objects prematurely.
+    Liveness scope that captures objects directly created in the FunctionElement. Will only be non-None when the context manager is open.
     """
 
     _collected_scopes: set[LivenessScope]
@@ -184,10 +186,10 @@ class RenderContext:
 
         # Keep a reference to old liveness scopes, and make a collection to track our new ones
         old_liveness_scopes = self._collected_scopes
-        new_top_level_scope = LivenessScope()
-        self._collected_scopes = {new_top_level_scope}
+        self._top_level_scope = LivenessScope()
+        self._collected_scopes = {self._top_level_scope}
         try:
-            with new_top_level_scope.open():
+            with self._top_level_scope.open():
                 yield self
 
             # Following the "yield" so we don't do this if there was an error, remove all scopes we're still using.
@@ -240,6 +242,12 @@ class RenderContext:
         # liveness scope
         if wrapper.liveness_scope:
             self.manage(wrapper.liveness_scope)
+        else:
+            try:
+                self._top_level_scope.manage(wrapper.value)
+            except DHError:
+                # Ignore, we just won't manage this instance
+                pass
 
         return wrapper.value
 
