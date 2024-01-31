@@ -54,6 +54,6 @@ def use_state(
     def set_value(new_value: T | UpdaterFunction[T]):
         # Set the value in the context state and trigger a re-render
         logger.debug("use_state set_value called with %s", new_value)
-        context.set_state(hook_index, new_value)
+        context.queue_render(lambda: context.set_state(hook_index, new_value))
 
     return value, set_value
