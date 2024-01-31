@@ -1011,6 +1011,94 @@ def my_dashboard():
 d = my_dashboard()
 ```
 
+##### ui.item
+
+An item that can be added to a menu, such as a `ui.picker`
+
+```py
+import deephaven.ui as ui
+ui.item(
+    child: Any
+) -> ItemElement
+```
+
+##### ui.section
+
+A section that can be added to a menu, such as a `ui.picker`. Contains a list of `ui.item` elements or basic types like `str`.
+
+```py
+import deephaven.ui as ui
+PickerOption = Any | ItemElement
+
+ui.section(
+    *children: PickerOption
+) -> SectionElement
+```
+
+##### ui.picker
+A picker that can be used to select from a list. Children should be one of two types:
+`SectionElement` or `PickerOption` (which can be created from `ui.item` or be a basic type like `str`)
+If children are of type `PickerOption`, they are the dropdown options.
+If children are of type `SectionElement`, they are the dropdown sections.
+
+```py
+import deephaven.ui as ui
+ui.item(
+    *children: PickerOption | SectionElement
+) -> ItemElement
+```
+
+```py
+import deephaven.ui as ui
+
+picker1 = ui.picker(
+    ui.section(
+        ui.item("Option 1"),
+        ui.item("Option 2"),
+    ),
+    ui.section(
+        ui.item("Option 3"),
+        ui.item("Option 4"),
+    )
+)
+
+picker2 = ui.picker(
+    ui.section(
+        "Option 1",
+        "Option 2",
+    ),
+    ui.section(
+        "Option 3",
+        "Option 4",
+    )
+)
+
+picker3 = ui.picker(
+    ui.item("Option 1"),
+    ui.item("Option 2"),
+    ui.item("Option 3"),
+    ui.item("Option 4"),
+)
+
+picker4 = ui.picker(
+    "Option 1",
+    "Option 2",
+    "Option 3",
+    "Option 4",
+)
+
+picker5 = ui.picker(
+    children=[
+        "Option 1",
+        "Option 2",
+        "Option 3",
+        "Option 4",
+    ]
+)
+```
+
+
+
 #### ui.table
 
 `ui.table` is a wrapper for a Deephaven `Table` object that allows you to add UI customizations or callbacks. The basic syntax for creating a `UITable` is:
