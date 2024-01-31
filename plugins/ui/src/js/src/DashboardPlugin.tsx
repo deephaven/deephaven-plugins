@@ -69,7 +69,7 @@ export function DashboardPlugin({
       setWidgetMap(prevWidgetMap => {
         const newWidgetMap = new Map<string, WidgetWrapper>(prevWidgetMap);
         // We need to create a new definition object, otherwise the layout will think it's already open
-        // Can't use a spread operator because the widget definition uses property accessors
+        // Can't use a spread operator because of how the GWT compiled code defines properties on the object: https://github.com/gwtproject/gwt/issues/9913
         const definition = {
           type: widget.type,
           title: widget.title,
@@ -155,7 +155,7 @@ export function DashboardPlugin({
     [handleDashboardOpen, handleWidgetOpen]
   );
 
-  const objectFetcher = useObjectFetcher();
+  const objectFetcher = useObjectFetcher<Widget>();
 
   useEffect(
     function loadDashboard() {
@@ -170,10 +170,10 @@ export function DashboardPlugin({
         // We need to create a new definition object, otherwise the layout will think it's already open
         // Can't use a spread operator because the widget definition uses property accessors
 
-        const metadata = pluginData as unknown as ObjectMetadata;
+        const metadata = pluginData;
         newWidgetMap.set(id, {
           definition: pluginData,
-          fetch: () => objectFetcher(metadata) as unknown as Promise<Widget>,
+          fetch: () => objectFetcher(metadata),
           id,
           metadata,
         });
