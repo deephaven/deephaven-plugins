@@ -13,6 +13,7 @@ import { useConnection } from '@deephaven/jsapi-components';
 import { DeferredApiBootstrap } from '@deephaven/jsapi-bootstrap';
 import { Widget } from '@deephaven/jsapi-types';
 import type { VariableDefinition } from '@deephaven/jsapi-types';
+import { ErrorBoundary } from '@deephaven/components';
 import styles from './styles.scss?inline';
 import { WidgetWrapper } from './WidgetTypes';
 import PortalPanel from './PortalPanel';
@@ -204,9 +205,11 @@ export function DashboardPlugin({
   const widgetHandlers = useMemo(
     () =>
       [...widgetMap.entries()].map(([widgetId, widget]) => (
-        <DeferredApiBootstrap key={widgetId} options={widget.metadata}>
-          <WidgetHandler widget={widget} onClose={handleWidgetClose} />
-        </DeferredApiBootstrap>
+        <ErrorBoundary key={widgetId}>
+          <DeferredApiBootstrap options={widget.metadata}>
+            <WidgetHandler widget={widget} onClose={handleWidgetClose} />
+          </DeferredApiBootstrap>
+        </ErrorBoundary>
       )),
     [handleWidgetClose, widgetMap]
   );
