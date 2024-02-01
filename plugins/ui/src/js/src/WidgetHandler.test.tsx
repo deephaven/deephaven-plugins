@@ -6,7 +6,7 @@ import { DocumentHandlerProps } from './DocumentHandler';
 import {
   makeDocumentUpdatedJsonRpcString,
   makeWidget,
-  makeWidgetDefinition,
+  makeWidgetDescriptor,
   makeWidgetWrapper,
 } from './WidgetTestUtils';
 
@@ -45,7 +45,7 @@ it('updates the document when event is received', async () => {
     fetchResolve = resolve;
   });
   const fetch = jest.fn(() => fetchPromise);
-  const definition = makeWidgetDefinition();
+  const definition = makeWidgetDescriptor();
   const cleanup = jest.fn();
   const mockAddEventListener = jest.fn(() => cleanup);
   const initialDocument = { foo: 'bar' };
