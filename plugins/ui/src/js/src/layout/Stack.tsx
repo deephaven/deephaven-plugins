@@ -1,8 +1,10 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { Children, useEffect, useMemo } from 'react';
+import { isElement } from 'react-is';
 import { useLayoutManager } from '@deephaven/dashboard';
 import type { Stack as StackType, RowOrColumn } from '@deephaven/golden-layout';
 import type { StackElementProps } from './LayoutUtils';
 import { ParentItemContext, useParentItem } from './ParentItemContext';
+import ReactPanel from '../ReactPanel';
 
 function Stack({
   children,
@@ -38,7 +40,12 @@ function Stack({
 
   return (
     <ParentItemContext.Provider value={stack}>
-      {children}
+      {Children.map(children, child => {
+        if (isElement(child) && child.type !== ReactPanel) {
+          return <ReactPanel title="Untitled">{child}</ReactPanel>;
+        }
+        return child;
+      })}
     </ParentItemContext.Provider>
   );
 }

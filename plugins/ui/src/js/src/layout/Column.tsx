@@ -1,8 +1,11 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { Children, useEffect, useMemo } from 'react';
+import { isElement } from 'react-is';
 import { useLayoutManager } from '@deephaven/dashboard';
 import type { RowOrColumn } from '@deephaven/golden-layout';
 import type { ColumnElementProps } from './LayoutUtils';
 import { ParentItemContext, useParentItem } from './ParentItemContext';
+import Row from './Row';
+import Stack from './Stack';
 
 function Column({ children, width }: ColumnElementProps): JSX.Element | null {
   const layoutManager = useLayoutManager();
@@ -28,9 +31,24 @@ function Column({ children, width }: ColumnElementProps): JSX.Element | null {
     column.setSize();
   }, [column]);
 
+  const hasRows = Children.toArray(children).some(
+    child => isElement(child) && child.type === Row
+  );
+
   return (
     <ParentItemContext.Provider value={column}>
-      {children}
+      {Children.map(children, child => {
+        if (isElement(child) && child.type !== Row) {
+          if (hasRows) {
+            return <Row>{child}</Row>;
+          }
+
+          if (child.type !== Stack) {
+            return <Stack>{child}</Stack>;
+          }
+        }
+        return child;
+      })}
     </ParentItemContext.Provider>
   );
 }
