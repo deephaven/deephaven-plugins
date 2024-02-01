@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import Any, Callable
 
 _UNSAFE_PREFIX = "UNSAFE_"
+_ARIA_PREFIX = "aria_"
+_ARIA_PREFIX_REPLACEMENT = "aria-"
 
 
 def get_component_name(component: Any) -> str:
@@ -51,25 +53,29 @@ def to_camel_case(snake_case_text: str) -> str:
     return components[0] + "".join((x[0].upper() + x[1:]) for x in components[1:])
 
 
-def to_camel_case_skip_unsafe(snake_case_text: str) -> str:
+def to_react_prop_case(snake_case_text: str) -> str:
     """
-    Convert a snake_case string to camelCase. Leaves the `UNSAFE_` prefix intact if present.
+    Convert a snake_case string to camelCase, with exceptions for special props like `UNSAFE_` or `aria_` props.
 
     Args:
         snake_case_text: The snake_case string to convert.
 
     Returns:
-        The camelCase string with the `UNSAFE_` prefix intact if present.
+        The camelCase string with the `UNSAFE_` prefix intact if present, or `aria_` converted to `aria-`.
     """
     if snake_case_text.startswith(_UNSAFE_PREFIX):
         return _UNSAFE_PREFIX + to_camel_case(snake_case_text[len(_UNSAFE_PREFIX) :])
+    if snake_case_text.startswith(_ARIA_PREFIX):
+        return _ARIA_PREFIX_REPLACEMENT + to_camel_case(
+            snake_case_text[len(_ARIA_PREFIX) :]
+        )
     return to_camel_case(snake_case_text)
 
 
 def dict_to_camel_case(
     snake_case_dict: dict[str, Any],
     omit_none: bool = True,
-    convert_key: Callable[[str], str] = to_camel_case_skip_unsafe,
+    convert_key: Callable[[str], str] = to_react_prop_case,
 ) -> dict[str, Any]:
     """
     Convert a dict with snake_case keys to a dict with camelCase keys.

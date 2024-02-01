@@ -3,8 +3,8 @@ import { KeyboardEvent, useCallback } from 'react';
 export function serializeKeyboardEvent(
   event: KeyboardEvent
 ): SerializedKeyboardEvent {
-  const { code, key, shiftKey, ctrlKey, metaKey, altKey, repeat } = event;
-  return { code, key, shiftKey, ctrlKey, metaKey, altKey, repeat };
+  const { code, key, shiftKey, ctrlKey, metaKey, altKey, repeat, type } = event;
+  return { code, key, shiftKey, ctrlKey, metaKey, altKey, repeat, type };
 }
 
 /**
@@ -12,7 +12,14 @@ export function serializeKeyboardEvent(
  */
 export type SerializedKeyboardEvent = Pick<
   KeyboardEvent,
-  'code' | 'key' | 'shiftKey' | 'ctrlKey' | 'metaKey' | 'altKey' | 'repeat'
+  | 'code'
+  | 'key'
+  | 'shiftKey'
+  | 'ctrlKey'
+  | 'metaKey'
+  | 'altKey'
+  | 'repeat'
+  | 'type'
 >;
 
 export type SerializedKeyboardEventCallback = (
