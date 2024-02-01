@@ -30,26 +30,22 @@ class UtilsTest(BaseTestCase):
         self.assertEqual(to_camel_case("UNSAFE_className"), "UNSAFEClassName")
         self.assertEqual(to_camel_case("unsafe_style"), "unsafeStyle")
 
-    def test_to_camel_case_skip_unsafe(self):
-        from deephaven.ui._internal.utils import to_camel_case_skip_unsafe
+    def test_to_react_prop_case(self):
+        from deephaven.ui._internal.utils import to_react_prop_case
 
-        self.assertEqual(to_camel_case_skip_unsafe("test_string"), "testString")
-        self.assertEqual(to_camel_case_skip_unsafe("test_string_2"), "testString2")
-        self.assertEqual(to_camel_case_skip_unsafe("align_items"), "alignItems")
-        self.assertEqual(to_camel_case_skip_unsafe("First_Word"), "FirstWord")
-        self.assertEqual(to_camel_case_skip_unsafe("first_word"), "firstWord")
-        self.assertEqual(
-            to_camel_case_skip_unsafe("alreadyCamelCase"), "alreadyCamelCase"
-        )
-        self.assertEqual(to_camel_case_skip_unsafe(""), "")
-        self.assertEqual(to_camel_case_skip_unsafe("UNSAFE_style"), "UNSAFE_style")
-        self.assertEqual(
-            to_camel_case_skip_unsafe("UNSAFE_class_name"), "UNSAFE_className"
-        )
-        self.assertEqual(
-            to_camel_case_skip_unsafe("UNSAFE_className"), "UNSAFE_className"
-        )
-        self.assertEqual(to_camel_case_skip_unsafe("unsafe_style"), "unsafeStyle")
+        self.assertEqual(to_react_prop_case("test_string"), "testString")
+        self.assertEqual(to_react_prop_case("test_string_2"), "testString2")
+        self.assertEqual(to_react_prop_case("align_items"), "alignItems")
+        self.assertEqual(to_react_prop_case("First_Word"), "FirstWord")
+        self.assertEqual(to_react_prop_case("first_word"), "firstWord")
+        self.assertEqual(to_react_prop_case("alreadyCamelCase"), "alreadyCamelCase")
+        self.assertEqual(to_react_prop_case(""), "")
+        self.assertEqual(to_react_prop_case("UNSAFE_style"), "UNSAFE_style")
+        self.assertEqual(to_react_prop_case("UNSAFE_class_name"), "UNSAFE_className")
+        self.assertEqual(to_react_prop_case("UNSAFE_className"), "UNSAFE_className")
+        self.assertEqual(to_react_prop_case("unsafe_style"), "unsafeStyle")
+        self.assertEqual(to_react_prop_case("aria_expanded"), "aria-expanded")
+        self.assertEqual(to_react_prop_case("aria_labelledby"), "aria-labelledby")
 
     def test_dict_to_camel_case(self):
         from deephaven.ui._internal.utils import dict_to_camel_case

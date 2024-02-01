@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Any, Callable
+from .accessibility import AriaExpanded, AriaHasPopup, AriaPressed
 from .events import (
     ButtonType,
     FocusEventCallable,
@@ -73,6 +74,16 @@ def action_button(
     right: DimensionValue | None = None,
     z_index: Number | None = None,
     is_hidden: bool | None = None,
+    id: str | None = None,
+    exclude_from_tab_order: bool | None = None,
+    aria_expanded: AriaExpanded | None = None,
+    aria_haspopup: AriaHasPopup | None = None,
+    aria_controls: str | None = None,
+    aria_label: str | None = None,
+    aria_labelledby: str | None = None,
+    aria_describedby: str | None = None,
+    aria_pressed: AriaPressed | None = None,
+    aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
 ) -> Element:
@@ -133,6 +144,16 @@ def action_button(
         right: The distance from the right of the containing element.
         z_index: The stack order of the element.
         is_hidden: Whether the element is hidden.
+        id: A unique identifier for the element.
+        exclude_from_tab_order: Whether the element should be excluded from the tab order.
+        aria_expanded: Whether the element is expanded.
+        aria_haspopup: Whether the element has a popup.
+        aria_controls: The id of the element that the element controls.
+        aria_label: The label for the element.
+        aria_labelledby: The id of the element that labels the element.
+        aria_describedby: The id of the element that describes the element.
+        aria_pressed: Whether the element is pressed.
+        aria_details: The details for the element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
     """
@@ -190,6 +211,16 @@ def action_button(
         right=right,
         z_index=z_index,
         is_hidden=is_hidden,
+        id=id,
+        exclude_from_tab_order=exclude_from_tab_order,
+        aria_expanded=aria_expanded,
+        aria_haspopup=aria_haspopup,
+        aria_controls=aria_controls,
+        aria_label=aria_label,
+        aria_labelledby=aria_labelledby,
+        aria_describedby=aria_describedby,
+        aria_pressed=aria_pressed,
+        aria_details=aria_details,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
     )

@@ -1,13 +1,10 @@
 import { FocusEvent, useCallback } from 'react';
+import getTargetName from './EventUtils';
 
 export function serializeFocusEvent(event: FocusEvent): SerializedFocusEvent {
   const { relatedTarget, target, type } = event;
-  const targetName =
-    target instanceof Element ? target.getAttribute('name') : undefined;
-  const relatedTargetName =
-    relatedTarget instanceof Element
-      ? relatedTarget.getAttribute('name')
-      : undefined;
+  const targetName = getTargetName(target);
+  const relatedTargetName = getTargetName(relatedTarget);
   return {
     type,
     target: targetName ?? undefined,

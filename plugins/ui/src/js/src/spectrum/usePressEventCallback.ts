@@ -1,11 +1,12 @@
-import { PressEvent } from '@react-types/shared';
 import { useCallback } from 'react';
+import { PressEvent } from '@react-types/shared';
+import getTargetName from './EventUtils';
 
 export function serializePressEvent(event: PressEvent): SerializedPressEvent {
   const { target, type, pointerType, shiftKey, ctrlKey, metaKey, altKey } =
     event;
   return {
-    target: target?.getAttribute('name') ?? undefined,
+    target: getTargetName(target),
     type,
     pointerType,
     shiftKey,
