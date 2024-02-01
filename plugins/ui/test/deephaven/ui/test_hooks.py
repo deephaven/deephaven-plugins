@@ -100,7 +100,7 @@ class HooksTest(BaseTestCase):
         from deephaven.ui.hooks import use_memo
 
         def _test_memo(fn=lambda: "foo", a=1, b=2):
-            return use_memo(fn, {a, b})
+            return use_memo(fn, [a, b])
 
         # Initial render
         render_result = render_hook(_test_memo)
