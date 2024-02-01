@@ -45,30 +45,30 @@ it('updates the document when event is received', async () => {
     fetchResolve = resolve;
   });
   const fetch = jest.fn(() => fetchPromise);
-  const definition = makeWidgetDescriptor();
+  const widget = makeWidgetDescriptor();
   const cleanup = jest.fn();
   const mockAddEventListener = jest.fn(() => cleanup);
   const initialDocument = { foo: 'bar' };
-  const widget = makeWidget({
+  const widgetObject = makeWidget({
     addEventListener: mockAddEventListener,
     getDataAsString: jest.fn(() =>
       makeDocumentUpdatedJsonRpcString(initialDocument)
     ),
   });
-  const wrapper = makeWidgetWrapper({ definition, fetch });
+  const wrapper = makeWidgetWrapper({ widget, fetch });
   const { unmount } = render(makeWidgetHandler({ widget: wrapper }));
   expect(fetch).toHaveBeenCalledTimes(1);
   expect(mockAddEventListener).not.toHaveBeenCalled();
   expect(mockDocumentHandler).not.toHaveBeenCalled();
   await act(async () => {
-    fetchResolve!(widget);
+    fetchResolve!(widgetObject);
     await fetchPromise;
   });
 
   expect(mockAddEventListener).toHaveBeenCalledTimes(1);
   expect(mockDocumentHandler).toHaveBeenCalledWith(
     expect.objectContaining({
-      definition,
+      widget,
       children: initialDocument,
     })
   );
@@ -90,7 +90,7 @@ it('updates the document when event is received', async () => {
   });
   expect(mockDocumentHandler).toHaveBeenCalledWith(
     expect.objectContaining({
-      definition,
+      widget,
       children: updatedDocument,
     })
   );
