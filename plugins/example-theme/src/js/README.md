@@ -31,9 +31,16 @@ To preview themes during development, you'll need to start three separate proces
    npm run start
    ```
 
-Then visit http://localhost:4000 to preview in the app, or http://localhost:4000/ide/styleguide for a preview of all the components in the web-client-ui library. You can change the theme by clicking on the theme selector in the top right corner of the styleguide, or in the settings menu from the app.
+Then visit http://localhost:4000 to preview in the app, or http://localhost:4000/ide/styleguide for a preview of all the components in the web-client-ui library. You can change the theme by clicking on the theme selector in the top right corner of the styleguide, or in the settings menu from the app. If you make changes to your styles, you will need to refresh the page to see the changes.
 
 ## Creating your theme
+
+The general steps for creating a theme is as follows:
+
+1. Inherit a base theme (either `dark` or `light`)
+2. Create your color palette (gray, red, orange, etc)
+3. Override any semantic colors with colors from your palette as desired (accent, positive, negative, etc)
+4. Override component specific colors with colors semantic colors, or colors from your palette as desired (grid colors, plot, etc)
 
 ### Inherit a base theme
 
@@ -59,7 +66,7 @@ export const plugin: ThemePlugin = {
 
 Next you'll want to override colors and other variables to create your custom theme in the `./<your-theme>/src/js/src/theme.scss` file. You can find a list of all the variables you can override in the [Default Dark](https://github.com/deephaven/web-client-ui/tree/main/packages/components/src/theme/theme-dark) or [Default Light](https://github.com/deephaven/web-client-ui/tree/main/packages/components/src/theme/theme-light) directory in the web-client-ui repository, organized into files by usage. You can also inspect elements in the browser to discover the class or variable names you may need to override. Use selector based styling sparingly, as these are not guaranteed to be stable across releases. Most themes will start by overriding a few colors, and then add additional variables as needed. For example, to create the example theme above, we only need to override a few colors, mostly from the palette files listed above.
 
-We'll start by overriding the background colors, and then the accent colors, positive and negative colors, and then a few additional colors specific to grids and plots. All colors are defined as raw HSL values without the `hsl()` functional notation. ex. `--dh-color-red-100: 2.14, 86.73%, 44.31%`. This allows web-client-ui to convert the colors internally to the necessary formats for each display purpose (grids, code editors, plots) and also mix in the alpha channel to create transparent colors via HSLA(Hue, Saturation, Lightness, Alpha). When CSS color-mixing is more widely supported, we may deprecate the use of HSL colors in favor of any valid css color.
+We'll start by overriding the background colors, accent colors, positive and negative colors, and then a few additional colors specific to grids and plots. **Colors must be in the sRGB color space** (supported formats include #HEX, rgb(), rgba(), hsl(), hwb(), color(srgb) or a named color. Other color spaces such as LAB, OKLAB, P3 etc are not supported). The web-client-ui theme provider will convert your colors to HEX internally via javascript for display in some of the non-traditional dom-elements (canvas based grids, monaco code editors, svg/webgl plots). We also mix in an alpha channel to create transparent colors for you via [color-mix](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/color-mix) in srgb space.
 
 ### Using color generators and defining your palette
 
@@ -68,7 +75,7 @@ The Deephaven design system is based on the [adobe spectrum](https://spectrum.ad
 - 11 shades of a "gray" palette used for background colors
 - 13 shades of each of the 12 colors in the "color" palette: Red, Orange, Yellow, Chartreuse, Celery, Green, Seafoam, Cyan, Blue, Indigo, Purple, Fuschia and Magenta
 
-You can create color palettes with shades for each color using tools like: Adobe's [Leonardo](https://leonardocolor.io/theme.html) color tool (recommended), or [Coolors](https://coolors.co/gradient-palette/fae7d5-24211d?number=11). You may already have an existing brand guide at your company that also gives you full palettes. Leonardo is a great tool for creating color ramps, which has an "Export as CSS" feature to get the HSL values for each color in the ramp. Remove the `hsl()` notation to get the raw values. Consider manually converting to HSL using two decimals for your HSL raw values for additional precision.
+You can create color palettes with shades for each color using tools like: Adobe's [Leonardo](https://leonardocolor.io/theme.html) color tool (recommended), or [Coolors](https://coolors.co/gradient-palette/fae7d5-24211d?number=11). You may already have an existing brand guide at your company that also gives you full palettes. Leonardo is a great tool for creating color ramps, which has an "Export as CSS" feature to get the HEX values for each color in the ramp. Below we use hsl values, but you can use any color format listed in the previous section.
 
 The background colors are defined using a set of 11 colors, ranging from light to dark for light themes, and inverted from dark to light for dark themes. With the 50, 75 and 100 colors being closer together, and 100-900 being a more equal distribution. The other colors are more evenly distributed across lightness.
 
@@ -76,17 +83,17 @@ For our example theme, we used a background color inspired from the financial ti
 
 ```css
 // Background colors, labeled as gray but may be any suitable background color
---dh-color-gray-50-hsl: 30, 100%, 99.22%;
---dh-color-gray-75-hsl: 30, 100%, 97.65%;
---dh-color-gray-100-hsl: 27.69, 100%, 94.9%;
---dh-color-gray-200-hsl: 29.19, 78.72%, 90.78%;
---dh-color-gray-300-hsl: 28.33, 58.06%, 87.84%;
---dh-color-gray-400-hsl: 28, 18.99%, 69.02%;
---dh-color-gray-500-hsl: 27.5, 10.34%, 54.51%;
---dh-color-gray-600-hsl: 26.67, 8.57%, 41.18%;
---dh-color-gray-700-hsl: 25, 9.38%, 25.1%;
---dh-color-gray-800-hsl: 34.29, 10.77%, 12.75%;
---dh-color-gray-900-hsl: 0, 0%, 0%;
+--dh-color-gray-50: hsl(30, 100%, 99.22%);
+--dh-color-gray-75: hsl(30, 100%, 97.65%);
+--dh-color-gray-100: hsl(27.69, 100%, 94.9%);
+--dh-color-gray-200: hsl(29.19, 78.72%, 90.78%);
+--dh-color-gray-300: hsl(28.33, 58.06%, 87.84%);
+--dh-color-gray-400: hsl(28, 18.99%, 69.02%);
+--dh-color-gray-500: hsl(27.5, 10.34%, 54.51%);
+--dh-color-gray-600: hsl(26.67, 8.57%, 41.18%);
+--dh-color-gray-700: hsl(25, 9.38%, 25.1%);
+--dh-color-gray-800: hsl(34.29, 10.77%, 12.75%);
+--dh-color-gray-900: hsl(0, 0%, 0%);
 ```
 
 We also override a "red" palette, a "green" palette and a "seafoam" palette based on the colors inspired by the financial times site. You will inherit any color from your chosen base theme that you do not define. Here's is the full palette we used for our example theme:
@@ -95,23 +102,23 @@ We also override a "red" palette, a "green" palette and a "seafoam" palette base
 
 ### Using your palette for semantic colors
 
-Depending on how much you want to customize, you may choose to stop after just setting the palette and inherit the rest of the theme from the default theme. Or you may choose to override additional variables to customize the theme further. For example, we also override the `accent` variables as used for things like buttons from `blue` to `seafoam`. `positive` and `negative` already default to `red` and `green`, so they remained untouched but you could customize these as well. Refer to the semantic files in the default theme for available variables.
+Depending on how much you want to customize, you may choose to stop after just setting the palette and inherit the rest of the theme from the default theme. Or you may choose to override additional variables to customize the theme further. For example, we also override the `accent` variables as used for things like buttons from `blue` to `seafoam`. `positive` and `negative` already default to `red` and `green`, so by updating `red` and `green` palettes these are also changed. They could also be changed independently if you prefer a different color associated with positive or negative values or actions. Refer to the files labeled as "semantic" in the default theme for exposed variables.
 
 ```css
---dh-color-accent-100-hsl: var(--dh-color-red-100-hsl);
---dh-color-accent-200-hsl: var(--dh-color-red-200-hsl);
---dh-color-accent-300-hsl: var(--dh-color-seafoam-300-hsl);
---dh-color-accent-400-hsl: var(--dh-color-seafoam-400-hsl);
---dh-color-accent-500-hsl: var(--dh-color-seafoam-500-hsl);
---dh-color-accent-600-hsl: var(--dh-color-seafoam-600-hsl);
---dh-color-accent-700-hsl: var(--dh-color-seafoam-700-hsl);
---dh-color-accent-800-hsl: var(--dh-color-seafoam-800-hsl);
---dh-color-accent-900-hsl: var(--dh-color-seafoam-900-hsl);
---dh-color-accent-1000-hsl: var(--dh-color-seafoam-1000-hsl);
---dh-color-accent-1100-hsl: var(--dh-color-seafoam-1100-hsl);
---dh-color-accent-1200-hsl: var(--dh-color-seafoam-1200-hsl);
---dh-color-accent-1300-hsl: var(--dh-color-seafoam-1300-hsl);
---dh-color-accent-1400-hsl: var(--dh-color-seafoam-1400-hsl);
+--dh-color-accent-100: var(--dh-color-seafoam-100);
+--dh-color-accent-200: var(--dh-color-seafoam-200);
+--dh-color-accent-300: var(--dh-color-seafoam-300);
+--dh-color-accent-400: var(--dh-color-seafoam-400);
+--dh-color-accent-500: var(--dh-color-seafoam-500);
+--dh-color-accent-600: var(--dh-color-seafoam-600);
+--dh-color-accent-700: var(--dh-color-seafoam-700);
+--dh-color-accent-800: var(--dh-color-seafoam-800);
+--dh-color-accent-900: var(--dh-color-seafoam-900);
+--dh-color-accent-1000: var(--dh-color-seafoam-1000);
+--dh-color-accent-1100: var(--dh-color-seafoam-1100);
+--dh-color-accent-1200: var(--dh-color-seafoam-1200);
+--dh-color-accent-1300: var(--dh-color-seafoam-1300);
+--dh-color-accent-1400: var(--dh-color-seafoam-1400);
 ```
 
 ### Using your palette for component specific semantic colors
