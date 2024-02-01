@@ -1,61 +1,27 @@
 from __future__ import annotations
-from typing import Literal, Optional
+from typing import Any
 from .basic import spectrum_element
+from .layout import (
+    Direction,
+    Wrap,
+    JustifyContent,
+    AlignContent,
+    AlignItems,
+    DimensionValue,
+)
 
 
 def flex(
-    *children,
-    direction: Literal["row", "column", "row-reverse", "column-reverse"] = None,
-    wrap: Literal["wrap", "nowrap", "wrap-reverse"] = None,
-    justify_content: Literal[
-        "start",
-        "end",
-        "center",
-        "left",
-        "right",
-        "space-between",
-        "space-around",
-        "space-evenly",
-        "stretch",
-        "baseline",
-        "first baseline",
-        "last baseline",
-        "safe center",
-        "unsafe center",
-    ] = None,
-    align_content: Literal[
-        "start",
-        "end",
-        "center",
-        "space-between",
-        "space-around",
-        "space-evenly",
-        "stretch",
-        "baseline",
-        "first baseline",
-        "last baseline",
-        "safe center",
-        "unsafe center",
-    ] = None,
-    align_items: Optional[
-        Literal[
-            "start",
-            "end",
-            "center",
-            "stretch",
-            "self-start",
-            "self-end",
-            "baseline",
-            "first baseline",
-            "last baseline",
-            "safe center",
-            "unsafe center",
-        ]
-    ] = None,
-    gap: Optional[str | int | float] = None,
-    column_gap: Optional[str | int | float] = None,
-    row_gap: Optional[str | int | float] = None,
-    **props,
+    *children: Any,
+    direction: Direction | None = None,
+    wrap: Wrap | None = None,
+    justify_content: JustifyContent | None = None,
+    align_content: AlignContent | None = None,
+    align_items: AlignItems | None = None,
+    gap: DimensionValue | None = None,
+    column_gap: DimensionValue | None = None,
+    row_gap: DimensionValue | None = None,
+    **props: Any,
 ):
     """
     Python implementation for the Adobe React Spectrum Flex component.

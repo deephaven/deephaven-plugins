@@ -29,7 +29,7 @@ We define our `counter` component as a function using the `@ui.component` decora
 def counter():
     count, set_count = ui.use_state(0)
     return ui.action_button(
-        f"You pressed me {count} times", on_press=lambda: set_count(count + 1)
+        f"You pressed me {count} times", on_press=lambda _: set_count(count + 1)
     )
 
 
@@ -48,7 +48,7 @@ def my_input():
 
     return ui.flex(
         ui.action_button(
-            f"You pressed me {count} times", on_press=lambda: set_count(count + 1)
+            f"You pressed me {count} times", on_press=lambda _: set_count(count + 1)
         ),
         ui.text_field(value=text, on_change=set_text),
         ui.text(f"You typed {text}"),
@@ -241,10 +241,10 @@ def order_table():
             )
         )
 
-    def handle_buy():
+    def handle_buy(_):
         submit_order(sym, size, "buy")
 
-    def handle_sell():
+    def handle_sell(_):
         submit_order(sym, size, "sell")
 
     return [
