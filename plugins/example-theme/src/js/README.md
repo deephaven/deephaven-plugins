@@ -6,7 +6,7 @@ This plugin demonstrates how to create a custom theme for the Deephaven web UI. 
 
 ## Prerequisites
 
-Requires a Deephaven-core version of 0.33.0 or higher.
+Requires Deephaven Core version 0.33.0 or higher.
 
 ## Installation
 
