@@ -110,7 +110,10 @@ class RenderTestCase(BaseTestCase):
             self.assertRaises(KeyError, child_context1.get_state, 0)
             child_context1.init_state(0, 3)
             self.assertEqual(rc.get_state(0), 1)
-            self.assertEqual(child_context0.get_state(0), 20)
+            with child_context0.open():
+                # this open() isn't strictly necessary at this time. This "assert" on child_context0 is deliberate,
+                # making sure that changing another context doesn't affect a sibling
+                self.assertEqual(child_context0.get_state(0), 20)
             self.assertEqual(child_context1.get_state(0), 3)
             # Shouldn't have triggered a change
             self.assertEqual(on_change.call_count, 2)
