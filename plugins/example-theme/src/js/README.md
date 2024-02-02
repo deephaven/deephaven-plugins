@@ -136,6 +136,6 @@ You may find that after overriding the palette and semantic colors, you want eve
 
 ### Additional customization
 
-You may also override specific components using css selectors and setting your own variables and properties. This however is not recommended as it may break in future updates to the web-client-ui library. If you find yourself needing to do this, please consider opening an issue or pull request to request for additional variables in the default themes.
+You may also override specific components using CSS selectors and setting your own variables and properties. This is not recommended as it may break in future updates to the web-client-ui library. If you find yourself needing to do this, please consider opening an issue or pull request to request additional variables in the default themes.
 
 Feel free to join the [Deephaven Community Slack](https://deephaven.io/slack) and ask questions in the #web-client-ui channel.
