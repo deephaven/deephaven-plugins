@@ -16,11 +16,7 @@ import {
   useObjectFetcher,
 } from '@deephaven/jsapi-bootstrap';
 import { Widget } from '@deephaven/jsapi-types';
-<<<<<<< HEAD
-import type { VariableDefinition } from '@deephaven/jsapi-types';
 import { ErrorBoundary } from '@deephaven/components';
-=======
->>>>>>> 33d8881 (Clean up typing to use WidgetDescriptor instead of WidgetDefinition)
 import styles from './styles.scss?inline';
 import { WidgetWrapper } from './WidgetTypes';
 import PortalPanel from './PortalPanel';
