@@ -10,8 +10,8 @@ Refer to the main [README](../../README.md) for instructions on how to build and
 
 ## Development
 
-- Copy the `example-theme` directory to a new directory and rename it to your plugin name. 
-- Rename the `example-theme` references in the `./<your-theme>/src/js/package.json` and `./<your-theme>/src/js/src/index.ts` to your plugin name in your theme folder. 
+- Copy the `example-theme` directory to a new directory and rename it to your plugin name.
+- Rename the `example-theme` references in the `./<your-theme>/src/js/package.json` and `./<your-theme>/src/js/src/index.ts` to your plugin name in your theme folder.
 - Add your plugin's name to the `manifest.json` in the repository root directory to enable your plugin in development previews.
 - You should also update the `name` key in the `./<your-theme>/src/js/src/index.ts` file with a unique name that will appear in the theme selector UI.
 
@@ -136,6 +136,6 @@ You may find that after overriding the palette and semantic colors, you want eve
 
 ### Additional customization
 
-You may also override specific components using CSS selectors and setting your own variables and properties. This is not recommended as it may break in future updates to the web-client-ui library. If you find yourself needing to do this, please consider opening an issue or pull request to request additional variables in the default themes.
+You may also override specific components using CSS selectors and setting your own variables and properties. This is not recommended as it may break in future updates to the web-client-ui library. If you find yourself needing to do this, please consider opening an [issue](https://github.com/deephaven/web-client-ui/issues) or pull request to request additional variables to be exposed in the default themes.
 
 Feel free to join the [Deephaven Community Slack](https://deephaven.io/slack) and ask questions in the #web-client-ui channel.
