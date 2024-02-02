@@ -1018,35 +1018,63 @@ An item that can be added to a menu, such as a `ui.picker`
 ```py
 import deephaven.ui as ui
 ui.item(
-    child: Any
+    children: Stringable,
+    **props: Any
 ) -> ItemElement
 ```
 
+###### Parameters
+| Parameter      | Type           | Description                              |
+|----------------|----------------|------------------------------------------|
+| `*children`    | `Stringable`   | The options to render within the picker. |
+| `**props`      | `int`          | Any Item prop                            |
+
+
 ##### ui.section
 
-A section that can be added to a menu, such as a `ui.picker`. Contains a list of `ui.item` elements or basic types like `str`.
+A section that can be added to a menu, such as a `ui.picker`. Children should be one of two types:  
+If children are of type `PickerOption`, they are the dropdown options.  
+If children are of type `Table`, the values in the table are the dropdown options and there can only be one table.  
 
 ```py
 import deephaven.ui as ui
-PickerOption = Any | ItemElement
-
 ui.section(
-    *children: PickerOption
+    *children: PickerOption | Table,
+    label_columns: str | Sequence[Str] | None = None,
+    **props: Any
 ) -> SectionElement
 ```
 
+###### Parameters
+| Parameter      | Type                                                          | Description                                                                                                                                                                                       |
+|----------------|---------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `*children`    | `PickerOption \| SectionElement \| Table \| PartitionedTable` | The options to render within the picker.                                                                                                                                                          |
+| `label_columns`| `str \| Sequence[Str] \| None`                                | Only valid if children are of type `Table` or `PartitionedTable`. The column or columns to show as primary text. All other columns will be shown as secondary text. Defaults to the first column. |
+| `**props`      | `Any`                                                         | Any Section prop                                                                                                                                                                                  |
+
 ##### ui.picker
-A picker that can be used to select from a list. Children should be one of two types:
-`SectionElement` or `PickerOption` (which can be created from `ui.item` or be a basic type like `str`)
-If children are of type `PickerOption`, they are the dropdown options.
-If children are of type `SectionElement`, they are the dropdown sections.
+A picker that can be used to select from a list. Children should be one of four types:  
+If children are of type `PickerOption`, they are the dropdown options.  
+If children are of type `SectionElement`, they are the dropdown sections.  
+If children are of type `Table`, the values in the table are the dropdown options and multiple tables create multiple sections.  
+If children are of type `PartitionedTable`, they values in the table are the dropdown options and the partitions create multiple sections and there can only be one table.  
 
 ```py
 import deephaven.ui as ui
 ui.item(
-    *children: PickerOption | SectionElement
+    *children: PickerOption | SectionElement | Table | PartitionedTable
+    label_columns: str | Sequence[Str] | None = None,
+    **props: Any
 ) -> ItemElement
 ```
+
+###### Parameters
+| Parameter      | Type                                                          | Description                                                                                                                                                                                       |
+|----------------|---------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `*children`    | `PickerOption \| SectionElement \| Table \| PartitionedTable` | The options to render within the picker.                                                                                                                                                          |
+| `label_columns`| `str \| Sequence[Str] \| None`                                | Only valid if children are of type `Table` or `PartitionedTable`. The column or columns to show as primary text. All other columns will be shown as secondary text. Defaults to the first column. |
+| `**props`      | `Any`                                                         | Any [Picker](https://react-spectrum.adobe.com/react-spectrum/Picker.html) prop, with the exception of `items`                                                                                     |
+
 
 ```py
 import deephaven.ui as ui
@@ -1095,9 +1123,32 @@ picker5 = ui.picker(
         "Option 4",
     ]
 )
+
+table1 = empty_table(4).update_view("a=i")
+table2 = empty_table(1).update_view("a=10")
+partitioned_table = table1.partition_by("a")
+
+options = ui.use_column_data(table1)
+
+picker6 = ui.picker(
+    children=options
+)
+
+# this will create a picker with two sections, one for each table
+picker7 = ui.picker(
+    table1, table2
+)
+
+# this will create a picker with four sections, one for each partition
+picker8 = ui.picker(
+    partitioned_table
+)
+
+picker9 = ui.picker(
+    ui.section(table1),
+    ui.section(table2)
+)
 ```
-
-
 
 #### ui.table
 
@@ -1698,6 +1749,9 @@ Sentinel = Any
 TableSortDirection = Union[Literal["ASC", "DESC"], SortDirection]
 TableData = dict[ColumnName, ColumnData]
 TransformedData = Any
+# Stringable is a type that can be converted to a string
+Stringable = Any
+PickerOption = Stringable | ItemElement
 
 # Set a filter for a dashboard. Filter will apply to all items with a matching column/type, except for items specified in the `exclude_ids` parameter
 class DashboardFilter(TypedDict):
