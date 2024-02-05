@@ -47,7 +47,7 @@ export function DashboardPlugin({
     DASHBOARD_ELEMENT
   ) as unknown as [DashboardPluginData];
 
-  const objectFetcher = useObjectFetcher<Widget>();
+  const objectFetcher = useObjectFetcher();
 
   // Keep track of the widgets we've got opened.
   const [widgetMap, setWidgetMap] = useState<
