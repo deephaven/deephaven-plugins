@@ -1,8 +1,8 @@
 from __future__ import annotations
 import logging
-from typing import Callable, Optional
+from typing import Callable
 from .Element import Element, PropsType
-from .._internal import RenderContext, get_context, set_context, NoContextException
+from .._internal import RenderContext
 
 logger = logging.getLogger(__name__)
 
@@ -33,19 +33,7 @@ class FunctionElement(Element):
         Returns:
             The props of this element.
         """
-        old_context: Optional[RenderContext] = None
-        try:
-            old_context = get_context()
-        except NoContextException:
-            pass
-        logger.debug("old context is %s and new context is %s", old_context, context)
-
-        set_context(context)
-
-        with context:
+        with context.open():
             children = self._render()
-
-        logger.debug("Resetting to old context %s", old_context)
-        set_context(old_context)
 
         return {"children": children}

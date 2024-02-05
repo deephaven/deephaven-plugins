@@ -1,25 +1,15 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import {
   Button as SpectrumButton,
   SpectrumButtonProps,
 } from '@adobe/react-spectrum';
+import { SerializedButtonEventProps, useButtonProps } from './useButtonProps';
 
-function Button(props: SpectrumButtonProps & { onPress?: () => void }) {
-  const { onPress: propOnPress, ...otherProps } = props;
+function Button(props: SpectrumButtonProps & SerializedButtonEventProps) {
+  const buttonProps = useButtonProps(props);
 
-  const onPress = useCallback(
-    e => {
-      // The PressEvent from React Spectrum is not serializable (contains circular references). We're just dropping the event here but we should probably convert it.
-      // TODO(#76): Need to serialize PressEvent and send with the callback instead of just dropping it.
-      propOnPress?.();
-    },
-    [propOnPress]
-  );
-
-  return (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <SpectrumButton onPress={onPress} {...otherProps} />
-  );
+  // eslint-disable-next-line react/jsx-props-no-spreading
+  return <SpectrumButton {...buttonProps} />;
 }
 
 Button.displayName = 'Button';

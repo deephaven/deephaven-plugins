@@ -1,5 +1,4 @@
-from .._internal import OnChangeCallable
-from .._internal.shared import get_context
+from .._internal import OnChangeCallable, get_context
 
 
 def use_render_queue() -> OnChangeCallable:
