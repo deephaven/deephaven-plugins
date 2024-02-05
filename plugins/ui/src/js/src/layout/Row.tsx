@@ -1,11 +1,8 @@
-import React, { Children, useEffect, useMemo } from 'react';
-import { isElement } from 'react-is';
+import React, { useEffect, useMemo } from 'react';
 import { useLayoutManager } from '@deephaven/dashboard';
 import type { RowOrColumn } from '@deephaven/golden-layout';
-import type { RowElementProps } from './LayoutUtils';
+import { normalizeRowChildren, type RowElementProps } from './LayoutUtils';
 import { ParentItemContext, useParentItem } from './ParentItemContext';
-import Stack from './Stack';
-import Column from './Column';
 
 function Row({ children, height }: RowElementProps): JSX.Element | null {
   const layoutManager = useLayoutManager();
@@ -30,24 +27,11 @@ function Row({ children, height }: RowElementProps): JSX.Element | null {
     row.setSize();
   }, [row]);
 
-  const hasColumns = Children.toArray(children).some(
-    child => isElement(child) && child.type === Column
-  );
+  const normalizedChildren = normalizeRowChildren(children);
 
   return (
     <ParentItemContext.Provider value={row}>
-      {Children.map(children, child => {
-        if (isElement(child) && child.type !== Column) {
-          if (hasColumns) {
-            return <Column>{child}</Column>;
-          }
-
-          if (child.type !== Stack) {
-            return <Stack>{child}</Stack>;
-          }
-        }
-        return child;
-      })}
+      {normalizedChildren}
     </ParentItemContext.Provider>
   );
 }

@@ -1,6 +1,14 @@
-import React from 'react';
-import type { RowOrColumn, Stack, Root } from '@deephaven/golden-layout';
+import React, { isValidElement, Children } from 'react';
+import type {
+  RowOrColumn,
+  Stack as GLStack,
+  Root,
+} from '@deephaven/golden-layout';
 import { ELEMENT_KEY, ElementNode, isElementNode } from '../ElementUtils';
+import Column from './Column';
+import Row from './Row';
+import Stack from './Stack';
+import ReactPanel from '../ReactPanel';
 
 export const PANEL_ELEMENT_NAME = 'deephaven.ui.components.Panel';
 export const ROW_ELEMENT_NAME = 'deephaven.ui.components.Row';
@@ -14,7 +22,7 @@ export type ColumnElementType = typeof COLUMN_ELEMENT_NAME;
 export type StackElementType = typeof STACK_ELEMENT_NAME;
 export type DashboardElementType = typeof DASHBOARD_ELEMENT_NAME;
 
-export type GoldenLayoutParent = RowOrColumn | Stack | Root;
+export type GoldenLayoutParent = RowOrColumn | GLStack | Root;
 
 export type ReactPanelProps = React.PropsWithChildren<{
   /** Title of the panel */
@@ -107,7 +115,7 @@ export function isStackElementNode(obj: unknown): obj is StackElementNode {
 }
 
 export type DashboardElementProps = React.PropsWithChildren<
-  Record<string, never>
+  Record<string, unknown>
 >;
 
 /**
@@ -130,4 +138,83 @@ export function isDashboardElementNode(
     isElementNode(obj) &&
     (obj as ElementNode)[ELEMENT_KEY] === DASHBOARD_ELEMENT_NAME
   );
+}
+
+export function normalizeDashboardChildren(
+  children: React.ReactNode
+): React.ReactNode {
+  const needsWrapper = Children.count(children) > 1;
+  const hasRows = Children.toArray(children).some(
+    child => isValidElement(child) && child.type === Row
+  );
+  const hasColumns = Children.toArray(children).some(
+    child => isValidElement(child) && child.type === Column
+  );
+
+  if (!hasRows && !hasColumns) {
+    return <Column>{children}</Column>;
+  }
+
+  if (needsWrapper) {
+    if (hasRows) {
+      return <Column>{children}</Column>;
+    }
+    if (hasColumns) {
+      return <Row>{children}</Row>;
+    }
+    return <Column>{children}</Column>;
+  }
+  return children;
+}
+
+export function normalizeRowChildren(
+  children: React.ReactNode
+): React.ReactNode {
+  const hasLayoutElements = Children.toArray(children).some(
+    child =>
+      isValidElement(child) && (child.type === Row || child.type === Column)
+  );
+  return Children.map(children, child => {
+    if (isValidElement(child) && child.type !== Column && child.type !== Row) {
+      if (hasLayoutElements) {
+        return <Column>{child}</Column>;
+      }
+      if (child.type !== Stack) {
+        return <Stack>{child}</Stack>;
+      }
+    }
+    return child;
+  });
+}
+
+export function normalizeColumnChildren(
+  children: React.ReactNode
+): React.ReactNode {
+  const hasLayoutElements = Children.toArray(children).some(
+    child =>
+      isValidElement(child) && (child.type === Row || child.type === Column)
+  );
+  return Children.map(children, child => {
+    if (isValidElement(child) && child.type !== Row && child.type !== Column) {
+      if (hasLayoutElements) {
+        return <Row>{child}</Row>;
+      }
+      if (child.type !== Stack) {
+        return <Stack>{child}</Stack>;
+      }
+    }
+    return child;
+  });
+}
+
+export function normalizeStackChildren(
+  children: React.ReactNode
+): React.ReactNode {
+  return Children.map(children, child => {
+    if (isValidElement(child) && child.type !== ReactPanel) {
+      console.log(child.key);
+      return <ReactPanel title="Untitled">{child}</ReactPanel>;
+    }
+    return child;
+  });
 }
