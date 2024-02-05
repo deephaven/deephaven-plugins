@@ -2,6 +2,22 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.6.0 - 2024-02-05
+#### Bug Fixes
+- **(ui)** Default placement of newly opened components is inconsistent (#244) - (8b17e85) - Matthew Runyon
+- Use ObjectFetcher to retrieve objects (#234) - (728be7b) - mofojed
+- Better render error handling (#242) - (c312d43) - Joe
+- use_execution_context does not return None (#232) - (0d5c3ce) - niloc132
+#### Documentation
+- Add Dashboard examples (#229) - (e7b94a9) - mofojed
+#### Features
+- **(ui)** Add error boundary to prevent UI crashing due to rendering errors (#245) - (74d3007) - Matthew Runyon
+- Add accessibility props to action_button (#248) - (39cf7db) - mofojed
+- Serialize press events for press event callbacks (#236) - (38b202f) - mofojed
+- Send all set hooks to render queue (#246) - (f5cbb8f) - Joe
+
+- - -
+
 ## ui-v0.5.0 - 2024-01-26
 #### Bug Fixes
 - Use deferred API to get the API (#226) - (b0e2162) - mofojed
