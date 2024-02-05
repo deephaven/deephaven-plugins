@@ -1,4 +1,4 @@
-import { WidgetDefinition } from '@deephaven/dashboard';
+import { WidgetDescriptor } from '@deephaven/dashboard';
 import { TestUtils } from '@deephaven/utils';
 import type { Widget } from '@deephaven/jsapi-types';
 import { WidgetWrapper } from './WidgetTypes';
@@ -19,15 +19,15 @@ export function makeDocumentUpdatedJsonRpcString(
   return JSON.stringify(makeDocumentUpdatedJsonRpc(document));
 }
 
-export function makeWidgetDefinition({
+export function makeWidgetDescriptor({
   id = 'widget-id',
   type = 'widget-type',
-  title = 'Widget Title',
-} = {}): WidgetDefinition {
+  name = 'Widget Name',
+} = {}): WidgetDescriptor {
   return {
     id,
     type,
-    title,
+    name,
   };
 }
 
@@ -44,12 +44,12 @@ export function makeWidget({
 }
 
 export function makeWidgetWrapper({
-  definition = makeWidgetDefinition(),
+  widget = makeWidgetDescriptor(),
   fetch = () => Promise.resolve(makeWidget()),
 }: Partial<WidgetWrapper> = {}): WidgetWrapper {
   return {
-    id: definition.id ?? 'widget-id',
-    definition,
+    id: widget.id ?? 'widget-id',
+    widget,
     fetch,
   };
 }
