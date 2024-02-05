@@ -1423,7 +1423,7 @@ ui_table.column_display_names(
 ) -> UITable
 ```
 
-##### Parameters
+###### Parameters
 
 | Parameter       | Type                                      | Description                                                                                                                                                     |
 |-----------------|-------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -1441,7 +1441,7 @@ ui_table.show_column_headers(
 ) -> UITable
 ```
 
-##### Parameters
+###### Parameters
 
 | Parameter | Type           | Description                                            |
 |-----------|----------------|--------------------------------------------------------|
@@ -1459,7 +1459,7 @@ ui_table.show_quick_filters(
 ) -> UITable
 ```
 
-##### Parameters
+###### Parameters
 
 | Parameter | Type           | Description                                            |
 |-----------|----------------|--------------------------------------------------------|
@@ -1479,7 +1479,7 @@ ui_table.selected(
     cells: CellIndexCombination | None = None
 ) -> UITable
 ```
-##### Parameters
+###### Parameters
 
 | Parameter | Type                                         | Description                     |
 |-----------|----------------------------------------------|---------------------------------|
@@ -1499,7 +1499,7 @@ ui_table.selection_style(
 ) -> UITable
 ```
 
-##### Parameters
+###### Parameters
 
 | Parameter | Type                   | Description                                                                                                                                                            |
 |-----------|------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -1517,7 +1517,7 @@ ui_table.density(
 ) -> UITable
 ```
 
-##### Parameters
+###### Parameters
 
 | Parameter | Type          | Description                                           |
 |-----------|---------------|-------------------------------------------------------|
@@ -1535,7 +1535,7 @@ ui_table.on_search(
 ) -> UITable
 ```
 
-##### Parameters
+###### Parameters
 | Parameter  | Type                    | Description                                                                                                                   |
 |------------|-------------------------|-------------------------------------------------------------------------------------------------------------------------------|
 | `callback` | `Callable[[str], None]` | The callback function to run when the search bar is used. The only parameter of the callback is the string in the search bar. |
@@ -1553,7 +1553,7 @@ ui_table.on_quick_filter(
 ) -> UITable
 ```
 
-##### Parameters
+###### Parameters
 | Parameter  | Type                                                  | Description                                                                                                                                                               |
 |------------|-------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `callback` | `Callable[[ColumnName, QuickFilterExpression], None]` | The callback function to run when a quick filter is made. The first parameter is the column name the quick filter was added to and the second is the quick filter itself. |
@@ -1570,7 +1570,7 @@ ui_table.on_freeze_column(
 ) -> UITable
 ```
 
-##### Parameters
+###### Parameters
 | Parameter  | Type                           | Description                                                                                                |
 |------------|--------------------------------|------------------------------------------------------------------------------------------------------------|
 | `callback` | `Callable[[ColumnName], None]` | The callback function to run when a column is frozen. The only parameter is the name of the frozen column. |
@@ -1587,7 +1587,7 @@ ui_table.on_hide_column(
 ) -> UITable
 ```
 
-##### Parameters
+###### Parameters
 | Parameter  | Type                           | Description                                                                                                |
 |------------|--------------------------------|------------------------------------------------------------------------------------------------------------|
 | `callback` | `Callable[[ColumnName], None]` | The callback function to run when a column is hidden. The only parameter is the name of the hidden column. |
@@ -1604,7 +1604,7 @@ ui_table.on_cell_press(
 ) -> UITable
 ```
 
-##### Parameters
+###### Parameters
 | Parameter  | Type                               | Description                                                                                                                  |
 | ---------- |------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
 | `callback` | `Callable[[CellIndex, Any], None]` | The callback function to run when a cell is clicked. The first parameter is the cell index, and the second is the cell data. |
@@ -1621,19 +1621,14 @@ ui_table.on_cell_double_press(
 ) -> UITable
 ```
 
-##### Parameters
+###### Parameters
 | Parameter  | Type                               | Description                                                                                                                         |
 | ---------- |------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
 | `callback` | `Callable[[CellIndex, Any], None]` | The callback function to run when a cell is double clicked. The first parameter is the cell index, and the second is the cell data. |
 
 ##### on_column_press
 
-Add a callback for when a column is pressed.
-
-##### Parameters
-| Parameter  | Type                               | Description                                                                                                                         |
-| ---------- |------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
-| `callback` | `Callable[[CellIndex, Any], None]` | The callback function to run when a cell is double clicked. The first parameter is the cell index, and the second is the cell data. |
+Add a callback for when a column is pressed. Only valid if the selection mode is `"COLUMN"`.
 
 ###### Syntax
 
@@ -1643,14 +1638,14 @@ ui_table.on_column_press(
 ) -> UITable
 ```
 
-##### Parameters
+###### Parameters
 | Parameter  | Type                               | Description                                                                                                                                                                        |
 | ---------- |------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `callback` | `Callable[[CellIndex, Any], None]` | The callback function to run when a column is clicked. The first parameter is the column name, and the second is the column data, which is a list of the data in the column. |
 
 ##### on_column_double_press
 
-Add a callback for when a column is double pressed.
+Add a callback for when a column is double pressed. Only valid if the selection mode is `"COLUMN"`.
 
 ###### Syntax
 
@@ -1660,7 +1655,7 @@ ui_table.on_column_double_press(
 ) -> UITable
 ```
 
-##### Parameters
+###### Parameters
 | Parameter  | Type                                       | Description                                                                                                                                                                         |
 | ---------- |--------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `callback` | `Callable[[ColumnName, ColumnData], None]` | The callback function to run when a column is double clicked. The first parameter is the column name, and the second is the column data, which is a list of the data in the column. |
@@ -1678,7 +1673,7 @@ ui_table.on_sort(
 ) -> UITable
 ```
 
-##### Parameters
+###### Parameters
 | Parameter  | Type                                                 | Description                                                                                                                         |
 | ---------- |------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
 | `callback` | `Callable[[ColumnName, LiteralSortDirection], None]` | The callback function to run when a column is sorted. The first parameter is the column name, and the second is the sort direction. |
