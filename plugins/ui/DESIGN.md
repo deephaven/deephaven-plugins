@@ -1749,13 +1749,8 @@ Sentinel = Any
 TableSortDirection = Union[Literal["ASC", "DESC"], SortDirection]
 TableData = dict[ColumnName, ColumnData]
 TransformedData = Any
-
-# Stringable is a type that can be converted to a string
-from typing import Protocol
-class Stringable(Protocol):
-    def __str__(self):
-        pass
-
+# Stringable is a type that is naturally convertible to a string
+Stringable = str | int | float | bool | None
 PickerOption = Stringable | ItemElement
 
 # Set a filter for a dashboard. Filter will apply to all items with a matching column/type, except for items specified in the `exclude_ids` parameter
