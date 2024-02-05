@@ -1024,10 +1024,10 @@ ui.item(
 ```
 
 ###### Parameters
-| Parameter      | Type           | Description                              |
-|----------------|----------------|------------------------------------------|
-| `*children`    | `Stringable`   | The options to render within the picker. |
-| `**props`      | `int`          | Any Item prop                            |
+| Parameter      | Type           | Description                            |
+|----------------|----------------|----------------------------------------|
+| `*children`    | `Stringable`   | The options to render within the item. |
+| `**props`      | `int`          | Any Item prop                          |
 
 
 ##### ui.section
@@ -1048,7 +1048,7 @@ ui.section(
 ###### Parameters
 | Parameter      | Type                                                          | Description                                                                                                                                                                                       |
 |----------------|---------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`    | `PickerOption \| SectionElement \| Table \| PartitionedTable` | The options to render within the picker.                                                                                                                                                          |
+| `*children`    | `PickerOption \| SectionElement \| Table \| PartitionedTable` | The options to render within the section.                                                                                                                                                         |
 | `label_columns`| `str \| Sequence[Str] \| None`                                | Only valid if children are of type `Table` or `PartitionedTable`. The column or columns to show as primary text. All other columns will be shown as secondary text. Defaults to the first column. |
 | `**props`      | `Any`                                                         | Any Section prop                                                                                                                                                                                  |
 
@@ -1057,11 +1057,11 @@ A picker that can be used to select from a list. Children should be one of four 
 If children are of type `PickerOption`, they are the dropdown options.  
 If children are of type `SectionElement`, they are the dropdown sections.  
 If children are of type `Table`, the values in the table are the dropdown options and multiple tables create multiple sections.  
-If children are of type `PartitionedTable`, they values in the table are the dropdown options and the partitions create multiple sections and there can only be one table.  
+If children are of type `PartitionedTable`, the values in the table are the dropdown options and the partitions create multiple sections and there can only be one table.  
 
 ```py
 import deephaven.ui as ui
-ui.item(
+ui.picker(
     *children: PickerOption | SectionElement | Table | PartitionedTable
     label_columns: str | Sequence[Str] | None = None,
     **props: Any
