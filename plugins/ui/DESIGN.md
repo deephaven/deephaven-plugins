@@ -1750,7 +1750,7 @@ TableSortDirection = Union[Literal["ASC", "DESC"], SortDirection]
 TableData = dict[ColumnName, ColumnData]
 TransformedData = Any
 # Stringable is a type that is naturally convertible to a string
-Stringable = str | int | float | bool | None
+Stringable = str | int | float | bool
 PickerOption = Stringable | ItemElement
 
 # Set a filter for a dashboard. Filter will apply to all items with a matching column/type, except for items specified in the `exclude_ids` parameter
