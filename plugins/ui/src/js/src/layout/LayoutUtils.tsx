@@ -140,6 +140,17 @@ export function isDashboardElementNode(
   );
 }
 
+/**
+ * Normalizes the children of a dashboard element to create a fully defined layout.
+ * GoldenLayout requires 1 root element.
+ *
+ * If there are multiple root elements, then we wrap in a row or column depending on the children.
+ * If there are no layout elements, then we wrap in a column.
+ * If there are only columns, then we wrap in a row.
+ * If there are any rows (even if mixed with columns), then we wrap in a column.
+ * @param children Children to normalize
+ * @returns Normalized children
+ */
 export function normalizeDashboardChildren(
   children: React.ReactNode
 ): React.ReactNode {
@@ -167,6 +178,18 @@ export function normalizeDashboardChildren(
   return children;
 }
 
+/**
+ * Normalizes the children of a row element to create a fully defined layout.
+ * Rows can contain columns, stacks, or other rows.
+ *
+ * If there are no layout elements, we wrap each child in a stack.
+ * E.g. row(t1, t2) will become row(stack(t1), stack(t2))
+ *
+ * If there are layout elements, we wrap any non-layout elements in a column.
+ *
+ * @param children Children to normalize
+ * @returns Normalized children
+ */
 export function normalizeRowChildren(
   children: React.ReactNode
 ): React.ReactNode {
@@ -187,6 +210,18 @@ export function normalizeRowChildren(
   });
 }
 
+/**
+ * Normalizes the children of a column element to create a fully defined layout.
+ * Columns can contain rows, stacks, or other columns.
+ *
+ * If there are no layout elements, we wrap each child in a stack.
+ * E.g. column(t1, t2) will become column(stack(t1), stack(t2))
+ *
+ * If there are layout elements, we wrap any non-layout elements in a row.
+ *
+ * @param children Children to normalize
+ * @returns Normalized children
+ */
 export function normalizeColumnChildren(
   children: React.ReactNode
 ): React.ReactNode {
@@ -207,12 +242,19 @@ export function normalizeColumnChildren(
   });
 }
 
+/**
+ * Normalizes the children of a stack element to create a fully defined layout.
+ * Stacks should only contain panels.
+ * If a child is not a panel, it will be wrapped in a panel with a default title.
+ *
+ * @param children Children to normalize
+ * @returns Normalized children
+ */
 export function normalizeStackChildren(
   children: React.ReactNode
 ): React.ReactNode {
   return Children.map(children, child => {
     if (isValidElement(child) && child.type !== ReactPanel) {
-      console.log(child.key);
       return <ReactPanel title="Untitled">{child}</ReactPanel>;
     }
     return child;

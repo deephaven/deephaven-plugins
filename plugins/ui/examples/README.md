@@ -335,8 +335,24 @@ The dashboard layout elements available are:
 
 - `ui.column`: Create a column of elements stacked vertically.
 - `ui.row`: Create a row of elements laid out horizontally.
-- `ui.stack`: Create a stack of panels on top of each other. You can use the panel tab to switch between panels in the stack.
+- `ui.stack`: Create a stack of panels on top of each other. You can use the panel tab to switch between panels in the stack. Only one panel in a stack is visible at a time.
 - `ui.panel`: Create a panel to wrap an element. Panels can be moved around a dashboard manually by dragging the panel tab.
+
+### Dashboard
+
+A dashboard should only contain 1 root layout element. If the component for the dashboard returns an array of elements, they will be wrapped in a single root element. If there are multiple child elements of a dashboard, they will be wrapped as follows:
+
+- If there are any rows, they will be wrapped in a column.
+- If there are no rows and any columns, they will be wrapped in a row.
+- If there are no rows or columns, they will be wrapped in a column.
+
+### Row and Column
+
+Rows and columns typically contain other rows and columns or stacks. If a row or column contains no other rows or columns, each element will be wrapped in a stack if needed. For example, if you create a row with two panels, those panels will be laid out side by side in their own stacks.
+
+### Stack
+
+Stacks are used to create a stack of panels on top of each other. Any elements in a stack will be wrapped in a panel if needed. It is recommended to provide the panels with a title because the automatically wrapped panels will receive a title of "Untitled".
 
 ## Basic Dashboard
 
