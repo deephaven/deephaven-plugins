@@ -98,7 +98,9 @@ PressEventType = Literal["pressstart", "pressend", "pressup", "press"]
 
 StaticColor = Literal["white", "black"]
 ButtonType = Literal["button", "submit", "reset"]
-ButtonVariant = Literal["accent", "primary", "secondary", "negative", "cta", "overBackground"]
+ButtonVariant = Literal[
+    "accent", "primary", "secondary", "negative", "cta", "overBackground"
+]
 ButtonStyle = Literal["fill", "outline"]
 
 FocusEventCallable = Callable[[FocusEvent], None]
