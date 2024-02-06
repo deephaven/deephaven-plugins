@@ -8,7 +8,7 @@ from abc import abstractmethod
 from copy import copy
 
 from deephaven.table import PartitionedTable, Table
-from deephaven.execution_context import ExecutionContext
+from deephaven.execution_context import ExecutionContext, get_exec_ctx
 from deephaven.liveness_scope import LivenessScope
 
 from ..shared import args_copy
@@ -62,7 +62,7 @@ class DeephavenNode:
     """
 
     @abstractmethod
-    def recreate_figure(self) -> None:
+    def recreate_figure(self, update_parent: bool = True) -> None:
         """
         Recreate the figure. This is called when an underlying partition or
         child figure changes.
@@ -132,10 +132,10 @@ class DeephavenFigureNode(DeephavenNode):
             func: The function to call
         """
         self.parent = parent
-        self.exec_ctx = exec_ctx
-        self.args = args
+        self.exec_ctx = exec_ctx if exec_ctx else get_exec_ctx()
+        self.args = args if args else {}
         self.table = table
-        self.func = func
+        self.func = func if func else lambda **kwargs: None
         self.cached_figure = None
         self.revision_manager = RevisionManager()
 
@@ -161,7 +161,7 @@ class DeephavenFigureNode(DeephavenNode):
             if self.revision_manager.updated_revision(revision):
                 self.cached_figure = new_figure
 
-        if update_parent:
+        if update_parent and self.parent:
             self.parent.recreate_figure()
 
     def copy(
@@ -195,7 +195,7 @@ class DeephavenFigureNode(DeephavenNode):
         new_node.parent = parent
         return new_node
 
-    def get_figure(self) -> DeephavenFigure:
+    def get_figure(self) -> DeephavenFigure | None:
         """
         Get the figure for this node. It will be generated if not cached
 
@@ -233,7 +233,7 @@ class DeephavenLayerNode(DeephavenNode):
             args: The arguments to the function
             exec_ctx: The execution context
         """
-        self.parent = None
+        self.parent: DeephavenLayerNode | DeephavenHeadNode | None = None
         self.nodes = []
         self.layer_func = layer_func
         self.args = args
@@ -262,7 +262,7 @@ class DeephavenLayerNode(DeephavenNode):
             if self.revision_manager.updated_revision(revision):
                 self.cached_figure = new_figure
 
-        if update_parent:
+        if update_parent and self.parent:
             self.parent.recreate_figure()
 
     def copy(
@@ -290,7 +290,7 @@ class DeephavenLayerNode(DeephavenNode):
         new_node.parent = parent
         return new_node
 
-    def get_figure(self) -> DeephavenFigure:
+    def get_figure(self) -> DeephavenFigure | None:
         """
         Get the figure for this node. It will be generated if not cached
 
@@ -322,7 +322,7 @@ class DeephavenHeadNode:
         Create a new DeephavenHeadNode
         """
         # there is only one child node of the head, either a layer or a figure
-        self.node = None
+        self.node: DeephavenNode | None = None
         self.partitioned_tables = {}
         self.cached_figure = None
 
@@ -335,7 +335,8 @@ class DeephavenHeadNode:
         """
         new_head = DeephavenHeadNode()
         new_partitioned_tables = copy(self.partitioned_tables)
-        new_head.node = self.node.copy(new_head, new_partitioned_tables)
+        if self.node:
+            new_head.node = self.node.copy(new_head, new_partitioned_tables)
         new_head.partitioned_tables = new_partitioned_tables
         return new_head
 
@@ -344,10 +345,11 @@ class DeephavenHeadNode:
         Recreate the figure. This is called when the underlying partition
         or a child node changes
         """
-        self.node.recreate_figure(update_parent=False)
-        self.cached_figure = self.node.cached_figure
+        if self.node:
+            self.node.recreate_figure(update_parent=False)
+            self.cached_figure = self.node.cached_figure
 
-    def get_figure(self) -> DeephavenFigure:
+    def get_figure(self) -> DeephavenFigure | None:
         """
         Get the figure for this node. This will be called by a communication to get
         the initial figure.
@@ -472,7 +474,9 @@ class DeephavenFigure:
           The DeephavenFigure as a JSON string
 
         """
-        plotly = json.loads(self._plotly_fig.to_json())
+        plotly = None
+        if self._plotly_fig:
+            plotly = json.loads(self._plotly_fig.to_json())
         mappings = self.get_json_links(exporter)
         deephaven = {
             "mappings": mappings,

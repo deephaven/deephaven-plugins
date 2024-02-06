@@ -139,8 +139,8 @@ class PartitionManager:
         self,
         args: dict[str, Any],
         draw_figure: Callable,
-        groups: set[str],
-        marg_args: dict[str, Any],
+        groups: set[str] | None,
+        marg_args: dict[str, Any] | None,
         marg_func: Callable,
     ):
         self.by = None
@@ -155,19 +155,19 @@ class PartitionManager:
 
         self.marginal_x = args.pop("marginal_x", None)
         self.marginal_y = args.pop("marginal_y", None)
-        self.marg_args = marg_args
+        self.marg_args = marg_args if marg_args else {}
         self.attach_marginals = marg_func
         self.marg_color = None
 
         self.args = args
-        self.groups = groups
+        self.groups = groups if groups else set()
         self.preprocessor = None
         self.set_long_mode_variables()
         self.convert_table_to_long_mode()
         self.key_column_table = None
         self.partitioned_table = self.process_partitions()
         self.draw_figure = draw_figure
-        self.constituents = None
+        self.constituents = []
 
     def set_long_mode_variables(self) -> None:
         """
@@ -228,7 +228,7 @@ class PartitionManager:
 
         args["table"] = self.to_long_mode(table, self.cols)
 
-    def is_by(self, arg: str, map_val: str | list[str] = None) -> None:
+    def is_by(self, arg: str, map_val: str | list[str] | None = None) -> None:
         """
         Given that the specific arg is a by arg, prepare the arg depending on
         if it is attached or not
@@ -264,7 +264,7 @@ class PartitionManager:
 
     def handle_plot_by_arg(
         self, arg: str, val: str | list[str]
-    ) -> tuple[str, str | list[str]]:
+    ) -> tuple[str, str | list[str] | None]:
         """
         Handle all args that are possibly plot bys.
         If the "val" is none and the "by" arg is specified,
@@ -315,7 +315,8 @@ class PartitionManager:
             elif val:
                 self.is_by(arg, args[map_name])
             elif plot_by_cols and (
-                args.get("color_discrete_sequence") or "color" in self.by_vars
+                args.get("color_discrete_sequence")
+                or (self.by_vars and "color" in self.by_vars)
             ):
                 # this needs to be last as setting "color" in any sense will override
                 if not self.args["color_discrete_sequence"]:
@@ -335,7 +336,9 @@ class PartitionManager:
                 pass
             elif val:
                 self.is_by(arg)
-            elif plot_by_cols and (args.get("size_sequence") or "size" in self.by_vars):
+            elif plot_by_cols and (
+                args.get("size_sequence") or (self.by_vars and "size" in self.by_vars)
+            ):
                 if not self.args["size_sequence"]:
                     self.args["size_sequence"] = STYLE_DEFAULTS[arg]
                 args["size_by"] = plot_by_cols
@@ -350,7 +353,9 @@ class PartitionManager:
                 args[f"attached_{arg}"] = args.pop(arg)
             elif val:
                 self.is_by(arg, args[map_name])
-            elif plot_by_cols and (args.get(seq_name) or arg in self.by_vars):
+            elif plot_by_cols and (
+                args.get(seq_name) or (self.by_vars and arg in self.by_vars)
+            ):
                 if not seq:
                     self.args[seq_name] = STYLE_DEFAULTS[arg]
                 args[f"{arg}_by"] = plot_by_cols
@@ -466,7 +471,7 @@ class PartitionManager:
                 ternary_string += f"{self.pivot_vars['variable']} == `{col}` ? {col} : "
         return ternary_string
 
-    def to_long_mode(self, table: Table, cols: list[str]) -> Table:
+    def to_long_mode(self, table: Table, cols: list[str] | None) -> Table:
         """
         Convert a table to long mode. This will take the name of the columns,
         make a new "variable" column that contains the column names, and create
@@ -480,6 +485,7 @@ class PartitionManager:
             The table converted to long mode
 
         """
+        cols = cols if cols else []
         new_tables = []
         for col in cols:
             new_tables.append(
@@ -533,11 +539,14 @@ class PartitionManager:
             The tuple of table and current partition
         """
         column = self.pivot_vars["value"] if self.pivot_vars else None
-        tables = self.preprocessor.preprocess_partitioned_tables(
-            self.constituents, column
-        )
-        for table, current_partition in zip(tables, self.current_partition_generator()):
-            yield table, current_partition
+        if self.preprocessor:
+            tables = self.preprocessor.preprocess_partitioned_tables(
+                self.constituents, column
+            )
+            for table, current_partition in zip(
+                tables, self.current_partition_generator()
+            ):
+                yield table, current_partition
 
     def partition_generator(self) -> Generator[dict[str, Any], None, None]:
         """
@@ -554,7 +563,7 @@ class PartitionManager:
                     # if a tuple is returned here, it was preprocessed already so pivots aren't needed
                     table, arg_update = table
                     args.update(arg_update)
-                elif self.pivot_vars and self.pivot_vars["value"]:
+                elif self.pivot_vars and self.pivot_vars["value"] and self.list_var:
                     # there is a list of variables, so replace them with the combined column
                     args[self.list_var] = self.pivot_vars["value"]
 
@@ -566,7 +575,7 @@ class PartitionManager:
             "preprocess_hist" in self.groups
             or "preprocess_freq" in self.groups
             or "preprocess_time" in self.groups
-        ):
+        ) and self.preprocessor:
             # still need to preprocess the base table
             table, arg_update = list(
                 self.preprocessor.preprocess_partitioned_tables([args["table"]])

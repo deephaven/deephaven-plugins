@@ -101,7 +101,7 @@ def custom_data_args_generator(
 
 def add_custom_data_args(
     var_col_dicts: Generator[dict[str, str], None, None],
-    custom_call_args: dict[str, Any] | None = None,
+    custom_call_args: dict[str, Any],
 ) -> Generator[dict[str, str], None, None]:
     """Given the existing variable to column mappings, add error bars
 

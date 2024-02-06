@@ -379,29 +379,7 @@ def _ecdf(
     Returns:
 
     """
-    # todo: not fully implemented
-    line_shape = "hv"
-    # rangemode = "tozero"
-
-    args = locals()
-
-    validate_common_args(args)
-
-    args["color_discrete_sequence_marker"] = args.pop("color_discrete_sequence")
-
-    args.pop("lines")
-    args.pop("ecdfnorm")
-    args.pop("ecdfmode")
-
-    update_wrapper = partial(
-        unsafe_figure_update_wrapper, args.pop("unsafe_update_figure")
-    )
-
-    create_layered = partial(preprocess_and_layer, preprocess_ecdf, px.line, args)
-
-    return update_wrapper(
-        create_layered("x") if x else create_layered("y", orientation="h")
-    )
+    raise NotImplementedError("ecdf is not yet implemented")
 
 
 def histogram(

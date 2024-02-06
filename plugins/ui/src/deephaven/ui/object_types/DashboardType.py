@@ -1,6 +1,6 @@
+from typing import Any
+
 from ..elements import DashboardElement
-from .._internal import get_component_name
-from .ElementMessageStream import ElementMessageStream
 from .ElementType import ElementType
 
 
@@ -13,5 +13,5 @@ class DashboardType(ElementType):
     def name(self) -> str:
         return "deephaven.ui.Dashboard"
 
-    def is_type(self, obj: any) -> bool:
+    def is_type(self, obj: Any) -> bool:
         return isinstance(obj, DashboardElement)

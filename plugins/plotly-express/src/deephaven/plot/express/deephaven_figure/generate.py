@@ -3,7 +3,7 @@ from __future__ import annotations
 from itertools import cycle, count
 from collections.abc import Generator
 from math import floor, ceil
-from typing import Any, Callable
+from typing import Any, Callable, Mapping
 
 from pandas import DataFrame
 from plotly.graph_objects import Figure
@@ -362,7 +362,7 @@ def new_axis_generator(
 
 def attached_generator(
     arg: str, attached_cols: list[str]
-) -> Generator[tuple[str, list], None, None]:
+) -> Generator[tuple[str, list | None], None, None]:
     """Generate key, value pairs for error bar updates. If an error column is
     None, then there is no error bar drawn for the corresponding trace.
 
@@ -465,7 +465,7 @@ def sequence_generator(
     ls: str | list[str],
     map_: dict[str | tuple[str], str] | None = None,
     keys: list[tuple[str]] | None = None,
-) -> Generator[tuple[str, str], None, None]:
+) -> Generator[tuple[str, str | list[str]], None, None]:
     """Loops over the provided list to update the argument provided
 
     Args:
@@ -598,12 +598,12 @@ def handle_custom_args(
 
     # Only update titles if dealing with a plot that has an axis sequence
     # specified as this should otherwise preserve plotly express behavior
-    x_axis_generators = [
+    x_axis_generators: list[Generator[tuple[str, Any] | dict[str, Any], None, None]] = [
         base_x_axis_generator(
             "xaxis_sequence" in custom_call_args and custom_call_args["xaxis_sequence"]
         )
     ]
-    y_axis_generators = [
+    y_axis_generators: list[Generator[tuple[str, Any] | dict[str, Any], None, None]] = [
         base_y_axis_generator(
             "yaxis_sequence" in custom_call_args and custom_call_args["yaxis_sequence"]
         )
@@ -680,7 +680,7 @@ def handle_custom_args(
     return trace_generator
 
 
-def get_list_var_info(data_cols: dict[str, str | list[str]]) -> set[str]:
+def get_list_var_info(data_cols: Mapping[str, str | list[str]]) -> set[str]:
     """Extract the variable that is a list.
 
     Args:
@@ -711,7 +711,7 @@ def get_list_var_info(data_cols: dict[str, str | list[str]]) -> set[str]:
 
 
 def relabel_columns(
-    labels: dict[str, str],
+    labels: dict[str, str] | None,
     hover_mapping: list[dict[str, str]],
     types: set[str],
     current_partition: dict[str, str],
@@ -780,8 +780,8 @@ def get_hover_body(
 def hover_text_generator(
     hover_mapping: list[dict[str, str]],
     # hover_data - todo, dependent on arrays supported in data mappings
-    types: set[str] | None = None,
-    current_partition: dict[str, str] | None = None,
+    types: set[str],
+    current_partition: dict[str, str],
 ) -> Generator[dict[str, Any], None, None]:
     """Generate hovertext
 
@@ -821,10 +821,10 @@ def hover_text_generator(
 
 def compute_labels(
     hover_mapping: list[dict[str, str]],
-    hist_val_name: str,
+    hist_val_name: str | None,
     # hover_data - todo, dependent on arrays supported in data mappings
     types: set[str],
-    labels: dict[str, str],
+    labels: dict[str, str] | None,
     current_partition: dict[str, str],
 ) -> None:
     """Compute the labels for this chart, relabling the axis and hovertext.
@@ -847,7 +847,9 @@ def compute_labels(
     relabel_columns(labels, hover_mapping, types, current_partition)
 
 
-def calculate_hist_labels(hist_val_name: str, current_mapping: dict[str, str]) -> None:
+def calculate_hist_labels(
+    hist_val_name: str | None, current_mapping: dict[str, str]
+) -> None:
     """Calculate the histogram labels
 
     Args:
@@ -866,7 +868,7 @@ def calculate_hist_labels(hist_val_name: str, current_mapping: dict[str, str]) -
 def add_axis_titles(
     custom_call_args: dict[str, Any],
     hover_mapping: list[dict[str, str]],
-    hist_val_name: str,
+    hist_val_name: str | None,
 ) -> None:
     """Add axis titles. Generally, this only applies when there is a list variable
 
@@ -902,7 +904,7 @@ def add_axis_titles(
 
 def create_hover_and_axis_titles(
     custom_call_args: dict[str, Any],
-    data_cols: dict[str, str],
+    data_cols: dict[str, str | list[str]],
     hover_mapping: list[dict[str, str]],
 ) -> Generator[dict[str, Any], None, None]:
     """Create hover text and axis titles. There are three main behaviors.
@@ -938,7 +940,7 @@ def create_hover_and_axis_titles(
     labels = custom_call_args.get("labels", None)
     hist_val_name = custom_call_args.get("hist_val_name", None)
 
-    current_partition = custom_call_args.get("current_partition", None)
+    current_partition = custom_call_args.get("current_partition", {})
 
     compute_labels(hover_mapping, hist_val_name, types, labels, current_partition)
 

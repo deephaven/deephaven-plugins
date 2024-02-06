@@ -93,7 +93,7 @@ def append_suffixes(args: list[str], suffixes: list[str], sync_dict: SyncDict) -
                 sync_dict.d[f"{arg}_{suffix}"] = sync_dict.will_pop(arg)
 
 
-def apply_args_groups(args: dict[str, Any], groups: set[str]) -> None:
+def apply_args_groups(args: dict[str, Any], possible_groups: set[str] | None) -> None:
     """Transform args depending on groups
 
     Args:
@@ -101,7 +101,9 @@ def apply_args_groups(args: dict[str, Any], groups: set[str]) -> None:
       groups: A set of groups used to transform the args
 
     """
-    groups = groups if isinstance(groups, set) else {groups}
+    groups: set = (
+        possible_groups if isinstance(possible_groups, set) else {possible_groups}
+    )
 
     sync_dict = SyncDict(args)
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import threading
 import logging
-from typing import Any, Callable, Optional, TypeVar, Union
+from typing import Any, Callable, Optional, TypeVar, Union, Generator
 from deephaven.liveness_scope import LivenessScope
 from contextlib import AbstractContextManager, contextmanager
 
@@ -128,7 +128,7 @@ class RenderContext:
         self._liveness_scope = LivenessScope()
 
     @contextmanager
-    def open(self) -> AbstractContextManager:
+    def open(self) -> Generator[AbstractContextManager, None, None]:
         """
         Opens this context to track hook creation, sets this context as active on
         this thread, and opens the liveness scope for user-created objects.

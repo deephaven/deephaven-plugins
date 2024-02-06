@@ -41,13 +41,13 @@ def get_shared_key(
 
 
 def get_new_specs(
-    specs: list[list[dict[str, int | float]]],
+    specs: list[list[dict[str, int | float]]] | None,
     row_starts: list[float],
     row_ends: list[float],
     col_starts: list[float],
     col_ends: list[float],
-    shared_xaxes: str | bool,
-    shared_yaxes: str | bool,
+    shared_xaxes: str | bool | None,
+    shared_yaxes: str | bool | None,
 ) -> list[dict[str, list[float] | int]]:
     """Transforms the given specs and row and column lists to specs for layering
 
@@ -89,8 +89,8 @@ def get_new_specs(
             r = spec.get("r", 0)
             t = spec.get("t", 0)
             b = spec.get("b", 0)
-            rowspan = spec.get("rowspan", 1)
-            colspan = spec.get("colspan", 1)
+            rowspan: int = int(spec.get("rowspan", 1))
+            colspan: int = int(spec.get("colspan", 1))
             y_1 = row_ends[row + rowspan - 1]
             x_1 = col_ends[col + colspan - 1]
             new_spec = {"x": [x_0 + l, x_1 - r], "y": [y_0 + t, y_1 - b]}
@@ -166,7 +166,7 @@ def get_domains(values: list[float], spacing: float) -> tuple[list[float], list[
     scaled = [v * scale for v in values]
 
     # the first start value is just 0 since there is no spacing preceeding it
-    starts = [0]
+    starts = [0.0]
     # ignore the last value as it is not needed for the start of any domain
     for i in range(len(scaled) - 1):
         starts.append(starts[-1] + scaled[i] + spacing)
@@ -182,8 +182,8 @@ def get_domains(values: list[float], spacing: float) -> tuple[list[float], list[
 
 def make_subplots(
     *figs: Figure | DeephavenFigure,
-    rows: int | None = None,
-    cols: int | None = None,
+    rows: int = 0,
+    cols: int = 0,
     shared_xaxes: bool | int | None = None,
     shared_yaxes: bool | int | None = None,
     grid: list[list[Figure | DeephavenFigure]] | None = None,

@@ -172,7 +172,7 @@ def reassign_attributes(axis: dict, axes_remapping: dict[str, str]) -> None:
 
 
 def resize_axis(
-    type_: str, old_axis: str, axis: dict, num: str, new_domain: dict[str, list[float]]
+    type_: str, old_axis: str, axis: dict, num: str, new_domain: dict[str, Any]
 ) -> tuple[str, str, str]:
     """Maps the specified axis to new_domain and returns info to help remap axes
 
@@ -268,7 +268,7 @@ def match_axes(
 def resize_fig(
     fig_data: dict,
     fig_layout: dict,
-    spec: dict[str, str | bool | list[float]],
+    spec: dict[str, Any],
     new_axes_start: dict[str, int],
     matches_axes: dict[Any, dict[int, str]],
 ) -> tuple[dict, dict]:
@@ -336,7 +336,7 @@ def resize_fig(
             update = get_axis_update(spec, type_)
 
             new_axis, old_trace_axis, new_trace_axis = resize_axis(
-                type_, name, obj, num, spec
+                type_, name, obj, str(num), spec
             )
 
             matches_update = match_axes(
@@ -375,8 +375,8 @@ def resize_fig(
 def fig_data_and_layout(
     fig: Figure,
     i: int,
-    specs: list[dict[str, str | bool | list[float]]],
-    which_layout: int,
+    specs: list[dict[str, Any]] | None,
+    which_layout: int | None,
     new_axes_start: dict[str, int],
     matches_axes: dict[Any, dict[int, str]],
 ) -> tuple[tuple | dict, dict]:
@@ -531,9 +531,6 @@ def layer(
         Can also specify "matched_xaxis" or "matched_yaxis" to add this figure
         to a match group. All figures with the same value of this group will
         have matching axes.
-        atomic: bool:  (Default value = False) If True, this layer call will be
-        treated as an atomic part of a figure creation call, and the figure will not be updated until
-        This should almost certainly always be False
       unsafe_update_figure: Callable: An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is not
         returned, the plotly figure passed will be assumed to be the return value.

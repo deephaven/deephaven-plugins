@@ -35,6 +35,6 @@ def use_execution_context(
     Returns:
         A callable that will take any callable and invoke it within the current exec context
     """
-    exec_ctx = use_memo(lambda: exec_ctx if exec_ctx else get_exec_ctx(), [exec_ctx])
-    exec_fn = use_memo(lambda: partial(func_with_ctx, exec_ctx), [exec_ctx])
+    exec_ctx = use_memo(lambda: exec_ctx if exec_ctx else get_exec_ctx(), {exec_ctx})
+    exec_fn = use_memo(lambda: partial(func_with_ctx, exec_ctx), {exec_ctx})
     return exec_fn
