@@ -534,7 +534,7 @@ class HooksTest(BaseTestCase):
         render_hook(_test_execution_context)
 
     def test_liveness_use_state_interactions(self):
-        from deephaven.ui.hooks import use_memo, use_state
+        from deephaven.ui.hooks import use_state
         from deephaven import new_table, dtypes as dht
         from deephaven.table import Table
         from deephaven.column import int_col
