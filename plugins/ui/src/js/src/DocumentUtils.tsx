@@ -1,5 +1,5 @@
 import React from 'react';
-import { WidgetDefinition } from '@deephaven/dashboard';
+import { WidgetDescriptor } from '@deephaven/dashboard';
 import ReactPanel from './ReactPanel';
 import { MixedPanelsError, NoChildrenError } from './errors';
 import Dashboard from './layout/Dashboard';
@@ -11,12 +11,12 @@ import Dashboard from './layout/Dashboard';
  *
  *
  * @param children Root children of the document.
- * @param definition Definition of the widget used to create this document. Used for titling panels if necessary.
+ * @param widget Descriptor of the widget used to create this document. Used for titling panels if necessary.
  * @returns The children, wrapped in a panel if necessary.
  */
 export function getRootChildren(
   children: React.ReactNode,
-  definition: WidgetDefinition
+  widget: WidgetDescriptor
 ): React.ReactNode {
   if (children == null) {
     return null;
@@ -48,10 +48,7 @@ export function getRootChildren(
   if (nonLayoutCount === childrenArray.length) {
     // Just wrap it in a panel
     return (
-      <ReactPanel
-        key="root"
-        title={definition.title ?? definition.id ?? definition.type}
-      >
+      <ReactPanel key="root" title={widget.name ?? widget.id ?? widget.type}>
         {children}
       </ReactPanel>
     );

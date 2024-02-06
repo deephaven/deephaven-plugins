@@ -149,7 +149,13 @@ class ElementMessageStream(MessageStream):
             state_update()
 
         self._is_dirty = False
-        node = self._renderer.render(self._element)
+
+        try:
+            node = self._renderer.render(self._element)
+        except Exception as e:
+            logger.exception("Error rendering %s", self._element.name)
+            raise e
+
         self._send_document_update(node)
 
     def _process_callable_queue(self) -> None:

@@ -36,7 +36,7 @@ from deephaven.ui import use_state
 def counter():
     count, set_count = use_state(0)
     return ui.action_button(
-        f"You pressed me {count} times", on_press=lambda: set_count(count + 1)
+        f"You pressed me {count} times", on_press=lambda _: set_count(count + 1)
     )
 
 
@@ -142,6 +142,45 @@ def form_submit_example():
 
 fs = form_submit_example()
 ```
+
+## Events
+
+Included with events are many details about the action itself, e.g. modifier keys held down, or the name of the target element. In this example, we create a custom component that prints all press, key, and focus events to the console, and add two of them to a panel to show interaction with both of them (e.g. when focus switches from one button to another):
+
+```python
+import deephaven.ui as ui
+
+
+@ui.component
+def button_event_printer(*children, id="My Button"):
+    return ui.action_button(
+        *children,
+        on_key_down=print,
+        on_key_up=print,
+        on_press=print,
+        on_press_start=print,
+        on_press_end=print,
+        on_press_change=lambda is_pressed: print(f"{id} is_pressed: {is_pressed}"),
+        on_press_up=print,
+        on_focus=print,
+        on_blur=print,
+        on_focus_change=lambda is_focused: print(f"{id} is_focused: {is_focused}"),
+        id=id,
+    )
+
+
+@ui.component
+def button_events():
+    return [
+        button_event_printer("1", id="My Button 1"),
+        button_event_printer("2", id="My Button 2"),
+    ]
+
+
+be = button_events()
+```
+
+![Events](assets/events.png)
 
 # Data Examples
 

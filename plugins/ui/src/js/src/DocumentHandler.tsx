@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef } from 'react';
-import { WidgetDefinition } from '@deephaven/dashboard';
+import { WidgetDescriptor } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
 import { ReactPanelManagerContext } from './ReactPanelManager';
 import { getRootChildren } from './DocumentUtils';
@@ -8,7 +8,7 @@ const log = Log.module('@deephaven/js-plugin-ui/DocumentHandler');
 
 export type DocumentHandlerProps = React.PropsWithChildren<{
   /** Definition of the widget used to create this document. Used for titling panels if necessary. */
-  definition: WidgetDefinition;
+  widget: WidgetDescriptor;
 
   /** Triggered when all panels opened from this document have closed */
   onClose?: () => void;
@@ -20,20 +20,16 @@ export type DocumentHandlerProps = React.PropsWithChildren<{
  * or all non-panels, which will automatically be wrapped in one panel.
  * Responsible for opening any panels or dashboards specified in the document.
  */
-function DocumentHandler({
-  children,
-  definition,
-  onClose,
-}: DocumentHandlerProps) {
-  log.debug('Rendering document', definition);
+function DocumentHandler({ children, widget, onClose }: DocumentHandlerProps) {
+  log.debug('Rendering document', widget);
   const panelOpenCountRef = useRef(0);
 
   const metadata = useMemo(
     () => ({
-      name: definition.title ?? definition.name ?? 'Unknown',
-      type: definition.type,
+      name: widget.name ?? 'Unknown',
+      type: widget.type,
     }),
-    [definition]
+    [widget]
   );
 
   const handleOpen = useCallback(() => {
@@ -63,7 +59,7 @@ function DocumentHandler({
 
   return (
     <ReactPanelManagerContext.Provider value={panelManager}>
-      {getRootChildren(children, definition)}
+      {getRootChildren(children, widget)}
     </ReactPanelManagerContext.Provider>
   );
 }

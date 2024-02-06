@@ -8,10 +8,7 @@ export function useParentItem() {
   const layoutManager = useLayoutManager();
   const parentContextItem = useContext(ParentItemContext);
   const parentItem = useMemo(
-    () =>
-      parentContextItem ??
-      layoutManager.root.contentItems[0] ??
-      layoutManager.root,
+    () => parentContextItem ?? layoutManager.root,
     [layoutManager.root, parentContextItem]
   );
   return parentItem;

@@ -25,6 +25,27 @@ class UtilsTest(BaseTestCase):
         self.assertEqual(to_camel_case("first_word"), "firstWord")
         self.assertEqual(to_camel_case("alreadyCamelCase"), "alreadyCamelCase")
         self.assertEqual(to_camel_case(""), "")
+        self.assertEqual(to_camel_case("UNSAFE_style"), "UNSAFEStyle")
+        self.assertEqual(to_camel_case("UNSAFE_class_name"), "UNSAFEClassName")
+        self.assertEqual(to_camel_case("UNSAFE_className"), "UNSAFEClassName")
+        self.assertEqual(to_camel_case("unsafe_style"), "unsafeStyle")
+
+    def test_to_react_prop_case(self):
+        from deephaven.ui._internal.utils import to_react_prop_case
+
+        self.assertEqual(to_react_prop_case("test_string"), "testString")
+        self.assertEqual(to_react_prop_case("test_string_2"), "testString2")
+        self.assertEqual(to_react_prop_case("align_items"), "alignItems")
+        self.assertEqual(to_react_prop_case("First_Word"), "FirstWord")
+        self.assertEqual(to_react_prop_case("first_word"), "firstWord")
+        self.assertEqual(to_react_prop_case("alreadyCamelCase"), "alreadyCamelCase")
+        self.assertEqual(to_react_prop_case(""), "")
+        self.assertEqual(to_react_prop_case("UNSAFE_style"), "UNSAFE_style")
+        self.assertEqual(to_react_prop_case("UNSAFE_class_name"), "UNSAFE_className")
+        self.assertEqual(to_react_prop_case("UNSAFE_className"), "UNSAFE_className")
+        self.assertEqual(to_react_prop_case("unsafe_style"), "unsafeStyle")
+        self.assertEqual(to_react_prop_case("aria_expanded"), "aria-expanded")
+        self.assertEqual(to_react_prop_case("aria_labelledby"), "aria-labelledby")
 
     def test_dict_to_camel_case(self):
         from deephaven.ui._internal.utils import dict_to_camel_case
@@ -36,6 +57,25 @@ class UtilsTest(BaseTestCase):
         self.assertDictEqual(
             dict_to_camel_case({"alreadyCamelCase": "foo", "align_items": "bar"}),
             {"alreadyCamelCase": "foo", "alignItems": "bar"},
+        )
+        self.assertDictEqual(
+            dict_to_camel_case({"foo": None, "bar": "biz"}),
+            {"bar": "biz"},
+        )
+        self.assertDictEqual(
+            dict_to_camel_case({"foo": None, "bar": "biz"}, omit_none=False),
+            {"foo": None, "bar": "biz"},
+        )
+        self.assertDictEqual(
+            dict_to_camel_case({"bar": "biz", "UNSAFE_class_name": "harry"}),
+            {"bar": "biz", "UNSAFE_className": "harry"},
+        )
+        # Test with a function reversing the keys
+        self.assertDictEqual(
+            dict_to_camel_case(
+                {"foo": "fiz", "bar": "biz"}, convert_key=lambda x: x[::-1]
+            ),
+            {"oof": "fiz", "rab": "biz"},
         )
 
     def test_remove_empty_keys(self):
