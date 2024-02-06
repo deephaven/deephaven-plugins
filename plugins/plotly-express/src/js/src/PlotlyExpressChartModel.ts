@@ -59,11 +59,6 @@ export class PlotlyExpressChartModel extends ChartModel {
   widgetUnsubscribe?: () => void;
 
   /**
-   * Set containing table IDs that are pending data.
-   */
-  tablesPendingData = new Set<number>();
-
-  /**
    * Map of table index to Table object.
    */
   tableReferenceMap: Map<number, Table> = new Map();
@@ -105,6 +100,8 @@ export class PlotlyExpressChartModel extends ChartModel {
   isPaused = false;
 
   hasPendingUpdate = false;
+
+  hasInitialLoadCompleted = false;
 
   override getData(): Partial<Data>[] {
     const hydratedData = [...this.plotlyData];
@@ -274,18 +271,12 @@ export class PlotlyExpressChartModel extends ChartModel {
       tableData[column.name] = columnData;
     });
 
-    // Stop tracking table once it has data
-    this.tablesPendingData.delete(tableId);
-
     if (this.isPaused) {
       this.hasPendingUpdate = true;
       return;
     }
 
-    if (this.tablesPendingData.size === 0) {
-      this.fireUpdate(this.getData());
-      this.fireLoadFinished();
-    }
+    this.fireUpdate(this.getData());
   }
 
   addTable(id: number, table: Table) {
@@ -310,9 +301,6 @@ export class PlotlyExpressChartModel extends ChartModel {
       columnReplacements.size > 0 &&
       !this.tableSubscriptionMap.has(id)
     ) {
-      // Track table until it has data
-      this.tablesPendingData.add(id);
-
       this.chartDataMap.set(id, new this.dh.plot.ChartData(table));
       const columnNames = new Set(columnReplacements.keys());
       const columns = table.columns.filter(({ name }) => columnNames.has(name));
@@ -333,7 +321,6 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.tableSubscriptionMap.get(id)?.close();
 
     this.tableReferenceMap.delete(id);
-    this.tablesPendingData.delete(id);
     this.subscriptionCleanupMap.delete(id);
     this.tableSubscriptionMap.delete(id);
     this.chartDataMap.delete(id);
@@ -344,6 +331,15 @@ export class PlotlyExpressChartModel extends ChartModel {
   override fireUpdate(data: unknown): void {
     super.fireUpdate(data);
     this.hasPendingUpdate = false;
+
+    // TODO: This will fire on first call to `fireUpdate` even though other data
+    // may still be loading. We should consider making this smarter to fire after
+    // all initial data has loaded.
+    // https://github.com/deephaven/deephaven-plugins/issues/267
+    if (!this.hasInitialLoadCompleted) {
+      this.fireLoadFinished();
+      this.hasInitialLoadCompleted = true;
+    }
   }
 
   pauseUpdates(): void {
