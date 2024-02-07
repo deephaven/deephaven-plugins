@@ -135,4 +135,5 @@ it('calls openComponent again after panel is closed only if the metadata changes
   expect(LayoutUtils.closeComponent).not.toHaveBeenCalled();
   expect(onOpen).toHaveBeenCalledTimes(2);
   expect(onClose).toHaveBeenCalledTimes(1);
+  // Test
 });
