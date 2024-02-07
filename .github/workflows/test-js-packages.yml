@@ -25,7 +25,7 @@ jobs:
         with:
           path: |
             .jest-cache
-            plugins/*/.jest-cache
+            plugins/**/.jest-cache
           key: ${{ runner.os }}-jestcache-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-jestcache-
@@ -35,9 +35,9 @@ jobs:
         with:
           path: |
             .eslintcache
-            plugins/*/.eslintcache
+            plugins/**/.eslintcache
             .stylelintcache
-            plugins/*/.stylelintcache
+            plugins/**/.stylelintcache
           key: ${{ runner.os }}-lintcache-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-lintcache-
@@ -48,7 +48,7 @@ jobs:
         with:
           path: |
             node_modules
-            plugins/*/node_modules
+            plugins/**/node_modules
           key: unit-node-modules-${{ hashFiles('package-lock.json')}}
 
       - name: Install dependencies
