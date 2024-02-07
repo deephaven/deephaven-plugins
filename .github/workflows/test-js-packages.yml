@@ -49,7 +49,7 @@ jobs:
           save-always: true
           path: |
             node_modules
-            plugins/*/node_modules
+            plugins/**/node_modules
           key: unit-node-modules-${{ hashFiles('package-lock.json')}}
 
       - name: Install dependencies
