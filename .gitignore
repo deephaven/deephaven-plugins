@@ -1,6 +1,7 @@
 node_modules
 .vscode/
 tsconfig.tsbuildinfo
+.env.*local
 
 # Ignore user IntelliJ settings
 .idea/
