@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import io
 import json
 from jsonrpc import JSONRPCResponseManager, Dispatcher
@@ -7,6 +8,7 @@ import threading
 from enum import Enum
 from queue import Queue
 from typing import Any, Callable
+from inspect import signature
 from deephaven.plugin.object_type import MessageStream
 from deephaven.server.executors import submit_task
 from deephaven.execution_context import ExecutionContext, get_exec_ctx
@@ -37,6 +39,23 @@ class _RenderState(Enum):
     """
     The render loop has a render queued.
     """
+
+
+def _wrap_callable(func: Callable) -> Callable:
+    """
+    Wrap the function so the event is dropped if the function has no arguments.
+
+    Args:
+        func: The callable to wrap
+
+    Returns:
+        The wrapped callable
+    """
+    # args and kwargs in lambda instead, inspect functools
+    arg_count = len(signature(func).parameters)
+    if arg_count == 0:
+        return lambda _: func()
+    return func
 
 
 class ElementMessageStream(MessageStream):
@@ -245,6 +264,7 @@ class ElementMessageStream(MessageStream):
         """
         decoded_payload = io.BytesIO(payload).read().decode()
         logger.debug("Payload received: %s", decoded_payload)
+        print("Payload received: %s", decoded_payload)
 
         def handle_message():
             response = self._manager.handle(decoded_payload, self._dispatcher)
@@ -319,6 +339,6 @@ class ElementMessageStream(MessageStream):
         dispatcher = Dispatcher()
         for callable, callable_id in callable_id_dict.items():
             logger.debug("Registering callable %s", callable_id)
-            dispatcher[callable_id] = callable
+            dispatcher[callable_id] = _wrap_callable(callable)
         self._dispatcher = dispatcher
         self._connection.on_data(payload.encode(), new_objects)
