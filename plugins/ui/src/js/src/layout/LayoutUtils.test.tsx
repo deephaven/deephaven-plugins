@@ -1,5 +1,6 @@
 /* eslint-disable react/jsx-key */
 import React from 'react';
+import { TestUtils } from '@deephaven/utils';
 import Column from './Column';
 import {
   PANEL_ELEMENT_NAME,
@@ -18,6 +19,10 @@ import {
 import Row from './Row';
 import Stack from './Stack';
 import ReactPanel from '../ReactPanel';
+
+beforeEach(() => {
+  TestUtils.disableConsoleOutput();
+});
 
 describe('isPanelElementNode', () => {
   test.each([

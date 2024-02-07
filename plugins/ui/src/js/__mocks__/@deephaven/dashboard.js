@@ -1,5 +1,9 @@
 // Mock LayoutUtils, useListener, and PanelEvent from @deephaven/dashboard package
-const mockLayout = { root: { contentItems: [] }, eventHub: {} };
+const mockLayout = {
+  root: { contentItems: [], addChild: jest.fn() },
+  eventHub: {},
+  createContentItem: jest.fn(() => ({ setSize: jest.fn() })),
+};
 
 const DashboardActual = jest.requireActual('@deephaven/dashboard');
 module.exports = {
