@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 from typing import Any, Callable
+from inspect import signature
+import sys
+from functools import partial
 
 _UNSAFE_PREFIX = "UNSAFE_"
 _ARIA_PREFIX = "aria_"
@@ -107,3 +110,61 @@ def remove_empty_keys(dict: dict[str, Any]) -> dict[str, Any]:
         The dict with keys removed.
     """
     return {k: v for k, v in dict.items() if v is not None}
+
+
+def wrapper(
+    max_args: int | str, kwargs_set: set[str] | str, func, *args, **kwargs
+) -> None:
+    """
+    Wrapper for the function that will be called by the dispatcher.
+    This wrapper will handle calling the function with the correct arguments.
+
+    Args:
+        max_args: The maximum number of positional arguments to pass to the function
+        kwargs_set: The set of keyword arguments to pass to the function
+        func: The function to call
+        *args: args, used by the dispatcher
+        **kwargs: kwargs, used by the dispatcher
+    """
+    args = args if max_args == "any" else args[:max_args]
+    kwargs = (
+        kwargs
+        if kwargs_set == "any"
+        else {k: v for k, v in kwargs.items() if k in kwargs_set}
+    )
+    func(*args, **kwargs)
+
+
+def wrap_callable(func: Callable) -> Callable:
+    """
+    Wrap the function so args are dropped if they are not in the signature.
+
+    Args:
+        func: The callable to wrap
+
+    Returns:
+        The wrapped callable
+    """
+    if sys.version_info.major == 3 and sys.version_info.minor >= 10:
+        sig = signature(func, eval_str=True)
+    else:
+        sig = signature(func)
+
+    max_args = 0
+    kwargs = set()
+
+    for param in sig.parameters.values():
+        if param.kind == param.POSITIONAL_ONLY:
+            max_args += 1
+        elif param.kind == param.POSITIONAL_OR_KEYWORD:
+            # Don't know until runtime whether this will be passed as a positional or keyword arg
+            max_args += 1
+            kwargs.add(param.name)
+        elif param.kind == param.VAR_POSITIONAL:
+            max_args = "any"
+        elif param.kind == param.KEYWORD_ONLY:
+            kwargs.add(param.name)
+        elif param.kind == param.VAR_KEYWORD:
+            kwargs = "any"
+
+    return partial(wrapper, max_args, kwargs, func)

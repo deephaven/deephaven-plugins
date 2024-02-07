@@ -8,10 +8,11 @@ import threading
 from enum import Enum
 from queue import Queue
 from typing import Any, Callable
-from inspect import signature
 from deephaven.plugin.object_type import MessageStream
 from deephaven.server.executors import submit_task
 from deephaven.execution_context import ExecutionContext, get_exec_ctx
+
+from .._internal import wrap_callable
 from ..elements import Element
 from ..renderer import NodeEncoder, Renderer, RenderedNode
 from .._internal import RenderContext, StateUpdateCallable
@@ -39,23 +40,6 @@ class _RenderState(Enum):
     """
     The render loop has a render queued.
     """
-
-
-def _wrap_callable(func: Callable) -> Callable:
-    """
-    Wrap the function so the event is dropped if the function has no arguments.
-
-    Args:
-        func: The callable to wrap
-
-    Returns:
-        The wrapped callable
-    """
-    # args and kwargs in lambda instead, inspect functools
-    arg_count = len(signature(func).parameters)
-    if arg_count == 0:
-        return lambda _: func()
-    return func
 
 
 class ElementMessageStream(MessageStream):
@@ -339,6 +323,6 @@ class ElementMessageStream(MessageStream):
         dispatcher = Dispatcher()
         for callable, callable_id in callable_id_dict.items():
             logger.debug("Registering callable %s", callable_id)
-            dispatcher[callable_id] = _wrap_callable(callable)
+            dispatcher[callable_id] = wrap_callable(callable)
         self._dispatcher = dispatcher
         self._connection.on_data(payload.encode(), new_objects)
