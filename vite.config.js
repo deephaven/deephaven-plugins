@@ -8,8 +8,7 @@ export default defineConfig(({ mode }) => {
   // Set the third parameter to '' to load all env regardless of the `VITE_` prefix.
   const env = loadEnv(mode, process.cwd(), '');
 
-  const port = Number(env.PORT || process.env.PORT || DEFAULT_PORT);
-  const strictPort = (env.STRICT_PORT || process.env.STRICT_PORT) === 'true';
+  const port = Number(env.PORT || DEFAULT_PORT);
 
   // This config doesn't build anything, it just serves the files from the
   // plugins directory
@@ -17,7 +16,7 @@ export default defineConfig(({ mode }) => {
     publicDir: 'plugins',
     server: {
       port,
-      strictPort,
+      strictPort: true,
     },
   };
 });
