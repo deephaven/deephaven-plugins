@@ -104,7 +104,7 @@ class NodeEncoder(json.JSONEncoder):
         self._callable_id_prefix = callable_id_prefix
         self._next_callable_id = 0
         self._callable_dict = WeakKeyDictionary()
-        self._new_objects = list()
+        self._new_objects = []
         self._next_object_id = 0
         self._object_id_dict = {}
 
@@ -133,7 +133,7 @@ class NodeEncoder(json.JSONEncoder):
         """
 
         # Reset the new objects list - they will get set when encoding
-        self._new_objects = list()
+        self._new_objects = []
         self._old_objects = set(self._object_id_dict.keys())
 
         logger.debug("Encoding node with object_id_dict: %s", self._object_id_dict)
