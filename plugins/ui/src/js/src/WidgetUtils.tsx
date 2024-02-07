@@ -14,9 +14,19 @@ import { isIconElementNode } from './IconElementUtils';
 import IconElementView from './IconElementView';
 import { isUITable } from './UITableUtils';
 import UITable from './UITable';
-import { isPanelElementNode } from './PanelUtils';
+import {
+  isColumnElementNode,
+  isDashboardElementNode,
+  isPanelElementNode,
+  isRowElementNode,
+  isStackElementNode,
+} from './layout/LayoutUtils';
 import ReactPanel from './ReactPanel';
 import ObjectView from './ObjectView';
+import Row from './layout/Row';
+import Stack from './layout/Stack';
+import Column from './layout/Column';
+import Dashboard from './layout/Dashboard';
 
 export function getComponentForElement(element: ElementNode): React.ReactNode {
   // Need to convert the children of the element if they are exported objects to an ObjectView
@@ -58,6 +68,18 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
   if (isFragmentElementNode(newElement)) {
     // eslint-disable-next-line react/jsx-no-useless-fragment
     return <>{newElement.props?.children}</>;
+  }
+  if (isRowElementNode(newElement)) {
+    return <Row {...newElement.props} />;
+  }
+  if (isColumnElementNode(newElement)) {
+    return <Column {...newElement.props} />;
+  }
+  if (isStackElementNode(newElement)) {
+    return <Stack {...newElement.props} />;
+  }
+  if (isDashboardElementNode(newElement)) {
+    return <Dashboard {...newElement.props} />;
   }
 
   return newElement.props?.children;

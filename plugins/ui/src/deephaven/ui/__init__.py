@@ -10,10 +10,11 @@ from .elements import *
 from .hooks import *
 from .object_types import *
 
-__version__ = "0.1.0"
+__version__ = "0.6.0.dev0"
 
 
 class UIRegistration(Registration):
     @classmethod
     def register_into(cls, callback: Callback) -> None:
+        callback.register(DashboardType)
         callback.register(ElementType)

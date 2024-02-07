@@ -1,6 +1,7 @@
 node_modules
 .vscode/
 tsconfig.tsbuildinfo
+.env.*local
 
 # Ignore user IntelliJ settings
 .idea/
@@ -19,3 +20,6 @@ junit.xml
 
 # Allow for local overrides of docker-compose.yml. https://docs.docker.com/compose/multiple-compose-files/merge/
 docker-compose.override.yml
+
+# Ignore temporary files created during a release
+releases/

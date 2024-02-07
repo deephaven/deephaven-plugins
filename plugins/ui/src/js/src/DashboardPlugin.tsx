@@ -5,63 +5,151 @@ import {
   LayoutManagerContext,
   PanelEvent,
   useListener,
+  useDashboardPluginData,
+  emitCreateDashboard,
+  WidgetDescriptor,
+  PanelOpenEventDetail,
+  DEFAULT_DASHBOARD_ID,
 } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
+import {
+  DeferredApiBootstrap,
+  useObjectFetcher,
+} from '@deephaven/jsapi-bootstrap';
 import { Widget } from '@deephaven/jsapi-types';
-import type { VariableDefinition } from '@deephaven/jsapi-types';
+import { ErrorBoundary } from '@deephaven/components';
 import styles from './styles.scss?inline';
 import { WidgetWrapper } from './WidgetTypes';
 import PortalPanel from './PortalPanel';
 import WidgetHandler from './WidgetHandler';
 
 const NAME_ELEMENT = 'deephaven.ui.Element';
+const DASHBOARD_ELEMENT = 'deephaven.ui.Dashboard';
 
 const log = Log.module('@deephaven/js-plugin-ui.DashboardPlugin');
+
+/**
+ * The data stored in redux when the user creates a ui.dashboard.
+ */
+interface DashboardPluginData {
+  type: string;
+  title: string;
+  id: string;
+  widget: WidgetDescriptor;
+}
 
 export function DashboardPlugin({
   id,
   layout,
   registerComponent,
 }: DashboardPluginComponentProps): JSX.Element | null {
+  const [pluginData] = useDashboardPluginData(
+    id,
+    DASHBOARD_ELEMENT
+  ) as unknown as [DashboardPluginData];
+
+  const objectFetcher = useObjectFetcher();
+
   // Keep track of the widgets we've got opened.
   const [widgetMap, setWidgetMap] = useState<
     ReadonlyMap<string, WidgetWrapper>
   >(new Map());
-  const handlePanelOpen = useCallback(
+
+  const handleWidgetOpen = useCallback(
     ({
-      dragEvent,
       fetch,
-      metadata = {},
-      panelId: widgetId = shortid.generate(),
+      widgetId = shortid.generate(),
       widget,
     }: {
-      dragEvent?: React.DragEvent;
       fetch: () => Promise<Widget>;
-      metadata?: Record<string, unknown>;
-      panelId?: string;
-      widget: VariableDefinition;
+      widgetId: string;
+      widget: WidgetDescriptor;
     }) => {
-      const { type } = widget;
-      if ((type as string) !== NAME_ELEMENT) {
-        // Only want to listen for Element panels trying to be opened
-        return;
-      }
-      log.info('Opening widget with ID', widgetId);
+      log.info('Opening widget with ID', widgetId, widget);
       setWidgetMap(prevWidgetMap => {
         const newWidgetMap = new Map<string, WidgetWrapper>(prevWidgetMap);
-        // We need to create a new definition object, otherwise the layout will think it's already open
-        // Can't use a spread operator because the widget definition uses property accessors
-        const definition = {
-          type: widget.type,
-          title: widget.title,
-          id: widget.id,
-          name: widget.name,
-        };
-        newWidgetMap.set(widgetId, { definition, fetch, id: widgetId });
+        newWidgetMap.set(widgetId, {
+          fetch,
+          id: widgetId,
+          widget,
+        });
         return newWidgetMap;
       });
     },
     []
+  );
+
+  const handleDashboardOpen = useCallback(
+    ({ widget }: { widget: WidgetDescriptor }) => {
+      const { id: dashboardId, type, name: title = 'Untitled' } = widget;
+      if (dashboardId == null) {
+        log.error("Can't open dashboard without an ID", widget);
+        return;
+      }
+      log.debug('Emitting create dashboard event for', widget);
+      emitCreateDashboard(layout.eventHub, {
+        pluginId: DASHBOARD_ELEMENT,
+        title,
+        data: {
+          type,
+          title,
+          id: dashboardId,
+          widget,
+        } satisfies DashboardPluginData,
+      });
+    },
+    [layout.eventHub]
+  );
+
+  const handlePanelOpen = useCallback(
+    ({
+      fetch,
+      panelId: widgetId = shortid.generate(),
+      widget,
+    }: PanelOpenEventDetail<Widget>) => {
+      const { type } = widget;
+
+      switch (type) {
+        case NAME_ELEMENT: {
+          const widgetFetch = fetch ?? (() => objectFetcher(widget));
+          handleWidgetOpen({ fetch: widgetFetch, widgetId, widget });
+          break;
+        }
+        case DASHBOARD_ELEMENT: {
+          handleDashboardOpen({ widget });
+          break;
+        }
+        default: {
+          log.error('Unknown widget type', type);
+        }
+      }
+    },
+    [handleDashboardOpen, handleWidgetOpen, objectFetcher]
+  );
+
+  useEffect(
+    function loadDashboard() {
+      if (pluginData == null) {
+        return;
+      }
+
+      log.info('Loading dashboard', pluginData);
+
+      setWidgetMap(prevWidgetMap => {
+        const newWidgetMap = new Map<string, WidgetWrapper>(prevWidgetMap);
+        // We need to create a new definition object, otherwise the layout will think it's already open
+        // Can't use a spread operator because the widget definition uses property accessors
+
+        const { widget } = pluginData;
+        newWidgetMap.set(id, {
+          fetch: () => objectFetcher(widget),
+          id,
+          widget,
+        });
+        return newWidgetMap;
+      });
+    },
+    [objectFetcher, pluginData, id]
   );
 
   const handlePanelClose = useCallback((panelId: string) => {
@@ -99,13 +187,17 @@ export function DashboardPlugin({
   const widgetHandlers = useMemo(
     () =>
       [...widgetMap.entries()].map(([widgetId, widget]) => (
-        <WidgetHandler
+        // Fallback to an empty array in default dashboard so we don't display errors over code studio
+        <ErrorBoundary
           key={widgetId}
-          widget={widget}
-          onClose={handleWidgetClose}
-        />
+          fallback={id === DEFAULT_DASHBOARD_ID ? [] : null}
+        >
+          <DeferredApiBootstrap widget={widget.widget}>
+            <WidgetHandler widget={widget} onClose={handleWidgetClose} />
+          </DeferredApiBootstrap>
+        </ErrorBoundary>
       )),
-    [handleWidgetClose, widgetMap]
+    [handleWidgetClose, widgetMap, id]
   );
 
   return (

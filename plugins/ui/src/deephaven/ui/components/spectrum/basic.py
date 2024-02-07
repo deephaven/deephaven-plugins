@@ -1,20 +1,14 @@
+from __future__ import annotations
+from typing import Any
 from ...elements import BaseElement
 
 
-def spectrum_element(name: str, /, *children, **props):
+def spectrum_element(name: str, /, *children: Any, **props: Any) -> BaseElement:
     """
     Base class for UI elements that are part of the Spectrum design system.
     All names are automatically prefixed with "deephaven.ui.spectrum.", and all props are automatically camelCased.
     """
     return BaseElement(f"deephaven.ui.spectrum.{name}", *children, **props)
-
-
-def action_button(*children, **props):
-    """
-    Python implementation for the Adobe React Spectrum ActionButton component.
-    https://react-spectrum.adobe.com/react-spectrum/ActionButton.html
-    """
-    return spectrum_element("ActionButton", *children, **props)
 
 
 def button(*children, **props):

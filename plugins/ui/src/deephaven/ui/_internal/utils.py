@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Callable
+
+_UNSAFE_PREFIX = "UNSAFE_"
+_ARIA_PREFIX = "aria_"
+_ARIA_PREFIX_REPLACEMENT = "aria-"
 
 
 def get_component_name(component: Any) -> str:
@@ -46,23 +50,49 @@ def to_camel_case(snake_case_text: str) -> str:
         The camelCase string.
     """
     components = snake_case_text.split("_")
-    return components[0] + "".join(x.title() for x in components[1:])
+    return components[0] + "".join((x[0].upper() + x[1:]) for x in components[1:])
 
 
-# TODO: Take an exclusion regex? function? for keys we do not want to convert
-def dict_to_camel_case(snake_case_dict: dict[str, Any]) -> dict[str, Any]:
+def to_react_prop_case(snake_case_text: str) -> str:
+    """
+    Convert a snake_case string to camelCase, with exceptions for special props like `UNSAFE_` or `aria_` props.
+
+    Args:
+        snake_case_text: The snake_case string to convert.
+
+    Returns:
+        The camelCase string with the `UNSAFE_` prefix intact if present, or `aria_` converted to `aria-`.
+    """
+    if snake_case_text.startswith(_UNSAFE_PREFIX):
+        return _UNSAFE_PREFIX + to_camel_case(snake_case_text[len(_UNSAFE_PREFIX) :])
+    if snake_case_text.startswith(_ARIA_PREFIX):
+        return _ARIA_PREFIX_REPLACEMENT + to_camel_case(
+            snake_case_text[len(_ARIA_PREFIX) :]
+        )
+    return to_camel_case(snake_case_text)
+
+
+def dict_to_camel_case(
+    snake_case_dict: dict[str, Any],
+    omit_none: bool = True,
+    convert_key: Callable[[str], str] = to_react_prop_case,
+) -> dict[str, Any]:
     """
     Convert a dict with snake_case keys to a dict with camelCase keys.
 
     Args:
         snake_case_dict: The snake_case dict to convert.
+        omit_none: Whether to omit keys with a value of None.
+        convert_key: The function to convert the keys. Can be used to customize the conversion behaviour
 
     Returns:
         The camelCase dict.
     """
     camel_case_dict: dict[str, Any] = {}
     for key, value in snake_case_dict.items():
-        camel_case_dict[to_camel_case(key)] = value
+        if omit_none and value is None:
+            continue
+        camel_case_dict[convert_key(key)] = value
     return camel_case_dict
 
 

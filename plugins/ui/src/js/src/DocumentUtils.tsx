@@ -1,7 +1,8 @@
 import React from 'react';
-import { WidgetDefinition } from '@deephaven/dashboard';
+import { WidgetDescriptor } from '@deephaven/dashboard';
 import ReactPanel from './ReactPanel';
 import { MixedPanelsError, NoChildrenError } from './errors';
+import Dashboard from './layout/Dashboard';
 
 /**
  * Convert the children passed as the Document root to a valid root node, or throw if it's an invalid root configuration.
@@ -10,12 +11,12 @@ import { MixedPanelsError, NoChildrenError } from './errors';
  *
  *
  * @param children Root children of the document.
- * @param definition Definition of the widget used to create this document. Used for titling panels if necessary.
+ * @param widget Descriptor of the widget used to create this document. Used for titling panels if necessary.
  * @returns The children, wrapped in a panel if necessary.
  */
 export function getRootChildren(
   children: React.ReactNode,
-  definition: WidgetDefinition
+  widget: WidgetDescriptor
 ): React.ReactNode {
   if (children == null) {
     return null;
@@ -25,26 +26,35 @@ export function getRootChildren(
   if (childrenArray.length === 0) {
     throw new NoChildrenError('No children to render');
   }
-  const childPanelCount = childrenArray.filter(
+
+  const panelCount = childrenArray.filter(
     child => child?.type === ReactPanel
   ).length;
-  if (childPanelCount > 0 && childPanelCount !== childrenArray.length) {
-    throw new MixedPanelsError('Cannot mix panel and non-panel elements');
+
+  const dashboardCount = childrenArray.filter(
+    child => child?.type === Dashboard
+  ).length;
+
+  const nonLayoutCount = childrenArray.length - panelCount - dashboardCount;
+
+  if (nonLayoutCount > 0 && nonLayoutCount !== childrenArray.length) {
+    throw new MixedPanelsError('Cannot mix layout and non-layout elements');
   }
 
-  if (childPanelCount === 0) {
+  if (panelCount > 0 && dashboardCount > 0) {
+    throw new MixedPanelsError('Cannot mix Panel and Dashboard elements');
+  }
+
+  if (nonLayoutCount === childrenArray.length) {
     // Just wrap it in a panel
     return (
-      <ReactPanel
-        key="root"
-        title={definition.title ?? definition.id ?? definition.type}
-      >
+      <ReactPanel key="root" title={widget.name ?? widget.id ?? widget.type}>
         {children}
       </ReactPanel>
     );
   }
 
-  // It's already got panels defined, just return it
+  // It's already got layout defined, just return it
   return children;
 }
 

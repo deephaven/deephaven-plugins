@@ -29,7 +29,7 @@ We define our `counter` component as a function using the `@ui.component` decora
 def counter():
     count, set_count = ui.use_state(0)
     return ui.action_button(
-        f"You pressed me {count} times", on_press=lambda: set_count(count + 1)
+        f"You pressed me {count} times", on_press=lambda _: set_count(count + 1)
     )
 
 
@@ -48,7 +48,7 @@ def my_input():
 
     return ui.flex(
         ui.action_button(
-            f"You pressed me {count} times", on_press=lambda: set_count(count + 1)
+            f"You pressed me {count} times", on_press=lambda _: set_count(count + 1)
         ),
         ui.text_field(value=text, on_change=set_text),
         ui.text(f"You typed {text}"),
@@ -241,10 +241,10 @@ def order_table():
             )
         )
 
-    def handle_buy():
+    def handle_buy(_):
         submit_order(sym, size, "buy")
 
-    def handle_sell():
+    def handle_sell(_):
         submit_order(sym, size, "sell")
 
     return [
@@ -296,4 +296,138 @@ def table_tabs(source):
 
 
 result = table_tabs(stocks)
+```
+
+## Creating Dashboards
+
+We can create a dashboard laying out multiple components in a custom configuration. We use the following dashboard layout components to create a dashboard:
+
+- `ui.column`: Create a column of elements stacked vertically.
+- `ui.row`: Create a row of elements laid out horizontally.
+- `ui.stack`: Create a stack of panels on top of each other. You can use the panel tab to switch between panels in the stack.
+- `ui.panel`: Create a panel to wrap an element. Panels can be moved around a dashboard manually by dragging the panel tab.
+
+Putting that all together, we can create a dashboard with two tables across the top and one plot across the bottom:
+
+```python
+from deephaven import ui
+from deephaven.plot import express as dx
+from deephaven.plot.figure import Figure
+
+_stocks = dx.data.stocks()
+_cat_stocks = _stocks.where("sym=`CAT`")
+_dog_stocks = _stocks.where("sym=`DOG`")
+_stocks_plot = (
+    Figure()
+    .plot_xy("Cat", _cat_stocks, x="timestamp", y="price")
+    .plot_xy("Dog", _dog_stocks, x="timestamp", y="price")
+    .show()
+)
+
+my_dash = ui.dashboard(
+    ui.column(
+        ui.row(
+            ui.stack(ui.panel(_cat_stocks, title="Cat")),
+            ui.stack(ui.panel(_dog_stocks, title="Dog")),
+        ),
+        ui.stack(ui.panel(_stocks_plot, title="Stocks")),
+    )
+)
+```
+
+## Interactive Dashboards
+
+We can also create our own components and add them to a dashboard. In this example, we create one panel that will be used as the control input for selecting the phase, frequency, and amplitude of a wave. We then display multiple plots to show the different types of waves:
+
+```python
+from deephaven import ui, time_table
+from deephaven.ui import use_memo, use_state
+from deephaven.plot.figure import Figure
+
+
+def use_wave_input():
+    """
+    Demonstrating a custom hook.
+    Creates an input panel that controls the amplitude, frequency, and phase for a wave
+    """
+    amplitude, set_amplitude = use_state(1.0)
+    frequency, set_frequency = use_state(1.0)
+    phase, set_phase = use_state(1.0)
+
+    input_panel = ui.flex(
+        ui.slider(
+            label="Amplitude",
+            default_value=amplitude,
+            min_value=-100.0,
+            max_value=100.0,
+            on_change=set_amplitude,
+            step=0.1,
+        ),
+        ui.slider(
+            label="Frequency",
+            default_value=frequency,
+            min_value=-100.0,
+            max_value=100.0,
+            on_change=set_frequency,
+            step=0.1,
+        ),
+        ui.slider(
+            label="Phase",
+            default_value=phase,
+            min_value=-100.0,
+            max_value=100.0,
+            on_change=set_phase,
+            step=0.1,
+        ),
+        direction="column",
+    )
+
+    return amplitude, frequency, phase, input_panel
+
+
+@ui.component
+def multiwave():
+    amplitude, frequency, phase, wave_input = use_wave_input()
+
+    tt = use_memo(lambda: time_table("PT1s").update("x=i"), [])
+    t = use_memo(
+        lambda: tt.update(
+            [
+                f"y_sin={amplitude}*Math.sin({frequency}*x+{phase})",
+                f"y_cos={amplitude}*Math.cos({frequency}*x+{phase})",
+                f"y_tan={amplitude}*Math.tan({frequency}*x+{phase})",
+            ]
+        ),
+        [amplitude, frequency, phase],
+    )
+    p_sin = use_memo(
+        lambda: Figure().plot_xy(series_name="Sine", t=t, x="x", y="y_sin").show(), [t]
+    )
+    p_cos = use_memo(
+        lambda: Figure().plot_xy(series_name="Cosine", t=t, x="x", y="y_cos").show(),
+        [t],
+    )
+    p_tan = use_memo(
+        lambda: Figure().plot_xy(series_name="Tangent", t=t, x="x", y="y_tan").show(),
+        [t],
+    )
+
+    return ui.column(
+        ui.row(
+            ui.stack(
+                ui.panel(wave_input, title="Wave Input"),
+                ui.panel(t, title="Wave Table"),
+                activeItemIndex=0,
+            ),
+            height=25,
+        ),
+        ui.row(
+            ui.stack(ui.panel(p_sin, title="Sine"), width=50),
+            ui.stack(ui.panel(p_cos, title="Cosine"), width=30),
+            ui.stack(ui.panel(p_tan, title="Tangent")),
+        ),
+    )
+
+
+mw = ui.dashboard(multiwave())
 ```
