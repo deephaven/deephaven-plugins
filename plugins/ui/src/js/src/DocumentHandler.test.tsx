@@ -55,6 +55,8 @@ beforeEach(() => {
 });
 
 it('should throw an error if no children to render', () => {
+  TestUtils.disableConsoleOutput();
+
   const children = makeDocument();
   expect(() => render(makeDocumentHandler({ children }))).toThrow(
     NoChildrenError
@@ -62,6 +64,8 @@ it('should throw an error if no children to render', () => {
 });
 
 it('should throw an error if the document mixes panel and non-panel elements', () => {
+  TestUtils.disableConsoleOutput();
+
   const children = makeDocument([
     makeElement(PANEL_ELEMENT_NAME),
     makeElement('not panel element'),
