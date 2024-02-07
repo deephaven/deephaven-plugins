@@ -23,7 +23,7 @@ You should also update the `name` key in the `./<your-theme>/src/js/src/index.ts
 
 To preview themes during development, you'll need to start three separate processes. The first is a deephaven server, the second is a plugins server, and the third is a development version of the web-client-ui server. This is only necessary if you would like to preview your changes during development.
 
-1. Start a deephaven-core server on port 10000. You can follow the instructions here in [deephaven-core](https://deephaven.io/core/docs/tutorials/quickstart/].
+1. Start a deephaven-core server on port 10000. You can follow the instructions here in [deephaven-core](https://deephaven.io/core/docs/tutorials/quickstart/).
 2. In a separate terminal, start a plugins server that will proxy your plugins. This is so you don't have to re-install it each time you make a change while developing your custom theme. From the deephaven-plugins project repository root directory, run:
 
    ```
