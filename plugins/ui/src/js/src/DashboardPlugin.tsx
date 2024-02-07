@@ -9,6 +9,7 @@ import {
   emitCreateDashboard,
   WidgetDescriptor,
   PanelOpenEventDetail,
+  DEFAULT_DASHBOARD_ID,
 } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
 import {
@@ -186,13 +187,17 @@ export function DashboardPlugin({
   const widgetHandlers = useMemo(
     () =>
       [...widgetMap.entries()].map(([widgetId, widget]) => (
-        <ErrorBoundary key={widgetId}>
+        // Fallback to an empty array in default dashboard so we don't display errors over code studio
+        <ErrorBoundary
+          key={widgetId}
+          fallback={id === DEFAULT_DASHBOARD_ID ? [] : null}
+        >
           <DeferredApiBootstrap widget={widget.widget}>
             <WidgetHandler widget={widget} onClose={handleWidgetClose} />
           </DeferredApiBootstrap>
         </ErrorBoundary>
       )),
-    [handleWidgetClose, widgetMap]
+    [handleWidgetClose, widgetMap, id]
   );
 
   return (
