@@ -10,6 +10,7 @@ import {
   WidgetDescriptor,
   PanelOpenEventDetail,
   DEFAULT_DASHBOARD_ID,
+  useDashboardPanel,
 } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
 import {
@@ -38,11 +39,10 @@ interface DashboardPluginData {
   widget: WidgetDescriptor;
 }
 
-export function DashboardPlugin({
-  id,
-  layout,
-  registerComponent,
-}: DashboardPluginComponentProps): JSX.Element | null {
+export function DashboardPlugin(
+  props: DashboardPluginComponentProps
+): JSX.Element | null {
+  const { id, layout, registerComponent } = props;
   const [pluginData] = useDashboardPluginData(
     id,
     DASHBOARD_ELEMENT
@@ -171,6 +171,15 @@ export function DashboardPlugin({
       return newWidgetMap;
     });
   }, []);
+
+  useDashboardPanel({
+    dashboardProps: props,
+    componentName: PortalPanel.displayName,
+    component: PortalPanel,
+
+    // We don't want these panels to be triggered by a widget opening, we want to control how it is opened later
+    supportedTypes: [],
+  });
 
   useEffect(() => {
     const cleanups = [registerComponent(PortalPanel.displayName, PortalPanel)];
