@@ -807,7 +807,12 @@ def stock_table(source):
         [source, highlight],
     )
     rolled_table = use_memo(
-        lambda: t if len(by) == 0 else t.rollup(aggs=aggs, by=by), [t, aggs, by]
+        lambda: (
+            formatted_table
+            if len(by) == 0
+            else formatted_table.rollup(aggs=aggs, by=by)
+        ),
+        [formatted_table, aggs, by],
     )
 
     return ui.flex(
@@ -816,20 +821,22 @@ def stock_table(source):
             ui.toggle_button(
                 ui.icon("vsBell"), "By Exchange", on_change=set_is_exchange
             ),
-            ui.fragment(
-                ui.text_field(
-                    label="Highlight Sym",
-                    label_position="side",
-                    value=highlight,
-                    on_change=set_highlight,
-                ),
-                ui.contextual_help(
-                    ui.heading("Highlight Sym"),
-                    ui.content("Enter a sym you would like highlighted."),
-                ),
-            )
-            if not is_sym and not is_exchange
-            else None,
+            (
+                ui.fragment(
+                    ui.text_field(
+                        label="Highlight Sym",
+                        label_position="side",
+                        value=highlight,
+                        on_change=set_highlight,
+                    ),
+                    ui.contextual_help(
+                        ui.heading("Highlight Sym"),
+                        ui.content("Enter a sym you would like highlighted."),
+                    ),
+                )
+                if not is_sym and not is_exchange
+                else None
+            ),
             align_items="center",
             gap="size-100",
             margin="size-100",
