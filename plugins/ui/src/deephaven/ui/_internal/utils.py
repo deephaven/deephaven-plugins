@@ -112,23 +112,29 @@ def remove_empty_keys(dict: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in dict.items() if v is not None}
 
 
-def wrapped_callable(
-    max_args: int | str, kwargs_set: set[str] | str, func, *args, **kwargs
+def _wrapped_callable(
+    max_args: int | None,
+    kwargs_set: set[str] | None,
+    func: Callable,
+    *args: Any,
+    **kwargs: Any,
 ) -> None:
     """
-    Function that will be called by the dispatcher.
+    Filter the args and kwargs and call the specified function with the filtered args and kwargs.
 
     Args:
-        max_args: The maximum number of positional arguments to pass to the function
-        kwargs_set: The set of keyword arguments to pass to the function
+        max_args: The maximum number of positional arguments to pass to the function.
+          If None, all args are passed.
+        kwargs_set: The set of keyword arguments to pass to the function.
+          If None, all kwargs are passed.
         func: The function to call
         *args: args, used by the dispatcher
         **kwargs: kwargs, used by the dispatcher
     """
-    args = args if max_args == "any" else args[:max_args]
+    args = args if max_args is None else args[:max_args]
     kwargs = (
         kwargs
-        if kwargs_set == "any"
+        if kwargs_set is None
         else {k: v for k, v in kwargs.items() if k in kwargs_set}
     )
     func(*args, **kwargs)
@@ -150,7 +156,7 @@ def wrap_callable(func: Callable) -> Callable:
         sig = signature(func)
 
     max_args = 0
-    kwargs = set()
+    kwargs_set = set()
 
     for param in sig.parameters.values():
         if param.kind == param.POSITIONAL_ONLY:
@@ -158,12 +164,13 @@ def wrap_callable(func: Callable) -> Callable:
         elif param.kind == param.POSITIONAL_OR_KEYWORD:
             # Don't know until runtime whether this will be passed as a positional or keyword arg
             max_args += 1
-            kwargs.add(param.name)
+            kwargs_set.add(param.name)
         elif param.kind == param.VAR_POSITIONAL:
-            max_args = "any"
+            # There are no positional args after this so max can be safely set to None
+            max_args = None
         elif param.kind == param.KEYWORD_ONLY:
-            kwargs.add(param.name)
+            kwargs_set.add(param.name)
         elif param.kind == param.VAR_KEYWORD:
-            kwargs = "any"
+            kwargs_set = None
 
-    return partial(wrapped_callable, max_args, kwargs, func)
+    return partial(_wrapped_callable, max_args, kwargs_set, func)
