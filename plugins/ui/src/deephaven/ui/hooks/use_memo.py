@@ -32,8 +32,7 @@ def use_memo(func: Callable[[], T], dependencies: set[Any]) -> T:
             value=new_value, liveness_scope=liveness_scope
         )
 
-        # Own everything in the newly returned scope, then release the scope so our RenderContext is the only thing
-        # to own it
+        # The current RenderContext will then own the newly created liveness scope, and release when appropriate.
         get_context().manage(value_ref.current.liveness_scope)
 
         deps_ref.current = dependencies

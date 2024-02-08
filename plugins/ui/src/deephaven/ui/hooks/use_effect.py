@@ -25,7 +25,8 @@ def use_effect(func, dependencies):
             cleanup_ref.current()
 
         # Dependencies have changed, so call the effect function and store the new cleanup that's returned, wrapped
-        # with a new liveness scope
+        # with a new liveness scope. We will only open this scope once to capture the operations in the function,
+        # and will pass ownership to the current RenderContext, which will release it when appropriate.
         liveness_scope = LivenessScope()
         with liveness_scope.open():
             cleanup_ref.current = func()
@@ -35,5 +36,5 @@ def use_effect(func, dependencies):
         # Update the dependencies
         deps_ref.current = dependencies
 
-    # Whether new or existing, continue to retain the liveness scope from the most recently invoked effect
+    # Whether new or existing, continue to retain the liveness scope from the most recently invoked effect.
     get_context().manage(scope_ref.current)

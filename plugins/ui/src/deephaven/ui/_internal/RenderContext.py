@@ -52,7 +52,17 @@ class ValueWithLiveness(Generic[T]):
     liveness_scope: Union[LivenessScope, None]
 
 
-def value_or_call(value: T | None | Callable[[], T | None]) -> ValueWithLiveness[T]:
+def _value_or_call(value: T | None | Callable[[], T | None]) -> ValueWithLiveness[T]:
+    """
+    Creates a wrapper around the value, or invokes a callable to hold the value and the liveness scope
+    creates while obtaining that value.
+
+    Args:
+        a value, or callable that will produce a value
+
+    Returns:
+        The resulting value, plus a liveness scope, if any.
+    """
     if callable(value):
         scope = LivenessScope()
         with scope.open():
@@ -126,7 +136,7 @@ class RenderContext:
     The on_change callback to call when the context changes.
     """
 
-    _top_level_scope: LivenessScope
+    _top_level_scope: LivenessScope | None
     """
     Liveness scope that captures objects directly created in the FunctionElement. Will only be non-None when the context manager is open.
     """
@@ -153,6 +163,7 @@ class RenderContext:
         self._on_change = on_change
         self._on_queue_render = on_queue_render
         self._collected_scopes = set()
+        self._top_level_scope = None
 
     def __del__(self):
         for scope in self._collected_scopes:
@@ -170,7 +181,7 @@ class RenderContext:
         Returns:
             A context manager to manage RenderContext resources.
         """
-        if self._hook_index != _READY_TO_OPEN:
+        if self._hook_index != _READY_TO_OPEN or self._top_level_scope is not None:
             raise RuntimeError(
                 "RenderContext.open() was already called, and is not reentrant"
             )
@@ -225,6 +236,8 @@ class RenderContext:
 
         # Reset count for next use to safeguard double-opening
         self._hook_index = _READY_TO_OPEN
+        # Clear the top level scope to ensure nothing tries to use it until opened again
+        self._top_level_scope = None
 
     def has_state(self, key: StateKey) -> bool:
         """
@@ -238,8 +251,8 @@ class RenderContext:
         """
         wrapper = self._state[key]
 
-        # This value (and any objects created when this value was created) must be retained in the current context's
-        # liveness scope
+        # This value (and any objects created when this value was created) must be retained by the current context,
+        # and will be released when no longer used.
         if wrapper.liveness_scope:
             self.manage(wrapper.liveness_scope)
         else:
@@ -259,7 +272,7 @@ class RenderContext:
             raise KeyError(f"Key {key} is already initialized")
 
         # Just set the key value, we don't need to trigger an on_change or anything special on initialization
-        self._state[key] = value_or_call(value)
+        self._state[key] = _value_or_call(value)
 
     def set_state(self, key: StateKey, value: T | UpdaterFunction[T]) -> None:
         """
@@ -275,12 +288,11 @@ class RenderContext:
 
         # We queue up the state change in a callable that will get called from the render loop
         def update_state():
-            new_value = value
             if callable(value):
                 old_value = self._state[key].value
-                new_value = value_or_call(partial(value, old_value))
+                new_value = _value_or_call(partial(value, old_value))
             else:
-                new_value = value_or_call(new_value)
+                new_value = _value_or_call(value)
             self._state[key] = new_value
 
         # This is not the initial state, queue up the state change on the render loop

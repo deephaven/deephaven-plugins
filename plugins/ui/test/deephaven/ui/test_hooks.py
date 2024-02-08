@@ -1,6 +1,7 @@
 import threading
 import unittest
 from operator import itemgetter
+from queue import Queue
 from typing import Callable
 from unittest.mock import Mock
 from .BaseTest import BaseTestCase
@@ -17,11 +18,16 @@ def render_hook(fn: Callable):
     """
     from deephaven.ui._internal.RenderContext import RenderContext
 
-    context = RenderContext(lambda x: x(), lambda x: x())
+    queue = Queue()
+
+    context = RenderContext(lambda x: queue.put(x), lambda x: queue.put(x))
 
     return_dict = {"context": context, "result": None, "rerender": None}
 
     def _rerender(*args, **kwargs):
+        while not queue.empty():
+            item = queue.get()
+            item()
         with context.open():
             new_result = fn(*args, **kwargs)
             return_dict["result"] = new_result
@@ -558,8 +564,9 @@ class HooksTest(BaseTestCase):
             """
             nonlocal a, replace_a
             a, set_a = use_state(lambda: table.where("X=1"))
-            replace_a = use_liveness_scope(lambda: set_a(table.where("X=2")))
+
             # When "a" changes, recompute table - don't return or otherwise track this table w.r.t. liveness
+            replace_a = use_liveness_scope(lambda: set_a(table.where("X=2")))
 
             return a.size
 
