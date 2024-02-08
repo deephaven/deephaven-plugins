@@ -1,7 +1,10 @@
 import React, { useEffect, useMemo } from 'react';
 import { useLayoutManager } from '@deephaven/dashboard';
 import type { RowOrColumn } from '@deephaven/golden-layout';
-import type { ColumnElementProps } from './LayoutUtils';
+import {
+  normalizeColumnChildren,
+  type ColumnElementProps,
+} from './LayoutUtils';
 import { ParentItemContext, useParentItem } from './ParentItemContext';
 
 function Column({ children, width }: ColumnElementProps): JSX.Element | null {
@@ -28,9 +31,11 @@ function Column({ children, width }: ColumnElementProps): JSX.Element | null {
     column.setSize();
   }, [column]);
 
+  const normalizedChildren = normalizeColumnChildren(children);
+
   return (
     <ParentItemContext.Provider value={column}>
-      {children}
+      {normalizedChildren}
     </ParentItemContext.Provider>
   );
 }

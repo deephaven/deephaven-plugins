@@ -101,6 +101,8 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   hasPendingUpdate = false;
 
+  hasInitialLoadCompleted = false;
+
   override getData(): Partial<Data>[] {
     const hydratedData = [...this.plotlyData];
 
@@ -329,6 +331,15 @@ export class PlotlyExpressChartModel extends ChartModel {
   override fireUpdate(data: unknown): void {
     super.fireUpdate(data);
     this.hasPendingUpdate = false;
+
+    // TODO: This will fire on first call to `fireUpdate` even though other data
+    // may still be loading. We should consider making this smarter to fire after
+    // all initial data has loaded.
+    // https://github.com/deephaven/deephaven-plugins/issues/267
+    if (!this.hasInitialLoadCompleted) {
+      this.fireLoadFinished();
+      this.hasInitialLoadCompleted = true;
+    }
   }
 
   pauseUpdates(): void {

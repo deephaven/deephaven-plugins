@@ -1,12 +1,13 @@
 import React, { useCallback, useRef, useState } from 'react';
 import Plotly from 'plotly.js-dist-min';
 import { ChartPanel, ChartPanelProps } from '@deephaven/dashboard-core-plugins';
+import type { Widget } from '@deephaven/jsapi-types';
 import { type WidgetPanelProps } from '@deephaven/plugin';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import PlotlyExpressChartModel from './PlotlyExpressChartModel.js';
 import { useHandleSceneTicks } from './useHandleSceneTicks.js';
 
-export function PlotlyExpressChartPanel(props: WidgetPanelProps) {
+export function PlotlyExpressChartPanel(props: WidgetPanelProps<Widget>) {
   const dh = useApi();
   const { fetch, metadata = {}, ...rest } = props;
   const containerRef = useRef<HTMLDivElement>(null);

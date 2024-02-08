@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { useLayoutManager } from '@deephaven/dashboard';
 import type { Stack as StackType, RowOrColumn } from '@deephaven/golden-layout';
-import type { StackElementProps } from './LayoutUtils';
+import { normalizeStackChildren, type StackElementProps } from './LayoutUtils';
 import { ParentItemContext, useParentItem } from './ParentItemContext';
 
 function Stack({
@@ -36,9 +36,11 @@ function Stack({
     }
   }, [activeItemIndex, parent, stack]);
 
+  const normalizedChildren = normalizeStackChildren(children);
+
   return (
     <ParentItemContext.Provider value={stack}>
-      {children}
+      {normalizedChildren}
     </ParentItemContext.Provider>
   );
 }
