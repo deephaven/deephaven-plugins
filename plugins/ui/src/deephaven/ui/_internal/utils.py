@@ -112,12 +112,11 @@ def remove_empty_keys(dict: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in dict.items() if v is not None}
 
 
-def wrapper(
+def wrapped_callable(
     max_args: int | str, kwargs_set: set[str] | str, func, *args, **kwargs
 ) -> None:
     """
-    Wrapper for the function that will be called by the dispatcher.
-    This wrapper will handle calling the function with the correct arguments.
+    Function that will be called by the dispatcher.
 
     Args:
         max_args: The maximum number of positional arguments to pass to the function
@@ -167,4 +166,4 @@ def wrap_callable(func: Callable) -> Callable:
         elif param.kind == param.VAR_KEYWORD:
             kwargs = "any"
 
-    return partial(wrapper, max_args, kwargs, func)
+    return partial(wrapped_callable, max_args, kwargs, func)
