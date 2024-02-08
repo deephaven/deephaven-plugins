@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import io
 import json
 from jsonrpc import JSONRPCResponseManager, Dispatcher
@@ -10,6 +11,8 @@ from typing import Any, Callable
 from deephaven.plugin.object_type import MessageStream
 from deephaven.server.executors import submit_task
 from deephaven.execution_context import ExecutionContext, get_exec_ctx
+
+from .._internal import wrap_callable
 from ..elements import Element
 from ..renderer import NodeEncoder, Renderer, RenderedNode
 from .._internal import RenderContext, StateUpdateCallable
@@ -319,6 +322,6 @@ class ElementMessageStream(MessageStream):
         dispatcher = Dispatcher()
         for callable, callable_id in callable_id_dict.items():
             logger.debug("Registering callable %s", callable_id)
-            dispatcher[callable_id] = callable
+            dispatcher[callable_id] = wrap_callable(callable)
         self._dispatcher = dispatcher
         self._connection.on_data(payload.encode(), new_objects)
