@@ -534,14 +534,14 @@ class HooksTest(BaseTestCase):
         render_hook(_test_execution_context)
 
     def test_liveness_use_state_interactions(self):
-        from deephaven.ui.hooks import use_state
+        from deephaven.ui.hooks import use_state, use_liveness_scope
         from deephaven import new_table, dtypes as dht
         from deephaven.table import Table
         from deephaven.column import int_col
         from deephaven.stream import blink_to_append_only
         from deephaven.stream.table_publisher import table_publisher
         from deephaven.update_graph import exclusive_lock
-        from deephaven.time import dh_now
+        from deephaven.liveness_scope import liveness_scope
 
         # create a table publisher to mutate data outside the component
         cols = {"X": dht.int32}
@@ -549,15 +549,16 @@ class HooksTest(BaseTestCase):
         table = blink_to_append_only(table).update("Timestamp=now()")
 
         # tracking for use_state setters to mutate component state, to let us lock and confirm
-        set_a: Callable = lambda v: None
+        replace_a: Callable = lambda: None
         a: Table = None
 
         def _test_reused_tables():
             """
             Doesn't re-render size
             """
-            nonlocal a, set_a
+            nonlocal a, replace_a
             a, set_a = use_state(lambda: table.where("X=1"))
+            replace_a = use_liveness_scope(lambda: set_a(table.where("X=2")))
             # When "a" changes, recompute table - don't return or otherwise track this table w.r.t. liveness
 
             return a.size
@@ -581,7 +582,8 @@ class HooksTest(BaseTestCase):
         self.assertEqual(1, result)
 
         # replace the table with a new instance that must now be retained instead, back to zero
-        set_a(table.where("X=2"))
+        with liveness_scope():
+            replace_a()
         result = rendered["rerender"]()
         self.assertEqual(0, result)
 
@@ -602,6 +604,7 @@ class HooksTest(BaseTestCase):
         from deephaven.stream.table_publisher import table_publisher
         from deephaven.update_graph import exclusive_lock
         from deephaven.time import dh_now
+        from deephaven.liveness_scope import liveness_scope
 
         # create a table publisher to mutate data outside the component
         cols = {"X": dht.int32}
@@ -648,7 +651,8 @@ class HooksTest(BaseTestCase):
         self.assertEqual(1, result)
 
         # poke "a", verify the memoized table was replaced, no more rows
-        set_a(1)
+        with liveness_scope():
+            set_a(1)
         result = rendered["rerender"]()
         self.assertEqual(0, result)
 
