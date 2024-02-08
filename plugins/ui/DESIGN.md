@@ -1323,7 +1323,7 @@ ui_table.hide_columns(columns: str | list[str]) -> UITable
 
 ##### on_row_press
 
-Add a callback for when a press on a row is released (e.g. a row is clicked).
+Add a callback for when a press on a row is released (e.g. a cell within a row is clicked).
 
 ###### Syntax
 
@@ -1339,7 +1339,7 @@ ui_table.on_row_press(callback: Callable[[RowIndex, RowData], None]) -> UITable
 
 ##### on_row_double_press
 
-Add a callback for when a row is double clicked.
+Add a callback for when a cell within a row is double clicked.
 
 ###### Syntax
 
@@ -1594,7 +1594,7 @@ ui_table.on_hide_column(
 
 ##### on_cell_press
 
-Add a callback for when a cell is pressed. Only valid if the selection mode is `"CELL"`.
+Add a callback for when a cell is pressed.
 
 ###### Syntax
 
@@ -1611,7 +1611,7 @@ ui_table.on_cell_press(
 
 ##### on_cell_double_press
 
-Add a callback for when a cell is double pressed. Only valid if the selection mode is `"CELL"`.
+Add a callback for when a cell is double pressed.
 
 ###### Syntax
 
@@ -1628,7 +1628,7 @@ ui_table.on_cell_double_press(
 
 ##### on_column_press
 
-Add a callback for when a column is pressed. Only valid if the selection mode is `"COLUMN"`.
+Add a callback for when a cell within a column is pressed.
 
 ###### Syntax
 
@@ -1645,7 +1645,7 @@ ui_table.on_column_press(
 
 ##### on_column_double_press
 
-Add a callback for when a column is double pressed. Only valid if the selection mode is `"COLUMN"`.
+Add a callback for when a cell within a column is double pressed.
 
 ###### Syntax
 
