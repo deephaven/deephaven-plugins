@@ -83,7 +83,7 @@ class NodeEncoder(json.JSONEncoder):
     _object_id_dict: dict[Any, int]
     """
     Dictionary from an object to the ID assigned to it. Objects are removed after the next render if they are no longer in the document.
-    We can't use a WeakKeyDictionary as we need to pass the exported objects to the client and we can't guarantee they won't be freed up by the client or server.
+    Unlike `_callable_dict`, we cannot use a WeakKeyDictionary as we need to pass the exported object instance to the client, so we need to always keep a reference around that the client may still have a reference to.
     """
 
     def __init__(
@@ -142,9 +142,10 @@ class NodeEncoder(json.JSONEncoder):
 
         # Remove the old objects from last render from the object id dict
         for obj in self._old_objects:
-            popped = self._object_id_dict.pop(obj, None)
-            if popped is not None:
-                logger.debug("Popped object %s with id %s", obj, popped)
+            self._object_id_dict.pop(obj, None)
+
+        # Clear out the old objects list so they can be cleaned up by GC
+        self._old_objects = set()
 
         return {
             "encoded_node": encoded_node,
