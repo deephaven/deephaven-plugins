@@ -248,7 +248,6 @@ class ElementMessageStream(MessageStream):
         """
         decoded_payload = io.BytesIO(payload).read().decode()
         logger.debug("Payload received: %s", decoded_payload)
-        print("Payload received: %s", decoded_payload)
 
         def handle_message():
             response = self._manager.handle(decoded_payload, self._dispatcher)
