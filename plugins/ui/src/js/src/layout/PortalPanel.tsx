@@ -21,11 +21,9 @@ function PortalPanel({
     emitPortalOpened(glEventHub, { container: glContainer, element: current });
 
     return () => {
-      emitPortalClosed(glEventHub, {
-        container: glContainer,
-      });
+      emitPortalClosed(glEventHub, { container: glContainer });
     };
-  }, []);
+  }, [glContainer, glEventHub]);
 
   return (
     <Panel glContainer={glContainer} glEventHub={glEventHub}>

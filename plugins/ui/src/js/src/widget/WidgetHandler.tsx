@@ -16,6 +16,7 @@ import {
 } from 'json-rpc-2.0';
 import type { Widget, WidgetExportedObject } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
+import { EMPTY_FUNCTION } from '@deephaven/utils';
 import {
   CALLABLE_KEY,
   OBJECT_KEY,
@@ -23,9 +24,15 @@ import {
   isElementNode,
   isObjectNode,
 } from '../elements/ElementUtils';
-import { WidgetMessageEvent, WidgetWrapper } from './WidgetTypes';
+import {
+  WidgetData,
+  WidgetId,
+  WidgetMessageEvent,
+  WidgetWrapper,
+} from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
 import { getComponentForElement } from './WidgetUtils';
+import ScopedIdWrapper from '../elements/ScopedIdWrapper';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
@@ -34,10 +41,17 @@ export interface WidgetHandlerProps {
   widget: WidgetWrapper;
 
   /** Triggered when all panels opened from this widget have closed */
-  onClose?: (widgetId: string) => void;
+  onClose?: (widgetId: WidgetId) => void;
+
+  /** Triggered when the data in the widget changes */
+  onDataChange?: (widgetId: WidgetId, data: WidgetData) => void;
 }
 
-function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
+function WidgetHandler({
+  onClose,
+  onDataChange = EMPTY_FUNCTION,
+  widget: wrapper,
+}: WidgetHandlerProps) {
   const [widget, setWidget] = useState<Widget>();
   const [document, setDocument] = useState<ReactNode>();
 
@@ -240,14 +254,29 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
     onClose?.(wrapper.id);
   }, [onClose, wrapper.id]);
 
+  const handleDataChange = useCallback(
+    (data: WidgetData) => {
+      log.debug('handleDataChange', wrapper.id, data);
+      onDataChange?.(wrapper.id, data);
+    },
+    [wrapper.id, onDataChange]
+  );
+
   return useMemo(
     () =>
       document != null ? (
-        <DocumentHandler widget={wrapper.widget} onClose={handleDocumentClose}>
-          {document}
-        </DocumentHandler>
+        <ScopedIdWrapper id={wrapper.id}>
+          <DocumentHandler
+            widget={wrapper.widget}
+            data={wrapper.data}
+            onDataChange={handleDataChange}
+            onClose={handleDocumentClose}
+          >
+            {document}
+          </DocumentHandler>
+        </ScopedIdWrapper>
       ) : null,
-    [document, handleDocumentClose, wrapper]
+    [document, handleDataChange, handleDocumentClose, wrapper]
   );
 }
 
