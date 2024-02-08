@@ -1024,10 +1024,10 @@ ui.item(
 ```
 
 ###### Parameters
-| Parameter      | Type           | Description                            |
-|----------------|----------------|----------------------------------------|
-| `*children`    | `Stringable`   | The options to render within the item. |
-| `**props`      | `int`          | Any Item prop                          |
+| Parameter      | Type         | Description                            |
+|----------------|--------------|----------------------------------------|
+| `*children`    | `Stringable` | The options to render within the item. |
+| `**props`      | `Any`        | Any Item prop                          |
 
 
 ##### ui.section
@@ -1040,17 +1040,21 @@ If children are of type `Table`, the values in the table are the dropdown option
 import deephaven.ui as ui
 ui.section(
     *children: PickerOption | Table,
-    label_columns: str | Sequence[Str] | None = None,
+    label_column: str | None = None,
+    description_column: str | None = None,
+    icon_column: str | None = None,
     **props: Any
 ) -> SectionElement
 ```
 
 ###### Parameters
-| Parameter      | Type                                                          | Description                                                                                                                                                                                       |
-|----------------|---------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`    | `PickerOption \| SectionElement \| Table \| PartitionedTable` | The options to render within the section.                                                                                                                                                         |
-| `label_columns`| `str \| Sequence[Str] \| None`                                | Only valid if children are of type `Table` or `PartitionedTable`. The column or columns to show as primary text. All other columns will be shown as secondary text. Defaults to the first column. |
-| `**props`      | `Any`                                                         | Any Section prop                                                                                                                                                                                  |
+| Parameter            | Type                    | Description                                                                                                                                              |
+|----------------------|-------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `*children`          | `PickerOption \| Table` | The options to render within the section.                                                                                                                |
+| `label_column`       | `str \| None`           | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as primary text. Defaults to the first column.         |
+| `description_column` | `str \| None`           | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as descriptions.                                       |
+| `icon_column`        | `str \| None`           | Only valid if children are of type `Table` or `PartitionedTable`. The column to map values to icons. [All icons](https://spectrum.adobe.com/page/icons/) |
+| `**props`            | `Any`                   | Any Section prop                                                                                                                                         |
 
 ##### ui.picker
 A picker that can be used to select from a list. Children should be one of four types:  
@@ -1063,17 +1067,21 @@ If children are of type `PartitionedTable`, the values in the table are the drop
 import deephaven.ui as ui
 ui.picker(
     *children: PickerOption | SectionElement | Table | PartitionedTable
-    label_columns: str | Sequence[Str] | None = None,
+    label_column: str | None = None,
+    description_column: str | None = None,
+    icon_column: str | None = None,
     **props: Any
 ) -> ItemElement
 ```
 
 ###### Parameters
-| Parameter      | Type                                                          | Description                                                                                                                                                                                       |
-|----------------|---------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`    | `PickerOption \| SectionElement \| Table \| PartitionedTable` | The options to render within the picker.                                                                                                                                                          |
-| `label_columns`| `str \| Sequence[Str] \| None`                                | Only valid if children are of type `Table` or `PartitionedTable`. The column or columns to show as primary text. All other columns will be shown as secondary text. Defaults to the first column. |
-| `**props`      | `Any`                                                         | Any [Picker](https://react-spectrum.adobe.com/react-spectrum/Picker.html) prop, with the exception of `items`                                                                                     |
+| Parameter            | Type                                                          | Description                                                                                                                                              |
+|----------------------|---------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `*children`          | `PickerOption \| SectionElement \| Table \| PartitionedTable` | The options to render within the picker.                                                                                                                 |
+| `label_column`       | `str \| None`                                                 | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as primary text. Defaults to the first column.         |
+| `description_column` | `str \| None`                                                 | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as descriptions.                                       |
+| `icon_column`        | `str \| None`                                                 | Only valid if children are of type `Table` or `PartitionedTable`. The column to map values to icons. [All icons](https://spectrum.adobe.com/page/icons/) |
+| `**props`            | `Any`                                                         | Any [Picker](https://react-spectrum.adobe.com/react-spectrum/Picker.html) prop, with the exception of `items`                                            |
 
 
 ```py
