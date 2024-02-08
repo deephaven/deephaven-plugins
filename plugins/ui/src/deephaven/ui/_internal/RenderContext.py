@@ -210,6 +210,11 @@ class RenderContext:
             old_liveness_scopes -= self._collected_scopes
             for scope in old_liveness_scopes:
                 scope.release()
+
+            # If this is the first time (and successful), record the hook count
+            hook_count = self._hook_index + 1
+            if self._hook_count < 0:
+                self._hook_count = hook_count
         except Exception as e:
             # An error occurred at some point when executing the FunctionElement - we don't know what parts of the
             # function were successful, so also keep around old liveness scopes, they'll be cleared after the next
@@ -223,21 +228,20 @@ class RenderContext:
             logger.debug("Resetting to old context %s", old_context)
             _set_context(old_context)
 
-        # Outside the "finally" so we don't do this if there was an error, we don't want an incorrect hook count
-        hook_count = self._hook_index + 1
-        if self._hook_count < 0:
-            self._hook_count = hook_count
-        elif self._hook_count != hook_count:
+            # Reset count for next use to safeguard double-opening
+            self._hook_index = _READY_TO_OPEN
+            # Clear the top level scope to ensure nothing tries to use it until opened again
+            self._top_level_scope = None
+
+        if self._hook_count != hook_count:
+            # It isn't ideal to throw this anywhere - but this speaks to a malformed component, and there is no
+            # good way to recover from that. We don't want to prevent liveness wiring above from working, so we
+            # throw here at the end of the method instead.
             raise Exception(
                 "Expected to use {} hooks, but used {}".format(
                     self._hook_count, hook_count
                 )
             )
-
-        # Reset count for next use to safeguard double-opening
-        self._hook_index = _READY_TO_OPEN
-        # Clear the top level scope to ensure nothing tries to use it until opened again
-        self._top_level_scope = None
 
     def has_state(self, key: StateKey) -> bool:
         """
