@@ -16,10 +16,8 @@ Refer to the main [README](../../README.md) for instructions on how to build and
 
 - Copy the `example-theme` directory to a new directory and rename it to your plugin name.
 - Rename the `example-theme` references in the `./<your-theme>/src/js/package.json` and `./<your-theme>/src/js/src/index.ts` to your plugin name in your theme folder.
-- Add your plugin's name to the `manifest.json` in the repository root directory to enable your plugin in development previews.
+- Add your plugin's name to the `./plugins/manifest.json` to enable your plugin in development previews.
 - You should also update the `name` key in the `./<your-theme>/src/js/src/index.ts` file with a unique name that will appear in the theme selector UI.
-
-You should also update the `name` key in the `./<your-theme>/src/js/src/index.ts` file with a unique name that will appear in the theme selector UI.
 
 To preview themes during development, you'll need to start three separate processes. The first is a deephaven server, the second is a plugins server, and the third is a development version of the web-client-ui server. This is only necessary if you would like to preview your changes during development.
 
