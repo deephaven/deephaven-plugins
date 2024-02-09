@@ -1027,7 +1027,7 @@ ui.item(
 | Parameter      | Type         | Description                            |
 |----------------|--------------|----------------------------------------|
 | `*children`    | `Stringable` | The options to render within the item. |
-| `**props`      | `Any`        | Any Item prop                          |
+| `**props`      | `Any`        | Any other Item prop                    |
 
 
 ##### ui.section
@@ -1043,6 +1043,7 @@ ui.section(
     label_column: str | None = None,
     description_column: str | None = None,
     icon_column: str | None = None,
+    title: str | None = None,
     **props: Any
 ) -> SectionElement
 ```
@@ -1054,107 +1055,139 @@ ui.section(
 | `label_column`       | `str \| None`           | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as primary text. Defaults to the first column.         |
 | `description_column` | `str \| None`           | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as descriptions.                                       |
 | `icon_column`        | `str \| None`           | Only valid if children are of type `Table` or `PartitionedTable`. The column to map values to icons. [All icons](https://spectrum.adobe.com/page/icons/) |
-| `**props`            | `Any`                   | Any Section prop                                                                                                                                         |
+| `title`              | `str \| None`           | The title of the section.                                                                                                                                |
+| `**props`            | `Any`                   | Any other Section prop                                                                                                                                   |
 
 ##### ui.picker
 A picker that can be used to select from a list. Children should be one of four types:  
 If children are of type `PickerOption`, they are the dropdown options.  
 If children are of type `SectionElement`, they are the dropdown sections.  
-If children are of type `Table`, the values in the table are the dropdown options and multiple tables create multiple sections.  
-If children are of type `PartitionedTable`, the values in the table are the dropdown options and the partitions create multiple sections and there can only be one table.  
+If children are of type `Table`, the values in the table are the dropdown options. There can only be one child, the `Table`. 
+If children are of type `PartitionedTable`, the values in the table are the dropdown options and the partitions create multiple sections. There can only be one child, the `PartitionedTable`. 
 
 ```py
 import deephaven.ui as ui
 ui.picker(
-    *children: PickerOption | SectionElement | Table | PartitionedTable
+    *children: PickerOption | SectionElement | Table | PartitionedTable,
+    key_column: str | None = None,
     label_column: str | None = None,
     description_column: str | None = None,
     icon_column: str | None = None,
+    section_titles: Sequence[str] | Table | None = None,
+    default_selected_key: Any | None = None,
+    selected_key: Any | None = None,
+    on_selection_change: Callable[[Key], None] | None = None, 
     **props: Any
 ) -> ItemElement
 ```
 
 ###### Parameters
-| Parameter            | Type                                                          | Description                                                                                                                                              |
-|----------------------|---------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`          | `PickerOption \| SectionElement \| Table \| PartitionedTable` | The options to render within the picker.                                                                                                                 |
-| `label_column`       | `str \| None`                                                 | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as primary text. Defaults to the first column.         |
-| `description_column` | `str \| None`                                                 | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as descriptions.                                       |
-| `icon_column`        | `str \| None`                                                 | Only valid if children are of type `Table` or `PartitionedTable`. The column to map values to icons. [All icons](https://spectrum.adobe.com/page/icons/) |
-| `**props`            | `Any`                                                         | Any [Picker](https://react-spectrum.adobe.com/react-spectrum/Picker.html) prop, with the exception of `items`                                            |
-
+| Parameter              | Type                                                          | Description                                                                                                                                                                                        |
+|------------------------|---------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `*children`            | `PickerOption \| SectionElement \| Table \| PartitionedTable` | The options to render within the picker.                                                                                                                                                           |
+| `key_column`           | `str \| None`                                                 | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as primary text. Defaults to the first column.                                                   |
+| `label_column`         | `str \| None`                                                 | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as primary text. Defaults to the `key_column` value.                                             |
+| `description_column`   | `str \| None`                                                 | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as descriptions.                                                                                 |
+| `icon_column`          | `str \| None`                                                 | Only valid if children are of type `Table` or `PartitionedTable`. The column to map values to icons. [All icons](https://spectrum.adobe.com/page/icons/)                                           |
+| `section_titles`       | `Sequence[str] \| Table \| None`                              | Titles for `ui.section` elements passed as children or created by passing a `PartitionedTable`. These override the `title` prop for `ui.section` elements. If a `Table`, the first column is used. |
+| `default_selected_key` | `Key \| None`                                                 | The initial selected key in the collection (uncontrolled).                                                                                                                                         |
+| `selected_key`         | `Key \| None`                                                 | The currently selected key in the collection (controlled).                                                                                                                                         |
+| `on_selection_change`  | `Callable[[Key], None] \| None`                               | Handler that is called when the selection changes.                                                                                                                                                 |
+| `**props`              | `Any`                                                         | Any other [Picker](https://react-spectrum.adobe.com/react-spectrum/Picker.html) prop, with the exception of `items`                                                                                |
 
 ```py
 import deephaven.ui as ui
 
+# simple picker that takes ui.items and is uncontrolled
 picker1 = ui.picker(
-    ui.section(
-        ui.item("Option 1"),
-        ui.item("Option 2"),
-    ),
-    ui.section(
-        ui.item("Option 3"),
-        ui.item("Option 4"),
-    )
-)
-
-picker2 = ui.picker(
-    ui.section(
-        "Option 1",
-        "Option 2",
-    ),
-    ui.section(
-        "Option 3",
-        "Option 4",
-    )
-)
-
-picker3 = ui.picker(
     ui.item("Option 1"),
     ui.item("Option 2"),
     ui.item("Option 3"),
     ui.item("Option 4"),
+    default_selected_key="Option 2"
 )
 
-picker4 = ui.picker(
+# simple picker that takes picker options directly and is controlled
+option, set_option = ui.use_state("Option 2")
+
+picker2 = ui.picker(
     "Option 1",
     "Option 2",
     "Option 3",
     "Option 4",
+    selected_key=option,
+    on_selection_change=set_option
 )
 
-picker5 = ui.picker(
-    children=[
+# manually create a section with items
+picker3 = ui.picker(
+    ui.section(
+        ui.item("Option 1"),
+        ui.item("Option 2"),
+        title="Section 1"
+    ),
+    ui.section(
+        ui.item("Option 3"),
+        ui.item("Option 4"),
+        title="Section 2"
+    )
+)
+
+# manually create a section with picker options directly section titles
+picker4 = ui.picker(
+    ui.section(
         "Option 1",
         "Option 2",
+    ),
+    ui.section(
         "Option 3",
         "Option 4",
-    ]
+    ),
+    section_titles=["Section 1", "Section 2"]
 )
 
-table1 = empty_table(4).update_view("a=i")
-table2 = empty_table(1).update_view("a=10")
-partitioned_table = table1.partition_by("a")
+from deephaven import empty_table
 
+table1 = empty_table(4).update_view("data=i")
+table2 = empty_table(1).update_view("data=10")
+
+# data hooks can be used to create a picker from a table
 options = ui.use_column_data(table1)
 
-picker6 = ui.picker(
+picker5 = ui.picker(
     children=options
 )
 
-# this will create a picker with two sections, one for each table
+# Multiple sections can be created with different tables
 picker7 = ui.picker(
-    table1, table2
-)
-
-# this will create a picker with four sections, one for each partition
-picker8 = ui.picker(
-    partitioned_table
-)
-
-picker9 = ui.picker(
     ui.section(table1),
-    ui.section(table2)
+    ui.section(table2),
+)
+
+from deephaven import new_table
+from deephaven.column import string_col, int_col
+
+color_table = new_table([
+    string_col("Sections", ["Interesting Colors", 'Interesting Colors', "Other Colors"]),
+    int_col("Keys", ["salmon", "lemonchiffon", "black"]),
+    string_col("Labels", ["Salmon", "Lemonchiffon", "Black"]),
+    string_col("Descriptions", ["An interesting color", "Another interesting color", "A color"]),
+    string_col("Icons", ["Amusementpark", "Teapot", "Sentiment Negative"])
+])
+partitioned_table = color_table.partition_by("Sections")
+
+color, set_color = ui.use_state("salmon")
+
+# this will create a picker with two sections, one for each partition
+picker6 = ui.picker(
+    partitioned_table,
+    key_column="Keys",
+    label_column="Labels",
+    description_column="Descriptions",
+    icon_column="Icons",
+    section_titles=["Interesting Colors", "Other Colors"],
+    selected_key=option,
+    on_selection_change=set_color
 )
 ```
 
@@ -1760,6 +1793,7 @@ TransformedData = Any
 # Stringable is a type that is naturally convertible to a string
 Stringable = str | int | float | bool
 PickerOption = Stringable | ItemElement
+Key = Any
 
 # Set a filter for a dashboard. Filter will apply to all items with a matching column/type, except for items specified in the `exclude_ids` parameter
 class DashboardFilter(TypedDict):
