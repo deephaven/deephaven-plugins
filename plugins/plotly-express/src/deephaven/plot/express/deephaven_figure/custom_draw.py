@@ -20,14 +20,13 @@ def draw_finance(
     """Draws a finance (OHLC or candlestick) chart
 
     Args:
-      data_frame: DataFrame: The data frame to draw with
-      x_finance: str | list[str]: The name of the column containing x-axis
-        values
-      open: str | list[str]: The name of the column containing open values
-      high: str | list[str]: The name of the column containing high values
-      low: str | list[str]: The name of the column containing low values
-      close: str | list[str]: The name of the column containing close values
-      go_func: Callable: The function to use to create graph objects
+      data_frame: The data frame to draw with
+      x_finance: The name of the column containing x-axis values
+      open: The name of the column containing open values
+      high: The name of the column containing high values
+      low: The name of the column containing low values
+      close: The name of the column containing close values
+      go_func: The function to use to create graph objects
 
     Returns:
       Figure: The chart
@@ -70,13 +69,13 @@ def draw_ohlc(
     """Create a plotly OHLC chart.
 
     Args:
-      data_frame: DataFrame: The data frame to draw with
-      x_finance: str | list[str]: The name of the column containing x-axis
+      data_frame: The data frame to draw with
+      x_finance: The name of the column containing x-axis
         values
-      open: str | list[str]: The name of the column containing open values
-      high: str | list[str]: The name of the column containing high values
-      low: str | list[str]: The name of the column containing low values
-      close: str | list[str]: The name of the column containing close values
+      open: The name of the column containing open values
+      high: The name of the column containing high values
+      low: The name of the column containing low values
+      close: The name of the column containing close values
 
     Returns:
       The plotly OHLC chart
@@ -96,13 +95,13 @@ def draw_candlestick(
     """Create a plotly candlestick chart.
 
     Args:
-      data_frame: DataFrame: The data frame to draw with
-      x_finance: str | list[str]: The name of the column containing x-axis
+      data_frame: The data frame to draw with
+      x_finance: The name of the column containing x-axis
         values
-      open: str | list[str]: The name of the column containing open values
-      high: str | list[str]: The name of the column containing high values
-      low: str | list[str]: The name of the column containing low values
-      close: str | list[str]: The name of the column containing close values
+      open: The name of the column containing open values
+      high: The name of the column containing high values
+      low: The name of the column containing low values
+      close: The name of the column containing close values
 
     Returns:
       The plotly candlestick chart

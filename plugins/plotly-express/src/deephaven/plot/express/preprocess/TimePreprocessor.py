@@ -13,27 +13,26 @@ class TimePreprocessor:
     Used to preprocess times for a gantt plot.
 
     Attributes:
-        args: dict[str, str]: Figure creation args
+        args: Figure creation args
     """
 
     def __init__(self, args: dict[str, Any]):
         self.args = args
 
     def preprocess_partitioned_tables(
-        self, tables: list[Table], column: str = None
-    ) -> Generator[tuple[Table, dict[str, str]]]:
+        self, tables: list[Table], column: str | None = None
+    ) -> Generator[tuple[Table, dict[str, str]], None, None]:
         """Preprocess frequency bar params into an appropriate table
         This just sums each value by count
 
         Args:
-          tables: Table:
+          tables:
             The tables to process
-          column: str:
+          column:
             The column to process
 
         Returns:
-          tuple[Table, dict[str, str]]: A tuple containing
-            (the new table, an update to make to the args)
+          A tuple containing (the new table, an update to make to the args)
 
         """
         x_start, x_end, y, table = (

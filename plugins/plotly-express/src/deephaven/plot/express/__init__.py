@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from typing import Any
 
 from deephaven.plugin.object_type import BidirectionalObjectType, MessageStream
 
@@ -59,20 +60,19 @@ class DeephavenFigureType(BidirectionalObjectType):
         Returns the name of the plugin
 
         Returns:
-            str: The name of the plugin
-
+            The name of the plugin
         """
         return NAME
 
-    def is_type(self, obj: any) -> bool:
+    def is_type(self, obj: Any) -> bool:
         """
         Check if an object is a DeephavenFigure
 
         Args:
-          obj: any: The object to check
+          obj: The object to check
 
         Returns:
-            bool: True if the object is of the correct type, False otherwise
+            True if the object is of the correct type, False otherwise
         """
         return isinstance(obj, DeephavenFigure)
 
@@ -84,11 +84,11 @@ class DeephavenFigureType(BidirectionalObjectType):
         This sends an initial figure to the client.
 
         Args:
-          obj: object: The object to create the connection for
-          connection: MessageStream: The connection to use
+          obj: The object to create the connection for
+          connection: The connection to use
 
         Returns:
-            MessageStream: The client connection
+            The client connection
         """
         figure_connection = DeephavenFigureConnection(obj, connection)
         initial_message = json.dumps(

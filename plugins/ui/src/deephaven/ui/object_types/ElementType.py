@@ -1,6 +1,7 @@
+from typing import Any
+
 from deephaven.plugin.object_type import BidirectionalObjectType, MessageStream
 from ..elements import Element
-from .._internal import get_component_name
 from .ElementMessageStream import ElementMessageStream
 
 
@@ -13,7 +14,7 @@ class ElementType(BidirectionalObjectType):
     def name(self) -> str:
         return "deephaven.ui.Element"
 
-    def is_type(self, obj: any) -> bool:
+    def is_type(self, obj: Any) -> bool:
         return isinstance(obj, Element)
 
     def create_client_connection(self, obj: Element, connection: MessageStream):

@@ -16,7 +16,7 @@ class ExpressRegistration(Registration):
         Register the DeephavenFigureType and a JsPlugin
 
         Args:
-          callback: Registration.Callback:
+          Registration.Callback:
             A function to call after registration
 
         """

@@ -10,15 +10,19 @@ from ..shared import default_callback, unsafe_figure_update_wrapper
 from deephaven.execution_context import make_user_exec_ctx
 
 
+# The function layer in this file is exempt from the styleguide rule that types should not be in the
+# description if there is a type annotation.
+
+
 def normalize_position(
     position: float, chart_start: float, chart_range: float
 ) -> float:
     """Normalize a position so that it falls between 0 and 1 (inclusive)
 
     Args:
-      position: float: The current position
-      chart_start: float: The start of the domain the existing chart has
-      chart_range: float: The range the existing chart has
+      position: The current position
+      chart_start: The start of the domain the existing chart has
+      chart_range: The range the existing chart has
 
     Returns:
       float: The normalized position
@@ -37,12 +41,12 @@ def get_new_positions(
     is [0, 0.6], the new position is 0.3.
 
     Args:
-      new_domain: list[float]: The new domain to map the points to
-      positions: list[float]: The current positions of the points
-      chart_domain: list[float]: The current domain of the whole chart
+      new_domain: The new domain to map the points to
+      positions: The current positions of the points
+      chart_domain: The current domain of the whole chart
 
     Returns:
-      list[float]: The new positions
+      The new positions
     """
     if not isinstance(positions, list):
         positions = [positions]
@@ -60,9 +64,9 @@ def resize_domain(obj: dict, new_domain: dict[str, list[float]]) -> None:
     """Resize the domain of the given object
 
     Args:
-      obj: dict: The object to resize. It should have a "domain" key that
+      obj: The object to resize. It should have a "domain" key that
         references a dict that has "x" and "y" keys.
-      new_domain: dict[str, list[float]]: The new domain the map the figure to.
+      new_domain: The new domain the map the figure to.
         Contains keys of x and y and values of domains, such as [0,0.5]
 
     """
@@ -89,10 +93,10 @@ def resize_xy_axis(axis: dict, new_domain: dict[str, list[float]], which: str) -
     """Resize either an x or y axis.
 
     Args:
-      axis: dict: The axis object to resize.
-      new_domain: dict[str, list[float]]: The new domain the map the figure to.
+      axis: The axis object to resize.
+      new_domain: The new domain the map the figure to.
         Contains keys of x and y and values of domains, such as [0,0.5]
-      which: str: Either "x" or "y"
+      which: Either "x" or "y"
 
     """
     new_domain_x = new_domain.get("x", None)
@@ -131,8 +135,8 @@ def reassign_axes(trace: dict, axes_remapping: dict[str, str]) -> None:
     """Update the trace with its new axes using with the remapping
 
     Args:
-      trace: dict: The trace to remap axes within
-      axes_remapping: dict[str, str]: The mapping of old to new axes
+      trace: The trace to remap axes within
+      axes_remapping: The mapping of old to new axes
 
     """
     if "xaxis" in trace:
@@ -155,8 +159,8 @@ def reassign_attributes(axis: dict, axes_remapping: dict[str, str]) -> None:
     """Reassign attributes of a layout object using with the remapping
 
     Args:
-      axis: dict: The axis object to remap attributes from
-      axes_remapping: dict[str, str]: The mapping of old to new axes
+      axis: The axis object to remap attributes from
+      axes_remapping: The mapping of old to new axes
 
     """
     # anchor can also be free, which does not need to be modified
@@ -173,15 +177,15 @@ def resize_axis(
     """Maps the specified axis to new_domain and returns info to help remap axes
 
     Args:
-      type_: str: The type of axis to resize
-      old_axis: str: The old axis name
-      axis: dict: The axis object to resize
-      num: str: The number (possibly empty) of this axis within the new chart
-      new_domain: dict[str, list[float]]: The new domain the map the figure to.
+      type_: The type of axis to resize
+      old_axis: The old axis name
+      axis: The axis object to resize
+      num: The number (possibly empty) of this axis within the new chart
+      new_domain: The new domain the map the figure to.
         Contains keys of x and y and values of domains, such as [0,0.5]
 
     Returns:
-      tuple[str, str, str]: A tuple of new axis name, old axis name (for trace
+      A tuple of new axis name, old axis name (for trace
         remapping), new axis name (for trace remapping). The new axis name
         isn't always the same within the trace as it is in the layout (such as
         in the case of xaxis or yaxis), hence the need for both of the names.
@@ -202,11 +206,11 @@ def get_axis_update(spec: dict[str, Any], type_: str) -> dict[str, Any] | None:
     """Retrieve an axis update from the spec
 
     Args:
-      spec: dict[str, Any]: The full spec object
-      type_: str: The type of axis to retrieve the update of
+      spec: The full spec object
+      type_: The type of axis to retrieve the update of
 
     Returns:
-      dict[str, Any] | None: A dictionary of updates to make to the x or y-axis
+      A dictionary of updates to make to the x or y-axis
 
     """
     if "xaxis_update" in spec and type_ == "xaxis":
@@ -227,15 +231,15 @@ def match_axes(
     Create an update to the axis if this axis matches another axis
 
     Args:
-        type_: str: The type of the axis
-        spec: dict[str, str | bool | list[float]]:
+        type_: The type of the axis
+        spec:
           The spec to retrieve matching axes from
-        matches_axes: dict[Any, dict[int, str]]:
+        matches_axes:
           A dictionary with keys that are unique per matching dictionary group.
           The value is a dictionary that maps an axis index to a specific
-        axis_indices: dict[str, int]:
+        axis_indices:
           The index of the axes within the figure
-        new_trace_axis: str
+        new_trace_axis:
           The new trace axes to add to matches_axes if there is
           not currently an axis at the index defined by axis_indices
 
@@ -272,18 +276,18 @@ def resize_fig(
     new_axes_start
 
     Args:
-      fig_data: dict: The current figure data
-      fig_layout: dict: The current figure layout
-      spec: dict[str, str | bool | list[float]]:
+      fig_data: The current figure data
+      fig_layout: The current figure layout
+      spec:
         A dictionary that contains keys of "x" and "y"
         that have values that are lists of two floats from 0 to 1. The chart
         that corresponds with a domain will be resized to that domain. Either
         x or y can be excluded if only resizing on one axis. Can also specify
         xaxis_update or yaxis_update with a dictionary value to update all axes
         with that dict.
-      new_axes_start: dict[str, int]: A dictionary containing the start of
+      new_axes_start: A dictionary containing the start of
         new indices to ensure there is no reindexing collisions
-      matches_axes: dict[Any, dict[int, str]]:
+      matches_axes:
           A dictionary with keys that are unique per matching dictionary group.
           The value is a dictionary that maps an axis index to a specific
 
@@ -379,20 +383,20 @@ def fig_data_and_layout(
     """Get new data and layout for the specified figure
 
     Args:
-      fig: Figure: The current figure
-      i: int: The index of the figure, used for which_layout
-      specs: list[dict[str, str | bool | list[float]]]:
+      fig: The current figure
+      i: The index of the figure, used for which_layout
+      specs:
         A list of dictionaries that contains keys of "x" and "y"
         that have values that are lists of two floats from 0 to 1. The chart
         that corresponds with a domain will be resized to that domain. Either
         x or y can be excluded if only resizing on one axis. Can also specify
         xaxis_update or yaxis_update with a dictionary value to update all axes
         with that dict.
-      which_layout: int: None to layer layouts, or an index of which arg to
+      which_layout: None to layer layouts, or an index of which arg to
         take the layout from
-      new_axes_start: dict[str, int]: A dict that keeps track of starting
+      new_axes_start: A dict that keeps track of starting
        points when recreating axes
-      matches_axes: dict[Any, dict[int, str]]:
+      matches_axes:
           A dictionary with keys that are unique per matching dictionary group.
           The value is a dictionary that maps an axis index to a specific
 
@@ -418,9 +422,9 @@ def fig_data_and_layout(
 
 def atomic_layer(
     *figs: DeephavenFigure | Figure,
-    which_layout: int = None,
-    specs: list[dict[str, Any]] = None,
-    unsafe_update_figure: callable = default_callback,
+    which_layout: int | None = None,
+    specs: list[dict[str, Any]] | None = None,
+    unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """
     Layers the provided figures. This is an atomic version of layer, so the
@@ -429,16 +433,16 @@ def atomic_layer(
     See layer for more details about arguments.
 
     Args:
-        *figs: DeephavenFigure | Figure: The charts to layer
-        which_layout: int:  (Default value = None):
+        *figs: The charts to layer
+        which_layout:
             See layer
-        specs: list[dict[str, str | bool | list[float]]]:
+        specs:
             See layer
         unsafe_update_figure:
             See layer
 
     Returns:
-        DeephavenFigure: The layered chart
+        The layered chart
     """
     if len(figs) == 0:
         raise ValueError("No figures provided to compose")
@@ -504,8 +508,8 @@ def atomic_layer(
 
 def layer(
     *figs: DeephavenFigure | Figure,
-    which_layout: int = None,
-    specs: list[dict[str, Any]] = None,
+    which_layout: int | None = None,
+    specs: list[dict[str, Any]] | None = None,
     unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """Layers the provided figures. Be default, the layouts are sequentially
@@ -514,10 +518,10 @@ def layer(
 
     Args:
       *figs: DeephavenFigure | Figure: The charts to layer
-      which_layout: int:  (Default value = None) None to layer layouts, or an
+      which_layout: int | None:  (Default value = None) None to layer layouts, or an
         index of which arg to take the layout from. Currently only valid if
         domains are not specified.
-      specs: list[dict[str, str | bool | list[float]]]:
+      specs: list[dict[str, Any]] | None:
         A list of dictionaries that contains keys of "x" and "y"
         that have values that are lists of two floats from 0 to 1. The chart
         that corresponds with a domain will be resized to that domain. Either
@@ -538,7 +542,7 @@ def layer(
         behavior if traces are modified in a way that break data mappings.
 
     Returns:
-      DeephavenFigure: The layered chart
+      The layered chart
 
     """
 
