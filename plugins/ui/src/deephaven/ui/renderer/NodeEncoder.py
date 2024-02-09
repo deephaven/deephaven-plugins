@@ -59,9 +59,8 @@ class NodeEncoder(json.JSONEncoder):
 
     _callable_dict: WeakKeyDictionary[Callable[..., Any], CallableId]
     """
-    Dictionary from a callable to the ID assigned to the callable so we know what
-    callables we've seen before to avoid creating new callableIds unless necessary.
-    We don't use this dictionary to look up ids.
+    Dictionary from a callable to the ID assigned to the callable so we know which
+    callables we've seen before, to avoid unnecessarily creating new callableIds.
     """
 
     _new_objects: list[Any]
@@ -140,7 +139,6 @@ class NodeEncoder(json.JSONEncoder):
         return result
 
     def _convert_callable(self, cb: Callable[..., Any]):
-        # can't wrap cb in liveness junk, we'll lose the reference?
         callable_id = self._callable_dict.get(cb)
         if callable_id is None:
             callable_id = f"{self._callable_id_prefix}{self._next_callable_id}"

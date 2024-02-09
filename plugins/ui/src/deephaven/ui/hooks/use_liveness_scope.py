@@ -9,7 +9,7 @@ def use_liveness_scope(func: Callable) -> Callable:
     Wraps a Callable in a liveness scope, and ensures that when invoked, if that callable
     causes the component to render, the scope will be retained by that render pass. It is
     not appropriate to wrap functions that will be called within the render - this is intended
-    for
+    for calls made from outside a currently rendering component.
 
     Args:
         func: The function to wrap
@@ -29,7 +29,8 @@ def use_liveness_scope(func: Callable) -> Callable:
         # If one does not exist, create a liveness scope, to hold actions from running the provided callable.
         # Instead of releasing it right away, we leave it open until the render queue picks up any changes in
         # that callable, see above.
-        scope_ref.current = LivenessScope()
+        if scope_ref.current is None:
+            scope_ref.current = LivenessScope()
         with scope_ref.current.open():
             func(*args, **kwargs)
 
