@@ -29,7 +29,15 @@ To preview themes during development, you'll need to start three separate proces
    npm start
    ```
 
-3. Finally, start a local web-client-ui server that will allow you to view a development copy of your theme. Clone the [deephaven/web-client-ui](https://github.com/deephaven/web-client-ui) repository and in a separate terminal from the the web-client-ui project repository root directory, run:
+3. Finally, start a local web-client-ui server that will allow you to view a development copy of your theme. Clone the [deephaven/web-client-ui](https://github.com/deephaven/web-client-ui) repository, follow [instructions here](https://github.com/deephaven/web-client-ui/blob/main/README.md#local-plugin-development) to add a proxy for the plugins.
+
+   Add file `.env.development.local` to web-client-ui with:
+
+   ```
+   VITE_JS_PLUGINS_DEV_PORT=4100
+   ```
+
+   In a separate terminal from the the web-client-ui project repository root directory, run:
 
    ```
    npm install
