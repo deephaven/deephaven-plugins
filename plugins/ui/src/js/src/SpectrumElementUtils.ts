@@ -3,7 +3,6 @@ import {
   Checkbox,
   Content,
   ContextualHelp,
-  Flex,
   Grid,
   Heading,
   Icon,
@@ -22,6 +21,7 @@ import { ValueOf } from '@deephaven/utils';
 import {
   ActionButton,
   Button,
+  Flex,
   Form,
   RangeSlider,
   Slider,

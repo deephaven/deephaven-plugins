@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import ReactDOM from 'react-dom';
 import shortid from 'shortid';
 import {
@@ -12,6 +18,7 @@ import PortalPanel from './PortalPanel';
 import { useReactPanelManager } from './ReactPanelManager';
 import { ReactPanelProps } from './layout/LayoutUtils';
 import { useParentItem } from './layout/ParentItemContext';
+import { ReactPanelContext } from './ReactPanelContext';
 
 const log = Log.module('@deephaven/js-plugin-ui/ReactPanel');
 
@@ -87,7 +94,14 @@ function ReactPanel({ children, title }: ReactPanelProps) {
     }
   }, [parent, metadata, onOpen, panelId, title]);
 
-  return element ? ReactDOM.createPortal(children, element) : null;
+  return element
+    ? ReactDOM.createPortal(
+        <ReactPanelContext.Provider value={panelId}>
+          {children}
+        </ReactPanelContext.Provider>,
+        element
+      )
+    : null;
 }
 
 export default ReactPanel;
