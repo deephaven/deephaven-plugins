@@ -44,11 +44,15 @@ export function AgGridView(
     };
   }, [dh, fetch]);
 
+  log.debug('AgGridView rendering', table, table?.columns);
+
+  /** Map from Deephaven Table Columns to AG Grid ColDefs */
   const colDefs: ColDef[] = useMemo(
     () => table?.columns.map(c => ({ field: c.name })) ?? [],
     [table]
   );
 
+  /** Create the ServerSideDatasource to pass in to AG Grid based on the Deephaven Table */
   const datasource: IServerSideDatasource = useMemo(
     () => ({
       async getRows(params) {
@@ -63,6 +67,7 @@ export function AgGridView(
         table.setViewport(startRow ?? 0, (endRow ?? table.size) - 1);
 
         const viewportData = await table.getViewportData();
+        log.debug('getRows viewportData', viewportData);
         const rowData = viewportData.rows.map(row => {
           const result: Record<string, unknown> = {};
           for (let i = 0; i < viewportData.columns.length; i += 1) {
