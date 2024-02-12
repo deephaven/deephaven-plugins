@@ -1,0 +1,73 @@
+{
+  "name": "@deephaven/js-plugin-ag-grid",
+  "version": "0.1.0",
+  "description": "Deephaven AG Grid plugin",
+  "keywords": [
+    "Deephaven",
+    "plugin",
+    "deephaven-js-plugin",
+    "ag-grid"
+  ],
+  "author": "Deephaven Data Labs LLC",
+  "license": "Apache-2.0",
+  "main": "dist/bundle/index.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/bundle/index.js",
+      "default": "./dist/bundle/index.js"
+    },
+    "./*.js": "./dist/*.js",
+    "./*": "./dist/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deephaven/deephaven-plugins"
+  },
+  "bugs": {
+    "url": "https://github.com/deephaven/deephaven-plugins/issues"
+  },
+  "homepage": "https://github.com/deephaven/deephaven-plugins",
+  "scripts": {
+    "start": "vite build --watch",
+    "build": "tsc && vite build"
+  },
+  "devDependencies": {
+    "@deephaven/jsapi-types": "0.62.0",
+    "@types/deep-equal": "^1.0.1",
+    "@types/react": "^17.0.2",
+    "@vitejs/plugin-react-swc": "^3.0.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "typescript": "^4.5.4",
+    "vite": "~4.1.4"
+  },
+  "peerDependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
+  "dependencies": {
+    "@ag-grid-community/core": "^31.0.3",
+    "@ag-grid-community/react": "31.0.3",
+    "@ag-grid-community/styles": "31.0.3",
+    "@ag-grid-enterprise/core": "31.0.3",
+    "@ag-grid-enterprise/server-side-row-model": "31.0.3",
+    "@deephaven/chart": "0.62.0",
+    "@deephaven/components": "0.62.0",
+    "@deephaven/icons": "0.62.0",
+    "@deephaven/jsapi-bootstrap": "0.62.0",
+    "@deephaven/log": "0.62.0",
+    "@deephaven/plugin": "0.62.0",
+    "@deephaven/utils": "0.62.0",
+    "deep-equal": "^2.2.1",
+    "react-redux": "^7.2.9",
+    "shortid": "^2.2.16"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ]
+}
