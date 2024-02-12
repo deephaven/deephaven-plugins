@@ -1040,6 +1040,7 @@ If children are of type `Table`, the values in the table are the dropdown option
 import deephaven.ui as ui
 ui.section(
     *children: PickerOption | Table,
+    key_column: str | None = None,
     label_column: str | None = None,
     description_column: str | None = None,
     icon_column: str | None = None,
@@ -1049,14 +1050,15 @@ ui.section(
 ```
 
 ###### Parameters
-| Parameter            | Type                    | Description                                                                                                                                              |
-|----------------------|-------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`          | `PickerOption \| Table` | The options to render within the section.                                                                                                                |
-| `label_column`       | `str \| None`           | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as primary text. Defaults to the first column.         |
-| `description_column` | `str \| None`           | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as descriptions.                                       |
-| `icon_column`        | `str \| None`           | Only valid if children are of type `Table` or `PartitionedTable`. The column to map values to icons. [All icons](https://spectrum.adobe.com/page/icons/) |
-| `title`              | `str \| None`           | The title of the section.                                                                                                                                |
-| `**props`            | `Any`                   | Any other Section prop                                                                                                                                   |
+| Parameter             | Type                    | Description                                                                                                                                              |
+|-----------------------|-------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `*children`           | `PickerOption \| Table` | The options to render within the section.                                                                                                                |
+| `key_column`          | `str \| None`           | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to use as item keys. Defaults to the first column.                |
+| `label_column`        | `str \| None`           | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as primary text. Defaults to the `key_column` value.   |
+| `description_column`  | `str \| None`           | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as descriptions.                                       |
+| `icon_column`         | `str \| None`           | Only valid if children are of type `Table` or `PartitionedTable`. The column to map values to icons. [All icons](https://spectrum.adobe.com/page/icons/) |
+| `title`               | `str \| None`           | The title of the section.                                                                                                                                |
+| `**props`             | `Any`                   | Any other Section prop                                                                                                                                   |
 
 ##### ui.picker
 A picker that can be used to select from a list. Children should be one of four types:  
@@ -1085,7 +1087,7 @@ ui.picker(
 | Parameter              | Type                                                          | Description                                                                                                                                                                                        |
 |------------------------|---------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `*children`            | `PickerOption \| SectionElement \| Table \| PartitionedTable` | The options to render within the picker.                                                                                                                                                           |
-| `key_column`           | `str \| None`                                                 | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as primary text. Defaults to the first column.                                                   |
+| `key_column`           | `str \| None`                                                 | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to use as item keys. Defaults to the first column.                                                          |
 | `label_column`         | `str \| None`                                                 | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as primary text. Defaults to the `key_column` value.                                             |
 | `description_column`   | `str \| None`                                                 | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as descriptions.                                                                                 |
 | `icon_column`          | `str \| None`                                                 | Only valid if children are of type `Table` or `PartitionedTable`. The column to map values to icons. [All icons](https://spectrum.adobe.com/page/icons/)                                           |
