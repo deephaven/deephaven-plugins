@@ -3,8 +3,10 @@ import { useLayoutManager } from '@deephaven/dashboard';
 import type { RowOrColumn } from '@deephaven/golden-layout';
 import { normalizeRowChildren, type RowElementProps } from './LayoutUtils';
 import { ParentItemContext, useParentItem } from './ParentItemContext';
+import { usePanelId } from '../ReactPanelContext';
+import { Flex } from '../spectrum';
 
-function Row({ children, height }: RowElementProps): JSX.Element | null {
+function LayoutRow({ children, height }: RowElementProps): JSX.Element | null {
   const layoutManager = useLayoutManager();
   const parent = useParentItem();
   const row = useMemo(() => {
@@ -33,6 +35,20 @@ function Row({ children, height }: RowElementProps): JSX.Element | null {
     <ParentItemContext.Provider value={row}>
       {normalizedChildren}
     </ParentItemContext.Provider>
+  );
+}
+
+function Row({ children, height }: RowElementProps): JSX.Element {
+  const panelId = usePanelId();
+
+  if (panelId == null) {
+    return <LayoutRow height={height}>{children}</LayoutRow>;
+  }
+
+  return (
+    <Flex height={`${height}%`} direction="row">
+      {children}
+    </Flex>
   );
 }
 

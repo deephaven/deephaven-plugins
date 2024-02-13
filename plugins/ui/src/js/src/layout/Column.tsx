@@ -6,8 +6,13 @@ import {
   type ColumnElementProps,
 } from './LayoutUtils';
 import { ParentItemContext, useParentItem } from './ParentItemContext';
+import { usePanelId } from '../ReactPanelContext';
+import { Flex } from '../spectrum';
 
-function Column({ children, width }: ColumnElementProps): JSX.Element | null {
+function LayoutColumn({
+  children,
+  width,
+}: ColumnElementProps): JSX.Element | null {
   const layoutManager = useLayoutManager();
   const parent = useParentItem();
 
@@ -37,6 +42,20 @@ function Column({ children, width }: ColumnElementProps): JSX.Element | null {
     <ParentItemContext.Provider value={column}>
       {normalizedChildren}
     </ParentItemContext.Provider>
+  );
+}
+
+function Column({ children, width }: ColumnElementProps): JSX.Element {
+  const panelId = usePanelId();
+
+  if (panelId == null) {
+    return <LayoutColumn width={width}>{children}</LayoutColumn>;
+  }
+
+  return (
+    <Flex width={`${width}%`} direction="column">
+      {children}
+    </Flex>
   );
 }
 
