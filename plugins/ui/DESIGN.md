@@ -1017,10 +1017,10 @@ d = my_dashboard()
 
 ```py
 import deephaven.ui as ui
-ui_table = ui.table(table: Table, **view_args: dict) -> UITable
+ui_table = ui.table(table: Table, **props: Any) -> UITable
 ```
 
-It has an [immutable fluent](https://en.wikipedia.org/wiki/Fluent_interface#Immutability) interface, similar to Deephaven `Table`. That means each method below will return a new `UITable` object, rather than modifying the existing one. This allows you to chain multiple customizations together, e.g.:
+It has an [immutable fluent](https://en.wikipedia.org/wiki/Fluent_interface#Immutability) interface for some functionality, similar to Deephaven `Table`. That means each method below will return a new `UITable` object, rather than modifying the existing one. This allows you to chain multiple customizations together, e.g.:
 
 ```py
 from deephaven import ui
@@ -1039,7 +1039,78 @@ You can also set margins and padding by passing in the appropriate arguments to 
 ui_table = ui.table(source, padding="size-250")
 ```
 
-`ui.table` will support the below methods.
+Other props that can be passed into `ui.table` are defined below.
+
+##### Parameters
+
+```py
+ui_table(
+    table: Table, 
+    always_fetch_columns: ColumnNameCombination | None,
+    back_columns: ColumnNameCombination | None,
+    freeze_columns: ColumnNameCombination | None,
+    front_columns: ColumnNameCombination | None,
+    hide_columns: ColumnNameCombination | None,
+    quick_filters: dict[ColumnName, QuickFilterExpression] | None,
+    can_search: bool | None,
+    show_search: bool | None,
+    show_quick_filters: bool | None,
+    show_column_headers: bool | None,
+    selection_mode: SelectionMode | None,
+    selection_area: SelectionArea | None,
+    selection_style: SelectionStyleCombination | None,
+    selected_rows: RowIndexCombination | None,
+    selected_columns: ColumnIndexCombination | None,
+    selected_cells: CellIndexCombination | None,
+    density: DensityMode | None,
+    column_display_names: dict[ColumnName, ColumnNameCombination] | None,
+    on_row_press: Callable[[RowIndex, RowData], None] | None,
+    on_row_double_press: Callable[[RowIndex, RowData], None] | None
+    on_cell_press: Callable[[CellIndex, Any], None] | None,
+    on_cell_double_press: Callable[[CellIndex, Any], None] | None
+    on_column_press: Callable[[ColumnName], None] | None,
+    on_columns_double_press: Callable[[ColumnName], None] | None,
+    on_search: Callable[[str], None],
+    on_quick_filter: Callable[[ColumnName, QuickFilterExpression], None] | None
+    on_freeze_column: Callable[[ColumnName], None] | None,
+    on_hide_column: Callable[[ColumnName], None] | None,
+    on_sort: Callable[[ColumnName, LiteralSortDirection], None] | None
+) -> UITable
+```
+
+| Parameter                         | Type                                                          | Description                                                                                                                                                                                                                                                                         |
+|-----------------------------------|---------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `always_fetch_columns`            | `ColumnNameCombination \| None`                               | The columns to always fetch from the server. May be a single column name. These will not be affected by the users current viewport/horizontal scrolling. Useful if you have a column with key value data that you want to always include in the data sent for row click operations. |
+| `back_columns`                    | `ColumnNameCombination \| None`                               | The columns to show at the back of the table. May be a single column name. These will not be moveable in the UI.                                                                                                                                                                    |
+| `freeze_columns`                  | `ColumnNameCombination \| None`                               | The columns to freeze to the front of the table. May be a single column name. These will always be visible and not affected by horizontal scrolling.                                                                                                                                |
+| `front_columns`                   | `ColumnNameCombination \| None`                               | The columns to show at the front of the table. May be a single column name. These will not be moveable in the UI.                                                                                                                                                                   |
+| `hide_columns`                    | `ColumnNameCombination \| None`                               | The columns to hide by default from the table. May be a single column name. The user can still resize the columns to view them.                                                                                                                                                     |
+| `quick_filters`                   | `dict[ColumnName, QuickFilterExpression] \| None`             | Quick filters for the UI to apply to the table.                                                                                                                                                                                                                                     |
+| `can_search`                      | `bool \| None`                                                | Set the search bar to explicitly be accessible, `True`, or inaccessible, `False`.                                                                                                                                                                                                   |
+| `show_search`                     | `bool \| None`                                                | `True` to show the search bar by default, `False` to not.                                                                                                                                                                                                                           |
+| `show_quick_filters`              | `bool \| None`                                                | `True` to show the quick filters by default, `False` to not.                                                                                                                                                                                                                        |
+| `show_column_headers`             | `bool \| None`                                                | `True` to show the column headers by default, `False` to not.                                                                                                                                                                                                                       |
+| `selection_mode`                  | `SelectionMode \| None`                                       | Can be `MULTIPLE` to allow multiple selection or `SINGLE` to not allow it.                                                                                                                                                                                                          |
+| `selection_area`                  | `SelectionArea \| None`                                       | The unit that is selected on press. Can be `ROW`, `COLUMN`, or `CELL`.                                                                                                                                                                                                              |
+| `selection_style`                 | `SelectionStyleCombination \| None`                           | The style of the selection. Can be `HIGHLIGHT`, `CHECKBOX`, or a combination of those.                                                                                                                                                                                              |
+| `selected_rows`                   | `RowIndexCombination \| None`                                 | The rows that are selected by default. Only valid if `selection_area` is `ROW`.                                                                                                                                                                                                     |
+| `selected_columns`                | `ColumnIndexCombination \| None`                              | The columns that are selected by default. Only valid if `selection_area` is `COLUMN`.                                                                                                                                                                                               |
+| `selected_cells`                  | `CellIndexCombination \| None`                                | The cells that are selected by default. Only valid if `selection_area` is `CELL`.                                                                                                                                                                                                   |
+| `density`                         | `DensityMode \| None`                                         | The density of the table. Can be `COMPACT`, `REGULAR`, or `SPACIOUS`.                                                                                                                                                                                                               |
+| `column_display_names`            | `dict[ColumnName, ColumnNameCombination] \| None`             | The display names. If a sequence of column names is provided for a column, the display name will be set to the longest column name that can be fully displayed.                                                                                                                     |
+| `on_row_press`                    | `Callable[[RowIndex, RowData], None] \| None`                 | The callback function to run when a cell in a row is released (such as a click). The first parameter is the row index, and the second is the row data provided in a dictionary where the column names are the keys.                                                                 |
+| `on_row_double_press`             | `Callable[[RowIndex, RowData], None] \| None`                 | The callback function to run when a cell in a row is double pressed. The first parameter is the row index, and the second is the row data provided in a dictionary where the column names are the keys.                                                                             |
+| `on_cell_press`                   | `Callable[[CellIndex, Any], None] \| None`                    | The callback function to run when a cell is released (such as a click). The first parameter is the cell index, and the second is the cell data.                                                                                                                                     |
+| `on_cell_double_press`            | `Callable[[CellIndex, Any], None] \| None`                    | The callback function to run when a cell is double pressed. The first parameter is the cell index, and the second is the cell data.                                                                                                                                                 |
+| `on_column_press`                 | `Callable[[ColumnName], None] \| None`                        | The callback function to run when a column is released (such as a click). The only parameter is the column name.                                                                                                                                                                    |
+| `on_column_double_press`          | `Callable[[ColumnName], None] \| None`                        | The callback function to run when a cell in a column is double pressed. The only parameter is the column name.                                                                                                                                                                      |
+| `on_search`                       | `Callable[[str], None] \| None`                               | The callback function to run when the search bar is used. The only parameter is the search string.                                                                                                                                                                                  |
+| `on_quick_filter`                 | `Callable[[ColumnName, QuickFilterExpression], None] \| None` | The callback function to run when a quick filter is applied. The first parameter is the column name, and the second is the quick filter expression.                                                                                                                                 |
+| `on_freeze_column`                | `Callable[[ColumnName], None] \| None`                        | The callback function to run when a column is frozen. The only parameter is the frozen column name.                                                                                                                                                                                 |
+| `on_hide_column`                  | `Callable[[ColumnName], None] \| None`                        | The callback function to run when a column is hidden. The only parameter is the hidden column name.                                                                                                                                                                                 |
+| `on_sort`                         | `Callable[[ColumnName, LiteralSortDirection], None] \| None`  | The callback function to run when a column is sorted. The first parameter is the column name, and the second is the sort direction.                                                                                                                                                 |
+
+`ui.table` will also support the below methods.
 
 ##### aggregations
 
@@ -1066,54 +1137,6 @@ ui_table.aggregations(
 | `default_operation` | `AggregationOperation`                         | The default operation to apply to columns that do not have an operation specified. |
 | `group_by`          | `list[ColumnName]`                             | The columns to group by.                                                           |
 | `show_on_top`       | `bool`                                         | Whether to show the totals table above the main table.                             |
-
-##### always_fetch_columns
-
-Set the columns to always fetch from the server. These will not be affected by the users current viewport/horizontal scrolling. Useful if you have a column with key value data that you want to always include in the data sent for row click operations.
-
-###### Syntax
-
-```py
-ui_table.always_fetch_columns(columns: str | list[str]) -> UITable
-```
-
-###### Parameters
-
-| Parameter | Type               | Description                                                               |
-| --------- | ------------------ | ------------------------------------------------------------------------- |
-| `columns` | `str \| list[str]` | The columns to always fetch from the server. May be a single column name. |
-
-##### back_columns
-
-Set the columns to show at the back of the table. These will not be moveable in the UI.
-
-###### Syntax
-
-```py
-ui_table.back_columns(columns: str | list[str]) -> UITable
-```
-
-###### Parameters
-
-| Parameter | Type               | Description                                                                |
-| --------- | ------------------ | -------------------------------------------------------------------------- |
-| `columns` | `str \| list[str]` | The columns to show at the back of the table. May be a single column name. |
-
-##### can_search
-
-Set the search bar to explicitly be accessible or inaccessible, or use the system default.
-
-###### Syntax
-
-```py
-ui_table.can_search(mode: SearchMode) -> UITable
-```
-
-###### Parameters
-
-| Parameter | Type         | Description                                                                                |
-| --------- | ------------ | ------------------------------------------------------------------------------------------ |
-| `mode`    | `SearchMode` | Set the search bar to explicitly be accessible or inaccessible, or use the system default. |
 
 ##### column_group
 
@@ -1261,7 +1284,7 @@ Specify the formatting to display a column in.
 ###### Syntax
 
 ```py
-ui_table.format(column: ColumnName,format: str) -> UITable
+ui_table.format(column: ColumnName, format: str) -> UITable
 ```
 
 ###### Parameters
@@ -1272,122 +1295,6 @@ ui_table.format(column: ColumnName,format: str) -> UITable
 | `format`  | `str` | The format to display the column in. Valid format depends on column type |
 
 <!-- TODO: Give more details on what the format string can be for different column types. Seems to be lacking in existing documentation as well. -->
-
-##### freeze_columns
-
-Set the columns to freeze to the front of the table. These will always be visible and not affected by horizontal scrolling.
-
-###### Syntax
-
-```py
-ui_table.freeze_columns(columns: str | list[str]) -> UITable
-```
-
-###### Parameters
-
-| Parameter | Type               | Description                                                                   |
-| --------- | ------------------ | ----------------------------------------------------------------------------- |
-| `columns` | `str \| list[str]` | The columns to freeze to the front of the table. May be a single column name. |
-
-##### front_columns
-
-Set the columns to show at the front of the table. These will not be moveable in the UI.
-
-###### Syntax
-
-```py
-ui_table.front_columns(columns: str | list[str]) -> UITable
-```
-
-###### Parameters
-
-| Parameter | Type               | Description                                                                 |
-| --------- | ------------------ | --------------------------------------------------------------------------- |
-| `columns` | `str \| list[str]` | The columns to show at the front of the table. May be a single column name. |
-
-##### hide_columns
-
-Set the columns to hide by default in the table. The user can still resize the columns to view them.
-
-###### Syntax
-
-```py
-ui_table.hide_columns(columns: str | list[str]) -> UITable
-```
-
-###### Parameters
-
-| Parameter | Type               | Description                                                      |
-| --------- | ------------------ | ---------------------------------------------------------------- |
-| `columns` | `str \| list[str]` | The columns to hide from the table. May be a single column name. |
-
-##### on_row_press
-
-Add a callback for when a press on a row is released (e.g. a cell within a row is clicked).
-
-###### Syntax
-
-```py
-ui_table.on_row_press(callback: Callable[[RowIndex, RowData], None]) -> UITable
-```
-
-###### Parameters
-
-| Parameter  | Type                                  | Description                                                                                                                                                                            |
-| ---------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `callback` | `Callable[[RowIndex, RowData], None]` | The callback function to run when a row is clicked. The first parameter is the row index, and the second is the row data provided in a dictionary where the column names are the keys. |
-
-##### on_row_double_press
-
-Add a callback for when a cell within a row is double clicked.
-
-###### Syntax
-
-```py
-ui_table.on_row_double_press(callback: Callable[[RowIndex, RowData], None]) -> UITable
-```
-
-###### Parameters
-
-| Parameter  | Type                                  | Description                                                                                                                                                                                   |
-| ---------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `callback` | `Callable[[RowIndex, RowData], None]` | The callback function to run when a row is double clicked. The first parameter is the row index, and the second is the row data provided in a dictionary where the column names are the keys. |
-
-##### quick_filter
-
-Add a quick filter for the UI to apply to the table.
-
-###### Syntax
-
-```py
-ui_table.quick_filter(filter: dict[ColumnName, QuickFilterExpression]) -> UITable
-```
-
-###### Parameters
-
-| Parameter | Type                                      | Description                             |
-| --------- | ----------------------------------------- | --------------------------------------- |
-| `filter`  | `dict[ColumnName, QuickFilterExpression]` | The quick filter to apply to the table. |
-
-##### selection_mode
-
-Set the selection mode for the table and whether or not multiple selections are the default
-
-###### Syntax
-
-```py
-ui_table.selection_mode(
-    mode: SelectionMode, 
-    multi_select: bool = True
-) -> UITable
-```
-
-###### Parameters
-
-| Parameter      | Type             | Description                                                                                                                                                                                                                                                               |
-|----------------|------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `mode`         | `SelectionMode`  | The selection mode to use. Must be one of `"ROW"`, `"COLUMN"`, or `"CELL"`:<li>`"ROW"` selects the entire row of the cell you click on.</li><li>`"COLUMN"` selects the entire column of the cell you click on.</li><li>`"CELL"` selects only the cells you click on.</li> |
-| `multi_select` | `bool`           | True if always multiple select on press. `True` by default.                                                                                                                                                                                                                 |
 
 ##### sort
 
@@ -1411,273 +1318,6 @@ ui_table.sort(
 | `by`        | `str \| Sequence[str]`                                       | The column(s) to sort by. May be a single column name, or a list of column names.                           |
 | `direction` | `TableSortDirection \| Sequence[TableSortDirection] \| None` | The sort direction(s) to use. If provided, that must match up with the columns provided. Defaults to "ASC". |
 
-##### column_display_names
-
-Set the display names for columns in the table. If a sequence of column names is provided for a column, the display name will be set to the longest column name that can be fully displayed.
-
-###### Syntax
-
-```py
-ui_table.column_display_names(
-    display_names: dict[ColumnName, ColumnNameCombination]
-) -> UITable
-```
-
-###### Parameters
-
-| Parameter       | Type                                      | Description                                                                                                                                                     |
-|-----------------|-------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `display_names` | `dict[ColumnName, ColumnNameCombination]` | The display names. If a sequence of column names is provided for a column, the display name will be set to the longest column name that can be fully displayed. |
-
-##### show_column_headers
-
-Set the column headers for the table to be visible or not visible.
-
-###### Syntax
-
-```py
-ui_table.show_column_headers(
-    visible: bool | None
-) -> UITable
-```
-
-###### Parameters
-
-| Parameter | Type           | Description                                            |
-|-----------|----------------|--------------------------------------------------------|
-| `visible` | `bool \| None` | `True` to show the quick filters, `False` to hide them |
-
-##### show_quick_filters
-
-Set the quick filters for the table to be visible, hidden, or use the system default.
-
-###### Syntax
-
-```py
-ui_table.show_quick_filters(
-    visible: bool | None
-) -> UITable
-```
-
-###### Parameters
-
-| Parameter | Type           | Description                                            |
-|-----------|----------------|--------------------------------------------------------|
-| `visible` | `bool \| None` | `True` to show the quick filters, `False` to hide them |
-
-##### selected
-
-Set the selected rows, columns, or cells in the table. This must match the mode set by [selection_mode](#selection_mode).
-Only one of `rows`, `columns`, or `cells` may be provided.
-
-###### Syntax
-
-```py
-ui_table.selected(
-    rows: RowIndexCombination | None = None, 
-    columns: ColumnIndexCombination | None = None, 
-    cells: CellIndexCombination | None = None
-) -> UITable
-```
-###### Parameters
-
-| Parameter | Type                                         | Description                     |
-|-----------|----------------------------------------------|---------------------------------|
-| `rows`    | `RowIndex \| Sequence[RowIndex] \| None`     | The selected row or rows.       |
-| `columns` | `ColumnName \| Sequence[ColumnName] \| None` | The selected column or columns. |
-| `cells`   | `CellIndex \| Sequence[CellIndex] \| None`   | The selected cell or cells.     |
-
-##### selection_style
-
-Specify the style that is used to show that data is selected. This can by `"HIGHLIGHT"`, `"CHECKBOX"`, a combination of those, or `"DEFAULT"` to use the system default.
-
-###### Syntax
-
-```py
-ui_table.selection_style(
-    modes: SelectionStyleModeCombination
-) -> UITable
-```
-
-###### Parameters
-
-| Parameter | Type                   | Description                                                                                                                                                            |
-|-----------|------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `mode`    | `SelectionStyleMode`   | `"HIGHLIGHT"` to highlight the selected data, `"CHECKBOX"` to show checkboxes for the selected data, a combination of those, or `"DEFAULT"` to use the system default  |
-
-##### density
-
-Set the density of the table to be `"COMPACT"`, `"REGULAR"`, `"SPACIOUS"`, or `"DEFAULT"`, the system default. 
-
-###### Syntax
-
-```py
-ui_table.density(
-    mode: DensityMode
-) -> UITable
-```
-
-###### Parameters
-
-| Parameter | Type          | Description                                           |
-|-----------|---------------|-------------------------------------------------------|
-| `mode`    | `DensityMode` | `"COMPACT"`, `"REGULAR"`, `"SPACIOUS"`, or `"DEFAULT"`|
-
-##### on_search
-
-Add a callback for when the search bar is used.
-
-###### Syntax
-
-```py
-ui_table.on_search(
-    callback: Callable[[str], None]
-) -> UITable
-```
-
-###### Parameters
-| Parameter  | Type                    | Description                                                                                                                   |
-|------------|-------------------------|-------------------------------------------------------------------------------------------------------------------------------|
-| `callback` | `Callable[[str], None]` | The callback function to run when the search bar is used. The only parameter of the callback is the string in the search bar. |
-
-
-##### on_quick_filter
-
-Add a callback for when a quick filter is used.
-
-###### Syntax
-
-```py
-ui_table.on_quick_filter(
-    callback: Callable[[ColumnName, QuickFilterExpression], None]
-) -> UITable
-```
-
-###### Parameters
-| Parameter  | Type                                                  | Description                                                                                                                                                               |
-|------------|-------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `callback` | `Callable[[ColumnName, QuickFilterExpression], None]` | The callback function to run when a quick filter is made. The first parameter is the column name the quick filter was added to and the second is the quick filter itself. |
-
-##### on_freeze_column
-
-Add a callback for when a column is frozen.
-
-###### Syntax
-
-```py
-ui_table.on_freeze_column(
-    callback: Callable[[ColumnName], None]
-) -> UITable
-```
-
-###### Parameters
-| Parameter  | Type                           | Description                                                                                                |
-|------------|--------------------------------|------------------------------------------------------------------------------------------------------------|
-| `callback` | `Callable[[ColumnName], None]` | The callback function to run when a column is frozen. The only parameter is the name of the frozen column. |
-
-##### on_hide_column
-
-Add a callback for when a column is hidden.
-
-###### Syntax
-
-```py
-ui_table.on_hide_column(
-    callback: Callable[[ColumnName], None]
-) -> UITable
-```
-
-###### Parameters
-| Parameter  | Type                           | Description                                                                                                |
-|------------|--------------------------------|------------------------------------------------------------------------------------------------------------|
-| `callback` | `Callable[[ColumnName], None]` | The callback function to run when a column is hidden. The only parameter is the name of the hidden column. |
-
-##### on_cell_press
-
-Add a callback for when a cell is pressed.
-
-###### Syntax
-
-```py
-ui_table.on_cell_press(
-    callback: Callable[[CellIndex, Any], None]
-) -> UITable
-```
-
-###### Parameters
-| Parameter  | Type                               | Description                                                                                                                  |
-| ---------- |------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
-| `callback` | `Callable[[CellIndex, Any], None]` | The callback function to run when a cell is clicked. The first parameter is the cell index, and the second is the cell data. |
-
-##### on_cell_double_press
-
-Add a callback for when a cell is double pressed.
-
-###### Syntax
-
-```py
-ui_table.on_cell_double_press(
-    callback: Callable[[CellIndex, Any], None]
-) -> UITable
-```
-
-###### Parameters
-| Parameter  | Type                               | Description                                                                                                                         |
-| ---------- |------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
-| `callback` | `Callable[[CellIndex, Any], None]` | The callback function to run when a cell is double clicked. The first parameter is the cell index, and the second is the cell data. |
-
-##### on_column_press
-
-Add a callback for when a cell within a column is pressed.
-
-###### Syntax
-
-```py
-ui_table.on_column_press(
-    callback: Callable[[ColumnName, ColumnData], None]
-) -> UITable
-```
-
-###### Parameters
-| Parameter  | Type                               | Description                                                                                                                                                                        |
-| ---------- |------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `callback` | `Callable[[CellIndex, Any], None]` | The callback function to run when a column is clicked. The first parameter is the column name, and the second is the column data, which is a list of the data in the column. |
-
-##### on_column_double_press
-
-Add a callback for when a cell within a column is double pressed.
-
-###### Syntax
-
-```py
-ui_table.on_column_double_press(
-    callback: Callable[[ColumnName, ColumnData], None]
-) -> UITable
-```
-
-###### Parameters
-| Parameter  | Type                                       | Description                                                                                                                                                                         |
-| ---------- |--------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `callback` | `Callable[[ColumnName, ColumnData], None]` | The callback function to run when a column is double clicked. The first parameter is the column name, and the second is the column data, which is a list of the data in the column. |
-
-
-##### on_sort
-
-Add a callback for when a column is sorted.
-
-###### Syntax
-
-```py
-ui_table.on_sort(
-    callback: Callable[[ColumnName, LiteralSortDirection], None]
-) -> UITable
-```
-
-###### Parameters
-| Parameter  | Type                                                 | Description                                                                                                                         |
-| ---------- |------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
-| `callback` | `Callable[[ColumnName, LiteralSortDirection], None]` | The callback function to run when a column is sorted. The first parameter is the column name, and the second is the sort direction. |
-
 #### ui.fragment
 
 A fragment maps to a [React.Fragment](https://react.dev/reference/react/Fragment). This lets you group elements without using a wrapper node. It only takes children, and does not take any additional props.
@@ -1691,12 +1331,12 @@ ui_fragment = ui.fragment(*children: Element) -> Element
 
 The functionality provided my `ui.table` replaces some of the existing functions on `Table`. Below are the functions that are planned for deprecation/deletion of the `Table` interface, and their replacements with the new `ui.table` interface.
 
-| Table Function                                                    | ui.table Replacement                                                                                                                                                                                               |
-| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `format_columns`<br/>`format_column_where`<br/>`format_row_where` | [color_column](#color_column)<br/>[color_row](#color_row)<br/>[format](#format)                                                                                                                                    |
-| `layout_hints`                                                    | [back_columns](#back_columns)<br/>[front_columns](#front_columns)<br/>[column_group](#column_groups)<br/>[freeze_columns](#freeze_columns)<br/>[hide_columns](#hide_columns)<br/>[search_display](#search_display) |
-| `dropColumnFormats`                                               | No replacement                                                                                                                                                                                                     |
-| `setTotalsTable`                                                  | [aggregations](#aggregations)                                                                                                                                                                                      |
+| Table Function                                                    | ui.table Replacement                                                                                                                                      |
+| ----------------------------------------------------------------- |-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `format_columns`<br/>`format_column_where`<br/>`format_row_where` | [color_column](#color_column)<br/>[color_row](#color_row)<br/>[format](#format)                                                                           |
+| `layout_hints`                                                    | [Props](#Parameters-5) of back_columns, front_columns, freeze_columns, hide_columns, and show_search, as well as method of [column_group](#column_groups) |
+| `dropColumnFormats`                                               | No replacement                                                                                                                                            |
+| `setTotalsTable`                                                  | [aggregations](#aggregations)                                                                                                                             |
 
 #### Custom Hooks
 
@@ -1877,10 +1517,10 @@ QuickFilterExpression = str
 RowData = dict[ColumnName, Any]
 # A RowIndex of None indicates a header column
 RowIndex = int | None
-SearchMode = Literal["SHOW", "HIDE", "DEFAULT"]
-SelectionStyleMode = Literal["HIGHLIGHT", "CHECKBOX", "DEFAULT"]   
-SelectionMode = Literal["CELL", "ROW", "COLUMN"]
-DensityMode = Literal["COMPACT", "REGULAR", "SPACIOUS", "DEFAULT"]
+SelectionStyle = Literal["HIGHLIGHT", "CHECKBOX"]   
+SelectionArea = Literal["CELL", "ROW", "COLUMN"]
+SelectionMode = Literal["SINGLE", "MULTIPLE"]
+DensityMode = Literal["COMPACT", "REGULAR", "SPACIOUS"]
 Sentinel = Any
 LiteralSortDirection = Literal["ASC", "DESC"]
 TableSortDirection = Union[LiteralSortDirection, SortDirection]
@@ -1894,7 +1534,7 @@ RowIndexCombination = Combination[RowIndex]
 ColumnNameCombination = Combination[ColumnName]
 ColumnIndexCombination = Combination[ColumnIndex]
 CellIndexCombination = Combination[CellIndex]
-SelectionStyleModeCombination = Combination[SelectionStyleMode]
+SelectionStyleCombination = Combination[SelectionStyle]
 
 ```
 
