@@ -8,6 +8,7 @@ from deephaven.table import Table
 from deephaven.table_listener import TableUpdate
 from deephaven.pandas import to_pandas
 from deephaven.execution_context import ExecutionContext, get_exec_ctx
+from deephaven.liveness_scope import liveness_scope
 from deephaven.server.executors import submit_task
 from deephaven.update_graph import has_exclusive_lock
 
@@ -24,7 +25,7 @@ def _deferred_update(ctx: ExecutionContext, func: Callable[[], None]) -> None:
         ctx: ExecutionContext: The execution context to use.
         func: Callable[[], None]: The function to call.
     """
-    with ctx:
+    with ctx, liveness_scope():
         func()
 
 
