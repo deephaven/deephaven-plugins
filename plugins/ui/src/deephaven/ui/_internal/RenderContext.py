@@ -58,7 +58,7 @@ def _value_or_call(value: T | None | Callable[[], T | None]) -> ValueWithLivenes
     creates while obtaining that value.
 
     Args:
-        a value, or callable that will produce a value
+        value: a value, or callable that will produce a value
 
     Returns:
         The resulting value, plus a liveness scope, if any.
@@ -333,7 +333,7 @@ class RenderContext:
         """
         Indicates that the given LivenessScope must live until the end of the next
         successful open() call. This RenderContext must be open to call this method.
-        Params:
+        Args:
             liveness_scope: the new LivenessScope to track
         """
         assert self is get_context()
