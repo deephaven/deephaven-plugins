@@ -833,6 +833,7 @@ st = stock_table(stocks)
 
 You can use the `use_table_listener` hook to listen to changes to a table. In this example, we use the `use_table_listener` hook to listen to changes to the table then display the last changes.
 
+This is an advanced feature, requiring understanding of how the [table listeners](https://deephaven.io/core/docs/how-to-guides/table-listeners-python/) work, and limitations of running code while the Update Graph is running. Most usages of this are more appropriate to implement with [the table data hooks](#using-table-data-hooks).
 ```python
 import deephaven.ui as ui
 from deephaven.table import Table
@@ -892,6 +893,34 @@ t = time_table("PT1S").update(formulas=["X=i"]).tail(5)
 
 monitor = monitor_changed_data(t)
 ```
+
+## Handling liveness in functions
+
+Some functions which interact with a component will create live objects that need to be managed by the component to ensure they are kept active. 
+
+The primary use case for this is when creating tables outside the component's own function, and passing them as state for the component's next update:
+```python
+from deephaven import ui, time_table
+
+
+@ui.component
+def resetable_table():
+    table, set_table = ui.use_state(lambda: time_table("PT1s"))
+
+    return [
+        ui.action_button(
+            "Reset",
+            on_press=ui.use_liveness_scope(lambda _: set_table(time_table("PT1s"))),
+        ),
+        table,
+    ]
+
+
+f = resetable_table()
+```
+
+Without the `use_liveness_scope` wrapping the lamdba, the newly created live tables it creates go out of scope before the component can make use of it.
+
 
 ![Change Monitor](assets/change_monitor.png)
 
