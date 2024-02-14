@@ -1052,7 +1052,6 @@ ui_table(
     front_columns: ColumnNameCombination | None,
     hide_columns: ColumnNameCombination | None,
     quick_filters: dict[ColumnName, QuickFilterExpression] | None,
-    can_search: bool | None,
     show_search: bool | None,
     show_quick_filters: bool | None,
     show_column_headers: bool | None,
@@ -1086,7 +1085,6 @@ ui_table(
 | `front_columns`                   | `ColumnNameCombination \| None`                               | The columns to show at the front of the table. May be a single column name. These will not be moveable in the UI.                                                                                                                                                                   |
 | `hide_columns`                    | `ColumnNameCombination \| None`                               | The columns to hide by default from the table. May be a single column name. The user can still resize the columns to view them.                                                                                                                                                     |
 | `quick_filters`                   | `dict[ColumnName, QuickFilterExpression] \| None`             | Quick filters for the UI to apply to the table.                                                                                                                                                                                                                                     |
-| `can_search`                      | `bool \| None`                                                | Set the search bar to explicitly be accessible, `True`, or inaccessible, `False`.                                                                                                                                                                                                   |
 | `show_search`                     | `bool \| None`                                                | `True` to show the search bar by default, `False` to not.                                                                                                                                                                                                                           |
 | `show_quick_filters`              | `bool \| None`                                                | `True` to show the quick filters by default, `False` to not.                                                                                                                                                                                                                        |
 | `show_column_headers`             | `bool \| None`                                                | `True` to show the column headers by default, `False` to not.                                                                                                                                                                                                                       |
