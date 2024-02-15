@@ -1,5 +1,5 @@
 import React from 'react';
-import { WidgetDefinition } from '@deephaven/dashboard';
+import { WidgetDescriptor } from '@deephaven/dashboard';
 import { TestUtils } from '@deephaven/utils';
 import { render } from '@testing-library/react';
 import DocumentHandler, { DocumentHandlerProps } from './DocumentHandler';
@@ -40,11 +40,11 @@ function makeDocument(children: React.ReactNode = []): React.ReactNode {
 
 function makeDocumentHandler({
   children = makeDocument(),
-  definition = TestUtils.createMockProxy<WidgetDefinition>({}),
+  widget = TestUtils.createMockProxy<WidgetDescriptor>({}),
   onClose = jest.fn(),
 }: Partial<DocumentHandlerProps> = {}) {
   return (
-    <DocumentHandler definition={definition} onClose={onClose}>
+    <DocumentHandler widget={widget} onClose={onClose}>
       {children}
     </DocumentHandler>
   );
@@ -55,6 +55,8 @@ beforeEach(() => {
 });
 
 it('should throw an error if no children to render', () => {
+  TestUtils.disableConsoleOutput();
+
   const children = makeDocument();
   expect(() => render(makeDocumentHandler({ children }))).toThrow(
     NoChildrenError
@@ -62,6 +64,8 @@ it('should throw an error if no children to render', () => {
 });
 
 it('should throw an error if the document mixes panel and non-panel elements', () => {
+  TestUtils.disableConsoleOutput();
+
   const children = makeDocument([
     makeElement(PANEL_ELEMENT_NAME),
     makeElement('not panel element'),

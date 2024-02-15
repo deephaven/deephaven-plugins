@@ -213,7 +213,7 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
 
   useEffect(
     function loadWidget() {
-      log.debug('loadWidget', wrapper.id, wrapper.definition);
+      log.debug('loadWidget', wrapper.id, wrapper.widget);
       let isCancelled = false;
       async function loadWidgetInternal() {
         const newWidget = await wrapper.fetch();
@@ -224,7 +224,7 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
           });
           return;
         }
-        log.debug('newWidget', wrapper.id, wrapper.definition, newWidget);
+        log.debug('newWidget', wrapper.id, wrapper.widget, newWidget);
         setWidget(newWidget);
       }
       loadWidgetInternal();
@@ -243,10 +243,7 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
   return useMemo(
     () =>
       document != null ? (
-        <DocumentHandler
-          definition={wrapper.definition}
-          onClose={handleDocumentClose}
-        >
+        <DocumentHandler widget={wrapper.widget} onClose={handleDocumentClose}>
           {document}
         </DocumentHandler>
       ) : null,
