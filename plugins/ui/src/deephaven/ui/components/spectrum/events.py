@@ -102,6 +102,7 @@ ButtonVariant = Literal[
     "accent", "primary", "secondary", "negative", "cta", "overBackground"
 ]
 ButtonStyle = Literal["fill", "outline"]
+ElementTypes = Literal["div", "button", "a"]
 
 FocusEventCallable = Callable[[FocusEvent], None]
 KeyboardEventCallable = Callable[[KeyboardEvent], None]
