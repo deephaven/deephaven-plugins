@@ -23,6 +23,6 @@ class ExpressRegistration(Registration):
         """
         callback.register(DeephavenFigureType)
 
-        # Disable registering the JS plugins if the environment variable is set
-        if not os.getenv("DEEPHAVEN_DISABLE_PY_JS") == "True":
+        # Only register the JS plugins if the environment variable is set
+        if os.getenv("DEEPHAVEN_ENABLE_PY_JS") == "True":
             callback.register(create_js_plugin())
