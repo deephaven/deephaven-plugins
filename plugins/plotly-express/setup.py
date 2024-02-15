@@ -9,7 +9,7 @@ import subprocess
 js_dir = "src/js/"
 dist_dir = os.path.join(js_dir, "dist")
 build_dir = os.path.join(js_dir, "build")
-dest_dir = os.path.join("src/deephaven/plot/express/js")
+dest_dir = os.path.join("src/deephaven/plot/express/_js")
 package_dir = os.path.join(build_dir, "package")
 
 # copy the bundle to the plotly-express directory
@@ -35,4 +35,4 @@ if os.path.exists(dist_dir):
     # move the package directory to the expected package location
     shutil.move(package_dir, dest_dir)
 
-setup(package_data={"deephaven.plot.express.js": ["**"]})
+setup(package_data={"deephaven.plot.express._js": ["**"]})
