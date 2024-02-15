@@ -9,7 +9,10 @@ import {
   usePortalOpenedListener,
 } from './PortalPanelEvent';
 
-/** Listens for portals being opened and keeps track of all of them */
+/**
+ * Listens for PortalPanels being opened and closed, and maintains a map of currently open portal elements.
+ * Sets this in the PortalPanelManagerContext for downstream consumption.
+ */
 function PortalPanelManager({
   children,
 }: React.PropsWithChildren<unknown>): JSX.Element {

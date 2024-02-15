@@ -37,7 +37,7 @@ const log = Log.module('@deephaven/js-plugin-ui.DashboardPlugin');
  * The data stored in redux when the user creates a ui.dashboard.
  */
 interface DashboardPluginData {
-  /** Map of open widgets */
+  /** Map of open widgets, along with any data that is stored with them. */
   openWidgets?: Record<
     WidgetId,
     {
@@ -136,11 +136,11 @@ export function DashboardPlugin(
   useEffect(
     function loadInitialPluginData() {
       if (initialPluginData == null) {
-        log.info('loadInitialPluginData no data');
+        log.debug('loadInitialPluginData no data');
         return;
       }
 
-      log.info('loadInitialPluginData', initialPluginData);
+      log.debug('loadInitialPluginData', initialPluginData);
 
       setWidgetMap(prevWidgetMap => {
         const newWidgetMap = new Map<WidgetId, WidgetWrapper>(prevWidgetMap);
@@ -249,7 +249,7 @@ export function DashboardPlugin(
         if (widget == null) {
           throw new Error(`Widget not found: ${widgetId}`);
         }
-        // We don't want the data change to re-render the WidgetHandler, so we mutate the object directly
+        // We don't want the data change to re-render the WidgetHandler, so we mutate the WidgetWrapper object directly
         // Will still re-render the DashboardPlugin though, which will save the data
         widget.data = data;
         return newWidgetMap;

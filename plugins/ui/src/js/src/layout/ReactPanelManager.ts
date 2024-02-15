@@ -11,7 +11,7 @@ export interface ReactPanelManager {
    * Updating the metadata will cause the panel to be re-opened, or replaced if it is closed.
    * Can also be used for rehydration.
    */
-  metadata?: PanelProps['metadata'];
+  metadata: PanelProps['metadata'];
 
   /** Triggered when a panel is opened */
   onOpen: (panelId: string) => void;

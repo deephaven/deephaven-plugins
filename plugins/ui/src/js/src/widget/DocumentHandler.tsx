@@ -95,7 +95,7 @@ function DocumentHandler({
 
   const panelManager = useMemo(
     () => ({
-      widget,
+      metadata: widget,
       onOpen: handleOpen,
       onClose: handleClose,
       getPanelId,
