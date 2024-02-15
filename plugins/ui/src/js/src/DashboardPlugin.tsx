@@ -99,12 +99,9 @@ export function DashboardPlugin(
       const { name: title = 'Untitled' } = widget;
       log.debug('Emitting create dashboard event for', dashboardId, widget);
       emitCreateDashboard(layout.eventHub, {
-        pluginId: DASHBOARD_ELEMENT,
+        pluginId: PLUGIN_NAME,
         title,
-        data: {
-          openWidgets: [widget],
-          id: dashboardId,
-        },
+        data: { openWidgets: { [dashboardId]: { descriptor: widget } } },
       });
     },
     [layout.eventHub]
