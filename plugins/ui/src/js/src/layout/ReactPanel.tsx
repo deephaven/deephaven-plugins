@@ -12,7 +12,6 @@ import { ReactPanelManager, useReactPanelManager } from './ReactPanelManager';
 import { ReactPanelProps } from './LayoutUtils';
 import { useParentItem } from './ParentItemContext';
 import { ReactPanelContext } from './ReactPanelContext';
-import ScopedIdWrapper from '../elements/ScopedIdWrapper';
 import { usePortalPanelManager } from './PortalPanelManagerContext';
 
 const log = Log.module('@deephaven/js-plugin-ui/ReactPanel');
@@ -100,11 +99,9 @@ function ReactPanel({ children, title }: ReactPanelProps) {
 
   return element
     ? ReactDOM.createPortal(
-        <ScopedIdWrapper id={panelId}>
-          <ReactPanelContext.Provider value={panelId}>
-            {children}
-          </ReactPanelContext.Provider>
-        </ScopedIdWrapper>,
+        <ReactPanelContext.Provider value={panelId}>
+          {children}
+        </ReactPanelContext.Provider>,
         element
       )
     : null;
