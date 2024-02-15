@@ -20,7 +20,7 @@ import { Widget } from '@deephaven/jsapi-types';
 import { ErrorBoundary } from '@deephaven/components';
 import styles from './styles.scss?inline';
 import { WidgetWrapper } from './WidgetTypes';
-import PortalPanel from './PortalPanel';
+import PortalPanel from './layout/PortalPanel';
 import WidgetHandler from './WidgetHandler';
 
 const NAME_ELEMENT = 'deephaven.ui.Element';

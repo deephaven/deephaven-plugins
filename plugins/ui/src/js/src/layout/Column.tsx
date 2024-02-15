@@ -6,7 +6,7 @@ import {
   type ColumnElementProps,
 } from './LayoutUtils';
 import { ParentItemContext, useParentItem } from './ParentItemContext';
-import { usePanelId } from '../ReactPanelContext';
+import { usePanelId } from './ReactPanelContext';
 import { Flex } from '../elements/spectrum';
 
 function LayoutColumn({

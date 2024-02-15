@@ -1,6 +1,6 @@
 import React from 'react';
 import { WidgetDescriptor } from '@deephaven/dashboard';
-import ReactPanel from './ReactPanel';
+import ReactPanel from './layout/ReactPanel';
 import { MixedPanelsError, NoChildrenError } from './errors';
 import Dashboard from './layout/Dashboard';
 

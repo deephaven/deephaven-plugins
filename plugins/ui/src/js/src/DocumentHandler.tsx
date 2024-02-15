@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 import { WidgetDescriptor } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
-import { ReactPanelManagerContext } from './ReactPanelManager';
+import { ReactPanelManagerContext } from './layout/ReactPanelManager';
 import { getRootChildren } from './DocumentUtils';
 
 const log = Log.module('@deephaven/js-plugin-ui/DocumentHandler');

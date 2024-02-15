@@ -21,7 +21,7 @@ import {
   isRowElementNode,
   isStackElementNode,
 } from './layout/LayoutUtils';
-import ReactPanel from './ReactPanel';
+import ReactPanel from './layout/ReactPanel';
 import ObjectView from './elements/ObjectView';
 import Row from './layout/Row';
 import Stack from './layout/Stack';

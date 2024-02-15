@@ -12,7 +12,7 @@ import {
 import Column from './Column';
 import Row from './Row';
 import Stack from './Stack';
-import ReactPanel from '../ReactPanel';
+import ReactPanel from './ReactPanel';
 
 export const PANEL_ELEMENT_NAME = 'deephaven.ui.components.Panel';
 export const ROW_ELEMENT_NAME = 'deephaven.ui.components.Row';

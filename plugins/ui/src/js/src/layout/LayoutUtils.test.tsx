@@ -18,7 +18,7 @@ import {
 } from './LayoutUtils';
 import Row from './Row';
 import Stack from './Stack';
-import ReactPanel from '../ReactPanel';
+import ReactPanel from './ReactPanel';
 
 beforeEach(() => {
   TestUtils.disableConsoleOutput();
