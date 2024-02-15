@@ -15,7 +15,7 @@ const mockReactPanel = jest.fn((props: ReactPanelProps) => (
   <div>ReactPanel</div>
 ));
 jest.mock(
-  './ReactPanel',
+  '../layout/ReactPanel',
   () => (props: ReactPanelProps) => mockReactPanel(props)
 );
 
