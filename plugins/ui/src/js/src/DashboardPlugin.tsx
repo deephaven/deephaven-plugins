@@ -38,7 +38,7 @@ const log = Log.module('@deephaven/js-plugin-ui.DashboardPlugin');
  */
 interface DashboardPluginData {
   /** Map of open widgets */
-  openWidgets: Record<
+  openWidgets?: Record<
     WidgetId,
     {
       descriptor: WidgetDescriptor;
@@ -145,16 +145,18 @@ export function DashboardPlugin(
       setWidgetMap(prevWidgetMap => {
         const newWidgetMap = new Map<WidgetId, WidgetWrapper>(prevWidgetMap);
         const { openWidgets } = initialPluginData;
-        const widgetIds = Object.keys(openWidgets);
-        for (let i = 0; i < widgetIds.length; i += 1) {
-          const widgetId = widgetIds[i];
-          const { descriptor, data } = openWidgets[widgetId];
-          newWidgetMap.set(widgetId, {
-            fetch: () => objectFetcher(descriptor),
-            id: widgetId,
-            widget: descriptor,
-            data,
-          });
+        if (openWidgets != null) {
+          const widgetIds = Object.keys(openWidgets);
+          for (let i = 0; i < widgetIds.length; i += 1) {
+            const widgetId = widgetIds[i];
+            const { descriptor, data } = openWidgets[widgetId];
+            newWidgetMap.set(widgetId, {
+              fetch: () => objectFetcher(descriptor),
+              id: widgetId,
+              widget: descriptor,
+              data,
+            });
+          }
         }
         return newWidgetMap;
       });
@@ -176,7 +178,7 @@ export function DashboardPlugin(
       // We may need to clean up some panels for this widget if it hasn't actually loaded yet
       // We should be able to always be able to do this even if it does load, so just remove any panels from the initial load
       const { openWidgets } = initialPluginData;
-      const openWidget = openWidgets[panelId];
+      const openWidget = openWidgets?.[panelId];
       if (openWidget?.data?.panelIds != null) {
         const { panelIds } = openWidget.data;
         for (let i = 0; i < panelIds.length; i += 1) {
