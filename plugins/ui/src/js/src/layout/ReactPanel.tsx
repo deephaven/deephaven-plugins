@@ -16,8 +16,8 @@ import {
 import Log from '@deephaven/log';
 import PortalPanel from './PortalPanel';
 import { useReactPanelManager } from './ReactPanelManager';
-import { ReactPanelProps } from './layout/LayoutUtils';
-import { useParentItem } from './layout/ParentItemContext';
+import { ReactPanelProps } from './LayoutUtils';
+import { useParentItem } from './ParentItemContext';
 import { ReactPanelContext } from './ReactPanelContext';
 
 const log = Log.module('@deephaven/js-plugin-ui/ReactPanel');
