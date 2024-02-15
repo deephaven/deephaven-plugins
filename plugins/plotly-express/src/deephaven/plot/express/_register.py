@@ -1,3 +1,4 @@
+import os
 from . import DeephavenFigureType
 from ._js import create_js_plugin
 
@@ -21,4 +22,7 @@ class ExpressRegistration(Registration):
 
         """
         callback.register(DeephavenFigureType)
-        callback.register(create_js_plugin())
+
+        # Disable registering the JS plugins if the environment variable is set
+        if not os.getenv("DEEPHAVEN_DISABLE_PY_JS") == "True":
+            callback.register(create_js_plugin())
