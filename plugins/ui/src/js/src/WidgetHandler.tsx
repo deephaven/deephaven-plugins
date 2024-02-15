@@ -22,7 +22,7 @@ import {
   isCallableNode,
   isElementNode,
   isObjectNode,
-} from './ElementUtils';
+} from './elements/ElementUtils';
 import { WidgetMessageEvent, WidgetWrapper } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
 import { getComponentForElement } from './WidgetUtils';

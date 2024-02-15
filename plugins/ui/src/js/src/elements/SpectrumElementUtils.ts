@@ -26,7 +26,7 @@ import {
   RangeSlider,
   Slider,
   TextField,
-} from './spectrum';
+} from '../spectrum';
 import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
 
 export const SPECTRUM_ELEMENT_TYPE_PREFIX = 'deephaven.ui.spectrum.';

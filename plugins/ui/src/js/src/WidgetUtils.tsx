@@ -5,15 +5,15 @@ import {
   ElementNode,
   isExportedObject,
   isFragmentElementNode,
-} from './ElementUtils';
-import HTMLElementView from './HTMLElementView';
-import { isHTMLElementNode } from './HTMLElementUtils';
-import { isSpectrumElementNode } from './SpectrumElementUtils';
-import SpectrumElementView from './SpectrumElementView';
-import { isIconElementNode } from './IconElementUtils';
-import IconElementView from './IconElementView';
-import { isUITable } from './UITableUtils';
-import UITable from './UITable';
+} from './elements/ElementUtils';
+import HTMLElementView from './elements/HTMLElementView';
+import { isHTMLElementNode } from './elements/HTMLElementUtils';
+import { isSpectrumElementNode } from './elements/SpectrumElementUtils';
+import SpectrumElementView from './elements/SpectrumElementView';
+import { isIconElementNode } from './elements/IconElementUtils';
+import IconElementView from './elements/IconElementView';
+import { isUITable } from './elements/UITableUtils';
+import UITable from './elements/UITable';
 import {
   isColumnElementNode,
   isDashboardElementNode,
@@ -22,7 +22,7 @@ import {
   isStackElementNode,
 } from './layout/LayoutUtils';
 import ReactPanel from './ReactPanel';
-import ObjectView from './ObjectView';
+import ObjectView from './elements/ObjectView';
 import Row from './layout/Row';
 import Stack from './layout/Stack';
 import Column from './layout/Column';

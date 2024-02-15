@@ -4,7 +4,7 @@ import {
   SpectrumElementNode,
 } from './SpectrumElementUtils';
 import { ELEMENT_KEY } from './ElementUtils';
-import { mapSpectrumProps } from './spectrum/mapSpectrumProps';
+import { mapSpectrumProps } from '../spectrum/mapSpectrumProps';
 
 export type SpectrumElementViewProps = {
   element: SpectrumElementNode;

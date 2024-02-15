@@ -4,7 +4,11 @@ import type {
   Stack as GLStack,
   Root,
 } from '@deephaven/golden-layout';
-import { ELEMENT_KEY, ElementNode, isElementNode } from '../ElementUtils';
+import {
+  ELEMENT_KEY,
+  ElementNode,
+  isElementNode,
+} from '../elements/ElementUtils';
 import Column from './Column';
 import Row from './Row';
 import Stack from './Stack';
