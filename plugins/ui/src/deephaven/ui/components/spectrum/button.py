@@ -173,7 +173,7 @@ def button(
 
     """
     return spectrum_element(
-        "button",
+        "Button",
         *children,
         variant=variant,
         style=style,
