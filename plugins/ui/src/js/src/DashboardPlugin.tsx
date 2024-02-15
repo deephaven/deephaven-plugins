@@ -19,9 +19,9 @@ import {
 import { Widget } from '@deephaven/jsapi-types';
 import { ErrorBoundary } from '@deephaven/components';
 import styles from './styles.scss?inline';
-import { WidgetWrapper } from './WidgetTypes';
+import { WidgetWrapper } from './widget/WidgetTypes';
 import PortalPanel from './layout/PortalPanel';
-import WidgetHandler from './WidgetHandler';
+import WidgetHandler from './widget/WidgetHandler';
 
 const NAME_ELEMENT = 'deephaven.ui.Element';
 const DASHBOARD_ELEMENT = 'deephaven.ui.Dashboard';

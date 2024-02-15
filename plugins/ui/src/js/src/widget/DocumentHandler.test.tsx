@@ -7,8 +7,8 @@ import {
   DASHBOARD_ELEMENT_NAME,
   PANEL_ELEMENT_NAME,
   ReactPanelProps,
-} from './layout/LayoutUtils';
-import { MixedPanelsError, NoChildrenError } from './errors';
+} from '../layout/LayoutUtils';
+import { MixedPanelsError, NoChildrenError } from '../errors';
 import { getComponentForElement } from './WidgetUtils';
 
 const mockReactPanel = jest.fn((props: ReactPanelProps) => (

@@ -5,28 +5,28 @@ import {
   ElementNode,
   isExportedObject,
   isFragmentElementNode,
-} from './elements/ElementUtils';
-import HTMLElementView from './elements/HTMLElementView';
-import { isHTMLElementNode } from './elements/HTMLElementUtils';
-import { isSpectrumElementNode } from './elements/SpectrumElementUtils';
-import SpectrumElementView from './elements/SpectrumElementView';
-import { isIconElementNode } from './elements/IconElementUtils';
-import IconElementView from './elements/IconElementView';
-import { isUITable } from './elements/UITableUtils';
-import UITable from './elements/UITable';
+} from '../elements/ElementUtils';
+import HTMLElementView from '../elements/HTMLElementView';
+import { isHTMLElementNode } from '../elements/HTMLElementUtils';
+import { isSpectrumElementNode } from '../elements/SpectrumElementUtils';
+import SpectrumElementView from '../elements/SpectrumElementView';
+import { isIconElementNode } from '../elements/IconElementUtils';
+import IconElementView from '../elements/IconElementView';
+import { isUITable } from '../elements/UITableUtils';
+import UITable from '../elements/UITable';
 import {
   isColumnElementNode,
   isDashboardElementNode,
   isPanelElementNode,
   isRowElementNode,
   isStackElementNode,
-} from './layout/LayoutUtils';
-import ReactPanel from './layout/ReactPanel';
-import ObjectView from './elements/ObjectView';
-import Row from './layout/Row';
-import Stack from './layout/Stack';
-import Column from './layout/Column';
-import Dashboard from './layout/Dashboard';
+} from '../layout/LayoutUtils';
+import ReactPanel from '../layout/ReactPanel';
+import ObjectView from '../elements/ObjectView';
+import Row from '../layout/Row';
+import Stack from '../layout/Stack';
+import Column from '../layout/Column';
+import Dashboard from '../layout/Dashboard';
 
 export function getComponentForElement(element: ElementNode): React.ReactNode {
   // Need to convert the children of the element if they are exported objects to an ObjectView
