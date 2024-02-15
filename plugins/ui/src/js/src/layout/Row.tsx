@@ -4,7 +4,7 @@ import type { RowOrColumn } from '@deephaven/golden-layout';
 import { normalizeRowChildren, type RowElementProps } from './LayoutUtils';
 import { ParentItemContext, useParentItem } from './ParentItemContext';
 import { usePanelId } from '../ReactPanelContext';
-import { Flex } from '../spectrum';
+import { Flex } from '../elements/spectrum';
 
 function LayoutRow({ children, height }: RowElementProps): JSX.Element | null {
   const layoutManager = useLayoutManager();
