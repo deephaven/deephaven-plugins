@@ -33,11 +33,11 @@ def iris(ticking: bool = True, size: int = 300) -> Table:
         - The original Iris species labels are included (setosa, versicolor, and virginica).
 
     Args:
-        ticking: bool:  (Default value = True)
+        ticking:
             If true, the table will tick using a replayer starting
             with a third of the table already ticked. If false the
             whole table will be returned as a static table.
-        size: int:  (Default value = 300)
+        size:
             The number of rows to create for the table
 
     Returns:
@@ -121,7 +121,7 @@ def stocks(ticking: bool = True, hours_of_data: int = 1) -> Table:
     already initilized so your example plots won't start empty.
 
     Notes:
-        Containts the following columns:
+        Contains the following columns:
         - timestamp: a time column starting from the date deephaven.io was registered
         - sym: a string representing a fictional stock symbol
         - exchange: a string representing a fictional stock exchange
@@ -134,10 +134,10 @@ def stocks(ticking: bool = True, hours_of_data: int = 1) -> Table:
         - random: A random gaussian value using row index as seed
 
     Args:
-        ticking: bool:  (Default value = True)
+        ticking:
             If true, the table will tick using a replayer, if
             false the whole table will be returned as a static table.
-        hours_of_data: int: (Default value = 1)
+        hours_of_data:
             The number of hours of data to return
 
     Returns:

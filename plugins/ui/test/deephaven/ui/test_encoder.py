@@ -449,6 +449,7 @@ class EncoderTest(BaseTestCase):
         )
 
         result = encoder.encode_node(node)
+
         expected_payload = {
             "__dhElemName": "test0",
             "props": {
@@ -487,6 +488,71 @@ class EncoderTest(BaseTestCase):
         self.assertListEqual(
             list(result["callable_id_dict"].keys()),
             [cbs[0], cbs[2], cbs[3]],
+            "callables don't match",
+        )
+        self.assertListEqual(result["new_objects"], delta_objs, "objects don't match")
+
+        # Another step - Add some new objects and callables to the mix for next encoding
+        delta_objs = [TestObject()]
+        delta_cbs = [lambda: None]
+        objs = [objs[0], None, objs[2], None, delta_objs[0]]
+        cbs = [cbs[0], None, cbs[2], None, delta_cbs[0]]
+
+        # Replace cb[3] and obj[3] with the new callable/object and encode again
+        node = make_node(
+            "test0",
+            {
+                "children": [
+                    make_node("test1", {"foo": [cbs[0]]}),
+                    cbs[4],
+                    make_node("test3", {"bar": cbs[2], "children": [objs[0], objs[4]]}),
+                    make_node("test4", {"children": [objs[0], objs[2]]}),
+                    objs[4],
+                    make_node("test6", {"children": [objs[2]]}),
+                ]
+            },
+        )
+
+        result = encoder.encode_node(node)
+
+        expected_payload = {
+            "__dhElemName": "test0",
+            "props": {
+                "children": [
+                    {
+                        "__dhElemName": "test1",
+                        "props": {"foo": [{"__dhCbid": "cb0"}]},
+                    },
+                    {"__dhCbid": "cb4"},
+                    {
+                        "__dhElemName": "test3",
+                        "props": {
+                            "bar": {"__dhCbid": "cb2"},
+                            "children": [
+                                {"__dhObid": 0},
+                                {"__dhObid": 4},
+                            ],
+                        },
+                    },
+                    {
+                        "__dhElemName": "test4",
+                        "props": {"children": [{"__dhObid": 0}, {"__dhObid": 2}]},
+                    },
+                    {"__dhObid": 4},
+                    {
+                        "__dhElemName": "test6",
+                        "props": {"children": [{"__dhObid": 2}]},
+                    },
+                ],
+            },
+        }
+        self.maxDiff = None
+        self.assertDictEqual(
+            json.loads(result["encoded_node"]), expected_payload, "payloads don't match"
+        )
+        self.assertListEqual(
+            list(result["callable_id_dict"].keys()),
+            [cbs[0], cbs[2], cbs[4]],
             "callables don't match",
         )
         self.assertListEqual(result["new_objects"], delta_objs, "objects don't match")

@@ -1,8 +1,8 @@
 import React from 'react';
 import { WidgetDescriptor } from '@deephaven/dashboard';
-import ReactPanel from './ReactPanel';
-import { MixedPanelsError, NoChildrenError } from './errors';
-import Dashboard from './layout/Dashboard';
+import ReactPanel from '../layout/ReactPanel';
+import { MixedPanelsError, NoChildrenError } from '../errors';
+import Dashboard from '../layout/Dashboard';
 
 /**
  * Convert the children passed as the Document root to a valid root node, or throw if it's an invalid root configuration.

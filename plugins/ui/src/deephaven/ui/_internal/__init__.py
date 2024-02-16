@@ -15,4 +15,5 @@ from .utils import (
     to_camel_case,
     dict_to_camel_case,
     remove_empty_keys,
+    wrap_callable,
 )

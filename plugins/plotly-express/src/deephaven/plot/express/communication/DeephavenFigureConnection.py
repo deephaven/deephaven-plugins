@@ -33,8 +33,7 @@ class DeephavenFigureConnection(MessageStream):
             references: References to objects on the server
 
         Returns:
-            tuple[bytes, list[Any]]: The payload to send to the client and the
-                references to send to the client
+            The payload to send to the client and the references to send to the client
         """
         return self._listener.process_message(payload, references)
 

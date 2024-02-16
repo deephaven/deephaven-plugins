@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Callable
+
 from plotly import express as px
 
 from deephaven.table import Table
@@ -8,57 +10,62 @@ from ._private_utils import process_args
 from ..shared import default_callback
 from ..deephaven_figure import DeephavenFigure
 
+# The functions in this file are exempt from the styleguide rule that types should not be in the description if there
+# is a type annotation.
+
 
 def area(
-    table: Table = None,
-    x: str | list[str] = None,
-    y: str | list[str] = None,
-    by: str | list[str] = None,
-    by_vars: str | list[str] = "color",
-    color: str | list[str] = None,
-    pattern_shape: str | list[str] = None,
-    symbol: str | list[str] = None,
-    size: str | list[str] = None,
-    text: str = None,
-    hover_name: str = None,
-    labels: dict[str, str] = None,
-    color_discrete_sequence: list[str] = None,
-    color_discrete_map: dict[str | tuple[str], str] = None,
-    pattern_shape_sequence: list[str] = None,
-    pattern_shape_map: dict[str | tuple[str], str] = None,
-    symbol_sequence: list[str] = None,
+    table: Table | None = None,
+    x: str | list[str] | None = None,
+    y: str | list[str] | None = None,
+    by: str | list[str] | None = None,
+    by_vars: str | list[str] | None = "color",
+    color: str | list[str] | None = None,
+    pattern_shape: str | list[str] | None = None,
+    symbol: str | list[str] | None = None,
+    size: str | list[str] | None = None,
+    text: str | None = None,
+    hover_name: str | None = None,
+    labels: dict[str, str] | None = None,
+    color_discrete_sequence: list[str] | None = None,
+    color_discrete_map: dict[str | tuple[str], str] | None = None,
+    pattern_shape_sequence: list[str] | None = None,
+    pattern_shape_map: dict[str | tuple[str], str] | None = None,
+    symbol_sequence: list[str] | None = None,
     symbol_map: str
     | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]]
-    | dict[str | tuple[str], str] = None,
-    size_sequence: list[int] = None,
+    | dict[str | tuple[str], str]
+    | None = None,
+    size_sequence: list[int] | None = None,
     size_map: str
     | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]]
-    | dict[str | tuple[str], str] = None,
-    xaxis_sequence: list[str] = None,
-    yaxis_sequence: list[str] = None,
+    | dict[str | tuple[str], str]
+    | None = None,
+    xaxis_sequence: list[str] | None = None,
+    yaxis_sequence: list[str] | None = None,
     markers: bool = False,
-    groupnorm: str = None,
+    groupnorm: str | None = None,
     log_x: bool | list[bool] = False,
     log_y: bool | list[bool] = False,
-    range_x: list[int] | list[list[int]] = None,
-    range_y: list[int] | list[list[int]] = None,
-    yaxis_titles: list[str] = None,
-    xaxis_titles: list[str] = None,
+    range_x: list[int] | list[list[int]] | None = None,
+    range_y: list[int] | list[list[int]] | None = None,
+    yaxis_titles: list[str] | None = None,
+    xaxis_titles: list[str] | None = None,
     line_shape: str = "linear",
-    title: str = None,
-    template: str = None,
-    unsafe_update_figure: callable = default_callback,
+    title: str | None = None,
+    template: str | None = None,
+    unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """Returns an area chart
 
     Args:
-      table: Table:  (Default value = None)
+      table: Table | None:  (Default value = None)
         A table to pull data from.
-      x: str | list[str]:  (Default value = None)
+      x: str | list[str] | None:  (Default value = None)
         A column or list of columns that contain x-axis values.
-      y: str | list[str]:  (Default value = None)
+      y: str | list[str] | None:  (Default value = None)
         A column or list of columns that contain y-axis values.
-      by: str | list[str]:  (Default value = None)
+      by: str | list[str] | None:  (Default value = None)
         A column or list of columns that contain values to plot the figure traces by.
         All values or combination of values map to a unique design. The variable
         by_vars specifies which design elements are used.
@@ -68,72 +75,72 @@ def area(
         Can contain size, color, pattern_shape, and symbol.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
-      color: str | list[str]: (Default value = None)
+      color: str | list[str] | None: (Default value = None)
         A column or list of columns that contain color values.
         The value is used for a plot by on color.
         See color_discrete_map for additional behaviors.
-      pattern_shape: str | list[str]: (Default value = None)
+      pattern_shape: str | list[str] | None: (Default value = None)
         A column or list of columns that contain pattern shape values.
         The value is used for a plot by on pattern shape.
         See pattern_shape_map for additional behaviors.
-      symbol: str | list[str]: (Default value = None)
+      symbol: str | list[str] | None: (Default value = None)
         A column or list of columns that contain symbol values.
         The value is used for a plot by on symbol.
         See symbol_map for additional behaviors.
-      size: str | list[str]:  (Default value = None)
+      size: str | list[str] | None:  (Default value = None)
         A column or list of columns that contain size values.
         If only one column is passed, and it contains numeric values, the value
         is used as a size. Otherwise, the value is used for a plot by on size.
         See size_map for additional behaviors.
-      text: str:  (Default value = None)
+      text: str | None:  (Default value = None)
         A column that contains text annotations.
-      hover_name: str:  (Default value = None)
+      hover_name: str | None:  (Default value = None)
         A column that contains names to bold in the hover tooltip.
-      labels: dict[str, str]:  (Default value = None)
+      labels: dict[str, str] | None:  (Default value = None)
         A dictionary of labels mapping columns to new labels.
-      color_discrete_sequence: list[str]:  (Default value = None)
+      color_discrete_sequence: list[str] | None:  (Default value = None)
         A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
         colors will be reused.
-      color_discrete_map: dict[str | tuple[str], str] (Default value = None)
+      color_discrete_map: dict[str | tuple[str], str] | None: (Default value = None)
         If dict, the keys should be strings of the column values (or a tuple
         of combinations of column values) which map to colors.
-      pattern_shape_sequence: list[str]:  (Default value = None)
+      pattern_shape_sequence: list[str] | None:  (Default value = None)
         A list of patterns to sequentially apply
         to the series. The patterns loop, so if there are more series than
         patterns, patterns will be reused.
-      pattern_shape_map: dict[str | tuple[str], str] (Default value = None)
+      pattern_shape_map: dict[str | tuple[str], str] | None: (Default value = None)
         If dict, the keys should be strings of the column values (or a tuple
         of combinations of column values) which map to patterns.
-      symbol_sequence: list[str]:  (Default value = None)
+      symbol_sequence: list[str] | None:  (Default value = None)
         A list of symbols to sequentially apply to the
         markers in the series. The symbols loop, so if there are more series
         than symbols, symbols will be reused.
       symbol_map:
         str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
-            str | tuple[str], str] (Default value = None)
+            str | tuple[str], str] | None: (Default value = None)
         If dict, the keys should be strings of the column values (or a tuple
         of combinations of column values) which map to symbols.
         If "identity", the values are taken as literal symbols.
         If "by" or ("by", dict) where dict is as described above, the symbols are forced to by
-      size_sequence: list[str]:  (Default value = None)
+      size_sequence: list[str] | None:  (Default value = None)
         A list of sizes to sequentially apply to the
         markers in the series. The sizes loop, so if there are more series than
         symbols, sizes will be reused.
       size_map:
         str | tuple[str, dict[str | tuple[str], dict[str | tuple[str], str]]] | dict[
-            str | tuple[str], str] (Default value = None)
+            str | tuple[str], str] | None: (Default value = None)
         If dict, the keys should be strings of the column values (or a tuple
         of combinations of column values) which map to sizes.
         If "identity", the values are taken as literal sizes.
         If "by" or ("by", dict) where dict is as described above, the sizes are forced to by
-      xaxis_sequence: list[str]:  (Default value = None)
+      xaxis_sequence: list[str] | None:  (Default value = None)
         A list of x axes to assign series to. Odd numbers
         starting with 1 are created on the bottom x axis and even numbers starting
         with 2 are created on the top x axis. Axes are created up
         to the maximum number specified. The axes loop, so if there are more series
         than axes, axes will be reused.
-      yaxis_sequence: list[str]:  (Default value = None)
+      yaxis_sequence: list[str] | None:  (Default value = None)
         A list of y axes to assign series to. Odd numbers
         starting with 1 are created on the left y axis and even numbers starting
         with 2 are created on the top y axis. Axes are created up
@@ -141,7 +148,7 @@ def area(
         than axes, axes will be reused.
       markers: bool:  (Default value = False)
         True to draw markers on the line, False to not. Default False
-      groupnorm: str: (Default value = None)
+      groupnorm: str | None: (Default value = None)
         Set to 'fraction' to plot the fraction out of
         the total value of all points at that x value, 'percent' to take the
         fraction and multiply by 100. Note that if multiple y axes are
@@ -154,28 +161,28 @@ def area(
         A boolean or list of booleans that specify if
         the corresponding axis is a log axis or not. The booleans loop, so if there
         are more series than booleans, booleans will be reused.
-      range_x: list[int] | list[list[int]]:  (Default value = None)
+      range_x: list[int] | list[list[int]] | None:  (Default value = None)
         A list of two numbers or a list of lists of two numbers
         that specify the range of the x axes. None can be specified for no range
         The ranges loop, so if there are more axes than ranges, ranges will
         be reused.
-      range_y: list[int] | list[list[int]]:  (Default value = None)
+      range_y: list[int] | list[list[int]] | None:  (Default value = None)
         A list of two numbers or a list of lists of two numbers
         that specify the range of the y axes. None can be specified for no range
         The ranges loop, so if there are more axes than ranges, ranges will
         be reused.
-      yaxis_titles: list[str]:  (Default value = None)
+      yaxis_titles: list[str] | None:  (Default value = None)
         A list of titles to sequentially apply to the y axes. The titles do not
           loop.
-      xaxis_titles: list[str]:  (Default value = None)
+      xaxis_titles: list[str] | None:  (Default value = None)
         A list of titles to sequentially apply to the x axes. The titles do not
           loop.
       line_shape: str:  (Default value = 'linear')
         The line shape for all lines created. One of 'linear',
         'spline', 'vhv', 'hvh', 'vh', 'hv'. Default 'linear'
-      title: str: (Default value = None)
+      title: str | None: (Default value = None)
         The title of the chart
-      template: str:  (Default value = None)
+      template: str | None:  (Default value = None)
         The template for the chart.
       unsafe_update_figure:  Callable:  (Default value = default_callback)
         An update function that takes a plotly figure

@@ -3,7 +3,7 @@ from __future__ import annotations
 from itertools import cycle, count
 from collections.abc import Generator
 from math import floor, ceil
-from typing import Any
+from typing import Any, Callable
 
 from pandas import DataFrame
 from plotly.graph_objects import Figure
@@ -138,16 +138,18 @@ ATTACHED_UPDATE_MAP = {
 }
 
 
-def col_null_mapping(table: Table, cols: set[str]) -> Generator[tuple[str, str]]:
+def col_null_mapping(
+    table: Table, cols: set[str]
+) -> Generator[tuple[str, str], None, None]:
     """For every column in the table, check if it is in the provided cols,
     then yield a tuple with the column name and associated null value.
 
     Args:
-      table: Table: The table to pull columns from
-      cols: set[str]: The column set to check against
+      table: The table to pull columns from
+      cols: The column set to check against
 
     Yields:
-      tuple[str, str]: tuple of the form (column name, associated null value)
+      Tuple of the form (column name, associated null value)
     """
     for col in table.columns:
         if col.name in cols:
@@ -165,11 +167,11 @@ def construct_min_dataframe(table: Table, data_cols: list[str]) -> DataFrame:
     a single null data entry.
 
     Args:
-      table: Table: The table to construct the dataframe from
-      data_cols: list[str]: A list of columns that are needed in the final dataframe
+      table: The table to construct the dataframe from
+      data_cols: A list of columns that are needed in the final dataframe
 
     Returns:
-      DataFrame: The minimal dataframe
+      The minimal dataframe
 
     """
 
@@ -183,16 +185,16 @@ def construct_min_dataframe(table: Table, data_cols: list[str]) -> DataFrame:
     return dhpd.to_pandas(update_result, dtype_backend=None, conv_null=False)
 
 
-def get_data_cols(call_args: dict[Any]) -> dict[str | list[str]]:
+def get_data_cols(call_args: dict[str, Any]) -> dict[str, str | list[str]]:
     """Pull out all arguments that contain columns from the table. These need to
     be overriden on the client.
 
     Args:
-      call_args: dict[Any]: A dictionary containing arguments that were passed
+      call_args: A dictionary containing arguments that were passed
         to the chart creation call.
 
     Returns:
-      dict[str | list[str]]: A dictionary containing a key of argument name and
+      A dictionary containing a key of argument name and
         a value of column or list of columns
 
     Examples:
@@ -209,11 +211,10 @@ def split_args(call_args: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any
     Add these custom args to a separate object, then return both arg dicts
 
     Args:
-      call_args: dict[str, Any]: The initial call args
+      call_args: The initial call args
 
     Returns:
-      tuple[dict[str, Any], dict[str, Any] A tuple containing
-        (call_args, custom_call_args, data_map_args), where any custom
+      A tuple containing (call_args, custom_call_args, data_map_args), where any custom
         arguments have been removed from call_args and are now in
         custom_call_args and any arguments needed for the data mapping are in
         data_map_args
@@ -266,16 +267,15 @@ def split_args(call_args: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any
     return new_call_args, custom_call_args
 
 
-def base_x_axis_generator(update_titles: bool = False) -> Generator[dict]:
+def base_x_axis_generator(update_titles: bool = False) -> Generator[dict, None, None]:
     """Generates a dict to update anchor, overlaying, side, and a default title
     for the x-axis
 
     Args:
-      update_titles: bool:  (Default value = False) If this is true, update the
-        titles
+      update_titles: If this is true, update the titles
 
     Yields:
-      dict: Generated dict
+      Generated dict
 
     """
     bottom = True
@@ -292,16 +292,15 @@ def base_x_axis_generator(update_titles: bool = False) -> Generator[dict]:
         bottom = not bottom
 
 
-def base_y_axis_generator(update_titles: bool = False) -> Generator[dict]:
+def base_y_axis_generator(update_titles: bool = False) -> Generator[dict, None, None]:
     """Generates a dict to update anchor, overlaying, side, and a default title
     for the y-axis
 
     Args:
-      update_titles: bool:  (Default value = False) If this is true, update the
-        titles
+      update_titles: If this is true, update the titles
 
     Yields:
-      dict: Generated dict
+      Generated dict
 
     """
     left = True
@@ -318,18 +317,20 @@ def base_y_axis_generator(update_titles: bool = False) -> Generator[dict]:
         left = not left
 
 
-def key_val_generator(key: str, vals: list[Any]) -> Generator[tuple[str, Any]]:
+def key_val_generator(
+    key: str, vals: list[Any]
+) -> Generator[tuple[str, Any], None, None]:
     """A simple generator that loops over the provided vals and returns key, value
     for updates
 
     This can handle log, range, title, domain (once calculated)
 
     Args:
-      key: str: The key to update
-      vals: list[Any]: A list to return as a value pair
+      key: The key to update
+      vals: A list to return as a value pair
 
     Yields:
-      tuple[str, Any]: A tuple of (key, specific value in vals)
+      A tuple of (key, specific value in vals)
 
     """
     for val in cycle(vals):
@@ -339,15 +340,15 @@ def key_val_generator(key: str, vals: list[Any]) -> Generator[tuple[str, Any]]:
 def new_axis_generator(
     is_x: bool,
     new_axes: list[int],
-) -> Generator[tuple[str, str]]:
+) -> Generator[tuple[str, str], None, None]:
     """Create a dictionary used to modify the axis for a trace.
 
     Args:
-      is_x: bool: Whether x-axis is being adjusted or not
-      new_axes: list[int]: The new axis this trace will use
+      is_x: Whether x-axis is being adjusted or not
+      new_axes: The new axis this trace will use
 
     Yields:
-      tuple[str, str]: A dictionary containing a key of which axis to modify
+      A dictionary containing a key of which axis to modify
         and a value of the new axis.
 
     """
@@ -361,18 +362,17 @@ def new_axis_generator(
 
 def attached_generator(
     arg: str, attached_cols: list[str]
-) -> Generator[tuple[str, list]]:
+) -> Generator[tuple[str, list], None, None]:
     """Generate key, value pairs for error bar updates. If an error column is
     None, then there is no error bar drawn for the corresponding trace.
 
     Args:
-      arg: str: The error bar to map to an update
-      attached_cols: list[str]: A list of error columns to determine what the
+      arg: The error bar to map to an update
+      attached_cols: A list of error columns to determine what the
         value should be
 
     Yields:
-      tuple[str, list]: Generates a list of key, value pairs of
-        (error update, value)
+      Generates a list of key, value pairs of (error update, value)
 
     """
     for error_col in cycle(attached_cols):
@@ -381,32 +381,33 @@ def attached_generator(
 
 def update_traces(
     fig: Figure,
-    generator: Generator[dict],
+    generator: Generator[dict, None, None],
     step: int = 1,
 ) -> None:
     """Update the plotly traces with a generator
 
     Args:
-      fig: Figure: The Plotly figure to modify
-      generator: Generator[dict]: A generator that yields updates to apply
-      step: int:  (Default value = 1) How many traces to skip when applying the
-        new changes. Useful if marginals have been specified, as they should be
-        skipped
+      fig: The Plotly figure to modify
+      generator: A generator that yields updates to apply
+      step: How many traces to skip when applying the new changes.
+        Useful if marginals have been specified, as they should be skipped
 
     """
     for trace_index, update in zip(range(0, len(fig.data), step), generator):
         fig.update_traces(update, selector=trace_index)
 
 
-def position_generator(other_domain: list[float]) -> Generator[tuple[str, float]]:
+def position_generator(
+    other_domain: list[float],
+) -> Generator[tuple[str, float], None, None]:
     """Calculate the position of this axis. Uses the domain of the other variable
     (x with y or y with x) since the position is relative to that domain.
 
     Args:
-      other_domain: list[float]: The domain of the other dimension
+      other_domain: The domain of the other dimension
 
     Yields:
-      tuple[str, float]: A tuple of ("position", position)
+      A tuple of ("position", position)
 
     """
     for num in count(start=1):
@@ -424,16 +425,16 @@ def position_generator(other_domain: list[float]) -> Generator[tuple[str, float]
         yield "position", position
 
 
-def calculate_domain(other_total: int, is_x: bool) -> list[float, float]:
+def calculate_domain(other_total: int, is_x: bool) -> list[float]:
     """Calculate a domain for an axis, based on the count of axes in the other
     dimension and whether we're calculating the domain for an x-axis or not.
 
     Args:
-      other_total: int: The number of axis that exist in the other dimension
-      is_x: bool: If True, take into account the legend
+      other_total: The number of axis that exist in the other dimension
+      is_x: If True, take into account the legend
 
     Returns:
-      list[float, float]: The domain
+      The domain
 
     """
     # if calculating domain for x-axis, need to take into account legend
@@ -443,15 +444,15 @@ def calculate_domain(other_total: int, is_x: bool) -> list[float, float]:
     return [start, end]
 
 
-def get_domain(axes: list[int], is_x: bool) -> list[float, float]:
+def get_domain(axes: list[int] | None, is_x: bool) -> list[float]:
     """Get a domain from a list of axes and whether this is the x-axis or not
 
     Args:
-      axes: list[int]: A list of axes (from the other dimension) to calculate a
-      is_x: bool: Whether this is the x-axis or not
+      axes: A list of axes (from the other dimension) to calculate a
+      is_x: Whether this is the x-axis or not
 
     Returns:
-      list[float, float]: The domain
+      The domain
 
     """
     if not axes:
@@ -462,19 +463,19 @@ def get_domain(axes: list[int], is_x: bool) -> list[float, float]:
 def sequence_generator(
     arg: str,
     ls: str | list[str],
-    map_: dict[str | tuple[str], str] = None,
-    keys: list[tuple[str]] = None,
-) -> Generator[tuple[str, str]]:
+    map_: dict[str | tuple[str], str] | None = None,
+    keys: list[tuple[str]] | None = None,
+) -> Generator[tuple[str, str], None, None]:
     """Loops over the provided list to update the argument provided
 
     Args:
-      arg: str: The arg to update
-      ls: list[str]: The list of values to use
-      map_: dict[str | tuple[str], str]: The map to use to correspond specific keys with specific values
-      keys: list[tuple[str]]: The tuple keys to keep track of what value is assigned to what key
+      arg: The arg to update
+      ls: The list of values to use
+      map_: The map to use to correspond specific keys with specific values
+      keys: The tuple keys to keep track of what value is assigned to what key
 
     Yields:
-      tuple[str, str]: A tuple of (the name from SEQUENCE_ARGS_MAP, the value)
+      A tuple of (the name from SEQUENCE_ARGS_MAP, the value)
     """
 
     ls = ls if isinstance(ls, list) else [ls]
@@ -501,16 +502,15 @@ def sequence_generator(
         yield SEQUENCE_ARGS_MAP[arg], val
 
 
-def log_generator(is_log: list[bool]) -> Generator[dict | tuple[str, str]]:
+def log_generator(is_log: list[bool]) -> Generator[dict | tuple[str, str], None, None]:
     """Given a boolean list, cycle through it. If the list value is True, convert
     that axis to a log. Otherwise, do nothing.
 
     Args:
-      is_log: list[bool]: The list of booleans to loop over
+      is_log: The list of booleans to loop over
 
     Yields:
-      dict | tuple[str, str]: A tuple ("type", "log") or an empty dictionary
-
+      A tuple ("type", "log") or an empty dictionary
     """
     for val in cycle(is_log):
         if val:
@@ -519,16 +519,16 @@ def log_generator(is_log: list[bool]) -> Generator[dict | tuple[str, str]]:
             yield {}
 
 
-def title_generator(titles: list[str]) -> Generator[str]:
+def title_generator(titles: list[str]) -> Generator[dict, None, None]:
     """Generate changes to a layout's titles. This will not loop, so if the length
     of the title list is shorter than the number of axes the axes will keep the
     default title.
 
     Args:
-      titles: list[str]: The titles to use
+      titles: The titles to use
 
     Yields:
-      str: A dictionary, containing titles until they are exhausted, than an
+      A dictionary, containing titles until they are exhausted, than an
         empty dictionary
 
     """
@@ -540,15 +540,15 @@ def title_generator(titles: list[str]) -> Generator[str]:
 
 
 def update_layout_axis(
-    fig: Figure, axis: str, generator: Generator[dict], last: int
+    fig: Figure, axis: str, generator: Generator[dict, None, None], last: int
 ) -> None:
     """Loop through the generator to update all axis of the specified type.
 
     Args:
-      fig: Figure: The figure to update
-      axis: str: The axis (yaxis or xaxis) to update
-      generator: Generator[dict]: The generator to use for updates
-      last: int: The last index to update
+      fig: The figure to update
+      axis: The axis (yaxis or xaxis) to update
+      generator: The generator to use for updates
+      last: The last index to update
     """
     for num in range(1, last + 1):
         num = "" if num == 1 else num
@@ -560,24 +560,21 @@ def handle_custom_args(
     fig: Figure,
     custom_call_args: dict[str, Any],
     step: int = 1,
-    trace_generator: Generator[dict[str, Any]] = None,
-    extra_generators: list[Generator[Any]] = None,
-) -> Generator[dict[str, Any]]:
+    trace_generator: Generator[dict[str, Any], None, None] | None = None,
+    extra_generators: list[Generator[Any, None, None]] | None = None,
+) -> Generator[dict[str, Any], None, None]:
     """Modify plotly traces with the specified custom arguments.
 
     Args:
-      fig: Figure: The plotly figure to modify
-      custom_call_args: dict[str, Any]: Custom arguments to process
-      step: int: (Default value = 1) How many steps to skip when applying any
-        changes to traces.
-      trace_generator: Generator[dict[str, Any]]: (Default value = None)
-        Optional, if provided then only use this trace generator and return
+      fig: The plotly figure to modify
+      custom_call_args: Custom arguments to process
+      step: How many steps to skip when applying any changes to traces.
+      trace_generator: Optional, if provided then only use this trace generator and return
         (as layout should already be created)
-      extra_generators: list[Generator[Any]]: (Default value = None) Extra
-        generators to always update the trace with.
+      extra_generators: Extra generators to always update the trace with.
 
     Yields:
-      dict[str, Any]: Trace generator, to be used if adding more traces
+      Trace generator, to be used if adding more traces
 
     """
     if extra_generators:
@@ -687,12 +684,11 @@ def get_list_var_info(data_cols: dict[str, str | list[str]]) -> set[str]:
     """Extract the variable that is a list.
 
     Args:
-      data_cols: dict[str, str | list[str]]: The dictionary of data columns.
+      data_cols: The dictionary of data columns.
         Note this is only the main data columns and excludes "attached" columns
 
     Returns:
-      tuple[list[str], str | None, set[str]]: A tuple of
-        (list variable values, list variable name, set of types)
+      A tuple of (list variable values, list variable name, set of types)
 
     """
     types = set()
@@ -723,13 +719,13 @@ def relabel_columns(
     """Relabel any columns found in data
 
     Args:
-      labels: dict[str, str]: The dictionary of labels to use
-      hover_mapping: list[dict[str, str]]: The mapping of variables to columns
-      types: set[str]: Any types of this chart that require special processing
-      current_partition: dict[str, str]: The columns that this figure is partitioned by
+      labels: The dictionary of labels to use
+      hover_mapping: The mapping of variables to columns
+      types: Any types of this chart that require special processing
+      current_partition: The columns that this figure is partitioned by
 
     Returns:
-      str: The current column renamed
+      The current column renamed
     """
     if labels:
         for current_mapping in hover_mapping:
@@ -745,17 +741,16 @@ def relabel_columns(
 
 def get_hover_body(
     current_mapping: dict[str, str],
-    current_partition: dict[str, str] = None,
+    current_partition: dict[str, str] | None = None,
 ) -> str:
     """Get the hovertext
 
     Args:
-      current_mapping: dict[str, str]: The mapping of variables to columns
-      current_partition: dict[str, str]: The columns that this figure is partitioned by
+      current_mapping: The mapping of variables to columns
+      current_partition: The columns that this figure is partitioned by
 
     Returns:
-      str: The hovertext
-
+      The hovertext
     """
     hover_name = ""
 
@@ -785,21 +780,20 @@ def get_hover_body(
 def hover_text_generator(
     hover_mapping: list[dict[str, str]],
     # hover_data - todo, dependent on arrays supported in data mappings
-    types: set[str] = None,
-    current_partition: dict[str, str] = None,
-) -> Generator[dict[str, Any]]:
+    types: set[str] | None = None,
+    current_partition: dict[str, str] | None = None,
+) -> Generator[dict[str, Any], None, None]:
     """Generate hovertext
 
     Args:
-      hover_mapping: list[dict[str, str]]: The mapping of variables to columns
-      types: set[str]:  (Default value = None) Any types of this chart that
+      hover_mapping: The mapping of variables to columns
+      types: Any types of this chart that
         require special processing
-      current_partition: dict[str, str]: The columns that this figure is partitioned by
+      current_partition: The columns that this figure is partitioned by
 
 
     Yields:
-      dict[str, Any]: A dictionary update
-
+      A dictionary update
     """
     if "finance" in types:
         # finance has no hover text currently (besides the default)
@@ -838,16 +832,14 @@ def compute_labels(
     the histogram.
 
     Args:
-      hover_mapping: list[dict[str, str]]: The mapping of variables to columns
-      hist_val_name: str: The histogram name for the value axis, generally
-        histfunc
-      types: set[str]: Any types of this chart that require special processing
+      hover_mapping: The mapping of variables to columns
+      hist_val_name: The histogram name for the value axis, generally histfunc
+      types: Any types of this chart that require special processing
       labels: A dictionary of old column name to new column name mappings
-      current_partition: dict[str, str]: The columns that this figure is partitioned by
+      current_partition: The columns that this figure is partitioned by
 
     Returns:
-        str: the renamed current_col
-
+        the renamed current_col
     """
 
     calculate_hist_labels(hist_val_name, hover_mapping[0])
@@ -859,9 +851,8 @@ def calculate_hist_labels(hist_val_name: str, current_mapping: dict[str, str]) -
     """Calculate the histogram labels
 
     Args:
-      hist_val_name: str: The histogram name for the value axis, generally
-        histfunc
-      current_mapping: dict[str, str]: The mapping of variables to columns
+      hist_val_name: The histogram name for the value axis, generally histfunc
+      current_mapping: The mapping of variables to columns
 
     """
     if hist_val_name:
@@ -880,11 +871,10 @@ def add_axis_titles(
     """Add axis titles. Generally, this only applies when there is a list variable
 
     Args:
-      custom_call_args: dict[str, Any]: The custom_call_args that are used to
+      custom_call_args: The custom_call_args that are used to
         create hover and axis titles
-      hover_mapping: list[dict[str, str]]: The mapping of variables to columns
-      hist_val_name: str: The histogram name for the value axis, generally
-        histfunc
+      hover_mapping: The mapping of variables to columns
+      hist_val_name: The histogram name for the value axis, generally histfunc
 
     """
     # Although hovertext is handled above for all plot types, plotly still
@@ -914,7 +904,7 @@ def create_hover_and_axis_titles(
     custom_call_args: dict[str, Any],
     data_cols: dict[str, str],
     hover_mapping: list[dict[str, str]],
-) -> Generator[dict[str, Any]]:
+) -> Generator[dict[str, Any], None, None]:
     """Create hover text and axis titles. There are three main behaviors.
     First is "current_col", "current_var", and "pivot_vars" are specified in
     "custom_call_args".
@@ -935,14 +925,13 @@ def create_hover_and_axis_titles(
     legend or not depending on if there is a list of columns or not.
 
     Args:
-      custom_call_args: dict[str, Any]: The custom_call_args that are used to
+      custom_call_args: The custom_call_args that are used to
         create hover and axis titles
-      data_cols: dict[str, str]: The dictionary of data to column mappings
-      hover_mapping: list[dict[str, str]]: The mapping of variables to columns
+      data_cols: The dictionary of data to column mappings
+      hover_mapping: The mapping of variables to columns
 
     Yields:
-      dict[str, Any]: dicts containing hover updates
-
+      Dicts containing hover updates
     """
     types = get_list_var_info(data_cols)
 
@@ -961,27 +950,26 @@ def create_hover_and_axis_titles(
 
 
 def generate_figure(
-    draw: callable,
+    draw: Callable,
     call_args: dict[str, Any],
     start_index: int = 0,
-    trace_generator: Generator[dict] = None,
+    trace_generator: Generator[dict, None, None] | None = None,
 ) -> DeephavenFigure:
     """Generate a figure using a plotly express function as well as any args that
     should be used
 
     Args:
-      draw: Callable: The plotly express function to use to generate the figure
-      call_args: dict[str, Any]: Call arguments to use, either passing to
+      draw: The plotly express function to use to generate the figure
+      call_args: Call arguments to use, either passing to
         plotly express or handled separately
-      start_index: int: (Default value = 0) Only needed if there are existing
+      start_index: Only needed if there are existing
         traces that this figure is being added to. In that case, the data
         mapping needs to start at the end of the existing traces.
-      trace_generator:  Generator[dict]:  (Default value = None) If provided
-        then only use this trace generator and return (as layout should
-        already be created)
+      trace_generator: If provided then only use this trace generator and return
+        (as layout should already be created)
 
     Returns:
-      DeephavenFigure: a Deephaven figure
+      a Deephaven figure
 
     """
     table = call_args.pop("table")
@@ -1026,11 +1014,10 @@ def merge_cols(args: list[str | list[str]]) -> list[str]:
     """Merge the strings or list of strings passed into one list.
 
     Args:
-      args: list[str | list[str]]: A list contain strings and list of strings
-        to merge
+      args: A list contain strings and list of strings to merge
 
     Returns:
-      list[str]: A flattened list with all columns
+      A flattened list with all columns
 
     """
     prepared_cols = []

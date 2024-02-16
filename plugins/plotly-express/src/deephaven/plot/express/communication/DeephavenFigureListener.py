@@ -37,8 +37,8 @@ class DeephavenFigureListener:
         Create a new listener for the figure
 
         Args:
-            figure: DeephavenFigure: The figure to listen to
-            connection: MessageStream: The connection to send messages to
+            figure: The figure to listen to
+            connection: The connection to send messages to
         """
         self._connection = connection
 
@@ -89,9 +89,9 @@ class DeephavenFigureListener:
         meta table is updated, it will always trigger a rerender.
 
         Args:
-            node: DeephavenFigureNode: The node to update. Changes will propagate up from this node.
-            update: TableUpdate: Not used. Required for the listener.
-            is_replay: bool: Not used. Required for the listener.
+            node: The node to update. Changes will propagate up from this node.
+            update: Not used. Required for the listener.
+            is_replay: Not used. Required for the listener.
         """
         if self._connection:
             revision = self._revision_manager.get_revision()
@@ -110,23 +110,22 @@ class DeephavenFigureListener:
         figure.
 
         Returns:
-            tuple[bytes, list[Any]]: The result of the message as a tuple of
-              (new payload, new references)
+            The result of the message as a tuple of (new payload, new references)
         """
         return self._build_figure_message(self._get_figure())
 
     def _build_figure_message(
-        self, figure: DeephavenFigure, revision: int = None
+        self, figure: DeephavenFigure, revision: int | None = None
     ) -> tuple[bytes, list[Any]]:
         """
         Build a message to send to the client with the current figure.
 
         Args:
-            figure: DeephavenFigure: The figure to send
+            figure: The figure to send
+            revision: The revision to send
 
         Returns:
-            tuple[bytes, list[Any]]: The result of the message as a tuple of
-              (new payload, new references)
+            The result of the message as a tuple of (new payload, new references)
         """
         exporter = self._exporter
 
@@ -158,18 +157,18 @@ class DeephavenFigureListener:
         and return the result.
 
         Args:
-            payload: bytes: The payload to process
-            references:  list[Any]: References to objects on the server
+            payload: The payload to process
+            references:  References to objects on the server
 
         Returns:
-            tuple[bytes, list[Any]]: The result of the message as a tuple of
-              (new payload, new references)
+            The result of the message as a tuple of (new payload, new references)
 
         """
         # need to create a new exporter for each message
         message = json.loads(payload.decode())
         if message["type"] == "RETRIEVE":
             return self._handle_retrieve_figure()
+        return b"", []
 
     def __del__(self):
         self._liveness_scope.release()

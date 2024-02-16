@@ -6,7 +6,7 @@ import {
   ReactPanelManager,
   ReactPanelManagerContext,
 } from './ReactPanelManager';
-import { ReactPanelProps } from './layout/LayoutUtils';
+import { ReactPanelProps } from './LayoutUtils';
 
 const mockPanelId = 'test-panel-id';
 jest.mock('shortid', () => jest.fn(() => mockPanelId));

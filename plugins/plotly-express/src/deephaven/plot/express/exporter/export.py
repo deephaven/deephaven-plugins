@@ -16,8 +16,8 @@ class Reference:
         """
         Create a new reference
         Args:
-            index: int: The index of the reference
-            obj: object: The object that the reference points to
+            index: The index of the reference
+            obj: The object that the reference points to
         """
         self.id = index
         self.obj = obj

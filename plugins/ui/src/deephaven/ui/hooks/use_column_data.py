@@ -13,11 +13,11 @@ def _column_data(data: pd.DataFrame, is_sentinel: bool) -> ColumnData:
     Return the first column of the table as a list.
 
     Args:
-        data: pd.DataFrame: The table to extract the column from.
-        is_sentinel: bool: Whether the sentinel value was returned.
+        data: The table to extract the column from.
+        is_sentinel: Whether the sentinel value was returned.
 
     Returns:
-        ColumnData: The first column of the table as a list.
+        The first column of the table as a list.
     """
     try:
         return data if is_sentinel else data.iloc[:, 0].tolist()
@@ -31,11 +31,10 @@ def use_column_data(table: Table, sentinel: Sentinel = None) -> ColumnData | Sen
     Return the first column of the table as a list. The table should already be filtered to only have a single column.
 
     Args:
-        table: Table: The table to extract the column from.
-        sentinel: Sentinel: The sentinel value to return if the table is ticking but empty. Defaults to None.
+        table: The table to extract the column from.
+        sentinel: The sentinel value to return if the table is ticking but empty. Defaults to None.
 
     Returns:
-        ColumnData | Sentinel: The first column of the table as a list or the
-            sentinel value.
+        The first column of the table as a list or the sentinel value.
     """
     return use_table_data(table, sentinel, _column_data)
