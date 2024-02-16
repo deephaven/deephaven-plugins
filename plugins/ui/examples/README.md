@@ -896,7 +896,7 @@ monitor = monitor_changed_data(t)
 
 ## Handling liveness in functions
 
-Some functions which interact with a component will create live objects that need to be managed by the component to ensure they are kept active. 
+Some functions which interact with a component will create live objects that need to be managed by the component to ensure they are kept active.
 
 The primary use case for this is when creating tables outside the component's own function, and passing them as state for the component's next update:
 ```python
@@ -921,6 +921,7 @@ f = resetable_table()
 
 Without the `use_liveness_scope` wrapping the lamdba, the newly created live tables it creates go out of scope before the component can make use of it.
 
+For more information on liveness scopes and why they are needed, see the [liveness scope documentation](https://deephaven.io/core/docs/conceptual/liveness-scope-concept/).
 
 ![Change Monitor](assets/change_monitor.png)
 
