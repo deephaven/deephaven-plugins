@@ -11,14 +11,6 @@ def spectrum_element(name: str, /, *children: Any, **props: Any) -> BaseElement:
     return BaseElement(f"deephaven.ui.spectrum.{name}", *children, **props)
 
 
-def button(*children, **props):
-    """
-    Python implementation for the Adobe React Spectrum Button component.
-    https://react-spectrum.adobe.com/react-spectrum/Button.html
-    """
-    return spectrum_element("Button", *children, **props)
-
-
 def button_group(*children, **props):
     """
     Python implementation for the Adobe React Spectrum ButtonGroup component.
