@@ -120,8 +120,8 @@ class HistPreprocessor(UnivariatePreprocessor):
         ).view(self.names["range"])
 
     def create_count_tables(
-        self, tables: list[Table], column: str = None
-    ) -> Generator[tuple[Table, dict[str, str]], None, None]:
+        self, tables: list[Table], column: str | None = None
+    ) -> Generator[tuple[Table, str], None, None]:
         """
         Create count tables that aggregate up values.
 
@@ -141,7 +141,7 @@ class HistPreprocessor(UnivariatePreprocessor):
             tmp_col = get_unique_names(table, [tmp_name])[tmp_name]
             count_table = (
                 table.view(f"{tmp_col} = {column}")
-                .join(self.range_table)
+                .join(self.range_table)  # type: ignore # missing Optional type
                 .update_view(f"{range_index} = {range_}.index({tmp_col})")
                 .where(f"!isNull({range_index})")
                 .drop_columns(range_)
@@ -151,7 +151,7 @@ class HistPreprocessor(UnivariatePreprocessor):
 
     def preprocess_partitioned_tables(
         self, tables: list[Table], column: str | None = None
-    ) -> Generator[tuple[Table, dict[str, str]], None, None]:
+    ) -> Generator[tuple[Table, dict[str, str | None]], None, None]:
         """
         Preprocess tables into histogram tables
 

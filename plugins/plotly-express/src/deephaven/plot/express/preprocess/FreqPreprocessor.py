@@ -21,7 +21,7 @@ class FreqPreprocessor(UnivariatePreprocessor):
 
     def preprocess_partitioned_tables(
         self, tables: list[Table], column: str | None = None
-    ) -> Generator[tuple[Table, dict[str, str]], None, None]:
+    ) -> Generator[tuple[Table, dict[str, str | None]], None, None]:
         """Preprocess frequency bar params into an appropriate table
         This just sums each value by count
 

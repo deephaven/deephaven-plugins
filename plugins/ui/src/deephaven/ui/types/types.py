@@ -1,8 +1,9 @@
-from typing import Any, Dict, Literal, Union, List, Tuple, Optional
+from typing import Any, Dict, Literal, Union, List, Tuple, Optional, Callable
 from deephaven import SortDirection
 
 RowIndex = Optional[int]
 RowDataMap = Dict[str, Any]
+RowPressCallback = Callable[[RowIndex, RowDataMap], None]
 AggregationOperation = Literal[
     "COUNT",
     "COUNT_DISTINCT",
@@ -37,7 +38,7 @@ LockType = Literal["shared", "exclusive"]
 QuickFilterExpression = str
 RowData = Dict[ColumnName, Any]
 # A RowIndex of None indicates a header column
-RowIndex = Union[int, None]
+RowIndex = Optional[int]
 ColumnData = List[Any]
 TableData = Dict[ColumnName, ColumnData]
 SearchMode = Literal["SHOW", "HIDE", "DEFAULT"]

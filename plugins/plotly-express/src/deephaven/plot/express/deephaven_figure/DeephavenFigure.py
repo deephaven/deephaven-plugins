@@ -61,6 +61,10 @@ class DeephavenNode:
     represents a node in the graph.
     """
 
+    def __init__(self):
+        self.cached_figure = None
+        self.parent = None
+
     @abstractmethod
     def recreate_figure(self, update_parent: bool = True) -> None:
         """
@@ -223,7 +227,12 @@ class DeephavenLayerNode(DeephavenNode):
     """
 
     def __init__(
-        self, layer_func: Callable, args: dict[str, Any], exec_ctx: ExecutionContext
+        self,
+        layer_func: Callable,
+        args: dict[str, Any],
+        exec_ctx: ExecutionContext,
+        cached_figure: DeephavenFigure | None = None,
+        parent: DeephavenLayerNode | DeephavenHeadNode | None = None,
     ):
         """
         Create a new DeephavenLayerNode
@@ -233,11 +242,11 @@ class DeephavenLayerNode(DeephavenNode):
             args: The arguments to the function
             exec_ctx: The execution context
         """
-        self.parent: DeephavenLayerNode | DeephavenHeadNode | None = None
+        self.parent = parent
         self.nodes = []
         self.layer_func = layer_func
         self.args = args
-        self.cached_figure = None
+        self.cached_figure = cached_figure
         self.exec_ctx = exec_ctx
         self.revision_manager = RevisionManager()
 
@@ -267,7 +276,7 @@ class DeephavenLayerNode(DeephavenNode):
 
     def copy(
         self,
-        parent: DeephavenNode | DeephavenHeadNode,
+        parent: DeephavenLayerNode | DeephavenHeadNode,
         partitioned_tables: dict[int, tuple[PartitionedTable, DeephavenNode]],
     ) -> DeephavenLayerNode:
         """
@@ -282,12 +291,12 @@ class DeephavenLayerNode(DeephavenNode):
         Returns:
             DeephavenLayerNode: The new node
         """
-        new_node = DeephavenLayerNode(self.layer_func, self.args, self.exec_ctx)
+        new_node = DeephavenLayerNode(
+            self.layer_func, self.args, self.exec_ctx, self.cached_figure, parent
+        )
         new_node.nodes = [
             node.copy(new_node, partitioned_tables) for node in self.nodes
         ]
-        new_node.cached_figure = self.cached_figure
-        new_node.parent = parent
         return new_node
 
     def get_figure(self) -> DeephavenFigure | None:
@@ -568,7 +577,7 @@ class DeephavenFigure:
         """
         return self._head_node
 
-    def get_figure(self) -> DeephavenFigure:
+    def get_figure(self) -> DeephavenFigure | None:
         """
         Get the true DeephavenFigure for this figure.
 
@@ -577,16 +586,17 @@ class DeephavenFigure:
         """
         return self._head_node.get_figure()
 
-    def get_plotly_fig(self) -> Figure:
+    def get_plotly_fig(self) -> Figure | None:
         """
         Get the plotly figure for this figure
 
         Returns:
             The plotly figure
         """
-        if not self.get_figure():
+        figure = self.get_figure()
+        if not figure:
             return self._plotly_fig
-        return self.get_figure().get_plotly_fig()
+        return figure.get_plotly_fig()
 
     def get_data_mappings(self) -> list[DataMapping]:
         """
@@ -595,9 +605,10 @@ class DeephavenFigure:
         Returns:
             The data mappings
         """
-        if not self.get_figure():
+        figure = self.get_figure()
+        if not figure:
             return self._data_mappings
-        return self.get_figure().get_data_mappings()
+        return figure.get_data_mappings()
 
     def get_trace_generator(self) -> Generator[dict[str, Any], None, None] | None:
         """
@@ -606,9 +617,10 @@ class DeephavenFigure:
         Returns:
             The trace generator
         """
-        if not self.get_figure():
+        figure = self.get_figure()
+        if not figure:
             return self._trace_generator
-        return self.get_figure().get_trace_generator()
+        return figure.get_trace_generator()
 
     def get_has_template(self) -> bool:
         """
@@ -617,9 +629,10 @@ class DeephavenFigure:
         Returns:
             True if has a template, False otherwise
         """
-        if not self.get_figure():
+        figure = self.get_figure()
+        if not figure:
             return self._has_template
-        return self.get_figure().get_has_template()
+        return figure.get_has_template()
 
     def get_has_color(self) -> bool:
         """
@@ -628,9 +641,10 @@ class DeephavenFigure:
         Returns:
             True if has color, False otherwise
         """
-        if not self.get_figure():
+        figure = self.get_figure()
+        if not figure:
             return self._has_color
-        return self.get_figure().get_has_color()
+        return figure.get_has_color()
 
     def get_has_subplots(self) -> bool:
         """
@@ -639,9 +653,10 @@ class DeephavenFigure:
         Returns:
             True if has subplots, False otherwise
         """
-        if not self.get_figure():
+        figure = self.get_figure()
+        if not figure:
             return self._has_subplots
-        return self.get_figure().get_has_subplots()
+        return figure.get_has_subplots()
 
     def __del__(self):
         self._liveness_scope.release()

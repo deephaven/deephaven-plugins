@@ -116,7 +116,11 @@ def add_custom_data_args(
     generators = []
 
     for arg in CUSTOM_DATA_ARGS:
-        if arg in custom_call_args and (val := custom_call_args[arg]):
+        if (
+            custom_call_args
+            and arg in custom_call_args
+            and (val := custom_call_args[arg])
+        ):
             generators.append(custom_data_args_generator(arg, val))
 
     update_generator = combined_generator(generators, fill={})

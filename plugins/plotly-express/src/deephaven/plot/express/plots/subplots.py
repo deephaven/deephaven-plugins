@@ -1,16 +1,20 @@
 from __future__ import annotations
 
 import math
-from typing import Any
+from typing import Any, TypeVar, Union, Dict, List, cast
 
 from plotly.graph_objs import Figure
 
 from ._layer import layer
 from .. import DeephavenFigure
 
-
 # The function make_subplots in this file is exempt from the styleguide rule that types should not be in the
 # description if there is a type annotation.
+
+# generic grid that is a list of lists of anything
+T = TypeVar("T")
+Grid = List[List[T]]
+SpecsDict = Dict[str, Union[int, float]]
 
 
 def get_shared_key(
@@ -41,7 +45,7 @@ def get_shared_key(
 
 
 def get_new_specs(
-    specs: list[list[dict[str, int | float]]] | None,
+    specs: Grid[SpecsDict] | None,
     row_starts: list[float],
     row_ends: list[float],
     col_starts: list[float],
@@ -93,7 +97,10 @@ def get_new_specs(
             colspan: int = int(spec.get("colspan", 1))
             y_1 = row_ends[row + rowspan - 1]
             x_1 = col_ends[col + colspan - 1]
-            new_spec = {"x": [x_0 + l, x_1 - r], "y": [y_0 + t, y_1 - b]}
+            new_spec: dict[str, Any] = {
+                "x": [x_0 + l, x_1 - r],
+                "y": [y_0 + t, y_1 - b],
+            }
 
             if (
                 shared_xaxes
@@ -112,9 +119,7 @@ def get_new_specs(
     return new_specs
 
 
-def make_grid(
-    items: list[Any], rows: int, cols: int, fill: Any = None
-) -> list[list[Any]]:
+def make_grid(items: list[T], rows: int, cols: int, fill: Any = None) -> Grid[T]:
     """Make a grid (list of lists) out of the provided items
 
     Args:
@@ -180,20 +185,35 @@ def get_domains(values: list[float], spacing: float) -> tuple[list[float], list[
     return starts, ends
 
 
+def is_grid(specs: list[SpecsDict] | Grid[SpecsDict]) -> bool:
+    """Check if the given specs is a grid
+
+    Args:
+      specs:
+        The specs to check
+
+    Returns:
+      True if the specs is a grid, False otherwise
+
+    """
+    list_count = sum(isinstance(spec, list) for spec in specs)
+    if 0 < list_count < len(specs):
+        raise ValueError("Specs is a mix of lists and non-lists")
+    return list_count == len(specs) and list_count > 0
+
+
 def make_subplots(
     *figs: Figure | DeephavenFigure,
     rows: int = 0,
     cols: int = 0,
-    shared_xaxes: bool | int | None = None,
-    shared_yaxes: bool | int | None = None,
-    grid: list[list[Figure | DeephavenFigure]] | None = None,
+    shared_xaxes: str | bool | None = None,
+    shared_yaxes: str | bool | None = None,
+    grid: Grid[Figure | DeephavenFigure] | None = None,
     horizontal_spacing: float | None = None,
     vertical_spacing: float | None = None,
     column_widths: list[float] | None = None,
     row_heights: list[float] | None = None,
-    specs: list[dict[str, int | float]]
-    | list[list[dict[str, int | float]]]
-    | None = None,
+    specs: list[SpecsDict] | Grid[SpecsDict] | None = None,
 ) -> DeephavenFigure:
     """Create subplots. Either figs and at least one of rows and cols or grid
     should be passed.
@@ -258,13 +278,16 @@ def make_subplots(
     rows, cols = len(grid), len(grid[0])
 
     # only transform specs into a grid when dimensions of figure grid are known
-    if specs:
-        specs = (
-            specs
-            if isinstance(specs[0], list)
-            else make_grid(specs, rows, cols, fill={})
-        )
-        specs.reverse()
+    spec_grid: Grid[SpecsDict] | None = None
+    if specs and isinstance(specs, list):
+        if is_grid(specs):
+            spec_grid = cast(Grid[Any], specs)
+        else:
+            specs = cast(List[SpecsDict], specs)
+            spec_grid = cast(Grid[Any], make_grid(specs, rows, cols, fill={}))
+        spec_grid.reverse()
+    elif specs:
+        raise ValueError("specs must be a list or a grid")
 
     # same defaults as plotly
     if horizontal_spacing is None:
@@ -287,7 +310,7 @@ def make_subplots(
     return layer(
         *[fig for fig_row in grid for fig in fig_row],
         specs=get_new_specs(
-            specs,
+            spec_grid,
             row_starts,
             row_ends,
             col_starts,

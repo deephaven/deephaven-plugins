@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, Literal, Sequence, Optional
+from typing import Callable, Literal, Sequence, Any
 from deephaven.table import Table
 from deephaven import SortDirection
 from .Element import Element
@@ -18,10 +18,9 @@ from ..types import (
     DataBarAxis,
     DataBarValuePlacement,
     DataBarDirection,
-    RowIndex,
-    RowDataMap,
     SelectionMode,
     TableSortDirection,
+    RowPressCallback,
 )
 from .._internal import dict_to_camel_case, RenderContext
 
@@ -394,9 +393,7 @@ class UITable(Element):
         """
         raise NotImplementedError()
 
-    def on_row_press(
-        self, callback: Callable[[RowIndex, RowDataMap], None]
-    ) -> "UITable":
+    def on_row_press(self, callback: RowPressCallback) -> "UITable":
         """
         Add a callback for when a press on a row is released (e.g. a row is clicked).
 
@@ -410,9 +407,7 @@ class UITable(Element):
         """
         raise NotImplementedError()
 
-    def on_row_double_press(
-        self, callback: Callable[[RowIndex, RowDataMap], None]
-    ) -> "UITable":
+    def on_row_double_press(self, callback: RowPressCallback) -> "UITable":
         """
         Add a callback for when a row is double clicked.
 

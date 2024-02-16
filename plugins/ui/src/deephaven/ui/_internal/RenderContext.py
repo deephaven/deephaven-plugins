@@ -128,7 +128,7 @@ class RenderContext:
         self._liveness_scope = LivenessScope()
 
     @contextmanager
-    def open(self) -> Generator[AbstractContextManager, None, None]:
+    def open(self) -> Generator[RenderContext, None, None]:
         """
         Opens this context to track hook creation, sets this context as active on
         this thread, and opens the liveness scope for user-created objects.

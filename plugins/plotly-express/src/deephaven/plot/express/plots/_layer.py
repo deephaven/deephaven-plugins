@@ -248,7 +248,7 @@ def match_axes(
           if there is a dictionary to match to
 
     """
-    match_axis_key = spec.get(f"matched_{type_}", None)
+    match_axis_key = spec.get(f"matched_{type_}")
     axis_index = axis_indices.get(type_)
 
     if match_axis_key is not None:
@@ -256,11 +256,15 @@ def match_axes(
         match_axis_key = (match_axis_key, type_)
         if match_axis_key not in matches_axes:
             matches_axes[match_axis_key] = {}
-        if not matches_axes[match_axis_key].get(axis_index, None):
+        if (
+            matches_axes[match_axis_key]
+            and axis_index is not None
+            and not matches_axes[match_axis_key].get(axis_index)
+        ):
             # this is the base axis to match to, so matches is not added
-            matches_axes[match_axis_key][axis_index] = new_trace_axis
             return {}
-        return {"matches": matches_axes[match_axis_key][axis_index]}
+        if axis_index is not None:
+            return {"matches": matches_axes[match_axis_key][axis_index]}
 
     return {}
 

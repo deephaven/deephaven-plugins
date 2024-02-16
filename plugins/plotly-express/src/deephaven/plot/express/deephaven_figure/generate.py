@@ -795,7 +795,7 @@ def hover_text_generator(
     Yields:
       A dictionary update
     """
-    if "finance" in types:
+    if isinstance(types, set) and "finance" in types:
         # finance has no hover text currently (besides the default)
         while True:
             yield {}
