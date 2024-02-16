@@ -906,11 +906,11 @@ from deephaven import ui, time_table
 @ui.component
 def resetable_table():
     table, set_table = ui.use_state(lambda: time_table("PT1s"))
-
+    handle_press = ui.use_liveness_scope(lambda _: set_table(time_table("PT1s")))
     return [
         ui.action_button(
             "Reset",
-            on_press=ui.use_liveness_scope(lambda _: set_table(time_table("PT1s"))),
+            on_press=handle_press,
         ),
         table,
     ]
