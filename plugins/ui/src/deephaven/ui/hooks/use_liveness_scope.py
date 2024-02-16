@@ -1,10 +1,10 @@
 from .._internal import get_context
 from . import use_ref, use_memo
-from typing import Any, Callable
+from typing import Callable
 from deephaven.liveness_scope import LivenessScope
 
 
-def use_liveness_scope(func: Callable, dependencies: set[Any]) -> Callable:
+def use_liveness_scope(func: Callable, dependencies: set) -> Callable:
     """
     Wraps a Callable in a liveness scope, and ensures that when invoked, if that callable
     causes the component to render, the scope will be retained by that render pass. It is

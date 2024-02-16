@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import partial
-from typing import Callable, Any
+from typing import Callable
 
 from deephaven.table import Table
 from deephaven.table_listener import listen, TableUpdate, TableListener
@@ -67,7 +67,7 @@ def wrap_listener(
 def use_table_listener(
     table: Table,
     listener: Callable[[TableUpdate, bool], None] | TableListener,
-    dependencies: set[Any],
+    dependencies: set,
     description: str | None = None,
     do_replay: bool = False,
     replay_lock: LockType = "shared",

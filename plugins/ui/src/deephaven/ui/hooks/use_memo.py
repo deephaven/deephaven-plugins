@@ -8,7 +8,7 @@ from deephaven.liveness_scope import LivenessScope
 T = TypeVar("T")
 
 
-def use_memo(func: Callable[[], T], dependencies: set[Any]) -> T:
+def use_memo(func: Callable[[], T], dependencies: set) -> T:
     """
     Memoize the result of a function call. The function will only be called again if the dependencies change.
 
