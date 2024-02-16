@@ -1,9 +1,10 @@
+from typing import Any, Callable
 from .use_ref import use_ref
 from deephaven.liveness_scope import LivenessScope
 from .._internal import get_context
 
 
-def use_effect(func, dependencies):
+def use_effect(func: Callable[[], Any], dependencies: set[Any]):
     """
     Call a function when the dependencies change. Optionally return a cleanup function to be called when dependencies change again or component is unmounted.
 

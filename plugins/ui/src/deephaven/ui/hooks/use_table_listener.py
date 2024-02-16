@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import partial
-from typing import Callable
+from typing import Callable, Any
 
 from deephaven.table import Table
 from deephaven.table_listener import listen, TableUpdate, TableListener
@@ -67,6 +67,7 @@ def wrap_listener(
 def use_table_listener(
     table: Table,
     listener: Callable[[TableUpdate, bool], None] | TableListener,
+    dependencies: set[Any],
     description: str | None = None,
     do_replay: bool = False,
     replay_lock: LockType = "shared",
@@ -78,6 +79,7 @@ def use_table_listener(
         table: The table to listen to.
         listener: Either a function or a TableListener with an on_update function.
           The function must take a TableUpdate and is_replay bool.
+        dependencies: Dependencies of the listener function, so the hook knows when to recreate the listener
         description: An optional description for the UpdatePerformanceTracker to append to the listener’s
           entry description, default is None.
         do_replay: Whether to replay the initial snapshot of the table, default is False.
@@ -105,4 +107,6 @@ def use_table_listener(
 
         return lambda: handle.stop()
 
-    use_effect(start_listener, [table, listener, description, do_replay, replay_lock])
+    use_effect(
+        start_listener, {table, description, do_replay, replay_lock} | dependencies
+    )

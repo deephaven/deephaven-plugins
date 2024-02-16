@@ -106,7 +106,7 @@ class HooksTest(BaseTestCase):
         from deephaven.ui.hooks import use_memo
 
         def _test_memo(fn=lambda: "foo", a=1, b=2):
-            return use_memo(fn, [a, b])
+            return use_memo(fn, {a, b})
 
         # Initial render
         render_result = render_hook(_test_memo)
@@ -512,7 +512,7 @@ class HooksTest(BaseTestCase):
                 thread.start()
                 thread.join()
 
-            use_memo(start_thread, [])
+            use_memo(start_thread, set())
 
         render_hook(_test_execution_context)
 
@@ -535,7 +535,7 @@ class HooksTest(BaseTestCase):
                 thread = threading.Thread(target=thread_func)
                 thread.start()
 
-            use_memo(start_thread, [])
+            use_memo(start_thread, set())
 
         render_hook(_test_execution_context)
 
