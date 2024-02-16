@@ -1441,6 +1441,7 @@ Call a callback function or `on_update` in a `TableListener` when the table is u
 use_table_listener(
     table: Table,
     listener: Callable[[TableUpdate, bool], None] | TableListener,
+    dependencies: set[Any],
     description: str | None = None,
     do_replay: bool = False,
     replay_lock: LockType = "shared",

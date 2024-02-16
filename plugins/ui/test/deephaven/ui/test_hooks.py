@@ -149,7 +149,7 @@ class HooksTest(BaseTestCase):
             event.set()
 
         def _test_table_listener(replayed_table_val=table, listener_val=listener):
-            use_table_listener(replayed_table_val, listener_val)
+            use_table_listener(replayed_table_val, listener_val, set())
 
         render_hook(_test_table_listener)
 
@@ -566,7 +566,7 @@ class HooksTest(BaseTestCase):
             a, set_a = use_state(lambda: table.where("X=1"))
 
             # When "a" changes, recompute table - don't return or otherwise track this table w.r.t. liveness
-            replace_a = use_liveness_scope(lambda: set_a(table.where("X=2")))
+            replace_a = use_liveness_scope(lambda: set_a(table.where("X=2")), set())
 
             return a.size
 

@@ -140,6 +140,8 @@ def use_table_data(
 
     table_updated = lambda: _set_new_data(table, sentinel, set_data, set_is_sentinel)
 
-    ui.use_table_listener(table, partial(_on_update, ctx, table_updated, executor_name))
+    ui.use_table_listener(
+        table, partial(_on_update, ctx, table_updated, executor_name), set()
+    )
 
     return transform(data, is_sentinel)
