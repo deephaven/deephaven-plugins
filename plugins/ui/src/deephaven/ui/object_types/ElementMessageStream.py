@@ -11,12 +11,12 @@ from typing import Any, Callable
 from deephaven.plugin.object_type import MessageStream
 from deephaven.server.executors import submit_task
 from deephaven.execution_context import ExecutionContext, get_exec_ctx
+from deephaven.liveness_scope import liveness_scope
 
 from .._internal import wrap_callable
 from ..elements import Element
 from ..renderer import NodeEncoder, Renderer, RenderedNode
 from .._internal import RenderContext, StateUpdateCallable
-from ..renderer.NodeEncoder import NodeEncoder
 
 logger = logging.getLogger(__name__)
 
@@ -172,10 +172,11 @@ class ElementMessageStream(MessageStream):
 
             while not self._callable_queue.empty():
                 item = self._callable_queue.get()
-                try:
-                    item()
-                except Exception as e:
-                    logger.exception(e)
+                with liveness_scope():
+                    try:
+                        item()
+                    except Exception as e:
+                        logger.exception(e)
 
             if self._is_dirty:
                 self._render()
