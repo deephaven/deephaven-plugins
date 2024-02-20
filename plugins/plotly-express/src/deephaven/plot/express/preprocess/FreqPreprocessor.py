@@ -40,7 +40,7 @@ class FreqPreprocessor(UnivariatePreprocessor):
         self.args[self.other_var] = names["count"]
 
         for table in tables:
-            yield table.view([column]).count_by(names["count"], by=column), {
+            yield table.view([column]).count_by(names["count"], by=column), {  # type: ignore # missing Optional type
                 self.var: column,
                 self.other_var: names["count"],
             }

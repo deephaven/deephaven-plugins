@@ -174,7 +174,7 @@ def create_deephaven_figure(
     pop: list[str] | None = None,
     remap: dict[str, str] | None = None,
     px_func: Callable = lambda: None,
-) -> tuple[DeephavenFigure, Table | PartitionedTable, Table, dict[str, Any]]:
+) -> tuple[DeephavenFigure, Table | PartitionedTable, Table | None, dict[str, Any]]:
     """Process the provided args
 
     Args:
@@ -520,11 +520,17 @@ def create_marginal(marginal: str, args: dict[str, Any], which: str) -> Deephave
     }
 
     fig_marg = marginal_map[marginal](**args)
-    fig_marg.get_plotly_fig().update_traces(showlegend=False)
+
+    plotly_fig_marg = fig_marg.get_plotly_fig()
+
+    if plotly_fig_marg is None:
+        raise ValueError("Plotly figure is None, cannot create marginal figure")
+
+    plotly_fig_marg.update_traces(showlegend=False)
 
     if marginal == "rug":
         symbol = "line-ns-open" if which == "x" else "line-ew-open"
-        fig_marg.get_plotly_fig().update_traces(marker_symbol=symbol, jitter=0)
+        plotly_fig_marg.update_traces(marker_symbol=symbol, jitter=0)
 
     return fig_marg
 

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import collections
 import logging
-from typing import Callable, Literal, Sequence, Any
+from typing import Callable, Literal, Sequence, Any, cast
 from deephaven.table import Table
 from deephaven import SortDirection
 from .Element import Element
@@ -21,13 +22,14 @@ from ..types import (
     SelectionMode,
     TableSortDirection,
     RowPressCallback,
+    StringSortDirection,
 )
 from .._internal import dict_to_camel_case, RenderContext
 
 logger = logging.getLogger(__name__)
 
 
-def remap_sort_direction(direction: TableSortDirection) -> Literal["ASC", "DESC"]:
+def remap_sort_direction(direction: TableSortDirection | str) -> Literal["ASC", "DESC"]:
     """
     Remap the sort direction to the grid sort direction
 
@@ -42,7 +44,7 @@ def remap_sort_direction(direction: TableSortDirection) -> Literal["ASC", "DESC"
     elif direction == SortDirection.DESCENDING:
         return "DESC"
     elif direction in {"ASC", "DESC"}:
-        return direction
+        return cast(StringSortDirection, direction)
     raise ValueError(f"Invalid table sort direction: {direction}")
 
 
@@ -470,13 +472,16 @@ class UITable(Element):
         """
         direction_list: Sequence[TableSortDirection] = []
         if direction:
-            direction_list = direction if isinstance(direction, list) else [direction]
+            direction_list_unmapped = (
+                direction if isinstance(direction, Sequence) else [direction]
+            )
+
             # map deephaven sort direction to frontend sort direction
             direction_list = [
-                remap_sort_direction(direction) for direction in direction_list
+                remap_sort_direction(direction) for direction in direction_list_unmapped
             ]
 
-        by_list = by if isinstance(by, list) else [by]
+        by_list = by if isinstance(by, Sequence) else [by]
 
         if direction and len(direction_list) != len(by_list):
             raise ValueError("by and direction must be the same length")

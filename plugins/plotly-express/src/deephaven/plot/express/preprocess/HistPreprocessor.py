@@ -187,7 +187,7 @@ class HistPreprocessor(UnivariatePreprocessor):
 
         var_axis_name = self.names[self.histfunc]
 
-        bin_counts = bin_counts.join(self.range_table).update_view(
+        bin_counts = bin_counts.join(self.range_table).update_view(  # type: ignore # missing Optional type
             [
                 f"{bin_min} = {range_}.binMin({range_index})",
                 f"{bin_max} = {range_}.binMax({range_index})",

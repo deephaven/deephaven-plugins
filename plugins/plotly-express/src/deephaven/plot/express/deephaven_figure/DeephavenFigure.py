@@ -484,8 +484,8 @@ class DeephavenFigure:
 
         """
         plotly = None
-        if self._plotly_fig:
-            plotly = json.loads(self._plotly_fig.to_json())
+        if self._plotly_fig and (fig_json := self._plotly_fig.to_json()) is not None:
+            plotly = json.loads(fig_json)
         mappings = self.get_json_links(exporter)
         deephaven = {
             "mappings": mappings,
@@ -542,7 +542,7 @@ class DeephavenFigure:
         exec_ctx: ExecutionContext,
         args: dict[str, Any],
         table: Table | PartitionedTable,
-        key_column_table: Table,
+        key_column_table: Table | None,
         func: Callable,
     ) -> None:
         """

@@ -45,4 +45,5 @@ SearchMode = Literal["SHOW", "HIDE", "DEFAULT"]
 SelectionMode = Literal["CELL", "ROW", "COLUMN"]
 Sentinel = Any
 TransformedData = Any
-TableSortDirection = Union[Literal["ASC", "DESC"], SortDirection]
+StringSortDirection = Literal["ASC", "DESC"]
+TableSortDirection = Union[StringSortDirection, SortDirection]

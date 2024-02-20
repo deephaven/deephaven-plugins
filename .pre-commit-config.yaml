@@ -9,3 +9,16 @@ repos:
     rev: 22.10.0
     hooks:
       - id: black
+  - repo: https://github.com/RobertCraigie/pyright-python
+    rev: v1.1.334
+    hooks:
+      - id: pyright
+        files: plugins.*\/src.*\.py
+        additional_dependencies:
+          [
+            pandas,
+            deephaven-core,
+            plotly,
+            json-rpc,
+            matplotlib
+          ]

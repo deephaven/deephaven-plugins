@@ -3,7 +3,7 @@ from __future__ import annotations
 from itertools import cycle, count
 from collections.abc import Generator
 from math import floor, ceil
-from typing import Any, Callable, Mapping
+from typing import Any, Callable, Mapping, cast
 
 from pandas import DataFrame
 from plotly.graph_objects import Figure
@@ -393,7 +393,9 @@ def update_traces(
         Useful if marginals have been specified, as they should be skipped
 
     """
-    for trace_index, update in zip(range(0, len(fig.data), step), generator):
+    for trace_index, update in zip(
+        range(0, len(cast(tuple, fig.data)), step), generator
+    ):
         fig.update_traces(update, selector=trace_index)
 
 

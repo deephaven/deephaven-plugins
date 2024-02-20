@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import partial
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 from plotly.graph_objs import Figure
 
@@ -421,7 +421,7 @@ def fig_data_and_layout(
     if which_layout is None or which_layout == i:
         fig_layout.update(fig.to_dict()["layout"])
 
-    return fig.data, fig_layout
+    return cast(tuple, fig.data), fig_layout
 
 
 def atomic_layer(
@@ -477,8 +477,13 @@ def atomic_layer(
                 raise NotImplementedError(
                     "Cannot currently add figure with subplots as a subplot"
                 )
+
+            plotly_fig = arg.get_plotly_fig()
+            if plotly_fig is None:
+                raise ValueError("Figure does not have a plotly figure, cannot layer")
+
             fig_data, fig_layout = fig_data_and_layout(
-                arg.get_plotly_fig(),
+                plotly_fig,
                 i,
                 specs,
                 which_layout,

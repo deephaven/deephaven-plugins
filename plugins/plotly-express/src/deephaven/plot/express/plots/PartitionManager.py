@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Generator, Callable
-from typing import Any
+from typing import Any, cast
 
 import plotly.express as px
 from pandas import DataFrame
@@ -420,7 +420,9 @@ class PartitionManager:
 
         if partition_cols:
             if not partitioned_table:
-                partitioned_table = args["table"].partition_by(list(partition_cols))
+                partitioned_table = cast(Table, args["table"]).partition_by(
+                    list(partition_cols)
+                )
             if not self.key_column_table:
                 self.key_column_table = partitioned_table.table.drop_columns(
                     "__CONSTITUENT__"
@@ -506,10 +508,12 @@ class PartitionManager:
         Yields:
             The partition dictionary mapping column to value
         """
+        # the table is guaranteed to be a partitioned table here
+        key_columns = cast(PartitionedTable, self.partitioned_table).key_columns
+        # sort the columns so the order is consistent
+        key_columns.sort()
+
         for table in self.constituents:
-            # sort the columns so the order is consistent
-            key_columns = self.partitioned_table.key_columns
-            key_columns.sort()
 
             key_column_table = dhpd.to_pandas(table.select(key_columns))
             key_column_tuples = get_partition_key_column_tuples(
@@ -546,7 +550,8 @@ class PartitionManager:
             for table, current_partition in zip(
                 tables, self.current_partition_generator()
             ):
-                yield table, current_partition
+                # since this is preprocessed it will always be a tuple
+                yield cast(tuple[Table, dict[str, str]], (table, current_partition))
 
     def partition_generator(self) -> Generator[dict[str, Any], None, None]:
         """
@@ -577,9 +582,10 @@ class PartitionManager:
             or "preprocess_time" in self.groups
         ) and self.preprocessor:
             # still need to preprocess the base table
-            table, arg_update = list(
-                self.preprocessor.preprocess_partitioned_tables([args["table"]])
-            )[0]
+            table, arg_update = cast(
+                tuple,
+                [*self.preprocessor.preprocess_partitioned_tables([args["table"]])][0],
+            )
             args["table"] = table
             args.update(arg_update)
             yield args

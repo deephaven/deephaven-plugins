@@ -9,7 +9,7 @@ from .use_table_data import use_table_data
 from ..types import Sentinel
 
 
-def _row_list(data: pd.DataFrame, is_sentinel: bool) -> list[Any]:
+def _row_list(data: pd.DataFrame | Sentinel, is_sentinel: bool) -> list[Any] | Sentinel:
     """
     Return the first row of the table as a list.
 

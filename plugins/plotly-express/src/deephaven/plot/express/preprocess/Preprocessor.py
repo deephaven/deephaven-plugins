@@ -57,7 +57,11 @@ class Preprocessor:
 
     def preprocess_partitioned_tables(
         self, tables: list[Table] | None, column: str | None = None
-    ) -> Generator[Table, None, None]:
+    ) -> Generator[
+        Table | tuple[Table, dict[str, str | None]] | tuple[Table, dict[str, str]],
+        None,
+        None,
+    ]:
         """
         Preprocess the passed table, depending on the type of preprocessor used
 
