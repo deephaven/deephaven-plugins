@@ -142,7 +142,7 @@ class TableAnimation(Animation):
         super().__init__(fig, event_source, **kwargs)
 
         # Start the animation right away
-        self._start()
+        self._start()  # type: ignore
 
     def new_frame_seq(self):
         """
@@ -156,7 +156,7 @@ class TableAnimation(Animation):
         # Extends the _step() method for the Animation class. Used
         # to get the update information
         self._last_update = update
-        return super()._step(*args)
+        return super()._step(*args)  # type: ignore
 
     def _draw_frame(self, framedata):
         data = {}
