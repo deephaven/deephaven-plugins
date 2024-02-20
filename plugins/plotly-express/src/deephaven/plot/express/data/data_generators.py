@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ctypes import cast
+from typing import cast
 
 import pandas as pd
 from deephaven.replay import TableReplayer
@@ -57,9 +57,7 @@ def iris(ticking: bool = True, size: int = 300) -> Table:
     """
 
     base_time = to_j_instant("1936-01-01T08:00:00 UTC")
-    pd_base_time = to_pd_timestamp(base_time)
-    if pd_base_time is None:
-        raise ValueError("Could not convert base_time to pandas timestamp")
+    pd_base_time = cast(pd.Timestamp, to_pd_timestamp(base_time))
 
     species_list: list[str] = ["setosa", "versicolor", "virginica"]
     col_ids = {"sepal_length": 0, "sepal_width": 1, "petal_length": 2, "petal_width": 3}
@@ -157,9 +155,7 @@ def stocks(ticking: bool = True, hours_of_data: int = 1) -> Table:
     base_time = to_j_instant(
         "2018-06-01T08:00:00 ET"
     )  # day deephaven.io was registered
-    pd_base_time = to_pd_timestamp(base_time)
-    if pd_base_time is None:
-        raise ValueError("Could not convert base_time to pandas timestamp")
+    pd_base_time = cast(pd.Timestamp, to_pd_timestamp(base_time))
 
     sym_list = ["CAT", "DOG", "FISH", "BIRD", "LIZARD"]
     sym_dict = {v: i for i, v in enumerate(sym_list)}
