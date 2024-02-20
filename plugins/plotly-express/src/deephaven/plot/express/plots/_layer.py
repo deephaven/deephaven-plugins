@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import partial
-from typing import Any, Callable, cast
+from typing import Any, Callable, cast, Tuple
 
 from plotly.graph_objs import Figure
 
@@ -421,7 +421,7 @@ def fig_data_and_layout(
     if which_layout is None or which_layout == i:
         fig_layout.update(fig.to_dict()["layout"])
 
-    return cast(tuple, fig.data), fig_layout
+    return cast(Tuple, fig.data), fig_layout
 
 
 def atomic_layer(

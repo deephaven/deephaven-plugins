@@ -3,7 +3,7 @@ from __future__ import annotations
 from itertools import cycle, count
 from collections.abc import Generator
 from math import floor, ceil
-from typing import Any, Callable, Mapping, cast
+from typing import Any, Callable, Mapping, cast, Tuple
 
 from pandas import DataFrame
 from plotly.graph_objects import Figure
@@ -394,7 +394,7 @@ def update_traces(
 
     """
     for trace_index, update in zip(
-        range(0, len(cast(tuple, fig.data)), step), generator
+        range(0, len(cast(Tuple, fig.data)), step), generator
     ):
         fig.update_traces(update, selector=trace_index)
 

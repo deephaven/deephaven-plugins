@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import sys
 from collections.abc import Generator, Callable
-from typing import Any, cast
+from typing import Any, cast, Tuple, Dict
 
 import plotly.express as px
 from pandas import DataFrame
@@ -551,7 +552,7 @@ class PartitionManager:
                 tables, self.current_partition_generator()
             ):
                 # since this is preprocessed it will always be a tuple
-                yield cast(tuple[Table, dict[str, str]], (table, current_partition))
+                yield cast(Tuple[Table, Dict[str, str]], (table, current_partition))
 
     def partition_generator(self) -> Generator[dict[str, Any], None, None]:
         """
@@ -583,7 +584,7 @@ class PartitionManager:
         ) and self.preprocessor:
             # still need to preprocess the base table
             table, arg_update = cast(
-                tuple,
+                Tuple,
                 [*self.preprocessor.preprocess_partitioned_tables([args["table"]])][0],
             )
             args["table"] = table

@@ -105,4 +105,4 @@ def use_table_listener(
 
         return lambda: handle.stop()
 
-    use_effect(start_listener, [table, listener, description, do_replay, replay_lock])
+    use_effect(start_listener, {table, listener, description, do_replay, replay_lock})
