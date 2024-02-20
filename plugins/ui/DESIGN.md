@@ -1150,12 +1150,17 @@ picker5 = ui.picker(
     children=options
 )
 
+# instead, pass in the table directly
+picker6 = ui.picker(
+    table1
+)
+
 from deephaven import new_table
 from deephaven.column import string_col, int_col
 
 color_table = new_table([
     string_col("Sections", ["Interesting Colors", 'Interesting Colors', "Other Colors"]),
-    string_col("Section Names", ["Favorites", 'Favorites', "Other"]),
+    string_col("SectionNames", ["Favorites", 'Favorites', "Other"]),
     int_col("Keys", ["salmon", "lemonchiffon", "black"]),
     string_col("Labels", ["Salmon", "Lemon Chiffon", "Black"]),
     string_col("Descriptions", ["An interesting color", "Another interesting color", "A color"]),
@@ -1166,13 +1171,13 @@ partitioned_table = color_table.partition_by("Sections")
 color, set_color = ui.use_state("salmon")
 
 # this will create a picker with two sections, one for each partition
-picker6 = ui.picker(
+picker7 = ui.picker(
     partitioned_table,
     key_column="Keys",
     label_column="Labels",
     description_column="Descriptions",
     icon_column="Icons",
-    title_column="Section Names",
+    title_column="SectionNames",
     selected_key=option,
     on_selection_change=set_color
 )
