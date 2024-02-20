@@ -241,7 +241,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     figureUpdateEvent.columns.forEach(column => {
       const columnData = chartData.getColumn(
         column.name,
-        val => this.chartUtils.unwrapValue(val),
+        this.chartUtils.unwrapValue,
         figureUpdateEvent
       );
       tableData[column.name] = columnData;
