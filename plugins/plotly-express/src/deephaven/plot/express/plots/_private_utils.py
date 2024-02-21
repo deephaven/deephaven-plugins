@@ -392,7 +392,7 @@ def shared_marginal(
 
 
 def shared_violin(
-    is_marginal=True,
+    is_marginal: bool = True,
     **args: Any,
 ) -> DeephavenFigure:
     """
@@ -414,7 +414,7 @@ def shared_violin(
     return shared_marginal(is_marginal, func, groups, **args)
 
 
-def shared_box(is_marginal=True, **args: Any) -> DeephavenFigure:
+def shared_box(is_marginal: bool = True, **args: Any) -> DeephavenFigure:
     """
     Create a box figure
 
@@ -434,7 +434,7 @@ def shared_box(is_marginal=True, **args: Any) -> DeephavenFigure:
     return shared_marginal(is_marginal, func, groups, **args)
 
 
-def shared_strip(is_marginal=True, **args: Any) -> DeephavenFigure:
+def shared_strip(is_marginal: bool = True, **args: Any) -> DeephavenFigure:
     """
     Create a strip figure
 
@@ -454,7 +454,7 @@ def shared_strip(is_marginal=True, **args: Any) -> DeephavenFigure:
     return shared_marginal(is_marginal, func, groups, **args)
 
 
-def shared_histogram(is_marginal=True, **args: Any) -> DeephavenFigure:
+def shared_histogram(is_marginal: bool = True, **args: Any) -> DeephavenFigure:
     """
     Create a histogram figure
 

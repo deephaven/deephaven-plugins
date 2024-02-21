@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from .StyleManager import StyleManager
 from ..shared import get_unique_names
 
@@ -9,14 +11,17 @@ class AttachedPreprocessor:
     such as treemap and pie.
 
     Attributes:
-        args: dict[str, Any]: Args used to create the plot
-        always_attached: dict[tuple[str, str],
-          tuple[dict[str, str], list[str], str]: The dict mapping the arg and column
+        args: Args used to create the plot
+        always_attached: The dict mapping the arg and column
           to the style map, dictionary, and new column name, to be used for
           AttachedProcessor when dealing with an "always_attached" plot
     """
 
-    def __init__(self, args, always_attached):
+    def __init__(
+        self,
+        args: dict[str, Any],
+        always_attached: dict[tuple[str, str], tuple[dict[str, str], list[str], str]],
+    ):
         self.args = args
         self.always_attached = always_attached
         self.prepare_preprocess()

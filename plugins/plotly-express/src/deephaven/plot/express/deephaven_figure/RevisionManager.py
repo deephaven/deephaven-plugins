@@ -1,4 +1,5 @@
 import threading
+from typing import Any
 
 
 class RevisionManager:
@@ -25,7 +26,8 @@ class RevisionManager:
     def __enter__(self):
         self.lock.acquire()
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any):
+
         self.lock.release()
 
     def get_revision(self) -> int:

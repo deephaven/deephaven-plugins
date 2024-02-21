@@ -6,7 +6,7 @@ The components provided in deephaven.ui should be preferred over this module.
 from ..elements import BaseElement
 
 
-def html_element(tag, *children, **attributes):
+def html_element(tag: str, *children, **attributes):
     """
     Create a new HTML element. Render just returns the children that are passed in.
 

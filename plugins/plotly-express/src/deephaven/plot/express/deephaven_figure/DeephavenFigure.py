@@ -250,7 +250,7 @@ class DeephavenLayerNode(DeephavenNode):
         self.exec_ctx = exec_ctx
         self.revision_manager = RevisionManager()
 
-    def recreate_figure(self, update_parent=True) -> None:
+    def recreate_figure(self, update_parent: bool = True) -> None:
         """
         Recreate the figure. This is called when the underlying partition
         or a child node changes
