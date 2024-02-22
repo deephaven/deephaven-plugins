@@ -103,6 +103,7 @@ ButtonVariant = Literal[
 ]
 ButtonStyle = Literal["fill", "outline"]
 ElementTypes = Literal["div", "button", "a"]
+Orientation = Literal["horizontal", "vertical"]
 
 FocusEventCallable = Callable[[FocusEvent], None]
 KeyboardEventCallable = Callable[[KeyboardEvent], None]
