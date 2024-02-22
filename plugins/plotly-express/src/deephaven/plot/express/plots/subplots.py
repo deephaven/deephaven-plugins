@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import Any, TypeVar, List, cast, TypedDict, NotRequired
+from typing import Any, TypeVar, List, cast, TypedDict
 
 from plotly.graph_objs import Figure
 
@@ -16,13 +16,13 @@ T = TypeVar("T")
 Grid = List[List[T]]
 
 
-class SubplotSpecDict(TypedDict):
-    l: NotRequired[float]
-    r: NotRequired[float]
-    t: NotRequired[float]
-    b: NotRequired[float]
-    rowspan: NotRequired[int]
-    colspan: NotRequired[int]
+class SubplotSpecDict(TypedDict, total=False):
+    l: float
+    r: float
+    t: float
+    b: float
+    rowspan: int
+    colspan: int
 
 
 def get_shared_key(

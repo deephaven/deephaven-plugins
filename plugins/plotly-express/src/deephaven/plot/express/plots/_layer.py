@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import partial
-from typing import Any, Callable, cast, Tuple, NotRequired
+from typing import Any, Callable, cast, Tuple
 
 from plotly.graph_objs import Figure
 
@@ -16,14 +16,14 @@ from deephaven.execution_context import make_user_exec_ctx
 from typing import TypedDict
 
 
-class LayerSpecDict(TypedDict):
-    x: NotRequired[list[float] | None]
-    y: NotRequired[list[float] | None]
-    xaxis_update: NotRequired[dict[str, Any] | None]
-    yaxis_update: NotRequired[dict[str, Any] | None]
-    wipe_layout: NotRequired[bool | None]
-    matched_xaxis: NotRequired[str | int | None]
-    matched_yaxis: NotRequired[str | int | None]
+class LayerSpecDict(TypedDict, total=False):
+    x: list[float] | None
+    y: list[float] | None
+    xaxis_update: dict[str, Any] | None
+    yaxis_update: dict[str, Any] | None
+    wipe_layout: bool | None
+    matched_xaxis: str | int | None
+    matched_yaxis: str | int | None
 
 
 def normalize_position(
