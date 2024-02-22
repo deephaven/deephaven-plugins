@@ -1,7 +1,6 @@
 {
-  "name": "example-theme",
-  "private": true,
-  "version": "0.0.0",
+  "name": "@deephaven/js-plugin-example-theme",
+  "version": "0.1.0",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
