@@ -150,30 +150,35 @@ def wrap_callable(func: Callable) -> Callable:
     Returns:
         The wrapped callable
     """
-    if sys.version_info.major == 3 and sys.version_info.minor >= 10:
-        sig = signature(func, eval_str=True)  # type: ignore
-    else:
-        sig = signature(func)
+    try:
+        if sys.version_info.major == 3 and sys.version_info.minor >= 10:
+            sig = signature(func, eval_str=True)  # type: ignore
+        else:
+            sig = signature(func)
 
-    max_args: int | None = 0
-    kwargs_set: Set | None = set()
+        max_args: int | None = 0
+        kwargs_set: Set | None = set()
 
-    for param in sig.parameters.values():
-        if param.kind == param.POSITIONAL_ONLY:
-            max_args = cast(int, max_args)
-            max_args += 1
-        elif param.kind == param.POSITIONAL_OR_KEYWORD:
-            # Don't know until runtime whether this will be passed as a positional or keyword arg
-            max_args = cast(int, max_args)
-            kwargs_set = cast(Set, kwargs_set)
-            max_args += 1
-            kwargs_set.add(param.name)
-        elif param.kind == param.VAR_POSITIONAL:
-            max_args = None
-        elif param.kind == param.KEYWORD_ONLY:
-            kwargs_set = cast(Set, kwargs_set)
-            kwargs_set.add(param.name)
-        elif param.kind == param.VAR_KEYWORD:
-            kwargs_set = None
+        for param in sig.parameters.values():
+            if param.kind == param.POSITIONAL_ONLY:
+                max_args = cast(int, max_args)
+                max_args += 1
+            elif param.kind == param.POSITIONAL_OR_KEYWORD:
+                # Don't know until runtime whether this will be passed as a positional or keyword arg
+                max_args = cast(int, max_args)
+                kwargs_set = cast(Set, kwargs_set)
+                max_args += 1
+                kwargs_set.add(param.name)
+            elif param.kind == param.VAR_POSITIONAL:
+                max_args = None
+            elif param.kind == param.KEYWORD_ONLY:
+                kwargs_set = cast(Set, kwargs_set)
+                kwargs_set.add(param.name)
+            elif param.kind == param.VAR_KEYWORD:
+                kwargs_set = None
 
-    return partial(_wrapped_callable, max_args, kwargs_set, func)
+        return partial(_wrapped_callable, max_args, kwargs_set, func)
+    except ValueError or TypeError:
+        # This function has no signature, so we can't wrap it
+        # Return the original function should be okay
+        return func

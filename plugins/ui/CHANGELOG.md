@@ -2,6 +2,24 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.7.0 - 2024-02-21
+#### Bug Fixes
+- Hooks accepting liveness objects and functions should manage their lifetime (#258) - (8d2a945) - niloc132
+- Initial set of type fixes (#217) - (5c52488) - Joe
+- Stock rollup example was not working (#268) - (5d6205c) - mofojed
+- Version bump + loading spinner fixes (#243) - (aeb7796) - bmingles
+#### Documentation
+- More specs for ui.table functionality (#198) - (8d4255c) - Joe
+- button  (#266) - (7ce4e75) - ethanalvizo
+#### Features
+- Support column and row within a panel (#272) - (0413443) - Matthew Runyon
+- Support for dropping extra callback args (#271) - (34ddfcd) - Joe
+- Auto-wrap layout components when possible (#249) - (d93dc9c) - Matthew Runyon
+#### Refactoring
+- Re-organize some code into subfolders (#284) - (dbff1ab) - mofojed
+
+- - -
+
 ## ui-v0.6.0 - 2024-02-05
 #### Bug Fixes
 - **(ui)** Default placement of newly opened components is inconsistent (#244) - (8b17e85) - Matthew Runyon
