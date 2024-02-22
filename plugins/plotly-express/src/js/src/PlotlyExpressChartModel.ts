@@ -7,35 +7,24 @@ import type {
   TableSubscription,
   TableData,
 } from '@deephaven/jsapi-types';
-import {
-  ChartModel,
-  ChartUtils,
-  ChartTheme,
-  defaultChartTheme,
-} from '@deephaven/chart';
+import { ChartModel, ChartUtils } from '@deephaven/chart';
 import Log from '@deephaven/log';
 import {
   PlotlyChartWidgetData,
-  applyColorwayToData,
   getDataMappings,
   getWidgetData,
+  removeColorsFromData,
 } from './PlotlyExpressChartUtils.js';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
 
 export class PlotlyExpressChartModel extends ChartModel {
-  constructor(
-    dh: DhType,
-    widget: Widget,
-    refetch: () => Promise<Widget>,
-    theme: ChartTheme = defaultChartTheme()
-  ) {
+  constructor(dh: DhType, widget: Widget, refetch: () => Promise<Widget>) {
     super(dh);
 
     this.widget = widget;
     this.refetch = refetch;
     this.chartUtils = new ChartUtils(dh);
-    this.theme = theme;
 
     this.handleFigureUpdated = this.handleFigureUpdated.bind(this);
     this.handleWidgetUpdated = this.handleWidgetUpdated.bind(this);
@@ -89,17 +78,15 @@ export class PlotlyExpressChartModel extends ChartModel {
    */
   tableDataMap: Map<number, { [key: string]: unknown[] }> = new Map();
 
-  theme: ChartTheme;
-
   plotlyData: Data[] = [];
 
   layout: Partial<Layout> = {};
 
-  plotlyLayout: Partial<Layout> = {};
-
   isPaused = false;
 
   hasPendingUpdate = false;
+
+  hasInitialLoadCompleted = false;
 
   override getData(): Partial<Data>[] {
     const hydratedData = [...this.plotlyData];
@@ -195,22 +182,11 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   updateLayout(data: PlotlyChartWidgetData) {
     const { figure } = data;
-    const { plotly, deephaven } = figure;
+    const { plotly } = figure;
     const { layout: plotlyLayout = {} } = plotly;
-
-    const template = { layout: this.chartUtils.makeDefaultLayout(this.theme) };
-
-    // For now we will only use the plotly theme colorway since most plotly themes are light mode
-    if (deephaven.is_user_set_template) {
-      template.layout.colorway =
-        plotlyLayout.template?.layout?.colorway ?? template.layout.colorway;
-    }
-
-    this.plotlyLayout = plotlyLayout;
 
     this.layout = {
       ...plotlyLayout,
-      template,
     };
   }
 
@@ -223,17 +199,19 @@ export class PlotlyExpressChartModel extends ChartModel {
       new_references: newReferences,
       removed_references: removedReferences,
     } = data;
-    const { plotly } = figure;
+    const { plotly, deephaven } = figure;
+    const { layout: plotlyLayout = {} } = plotly;
     this.tableColumnReplacementMap = getDataMappings(data);
 
     this.plotlyData = plotly.data;
     this.updateLayout(data);
 
-    applyColorwayToData(
-      this.layout?.template?.layout?.colorway ?? [],
-      this.plotlyLayout?.template?.layout?.colorway ?? [],
-      this.plotlyData
-    );
+    if (!deephaven.is_user_set_template) {
+      removeColorsFromData(
+        plotlyLayout?.template?.layout?.colorway ?? [],
+        this.plotlyData
+      );
+    }
 
     newReferences.forEach(async (id, i) => {
       this.tableDataMap.set(id, {}); // Plot may render while tables are being fetched. Set this to avoid a render error
@@ -263,7 +241,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     figureUpdateEvent.columns.forEach(column => {
       const columnData = chartData.getColumn(
         column.name,
-        val => this.chartUtils.unwrapValue(val),
+        this.chartUtils.unwrapValue,
         figureUpdateEvent
       );
       tableData[column.name] = columnData;
@@ -329,6 +307,15 @@ export class PlotlyExpressChartModel extends ChartModel {
   override fireUpdate(data: unknown): void {
     super.fireUpdate(data);
     this.hasPendingUpdate = false;
+
+    // TODO: This will fire on first call to `fireUpdate` even though other data
+    // may still be loading. We should consider making this smarter to fire after
+    // all initial data has loaded.
+    // https://github.com/deephaven/deephaven-plugins/issues/267
+    if (!this.hasInitialLoadCompleted) {
+      this.fireLoadFinished();
+      this.hasInitialLoadCompleted = true;
+    }
   }
 
   pauseUpdates(): void {

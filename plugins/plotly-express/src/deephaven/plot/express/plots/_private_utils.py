@@ -27,7 +27,7 @@ def validate_common_args(args: dict) -> None:
     """Validate common args amongst plots
 
     Args:
-      args: dict: The args to validate
+      args: The args to validate
 
     """
 
@@ -39,7 +39,7 @@ def remap_scene_args(args: dict) -> None:
     """Remap layout scenes args so that they are not converted to a list
 
     Args:
-      args: dict: The args to remap
+      args: The args to remap
 
     """
     for arg in ["range_x", "range_y", "range_z", "log_x", "log_y", "log_z"]:
@@ -50,10 +50,8 @@ def calculate_mode(base_mode: str, args: dict[str, Any]) -> str:
     """Calculate the mode of the traces based on the arguments
 
     Args:
-      base_mode: str: The mode that this trace definitely has, either lines or markers
-      args: dict[str, Any]: The args to use to figure out the mode
-      base_mode: str:
-      args: dict[str, Any]:
+      base_mode: The mode that this trace definitely has, either lines or markers
+      args: The args to use to figure out the mode
 
     Returns:
       The mode. Some combination of markers, lines, text, joined by '+'.
@@ -85,9 +83,9 @@ def append_suffixes(args: list[str], suffixes: list[str], sync_dict: SyncDict) -
     Append the suffixes in the list to the specified arg names. The args should be in sync_dict.
 
     Args:
-        args: list[str]: The args in sync_dict to rename
-        suffixes: list[str]: The suffixes to add to the specified args
-        sync_dict: SyncDict: The SyncDict that the args are in
+        args: The args in sync_dict to rename
+        suffixes: The suffixes to add to the specified args
+        sync_dict: The SyncDict that the args are in
     """
     for arg in args:
         for suffix in suffixes:
@@ -99,8 +97,8 @@ def apply_args_groups(args: dict[str, Any], groups: set[str]) -> None:
     """Transform args depending on groups
 
     Args:
-      args: dict[str, Any]: A dictionary of args to transform
-      groups: set[str]: A set of groups used to transform the args
+      args: A dictionary of args to transform
+      groups: A set of groups used to transform the args
 
     """
     groups = groups if isinstance(groups, set) else {groups}
@@ -169,28 +167,28 @@ def apply_args_groups(args: dict[str, Any], groups: set[str]) -> None:
 
 def create_deephaven_figure(
     args: dict[str, Any],
-    groups: set[str] = None,
-    add: dict[str, Any] = None,
-    pop: list[str] = None,
-    remap: dict[str, str] = None,
-    px_func: Callable = None,
+    groups: set[str] | None = None,
+    add: dict[str, Any] | None = None,
+    pop: list[str] | None = None,
+    remap: dict[str, str] | None = None,
+    px_func: Callable = lambda: None,
 ) -> tuple[DeephavenFigure, Table | PartitionedTable, Table, dict[str, Any]]:
     """Process the provided args
 
     Args:
-      args: dict[str, Any]: A dictionary of args to process
-      groups: set[str]:  (Default value = None)
+      args: A dictionary of args to process
+      groups:
         A set of groups that apply transformations to the args
-      add: dict[str, Any] (Default value = None)
+      add:
         A dictionary to add to the args
-      pop: list[str]:  (Default value = None)
+      pop:
         A list of keys to remove from the args
-      remap: dict[str, str]:  (Default value = None)
+      remap:
         A dictionary mapping of keys to keys
-      px_func: Callable: the function (generally from px) to use to create the figure
+      px_func: the function (generally from px) to use to create the figure
 
     Returns:
-      tuple[DeephavenFigure, Table | PartitionedTable]: A tuple of the figure, the table, a table to listen to, and an
+      A tuple of the figure, the table, a table to listen to, and an
       update that needs to be applied to all calls that regenerate this figure. If "by" is set, there is a plot by
       column. If "x" or "y" are set, there is a list variable which needs to be replaced.
 
@@ -254,25 +252,25 @@ def create_deephaven_figure(
 
 def process_args(
     args: dict[str, Any],
-    groups: set[str] = None,
-    add: dict[str, Any] = None,
-    pop: list[str] = None,
-    remap: dict[str, str] = None,
-    px_func: Callable = None,
+    groups: set[str] | None = None,
+    add: dict[str, Any] | None = None,
+    pop: list[str] | None = None,
+    remap: dict[str, str] | None = None,
+    px_func: Callable = lambda: None,
 ) -> DeephavenFigure:
     """Process the provided args
 
     Args:
-      args: dict[str, Any]: A dictionary of args to process
-      groups: set[str]:  (Default value = None)
+      args: A dictionary of args to process
+      groups:
         A set of groups that apply transformations to the args
-      add: dict[str, Any] (Default value = None)
+      add:
         A dictionary to add to the args
-      pop: list[str]:  (Default value = None)
+      pop:
         A list of keys to remove from the args
-      remap: dict[str, str]:  (Default value = None)
+      remap:
         A dictionary mapping of keys to keys
-      px_func: Callable: the function (generally from px) to use to create the figure
+      px_func: the function (generally from px) to use to create the figure
 
     Returns:
         DeephavenFigure: The new figure
@@ -310,7 +308,7 @@ class SyncDict:
         """
         Create a SyncDict
         Args:
-            d: dict: The dictionary to wrap
+            d: The dictionary to wrap
         """
         self.d = d
         self.pop_set = set()
@@ -320,7 +318,7 @@ class SyncDict:
         Check if the item is in the dictionary
 
         Args:
-            item: Any: The item to check
+            item: The item to check
 
         Returns:
             bool: True if the item is in the dictionary, False otherwise
@@ -332,7 +330,7 @@ class SyncDict:
         """Add a key to the set of keys that will eventually be popped
 
         Args:
-          key: The key to add to the set
+          The key to add to the set
 
         Returns:
           The value associated with the key that will be popped
@@ -344,7 +342,6 @@ class SyncDict:
     def sync_pop(self):
         """Pop all elements from the dictionary that have been added to the pop
         set
-
         """
         for k in self.pop_set:
             self.d.pop(k)
@@ -355,8 +352,8 @@ def set_all(args: dict[str, Any], pairs: dict[str, Any]) -> None:
     Set all the pairs in the args if they are not already set
 
     Args:
-        args: dict[str, Any]: The args to set the pairs on
-        pairs: dict[str, Any]: The pairs to set
+        args: The args to set the pairs on
+        pairs: The pairs to set
     """
     for k, v in pairs.items():
         args.get(k, v)
@@ -367,7 +364,7 @@ def set_shared_defaults(args: dict[str, Any]) -> None:
     Set shared defaults amongst distribution figures
 
     Args:
-        args: dict[str, str]: The args to set the shared defaults on
+        args: The args to set the shared defaults on
     """
     set_all(args, SHARED_DEFAULTS)
 
@@ -400,8 +397,8 @@ def shared_violin(
     Create a violin figure
 
     Args:
-        is_marginal: bool:  (Default value = True) Whether this is a marginal figure or not
-        **args: Any: The args used for the figure
+        is_marginal: Whether this is a marginal figure or not
+        **args: The args used for the figure
 
     Returns:
         The DeephavenFigure created
@@ -420,8 +417,8 @@ def shared_box(is_marginal=True, **args: Any) -> DeephavenFigure:
     Create a box figure
 
     Args:
-        is_marginal: bool:  (Default value = True) Whether this is a marginal figure or not
-        **args: Any: The args used for the figure
+        is_marginal: Whether this is a marginal figure or not
+        **args: The args used for the figure
 
     Returns:
         The DeephavenFigure created
@@ -440,8 +437,8 @@ def shared_strip(is_marginal=True, **args: Any) -> DeephavenFigure:
     Create a strip figure
 
     Args:
-        is_marginal: bool:  (Default value = True) Whether this is a marginal figure or not
-        **args: Any: The args used for the figure
+        is_marginal: Whether this is a marginal figure or not
+        **args: The args used for the figure
 
     Returns:
         The DeephavenFigure created
@@ -460,8 +457,8 @@ def shared_histogram(is_marginal=True, **args: Any) -> DeephavenFigure:
     Create a histogram figure
 
     Args:
-        is_marginal: bool:  (Default value = True) Whether this is a marginal figure or not
-        **args: Any: The args used for the figure
+        is_marginal: Whether this is a marginal figure or not
+        **args: The args used for the figure
 
     Returns:
         The DeephavenFigure created
@@ -478,15 +475,15 @@ def shared_histogram(is_marginal=True, **args: Any) -> DeephavenFigure:
     return shared_marginal(is_marginal, func, groups, **args)
 
 
-def marginal_axis_update(matches: str = None) -> dict[str, Any]:
+def marginal_axis_update(matches: str | None = None) -> dict[str, Any]:
     """Create an update to a marginal axis so it hides much of the axis info
 
     Args:
-      matches: str:  (Default value = None)
+      matches:
         An optional axis, such as x, y, x2 to match this axis to
 
     Returns:
-      dict[str, Any]: The update
+      The update
 
     """
     return {
@@ -503,9 +500,9 @@ def create_marginal(marginal: str, args: dict[str, Any], which: str) -> Deephave
     """Create a marginal figure
 
     Args:
-      marginal: str: The type of marginal; histogram, violin, rug, box
-      args: dict[str, Any] The args to pass to the marginal function
-      which: str: x or y depending on which marginal is being drawn
+      marginal: The type of marginal; histogram, violin, rug, box
+      args: The args to pass to the marginal function
+      which: x or y depending on which marginal is being drawn
 
     Returns:
       DeephavenFigure: The marginal figure
@@ -533,17 +530,17 @@ def create_marginal(marginal: str, args: dict[str, Any], which: str) -> Deephave
 def attach_marginals(
     fig: DeephavenFigure,
     args: dict[str, Any],
-    marginal_x: str = None,
-    marginal_y: str = None,
+    marginal_x: str | None = None,
+    marginal_y: str | None = None,
 ) -> DeephavenFigure:
     """Create and attach marginals to the provided figure.
 
     Args:
-      fig: DeephavenFigure: The figure to attach marginals to
-      args: dict[str, Any]: The data args to use
-      marginal_x: str:  (Default value = None)
+      fig: The figure to attach marginals to
+      args: The data args to use
+      marginal_x:
         The type of marginal; histogram, violin, rug, box
-      marginal_y: str:  (Default value = None)
+      marginal_y:
         The type of marginal; histogram, violin, rug, box
 
     Returns:
@@ -601,11 +598,10 @@ def get_marg_args(args: dict[str, Any]) -> dict[str, Any]:
     """Copy the required args into data and style for marginal creation
 
     Args:
-      args: dict[str, Any]: The args to split
+      args: The args to split
 
     Returns:
-      tuple[dict[str, Any], dict[str, Any]]: A tuple of
-        (data args dict, style args dict)
+      A tuple of (data args dict, style args dict)
 
     """
     marg_args = {

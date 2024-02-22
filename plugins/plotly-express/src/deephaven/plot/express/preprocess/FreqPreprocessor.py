@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Generator
 
 from deephaven.table import Table
 
@@ -14,25 +14,23 @@ class FreqPreprocessor(UnivariatePreprocessor):
 
     Args:
         args: dict[str, Any]: The figure creation args
-
     """
 
     def __init__(self, args: dict[str, Any]):
         super().__init__(args)
 
     def preprocess_partitioned_tables(
-        self, tables: list[Table], column: str = None
-    ) -> tuple[Table, dict[str, str]]:
+        self, tables: list[Table], column: str | None = None
+    ) -> Generator[tuple[Table, dict[str, str]], None, None]:
         """Preprocess frequency bar params into an appropriate table
         This just sums each value by count
 
         Args:
-            tables: list[Table]: a list of tables to preprocess
+            tables: a list of tables to preprocess
             column: the column to aggregate on
 
         Returns:
-          tuple[Table, dict[str, str]]: A tuple containing
-            (the new table, an update to make to the args)
+          A tuple containing (the new table, an update to make to the args)
 
         """
         column = self.col_val if not column else column

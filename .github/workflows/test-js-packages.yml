@@ -15,40 +15,41 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Use Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
 
       - name: Cache jest
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             .jest-cache
-            plugins/*/.jest-cache
+            plugins/**/.jest-cache
           key: ${{ runner.os }}-jestcache-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-jestcache-
 
       - name: Cache linters
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             .eslintcache
-            plugins/*/.eslintcache
+            plugins/**/.eslintcache
             .stylelintcache
-            plugins/*/.stylelintcache
+            plugins/**/.stylelintcache
           key: ${{ runner.os }}-lintcache-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-lintcache-
 
       - name: Cache node modules
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
+          save-always: true
           path: |
             node_modules
-            plugins/*/node_modules
+            plugins/**/node_modules
           key: unit-node-modules-${{ hashFiles('package-lock.json')}}
 
       - name: Install dependencies

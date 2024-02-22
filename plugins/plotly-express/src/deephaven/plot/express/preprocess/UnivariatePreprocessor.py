@@ -8,8 +8,8 @@ class UnivariatePreprocessor:
     A univariate preprocessor that stores useful args. Should be inherited from.
 
     Args:
-        args: dict[str, str]: Figure creation args
-        pivot_vars: dict[str, str]: Pivot vars that have the new column names
+        args: Figure creation args
+        pivot_vars: Pivot vars that have the new column names
 
     Attributes:
         args: dict[str, str]: Figure creation args
@@ -21,7 +21,7 @@ class UnivariatePreprocessor:
         cols: list[str]: The columns that are being used
     """
 
-    def __init__(self, args: dict[str, Any], pivot_vars: dict[str, str] = None):
+    def __init__(self, args: dict[str, Any], pivot_vars: dict[str, str] | None = None):
         self.args = args
         self.table = args["table"]
         self.var = "x" if args.get("x", None) else "y"

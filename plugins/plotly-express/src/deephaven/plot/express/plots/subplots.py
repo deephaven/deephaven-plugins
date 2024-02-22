@@ -9,6 +9,10 @@ from ._layer import layer
 from .. import DeephavenFigure
 
 
+# The function make_subplots in this file is exempt from the styleguide rule that types should not be in the
+# description if there is a type annotation.
+
+
 def get_shared_key(
     row: int,
     col: int,
@@ -18,9 +22,9 @@ def get_shared_key(
     Get a shared key where
 
     Args:
-        row: int: The row this figure is in
-        col: int: The column this figure is in
-        shared_axes: str: "rows", "cols", "all" or None depending on what axes
+        row: The row this figure is in
+        col: The column this figure is in
+        shared_axes: "rows", "cols", "all" or None depending on what axes
           should be shared
 
     Returns:
@@ -48,30 +52,29 @@ def get_new_specs(
     """Transforms the given specs and row and column lists to specs for layering
 
     Args:
-      specs: list[list[dict[str, int | float]]]
+      specs:
         A 2 dimensional list that contains the specs per figure
-      row_starts: list[float]:
+      row_starts:
         A list of domain values on the y-axis where the corresponding
         figure will start
-      row_ends: list[float]:
+      row_ends:
         A list of domain values on the y-axis where the corresponding
         figure will end
-      col_starts: list[float]:
+      col_starts:
         A list of domain values on the y-axis where the corresponding
         figure will start
-      col_ends: list[float]:
+      col_ends:
         A list of domain values on the y-axis where the corresponding
         figure will end
-      shared_xaxes: str | bool
+      shared_xaxes:
         "rows", "cols"/True, "all" or None depending on what axes
         should be shared
-      shared_yaxes: str | bool
+      shared_yaxes:
         "rows"/True, "cols", "all" or None depending on what axes
         should be shared
 
     Returns:
-      list[dict[str, list[float]]]:
-        The new specs with x and y domains, to be passed to layering
+      The new specs with x and y domains, to be passed to layering
 
     """
     new_specs = []
@@ -115,18 +118,18 @@ def make_grid(
     """Make a grid (list of lists) out of the provided items
 
     Args:
-      items: int:
+      items:
         A list of items to put in the grid
-      rows: int:
+      rows:
         The number of rows in the grid
-      cols: int:
+      cols:
         The number of cols in the grid
-      fill: Any:  (Default value = None)
+      fill:
         If there are more slots (as defined by rows * columns) than
         provided items, then the remaining items in the grid have this value.
 
     Returns:
-      list[list[Any]]: The generated grid
+      The generated grid
 
     """
     grid = []
@@ -149,14 +152,13 @@ def get_domains(values: list[float], spacing: float) -> tuple[list[float], list[
     cumulative and account for spacing.
 
     Args:
-      values: list[float]:
+      values:
         The list of values to scale due to spacing then
-      spacing: float:
+      spacing:
         The spacing between each value.
 
     Returns:
-      tuple[list[float], list[float]]
-        A tuple of (list of domain starts, list of domain ends)
+      A tuple of (list of domain starts, list of domain ends)
 
     """
     # scale the values by however much the spacing uses between each col or row
@@ -180,16 +182,18 @@ def get_domains(values: list[float], spacing: float) -> tuple[list[float], list[
 
 def make_subplots(
     *figs: Figure | DeephavenFigure,
-    rows: int = None,
-    cols: int = None,
-    shared_xaxes: bool | int = None,
-    shared_yaxes: bool | int = None,
-    grid: list[list[Figure | DeephavenFigure]] = None,
-    horizontal_spacing: float = None,
-    vertical_spacing: float = None,
-    column_widths: list[float] = None,
-    row_heights: list[float] = None,
-    specs: list[dict[str, int | float]] | list[list[dict[str, int | float]]] = None,
+    rows: int | None = None,
+    cols: int | None = None,
+    shared_xaxes: bool | int | None = None,
+    shared_yaxes: bool | int | None = None,
+    grid: list[list[Figure | DeephavenFigure]] | None = None,
+    horizontal_spacing: float | None = None,
+    vertical_spacing: float | None = None,
+    column_widths: list[float] | None = None,
+    row_heights: list[float] | None = None,
+    specs: list[dict[str, int | float]]
+    | list[list[dict[str, int | float]]]
+    | None = None,
 ) -> DeephavenFigure:
     """Create subplots. Either figs and at least one of rows and cols or grid
     should be passed.
@@ -197,34 +201,34 @@ def make_subplots(
     Args:
       *figs: Figure | DeephavenFigure
         Figures to use. Should be used with rows and/or cols.
-      rows: int: (Default value = None)
+      rows: int | None: (Default value = None)
         A list of rows in the resulting subplot grid. This is
         calculated from cols and number of figs provided if not passed
         but cols is.
         One of rows or cols should be provided if passing figs directly.
-      cols: int: (Default value = None)
+      cols: int | None: (Default value = None)
         A list of cols in the resulting subplot grid. This is
         calculated from rows and number of figs provided if not passed
         but rows is.
         One of rows or cols should be provided if passing figs directly.
-      shared_xaxes: str | bool (Default value = None)
+      shared_xaxes: str | bool | None: (Default value = None)
         "rows", "cols"/True, "all" or None depending on what axes
         should be shared
-      shared_yaxes: str | bool (Default value = None)
+      shared_yaxes: str | bool | None: (Default value = None)
         "rows"/True, "cols", "all" or None depending on what axes
         should be shared
-      grid: list[list[Figure | DeephavenFigure]] (Default value = None)
+      grid: list[list[Figure | DeephavenFigure]] | None: (Default value = None)
         A grid (list of lists) of figures to draw. None can be
         provided in a grid entry
-      horizontal_spacing: float: (Default value = None)
+      horizontal_spacing: float | None: (Default value = None)
         Spacing between each column. Default 0.2 / cols
-      vertical_spacing: float: (Default value = None)
+      vertical_spacing: float | None: (Default value = None)
         Spacing between each row. Default 0.3 / rows
-      column_widths: list[float] (Default value = None)
+      column_widths: list[float]: (Default value = None)
         The widths of each column. Should sum to 1.
-      row_heights: list[float] (Default value = None)
+      row_heights: list[float] | None: (Default value = None)
         The heights of each row. Should sum to 1.
-      specs: list[dict[str, int | float]] | list[list[dict[str, int | float]]]
+      specs: list[dict[str, int | float]] | list[list[dict[str, int | float]]] | None:
         (Default value = None)
         A list or grid of dicts that contain specs. An empty
         dictionary represents no specs, and None represents no figure, either

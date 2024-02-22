@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, Literal, Sequence
+from typing import Any, Callable, Literal, Sequence, Optional
 from deephaven.table import Table
 from deephaven import SortDirection
 from .Element import Element
@@ -33,11 +33,10 @@ def remap_sort_direction(direction: TableSortDirection) -> Literal["ASC", "DESC"
     Remap the sort direction to the grid sort direction
 
     Args:
-        direction: TableSortDirection: The deephaven sort direction or
-        grid sort direction to remap
+        direction: The deephaven sort direction or grid sort direction to remap
 
     Returns:
-        Literal["ASC", "DESC"]: The grid sort direction
+        The grid sort direction
     """
     if direction == SortDirection.ASCENDING:
         return "ASC"
@@ -85,11 +84,11 @@ class UITable(Element):
         Create a new UITable with the passed in prop added to the existing props
 
         Args:
-            key: str: The key to add to the props
-            value: Any: The value to add with the associated key
+            key: The key to add to the props
+            value: The value to add with the associated key
 
         Returns:
-            UITable: A new UITable with the passed in prop added to the existing props
+            A new UITable with the passed in prop added to the existing props
         """
         logger.debug("_with_prop(%s, %s)", key, value)
         return UITable(self._table, {**self._props, key: value})
@@ -100,11 +99,11 @@ class UITable(Element):
         list (if it exists) or a new list with the passed in value
 
         Args:
-            key: str: The key to add to the props
-            value: Any: The value to add with the associated key
+            key: The key to add to the props
+            value: The value to add with the associated key
 
         Returns:
-            UITable: A new UITable with the passed in prop added to the existing props
+            A new UITable with the passed in prop added to the existing props
         """
         logger.debug("_with_appendable_prop(%s, %s)", key, value)
         existing = self._props.get(key, [])
@@ -124,11 +123,11 @@ class UITable(Element):
 
 
         Args:
-            prop_name: str: The key to add to the props
-            value: Any: The value to add with the associated key
+            prop_name: The key to add to the props
+            value: The value to add with the associated key
 
         Returns:
-            UITable: A new UITable with the passed in prop added to the existing props
+            A new UITable with the passed in prop added to the existing props
         """
         logger.debug("_with_dict_prop(%s, %s)", prop_name, value)
         existing = self._props.get(prop_name, {})
@@ -143,7 +142,7 @@ class UITable(Element):
         self,
         operations: dict[ColumnName, list[AggregationOperation]],
         operation_order: list[AggregationOperation] | None = None,
-        default_operation: AggregationOperation = "Skip",
+        default_operation: AggregationOperation | None = None,
         group_by: list[ColumnName] | None = None,
         show_on_top: bool = False,
     ) -> "UITable":
@@ -151,19 +150,14 @@ class UITable(Element):
         Set the totals table to display below the main table.
 
         Args:
-            operations: dict[ColumnName, list[AggregationOperation]]:
-                The operations to apply to the columns of the table.
-            operation_order: list[AggregationOperation] | None:
-                The order in which to display the operations.
-            default_operation: AggregationOperation:
-                The default operation to apply to columns that do not have an operation specified.
-            group_by: list[ColumnName] | None:
-                The columns to group by.
-            show_on_top: bool:
-                Whether to show the totals table above the main table.
+            operations: The operations to apply to the columns of the table.
+            operation_order: The order in which to display the operations.
+            default_operation: The default operation to apply to columns that do not have an operation specified.
+            group_by: The columns to group by.
+            show_on_top: Whether to show the totals table above the main table.
 
         Returns:
-            UITable: A new UITable
+            A new UITable
         """
         raise NotImplementedError()
 
@@ -175,11 +169,11 @@ class UITable(Element):
         in the data sent for row click operations.
 
         Args:
-            columns: str | list[str]: The columns to always fetch from the server.
+            columns: The columns to always fetch from the server.
                 May be a single column name.
 
         Returns:
-            UITable: A new UITable
+            A new UITable
         """
         return self._with_appendable_prop("always_fetch_columns", columns)
 
@@ -189,11 +183,11 @@ class UITable(Element):
         These will not be moveable in the UI.
 
         Args:
-            columns: str | list[str]: The columns to show at the back of the table.
+            columns: The columns to show at the back of the table.
                 May be a single column name.
 
         Returns:
-            UITable: A new UITable
+            A new UITable
         """
         raise NotImplementedError()
 
@@ -202,11 +196,11 @@ class UITable(Element):
         Set the search bar to explicitly be accessible or inaccessible, or use the system default.
 
         Args:
-            mode: SearchMode: Set the search bar to explicitly be accessible or inaccessible,
+            mode: Set the search bar to explicitly be accessible or inaccessible,
                 or use the system default.
 
         Returns:
-            UITable: A new UITable
+            A new UITable
         """
         if mode == "SHOW":
             return self._with_prop("can_search", True)
@@ -227,13 +221,13 @@ class UITable(Element):
         Create a group for columns in the table.
 
         Args:
-            name: str: The group name. Must be a valid column name and not a duplicate of another column or group.
-            children: list[str]: The children in the group. May contain column names or other group names.
+            name: The group name. Must be a valid column name and not a duplicate of another column or group.
+            children: The children in the group. May contain column names or other group names.
                 Each item may only be specified as a child once.
-            color: str | None: The hex color string or Deephaven color name.
+            color: The hex color string or Deephaven color name.
 
         Returns:
-            UITable: A new UITable
+            A new UITable
         """
         raise NotImplementedError()
 
@@ -248,14 +242,14 @@ class UITable(Element):
         Applies color formatting to a column of the table.
 
         Args:
-            column: ColumnName: The column name
-            where: QuickFilterExpression | None: The filter to apply to the expression.
+            column: The column name
+            where: The filter to apply to the expression.
               Uses quick filter format (e.g. `>10`).
-            color: Color | None: The text color. Accepts hex color strings or Deephaven color names.
+            color: The text color. Accepts hex color strings or Deephaven color names.
             background_color: The background color. Accepts hex color strings or Deephaven color names.
 
         Returns:
-            UITable: A new UITable
+            A new UITable
         """
         raise NotImplementedError()
 
@@ -270,14 +264,14 @@ class UITable(Element):
         Applies color formatting to rows of the table conditionally based on the value of a column.
 
         Args:
-            column: ColumnName: The column name
-            where: QuickFilterExpression | None: The filter to apply to the expression.
+            column: The column name
+            where: The filter to apply to the expression.
               Uses quick filter format (e.g. `>10`).
-            color: Color | None: The text color. Accepts hex color strings or Deephaven color names.
+            color: The text color. Accepts hex color strings or Deephaven color names.
             background_color: The background color. Accepts hex color strings or Deephaven color names.
 
         Returns:
-            UITable: A new UITable
+            A new UITable
         """
         raise NotImplementedError()
 
@@ -297,13 +291,11 @@ class UITable(Element):
         You can also chain multiple sets of menu items by calling `.context_menu` multiple times.
 
         Args:
-            items: ContextMenuAction | list[ContextMenuAction] |
-                Callable[[CellIndex, RowData], ContextMenuAction | list[ContextMenuAction]]:
-                The items to add to the context menu.
+            items: The items to add to the context menu.
                 May be a single `ContextMenuAction`, a list of `ContextMenuAction` objects,
                 or a callback function that takes the cell index and row data and returns either a single
                 `ContextMenuAction` or a list of `ContextMenuAction` objects.
-            mode: ContextMenuMode: Which specific context menu(s) to add the menu item(s) to.
+            mode: Which specific context menu(s) to add the menu item(s) to.
                 Can be one or more modes.
                 Using `None` will add menu items in all cases.
                 `CELL`: Triggered from a cell.
@@ -311,44 +303,44 @@ class UITable(Element):
                 `COLUMN_HEADER`: Triggered from a column header.
 
         Returns:
-            UITable: A new UITable
+            A new UITable
         """
         raise NotImplementedError()
 
     def data_bar(
         self,
         col: str,
-        value_col: str = None,
-        min: float | str = None,
-        max: float | str = None,
+        value_col: str | None = None,
+        min: float | str | None = None,
+        max: float | str | None = None,
         axis: DataBarAxis | None = None,
-        positive_color: Color | list[Color] = None,
-        negative_color: Color | list[Color] = None,
+        positive_color: Color | list[Color] | None = None,
+        negative_color: Color | list[Color] | None = None,
         value_placement: DataBarValuePlacement | None = None,
         direction: DataBarDirection | None = None,
-        opacity: float = None,
-        marker_col: str = None,
-        marker_color: Color = None,
+        opacity: float | None = None,
+        marker_col: str | None = None,
+        marker_color: Color | None = None,
     ) -> "UITable":
         """
         Applies data bar formatting to the specified column.
 
         Args:
-            col: str: Column to generate data bars in
-            value_col: str: Column containing the values to generate data bars from
-            min: float | str: Minimum value for data bar scaling or column to get value from
-            max: float | str: Maximum value for data bar scaling or column to get value from
-            axis: DataBarAxis | None: Orientation of data bar relative to cell
-            positive_color: Color | list[Color]: Color for positive bars. Use list of colors to form a gradient
-            negative_color: Color | list[Color]: Color for negative bars. Use list of colors to form a gradient
-            value_placement: DataBarValuePlacement | None: Orientation of values relative to data bar
-            direction: DataBarDirection | None: Orientation of data bar relative to horizontal axis
-            opacity: float: Opacity of data bar. Accepts values from 0 to 1
-            marker_col: str: Column containing the values to generate markers from
-            marker_color: Color: Color for markers
+            col: Column to generate data bars in
+            value_col: Column containing the values to generate data bars from
+            min: Minimum value for data bar scaling or column to get value from
+            max: Maximum value for data bar scaling or column to get value from
+            axis: Orientation of data bar relative to cell
+            positive_color: Color for positive bars. Use list of colors to form a gradient
+            negative_color: Color for negative bars. Use list of colors to form a gradient
+            value_placement: Orientation of values relative to data bar
+            direction: Orientation of data bar relative to horizontal axis
+            opacity: Opacity of data bar. Accepts values from 0 to 1
+            marker_col: Column containing the values to generate markers from
+            marker_color: Color for markers
 
         Returns:
-            UITable: A new UITable
+            A new UITable
         """
         raise NotImplementedError()
 
@@ -357,11 +349,11 @@ class UITable(Element):
         Specify the formatting to display a column in.
 
         Args:
-            column: str: The column name
-            format: str: The format to display the column in. Valid format depends on column type
+            column: The column name
+            format: The format to display the column in. Valid format depends on column type
 
         Returns:
-            UITable: A new UITable
+            A new UITable
         """
         raise NotImplementedError()
 
@@ -371,10 +363,10 @@ class UITable(Element):
         These will always be visible and not affected by horizontal scrolling.
 
         Args:
-            columns: str | list[str]: The columns to freeze to the front of the table.
+            columns: The columns to freeze to the front of the table.
 
         Returns:
-            UITable: A new UITable
+            A new UITable
         """
         raise NotImplementedError()
 
@@ -383,10 +375,10 @@ class UITable(Element):
         Set the columns to show at the front of the table. These will not be moveable in the UI.
 
         Args:
-            columns: str | list[str]: The columns to show at the front of the table.
+            columns: The columns to show at the front of the table.
 
         Returns:
-            UITable: A new UITable
+            A new UITable
         """
         raise NotImplementedError()
 
@@ -395,10 +387,10 @@ class UITable(Element):
         Set the columns to hide by default in the table. The user can still resize the columns to view them.
 
         Args:
-            columns: str | list[str]: The columns to hide from the table. May be a single column name.
+            columns: The columns to hide from the table. May be a single column name.
 
         Returns:
-            UITable: A new UITable
+            A new UITable
         """
         raise NotImplementedError()
 
@@ -409,12 +401,12 @@ class UITable(Element):
         Add a callback for when a press on a row is released (e.g. a row is clicked).
 
         Args:
-            callback: Callable[[RowIndex, RowDataMap], None]: The callback function to run when a row is clicked.
+            callback: The callback function to run when a row is clicked.
                 The first parameter is the row index, and the second is the row data provided in a dictionary where the
                 column names are the keys.
 
         Returns:
-            UITable: A new UITable
+            A new UITable
         """
         raise NotImplementedError()
 
@@ -425,12 +417,12 @@ class UITable(Element):
         Add a callback for when a row is double clicked.
 
         Args:
-            callback: Callable[[RowIndex, RowDataMap], None]: The callback function to run when a row is double clicked.
+            callback: The callback function to run when a row is double clicked.
               The first parameter is the row index, and the second is the row data provided in a dictionary where the
               column names are the keys.
 
         Returns:
-            UITable: A new UITable
+            A new UITable
         """
         return self._with_prop("on_row_double_press", callback)
 
@@ -441,10 +433,10 @@ class UITable(Element):
         Add a quick filter for the UI to apply to the table.
 
         Args:
-            filter: dict[ColumnName, QuickFilterExpression]: The quick filter to apply to the table.
+            filter: The quick filter to apply to the table.
 
         Returns:
-            UITable: A new UITable
+            A new UITable
         """
         return self._with_dict_prop("filters", filter)
 
@@ -453,13 +445,13 @@ class UITable(Element):
         Set the selection mode for the table.
 
         Args:
-            mode: SelectionMode: The selection mode to use. Must be one of `"ROW"`, `"COLUMN"`, or `"CELL"`
+            mode: The selection mode to use. Must be one of `"ROW"`, `"COLUMN"`, or `"CELL"`
             `"ROW"` selects the entire row of the cell you click on.
             `"COLUMN"` selects the entire column of the cell you click on.
             `"CELL"` selects only the cells you click on.
 
         Returns:
-            UITable: A new UITable
+            A new UITable
         """
         raise NotImplementedError()
 
@@ -479,7 +471,7 @@ class UITable(Element):
                 Defaults to "ASC".
 
         Returns:
-            UITable: A new UITable
+            A new UITable
         """
         direction_list: Sequence[TableSortDirection] = []
         if direction:

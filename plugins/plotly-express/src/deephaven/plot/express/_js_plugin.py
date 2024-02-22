@@ -56,13 +56,13 @@ def _create_from_npm_package_json(
 
 
 def _resource_js_path() -> ContextManager[pathlib.Path]:
-    # TODO: Js content should be in same package directory
-    # https://github.com/deephaven/deephaven-plugins/issues/139
+    namespace = "deephaven.plot.express"
+    name = "_js"
     if sys.version_info < (3, 9):
-        return importlib.resources.path("js", "plotly-express")
+        return importlib.resources.path(namespace, name)
     else:
         return importlib.resources.as_file(
-            importlib.resources.files("js").joinpath("plotly-express")
+            importlib.resources.files(namespace).joinpath(name)
         )
 
 

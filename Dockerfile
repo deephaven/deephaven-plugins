@@ -53,3 +53,6 @@ COPY --link docker/config/deephaven.prop /opt/deephaven/config/deephaven.prop
 # We copy our data directory in from the data container in case we're publishing the image
 # However, you can mount a volume to override this in the docker-compose.override.yml
 COPY --link docker/data /data
+
+# Set the environment variable to enable the JS plugins embedded in Python
+ENV DEEPHAVEN_ENABLE_PY_JS=true

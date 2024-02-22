@@ -1,8 +1,5 @@
 import type { Data, PlotlyDataLayoutConfig } from 'plotly.js';
 import type { Widget } from '@deephaven/jsapi-types';
-import Log from '@deephaven/log';
-
-const log = Log.module('@deephaven/js-plugin-plotly-express.ChartUtils');
 
 export interface PlotlyChartWidgetData {
   type: string;
@@ -57,39 +54,20 @@ export function getDataMappings(
 }
 
 /**
- * Applies the colorway to the data unless the data color is not its default value
- * Data color is not default if the user set the color specifically or the plot type sets it
+ * Removes the default colors from the data
+ * Data color is not removed if the user set the color specifically or the plot type sets it
  *
- * @param colorway The colorway from the web UI
- * @param plotlyColorway The colorway from plotly
- * @param data The data to apply the colorway to. This will be mutated
+ * This only checks if the marker or line color is set to a color in the colorway.
+ * This means it is not possible to change the order of the colorway and use the same colors.
+ *
+ * @param colorway The colorway from plotly
+ * @param data The data to remove the colorway from. This will be mutated
  */
-export function applyColorwayToData(
-  colorway: string[],
-  plotlyColorway: string[],
-  data: Data[]
-): void {
-  if (colorway.length === 0) {
-    return;
-  }
+export function removeColorsFromData(colorway: string[], data: Data[]): void {
+  const plotlyColors = new Set(colorway.map(color => color.toUpperCase()));
 
-  if (plotlyColorway.length > colorway.length) {
-    log.warn(
-      "Plotly's colorway is longer than the web UI colorway. May result in incorrect colors for some series"
-    );
-  }
-
-  const colorMap = new Map(
-    plotlyColorway.map((color, i) => [
-      color.toUpperCase(),
-      colorway[i] ?? color,
-    ])
-  );
-
-  const plotlyColors = new Set(
-    plotlyColorway.map(color => color.toUpperCase())
-  );
-
+  // Just check if the colors are in the colorway at any point
+  // Plotly has many different ways to layer/order series
   for (let i = 0; i < data.length; i += 1) {
     const trace = data[i];
 
@@ -101,7 +79,7 @@ export function applyColorwayToData(
       typeof trace.marker.color === 'string'
     ) {
       if (plotlyColors.has(trace.marker.color.toUpperCase())) {
-        trace.marker.color = colorMap.get(trace.marker.color.toUpperCase());
+        delete trace.marker.color;
       }
     }
 
@@ -112,7 +90,7 @@ export function applyColorwayToData(
       typeof trace.line.color === 'string'
     ) {
       if (plotlyColors.has(trace.line.color.toUpperCase())) {
-        trace.line.color = colorMap.get(trace.line.color.toUpperCase());
+        delete trace.line.color;
       }
     }
   }

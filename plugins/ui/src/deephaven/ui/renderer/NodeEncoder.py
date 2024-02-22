@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import json
+import logging
 from typing import Any, Callable, TypedDict
 from weakref import WeakKeyDictionary
 from .RenderedNode import RenderedNode
+
+logger = logging.getLogger(__name__)
 
 CALLABLE_KEY = "__dhCbid"
 OBJECT_KEY = "__dhObid"
@@ -20,7 +23,7 @@ ObjectId = int
 
 class NodeEncoderResult(TypedDict):
     """
-    Result of encoding a node. Contains the encoded node, list of new objects, and callables dictionary.
+    Result of encoding a node. Contains the encoded node, set of new objects, and callables dictionary.
     """
 
     encoded_node: str
@@ -59,7 +62,8 @@ class NodeEncoder(json.JSONEncoder):
 
     _callable_dict: WeakKeyDictionary[Callable[..., Any], CallableId]
     """
-    Dictionary from a callable to the ID assigned to the callable.
+    Dictionary from a callable to the ID assigned to the callable so we know which
+    callables we've seen before, to avoid unnecessarily creating new callableIds.
     """
 
     _new_objects: list[Any]
@@ -72,9 +76,15 @@ class NodeEncoder(json.JSONEncoder):
     The next object id to use. Increment for each new object encountered.
     """
 
-    _object_id_dict: WeakKeyDictionary[Any, int]
+    _old_objects: set[Any]
     """
-    Dictionary from an object to the ID assigned to it
+    List of objects from the last render. Used to remove objects that are no longer in the document.
+    """
+
+    _object_id_dict: dict[Any, int]
+    """
+    Dictionary from an object to the ID assigned to it. Objects are removed after the next render if they are no longer in the document.
+    Unlike `_callable_dict`, we cannot use a WeakKeyDictionary as we need to pass the exported object instance to the client, so we need to always keep a reference around that the client may still have a reference to.
     """
 
     def __init__(
@@ -97,7 +107,7 @@ class NodeEncoder(json.JSONEncoder):
         self._callable_dict = WeakKeyDictionary()
         self._new_objects = []
         self._next_object_id = 0
-        self._object_id_dict = WeakKeyDictionary()
+        self._object_id_dict = {}
 
     def default(self, o: Any):
         if isinstance(o, RenderedNode):
@@ -122,9 +132,22 @@ class NodeEncoder(json.JSONEncoder):
         Args:
             o: The document to encode
         """
+
         # Reset the new objects list - they will get set when encoding
         self._new_objects = []
+        self._old_objects = set(self._object_id_dict.keys())
+
+        logger.debug("Encoding node with object_id_dict: %s", self._object_id_dict)
+
         encoded_node = super().encode(node)
+
+        # Remove the old objects from last render from the object id dict
+        for obj in self._old_objects:
+            self._object_id_dict.pop(obj, None)
+
+        # Clear out the old objects list so they can be cleaned up by GC
+        self._old_objects = set()
+
         return {
             "encoded_node": encoded_node,
             "new_objects": self._new_objects,
@@ -139,7 +162,7 @@ class NodeEncoder(json.JSONEncoder):
 
     def _convert_callable(self, cb: Callable[..., Any]):
         callable_id = self._callable_dict.get(cb)
-        if callable_id == None:
+        if callable_id is None:
             callable_id = f"{self._callable_id_prefix}{self._next_callable_id}"
             self._next_callable_id += 1
             self._callable_dict[cb] = callable_id
@@ -150,11 +173,14 @@ class NodeEncoder(json.JSONEncoder):
 
     def _convert_object(self, obj: Any):
         object_id = self._object_id_dict.get(obj)
-        if object_id == None:
+        if object_id is None:
             object_id = self._next_object_id
             self._next_object_id += 1
             self._object_id_dict[obj] = object_id
             self._new_objects.append(obj)
+
+        self._old_objects.discard(obj)
+        logger.debug("Converted object %s to id %s", obj, object_id)
 
         return {
             OBJECT_KEY: object_id,

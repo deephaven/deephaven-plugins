@@ -1,0 +1,17 @@
+{
+  "name": "@deephaven/js-plugin-example-theme",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "start": "npm run build -- -w"
+  },
+  "devDependencies": {
+    "@deephaven/plugin": "^0.58.0",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.8"
+  }
+}

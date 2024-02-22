@@ -140,14 +140,14 @@ class PartitionManager:
         args: dict[str, Any],
         draw_figure: Callable,
         groups: set[str],
-        marg_args: dict[str, any],
+        marg_args: dict[str, Any],
         marg_func: Callable,
     ):
         self.by = None
         self.by_vars = None
         self.list_var = None
         self.cols = None
-        self.pivot_vars = None
+        self.pivot_vars = {}
         self.has_color = None
         self.facet_row = None
         self.facet_col = None
@@ -282,12 +282,11 @@ class PartitionManager:
         regardless of column type.
 
         Args:
-            arg: str: The argument
-            val: str | list[str]: The column or columns for the arguments
+            arg: The argument
+            val: The column or columns for the arguments
 
         Returns:
-            tuple[str, str | list[str]]: A tuple of (f"{arg}_by", arg_by value)
-            to use to partition the table
+            A tuple of (f"{arg}_by", arg_by value to use to partition the table
         """
         args = self.args
         table = args["table"]
@@ -366,10 +365,8 @@ class PartitionManager:
         If the table is already partitioned, that is used as the partitioned
         table, although the plot by columns are still pulled for styling.
 
-
         Returns:
-            Table | PartitionedTable: the new table
-
+            The new table
         """
         args = self.args
 
@@ -456,7 +453,7 @@ class PartitionManager:
         Build a ternary chain that will collapse the columns into one
 
         Args:
-            cols: list[str]: the list of columns to collapse into one column
+            cols: the list of columns to collapse into one column
 
         Returns:
             The ternary string that builds the new column
@@ -476,8 +473,8 @@ class PartitionManager:
         a new "value" column that contains the values.
 
         Args:
-            table: Table: The table to convert to long mode
-            cols: cols: The columns to combine
+            table: The table to convert to long mode
+            cols: The columns to combine
 
         Returns:
             The table converted to long mode
@@ -495,13 +492,13 @@ class PartitionManager:
 
         return transposed.drop_columns(cols)
 
-    def current_partition_generator(self) -> Generator[dict[str, str]]:
+    def current_partition_generator(self) -> Generator[dict[str, str], None, None]:
         """
         Generate a partition dictionary for the current partition that maps
         column to value
 
         Yields:
-            dict[str, str]: The partition dictionary mapping column to value
+            The partition dictionary mapping column to value
         """
         for table in self.constituents:
             # sort the columns so the order is consistent
@@ -525,14 +522,15 @@ class PartitionManager:
             )
             yield current_partition
 
-    def table_partition_generator(self) -> Generator[tuple[Table, dict[str, str]]]:
+    def table_partition_generator(
+        self,
+    ) -> Generator[tuple[Table, dict[str, str]], None, None]:
         """
         Generates a tuple of (table, current partition). The table is the possibly
         preprocessed partition of the current_partition
 
         Yields:
-            tuple[Table, dict[str, str]: The tuple of table and current partition
-
+            The tuple of table and current partition
         """
         column = self.pivot_vars["value"] if self.pivot_vars else None
         tables = self.preprocessor.preprocess_partitioned_tables(
@@ -541,13 +539,13 @@ class PartitionManager:
         for table, current_partition in zip(tables, self.current_partition_generator()):
             yield table, current_partition
 
-    def partition_generator(self) -> Generator[dict[str, Any]]:
+    def partition_generator(self) -> Generator[dict[str, Any], None, None]:
         """
         Generates args that can be used to create one layer of a partitioned
         figure.
 
         Yields:
-            dict[str, Any]: The args used to create a figure
+            The args used to create a figure
         """
         args, partitioned_table = self.args, self.partitioned_table
         if hasattr(partitioned_table, "constituent_tables"):
@@ -584,7 +582,7 @@ class PartitionManager:
         Create a default figure if there are no partitions
 
         Returns:
-            DeephavenFigure: The default figure
+            The default figure
         """
         # this is very hacky but it's needed to prevent errors when
         # there are no partitions until a better solution can be done
@@ -599,7 +597,7 @@ class PartitionManager:
         as any special preprocessing or postprocessing needed for different types of plots
 
         Returns:
-            DeephavenFigure: The new figure
+            The new figure
         """
         if isinstance(self.partitioned_table, PartitionedTable):
             # lock constituents in case they are deleted

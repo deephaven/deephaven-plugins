@@ -1,7 +1,7 @@
-from typing import Any, Dict, Literal, Union, List
+from typing import Any, Dict, Literal, Union, List, Tuple, Optional
 from deephaven import SortDirection
 
-RowIndex = Union[int, None]
+RowIndex = Optional[int]
 RowDataMap = Dict[str, Any]
 AggregationOperation = Literal[
     "COUNT",
@@ -20,7 +20,7 @@ AggregationOperation = Literal[
     "SKIP",
 ]
 ColumnIndex = Union[int, None]
-CellIndex = [RowIndex, ColumnIndex]
+CellIndex = Tuple[RowIndex, ColumnIndex]
 DeephavenColor = Literal["salmon", "lemonchiffon"]
 HexColor = str
 Color = Union[DeephavenColor, HexColor]

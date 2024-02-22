@@ -25,8 +25,6 @@ class Preprocessor:
       AttachedProcessor when dealing with an "always_attached" plot
     args: dict[str, Any]: Args used to create the plot
     groups: set[str]: The special groups that apply to this plot
-
-
     """
 
     def __init__(
@@ -47,7 +45,6 @@ class Preprocessor:
     def prepare_preprocess(self) -> None:
         """
         Prepare for preprocessing by capturing information needed
-
         """
         if "preprocess_hist" in self.groups:
             self.preprocesser = HistPreprocessor(self.args, self.pivot_vars)
@@ -59,14 +56,14 @@ class Preprocessor:
             self.preprocesser = TimePreprocessor(self.args)
 
     def preprocess_partitioned_tables(
-        self, tables: list[Table], column: str = None
-    ) -> Generator[Table]:
+        self, tables: list[Table], column: str | None = None
+    ) -> Generator[Table, None, None]:
         """
         Preprocess the passed table, depending on the type of preprocessor used
 
         Args:
-            tables: list[Table]
-            column: column: str: The column to use
+            tables: The tables to preprocess
+            column: The column to use
 
         Yields:
             Table: the preprocessed table
