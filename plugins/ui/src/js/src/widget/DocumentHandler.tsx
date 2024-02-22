@@ -1,23 +1,25 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import shortid from 'shortid';
 import { WidgetDescriptor } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
 import { EMPTY_FUNCTION } from '@deephaven/utils';
 import { ReactPanelManagerContext } from '../layout/ReactPanelManager';
 import { getRootChildren } from './DocumentUtils';
-import { WidgetData } from './WidgetTypes';
+import { ReadonlyWidgetData, WidgetData } from './WidgetTypes';
 
 const log = Log.module('@deephaven/js-plugin-ui/DocumentHandler');
+
+const EMPTY_OBJECT = Object.freeze({});
 
 export type DocumentHandlerProps = React.PropsWithChildren<{
   /** Definition of the widget used to create this document. Used for titling panels if necessary. */
   widget: WidgetDescriptor;
 
-  /** Data that was saved previously when this widget was opened */
-  data?: WidgetData;
+  /** Data to use when loading the widget. Use a data state emitted from the `onDataChange` callback. */
+  initialData?: ReadonlyWidgetData;
 
   /** Triggered when the data in the document changes */
-  onDataChange?: (data: WidgetData) => void;
+  onDataChange?: (data: ReadonlyWidgetData) => void;
 
   /** Triggered when all panels opened from this document have closed */
   onClose?: () => void;
@@ -32,36 +34,29 @@ export type DocumentHandlerProps = React.PropsWithChildren<{
 function DocumentHandler({
   children,
   widget,
-  data = {},
+  initialData: data = EMPTY_OBJECT,
   onDataChange = EMPTY_FUNCTION,
   onClose,
 }: DocumentHandlerProps) {
   log.debug('Rendering document', widget);
   const panelOpenCountRef = useRef(0);
   const panelIdIndex = useRef(0);
-  const documentData = useRef(data);
-
-  // We initialize the data and store it in a ref so that we don't try and re-load the data every time the component re-renders
-  const initializeData = useCallback(() => {
-    if (documentData.current == null) {
-      documentData.current = {};
-    }
-    if (documentData.current.panelIds == null) {
-      documentData.current.panelIds = [];
-    }
-  }, [documentData]);
+  const [widgetData] = useState<WidgetData>(() =>
+    JSON.parse(JSON.stringify(data))
+  );
 
   const handleOpen = useCallback(
     (panelId: string) => {
       panelOpenCountRef.current += 1;
       log.debug('Panel opened, open count', panelOpenCountRef.current);
 
-      initializeData();
-      const newPanelIds = [...(documentData.current.panelIds ?? []), panelId];
-      documentData.current.panelIds = newPanelIds;
-      onDataChange(documentData.current);
+      if (widgetData.panelIds == null) {
+        widgetData.panelIds = [];
+      }
+      widgetData.panelIds?.push(panelId);
+      onDataChange(widgetData);
     },
-    [initializeData, onDataChange]
+    [onDataChange, widgetData]
   );
 
   const handleClose = useCallback(
@@ -76,22 +71,23 @@ function DocumentHandler({
         return;
       }
 
-      initializeData();
-      const newPanelIds = [...(documentData.current.panelIds ?? [])].filter(
+      widgetData.panelIds = (widgetData.panelIds ?? [])?.filter(
         id => id !== panelId
       );
-      documentData.current.panelIds = newPanelIds;
-      onDataChange(documentData.current);
+      onDataChange(widgetData);
     },
-    [initializeData, onClose, onDataChange]
+    [onClose, onDataChange, widgetData]
   );
 
   const getPanelId = useCallback(() => {
-    const panelId =
-      documentData.current.panelIds?.[panelIdIndex.current] ?? shortid();
+    // On rehydration, yield known IDs first
+    // If there are no more known IDs, generate a new one.
+    // This can happen if the document hasn't been opened before, or if it's rehydrated and a new panel is added.
+    // Note that if the order of panels changes, the worst case scenario is that panels appear in the wrong location in the layout.
+    const panelId = widgetData.panelIds?.[panelIdIndex.current] ?? shortid();
     panelIdIndex.current += 1;
     return panelId;
-  }, []);
+  }, [widgetData]);
 
   const panelManager = useMemo(
     () => ({

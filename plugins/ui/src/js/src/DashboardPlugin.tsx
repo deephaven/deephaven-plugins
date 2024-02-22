@@ -22,10 +22,14 @@ import { Widget } from '@deephaven/jsapi-types';
 import { ErrorBoundary } from '@deephaven/components';
 import { useDebouncedCallback } from '@deephaven/react-hooks';
 import styles from './styles.scss?inline';
-import { WidgetData, WidgetId, WidgetWrapper } from './widget/WidgetTypes';
+import {
+  ReadonlyWidgetData,
+  WidgetFetch,
+  WidgetId,
+} from './widget/WidgetTypes';
 import PortalPanel from './layout/PortalPanel';
-import WidgetHandler from './widget/WidgetHandler';
 import PortalPanelManager from './layout/PortalPanelManager';
+import DashboardWidgetHandler from './widget/DashboardWidgetHandler';
 
 const NAME_ELEMENT = 'deephaven.ui.Element';
 const DASHBOARD_ELEMENT = 'deephaven.ui.Dashboard';
@@ -42,9 +46,23 @@ interface DashboardPluginData {
     WidgetId,
     {
       descriptor: WidgetDescriptor;
-      data?: WidgetData;
+      data?: ReadonlyWidgetData;
     }
   >;
+}
+
+interface WidgetWrapper {
+  /** Function to fetch the widget instance from the server */
+  fetch: WidgetFetch;
+
+  /** ID of this widget */
+  id: WidgetId;
+
+  /** Descriptor for the widget. */
+  widget: WidgetDescriptor;
+
+  /** Data for the widget */
+  data?: ReadonlyWidgetData;
 }
 
 export function DashboardPlugin(
@@ -76,7 +94,7 @@ export function DashboardPlugin(
     }) => {
       log.info('Opening widget with ID', widgetId, widget);
       setWidgetMap(prevWidgetMap => {
-        const newWidgetMap = new Map<WidgetId, WidgetWrapper>(prevWidgetMap);
+        const newWidgetMap = new Map(prevWidgetMap);
         newWidgetMap.set(widgetId, {
           fetch,
           id: widgetId,
@@ -143,20 +161,19 @@ export function DashboardPlugin(
       log.debug('loadInitialPluginData', initialPluginData);
 
       setWidgetMap(prevWidgetMap => {
-        const newWidgetMap = new Map<WidgetId, WidgetWrapper>(prevWidgetMap);
+        const newWidgetMap = new Map(prevWidgetMap);
         const { openWidgets } = initialPluginData;
         if (openWidgets != null) {
-          const widgetIds = Object.keys(openWidgets);
-          for (let i = 0; i < widgetIds.length; i += 1) {
-            const widgetId = widgetIds[i];
-            const { descriptor, data } = openWidgets[widgetId];
-            newWidgetMap.set(widgetId, {
-              fetch: () => objectFetcher(descriptor),
-              id: widgetId,
-              widget: descriptor,
-              data,
-            });
-          }
+          Object.entries(openWidgets).forEach(
+            ([widgetId, { descriptor, data }]) => {
+              newWidgetMap.set(widgetId, {
+                fetch: () => objectFetcher(descriptor),
+                id: widgetId,
+                widget: descriptor,
+                data,
+              });
+            }
+          );
         }
         return newWidgetMap;
       });
@@ -171,7 +188,7 @@ export function DashboardPlugin(
         if (!prevWidgetMap.has(panelId)) {
           return prevWidgetMap;
         }
-        const newWidgetMap = new Map<WidgetId, WidgetWrapper>(prevWidgetMap);
+        const newWidgetMap = new Map(prevWidgetMap);
         newWidgetMap.delete(panelId);
         return newWidgetMap;
       });
@@ -192,7 +209,7 @@ export function DashboardPlugin(
   const handleWidgetClose = useCallback((widgetId: string) => {
     log.debug('handleWidgetClose', widgetId);
     setWidgetMap(prevWidgetMap => {
-      const newWidgetMap = new Map<WidgetId, WidgetWrapper>(prevWidgetMap);
+      const newWidgetMap = new Map(prevWidgetMap);
       newWidgetMap.delete(widgetId);
       return newWidgetMap;
     });
@@ -241,17 +258,18 @@ export function DashboardPlugin(
   );
 
   const handleWidgetDataChange = useCallback(
-    (widgetId: string, data: WidgetData) => {
+    (widgetId: string, data: ReadonlyWidgetData) => {
       log.debug('handleWidgetDataChange', widgetId, data);
       setWidgetMap(prevWidgetMap => {
-        const newWidgetMap = new Map<WidgetId, WidgetWrapper>(prevWidgetMap);
-        const widget = newWidgetMap.get(widgetId);
-        if (widget == null) {
+        const newWidgetMap = new Map(prevWidgetMap);
+        const oldWidget = newWidgetMap.get(widgetId);
+        if (oldWidget == null) {
           throw new Error(`Widget not found: ${widgetId}`);
         }
-        // We don't want the data change to re-render the WidgetHandler, so we mutate the WidgetWrapper object directly
-        // Will still re-render the DashboardPlugin though, which will save the data
-        widget.data = data;
+        newWidgetMap.set(widgetId, {
+          ...oldWidget,
+          data,
+        });
         return newWidgetMap;
       });
     },
@@ -260,15 +278,18 @@ export function DashboardPlugin(
 
   const widgetHandlers = useMemo(
     () =>
-      [...widgetMap.entries()].map(([widgetId, widget]) => (
+      [...widgetMap.entries()].map(([widgetId, wrapper]) => (
         // Fallback to an empty array in default dashboard so we don't display errors over code studio
         <ErrorBoundary
           key={widgetId}
           fallback={id === DEFAULT_DASHBOARD_ID ? [] : null}
         >
-          <DeferredApiBootstrap widget={widget.widget}>
-            <WidgetHandler
-              widget={widget}
+          <DeferredApiBootstrap widget={wrapper.widget}>
+            <DashboardWidgetHandler
+              widget={wrapper.widget}
+              id={wrapper.id}
+              initialData={wrapper.data}
+              fetch={wrapper.fetch}
               onDataChange={handleWidgetDataChange}
               onClose={handleWidgetClose}
             />

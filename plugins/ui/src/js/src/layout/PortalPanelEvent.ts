@@ -11,102 +11,109 @@ export const PORTAL_OPENED = 'PortalPanelEvent.PORTAL_OPENED';
  */
 export const PORTAL_CLOSED = 'PortalPanelEvent.PORTAL_CLOSED';
 
+export type EventListenerRemover = () => void;
+export type EventListenFunction<TPayload = unknown> = (
+  eventHub: DashboardPanelProps['glEventHub'],
+  handler: (p: TPayload) => void
+) => EventListenerRemover;
+
+export type EventEmitFunction<TPayload = unknown> = (
+  eventHub: DashboardPanelProps['glEventHub'],
+  payload: TPayload
+) => void;
+
+export type EventListenerHook<TPayload = unknown> = (
+  eventHub: DashboardPanelProps['glEventHub'],
+  handler: (p: TPayload) => void
+) => void;
+
+/**
+ * Listen for an event
+ * @param eventHub The event hub to listen to
+ * @param event The event to listen for
+ * @param handler The handler to call when the event is emitted
+ * @returns A function to stop listening for the event
+ */
+export function listenForEvent<TPayload>(
+  eventHub: DashboardPanelProps['glEventHub'],
+  event: string,
+  handler: (p: TPayload) => void
+): EventListenerRemover {
+  eventHub.on(event, handler);
+  return () => {
+    eventHub.off(event, handler);
+  };
+}
+
+export function makeListenFunction<TPayload>(
+  event: string
+): EventListenFunction<TPayload> {
+  return (eventHub, handler) => listenForEvent(eventHub, event, handler);
+}
+
+export function makeEmitFunction<TPayload>(
+  event: string
+): EventEmitFunction<TPayload> {
+  return (eventHub, payload) => {
+    eventHub.emit(event, payload);
+  };
+}
+
+export function makeUseListenerFunction<TPayload>(
+  event: string
+): EventListenerHook<TPayload> {
+  return (eventHub, handler) => {
+    useEffect(
+      () => listenForEvent(eventHub, event, handler),
+      [eventHub, handler]
+    );
+  };
+}
+
+/**
+ * Create listener, emitter, and hook functions for an event
+ * @param event Name of the event to create functions for
+ * @returns Listener, Emitter, and Hook functions for the event
+ */
+export function makeEventFunctions<TPayload>(event: string): {
+  listen: EventListenFunction<TPayload>;
+  emit: EventEmitFunction<TPayload>;
+  useListener: EventListenerHook<TPayload>;
+} {
+  return {
+    listen: makeListenFunction<TPayload>(event),
+    emit: makeEmitFunction<TPayload>(event),
+    useListener: makeUseListenerFunction<TPayload>(event),
+  };
+}
+
 export interface PortalOpenedPayload {
-  /** Golden Layout Container object. Can use the panel ID to identify this panel. */
+  /**
+   * Golden Layout Container object.
+   * Can get the ID of the container using `LayoutUtils.getIdFromContainer` to identify this container.
+   */
   container: DashboardPanelProps['glContainer'];
 
   /** Element to use for the portal */
   element: HTMLElement;
 }
 
-/**
- * Listen for portal panel opened events
- * @param eventHub The event hub to listen to
- * @param handler The handler to call when a portal panel is opened
- * @returns A function to stop listening for portal panel opened events
- */
-export function listenForPortalOpened(
-  eventHub: DashboardPanelProps['glEventHub'],
-  handler: (p: PortalOpenedPayload) => void
-): () => void {
-  eventHub.on(PORTAL_OPENED, handler);
-  return () => {
-    eventHub.off(PORTAL_OPENED, handler);
-  };
-}
-
-/**
- * Hook for listening for portal panel opened events
- * @param eventHub Event hub to listen on
- * @param handler Callback function when portal opened event is fired
- */
-export function usePortalOpenedListener(
-  eventHub: DashboardPanelProps['glEventHub'],
-  handler: (p: PortalOpenedPayload) => void
-): void {
-  useEffect(
-    () => listenForPortalOpened(eventHub, handler),
-    [eventHub, handler]
-  );
-}
-
-/**
- * Emit a portal panel opened event
- * @param eventHub The event hub to emit the event on
- * @param payload The payload to emit
- */
-export function emitPortalOpened(
-  eventHub: DashboardPanelProps['glEventHub'],
-  payload: PortalOpenedPayload
-): void {
-  eventHub.emit(PORTAL_OPENED, payload);
-}
-
 export interface PortalClosedPayload {
-  /** Golden Layout Container object. Can use the panel ID to identify this panel. */
+  /**
+   * Golden Layout Container object.
+   * Can get the ID of the container using `LayoutUtils.getIdFromContainer` to identify this container.
+   */
   container: DashboardPanelProps['glContainer'];
 }
 
-/**
- * Listen for portal panel closed events
- * @param eventHub The event hub to listen to
- * @param handler The handler to call when a portal panel is closed
- * @returns A function to stop listening for portal panel closed events
- */
-export function listenForPortalClosed(
-  eventHub: DashboardPanelProps['glEventHub'],
-  handler: (p: PortalClosedPayload) => void
-): () => void {
-  eventHub.on(PORTAL_CLOSED, handler);
-  return () => {
-    eventHub.off(PORTAL_CLOSED, handler);
-  };
-}
+export const {
+  listen: listenForPortalOpened,
+  emit: emitPortalOpened,
+  useListener: usePortalOpenedListener,
+} = makeEventFunctions<PortalOpenedPayload>(PORTAL_OPENED);
 
-/**
- * Hook for listening for portal panel closed events
- * @param eventHub Event hub to listen on
- * @param handler Callback function when portal closed event is fired
- * @returns A function to stop listening for portal panel closed events
- */
-export function usePortalClosedListener(
-  eventHub: DashboardPanelProps['glEventHub'],
-  handler: (p: PortalClosedPayload) => void
-): void {
-  useEffect(
-    () => listenForPortalClosed(eventHub, handler),
-    [eventHub, handler]
-  );
-}
-
-/**
- * Emit a portal panel closed event
- * @param eventHub The event hub to emit the event on
- * @param payload The payload to emit
- */
-export function emitPortalClosed(
-  eventHub: DashboardPanelProps['glEventHub'],
-  payload: PortalClosedPayload
-): void {
-  eventHub.emit(PORTAL_CLOSED, payload);
-}
+export const {
+  listen: listenForPortalClosed,
+  emit: emitPortalClosed,
+  useListener: usePortalClosedListener,
+} = makeEventFunctions<PortalClosedPayload>(PORTAL_CLOSED);

@@ -34,8 +34,6 @@ describe('PortalPanelManager', () => {
       </PortalPanelManager>
     );
 
-    expect(mockUsePortalOpenedListener).toHaveBeenCalled();
-
     // Verify that the usePortalOpenedListener and usePortalClosedListener functions are called with the correct callbacks
     expect(mockUsePortalOpenedListener).toHaveBeenCalledTimes(1);
     expect(mockUsePortalClosedListener).toHaveBeenCalledTimes(1);
