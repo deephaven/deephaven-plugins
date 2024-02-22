@@ -179,5 +179,3 @@ def wrap_callable(func: Callable) -> Callable:
         # This function has no signature, so we can't wrap it
         # Return the original function should be okay
         return func
-    except Exception as e:
-        raise e
