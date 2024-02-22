@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import math
-from typing import Any, TypeVar, Union, Dict, List, cast
+from typing import Any, TypeVar, List, cast, TypedDict, NotRequired
 
 from plotly.graph_objs import Figure
 
-from ._layer import layer
+from ._layer import layer, LayerSpecDict
 from .. import DeephavenFigure
 
 # The function make_subplots in this file is exempt from the styleguide rule that types should not be in the
@@ -14,7 +14,15 @@ from .. import DeephavenFigure
 # generic grid that is a list of lists of anything
 T = TypeVar("T")
 Grid = List[List[T]]
-SpecsDict = Dict[str, Union[int, float]]
+
+
+class SubplotSpecDict(TypedDict):
+    l: NotRequired[float]
+    r: NotRequired[float]
+    t: NotRequired[float]
+    b: NotRequired[float]
+    rowspan: NotRequired[int]
+    colspan: NotRequired[int]
 
 
 def get_shared_key(
@@ -45,14 +53,14 @@ def get_shared_key(
 
 
 def get_new_specs(
-    specs: Grid[SpecsDict] | None,
+    specs: Grid[SubplotSpecDict] | None,
     row_starts: list[float],
     row_ends: list[float],
     col_starts: list[float],
     col_ends: list[float],
     shared_xaxes: str | bool | None,
     shared_yaxes: str | bool | None,
-) -> list[dict[str, list[float] | int]]:
+) -> list[LayerSpecDict]:
     """Transforms the given specs and row and column lists to specs for layering
 
     Args:
@@ -97,7 +105,7 @@ def get_new_specs(
             colspan: int = int(spec.get("colspan", 1))
             y_1 = row_ends[row + rowspan - 1]
             x_1 = col_ends[col + colspan - 1]
-            new_spec: dict[str, Any] = {
+            new_spec: LayerSpecDict = {
                 "x": [x_0 + l, x_1 - r],
                 "y": [y_0 + t, y_1 - b],
             }
@@ -185,7 +193,7 @@ def get_domains(values: list[float], spacing: float) -> tuple[list[float], list[
     return starts, ends
 
 
-def is_grid(specs: list[SpecsDict] | Grid[SpecsDict]) -> bool:
+def is_grid(specs: list[SubplotSpecDict] | Grid[SubplotSpecDict]) -> bool:
     """Check if the given specs is a grid
 
     Args:
@@ -213,7 +221,7 @@ def make_subplots(
     vertical_spacing: float | None = None,
     column_widths: list[float] | None = None,
     row_heights: list[float] | None = None,
-    specs: list[SpecsDict] | Grid[SpecsDict] | None = None,
+    specs: list[SubplotSpecDict] | Grid[SubplotSpecDict] | None = None,
 ) -> DeephavenFigure:
     """Create subplots. Either figs and at least one of rows and cols or grid
     should be passed.
@@ -248,7 +256,7 @@ def make_subplots(
         The widths of each column. Should sum to 1.
       row_heights: list[float] | None: (Default value = None)
         The heights of each row. Should sum to 1.
-      specs: list[dict[str, int | float]] | list[list[dict[str, int | float]]] | None:
+      specs: list[SubplotSpecDict] | Grid[SubplotSpecDict] | None:
         (Default value = None)
         A list or grid of dicts that contain specs. An empty
         dictionary represents no specs, and None represents no figure, either
@@ -278,12 +286,12 @@ def make_subplots(
     rows, cols = len(grid), len(grid[0])
 
     # only transform specs into a grid when dimensions of figure grid are known
-    spec_grid: Grid[SpecsDict] | None = None
+    spec_grid: Grid[SubplotSpecDict] | None = None
     if specs and isinstance(specs, list):
         if is_grid(specs):
             spec_grid = cast(Grid[Any], specs)
         else:
-            specs = cast(List[SpecsDict], specs)
+            specs = cast(List[SubplotSpecDict], specs)
             spec_grid = cast(Grid[Any], make_grid(specs, rows, cols, fill={}))
         spec_grid.reverse()
     elif specs:

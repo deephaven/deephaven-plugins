@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import partial
-from typing import Any, Callable, cast, Tuple
+from typing import Any, Callable, cast, Tuple, NotRequired
 
 from plotly.graph_objs import Figure
 
@@ -12,6 +12,18 @@ from deephaven.execution_context import make_user_exec_ctx
 
 # The function layer in this file is exempt from the styleguide rule that types should not be in the
 # description if there is a type annotation.
+
+from typing import TypedDict
+
+
+class LayerSpecDict(TypedDict):
+    x: NotRequired[list[float] | None]
+    y: NotRequired[list[float] | None]
+    xaxis_update: NotRequired[dict[str, Any] | None]
+    yaxis_update: NotRequired[dict[str, Any] | None]
+    wipe_layout: NotRequired[bool | None]
+    matched_xaxis: NotRequired[str | int | None]
+    matched_yaxis: NotRequired[str | int | None]
 
 
 def normalize_position(
@@ -60,7 +72,7 @@ def get_new_positions(
     return new_positions
 
 
-def resize_domain(obj: dict, new_domain: dict[str, list[float]]) -> None:
+def resize_domain(obj: dict, new_domain: LayerSpecDict) -> None:
     """Resize the domain of the given object
 
     Args:
@@ -70,8 +82,8 @@ def resize_domain(obj: dict, new_domain: dict[str, list[float]]) -> None:
         Contains keys of x and y and values of domains, such as [0,0.5]
 
     """
-    new_domain_x = new_domain.get("x", None)
-    new_domain_y = new_domain.get("y", None)
+    new_domain_x = new_domain.get("x")
+    new_domain_y = new_domain.get("y")
     obj_domain_x = obj["domain"]["x"]
     obj_domain_y = obj["domain"]["y"]
     domain_update = {}
@@ -89,7 +101,7 @@ def resize_domain(obj: dict, new_domain: dict[str, list[float]]) -> None:
         pass
 
 
-def resize_xy_axis(axis: dict, new_domain: dict[str, list[float]], which: str) -> None:
+def resize_xy_axis(axis: dict, new_domain: LayerSpecDict, which: str) -> None:
     """Resize either an x or y axis.
 
     Args:
@@ -99,11 +111,11 @@ def resize_xy_axis(axis: dict, new_domain: dict[str, list[float]], which: str) -
       which: Either "x" or "y"
 
     """
-    new_domain_x = new_domain.get("x", None)
-    new_domain_y = new_domain.get("y", None)
+    new_domain_x = new_domain.get("x")
+    new_domain_y = new_domain.get("y")
     # the existing domain is assumed to be 0, 1 if not set
     axis_domain = axis.get("domain", [0, 1])
-    axis_position = axis.get("position", None)
+    axis_position = axis.get("position")
     axis_update = {}
     try:
         if which == "x":
@@ -172,7 +184,7 @@ def reassign_attributes(axis: dict, axes_remapping: dict[str, str]) -> None:
 
 
 def resize_axis(
-    type_: str, old_axis: str, axis: dict, num: str, new_domain: dict[str, Any]
+    type_: str, old_axis: str, axis: dict, num: str, new_domain: LayerSpecDict
 ) -> tuple[str, str, str]:
     """Maps the specified axis to new_domain and returns info to help remap axes
 
@@ -202,7 +214,7 @@ def resize_axis(
         return new_axis, old_axis, new_axis
 
 
-def get_axis_update(spec: dict[str, Any], type_: str) -> dict[str, Any] | None:
+def get_axis_update(spec: LayerSpecDict, type_: str) -> dict[str, Any] | None:
     """Retrieve an axis update from the spec
 
     Args:
@@ -222,7 +234,7 @@ def get_axis_update(spec: dict[str, Any], type_: str) -> dict[str, Any] | None:
 
 def match_axes(
     type_: str,
-    spec: dict[str, str | bool | list[float]],
+    spec: LayerSpecDict,
     matches_axes: dict[Any, dict[int, str]],
     axis_indices: dict[str, int],
     new_trace_axis: str,
@@ -272,7 +284,7 @@ def match_axes(
 def resize_fig(
     fig_data: dict,
     fig_layout: dict,
-    spec: dict[str, Any],
+    spec: LayerSpecDict,
     new_axes_start: dict[str, int],
     matches_axes: dict[Any, dict[int, str]],
 ) -> tuple[dict, dict]:
@@ -379,7 +391,7 @@ def resize_fig(
 def fig_data_and_layout(
     fig: Figure,
     i: int,
-    specs: list[dict[str, Any]] | None,
+    specs: list[LayerSpecDict] | None,
     which_layout: int | None,
     new_axes_start: dict[str, int],
     matches_axes: dict[Any, dict[int, str]],
@@ -427,7 +439,7 @@ def fig_data_and_layout(
 def atomic_layer(
     *figs: DeephavenFigure | Figure,
     which_layout: int | None = None,
-    specs: list[dict[str, Any]] | None = None,
+    specs: list[LayerSpecDict] | None = None,
     unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """
@@ -518,7 +530,7 @@ def atomic_layer(
 def layer(
     *figs: DeephavenFigure | Figure,
     which_layout: int | None = None,
-    specs: list[dict[str, Any]] | None = None,
+    specs: list[LayerSpecDict] | None = None,
     unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """Layers the provided figures. Be default, the layouts are sequentially

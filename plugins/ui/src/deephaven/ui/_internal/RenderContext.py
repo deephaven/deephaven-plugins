@@ -273,7 +273,11 @@ class RenderContext:
             self.manage(wrapper.liveness_scope)
         else:
             try:
-                cast(LivenessScope, self._top_level_scope).manage(wrapper.value)
+                if self._top_level_scope is None:
+                    raise RuntimeError(
+                        "RenderContext.get_state() called when RenderContext not opened"
+                    )
+                self._top_level_scope.manage(wrapper.value)
             except DHError:
                 # Ignore, we just won't manage this instance
                 pass
@@ -349,4 +353,4 @@ class RenderContext:
             liveness_scope: the new LivenessScope to track
         """
         assert self is get_context()
-        cast(Set, self._collected_scopes).add(liveness_scope.j_scope)
+        self._collected_scopes.add(cast(LivenessScope, liveness_scope.j_scope))

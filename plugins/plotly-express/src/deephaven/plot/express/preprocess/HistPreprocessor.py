@@ -135,13 +135,15 @@ class HistPreprocessor(UnivariatePreprocessor):
         """
         range_index, range_ = self.names["range_index"], self.names["range"]
         agg_func = HISTFUNC_MAP[self.histfunc]
+        if not self.range_table:
+            raise ValueError("Range table not created")
         for i, table in enumerate(tables):
             # the column needs to be temporarily renamed to avoid collisions
             tmp_name = f"tmp{i}"
             tmp_col = get_unique_names(table, [tmp_name])[tmp_name]
             count_table = (
                 table.view(f"{tmp_col} = {column}")
-                .join(self.range_table)  # type: ignore # missing Optional type
+                .join(self.range_table)
                 .update_view(f"{range_index} = {range_}.index({tmp_col})")
                 .where(f"!isNull({range_index})")
                 .drop_columns(range_)
@@ -187,7 +189,10 @@ class HistPreprocessor(UnivariatePreprocessor):
 
         var_axis_name = self.names[self.histfunc]
 
-        bin_counts = bin_counts.join(self.range_table).update_view(  # type: ignore # missing Optional type
+        if not self.range_table:
+            raise ValueError("Range table not created")
+
+        bin_counts = bin_counts.join(self.range_table).update_view(
             [
                 f"{bin_min} = {range_}.binMin({range_index})",
                 f"{bin_max} = {range_}.binMax({range_index})",

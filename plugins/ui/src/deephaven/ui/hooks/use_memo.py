@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from .use_ref import use_ref, Ref
 from .._internal import ValueWithLiveness, get_context
-from typing import Any, Callable, TypeVar, cast, Union
+from typing import Any, Callable, TypeVar, cast, Union, Sequence
 from deephaven.liveness_scope import LivenessScope
 
 T = TypeVar("T")
 
 
-def use_memo(func: Callable[[], T], dependencies: set[Any]) -> T:
+def use_memo(func: Callable[[], T], dependencies: set[Any] | Sequence[Any]) -> T:
     """
     Memoize the result of a function call. The function will only be called again if the dependencies change.
 
@@ -19,7 +19,7 @@ def use_memo(func: Callable[[], T], dependencies: set[Any]) -> T:
     Returns:
         The memoized result of the function call.
     """
-    deps_ref: Ref[set[Any] | None] = use_ref(None)
+    deps_ref: Ref[set[Any] | Sequence[Any] | None] = use_ref(None)
     value_ref: Ref[ValueWithLiveness[T | None]] = use_ref(
         ValueWithLiveness(value=cast(Union[T, None], None), liveness_scope=None)
     )
