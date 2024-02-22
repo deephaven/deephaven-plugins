@@ -1011,6 +1011,178 @@ def my_dashboard():
 d = my_dashboard()
 ```
 
+##### ui.item
+
+An item that can be added to a menu, such as a `ui.picker`
+
+```py
+import deephaven.ui as ui
+ui.item(
+    children: Stringable,
+    **props: Any
+) -> ItemElement
+```
+
+###### Parameters
+| Parameter      | Type         | Description                            |
+|----------------|--------------|----------------------------------------|
+| `*children`    | `Stringable` | The options to render within the item. |
+| `**props`      | `Any`        | Any other Item prop                    |
+
+
+##### ui.section
+
+A section that can be added to a menu, such as a `ui.picker`. Children are the dropdown options.
+
+```py
+import deephaven.ui as ui
+ui.section(
+    *children: PickerOption,
+    title: str | None = None,
+    **props: Any
+) -> SectionElement
+```
+
+###### Parameters
+| Parameter             | Type            | Description                                                                                                                                              |
+|-----------------------|-----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `*children`           | `PickerOption`  | The options to render within the section.                                                                                                                |
+| `title`               | `str \| None`   | The title of the section.                                                                                                                                |
+| `**props`             | `Any`           | Any other Section prop                                                                                                                                   |
+
+##### ui.picker
+A picker that can be used to select from a list. Children should be one of four types:  
+If children are of type `PickerOption`, they are the dropdown options.  
+If children are of type `SectionElement`, they are the dropdown sections.  
+If children are of type `Table`, the values in the table are the dropdown options. There can only be one child, the `Table`. 
+If children are of type `PartitionedTable`, the values in the table are the dropdown options and the partitions create multiple sections. There can only be one child, the `PartitionedTable`. 
+
+```py
+import deephaven.ui as ui
+ui.picker(
+    *children: PickerOption | SectionElement | Table | PartitionedTable,
+    key_column: ColumnName | None = None,
+    label_column: ColumnName | None = None,
+    description_column: ColumnName | None = None,
+    icon_column: ColumnName | None = None,
+    title_column: ColumnName | None = None,
+    default_selected_key: Key | None = None,
+    selected_key: Key | None = None,
+    on_selection_change: Callable[[Key], None] | None = None, 
+    **props: Any
+) -> ItemElement
+```
+
+###### Parameters
+| Parameter              | Type                                                          | Description                                                                                                                                                                                                                                                                  |
+|------------------------|---------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `*children`            | `PickerOption \| SectionElement \| Table \| PartitionedTable` | The options to render within the picker.                                                                                                                                                                                                                                     |
+| `key_column`           | `ColumnName \| None`                                          | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to use as item keys. Defaults to the first column.                                                                                                                                    |
+| `label_column`         | `ColumnName \| None`                                          | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                       |
+| `description_column`   | `ColumnName \| None`                                          | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as descriptions.                                                                                                                                                           |
+| `icon_column`          | `ColumnName \| None`                                          | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to map to icons.                                                                                                                                                                      |
+| `title_column`         | `ColumnName \| None`                                          | Only valid if children is of type `PartitionedTable`. The column of values to display as section names. Should be the same for all values in the constituent `Table`. If not specified, the section titles will be created from the `key_columns` of the `PartitionedTable`. |
+| `default_selected_key` | `Key \| None`                                                 | The initial selected key in the collection (uncontrolled).                                                                                                                                                                                                                   |
+| `selected_key`         | `Key \| None`                                                 | The currently selected key in the collection (controlled).                                                                                                                                                                                                                   |
+| `on_selection_change`  | `Callable[[Key], None] \| None`                               | Handler that is called when the selection changes.                                                                                                                                                                                                                           |
+| `**props`              | `Any`                                                         | Any other [Picker](https://react-spectrum.adobe.com/react-spectrum/Picker.html) prop, with the exception of `items`                                                                                                                                                          |
+
+```py
+import deephaven.ui as ui
+
+# simple picker that takes ui.items and is uncontrolled
+picker1 = ui.picker(
+    ui.item("Option 1"),
+    ui.item("Option 2"),
+    ui.item("Option 3"),
+    ui.item("Option 4"),
+    default_selected_key="Option 2"
+)
+
+# simple picker that takes picker options directly and is controlled
+option, set_option = ui.use_state("Option 2")
+
+picker2 = ui.picker(
+    "Option 1",
+    "Option 2",
+    "Option 3",
+    "Option 4",
+    selected_key=option,
+    on_selection_change=set_option
+)
+
+# manually create a section with items
+picker3 = ui.picker(
+    ui.section(
+        ui.item("Option 1"),
+        ui.item("Option 2"),
+        title="Section 1"
+    ),
+    ui.section(
+        ui.item("Option 3"),
+        ui.item("Option 4"),
+        title="Section 2"
+    )
+)
+
+# manually create a section with picker options directly
+picker4 = ui.picker(
+    ui.section(
+        "Option 1",
+        "Option 2",
+    ),
+    ui.section(
+        "Option 3",
+        "Option 4",
+    )
+)
+
+from deephaven import empty_table
+
+table1 = empty_table(4).update_view("data=i")
+table2 = empty_table(1).update_view("data=10")
+
+# data hooks can be used to create a picker from a table
+# this should be avoided as it is not as performant as just passing in the table directly
+options = ui.use_column_data(table1)
+
+picker5 = ui.picker(
+    children=options
+)
+
+# instead, pass in the table directly
+picker6 = ui.picker(
+    table1
+)
+
+from deephaven import new_table
+from deephaven.column import string_col, int_col
+
+color_table = new_table([
+    string_col("Sections", ["Interesting Colors", 'Interesting Colors', "Other Colors"]),
+    string_col("SectionNames", ["Favorites", 'Favorites', "Other"]),
+    int_col("Keys", ["salmon", "lemonchiffon", "black"]),
+    string_col("Labels", ["Salmon", "Lemon Chiffon", "Black"]),
+    string_col("Descriptions", ["An interesting color", "Another interesting color", "A color"]),
+    string_col("Icons", ["Amusementpark", "Teapot", "Sentiment Negative"])
+])
+partitioned_table = color_table.partition_by("Sections")
+
+color, set_color = ui.use_state("salmon")
+
+# this will create a picker with two sections, one for each partition
+picker7 = ui.picker(
+    partitioned_table,
+    key_column="Keys",
+    label_column="Labels",
+    description_column="Descriptions",
+    icon_column="Icons",
+    title_column="SectionNames",
+    selected_key=option,
+    on_selection_change=set_color
+)
+```
+
 #### ui.table
 
 `ui.table` is a wrapper for a Deephaven `Table` object that allows you to add UI customizations or callbacks. The basic syntax for creating a `UITable` is:
@@ -1524,6 +1696,10 @@ LiteralSortDirection = Literal["ASC", "DESC"]
 TableSortDirection = Union[LiteralSortDirection, SortDirection]
 TableData = dict[ColumnName, ColumnData]
 TransformedData = Any
+# Stringable is a type that is naturally convertible to a string
+Stringable = str | int | float | bool
+PickerOption = Stringable | ItemElement
+Key = Any
 
 T = TypeVar("T")
 Combination: TypeAlias = T | set[T] | Sequence[T]
