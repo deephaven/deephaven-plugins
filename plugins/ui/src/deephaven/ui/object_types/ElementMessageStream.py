@@ -165,30 +165,34 @@ class ElementMessageStream(MessageStream):
         """
         Process any queued callables, then re-renders the element if it is dirty.
         """
-        with self._exec_context:
-            with self._render_lock:
-                self._render_thread = threading.current_thread()
-                self._render_state = _RenderState.RENDERING
+        try:
 
-            while not self._callable_queue.empty():
-                item = self._callable_queue.get()
-                with liveness_scope():
-                    try:
-                        item()
-                    except Exception as e:
-                        logger.exception(e)
+            with self._exec_context:
+                with self._render_lock:
+                    self._render_thread = threading.current_thread()
+                    self._render_state = _RenderState.RENDERING
 
-            if self._is_dirty:
-                self._render()
+                while not self._callable_queue.empty():
+                    item = self._callable_queue.get()
+                    with liveness_scope():
+                        try:
+                            item()
+                        except Exception as e:
+                            logger.exception(e)
 
-            with self._render_lock:
-                self._render_thread = None
-                if not self._callable_queue.empty() or self._is_dirty:
-                    # There are still callables to process, so queue up another render
-                    self._render_state = _RenderState.QUEUED
-                    submit_task("concurrent", self._process_callable_queue)
-                else:
-                    self._render_state = _RenderState.IDLE
+                if self._is_dirty:
+                    self._render()
+
+                with self._render_lock:
+                    self._render_thread = None
+                    if not self._callable_queue.empty() or self._is_dirty:
+                        # There are still callables to process, so queue up another render
+                        self._render_state = _RenderState.QUEUED
+                        submit_task("concurrent", self._process_callable_queue)
+                    else:
+                        self._render_state = _RenderState.IDLE
+        except Exception as e:
+            logger.exception(e)
 
     def _mark_dirty(self) -> None:
         """
@@ -247,7 +251,6 @@ class ElementMessageStream(MessageStream):
             payload: The payload from the client
             references: The references from the client
         """
-        logger.debug("Payload received, will decode")
         decoded_payload = io.BytesIO(payload).read().decode()
         logger.debug("Payload received: %s", decoded_payload)
 

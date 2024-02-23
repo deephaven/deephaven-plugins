@@ -366,6 +366,7 @@ class RenderContext:
                 key: value.value
                 for key, value in self._state.items()
                 if value.liveness_scope is None
+                and isinstance(value.value, (str, int, float))
             }
         if len(self._children_context) > 0:
             exported_state["children"] = {
