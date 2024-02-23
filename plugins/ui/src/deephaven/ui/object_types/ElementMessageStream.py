@@ -247,6 +247,7 @@ class ElementMessageStream(MessageStream):
             payload: The payload from the client
             references: The references from the client
         """
+        logger.debug("Payload received, will decode")
         decoded_payload = io.BytesIO(payload).read().decode()
         logger.debug("Payload received: %s", decoded_payload)
 
@@ -318,7 +319,7 @@ class ElementMessageStream(MessageStream):
         self._context.import_state(state)
         self._mark_dirty()
 
-    def _send_document_update(self, root: RenderedNode, state: RenderContext) -> None:
+    def _send_document_update(self, root: RenderedNode, context: RenderContext) -> None:
         """
         Send a document update to the client. Currently just sends the entire document for each update.
 
@@ -334,7 +335,9 @@ class ElementMessageStream(MessageStream):
         callable_id_dict = encoder_result["callable_id_dict"]
 
         # TODO: We need to handle encoding the state a little smarter. This is just a hack to test the rest of the pipeline, but won't work with stuff like tables.
-        encoded_state = json.dumps(state.export_state())
+        state = context.export_state()
+        logger.debug("Exported state: %s", state)
+        encoded_state = json.dumps(state)
 
         request = self._make_notification(
             "documentUpdated", encoded_document, encoded_state

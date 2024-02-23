@@ -355,14 +355,35 @@ class RenderContext:
         assert self is get_context()
         self._collected_scopes.add(cast(LivenessScope, liveness_scope.j_scope))
 
-    def export_state(self):
+    def export_state(self) -> dict[str, Any]:
         """
         Export the state of this context. This is used to serialize the state for the client.
         """
-        return self._state
+        exported_state: dict[str, Any] = {}
+        if len(self._state) > 0:
+            # We need to iterate through all of our state and export anything that doesn't have a LivenessScope right now (anything serializable)
+            exported_state["state"] = {
+                key: value.value
+                for key, value in self._state.items()
+                if value.liveness_scope is None
+            }
+        if len(self._children_context) > 0:
+            exported_state["children"] = {
+                key: child.export_state()
+                for key, child in self._children_context.items()
+            }
 
-    def import_state(self, state: dict[StateKey, Any]):
+        return exported_state
+
+    def import_state(self, state: dict[str, Any]):
         """
         Import the state of this context. This is used to deserialize the state from the client.
         """
-        self._state = state
+        self._state.clear()
+        self._children_context.clear()
+        if "state" in state:
+            for key, value in state["state"].items():
+                self._state[key] = ValueWithLiveness(value=value, liveness_scope=None)
+        if "children" in state:
+            for key, child_state in state["children"].items():
+                self.get_child_context(key).import_state(child_state)

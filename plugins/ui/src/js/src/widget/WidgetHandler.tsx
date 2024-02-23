@@ -57,10 +57,11 @@ function WidgetHandler({
   onDataChange = EMPTY_FUNCTION,
   fetch,
   widget: descriptor,
-  initialData,
+  initialData: initialDataProp,
 }: WidgetHandlerProps) {
   const [widget, setWidget] = useState<Widget>();
   const [document, setDocument] = useState<ReactNode>();
+  const [initialData] = useState(initialDataProp);
 
   // When we fetch a widget, the client is then responsible for the exported objects.
   // These objects could stay alive even after the widget is closed if we wanted to,
@@ -242,7 +243,14 @@ function WidgetHandler({
       receiveData(widget.getDataAsString(), widget.exportedObjects);
 
       // We set the initial state of the widget. We'll then get a documentUpdated as a response.
-      jsonClient?.request('setState', [initialData?.state ?? {}]);
+      jsonClient?.request('setState', [initialData?.state ?? {}]).then(
+        result => {
+          log.debug('Set state result', result);
+        },
+        e => {
+          log.error('Error setting initial state: ', e);
+        }
+      );
 
       return () => {
         log.debug('Cleaning up widget', widget);
