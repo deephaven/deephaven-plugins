@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from typing import Union, Any
 
-from .basic import spectrum_element
-from ..._internal.utils import create_props
-from ...elements import Element
-from ...types import Stringable
+from .._internal.utils import create_props
+from ..elements import Element, BaseElement
+from ..types import Stringable
 from .item import ItemElement
 
 PickerOption = Union[Stringable, ItemElement]
@@ -29,4 +28,4 @@ def section(
 
     children, props = create_props(locals())
 
-    return spectrum_element("Section", *children, **props)
+    return BaseElement("deephaven.ui.components.Section", *children, **props)

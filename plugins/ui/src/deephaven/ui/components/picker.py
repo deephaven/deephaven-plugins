@@ -2,14 +2,13 @@ from __future__ import annotations
 
 from typing import Callable, Any
 
-from .basic import spectrum_element
 from deephaven.table import Table, PartitionedTable
 from .section import SectionElement, PickerOption
-from ...elements import Element
-from ..._internal.utils import create_props
-from ...types import ColumnName, Key
+from ..elements import BaseElement
+from .._internal.utils import create_props
+from ..types import ColumnName, Key
 
-PickerElement = Element
+PickerElement = BaseElement
 
 
 def picker(
@@ -65,4 +64,4 @@ def picker(
     """
     children, props = create_props(locals())
 
-    return spectrum_element("Picker", children, **props)
+    return BaseElement("deephaven.ui.components.Picker", *children, **props)

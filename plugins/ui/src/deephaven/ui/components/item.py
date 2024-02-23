@@ -1,10 +1,9 @@
 from typing import Any
 
-from .basic import spectrum_element
-from ...elements import Element
-from ...types import Stringable
+from ..elements import BaseElement
+from ..types import Stringable
 
-ItemElement = Element
+ItemElement = BaseElement
 
 
 def item(*children: Stringable, **props: Any) -> ItemElement:
@@ -15,4 +14,4 @@ def item(*children: Stringable, **props: Any) -> ItemElement:
         children: The options to render within the item.
         **props: Any other Item prop.
     """
-    return spectrum_element("Item", *children, **props)
+    return BaseElement("deephaven.ui.components.Item", *children, **props)
