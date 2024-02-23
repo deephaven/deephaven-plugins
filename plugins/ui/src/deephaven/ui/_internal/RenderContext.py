@@ -383,7 +383,10 @@ class RenderContext:
         self._children_context.clear()
         if "state" in state:
             for key, value in state["state"].items():
-                self._state[key] = ValueWithLiveness(value=value, liveness_scope=None)
+                self._state[int(key)] = ValueWithLiveness(
+                    value=value, liveness_scope=None
+                )
         if "children" in state:
             for key, child_state in state["children"].items():
                 self.get_child_context(key).import_state(child_state)
+        logger.debug("New state is %s", self._state)
