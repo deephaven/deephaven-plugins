@@ -1,9 +1,12 @@
-from .use_ref import use_ref
+from __future__ import annotations
+
+from typing import Callable, Any, cast, Sequence
+from .use_ref import use_ref, Ref
 from deephaven.liveness_scope import LivenessScope
 from .._internal import get_context
 
 
-def use_effect(func, dependencies):
+def use_effect(func: Callable[[], Any], dependencies: set[Any] | Sequence[Any]):
     """
     Call a function when the dependencies change. Optionally return a cleanup function to be called when dependencies change again or component is unmounted.
 
@@ -14,9 +17,9 @@ def use_effect(func, dependencies):
     Returns:
         None
     """
-    deps_ref = use_ref(None)
+    deps_ref: Ref[set[Any] | Sequence[Any] | None] = use_ref(None)
     cleanup_ref = use_ref(lambda: None)
-    scope_ref = use_ref(None)
+    scope_ref: Ref[LivenessScope | None] = use_ref(None)
 
     # Check if the dependencies have changed
     if deps_ref.current != dependencies:
@@ -37,4 +40,4 @@ def use_effect(func, dependencies):
         deps_ref.current = dependencies
 
     # Whether new or existing, continue to retain the liveness scope from the most recently invoked effect.
-    get_context().manage(scope_ref.current)
+    get_context().manage(cast(LivenessScope, scope_ref.current))

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from .._internal import get_context
-from .use_ref import use_ref
+from .use_ref import use_ref, Ref
 from typing import Callable
 from deephaven.liveness_scope import LivenessScope
 
@@ -17,7 +19,7 @@ def use_liveness_scope(func: Callable) -> Callable:
     Returns:
         The wrapped Callable
     """
-    scope_ref = use_ref(None)
+    scope_ref: Ref[LivenessScope | None] = use_ref(None)
 
     # If the value is set, the wrapped callable was invoked since we were last called - the current render
     # cycle now will manage it, and release it when appropriate.

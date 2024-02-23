@@ -2,11 +2,21 @@ from __future__ import annotations
 
 import threading
 import logging
+from typing import (
+    Any,
+    Callable,
+    Optional,
+    TypeVar,
+    Union,
+    Generator,
+    Generic,
+    cast,
+    Set,
+)
 from functools import partial
-from typing import Any, Callable, Optional, TypeVar, Union, Generic
 from deephaven import DHError
 from deephaven.liveness_scope import LivenessScope
-from contextlib import AbstractContextManager, contextmanager
+from contextlib import contextmanager
 from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
@@ -52,7 +62,9 @@ class ValueWithLiveness(Generic[T]):
     liveness_scope: Union[LivenessScope, None]
 
 
-def _value_or_call(value: T | None | Callable[[], T | None]) -> ValueWithLiveness[T]:
+def _value_or_call(
+    value: T | None | Callable[[], T | None]
+) -> ValueWithLiveness[T | None]:
     """
     Creates a wrapper around the value, or invokes a callable to hold the value and the liveness scope
     creates while obtaining that value.
@@ -170,7 +182,7 @@ class RenderContext:
             scope.release()
 
     @contextmanager
-    def open(self) -> AbstractContextManager:
+    def open(self) -> Generator[RenderContext, None, None]:
         """
         Opens this context to track hook creation, sets this context as active on
         this thread, and opens the liveness scope for user-created objects.
@@ -261,6 +273,10 @@ class RenderContext:
             self.manage(wrapper.liveness_scope)
         else:
             try:
+                if self._top_level_scope is None:
+                    raise RuntimeError(
+                        "RenderContext.get_state() called when RenderContext not opened"
+                    )
                 self._top_level_scope.manage(wrapper.value)
             except DHError:
                 # Ignore, we just won't manage this instance
@@ -337,4 +353,4 @@ class RenderContext:
             liveness_scope: the new LivenessScope to track
         """
         assert self is get_context()
-        self._collected_scopes.add(liveness_scope.j_scope)
+        self._collected_scopes.add(cast(LivenessScope, liveness_scope.j_scope))

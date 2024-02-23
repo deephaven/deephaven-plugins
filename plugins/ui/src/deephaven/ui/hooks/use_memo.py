@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from .use_ref import use_ref, Ref
 from .._internal import ValueWithLiveness, get_context
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable, TypeVar, cast, Union, Sequence
 from deephaven.liveness_scope import LivenessScope
 
 T = TypeVar("T")
 
 
-def use_memo(func: Callable[[], T], dependencies: set[Any]) -> T:
+def use_memo(func: Callable[[], T], dependencies: set[Any] | Sequence[Any]) -> T:
     """
     Memoize the result of a function call. The function will only be called again if the dependencies change.
 
@@ -19,9 +19,9 @@ def use_memo(func: Callable[[], T], dependencies: set[Any]) -> T:
     Returns:
         The memoized result of the function call.
     """
-    deps_ref: Ref[set[Any] | None] = use_ref(None)
+    deps_ref: Ref[set[Any] | Sequence[Any] | None] = use_ref(None)
     value_ref: Ref[ValueWithLiveness[T | None]] = use_ref(
-        ValueWithLiveness(value=None, liveness_scope=None)
+        ValueWithLiveness(value=cast(Union[T, None], None), liveness_scope=None)
     )
 
     if deps_ref.current != dependencies:
@@ -33,7 +33,7 @@ def use_memo(func: Callable[[], T], dependencies: set[Any]) -> T:
         )
 
         # The current RenderContext will then own the newly created liveness scope, and release when appropriate.
-        get_context().manage(value_ref.current.liveness_scope)
+        get_context().manage(cast(LivenessScope, value_ref.current.liveness_scope))
 
         deps_ref.current = dependencies
     elif value_ref.current.liveness_scope:

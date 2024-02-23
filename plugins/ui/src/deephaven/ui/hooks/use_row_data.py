@@ -8,7 +8,7 @@ from .use_table_data import use_table_data
 from ..types import Sentinel, RowData
 
 
-def _row_data(data: pd.DataFrame, is_sentinel: bool) -> RowData:
+def _row_data(data: pd.DataFrame | Sentinel, is_sentinel: bool) -> RowData | Sentinel:
     """
     Return the first row of the table as a dictionary.
 

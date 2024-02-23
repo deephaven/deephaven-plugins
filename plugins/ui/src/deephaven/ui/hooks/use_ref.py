@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from .use_state import use_state
-from typing import Generic, overload, TypeVar
+from typing import Generic, overload, TypeVar, Optional
 
 T = TypeVar("T")
 
@@ -23,7 +23,12 @@ def use_ref(initial_value: T) -> Ref[T]:
     ...
 
 
-def use_ref(initial_value: T | None = None) -> Ref[T | None]:
+@overload
+def use_ref(initial_value: T | None) -> Ref[T | None]:
+    ...
+
+
+def use_ref(initial_value: T | None = None) -> Ref[T] | Ref[T | None]:
     """
     Store a reference to a value that will persist across renders.
 
