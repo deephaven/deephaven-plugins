@@ -1,7 +1,7 @@
 from ..elements import BaseElement
 
 
-def icon(name, *children, **props):
+def icon(name: str, *children, **props):
     """
     Get a Deephaven icon by name.
     """

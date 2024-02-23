@@ -8,7 +8,7 @@ from abc import abstractmethod
 from copy import copy
 
 from deephaven.table import PartitionedTable, Table
-from deephaven.execution_context import ExecutionContext
+from deephaven.execution_context import ExecutionContext, get_exec_ctx
 from deephaven.liveness_scope import LivenessScope
 
 from ..shared import args_copy
@@ -61,8 +61,12 @@ class DeephavenNode:
     represents a node in the graph.
     """
 
+    def __init__(self):
+        self.cached_figure = None
+        self.parent = None
+
     @abstractmethod
-    def recreate_figure(self) -> None:
+    def recreate_figure(self, update_parent: bool = True) -> None:
         """
         Recreate the figure. This is called when an underlying partition or
         child figure changes.
@@ -132,10 +136,10 @@ class DeephavenFigureNode(DeephavenNode):
             func: The function to call
         """
         self.parent = parent
-        self.exec_ctx = exec_ctx
-        self.args = args
+        self.exec_ctx = exec_ctx if exec_ctx else get_exec_ctx()
+        self.args = args if args else {}
         self.table = table
-        self.func = func
+        self.func = func if func else lambda **kwargs: None
         self.cached_figure = None
         self.revision_manager = RevisionManager()
 
@@ -161,7 +165,7 @@ class DeephavenFigureNode(DeephavenNode):
             if self.revision_manager.updated_revision(revision):
                 self.cached_figure = new_figure
 
-        if update_parent:
+        if update_parent and self.parent:
             self.parent.recreate_figure()
 
     def copy(
@@ -195,7 +199,7 @@ class DeephavenFigureNode(DeephavenNode):
         new_node.parent = parent
         return new_node
 
-    def get_figure(self) -> DeephavenFigure:
+    def get_figure(self) -> DeephavenFigure | None:
         """
         Get the figure for this node. It will be generated if not cached
 
@@ -223,7 +227,12 @@ class DeephavenLayerNode(DeephavenNode):
     """
 
     def __init__(
-        self, layer_func: Callable, args: dict[str, Any], exec_ctx: ExecutionContext
+        self,
+        layer_func: Callable,
+        args: dict[str, Any],
+        exec_ctx: ExecutionContext,
+        cached_figure: DeephavenFigure | None = None,
+        parent: DeephavenLayerNode | DeephavenHeadNode | None = None,
     ):
         """
         Create a new DeephavenLayerNode
@@ -233,15 +242,15 @@ class DeephavenLayerNode(DeephavenNode):
             args: The arguments to the function
             exec_ctx: The execution context
         """
-        self.parent = None
+        self.parent = parent
         self.nodes = []
         self.layer_func = layer_func
         self.args = args
-        self.cached_figure = None
+        self.cached_figure = cached_figure
         self.exec_ctx = exec_ctx
         self.revision_manager = RevisionManager()
 
-    def recreate_figure(self, update_parent=True) -> None:
+    def recreate_figure(self, update_parent: bool = True) -> None:
         """
         Recreate the figure. This is called when the underlying partition
         or a child node changes
@@ -262,12 +271,12 @@ class DeephavenLayerNode(DeephavenNode):
             if self.revision_manager.updated_revision(revision):
                 self.cached_figure = new_figure
 
-        if update_parent:
+        if update_parent and self.parent:
             self.parent.recreate_figure()
 
     def copy(
         self,
-        parent: DeephavenNode | DeephavenHeadNode,
+        parent: DeephavenLayerNode | DeephavenHeadNode,
         partitioned_tables: dict[int, tuple[PartitionedTable, DeephavenNode]],
     ) -> DeephavenLayerNode:
         """
@@ -282,15 +291,15 @@ class DeephavenLayerNode(DeephavenNode):
         Returns:
             DeephavenLayerNode: The new node
         """
-        new_node = DeephavenLayerNode(self.layer_func, self.args, self.exec_ctx)
+        new_node = DeephavenLayerNode(
+            self.layer_func, self.args, self.exec_ctx, self.cached_figure, parent
+        )
         new_node.nodes = [
             node.copy(new_node, partitioned_tables) for node in self.nodes
         ]
-        new_node.cached_figure = self.cached_figure
-        new_node.parent = parent
         return new_node
 
-    def get_figure(self) -> DeephavenFigure:
+    def get_figure(self) -> DeephavenFigure | None:
         """
         Get the figure for this node. It will be generated if not cached
 
@@ -322,7 +331,7 @@ class DeephavenHeadNode:
         Create a new DeephavenHeadNode
         """
         # there is only one child node of the head, either a layer or a figure
-        self.node = None
+        self.node: DeephavenNode | None = None
         self.partitioned_tables = {}
         self.cached_figure = None
 
@@ -335,7 +344,8 @@ class DeephavenHeadNode:
         """
         new_head = DeephavenHeadNode()
         new_partitioned_tables = copy(self.partitioned_tables)
-        new_head.node = self.node.copy(new_head, new_partitioned_tables)
+        if self.node:
+            new_head.node = self.node.copy(new_head, new_partitioned_tables)
         new_head.partitioned_tables = new_partitioned_tables
         return new_head
 
@@ -344,10 +354,11 @@ class DeephavenHeadNode:
         Recreate the figure. This is called when the underlying partition
         or a child node changes
         """
-        self.node.recreate_figure(update_parent=False)
-        self.cached_figure = self.node.cached_figure
+        if self.node:
+            self.node.recreate_figure(update_parent=False)
+            self.cached_figure = self.node.cached_figure
 
-    def get_figure(self) -> DeephavenFigure:
+    def get_figure(self) -> DeephavenFigure | None:
         """
         Get the figure for this node. This will be called by a communication to get
         the initial figure.
@@ -472,7 +483,9 @@ class DeephavenFigure:
           The DeephavenFigure as a JSON string
 
         """
-        plotly = json.loads(self._plotly_fig.to_json())
+        plotly = None
+        if self._plotly_fig and (fig_json := self._plotly_fig.to_json()) is not None:
+            plotly = json.loads(fig_json)
         mappings = self.get_json_links(exporter)
         deephaven = {
             "mappings": mappings,
@@ -529,7 +542,7 @@ class DeephavenFigure:
         exec_ctx: ExecutionContext,
         args: dict[str, Any],
         table: Table | PartitionedTable,
-        key_column_table: Table,
+        key_column_table: Table | None,
         func: Callable,
     ) -> None:
         """
@@ -564,7 +577,7 @@ class DeephavenFigure:
         """
         return self._head_node
 
-    def get_figure(self) -> DeephavenFigure:
+    def get_figure(self) -> DeephavenFigure | None:
         """
         Get the true DeephavenFigure for this figure.
 
@@ -573,16 +586,17 @@ class DeephavenFigure:
         """
         return self._head_node.get_figure()
 
-    def get_plotly_fig(self) -> Figure:
+    def get_plotly_fig(self) -> Figure | None:
         """
         Get the plotly figure for this figure
 
         Returns:
             The plotly figure
         """
-        if not self.get_figure():
+        figure = self.get_figure()
+        if not figure:
             return self._plotly_fig
-        return self.get_figure().get_plotly_fig()
+        return figure.get_plotly_fig()
 
     def get_data_mappings(self) -> list[DataMapping]:
         """
@@ -591,9 +605,10 @@ class DeephavenFigure:
         Returns:
             The data mappings
         """
-        if not self.get_figure():
+        figure = self.get_figure()
+        if not figure:
             return self._data_mappings
-        return self.get_figure().get_data_mappings()
+        return figure.get_data_mappings()
 
     def get_trace_generator(self) -> Generator[dict[str, Any], None, None] | None:
         """
@@ -602,9 +617,10 @@ class DeephavenFigure:
         Returns:
             The trace generator
         """
-        if not self.get_figure():
+        figure = self.get_figure()
+        if not figure:
             return self._trace_generator
-        return self.get_figure().get_trace_generator()
+        return figure.get_trace_generator()
 
     def get_has_template(self) -> bool:
         """
@@ -613,9 +629,10 @@ class DeephavenFigure:
         Returns:
             True if has a template, False otherwise
         """
-        if not self.get_figure():
+        figure = self.get_figure()
+        if not figure:
             return self._has_template
-        return self.get_figure().get_has_template()
+        return figure.get_has_template()
 
     def get_has_color(self) -> bool:
         """
@@ -624,9 +641,10 @@ class DeephavenFigure:
         Returns:
             True if has color, False otherwise
         """
-        if not self.get_figure():
+        figure = self.get_figure()
+        if not figure:
             return self._has_color
-        return self.get_figure().get_has_color()
+        return figure.get_has_color()
 
     def get_has_subplots(self) -> bool:
         """
@@ -635,9 +653,10 @@ class DeephavenFigure:
         Returns:
             True if has subplots, False otherwise
         """
-        if not self.get_figure():
+        figure = self.get_figure()
+        if not figure:
             return self._has_subplots
-        return self.get_figure().get_has_subplots()
+        return figure.get_has_subplots()
 
     def __del__(self):
         self._liveness_scope.release()

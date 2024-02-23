@@ -8,7 +8,9 @@ from .use_table_data import use_table_data
 from ..types import Sentinel, ColumnData
 
 
-def _column_data(data: pd.DataFrame, is_sentinel: bool) -> ColumnData:
+def _column_data(
+    data: pd.DataFrame | Sentinel, is_sentinel: bool
+) -> ColumnData | Sentinel:
     """
     Return the first column of the table as a list.
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any, Callable, Set, cast
 from inspect import signature
 import sys
 from functools import partial
@@ -152,24 +152,27 @@ def wrap_callable(func: Callable) -> Callable:
     """
     try:
         if sys.version_info.major == 3 and sys.version_info.minor >= 10:
-            sig = signature(func, eval_str=True)
+            sig = signature(func, eval_str=True)  # type: ignore
         else:
             sig = signature(func)
 
-        max_args = 0
-        kwargs_set = set()
+        max_args: int | None = 0
+        kwargs_set: Set | None = set()
 
         for param in sig.parameters.values():
             if param.kind == param.POSITIONAL_ONLY:
+                max_args = cast(int, max_args)
                 max_args += 1
             elif param.kind == param.POSITIONAL_OR_KEYWORD:
                 # Don't know until runtime whether this will be passed as a positional or keyword arg
+                max_args = cast(int, max_args)
+                kwargs_set = cast(Set, kwargs_set)
                 max_args += 1
                 kwargs_set.add(param.name)
             elif param.kind == param.VAR_POSITIONAL:
-                # There are no positional args after this so max can be safely set to None
                 max_args = None
             elif param.kind == param.KEYWORD_ONLY:
+                kwargs_set = cast(Set, kwargs_set)
                 kwargs_set.add(param.name)
             elif param.kind == param.VAR_KEYWORD:
                 kwargs_set = None

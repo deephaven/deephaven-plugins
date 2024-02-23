@@ -15,6 +15,20 @@ SECOND = 1_000_000_000  #: One second in nanoseconds.
 MINUTE = 60 * SECOND  #: One minute in nanoseconds.
 
 
+def _cast_timestamp(time: pd.Timestamp | None) -> pd.Timestamp:
+    """
+    Casts a pd.Timestamp to be non-None.
+    Args:
+        time: the timestamp to cast
+
+    Returns:
+        the timestamp
+    """
+    if not time:
+        raise ValueError("pd_base_time is None")
+    return time
+
+
 def iris(ticking: bool = True, size: int = 300) -> Table:
     """
     Returns a ticking version of the 1936 Iris flower dataset.
@@ -55,7 +69,7 @@ def iris(ticking: bool = True, size: int = 300) -> Table:
     """
 
     base_time = to_j_instant("1936-01-01T08:00:00 UTC")
-    pd_base_time = to_pd_timestamp(base_time)
+    pd_base_time = _cast_timestamp(to_pd_timestamp(base_time))
 
     species_list: list[str] = ["setosa", "versicolor", "virginica"]
     col_ids = {"sepal_length": 0, "sepal_width": 1, "petal_length": 2, "petal_width": 3}
@@ -153,7 +167,9 @@ def stocks(ticking: bool = True, hours_of_data: int = 1) -> Table:
     base_time = to_j_instant(
         "2018-06-01T08:00:00 ET"
     )  # day deephaven.io was registered
-    pd_base_time = to_pd_timestamp(base_time)
+
+    pd_base_time = _cast_timestamp(to_pd_timestamp(base_time))
+
     sym_list = ["CAT", "DOG", "FISH", "BIRD", "LIZARD"]
     sym_dict = {v: i for i, v in enumerate(sym_list)}
     sym_weights = [95, 100, 70, 45, 35]

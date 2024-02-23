@@ -9,7 +9,7 @@ from .use_table_data import use_table_data
 from ..types import Sentinel
 
 
-def _cell_data(data: pd.DataFrame, is_sentinel: bool) -> None:
+def _cell_data(data: pd.DataFrame | Sentinel, is_sentinel: bool) -> Any | Sentinel:
     """
     Return the first cell of the table.
 
