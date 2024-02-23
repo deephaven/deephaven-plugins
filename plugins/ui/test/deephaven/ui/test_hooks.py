@@ -158,6 +158,24 @@ class HooksTest(BaseTestCase):
         if not event.wait(timeout=1.0):
             assert False, "listener was not called"
 
+    def verify_table_replayed(self, table):
+        from deephaven.ui.hooks import use_table_listener
+        from deephaven.table_listener import TableUpdate
+
+        event = threading.Event()
+
+        def listener(update: TableUpdate, is_replay: bool) -> None:
+            nonlocal event
+            event.set()
+
+        def _test_table_listener(replay_table=table, listener_val=listener):
+            use_table_listener(replay_table, listener_val)
+
+        render_hook(_test_table_listener)
+
+        if not event.wait(timeout=1.0):
+            assert False, "listener was not called"
+
     def test_table_listener(self):
         from deephaven import DynamicTableWriter
         import deephaven.dtypes as dht
@@ -168,6 +186,8 @@ class HooksTest(BaseTestCase):
         table = table_writer.table
 
         self.verify_table_updated(table_writer, table, (1, "Testing"))
+
+        self.verify_table_replayed(table)
 
     def test_table_data(self):
         from deephaven.ui.hooks import use_table_data
