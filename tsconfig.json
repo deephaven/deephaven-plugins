@@ -4,7 +4,8 @@
     "plugins/**/**.ts",
     "plugins/**/**.tsx",
     "plugins/**/**.js",
-    "plugins/**/**.jsx"
+    "plugins/**/**.jsx",
+    "tests/**/**.ts"
   ],
   "exclude": ["plugins/*/src/js/dist/**/*"],
   "watchOptions": {
