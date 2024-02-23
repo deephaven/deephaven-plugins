@@ -184,7 +184,7 @@ def wrap_callable(func: Callable) -> Callable:
         return func
 
 
-def create_props(args: dict[str, Any]) -> tuple[Sequence[Any], dict[str, Any]]:
+def create_props(args: dict[str, Any]) -> tuple[tuple[Any], dict[str, Any]]:
     """
     Create props from the args. Combines the named props with the kwargs props.
 

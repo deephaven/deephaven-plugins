@@ -7,7 +7,7 @@ from ...types import Stringable
 ItemElement = Element
 
 
-def item(children: Stringable, **props: Any) -> ItemElement:
+def item(*children: Stringable, **props: Any) -> ItemElement:
     """
     An item that can be added to a menu, such as a picker
 
