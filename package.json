@@ -14,18 +14,21 @@
     "test:lint": "jest --config jest.config.lint.cjs",
     "test:ci": "run-p test:ci:*",
     "test:ci:unit": "jest --config jest.config.unit.cjs --ci --cacheDirectory $PWD/.jest-cache",
-    "test:ci:lint": "jest --config jest.config.lint.cjs --ci --cacheDirectory $PWD/.jest-cache"
+    "test:ci:lint": "jest --config jest.config.lint.cjs --ci --cacheDirectory $PWD/.jest-cache",
+    "e2e": "playwright test"
   },
   "devDependencies": {
     "@deephaven/babel-preset": "^0.40.0",
     "@deephaven/eslint-config": "^0.40.0",
     "@deephaven/prettier-config": "^0.40.0",
     "@deephaven/tsconfig": "^0.40.0",
+    "@playwright/test": "^1.41.2",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^12.1.3",
     "@testing-library/react-hooks": "^8.0.1",
     "@testing-library/user-event": "^14.4.3",
     "@types/jest": "^29.2.5",
+    "@types/node": "^20.11.17",
     "@types/prop-types": "^15.7.10",
     "@types/shortid": "^0.0.29",
     "eslint": "^8.37.0",

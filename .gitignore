@@ -24,3 +24,9 @@ docker-compose.override.yml
 
 # Ignore temporary files created during a release
 releases/
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
