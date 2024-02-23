@@ -45,3 +45,6 @@ SelectionMode = Literal["CELL", "ROW", "COLUMN"]
 Sentinel = Any
 TransformedData = Any
 TableSortDirection = Union[Literal["ASC", "DESC"], SortDirection]
+# Stringable is a type that is naturally convertible to a string
+Stringable = Union[str, int, float, bool]
+Key = Any
