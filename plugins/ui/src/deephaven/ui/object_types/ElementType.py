@@ -17,7 +17,11 @@ class ElementType(BidirectionalObjectType):
     def is_type(self, obj: Any) -> bool:
         return isinstance(obj, Element)
 
-    def create_client_connection(self, obj: Element, connection: MessageStream):
+    def create_client_connection(
+        self, obj: object, connection: MessageStream
+    ) -> MessageStream:
+        if not isinstance(obj, Element):
+            raise ValueError(f"Expected Element, got {type(obj)}")
         client_connection = ElementMessageStream(obj, connection)
         client_connection.start()
         return client_connection

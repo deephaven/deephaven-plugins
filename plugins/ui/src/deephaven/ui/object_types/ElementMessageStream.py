@@ -132,7 +132,7 @@ class ElementMessageStream(MessageStream):
         self._connection = connection
         self._message_id = 0
         self._manager = JSONRPCResponseManager()
-        self._dispatcher = Dispatcher()
+        self._dispatcher = self._make_dispatcher()
         self._encoder = NodeEncoder(separators=(",", ":"))
         self._context = RenderContext(self._queue_state_update, self._queue_callable)
         self._renderer = Renderer(self._context)
@@ -159,7 +159,7 @@ class ElementMessageStream(MessageStream):
             logger.exception("Error rendering %s", self._element.name)
             raise e
 
-        self._send_document_update(node)
+        self._send_document_update(node, self._context)
 
     def _process_callable_queue(self) -> None:
         """
@@ -232,9 +232,9 @@ class ElementMessageStream(MessageStream):
 
     def start(self) -> None:
         """
-        Start the message stream. This will start the render loop and queue up the initial render.
+        Start the message stream. All we do is send a blank message to start. Client will respond with the initial state.
         """
-        self._mark_dirty()
+        self._connection.on_data(b"", [])
 
     def on_close(self) -> None:
         pass
@@ -302,12 +302,29 @@ class ElementMessageStream(MessageStream):
             "id": self._get_next_message_id(),
         }
 
-    def _send_document_update(self, root: RenderedNode) -> None:
+    def _make_dispatcher(self) -> Dispatcher:
+        dispatcher = Dispatcher()
+        dispatcher["setState"] = self._set_state
+        return dispatcher
+
+    def _set_state(self, state: dict[int, Any]) -> None:
+        """
+        Set the state of the element. This is called by the client on initial load.
+
+        Args:
+            state: The state to set
+        """
+        logger.debug("Setting state: %s", state)
+        self._context.import_state(state)
+        self._mark_dirty()
+
+    def _send_document_update(self, root: RenderedNode, state: RenderContext) -> None:
         """
         Send a document update to the client. Currently just sends the entire document for each update.
 
         Args:
             root: The root node of the document to send
+            state: The state of the node to preserve
         """
 
         # TODO(#67): Send a diff of the document instead of the entire document.
@@ -316,13 +333,30 @@ class ElementMessageStream(MessageStream):
         new_objects = encoder_result["new_objects"]
         callable_id_dict = encoder_result["callable_id_dict"]
 
-        request = self._make_notification("documentUpdated", encoded_document)
+        # TODO: We need to handle encoding the state a little smarter. This is just a hack to test the rest of the pipeline, but won't work with stuff like tables.
+        encoded_state = json.dumps(state.export_state())
+
+        request = self._make_notification(
+            "documentUpdated", encoded_document, encoded_state
+        )
         payload = json.dumps(request)
         logger.debug(f"Sending payload: {payload}")
 
-        dispatcher = Dispatcher()
+        dispatcher = self._make_dispatcher()
         for callable, callable_id in callable_id_dict.items():
             logger.debug("Registering callable %s", callable_id)
             dispatcher[callable_id] = wrap_callable(callable)
         self._dispatcher = dispatcher
         self._connection.on_data(payload.encode(), new_objects)
+
+    def send_state_update(self, state: RenderContext) -> None:
+        """
+        Send a state update to the client. Currently just sends the entire state for each update.
+
+        Args:
+            state: The state to send
+        """
+        request = self._make_notification("stateUpdated", json.dumps(state))
+        payload = json.dumps(request)
+        logger.debug(f"Sending payload: {payload}")
+        self._connection.on_data(payload.encode(), [])

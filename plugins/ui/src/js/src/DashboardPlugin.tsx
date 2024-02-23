@@ -24,6 +24,7 @@ import { useDebouncedCallback } from '@deephaven/react-hooks';
 import styles from './styles.scss?inline';
 import {
   ReadonlyWidgetData,
+  WidgetDataUpdate,
   WidgetFetch,
   WidgetId,
 } from './widget/WidgetTypes';
@@ -258,7 +259,7 @@ export function DashboardPlugin(
   );
 
   const handleWidgetDataChange = useCallback(
-    (widgetId: string, data: ReadonlyWidgetData) => {
+    (widgetId: string, data: WidgetDataUpdate) => {
       log.debug('handleWidgetDataChange', widgetId, data);
       setWidgetMap(prevWidgetMap => {
         const newWidgetMap = new Map(prevWidgetMap);
@@ -268,7 +269,10 @@ export function DashboardPlugin(
         }
         newWidgetMap.set(widgetId, {
           ...oldWidget,
-          data,
+          data: {
+            ...oldWidget.data,
+            ...data,
+          },
         });
         return newWidgetMap;
       });

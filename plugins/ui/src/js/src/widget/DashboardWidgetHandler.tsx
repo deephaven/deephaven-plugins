@@ -5,7 +5,7 @@ import React, { useCallback } from 'react';
 import { WidgetDescriptor } from '@deephaven/dashboard';
 import { Widget } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
-import { ReadonlyWidgetData, WidgetId } from './WidgetTypes';
+import { ReadonlyWidgetData, WidgetDataUpdate, WidgetId } from './WidgetTypes';
 import WidgetHandler from './WidgetHandler';
 
 const log = Log.module('@deephaven/js-plugin-ui/DashboardWidgetHandler');
@@ -27,7 +27,7 @@ export interface DashboardWidgetHandlerProps {
   onClose?: (widgetId: WidgetId) => void;
 
   /** Triggered when the data in the widget changes */
-  onDataChange?: (widgetId: WidgetId, data: ReadonlyWidgetData) => void;
+  onDataChange?: (widgetId: WidgetId, data: WidgetDataUpdate) => void;
 }
 
 function DashboardWidgetHandler({
@@ -42,7 +42,7 @@ function DashboardWidgetHandler({
   }, [onClose, id]);
 
   const handleDataChange = useCallback(
-    (data: ReadonlyWidgetData) => {
+    (data: WidgetDataUpdate) => {
       log.debug('handleDataChange', id, data);
       onDataChange?.(id, data);
     },

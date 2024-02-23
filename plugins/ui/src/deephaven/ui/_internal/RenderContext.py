@@ -354,3 +354,15 @@ class RenderContext:
         """
         assert self is get_context()
         self._collected_scopes.add(cast(LivenessScope, liveness_scope.j_scope))
+
+    def export_state(self):
+        """
+        Export the state of this context. This is used to serialize the state for the client.
+        """
+        return self._state
+
+    def import_state(self, state: dict[StateKey, Any]):
+        """
+        Import the state of this context. This is used to deserialize the state from the client.
+        """
+        self._state = state
