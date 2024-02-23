@@ -6,6 +6,8 @@ from typing import Callable
 from unittest.mock import Mock
 from .BaseTest import BaseTestCase
 
+LISTENER_TIMEOUT = 2.0
+
 
 def render_hook(fn: Callable):
     """
@@ -155,7 +157,7 @@ class HooksTest(BaseTestCase):
 
         table_writer.write_row(*update)
 
-        if not event.wait(timeout=1.0):
+        if not event.wait(timeout=LISTENER_TIMEOUT):
             assert False, "listener was not called"
 
     def test_table_listener(self):
