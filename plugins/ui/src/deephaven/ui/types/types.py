@@ -49,4 +49,4 @@ StringSortDirection = Literal["ASC", "DESC"]
 TableSortDirection = Union[StringSortDirection, SortDirection]
 # Stringable is a type that is naturally convertible to a string
 Stringable = Union[str, int, float, bool]
-Key = Any
+Key = Stringable
