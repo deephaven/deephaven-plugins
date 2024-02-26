@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from deephaven import agg
+from deephaven.table import Table
 from deephaven.updateby import cum_sum
 
 
-def preprocess_ecdf(table, column):
+def preprocess_ecdf(table: Table, column: str) -> Table:
     """
 
     Args:
@@ -39,4 +40,4 @@ def preprocess_ecdf(table, column):
         .ungroup([column, prob_col])
     )
 
-    return probabilities, column, prob_col
+    return probabilities, column, prob_col  # type: ignore

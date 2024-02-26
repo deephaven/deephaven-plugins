@@ -214,6 +214,9 @@ class UtilsTest(BaseTestCase):
         wrapped(1, 2, 3, "event", d=1, c=2, ignored="metadata")
         self.assertEqual(result, 9)
 
+        # Test that wrapping a function without a signature doesn't throw an error
+        wrapped = wrap_callable(print)
+
 
 if __name__ == "__main__":
     unittest.main()

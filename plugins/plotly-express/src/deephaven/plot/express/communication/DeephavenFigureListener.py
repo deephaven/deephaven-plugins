@@ -72,7 +72,7 @@ class DeephavenFigureListener:
             self._handles.append(handle)
             self._liveness_scope.manage(handle)
 
-    def _get_figure(self) -> DeephavenFigure:
+    def _get_figure(self) -> DeephavenFigure | None:
         """
         Get the current figure
 
@@ -96,10 +96,9 @@ class DeephavenFigureListener:
         if self._connection:
             revision = self._revision_manager.get_revision()
             node.recreate_figure()
+            figure = self._get_figure()
             try:
-                self._connection.on_data(
-                    *self._build_figure_message(self._get_figure(), revision)
-                )
+                self._connection.on_data(*self._build_figure_message(figure, revision))
             except RuntimeError:
                 # trying to send data when the connection is closed, ignore
                 pass
@@ -115,7 +114,7 @@ class DeephavenFigureListener:
         return self._build_figure_message(self._get_figure())
 
     def _build_figure_message(
-        self, figure: DeephavenFigure, revision: int | None = None
+        self, figure: DeephavenFigure | None, revision: int | None = None
     ) -> tuple[bytes, list[Any]]:
         """
         Build a message to send to the client with the current figure.
@@ -128,6 +127,9 @@ class DeephavenFigureListener:
             The result of the message as a tuple of (new payload, new references)
         """
         exporter = self._exporter
+
+        if not figure:
+            raise ValueError("Figure is None")
 
         with self._revision_manager:
             # if revision is None, just send the figure

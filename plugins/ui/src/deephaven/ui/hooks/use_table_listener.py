@@ -47,7 +47,7 @@ def with_ctx(
 
 def wrap_listener(
     listener: Callable[[TableUpdate, bool], None] | TableListener
-) -> Callable[[TableUpdate, bool], None] | None:
+) -> Callable[[TableUpdate, bool], None]:
     """
     Wrap the listener in an execution context.
 
@@ -61,7 +61,7 @@ def wrap_listener(
         return with_ctx(listener.on_update)
     elif callable(listener):
         return with_ctx(listener)
-    return None
+    raise ValueError("Listener must be a function or a TableListener")
 
 
 def use_table_listener(
@@ -84,8 +84,8 @@ def use_table_listener(
         replay_lock: The lock type used during replay, default is ‘shared’, can also be ‘exclusive’.
     """
 
-    if not table.is_refreshing:
-        # if the table is not refreshing, there is nothing to listen to
+    if not table.is_refreshing and not do_replay:
+        # if the table is not refreshing, and is not replaying, there is nothing to listen to
         return
 
     def start_listener() -> Callable[[], None]:
@@ -98,11 +98,11 @@ def use_table_listener(
         handle = listen(
             table,
             wrap_listener(listener),
-            description=description,
+            description=description,  # type: ignore # missing Optional type
             do_replay=do_replay,
             replay_lock=replay_lock,
         )
 
         return lambda: handle.stop()
 
-    use_effect(start_listener, [table, listener, description, do_replay, replay_lock])
+    use_effect(start_listener, {table, listener, description, do_replay, replay_lock})

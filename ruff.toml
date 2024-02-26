@@ -1,0 +1,5 @@
+[lint]
+select = ["ANN001"]
+
+[lint.per-file-ignores]
+"**/{test,matplotlib,json,plotly}/*" = ["ANN001"]

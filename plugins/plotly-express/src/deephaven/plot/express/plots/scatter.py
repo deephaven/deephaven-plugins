@@ -468,7 +468,7 @@ def scatter_polar(
     log_r: bool = False,
     title: str | None = None,
     template: str | None = None,
-    render_mode="webgl",
+    render_mode: str = "webgl",
     unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """Returns a polar scatter chart

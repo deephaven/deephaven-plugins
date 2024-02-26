@@ -4,7 +4,7 @@ from copy import copy
 from typing import Any
 
 from deephaven.table import Table
-from deephaven.plugin.object_type import Exporter
+from ..exporter import Exporter
 
 from .json_conversion import json_link_mapping
 
