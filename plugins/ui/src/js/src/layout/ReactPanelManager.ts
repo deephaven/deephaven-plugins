@@ -34,10 +34,10 @@ export interface ReactPanelControl {
    */
   metadata: PanelProps['metadata'];
 
-  /** Triggered when a panel is opened */
+  /** Must be called when the panel is opened */
   onOpen: () => void;
 
-  /** Triggered when a panel is closed */
+  /** Must be called when the panel is closed */
   onClose: () => void;
 
   /** The panelId for this react panel */

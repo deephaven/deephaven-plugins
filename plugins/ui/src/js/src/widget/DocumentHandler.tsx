@@ -15,7 +15,10 @@ export type DocumentHandlerProps = React.PropsWithChildren<{
   /** Definition of the widget used to create this document. Used for titling panels if necessary. */
   widget: WidgetDescriptor;
 
-  /** Data to use when loading the widget. Use a data state emitted from the `onDataChange` callback. */
+  /**
+   * Data state to use when loading the widget.
+   * When the data state is updated, the new state is emitted via the `onDataChange` callback.
+   */
   initialData?: ReadonlyWidgetData;
 
   /** Triggered when the data in the document changes */
@@ -41,9 +44,7 @@ function DocumentHandler({
   log.debug('Rendering document', widget);
   const panelOpenCountRef = useRef(0);
   const panelIdIndex = useRef(0);
-  const [widgetData] = useState<WidgetData>(() =>
-    JSON.parse(JSON.stringify(data))
-  );
+  const [widgetData] = useState<WidgetData>(() => structuredClone(data));
 
   const handleOpen = useCallback(
     (panelId: string) => {

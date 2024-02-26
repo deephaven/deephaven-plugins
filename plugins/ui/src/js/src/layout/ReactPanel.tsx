@@ -23,13 +23,13 @@ function ReactPanel({ children, title }: ReactPanelProps) {
   const layoutManager = useLayoutManager();
   const { metadata, onClose, onOpen, panelId } = useReactPanel();
   const portalManager = usePortalPanelManager();
-  const element = portalManager.get(panelId);
+  const portal = portalManager.get(panelId);
 
   // If there is already a portal that exists, then we're rehydrating from a dehydrated state
   // Initialize the `isPanelOpenRef` and `openedWidgetRef` accordingly on initialization
-  const isPanelOpenRef = useRef(element != null);
+  const isPanelOpenRef = useRef(portal != null);
   const openedMetadataRef = useRef<ReactPanelControl['metadata']>(
-    element != null ? metadata : null
+    portal != null ? metadata : null
   );
   const parent = useParentItem();
   const { eventHub } = layoutManager;
@@ -99,12 +99,12 @@ function ReactPanel({ children, title }: ReactPanelProps) {
     [parent, metadata, onOpen, panelId, title]
   );
 
-  return element
+  return portal
     ? ReactDOM.createPortal(
         <ReactPanelContext.Provider value={panelId}>
           {children}
         </ReactPanelContext.Provider>,
-        element
+        portal
       )
     : null;
 }
