@@ -7,12 +7,12 @@ from ..elements import Element, BaseElement
 from ..types import Stringable
 from .item import ItemElement
 
-PickerOption = Union[Stringable, ItemElement]
+PickerItem = Union[Stringable, ItemElement]
 SectionElement = Element
 
 
 def section(
-    *children: PickerOption, title: str | None = None, **props: Any
+    *children: PickerItem, title: str | None = None, **props: Any
 ) -> SectionElement:
     """
     A section that can be added to a menu, such as a picker. Children are the dropdown options.

@@ -1,18 +1,40 @@
 from __future__ import annotations
 
-from typing import Callable, Any
+from typing import Callable, Any, Literal, Optional, TypedDict
 
 from deephaven.table import Table, PartitionedTable
-from .section import SectionElement, PickerOption
+from .section import SectionElement, PickerItem
 from ..elements import BaseElement
 from .._internal.utils import create_props
 from ..types import ColumnName, Key
 
 PickerElement = BaseElement
 
+PlacementOptions = Literal[
+    "auto",
+    "auto-start",
+    "auto-end",
+    "top",
+    "top-start",
+    "top-end",
+    "bottom",
+    "bottom-start",
+    "bottom-end",
+    "right",
+    "right-start",
+    "right-end",
+    "left",
+    "left-start",
+    "left-end",
+]
+
+
+class TooltipOptions(TypedDict):
+    placement: Optional[PlacementOptions]
+
 
 def picker(
-    *children: PickerOption | SectionElement | Table | PartitionedTable,
+    *children: PickerItem | SectionElement | Table | PartitionedTable,
     key_column: ColumnName | None = None,
     label_column: ColumnName | None = None,
     description_column: ColumnName | None = None,
@@ -21,11 +43,13 @@ def picker(
     default_selected_key: Key | None = None,
     selected_key: Key | None = None,
     on_selection_change: Callable[[Key], None] | None = None,
+    on_change: Callable[[Key], None] | None = None,
+    tooltip: bool | TooltipOptions | None = None,
     **props: Any,
 ) -> PickerElement:
     """
     A picker that can be used to select from a list. Children should be one of four types:
-    If children are of type PickerOption, they are the dropdown options.
+    If children are of type PickerItem, they are the dropdown options.
     If children are of type SectionElement, they are the dropdown sections.
     If children are of type Table, the values in the table are the dropdown options.
         There can only be one child, the Table.
@@ -56,6 +80,12 @@ def picker(
             The currently selected key in the collection (controlled).
         on_selection_change:
             Handler that is called when the selection changes.
+        on_change:
+            Alias of `on_selection_change`. Handler that is called when the selection changes.
+        tooltip:
+            Whether to show a tooltip on hover.
+            If `True`, the tooltip will show.
+            If `TooltipOptions`, the tooltip will be created with the specified options.
         **props:
             Any other Picker prop, except items.
 
