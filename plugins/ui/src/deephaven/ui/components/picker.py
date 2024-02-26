@@ -1,36 +1,14 @@
 from __future__ import annotations
 
-from typing import Callable, Any, Literal, Optional, TypedDict
+from typing import Callable, Any
 
 from deephaven.table import Table, PartitionedTable
 from .section import SectionElement, PickerItem
 from ..elements import BaseElement
 from .._internal.utils import create_props
-from ..types import ColumnName, Key
+from ..types import ColumnName, Key, TooltipOptions
 
 PickerElement = BaseElement
-
-PlacementOptions = Literal[
-    "auto",
-    "auto-start",
-    "auto-end",
-    "top",
-    "top-start",
-    "top-end",
-    "bottom",
-    "bottom-start",
-    "bottom-end",
-    "right",
-    "right-start",
-    "right-end",
-    "left",
-    "left-start",
-    "left-end",
-]
-
-
-class TooltipOptions(TypedDict):
-    placement: Optional[PlacementOptions]
 
 
 def picker(

@@ -1,4 +1,4 @@
-from typing import Any, Dict, Literal, Union, List, Tuple, Optional, Callable
+from typing import Any, Dict, Literal, Union, List, Tuple, Optional, Callable, TypedDict
 from deephaven import SortDirection
 
 RowIndex = Optional[int]
@@ -50,3 +50,25 @@ TableSortDirection = Union[StringSortDirection, SortDirection]
 # Stringable is a type that is naturally convertible to a string
 Stringable = Union[str, int, float, bool]
 Key = Stringable
+
+PlacementOptions = Literal[
+    "auto",
+    "auto-start",
+    "auto-end",
+    "top",
+    "top-start",
+    "top-end",
+    "bottom",
+    "bottom-start",
+    "bottom-end",
+    "right",
+    "right-start",
+    "right-end",
+    "left",
+    "left-start",
+    "left-end",
+]
+
+
+class TooltipOptions(TypedDict):
+    placement: Optional[PlacementOptions]

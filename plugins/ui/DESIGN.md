@@ -1703,7 +1703,7 @@ TransformedData = Any
 # Stringable is a type that is naturally convertible to a string
 Stringable = str | int | float | bool
 PickerItem = Stringable | ItemElement
-Key = Any
+Key = Stringable
 PlacementOptions = Literal[
   'auto',
   'auto-start',
