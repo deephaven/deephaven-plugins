@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - test-273-e2e
+      - testing-actions
       - 'release/**'
   pull_request:
     branches:
