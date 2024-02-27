@@ -19,7 +19,7 @@ Refer to the main [README](../../README.md) for instructions on how to build and
 - Add your plugin's name to the `./plugins/manifest.json` to enable your plugin in development previews.
 - You should also update the `name` key in the `./<your-theme>/src/js/src/index.ts` file with a unique name that will appear in the theme selector UI.
 
-To preview themes during development, you'll need to start three separate processes. The first is a deephaven server, the second is a plugins server, and the third is a development version of the web-client-ui server. This is only necessary if you would like to preview your changes during development.
+To preview themes during development, you'll need to start three separate processes: The first is a Deephaven server, the second is a plugins server, and the third is a development version of the web-client-ui server. Starting a web-client-ui server version is only necessary if you would like to preview your changes during development.
 
 1. Start a deephaven-core server on port 10000. You can follow the instructions here in [deephaven-core](https://deephaven.io/core/docs/tutorials/quickstart/).
 2. In a separate terminal, start a plugins server that will proxy your plugins. This is so you don't have to re-install it each time you make a change while developing your custom theme. From the deephaven-plugins project repository root directory, run:
@@ -37,14 +37,16 @@ To preview themes during development, you'll need to start three separate proces
    VITE_JS_PLUGINS_DEV_PORT=4100
    ```
 
-   In a separate terminal from the the web-client-ui project repository root directory, run:
+   From the the web-client-ui project repository root directory, in a terminal run:
 
    ```
    npm install
    npm run start
    ```
 
-Then visit http://localhost:4000 to preview in the app, or http://localhost:4000/ide/styleguide for a preview of all the components in the web-client-ui library. You can change the theme by clicking on the theme selector in the top right corner of the styleguide, or in the settings menu from the app. If you make changes to your styles, you will need to refresh the page to see the changes.
+Then visit http://localhost:4000 to preview in the app, or http://localhost:4000/ide/styleguide for a preview of all the components in the web-client-ui library. 
+
+You can change the theme by clicking on the theme selector in the top right corner of the styleguide, or in the Deephaven **Settings** menu from the app. If you change your styles, you will need to refresh the page to see the changes.
 
 ## Creating your theme
 
