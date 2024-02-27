@@ -1037,7 +1037,7 @@ A section that can be added to a menu, such as a `ui.picker`. Children are the d
 ```py
 import deephaven.ui as ui
 ui.section(
-    *children: PickerOption,
+    *children: PickerItem,
     title: str | None = None,
     **props: Any
 ) -> SectionElement
@@ -1046,13 +1046,13 @@ ui.section(
 ###### Parameters
 | Parameter             | Type            | Description                                                                                                                                              |
 |-----------------------|-----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`           | `PickerOption`  | The options to render within the section.                                                                                                                |
+| `*children`           | `PickerItem`  | The options to render within the section.                                                                                                                |
 | `title`               | `str \| None`   | The title of the section.                                                                                                                                |
 | `**props`             | `Any`           | Any other Section prop                                                                                                                                   |
 
 ##### ui.picker
 A picker that can be used to select from a list. Children should be one of four types:  
-If children are of type `PickerOption`, they are the dropdown options.  
+If children are of type `PickerItem`, they are the dropdown options.  
 If children are of type `SectionElement`, they are the dropdown sections.  
 If children are of type `Table`, the values in the table are the dropdown options. There can only be one child, the `Table`. 
 If children are of type `PartitionedTable`, the values in the table are the dropdown options and the partitions create multiple sections. There can only be one child, the `PartitionedTable`. 
@@ -1060,7 +1060,7 @@ If children are of type `PartitionedTable`, the values in the table are the drop
 ```py
 import deephaven.ui as ui
 ui.picker(
-    *children: PickerOption | SectionElement | Table | PartitionedTable,
+    *children: PickerItem | SectionElement | Table | PartitionedTable,
     key_column: ColumnName | None = None,
     label_column: ColumnName | None = None,
     description_column: ColumnName | None = None,
@@ -1069,23 +1069,27 @@ ui.picker(
     default_selected_key: Key | None = None,
     selected_key: Key | None = None,
     on_selection_change: Callable[[Key], None] | None = None, 
+    on_change: Callable[[Key], None] | None = None,
+    tooltip: bool | TooltipOptions | None = None,
     **props: Any
 ) -> ItemElement
 ```
 
 ###### Parameters
-| Parameter              | Type                                                          | Description                                                                                                                                                                                                                                                                  |
-|------------------------|---------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`            | `PickerOption \| SectionElement \| Table \| PartitionedTable` | The options to render within the picker.                                                                                                                                                                                                                                     |
-| `key_column`           | `ColumnName \| None`                                          | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to use as item keys. Defaults to the first column.                                                                                                                                    |
-| `label_column`         | `ColumnName \| None`                                          | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                       |
-| `description_column`   | `ColumnName \| None`                                          | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as descriptions.                                                                                                                                                           |
-| `icon_column`          | `ColumnName \| None`                                          | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to map to icons.                                                                                                                                                                      |
-| `title_column`         | `ColumnName \| None`                                          | Only valid if children is of type `PartitionedTable`. The column of values to display as section names. Should be the same for all values in the constituent `Table`. If not specified, the section titles will be created from the `key_columns` of the `PartitionedTable`. |
-| `default_selected_key` | `Key \| None`                                                 | The initial selected key in the collection (uncontrolled).                                                                                                                                                                                                                   |
-| `selected_key`         | `Key \| None`                                                 | The currently selected key in the collection (controlled).                                                                                                                                                                                                                   |
-| `on_selection_change`  | `Callable[[Key], None] \| None`                               | Handler that is called when the selection changes.                                                                                                                                                                                                                           |
-| `**props`              | `Any`                                                         | Any other [Picker](https://react-spectrum.adobe.com/react-spectrum/Picker.html) prop, with the exception of `items`                                                                                                                                                          |
+| Parameter              | Type                                                         | Description                                                                                                                                                                                                                                                                   |
+|------------------------|--------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `*children`            | `PickerItem \| SectionElement \| Table \| PartitionedTable`  | The options to render within the picker.                                                                                                                                                                                                                                      |
+| `key_column`           | `ColumnName \| None`                                         | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to use as item keys. Defaults to the first column.                                                                                                                                     |
+| `label_column`         | `ColumnName \| None`                                         | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                        |
+| `description_column`   | `ColumnName \| None`                                         | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as descriptions.                                                                                                                                                            |
+| `icon_column`          | `ColumnName \| None`                                         | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to map to icons.                                                                                                                                                                       |
+| `title_column`         | `ColumnName \| None`                                         | Only valid if children is of type `PartitionedTable`. The column of values to display as section names. Should be the same for all values in the constituent `Table`. If not specified, the section titles will be created from the `key_columns` of the `PartitionedTable`.  |
+| `default_selected_key` | `Key \| None`                                                | The initial selected key in the collection (uncontrolled).                                                                                                                                                                                                                    |
+| `selected_key`         | `Key \| None`                                                | The currently selected key in the collection (controlled).                                                                                                                                                                                                                    |
+| `on_selection_change`  | `Callable[[Key], None] \| None`                              | Handler that is called when the selection changes.                                                                                                                                                                                                                            |
+| `on_change`            | `Callable[[Key], None] \| None`                              | Alias of `on_selection_change`. Handler that is called when the selection changes.                                                                                                                                                                                            |
+| `tooltip`              | `bool \| TooltipOptions \| None`                             | Whether to show a tooltip on hover. If `True`, the tooltip will show. If `TooltipOptions`, the tooltip will be created with the specified options.                                                                                                                            |
+| `**props`              | `Any`                                                        | Any other [Picker](https://react-spectrum.adobe.com/react-spectrum/Picker.html) prop, with the exception of `items`, `validate`, `errorMessage` (as a callback) and `onLoadMore`                                                                                              |
 
 ```py
 import deephaven.ui as ui
@@ -1698,8 +1702,25 @@ TableData = dict[ColumnName, ColumnData]
 TransformedData = Any
 # Stringable is a type that is naturally convertible to a string
 Stringable = str | int | float | bool
-PickerOption = Stringable | ItemElement
-Key = Any
+PickerItem = Stringable | ItemElement
+Key = Stringable
+PlacementOptions = Literal[
+  'auto',
+  'auto-start',
+  'auto-end',
+  'top',
+  'top-start',
+  'top-end',
+  'bottom',
+  'bottom-start',
+  'bottom-end',
+  'right',
+  'right-start',
+  'right-end',
+  'left',
+  'left-start',
+  'left-end'
+]
 
 T = TypeVar("T")
 Combination: TypeAlias = T | set[T] | Sequence[T]
@@ -1709,8 +1730,6 @@ ColumnNameCombination = Combination[ColumnName]
 ColumnIndexCombination = Combination[ColumnIndex]
 CellIndexCombination = Combination[CellIndex]
 SelectionStyleCombination = Combination[SelectionStyle]
-
-```
 
 # Set a filter for a dashboard. Filter will apply to all items with a matching column/type, except for items specified in the `exclude_ids` parameter
 class DashboardFilter(TypedDict):
@@ -1748,6 +1767,10 @@ class LinkPoint(TypedDict):
     # Column to link to
     column: str
 
+# Typed dictionaty for tooltip options
+# https://popper.js.org/docs/v2/constructors/#options
+class TooltipOptions(TypedDict):
+    placement: Optional[PlacementOptions]
 ```
 
 #### Context

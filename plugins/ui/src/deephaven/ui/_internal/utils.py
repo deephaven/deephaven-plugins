@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Set, cast
+from typing import Any, Callable, Set, cast, Sequence
 from inspect import signature
 import sys
 from functools import partial
@@ -182,3 +182,18 @@ def wrap_callable(func: Callable) -> Callable:
         # This function has no signature, so we can't wrap it
         # Return the original function should be okay
         return func
+
+
+def create_props(args: dict[str, Any]) -> tuple[tuple[Any], dict[str, Any]]:
+    """
+    Create props from the args. Combines the named props with the kwargs props.
+
+    Args:
+        args: A dictionary of arguments, from locals()
+
+    Returns:
+        A tuple of children and props
+    """
+    children, props = args.pop("children"), args.pop("props")
+    props.update(args)
+    return children, props
