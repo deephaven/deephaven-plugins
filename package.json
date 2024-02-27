@@ -4,7 +4,7 @@
     "./plugins/*/src/js/"
   ],
   "scripts": {
-    "docker": "docker compose up --build",
+    "docker": "docker compose up deephaven-plugins --build",
     "start": "run-p \"start:packages -- {@}\" serve:plugins --",
     "build": "lerna run build --stream",
     "serve:plugins": "vite",
@@ -15,7 +15,8 @@
     "test:ci": "run-p test:ci:*",
     "test:ci:unit": "jest --config jest.config.unit.cjs --ci --cacheDirectory $PWD/.jest-cache",
     "test:ci:lint": "jest --config jest.config.lint.cjs --ci --cacheDirectory $PWD/.jest-cache",
-    "e2e": "playwright test"
+    "e2e": "playwright run",
+    "e2e:docker": "./tools/run_docker.sh"
   },
   "devDependencies": {
     "@deephaven/babel-preset": "^0.40.0",
