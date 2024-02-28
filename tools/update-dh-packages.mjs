@@ -42,6 +42,13 @@ const dhPackageNames = [
   ),
 ];
 
+if (dhPackageNames.length === 0) {
+  console.log(
+    'No @deephaven packages found in dependencies or devDependencies.'
+  );
+  process.exit(0);
+}
+
 console.log('Updating packages:', dhPackageNames);
 
 const cmd = `npm i --save ${dhPackageNames

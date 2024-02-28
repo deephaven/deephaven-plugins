@@ -21,7 +21,8 @@
   "homepage": "https://github.com/deephaven/web-client-ui",
   "scripts": {
     "start": "vite build --watch",
-    "build": "vite build"
+    "build": "vite build",
+    "update-dh-packages": "node ../../../../tools/update-dh-packages.mjs"
   },
   "devDependencies": {
     "@types/react": "^17.0.2",
