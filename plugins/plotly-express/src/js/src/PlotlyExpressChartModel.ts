@@ -25,6 +25,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.widget = widget;
     this.refetch = refetch;
     this.chartUtils = new ChartUtils(dh);
+    this.unwrapValue = this.chartUtils.unwrapValue.bind(this.chartUtils);
 
     this.handleFigureUpdated = this.handleFigureUpdated.bind(this);
     this.handleWidgetUpdated = this.handleWidgetUpdated.bind(this);
@@ -46,6 +47,8 @@ export class PlotlyExpressChartModel extends ChartModel {
   widget?: Widget;
 
   widgetUnsubscribe?: () => void;
+
+  unwrapValue: (value: unknown) => unknown;
 
   /**
    * Map of table index to Table object.
@@ -241,7 +244,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     figureUpdateEvent.columns.forEach(column => {
       const columnData = chartData.getColumn(
         column.name,
-        this.chartUtils.unwrapValue,
+        this.unwrapValue,
         figureUpdateEvent
       );
       tableData[column.name] = columnData;
