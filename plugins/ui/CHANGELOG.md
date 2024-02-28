@@ -2,6 +2,24 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.8.0 - 2024-02-28
+#### Bug Fixes
+- Use correct formatting settings for ui.table (#326) - (4762053) - mofojed
+- Call listener when do_replay is True for use_table_listener_hook (#313) - (86d2572) - Joe
+- Type fixes and require pyright (#302) - (d5d003d) - Joe
+- Could not assign built-in Callables as callbacks (#305) - (5334e4d) - mofojed
+#### Documentation
+- button_group (#306) - (fee31f8) - ethanalvizo
+- Picker spec (#247) - (07f2cf5) - Joe
+- Remove the warning about using the plugin at your own risk (#303) - (e342341) - mofojed
+#### Features
+- Widget re-hydration (#288) - (13bb5ea) - mofojed
+- Add python picker (#311) - (05d1c4a) - Joe
+#### Tests
+- Bumping test listener timeout from 1 to 2 seconds (#312) - (43ddf75) - Joe
+
+- - -
+
 ## ui-v0.7.0 - 2024-02-21
 #### Bug Fixes
 - Hooks accepting liveness objects and functions should manage their lifetime (#258) - (8d2a945) - niloc132
