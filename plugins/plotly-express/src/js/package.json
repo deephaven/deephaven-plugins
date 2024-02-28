@@ -60,8 +60,8 @@
     "@deephaven/plugin": "0.64.0",
     "@deephaven/utils": "0.64.0",
     "deep-equal": "^2.2.1",
-    "plotly.js": "^2.23.0",
-    "plotly.js-dist-min": "^2.23.0",
+    "plotly.js": "^2.29.1",
+    "plotly.js-dist-min": "^2.29.1",
     "react-plotly.js": "^2.4.0",
     "react-redux": "^7.2.9",
     "shortid": "^2.2.16"
