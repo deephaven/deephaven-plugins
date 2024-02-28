@@ -53,9 +53,11 @@
     "@deephaven/log": "0.62.0",
     "@deephaven/plugin": "0.62.0",
     "@deephaven/react-hooks": "0.62.0",
+    "@deephaven/redux": "0.62.0",
     "@deephaven/utils": "0.62.0",
     "@fortawesome/react-fontawesome": "^0.2.0",
     "@react-types/shared": "^3.22.0",
+    "react-redux": "^7.x",
     "json-rpc-2.0": "^1.6.0",
     "shortid": "^2.2.16"
   },
