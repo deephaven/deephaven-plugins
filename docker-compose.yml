@@ -7,8 +7,35 @@ services:
       pull: true
     ports:
       - '${DEEPHAVEN_PORT:-10000}:10000'
+    expose:
+      - 10000
     volumes:
       - ./docker/data/:/data
       - ./tests/app.d:/app.d
     environment:
       - START_OPTS=-Xmx4g -DAuthHandlers=io.deephaven.auth.AnonymousAuthenticationHandler -Ddeephaven.console.type=python -Ddeephaven.application.dir=./app.d
+
+  e2e-tests:
+    build:
+      dockerfile: ./tests/Dockerfile
+    ports:
+      - 9323:9323
+    ipc: host
+    expose:
+      - 9323
+    volumes:
+      - ./tests:/work/tests
+      - ./test-results:/work/test-results
+      - ./playwright-report:/work/playwright-report
+    entrypoint: "npx playwright test --config=playwright-ci.config.ts"
+    depends_on:
+      deephaven-plugins:
+        condition: service_healthy
+
+  update-snapshots:
+    extends:
+      service: e2e-tests
+    entrypoint: 'npx playwright test --config=playwright-ci.config.ts --update-snapshots'
+    depends_on:
+      deephaven-plugins:
+        condition: service_healthy

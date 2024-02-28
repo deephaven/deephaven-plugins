@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - test-273-e2e
       - 'release/**'
   pull_request:
     branches:
@@ -13,11 +12,6 @@ on:
 
 jobs:
   e2e-test:
-    services:
-      registry:
-        image: registry:2
-        ports:
-          - 5000:5000
     runs-on: ubuntu-22.04
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
@@ -26,36 +20,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Use Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
-
-      - name: Cache node modules
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules  
-            packages/*/node_modules
-          key: e2e-node-modules-${{ hashFiles('package-lock.json')}}
-
-      - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm i @playwright/test
-
-      - name: Start Deephaven
-        run: npm run docker -- --detach
-
-      - name: Install Playwright dependencies
-        run: PLAYWRIGHT_BROWSERS_PATH=0 npx playwright install --with-deps
-
-      - name: Playwright version
-        run: npx playwright --version
-
-      - name: Run Playwright tests
-        run: PLAYWRIGHT_BROWSERS_PATH=0 npx playwright test
+      - name: Run tests
+        run: "./tools/run_docker.sh e2e-tests"
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
@@ -67,7 +33,7 @@ jobs:
 
       - name: Dump server logs
         if: failure()
-        run: docker logs dh-core-server > /tmp/server-log.txt
+        run: docker logs deephaven-plugins > /tmp/server-log.txt
 
       - name: Upload server logs
         if: failure()
