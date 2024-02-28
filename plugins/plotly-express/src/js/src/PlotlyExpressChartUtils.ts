@@ -1,5 +1,14 @@
 import type { Data, PlotlyDataLayoutConfig } from 'plotly.js';
-import type { Widget } from '@deephaven/jsapi-types';
+import type { Table, Widget } from '@deephaven/jsapi-types';
+
+export interface PlotlyChartWidget {
+  getDataAsBase64(): string;
+  exportedObjects: { fetch(): Promise<Table> }[];
+  addEventListener(
+    type: string,
+    fn: (event: CustomEvent<PlotlyChartWidget>) => () => void
+  ): void;
+}
 
 export interface PlotlyChartWidgetData {
   type: string;
