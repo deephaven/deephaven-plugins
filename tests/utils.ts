@@ -27,10 +27,15 @@ export async function gotoPage(
  * Opens a panel by clicking on the Panels button and then the panel button
  * @param page The page
  * @param name The name of the panel
+ * @param panelLocator The locator for the panel, passed to `page.locator`
  */
-export async function openPanel(page: Page, name: string) {
+export async function openPanel(
+  page: Page,
+  name: string,
+  panelLocator = '.dh-panel'
+) {
   await test.step(`Open panel (${name})`, async () => {
-    const panelCount = await page.locator('.dh-panel').count();
+    const panelCount = await page.locator(panelLocator).count();
 
     // open app panels menu
     const appPanels = page.getByRole('button', {
@@ -46,7 +51,7 @@ export async function openPanel(page: Page, name: string) {
     await targetPanel.click();
 
     // check for panel to be loaded
-    await expect(page.locator('.dh-panel')).toHaveCount(panelCount + 1);
+    await expect(page.locator(panelLocator)).toHaveCount(panelCount + 1);
     await expect(page.locator('.loading-spinner')).toHaveCount(0);
   });
 }

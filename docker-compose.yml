@@ -31,3 +31,11 @@ services:
     depends_on:
       deephaven-plugins:
         condition: service_healthy
+
+  update-snapshots:
+    extends:
+      service: e2e-tests
+    entrypoint: 'npx playwright test --config=playwright-ci.config.ts --update-snapshots'
+    depends_on:
+      deephaven-plugins:
+        condition: service_healthy

@@ -4,12 +4,10 @@
 pushd "$(dirname "$0")"
 
 # Start the containers
-docker compose up -d deephaven-plugins
-docker compose up e2e-tests
-
-# Close down
+docker compose run --service-ports --rm --build "$@"
 exit_code=$?
 docker compose down
 
-popd # Reset pwd
+# Reset pwd
+popd
 exit $exit_code
