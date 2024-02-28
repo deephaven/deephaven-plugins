@@ -1,7 +1,6 @@
 import { WidgetDescriptor } from '@deephaven/dashboard';
 import { TestUtils } from '@deephaven/utils';
 import type { Widget } from '@deephaven/jsapi-types';
-import { WidgetWrapper } from './WidgetTypes';
 
 export function makeDocumentUpdatedJsonRpc(
   document: Record<string, unknown> = {}
@@ -41,15 +40,4 @@ export function makeWidget({
     getDataAsString,
     exportedObjects,
   });
-}
-
-export function makeWidgetWrapper({
-  widget = makeWidgetDescriptor(),
-  fetch = () => Promise.resolve(makeWidget()),
-}: Partial<WidgetWrapper> = {}): WidgetWrapper {
-  return {
-    id: widget.id ?? 'widget-id',
-    widget,
-    fetch,
-  };
 }
