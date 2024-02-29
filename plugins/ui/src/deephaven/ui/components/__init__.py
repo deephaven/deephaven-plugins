@@ -8,6 +8,9 @@ from .dashboard import dashboard
 from .row import row
 from .column import column
 from .stack import stack
+from .picker import picker
+from .section import section
+from .item import item
 
 from . import html
 
