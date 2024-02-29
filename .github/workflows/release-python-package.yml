@@ -32,8 +32,8 @@ jobs:
         run: npm ci
 
       - name: Build npm packages
-        # packaging and packaging packages do not have npm packages to build
-        if : ${{ inputs.package != 'packaging' && inputs.package != 'packaging' }}
+        # utilities and packaging packages do not have npm packages to build
+        if : ${{ inputs.package != 'utilities' && inputs.package != 'packaging' }}
         run: npm run build -- --scope "@deephaven/js-plugin-${{ inputs.package }}"
 
       - name: Set up Python
