@@ -8,6 +8,8 @@ export { default as ActionButton } from './ActionButton';
 export { default as Button } from './Button';
 export { default as Flex } from './Flex';
 export { default as Form } from './Form';
+export { default as Item } from './Item';
 export { default as RangeSlider } from './RangeSlider';
 export { default as Slider } from './Slider';
+export { default as Section } from './Section';
 export { default as TextField } from './TextField';

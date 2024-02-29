@@ -1,8 +1,10 @@
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable import/prefer-default-export */
-import React from 'react';
+import React, { ComponentType } from 'react';
 import {
   ElementNode,
+  ELEMENT_KEY,
+  isElementNode,
   isExportedObject,
   isFragmentElementNode,
 } from '../elements/ElementUtils';
@@ -12,21 +14,49 @@ import { isSpectrumElementNode } from '../elements/SpectrumElementUtils';
 import SpectrumElementView from '../elements/SpectrumElementView';
 import { isIconElementNode } from '../elements/IconElementUtils';
 import IconElementView from '../elements/IconElementView';
-import { isUITable } from '../elements/UITableUtils';
 import UITable from '../elements/UITable';
 import {
-  isColumnElementNode,
-  isDashboardElementNode,
-  isPanelElementNode,
-  isRowElementNode,
-  isStackElementNode,
-} from '../layout/LayoutUtils';
+  COLUMN_ELEMENT_NAME,
+  DASHBOARD_ELEMENT_NAME,
+  ITEM_ELEMENT_NAME,
+  PANEL_ELEMENT_NAME,
+  PICKER_ELEMENT_NAME,
+  ROW_ELEMENT_NAME,
+  SECTION_ELEMENT_NAME,
+  STACK_ELEMENT_NAME,
+  UITABLE_ELEMENT_TYPE,
+} from '../elements/ElementConstants';
 import ReactPanel from '../layout/ReactPanel';
 import ObjectView from '../elements/ObjectView';
 import Row from '../layout/Row';
 import Stack from '../layout/Stack';
 import Column from '../layout/Column';
 import Dashboard from '../layout/Dashboard';
+import Picker from '../elements/Picker';
+import { Item, Section } from '../elements/spectrum';
+
+/*
+ * Map element node names to their corresponding React components
+ */
+const elementComponentMap = {
+  [PANEL_ELEMENT_NAME]: ReactPanel,
+  [ROW_ELEMENT_NAME]: Row,
+  [COLUMN_ELEMENT_NAME]: Column,
+  [STACK_ELEMENT_NAME]: Stack,
+  [DASHBOARD_ELEMENT_NAME]: Dashboard,
+  [ITEM_ELEMENT_NAME]: Item,
+  [PICKER_ELEMENT_NAME]: Picker,
+  [SECTION_ELEMENT_NAME]: Section,
+  [UITABLE_ELEMENT_TYPE]: UITable,
+} as const;
+
+export function getComponentTypeForElement<P extends Record<string, unknown>>(
+  element: ElementNode<string, P>
+): ComponentType<P> | null {
+  return (elementComponentMap[
+    element[ELEMENT_KEY] as keyof typeof elementComponentMap
+  ] ?? null) as ComponentType<P> | null;
+}
 
 export function getComponentForElement(element: ElementNode): React.ReactNode {
   // Need to convert the children of the element if they are exported objects to an ObjectView
@@ -59,27 +89,16 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
   if (isIconElementNode(newElement)) {
     return IconElementView({ element: newElement });
   }
-  if (isUITable(newElement)) {
-    return <UITable {...newElement.props} />;
-  }
-  if (isPanelElementNode(newElement)) {
-    return <ReactPanel {...newElement.props} />;
-  }
   if (isFragmentElementNode(newElement)) {
     // eslint-disable-next-line react/jsx-no-useless-fragment
     return <>{newElement.props?.children}</>;
   }
-  if (isRowElementNode(newElement)) {
-    return <Row {...newElement.props} />;
-  }
-  if (isColumnElementNode(newElement)) {
-    return <Column {...newElement.props} />;
-  }
-  if (isStackElementNode(newElement)) {
-    return <Stack {...newElement.props} />;
-  }
-  if (isDashboardElementNode(newElement)) {
-    return <Dashboard {...newElement.props} />;
+  if (isElementNode(newElement)) {
+    const Component = getComponentTypeForElement(newElement);
+
+    if (Component != null) {
+      return <Component {...newElement.props} />;
+    }
   }
 
   return newElement.props?.children;

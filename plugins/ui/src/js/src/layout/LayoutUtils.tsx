@@ -13,18 +13,18 @@ import Column from './Column';
 import Row from './Row';
 import Stack from './Stack';
 import ReactPanel from './ReactPanel';
-
-export const PANEL_ELEMENT_NAME = 'deephaven.ui.components.Panel';
-export const ROW_ELEMENT_NAME = 'deephaven.ui.components.Row';
-export const COLUMN_ELEMENT_NAME = 'deephaven.ui.components.Column';
-export const STACK_ELEMENT_NAME = 'deephaven.ui.components.Stack';
-export const DASHBOARD_ELEMENT_NAME = 'deephaven.ui.components.Dashboard';
-
-export type PanelElementType = typeof PANEL_ELEMENT_NAME;
-export type RowElementType = typeof ROW_ELEMENT_NAME;
-export type ColumnElementType = typeof COLUMN_ELEMENT_NAME;
-export type StackElementType = typeof STACK_ELEMENT_NAME;
-export type DashboardElementType = typeof DASHBOARD_ELEMENT_NAME;
+import {
+  ColumnElementType,
+  COLUMN_ELEMENT_NAME,
+  DashboardElementType,
+  DASHBOARD_ELEMENT_NAME,
+  PanelElementType,
+  PANEL_ELEMENT_NAME,
+  RowElementType,
+  ROW_ELEMENT_NAME,
+  StackElementType,
+  STACK_ELEMENT_NAME,
+} from '../elements/ElementConstants';
 
 export type GoldenLayoutParent = RowOrColumn | GLStack | Root;
 

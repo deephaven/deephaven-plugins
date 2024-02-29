@@ -1,10 +1,7 @@
 import type { WidgetExportedObject } from '@deephaven/jsapi-types';
 import { DehydratedSort } from '@deephaven/iris-grid';
 import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
-
-export const UITABLE_ELEMENT_TYPE = 'deephaven.ui.elements.UITable';
-
-export type UITableElementName = typeof UITABLE_ELEMENT_TYPE;
+import { UITableElementName, UITABLE_ELEMENT_TYPE } from './ElementConstants';
 
 export interface UITableProps {
   table: WidgetExportedObject;
