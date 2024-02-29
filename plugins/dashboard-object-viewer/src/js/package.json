@@ -15,7 +15,8 @@
   ],
   "scripts": {
     "start": "vite build --watch",
-    "build": "vite build"
+    "build": "vite build",
+    "update-dh-packages": "node ../../../../tools/update-dh-packages.mjs"
   },
   "dependencies": {
     "@deephaven/components": "^0.40.0",
