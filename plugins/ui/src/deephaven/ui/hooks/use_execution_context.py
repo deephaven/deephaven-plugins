@@ -24,7 +24,7 @@ def func_with_ctx(
 
 
 def use_execution_context(
-    exec_ctx: ExecutionContext = None,
+    exec_ctx: ExecutionContext | None = None,
 ) -> Callable[[Callable], None]:
     """
     Create an execution context wrapper for a function.

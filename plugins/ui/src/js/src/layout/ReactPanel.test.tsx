@@ -7,9 +7,9 @@ import {
   ReactPanelManagerContext,
 } from './ReactPanelManager';
 import { ReactPanelProps } from './LayoutUtils';
+import PortalPanelManager from './PortalPanelManager';
 
 const mockPanelId = 'test-panel-id';
-jest.mock('shortid', () => jest.fn(() => mockPanelId));
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -20,18 +20,22 @@ function makeReactPanel({
   metadata = { name: 'test-name', type: 'test-type' },
   onClose = jest.fn(),
   onOpen = jest.fn(),
+  getPanelId = jest.fn(() => mockPanelId),
   title = 'test title',
 }: Partial<ReactPanelProps> & Partial<ReactPanelManager> = {}) {
   return (
-    <ReactPanelManagerContext.Provider
-      value={{
-        metadata,
-        onClose,
-        onOpen,
-      }}
-    >
-      <ReactPanel title={title}>{children}</ReactPanel>
-    </ReactPanelManagerContext.Provider>
+    <PortalPanelManager>
+      <ReactPanelManagerContext.Provider
+        value={{
+          getPanelId,
+          metadata,
+          onClose,
+          onOpen,
+        }}
+      >
+        <ReactPanel title={title}>{children}</ReactPanel>
+      </ReactPanelManagerContext.Provider>
+    </PortalPanelManager>
   );
 }
 
@@ -62,7 +66,7 @@ it('opens panel on mount, and closes panel on unmount', async () => {
 it('only calls open once if the panel has not closed and only children change', async () => {
   const onOpen = jest.fn();
   const onClose = jest.fn();
-  const metadata = { foo: 'bar' };
+  const metadata = { type: 'bar' };
   const children = 'hello';
   const { rerender } = render(
     makeReactPanel({ children, onOpen, onClose, metadata })
@@ -83,7 +87,7 @@ it('only calls open once if the panel has not closed and only children change', 
 it('calls openComponent again after panel is closed only if the metadata changes', async () => {
   const onOpen = jest.fn();
   const onClose = jest.fn();
-  const metadata = { foo: 'bar' };
+  const metadata = { type: 'bar' };
   const children = 'hello';
   const { rerender } = render(
     makeReactPanel({
@@ -127,7 +131,7 @@ it('calls openComponent again after panel is closed only if the metadata changes
       children,
       onOpen,
       onClose,
-      metadata: { fiz: 'baz' },
+      metadata: { type: 'baz' },
     })
   );
 

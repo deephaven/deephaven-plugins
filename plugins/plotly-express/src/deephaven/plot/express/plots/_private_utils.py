@@ -93,7 +93,7 @@ def append_suffixes(args: list[str], suffixes: list[str], sync_dict: SyncDict) -
                 sync_dict.d[f"{arg}_{suffix}"] = sync_dict.will_pop(arg)
 
 
-def apply_args_groups(args: dict[str, Any], groups: set[str]) -> None:
+def apply_args_groups(args: dict[str, Any], possible_groups: set[str] | None) -> None:
     """Transform args depending on groups
 
     Args:
@@ -101,7 +101,9 @@ def apply_args_groups(args: dict[str, Any], groups: set[str]) -> None:
       groups: A set of groups used to transform the args
 
     """
-    groups = groups if isinstance(groups, set) else {groups}
+    groups: set = (
+        possible_groups if isinstance(possible_groups, set) else {possible_groups}
+    )
 
     sync_dict = SyncDict(args)
 
@@ -172,7 +174,7 @@ def create_deephaven_figure(
     pop: list[str] | None = None,
     remap: dict[str, str] | None = None,
     px_func: Callable = lambda: None,
-) -> tuple[DeephavenFigure, Table | PartitionedTable, Table, dict[str, Any]]:
+) -> tuple[DeephavenFigure, Table | PartitionedTable, Table | None, dict[str, Any]]:
     """Process the provided args
 
     Args:
@@ -390,7 +392,7 @@ def shared_marginal(
 
 
 def shared_violin(
-    is_marginal=True,
+    is_marginal: bool = True,
     **args: Any,
 ) -> DeephavenFigure:
     """
@@ -412,7 +414,7 @@ def shared_violin(
     return shared_marginal(is_marginal, func, groups, **args)
 
 
-def shared_box(is_marginal=True, **args: Any) -> DeephavenFigure:
+def shared_box(is_marginal: bool = True, **args: Any) -> DeephavenFigure:
     """
     Create a box figure
 
@@ -432,7 +434,7 @@ def shared_box(is_marginal=True, **args: Any) -> DeephavenFigure:
     return shared_marginal(is_marginal, func, groups, **args)
 
 
-def shared_strip(is_marginal=True, **args: Any) -> DeephavenFigure:
+def shared_strip(is_marginal: bool = True, **args: Any) -> DeephavenFigure:
     """
     Create a strip figure
 
@@ -452,7 +454,7 @@ def shared_strip(is_marginal=True, **args: Any) -> DeephavenFigure:
     return shared_marginal(is_marginal, func, groups, **args)
 
 
-def shared_histogram(is_marginal=True, **args: Any) -> DeephavenFigure:
+def shared_histogram(is_marginal: bool = True, **args: Any) -> DeephavenFigure:
     """
     Create a histogram figure
 
@@ -518,11 +520,17 @@ def create_marginal(marginal: str, args: dict[str, Any], which: str) -> Deephave
     }
 
     fig_marg = marginal_map[marginal](**args)
-    fig_marg.get_plotly_fig().update_traces(showlegend=False)
+
+    plotly_fig_marg = fig_marg.get_plotly_fig()
+
+    if plotly_fig_marg is None:
+        raise ValueError("Plotly figure is None, cannot create marginal figure")
+
+    plotly_fig_marg.update_traces(showlegend=False)
 
     if marginal == "rug":
         symbol = "line-ns-open" if which == "x" else "line-ew-open"
-        fig_marg.get_plotly_fig().update_traces(marker_symbol=symbol, jitter=0)
+        plotly_fig_marg.update_traces(marker_symbol=symbol, jitter=0)
 
     return fig_marg
 

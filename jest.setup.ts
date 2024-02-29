@@ -24,3 +24,10 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: jest.fn(),
   })),
 });
+
+/**
+ * Mock the structuredClone function to use `JSON.stringify` and `JSON.parse`
+ * This is necessary because jsdom does not support `structuredClone`.
+ * https://github.com/jsdom/jsdom/issues/3363
+ */
+global.structuredClone = jest.fn(val => JSON.parse(JSON.stringify(val)));

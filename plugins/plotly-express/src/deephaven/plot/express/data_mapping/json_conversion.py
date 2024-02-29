@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import defaultdict
 from itertools import count
 from collections.abc import Generator, Iterable
-from typing import Any
+from typing import Any, Mapping
 
 
 def json_links(i: int, _vars: Iterable[str]) -> Generator[str, None, None]:
@@ -24,7 +24,7 @@ def json_links(i: int, _vars: Iterable[str]) -> Generator[str, None, None]:
 
 def convert_to_json_links(
     var_col_dicts: list[dict[str, str]], start_index: int
-) -> Generator[dict[str, str], None, None]:
+) -> Generator[Mapping[str, list[str]], None, None]:
     """Convert the provided dictionaries to json links
 
     Args:

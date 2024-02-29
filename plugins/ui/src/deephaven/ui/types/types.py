@@ -1,8 +1,9 @@
-from typing import Any, Dict, Literal, Union, List, Tuple, Optional
+from typing import Any, Dict, Literal, Union, List, Tuple, Optional, Callable, TypedDict
 from deephaven import SortDirection
 
 RowIndex = Optional[int]
 RowDataMap = Dict[str, Any]
+RowPressCallback = Callable[[RowIndex, RowDataMap], None]
 AggregationOperation = Literal[
     "COUNT",
     "COUNT_DISTINCT",
@@ -37,11 +38,37 @@ LockType = Literal["shared", "exclusive"]
 QuickFilterExpression = str
 RowData = Dict[ColumnName, Any]
 # A RowIndex of None indicates a header column
-RowIndex = Union[int, None]
+RowIndex = Optional[int]
 ColumnData = List[Any]
 TableData = Dict[ColumnName, ColumnData]
 SearchMode = Literal["SHOW", "HIDE", "DEFAULT"]
 SelectionMode = Literal["CELL", "ROW", "COLUMN"]
 Sentinel = Any
 TransformedData = Any
-TableSortDirection = Union[Literal["ASC", "DESC"], SortDirection]
+StringSortDirection = Literal["ASC", "DESC"]
+TableSortDirection = Union[StringSortDirection, SortDirection]
+# Stringable is a type that is naturally convertible to a string
+Stringable = Union[str, int, float, bool]
+Key = Stringable
+
+PlacementOptions = Literal[
+    "auto",
+    "auto-start",
+    "auto-end",
+    "top",
+    "top-start",
+    "top-end",
+    "bottom",
+    "bottom-start",
+    "bottom-end",
+    "right",
+    "right-start",
+    "right-end",
+    "left",
+    "left-start",
+    "left-end",
+]
+
+
+class TooltipOptions(TypedDict):
+    placement: Optional[PlacementOptions]

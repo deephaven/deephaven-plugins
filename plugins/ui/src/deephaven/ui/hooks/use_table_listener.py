@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import partial
-from typing import Callable
+from typing import Any, Callable, Sequence
 
 from deephaven.table import Table
 from deephaven.table_listener import listen, TableUpdate, TableListener
@@ -47,7 +47,7 @@ def with_ctx(
 
 def wrap_listener(
     listener: Callable[[TableUpdate, bool], None] | TableListener
-) -> Callable[[TableUpdate, bool], None] | None:
+) -> Callable[[TableUpdate, bool], None]:
     """
     Wrap the listener in an execution context.
 
@@ -61,13 +61,13 @@ def wrap_listener(
         return with_ctx(listener.on_update)
     elif callable(listener):
         return with_ctx(listener)
-    return None
+    raise ValueError("Listener must be a function or a TableListener")
 
 
 def use_table_listener(
     table: Table,
     listener: Callable[[TableUpdate, bool], None] | TableListener,
-    dependencies: set,
+    dependencies: set[Any] | Sequence[Any],
     description: str | None = None,
     do_replay: bool = False,
     replay_lock: LockType = "shared",
@@ -86,8 +86,8 @@ def use_table_listener(
         replay_lock: The lock type used during replay, default is ‘shared’, can also be ‘exclusive’.
     """
 
-    if not table.is_refreshing:
-        # if the table is not refreshing, there is nothing to listen to
+    if not table.is_refreshing and not do_replay:
+        # if the table is not refreshing, and is not replaying, there is nothing to listen to
         return
 
     def start_listener() -> Callable[[], None]:
@@ -100,7 +100,7 @@ def use_table_listener(
         handle = listen(
             table,
             wrap_listener(listener),
-            description=description,
+            description=description,  # type: ignore # missing Optional type
             do_replay=do_replay,
             replay_lock=replay_lock,
         )
@@ -108,5 +108,6 @@ def use_table_listener(
         return lambda: handle.stop()
 
     use_effect(
-        start_listener, {table, description, do_replay, replay_lock} | dependencies
+        start_listener,
+        {table, listener, description, do_replay, replay_lock} | set(dependencies),
     )

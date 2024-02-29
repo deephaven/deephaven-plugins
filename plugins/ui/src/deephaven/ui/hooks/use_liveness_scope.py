@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 from .._internal import get_context
-from . import use_ref, use_memo
+from .use_memo import use_memo
+from .use_ref import use_ref, Ref
 from typing import Callable
 from deephaven.liveness_scope import LivenessScope
 
@@ -18,8 +21,7 @@ def use_liveness_scope(func: Callable, dependencies: set) -> Callable:
     Returns:
         The wrapped Callable
     """
-
-    scope_ref = use_ref(None)
+    scope_ref: Ref[LivenessScope | None] = use_ref(None)
 
     def make_wrapper():
 

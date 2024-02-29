@@ -37,7 +37,7 @@ Start by setting up the python venv and pre-commit hooks.
 
 ### Pre-commit hooks/Python formatting
 
-Black and blacken-docs formatting is setup through a pre-commit hook.
+Black and blacken-docs formatting, pyright type checking, and ruff linting is setup through a pre-commit hook.
 To install the pre-commit hooks, run the following commands from the root directory of this repo:
 
 ```shell
@@ -55,6 +55,11 @@ pre-commit run --all-files
 ```
 
 All steps should pass.
+
+To bypass the pre-commit hook, you can commit with the `--no-verify` flag, for example:
+```shell
+git commit --no-verify -m "commit message"`
+```
 
 ### Running Python tests
 

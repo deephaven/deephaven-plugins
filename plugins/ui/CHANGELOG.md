@@ -2,6 +2,42 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.8.0 - 2024-02-28
+#### Bug Fixes
+- Use correct formatting settings for ui.table (#326) - (4762053) - mofojed
+- Call listener when do_replay is True for use_table_listener_hook (#313) - (86d2572) - Joe
+- Type fixes and require pyright (#302) - (d5d003d) - Joe
+- Could not assign built-in Callables as callbacks (#305) - (5334e4d) - mofojed
+#### Documentation
+- button_group (#306) - (fee31f8) - ethanalvizo
+- Picker spec (#247) - (07f2cf5) - Joe
+- Remove the warning about using the plugin at your own risk (#303) - (e342341) - mofojed
+#### Features
+- Widget re-hydration (#288) - (13bb5ea) - mofojed
+- Add python picker (#311) - (05d1c4a) - Joe
+#### Tests
+- Bumping test listener timeout from 1 to 2 seconds (#312) - (43ddf75) - Joe
+
+- - -
+
+## ui-v0.7.0 - 2024-02-21
+#### Bug Fixes
+- Hooks accepting liveness objects and functions should manage their lifetime (#258) - (8d2a945) - niloc132
+- Initial set of type fixes (#217) - (5c52488) - Joe
+- Stock rollup example was not working (#268) - (5d6205c) - mofojed
+- Version bump + loading spinner fixes (#243) - (aeb7796) - bmingles
+#### Documentation
+- More specs for ui.table functionality (#198) - (8d4255c) - Joe
+- button  (#266) - (7ce4e75) - ethanalvizo
+#### Features
+- Support column and row within a panel (#272) - (0413443) - Matthew Runyon
+- Support for dropping extra callback args (#271) - (34ddfcd) - Joe
+- Auto-wrap layout components when possible (#249) - (d93dc9c) - Matthew Runyon
+#### Refactoring
+- Re-organize some code into subfolders (#284) - (dbff1ab) - mofojed
+
+- - -
+
 ## ui-v0.6.0 - 2024-02-05
 #### Bug Fixes
 - **(ui)** Default placement of newly opened components is inconsistent (#244) - (8b17e85) - Matthew Runyon

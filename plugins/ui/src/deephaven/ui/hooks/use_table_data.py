@@ -90,7 +90,9 @@ def _set_new_data(
     set_is_sentinel(new_is_sentinel)
 
 
-def _table_data(data: pd.DataFrame, is_sentinel: bool) -> TableData:
+def _table_data(
+    data: pd.DataFrame | Sentinel, is_sentinel: bool
+) -> TableData | Sentinel:
     """
     Returns the table as a dictionary.
 

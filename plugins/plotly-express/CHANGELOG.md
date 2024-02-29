@@ -2,6 +2,23 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.4.1 - 2024-02-28
+#### Bug Fixes
+- Scatter plots rendering at the wrong location (#324) - (dfe5c48) - mofojed
+- Type fixes and require pyright (#302) - (d5d003d) - Joe
+
+- - -
+
+## plotly-express-v0.4.0 - 2024-02-20
+#### Bug Fixes
+- Deephaven express memory leak (#277) - (ff6ad50) - Matthew Runyon
+#### Build system
+- Only install JS with Python with env var set (#285) - (22662df) - mofojed
+#### Features
+- Remove UI theme from PlotlyExpressChartModel (#251) - (4cbe4ca) - Matthew Runyon
+
+- - -
+
 ## plotly-express-v0.3.0 - 2024-02-12
 #### Bug Fixes
 - Initial set of type fixes (#217) - (5c52488) - Joe

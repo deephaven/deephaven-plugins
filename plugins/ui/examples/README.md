@@ -1,5 +1,3 @@
-# ⚠️This plugin is a work in progress and is subject to change. Use at your own risk.⚠️
-
 # Introduction
 
 deephaven.ui is a plugin for Deephaven that allows for programmatic layouts and callbacks. It uses a React-like approach to building components and rendering them in the UI, allowing for creating reactive components that can be re-used and composed together, as well as reacting to user input from the UI.
@@ -858,6 +856,7 @@ st = stock_table(stocks)
 You can use the `use_table_listener` hook to listen to changes to a table. In this example, we use the `use_table_listener` hook to listen to changes to the table then display the last changes.
 
 This is an advanced feature, requiring understanding of how the [table listeners](https://deephaven.io/core/docs/how-to-guides/table-listeners-python/) work, and limitations of running code while the Update Graph is running. Most usages of this are more appropriate to implement with [the table data hooks](#using-table-data-hooks).
+
 ```python
 import deephaven.ui as ui
 from deephaven.table import Table
@@ -923,6 +922,7 @@ monitor = monitor_changed_data(t)
 Some functions which interact with a component will create live objects that need to be managed by the component to ensure they are kept active.
 
 The primary use case for this is when creating tables outside the component's own function, and passing them as state for the component's next update:
+
 ```python
 from deephaven import ui, time_table
 
