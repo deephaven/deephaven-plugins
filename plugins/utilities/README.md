@@ -1,7 +1,8 @@
 # Deephaven Plugin Utilities
 
 This is a Python package that stores cross-plugin utilities for building Deephaven plugins.
-It is not a plugin itself.
+If the functions are only used during the build process, they should be added to `packaging` instead.
+This is not a plugin on its own.
 
 ## Build
 

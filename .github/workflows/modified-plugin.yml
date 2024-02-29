@@ -11,7 +11,8 @@ on:
       - 'matplotlib-v*'
       - 'json-v*'
       - 'ui-v*'
-      - 'utilities-v*'
+      - 'packaging-v*'
+      - 'packaging-v*'
 
 jobs:
   changes:
@@ -34,6 +35,7 @@ jobs:
             json: plugins/json/**
             ui: plugins/ui/**
             utilities: plugins/utilities/**
+            packaging: plugins/packaging/**
 
   # Test all python packages that have been modified individually
   test-python:
