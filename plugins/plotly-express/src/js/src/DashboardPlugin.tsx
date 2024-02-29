@@ -6,7 +6,7 @@ import {
   PanelEvent,
   useListener,
 } from '@deephaven/dashboard';
-import type { VariableDefinition } from '@deephaven/jsapi-types';
+import type { VariableDescriptor } from '@deephaven/jsapi-types';
 import PlotlyExpressChartPanel from './PlotlyExpressChartPanel.js';
 import type { PlotlyChartWidget } from './PlotlyExpressChartUtils.js';
 
@@ -27,9 +27,9 @@ export function DashboardPlugin(
       fetch: () => Promise<PlotlyChartWidget>;
       metadata?: Record<string, unknown>;
       panelId?: string;
-      widget: VariableDefinition;
+      widget: VariableDescriptor;
     }) => {
-      const { type, title } = widget;
+      const { type, name } = widget;
       if (type !== 'deephaven.plot.express.DeephavenFigure') {
         return;
       }
@@ -42,13 +42,13 @@ export function DashboardPlugin(
           id: panelId,
           metadata: {
             ...metadata,
-            name: title,
-            figure: title,
+            name,
+            figure: name,
             type,
           },
           fetch,
         },
-        title,
+        title: name,
         id: panelId,
       };
 
