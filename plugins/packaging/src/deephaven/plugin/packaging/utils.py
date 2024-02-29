@@ -2,6 +2,8 @@ import shutil
 import os
 import subprocess
 
+__all__ = ["package_js"]
+
 
 def package_js(js_dir: str, dest_dir: str) -> None:
     """

@@ -1,6 +1,5 @@
 import abc
 import logging
-import os
 from functools import partial
 from typing import Callable, ContextManager
 import importlib.resources
@@ -10,6 +9,8 @@ import sys
 from deephaven.plugin.js import JsPlugin
 
 logger = logging.getLogger(__name__)
+
+__all__ = ["in_enterprise_environment", "create_js_plugin"]
 
 
 def in_enterprise_environment() -> bool:

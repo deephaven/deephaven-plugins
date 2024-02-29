@@ -1,12 +1,17 @@
-from deephaven.plugin import Callback, Plugin
+from __future__ import annotations
+
+from typing import Type
 import logging
+from deephaven.plugin import Callback, Plugin
 from deephaven.plugin.js import JsPlugin
 from .utils import in_enterprise_environment
 
 logger = logging.getLogger(__name__)
 
+__all__ = ["DheSafeCallbackWrapper"]
 
-class DheSafeCallbackWrapper:
+
+class DheSafeCallbackWrapper(Callback):
     """
 
     A wrapper around the Callback class that provides a safe way to register plugins.
@@ -16,7 +21,7 @@ class DheSafeCallbackWrapper:
     def __init__(self, callback: Callback):
         self._callback = callback
 
-    def register(self, plugin: Plugin) -> None:
+    def register(self, plugin: Plugin | Type[Plugin]) -> None:
         """
         Register a plugin with the provided callback
 
