@@ -230,7 +230,7 @@ def order_table():
         lambda: table_publisher(
             "Order table", {"sym": dht.string, "size": dht.int32, "side": dht.string}
         ),
-        {},
+        [],
     )
     t = ui.use_memo(lambda: blink_to_append_only(blink_table), {blink_table})
 
@@ -389,7 +389,7 @@ def use_wave_input():
 def multiwave():
     amplitude, frequency, phase, wave_input = use_wave_input()
 
-    tt = use_memo(lambda: time_table("PT1s").update("x=i"), {})
+    tt = use_memo(lambda: time_table("PT1s").update("x=i"), [])
     t = use_memo(
         lambda: tt.update(
             [
