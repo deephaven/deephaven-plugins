@@ -11,7 +11,7 @@ on:
       - 'matplotlib-v*'
       - 'json-v*'
       - 'ui-v*'
-      - 'packaging-v*'
+      - 'utilities-v*'
       - 'packaging-v*'
 
 jobs:
