@@ -187,7 +187,7 @@ def hist_demo(source, column):
             x=column,
             nbins=bin_count,
         ),
-        [bin_count, hist_range, source, column],
+        {bin_count, hist_range, source, column},
     )
 
     return [
@@ -232,7 +232,7 @@ def order_table():
         ),
         [],
     )
-    t = ui.use_memo(lambda: blink_to_append_only(blink_table), [blink_table])
+    t = ui.use_memo(lambda: blink_to_append_only(blink_table), {blink_table})
 
     def submit_order(order_sym, order_size, side):
         publisher.add(
@@ -398,18 +398,18 @@ def multiwave():
                 f"y_tan={amplitude}*Math.tan({frequency}*x+{phase})",
             ]
         ),
-        [amplitude, frequency, phase],
+        {amplitude, frequency, phase},
     )
     p_sin = use_memo(
-        lambda: Figure().plot_xy(series_name="Sine", t=t, x="x", y="y_sin").show(), [t]
+        lambda: Figure().plot_xy(series_name="Sine", t=t, x="x", y="y_sin").show(), {t}
     )
     p_cos = use_memo(
         lambda: Figure().plot_xy(series_name="Cosine", t=t, x="x", y="y_cos").show(),
-        [t],
+        {t},
     )
     p_tan = use_memo(
         lambda: Figure().plot_xy(series_name="Tangent", t=t, x="x", y="y_tan").show(),
-        [t],
+        {t},
     )
 
     return ui.column(

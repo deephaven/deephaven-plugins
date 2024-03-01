@@ -899,7 +899,7 @@ def monitor_changed_data(source: Table):
         else:
             set_changed(empty_table(0))
 
-    ui.use_table_listener(source, listener)
+    ui.use_table_listener(source, listener, [])
 
     added_check = ui.checkbox(
         "Show Added", isSelected=show_added, on_change=set_show_added
@@ -930,7 +930,7 @@ from deephaven import ui, time_table
 @ui.component
 def resetable_table():
     table, set_table = ui.use_state(lambda: time_table("PT1s"))
-    handle_press = ui.use_liveness_scope(lambda _: set_table(time_table("PT1s")))
+    handle_press = ui.use_liveness_scope(lambda _: set_table(time_table("PT1s")), [])
     return [
         ui.action_button(
             "Reset",
