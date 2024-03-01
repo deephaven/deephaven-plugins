@@ -1024,11 +1024,11 @@ ui.item(
 ```
 
 ###### Parameters
-| Parameter      | Type         | Description                            |
-|----------------|--------------|----------------------------------------|
-| `*children`    | `Stringable` | The options to render within the item. |
-| `**props`      | `Any`        | Any other Item prop                    |
 
+| Parameter   | Type         | Description                            |
+| ----------- | ------------ | -------------------------------------- |
+| `*children` | `Stringable` | The options to render within the item. |
+| `**props`   | `Any`        | Any other Item prop                    |
 
 ##### ui.section
 
@@ -1044,18 +1044,20 @@ ui.section(
 ```
 
 ###### Parameters
-| Parameter             | Type            | Description                                                                                                                                              |
-|-----------------------|-----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`           | `PickerItem`  | The options to render within the section.                                                                                                                |
-| `title`               | `str \| None`   | The title of the section.                                                                                                                                |
-| `**props`             | `Any`           | Any other Section prop                                                                                                                                   |
+
+| Parameter   | Type          | Description                               |
+| ----------- | ------------- | ----------------------------------------- |
+| `*children` | `PickerItem`  | The options to render within the section. |
+| `title`     | `str \| None` | The title of the section.                 |
+| `**props`   | `Any`         | Any other Section prop                    |
 
 ##### ui.picker
+
 A picker that can be used to select from a list. Children should be one of four types:  
 If children are of type `PickerItem`, they are the dropdown options.  
 If children are of type `SectionElement`, they are the dropdown sections.  
-If children are of type `Table`, the values in the table are the dropdown options. There can only be one child, the `Table`. 
-If children are of type `PartitionedTable`, the values in the table are the dropdown options and the partitions create multiple sections. There can only be one child, the `PartitionedTable`. 
+If children are of type `Table`, the values in the table are the dropdown options. There can only be one child, the `Table`.
+If children are of type `PartitionedTable`, the values in the table are the dropdown options and the partitions create multiple sections. There can only be one child, the `PartitionedTable`.
 
 ```py
 import deephaven.ui as ui
@@ -1068,26 +1070,27 @@ ui.picker(
     title_column: ColumnName | None = None,
     default_selected_key: Key | None = None,
     selected_key: Key | None = None,
-    on_selection_change: Callable[[Key], None] | None = None, 
+    on_selection_change: Callable[[Key], None] | None = None,
     on_change: Callable[[Key], None] | None = None,
     **props: Any
 ) -> ItemElement
 ```
 
 ###### Parameters
-| Parameter              | Type                                                         | Description                                                                                                                                                                                                                                                                   |
-|------------------------|--------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`            | `PickerItem \| SectionElement \| Table \| PartitionedTable`  | The options to render within the picker.                                                                                                                                                                                                                                      |
-| `key_column`           | `ColumnName \| None`                                         | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to use as item keys. Defaults to the first column.                                                                                                                                     |
-| `label_column`         | `ColumnName \| None`                                         | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                        |
-| `description_column`   | `ColumnName \| None`                                         | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as descriptions.                                                                                                                                                            |
-| `icon_column`          | `ColumnName \| None`                                         | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to map to icons.                                                                                                                                                                       |
-| `title_column`         | `ColumnName \| None`                                         | Only valid if children is of type `PartitionedTable`. The column of values to display as section names. Should be the same for all values in the constituent `Table`. If not specified, the section titles will be created from the `key_columns` of the `PartitionedTable`.  |
-| `default_selected_key` | `Key \| None`                                                | The initial selected key in the collection (uncontrolled).                                                                                                                                                                                                                    |
-| `selected_key`         | `Key \| None`                                                | The currently selected key in the collection (controlled).                                                                                                                                                                                                                    |
-| `on_selection_change`  | `Callable[[Key], None] \| None`                              | Handler that is called when the selection changes.                                                                                                                                                                                                                            |
-| `on_change`            | `Callable[[Key], None] \| None`                              | Alias of `on_selection_change`. Handler that is called when the selection changes.                                                                                                                                                                                            |
-| `**props`              | `Any`                                                        | Any other [Picker](https://react-spectrum.adobe.com/react-spectrum/Picker.html) prop, with the exception of `items`, `validate`, `errorMessage` (as a callback) and `onLoadMore`                                                                                              |
+
+| Parameter              | Type                                                        | Description                                                                                                                                                                                                                                                                  |
+| ---------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `*children`            | `PickerItem \| SectionElement \| Table \| PartitionedTable` | The options to render within the picker.                                                                                                                                                                                                                                     |
+| `key_column`           | `ColumnName \| None`                                        | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to use as item keys. Defaults to the first column.                                                                                                                                    |
+| `label_column`         | `ColumnName \| None`                                        | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                       |
+| `description_column`   | `ColumnName \| None`                                        | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as descriptions.                                                                                                                                                           |
+| `icon_column`          | `ColumnName \| None`                                        | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to map to icons.                                                                                                                                                                      |
+| `title_column`         | `ColumnName \| None`                                        | Only valid if children is of type `PartitionedTable`. The column of values to display as section names. Should be the same for all values in the constituent `Table`. If not specified, the section titles will be created from the `key_columns` of the `PartitionedTable`. |
+| `default_selected_key` | `Key \| None`                                               | The initial selected key in the collection (uncontrolled).                                                                                                                                                                                                                   |
+| `selected_key`         | `Key \| None`                                               | The currently selected key in the collection (controlled).                                                                                                                                                                                                                   |
+| `on_selection_change`  | `Callable[[Key], None] \| None`                             | Handler that is called when the selection changes.                                                                                                                                                                                                                           |
+| `on_change`            | `Callable[[Key], None] \| None`                             | Alias of `on_selection_change`. Handler that is called when the selection changes.                                                                                                                                                                                           |
+| `**props`              | `Any`                                                       | Any other [Picker](https://react-spectrum.adobe.com/react-spectrum/Picker.html) prop, with the exception of `items`, `validate`, `errorMessage` (as a callback) and `onLoadMore`                                                                                             |
 
 ```py
 import deephaven.ui as ui
@@ -1219,7 +1222,7 @@ Other props that can be passed into `ui.table` are defined below.
 
 ```py
 ui_table(
-    table: Table, 
+    table: Table,
     always_fetch_columns: ColumnNameCombination | None,
     back_columns: ColumnNameCombination | None,
     freeze_columns: ColumnNameCombination | None,
@@ -1251,36 +1254,36 @@ ui_table(
 ) -> UITable
 ```
 
-| Parameter                         | Type                                                          | Description                                                                                                                                                                                                                                                                         |
-|-----------------------------------|---------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `always_fetch_columns`            | `ColumnNameCombination \| None`                               | The columns to always fetch from the server. May be a single column name. These will not be affected by the users current viewport/horizontal scrolling. Useful if you have a column with key value data that you want to always include in the data sent for row click operations. |
-| `back_columns`                    | `ColumnNameCombination \| None`                               | The columns to show at the back of the table. May be a single column name. These will not be moveable in the UI.                                                                                                                                                                    |
-| `freeze_columns`                  | `ColumnNameCombination \| None`                               | The columns to freeze to the front of the table. May be a single column name. These will always be visible and not affected by horizontal scrolling.                                                                                                                                |
-| `front_columns`                   | `ColumnNameCombination \| None`                               | The columns to show at the front of the table. May be a single column name. These will not be moveable in the UI.                                                                                                                                                                   |
-| `hide_columns`                    | `ColumnNameCombination \| None`                               | The columns to hide by default from the table. May be a single column name. The user can still resize the columns to view them.                                                                                                                                                     |
-| `quick_filters`                   | `dict[ColumnName, QuickFilterExpression] \| None`             | Quick filters for the UI to apply to the table.                                                                                                                                                                                                                                     |
-| `show_search`                     | `bool \| None`                                                | `True` to show the search bar by default, `False` to not.                                                                                                                                                                                                                           |
-| `show_quick_filters`              | `bool \| None`                                                | `True` to show the quick filters by default, `False` to not.                                                                                                                                                                                                                        |
-| `show_column_headers`             | `bool \| None`                                                | `True` to show the column headers by default, `False` to not.                                                                                                                                                                                                                       |
-| `selection_mode`                  | `SelectionMode \| None`                                       | Can be `MULTIPLE` to allow multiple selection or `SINGLE` to not allow it.                                                                                                                                                                                                          |
-| `selection_area`                  | `SelectionArea \| None`                                       | The unit that is selected on press. Can be `ROW`, `COLUMN`, or `CELL`.                                                                                                                                                                                                              |
-| `selection_style`                 | `SelectionStyleCombination \| None`                           | The style of the selection. Can be `HIGHLIGHT`, `CHECKBOX`, or a combination of those.                                                                                                                                                                                              |
-| `selected_rows`                   | `RowIndexCombination \| None`                                 | The rows that are selected by default. Only valid if `selection_area` is `ROW`.                                                                                                                                                                                                     |
-| `selected_columns`                | `ColumnIndexCombination \| None`                              | The columns that are selected by default. Only valid if `selection_area` is `COLUMN`.                                                                                                                                                                                               |
-| `selected_cells`                  | `CellIndexCombination \| None`                                | The cells that are selected by default. Only valid if `selection_area` is `CELL`.                                                                                                                                                                                                   |
-| `density`                         | `DensityMode \| None`                                         | The density of the table. Can be `COMPACT`, `REGULAR`, or `SPACIOUS`.                                                                                                                                                                                                               |
-| `column_display_names`            | `dict[ColumnName, ColumnNameCombination] \| None`             | The display names. If a sequence of column names is provided for a column, the display name will be set to the longest column name that can be fully displayed.                                                                                                                     |
-| `on_row_press`                    | `Callable[[RowIndex, RowData], None] \| None`                 | The callback function to run when a cell in a row is released (such as a click). The first parameter is the row index, and the second is the row data provided in a dictionary where the column names are the keys.                                                                 |
-| `on_row_double_press`             | `Callable[[RowIndex, RowData], None] \| None`                 | The callback function to run when a cell in a row is double pressed. The first parameter is the row index, and the second is the row data provided in a dictionary where the column names are the keys.                                                                             |
-| `on_cell_press`                   | `Callable[[CellIndex, Any], None] \| None`                    | The callback function to run when a cell is released (such as a click). The first parameter is the cell index, and the second is the cell data.                                                                                                                                     |
-| `on_cell_double_press`            | `Callable[[CellIndex, Any], None] \| None`                    | The callback function to run when a cell is double pressed. The first parameter is the cell index, and the second is the cell data.                                                                                                                                                 |
-| `on_column_press`                 | `Callable[[ColumnName], None] \| None`                        | The callback function to run when a column is released (such as a click). The only parameter is the column name.                                                                                                                                                                    |
-| `on_column_double_press`          | `Callable[[ColumnName], None] \| None`                        | The callback function to run when a cell in a column is double pressed. The only parameter is the column name.                                                                                                                                                                      |
-| `on_search`                       | `Callable[[str], None] \| None`                               | The callback function to run when the search bar is used. The only parameter is the search string.                                                                                                                                                                                  |
-| `on_quick_filter`                 | `Callable[[ColumnName, QuickFilterExpression], None] \| None` | The callback function to run when a quick filter is applied. The first parameter is the column name, and the second is the quick filter expression.                                                                                                                                 |
-| `on_freeze_column`                | `Callable[[ColumnName], None] \| None`                        | The callback function to run when a column is frozen. The only parameter is the frozen column name.                                                                                                                                                                                 |
-| `on_hide_column`                  | `Callable[[ColumnName], None] \| None`                        | The callback function to run when a column is hidden. The only parameter is the hidden column name.                                                                                                                                                                                 |
-| `on_sort`                         | `Callable[[ColumnName, LiteralSortDirection], None] \| None`  | The callback function to run when a column is sorted. The first parameter is the column name, and the second is the sort direction.                                                                                                                                                 |
+| Parameter                | Type                                                          | Description                                                                                                                                                                                                                                                                         |
+| ------------------------ | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `always_fetch_columns`   | `ColumnNameCombination \| None`                               | The columns to always fetch from the server. May be a single column name. These will not be affected by the users current viewport/horizontal scrolling. Useful if you have a column with key value data that you want to always include in the data sent for row click operations. |
+| `back_columns`           | `ColumnNameCombination \| None`                               | The columns to show at the back of the table. May be a single column name. These will not be moveable in the UI.                                                                                                                                                                    |
+| `freeze_columns`         | `ColumnNameCombination \| None`                               | The columns to freeze to the front of the table. May be a single column name. These will always be visible and not affected by horizontal scrolling.                                                                                                                                |
+| `front_columns`          | `ColumnNameCombination \| None`                               | The columns to show at the front of the table. May be a single column name. These will not be moveable in the UI.                                                                                                                                                                   |
+| `hide_columns`           | `ColumnNameCombination \| None`                               | The columns to hide by default from the table. May be a single column name. The user can still resize the columns to view them.                                                                                                                                                     |
+| `quick_filters`          | `dict[ColumnName, QuickFilterExpression] \| None`             | Quick filters for the UI to apply to the table.                                                                                                                                                                                                                                     |
+| `show_search`            | `bool \| None`                                                | `True` to show the search bar by default, `False` to not.                                                                                                                                                                                                                           |
+| `show_quick_filters`     | `bool \| None`                                                | `True` to show the quick filters by default, `False` to not.                                                                                                                                                                                                                        |
+| `show_column_headers`    | `bool \| None`                                                | `True` to show the column headers by default, `False` to not.                                                                                                                                                                                                                       |
+| `selection_mode`         | `SelectionMode \| None`                                       | Can be `MULTIPLE` to allow multiple selection or `SINGLE` to not allow it.                                                                                                                                                                                                          |
+| `selection_area`         | `SelectionArea \| None`                                       | The unit that is selected on press. Can be `ROW`, `COLUMN`, or `CELL`.                                                                                                                                                                                                              |
+| `selection_style`        | `SelectionStyleCombination \| None`                           | The style of the selection. Can be `HIGHLIGHT`, `CHECKBOX`, or a combination of those.                                                                                                                                                                                              |
+| `selected_rows`          | `RowIndexCombination \| None`                                 | The rows that are selected by default. Only valid if `selection_area` is `ROW`.                                                                                                                                                                                                     |
+| `selected_columns`       | `ColumnIndexCombination \| None`                              | The columns that are selected by default. Only valid if `selection_area` is `COLUMN`.                                                                                                                                                                                               |
+| `selected_cells`         | `CellIndexCombination \| None`                                | The cells that are selected by default. Only valid if `selection_area` is `CELL`.                                                                                                                                                                                                   |
+| `density`                | `DensityMode \| None`                                         | The density of the table. Can be `COMPACT`, `REGULAR`, or `SPACIOUS`.                                                                                                                                                                                                               |
+| `column_display_names`   | `dict[ColumnName, ColumnNameCombination] \| None`             | The display names. If a sequence of column names is provided for a column, the display name will be set to the longest column name that can be fully displayed.                                                                                                                     |
+| `on_row_press`           | `Callable[[RowIndex, RowData], None] \| None`                 | The callback function to run when a cell in a row is released (such as a click). The first parameter is the row index, and the second is the row data provided in a dictionary where the column names are the keys.                                                                 |
+| `on_row_double_press`    | `Callable[[RowIndex, RowData], None] \| None`                 | The callback function to run when a cell in a row is double pressed. The first parameter is the row index, and the second is the row data provided in a dictionary where the column names are the keys.                                                                             |
+| `on_cell_press`          | `Callable[[CellIndex, Any], None] \| None`                    | The callback function to run when a cell is released (such as a click). The first parameter is the cell index, and the second is the cell data.                                                                                                                                     |
+| `on_cell_double_press`   | `Callable[[CellIndex, Any], None] \| None`                    | The callback function to run when a cell is double pressed. The first parameter is the cell index, and the second is the cell data.                                                                                                                                                 |
+| `on_column_press`        | `Callable[[ColumnName], None] \| None`                        | The callback function to run when a column is released (such as a click). The only parameter is the column name.                                                                                                                                                                    |
+| `on_column_double_press` | `Callable[[ColumnName], None] \| None`                        | The callback function to run when a cell in a column is double pressed. The only parameter is the column name.                                                                                                                                                                      |
+| `on_search`              | `Callable[[str], None] \| None`                               | The callback function to run when the search bar is used. The only parameter is the search string.                                                                                                                                                                                  |
+| `on_quick_filter`        | `Callable[[ColumnName, QuickFilterExpression], None] \| None` | The callback function to run when a quick filter is applied. The first parameter is the column name, and the second is the quick filter expression.                                                                                                                                 |
+| `on_freeze_column`       | `Callable[[ColumnName], None] \| None`                        | The callback function to run when a column is frozen. The only parameter is the frozen column name.                                                                                                                                                                                 |
+| `on_hide_column`         | `Callable[[ColumnName], None] \| None`                        | The callback function to run when a column is hidden. The only parameter is the hidden column name.                                                                                                                                                                                 |
+| `on_sort`                | `Callable[[ColumnName, LiteralSortDirection], None] \| None`  | The callback function to run when a column is sorted. The first parameter is the column name, and the second is the sort direction.                                                                                                                                                 |
 
 `ui.table` will also support the below methods.
 
@@ -1504,7 +1507,7 @@ ui_fragment = ui.fragment(*children: Element) -> Element
 The functionality provided my `ui.table` replaces some of the existing functions on `Table`. Below are the functions that are planned for deprecation/deletion of the `Table` interface, and their replacements with the new `ui.table` interface.
 
 | Table Function                                                    | ui.table Replacement                                                                                                                                      |
-| ----------------------------------------------------------------- |-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `format_columns`<br/>`format_column_where`<br/>`format_row_where` | [color_column](#color_column)<br/>[color_row](#color_row)<br/>[format](#format)                                                                           |
 | `layout_hints`                                                    | [Props](#Parameters-5) of back_columns, front_columns, freeze_columns, hide_columns, and show_search, as well as method of [column_group](#column_groups) |
 | `dropColumnFormats`                                               | No replacement                                                                                                                                            |
@@ -1660,8 +1663,6 @@ use_cell_data(
 | `table`    | `Table`    | The table to create a viewport on.                                       |
 | `sentinel` | `Sentinel` | A sentinel value to return if the cell is still loading. Default `None`. |
 
-
-
 #### Custom Types
 
 Below are some of the custom types that are used in the above API definitions:
@@ -1690,7 +1691,7 @@ QuickFilterExpression = str
 RowData = dict[ColumnName, Any]
 # A RowIndex of None indicates a header column
 RowIndex = int | None
-SelectionStyle = Literal["HIGHLIGHT", "CHECKBOX"]   
+SelectionStyle = Literal["HIGHLIGHT", "CHECKBOX"]
 SelectionArea = Literal["CELL", "ROW", "COLUMN"]
 SelectionMode = Literal["SINGLE", "MULTIPLE"]
 DensityMode = Literal["COMPACT", "REGULAR", "SPACIOUS"]
@@ -1828,31 +1829,35 @@ The above examples are all in Python, and particularly take some advantage of la
 
 ##### Rendering
 
-When you call a function decorated by `@ui.component`, it will return a `UiNode` object that has a reference to the function it is decorated; that is to say, the function does _not_ get run immediately. The function is only run when the `UiNode` is rendered by the client, and the result is sent back to the client. This allows the `@ui.component` decorator to execute the function with the appropriate rendering context, and also allows for memoization of the function (e.g. if the function is called multiple times with the same arguments, it will only be executed once - akin to a [memoized component](https://react.dev/reference/react/memo) or PureComponent in React).
+When you call a function decorated by `@ui.component`, it will return an `Element` object that has a reference to the function it is decorated; that is to say, the function does _not_ get run immediately. The function is only run when the `Element` is rendered by the client, and the result is sent back to the client. This allows the `@ui.component` decorator to execute the function with the appropriate rendering context. The client must also set the initial state before rendering, allowing the client to persist the state and re-render in the future.
 
 Let's say we execute the following, where a table is filtered based on the value of a text input:
 
 ```python
+from deephaven import ui
+
+
 @ui.component
 def text_filter_table(source, column, initial_value=""):
-    value, set_value = use_state(initial_value)
-    ti = ui.text_field(value, on_change=set_value)
+    value, set_value = ui.use_state(initial_value)
+    ti = ui.text_field(value=value, on_change=set_value)
     tt = source.where(f"{column}=`{value}`")
     return [ti, tt]
 
 
+# This will render two panels, one filtering the table by Sym, and the other by Exchange
 @ui.component
-def sym_exchange(source):
-    tft1 = text_filter_table(source, "Sym")
-    tft2 = text_filter_table(source, "Exchange")
-    return ui.flex(tft1, tft2, direction="row")
+def double_text_filter_table(source):
+    tft1 = text_filter_table(source, "sym")
+    tft2 = text_filter_table(source, "exchange")
+    return ui.panel(tft1, title="Sym"), ui.panel(tft2, title="Exchange")
 
 
 import deephaven.plot.express as dx
 
-t = dx.data.stocks()
+_stocks = dx.data.stocks()
 
-tft = text_filter_table(t, "sym")
+tft = double_text_filter_table(_stocks)
 ```
 
 Which should result in a UI like this:
@@ -1877,21 +1882,21 @@ sequenceDiagram
 
   W->>UIP: Open tft
   UIP->>C: Export tft
-  C-->>UIP: tft (UiNode)
+  C-->>UIP: tft (Element)
 
-  Note over UIP: UI knows about object tft<br/>sym_exchange not executed yet
+  Note over UIP: UI knows about object tft<br/>double_text_filter_table not executed yet
 
-  UIP->>SP: Render tft
-  SP->>SP: Run sym_exchange
-  Note over SP: sym_exchange executes, running text_filter_table twice
-  SP-->>UIP: Result (document=flex([tft1, tft2]), exported_objects=[tft1, tft2])
+  UIP->>SP: Render tft (initialState)
+  SP->>SP: Run double_text_filter_table
+  Note over SP: double_text_filter_table executes, running text_filter_table twice
+  SP-->>UIP: Result (document=[panel(tft1), pane(tft2)], exported_objects=[tft1, tft2])
   UIP-->>W: Display Result
 
   U->>UIP: Change text input 1
   UIP->>SP: Change state
-  SP->>SP: Run sym_exchange
-  Note over SP: sym_exchange executes, text_filter_table only <br/>runs once for the one changed input<br/>only exports the new table, as client already has previous tables
-  SP-->>UIP: Result (document=flex([tft1', tft2], exported_objects=[tft1']))
+  SP->>SP: Run double_text_filter_table
+  Note over SP: double_text_filter_table executes, text_filter_table only <br/>runs once for the one changed input<br/>only exports the new table, as client already has previous tables
+  SP-->>UIP: Result (document=[panel(tft1'), panel(tft2)], state={}, exported_objects=[tft1'])
   UIP-->>W: Display Result
 ```
 
@@ -1904,14 +1909,15 @@ sequenceDiagram
   participant UIP as UI Plugin
   participant SP as Server Plugin
 
-  UIP->>SP: obj.getDataAsString()
-    Note over UIP, SP: Uses json-rpc
-  SP-->>UIP: documentUpdated(Document)
+    Note over UIP, SP: Uses JSON-RPC
+  UIP->>SP: setState(initialState)
+  SP-->>UIP: documentUpdated(Document, State)
 
   loop Callback
     UIP->>SP: foo(params)
     SP-->>UIP: foo result
-    SP->>UIP: documentUpdated(Document)
+    SP->>UIP: documentUpdated(Document, State)
+      Note over UIP: Client can store State to restore the same state later
   end
 ```
 

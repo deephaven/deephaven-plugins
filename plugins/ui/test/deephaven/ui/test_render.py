@@ -173,6 +173,28 @@ class RenderExportTestCase(BaseTestCase):
             },
         )
 
+    def test_ignore_empty_state(self):
+        from deephaven.ui._internal.RenderContext import RenderContext
+
+        rc = make_render_context()
+
+        with rc.open():
+            rc.init_state(0, 1)
+            rc.init_state(1, 2)
+            rc.init_state(2, 3)
+            rc.set_state(0, None)
+            rc.set_state(1, None)
+            rc.set_state(2, None)
+
+            child_context0 = rc.get_child_context(0)
+            with child_context0.open():
+                child_context1 = child_context0.get_child_context(0)
+                with child_context1.open():
+                    child_context1.init_state(0, None)
+
+        state = rc.export_state()
+        self.assertEqual(state, {})
+
 
 class RenderImportTestCase(BaseTestCase):
     def test_import_empty_context(self):

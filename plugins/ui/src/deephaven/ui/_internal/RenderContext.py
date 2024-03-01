@@ -48,7 +48,7 @@ UpdaterFunction = Callable[[T], T]
 A function that takes the old value and returns the new value for a state.
 """
 
-ContextKey = Union[str, int]
+ContextKey = str
 """
 The key for a child context.
 """
@@ -81,6 +81,19 @@ def _value_or_call(
             value = value()
         return ValueWithLiveness(value=value, liveness_scope=scope)
     return ValueWithLiveness(value=value, liveness_scope=None)
+
+
+def _should_retain_value(value: ValueWithLiveness[T | None]) -> bool:
+    """
+    Determine if the given value should be retained by the current context.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if the value should be retained, False otherwise.
+    """
+    return value.liveness_scope is None and isinstance(value.value, (str, int, float))
 
 
 _local_data = threading.local()
@@ -360,19 +373,23 @@ class RenderContext:
         Export the state of this context. This is used to serialize the state for the client.
         """
         exported_state: dict[str, Any] = {}
-        if len(self._state) > 0:
-            # We need to iterate through all of our state and export anything that doesn't have a LivenessScope right now (anything serializable)
-            exported_state["state"] = {
-                key: value.value
-                for key, value in self._state.items()
-                if value.liveness_scope is None
-                and isinstance(value.value, (str, int, float))
-            }
-        if len(self._children_context) > 0:
-            exported_state["children"] = {
-                key: child.export_state()
-                for key, child in self._children_context.items()
-            }
+        # We need to iterate through all of our state and export anything that doesn't have a LivenessScope right now (anything serializable)
+        state = {
+            key: value.value
+            for key, value in self._state.items()
+            if _should_retain_value(value)
+        }
+        if len(state) > 0:
+            exported_state["state"] = state
+
+        # Now iterate through all the children contexts, and only include them in the export if they're not empty
+        children_state = {
+            key: child_state
+            for key, child in self._children_context.items()
+            if len(child_state := child.export_state()) > 0
+        }
+        if len(children_state) > 0:
+            exported_state["children"] = children_state
 
         return exported_state
 
@@ -384,6 +401,7 @@ class RenderContext:
         self._children_context.clear()
         if "state" in state:
             for key, value in state["state"].items():
+                # When python dict is converted to JSON, all keys are converted to strings. We convert them back to int here.
                 self._state[int(key)] = ValueWithLiveness(
                     value=value, liveness_scope=None
                 )

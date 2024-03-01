@@ -311,7 +311,7 @@ class ElementMessageStream(MessageStream):
         dispatcher["setState"] = self._set_state
         return dispatcher
 
-    def _set_state(self, state: dict[int, Any]) -> None:
+    def _set_state(self, state: dict[str, Any]) -> None:
         """
         Set the state of the element. This is called by the client on initial load.
 
@@ -337,7 +337,6 @@ class ElementMessageStream(MessageStream):
         new_objects = encoder_result["new_objects"]
         callable_id_dict = encoder_result["callable_id_dict"]
 
-        # TODO: We need to handle encoding the state a little smarter. This is just a hack to test the rest of the pipeline, but won't work with stuff like tables.
         state = context.export_state()
         logger.debug("Exported state: %s", state)
         encoded_state = json.dumps(state)
