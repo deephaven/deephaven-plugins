@@ -3,7 +3,6 @@ includefiles=dh-defaults.prop
 deephaven.console.type=python
 
 # Add all plugins that you want installed here
-deephaven.jsPlugins.@deephaven/js-plugin-plotly=/opt/deephaven/config/plugins/plugins/plotly/src/js
 deephaven.jsPlugins.@deephaven/js-plugin-matplotlib=/opt/deephaven/config/plugins/plugins/matplotlib/src/js
 deephaven.jsPlugins.@deephaven/js-plugin-ui=/opt/deephaven/config/plugins/plugins/ui/src/js
 
