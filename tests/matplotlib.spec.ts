@@ -6,5 +6,5 @@ test('Matplotlib loads', async ({ page }) => {
   await openPanel(page, 'matplotlib_fig', '.matplotlib-view');
   await expect(
     page.getByRole('img', { name: 'Matplotlib render' })
-  ).toHaveScreenshot('matplotlib_plot.png');
+  ).toHaveScreenshot();
 });
