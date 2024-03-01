@@ -41,7 +41,7 @@
     "react-dom": "^17.0.2"
   },
   "dependencies": {
-    "@adobe/react-spectrum": "^3.29.0",
+    "@adobe/react-spectrum": "^3.34.1",
     "@deephaven/chart": "^0.66.1",
     "@deephaven/components": "^0.66.1",
     "@deephaven/dashboard": "^0.66.1",
