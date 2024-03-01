@@ -6,4 +6,4 @@ WORKDIR /work/
 
 RUN npm install @playwright/test@1.41.2
 COPY playwright.config.ts .
-COPY playwright-ci.config.ts .
+COPY playwright-docker.config.ts .

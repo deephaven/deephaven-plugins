@@ -19,15 +19,13 @@ services:
     build:
       dockerfile: ./tests/Dockerfile
     ports:
-      - 9323:9323
+      - '9323:9323'
     ipc: host
-    expose:
-      - 9323
     volumes:
       - ./tests:/work/tests
       - ./test-results:/work/test-results
       - ./playwright-report:/work/playwright-report
-    entrypoint: "npx playwright test --config=playwright-ci.config.ts"
+    entrypoint: "npx playwright test --config=playwright-docker.config.ts"
     depends_on:
       deephaven-plugins:
         condition: service_healthy
@@ -35,7 +33,7 @@ services:
   update-snapshots:
     extends:
       service: e2e-tests
-    entrypoint: 'npx playwright test --config=playwright-ci.config.ts --update-snapshots'
+    entrypoint: 'npx playwright test --config=playwright-docker.config.ts --update-snapshots'
     depends_on:
       deephaven-plugins:
         condition: service_healthy
