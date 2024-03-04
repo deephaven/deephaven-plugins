@@ -166,7 +166,6 @@ class ElementMessageStream(MessageStream):
         Process any queued callables, then re-renders the element if it is dirty.
         """
         try:
-
             with self._exec_context:
                 with self._render_lock:
                     self._render_thread = threading.current_thread()
