@@ -1,8 +1,11 @@
-import os
-from . import DeephavenFigureType
-from ._js_plugin import create_js_plugin
-
 from deephaven.plugin import Registration, Callback
+from deephaven.plugin.utilities import create_js_plugin, DheSafeCallbackWrapper
+from . import DeephavenFigureType
+from ._js_plugin import ExpressJsPlugin
+
+PACKAGE_NAMESPACE = "deephaven.plot.express"
+JS_NAME = "_js"
+PLUGIN_CLASS = ExpressJsPlugin
 
 
 class ExpressRegistration(Registration):
@@ -21,8 +24,14 @@ class ExpressRegistration(Registration):
             A function to call after registration
 
         """
+        callback = DheSafeCallbackWrapper(callback)
+
         callback.register(DeephavenFigureType)
 
-        # Only register the JS plugins if the environment variable is set
-        if os.getenv("DEEPHAVEN_ENABLE_PY_JS", "False").lower() in ("true", "1"):
-            callback.register(create_js_plugin())
+        js_plugin = create_js_plugin(
+            PACKAGE_NAMESPACE,
+            JS_NAME,
+            PLUGIN_CLASS,
+        )
+
+        callback.register(js_plugin)

@@ -3,7 +3,7 @@ import pathlib
 from deephaven.plugin.js import JsPlugin
 
 
-class ExpressJsPlugin(JsPlugin):
+class MatplotlibJsPlugin(JsPlugin):
     def __init__(
         self,
         name: str,
