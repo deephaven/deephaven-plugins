@@ -40,7 +40,7 @@ import Picker from '../elements/Picker';
 /*
  * Map element node names to their corresponding React components
  */
-const elementComponentMap = {
+export const elementComponentMap = {
   [PANEL_ELEMENT_NAME]: ReactPanel,
   [ROW_ELEMENT_NAME]: Row,
   [COLUMN_ELEMENT_NAME]: Column,

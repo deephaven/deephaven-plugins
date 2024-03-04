@@ -1,3 +1,4 @@
+import { ReactHTML } from 'react';
 import type * as icons from '@deephaven/icons';
 
 /** Namespaces */
@@ -26,6 +27,11 @@ export type DashboardElementType = typeof DASHBOARD_ELEMENT_NAME;
 export const ICON_ELEMENT_TYPE_PREFIX = 'deephaven.ui.icons.';
 export type IconElementName =
   `${typeof ICON_ELEMENT_TYPE_PREFIX}${keyof typeof icons}`;
+
+/** HTML */
+export const HTML_ELEMENT_NAME_PREFIX = 'deephaven.ui.html.';
+export type HTMLElementType =
+  `${typeof HTML_ELEMENT_NAME_PREFIX}${keyof ReactHTML}`;
 
 /** Specific Components */
 export const FRAGMENT_ELEMENT_NAME =
