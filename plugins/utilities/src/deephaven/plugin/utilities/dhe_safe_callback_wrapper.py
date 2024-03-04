@@ -4,7 +4,7 @@ from typing import Type
 import logging
 from deephaven.plugin import Callback, Plugin
 from deephaven.plugin.js import JsPlugin
-from .utils import in_enterprise_environment
+from .utils import is_enterprise_environment
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +47,7 @@ class DheSafeCallbackWrapper(Callback):
         try:
             self._callback.register(js_plugin)
         except RuntimeError as e:
-            if in_enterprise_environment():
+            if is_enterprise_environment():
                 logger.debug(
                     f"Failed to register {js_plugin} embedded in Python plugin. Skipping."
                 )

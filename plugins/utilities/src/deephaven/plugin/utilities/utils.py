@@ -10,16 +10,17 @@ from deephaven.plugin.js import JsPlugin
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["in_enterprise_environment", "create_js_plugin"]
+__all__ = ["is_enterprise_environment", "create_js_plugin"]
 
 
-def in_enterprise_environment() -> bool:
+def is_enterprise_environment() -> bool:
     """
     Check if the environment is an enterprise environment.
 
     Returns:
         True if the environment is an enterprise environment, False otherwise
     """
+    # TODO: better implementation after https://deephaven.atlassian.net/browse/DH-16573
     return any("coreplus" in path or "dnd" in path for path in sys.path)
 
 
