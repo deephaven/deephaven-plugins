@@ -14,4 +14,5 @@ def item(*children: Stringable, **props: Any) -> ItemElement:
         children: The options to render within the item.
         **props: Any other Item prop.
     """
-    return BaseElement("deephaven.ui.components.Item", *children, **props)
+    # TODO: Revert to deephaven.ui.components, need Brian's change
+    return BaseElement("deephaven.ui.spectrum.Item", *children, **props)
