@@ -1,12 +1,14 @@
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable import/prefer-default-export */
 import React, { ComponentType } from 'react';
+// Importing `Item` and `Section` compnents directly since they should not be
+// wrapped due to how Spectrum collection components consume them.
+import { Item, Section } from '@deephaven/components';
 import {
   ElementNode,
   ELEMENT_KEY,
   isElementNode,
   isExportedObject,
-  isFragmentElementNode,
 } from '../elements/ElementUtils';
 import HTMLElementView from '../elements/HTMLElementView';
 import { isHTMLElementNode } from '../elements/HTMLElementUtils';
@@ -18,6 +20,7 @@ import UITable from '../elements/UITable';
 import {
   COLUMN_ELEMENT_NAME,
   DASHBOARD_ELEMENT_NAME,
+  FRAGMENT_ELEMENT_NAME,
   ITEM_ELEMENT_NAME,
   PANEL_ELEMENT_NAME,
   PICKER_ELEMENT_NAME,
@@ -33,7 +36,6 @@ import Stack from '../layout/Stack';
 import Column from '../layout/Column';
 import Dashboard from '../layout/Dashboard';
 import Picker from '../elements/Picker';
-import { Item, Section } from '../elements/spectrum';
 
 /*
  * Map element node names to their corresponding React components
@@ -42,6 +44,7 @@ const elementComponentMap = {
   [PANEL_ELEMENT_NAME]: ReactPanel,
   [ROW_ELEMENT_NAME]: Row,
   [COLUMN_ELEMENT_NAME]: Column,
+  [FRAGMENT_ELEMENT_NAME]: React.Fragment,
   [STACK_ELEMENT_NAME]: Stack,
   [DASHBOARD_ELEMENT_NAME]: Dashboard,
   [ITEM_ELEMENT_NAME]: Item,
@@ -88,10 +91,6 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
   }
   if (isIconElementNode(newElement)) {
     return IconElementView({ element: newElement });
-  }
-  if (isFragmentElementNode(newElement)) {
-    // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <>{newElement.props?.children}</>;
   }
   if (isElementNode(newElement)) {
     const Component = getComponentTypeForElement(newElement);

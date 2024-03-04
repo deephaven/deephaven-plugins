@@ -28,6 +28,8 @@ export type IconElementName =
   `${typeof ICON_ELEMENT_TYPE_PREFIX}${keyof typeof icons}`;
 
 /** Specific Components */
+export const FRAGMENT_ELEMENT_NAME =
+  `${UI_COMPONENTS_NAMESPACE}.Fragment` as const;
 export const ITEM_ELEMENT_NAME = `${UI_COMPONENTS_NAMESPACE}.Item` as const;
 export const PICKER_ELEMENT_NAME = `${UI_COMPONENTS_NAMESPACE}.Picker` as const;
 export const SECTION_ELEMENT_NAME =
