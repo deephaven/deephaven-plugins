@@ -42,9 +42,8 @@ export function DashboardPlugin(
           id: panelId,
           metadata: {
             ...metadata,
-            name,
+            ...widget,
             figure: name,
-            type,
           },
           fetch,
         },
