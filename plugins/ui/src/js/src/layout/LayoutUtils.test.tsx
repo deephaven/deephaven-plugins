@@ -3,14 +3,10 @@ import React from 'react';
 import { TestUtils } from '@deephaven/utils';
 import Column from './Column';
 import {
-  PANEL_ELEMENT_NAME,
-  ROW_ELEMENT_NAME,
-  COLUMN_ELEMENT_NAME,
   isPanelElementNode,
   isRowElementNode,
   isColumnElementNode,
   isStackElementNode,
-  STACK_ELEMENT_NAME,
   normalizeDashboardChildren,
   normalizeColumnChildren,
   normalizeRowChildren,
@@ -19,6 +15,12 @@ import {
 import Row from './Row';
 import Stack from './Stack';
 import ReactPanel from './ReactPanel';
+import {
+  PANEL_ELEMENT_NAME,
+  ROW_ELEMENT_NAME,
+  COLUMN_ELEMENT_NAME,
+  STACK_ELEMENT_NAME,
+} from '../elements/ElementConstants';
 
 beforeEach(() => {
   TestUtils.disableConsoleOutput();

@@ -14,7 +14,7 @@
  * `npm run update-dh-packages`.
  *
  * Or for a specific plugin via:
- * `npm run update-dh-packages --scope=@deephaven/js-plugin-ui`
+ * `npm run update-dh-packages -- --scope=@deephaven/js-plugin-ui`
  */
 
 /* eslint-disable no-console */

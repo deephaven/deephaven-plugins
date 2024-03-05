@@ -74,27 +74,3 @@ export function getElementKey(node: unknown, defaultKey: string): string {
   }
   return `${node.props?.key}`;
 }
-
-export const FRAGMENT_ELEMENT_NAME = 'deephaven.ui.components.Fragment';
-
-export type FragmentElementType = typeof FRAGMENT_ELEMENT_NAME;
-
-/**
- * Describes a fragment element that can be rendered in the UI.
- * Will be placed in the current dashboard, or within a user created dashboard if specified.
- */
-export type FragmentElementNode = ElementNode<FragmentElementType>;
-
-/**
- * Check if an object is a FragmentElementNode
- * @param obj Object to check
- * @returns True if the object is a FragmentElementNode
- */
-export function isFragmentElementNode(
-  obj: unknown
-): obj is FragmentElementNode {
-  return (
-    isElementNode(obj) &&
-    (obj as ElementNode)[ELEMENT_KEY] === FRAGMENT_ELEMENT_NAME
-  );
-}
