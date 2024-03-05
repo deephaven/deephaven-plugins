@@ -94,7 +94,7 @@ ce = checkbox_example()
 
 ## Picker (string values)
 
-The `ui.picker` component can be used to select from a list of items. Here's a basic example for selecting from a list of string values.
+The `ui.picker` component can be used to select from a list of items. Here's a basic example for selecting from a list of string values and displaying the selected key in a text field.
 
 ```python
 import deephaven.ui as ui
