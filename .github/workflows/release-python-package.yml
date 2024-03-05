@@ -37,7 +37,7 @@ jobs:
       - name: Install npm dependencies
         if: steps.check_files.outputs.files_exists == 'true'
         run: npm ci
-  
+
       - name: Build npm packages
         if: steps.check_files.outputs.files_exists == 'true'
         run: npm run build -- --scope "@deephaven/js-plugin-${{ inputs.package }}"
