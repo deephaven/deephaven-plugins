@@ -92,6 +92,47 @@ ce = checkbox_example()
 
 ![Checkbox](assets/checkbox.png)
 
+## Picker (string values)
+
+The `ui.picker` component can be used to select from a list of items. Here's a basic example for selecting from a list of string values.
+
+```python
+import deephaven.ui as ui
+from deephaven.ui import use_state, use_callback, use_effect
+
+@ui.component
+def picker():
+    value, set_value = use_state('')
+
+    # Picker for selecting values
+    pick = ui.picker(
+        label="Text",
+        on_selection_change=set_value,
+        selected_key=value,
+        children=[
+            'Text 1',
+            'Text 2',
+            'Text 3'
+        ]
+    )
+
+    # Show current selection in a ui.text component
+    text = ui.text('Selection: ' + value)
+
+    # Display picker and output in a flex column
+    return ui.flex(
+        direction='column',
+        margin=10,
+        gap=10,
+        children=[
+            pick,
+            text
+        ]
+    )
+
+p = picker()
+```
+
 ## Form (two variables)
 
 You can have state with multiple different variables in one component. In this example, we have a [text field](https://react-spectrum.adobe.com/react-spectrum/TextField.html) and a [slider](https://react-spectrum.adobe.com/react-spectrum/Slider.html), and we display the values of both of them.
