@@ -102,26 +102,26 @@ from deephaven.ui import use_state
 
 @ui.component
 def picker():
-    value, set_value = use_state('')
+    value, set_value = use_state("")
 
     # Picker for selecting values
     pick = ui.picker(
-        'Text 1',
-        'Text 2',
-        'Text 3',
+        "Text 1",
+        "Text 2",
+        "Text 3",
         label="Text",
         on_selection_change=set_value,
         selected_key=value,
     )
 
     # Show current selection in a ui.text component
-    text = ui.text('Selection: ' + value)
+    text = ui.text("Selection: " + value)
 
     # Display picker and output in a flex column
     return ui.flex(
         pick,
         text,
-        direction='column',
+        direction="column",
         margin=10,
         gap=10,
     )
