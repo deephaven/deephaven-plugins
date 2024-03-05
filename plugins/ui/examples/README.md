@@ -100,6 +100,7 @@ The `ui.picker` component can be used to select from a list of items. Here's a b
 import deephaven.ui as ui
 from deephaven.ui import use_state
 
+
 @ui.component
 def picker():
     value, set_value = use_state("")
@@ -125,6 +126,7 @@ def picker():
         margin=10,
         gap=10,
     )
+
 
 p = picker()
 ```
