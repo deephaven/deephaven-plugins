@@ -106,14 +106,12 @@ def picker():
 
     # Picker for selecting values
     pick = ui.picker(
+        'Text 1',
+        'Text 2',
+        'Text 3',
         label="Text",
         on_selection_change=set_value,
         selected_key=value,
-        children=[
-            'Text 1',
-            'Text 2',
-            'Text 3'
-        ]
     )
 
     # Show current selection in a ui.text component
@@ -121,13 +119,11 @@ def picker():
 
     # Display picker and output in a flex column
     return ui.flex(
+        pick,
+        text,
         direction='column',
         margin=10,
         gap=10,
-        children=[
-            pick,
-            text
-        ]
     )
 
 p = picker()

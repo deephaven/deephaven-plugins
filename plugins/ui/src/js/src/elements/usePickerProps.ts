@@ -7,7 +7,7 @@ import {
   useKeyboardEventCallback,
 } from './spectrum/useKeyboardEventCallback';
 
-export interface SerializePickerEventProps {
+export interface SerializedPickerEventProps {
   /** Handler that is called when the element receives focus. */
   onFocus?: SerializedFocusEventCallback;
 
@@ -26,7 +26,7 @@ export interface SerializePickerEventProps {
  * @param props Props to wrap
  * @returns Wrapped props
  */
-export function usePickerProps<T>(props: SerializePickerEventProps & T) {
+export function usePickerProps<T>(props: SerializedPickerEventProps & T) {
   const { onFocus, onBlur, onKeyDown, onKeyUp, ...otherProps } = props;
 
   const serializedOnFocus = useFocusEventCallback(onFocus);

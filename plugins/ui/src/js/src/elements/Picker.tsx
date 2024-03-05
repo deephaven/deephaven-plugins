@@ -3,9 +3,9 @@ import {
   Picker as DHPicker,
   PickerProps as DHPickerProps,
 } from '@deephaven/components';
-import { SerializePickerEventProps, usePickerProps } from './usePickerProps';
+import { SerializedPickerEventProps, usePickerProps } from './usePickerProps';
 
-function Picker(props: DHPickerProps & SerializePickerEventProps) {
+function Picker(props: DHPickerProps & SerializedPickerEventProps) {
   const pickerProps = usePickerProps(props);
 
   // eslint-disable-next-line react/jsx-props-no-spreading
