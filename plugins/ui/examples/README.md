@@ -98,7 +98,7 @@ The `ui.picker` component can be used to select from a list of items. Here's a b
 
 ```python
 import deephaven.ui as ui
-from deephaven.ui import use_state, use_callback, use_effect
+from deephaven.ui import use_state
 
 @ui.component
 def picker():
