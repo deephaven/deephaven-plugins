@@ -4,7 +4,7 @@ from deephaven.plugin import Registration, Callback
 from deephaven.plugin.utilities import create_js_plugin, DheSafeCallbackWrapper
 from ._js_plugin import MatplotlibJsPlugin
 
-PACKAGE_NAMESPACE = "deephaven.plot.express"
+PACKAGE_NAMESPACE = "deephaven.plugin.matplotlib"
 JS_NAME = "_js"
 PLUGIN_CLASS = MatplotlibJsPlugin
 
