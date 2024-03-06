@@ -48,7 +48,7 @@ export interface WidgetHandlerProps {
   /** Triggered when all panels opened from this widget have closed */
   onClose?: () => void;
 
-  /** Triggered when the data in the widget changes. Just a partial change, if a key is not passed it should remain unchanged. */
+  /** Triggered when the data in the widget changes. Only the changed data is provided. */
   onDataChange?: (data: WidgetDataUpdate) => void;
 }
 
@@ -207,7 +207,7 @@ function WidgetHandler({
    */
   useEffect(
     function initializeWidget() {
-      if (widget == null) {
+      if (widget == null || jsonClient == null) {
         return;
       }
       // Need to reset the exported object map and count
