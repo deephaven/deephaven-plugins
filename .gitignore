@@ -17,6 +17,7 @@ tsconfig.tsbuildinfo
 .stylelintcache
 
 # Ignore the test reports
+coverage/
 junit.xml
 
 # Allow for local overrides of docker-compose.yml. https://docs.docker.com/compose/multiple-compose-files/merge/

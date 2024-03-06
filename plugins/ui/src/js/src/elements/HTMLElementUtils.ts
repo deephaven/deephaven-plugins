@@ -1,10 +1,6 @@
 import { ReactHTML } from 'react';
+import { HTMLElementType, HTML_ELEMENT_NAME_PREFIX } from './ElementConstants';
 import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
-
-export const HTML_ELEMENT_NAME_PREFIX = 'deephaven.ui.html.';
-
-export type HTMLElementType =
-  `${typeof HTML_ELEMENT_NAME_PREFIX}${keyof ReactHTML}`;
 
 /**
  * Describes an HTML element that can be rendered in the UI.

@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.5.0 - 2024-03-06
+#### Build system
+- Update dh ui packages to ^0.66.1 (#330) - (9433a98) - bmingles
+#### Features
+- Export plotly-express as a dashboard plugin (#329) - (6212bd5) - vbabich
+
+- - -
+
 ## plotly-express-v0.4.1 - 2024-02-28
 #### Bug Fixes
 - Scatter plots rendering at the wrong location (#324) - (dfe5c48) - mofojed

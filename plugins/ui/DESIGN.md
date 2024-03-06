@@ -1070,7 +1070,6 @@ ui.picker(
     selected_key: Key | None = None,
     on_selection_change: Callable[[Key], None] | None = None, 
     on_change: Callable[[Key], None] | None = None,
-    tooltip: bool | TooltipOptions | None = None,
     **props: Any
 ) -> ItemElement
 ```
@@ -1088,7 +1087,6 @@ ui.picker(
 | `selected_key`         | `Key \| None`                                                | The currently selected key in the collection (controlled).                                                                                                                                                                                                                    |
 | `on_selection_change`  | `Callable[[Key], None] \| None`                              | Handler that is called when the selection changes.                                                                                                                                                                                                                            |
 | `on_change`            | `Callable[[Key], None] \| None`                              | Alias of `on_selection_change`. Handler that is called when the selection changes.                                                                                                                                                                                            |
-| `tooltip`              | `bool \| TooltipOptions \| None`                             | Whether to show a tooltip on hover. If `True`, the tooltip will show. If `TooltipOptions`, the tooltip will be created with the specified options.                                                                                                                            |
 | `**props`              | `Any`                                                        | Any other [Picker](https://react-spectrum.adobe.com/react-spectrum/Picker.html) prop, with the exception of `items`, `validate`, `errorMessage` (as a callback) and `onLoadMore`                                                                                              |
 
 ```py
@@ -1705,23 +1703,6 @@ TransformedData = Any
 Stringable = str | int | float | bool
 PickerItem = Stringable | ItemElement
 Key = Stringable
-PlacementOptions = Literal[
-  'auto',
-  'auto-start',
-  'auto-end',
-  'top',
-  'top-start',
-  'top-end',
-  'bottom',
-  'bottom-start',
-  'bottom-end',
-  'right',
-  'right-start',
-  'right-end',
-  'left',
-  'left-start',
-  'left-end'
-]
 
 T = TypeVar("T")
 Combination: TypeAlias = T | set[T] | Sequence[T]
@@ -1767,11 +1748,6 @@ class LinkPoint(TypedDict):
 
     # Column to link to
     column: str
-
-# Typed dictionaty for tooltip options
-# https://popper.js.org/docs/v2/constructors/#options
-class TooltipOptions(TypedDict):
-    placement: Optional[PlacementOptions]
 ```
 
 #### Context

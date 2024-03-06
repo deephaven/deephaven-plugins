@@ -18,7 +18,7 @@
     "e2e": "playwright run",
     "e2e:docker": "./tools/run_docker.sh e2e-tests",
     "e2e:update-snapshots": "./tools/run_docker.sh update-snapshots",
-    "update-dh-packages": "lerna run update-dh-packages --"
+    "update-dh-packages": "lerna run update-dh-packages"
   },
   "devDependencies": {
     "@deephaven/babel-preset": "^0.40.0",
