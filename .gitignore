@@ -17,6 +17,7 @@ tsconfig.tsbuildinfo
 .stylelintcache
 
 # Ignore the test reports
+coverage/
 junit.xml
 
 # Allow for local overrides of docker-compose.yml. https://docs.docker.com/compose/multiple-compose-files/merge/
@@ -24,6 +25,12 @@ docker-compose.override.yml
 
 # Ignore temporary files created during a release
 releases/
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
