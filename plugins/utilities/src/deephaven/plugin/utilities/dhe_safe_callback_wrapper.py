@@ -29,12 +29,14 @@ class DheSafeCallbackWrapper(Callback):
             plugin: The plugin to register
 
         """
-        if isinstance(plugin, JsPlugin):
+        if isinstance(plugin, JsPlugin) or (
+            isinstance(plugin, type) and issubclass(plugin, JsPlugin)
+        ):
             self._register_js(plugin)
         else:
             self._callback.register(plugin)
 
-    def _register_js(self, js_plugin: JsPlugin) -> None:
+    def _register_js(self, js_plugin: JsPlugin | Type[JsPlugin]) -> None:
         """
         Attempt to register a JS plugin.
         If failed and enterprise is detected, a debug message will be logged.
