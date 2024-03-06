@@ -10,4 +10,5 @@ export { default as Flex } from './Flex';
 export { default as Form } from './Form';
 export { default as RangeSlider } from './RangeSlider';
 export { default as Slider } from './Slider';
+export { default as TabPanels } from './TabPanels';
 export { default as TextField } from './TextField';

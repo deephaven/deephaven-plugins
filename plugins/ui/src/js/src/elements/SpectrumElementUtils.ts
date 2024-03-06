@@ -12,7 +12,6 @@ import {
   Switch,
   Tabs,
   TabList,
-  TabPanels,
   Text,
   ToggleButton,
   View,
@@ -25,6 +24,7 @@ import {
   Form,
   RangeSlider,
   Slider,
+  TabPanels,
   TextField,
 } from './spectrum';
 import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';

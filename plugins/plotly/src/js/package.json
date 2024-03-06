@@ -21,7 +21,8 @@
   "homepage": "https://github.com/deephaven/deephaven-js-plugins",
   "scripts": {
     "start": "vite build --watch",
-    "build": "vite build"
+    "build": "vite build",
+    "update-dh-packages": "node ../../../../tools/update-dh-packages.mjs"
   },
   "devDependencies": {
     "@types/react": "^17.0.2",
@@ -39,7 +40,7 @@
     "@deephaven/jsapi-types": "^0.40.0",
     "@deephaven/log": "^0.40.0",
     "@deephaven/utils": "^0.40.0",
-    "plotly.js-dist-min": "^2.20.0",
+    "plotly.js-dist-min": "^2.29.1",
     "prop-types": "^15.8.1",
     "react-plotly.js": "^2.4.0",
     "shortid": "^2.2.16"

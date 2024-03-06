@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useSelector } from 'react-redux';
 import {
   DehydratedQuickFilter,
   IrisGrid,
@@ -10,6 +11,7 @@ import {
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { Table } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
+import { getSettings } from '@deephaven/redux';
 import { UITableProps } from './UITableUtils';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
@@ -26,6 +28,7 @@ function UITable({
   const [model, setModel] = useState<IrisGridModel>();
   const [columns, setColumns] = useState<Table['columns']>();
   const utils = useMemo(() => new IrisGridUtils(dh), [dh]);
+  const settings = useSelector(getSettings);
 
   const hydratedSorts = useMemo(() => {
     if (sorts !== undefined && columns !== undefined) {
@@ -81,6 +84,7 @@ function UITable({
       showSearchBar: canSearch,
       sorts: hydratedSorts,
       quickFilters: hydratedQuickFilters,
+      settings,
     }),
     [
       onRowDoublePress,
@@ -88,6 +92,7 @@ function UITable({
       canSearch,
       hydratedSorts,
       hydratedQuickFilters,
+      settings,
     ]
   );
 

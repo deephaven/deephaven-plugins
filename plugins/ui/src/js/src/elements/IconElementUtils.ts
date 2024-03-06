@@ -1,10 +1,6 @@
 import * as icons from '@deephaven/icons';
+import { IconElementName, ICON_ELEMENT_TYPE_PREFIX } from './ElementConstants';
 import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
-
-export const ICON_ELEMENT_TYPE_PREFIX = 'deephaven.ui.icons.';
-
-export type IconElementName =
-  `${typeof ICON_ELEMENT_TYPE_PREFIX}${keyof typeof icons}`;
 
 /**
  * Describes an icon element that can be rendered in the UI.

@@ -14,8 +14,10 @@ import {
   JSONRPCServer,
   JSONRPCServerAndClient,
 } from 'json-rpc-2.0';
+import { WidgetDescriptor } from '@deephaven/dashboard';
 import type { Widget, WidgetExportedObject } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
+import { EMPTY_FUNCTION } from '@deephaven/utils';
 import {
   CALLABLE_KEY,
   OBJECT_KEY,
@@ -23,7 +25,7 @@ import {
   isElementNode,
   isObjectNode,
 } from '../elements/ElementUtils';
-import { WidgetMessageEvent, WidgetWrapper } from './WidgetTypes';
+import { ReadonlyWidgetData, WidgetMessageEvent } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
 import { getComponentForElement } from './WidgetUtils';
 
@@ -31,13 +33,28 @@ const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
 export interface WidgetHandlerProps {
   /** Widget for this to handle */
-  widget: WidgetWrapper;
+  widget: WidgetDescriptor;
+
+  /** Fetch the widget instance */
+  fetch: () => Promise<Widget>;
+
+  /** Widget data to display */
+  initialData?: ReadonlyWidgetData;
 
   /** Triggered when all panels opened from this widget have closed */
-  onClose?: (widgetId: string) => void;
+  onClose?: () => void;
+
+  /** Triggered when the data in the widget changes */
+  onDataChange?: (data: ReadonlyWidgetData) => void;
 }
 
-function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
+function WidgetHandler({
+  onClose,
+  onDataChange = EMPTY_FUNCTION,
+  fetch,
+  widget: descriptor,
+  initialData,
+}: WidgetHandlerProps) {
   const [widget, setWidget] = useState<Widget>();
   const [document, setDocument] = useState<ReactNode>();
 
@@ -213,10 +230,10 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
 
   useEffect(
     function loadWidget() {
-      log.debug('loadWidget', wrapper.id, wrapper.widget);
+      log.debug('loadWidget', descriptor);
       let isCancelled = false;
       async function loadWidgetInternal() {
-        const newWidget = await wrapper.fetch();
+        const newWidget = await fetch();
         if (isCancelled) {
           newWidget.close();
           newWidget.exportedObjects.forEach(exportedObject => {
@@ -224,7 +241,7 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
           });
           return;
         }
-        log.debug('newWidget', wrapper.id, wrapper.widget, newWidget);
+        log.debug('newWidget', descriptor, newWidget);
         setWidget(newWidget);
       }
       loadWidgetInternal();
@@ -232,22 +249,22 @@ function WidgetHandler({ onClose, widget: wrapper }: WidgetHandlerProps) {
         isCancelled = true;
       };
     },
-    [wrapper]
+    [fetch, descriptor]
   );
-
-  const handleDocumentClose = useCallback(() => {
-    log.debug('Widget document closed', wrapper.id);
-    onClose?.(wrapper.id);
-  }, [onClose, wrapper.id]);
 
   return useMemo(
     () =>
       document != null ? (
-        <DocumentHandler widget={wrapper.widget} onClose={handleDocumentClose}>
+        <DocumentHandler
+          widget={descriptor}
+          initialData={initialData}
+          onDataChange={onDataChange}
+          onClose={onClose}
+        >
           {document}
         </DocumentHandler>
       ) : null,
-    [document, handleDocumentClose, wrapper]
+    [document, descriptor, initialData, onClose, onDataChange]
   );
 }
 

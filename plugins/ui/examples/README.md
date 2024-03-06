@@ -92,6 +92,45 @@ ce = checkbox_example()
 
 ![Checkbox](assets/checkbox.png)
 
+## Picker (string values)
+
+The `ui.picker` component can be used to select from a list of items. Here's a basic example for selecting from a list of string values and displaying the selected key in a text field.
+
+```python
+import deephaven.ui as ui
+from deephaven.ui import use_state
+
+
+@ui.component
+def picker():
+    value, set_value = use_state("")
+
+    # Picker for selecting values
+    pick = ui.picker(
+        "Text 1",
+        "Text 2",
+        "Text 3",
+        label="Text",
+        on_selection_change=set_value,
+        selected_key=value,
+    )
+
+    # Show current selection in a ui.text component
+    text = ui.text("Selection: " + value)
+
+    # Display picker and output in a flex column
+    return ui.flex(
+        pick,
+        text,
+        direction="column",
+        margin=10,
+        gap=10,
+    )
+
+
+p = picker()
+```
+
 ## Form (two variables)
 
 You can have state with multiple different variables in one component. In this example, we have a [text field](https://react-spectrum.adobe.com/react-spectrum/TextField.html) and a [slider](https://react-spectrum.adobe.com/react-spectrum/Slider.html), and we display the values of both of them.
@@ -899,7 +938,7 @@ def monitor_changed_data(source: Table):
         else:
             set_changed(empty_table(0))
 
-    ui.use_table_listener(source, listener)
+    ui.use_table_listener(source, listener, [])
 
     added_check = ui.checkbox(
         "Show Added", isSelected=show_added, on_change=set_show_added
@@ -930,7 +969,7 @@ from deephaven import ui, time_table
 @ui.component
 def resetable_table():
     table, set_table = ui.use_state(lambda: time_table("PT1s"))
-    handle_press = ui.use_liveness_scope(lambda _: set_table(time_table("PT1s")))
+    handle_press = ui.use_liveness_scope(lambda _: set_table(time_table("PT1s")), [])
     return [
         ui.action_button(
             "Reset",

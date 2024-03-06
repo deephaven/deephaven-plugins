@@ -7,7 +7,6 @@ import {
   makeDocumentUpdatedJsonRpcString,
   makeWidget,
   makeWidgetDescriptor,
-  makeWidgetWrapper,
 } from './WidgetTestUtils';
 
 const mockApi = { Widget: { EVENT_MESSAGE: 'message' } };
@@ -24,10 +23,11 @@ jest.mock(
 );
 
 function makeWidgetHandler({
-  widget = makeWidgetWrapper(),
+  fetch = () => Promise.resolve(makeWidget()),
+  widget = makeWidgetDescriptor(),
   onClose = jest.fn(),
 }: Partial<WidgetHandlerProps> = {}) {
-  return <WidgetHandler widget={widget} onClose={onClose} />;
+  return <WidgetHandler fetch={fetch} widget={widget} onClose={onClose} />;
 }
 
 beforeEach(() => {
@@ -55,8 +55,8 @@ it('updates the document when event is received', async () => {
       makeDocumentUpdatedJsonRpcString(initialDocument)
     ),
   });
-  const wrapper = makeWidgetWrapper({ widget, fetch });
-  const { unmount } = render(makeWidgetHandler({ widget: wrapper }));
+
+  const { unmount } = render(makeWidgetHandler({ widget, fetch }));
   expect(fetch).toHaveBeenCalledTimes(1);
   expect(mockAddEventListener).not.toHaveBeenCalled();
   expect(mockDocumentHandler).not.toHaveBeenCalled();

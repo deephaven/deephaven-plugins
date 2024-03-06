@@ -61,6 +61,45 @@ def my_input():
 result = my_input()
 ```
 
+## Picker (string values)
+
+The `ui.picker` component can be used to select from a list of items. Here's a basic example for selecting from a list of string values and displaying the selected key in a text field.
+
+```python
+import deephaven.ui as ui
+from deephaven.ui import use_state
+
+
+@ui.component
+def picker():
+    value, set_value = use_state("")
+
+    # Picker for selecting values
+    pick = ui.picker(
+        "Text 1",
+        "Text 2",
+        "Text 3",
+        label="Text",
+        on_selection_change=set_value,
+        selected_key=value,
+    )
+
+    # Show current selection in a ui.text component
+    text = ui.text("Selection: " + value)
+
+    # Display picker and output in a flex column
+    return ui.flex(
+        pick,
+        text,
+        direction="column",
+        margin=10,
+        gap=10,
+    )
+
+
+p = picker()
+```
+
 ## Using Tables
 
 You can open a Deephaven Table and control it using callbacks, as well. Let\'s create a table with some data, and then create a component that allows us to filter the table, and a button group it or ungroup it.
@@ -187,7 +226,7 @@ def hist_demo(source, column):
             x=column,
             nbins=bin_count,
         ),
-        [bin_count, hist_range, source, column],
+        {bin_count, hist_range, source, column},
     )
 
     return [
@@ -232,7 +271,7 @@ def order_table():
         ),
         [],
     )
-    t = ui.use_memo(lambda: blink_to_append_only(blink_table), [blink_table])
+    t = ui.use_memo(lambda: blink_to_append_only(blink_table), {blink_table})
 
     def submit_order(order_sym, order_size, side):
         publisher.add(
@@ -398,18 +437,18 @@ def multiwave():
                 f"y_tan={amplitude}*Math.tan({frequency}*x+{phase})",
             ]
         ),
-        [amplitude, frequency, phase],
+        {amplitude, frequency, phase},
     )
     p_sin = use_memo(
-        lambda: Figure().plot_xy(series_name="Sine", t=t, x="x", y="y_sin").show(), [t]
+        lambda: Figure().plot_xy(series_name="Sine", t=t, x="x", y="y_sin").show(), {t}
     )
     p_cos = use_memo(
         lambda: Figure().plot_xy(series_name="Cosine", t=t, x="x", y="y_cos").show(),
-        [t],
+        {t},
     )
     p_tan = use_memo(
         lambda: Figure().plot_xy(series_name="Tangent", t=t, x="x", y="y_tan").show(),
-        [t],
+        {t},
     )
 
     return ui.column(

@@ -1,12 +1,5 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
-import shortid from 'shortid';
 import {
   LayoutUtils,
   PanelEvent,
@@ -15,10 +8,11 @@ import {
 } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
 import PortalPanel from './PortalPanel';
-import { useReactPanelManager } from './ReactPanelManager';
+import { ReactPanelControl, useReactPanel } from './ReactPanelManager';
 import { ReactPanelProps } from './LayoutUtils';
 import { useParentItem } from './ParentItemContext';
 import { ReactPanelContext } from './ReactPanelContext';
+import { usePortalPanelManager } from './PortalPanelManagerContext';
 
 const log = Log.module('@deephaven/js-plugin-ui/ReactPanel');
 
@@ -27,13 +21,18 @@ const log = Log.module('@deephaven/js-plugin-ui/ReactPanel');
  */
 function ReactPanel({ children, title }: ReactPanelProps) {
   const layoutManager = useLayoutManager();
-  const panelManager = useReactPanelManager();
-  const { metadata, onClose, onOpen } = panelManager;
-  const panelId = useMemo(() => shortid(), []);
-  const [element, setElement] = useState<HTMLElement>();
-  const isPanelOpenRef = useRef(false);
-  const openedMetadataRef = useRef<Record<string, unknown>>();
+  const { metadata, onClose, onOpen, panelId } = useReactPanel();
+  const portalManager = usePortalPanelManager();
+  const portal = portalManager.get(panelId);
+
+  // If there is already a portal that exists, then we're rehydrating from a dehydrated state
+  // Initialize the `isPanelOpenRef` and `openedWidgetRef` accordingly on initialization
+  const isPanelOpenRef = useRef(portal != null);
+  const openedMetadataRef = useRef<ReactPanelControl['metadata']>(
+    portal != null ? metadata : null
+  );
   const parent = useParentItem();
+  const { eventHub } = layoutManager;
 
   log.debug2('Rendering panel', panelId);
 
@@ -43,7 +42,7 @@ function ReactPanel({ children, title }: ReactPanelProps) {
         log.debug('Closing panel', panelId);
         LayoutUtils.closeComponent(parent, { id: panelId });
         isPanelOpenRef.current = false;
-        onClose(panelId);
+        onClose();
       }
     },
     [parent, onClose, panelId]
@@ -54,52 +53,58 @@ function ReactPanel({ children, title }: ReactPanelProps) {
       if (closedPanelId === panelId) {
         log.debug('Panel closed', panelId);
         isPanelOpenRef.current = false;
-        onClose(panelId);
+        onClose();
       }
     },
     [onClose, panelId]
   );
 
-  useListener(layoutManager.eventHub, PanelEvent.CLOSED, handlePanelClosed);
+  useListener(eventHub, PanelEvent.CLOSED, handlePanelClosed);
 
-  useEffect(() => {
-    if (
-      isPanelOpenRef.current === false ||
-      openedMetadataRef.current !== metadata
-    ) {
-      const panelTitle =
-        title ?? (typeof metadata?.name === 'string' ? metadata.name : '');
-      const config = {
-        type: 'react-component' as const,
-        component: PortalPanel.displayName,
-        props: {
+  useEffect(
+    /** Opens a panel in the layout if necessary. Triggered when the panel metadata changes or the panel has not been opened yet. */
+    function openIfNecessary() {
+      if (isPanelOpenRef.current === false) {
+        const existingStack = LayoutUtils.getStackForConfig(parent, {
           id: panelId,
-          onClose: () => {
-            isPanelOpenRef.current = false;
-            setElement(undefined);
-          },
-          onOpen: setElement,
-          metadata,
-        },
-        title: panelTitle,
-        id: panelId,
-      };
+        });
+        if (existingStack != null) {
+          log.debug2('Panel already exists, just re-using');
+          isPanelOpenRef.current = true;
+          return;
+        }
+      }
 
-      LayoutUtils.openComponent({ root: parent, config });
-      log.debug('Opened panel', panelId, config);
-      isPanelOpenRef.current = true;
-      openedMetadataRef.current = metadata;
+      if (
+        isPanelOpenRef.current === false ||
+        openedMetadataRef.current !== metadata
+      ) {
+        const panelTitle = title ?? metadata?.name ?? '';
+        const config = {
+          type: 'react-component' as const,
+          component: PortalPanel.displayName,
+          props: {},
+          title: panelTitle,
+          id: panelId,
+        };
 
-      onOpen(panelId);
-    }
-  }, [parent, metadata, onOpen, panelId, title]);
+        LayoutUtils.openComponent({ root: parent, config });
+        log.debug('Opened panel', panelId, config);
+        isPanelOpenRef.current = true;
+        openedMetadataRef.current = metadata;
 
-  return element
+        onOpen();
+      }
+    },
+    [parent, metadata, onOpen, panelId, title]
+  );
+
+  return portal
     ? ReactDOM.createPortal(
         <ReactPanelContext.Provider value={panelId}>
           {children}
         </ReactPanelContext.Provider>,
-        element
+        portal
       )
     : null;
 }

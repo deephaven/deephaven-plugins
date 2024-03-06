@@ -1,4 +1,4 @@
-from typing import Any, Dict, Literal, Union, List, Tuple, Optional, Callable
+from typing import Any, Dict, Literal, Union, List, Tuple, Optional, Callable, TypedDict
 from deephaven import SortDirection
 
 RowIndex = Optional[int]
@@ -47,3 +47,6 @@ Sentinel = Any
 TransformedData = Any
 StringSortDirection = Literal["ASC", "DESC"]
 TableSortDirection = Union[StringSortDirection, SortDirection]
+# Stringable is a type that is naturally convertible to a string
+Stringable = Union[str, int, float, bool]
+Key = Stringable
