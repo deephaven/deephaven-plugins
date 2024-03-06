@@ -28,10 +28,18 @@ jobs:
           node-version: '18.x'
           registry-url: 'https://registry.npmjs.org'
 
+      - name: Check file existence
+        id: check_files
+        uses: andstor/file-existence-action@v3
+        with:
+          files: "plugins/${{ inputs.package }}/src/js/package.json"
+  
       - name: Install npm dependencies
+        if: steps.check_files.outputs.files_exists == 'true'
         run: npm ci
 
       - name: Build npm packages
+        if: steps.check_files.outputs.files_exists == 'true'
         run: npm run build -- --scope "@deephaven/js-plugin-${{ inputs.package }}"
 
       - name: Set up Python

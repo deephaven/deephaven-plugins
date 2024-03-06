@@ -139,6 +139,12 @@ case "$package" in
             update_file ui/src/js/package.json '"version": "' '",'
             update_file ui/src/deephaven/ui/__init__.py '__version__ = "' '"' "$extra"
             ;;
+        utilities)
+            update_file utilities/setup.cfg 'version = ' '' "$extra"
+            ;;
+        packaging)
+            update_file packaging/setup.cfg 'version = ' '' "$extra"
+            ;;
         *)
         {
             log_error "Unhandled plugin $package.  You will need to add wiring in $SCRIPT_NAME"
