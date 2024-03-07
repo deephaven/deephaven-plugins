@@ -14,6 +14,8 @@ from ..types import (
     Color,
     ContextMenuAction,
     CellIndex,
+    CellPressCallback,
+    ColumnPressCallback,
     RowData,
     ContextMenuMode,
     DataBarAxis,
@@ -278,9 +280,13 @@ class UITable(Element):
 
     def context_menu(
         self,
-        items: ContextMenuAction
-        | list[ContextMenuAction]
-        | Callable[[CellIndex, RowData], ContextMenuAction | list[ContextMenuAction]],
+        items: (
+            ContextMenuAction
+            | list[ContextMenuAction]
+            | Callable[
+                [CellIndex, RowData], ContextMenuAction | list[ContextMenuAction]
+            ]
+        ),
         mode: ContextMenuMode = "CELL",
     ) -> "UITable":
         """
@@ -407,7 +413,7 @@ class UITable(Element):
         Returns:
             A new UITable
         """
-        raise NotImplementedError()
+        return self._with_prop("on_row_press", callback)
 
     def on_row_double_press(self, callback: RowPressCallback) -> "UITable":
         """
@@ -422,6 +428,60 @@ class UITable(Element):
             A new UITable
         """
         return self._with_prop("on_row_double_press", callback)
+
+    def on_cell_press(self, callback: CellPressCallback) -> "UITable":
+        """
+        Add a callback for when a cell is clicked.
+
+        Args:
+            callback: The callback function to run when a cell is clicked.
+              The first parameter is the cell index, and the second is the row data provided in a dictionary where the
+              column names are the keys.
+
+        Returns:
+            A new UITable
+        """
+        return self._with_prop("on_cell_press", callback)
+
+    def on_cell_double_press(self, callback: CellPressCallback) -> "UITable":
+        """
+        Add a callback for when a cell is double clicked.
+
+        Args:
+            callback: The callback function to run when a cell is double clicked.
+              The first parameter is the cell index, and the second is the row data provided in a dictionary where the
+              column names are the keys.
+
+        Returns:
+            A new UITable
+        """
+        return self._with_prop("on_cell_double_press", callback)
+
+    def on_column_press(self, callback: ColumnPressCallback) -> "UITable":
+        """
+        Add a callback for when a column is clicked.
+
+        Args:
+            callback: The callback function to run when a column is clicked.
+              The first parameter is the column name.
+
+        Returns:
+            A new UITable
+        """
+        return self._with_prop("on_column_press", callback)
+
+    def on_column_double_press(self, callback: ColumnPressCallback) -> "UITable":
+        """
+        Add a callback for when a column is double clicked.
+
+        Args:
+            callback: The callback function to run when a column is double clicked.
+              The first parameter is the column name.
+
+        Returns:
+            A new UITable
+        """
+        return self._with_prop("on_column_double_press", callback)
 
     def quick_filter(
         self, filter: dict[ColumnName, QuickFilterExpression]
