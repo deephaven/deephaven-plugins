@@ -137,7 +137,7 @@ case "$package" in
             ;;
         ui)
             update_file ui/src/js/package.json '"version": "' '",'
-            update_file ui/src/deephaven/ui/__init__.py '__version__ = "' '"' "$extra"
+            update_file ui/src/setup.cfg 'version = ' '' "$extra"
             ;;
         utilities)
             update_file utilities/setup.cfg 'version = ' '' "$extra"

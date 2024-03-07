@@ -8,4 +8,9 @@ dest_dir = os.path.join("src/deephaven/plugin/matplotlib/_js")
 
 package_js(js_dir, dest_dir)
 
-setup(package_data={"deephaven.plugin.matplotlib._js": ["**"]})
+setup(
+    package_data={
+        "deephaven.plugin.matplotlib._js": ["**"],
+        "deephaven.plugin.matplotlib": ["deephaven.mplstyle"],
+    }
+)
