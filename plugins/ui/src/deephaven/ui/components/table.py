@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from deephaven.table import Table
 from ..elements import UITable
 from ..types import (
