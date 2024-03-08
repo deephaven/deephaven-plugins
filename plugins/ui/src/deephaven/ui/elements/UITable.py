@@ -151,7 +151,7 @@ class UITable(Element):
             A new UITable with the passed in prop added to the existing props
         """
         logger.debug("_with_prop(%s, %s)", key, value)
-        return UITable(**self._props, key=value)
+        return UITable(**{**self._props, key: value})
 
     def _with_appendable_prop(self, key: str, value: Any) -> "UITable":
         """
@@ -173,7 +173,7 @@ class UITable(Element):
 
         value = value if isinstance(value, list) else [value]
 
-        return UITable(**self._props, key=existing + value)
+        return UITable(**{**self._props, key: existing + value})
 
     def _with_dict_prop(self, key: str, value: dict[str, Any]) -> "UITable":
         """
@@ -191,7 +191,7 @@ class UITable(Element):
         """
         logger.debug("_with_dict_prop(%s, %s)", key, value)
         existing = self._props.get(key, {})
-        return UITable(**self._props, key={**existing, **value})
+        return UITable(**{**self._props, key: {**existing, **value}})  # type: ignore
 
     def render(self, context: RenderContext) -> dict[str, Any]:
         logger.debug("Returning props %s", self._props)
