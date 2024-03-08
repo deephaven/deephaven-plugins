@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import collections
 import logging
 import sys
-from warnings import warn
 from typing import Callable, Literal, Sequence, Any, cast
+from warnings import warn
 
 if sys.version_info < (3, 11):
     from typing_extensions import TypedDict, NotRequired
@@ -458,10 +457,10 @@ class UITable(Element):
         """
         raise NotImplementedError()
 
-    @DeprecationWarning
     def on_row_double_press(self, callback: RowPressCallback) -> "UITable":
         """
         Add a callback for when a row is double clicked.
+        *Deprecated: Use the on_row_double_press keyword arg instead.
 
         Args:
             callback: The callback function to run when a row is double clicked.
@@ -471,7 +470,11 @@ class UITable(Element):
         Returns:
             A new UITable
         """
-        warn("Use on_row_double_press arg on ui.table instead", DeprecationWarning)
+        warn(
+            "on_row_double_press function is deprecated. Use the on_row_double_press keyword arg instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return self._with_prop("on_row_double_press", callback)
 
     def quick_filter(

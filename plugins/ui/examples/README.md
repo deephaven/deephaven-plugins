@@ -777,20 +777,16 @@ The `ui.table` component has a few events that you can listen to. You can listen
 import deephaven.ui as ui
 import deephaven.plot.express as dx
 
-te = (
-    ui.table(dx.data.stocks())
-    .on_row_press(lambda row, data: print(f"Row Press: {row}, {data}"))
-    .on_row_double_press(lambda row, data: print(f"Row Double Press: {row}, {data}"))
-    .on_cell_press(
-        lambda cell_index, data: print(f"Cell Press: {cell_index}, {data}")
-    )
-    .on_cell_double_press(
-        lambda cell_index, data: print(f"Cell Double Press: {cell_index}, {data}")
-    )
-    .on_column_press(lambda column: print(f"Column Press: {column}"))
-    .on_column_double_press(
-        lambda column: print(f"Column Double Press: {column}")
-    )
+te = ui.table(
+    dx.data.stocks(),
+    on_row_press=lambda row, data: print(f"Row Press: {row}, {data}"),
+    on_row_double_press=lambda row, data: print(f"Row Double Press: {row}, {data}"),
+    on_cell_press=lambda cell_index, data: print(f"Cell Press: {cell_index}, {data}"),
+    on_cell_double_press=lambda cell_index, data: print(
+        f"Cell Double Press: {cell_index}, {data}"
+    ),
+    on_column_press=lambda column: print(f"Column Press: {column}"),
+    on_column_double_press=lambda column: print(f"Column Double Press: {column}"),
 )
 ```
 
