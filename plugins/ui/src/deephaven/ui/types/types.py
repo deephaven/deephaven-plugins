@@ -54,7 +54,7 @@ CellIndex = Tuple[ColumnIndex, RowIndex]
 Index of a cell in a table.
 """
 
-GridIndex = Tuple[ColumnIndex | None, RowIndex | None]
+GridIndex = Tuple[Union[ColumnIndex, None], Union[RowIndex, None]]
 """
 Index of a spot on the grid. A value of None indicates a header row or column.
 """
