@@ -769,6 +769,29 @@ def stock_table_input(source, default_sym="", default_exchange=""):
 sti = stock_table_input(stocks, "CAT", "TPET")
 ```
 
+### ui.table Events
+
+The `ui.table` component has a few events that you can listen to. You can listen to different kinds of press events that include the data about the region pressed.
+
+```py
+import deephaven.ui as ui
+import deephaven.plot.express as dx
+
+te = ui.table(
+    dx.data.stocks(),
+    on_row_press=lambda row, data: print(f"Row Press: {row}, {data}"),
+    on_row_double_press=lambda row, data: print(f"Row Double Press: {row}, {data}"),
+    on_cell_press=lambda cell_index, data: print(f"Cell Press: {cell_index}, {data}"),
+    on_cell_double_press=lambda cell_index, data: print(
+        f"Cell Double Press: {cell_index}, {data}"
+    ),
+    on_column_press=lambda column: print(f"Column Press: {column}"),
+    on_column_double_press=lambda column: print(f"Column Double Press: {column}"),
+)
+```
+
+![Table events](table_events.png)
+
 ## Re-using components
 
 In a previous example, we created a text_filter_table component. We can re-use that component, and display two tables with an input filter side-by-side:
