@@ -2,7 +2,15 @@ from __future__ import annotations
 
 import collections
 import logging
+import sys
+from warnings import warn
 from typing import Callable, Literal, Sequence, Any, cast
+
+if sys.version_info < (3, 11):
+    from typing_extensions import TypedDict, NotRequired
+else:
+    from typing import TypedDict, NotRequired
+
 from deephaven.table import Table
 from deephaven import SortDirection
 from .Element import Element
@@ -50,33 +58,83 @@ def remap_sort_direction(direction: TableSortDirection | str) -> Literal["ASC", 
     raise ValueError(f"Invalid table sort direction: {direction}")
 
 
+class UITableProps(TypedDict):
+    can_search: NotRequired[bool]
+    """
+    Whether the search bar is accessible or not. Use the system default if no value set.
+    """
+
+    on_row_press: NotRequired[RowPressCallback]
+    """
+    Callback function to run when a row is clicked.
+    The first parameter is the row index, and the second is the row data provided in a dictionary where the
+    column names are the keys.
+    """
+
+    on_row_double_press: NotRequired[RowPressCallback]
+    """
+    The callback function to run when a row is double clicked.
+    The first parameter is the row index, and the second is the row data provided in a dictionary where the
+    column names are the keys.
+    """
+
+    on_cell_press: NotRequired[CellPressCallback]
+    """
+    The callback function to run when a cell is clicked.
+    The first parameter is the cell index, and the second is the row data provided in a dictionary where the
+    column names are the keys.
+    """
+
+    on_cell_double_press: NotRequired[CellPressCallback]
+    """
+    The callback function to run when a cell is double clicked.
+    The first parameter is the cell index, and the second is the row data provided in a dictionary where the
+    column names are the keys.
+    """
+
+    on_column_press: NotRequired[ColumnPressCallback]
+    """
+    The callback function to run when a column is clicked.
+    The first parameter is the column name.
+    """
+
+    on_column_double_press: NotRequired[ColumnPressCallback]
+    """
+    The callback function to run when a column is double clicked.
+    The first parameter is the column name.
+    """
+
+    table: Table
+    """
+    The table to wrap
+    """
+
+
 class UITable(Element):
     """
     Wrap a Table with some extra props for giving hints to displaying a table
     """
 
-    _table: Table
+    _props: UITableProps
     """
-    The table that is wrapped with some extra props
-    """
-
-    _props: dict[str, Any]
-    """
-    The extra props that are added by each method
+    The props that are passed to the frontend
     """
 
-    def __init__(self, table: Table, props: dict[str, Any] = {}):
+    def __init__(
+        self,
+        table: Table,
+        **props: Any,
+    ):
         """
         Create a UITable from the passed in table. UITable provides an [immutable fluent interface](https://en.wikipedia.org/wiki/Fluent_interface#Immutability) for adding UI hints to a table.
 
         Args:
             table: The table to wrap
+            props: UITableProps props to pass to the frontend.
         """
-        self._table = table
 
-        # Store the extra props that are added by each method
-        # This is a shallow copy of the props so that we don't mutate the passed in props dict
-        self._props = {**props}
+        # Store all the props that were passed in
+        self._props = UITableProps(**props, table=table)
 
     @property
     def name(self):
@@ -94,7 +152,7 @@ class UITable(Element):
             A new UITable with the passed in prop added to the existing props
         """
         logger.debug("_with_prop(%s, %s)", key, value)
-        return UITable(self._table, {**self._props, key: value})
+        return UITable(**self._props, key=value)
 
     def _with_appendable_prop(self, key: str, value: Any) -> "UITable":
         """
@@ -116,9 +174,9 @@ class UITable(Element):
 
         value = value if isinstance(value, list) else [value]
 
-        return UITable(self._table, {**self._props, key: existing + value})
+        return UITable(**self._props, key=existing + value)
 
-    def _with_dict_prop(self, prop_name: str, value: dict) -> "UITable":
+    def _with_dict_prop(self, key: str, value: dict[str, Any]) -> "UITable":
         """
         Create a new UITable with the passed in prop in a dictionary.
         This will override any existing prop with the same key within
@@ -132,14 +190,13 @@ class UITable(Element):
         Returns:
             A new UITable with the passed in prop added to the existing props
         """
-        logger.debug("_with_dict_prop(%s, %s)", prop_name, value)
-        existing = self._props.get(prop_name, {})
-        new = {**existing, **value}
-        return UITable(self._table, {**self._props, prop_name: new})
+        logger.debug("_with_dict_prop(%s, %s)", key, value)
+        existing = self._props.get(key, {})
+        return UITable(**self._props, key={**existing, **value})
 
     def render(self, context: RenderContext) -> dict[str, Any]:
         logger.debug("Returning props %s", self._props)
-        return dict_to_camel_case({**self._props, "table": self._table})
+        return dict_to_camel_case({**self._props})
 
     def aggregations(
         self,
@@ -401,20 +458,7 @@ class UITable(Element):
         """
         raise NotImplementedError()
 
-    def on_row_press(self, callback: RowPressCallback) -> "UITable":
-        """
-        Add a callback for when a press on a row is released (e.g. a row is clicked).
-
-        Args:
-            callback: The callback function to run when a row is clicked.
-                The first parameter is the row index, and the second is the row data provided in a dictionary where the
-                column names are the keys.
-
-        Returns:
-            A new UITable
-        """
-        return self._with_prop("on_row_press", callback)
-
+    @DeprecationWarning
     def on_row_double_press(self, callback: RowPressCallback) -> "UITable":
         """
         Add a callback for when a row is double clicked.
@@ -427,61 +471,8 @@ class UITable(Element):
         Returns:
             A new UITable
         """
+        warn("Use on_row_double_press arg on ui.table instead", DeprecationWarning)
         return self._with_prop("on_row_double_press", callback)
-
-    def on_cell_press(self, callback: CellPressCallback) -> "UITable":
-        """
-        Add a callback for when a cell is clicked.
-
-        Args:
-            callback: The callback function to run when a cell is clicked.
-              The first parameter is the cell index, and the second is the row data provided in a dictionary where the
-              column names are the keys.
-
-        Returns:
-            A new UITable
-        """
-        return self._with_prop("on_cell_press", callback)
-
-    def on_cell_double_press(self, callback: CellPressCallback) -> "UITable":
-        """
-        Add a callback for when a cell is double clicked.
-
-        Args:
-            callback: The callback function to run when a cell is double clicked.
-              The first parameter is the cell index, and the second is the row data provided in a dictionary where the
-              column names are the keys.
-
-        Returns:
-            A new UITable
-        """
-        return self._with_prop("on_cell_double_press", callback)
-
-    def on_column_press(self, callback: ColumnPressCallback) -> "UITable":
-        """
-        Add a callback for when a column is clicked.
-
-        Args:
-            callback: The callback function to run when a column is clicked.
-              The first parameter is the column name.
-
-        Returns:
-            A new UITable
-        """
-        return self._with_prop("on_column_press", callback)
-
-    def on_column_double_press(self, callback: ColumnPressCallback) -> "UITable":
-        """
-        Add a callback for when a column is double clicked.
-
-        Args:
-            callback: The callback function to run when a column is double clicked.
-              The first parameter is the column name.
-
-        Returns:
-            A new UITable
-        """
-        return self._with_prop("on_column_double_press", callback)
 
     def quick_filter(
         self, filter: dict[ColumnName, QuickFilterExpression]
@@ -541,7 +532,7 @@ class UITable(Element):
                 remap_sort_direction(direction) for direction in direction_list_unmapped
             ]
 
-        by_list = by if isinstance(by, Sequence) else [by]
+        by_list = [by] if isinstance(by, str) else by
 
         if direction and len(direction_list) != len(by_list):
             raise ValueError("by and direction must be the same length")

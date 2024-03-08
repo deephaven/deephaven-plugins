@@ -78,7 +78,7 @@ class UITableMouseHandler extends GridMouseHandler {
     onRowPress: UITableProps['onRowPress'],
     onRowDoublePress: UITableProps['onRowDoublePress']
   ) {
-    super(850);
+    super(890);
     this.model = model;
     this.onCellPress = onCellPress;
     this.onCellDoublePress = onCellDoublePress;
