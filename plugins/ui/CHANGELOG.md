@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.9.0 - 2024-03-09
+#### Bug Fixes
+- Tab Panels contents should take up the full height (#340) - (6028195) - mofojed
+- Remove tooltip prop (#334) - (cbe2140) - Joe
+- add missing dependencies params for liveness scope and table listener hooks (#291) - (9d6b7de) - niloc132
+- added missing picker imports (#332) - (272cdf9) - Joe
+#### Build system
+- Update dh ui packages to ^0.66.1 (#330) - (9433a98) - bmingles
+#### Features
+- Add ui.table press event listener support (#346) - (b805683) - mofojed
+- UI Picker JS (#333) - (e3af9f5) - bmingles
+
+- - -
+
 ## ui-v0.8.0 - 2024-02-28
 #### Bug Fixes
 - Use correct formatting settings for ui.table (#326) - (4762053) - mofojed
