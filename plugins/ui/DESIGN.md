@@ -1225,6 +1225,7 @@ ui.list_view(
 | `**props`              | `Any`                                                                    | Any other [Picker](https://react-spectrum.adobe.com/react-spectrum/Picker.html) prop, with the exception of `items`, `dragAndDropHooks`, and `onLoadMore`.                                                                                                                                                                    |
 
  
+ 
 ```py
 import deephaven.ui as ui
 
@@ -1825,8 +1826,6 @@ PickerItem = Stringable | ItemElement
 Key = Stringable
 Selection = Sequence[Key]
 ListViewItem = Stringable | ItemElement
-DropOperation = Literal["MOVE", "COPY"]
-DragType = str
 
 T = TypeVar("T")
 Combination: TypeAlias = T | set[T] | Sequence[T]
