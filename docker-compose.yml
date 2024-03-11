@@ -19,7 +19,7 @@ services:
     build:
       dockerfile: ./tests/Dockerfile
     ports:
-      - '9323:9323'
+      - '9324:9324'
     ipc: host
     volumes:
       - ./tests:/work/tests

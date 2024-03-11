@@ -23,7 +23,7 @@ const config: PlaywrightTestConfig = {
   workers: undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   /* Use host 0.0.0.0 so it can be forwarded from within docker */
-  reporter: [['html', { host: '0.0.0.0', port: 9323 }]],
+  reporter: [['html', { host: '0.0.0.0', port: 9324 }]],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
