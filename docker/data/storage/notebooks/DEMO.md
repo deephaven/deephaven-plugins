@@ -97,7 +97,7 @@ def picker():
     )
 
 
-p = picker()
+result = picker()
 ```
 
 ## Using Tables
@@ -226,7 +226,7 @@ def hist_demo(source, column):
             x=column,
             nbins=bin_count,
         ),
-        {bin_count, hist_range, source, column},
+        [bin_count, hist_range, source, column],
     )
 
     return [
@@ -322,7 +322,7 @@ def table_tabs(source):
     return ui.tabs(
         ui.tab_list(
             ui.item("Unfiltered", key="Unfiltered"),
-            ui.item(ui.icon("vsGithubAlt"), "CAT", key="CAT"),
+            ui.item(ui.icon("vsGithubAlt"), ui.text("CAT"), key="CAT"),
             ui.item("DOG", key="DOG"),
         ),
         ui.tab_panels(
