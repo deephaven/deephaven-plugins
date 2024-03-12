@@ -1187,9 +1187,8 @@ picker7 = ui.picker(
 
 ###### ui.list_view
 A list view that can be used to create a list of items. Children should be one of two types:  
-If children are of type `ListViewItem`, they are the list items.  
-If children are of type `Table`, the values in the table are the list items. There can only be one child, the `Table`.   
-If children are of type `PartitionedTable`, the partitions create navigable sections. The values in the table are the list items. There can only be one child, the `PartitionedTable`.  
+1. If children are of type `ListViewItem`, they are the list items.  
+2. If children are of type `Table`, the values in the table are the list items. There can only be one child, the `Table`.   
 
 ```py
 import deephaven.ui as ui
@@ -1200,11 +1199,6 @@ ui.list_view(
     description_column: ColumnName | None = None,
     icon_column: ColumnName | None = None,
     action_buttons: ActionButtonElement | ActionGroupElement | ActionMenuElement | None = None,
-    section_key_column: ColumnName | None = None,
-    section_label_column: ColumnName | None = None,
-    section_description_column: ColumnName | None = None,
-    section_icon_column: ColumnName | None = None,
-    section_action_buttons: ActionButtonElement | ActionGroupElement | ActionMenuElement | None = None,
     default_selected_keys: Selection | None = None,
     selected_keys: Selection | None = None,
     render_empty_state: Element | None = None,
@@ -1215,25 +1209,20 @@ ui.list_view(
 ```
 
 ###### Parameters
-| Parameter                    | Type                                                                     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-|------------------------------|--------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`                  | `ListViewItem \| Table \| PartitionedTable`                              | The options to render within the picker.                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `key_column`                 | `ColumnName \| None`                                                     | Only valid if children are of type `Table`. The column of values to use as item keys. Defaults to the first column.                                                                                                                                                                                                                                                                                                                                           |
-| `label_column`               | `ColumnName \| None`                                                     | Only valid if children are of type `Table`. The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                                                                                                                                                                                                                              |
-| `description_column`         | `ColumnName \| None`                                                     | Only valid if children are of type `Table`. The column of values to display as descriptions.                                                                                                                                                                                                                                                                                                                                                                  |
-| `icon_column`                | `ColumnName \| None`                                                     | Only valid if children are of type `Table`. The column of values to map to icons.                                                                                                                                                                                                                                                                                                                                                                             |
-| `action_buttons`             | `ActionButtonElement \| ActionGroupElement \| ActionMenuElement \| None` | Only valid if any `ListViewItem` children do not already have embedded buttons. The action buttons to render for all elements within the list view. The `on_*` event handlers within the passed object will be modified so that the second argument is the key for the `list_view` item that the buttons are embedded in. If children is of type `PartitionedTable`, a third argument is added, which is the section key as outlined in `section_key_column`. |
-| `section_key_column`         | `ColumnName \| None`                                                     | Only valid if children is of type `PartitionedTable`. The column of values to use as section keys. Should be the same for all values in the constituent `Table`. If not specified, the section titles will be created from the `key_columns` of the `PartitionedTable`.                                                                                                                                                                                       |
-| `section_label_column`       | `ColumnName \| None`                                                     | Only valid if children is of type `PartitionedTable`. The column of values to display as section names. Should be the same for all values in the constituent `Table`. If not specified, the label will be set to the `section_key_column` value.                                                                                                                                                                                                              |
-| `section_description_column` | `ColumnName \| None`                                                     | Only valid if children is of type `PartitionedTable`. The column of values to display as section descriptions. Should be the same for all values in the constituent `Table`.                                                                                                                                                                                                                                                                                  |
-| `section_icon_column`        | `ColumnName \| None`                                                     | Only valid if children is of type `PartitionedTable`. The column of values to map to section icons. Should be the same for all values in the constituent `Table`.                                                                                                                                                                                                                                                                                             |
-| `section_action_buttons`     | `ActionButtonElement \| ActionGroupElement \| ActionMenuElement \| None` | Only valid if children is of type `PartitionedTable`. The action buttons to render for all section elements. The `on_*` event handlers within the passed object will be modified so that the second argument is the key for the `list_view` section item that the buttons are embedded in.                                                                                                                                                                    |
-| `default_selected_keys`      | `Selection \| None`                                                      | The initial selected keys in the collection (uncontrolled).                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `selected_keys`              | `Selection \| None`                                                      | The currently selected keys in the collection (controlled).                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `render_empty_state`         | `Element \| None`                                                        | Sets what the `list_view` should render when there is no content to display.                                                                                                                                                                                                                                                                                                                                                                                  |
-| `on_selection_change`        | `Callable[[Selection], None] \| None`                                    | Handler that is called when the selections changes.                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `on_change`                  | `Callable[[Selection], None] \| None`                                    | Alias of `on_selection_change`. Handler that is called when the selections changes.                                                                                                                                                                                                                                                                                                                                                                           |
-| `**props`                    | `Any`                                                                    | Any other [ListView](https://react-spectrum.adobe.com/react-spectrum/ListView.html) prop, with the exception of `items`, `dragAndDropHooks`, and `onLoadMore`.                                                                                                                                                                                                                                                                                                  |
+| Parameter                    | Type                                                                     | Description                                                                                                                                                                                                                                                                                                                |
+|------------------------------|--------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `*children`                  | `ListViewItem \| Table \| PartitionedTable`                              | The options to render within the picker.                                                                                                                                                                                                                                                                                   |
+| `key_column`                 | `ColumnName \| None`                                                     | Only valid if children are of type `Table`. The column of values to use as item keys. Defaults to the first column.                                                                                                                                                                                                        |
+| `label_column`               | `ColumnName \| None`                                                     | Only valid if children are of type `Table`. The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                                                                                           |
+| `description_column`         | `ColumnName \| None`                                                     | Only valid if children are of type `Table`. The column of values to display as descriptions.                                                                                                                                                                                                                               |
+| `icon_column`                | `ColumnName \| None`                                                     | Only valid if children are of type `Table`. The column of values to map to icons.                                                                                                                                                                                                                                          |
+| `action_buttons`             | `ActionButtonElement \| ActionGroupElement \| ActionMenuElement \| None` | Only valid if any `ListViewItem` children do not already have embedded buttons. The action buttons to render for all elements within the list view. The `on_*` event handlers within the passed object will be modified so that the second argument is the key for the `list_view` item that the buttons are embedded in.  |
+| `default_selected_keys`      | `Selection \| None`                                                      | The initial selected keys in the collection (uncontrolled).                                                                                                                                                                                                                                                                |
+| `selected_keys`              | `Selection \| None`                                                      | The currently selected keys in the collection (controlled).                                                                                                                                                                                                                                                                |
+| `render_empty_state`         | `Element \| None`                                                        | Sets what the `list_view` should render when there is no content to display.                                                                                                                                                                                                                                               |
+| `on_selection_change`        | `Callable[[Selection], None] \| None`                                    | Handler that is called when the selections changes.                                                                                                                                                                                                                                                                        |
+| `on_change`                  | `Callable[[Selection], None] \| None`                                    | Alias of `on_selection_change`. Handler that is called when the selections changes.                                                                                                                                                                                                                                        |
+| `**props`                    | `Any`                                                                    | Any other [ListView](https://react-spectrum.adobe.com/react-spectrum/ListView.html) prop, with the exception of `items`, `dragAndDropHooks`, and `onLoadMore`.                                                                                                                                                             |
 
 
 ```py
@@ -1290,7 +1279,6 @@ color_table = new_table([
     string_col("SectionDescriptions", ["Favorite colors", "Favorite colors", "Other colors"]),
     string_col("SectionIcons", ["Folder", "Folder", "Not Found"])
 ])
-partitioned_color_table = color_table.partition_by("Sections")
 
 colors, set_colors = ui.use_state(["salmon", "lemonchiffon"])
 
@@ -1305,19 +1293,6 @@ list_view5 = ui.list_view(
     on_selection_change=set_colors
 )
 
-# this will create a list_view with two navigable sections, one for each partition
-list_view6 = ui.list_view(
-    color_table,
-    key_column="Keys",
-    label_column="Labels",
-    description_column="Descriptions",
-    icon_column="Icons",
-    title_column="SectionLabels",
-    section_key_column="SectionKeys",
-    section_label_column="SectionNames",
-    section_description_column="SectionDescriptions",
-    section_icon_column="SectionIcons",
-)
 
 # Buttons can be embedded in the list view. Note key is added to the on_press handler, but is not required.
 on_button_action = lambda e, key: print(f"Event {e} was emitted for list item {key}")
@@ -1330,21 +1305,6 @@ list_view7 = ui.list_view(
     "Option 4",
     action_buttons=button,
 )
-
-# Buttons can be embedded in the list view. Note key and section are added to the on_press handler, but they are not required.
-on_button_action = lambda e, key, section: print(f"Event {e} was emitted for list item {key} in section {section}")
-key_button = ui.action_button("Print Item", on_press=on_button_action)
-
-# Buttons can be embeedded in the section items. Note section is added to the on_press handler, but is not required.
-on_section_button_action = lambda e, section: print(f"Event {e} was emitted for section item {section}")
-section_button = ui.action_button("Print Section", on_press=on_section_button_action)
-
-list_view8 = ui.list_view(
-    partitioned_color_table,
-    action_buttons=key_button,
-    section_action_buttons=section_button
-)
-
 ```
 
 #### ui.table
