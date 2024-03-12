@@ -105,3 +105,4 @@ TableSortDirection = Union[StringSortDirection, SortDirection]
 # Stringable is a type that is naturally convertible to a string
 Stringable = Union[str, int, float, bool]
 Key = Stringable
+Dependencies = Union[Tuple[Any], List[Any]]
