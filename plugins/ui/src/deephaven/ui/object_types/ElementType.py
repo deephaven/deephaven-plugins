@@ -21,7 +21,7 @@ class ElementType(BidirectionalObjectType):
         self, obj: object, connection: MessageStream
     ) -> MessageStream:
         if not isinstance(obj, Element):
-            raise ValueError(f"Expected Element, got {type(obj)}")
+            raise TypeError(f"Expected Element, got {type(obj)}")
         client_connection = ElementMessageStream(obj, connection)
         client_connection.start()
         return client_connection
