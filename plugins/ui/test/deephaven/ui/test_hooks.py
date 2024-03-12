@@ -140,6 +140,12 @@ class HooksTest(BaseTestCase):
         self.assertEqual(result, "biz")
         self.assertEqual(mock.call_count, 1)
 
+        def _test_memo_set(fn=lambda: "foo"):
+            return use_memo(fn, {})
+
+        # passing in a non-list/tuple for dependencies should raise a TypeError
+        self.assertRaises(TypeError, render_hook, _test_memo_set)
+
     def verify_table_updated(self, table_writer, table, update):
         from deephaven.ui.hooks import use_table_listener
         from deephaven.table_listener import TableUpdate

@@ -20,6 +20,11 @@ def use_memo(func: Callable[[], T], dependencies: Dependencies) -> T:
     Returns:
         The memoized result of the function call.
     """
+    if not isinstance(dependencies, (list, tuple)):
+        raise TypeError(
+            f"dependencies must be a list or tuple, got {type(dependencies)}"
+        )
+
     deps_ref: Ref[set[Any] | Sequence[Any] | None] = use_ref(None)
     value_ref: Ref[ValueWithLiveness[T | None]] = use_ref(
         ValueWithLiveness(value=cast(Union[T, None], None), liveness_scope=None)
