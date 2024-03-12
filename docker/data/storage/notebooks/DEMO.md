@@ -197,7 +197,7 @@ def stock_table_input(source, default_sym="", default_exchange=""):
     return [
         ui.panel(
             # Add a callback for when user double clicks a row in the table
-            ui.table(t1).on_row_double_press(handle_row_double_press),
+            ui.table(t1, on_row_double_press=handle_row_double_press),
             title="Stock Row Press",
         ),
         ui.panel(t2, title="Stock Filtered Table"),
