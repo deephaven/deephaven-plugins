@@ -214,6 +214,9 @@ function WidgetHandler({
       const widgetExportedObjectMap = new Map<number, WidgetExportedObject>();
       exportedObjectMap.current = widgetExportedObjectMap;
       exportedObjectCount.current = 0;
+
+      // Set a var to the client that we know will not be null in the closure below
+      const activeClient = jsonClient;
       function receiveData(
         data: string,
         newExportedObjects: WidgetExportedObject[]
@@ -221,7 +224,7 @@ function WidgetHandler({
         log.debug2('Data received', data, newExportedObjects);
         updateExportedObjects(newExportedObjects);
         if (data.length > 0) {
-          jsonClient?.receiveAndSend(JSON.parse(data));
+          activeClient.receiveAndSend(JSON.parse(data));
         }
       }
 
@@ -243,7 +246,7 @@ function WidgetHandler({
       receiveData(widget.getDataAsString(), widget.exportedObjects);
 
       // We set the initial state of the widget. We'll then get a documentUpdated as a response.
-      jsonClient?.request('setState', [initialData?.state ?? {}]).then(
+      activeClient.request('setState', [initialData?.state ?? {}]).then(
         result => {
           log.debug('Set state result', result);
         },
