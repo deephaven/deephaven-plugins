@@ -5,13 +5,13 @@ import logging
 from typing import (
     Any,
     Callable,
+    Dict,
     Optional,
     TypeVar,
     Union,
     Generator,
     Generic,
     cast,
-    Set,
 )
 from functools import partial
 from deephaven import DHError
@@ -51,6 +51,11 @@ A function that takes the old value and returns the new value for a state.
 ContextKey = str
 """
 The key for a child context.
+"""
+
+ExportedRenderState = Dict[str, Any]
+"""
+The serializable state of a RenderContext. Used to serialize the state for the client.
 """
 
 
@@ -368,11 +373,11 @@ class RenderContext:
         assert self is get_context()
         self._collected_scopes.add(cast(LivenessScope, liveness_scope.j_scope))
 
-    def export_state(self) -> dict[str, Any]:
+    def export_state(self) -> ExportedRenderState:
         """
         Export the state of this context. This is used to serialize the state for the client.
         """
-        exported_state: dict[str, Any] = {}
+        exported_state: ExportedRenderState = {}
         # We need to iterate through all of our state and export anything that doesn't have a LivenessScope right now (anything serializable)
         state = {
             key: value.value

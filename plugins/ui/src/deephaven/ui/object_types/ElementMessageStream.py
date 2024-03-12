@@ -16,7 +16,7 @@ from deephaven.liveness_scope import liveness_scope
 from .._internal import wrap_callable
 from ..elements import Element
 from ..renderer import NodeEncoder, Renderer, RenderedNode
-from .._internal import RenderContext, StateUpdateCallable
+from .._internal import RenderContext, StateUpdateCallable, ExportedRenderState
 
 logger = logging.getLogger(__name__)
 
@@ -155,11 +155,11 @@ class ElementMessageStream(MessageStream):
 
         try:
             node = self._renderer.render(self._element)
+            state = self._context.export_state()
+            self._send_document_update(node, state)
         except Exception as e:
             logger.exception("Error rendering %s", self._element.name)
             raise e
-
-        self._send_document_update(node, self._context)
 
     def _process_callable_queue(self) -> None:
         """
@@ -310,7 +310,7 @@ class ElementMessageStream(MessageStream):
         dispatcher["setState"] = self._set_state
         return dispatcher
 
-    def _set_state(self, state: dict[str, Any]) -> None:
+    def _set_state(self, state: ExportedRenderState) -> None:
         """
         Set the state of the element. This is called by the client on initial load.
 
@@ -321,7 +321,9 @@ class ElementMessageStream(MessageStream):
         self._context.import_state(state)
         self._mark_dirty()
 
-    def _send_document_update(self, root: RenderedNode, context: RenderContext) -> None:
+    def _send_document_update(
+        self, root: RenderedNode, state: ExportedRenderState
+    ) -> None:
         """
         Send a document update to the client. Currently just sends the entire document for each update.
 
@@ -336,7 +338,6 @@ class ElementMessageStream(MessageStream):
         new_objects = encoder_result["new_objects"]
         callable_id_dict = encoder_result["callable_id_dict"]
 
-        state = context.export_state()
         logger.debug("Exported state: %s", state)
         encoded_state = json.dumps(state)
 
@@ -352,15 +353,3 @@ class ElementMessageStream(MessageStream):
             dispatcher[callable_id] = wrap_callable(callable)
         self._dispatcher = dispatcher
         self._connection.on_data(payload.encode(), new_objects)
-
-    def send_state_update(self, state: RenderContext) -> None:
-        """
-        Send a state update to the client. Currently just sends the entire state for each update.
-
-        Args:
-            state: The state to send
-        """
-        request = self._make_notification("stateUpdated", json.dumps(state))
-        payload = json.dumps(request)
-        logger.debug(f"Sending payload: {payload}")
-        self._connection.on_data(payload.encode(), [])
