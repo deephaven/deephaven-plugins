@@ -1,9 +1,70 @@
-from typing import Any, Dict, Literal, Union, List, Tuple, Optional, Callable, TypedDict
+from typing import Any, Dict, Literal, Union, List, Tuple, Callable, TypedDict
 from deephaven import SortDirection
 
-RowIndex = Optional[int]
+
+class CellData(TypedDict):
+    """
+    Data for one cell. Returned with click handlers.
+    """
+
+    type: str
+    """
+    Type of the cell data
+    """
+
+    text: str
+    """
+    Text of the cell data
+    """
+
+    value: Any
+    """
+    Raw value of the cell data
+    """
+
+
+class RowDataValue(CellData):
+    """
+    Data for value of one column in a row. Returned with row press handlers.
+    """
+
+    isExpandable: bool
+    """
+    Whether this row is expandable.
+    """
+
+    isGrouped: bool
+    """
+    Whether this row is grouped.
+    """
+
+
+ColumnIndex = int
+"""
+Index of a column in a table.
+"""
+
+RowIndex = int
+"""
+Index of a row in a table.
+"""
+
+CellIndex = Tuple[ColumnIndex, RowIndex]
+"""
+Index of a cell in a table.
+"""
+
+GridIndex = Tuple[Union[ColumnIndex, None], Union[RowIndex, None]]
+"""
+Index of a spot on the grid. A value of None indicates a header row or column.
+"""
+
+
+ColumnName = str
 RowDataMap = Dict[str, Any]
 RowPressCallback = Callable[[RowIndex, RowDataMap], None]
+CellPressCallback = Callable[[CellIndex, CellData], None]
+ColumnPressCallback = Callable[[ColumnName], None]
 AggregationOperation = Literal[
     "COUNT",
     "COUNT_DISTINCT",
@@ -20,13 +81,9 @@ AggregationOperation = Literal[
     "UNIQUE",
     "SKIP",
 ]
-ColumnIndex = Union[int, None]
-CellIndex = Tuple[RowIndex, ColumnIndex]
 DeephavenColor = Literal["salmon", "lemonchiffon"]
 HexColor = str
 Color = Union[DeephavenColor, HexColor]
-# A ColumnIndex of None indicates a header row
-ColumnName = str
 ContextMenuAction = Dict[str, Any]
 ContextMenuModeOption = Literal["CELL", "ROW_HEADER", "COLUMN_HEADER"]
 ContextMenuMode = Union[ContextMenuModeOption, List[ContextMenuModeOption], None]
@@ -37,8 +94,6 @@ DataBarValuePlacement = Literal["BESIDE", "OVERLAP", "HIDE"]
 LockType = Literal["shared", "exclusive"]
 QuickFilterExpression = str
 RowData = Dict[ColumnName, Any]
-# A RowIndex of None indicates a header column
-RowIndex = Optional[int]
 ColumnData = List[Any]
 TableData = Dict[ColumnName, ColumnData]
 SearchMode = Literal["SHOW", "HIDE", "DEFAULT"]

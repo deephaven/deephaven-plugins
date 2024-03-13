@@ -1242,8 +1242,8 @@ ui_table(
     column_display_names: dict[ColumnName, ColumnNameCombination] | None,
     on_row_press: Callable[[RowIndex, RowData], None] | None,
     on_row_double_press: Callable[[RowIndex, RowData], None] | None
-    on_cell_press: Callable[[CellIndex, Any], None] | None,
-    on_cell_double_press: Callable[[CellIndex, Any], None] | None
+    on_cell_press: Callable[[CellIndex, CellData], None] | None,
+    on_cell_double_press: Callable[[CellIndex, CellData], None] | None
     on_column_press: Callable[[ColumnName], None] | None,
     on_columns_double_press: Callable[[ColumnName], None] | None,
     on_search: Callable[[str], None],
@@ -1275,8 +1275,8 @@ ui_table(
 | `column_display_names`   | `dict[ColumnName, ColumnNameCombination] \| None`             | The display names. If a sequence of column names is provided for a column, the display name will be set to the longest column name that can be fully displayed.                                                                                                                     |
 | `on_row_press`           | `Callable[[RowIndex, RowData], None] \| None`                 | The callback function to run when a cell in a row is released (such as a click). The first parameter is the row index, and the second is the row data provided in a dictionary where the column names are the keys.                                                                 |
 | `on_row_double_press`    | `Callable[[RowIndex, RowData], None] \| None`                 | The callback function to run when a cell in a row is double pressed. The first parameter is the row index, and the second is the row data provided in a dictionary where the column names are the keys.                                                                             |
-| `on_cell_press`          | `Callable[[CellIndex, Any], None] \| None`                    | The callback function to run when a cell is released (such as a click). The first parameter is the cell index, and the second is the cell data.                                                                                                                                     |
-| `on_cell_double_press`   | `Callable[[CellIndex, Any], None] \| None`                    | The callback function to run when a cell is double pressed. The first parameter is the cell index, and the second is the cell data.                                                                                                                                                 |
+| `on_cell_press`          | `Callable[[CellIndex, CellData], None] \| None`               | The callback function to run when a cell is released (such as a click). The first parameter is the cell index, and the second is the cell data.                                                                                                                                     |
+| `on_cell_double_press`   | `Callable[[CellIndex, CellData], None] \| None`               | The callback function to run when a cell is double pressed. The first parameter is the cell index, and the second is the cell data.                                                                                                                                                 |
 | `on_column_press`        | `Callable[[ColumnName], None] \| None`                        | The callback function to run when a column is released (such as a click). The only parameter is the column name.                                                                                                                                                                    |
 | `on_column_double_press` | `Callable[[ColumnName], None] \| None`                        | The callback function to run when a cell in a column is double pressed. The only parameter is the column name.                                                                                                                                                                      |
 | `on_search`              | `Callable[[str], None] \| None`                               | The callback function to run when the search bar is used. The only parameter is the search string.                                                                                                                                                                                  |
@@ -1669,10 +1669,11 @@ Below are some of the custom types that are used in the above API definitions:
 
 ```py
 AggregationOperation = Literal["COUNT", "COUNT_DISTINCT", "DISTINCT", "MIN", "MAX", "SUM", "ABS_SUM", "VAR", "AVG", "STD", "FIRST", "LAST", "UNIQUE", "SKIP"]
-CellIndex = [RowIndex, ColumnIndex]
+# An index of None means a header was selected
+GridIndex = [ColumnIndex | None, RowIndex | None]
+CellIndex = [ColumnIndex, RowIndex]
 Color = DeephavenColor | HexColor
-# A ColumnIndex of None indicates a header row
-ColumnIndex = int | None
+ColumnIndex = int
 ColumnName = str
 ColumnData = list[Any]
 # ID of a component. Used for linking.
@@ -1688,9 +1689,8 @@ DeephavenColor = Literal[...]
 HexColor = str
 LockType = Literal["shared", "exclusive"]
 QuickFilterExpression = str
-RowData = dict[ColumnName, Any]
-# A RowIndex of None indicates a header column
-RowIndex = int | None
+RowData = dict[ColumnName, RowDataValue]
+RowIndex = int
 SelectionStyle = Literal["HIGHLIGHT", "CHECKBOX"]
 SelectionArea = Literal["CELL", "ROW", "COLUMN"]
 SelectionMode = Literal["SINGLE", "MULTIPLE"]
@@ -1713,6 +1713,17 @@ ColumnNameCombination = Combination[ColumnName]
 ColumnIndexCombination = Combination[ColumnIndex]
 CellIndexCombination = Combination[CellIndex]
 SelectionStyleCombination = Combination[SelectionStyle]
+
+# Data for one cell. Returned with click handlers.
+class CellData(TypedDict):
+    type: str
+    text: str
+    value: Any
+
+# Data for value of one column in a row. Returned with row press handlers.
+class RowDataValue(CellData):
+  isExpandable: bool
+  isGrouped: bool
 
 # Set a filter for a dashboard. Filter will apply to all items with a matching column/type, except for items specified in the `exclude_ids` parameter
 class DashboardFilter(TypedDict):

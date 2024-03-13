@@ -34,7 +34,7 @@ class UITableTestCase(BaseTestCase):
         def callback(row):
             pass
 
-        t = ui.table(self.source).on_row_double_press(callback)
+        t = ui.table(self.source, on_row_double_press=callback)
 
         self.expect_render(
             t,

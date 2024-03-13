@@ -12,11 +12,18 @@ import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { Table } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { getSettings } from '@deephaven/redux';
+import { EMPTY_ARRAY } from '@deephaven/utils';
 import { UITableProps } from './UITableUtils';
+import UITableMouseHandler from './UITableMouseHandler';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
 
 function UITable({
+  onCellPress,
+  onCellDoublePress,
+  onColumnPress,
+  onColumnDoublePress,
+  onRowPress,
   onRowDoublePress,
   canSearch,
   filters,
@@ -77,9 +84,35 @@ function UITable({
     };
   }, [dh, exportedTable]);
 
+  const mouseHandlers = useMemo(
+    () =>
+      model
+        ? [
+            new UITableMouseHandler(
+              model,
+              onCellPress,
+              onCellDoublePress,
+              onColumnPress,
+              onColumnDoublePress,
+              onRowPress,
+              onRowDoublePress
+            ),
+          ]
+        : EMPTY_ARRAY,
+    [
+      model,
+      onCellPress,
+      onCellDoublePress,
+      onColumnPress,
+      onColumnDoublePress,
+      onRowPress,
+      onRowDoublePress,
+    ]
+  );
+
   const irisGridProps: Partial<IrisGridProps> = useMemo(
     () => ({
-      onDataSelected: onRowDoublePress,
+      mouseHandlers,
       alwaysFetchColumns,
       showSearchBar: canSearch,
       sorts: hydratedSorts,
@@ -87,7 +120,7 @@ function UITable({
       settings,
     }),
     [
-      onRowDoublePress,
+      mouseHandlers,
       alwaysFetchColumns,
       canSearch,
       hydratedSorts,
