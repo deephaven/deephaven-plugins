@@ -108,7 +108,7 @@ class HooksTest(BaseTestCase):
         from deephaven.ui.hooks import use_memo
 
         def _test_memo(fn=lambda: "foo", a=1, b=2):
-            return use_memo(fn, {a, b})
+            return use_memo(fn, [a, b])
 
         # Initial render
         render_result = render_hook(_test_memo)
@@ -139,6 +139,12 @@ class HooksTest(BaseTestCase):
         result = rerender(mock, b=4)
         self.assertEqual(result, "biz")
         self.assertEqual(mock.call_count, 1)
+
+        def _test_memo_set(fn=lambda: "foo"):
+            return use_memo(fn, {})
+
+        # passing in a non-list/tuple for dependencies should raise a TypeError
+        self.assertRaises(TypeError, render_hook, _test_memo_set)
 
     def verify_table_updated(self, table_writer, table, update):
         from deephaven.ui.hooks import use_table_listener
@@ -541,7 +547,7 @@ class HooksTest(BaseTestCase):
                 thread.start()
                 thread.join()
 
-            use_memo(start_thread, set())
+            use_memo(start_thread, [])
 
         render_hook(_test_execution_context)
 
@@ -564,7 +570,7 @@ class HooksTest(BaseTestCase):
                 thread = threading.Thread(target=thread_func)
                 thread.start()
 
-            use_memo(start_thread, set())
+            use_memo(start_thread, [])
 
         render_hook(_test_execution_context)
 
@@ -595,7 +601,7 @@ class HooksTest(BaseTestCase):
             a, set_a = use_state(lambda: table.where("X=1"))
 
             # When "a" changes, recompute table - don't return or otherwise track this table w.r.t. liveness
-            replace_a = use_liveness_scope(lambda: set_a(table.where("X=2")), set())
+            replace_a = use_liveness_scope(lambda: set_a(table.where("X=2")), [])
 
             return a.size
 
@@ -664,7 +670,7 @@ class HooksTest(BaseTestCase):
                 now = dh_now()
                 return table.where("Timestamp > now").last_by(by=["X"])
 
-            local_rows = use_memo(helper, {a})
+            local_rows = use_memo(helper, [a])
 
             return local_rows.size
 

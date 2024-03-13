@@ -3,9 +3,10 @@ from __future__ import annotations
 from typing import Callable, Any, Sequence
 
 from .use_ref import use_ref, Ref
+from ..types import Dependencies
 
 
-def use_callback(func: Callable, dependencies: set[Any] | Sequence[Any]) -> Callable:
+def use_callback(func: Callable, dependencies: Dependencies) -> Callable:
     """
     Create a stable handle for a callback function. The callback will only be recreated if the dependencies change.
 

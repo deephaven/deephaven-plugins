@@ -8,7 +8,7 @@ from deephaven.table_listener import listen, TableUpdate, TableListener
 from deephaven.execution_context import get_exec_ctx, ExecutionContext
 
 from .use_effect import use_effect
-from ..types import LockType
+from ..types import LockType, Dependencies
 
 
 def listener_with_ctx(
@@ -67,7 +67,7 @@ def wrap_listener(
 def use_table_listener(
     table: Table,
     listener: Callable[[TableUpdate, bool], None] | TableListener,
-    dependencies: set[Any] | Sequence[Any],
+    dependencies: Dependencies,
     description: str | None = None,
     do_replay: bool = False,
     replay_lock: LockType = "shared",
@@ -109,5 +109,5 @@ def use_table_listener(
 
     use_effect(
         start_listener,
-        {table, listener, description, do_replay, replay_lock} | set(dependencies),
+        [table, listener, description, do_replay, replay_lock] + list(dependencies),
     )
