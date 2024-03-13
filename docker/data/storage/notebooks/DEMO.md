@@ -97,7 +97,7 @@ def picker():
     )
 
 
-p = picker()
+result = picker()
 ```
 
 ## Using Tables
@@ -197,7 +197,7 @@ def stock_table_input(source, default_sym="", default_exchange=""):
     return [
         ui.panel(
             # Add a callback for when user double clicks a row in the table
-            ui.table(t1).on_row_double_press(handle_row_double_press),
+            ui.table(t1, on_row_double_press=handle_row_double_press),
             title="Stock Row Press",
         ),
         ui.panel(t2, title="Stock Filtered Table"),
@@ -226,7 +226,7 @@ def hist_demo(source, column):
             x=column,
             nbins=bin_count,
         ),
-        {bin_count, hist_range, source, column},
+        [bin_count, hist_range, source, column],
     )
 
     return [
@@ -271,7 +271,7 @@ def order_table():
         ),
         [],
     )
-    t = ui.use_memo(lambda: blink_to_append_only(blink_table), {blink_table})
+    t = ui.use_memo(lambda: blink_to_append_only(blink_table), [blink_table])
 
     def submit_order(order_sym, order_size, side):
         publisher.add(
@@ -322,7 +322,7 @@ def table_tabs(source):
     return ui.tabs(
         ui.tab_list(
             ui.item("Unfiltered", key="Unfiltered"),
-            ui.item(ui.icon("vsGithubAlt"), "CAT", key="CAT"),
+            ui.item(ui.icon("vsGithubAlt"), ui.text("CAT"), key="CAT"),
             ui.item("DOG", key="DOG"),
         ),
         ui.tab_panels(
@@ -437,18 +437,18 @@ def multiwave():
                 f"y_tan={amplitude}*Math.tan({frequency}*x+{phase})",
             ]
         ),
-        {amplitude, frequency, phase},
+        [amplitude, frequency, phase],
     )
     p_sin = use_memo(
-        lambda: Figure().plot_xy(series_name="Sine", t=t, x="x", y="y_sin").show(), {t}
+        lambda: Figure().plot_xy(series_name="Sine", t=t, x="x", y="y_sin").show(), [t]
     )
     p_cos = use_memo(
         lambda: Figure().plot_xy(series_name="Cosine", t=t, x="x", y="y_cos").show(),
-        {t},
+        [t],
     )
     p_tan = use_memo(
         lambda: Figure().plot_xy(series_name="Tangent", t=t, x="x", y="y_tan").show(),
-        {t},
+        [t],
     )
 
     return ui.column(

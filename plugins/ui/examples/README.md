@@ -758,7 +758,7 @@ def stock_table_input(source, default_sym="", default_exchange=""):
 
     return [
         ui.panel(
-            ui.table(t1).on_row_double_press(handle_row_double_press),
+            ui.table(t1, on_row_double_press=handle_row_double_press),
             title="Stock Table Input",
         ),
         ui.panel(t2, title="Stock Filtered Table"),
