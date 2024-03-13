@@ -195,12 +195,14 @@ export function DashboardPlugin(
       });
       // We may need to clean up some panels for this widget if it hasn't actually loaded yet
       // We should be able to always be able to do this even if it does load, so just remove any panels from the initial load
-      const { openWidgets } = initialPluginData;
-      const openWidget = openWidgets?.[panelId];
-      if (openWidget?.data?.panelIds != null) {
-        const { panelIds } = openWidget.data;
-        for (let i = 0; i < panelIds.length; i += 1) {
-          LayoutUtils.closeComponent(layout.root, { id: panelIds[i] });
+      if (initialPluginData != null) {
+        const { openWidgets } = initialPluginData;
+        const openWidget = openWidgets?.[panelId];
+        if (openWidget?.data?.panelIds != null) {
+          const { panelIds } = openWidget.data;
+          for (let i = 0; i < panelIds.length; i += 1) {
+            LayoutUtils.closeComponent(layout.root, { id: panelIds[i] });
+          }
         }
       }
     },
