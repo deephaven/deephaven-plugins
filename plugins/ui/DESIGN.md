@@ -1073,7 +1073,7 @@ ui.picker(
     on_selection_change: Callable[[Key], None] | None = None,
     on_change: Callable[[Key], None] | None = None,
     **props: Any
-) -> ItemElement
+) -> PickerElement
 ```
 
 ###### Parameters
@@ -1183,8 +1183,130 @@ picker7 = ui.picker(
     description_column="Descriptions",
     icon_column="Icons",
     title_column="SectionNames",
-    selected_key=option,
+    selected_key=color,
     on_selection_change=set_color
+)
+```
+
+###### ui.list_view
+A list view that can be used to create a list of items. Children should be one of two types:  
+1. If children are of type `ListViewItem`, they are the list items.  
+2. If children are of type `Table`, the values in the table are the list items. There can only be one child, the `Table`.   
+
+```py
+import deephaven.ui as ui
+ui.list_view(
+    *children: ListViewItem | Table,
+    key_column: ColumnName | None = None,
+    label_column: ColumnName | None = None,
+    description_column: ColumnName | None = None,
+    icon_column: ColumnName | None = None,
+    action_buttons: ActionButtonElement | ActionGroupElement | ActionMenuElement | None = None,
+    default_selected_keys: Selection | None = None,
+    selected_keys: Selection | None = None,
+    render_empty_state: Element | None = None,
+    on_selection_change: Callable[[Selection], None] | None = None, 
+    on_change: Callable[[Selection], None] | None = None,
+    **props: Any
+) -> ListViewElement
+```
+
+###### Parameters
+| Parameter                    | Type                                                                 | Description                                                                                                                                                                                                                                                                                                                |
+|------------------------------|----------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `*children`                  | `ListViewItem \| Table`                              | The options to render within the picker.                                                                                                                                                                                                                                                                                   |
+| `key_column`                 | `ColumnName \| None`                                                 | Only valid if children are of type `Table`. The column of values to use as item keys. Defaults to the first column.                                                                                                                                                                                                        |
+| `label_column`               | `ColumnName \| None`                                                 | Only valid if children are of type `Table`. The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                                                                                           |
+| `description_column`         | `ColumnName \| None`                                                 | Only valid if children are of type `Table`. The column of values to display as descriptions.                                                                                                                                                                                                                               |
+| `icon_column`                | `ColumnName \| None`                                                 | Only valid if children are of type `Table`. The column of values to map to icons.                                                                                                                                                                                                                                          |
+| `action_buttons`             | `ActionButtonElement \| ActionGroupElement \| ActionMenuElement \| None` | Only valid if any `ListViewItem` children do not already have embedded buttons. The action buttons to render for all elements within the list view. The `on_*` event handlers within the passed object will be modified so that the second argument is the key for the `list_view` item that the buttons are embedded in.  |
+| `default_selected_keys`      | `Selection \| None`                                                  | The initial selected keys in the collection (uncontrolled).                                                                                                                                                                                                                                                                |
+| `selected_keys`              | `Selection \| None`                                                  | The currently selected keys in the collection (controlled).                                                                                                                                                                                                                                                                |
+| `render_empty_state`         | `Element \| None`                                                    | Sets what the `list_view` should render when there is no content to display.                                                                                                                                                                                                                                               |
+| `on_selection_change`        | `Callable[[Selection], None] \| None`                                | Handler that is called when the selections changes.                                                                                                                                                                                                                                                                        |
+| `on_change`                  | `Callable[[Selection], None] \| None`                                | Alias of `on_selection_change`. Handler that is called when the selections changes.                                                                                                                                                                                                                                        |
+| `**props`                    | `Any`                                                                | Any other [ListView](https://react-spectrum.adobe.com/react-spectrum/ListView.html) prop, with the exception of `items`, `dragAndDropHooks`, and `onLoadMore`.                                                                                                                                                             |
+
+
+```py
+import deephaven.ui as ui
+
+# simple list_view that takes ui.items and is uncontrolled
+list_view1 = ui.list_view(
+    ui.item("Option 1"),
+    ui.item("Option 2"),
+    ui.item("Option 3"),
+    ui.item("Option 4"),
+    default_selected_keys=["Option 2", "Option 3"]
+)
+
+# simple list_view that takes list view items directly and is controlled
+selection, set_selection = ui.use_state(["Option 1", "Option 2"])
+
+list_view2 = ui.list_view(
+    "Option 1",
+    "Option 2",
+    "Option 3",
+    "Option 4",
+    selected_keys=selection,
+    on_selection_change=selection
+)
+
+from deephaven import empty_table
+
+table1 = empty_table(4).update_view("data=i")
+
+# data hooks can be used to create a list view from a table
+# this should be avoided as it is not as performant as just passing in the table directly
+options = ui.use_column_data(table1)
+
+list_view3 = ui.list_view(
+    children=options
+)
+
+# instead, pass in the table directly
+list_view4 = ui.list_view(
+    table1
+)
+
+from deephaven import new_table
+from deephaven.column import string_col, int_col
+
+color_table = new_table([
+    int_col("Keys", ["salmon", "lemonchiffon", "black"]),
+    string_col("Labels", ["Salmon", "Lemon Chiffon", "Black"]),
+    string_col("Descriptions", ["An interesting color", "Another interesting color", "A color"]),
+    string_col("Icons", ["Amusementpark", "Teapot", "Sentiment Negative"]),
+    string_col("SectionKeys", ["Interesting Colors", "Interesting Colors", "Other Colors"]),
+    string_col("SectionLabels", ["Favorites", "Favorites", "Other"]),
+    string_col("SectionDescriptions", ["Favorite colors", "Favorite colors", "Other colors"]),
+    string_col("SectionIcons", ["Folder", "Folder", "Not Found"])
+])
+
+colors, set_colors = ui.use_state(["salmon", "lemonchiffon"])
+
+# this will create a controlled list_view with color_table
+list_view5 = ui.list_view(
+    color_table,
+    key_column="Keys",
+    label_column="Labels",
+    description_column="Descriptions",
+    icon_column="Icons",
+    selected_keys=colors,
+    on_selection_change=set_colors
+)
+
+
+# Buttons can be embedded in the list view. Note key is added to the on_press handler, but is not required.
+on_button_action = lambda e, key: print(f"Event {e} was emitted for list item {key}")
+button = ui.action_button("Print Item", on_press=on_button_action)
+
+list_view7 = ui.list_view(
+    "Option 1",
+    "Option 2",
+    "Option 3",
+    "Option 4",
+    action_buttons=button,
 )
 ```
 
@@ -1704,6 +1826,8 @@ TransformedData = Any
 Stringable = str | int | float | bool
 PickerItem = Stringable | ItemElement
 Key = Stringable
+Selection = Sequence[Key]
+ListViewItem = Stringable | ItemElement
 
 T = TypeVar("T")
 Combination: TypeAlias = T | set[T] | Sequence[T]
