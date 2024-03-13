@@ -53,7 +53,7 @@ ContextKey = str
 The key for a child context.
 """
 
-ChildrenContextDict = dict[ContextKey, "RenderContext"]
+ChildrenContextDict = Dict[ContextKey, "RenderContext"]
 """
 The child contexts for a RenderContext.
 """
@@ -67,7 +67,7 @@ class ValueWithLiveness(Generic[T]):
     liveness_scope: Union[LivenessScope, None]
 
 
-ContextState = dict[StateKey, ValueWithLiveness[Any]]
+ContextState = Dict[StateKey, ValueWithLiveness[Any]]
 """
 The state for a context.
 """
