@@ -584,6 +584,10 @@ class DeephavenFigure:
         Returns:
             The figure
         """
+        if not self._head_node.get_figure():
+            # if there is no figure stored in the node, a plotly figure was passed directly
+            # just return this figure since it will never be updated
+            return self
         return self._head_node.get_figure()
 
     def get_plotly_fig(self) -> Figure | None:
