@@ -53,9 +53,9 @@ ContextKey = str
 The key for a child context.
 """
 
-ExportedRenderState = Dict[str, Any]
+ChildrenContextDict = dict[ContextKey, "RenderContext"]
 """
-The serializable state of a RenderContext. Used to serialize the state for the client.
+The child contexts for a RenderContext.
 """
 
 
@@ -65,6 +65,17 @@ class ValueWithLiveness(Generic[T]):
 
     value: T
     liveness_scope: Union[LivenessScope, None]
+
+
+ContextState = dict[StateKey, ValueWithLiveness[Any]]
+"""
+The state for a context.
+"""
+
+ExportedRenderState = Dict[str, Any]
+"""
+The serializable state of a RenderContext. Used to serialize the state for the client.
+"""
 
 
 def _value_or_call(
@@ -151,12 +162,12 @@ class RenderContext:
     Count of hooks used in the render. Should only be set after initial render.
     """
 
-    _state: dict[StateKey, ValueWithLiveness[Any]]
+    _state: ContextState
     """
     The state for this context.
     """
 
-    _children_context: dict[ContextKey, "RenderContext"]
+    _children_context: ChildrenContextDict
     """
     The child contexts for this context. 
     """
@@ -378,22 +389,23 @@ class RenderContext:
         Export the state of this context. This is used to serialize the state for the client.
         """
         exported_state: ExportedRenderState = {}
+
         # We need to iterate through all of our state and export anything that doesn't have a LivenessScope right now (anything serializable)
-        state = {
-            key: value.value
-            for key, value in self._state.items()
-            if _should_retain_value(value)
-        }
-        if len(state) > 0:
+        def retained_values(state: ContextState):
+            for key, value in state.items():
+                if _should_retain_value(value):
+                    yield key, value.value
+
+        if len(state := dict(retained_values(self._state))) > 0:
             exported_state["state"] = state
 
         # Now iterate through all the children contexts, and only include them in the export if they're not empty
-        children_state = {
-            key: child_state
-            for key, child in self._children_context.items()
-            if len(child_state := child.export_state()) > 0
-        }
-        if len(children_state) > 0:
+        def retained_children(children: ChildrenContextDict):
+            for key, child in children.items():
+                if len(child_state := child.export_state()) > 0:
+                    yield key, child_state
+
+        if len(children_state := dict(retained_children(self._children_context))) > 0:
             exported_state["children"] = children_state
 
         return exported_state
