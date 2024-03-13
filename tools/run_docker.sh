@@ -6,12 +6,13 @@ pushd "$(dirname "$0")"
 # Start the containers
 if [[ -z "${CI}" ]]; then
   docker compose run --service-ports --rm --build "$@"
+  exit_code=$?
+  docker compose down
 else
   docker compose run --service-ports --rm --build -e CI=true "$@"
+  exit_code=$?
+  docker compose stop deephaven-plugins
 fi
-exit_code=$?
-docker logs deephaven-plugins > /tmp/server-log.txt 2>&1
-docker compose down
 
 # Reset pwd
 popd
