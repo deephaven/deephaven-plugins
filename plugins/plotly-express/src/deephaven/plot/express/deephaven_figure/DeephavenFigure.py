@@ -394,6 +394,7 @@ class DeephavenFigure:
         has_color: bool = False,
         trace_generator: Generator[dict[str, Any], None, None] | None = None,
         has_subplots: bool = False,
+        is_plotly_fig: bool = False,
     ):
         """
         Create a new DeephavenFigure
@@ -407,6 +408,7 @@ class DeephavenFigure:
             has_color: If this figure has color
             trace_generator: The trace generator
             has_subplots: If this figure has subplots
+            is_plotly_fig: If this is a plotly figure
         """
         # keep track of function that called this, and it's args
         self._head_node = DeephavenHeadNode()
@@ -427,6 +429,8 @@ class DeephavenFigure:
         self._data_mappings = data_mappings if data_mappings else []
 
         self._has_subplots = has_subplots
+
+        self._is_plotly_fig = is_plotly_fig
 
         self._liveness_scope = LivenessScope()
 
@@ -584,8 +588,8 @@ class DeephavenFigure:
         Returns:
             The figure
         """
-        if not self._head_node.get_figure():
-            # if there is no figure stored in the node, a plotly figure was passed directly
+        if self._is_plotly_fig:
+            # a plotly figure was passed directly
             # just return this figure since it will never be updated
             return self
         return self._head_node.get_figure()
@@ -680,6 +684,7 @@ class DeephavenFigure:
             self._has_color,
             self._trace_generator,
             self._has_subplots,
+            self._is_plotly_fig,
         )
         new_figure._head_node = self._head_node.copy_graph()
         return new_figure

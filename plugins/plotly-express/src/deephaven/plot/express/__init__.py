@@ -94,7 +94,7 @@ class DeephavenFigureType(BidirectionalObjectType):
         """
         if isinstance(obj, Figure):
             # this is a plotly figure, it will never be updated, so wrap once and send
-            obj = DeephavenFigure(obj)
+            obj = DeephavenFigure(obj, is_plotly_fig=True)
 
         figure_connection = DeephavenFigureConnection(obj, connection)
         initial_message = json.dumps(
