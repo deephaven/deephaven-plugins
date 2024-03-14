@@ -5,8 +5,7 @@ from typing import Callable, Any, Union
 from deephaven.table import Table
 
 from .item import ItemElement
-from .. import Element
-from ..elements import BaseElement
+from ..elements import BaseElement, Element
 from .._internal.utils import create_props
 from ..types import ColumnName, Stringable, Selection
 from .spectrum import ActionButtonElement
