@@ -63,9 +63,9 @@ def list_view(
             The `on_*` event handlers within the passed object will be modified
             so that the second argument is the key for the `list_view` item that the buttons are embedded in.
         default_selected_keys:
-            The initial selected key in the collection (uncontrolled).
+            The initial selected keys in the collection (uncontrolled).
         selected_keys:
-            The currently selected key in the collection (controlled).
+            The currently selected keys in the collection (controlled).
         render_empty_state:
             Sets what the `list_view` should render when there is no content to display.
         on_selection_change:
