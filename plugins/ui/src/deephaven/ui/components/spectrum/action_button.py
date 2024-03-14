@@ -20,6 +20,8 @@ from .layout import (
 from .basic import spectrum_element
 from ...elements import Element
 
+ActionButtonElement = Element
+
 
 def action_button(
     *children: Any,
@@ -86,7 +88,7 @@ def action_button(
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
-) -> Element:
+) -> ActionButtonElement:
     """
     ActionButtons allow users to perform an action. They're used for similar, task-based options within a workflow, and are ideal for interfaces where buttons aren't meant to draw a lot of attention.
     Python implementation for the Adobe React Spectrum ActionButton component: https://react-spectrum.adobe.com/react-spectrum/ActionButton.html

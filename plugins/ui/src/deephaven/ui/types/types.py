@@ -1,4 +1,4 @@
-from typing import Any, Dict, Literal, Union, List, Tuple, Callable, TypedDict
+from typing import Any, Dict, Literal, Union, List, Tuple, Callable, TypedDict, Sequence
 from deephaven import SortDirection
 
 
@@ -106,3 +106,4 @@ TableSortDirection = Union[StringSortDirection, SortDirection]
 Stringable = Union[str, int, float, bool]
 Key = Stringable
 Dependencies = Union[Tuple[Any], List[Any]]
+Selection = Sequence[Key]
