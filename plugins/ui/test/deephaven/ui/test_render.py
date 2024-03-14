@@ -119,3 +119,134 @@ class RenderTestCase(BaseTestCase):
             self.assertEqual(child_context1.get_state(0), 3)
             # Shouldn't have triggered a change
             self.assertEqual(on_change.call_count, 2)
+
+
+class RenderExportTestCase(BaseTestCase):
+    def test_export_empty_context(self):
+        from deephaven.ui._internal.RenderContext import RenderContext
+
+        rc = make_render_context()
+
+        with rc.open():
+            pass
+
+        state = rc.export_state()
+        self.assertEqual(state, {})
+
+    def test_export_basic_state(self):
+        from deephaven.ui._internal.RenderContext import RenderContext
+
+        rc = make_render_context()
+
+        with rc.open():
+            rc.init_state(0, 1)
+            rc.init_state(1, 2)
+            rc.init_state(2, 3)
+
+        state = rc.export_state()
+        self.assertEqual(state, {"state": {0: 1, 1: 2, 2: 3}})
+
+    def test_export_nested_state(self):
+        from deephaven.ui._internal.RenderContext import RenderContext
+
+        rc = make_render_context()
+
+        with rc.open():
+            rc.init_state(0, 1)
+            child_context0 = rc.get_child_context(0)
+            with child_context0.open():
+                child_context0.init_state(0, 2)
+                child_context0.init_state(1, 3)
+                child_context1 = child_context0.get_child_context(0)
+                with child_context1.open():
+                    child_context1.init_state(0, 4)
+                    child_context1.init_state(1, 5)
+
+        state = rc.export_state()
+        self.assertEqual(
+            state,
+            {
+                "state": {0: 1},
+                "children": {
+                    0: {"state": {0: 2, 1: 3}, "children": {0: {"state": {0: 4, 1: 5}}}}
+                },
+            },
+        )
+
+    def test_ignore_empty_state(self):
+        from deephaven.ui._internal.RenderContext import RenderContext
+
+        rc = make_render_context()
+
+        with rc.open():
+            rc.init_state(0, 1)
+            rc.init_state(1, 2)
+            rc.init_state(2, 3)
+            rc.set_state(0, None)
+            rc.set_state(1, None)
+            rc.set_state(2, None)
+
+            child_context0 = rc.get_child_context(0)
+            with child_context0.open():
+                child_context1 = child_context0.get_child_context(0)
+                with child_context1.open():
+                    child_context1.init_state(0, None)
+
+        state = rc.export_state()
+        self.assertEqual(state, {})
+
+
+class RenderImportTestCase(BaseTestCase):
+    def test_import_empty_context(self):
+        from deephaven.ui._internal.RenderContext import RenderContext
+
+        on_change = Mock(side_effect=lambda x: x())
+        rc = make_render_context(on_change)
+
+        # Empty context should reset the state if there was one
+        with rc.open():
+            rc.init_state(0, 2)
+            self.assertEqual(rc.has_state(0), True)
+            self.assertEqual(rc.get_state(0), 2)
+
+        state = {}
+        rc.import_state(state)
+        with rc.open():
+            self.assertEqual(rc.has_state(0), False)
+
+    def test_import_basic_state(self):
+        from deephaven.ui._internal.RenderContext import RenderContext
+
+        rc = make_render_context()
+        state = {"state": {0: 3}}
+        rc.import_state(state)
+        with rc.open():
+            self.assertEqual(rc.has_state(0), True)
+            self.assertEqual(rc.get_state(0), 3)
+
+    def test_import_nested_state(self):
+        from deephaven.ui._internal.RenderContext import RenderContext
+
+        rc = make_render_context()
+        state = {
+            "state": {0: 1},
+            "children": {
+                0: {"state": {0: 2, 1: 3}, "children": {0: {"state": {0: 4, 1: 5}}}}
+            },
+        }
+        rc.import_state(state)
+        with rc.open():
+            self.assertEqual(rc.has_state(0), True)
+            self.assertEqual(rc.get_state(0), 1)
+            child_context0 = rc.get_child_context(0)
+            with child_context0.open():
+                self.assertEqual(child_context0.has_state(0), True)
+                self.assertEqual(child_context0.get_state(0), 2)
+                self.assertEqual(child_context0.has_state(1), True)
+                self.assertEqual(child_context0.get_state(1), 3)
+                child_context1 = child_context0.get_child_context(0)
+                with child_context1.open():
+                    self.assertEqual(child_context1.has_state(0), True)
+                    self.assertEqual(child_context1.get_state(0), 4)
+                    self.assertEqual(child_context1.has_state(1), True)
+                    self.assertEqual(child_context1.get_state(1), 5)

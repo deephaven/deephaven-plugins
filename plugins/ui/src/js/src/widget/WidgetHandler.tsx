@@ -25,7 +25,11 @@ import {
   isElementNode,
   isObjectNode,
 } from '../elements/ElementUtils';
-import { ReadonlyWidgetData, WidgetMessageEvent } from './WidgetTypes';
+import {
+  ReadonlyWidgetData,
+  WidgetDataUpdate,
+  WidgetMessageEvent,
+} from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
 import { getComponentForElement } from './WidgetUtils';
 
@@ -44,8 +48,8 @@ export interface WidgetHandlerProps {
   /** Triggered when all panels opened from this widget have closed */
   onClose?: () => void;
 
-  /** Triggered when the data in the widget changes */
-  onDataChange?: (data: ReadonlyWidgetData) => void;
+  /** Triggered when the data in the widget changes. Only the changed data is provided. */
+  onDataChange?: (data: WidgetDataUpdate) => void;
 }
 
 function WidgetHandler({
@@ -53,10 +57,11 @@ function WidgetHandler({
   onDataChange = EMPTY_FUNCTION,
   fetch,
   widget: descriptor,
-  initialData,
+  initialData: initialDataProp,
 }: WidgetHandlerProps) {
   const [widget, setWidget] = useState<Widget>();
   const [document, setDocument] = useState<ReactNode>();
+  const [initialData] = useState(initialDataProp);
 
   // When we fetch a widget, the client is then responsible for the exported objects.
   // These objects could stay alive even after the widget is closed if we wanted to,
@@ -169,64 +174,100 @@ function WidgetHandler({
       }
 
       log.debug('Adding methods to jsonClient');
-      jsonClient.addMethod('documentUpdated', async (params: [string]) => {
-        log.debug2('documentUpdated', params[0]);
-        const newDocument = parseDocument(params[0]);
-        setDocument(newDocument);
-      });
+      jsonClient.addMethod(
+        'documentUpdated',
+        async (params: [string, string]) => {
+          log.debug2('documentUpdated', params);
+          const [documentParam, stateParam] = params;
+          const newDocument = parseDocument(documentParam);
+          setDocument(newDocument);
+          if (stateParam != null) {
+            try {
+              const newState = JSON.parse(stateParam);
+              onDataChange({ state: newState });
+            } catch (e) {
+              log.warn(
+                'Error parsing state, widget state may not be persisted.',
+                e
+              );
+            }
+          }
+        }
+      );
 
       return () => {
         jsonClient.rejectAllPendingRequests('Widget was changed');
       };
     },
-    [jsonClient, parseDocument]
+    [jsonClient, onDataChange, parseDocument]
   );
 
-  useEffect(() => {
-    if (widget == null) {
-      return;
-    }
-    // Need to reset the exported object map and count
-    const widgetExportedObjectMap = new Map<number, WidgetExportedObject>();
-    exportedObjectMap.current = widgetExportedObjectMap;
-    exportedObjectCount.current = 0;
-    function receiveData(
-      data: string,
-      newExportedObjects: WidgetExportedObject[]
-    ) {
-      log.debug2('Data received', data, newExportedObjects);
-      updateExportedObjects(newExportedObjects);
-      jsonClient?.receiveAndSend(JSON.parse(data));
-    }
-
-    const cleanup = widget.addEventListener(
-      // This is defined as dh.Widget.EVENT_MESSAGE in Core, but that constant doesn't exist on the Enterprise API
-      // Dashboard plugins in Enterprise are loaded with the Enterprise API in the context of the dashboard, so trying to fetch the constant fails
-      // Just use the constant value here instead. Another option would be to add the Widget constants to Enterprise, but we don't want to port over all that functionality.
-      'message',
-      (event: WidgetMessageEvent) => {
-        receiveData(
-          event.detail.getDataAsString(),
-          event.detail.exportedObjects
-        );
+  /**
+   * Triggered when the widget object is loaded. Initializes the state of the widget and/or receives initial data.
+   */
+  useEffect(
+    function initializeWidget() {
+      if (widget == null || jsonClient == null) {
+        return;
       }
-    );
+      // Need to reset the exported object map and count
+      const widgetExportedObjectMap = new Map<number, WidgetExportedObject>();
+      exportedObjectMap.current = widgetExportedObjectMap;
+      exportedObjectCount.current = 0;
 
-    log.debug('Receiving initial data');
-    // We need to get the initial data and process it. It should be a documentUpdated command.
-    receiveData(widget.getDataAsString(), widget.exportedObjects);
+      // Set a var to the client that we know will not be null in the closure below
+      const activeClient = jsonClient;
+      function receiveData(
+        data: string,
+        newExportedObjects: WidgetExportedObject[]
+      ) {
+        log.debug2('Data received', data, newExportedObjects);
+        updateExportedObjects(newExportedObjects);
+        if (data.length > 0) {
+          activeClient.receiveAndSend(JSON.parse(data));
+        }
+      }
 
-    return () => {
-      log.debug('Cleaning up widget', widget);
-      cleanup();
-      widget.close();
+      const cleanup = widget.addEventListener(
+        // This is defined as dh.Widget.EVENT_MESSAGE in Core, but that constant doesn't exist on the Enterprise API
+        // Dashboard plugins in Enterprise are loaded with the Enterprise API in the context of the dashboard, so trying to fetch the constant fails
+        // Just use the constant value here instead. Another option would be to add the Widget constants to Enterprise, but we don't want to port over all that functionality.
+        'message',
+        (event: WidgetMessageEvent) => {
+          receiveData(
+            event.detail.getDataAsString(),
+            event.detail.exportedObjects
+          );
+        }
+      );
 
-      // Clean up any exported objects that haven't been closed yet
-      Array.from(widgetExportedObjectMap.values()).forEach(exportedObject => {
-        exportedObject.close();
-      });
-    };
-  }, [jsonClient, parseDocument, updateExportedObjects, widget]);
+      log.debug('Receiving initial data');
+      // We need to get the initial data and process it. If it's an old version of the plugin, it could be a documentUpdated command.
+      receiveData(widget.getDataAsString(), widget.exportedObjects);
+
+      // We set the initial state of the widget. We'll then get a documentUpdated as a response.
+      activeClient.request('setState', [initialData?.state ?? {}]).then(
+        result => {
+          log.debug('Set state result', result);
+        },
+        e => {
+          log.error('Error setting initial state: ', e);
+        }
+      );
+
+      return () => {
+        log.debug('Cleaning up widget', widget);
+        cleanup();
+        widget.close();
+
+        // Clean up any exported objects that haven't been closed yet
+        Array.from(widgetExportedObjectMap.values()).forEach(exportedObject => {
+          exportedObject.close();
+        });
+      };
+    },
+    [jsonClient, initialData, parseDocument, updateExportedObjects, widget]
+  );
 
   useEffect(
     function loadWidget() {

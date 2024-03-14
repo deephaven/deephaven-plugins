@@ -5,7 +5,11 @@ import Log from '@deephaven/log';
 import { EMPTY_FUNCTION } from '@deephaven/utils';
 import { ReactPanelManagerContext } from '../layout/ReactPanelManager';
 import { getRootChildren } from './DocumentUtils';
-import { ReadonlyWidgetData, WidgetData } from './WidgetTypes';
+import {
+  ReadonlyWidgetData,
+  WidgetData,
+  WidgetDataUpdate,
+} from './WidgetTypes';
 
 const log = Log.module('@deephaven/js-plugin-ui/DocumentHandler');
 
@@ -22,7 +26,7 @@ export type DocumentHandlerProps = React.PropsWithChildren<{
   initialData?: ReadonlyWidgetData;
 
   /** Triggered when the data in the document changes */
-  onDataChange?: (data: ReadonlyWidgetData) => void;
+  onDataChange?: (data: WidgetDataUpdate) => void;
 
   /** Triggered when all panels opened from this document have closed */
   onClose?: () => void;

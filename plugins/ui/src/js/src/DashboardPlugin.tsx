@@ -24,6 +24,7 @@ import { useDebouncedCallback } from '@deephaven/react-hooks';
 import styles from './styles.scss?inline';
 import {
   ReadonlyWidgetData,
+  WidgetDataUpdate,
   WidgetFetch,
   WidgetId,
 } from './widget/WidgetTypes';
@@ -194,12 +195,14 @@ export function DashboardPlugin(
       });
       // We may need to clean up some panels for this widget if it hasn't actually loaded yet
       // We should be able to always be able to do this even if it does load, so just remove any panels from the initial load
-      const { openWidgets } = initialPluginData;
-      const openWidget = openWidgets?.[panelId];
-      if (openWidget?.data?.panelIds != null) {
-        const { panelIds } = openWidget.data;
-        for (let i = 0; i < panelIds.length; i += 1) {
-          LayoutUtils.closeComponent(layout.root, { id: panelIds[i] });
+      if (initialPluginData != null) {
+        const { openWidgets } = initialPluginData;
+        const openWidget = openWidgets?.[panelId];
+        if (openWidget?.data?.panelIds != null) {
+          const { panelIds } = openWidget.data;
+          for (let i = 0; i < panelIds.length; i += 1) {
+            LayoutUtils.closeComponent(layout.root, { id: panelIds[i] });
+          }
         }
       }
     },
@@ -258,7 +261,7 @@ export function DashboardPlugin(
   );
 
   const handleWidgetDataChange = useCallback(
-    (widgetId: string, data: ReadonlyWidgetData) => {
+    (widgetId: string, data: WidgetDataUpdate) => {
       log.debug('handleWidgetDataChange', widgetId, data);
       setWidgetMap(prevWidgetMap => {
         const newWidgetMap = new Map(prevWidgetMap);
@@ -268,7 +271,10 @@ export function DashboardPlugin(
         }
         newWidgetMap.set(widgetId, {
           ...oldWidget,
-          data,
+          data: {
+            ...oldWidget.data,
+            ...data,
+          },
         });
         return newWidgetMap;
       });
