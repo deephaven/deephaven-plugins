@@ -387,6 +387,9 @@ class RenderContext:
     def export_state(self) -> ExportedRenderState:
         """
         Export the state of this context. This is used to serialize the state for the client.
+
+        Returns:
+            The exported serializable state of this context.
         """
         exported_state: ExportedRenderState = {}
 
@@ -410,9 +413,12 @@ class RenderContext:
 
         return exported_state
 
-    def import_state(self, state: dict[str, Any]):
+    def import_state(self, state: dict[str, Any]) -> None:
         """
         Import the state of this context. This is used to deserialize the state from the client.
+
+        Args:
+            state: The state to import.
         """
         self._state.clear()
         self._children_context.clear()
