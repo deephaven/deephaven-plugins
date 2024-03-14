@@ -6,3 +6,9 @@ test('Express loads', async ({ page }) => {
   await openPanel(page, 'express_fig', '.js-plotly-plot');
   await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
 });
+
+test('Plotly loads', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(page, 'plotly_fig', '.js-plotly-plot');
+  await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
+});
