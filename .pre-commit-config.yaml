@@ -20,7 +20,8 @@ repos:
             deephaven-core,
             plotly,
             json-rpc,
-            matplotlib
+            matplotlib,
+            deephaven-plugin-utilities
           ]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.2.2
