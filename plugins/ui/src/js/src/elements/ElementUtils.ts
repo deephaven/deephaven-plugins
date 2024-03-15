@@ -42,8 +42,23 @@ export function isObjectNode(obj: unknown): obj is ObjectNode {
   return obj != null && typeof obj === 'object' && OBJECT_KEY in obj;
 }
 
-export function isElementNode(obj: unknown): obj is ElementNode {
-  return obj != null && typeof obj === 'object' && ELEMENT_KEY in obj;
+/**
+ * Type guard for `ElementNode` objects. If `name` is provided, it will also check
+ * that the element name matches the provided name.
+ * @param obj The object to check
+ * @param name Optional name to check
+ * @returns `true` if the object matches the `ElementNode` type and optionally
+ * a given element name
+ */
+export function isElementNode(obj: unknown, name?: string): obj is ElementNode {
+  const isElement =
+    obj != null && typeof obj === 'object' && ELEMENT_KEY in obj;
+
+  if (name == null) {
+    return isElement;
+  }
+
+  return isElement && obj[ELEMENT_KEY] === name;
 }
 
 export function isCallableNode(obj: unknown): obj is CallableNode {
@@ -73,4 +88,20 @@ export function getElementKey(node: unknown, defaultKey: string): string {
     return defaultKey;
   }
   return `${node.props?.key}`;
+}
+
+export function mapItemOrArray<T>(itemOrArray: T, mapItem: (item: T) => T): T;
+export function mapItemOrArray<T>(
+  itemOrArray: T[],
+  mapItem: (item: T) => T
+): T[];
+export function mapItemOrArray<T>(
+  itemOrArray: T | T[],
+  mapItem: (item: T) => T
+): T | T[] {
+  if (Array.isArray(itemOrArray)) {
+    return itemOrArray.map(mapItem);
+  }
+
+  return mapItem(itemOrArray);
 }
