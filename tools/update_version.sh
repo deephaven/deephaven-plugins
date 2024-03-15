@@ -136,8 +136,7 @@ case "$package" in
             update_file table-example/src/js/package.json '"version": "' '",'
             ;;
         ui)
-            update_file ui/src/js/package.json '"version": "' '",'
-            update_file ui/src/setup.cfg 'version = ' '' "$extra"
+            update_file ui/setup.cfg 'version = ' '' "$extra"
             ;;
         utilities)
             update_file utilities/setup.cfg 'version = ' '' "$extra"
@@ -150,6 +149,16 @@ case "$package" in
             log_error "Unhandled plugin $package.  You will need to add wiring in $SCRIPT_NAME"
             exit 90
         }
+esac
+
+# We still need to bump these JS packages for Enterprise legacy reasons, even though they're packaged with Python
+npm_version="${version}"
+[ "$dev" = true ] && npm_version="${version}-dev0"
+case "$package" in
+    matplotlib | plotly | plotly-express | ui)
+        # The working directory is already `plugins/<package-name>`, so we just specify workspace as `src/js` and it does the right thing
+        npm version "$npm_version" --workspace=src/js
+        ;;
 esac
 
 log_info "Done updating $package version to $version${extra}"
