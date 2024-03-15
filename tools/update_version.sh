@@ -124,21 +124,18 @@ case "$package" in
             update_file json/src/deephaven/plugin/json/__init__.py '__version__ = "' '"' "$extra"
             ;;
         matplotlib)
-            npm version "$version" --workspace=plugins/matplotlib/src/js
             update_file matplotlib/setup.cfg 'version = ' '' "$extra"
             ;;
         plotly)
             update_file plotly/src/deephaven/plugin/plotly/__init__.py '__version__ = "' '"' "$extra"
             ;;
         plotly-express)
-            npm version "$version" --workspace=plugins/plotly-express/src/js
             update_file plotly-express/setup.cfg 'version = ' '' "$extra"
             ;;
         table-example)
             update_file table-example/src/js/package.json '"version": "' '",'
             ;;
         ui)
-            npm version "$version" --workspace=plugins/ui/src/js
             update_file ui/src/setup.cfg 'version = ' '' "$extra"
             ;;
         utilities)
@@ -152,6 +149,15 @@ case "$package" in
             log_error "Unhandled plugin $package.  You will need to add wiring in $SCRIPT_NAME"
             exit 90
         }
+esac
+
+# We still need to bump these JS packages for Enterprise legacy reasons, even though they're packaged with Python
+# Can be removed in the future.
+case "$package" in
+    matplotlib | plotly | plotly-express | ui)
+        # The working directory is already `plugins/<package-name>`, so we just specify workspace as `src/js` and it does the right thing
+        npm version "$version" --workspace=src/js
+        ;;
 esac
 
 log_info "Done updating $package version to $version${extra}"
