@@ -136,7 +136,7 @@ case "$package" in
             update_file table-example/src/js/package.json '"version": "' '",'
             ;;
         ui)
-            update_file ui/src/setup.cfg 'version = ' '' "$extra"
+            update_file ui/setup.cfg 'version = ' '' "$extra"
             ;;
         utilities)
             update_file utilities/setup.cfg 'version = ' '' "$extra"
