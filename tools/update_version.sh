@@ -152,11 +152,12 @@ case "$package" in
 esac
 
 # We still need to bump these JS packages for Enterprise legacy reasons, even though they're packaged with Python
-# Can be removed in the future.
+npm_version="${version}"
+[ "$dev" = true ] && npm_version="${version}-dev0"
 case "$package" in
     matplotlib | plotly | plotly-express | ui)
         # The working directory is already `plugins/<package-name>`, so we just specify workspace as `src/js` and it does the right thing
-        npm version "$version" --workspace=src/js
+        npm version "$npm_version" --workspace=src/js
         ;;
 esac
 
