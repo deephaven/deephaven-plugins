@@ -124,19 +124,21 @@ case "$package" in
             update_file json/src/deephaven/plugin/json/__init__.py '__version__ = "' '"' "$extra"
             ;;
         matplotlib)
+            npm version "$version" --workspace=plugins/matplotlib/src/js
             update_file matplotlib/setup.cfg 'version = ' '' "$extra"
             ;;
         plotly)
             update_file plotly/src/deephaven/plugin/plotly/__init__.py '__version__ = "' '"' "$extra"
             ;;
         plotly-express)
+            npm version "$version" --workspace=plugins/plotly-express/src/js
             update_file plotly-express/setup.cfg 'version = ' '' "$extra"
             ;;
         table-example)
             update_file table-example/src/js/package.json '"version": "' '",'
             ;;
         ui)
-            update_file ui/src/js/package.json '"version": "' '",'
+            npm version "$version" --workspace=plugins/ui/src/js
             update_file ui/src/setup.cfg 'version = ' '' "$extra"
             ;;
         utilities)
