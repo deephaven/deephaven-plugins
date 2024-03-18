@@ -35,10 +35,6 @@ describe('wrapElementChildren', () => {
     exportedB1: createMockProxy<WidgetExportedObject>({
       type: 'mock.exported.b',
     }),
-    itemWithString: <Item>String</Item>,
-    itemWithNumber: <Item>{123}</Item>,
-    itemWithTrue: <Item>{true}</Item>,
-    itemWithFalse: <Item>{false}</Item>,
   };
 
   it('should return given element if it has no children', () => {
