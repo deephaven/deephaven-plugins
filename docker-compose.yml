@@ -2,6 +2,7 @@ version: '3'
 
 services:
   deephaven-plugins:
+    container_name: deephaven-plugins
     build:
       dockerfile: ./Dockerfile
       pull: true
