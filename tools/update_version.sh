@@ -134,6 +134,9 @@ case "$package" in
         packaging)
             update_file packaging/setup.cfg 'version = ' '' "$extra"
             ;;
+        auth-keycloak | dashboard-object-viewer | table-example)
+            # Packages that don't have any Python to publish, just ignore
+            ;;
         *)
         {
             log_error "Unhandled plugin $package.  You will need to add wiring in $SCRIPT_NAME"
@@ -149,6 +152,14 @@ case "$package" in
         # The working directory is already `plugins/<package-name>`, so we just specify workspace as `src/js` and it does the right thing
         npm version "$npm_version" --workspace=src/js
         ;;
+    json | packaging | utilities)
+        # Packages that don't have any JS to publish, just ignore
+        ;;
+    *)
+    {
+        log_error "Unhandled JS plugin $package.  You will need to add JS wiring in $SCRIPT_NAME"
+        exit 90
+    }
 esac
 
 log_info "Done updating $package version to $version${extra}"
