@@ -1,6 +1,5 @@
 import React from 'react';
 import { Text } from '@adobe/react-spectrum';
-import { Item } from '@deephaven/components';
 import type { WidgetExportedObject } from '@deephaven/jsapi-types';
 import { TestUtils } from '@deephaven/utils';
 import { ELEMENT_KEY, isPrimitive, wrapElementChildren } from './ElementUtils';
