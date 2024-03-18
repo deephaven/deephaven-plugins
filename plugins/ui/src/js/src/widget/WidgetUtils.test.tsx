@@ -1,10 +1,12 @@
 import React from 'react';
+import { Text } from '@adobe/react-spectrum';
 import {
   FRAGMENT_ELEMENT_NAME,
+  ITEM_ELEMENT_NAME,
   HTML_ELEMENT_NAME_PREFIX,
   ICON_ELEMENT_TYPE_PREFIX,
 } from '../elements/ElementConstants';
-import { ELEMENT_KEY } from '../elements/ElementUtils';
+import { ElementNode, ELEMENT_KEY } from '../elements/ElementUtils';
 import HTMLElementView from '../elements/HTMLElementView';
 import IconElementView from '../elements/IconElementView';
 import { SPECTRUM_ELEMENT_TYPE_PREFIX } from '../elements/SpectrumElementUtils';
@@ -46,17 +48,21 @@ describe('getComponentForElement', () => {
 
   it.each(
     Object.keys(elementComponentMap) as (keyof typeof elementComponentMap)[]
-  )('should spread props for element nodes', elementKey => {
-    const element = {
-      [ELEMENT_KEY]: elementKey,
-      props:
-        elementKey === FRAGMENT_ELEMENT_NAME
-          ? { key: 'mock.key', children: ['Some child'] }
-          : {
-              'data-test': 'mock.value',
-              children: ['Some child'],
-            },
-    };
+  )('should spread props for element nodes: %s', elementKey => {
+    let element: ElementNode = { [ELEMENT_KEY]: elementKey };
+
+    if (elementKey === FRAGMENT_ELEMENT_NAME) {
+      element = {
+        ...element,
+        props: { key: 'mock.key', children: ['Some child'] },
+      };
+    } else if (elementKey === ITEM_ELEMENT_NAME) {
+      element = {
+        ...element,
+        props: { children: <Text>Some child</Text> },
+      };
+    }
+
     const actual = getComponentForElement(element);
 
     const Expected = elementComponentMap[elementKey] as (

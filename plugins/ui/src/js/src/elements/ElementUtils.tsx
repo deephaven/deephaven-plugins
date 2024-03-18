@@ -1,4 +1,8 @@
+import React from 'react';
+import { Text } from '@adobe/react-spectrum';
 import type { WidgetExportedObject } from '@deephaven/jsapi-types';
+import { ITEM_ELEMENT_NAME } from './ElementConstants';
+import ObjectView from './ObjectView';
 
 export const CALLABLE_KEY = '__dhCbid';
 export const OBJECT_KEY = '__dhObid';
@@ -75,6 +79,21 @@ export function isExportedObject(obj: unknown): obj is WidgetExportedObject {
 }
 
 /**
+ * Typeguard for primitive values.
+ * @param value The value to check
+ * @returns True if given value is a string, number, or boolean
+ */
+export function isPrimitive(
+  value: unknown
+): value is string | number | boolean {
+  return (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  );
+}
+
+/**
  * Gets the type of an element object, or `unknown` if it is not an element.
  * @param node A node in a document, element or unknown object.
  * @returns The type of the element
@@ -104,4 +123,73 @@ export function mapItemOrArray<T>(
   }
 
   return mapItem(itemOrArray);
+}
+
+/**
+ * Wrap certain children of an element node with the appropriate React components.
+ * 1. Exported objects are wrapped with `ObjectView`
+ * 2. Primitive children of `Item` elements are wrapped with `Text`, and the
+ * `textValue` prop of `Item` element is set if it doesn't exist and the
+ * original had a single primitive child
+ * @param element The element node to wrap children for
+ * @returns A new element node with wrapped children or the original if no
+ * children are present
+ */
+export function wrapElementChildren(element: ElementNode): ElementNode {
+  if (element.props?.children == null) {
+    return element;
+  }
+
+  const newProps = { ...element.props };
+
+  const isItemElement = isElementNode(element, ITEM_ELEMENT_NAME);
+
+  // We will be wrapping all primitive `Item` children in a `Text` element to
+  // ensure proper layout. Since `Item` components require a `textValue` prop
+  // if they don't contain exactly 1 `string` child, this will trigger a11y
+  // warnings. We can set a default `textValue` prop in cases where the
+  // original had a single primitive child.
+  if (
+    isItemElement &&
+    !('textValue' in newProps) &&
+    isPrimitive(newProps.children)
+  ) {
+    newProps.textValue = newProps.children;
+  }
+
+  // Derive child keys based on type + index of the occurrence of the type
+  const typeMap = new Map<string, number>();
+  const getChildKey = (type: string): string => {
+    const typeCount = typeMap.get(type) ?? 0;
+    typeMap.set(type, typeCount + 1);
+    return `${type}-${typeCount}`;
+  };
+
+  const children = Array.isArray(newProps.children)
+    ? newProps.children
+    : [newProps.children];
+
+  const wrappedChildren = children.map(child => {
+    // Exported objects need to be converted to `ObjectView` to be rendered
+    if (isExportedObject(child)) {
+      return <ObjectView key={getChildKey(child.type)} object={child} />;
+    }
+
+    // Auto wrap primitive children of `Item` elements in `Text` elements
+    if (isItemElement && isPrimitive(child)) {
+      return <Text key={String(child)}>{child}</Text>;
+    }
+
+    return child;
+  });
+
+  // Keep the children as an array or single item based on the original value
+  newProps.children = Array.isArray(newProps.children)
+    ? wrappedChildren
+    : wrappedChildren[0];
+
+  return {
+    ...element,
+    props: newProps,
+  };
 }
