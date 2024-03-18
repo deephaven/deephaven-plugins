@@ -154,7 +154,7 @@ export function wrapElementChildren(element: ElementNode): ElementNode {
     !('textValue' in newProps) &&
     isPrimitive(newProps.children)
   ) {
-    newProps.textValue = newProps.children;
+    newProps.textValue = String(newProps.children);
   }
 
   // Derive child keys based on type + index of the occurrence of the type
@@ -177,7 +177,7 @@ export function wrapElementChildren(element: ElementNode): ElementNode {
 
     // Auto wrap primitive children of `Item` elements in `Text` elements
     if (isItemElement && isPrimitive(child)) {
-      return <Text key={String(child)}>{child}</Text>;
+      return <Text key={String(child)}>{String(child)}</Text>;
     }
 
     return child;
