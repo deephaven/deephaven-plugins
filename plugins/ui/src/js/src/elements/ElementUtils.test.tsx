@@ -79,7 +79,6 @@ describe('wrapElementChildren', () => {
     'Item element `textValue`: `%s`',
     textValue => {
       it.each([
-        /* eslint-disable react/jsx-key */
         ['String', <Text key="String">String</Text>],
         [999, <Text key="999">999</Text>],
         [true, <Text key="true">true</Text>],
@@ -93,7 +92,6 @@ describe('wrapElementChildren', () => {
             <Text key="false">false</Text>,
           ],
         ],
-        /* eslint-enable react/jsx-key */
       ])(
         'should wrap primitive item element children in Text elements: %s, %s',
         (children, expectedChildren) => {
