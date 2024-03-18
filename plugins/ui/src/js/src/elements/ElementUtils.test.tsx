@@ -97,30 +97,26 @@ describe('wrapElementChildren', () => {
       ])(
         'should wrap primitive item element children in Text elements: %s, %s',
         (children, expectedChildren) => {
-          const given =
-            textValue == null
-              ? {
-                  [ELEMENT_KEY]: ITEM_ELEMENT_NAME,
-                  props: { children },
-                }
-              : {
-                  [ELEMENT_KEY]: ITEM_ELEMENT_NAME,
-                  props: { textValue, children },
-                };
+          const givenProps =
+            textValue == null ? { children } : { textValue, children };
 
-          const actual = wrapElementChildren(given);
-
-          const fallbackTextValue = Array.isArray(children)
-            ? undefined
-            : String(children);
+          const expectedTextValue =
+            textValue == null && isPrimitive(children)
+              ? String(children)
+              : textValue;
 
           const expected = {
             [ELEMENT_KEY]: ITEM_ELEMENT_NAME,
             props: {
-              textValue: textValue ?? fallbackTextValue,
+              textValue: expectedTextValue,
               children: expectedChildren,
             },
           };
+
+          const actual = wrapElementChildren({
+            [ELEMENT_KEY]: ITEM_ELEMENT_NAME,
+            props: givenProps,
+          });
 
           expect(actual).toEqual(expected);
         }
