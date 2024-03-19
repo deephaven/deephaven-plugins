@@ -149,12 +149,14 @@ export function wrapElementChildren(element: ElementNode): ElementNode {
   // if they don't contain exactly 1 `string` child, this will trigger a11y
   // warnings. We can set a default `textValue` prop in cases where the
   // original had a single primitive child.
-  if (
-    isItemElement &&
-    !('textValue' in newProps) &&
-    isPrimitive(newProps.children)
-  ) {
-    newProps.textValue = String(newProps.children);
+  if (isItemElement) {
+    if (!('textValue' in newProps) && isPrimitive(newProps.children)) {
+      newProps.textValue = String(newProps.children);
+    }
+
+    if (!('key' in newProps)) {
+      newProps.key = newProps.textValue;
+    }
   }
 
   // Derive child keys based on type + index of the occurrence of the type

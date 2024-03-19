@@ -75,50 +75,57 @@ describe('wrapElementChildren', () => {
     }
   );
 
-  describe.each(['Some text value', undefined])(
-    'Item element `textValue`: `%s`',
-    textValue => {
-      it.each([
-        ['String', <Text key="String">String</Text>],
-        [999, <Text key="999">999</Text>],
-        [true, <Text key="true">true</Text>],
-        [false, <Text key="false">false</Text>],
+  describe.each([
+    ['Some text value', undefined],
+    [undefined, 'itemKey'],
+  ])('Item element `textValue`:`%s`, `key`:`%s`', (textValue, itemKey) => {
+    it.each([
+      ['String', <Text key="String">String</Text>],
+      [999, <Text key="999">999</Text>],
+      [true, <Text key="true">true</Text>],
+      [false, <Text key="false">false</Text>],
+      [
+        ['String', 999, true, false],
         [
-          ['String', 999, true, false],
-          [
-            <Text key="String">String</Text>,
-            <Text key="999">999</Text>,
-            <Text key="true">true</Text>,
-            <Text key="false">false</Text>,
-          ],
+          <Text key="String">String</Text>,
+          <Text key="999">999</Text>,
+          <Text key="true">true</Text>,
+          <Text key="false">false</Text>,
         ],
-      ])(
-        'should wrap primitive item element children in Text elements: %s, %s',
-        (children, expectedChildren) => {
-          const givenProps =
-            textValue == null ? { children } : { textValue, children };
-
-          const expectedTextValue =
-            textValue == null && isPrimitive(children)
-              ? String(children)
-              : textValue;
-
-          const expected = {
-            [ELEMENT_KEY]: ITEM_ELEMENT_NAME,
-            props: {
-              textValue: expectedTextValue,
-              children: expectedChildren,
-            },
-          };
-
-          const actual = wrapElementChildren({
-            [ELEMENT_KEY]: ITEM_ELEMENT_NAME,
-            props: givenProps,
-          });
-
-          expect(actual).toEqual(expected);
+      ],
+    ])(
+      'should wrap primitive item element children in Text elements: %s, %s',
+      (children, expectedChildren) => {
+        const givenProps: Record<string, unknown> = { children };
+        if (textValue != null) {
+          givenProps.textValue = textValue;
         }
-      );
-    }
-  );
+
+        if (itemKey != null) {
+          givenProps.key = itemKey;
+        }
+
+        const expectedTextValue =
+          textValue == null && isPrimitive(children)
+            ? String(children)
+            : textValue;
+
+        const expected = {
+          [ELEMENT_KEY]: ITEM_ELEMENT_NAME,
+          props: {
+            key: itemKey ?? textValue,
+            textValue: expectedTextValue,
+            children: expectedChildren,
+          },
+        };
+
+        const actual = wrapElementChildren({
+          [ELEMENT_KEY]: ITEM_ELEMENT_NAME,
+          props: givenProps,
+        });
+
+        expect(actual).toEqual(expected);
+      }
+    );
+  });
 });
