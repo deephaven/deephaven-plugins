@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.6.0 - 2024-03-19
+#### Features
+- Package matplotlib and ui JS with wheel (#343) - (7724e55) - Joe
+
+- - -
+
 ## plotly-express-v0.5.0 - 2024-03-06
 #### Build system
 - Update dh ui packages to ^0.66.1 (#330) - (9433a98) - bmingles
