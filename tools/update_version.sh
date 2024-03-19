@@ -107,19 +107,12 @@ function update_file() {
         else
             sed -e "s/${prefix}.*/${expected}/g" -i "$ROOT_DIR/plugins/$file"
         fi
-        git add "$ROOT_DIR/plugins/$file"
     fi
 }
 
 extra=
 [ "$dev" = true ] && extra=".dev0"
 case "$package" in
-        auth-keycloak)
-            update_file auth-keycloak/src/js/package.json '"version": "' '",'
-            ;;
-        dashboard-object-viewer)
-            update_file dashboard-object-viewer/src/js/package.json '"version": "' '",'
-            ;;
         json)
             update_file json/src/deephaven/plugin/json/__init__.py '__version__ = "' '"' "$extra"
             ;;
@@ -132,9 +125,6 @@ case "$package" in
         plotly-express)
             update_file plotly-express/setup.cfg 'version = ' '' "$extra"
             ;;
-        table-example)
-            update_file table-example/src/js/package.json '"version": "' '",'
-            ;;
         ui)
             update_file ui/setup.cfg 'version = ' '' "$extra"
             ;;
@@ -143,6 +133,9 @@ case "$package" in
             ;;
         packaging)
             update_file packaging/setup.cfg 'version = ' '' "$extra"
+            ;;
+        auth-keycloak | dashboard-object-viewer | table-example)
+            # Packages that don't have any Python to publish, just ignore
             ;;
         *)
         {
@@ -155,10 +148,18 @@ esac
 npm_version="${version}"
 [ "$dev" = true ] && npm_version="${version}-dev0"
 case "$package" in
-    matplotlib | plotly | plotly-express | ui)
+    auth-keycloak | dashboard-object-viewer | matplotlib | plotly | plotly-express | table-example | ui)
         # The working directory is already `plugins/<package-name>`, so we just specify workspace as `src/js` and it does the right thing
         npm version "$npm_version" --workspace=src/js
         ;;
+    json | packaging | utilities)
+        # Packages that don't have any JS to publish, just ignore
+        ;;
+    *)
+    {
+        log_error "Unhandled JS plugin $package.  You will need to add JS wiring in $SCRIPT_NAME"
+        exit 90
+    }
 esac
 
 log_info "Done updating $package version to $version${extra}"
