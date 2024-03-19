@@ -8,7 +8,7 @@ import {
   ElementNode,
   ELEMENT_KEY,
   isElementNode,
-  isExportedObject,
+  wrapElementChildren,
 } from '../elements/ElementUtils';
 import HTMLElementView from '../elements/HTMLElementView';
 import { isHTMLElementNode } from '../elements/HTMLElementUtils';
@@ -30,7 +30,6 @@ import {
   UITABLE_ELEMENT_TYPE,
 } from '../elements/ElementConstants';
 import ReactPanel from '../layout/ReactPanel';
-import ObjectView from '../elements/ObjectView';
 import Row from '../layout/Row';
 import Stack from '../layout/Stack';
 import Column from '../layout/Column';
@@ -62,27 +61,8 @@ export function getComponentTypeForElement<P extends Record<string, unknown>>(
 }
 
 export function getComponentForElement(element: ElementNode): React.ReactNode {
-  // Need to convert the children of the element if they are exported objects to an ObjectView
-  // Else React won't be able to render them
-  const newElement = { ...element };
-  if (newElement.props?.children != null) {
-    const { children } = newElement.props;
-    if (Array.isArray(children)) {
-      const typeMap = new Map<string, number>();
-      newElement.props.children = children.map((child, i) => {
-        if (isExportedObject(child)) {
-          const { type } = child;
-          const typeCount = typeMap.get(type) ?? 0;
-          typeMap.set(type, typeCount + 1);
-          const key = `${type}-${typeCount}`;
-          return <ObjectView key={key} object={child} />;
-        }
-        return child;
-      });
-    } else if (isExportedObject(children)) {
-      newElement.props.children = <ObjectView object={children} />;
-    }
-  }
+  const newElement = wrapElementChildren({ ...element });
+
   if (isHTMLElementNode(newElement)) {
     return HTMLElementView({ element: newElement });
   }
