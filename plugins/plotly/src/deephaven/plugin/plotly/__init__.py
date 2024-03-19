@@ -1,8 +1,6 @@
 from deephaven.plugin import Registration, Callback
 from plotly import io as pio
 
-__version__ = "0.3.0.dev0"
-
 
 def _init_theme():
     # Set the Deephaven style globally

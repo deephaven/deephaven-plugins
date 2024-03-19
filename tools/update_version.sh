@@ -113,26 +113,8 @@ function update_file() {
 extra=
 [ "$dev" = true ] && extra=".dev0"
 case "$package" in
-        json)
-            update_file json/src/deephaven/plugin/json/__init__.py '__version__ = "' '"' "$extra"
-            ;;
-        matplotlib)
-            update_file matplotlib/setup.cfg 'version = ' '' "$extra"
-            ;;
-        plotly)
-            update_file plotly/src/deephaven/plugin/plotly/__init__.py '__version__ = "' '"' "$extra"
-            ;;
-        plotly-express)
-            update_file plotly-express/setup.cfg 'version = ' '' "$extra"
-            ;;
-        ui)
-            update_file ui/setup.cfg 'version = ' '' "$extra"
-            ;;
-        utilities)
-            update_file utilities/setup.cfg 'version = ' '' "$extra"
-            ;;
-        packaging)
-            update_file packaging/setup.cfg 'version = ' '' "$extra"
+        json | matplotlib | plotly | plotly-express | ui | utilities | packaging)
+            update_file "${package}/setup.cfg" 'version = ' '' "$extra"
             ;;
         auth-keycloak | dashboard-object-viewer | table-example)
             # Packages that don't have any Python to publish, just ignore
