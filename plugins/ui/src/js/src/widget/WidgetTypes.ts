@@ -15,6 +15,12 @@ export type WidgetFetch = (takeOwnership?: boolean) => Promise<Widget>;
 export type WidgetData = {
   /** Panel IDs that are opened by this widget */
   panelIds?: string[];
+
+  /** State of the widget on the Python side */
+  state?: Record<string, unknown>;
 };
 
 export type ReadonlyWidgetData = Readonly<WidgetData>;
+
+/** Contains an update for widget data. Only the keys that are updated are passed. */
+export type WidgetDataUpdate = Partial<ReadonlyWidgetData>;

@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.10.0 - 2024-03-15
+#### Bug Fixes
+- Tighten use_memo dependency types (#356) - (48dea18) - Joe
+#### Build system
+- Fix npm package update (#361) - (cabbcab) - mofojed
+#### Documentation
+- list_view spec (#352) - (bca3880) - Joe
+- Fix the demo script (#354) - (7e7302e) - mofojed
+#### Features
+- Store server-side state for rehydration (#338) - (bb28df3) - mofojed
+- Package matplotlib and ui JS with wheel (#343) - (7724e55) - Joe
+
+- - -
+
 ## ui-v0.9.0 - 2024-03-09
 #### Bug Fixes
 - Tab Panels contents should take up the full height (#340) - (6028195) - mofojed

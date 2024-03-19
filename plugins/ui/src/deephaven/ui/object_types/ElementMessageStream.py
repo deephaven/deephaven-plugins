@@ -16,7 +16,7 @@ from deephaven.liveness_scope import liveness_scope
 from .._internal import wrap_callable
 from ..elements import Element
 from ..renderer import NodeEncoder, Renderer, RenderedNode
-from .._internal import RenderContext, StateUpdateCallable
+from .._internal import RenderContext, StateUpdateCallable, ExportedRenderState
 
 logger = logging.getLogger(__name__)
 
@@ -132,7 +132,7 @@ class ElementMessageStream(MessageStream):
         self._connection = connection
         self._message_id = 0
         self._manager = JSONRPCResponseManager()
-        self._dispatcher = Dispatcher()
+        self._dispatcher = self._make_dispatcher()
         self._encoder = NodeEncoder(separators=(",", ":"))
         self._context = RenderContext(self._queue_state_update, self._queue_callable)
         self._renderer = Renderer(self._context)
@@ -155,40 +155,43 @@ class ElementMessageStream(MessageStream):
 
         try:
             node = self._renderer.render(self._element)
+            state = self._context.export_state()
+            self._send_document_update(node, state)
         except Exception as e:
             logger.exception("Error rendering %s", self._element.name)
             raise e
-
-        self._send_document_update(node)
 
     def _process_callable_queue(self) -> None:
         """
         Process any queued callables, then re-renders the element if it is dirty.
         """
-        with self._exec_context:
-            with self._render_lock:
-                self._render_thread = threading.current_thread()
-                self._render_state = _RenderState.RENDERING
+        try:
+            with self._exec_context:
+                with self._render_lock:
+                    self._render_thread = threading.current_thread()
+                    self._render_state = _RenderState.RENDERING
 
-            while not self._callable_queue.empty():
-                item = self._callable_queue.get()
-                with liveness_scope():
-                    try:
-                        item()
-                    except Exception as e:
-                        logger.exception(e)
+                while not self._callable_queue.empty():
+                    item = self._callable_queue.get()
+                    with liveness_scope():
+                        try:
+                            item()
+                        except Exception as e:
+                            logger.exception(e)
 
-            if self._is_dirty:
-                self._render()
+                if self._is_dirty:
+                    self._render()
 
-            with self._render_lock:
-                self._render_thread = None
-                if not self._callable_queue.empty() or self._is_dirty:
-                    # There are still callables to process, so queue up another render
-                    self._render_state = _RenderState.QUEUED
-                    submit_task("concurrent", self._process_callable_queue)
-                else:
-                    self._render_state = _RenderState.IDLE
+                with self._render_lock:
+                    self._render_thread = None
+                    if not self._callable_queue.empty() or self._is_dirty:
+                        # There are still callables to process, so queue up another render
+                        self._render_state = _RenderState.QUEUED
+                        submit_task("concurrent", self._process_callable_queue)
+                    else:
+                        self._render_state = _RenderState.IDLE
+        except Exception as e:
+            logger.exception(e)
 
     def _mark_dirty(self) -> None:
         """
@@ -232,9 +235,9 @@ class ElementMessageStream(MessageStream):
 
     def start(self) -> None:
         """
-        Start the message stream. This will start the render loop and queue up the initial render.
+        Start the message stream. All we do is send a blank message to start. Client will respond with the initial state.
         """
-        self._mark_dirty()
+        self._connection.on_data(b"", [])
 
     def on_close(self) -> None:
         pass
@@ -302,12 +305,31 @@ class ElementMessageStream(MessageStream):
             "id": self._get_next_message_id(),
         }
 
-    def _send_document_update(self, root: RenderedNode) -> None:
+    def _make_dispatcher(self) -> Dispatcher:
+        dispatcher = Dispatcher()
+        dispatcher["setState"] = self._set_state
+        return dispatcher
+
+    def _set_state(self, state: ExportedRenderState) -> None:
+        """
+        Set the state of the element. This is called by the client on initial load.
+
+        Args:
+            state: The state to set
+        """
+        logger.debug("Setting state: %s", state)
+        self._context.import_state(state)
+        self._mark_dirty()
+
+    def _send_document_update(
+        self, root: RenderedNode, state: ExportedRenderState
+    ) -> None:
         """
         Send a document update to the client. Currently just sends the entire document for each update.
 
         Args:
             root: The root node of the document to send
+            state: The state of the node to preserve
         """
 
         # TODO(#67): Send a diff of the document instead of the entire document.
@@ -316,11 +338,16 @@ class ElementMessageStream(MessageStream):
         new_objects = encoder_result["new_objects"]
         callable_id_dict = encoder_result["callable_id_dict"]
 
-        request = self._make_notification("documentUpdated", encoded_document)
+        logger.debug("Exported state: %s", state)
+        encoded_state = json.dumps(state)
+
+        request = self._make_notification(
+            "documentUpdated", encoded_document, encoded_state
+        )
         payload = json.dumps(request)
         logger.debug(f"Sending payload: {payload}")
 
-        dispatcher = Dispatcher()
+        dispatcher = self._make_dispatcher()
         for callable, callable_id in callable_id_dict.items():
             logger.debug("Registering callable %s", callable_id)
             dispatcher[callable_id] = wrap_callable(callable)

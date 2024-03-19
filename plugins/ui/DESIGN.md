@@ -1964,31 +1964,35 @@ The above examples are all in Python, and particularly take some advantage of la
 
 ##### Rendering
 
-When you call a function decorated by `@ui.component`, it will return a `UiNode` object that has a reference to the function it is decorated; that is to say, the function does _not_ get run immediately. The function is only run when the `UiNode` is rendered by the client, and the result is sent back to the client. This allows the `@ui.component` decorator to execute the function with the appropriate rendering context, and also allows for memoization of the function (e.g. if the function is called multiple times with the same arguments, it will only be executed once - akin to a [memoized component](https://react.dev/reference/react/memo) or PureComponent in React).
+When you call a function decorated by `@ui.component`, it will return an `Element` object that has a reference to the function it is decorated; that is to say, the function does _not_ get run immediately. The function is only run when the `Element` is rendered by the client, and the result is sent back to the client. This allows the `@ui.component` decorator to execute the function with the appropriate rendering context. The client must also set the initial state before rendering, allowing the client to persist the state and re-render in the future.
 
 Let's say we execute the following, where a table is filtered based on the value of a text input:
 
 ```python
+from deephaven import ui
+
+
 @ui.component
 def text_filter_table(source, column, initial_value=""):
-    value, set_value = use_state(initial_value)
-    ti = ui.text_field(value, on_change=set_value)
+    value, set_value = ui.use_state(initial_value)
+    ti = ui.text_field(value=value, on_change=set_value)
     tt = source.where(f"{column}=`{value}`")
     return [ti, tt]
 
 
+# This will render two panels, one filtering the table by Sym, and the other by Exchange
 @ui.component
-def sym_exchange(source):
-    tft1 = text_filter_table(source, "Sym")
-    tft2 = text_filter_table(source, "Exchange")
-    return ui.flex(tft1, tft2, direction="row")
+def double_text_filter_table(source):
+    tft1 = text_filter_table(source, "sym")
+    tft2 = text_filter_table(source, "exchange")
+    return ui.panel(tft1, title="Sym"), ui.panel(tft2, title="Exchange")
 
 
 import deephaven.plot.express as dx
 
-t = dx.data.stocks()
+_stocks = dx.data.stocks()
 
-tft = text_filter_table(t, "sym")
+tft = double_text_filter_table(_stocks)
 ```
 
 Which should result in a UI like this:
@@ -2013,21 +2017,21 @@ sequenceDiagram
 
   W->>UIP: Open tft
   UIP->>C: Export tft
-  C-->>UIP: tft (UiNode)
+  C-->>UIP: tft (Element)
 
-  Note over UIP: UI knows about object tft<br/>sym_exchange not executed yet
+  Note over UIP: UI knows about object tft<br/>double_text_filter_table not executed yet
 
-  UIP->>SP: Render tft
-  SP->>SP: Run sym_exchange
-  Note over SP: sym_exchange executes, running text_filter_table twice
-  SP-->>UIP: Result (document=flex([tft1, tft2]), exported_objects=[tft1, tft2])
+  UIP->>SP: Render tft (initialState)
+  SP->>SP: Run double_text_filter_table
+  Note over SP: double_text_filter_table executes, running text_filter_table twice
+  SP-->>UIP: Result (document=[panel(tft1), pane(tft2)], exported_objects=[tft1, tft2])
   UIP-->>W: Display Result
 
   U->>UIP: Change text input 1
   UIP->>SP: Change state
-  SP->>SP: Run sym_exchange
-  Note over SP: sym_exchange executes, text_filter_table only <br/>runs once for the one changed input<br/>only exports the new table, as client already has previous tables
-  SP-->>UIP: Result (document=flex([tft1', tft2], exported_objects=[tft1']))
+  SP->>SP: Run double_text_filter_table
+  Note over SP: double_text_filter_table executes, text_filter_table only <br/>runs once for the one changed input<br/>only exports the new table, as client already has previous tables
+  SP-->>UIP: Result (document=[panel(tft1'), panel(tft2)], state={}, exported_objects=[tft1'])
   UIP-->>W: Display Result
 ```
 
@@ -2040,14 +2044,15 @@ sequenceDiagram
   participant UIP as UI Plugin
   participant SP as Server Plugin
 
-  UIP->>SP: obj.getDataAsString()
-    Note over UIP, SP: Uses json-rpc
-  SP-->>UIP: documentUpdated(Document)
+    Note over UIP, SP: Uses JSON-RPC
+  UIP->>SP: setState(initialState)
+  SP-->>UIP: documentUpdated(Document, State)
 
   loop Callback
     UIP->>SP: foo(params)
     SP-->>UIP: foo result
-    SP->>UIP: documentUpdated(Document)
+    SP->>UIP: documentUpdated(Document, State)
+      Note over UIP: Client can store State to restore the same state later
   end
 ```
 

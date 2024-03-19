@@ -34,7 +34,7 @@ jobs:
       - name: Dump server logs
         if: failure()
         run: docker logs deephaven-plugins > /tmp/server-log.txt
-
+  
       - name: Upload server logs
         if: failure()
         uses: actions/upload-artifact@v4

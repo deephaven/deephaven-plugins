@@ -47,7 +47,7 @@ def _render_list(
     """
     logger.debug("_render_list %s", item)
     return [
-        _render_item(value, context.get_child_context(key))
+        _render_item(value, context.get_child_context(str(key)))
         for key, value in enumerate(item)
     ]
 

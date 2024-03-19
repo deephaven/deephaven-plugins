@@ -5,13 +5,13 @@ import logging
 from typing import (
     Any,
     Callable,
+    Dict,
     Optional,
     TypeVar,
     Union,
     Generator,
     Generic,
     cast,
-    Set,
 )
 from functools import partial
 from deephaven import DHError
@@ -48,9 +48,14 @@ UpdaterFunction = Callable[[T], T]
 A function that takes the old value and returns the new value for a state.
 """
 
-ContextKey = Union[str, int]
+ContextKey = str
 """
 The key for a child context.
+"""
+
+ChildrenContextDict = Dict[ContextKey, "RenderContext"]
+"""
+The child contexts for a RenderContext.
 """
 
 
@@ -60,6 +65,17 @@ class ValueWithLiveness(Generic[T]):
 
     value: T
     liveness_scope: Union[LivenessScope, None]
+
+
+ContextState = Dict[StateKey, ValueWithLiveness[Any]]
+"""
+The state for a context.
+"""
+
+ExportedRenderState = Dict[str, Any]
+"""
+The serializable state of a RenderContext. Used to serialize the state for the client.
+"""
 
 
 def _value_or_call(
@@ -81,6 +97,19 @@ def _value_or_call(
             value = value()
         return ValueWithLiveness(value=value, liveness_scope=scope)
     return ValueWithLiveness(value=value, liveness_scope=None)
+
+
+def _should_retain_value(value: ValueWithLiveness[T | None]) -> bool:
+    """
+    Determine if the given value should be retained by the current context.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if the value should be retained, False otherwise.
+    """
+    return value.liveness_scope is None and isinstance(value.value, (str, int, float))
 
 
 _local_data = threading.local()
@@ -133,12 +162,12 @@ class RenderContext:
     Count of hooks used in the render. Should only be set after initial render.
     """
 
-    _state: dict[StateKey, ValueWithLiveness[Any]]
+    _state: ContextState
     """
     The state for this context.
     """
 
-    _children_context: dict[ContextKey, "RenderContext"]
+    _children_context: ChildrenContextDict
     """
     The child contexts for this context. 
     """
@@ -354,3 +383,52 @@ class RenderContext:
         """
         assert self is get_context()
         self._collected_scopes.add(cast(LivenessScope, liveness_scope.j_scope))
+
+    def export_state(self) -> ExportedRenderState:
+        """
+        Export the state of this context. This is used to serialize the state for the client.
+
+        Returns:
+            The exported serializable state of this context.
+        """
+        exported_state: ExportedRenderState = {}
+
+        # We need to iterate through all of our state and export anything that doesn't have a LivenessScope right now (anything serializable)
+        def retained_values(state: ContextState):
+            for key, value in state.items():
+                if _should_retain_value(value):
+                    yield key, value.value
+
+        if len(state := dict(retained_values(self._state))) > 0:
+            exported_state["state"] = state
+
+        # Now iterate through all the children contexts, and only include them in the export if they're not empty
+        def retained_children(children: ChildrenContextDict):
+            for key, child in children.items():
+                if len(child_state := child.export_state()) > 0:
+                    yield key, child_state
+
+        if len(children_state := dict(retained_children(self._children_context))) > 0:
+            exported_state["children"] = children_state
+
+        return exported_state
+
+    def import_state(self, state: dict[str, Any]) -> None:
+        """
+        Import the state of this context. This is used to deserialize the state from the client.
+
+        Args:
+            state: The state to import.
+        """
+        self._state.clear()
+        self._children_context.clear()
+        if "state" in state:
+            for key, value in state["state"].items():
+                # When python dict is converted to JSON, all keys are converted to strings. We convert them back to int here.
+                self._state[int(key)] = ValueWithLiveness(
+                    value=value, liveness_scope=None
+                )
+        if "children" in state:
+            for key, child_state in state["children"].items():
+                self.get_child_context(key).import_state(child_state)
+        logger.debug("New state is %s", self._state)
