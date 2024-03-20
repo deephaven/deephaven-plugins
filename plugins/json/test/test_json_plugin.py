@@ -1,12 +1,16 @@
 import unittest
 import importlib.resources
 import json
+import sys
 
 from deephaven.plugin.json import Encoder
 from deephaven.plugin.object_type import Exporter, Reference
 
 
 def read_text(resource: str):
+    if sys.version_info < (3, 9):
+        # Need to use legacy behaviour on Python < 3.9
+        return importlib.resources.read_text(__package__, resource)
     return importlib.resources.files(__package__).joinpath(resource).read_bytes()
 
 

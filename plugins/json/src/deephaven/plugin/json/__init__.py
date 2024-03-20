@@ -5,8 +5,6 @@ import functools
 
 from deephaven.plugin import Registration, Callback, object_type
 
-__version__ = "0.0.2.dev0"
-
 
 class Node:
     def __init__(self, object, is_ref=False, **kw) -> None:
