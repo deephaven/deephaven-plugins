@@ -52,13 +52,21 @@ function DocumentHandler({
 
   const handleOpen = useCallback(
     (panelId: string) => {
-      panelOpenCountRef.current += 1;
-      log.debug('Panel opened, open count', panelOpenCountRef.current);
-
       if (widgetData.panelIds == null) {
         widgetData.panelIds = [];
       }
-      widgetData.panelIds?.push(panelId);
+      if (
+        widgetData.panelIds == null ||
+        widgetData.panelIds.includes(panelId)
+      ) {
+        log.debug2('Panel already open', panelId);
+        return;
+      }
+
+      panelOpenCountRef.current += 1;
+      log.debug('Panel opened, open count', panelOpenCountRef.current);
+
+      widgetData.panelIds.push(panelId);
       onDataChange(widgetData);
     },
     [onDataChange, widgetData]

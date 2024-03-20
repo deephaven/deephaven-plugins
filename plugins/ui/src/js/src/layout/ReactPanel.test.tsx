@@ -1,6 +1,7 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import { LayoutUtils, useListener } from '@deephaven/dashboard';
+import { usePortalOpenedListener } from './PortalPanelEvent';
 import ReactPanel from './ReactPanel';
 import {
   ReactPanelManager,
@@ -10,6 +11,12 @@ import { ReactPanelProps } from './LayoutUtils';
 import PortalPanelManager from './PortalPanelManager';
 
 const mockPanelId = 'test-panel-id';
+
+// Mock usePortalOpenedListener
+jest.mock('./PortalPanelEvent', () => ({
+  ...jest.requireActual('./PortalPanelEvent'),
+  usePortalOpenedListener: jest.fn(),
+}));
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -46,7 +53,18 @@ function simulatePanelClosed() {
   (useListener as jest.Mock).mock.calls[0][2](mockPanelId);
 }
 
-it('opens panel on mount, and closes panel on unmount', async () => {
+function simulatePortalOpened() {
+  (usePortalOpenedListener as jest.Mock).mock.calls[1][1]({
+    container: {
+      _config: {
+        id: mockPanelId,
+      },
+    },
+    element: document.createElement('div'),
+  });
+}
+
+it('opens panel on mount, and closes panel on unmount', () => {
   const onOpen = jest.fn();
   const onClose = jest.fn();
   const { unmount } = render(makeReactPanel({ onOpen, onClose }));
@@ -54,6 +72,10 @@ it('opens panel on mount, and closes panel on unmount', async () => {
   expect(LayoutUtils.closeComponent).not.toHaveBeenCalled();
   expect(onOpen).toHaveBeenCalledTimes(1);
   expect(onClose).not.toHaveBeenCalled();
+
+  act(() => {
+    simulatePortalOpened();
+  });
 
   unmount();
 
@@ -63,7 +85,7 @@ it('opens panel on mount, and closes panel on unmount', async () => {
   expect(onClose).toHaveBeenCalledTimes(1);
 });
 
-it('only calls open once if the panel has not closed and only children change', async () => {
+it('only calls open once if the panel has not closed and only children change', () => {
   const onOpen = jest.fn();
   const onClose = jest.fn();
   const metadata = { type: 'bar' };
@@ -76,6 +98,10 @@ it('only calls open once if the panel has not closed and only children change', 
   expect(onOpen).toHaveBeenCalledTimes(1);
   expect(onClose).not.toHaveBeenCalled();
 
+  act(() => {
+    simulatePortalOpened();
+  });
+
   rerender(makeReactPanel({ children: 'world', onOpen, onClose, metadata }));
 
   expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
@@ -84,7 +110,7 @@ it('only calls open once if the panel has not closed and only children change', 
   expect(onClose).not.toHaveBeenCalled();
 });
 
-it('calls openComponent again after panel is closed only if the metadata changes', async () => {
+it('calls openComponent again after panel is closed only if the metadata changes', () => {
   const onOpen = jest.fn();
   const onClose = jest.fn();
   const metadata = { type: 'bar' };
@@ -97,6 +123,9 @@ it('calls openComponent again after panel is closed only if the metadata changes
       metadata,
     })
   );
+  act(() => {
+    simulatePortalOpened();
+  });
   expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
   expect(LayoutUtils.closeComponent).not.toHaveBeenCalled();
   expect(onOpen).toHaveBeenCalledTimes(1);
@@ -138,5 +167,36 @@ it('calls openComponent again after panel is closed only if the metadata changes
   expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(2);
   expect(LayoutUtils.closeComponent).not.toHaveBeenCalled();
   expect(onOpen).toHaveBeenCalledTimes(2);
+  expect(onClose).toHaveBeenCalledTimes(1);
+});
+
+it('does not call onClose when still waiting for an open', async () => {
+  const onOpen = jest.fn();
+  const onClose = jest.fn();
+  const { unmount } = render(makeReactPanel({ onOpen, onClose }));
+  expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
+  expect(LayoutUtils.closeComponent).not.toHaveBeenCalled();
+  expect(onOpen).toHaveBeenCalledTimes(1);
+  expect(onClose).not.toHaveBeenCalled();
+
+  simulatePanelClosed();
+
+  expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
+  expect(LayoutUtils.closeComponent).not.toHaveBeenCalled();
+  expect(onOpen).toHaveBeenCalledTimes(1);
+  expect(onClose).not.toHaveBeenCalled();
+
+  act(() => {
+    simulatePortalOpened();
+  });
+
+  expect(onOpen).toHaveBeenCalledTimes(1);
+  expect(onClose).not.toHaveBeenCalled();
+
+  unmount();
+
+  expect(LayoutUtils.openComponent).toHaveBeenCalledTimes(1);
+  expect(LayoutUtils.closeComponent).toHaveBeenCalledTimes(1);
+  expect(onOpen).toHaveBeenCalledTimes(1);
   expect(onClose).toHaveBeenCalledTimes(1);
 });

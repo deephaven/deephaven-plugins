@@ -13,6 +13,7 @@ import { ReactPanelProps } from './LayoutUtils';
 import { useParentItem } from './ParentItemContext';
 import { ReactPanelContext } from './ReactPanelContext';
 import { usePortalPanelManager } from './PortalPanelManagerContext';
+import { usePortalOpenedListener } from './PortalPanelEvent';
 
 const log = Log.module('@deephaven/js-plugin-ui/ReactPanel');
 
@@ -31,6 +32,9 @@ function ReactPanel({ children, title }: ReactPanelProps) {
   const openedMetadataRef = useRef<ReactPanelControl['metadata']>(
     portal != null ? metadata : null
   );
+  // When we're re-opening a widget, we may get a close event for the previous panel before the open event
+  // In that situation, we want to ignore the close until the open event has occurred
+  const isWaitingForOpen = useRef(true);
   const parent = useParentItem();
   const { eventHub } = layoutManager;
 
@@ -40,6 +44,10 @@ function ReactPanel({ children, title }: ReactPanelProps) {
     () => () => {
       if (isPanelOpenRef.current) {
         log.debug('Closing panel', panelId);
+        if (isWaitingForOpen.current) {
+          log.debug('handlePanelClosed Ignoring close event, waiting for open');
+          return;
+        }
         LayoutUtils.closeComponent(parent, { id: panelId });
         isPanelOpenRef.current = false;
         onClose();
@@ -52,6 +60,10 @@ function ReactPanel({ children, title }: ReactPanelProps) {
     closedPanelId => {
       if (closedPanelId === panelId) {
         log.debug('Panel closed', panelId);
+        if (isWaitingForOpen.current) {
+          log.debug('handlePanelClosed Ignoring close event, waiting for open');
+          return;
+        }
         isPanelOpenRef.current = false;
         onClose();
       }
@@ -59,6 +71,19 @@ function ReactPanel({ children, title }: ReactPanelProps) {
     [onClose, panelId]
   );
 
+  const handlePortalOpened = useCallback(
+    payload => {
+      const { container } = payload;
+      const containerId = LayoutUtils.getIdFromContainer(container);
+      if (containerId === panelId) {
+        log.debug('Panel opened', panelId);
+        isWaitingForOpen.current = false;
+      }
+    },
+    [panelId]
+  );
+
+  usePortalOpenedListener(eventHub, handlePortalOpened);
   useListener(eventHub, PanelEvent.CLOSED, handlePanelClosed);
 
   useEffect(
@@ -92,6 +117,7 @@ function ReactPanel({ children, title }: ReactPanelProps) {
         log.debug('Opened panel', panelId, config);
         isPanelOpenRef.current = true;
         openedMetadataRef.current = metadata;
+        isWaitingForOpen.current = true;
 
         onOpen();
       }

@@ -276,13 +276,14 @@ function WidgetHandler({
       async function loadWidgetInternal() {
         const newWidget = await fetch();
         if (isCancelled) {
+          log.debug2('loadWidgetInternal cancelled', descriptor, newWidget);
           newWidget.close();
           newWidget.exportedObjects.forEach(exportedObject => {
             exportedObject.close();
           });
           return;
         }
-        log.debug('newWidget', descriptor, newWidget);
+        log.debug('loadWidgetInternal done', descriptor, newWidget);
         setWidget(newWidget);
       }
       loadWidgetInternal();
