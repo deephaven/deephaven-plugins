@@ -104,7 +104,36 @@ c2 = ui_counter()
 
 ## Sharing state
 
-In the previous example, the two buttons incremented their counter independently. What if we wanted to have two buttons share the same count? To do this, we move the state `count` upward to a parent component. In the example below, we create a parent component `ui_shared_state` that contains the state, and then passes the state down into two `ui_controlled_counter` components. Now the buttons will always be in sync:
+In the previous example, the two buttons incremented their counter independently. State was stored within the counter components:
+
+```mermaid
+stateDiagram-v2
+
+    state c1 {
+        count=1
+    }
+
+    state c2 {
+        count=3
+    }
+```
+
+What if we wanted to have two buttons share the same count? To do this, we move the state `count` upward to a parent component:
+
+```mermaid
+stateDiagram-v2
+    c1: ui_controlled_counter
+    c2: ui_controlled_counter
+
+    ui_shared_state --> c1 : count=4
+    ui_shared_state --> c2 : count=4
+
+    state ui_shared_state {
+        count=4
+    }
+```
+
+In the example below, we create a parent component `ui_shared_state` that contains the state, and then passes the state down into two `ui_controlled_counter` components. Now the buttons will always be in sync:
 
 ```python
 @ui.component
