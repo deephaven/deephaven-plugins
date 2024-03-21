@@ -29,9 +29,10 @@ function ReactPanel({ children, title }: ReactPanelProps) {
   const portalManager = usePortalPanelManager();
   const portal = portalManager.get(panelId);
 
-  // If there is already a portal that exists, then we're rehydrating from a dehydrated state
-  // Initialize the `isPanelOpenRef` and `openedWidgetRef` accordingly on initialization
+  // Tracks whether the panel is open and that we have emitted the onOpen event
   const isPanelOpenRef = useRef(false);
+  // If there is already a portal that exists, then we're rehydrating from a dehydrated state
+  // Initialize the `openedWidgetRef` accordingly on initialization
   const openedMetadataRef = useRef<ReactPanelControl['metadata']>(
     portal != null ? metadata : null
   );
