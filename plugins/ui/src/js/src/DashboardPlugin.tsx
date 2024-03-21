@@ -96,10 +96,15 @@ export function DashboardPlugin(
       log.info('Opening widget with ID', widgetId, widget);
       setWidgetMap(prevWidgetMap => {
         const newWidgetMap = new Map(prevWidgetMap);
+        const oldWidget = newWidgetMap.get(widgetId);
         newWidgetMap.set(widgetId, {
           fetch,
           id: widgetId,
           widget,
+          data: {
+            // We don't want to blow away the panel IDs that may already be open for this widget
+            panelIds: oldWidget?.data?.panelIds ?? [],
+          },
         });
         return newWidgetMap;
       });

@@ -49,31 +49,29 @@ function DocumentHandler({
   const panelOpenCountRef = useRef(0);
   const panelIdIndex = useRef(0);
   const [widgetData] = useState<WidgetData>(() => structuredClone(data));
+  const [panelIds] = useState<string[]>([]);
 
   const handleOpen = useCallback(
     (panelId: string) => {
-      if (widgetData.panelIds == null) {
-        widgetData.panelIds = [];
-      }
-      if (
-        widgetData.panelIds == null ||
-        widgetData.panelIds.includes(panelId)
-      ) {
-        log.debug2('Panel already open', panelId);
-        return;
+      if (panelIds.includes(panelId)) {
+        throw new Error('Duplicate panel opens received');
       }
 
       panelOpenCountRef.current += 1;
       log.debug('Panel opened, open count', panelOpenCountRef.current);
 
-      widgetData.panelIds.push(panelId);
-      onDataChange(widgetData);
+      panelIds.push(panelId);
+      onDataChange({ ...widgetData, panelIds });
     },
-    [onDataChange, widgetData]
+    [onDataChange, panelIds, widgetData]
   );
 
   const handleClose = useCallback(
     (panelId: string) => {
+      const panelIndex = panelIds?.indexOf(panelId);
+      if (panelIndex === -1 || panelIndex == null) {
+        throw new Error('Panel close received for unknown panel');
+      }
       panelOpenCountRef.current -= 1;
       if (panelOpenCountRef.current < 0) {
         throw new Error('Panel open count is negative');
@@ -84,12 +82,10 @@ function DocumentHandler({
         return;
       }
 
-      widgetData.panelIds = (widgetData.panelIds ?? [])?.filter(
-        id => id !== panelId
-      );
-      onDataChange(widgetData);
+      panelIds.splice(panelIndex, 1);
+      onDataChange({ ...widgetData, panelIds });
     },
-    [onClose, onDataChange, widgetData]
+    [onClose, onDataChange, panelIds, widgetData]
   );
 
   const getPanelId = useCallback(() => {
