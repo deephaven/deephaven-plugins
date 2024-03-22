@@ -1,3 +1,4 @@
+import ObjectView from './ObjectView';
 import {
   SerializedFocusEventCallback,
   useFocusEventCallback,
@@ -8,6 +9,8 @@ import {
 } from './spectrum/useKeyboardEventCallback';
 
 export interface SerializedPickerEventProps {
+  children: typeof ObjectView;
+
   /** Handler that is called when the element receives focus. */
   onFocus?: SerializedFocusEventCallback;
 
