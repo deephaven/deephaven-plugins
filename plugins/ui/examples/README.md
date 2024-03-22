@@ -41,9 +41,11 @@ my_button = ui.button("Click Me!", on_press=lambda e: print(f"Button was clicked
 
 ![Whenever the button is pressed, event details are printed to the console.](assets/handling_events.png)
 
-## Creating custom components
+## Creating components
 
-Use the `@ui.component` decorator to create your own custom components. We can display a heading above a button as our custom custom component:
+Use the `@ui.component` decorator to create your own custom components. This decorator wraps the function provided as a Deephaven component. For more details on the architecture, see [TODO: Link to architecture]().
+
+We can display a heading above a button as our custom custom component:
 
 ```python
 @ui.component
@@ -137,8 +139,8 @@ In the example below, we create a parent component `ui_shared_state` that contai
 
 ```python
 @ui.component
-def ui_controlled_counter(count, on_press):
-    return ui.button(f"Pressed {count} times", on_press=on_press)
+def ui_controlled_counter(count, operation, on_press):
+    return ui.button(f"Value is {count}, press to {operation}", on_press=on_press)
 
 
 @ui.component
@@ -149,9 +151,9 @@ def ui_shared_state():
         set_count(count + 1)
 
     return [
-        ui.heading("Buttons sharing state"),
-        ui_controlled_counter(count, on_press),
-        ui_controlled_counter(count, on_press),
+        ui.heading(f"Value is {count}"),
+        ui_controlled_counter(count, "increment", lambda: set_count(count + 1)),
+        ui_controlled_counter(count, "decrement", lambda: set_count(count - 1)),
     ]
 
 
