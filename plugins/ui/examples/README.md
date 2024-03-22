@@ -29,7 +29,7 @@ hello_world = ui.heading("Hello World!")
 
 ![Basic Hello World example.](assets/hello_world.png)
 
-By assigning the component to the `hello_world` variable, it was displayed in the UI in a panel named `hello_world`.
+By assigning the component to the `hello_world` variable, it displays in the UI in a panel named `hello_world`.
 
 ## Handling events
 
@@ -45,7 +45,7 @@ my_button = ui.button("Click Me!", on_press=lambda e: print(f"Button was clicked
 
 Use the `@ui.component` decorator to create your own custom components. This decorator wraps the function provided as a Deephaven component. For more details on the architecture, see [TODO: Link to architecture]().
 
-We can display a heading above a button as our custom custom component:
+We can display a heading above a button as our custom component:
 
 ```python
 @ui.component
@@ -74,7 +74,7 @@ def ui_counter():
 
 Returned from `ui.use_state` is a tuple with two values: the current state (`count`), and a function to update that state (`set_count`).
 
-The first time the button is displayed, the count will be `0` because that's the initial value you passed into `ui.use_state`. Call `set_count` when you want to update the state:
+The first time the button is displayed, the count will be `0` because that is the initial value passed into `ui.use_state`. Call `set_count` to update the state:
 
 ```python
 @ui.component
@@ -83,9 +83,9 @@ def ui_counter():
     return ui.button(f"Pressed {count} times", on_press=lambda: set_count(count + 1))
 ```
 
-When state is updated, deephaven.ui will call your component again to re-render with the new value. After clicking once it will re-render with `count` set to `1`, then set to `2`, and so on.
+When state is updated, deephaven.ui will call your component again to re-render with the new value. After clicking once, it will re-render with `count` set to `1`, then set to `2`, and so on.
 
-Each individual component has it's own state:
+Each individual component has its own state:
 
 ```python
 @ui.component
@@ -98,11 +98,11 @@ c1 = ui_counter()
 c2 = ui_counter()
 ```
 
-![Each counter has it's own state.](assets/counter.png)
+![Each counter has its own state.](assets/counter.png)
 
 > [!NOTE]
 > Functions are prefixed with `use_` are called _hooks_. `use_state` is built-in to deephaven.ui, and there are other hooks built-in shown below. You can also create your own hooks.
-> Hooks are special functions. They must only be used at the _top_ of a `@ui.component` or another hook. If you want to use in a conditional or a loop, extract that logic to a new component and put it there.
+> Hooks are special functions. They must only be used at the _top_ of a `@ui.component` or another hook. If you want to use one in a conditional or a loop, extract that logic to a new component and put it there.
 
 ## Sharing state
 
@@ -120,7 +120,7 @@ stateDiagram-v2
     }
 ```
 
-What if we wanted to have two buttons share the same count? To do this, we move the state `count` upward to a parent component:
+What if we wanted to have two buttons share the same count? To do this, move the state `count` upward to a parent component:
 
 ```mermaid
 stateDiagram-v2
@@ -242,7 +242,7 @@ my_picker = ui_picker()
 
 ## Form (two variables)
 
-You can have state with multiple different variables in one component. In this example, we have a [text field](https://react-spectrum.adobe.com/react-spectrum/TextField.html) and a [slider](https://react-spectrum.adobe.com/react-spectrum/Slider.html), and we display the values of both of them.
+You can have state with multiple different variables in one component. This example creates a [text field](https://react-spectrum.adobe.com/react-spectrum/TextField.html) and a [slider](https://react-spectrum.adobe.com/react-spectrum/Slider.html), and we display the values of both of them.
 
 ```python
 @ui.component
@@ -265,7 +265,7 @@ my_form = ui_form()
 
 ## Form with submit
 
-You can also create a form that user can click Submit on and react to that on a callback you specify. In this example, we create a [Form](https://react-spectrum.adobe.com/react-spectrum/forms.html) that takes a name and age, and when the user clicks Submit, the values entered in the form are sent to the user on the forms `on_submit` callback.
+You can also create a form on which the user can click **Submit** and react to that on a specified callback. In this example, we create a [Form](https://react-spectrum.adobe.com/react-spectrum/forms.html) that takes a name and age, and when the user clicks **Submit**, the values entered in the form are sent to the user on the form's `on_submit` callback.
 
 ```python
 @ui.component
@@ -334,7 +334,7 @@ stocks = dx.data.stocks()
 
 ## Table with input filter
 
-You can take input from a user to filter a table using the `where` method. In this example, we have a [text field](https://react-spectrum.adobe.com/react-spectrum/TextField.html) that takes input from the user, and we filter the table based on the input. By simply returning the table `t` from the component, it will be displayed in the UI (as if we had set it to a variable name).
+User input can filter a table using the `where` method. In this example, a [text field](https://react-spectrum.adobe.com/react-spectrum/TextField.html) takes input from the user, and we filter the table based on the input. Simply returning the table `t` from the component will display it in the UI (as if we had set it to a variable name).
 
 ```python
 @ui.component
@@ -356,7 +356,7 @@ my_text_filter_table = ui_text_filter_table(stocks, "sym")
 
 ## Table with range filter
 
-You can also filter a table based on a range. In this example, we have a [range slider](https://react-spectrum.adobe.com/react-spectrum/RangeSlider.html) that takes input from the user, and we filter the table by price based on the input. By simply returning the table `t` from the component, it will be displayed in the UI (as if we had set it to a variable name).
+You can also filter a table based on a range. In this example, a [range slider](https://react-spectrum.adobe.com/react-spectrum/RangeSlider.html) takes input from the user, and we filter the table by price based on the input. Simply returning the table `t` from the component will display it in the UI (as if we had set it to a variable name).
 
 ```python
 @ui.component
@@ -380,7 +380,7 @@ my_range_table = ui_range_table(stocks, "size")
 
 ## Table with required filters
 
-In the previous example, we took a users input. But we didn't display anything if the user didn't enter any text. We can display a different message prompting the user for input if they haven't entered anything. We use a few new components in this example:
+In the previous example, we took a user's input. Nothing was displayed if the user didn't enter any text. Instead, we can display a different message prompting the user for input. We use a few new components in this example:
 
 - [IllustratedMessage](https://react-spectrum.adobe.com/react-spectrum/IllustratedMessage.html) (ui.illustrated_message): A component that displays an icon, heading, and content. In this case, we display a warning icon, a heading, and some content.
 - [Icon](https://react-spectrum.adobe.com/react-spectrum/Icon.html) (ui.icon): A component that displays an icon. In this case, we display the warning icon, and set the font size to 48px so it appears large in the UI.
@@ -617,7 +617,7 @@ mw = ui.dashboard(multiwave())
 
 ## Memoization
 
-We can use the `use_memo` hook to memoize a value. This is useful if you have a value that is expensive to compute, and you only want to compute it when the inputs change. In this example, we create a time table with a new column `y_sin` that is a sine wave. We use `use_memo` to memoize the time table, so that it is only re-computed when the inputs to the `use_memo` function change (in this case, the function is a lambda that takes no arguments, so it will only re-compute when the dependencies change, which is never). We then use the `update` method to update the table with the new column, based on the values inputted on the sliders.
+We can use the `use_memo` hook to memoize a value. This is useful if you have a value that is expensive to compute and you only want to compute it when the inputs change. In this example, we create a time table with a new column, `y_sin,` which is a sine wave. We use `use_memo` to memoize the time table, so that it is only re-computed when the inputs to the `use_memo` function change (in this case, the function is a lambda that takes no arguments, so it will only re-compute when the dependencies change, which is never). We then use the `update` method to update the table with the new column, based on the values inputted on the sliders.
 
 ```python
 from deephaven import ui
@@ -814,7 +814,7 @@ mw = multiwave()
 
 ## Using ui.table
 
-You can use `ui.table` to add interactivity to a table, or give other instructions to the UI. Here's an example that will create two tables and a plot. The first table `t1` is an unfiltered view of the stocks table, with a row double-press listener so if you double-click on a row, it will filter the second table `t2` to only show that row and the plot to show that selected sym and exchange.
+You can use `ui.table` to add interactivity to a table, or give other instructions to the UI. Here's an example that creates two tables and a plot. The first table, `t1`, is an unfiltered view of the stocks table, with a row double-press listener so if you double-click on a row, it will filter the second table, `t2`, to show that row only and the plot to show that selected sym and exchange.
 
 ```py
 from deephaven import ui
