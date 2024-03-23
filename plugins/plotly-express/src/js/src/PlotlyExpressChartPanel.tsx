@@ -12,13 +12,11 @@ export function PlotlyExpressChartPanel(props: WidgetPanelProps<Widget>) {
   const { fetch, metadata = {}, ...rest } = props;
   const containerRef = useRef<HTMLDivElement>(null);
   const [model, setModel] = useState<PlotlyExpressChartModel>();
-  const [widgetRevision, setWidgetRevision] = useState(0); // Used to force a clean chart state on widget change
 
   const makeModel = useCallback(async () => {
     const widgetData = await fetch();
     const m = new PlotlyExpressChartModel(dh, widgetData, fetch);
     setModel(m);
-    setWidgetRevision(r => r + 1);
     return m;
   }, [dh, fetch]);
 
@@ -28,7 +26,6 @@ export function PlotlyExpressChartPanel(props: WidgetPanelProps<Widget>) {
     <ChartPanel
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...(rest as ChartPanelProps)}
-      key={widgetRevision}
       containerRef={containerRef}
       makeModel={makeModel}
       Plotly={Plotly}
