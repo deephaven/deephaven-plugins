@@ -28,7 +28,7 @@ function ReactPanel({ children, title }: ReactPanelProps) {
   // If there is already a portal that exists, then we're rehydrating from a dehydrated state
   // Initialize the `isPanelOpenRef` and `openedWidgetRef` accordingly on initialization
   const isPanelOpenRef = useRef(portal != null);
-  const openedMetadataRef = useRef<ReactPanelControl['metadata']>(
+  const openedMetadataRef = useRef<ReactPanelControl['metadata'] | null>(
     portal != null ? metadata : null
   );
   const parent = useParentItem();
