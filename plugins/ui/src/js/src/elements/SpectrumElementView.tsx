@@ -15,9 +15,7 @@ export function SpectrumElementView({
 }: SpectrumElementViewProps): JSX.Element | null {
   const { [ELEMENT_KEY]: name, props = {} } = element;
 
-  const Component = getSpectrumComponent(name) as
-    | React.ComponentType<unknown>
-    | undefined;
+  const Component = getSpectrumComponent(name) as React.ComponentType<unknown>;
 
   if (Component == null) {
     throw new Error(`Unknown Spectrum component ${name}`);

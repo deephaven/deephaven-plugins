@@ -9,6 +9,7 @@ export type ObjectViewProps = { object: dh.WidgetExportedObject };
 function ObjectView(props: ObjectViewProps) {
   const { object } = props;
   log.info('Object is', object);
+  const { type } = object;
 
   const fetch = useCallback(async () => {
     // We re-export the object in case this object is used in multiple places or closed/opened multiple times
@@ -20,16 +21,13 @@ function ObjectView(props: ObjectViewProps) {
 
   const plugin = useMemo(
     () =>
-      [...plugins.values()]
-        .filter(isWidgetPlugin)
-        .find(p => [p.supportedTypes].flat().includes(object.type as string)),
-    [plugins, object.type]
+      type == null
+        ? null
+        : [...plugins.values()]
+            .filter(isWidgetPlugin)
+            .find(p => [p.supportedTypes].flat().includes(type)),
+    [plugins, type]
   );
-
-  if (object == null) {
-    // Still loading
-    return null;
-  }
 
   if (plugin != null) {
     const Component = plugin.component;
