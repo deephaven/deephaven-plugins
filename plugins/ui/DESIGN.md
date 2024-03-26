@@ -1321,7 +1321,8 @@ This will create a date picker with a granularity of seconds in UTC.
 3. `ZonedDateTime`: A ZonedDateTime represents an unambiguous specific point on the timeline with an associated time zone, such as 2021-04-12T14:13:07 America/New_York.
 This will create a date picker with a granularity of seconds in the specified time zone.
 
-The format of the date picker is controlled by these specific props, in the following order of precedence:
+The format of the date picker and the type of the value passed to the `on_change` handler (which will be the same type as the input type) 
+is determined by the type of the following props in order of precedence:
 1. `value` or `default_value`
 2. `placeholder_value`
 
