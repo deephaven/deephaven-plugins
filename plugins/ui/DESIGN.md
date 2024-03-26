@@ -1321,7 +1321,7 @@ This will create a date picker with a granularity of seconds in UTC.
 3. `ZonedDateTime`: A ZonedDateTime represents an unambiguous specific point on the timeline with an associated time zone, such as 2021-04-12T14:13:07 America/New_York.
 This will create a date picker with a granularity of seconds in the specified time zone.
 
-The format of the date picker and the type of the value passed to the `on_change` handler (which will be the same type as the input type) 
+The format of the date picker and the type of the value passed to the `on_change` handler 
 is determined by the type of the following props in order of precedence:
 1. `value` or `default_value`
 2. `placeholder_value`
@@ -1344,17 +1344,17 @@ ui.date_picker(
 ```
 
 ###### Parameters
-| Parameter            | Type                             | Description                                                                                                                                                                             |
-|----------------------|----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `placeholder_value`  | `Date \| None`                   | A placeholder date that influences the format of the placeholder shown when no value is selected. Defaults to an `Instant`, today at midnight.                                          |
-| `value`              | `Date \| None`                   | The current value (controlled).                                                                                                                                                         |
-| `default_value`      | `Date \| None`                   | The default value (uncontrolled).                                                                                                                                                       |
-| `min_value`          | `Date \| None`                   | The minimum allowed date that a user may select.                                                                                                                                        |
-| `max_value`          | `Date \| None`                   | The maximum allowed date that a user may select.                                                                                                                                        |
-| `unavailable_values` | `Sequence[Date] \| None`         | A list of dates that cannot be selected.                                                                                                                                                |
-| `granularity`        | `Granularity \| None`            | Determines the smallest unit that is displayed in the date picker. By default, this is `"DAY"` for `LocalDate`, and `"SECOND"` otherwise.                                               |
-| `on_change`          | `Callable[[Date], None] \| None` | Handler that is called when the value changes.                                                                                                                                          |
-| `**props`            | `Any`                            | Any other [DatePicker](https://react-spectrum.adobe.com/react-spectrum/DatePicker.html) prop, with the exception of `isDateUnavailable`, `validate`, and `errorMessage` (as a callback) |
+| Parameter            | Type                             | Description                                                                                                                                                                              |
+|----------------------|----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `placeholder_value`  | `Date \| None`                   | A placeholder date that influences the format of the placeholder shown when no value is selected. Defaults to an `Instant`, today at midnight.                                           |
+| `value`              | `Date \| None`                   | The current value (controlled).                                                                                                                                                          |
+| `default_value`      | `Date \| None`                   | The default value (uncontrolled).                                                                                                                                                        |
+| `min_value`          | `Date \| None`                   | The minimum allowed date that a user may select.                                                                                                                                         |
+| `max_value`          | `Date \| None`                   | The maximum allowed date that a user may select.                                                                                                                                         |
+| `unavailable_values` | `Sequence[Date] \| None`         | A list of dates that cannot be selected.                                                                                                                                                 |
+| `granularity`        | `Granularity \| None`            | Determines the smallest unit that is displayed in the date picker. By default, this is `"DAY"` for `LocalDate`, and `"SECOND"` otherwise.                                                |
+| `on_change`          | `Callable[[Date], None] \| None` | Handler that is called when the value changes. The exact `Date` type will be the same as the type passed to `default_value`/`value` or `placeholder_value`, in that order of precedence. |
+| `**props`            | `Any`                            | Any other [DatePicker](https://react-spectrum.adobe.com/react-spectrum/DatePicker.html) prop, with the exception of `isDateUnavailable`, `validate`, and `errorMessage` (as a callback)  |
 
 ```py
 
