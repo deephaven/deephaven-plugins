@@ -1325,6 +1325,8 @@ The format of the date picker is controlled by these specific props, in the foll
 1. `value` or `default_value`
 2. `placeholder_value`
 
+If none of these are provided, the `placeholder_value` will default to an `Instant`.
+
 ```py
 import deephaven.ui as ui
 ui.date_picker(
@@ -1341,16 +1343,16 @@ ui.date_picker(
 ```
 
 ###### Parameters
-| Parameter            | Type                             | Description                                                                                                                                                                            |
-|----------------------|----------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `placeholder_value`  | `Date \| None`                   | A placeholder date that influences the format of the placeholder shown when no value is selected. Defaults to today's date at midnight.                                                |
-| `value`              | `Date \| None`                   | The current value (controlled).                                                                                                                                                        |
-| `default_value`      | `Date \| None`                   | The default value (uncontrolled).                                                                                                                                                      |
-| `min_value`          | `Date \| None`                   | The minimum allowed date that a user may select.                                                                                                                                       |
-| `max_value`          | `Date \| None`                   | The maximum allowed date that a user may select.                                                                                                                                       |
-| `unavailable_values` | `Sequence[Date] \| None`         | A list of dates that cannot be selected.                                                                                                                                               |
-| `granularity`        | `Granularity \| None`            | Determines the smallest unit that is displayed in the date picker. By default, this is `"DAY"` for `LocalDate`, and `"SECOND"` otherwise.                                              |
-| `on_change`          | `Callable[[Date], None] \| None` | Handler that is called when the value changes.                                                                                                                                         |
+| Parameter            | Type                             | Description                                                                                                                                                                             |
+|----------------------|----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `placeholder_value`  | `Date \| None`                   | A placeholder date that influences the format of the placeholder shown when no value is selected. Defaults to an `Instant`, today at midnight.                                          |
+| `value`              | `Date \| None`                   | The current value (controlled).                                                                                                                                                         |
+| `default_value`      | `Date \| None`                   | The default value (uncontrolled).                                                                                                                                                       |
+| `min_value`          | `Date \| None`                   | The minimum allowed date that a user may select.                                                                                                                                        |
+| `max_value`          | `Date \| None`                   | The maximum allowed date that a user may select.                                                                                                                                        |
+| `unavailable_values` | `Sequence[Date] \| None`         | A list of dates that cannot be selected.                                                                                                                                                |
+| `granularity`        | `Granularity \| None`            | Determines the smallest unit that is displayed in the date picker. By default, this is `"DAY"` for `LocalDate`, and `"SECOND"` otherwise.                                               |
+| `on_change`          | `Callable[[Date], None] \| None` | Handler that is called when the value changes.                                                                                                                                          |
 | `**props`            | `Any`                            | Any other [DatePicker](https://react-spectrum.adobe.com/react-spectrum/DatePicker.html) prop, with the exception of `isDateUnavailable`, `validate`, and `errorMessage` (as a callback) |
 
 ```py
@@ -1953,7 +1955,10 @@ PickerItem = Stringable | ItemElement
 Key = Stringable
 Selection = Sequence[Key]
 ListViewItem = Stringable | ItemElement
-Date = Instant | LocalDate | LocalDateTime
+LocalDateConvertible = Union[None, LocalDate, str, datetime.date, datetime.datetime, numpy.datetime64, pandas.Timestamp]
+InstantConvertible = Union[None, Instant, int, str, datetime.datetime, numpy.datetime64, pandas.Timestamp]
+ZonedDateTimeConvertible = Union[None, ZonedDateTime, str, datetime.datetime, numpy.datetime64, pandas.Timestamp]
+Date = Instant | LocalDate | ZonedDateTime | LocalDateConvertible | InstantConvertible | ZonedDateTimeConvertible 
 Granularity = Literal["DAY", "HOUR", "MINUTE", "SECOND"]
 
 T = TypeVar("T")
