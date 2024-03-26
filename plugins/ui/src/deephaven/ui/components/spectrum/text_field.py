@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Any, Callable
-from .accessibility import AriaExpanded, AriaHasPopup, AriaAutoComplete, Behaviour
+from .accessibility import AriaExpanded, AriaHasPopup, AriaAutoComplete
 from .events import (
     ButtonType,
     FocusEventCallable,
@@ -17,8 +17,8 @@ from .layout import (
     LayoutFlex,
     Number,
     Position,
-    TextFieldLabelPosition,
-    TextFieldLabelAlign,
+    LabelPosition,
+    LabelAlign,
 )
 from .validate import (
     InputType,
@@ -37,7 +37,6 @@ def text_field(
     is_disabled: bool | None = None,
     is_read_only: bool | None = None,
     is_required: bool | None = None,
-    validation_behaviour: Behaviour = "aria",
     description: Any | None = None,
     error_message: Any | None = None,
     auto_focus: bool | None = None,
@@ -52,8 +51,8 @@ def text_field(
     input_mode: TextFieldInputMode | None = None,
     name: str | None = None,
     validation_state: TextFieldValidationState | None = None,
-    label_position: TextFieldLabelPosition = "top",
-    label_align: TextFieldLabelAlign = "start",
+    label_position: LabelPosition = "top",
+    label_align: LabelAlign = "start",
     necessity_indicator: TextFieldNecessityIndicator = "icon",
     contextual_help: Any | None = None,
     on_focus: FocusEventCallable | None = None,
@@ -110,7 +109,6 @@ def text_field(
     aria_errormessage: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
-    # validate property not yet implemented. Takes in a custom function that returns ValidationError or other error type
     # missing properties that are clipboard or composition events
 ) -> Element:
     """
@@ -122,7 +120,6 @@ def text_field(
     is_disabled: Whether the input should be disabled
     is_read_only: Whether the input scan be selected but not changed by the user
     is_required: Whether the input is required before form submission
-    validation_behaviour: Whether to use native HTML form validation to prevent form submission when the value is missing or invalid, or mark the field as required or invalid via ARIA.
     description: A description for the field. Provides a hint such as specific requirements for what to choose.
     error_message: An error message to display when the field is invalid
     auto_focus: Whether the input should be focused on page load
@@ -203,7 +200,6 @@ def text_field(
         is_disabled=is_disabled,
         is_read_only=is_read_only,
         is_required=is_required,
-        validation_behaviour=validation_behaviour,
         description=description,
         error_message=error_message,
         auto_focus=auto_focus,
