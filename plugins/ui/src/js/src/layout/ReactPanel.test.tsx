@@ -197,7 +197,7 @@ it('does not call openComponent or setActiveContentItem if panel already exists 
   expect(onOpen).toHaveBeenCalledTimes(1);
   expect(onClose).not.toHaveBeenCalled();
 
-  // Now check that it focuses it if it's called after the metadat changes
+  // Now check that it focuses it if it's called after the metadata changes
   rerender(
     <PortalPanelManagerContext.Provider value={portals}>
       {makeReactPanelManager({

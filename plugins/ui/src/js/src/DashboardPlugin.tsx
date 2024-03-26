@@ -31,6 +31,7 @@ import {
 import PortalPanel from './layout/PortalPanel';
 import PortalPanelManager from './layout/PortalPanelManager';
 import DashboardWidgetHandler from './widget/DashboardWidgetHandler';
+import { getPreservedData } from './widget/WidgetUtils';
 
 const NAME_ELEMENT = 'deephaven.ui.Element';
 const DASHBOARD_ELEMENT = 'deephaven.ui.Dashboard';
@@ -101,10 +102,7 @@ export function DashboardPlugin(
           fetch,
           id: widgetId,
           widget,
-          data: {
-            // We don't want to blow away the panel IDs that may already be open for this widget
-            panelIds: oldWidget?.data?.panelIds ?? [],
-          },
+          data: getPreservedData(oldWidget?.data),
         });
         return newWidgetMap;
       });
