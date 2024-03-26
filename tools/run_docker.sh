@@ -5,13 +5,13 @@ pushd "$(dirname "$0")"
 
 # Start the containers
 if [[ -z "${CI}" ]]; then
-  docker compose run --service-ports --rm --build "$@"
+  docker compose -f ../tests/docker-compose.yml run --service-ports --rm --build "$@"
   exit_code=$?
-  docker compose down
+  docker compose -f ../tests/docker-compose.yml down
 else
-  docker compose run --service-ports --rm --build -e CI=true "$@"
+  docker compose -f ../tests/docker-compose.yml run --service-ports --rm --build -e CI=true "$@"
   exit_code=$?
-  docker compose stop deephaven-plugins
+  docker compose -f ../tests/docker-compose.yml stop deephaven-plugins-e2e
 fi
 
 # Reset pwd
