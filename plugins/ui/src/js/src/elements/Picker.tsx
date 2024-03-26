@@ -1,54 +1,42 @@
-import React, { useEffect } from 'react';
-import { Picker as DHPicker } from '@deephaven/components';
+import React, { ReactElement } from 'react';
+import {
+  Picker as DHPicker,
+  PickerProps as DHPickerProps,
+} from '@deephaven/components';
 import {
   Picker as DHPickerJSApi,
   PickerProps as DHPickerJSApiProps,
 } from '@deephaven/jsapi-components';
-import type { Table } from '@deephaven/jsapi-types';
+import { isElementOfType, usePromiseFactory } from '@deephaven/react-hooks';
 import { SerializedPickerEventProps, usePickerProps } from './usePickerProps';
+import ObjectView, { ObjectViewProps } from './ObjectView';
+import { fetchReexportedTable } from './ElementUtils';
 
-function Picker({
-  children,
-  ...props
-}: DHPickerJSApiProps & SerializedPickerEventProps) {
+type WrappedDHPickerJSApiProps = Omit<DHPickerJSApiProps, 'table'> & {
+  children: ReactElement<ObjectViewProps>;
+};
+
+export type PickerProps = (DHPickerProps | WrappedDHPickerJSApiProps) &
+  SerializedPickerEventProps;
+
+function Picker({ children, ...props }: PickerProps) {
   const pickerProps = usePickerProps(props);
-  const [table, setTable] = React.useState<Table | null>(null);
 
-  const maybeExportedObject = children?.props?.object;
+  const maybeExportedObject = isElementOfType(children, ObjectView)
+    ? children.props.object
+    : null;
 
-  useEffect(() => {
-    if (maybeExportedObject == null) {
-      return;
-    }
+  const { data: table } = usePromiseFactory(fetchReexportedTable, [
+    maybeExportedObject,
+  ]);
 
-    let isMounted = true;
-    async function load() {
-      console.log('[TESTING] exportedTable:', maybeExportedObject);
-      const reexportedTable = await maybeExportedObject.reexport();
-      const newTable = await reexportedTable.fetch<Table>();
-
-      if (!isMounted) {
-        return;
-      }
-
-      setTable(newTable);
-    }
-
-    load();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [maybeExportedObject]);
-
-  if (maybeExportedObject == null) {
+  if (isElementOfType(children, ObjectView)) {
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <DHPicker {...pickerProps}>{children}</DHPicker>;
+    return table && <DHPickerJSApi {...pickerProps} table={table} />;
   }
 
-  const { children: _throwAway, ...restProps } = pickerProps;
   // eslint-disable-next-line react/jsx-props-no-spreading
-  return table && <DHPickerJSApi {...restProps} table={table} />;
+  return <DHPicker {...pickerProps}>{children}</DHPicker>;
 }
 
 export default Picker;
