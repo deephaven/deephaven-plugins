@@ -5,18 +5,14 @@ from typing import Callable, Any, Union
 from deephaven.table import Table
 
 from .item import ItemElement
+from .list_action_group import ListActionGroupElement
+from .list_action_menu import ListActionMenuElement
 from ..elements import BaseElement, Element
 from .._internal.utils import create_props
 from ..types import ColumnName, Stringable, Selection
-from .spectrum import ActionButtonElement
 
 ListViewItem = Union[Stringable, ItemElement]
-
 ListViewElement = Element
-
-# TODO: ActionGroupElement and ActionMenuElement are not created yet
-ActionGroupElement = Element
-ActionMenuElement = Element
 
 
 def list_view(
@@ -25,10 +21,7 @@ def list_view(
     label_column: ColumnName | None = None,
     description_column: ColumnName | None = None,
     icon_column: ColumnName | None = None,
-    action_buttons: ActionButtonElement
-    | ActionGroupElement
-    | ActionMenuElement
-    | None = None,
+    actions: ListActionGroupElement | ListActionMenuElement | None = None,
     default_selected_keys: Selection | None = None,
     selected_keys: Selection | None = None,
     render_empty_state: Element | None = None,
@@ -56,11 +49,9 @@ def list_view(
             The column of values to display as descriptions.
         icon_column: Only valid if children are of type Table.
             The column of values to map to icons.
-        action_buttons:
-            Only valid if any `ListViewItem` children do not already have embedded buttons.
-            The action buttons to render for all elements within the list view.
-            The `on_*` event handlers within the passed object will be modified
-            so that the second argument is the key for the `list_view` item that the buttons are embedded in.
+        actions:
+            Only valid if children are of type Table.
+            The action group or menus to render for all elements within the list view.
         default_selected_keys:
             The initial selected keys in the collection (uncontrolled).
         selected_keys:
