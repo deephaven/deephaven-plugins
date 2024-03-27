@@ -31,7 +31,7 @@ def list_action_menu(
         **props: Any other ActionMenu prop.
 
     Returns:
-        A ListActionGroup that can be used within the actions prop of a `ListView` component.
+        A ListActionMenu that can be used within the actions prop of a `ListView` component.
     """
     children, props = create_props(locals())
 

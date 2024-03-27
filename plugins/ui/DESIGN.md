@@ -1195,7 +1195,7 @@ This component should be used within the actions prop of a `ListView` component.
 ```py
 def list_action_group(
         *children: ActionGroupItem,
-        on_action: Callable[[ButtonKey, Key], None] | None = None,
+        on_action: Callable[[ActionKey, Key], None] | None = None,
         on_selection_change: Callable[[Selection, Key], None] | None = None,
         **props: Any
 ) -> ListActionGroupElement:
@@ -1205,7 +1205,7 @@ def list_action_group(
 | Parameter               | Type                                                       | Description                                                                                                                                        |
 |-------------------------|------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
 | `*children`             | `ActionGroupItem`                                          | The options to render within the picker.                                                                                                           |
-| `on_action`             | `Callable[[ButtonKey, Key], None] \| None`                 | Handler that is called when an item is pressed. The first argument is the key of the action, the second argument is the key of the list_view item. |
+| `on_action`             | `Callable[[ActionKey, Key], None] \| None`                 | Handler that is called when an item is pressed. The first argument is the key of the action, the second argument is the key of the list_view item. |
 | `on_selection_change`   | `Callable[[Selection, Key], None] \| None`                 | Handler that is called when the selection changes. The first argument is the selection, the second argument is the key of the list_view item.      |
 | `**props`               | `Any`                                                      | Any other [ActionGroup](https://react-spectrum.adobe.com/react-spectrum/ActionGroup.html) prop.                                                    |
 
@@ -1218,7 +1218,7 @@ This component should be used within the actions prop of a `ListView` component.
 ```py
 def list_action_menu(
         *children: ActionMenuItem,
-        on_action: Callable[[Key, Key], None] | None = None,
+        on_action: Callable[[ActionKey, Key], None] | None = None,
         on_open_change: Callable[[bool, Key], None] | None = None,
         **props: Any
 ) -> ListActionMenuElement:
@@ -1228,7 +1228,7 @@ def list_action_menu(
 | Parameter               | Type                                                       | Description                                                                                                                                        |
 |-------------------------|------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
 | `*children`             | `ActionMenuItem`                                           | The options to render within the picker.                                                                                                           |
-| `on_action`             | `Callable[[Key, Key], None] \| None`                       | Handler that is called when an item is pressed. The first argument is the key of the action, the second argument is the key of the list_view item. |
+| `on_action`             | `Callable[[ActionKey, Key], None] \| None`                       | Handler that is called when an item is pressed. The first argument is the key of the action, the second argument is the key of the list_view item. |
 | `on_open_change`        | `Callable[[bool, Key], None] \| None`                      | The first argument is a boolean indicating if the menu is open, the second argument is the key of the list_view item.                              |
 | `**props`               | `Any`                                                      | Any other [ActionMenu](https://react-spectrum.adobe.com/react-spectrum/ActionMenu.html) prop.                                                      |
 
@@ -1870,6 +1870,7 @@ TransformedData = Any
 Stringable = str | int | float | bool
 PickerItem = Stringable | ItemElement
 Key = Stringable
+ActionKey = Key
 Selection = Sequence[Key]
 ListViewItem = Stringable | ItemElement
 
