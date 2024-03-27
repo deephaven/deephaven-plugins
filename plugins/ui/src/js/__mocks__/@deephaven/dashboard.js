@@ -13,6 +13,7 @@ module.exports = {
   ...DashboardActual,
   LayoutUtils: {
     getComponentName: jest.fn(),
+    getContentItemInStack: jest.fn(),
     getStackForConfig: jest.fn(),
     getIdFromContainer: DashboardActual.LayoutUtils.getIdFromContainer,
     openComponent: jest.fn(),

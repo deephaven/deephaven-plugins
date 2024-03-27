@@ -15,6 +15,7 @@ import {
   elementComponentMap,
   getComponentForElement,
   getComponentTypeForElement,
+  getPreservedData,
 } from './WidgetUtils';
 
 describe('getComponentTypeForElement', () => {
@@ -73,5 +74,25 @@ describe('getComponentForElement', () => {
       // eslint-disable-next-line react/jsx-props-no-spreading
       <Expected {...(element.props as Parameters<typeof Expected>[0])} />
     );
+  });
+});
+
+describe('getPreservedData', () => {
+  it('should handle undefined widget data', () => {
+    const actual = getPreservedData(undefined);
+    expect(actual).toEqual({});
+  });
+  it('should handle empty widget data', () => {
+    const actual = getPreservedData({});
+    expect(actual).toEqual({});
+  });
+  it('should return only the panelIds from the widget data', () => {
+    const widgetData = {
+      panelIds: ['1', '2', '3'],
+      state: { foo: 'bar' },
+    };
+
+    const actual = getPreservedData(widgetData);
+    expect(actual).toEqual({ panelIds: widgetData.panelIds });
   });
 });

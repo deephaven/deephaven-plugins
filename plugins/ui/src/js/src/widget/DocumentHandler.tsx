@@ -48,24 +48,38 @@ function DocumentHandler({
   log.debug('Rendering document', widget);
   const panelOpenCountRef = useRef(0);
   const panelIdIndex = useRef(0);
+
+  // Using `useState` here to initialize the data only once.
+  // We don't want to use `useMemo`, because we only want it to be initialized once with the `initialData` (uncontrolled)
+  // We don't want to use `useRef`, because we only want to run `structuredClone` once, and you can't pass an
+  // initialization function into `useRef` like you can with `useState`
   const [widgetData] = useState<WidgetData>(() => structuredClone(data));
+
+  // panelIds that are currently opened within this document. This list is tracked by the `onOpen`/`onClose` call on the `ReactPanelManager` from a child component.
+  // Note that the initial widget data provided will be the `panelIds` for this document to use; this array is what is actually opened currently.
+  const [panelIds] = useState<string[]>([]);
 
   const handleOpen = useCallback(
     (panelId: string) => {
+      if (panelIds.includes(panelId)) {
+        throw new Error('Duplicate panel opens received');
+      }
+
       panelOpenCountRef.current += 1;
       log.debug('Panel opened, open count', panelOpenCountRef.current);
 
-      if (widgetData.panelIds == null) {
-        widgetData.panelIds = [];
-      }
-      widgetData.panelIds?.push(panelId);
-      onDataChange(widgetData);
+      panelIds.push(panelId);
+      onDataChange({ ...widgetData, panelIds });
     },
-    [onDataChange, widgetData]
+    [onDataChange, panelIds, widgetData]
   );
 
   const handleClose = useCallback(
     (panelId: string) => {
+      const panelIndex = panelIds.indexOf(panelId);
+      if (panelIndex === -1) {
+        throw new Error('Panel close received for unknown panel');
+      }
       panelOpenCountRef.current -= 1;
       if (panelOpenCountRef.current < 0) {
         throw new Error('Panel open count is negative');
@@ -76,12 +90,10 @@ function DocumentHandler({
         return;
       }
 
-      widgetData.panelIds = (widgetData.panelIds ?? [])?.filter(
-        id => id !== panelId
-      );
-      onDataChange(widgetData);
+      panelIds.splice(panelIndex, 1);
+      onDataChange({ ...widgetData, panelIds });
     },
-    [onClose, onDataChange, widgetData]
+    [onClose, onDataChange, panelIds, widgetData]
   );
 
   const getPanelId = useCallback(() => {
