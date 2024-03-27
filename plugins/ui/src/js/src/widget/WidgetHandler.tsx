@@ -15,7 +15,7 @@ import {
   JSONRPCServerAndClient,
 } from 'json-rpc-2.0';
 import { WidgetDescriptor } from '@deephaven/dashboard';
-import type { Widget, WidgetExportedObject } from '@deephaven/jsapi-types';
+import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { EMPTY_FUNCTION } from '@deephaven/utils';
 import {
@@ -40,7 +40,7 @@ export interface WidgetHandlerProps {
   widget: WidgetDescriptor;
 
   /** Fetch the widget instance */
-  fetch: () => Promise<Widget>;
+  fetch: () => Promise<dh.Widget>;
 
   /** Widget data to display */
   initialData?: ReadonlyWidgetData;
@@ -59,14 +59,14 @@ function WidgetHandler({
   widget: descriptor,
   initialData: initialDataProp,
 }: WidgetHandlerProps) {
-  const [widget, setWidget] = useState<Widget>();
+  const [widget, setWidget] = useState<dh.Widget>();
   const [document, setDocument] = useState<ReactNode>();
   const [initialData] = useState(initialDataProp);
 
   // When we fetch a widget, the client is then responsible for the exported objects.
   // These objects could stay alive even after the widget is closed if we wanted to,
   // but for our use case we want to close them when the widget is closed, so we close them all on unmount.
-  const exportedObjectMap = useRef<Map<number, WidgetExportedObject>>(
+  const exportedObjectMap = useRef<Map<number, dh.WidgetExportedObject>>(
     new Map()
   );
   const exportedObjectCount = useRef(0);
@@ -156,7 +156,7 @@ function WidgetHandler({
   );
 
   const updateExportedObjects = useCallback(
-    (newExportedObjects: WidgetExportedObject[]) => {
+    (newExportedObjects: dh.WidgetExportedObject[]) => {
       for (let i = 0; i < newExportedObjects.length; i += 1) {
         const exportedObject = newExportedObjects[i];
         const exportedObjectKey = exportedObjectCount.current;
@@ -211,7 +211,10 @@ function WidgetHandler({
         return;
       }
       // Need to reset the exported object map and count
-      const widgetExportedObjectMap = new Map<number, WidgetExportedObject>();
+      const widgetExportedObjectMap = new Map<
+        number,
+        dh.WidgetExportedObject
+      >();
       exportedObjectMap.current = widgetExportedObjectMap;
       exportedObjectCount.current = 0;
 
@@ -219,7 +222,7 @@ function WidgetHandler({
       const activeClient = jsonClient;
       function receiveData(
         data: string,
-        newExportedObjects: WidgetExportedObject[]
+        newExportedObjects: dh.WidgetExportedObject[]
       ) {
         log.debug2('Data received', data, newExportedObjects);
         updateExportedObjects(newExportedObjects);
@@ -277,9 +280,11 @@ function WidgetHandler({
         const newWidget = await fetch();
         if (isCancelled) {
           newWidget.close();
-          newWidget.exportedObjects.forEach(exportedObject => {
-            exportedObject.close();
-          });
+          newWidget.exportedObjects.forEach(
+            (exportedObject: dh.WidgetExportedObject) => {
+              exportedObject.close();
+            }
+          );
           return;
         }
         log.debug('newWidget', descriptor, newWidget);

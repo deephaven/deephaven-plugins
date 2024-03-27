@@ -9,9 +9,9 @@ import {
   IrisGridUtils,
 } from '@deephaven/iris-grid';
 import { useApi } from '@deephaven/jsapi-bootstrap';
-import type { Table } from '@deephaven/jsapi-types';
+import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
-import { getSettings } from '@deephaven/redux';
+import { getSettings, RootState } from '@deephaven/redux';
 import { EMPTY_ARRAY } from '@deephaven/utils';
 import { UITableProps } from './UITableUtils';
 import UITableMouseHandler from './UITableMouseHandler';
@@ -33,9 +33,9 @@ function UITable({
 }: UITableProps) {
   const dh = useApi();
   const [model, setModel] = useState<IrisGridModel>();
-  const [columns, setColumns] = useState<Table['columns']>();
+  const [columns, setColumns] = useState<dh.Table['columns']>();
   const utils = useMemo(() => new IrisGridUtils(dh), [dh]);
-  const settings = useSelector(getSettings);
+  const settings = useSelector(getSettings<RootState>);
 
   const hydratedSorts = useMemo(() => {
     if (sorts !== undefined && columns !== undefined) {
@@ -69,7 +69,7 @@ function UITable({
     let isCancelled = false;
     async function loadModel() {
       const reexportedTable = await exportedTable.reexport();
-      const newTable = (await reexportedTable.fetch()) as Table;
+      const newTable = (await reexportedTable.fetch()) as dh.Table;
       const newModel = await IrisGridModelFactory.makeModel(dh, newTable);
       if (!isCancelled) {
         setColumns(newTable.columns);

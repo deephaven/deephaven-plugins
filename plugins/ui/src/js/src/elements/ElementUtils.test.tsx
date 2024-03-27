@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text } from '@adobe/react-spectrum';
-import type { WidgetExportedObject } from '@deephaven/jsapi-types';
+import type { dh } from '@deephaven/jsapi-types';
 import { TestUtils } from '@deephaven/utils';
 import { ELEMENT_KEY, isPrimitive, wrapElementChildren } from './ElementUtils';
 import ObjectView from './ObjectView';
@@ -25,13 +25,13 @@ describe('isPrimitive', () => {
 
 describe('wrapElementChildren', () => {
   const mock = {
-    exportedA1: createMockProxy<WidgetExportedObject>({
+    exportedA1: createMockProxy<dh.WidgetExportedObject>({
       type: 'mock.exported.a',
     }),
-    exportedA2: createMockProxy<WidgetExportedObject>({
+    exportedA2: createMockProxy<dh.WidgetExportedObject>({
       type: 'mock.exported.a',
     }),
-    exportedB1: createMockProxy<WidgetExportedObject>({
+    exportedB1: createMockProxy<dh.WidgetExportedObject>({
       type: 'mock.exported.b',
     }),
   };
