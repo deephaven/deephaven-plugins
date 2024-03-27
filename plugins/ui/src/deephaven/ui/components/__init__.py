@@ -11,6 +11,7 @@ from .stack import stack
 from .picker import picker
 from .section import section
 from .item import item
+from .list_view import list_view
 
 from . import html
 
@@ -34,6 +35,7 @@ __all__ = [
     "icon_wrapper",
     "item",
     "illustrated_message",
+    "list_view",
     "html",
     "number_field",
     "panel",
