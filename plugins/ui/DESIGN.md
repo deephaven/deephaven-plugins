@@ -1310,6 +1310,157 @@ list_view7 = ui.list_view(
 )
 ```
 
+##### ui.combo_box
+
+A combo_box that can be used to search or select from a list. By default, the search strategy is set to "CONTAINS".
+Children should be one of four types:  
+If children are of type `ComboBoxItem`, they are the dropdown options.  
+If children are of type `SectionElement`, they are the dropdown sections.  
+If children are of type `Table`, the values in the table are the dropdown options. There can only be one child, the `Table`.
+If children are of type `PartitionedTable`, the values in the table are the dropdown options and the partitions create multiple sections. There can only be one child, the `PartitionedTable`.
+
+```py
+import deephaven.ui as ui
+ui.combo_box(
+    *children: ComboBoxItem | SectionElement | Table | PartitionedTable,
+    key_column: ColumnName | None = None,
+    label_column: ColumnName | None = None,
+    description_column: ColumnName | None = None,
+    icon_column: ColumnName | None = None,
+    title_column: ColumnName | None = None,
+    default_selected_key: Key | None = None,
+    selected_key: Key | None = None,
+    search_type: ComboBoxSearchType = "CONTAINS",
+    on_selection_change: Callable[[Key], None] | None = None,
+    on_change: Callable[[Key], None] | None = None,
+    **props: Any
+) -> ComboBoxElement
+```
+
+###### Parameters
+
+| Parameter              | Type                                                    | Description                                                                                                                                                                                                                                                                  |
+| ---------------------- | ------------------------------------------------------- |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `*children`            | `ComboBoxItem \| SectionElement \| Table \| PartitionedTable` | The options to render within the combo_box.                                                                                                                                                                                                                                  |
+| `key_column`           | `ColumnName \| None`                                    | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to use as item keys. Defaults to the first column.                                                                                                                                    |
+| `label_column`         | `ColumnName \| None`                                    | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                       |
+| `description_column`   | `ColumnName \| None`                                    | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as descriptions.                                                                                                                                                           |
+| `icon_column`          | `ColumnName \| None`                                    | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to map to icons.                                                                                                                                                                      |
+| `title_column`         | `ColumnName \| None`                                    | Only valid if children is of type `PartitionedTable`. The column of values to display as section names. Should be the same for all values in the constituent `Table`. If not specified, the section titles will be created from the `key_columns` of the `PartitionedTable`. |
+| `default_selected_key` | `Key \| None`                                           | The initial selected key in the collection (uncontrolled).                                                                                                                                                                                                                   |
+| `selected_key`         | `Key \| None`                                           | The currently selected key in the collection (controlled).                                                                                                                                                                                                                   |
+| `search_type`          | `ComboBoxSearchType`                                    | The type of search to use with the `combo_box`. Defaults to `"CONTAINS"`.                                                                                                                                                                                                    |
+| `on_selection_change`  | `Callable[[Key], None] \| None`                         | Handler that is called when the selection changes.                                                                                                                                                                                                                           |
+| `on_change`            | `Callable[[Key], None] \| None`                         | Alias of `on_selection_change`. Handler that is called when the selection changes.                                                                                                                                                                                           |
+| `**props`              | `Any`                                                   | Any other [Combo_Box](https://react-spectrum.adobe.com/react-spectrum/ComboBox.html) prop, with the exception of `items`, `validate`, `errorMessage` (as a callback) and `onLoadMore`                                                                                        |
+
+```py
+import deephaven.ui as ui
+
+# simple combo_box that takes ui.items and is uncontrolled
+combo_box1 = ui.combo_box(
+    ui.item("Option 1"),
+    ui.item("Option 2"),
+    ui.item("Option 3"),
+    ui.item("Option 4"),
+    default_selected_key="Option 2"
+)
+
+# simple combo_box that takes combo_box options directly and is controlled
+option, set_option = ui.use_state("Option 2")
+
+combo_box2 = ui.combo_box(
+    "Option 1",
+    "Option 2",
+    "Option 3",
+    "Option 4",
+    selected_key=option,
+    on_selection_change=set_option
+)
+
+# manually create a section with items
+combo_box3 = ui.combo_box(
+    ui.section(
+        ui.item("Option 1"),
+        ui.item("Option 2"),
+        title="Section 1"
+    ),
+    ui.section(
+        ui.item("Option 3"),
+        ui.item("Option 4"),
+        title="Section 2"
+    )
+)
+
+# manually create a section with combo_box options directly
+combo_box4 = ui.combo_box(
+    ui.section(
+        "Option 1",
+        "Option 2",
+    ),
+    ui.section(
+        "Option 3",
+        "Option 4",
+    )
+)
+
+from deephaven import empty_table
+
+table1 = empty_table(4).update_view("data=i")
+table2 = empty_table(1).update_view("data=10")
+
+# data hooks can be used to create a combo_box from a table
+# this should be avoided as it is not as performant as just passing in the table directly
+options = ui.use_column_data(table1)
+
+combo_box5 = ui.combo_box(
+    children=options
+)
+
+# instead, pass in the table directly
+combo_box6 = ui.combo_box(
+    table1
+)
+
+from deephaven import new_table
+from deephaven.column import string_col, int_col
+
+color_table = new_table([
+    string_col("Sections", ["Interesting Colors", "Interesting Colors", "Other Colors"]),
+    string_col("SectionNames", ["Favorites", "Favorites", "Other"]),
+    int_col("Keys", ["salmon", "lemonchiffon", "black"]),
+    string_col("Labels", ["Salmon", "Lemon Chiffon", "Black"]),
+    string_col("Descriptions", ["An interesting color", "Another interesting color", "A color"]),
+    string_col("Icons", ["Amusementpark", "Teapot", "Sentiment Negative"])
+])
+partitioned_table = color_table.partition_by("Sections")
+
+color, set_color = ui.use_state("salmon")
+
+# this will create a combo_box with two sections, one for each partition
+combo_box7 = ui.combo_box(
+    partitioned_table,
+    key_column="Keys",
+    label_column="Labels",
+    description_column="Descriptions",
+    icon_column="Icons",
+    title_column="SectionNames",
+    selected_key=color,
+    on_selection_change=set_color
+)
+
+color, set_color = ui.use_state("salmon")
+
+# this will create a combo_box that matches against the start of the label when searching
+combo_box8 = ui.combo_box(
+    color_table,
+    key_column="Keys",
+    search_type="STARTS_WITH",
+    selected_key=color,
+    on_selection_change=set_color
+)
+```
+
 #### ui.table
 
 `ui.table` is a wrapper for a Deephaven `Table` object that allows you to add UI customizations or callbacks. The basic syntax for creating a `UITable` is:
@@ -1825,9 +1976,11 @@ TransformedData = Any
 # Stringable is a type that is naturally convertible to a string
 Stringable = str | int | float | bool
 PickerItem = Stringable | ItemElement
+ComboBoxItem = Stringable | ItemElement
 Key = Stringable
 Selection = Sequence[Key]
 ListViewItem = Stringable | ItemElement
+ComboBoxSearchType = Literal["STARTS_WITH", "CONTAINS", "ENDS_WITH"]
 
 T = TypeVar("T")
 Combination: TypeAlias = T | set[T] | Sequence[T]
