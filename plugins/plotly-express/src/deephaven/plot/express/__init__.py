@@ -4,6 +4,7 @@ import json
 from typing import Any
 
 from deephaven.plugin.object_type import BidirectionalObjectType, MessageStream
+from plotly.graph_objs import Figure
 
 from .communication.DeephavenFigureConnection import DeephavenFigureConnection
 from .deephaven_figure import DeephavenFigure
@@ -66,7 +67,8 @@ class DeephavenFigureType(BidirectionalObjectType):
 
     def is_type(self, obj: Any) -> bool:
         """
-        Check if an object is a DeephavenFigure
+        Check if an object is a DeephavenFigure or Plotly Figure
+        Plotly figures are wrapped in DeephavenFigure when sent to the client
 
         Args:
           obj: The object to check
@@ -74,7 +76,7 @@ class DeephavenFigureType(BidirectionalObjectType):
         Returns:
             True if the object is of the correct type, False otherwise
         """
-        return isinstance(obj, DeephavenFigure)
+        return isinstance(obj, DeephavenFigure) or isinstance(obj, Figure)
 
     def create_client_connection(
         self, obj: DeephavenFigure, connection: MessageStream
@@ -90,6 +92,10 @@ class DeephavenFigureType(BidirectionalObjectType):
         Returns:
             The client connection
         """
+        if isinstance(obj, Figure):
+            # this is a plotly figure, it will never be updated, so wrap once and send
+            obj = DeephavenFigure(obj, is_plotly_fig=True)
+
         figure_connection = DeephavenFigureConnection(obj, connection)
         initial_message = json.dumps(
             {

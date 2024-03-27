@@ -1,3 +1,7 @@
+# Deprecated
+This plugin is deprecated and will be removed in a future release. 
+Please use the plotly-express plugin instead, which will render Plotly plots in the same way as this plugin.
+
 # Deephaven Plugin for Plotly
 
 The Deephaven Plugin for Plotly. Allows for opening Plotly plots in a Deephaven environment. Any Plotly plot
