@@ -34,6 +34,7 @@ import DashboardWidgetHandler from './widget/DashboardWidgetHandler';
 
 const NAME_ELEMENT = 'deephaven.ui.Element';
 const DASHBOARD_ELEMENT = 'deephaven.ui.Dashboard';
+const TABLE_TYPE = 'Table';
 const PLUGIN_NAME = '@deephaven/js-plugin-ui.DashboardPlugin';
 
 const log = Log.module('@deephaven/js-plugin-ui.DashboardPlugin');
@@ -142,6 +143,9 @@ export function DashboardPlugin(
         }
         case DASHBOARD_ELEMENT: {
           handleDashboardOpen({ widget, dashboardId: widgetId });
+          break;
+        }
+        case TABLE_TYPE: {
           break;
         }
         default: {

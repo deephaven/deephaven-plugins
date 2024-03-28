@@ -2,11 +2,36 @@ import React from 'react';
 import { Text } from '@adobe/react-spectrum';
 import type { dh } from '@deephaven/jsapi-types';
 import { TestUtils } from '@deephaven/utils';
-import { ELEMENT_KEY, isPrimitive, wrapElementChildren } from './ElementUtils';
+import {
+  ELEMENT_KEY,
+  fetchReexportedTable,
+  isPrimitive,
+  wrapElementChildren,
+} from './ElementUtils';
 import ObjectView from './ObjectView';
 import { ITEM_ELEMENT_NAME } from './ElementConstants';
 
-const { createMockProxy } = TestUtils;
+const { asMock, createMockProxy } = TestUtils;
+
+describe('fetchReexportedTable', () => {
+  it('should return null for null object', async () => {
+    const actual = await fetchReexportedTable(null);
+    expect(actual).toBeNull();
+  });
+
+  it('should return table for non-null object', async () => {
+    const table = createMockProxy<dh.Table>();
+
+    const reexported = createMockProxy<dh.WidgetExportedObject>();
+    asMock(reexported.fetch).mockResolvedValue(table);
+
+    const exported = createMockProxy<dh.WidgetExportedObject>();
+    asMock(exported.reexport).mockResolvedValue(reexported);
+
+    const actual = await fetchReexportedTable(exported);
+    expect(actual).toBe(table);
+  });
+});
 
 describe('isPrimitive', () => {
   it.each(['test', 444, true, false])(

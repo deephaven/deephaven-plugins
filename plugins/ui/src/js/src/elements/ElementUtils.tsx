@@ -47,6 +47,23 @@ export function isObjectNode(obj: unknown): obj is ObjectNode {
 }
 
 /**
+ * Re-export and fetch the table from the given exported object.
+ * @param exportedObject
+ * @returns Promise that resolves to the table or null if given
+ * object is null
+ */
+export async function fetchReexportedTable(
+  exportedObject: dh.WidgetExportedObject | null
+): Promise<dh.Table | null> {
+  if (exportedObject == null) {
+    return null;
+  }
+
+  const reexportedTable = await exportedObject.reexport();
+  return reexportedTable.fetch();
+}
+
+/**
  * Type guard for `ElementNode` objects. If `name` is provided, it will also check
  * that the element name matches the provided name.
  * @param obj The object to check
