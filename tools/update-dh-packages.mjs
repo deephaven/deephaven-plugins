@@ -37,7 +37,7 @@ console.log('targetVersion:', {
 
 // Read package.json to get dependency lists
 const packageJsonPath = path.join(process.cwd(), 'package.json');
-const { dependencies, devDependencies } = JSON.parse(
+const { dependencies = {}, devDependencies = {} } = JSON.parse(
   String(await fs.readFile(packageJsonPath, 'utf8'))
 );
 
