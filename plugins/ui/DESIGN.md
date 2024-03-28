@@ -1037,7 +1037,7 @@ A section that can be added to a menu, such as a `ui.picker`. Children are the d
 ```py
 import deephaven.ui as ui
 ui.section(
-    *children: PickerItem,
+    *children: Item,
     title: str | None = None,
     **props: Any
 ) -> SectionElement
@@ -1045,16 +1045,16 @@ ui.section(
 
 ###### Parameters
 
-| Parameter   | Type          | Description                               |
-| ----------- | ------------- | ----------------------------------------- |
-| `*children` | `PickerItem`  | The options to render within the section. |
+| Parameter   | Type    | Description                               |
+| ----------- | ------- | ----------------------------------------- |
+| `*children` | `Item`  | The options to render within the section. |
 | `title`     | `str \| None` | The title of the section.                 |
-| `**props`   | `Any`         | Any other Section prop                    |
+| `**props`   | `Any`   | Any other Section prop                    |
 
 ##### ui.picker
 
 A picker that can be used to select from a list. Children should be one of four types:  
-If children are of type `PickerItem`, they are the dropdown options.  
+If children are of type `Item`, they are the dropdown options.  
 If children are of type `SectionElement`, they are the dropdown sections.  
 If children are of type `Table`, the values in the table are the dropdown options. There can only be one child, the `Table`.
 If children are of type `PartitionedTable`, the values in the table are the dropdown options and the partitions create multiple sections. There can only be one child, the `PartitionedTable`.
@@ -1062,7 +1062,7 @@ If children are of type `PartitionedTable`, the values in the table are the drop
 ```py
 import deephaven.ui as ui
 ui.picker(
-    *children: PickerItem | SectionElement | Table | PartitionedTable,
+    *children: Item | SectionElement | Table | PartitionedTable,
     key_column: ColumnName | None = None,
     label_column: ColumnName | None = None,
     description_column: ColumnName | None = None,
@@ -1078,19 +1078,19 @@ ui.picker(
 
 ###### Parameters
 
-| Parameter              | Type                                                        | Description                                                                                                                                                                                                                                                                  |
-| ---------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `*children`            | `PickerItem \| SectionElement \| Table \| PartitionedTable` | The options to render within the picker.                                                                                                                                                                                                                                     |
-| `key_column`           | `ColumnName \| None`                                        | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to use as item keys. Defaults to the first column.                                                                                                                                    |
-| `label_column`         | `ColumnName \| None`                                        | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                       |
-| `description_column`   | `ColumnName \| None`                                        | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as descriptions.                                                                                                                                                           |
-| `icon_column`          | `ColumnName \| None`                                        | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to map to icons.                                                                                                                                                                      |
-| `title_column`         | `ColumnName \| None`                                        | Only valid if children is of type `PartitionedTable`. The column of values to display as section names. Should be the same for all values in the constituent `Table`. If not specified, the section titles will be created from the `key_columns` of the `PartitionedTable`. |
-| `default_selected_key` | `Key \| None`                                               | The initial selected key in the collection (uncontrolled).                                                                                                                                                                                                                   |
-| `selected_key`         | `Key \| None`                                               | The currently selected key in the collection (controlled).                                                                                                                                                                                                                   |
-| `on_selection_change`  | `Callable[[Key], None] \| None`                             | Handler that is called when the selection changes.                                                                                                                                                                                                                           |
-| `on_change`            | `Callable[[Key], None] \| None`                             | Alias of `on_selection_change`. Handler that is called when the selection changes.                                                                                                                                                                                           |
-| `**props`              | `Any`                                                       | Any other [Picker](https://react-spectrum.adobe.com/react-spectrum/Picker.html) prop, with the exception of `items`, `validate`, `errorMessage` (as a callback) and `onLoadMore`                                                                                             |
+| Parameter              | Type                                                  | Description                                                                                                                                                                                                                                                                  |
+| ---------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `*children`            | `Item \| SectionElement \| Table \| PartitionedTable` | The options to render within the picker.                                                                                                                                                                                                                                     |
+| `key_column`           | `ColumnName \| None`                                  | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to use as item keys. Defaults to the first column.                                                                                                                                    |
+| `label_column`         | `ColumnName \| None`                                  | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                       |
+| `description_column`   | `ColumnName \| None`                                  | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as descriptions.                                                                                                                                                           |
+| `icon_column`          | `ColumnName \| None`                                  | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to map to icons.                                                                                                                                                                      |
+| `title_column`         | `ColumnName \| None`                                  | Only valid if children is of type `PartitionedTable`. The column of values to display as section names. Should be the same for all values in the constituent `Table`. If not specified, the section titles will be created from the `key_columns` of the `PartitionedTable`. |
+| `default_selected_key` | `Key \| None`                                         | The initial selected key in the collection (uncontrolled).                                                                                                                                                                                                                   |
+| `selected_key`         | `Key \| None`                                         | The currently selected key in the collection (controlled).                                                                                                                                                                                                                   |
+| `on_selection_change`  | `Callable[[Key], None] \| None`                       | Handler that is called when the selection changes.                                                                                                                                                                                                                           |
+| `on_change`            | `Callable[[Key], None] \| None`                       | Alias of `on_selection_change`. Handler that is called when the selection changes.                                                                                                                                                                                           |
+| `**props`              | `Any`                                                 | Any other [Picker](https://react-spectrum.adobe.com/react-spectrum/Picker.html) prop, with the exception of `items`, `validate`, `errorMessage` (as a callback) and `onLoadMore`                                                                                             |
 
 ```py
 import deephaven.ui as ui
@@ -1190,13 +1190,13 @@ picker7 = ui.picker(
 
 ###### ui.list_view
 A list view that can be used to create a list of items. Children should be one of two types:  
-1. If children are of type `ListViewItem`, they are the list items.  
+1. If children are of type `Item`, they are the list items.  
 2. If children are of type `Table`, the values in the table are the list items. There can only be one child, the `Table`.   
 
 ```py
 import deephaven.ui as ui
 ui.list_view(
-    *children: ListViewItem | Table,
+    *children: Item | Table,
     key_column: ColumnName | None = None,
     label_column: ColumnName | None = None,
     description_column: ColumnName | None = None,
@@ -1212,20 +1212,20 @@ ui.list_view(
 ```
 
 ###### Parameters
-| Parameter                    | Type                                                                 | Description                                                                                                                                                                                                                                                                                                                |
-|------------------------------|----------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`                  | `ListViewItem \| Table`                              | The options to render within the picker.                                                                                                                                                                                                                                                                                   |
-| `key_column`                 | `ColumnName \| None`                                                 | Only valid if children are of type `Table`. The column of values to use as item keys. Defaults to the first column.                                                                                                                                                                                                        |
-| `label_column`               | `ColumnName \| None`                                                 | Only valid if children are of type `Table`. The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                                                                                           |
-| `description_column`         | `ColumnName \| None`                                                 | Only valid if children are of type `Table`. The column of values to display as descriptions.                                                                                                                                                                                                                               |
-| `icon_column`                | `ColumnName \| None`                                                 | Only valid if children are of type `Table`. The column of values to map to icons.                                                                                                                                                                                                                                          |
-| `action_buttons`             | `ActionButtonElement \| ActionGroupElement \| ActionMenuElement \| None` | Only valid if any `ListViewItem` children do not already have embedded buttons. The action buttons to render for all elements within the list view. The `on_*` event handlers within the passed object will be modified so that the second argument is the key for the `list_view` item that the buttons are embedded in.  |
-| `default_selected_keys`      | `Selection \| None`                                                  | The initial selected keys in the collection (uncontrolled).                                                                                                                                                                                                                                                                |
-| `selected_keys`              | `Selection \| None`                                                  | The currently selected keys in the collection (controlled).                                                                                                                                                                                                                                                                |
-| `render_empty_state`         | `Element \| None`                                                    | Sets what the `list_view` should render when there is no content to display.                                                                                                                                                                                                                                               |
-| `on_selection_change`        | `Callable[[Selection], None] \| None`                                | Handler that is called when the selections changes.                                                                                                                                                                                                                                                                        |
-| `on_change`                  | `Callable[[Selection], None] \| None`                                | Alias of `on_selection_change`. Handler that is called when the selections changes.                                                                                                                                                                                                                                        |
-| `**props`                    | `Any`                                                                | Any other [ListView](https://react-spectrum.adobe.com/react-spectrum/ListView.html) prop, with the exception of `items`, `dragAndDropHooks`, and `onLoadMore`.                                                                                                                                                             |
+| Parameter                    | Type                                                                     | Description                                                                                                                                                                                                                                                                                                       |
+|------------------------------|--------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `*children`                  | `Item \| Table`                                                          | The options to render within the picker.                                                                                                                                                                                                                                                                          |
+| `key_column`                 | `ColumnName \| None`                                                     | Only valid if children are of type `Table`. The column of values to use as item keys. Defaults to the first column.                                                                                                                                                                                               |
+| `label_column`               | `ColumnName \| None`                                                     | Only valid if children are of type `Table`. The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                                                                                  |
+| `description_column`         | `ColumnName \| None`                                                     | Only valid if children are of type `Table`. The column of values to display as descriptions.                                                                                                                                                                                                                      |
+| `icon_column`                | `ColumnName \| None`                                                     | Only valid if children are of type `Table`. The column of values to map to icons.                                                                                                                                                                                                                                 |
+| `action_buttons`             | `ActionButtonElement \| ActionGroupElement \| ActionMenuElement \| None` | Only valid if any `Item` children do not already have embedded buttons. The action buttons to render for all elements within the list view. The `on_*` event handlers within the passed object will be modified so that the second argument is the key for the `list_view` item that the buttons are embedded in. |
+| `default_selected_keys`      | `Selection \| None`                                                      | The initial selected keys in the collection (uncontrolled).                                                                                                                                                                                                                                                       |
+| `selected_keys`              | `Selection \| None`                                                      | The currently selected keys in the collection (controlled).                                                                                                                                                                                                                                                       |
+| `render_empty_state`         | `Element \| None`                                                        | Sets what the `list_view` should render when there is no content to display.                                                                                                                                                                                                                                      |
+| `on_selection_change`        | `Callable[[Selection], None] \| None`                                    | Handler that is called when the selections changes.                                                                                                                                                                                                                                                               |
+| `on_change`                  | `Callable[[Selection], None] \| None`                                    | Alias of `on_selection_change`. Handler that is called when the selections changes.                                                                                                                                                                                                                               |
+| `**props`                    | `Any`                                                                    | Any other [ListView](https://react-spectrum.adobe.com/react-spectrum/ListView.html) prop, with the exception of `items`, `dragAndDropHooks`, and `onLoadMore`.                                                                                                                                                    |
 
 
 ```py
@@ -1314,7 +1314,7 @@ list_view7 = ui.list_view(
 
 A combo_box that can be used to search or select from a list. By default, the search strategy is set to "CONTAINS".
 Children should be one of four types:  
-If children are of type `ComboBoxItem`, they are the dropdown options.  
+If children are of type `Item`, they are the dropdown options.  
 If children are of type `SectionElement`, they are the dropdown sections.  
 If children are of type `Table`, the values in the table are the dropdown options. There can only be one child, the `Table`.
 If children are of type `PartitionedTable`, the values in the table are the dropdown options and the partitions create multiple sections. There can only be one child, the `PartitionedTable`.
@@ -1322,7 +1322,7 @@ If children are of type `PartitionedTable`, the values in the table are the drop
 ```py
 import deephaven.ui as ui
 ui.combo_box(
-    *children: ComboBoxItem | SectionElement | Table | PartitionedTable,
+    *children: Item | SectionElement | Table | PartitionedTable,
     key_column: ColumnName | None = None,
     label_column: ColumnName | None = None,
     description_column: ColumnName | None = None,
@@ -1331,6 +1331,8 @@ ui.combo_box(
     default_selected_key: Key | None = None,
     selected_key: Key | None = None,
     search_type: ComboBoxSearchType = "CONTAINS",
+    sensitivity: ComboBoxSearchSensitivity = "BASE",
+    ignore_punctuation: bool = False,
     on_selection_change: Callable[[Key], None] | None = None,
     on_change: Callable[[Key], None] | None = None,
     **props: Any
@@ -1339,20 +1341,22 @@ ui.combo_box(
 
 ###### Parameters
 
-| Parameter              | Type                                                    | Description                                                                                                                                                                                                                                                                  |
-| ---------------------- | ------------------------------------------------------- |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`            | `ComboBoxItem \| SectionElement \| Table \| PartitionedTable` | The options to render within the combo_box.                                                                                                                                                                                                                                  |
-| `key_column`           | `ColumnName \| None`                                    | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to use as item keys. Defaults to the first column.                                                                                                                                    |
-| `label_column`         | `ColumnName \| None`                                    | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                       |
-| `description_column`   | `ColumnName \| None`                                    | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as descriptions.                                                                                                                                                           |
-| `icon_column`          | `ColumnName \| None`                                    | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to map to icons.                                                                                                                                                                      |
-| `title_column`         | `ColumnName \| None`                                    | Only valid if children is of type `PartitionedTable`. The column of values to display as section names. Should be the same for all values in the constituent `Table`. If not specified, the section titles will be created from the `key_columns` of the `PartitionedTable`. |
-| `default_selected_key` | `Key \| None`                                           | The initial selected key in the collection (uncontrolled).                                                                                                                                                                                                                   |
-| `selected_key`         | `Key \| None`                                           | The currently selected key in the collection (controlled).                                                                                                                                                                                                                   |
-| `search_type`          | `ComboBoxSearchType`                                    | The type of search to use with the `combo_box`. Defaults to `"CONTAINS"`.                                                                                                                                                                                                    |
-| `on_selection_change`  | `Callable[[Key], None] \| None`                         | Handler that is called when the selection changes.                                                                                                                                                                                                                           |
-| `on_change`            | `Callable[[Key], None] \| None`                         | Alias of `on_selection_change`. Handler that is called when the selection changes.                                                                                                                                                                                           |
-| `**props`              | `Any`                                                   | Any other [Combo_Box](https://react-spectrum.adobe.com/react-spectrum/ComboBox.html) prop, with the exception of `items`, `validate`, `errorMessage` (as a callback) and `onLoadMore`                                                                                        |
+| Parameter              | Type                                                  | Description                                                                                                                                                                                                                                                                  |
+| ---------------------- | ----------------------------------------------------- |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `*children`            | `Item \| SectionElement \| Table \| PartitionedTable` | The options to render within the combo_box.                                                                                                                                                                                                                                  |
+| `key_column`           | `ColumnName \| None`                                  | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to use as item keys. Defaults to the first column.                                                                                                                                    |
+| `label_column`         | `ColumnName \| None`                                  | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                       |
+| `description_column`   | `ColumnName \| None`                                  | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as descriptions.                                                                                                                                                           |
+| `icon_column`          | `ColumnName \| None`                                  | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to map to icons.                                                                                                                                                                      |
+| `title_column`         | `ColumnName \| None`                                  | Only valid if children is of type `PartitionedTable`. The column of values to display as section names. Should be the same for all values in the constituent `Table`. If not specified, the section titles will be created from the `key_columns` of the `PartitionedTable`. |
+| `default_selected_key` | `Key \| None`                                         | The initial selected key in the collection (uncontrolled).                                                                                                                                                                                                                   |
+| `selected_key`         | `Key \| None`                                         | The currently selected key in the collection (controlled).                                                                                                                                                                                                                   |
+| `search_type`          | `ComboBoxSearchType`                                  | The type of search to use with the `combo_box`. Defaults to `"CONTAINS"`.                                                                                                                                                                                                    |
+| `sensitivity`          | `ComboBoxSearchSensitivity`                           | The sensitivity of the search to use with the `combo_box`. Defaults to `"BASE"`, in which only different base letters are unequal. Can also be "CASE" for case sensitive comparison, "ACCENT" for diacritic mark sensitive comparison, and "VARIANT" for both.               |
+| `ignore_punctuation`   | `bool`                                                | Whether punctuation should be ignored. Defaults to `False`.                                                                                                                                                                                                           |
+| `on_selection_change`  | `Callable[[Key], None] \| None`                       | Handler that is called when the selection changes.                                                                                                                                                                                                                           |
+| `on_change`            | `Callable[[Key], None] \| None`                       | Alias of `on_selection_change`. Handler that is called when the selection changes.                                                                                                                                                                                           |
+| `**props`              | `Any`                                                 | Any other [Combo_Box](https://react-spectrum.adobe.com/react-spectrum/ComboBox.html) prop, with the exception of `items`, `validate`, `errorMessage` (as a callback) and `onLoadMore`                                                                                        |
 
 ```py
 import deephaven.ui as ui
@@ -1975,12 +1979,11 @@ TableData = dict[ColumnName, ColumnData]
 TransformedData = Any
 # Stringable is a type that is naturally convertible to a string
 Stringable = str | int | float | bool
-PickerItem = Stringable | ItemElement
-ComboBoxItem = Stringable | ItemElement
+Item = Stringable | ItemElement
 Key = Stringable
 Selection = Sequence[Key]
-ListViewItem = Stringable | ItemElement
 ComboBoxSearchType = Literal["STARTS_WITH", "CONTAINS", "ENDS_WITH"]
+ComboBoxSensitivity = Listeral["BASE", "ACCENT", "CASE", "VARIANT"]
 
 T = TypeVar("T")
 Combination: TypeAlias = T | set[T] | Sequence[T]
