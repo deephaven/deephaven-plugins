@@ -12,6 +12,8 @@ from .picker import picker
 from .section import section
 from .item import item
 from .list_view import list_view
+from .list_action_group import list_action_group
+from .list_action_menu import list_action_menu
 
 from . import html
 
@@ -36,6 +38,8 @@ __all__ = [
     "item",
     "illustrated_message",
     "list_view",
+    "list_action_group",
+    "list_action_menu",
     "html",
     "number_field",
     "panel",
