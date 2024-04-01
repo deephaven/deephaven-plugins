@@ -1333,6 +1333,9 @@ ui.combo_box(
     search_type: ComboBoxSearchType = "CONTAINS",
     sensitivity: ComboBoxSearchSensitivity = "BASE",
     ignore_punctuation: bool = False,
+    input_value: str | None = None,
+    default_input_value: str | None = None,
+    on_input_change: Callable[[str], None] | None = None,
     on_selection_change: Callable[[Key], None] | None = None,
     on_change: Callable[[Key], None] | None = None,
     **props: Any
@@ -1353,7 +1356,10 @@ ui.combo_box(
 | `selected_key`         | `Key \| None`                                         | The currently selected key in the collection (controlled).                                                                                                                                                                                                                   |
 | `search_type`          | `ComboBoxSearchType`                                  | The type of search to use with the `combo_box`. Defaults to `"CONTAINS"`.                                                                                                                                                                                                    |
 | `sensitivity`          | `ComboBoxSearchSensitivity`                           | The sensitivity of the search to use with the `combo_box`. Defaults to `"BASE"`, in which only different base letters are unequal. Can also be "CASE" for case sensitive comparison, "ACCENT" for diacritic mark sensitive comparison, and "VARIANT" for both.               |
-| `ignore_punctuation`   | `bool`                                                | Whether punctuation should be ignored. Defaults to `False`.                                                                                                                                                                                                           |
+| `ignore_punctuation`   | `bool`                                                | Whether punctuation should be ignored. Defaults to `False`.                                                                                                                                                                                                                  |
+| `input_value`          | `str \| None`                                         | The value of the search input (controlled).                                                                                                                                                                                                                                  |
+| `default_input_value`  | `str \| None`                                         | The default value of the search input (uncontrolled).                                                                                                                                                                                                                        |
+| `on_input_change`      | `Callable[[str], None] \| None`                       | Handler that is called when the search input value changes.                                                                                                                                                                                                                  |
 | `on_selection_change`  | `Callable[[Key], None] \| None`                       | Handler that is called when the selection changes.                                                                                                                                                                                                                           |
 | `on_change`            | `Callable[[Key], None] \| None`                       | Alias of `on_selection_change`. Handler that is called when the selection changes.                                                                                                                                                                                           |
 | `**props`              | `Any`                                                 | Any other [Combo_Box](https://react-spectrum.adobe.com/react-spectrum/ComboBox.html) prop, with the exception of `items`, `validate`, `errorMessage` (as a callback) and `onLoadMore`                                                                                        |
@@ -1367,7 +1373,7 @@ combo_box1 = ui.combo_box(
     ui.item("Option 2"),
     ui.item("Option 3"),
     ui.item("Option 4"),
-    default_selected_key="Option 2"
+    default_selected_key="Option 2",
 )
 
 # simple combo_box that takes combo_box options directly and is controlled
@@ -1382,8 +1388,29 @@ combo_box2 = ui.combo_box(
     on_selection_change=set_option
 )
 
-# manually create a section with items
+# the input value can be uncontrolled
 combo_box3 = ui.combo_box(
+    ui.item("Option 1"),
+    ui.item("Option 2"),
+    ui.item("Option 3"),
+    ui.item("Option 4"),
+    default_input_value="Option"
+)
+
+# the input value can be controlled
+input_value, set_input_value = ui.use_state("Option")
+
+combo_box4 = ui.combo_box(
+    ui.item("Option 1"),
+    ui.item("Option 2"),
+    ui.item("Option 3"),
+    ui.item("Option 4"),
+    input_value=input_value,
+    on_input_change=set_input_value
+)
+
+# manually create a section with items
+combo_box5 = ui.combo_box(
     ui.section(
         ui.item("Option 1"),
         ui.item("Option 2"),
@@ -1397,7 +1424,7 @@ combo_box3 = ui.combo_box(
 )
 
 # manually create a section with combo_box options directly
-combo_box4 = ui.combo_box(
+combo_box6 = ui.combo_box(
     ui.section(
         "Option 1",
         "Option 2",
@@ -1417,12 +1444,12 @@ table2 = empty_table(1).update_view("data=10")
 # this should be avoided as it is not as performant as just passing in the table directly
 options = ui.use_column_data(table1)
 
-combo_box5 = ui.combo_box(
+combo_box7 = ui.combo_box(
     children=options
 )
 
 # instead, pass in the table directly
-combo_box6 = ui.combo_box(
+combo_box8 = ui.combo_box(
     table1
 )
 
@@ -1442,7 +1469,7 @@ partitioned_table = color_table.partition_by("Sections")
 color, set_color = ui.use_state("salmon")
 
 # this will create a combo_box with two sections, one for each partition
-combo_box7 = ui.combo_box(
+combo_box9 = ui.combo_box(
     partitioned_table,
     key_column="Keys",
     label_column="Labels",
@@ -1456,7 +1483,7 @@ combo_box7 = ui.combo_box(
 color, set_color = ui.use_state("salmon")
 
 # this will create a combo_box that matches against the start of the label when searching
-combo_box8 = ui.combo_box(
+combo_box10 = ui.combo_box(
     color_table,
     key_column="Keys",
     search_type="STARTS_WITH",
