@@ -29,13 +29,27 @@ jobs:
         id: filter
         with:
           filters: |
-            plotly-express: plugins/plotly-express/**
-            plotly: plugins/plotly/**
-            matplotlib: plugins/matplotlib/**
-            json: plugins/json/**
-            ui: plugins/ui/**
-            utilities: plugins/utilities/**
-            packaging: plugins/packaging/**
+            plotly-express:
+              - plugins/plotly-express/**
+              - .github/workflows/test-*.yml
+            plotly: 
+              - plugins/plotly/**
+              - .github/workflows/test-*.yml
+            matplotlib:
+              - plugins/matplotlib/**
+              - .github/workflows/test-*.yml
+            json:
+              - plugins/json/**
+              - .github/workflows/test-*.yml
+            ui:
+              - plugins/ui/**
+              - .github/workflows/test-*.yml
+            utilities:
+              - plugins/utilities/**
+              - .github/workflows/test-*.yml
+            packaging:
+              - plugins/packaging/**
+              - .github/workflows/test-*.yml
 
   # Test all python packages that have been modified individually
   test-python:
