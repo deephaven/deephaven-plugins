@@ -32,7 +32,7 @@ jobs:
             plotly-express:
               - plugins/plotly-express/**
               - .github/workflows/test-*.yml
-            plotly: 
+            plotly:
               - plugins/plotly/**
               - .github/workflows/test-*.yml
             matplotlib:
