@@ -25,10 +25,13 @@ function Picker({ children, ...props }: PickerProps) {
 
   const isObjectView = isElementOfType(children, ObjectView);
 
-  const maybeExportedObject = isObjectView ? children.props.object : null;
+  const maybeExportedTable =
+    isObjectView && children.props.object.type === 'Table'
+      ? children.props.object
+      : null;
 
   const { data: table } = usePromiseFactory(fetchReexportedTable, [
-    maybeExportedObject,
+    maybeExportedTable,
   ]);
 
   useTableClose(table);
