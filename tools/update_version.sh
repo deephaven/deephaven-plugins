@@ -128,7 +128,7 @@ esac
 
 # We still need to bump these JS packages for Enterprise legacy reasons, even though they're packaged with Python
 npm_version="${version}"
-if [ ! "$dev" = true ]; then
+if [ "$dev" != true ]; then
     case "$package" in
         auth-keycloak | dashboard-object-viewer | matplotlib | plotly | plotly-express | table-example | ui)
             # The working directory is already `plugins/<package-name>`, so we just specify workspace as `src/js` and it does the right thing
