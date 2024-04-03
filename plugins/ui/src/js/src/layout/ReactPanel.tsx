@@ -116,10 +116,11 @@ function ReactPanel({ children, title }: ReactPanelProps) {
 
   return portal
     ? ReactDOM.createPortal(
-        <ReactPanelContext.Provider value={panelId} key={contentKey}>
+        <ReactPanelContext.Provider value={panelId}>
           {children}
         </ReactPanelContext.Provider>,
-        portal
+        portal,
+        contentKey
       )
     : null;
 }
