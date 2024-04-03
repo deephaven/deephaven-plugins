@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.7.0 - 2024-04-03
+#### Bug Fixes
+- Ensure title is added to default figure (#396) - (2f0a8a0) - Joe
+- Deephaven express chart title does not update dynamically (#386) - (556d07c) - Matthew Runyon
+#### Features
+- combine plotly plots into plotly-express plugin (#358) - (7a1893d) - Joe
+- Add python 3.12 testing (#398) - (241348f) - devinrsmith
+
+- - -
+
 ## plotly-express-v0.6.0 - 2024-03-19
 #### Features
 - Package matplotlib and ui JS with wheel (#343) - (7724e55) - Joe
