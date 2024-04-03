@@ -1,4 +1,4 @@
-import type { WidgetExportedObject } from '@deephaven/jsapi-types';
+import type { dh } from '@deephaven/jsapi-types';
 import { ColumnName, DehydratedSort, RowIndex } from '@deephaven/iris-grid';
 import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
 import { UITableElementName, UITABLE_ELEMENT_TYPE } from './ElementConstants';
@@ -19,7 +19,7 @@ export type ColumnIndex = number;
 export type RowDataMap = Record<ColumnName, RowDataValue>;
 
 export interface UITableProps {
-  table: WidgetExportedObject;
+  table: dh.WidgetExportedObject;
   onCellPress?: (cellIndex: [ColumnIndex, RowIndex], data: CellData) => void;
   onCellDoublePress?: (
     cellIndex: [ColumnIndex, RowIndex],

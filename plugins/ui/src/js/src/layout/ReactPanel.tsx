@@ -29,7 +29,7 @@ function ReactPanel({ children, title }: ReactPanelProps) {
   // Initialize the `isPanelOpenRef` and `openedWidgetRef` accordingly on initialization
   const isPanelOpenRef = useRef(portal != null);
   const openedMetadataRef = useRef<ReactPanelControl['metadata']>(
-    portal != null ? metadata : null
+    portal == null ? undefined : metadata
   );
   const parent = useParentItem();
   const { eventHub } = layoutManager;

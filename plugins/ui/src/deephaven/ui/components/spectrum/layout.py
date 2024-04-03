@@ -101,3 +101,5 @@ CSSProperties = Dict[str, Any]
 """
 A dictionary of CSS properties.
 """
+LabelPosition = Literal["top", "side"]
+LabelAlign = Literal["start", "end"]

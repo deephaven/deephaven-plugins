@@ -1188,6 +1188,50 @@ picker7 = ui.picker(
 )
 ```
 
+###### ui.list_action_group
+A group of action buttons that can be used to create a list of actions.
+This component should be used within the actions prop of a `ListView` component.
+
+```py
+def list_action_group(
+        *children: ActionGroupItem,
+        on_action: Callable[[ActionKey, Key], None] | None = None,
+        on_selection_change: Callable[[Selection, Key], None] | None = None,
+        **props: Any
+) -> ListActionGroupElement:
+```
+
+###### Parameters
+| Parameter               | Type                                                       | Description                                                                                                                                        |
+|-------------------------|------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `*children`             | `ActionGroupItem`                                          | The actions to render within the action group.                                                                                                           |
+| `on_action`             | `Callable[[ActionKey, Key], None] \| None`                 | Handler that is called when an item is pressed. The first argument is the key of the action, the second argument is the key of the list_view item. |
+| `on_selection_change`   | `Callable[[Selection, Key], None] \| None`                 | Handler that is called when the selection changes. The first argument is the selection, the second argument is the key of the list_view item.      |
+| `**props`               | `Any`                                                      | Any other [ActionGroup](https://react-spectrum.adobe.com/react-spectrum/ActionGroup.html) prop.                                                    |
+
+
+
+###### ui.list_action_menu
+A group of action buttons that can be used to create a list of actions.
+This component should be used within the actions prop of a `ListView` component.
+
+```py
+def list_action_menu(
+        *children: ActionMenuItem,
+        on_action: Callable[[ActionKey, Key], None] | None = None,
+        on_open_change: Callable[[bool, Key], None] | None = None,
+        **props: Any
+) -> ListActionMenuElement:
+```
+
+###### Parameters
+| Parameter               | Type                                                       | Description                                                                                                                                        |
+|-------------------------|------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `*children`             | `ActionMenuItem`                                           | The options to render within the picker.                                                                                                           |
+| `on_action`             | `Callable[[ActionKey, Key], None] \| None`                       | Handler that is called when an item is pressed. The first argument is the key of the action, the second argument is the key of the list_view item. |
+| `on_open_change`        | `Callable[[bool, Key], None] \| None`                      | The first argument is a boolean indicating if the menu is open, the second argument is the key of the list_view item.                              |
+| `**props`               | `Any`                                                      | Any other [ActionMenu](https://react-spectrum.adobe.com/react-spectrum/ActionMenu.html) prop.                                                      |
+
 ###### ui.list_view
 A list view that can be used to create a list of items. Children should be one of two types:  
 1. If children are of type `Item`, they are the list items.  
@@ -1201,7 +1245,7 @@ ui.list_view(
     label_column: ColumnName | None = None,
     description_column: ColumnName | None = None,
     icon_column: ColumnName | None = None,
-    action_buttons: ActionButtonElement | ActionGroupElement | ActionMenuElement | None = None,
+    actions: ListActionGroupElement | ListActionMenuElement | None = None,
     default_selected_keys: Selection | None = None,
     selected_keys: Selection | None = None,
     render_empty_state: Element | None = None,
@@ -1212,20 +1256,20 @@ ui.list_view(
 ```
 
 ###### Parameters
-| Parameter                    | Type                                                                     | Description                                                                                                                                                                                                                                                                                                       |
-|------------------------------|--------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`                  | `Item \| Table`                                                          | The options to render within the picker.                                                                                                                                                                                                                                                                          |
-| `key_column`                 | `ColumnName \| None`                                                     | Only valid if children are of type `Table`. The column of values to use as item keys. Defaults to the first column.                                                                                                                                                                                               |
-| `label_column`               | `ColumnName \| None`                                                     | Only valid if children are of type `Table`. The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                                                                                  |
-| `description_column`         | `ColumnName \| None`                                                     | Only valid if children are of type `Table`. The column of values to display as descriptions.                                                                                                                                                                                                                      |
-| `icon_column`                | `ColumnName \| None`                                                     | Only valid if children are of type `Table`. The column of values to map to icons.                                                                                                                                                                                                                                 |
-| `action_buttons`             | `ActionButtonElement \| ActionGroupElement \| ActionMenuElement \| None` | Only valid if any `Item` children do not already have embedded buttons. The action buttons to render for all elements within the list view. The `on_*` event handlers within the passed object will be modified so that the second argument is the key for the `list_view` item that the buttons are embedded in. |
-| `default_selected_keys`      | `Selection \| None`                                                      | The initial selected keys in the collection (uncontrolled).                                                                                                                                                                                                                                                       |
-| `selected_keys`              | `Selection \| None`                                                      | The currently selected keys in the collection (controlled).                                                                                                                                                                                                                                                       |
-| `render_empty_state`         | `Element \| None`                                                        | Sets what the `list_view` should render when there is no content to display.                                                                                                                                                                                                                                      |
-| `on_selection_change`        | `Callable[[Selection], None] \| None`                                    | Handler that is called when the selections changes.                                                                                                                                                                                                                                                               |
-| `on_change`                  | `Callable[[Selection], None] \| None`                                    | Alias of `on_selection_change`. Handler that is called when the selections changes.                                                                                                                                                                                                                               |
-| `**props`                    | `Any`                                                                    | Any other [ListView](https://react-spectrum.adobe.com/react-spectrum/ListView.html) prop, with the exception of `items`, `dragAndDropHooks`, and `onLoadMore`.                                                                                                                                                    |
+| Parameter               | Type                                                       | Description                                                                                                                                                                                                                                                                                                                |
+|-------------------------|------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `*children`             | `Item \| Table`                                    | The options to render within the picker.                                                                                                                                                                                                                                                                                   |
+| `key_column`            | `ColumnName \| None`                                       | Only valid if children are of type `Table`. The column of values to use as item keys. Defaults to the first column.                                                                                                                                                                                                        |
+| `label_column`          | `ColumnName \| None`                                       | Only valid if children are of type `Table`. The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                                                                                           |
+| `description_column`    | `ColumnName \| None`                                       | Only valid if children are of type `Table`. The column of values to display as descriptions.                                                                                                                                                                                                                               |
+| `icon_column`           | `ColumnName \| None`                                       | Only valid if children are of type `Table`. The column of values to map to icons.                                                                                                                                                                                                                                          |
+| `actions`               | `ListActionGroupElement \| ListActionMenuElement \| None`  | Only valid if children are of type Table. The action group or menus to render for all elements within the list view.  |
+| `default_selected_keys` | `Selection \| None`                                        | The initial selected keys in the collection (uncontrolled).                                                                                                                                                                                                                                                                |
+| `selected_keys`         | `Selection \| None`                                        | The currently selected keys in the collection (controlled).                                                                                                                                                                                                                                                                |
+| `render_empty_state`    | `Element \| None`                                          | Sets what the `list_view` should render when there is no content to display.                                                                                                                                                                                                                                               |
+| `on_selection_change`   | `Callable[[Selection], None] \| None`                      | Handler that is called when the selections changes.                                                                                                                                                                                                                                                                        |
+| `on_change`             | `Callable[[Selection], None] \| None`                      | Alias of `on_selection_change`. Handler that is called when the selections changes.                                                                                                                                                                                                                                        |
+| `**props`               | `Any`                                                      | Any other [ListView](https://react-spectrum.adobe.com/react-spectrum/ListView.html) prop, with the exception of `items`, `dragAndDropHooks`, and `onLoadMore`.                                                                                                                                                             |
 
 
 ```py
@@ -1298,15 +1342,15 @@ list_view5 = ui.list_view(
 
 
 # Buttons can be embedded in the list view. Note key is added to the on_press handler, but is not required.
-on_button_action = lambda e, key: print(f"Event {e} was emitted for list item {key}")
-button = ui.action_button("Print Item", on_press=on_button_action)
+on_button_action = lambda action_key, key: print(f"Action {action_key} was pressed for list item {key}")
+button = ui.list_action_group("Print Item", on_action=on_button_action)
 
 list_view7 = ui.list_view(
     "Option 1",
     "Option 2",
     "Option 3",
     "Option 4",
-    action_buttons=button,
+    actions=button,
 )
 ```
 
@@ -2008,6 +2052,7 @@ TransformedData = Any
 Stringable = str | int | float | bool
 Item = Stringable | ItemElement
 Key = Stringable
+ActionKey = Key
 Selection = Sequence[Key]
 ComboBoxSearchType = Literal["STARTS_WITH", "CONTAINS", "ENDS_WITH"]
 ComboBoxSensitivity = Listeral["BASE", "ACCENT", "CASE", "VARIANT"]

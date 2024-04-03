@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text } from '@adobe/react-spectrum';
-import type { WidgetExportedObject } from '@deephaven/jsapi-types';
+import type { dh } from '@deephaven/jsapi-types';
 import { ITEM_ELEMENT_NAME } from './ElementConstants';
 import ObjectView from './ObjectView';
 
@@ -69,12 +69,12 @@ export function isCallableNode(obj: unknown): obj is CallableNode {
   return obj != null && typeof obj === 'object' && CALLABLE_KEY in obj;
 }
 
-export function isExportedObject(obj: unknown): obj is WidgetExportedObject {
+export function isExportedObject(obj: unknown): obj is dh.WidgetExportedObject {
   return (
     obj != null &&
     typeof obj === 'object' &&
-    typeof (obj as WidgetExportedObject).fetch === 'function' &&
-    typeof (obj as WidgetExportedObject).type === 'string'
+    typeof (obj as dh.WidgetExportedObject).fetch === 'function' &&
+    typeof (obj as dh.WidgetExportedObject).type === 'string'
   );
 }
 
@@ -161,9 +161,9 @@ export function wrapElementChildren(element: ElementNode): ElementNode {
 
   // Derive child keys based on type + index of the occurrence of the type
   const typeMap = new Map<string, number>();
-  const getChildKey = (type: string): string => {
-    const typeCount = typeMap.get(type) ?? 0;
-    typeMap.set(type, typeCount + 1);
+  const getChildKey = (type: string | null | undefined): string => {
+    const typeCount = typeMap.get(String(type)) ?? 0;
+    typeMap.set(String(type), typeCount + 1);
     return `${type}-${typeCount}`;
   };
 

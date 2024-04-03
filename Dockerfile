@@ -37,6 +37,8 @@ COPY babel.config.js lerna.json nx.json tsconfig.json ./
 # This requires the Dockerfile to be built in the context of the root of the deephaven-plugins repository
 # https://stackoverflow.com/a/34300129
 COPY plugins plugins
+# delete the plotly plugin as it's deprecated
+RUN rm -rf plugins/plotly
 
 # Build the JS
 RUN npm run build
