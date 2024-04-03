@@ -1,3 +1,4 @@
+from plotly import io as pio
 from deephaven.plugin import Registration, Callback
 from deephaven.plugin.utilities import create_js_plugin, DheSafeCallbackWrapper
 from . import DeephavenFigureType
@@ -24,6 +25,8 @@ class ExpressRegistration(Registration):
             A function to call after registration
 
         """
+        # Disable default renderer to ignore figure.show()
+        pio.renderers.default = None
         callback = DheSafeCallbackWrapper(callback)
 
         callback.register(DeephavenFigureType)

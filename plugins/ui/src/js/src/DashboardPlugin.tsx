@@ -18,7 +18,7 @@ import {
   DeferredApiBootstrap,
   useObjectFetcher,
 } from '@deephaven/jsapi-bootstrap';
-import { Widget } from '@deephaven/jsapi-types';
+import { dh } from '@deephaven/jsapi-types';
 import { ErrorBoundary } from '@deephaven/components';
 import { useDebouncedCallback } from '@deephaven/react-hooks';
 import styles from './styles.scss?inline';
@@ -89,7 +89,7 @@ export function DashboardPlugin(
       widgetId = shortid.generate(),
       widget,
     }: {
-      fetch: () => Promise<Widget>;
+      fetch: () => Promise<dh.Widget>;
       widgetId: string;
       widget: WidgetDescriptor;
     }) => {
@@ -115,11 +115,11 @@ export function DashboardPlugin(
       widget: WidgetDescriptor;
       dashboardId: string;
     }) => {
-      const { name: title = 'Untitled' } = widget;
+      const { name: title } = widget;
       log.debug('Emitting create dashboard event for', dashboardId, widget);
       emitCreateDashboard(layout.eventHub, {
         pluginId: PLUGIN_NAME,
-        title,
+        title: title ?? 'Untitled',
         data: { openWidgets: { [dashboardId]: { descriptor: widget } } },
       });
     },
@@ -131,7 +131,7 @@ export function DashboardPlugin(
       fetch,
       panelId: widgetId = shortid.generate(),
       widget,
-    }: PanelOpenEventDetail<Widget>) => {
+    }: PanelOpenEventDetail<dh.Widget>) => {
       const { type } = widget;
 
       switch (type) {

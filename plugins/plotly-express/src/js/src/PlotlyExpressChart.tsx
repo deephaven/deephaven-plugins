@@ -14,6 +14,7 @@ export function PlotlyExpressChart(
   const { fetch } = props;
   const containerRef = useRef<HTMLDivElement>(null);
   const [model, setModel] = useState<PlotlyExpressChartModel>();
+  const [widgetRevision, setWidgetRevision] = useState(0); // Used to force a clean chart state on widget change
 
   useEffect(() => {
     let cancelled = false;
@@ -21,6 +22,7 @@ export function PlotlyExpressChart(
       const widgetData = await fetch();
       if (!cancelled) {
         setModel(new PlotlyExpressChartModel(dh, widgetData, fetch));
+        setWidgetRevision(r => r + 1);
       }
     }
 
@@ -37,6 +39,7 @@ export function PlotlyExpressChart(
     <Chart
       // eslint-disable-next-line react/jsx-props-no-spreading, @typescript-eslint/ban-ts-comment
       // @ts-ignore
+      key={widgetRevision}
       containerRef={containerRef}
       model={model}
       Plotly={Plotly}

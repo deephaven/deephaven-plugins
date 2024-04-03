@@ -3,7 +3,7 @@
  */
 import React, { useCallback } from 'react';
 import { WidgetDescriptor } from '@deephaven/dashboard';
-import { Widget } from '@deephaven/jsapi-types';
+import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { ReadonlyWidgetData, WidgetDataUpdate, WidgetId } from './WidgetTypes';
 import WidgetHandler from './WidgetHandler';
@@ -18,7 +18,7 @@ export interface DashboardWidgetHandlerProps {
   widget: WidgetDescriptor;
 
   /** Fetch the widget instance */
-  fetch: () => Promise<Widget>;
+  fetch: () => Promise<dh.Widget>;
 
   /** Widget data to display */
   initialData?: ReadonlyWidgetData;
