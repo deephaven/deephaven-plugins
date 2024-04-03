@@ -1256,20 +1256,20 @@ ui.list_view(
 ```
 
 ###### Parameters
-| Parameter               | Type                                                       | Description                                                                                                                                                                                                                                                                                                                |
-|-------------------------|------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`             | `Item \| Table`                                    | The options to render within the picker.                                                                                                                                                                                                                                                                                   |
-| `key_column`            | `ColumnName \| None`                                       | Only valid if children are of type `Table`. The column of values to use as item keys. Defaults to the first column.                                                                                                                                                                                                        |
-| `label_column`          | `ColumnName \| None`                                       | Only valid if children are of type `Table`. The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                                                                                           |
-| `description_column`    | `ColumnName \| None`                                       | Only valid if children are of type `Table`. The column of values to display as descriptions.                                                                                                                                                                                                                               |
-| `icon_column`           | `ColumnName \| None`                                       | Only valid if children are of type `Table`. The column of values to map to icons.                                                                                                                                                                                                                                          |
-| `actions`               | `ListActionGroupElement \| ListActionMenuElement \| None`  | Only valid if children are of type Table. The action group or menus to render for all elements within the list view.  |
-| `default_selected_keys` | `Selection \| None`                                        | The initial selected keys in the collection (uncontrolled).                                                                                                                                                                                                                                                                |
-| `selected_keys`         | `Selection \| None`                                        | The currently selected keys in the collection (controlled).                                                                                                                                                                                                                                                                |
-| `render_empty_state`    | `Element \| None`                                          | Sets what the `list_view` should render when there is no content to display.                                                                                                                                                                                                                                               |
-| `on_selection_change`   | `Callable[[Selection], None] \| None`                      | Handler that is called when the selections changes.                                                                                                                                                                                                                                                                        |
-| `on_change`             | `Callable[[Selection], None] \| None`                      | Alias of `on_selection_change`. Handler that is called when the selections changes.                                                                                                                                                                                                                                        |
-| `**props`               | `Any`                                                      | Any other [ListView](https://react-spectrum.adobe.com/react-spectrum/ListView.html) prop, with the exception of `items`, `dragAndDropHooks`, and `onLoadMore`.                                                                                                                                                             |
+| Parameter               | Type                                                       | Description                                                                                                                                                    |
+|-------------------------|------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `*children`             | `Item \| Table`                                    | The options to render within the list_view.                                                                                                                    |
+| `key_column`            | `ColumnName \| None`                                       | Only valid if children are of type `Table`. The column of values to use as item keys. Defaults to the first column.                                            |
+| `label_column`          | `ColumnName \| None`                                       | Only valid if children are of type `Table`. The column of values to display as primary text. Defaults to the `key_column` value.                               |
+| `description_column`    | `ColumnName \| None`                                       | Only valid if children are of type `Table`. The column of values to display as descriptions.                                                                   |
+| `icon_column`           | `ColumnName \| None`                                       | Only valid if children are of type `Table`. The column of values to map to icons.                                                                              |
+| `actions`               | `ListActionGroupElement \| ListActionMenuElement \| None`  | Only valid if children are of type Table. The action group or menus to render for all elements within the list view.                                           |
+| `default_selected_keys` | `Selection \| None`                                        | The initial selected keys in the collection (uncontrolled).                                                                                                    |
+| `selected_keys`         | `Selection \| None`                                        | The currently selected keys in the collection (controlled).                                                                                                    |
+| `render_empty_state`    | `Element \| None`                                          | Sets what the `list_view` should render when there is no content to display.                                                                                   |
+| `on_selection_change`   | `Callable[[Selection], None] \| None`                      | Handler that is called when the selections changes.                                                                                                            |
+| `on_change`             | `Callable[[Selection], None] \| None`                      | Alias of `on_selection_change`. Handler that is called when the selections changes.                                                                            |
+| `**props`               | `Any`                                                      | Any other [ListView](https://react-spectrum.adobe.com/react-spectrum/ListView.html) prop, with the exception of `items`, `dragAndDropHooks`, and `onLoadMore`. |
 
 
 ```py
@@ -1356,7 +1356,7 @@ list_view7 = ui.list_view(
 
 ##### ui.combo_box
 
-A combo_box that can be used to search or select from a list. By default, the search strategy is set to "CONTAINS".
+A combo_box that can be used to search or select from a list.
 Children should be one of four types:  
 If children are of type `Item`, they are the dropdown options.  
 If children are of type `SectionElement`, they are the dropdown sections.  
@@ -1374,14 +1374,12 @@ ui.combo_box(
     title_column: ColumnName | None = None,
     default_selected_key: Key | None = None,
     selected_key: Key | None = None,
-    search_type: ComboBoxSearchType = "CONTAINS",
-    sensitivity: ComboBoxSearchSensitivity = "BASE",
-    ignore_punctuation: bool = False,
     input_value: str | None = None,
     default_input_value: str | None = None,
     on_input_change: Callable[[str], None] | None = None,
     on_selection_change: Callable[[Key], None] | None = None,
     on_change: Callable[[Key], None] | None = None,
+    on_open_change: Callable[[bool, MenuTriggerAction], None] | None = None,
     **props: Any
 ) -> ComboBoxElement
 ```
@@ -1398,14 +1396,12 @@ ui.combo_box(
 | `title_column`         | `ColumnName \| None`                                  | Only valid if children is of type `PartitionedTable`. The column of values to display as section names. Should be the same for all values in the constituent `Table`. If not specified, the section titles will be created from the `key_columns` of the `PartitionedTable`. |
 | `default_selected_key` | `Key \| None`                                         | The initial selected key in the collection (uncontrolled).                                                                                                                                                                                                                   |
 | `selected_key`         | `Key \| None`                                         | The currently selected key in the collection (controlled).                                                                                                                                                                                                                   |
-| `search_type`          | `ComboBoxSearchType`                                  | The type of search to use with the `combo_box`. Defaults to `"CONTAINS"`.                                                                                                                                                                                                    |
-| `sensitivity`          | `ComboBoxSearchSensitivity`                           | The sensitivity of the search to use with the `combo_box`. Defaults to `"BASE"`, in which only different base letters are unequal. Can also be "CASE" for case sensitive comparison, "ACCENT" for diacritic mark sensitive comparison, and "VARIANT" for both.               |
-| `ignore_punctuation`   | `bool`                                                | Whether punctuation should be ignored. Defaults to `False`.                                                                                                                                                                                                                  |
 | `input_value`          | `str \| None`                                         | The value of the search input (controlled).                                                                                                                                                                                                                                  |
 | `default_input_value`  | `str \| None`                                         | The default value of the search input (uncontrolled).                                                                                                                                                                                                                        |
 | `on_input_change`      | `Callable[[str], None] \| None`                       | Handler that is called when the search input value changes.                                                                                                                                                                                                                  |
 | `on_selection_change`  | `Callable[[Key], None] \| None`                       | Handler that is called when the selection changes.                                                                                                                                                                                                                           |
 | `on_change`            | `Callable[[Key], None] \| None`                       | Alias of `on_selection_change`. Handler that is called when the selection changes.                                                                                                                                                                                           |
+| `on_open_change`       | `Callable[[bool, MenuTriggerAction], None] \| None`    | Method that is called when the open state of the menu changes. Returns the new open state and the action that caused the opening of the menu.                                                                         |
 | `**props`              | `Any`                                                 | Any other [Combo_Box](https://react-spectrum.adobe.com/react-spectrum/ComboBox.html) prop, with the exception of `items`, `validate`, `errorMessage` (as a callback) and `onLoadMore`                                                                                        |
 
 ```py
@@ -1488,14 +1484,10 @@ table2 = empty_table(1).update_view("data=10")
 # this should be avoided as it is not as performant as just passing in the table directly
 options = ui.use_column_data(table1)
 
-combo_box7 = ui.combo_box(
-    children=options
-)
+combo_box7 = ui.combo_box(children=options)
 
 # instead, pass in the table directly
-combo_box8 = ui.combo_box(
-    table1
-)
+combo_box8 = ui.combo_box(table1)
 
 from deephaven import new_table
 from deephaven.column import string_col, int_col
@@ -1534,6 +1526,13 @@ combo_box10 = ui.combo_box(
     selected_key=color,
     on_selection_change=set_color
 )
+
+# data can be filtered using the input value
+items = ["First Option", "Second Option", "Third Option", "Fourth Option"]
+filter_value, set_filter_value = ui.use_state('')
+filtered_items = ui.use_memo(lambda: filter(lambda item: item.startswith(filter_value), items), [filter_value, items])
+
+combo_box11 = ui.combo_box(*filtered_items, on_input_change=set_filter_value)
 ```
 
 #### ui.table
@@ -2054,8 +2053,7 @@ Item = Stringable | ItemElement
 Key = Stringable
 ActionKey = Key
 Selection = Sequence[Key]
-ComboBoxSearchType = Literal["STARTS_WITH", "CONTAINS", "ENDS_WITH"]
-ComboBoxSensitivity = Listeral["BASE", "ACCENT", "CASE", "VARIANT"]
+MenuTriggerAction = Literal["FOCUS", "INPUT", "MANUAL"]
 
 T = TypeVar("T")
 Combination: TypeAlias = T | set[T] | Sequence[T]
