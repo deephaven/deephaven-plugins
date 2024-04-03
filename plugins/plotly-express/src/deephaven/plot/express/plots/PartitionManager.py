@@ -603,7 +603,9 @@ class PartitionManager:
         # this is very hacky but it's needed to prevent errors when
         # there are no partitions until a better solution can be done
         # also need the px template to be set
-        default_fig = px.scatter(x=[0], y=[0])
+        # the title can also be set here as it will never change
+        title = self.args.get("title")
+        default_fig = px.scatter(x=[0], y=[0], title=title)
         default_fig.update_traces(x=[], y=[])
         return DeephavenFigure(default_fig)
 
