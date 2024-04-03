@@ -40,9 +40,9 @@ function Picker({ children, ...props }: PickerProps) {
   useTableClose(table);
 
   if (isObjectView) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return (
       table && (
+        // eslint-disable-next-line react/jsx-props-no-spreading
         <DHPickerJSApi {...pickerProps} table={table} settings={settings} />
       )
     );
