@@ -1,4 +1,4 @@
-from typing import Any, Dict, Literal, Union, List, Tuple, Callable, TypedDict
+from typing import Any, Dict, Literal, Union, List, Tuple, Callable, TypedDict, Sequence
 from deephaven import SortDirection
 
 
@@ -105,4 +105,7 @@ TableSortDirection = Union[StringSortDirection, SortDirection]
 # Stringable is a type that is naturally convertible to a string
 Stringable = Union[str, int, float, bool]
 Key = Stringable
+ActionKey = Key
+
 Dependencies = Union[Tuple[Any], List[Any]]
+Selection = Sequence[Key]
