@@ -11,7 +11,8 @@ if [[ -z "${CI}" ]]; then
 else
   docker compose -f ../tests/docker-compose.yml run --service-ports --rm --build -e CI=true "$@"
   exit_code=$?
-  docker compose -f ../tests/docker-compose.yml stop deephaven-plugins-e2e
+  # stop instead of down to preserve container logs
+  docker compose -f ../tests/docker-compose.yml stop deephaven-plugins
 fi
 
 # Reset pwd
