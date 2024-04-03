@@ -128,20 +128,21 @@ esac
 
 # We still need to bump these JS packages for Enterprise legacy reasons, even though they're packaged with Python
 npm_version="${version}"
-[ "$dev" = true ] && npm_version="${version}-dev0"
-case "$package" in
-    auth-keycloak | dashboard-object-viewer | matplotlib | plotly | plotly-express | table-example | ui)
-        # The working directory is already `plugins/<package-name>`, so we just specify workspace as `src/js` and it does the right thing
-        npm version "$npm_version" --workspace=src/js
-        ;;
-    json | packaging | utilities)
-        # Packages that don't have any JS to publish, just ignore
-        ;;
-    *)
-    {
-        log_error "Unhandled JS plugin $package.  You will need to add JS wiring in $SCRIPT_NAME"
-        exit 90
-    }
-esac
+if [ ! "$dev" = true ]; then
+    case "$package" in
+        auth-keycloak | dashboard-object-viewer | matplotlib | plotly | plotly-express | table-example | ui)
+            # The working directory is already `plugins/<package-name>`, so we just specify workspace as `src/js` and it does the right thing
+            npm version "$npm_version" --workspace=src/js
+            ;;
+        json | packaging | utilities)
+            # Packages that don't have any JS to publish, just ignore
+            ;;
+        *)
+        {
+            log_error "Unhandled JS plugin $package.  You will need to add JS wiring in $SCRIPT_NAME"
+            exit 90
+        }
+    esac
+fi
 
 log_info "Done updating $package version to $version${extra}"
