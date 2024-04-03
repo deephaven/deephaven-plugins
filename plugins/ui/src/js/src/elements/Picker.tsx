@@ -6,6 +6,7 @@ import {
 import {
   Picker as DHPickerJSApi,
   PickerProps as DHPickerJSApiProps,
+  useTableClose,
 } from '@deephaven/jsapi-components';
 import { isElementOfType, usePromiseFactory } from '@deephaven/react-hooks';
 import { SerializedPickerEventProps, usePickerProps } from './usePickerProps';
@@ -22,15 +23,17 @@ export type PickerProps = (DHPickerProps | WrappedDHPickerJSApiProps) &
 function Picker({ children, ...props }: PickerProps) {
   const pickerProps = usePickerProps(props);
 
-  const maybeExportedObject = isElementOfType(children, ObjectView)
-    ? children.props.object
-    : null;
+  const isObjectView = isElementOfType(children, ObjectView);
+
+  const maybeExportedObject = isObjectView ? children.props.object : null;
 
   const { data: table } = usePromiseFactory(fetchReexportedTable, [
     maybeExportedObject,
   ]);
 
-  if (isElementOfType(children, ObjectView)) {
+  useTableClose(table);
+
+  if (isObjectView) {
     // eslint-disable-next-line react/jsx-props-no-spreading
     return table && <DHPickerJSApi {...pickerProps} table={table} />;
   }
