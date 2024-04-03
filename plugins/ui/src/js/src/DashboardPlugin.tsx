@@ -145,7 +145,7 @@ export function DashboardPlugin(
           break;
         }
         default: {
-          log.error('Unknown widget type', type);
+          break;
         }
       }
     },
