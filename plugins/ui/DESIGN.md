@@ -1204,7 +1204,7 @@ def list_action_group(
 ###### Parameters
 | Parameter               | Type                                                       | Description                                                                                                                                        |
 |-------------------------|------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`             | `ActionGroupItem`                                          | The options to render within the picker.                                                                                                           |
+| `*children`             | `ActionGroupItem`                                          | The actions to render within the action group.                                                                                                           |
 | `on_action`             | `Callable[[ActionKey, Key], None] \| None`                 | Handler that is called when an item is pressed. The first argument is the key of the action, the second argument is the key of the list_view item. |
 | `on_selection_change`   | `Callable[[Selection, Key], None] \| None`                 | Handler that is called when the selection changes. The first argument is the selection, the second argument is the key of the list_view item.      |
 | `**props`               | `Any`                                                      | Any other [ActionGroup](https://react-spectrum.adobe.com/react-spectrum/ActionGroup.html) prop.                                                    |
