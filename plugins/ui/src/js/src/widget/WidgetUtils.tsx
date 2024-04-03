@@ -89,7 +89,7 @@ const PRESERVED_DATA_KEYS: (keyof ReadonlyWidgetData)[] = ['panelIds'];
 const PRESERVED_DATA_KEYS_SET = new Set<string>(PRESERVED_DATA_KEYS);
 
 /**
- * Returns an object with only the data preserved that should be preserved when re-opening (i.e. opening it again from console) a widget.
+ * Returns an object with only the data preserved that should be preserved when re-opening a widget (e.g. opening it again from console).
  * For example, if you re-open a widget, you want to keep the `panelIds` data because that will re-open the widget to where it was before.
  * However, we do _not_ want to preserve the `state` in this case - we want to widget to start from a fresh state.
  * Similar to how when you re-open a table, it'll open in the same spot, but all UI applied filters/operations will be reset.

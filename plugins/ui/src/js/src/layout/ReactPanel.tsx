@@ -73,7 +73,7 @@ function ReactPanel({ children, title }: ReactPanelProps) {
     /**
      * Opens a panel in the layout if necessary. There are a few cases this is triggered:
      * 1. Panel has not been opened yet: we need to open the panel in this case.
-     * 2. Panel metadata changes: we need to update the panel with the new metadata, show the panel in it's current stack,
+     * 2. Panel metadata changes: we need to update the panel with the new metadata, show the panel in its current stack,
      *    and refresh the content with new state.
      * 3. Widget is being re-hydrated: we need to check if the panel ID is already open, and then use that existing portal.
      *    We don't need to focus in this case, as this is when a whole dashboard is being re-hydrated - not when the user is
