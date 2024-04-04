@@ -2,6 +2,37 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.7.0 - 2024-04-03
+#### Bug Fixes
+- Ensure title is added to default figure (#396) - (2f0a8a0) - Joe
+- Deephaven express chart title does not update dynamically (#386) - (556d07c) - Matthew Runyon
+#### Features
+- combine plotly plots into plotly-express plugin (#358) - (7a1893d) - Joe
+- Add python 3.12 testing (#398) - (241348f) - devinrsmith
+
+- - -
+
+## plotly-express-v0.6.0 - 2024-03-19
+#### Features
+- Package matplotlib and ui JS with wheel (#343) - (7724e55) - Joe
+
+- - -
+
+## plotly-express-v0.5.0 - 2024-03-06
+#### Build system
+- Update dh ui packages to ^0.66.1 (#330) - (9433a98) - bmingles
+#### Features
+- Export plotly-express as a dashboard plugin (#329) - (6212bd5) - vbabich
+
+- - -
+
+## plotly-express-v0.4.1 - 2024-02-28
+#### Bug Fixes
+- Scatter plots rendering at the wrong location (#324) - (dfe5c48) - mofojed
+- Type fixes and require pyright (#302) - (d5d003d) - Joe
+
+- - -
+
 ## plotly-express-v0.4.0 - 2024-02-20
 #### Bug Fixes
 - Deephaven express memory leak (#277) - (ff6ad50) - Matthew Runyon

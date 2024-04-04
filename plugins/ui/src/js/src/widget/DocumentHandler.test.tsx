@@ -3,13 +3,13 @@ import { WidgetDescriptor } from '@deephaven/dashboard';
 import { TestUtils } from '@deephaven/utils';
 import { render } from '@testing-library/react';
 import DocumentHandler, { DocumentHandlerProps } from './DocumentHandler';
+import { ReactPanelProps } from '../layout/LayoutUtils';
+import { MixedPanelsError, NoChildrenError } from '../errors';
+import { getComponentForElement } from './WidgetUtils';
 import {
   DASHBOARD_ELEMENT_NAME,
   PANEL_ELEMENT_NAME,
-  ReactPanelProps,
-} from '../layout/LayoutUtils';
-import { MixedPanelsError, NoChildrenError } from '../errors';
-import { getComponentForElement } from './WidgetUtils';
+} from '../elements/ElementConstants';
 
 const mockReactPanel = jest.fn((props: ReactPanelProps) => (
   <div>ReactPanel</div>

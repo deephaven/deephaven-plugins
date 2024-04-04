@@ -1,13 +1,12 @@
 import React from 'react';
 import { act, render } from '@testing-library/react';
-import type { Widget } from '@deephaven/jsapi-types';
+import type { dh } from '@deephaven/jsapi-types';
 import WidgetHandler, { WidgetHandlerProps } from './WidgetHandler';
 import { DocumentHandlerProps } from './DocumentHandler';
 import {
   makeDocumentUpdatedJsonRpcString,
   makeWidget,
   makeWidgetDescriptor,
-  makeWidgetWrapper,
 } from './WidgetTestUtils';
 
 const mockApi = { Widget: { EVENT_MESSAGE: 'message' } };
@@ -24,10 +23,11 @@ jest.mock(
 );
 
 function makeWidgetHandler({
-  widget = makeWidgetWrapper(),
+  fetch = () => Promise.resolve(makeWidget()),
+  widget = makeWidgetDescriptor(),
   onClose = jest.fn(),
 }: Partial<WidgetHandlerProps> = {}) {
-  return <WidgetHandler widget={widget} onClose={onClose} />;
+  return <WidgetHandler fetch={fetch} widget={widget} onClose={onClose} />;
 }
 
 beforeEach(() => {
@@ -40,8 +40,8 @@ it('mounts and unmounts', async () => {
 });
 
 it('updates the document when event is received', async () => {
-  let fetchResolve: (value: Widget | PromiseLike<Widget>) => void;
-  const fetchPromise = new Promise<Widget>(resolve => {
+  let fetchResolve: (value: dh.Widget | PromiseLike<dh.Widget>) => void;
+  const fetchPromise = new Promise<dh.Widget>(resolve => {
     fetchResolve = resolve;
   });
   const fetch = jest.fn(() => fetchPromise);
@@ -55,8 +55,8 @@ it('updates the document when event is received', async () => {
       makeDocumentUpdatedJsonRpcString(initialDocument)
     ),
   });
-  const wrapper = makeWidgetWrapper({ widget, fetch });
-  const { unmount } = render(makeWidgetHandler({ widget: wrapper }));
+
+  const { unmount } = render(makeWidgetHandler({ widget, fetch }));
   expect(fetch).toHaveBeenCalledTimes(1);
   expect(mockAddEventListener).not.toHaveBeenCalled();
   expect(mockDocumentHandler).not.toHaveBeenCalled();

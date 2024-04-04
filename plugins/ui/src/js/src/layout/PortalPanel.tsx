@@ -1,14 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { DashboardPanelProps } from '@deephaven/dashboard';
 import { Panel } from '@deephaven/dashboard-core-plugins';
-
-export interface PortalPanelProps extends DashboardPanelProps {
-  /** Listener for when the portal panel is unmounted/closed */
-  onClose: () => void;
-
-  /** Listener for when the portal panel is opened and ready */
-  onOpen: (element: HTMLElement) => void;
-}
+import { emitPortalClosed, emitPortalOpened } from './PortalPanelEvent';
 
 /**
  * Adds and tracks a panel to the GoldenLayout.
@@ -17,9 +10,7 @@ export interface PortalPanelProps extends DashboardPanelProps {
 function PortalPanel({
   glContainer,
   glEventHub,
-  onClose,
-  onOpen,
-}: PortalPanelProps): JSX.Element {
+}: DashboardPanelProps): JSX.Element {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -27,12 +18,12 @@ function PortalPanel({
     if (current == null) {
       return;
     }
-    onOpen(current);
+    emitPortalOpened(glEventHub, { container: glContainer, element: current });
 
     return () => {
-      onClose();
+      emitPortalClosed(glEventHub, { container: glContainer });
     };
-  }, [onClose, onOpen]);
+  }, [glContainer, glEventHub]);
 
   return (
     <Panel glContainer={glContainer} glEventHub={glEventHub}>

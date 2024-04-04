@@ -107,37 +107,17 @@ function update_file() {
         else
             sed -e "s/${prefix}.*/${expected}/g" -i "$ROOT_DIR/plugins/$file"
         fi
-        git add "$ROOT_DIR/plugins/$file"
     fi
 }
 
 extra=
 [ "$dev" = true ] && extra=".dev0"
 case "$package" in
-        auth-keycloak)
-            update_file auth-keycloak/src/js/package.json '"version": "' '",'
+        json | matplotlib | plotly | plotly-express | ui | utilities | packaging)
+            update_file "${package}/setup.cfg" 'version = ' '' "$extra"
             ;;
-        dashboard-object-viewer)
-            update_file dashboard-object-viewer/src/js/package.json '"version": "' '",'
-            ;;
-        json)
-            update_file json/src/deephaven/plugin/json/__init__.py '__version__ = "' '"' "$extra"
-            ;;
-        matplotlib)
-            update_file matplotlib/setup.cfg 'version = ' '' "$extra"
-            ;;
-        plotly)
-            update_file plotly/src/deephaven/plugin/plotly/__init__.py '__version__ = "' '"' "$extra"
-            ;;
-        plotly-express)
-            update_file plotly-express/setup.cfg 'version = ' '' "$extra"
-            ;;
-        table-example)
-            update_file table-example/src/js/package.json '"version": "' '",'
-            ;;
-        ui)
-            update_file ui/src/js/package.json '"version": "' '",'
-            update_file ui/src/deephaven/ui/__init__.py '__version__ = "' '"' "$extra"
+        auth-keycloak | dashboard-object-viewer | table-example)
+            # Packages that don't have any Python to publish, just ignore
             ;;
         *)
         {
@@ -145,5 +125,24 @@ case "$package" in
             exit 90
         }
 esac
+
+# We still need to bump these JS packages for Enterprise legacy reasons, even though they're packaged with Python
+npm_version="${version}"
+if [ "$dev" != true ]; then
+    case "$package" in
+        auth-keycloak | dashboard-object-viewer | matplotlib | plotly | plotly-express | table-example | ui)
+            # The working directory is already `plugins/<package-name>`, so we just specify workspace as `src/js` and it does the right thing
+            npm version "$npm_version" --workspace=src/js
+            ;;
+        json | packaging | utilities)
+            # Packages that don't have any JS to publish, just ignore
+            ;;
+        *)
+        {
+            log_error "Unhandled JS plugin $package.  You will need to add JS wiring in $SCRIPT_NAME"
+            exit 90
+        }
+    esac
+fi
 
 log_info "Done updating $package version to $version${extra}"

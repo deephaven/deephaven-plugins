@@ -12,7 +12,6 @@ import {
   Switch,
   Tabs,
   TabList,
-  TabPanels,
   Text,
   ToggleButton,
   View,
@@ -25,6 +24,7 @@ import {
   Form,
   RangeSlider,
   Slider,
+  TabPanels,
   TextField,
 } from './spectrum';
 import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
@@ -89,9 +89,16 @@ export function isSpectrumElementNode(
 export function getSpectrumComponent(
   name: SpectrumElementName
 ): ValueOf<typeof SpectrumSupportedTypes> {
-  return SpectrumSupportedTypes[
-    name.substring(
-      SPECTRUM_ELEMENT_TYPE_PREFIX.length
-    ) as keyof typeof SpectrumSupportedTypes
-  ];
+  const Component =
+    SpectrumSupportedTypes[
+      name.substring(
+        SPECTRUM_ELEMENT_TYPE_PREFIX.length
+      ) as keyof typeof SpectrumSupportedTypes
+    ];
+
+  if (Component == null) {
+    throw new Error(`Unknown Spectrum component '${name}'`);
+  }
+
+  return Component;
 }

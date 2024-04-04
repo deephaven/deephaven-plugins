@@ -27,9 +27,9 @@ post_package_bump_hooks = [
     # prepare the github release changelog file
     "mkdir -p ../../releases",
     "../../tools/extract_changelog.sh CHANGELOG.md > ../../releases/GITHUB_CHANGELOG-{{package}}.md",
-    # update the version number to have a .dev0 suffix (when possible, only done for python plugins)
+    # update the version number to have a `dev0` suffix
     "../../tools/update_version.sh {{package}} {{version}} --dev",
-    "git commit -m 'chore(version): update {{package}} version to {{version}}'",
+    "git commit --all --message 'chore(version): update {{package}} version to {{version}}.dev0'",
     # push the tag and the commits to main 
     "git push origin {{package}}-v{{version}}",
     "git push origin main",
@@ -76,4 +76,6 @@ plotly = { path = "plugins/plotly", public_api=false }
 plotly-express = { path = "plugins/plotly-express", public_api=false }
 table-example = { path = "plugins/table-example", public_api=false }
 ui = { path = "plugins/ui", public_api=false }
+packaging = { path = "plugins/packaging", public_api=false }
+utilities = { path = "plugins/utilities", public_api=false }
 

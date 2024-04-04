@@ -7,11 +7,13 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "start": "npm run build -- -w"
+    "start": "npm run build -- -w",
+    "update-dh-packages": "node ../../../../tools/update-dh-packages.mjs"
   },
   "devDependencies": {
     "@deephaven/plugin": "^0.58.0",
     "typescript": "^5.2.2",
     "vite": "^5.0.8"
-  }
+  },
+  "private": true
 }

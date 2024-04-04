@@ -61,6 +61,45 @@ def my_input():
 result = my_input()
 ```
 
+## Picker (string values)
+
+The `ui.picker` component can be used to select from a list of items. Here's a basic example for selecting from a list of string values and displaying the selected key in a text field.
+
+```python
+import deephaven.ui as ui
+from deephaven.ui import use_state
+
+
+@ui.component
+def picker():
+    value, set_value = use_state("")
+
+    # Picker for selecting values
+    pick = ui.picker(
+        "Text 1",
+        "Text 2",
+        "Text 3",
+        label="Text",
+        on_selection_change=set_value,
+        selected_key=value,
+    )
+
+    # Show current selection in a ui.text component
+    text = ui.text("Selection: " + value)
+
+    # Display picker and output in a flex column
+    return ui.flex(
+        pick,
+        text,
+        direction="column",
+        margin=10,
+        gap=10,
+    )
+
+
+result = picker()
+```
+
 ## Using Tables
 
 You can open a Deephaven Table and control it using callbacks, as well. Let\'s create a table with some data, and then create a component that allows us to filter the table, and a button group it or ungroup it.
@@ -158,7 +197,7 @@ def stock_table_input(source, default_sym="", default_exchange=""):
     return [
         ui.panel(
             # Add a callback for when user double clicks a row in the table
-            ui.table(t1).on_row_double_press(handle_row_double_press),
+            ui.table(t1, on_row_double_press=handle_row_double_press),
             title="Stock Row Press",
         ),
         ui.panel(t2, title="Stock Filtered Table"),
@@ -283,7 +322,7 @@ def table_tabs(source):
     return ui.tabs(
         ui.tab_list(
             ui.item("Unfiltered", key="Unfiltered"),
-            ui.item(ui.icon("vsGithubAlt"), "CAT", key="CAT"),
+            ui.item(ui.icon("vsGithubAlt"), ui.text("CAT"), key="CAT"),
             ui.item("DOG", key="DOG"),
         ),
         ui.tab_panels(

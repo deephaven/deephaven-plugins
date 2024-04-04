@@ -61,14 +61,6 @@ def icon_wrapper(*children, **props):
     return spectrum_element("Icon", *children, **props)
 
 
-def item(*children, **props):
-    """
-    Python implementation for the Adobe React Spectrum Item component.
-    Used with Tabs: https://react-spectrum.adobe.com/react-spectrum/Tabs.html
-    """
-    return spectrum_element("Item", *children, **props)
-
-
 def illustrated_message(*children, **props):
     """
     Python implementation for the Adobe React Spectrum IllustratedMessage component.

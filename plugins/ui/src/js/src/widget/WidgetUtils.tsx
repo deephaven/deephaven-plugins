@@ -1,10 +1,15 @@
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable import/prefer-default-export */
-import React from 'react';
+import React, { ComponentType } from 'react';
+// Importing `Item` and `Section` compnents directly since they should not be
+// wrapped due to how Spectrum collection components consume them.
+import { Item, Section } from '@deephaven/components';
+import { ReadonlyWidgetData } from './WidgetTypes';
 import {
   ElementNode,
-  isExportedObject,
-  isFragmentElementNode,
+  ELEMENT_KEY,
+  isElementNode,
+  wrapElementChildren,
 } from '../elements/ElementUtils';
 import HTMLElementView from '../elements/HTMLElementView';
 import { isHTMLElementNode } from '../elements/HTMLElementUtils';
@@ -12,44 +17,53 @@ import { isSpectrumElementNode } from '../elements/SpectrumElementUtils';
 import SpectrumElementView from '../elements/SpectrumElementView';
 import { isIconElementNode } from '../elements/IconElementUtils';
 import IconElementView from '../elements/IconElementView';
-import { isUITable } from '../elements/UITableUtils';
 import UITable from '../elements/UITable';
 import {
-  isColumnElementNode,
-  isDashboardElementNode,
-  isPanelElementNode,
-  isRowElementNode,
-  isStackElementNode,
-} from '../layout/LayoutUtils';
+  COLUMN_ELEMENT_NAME,
+  DASHBOARD_ELEMENT_NAME,
+  FRAGMENT_ELEMENT_NAME,
+  ITEM_ELEMENT_NAME,
+  PANEL_ELEMENT_NAME,
+  PICKER_ELEMENT_NAME,
+  ROW_ELEMENT_NAME,
+  SECTION_ELEMENT_NAME,
+  STACK_ELEMENT_NAME,
+  UITABLE_ELEMENT_TYPE,
+} from '../elements/ElementConstants';
 import ReactPanel from '../layout/ReactPanel';
-import ObjectView from '../elements/ObjectView';
 import Row from '../layout/Row';
 import Stack from '../layout/Stack';
 import Column from '../layout/Column';
 import Dashboard from '../layout/Dashboard';
+import Picker from '../elements/Picker';
+
+/*
+ * Map element node names to their corresponding React components
+ */
+export const elementComponentMap = {
+  [PANEL_ELEMENT_NAME]: ReactPanel,
+  [ROW_ELEMENT_NAME]: Row,
+  [COLUMN_ELEMENT_NAME]: Column,
+  [FRAGMENT_ELEMENT_NAME]: React.Fragment,
+  [STACK_ELEMENT_NAME]: Stack,
+  [DASHBOARD_ELEMENT_NAME]: Dashboard,
+  [ITEM_ELEMENT_NAME]: Item,
+  [PICKER_ELEMENT_NAME]: Picker,
+  [SECTION_ELEMENT_NAME]: Section,
+  [UITABLE_ELEMENT_TYPE]: UITable,
+} as const;
+
+export function getComponentTypeForElement<P extends Record<string, unknown>>(
+  element: ElementNode<string, P>
+): ComponentType<P> | null {
+  return (elementComponentMap[
+    element[ELEMENT_KEY] as keyof typeof elementComponentMap
+  ] ?? null) as ComponentType<P> | null;
+}
 
 export function getComponentForElement(element: ElementNode): React.ReactNode {
-  // Need to convert the children of the element if they are exported objects to an ObjectView
-  // Else React won't be able to render them
-  const newElement = { ...element };
-  if (newElement.props?.children != null) {
-    const { children } = newElement.props;
-    if (Array.isArray(children)) {
-      const typeMap = new Map<string, number>();
-      newElement.props.children = children.map((child, i) => {
-        if (isExportedObject(child)) {
-          const { type } = child;
-          const typeCount = typeMap.get(type) ?? 0;
-          typeMap.set(type, typeCount + 1);
-          const key = `${type}-${typeCount}`;
-          return <ObjectView key={key} object={child} />;
-        }
-        return child;
-      });
-    } else if (isExportedObject(children)) {
-      newElement.props.children = <ObjectView object={children} />;
-    }
-  }
+  const newElement = wrapElementChildren({ ...element });
+
   if (isHTMLElementNode(newElement)) {
     return HTMLElementView({ element: newElement });
   }
@@ -59,28 +73,33 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
   if (isIconElementNode(newElement)) {
     return IconElementView({ element: newElement });
   }
-  if (isUITable(newElement)) {
-    return <UITable {...newElement.props} />;
-  }
-  if (isPanelElementNode(newElement)) {
-    return <ReactPanel {...newElement.props} />;
-  }
-  if (isFragmentElementNode(newElement)) {
-    // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <>{newElement.props?.children}</>;
-  }
-  if (isRowElementNode(newElement)) {
-    return <Row {...newElement.props} />;
-  }
-  if (isColumnElementNode(newElement)) {
-    return <Column {...newElement.props} />;
-  }
-  if (isStackElementNode(newElement)) {
-    return <Stack {...newElement.props} />;
-  }
-  if (isDashboardElementNode(newElement)) {
-    return <Dashboard {...newElement.props} />;
+  if (isElementNode(newElement)) {
+    const Component = getComponentTypeForElement(newElement);
+
+    if (Component != null) {
+      return <Component {...newElement.props} />;
+    }
   }
 
   return newElement.props?.children;
+}
+
+/** Data keys of a widget to preserve across re-opening. */
+const PRESERVED_DATA_KEYS: (keyof ReadonlyWidgetData)[] = ['panelIds'];
+const PRESERVED_DATA_KEYS_SET = new Set<string>(PRESERVED_DATA_KEYS);
+
+/**
+ * Returns an object with only the data preserved that should be preserved when re-opening a widget (e.g. opening it again from console).
+ * For example, if you re-open a widget, you want to keep the `panelIds` data because that will re-open the widget to where it was before.
+ * However, we do _not_ want to preserve the `state` in this case - we want to widget to start from a fresh state.
+ * Similar to how when you re-open a table, it'll open in the same spot, but all UI applied filters/operations will be reset.
+ * @param oldData The old data to get the preserved data from
+ * @returns The data to preserve
+ */
+export function getPreservedData(
+  oldData: ReadonlyWidgetData = {}
+): ReadonlyWidgetData {
+  return Object.fromEntries(
+    Object.entries(oldData).filter(([key]) => PRESERVED_DATA_KEYS_SET.has(key))
+  );
 }

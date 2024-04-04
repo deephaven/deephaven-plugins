@@ -61,6 +61,14 @@ To bypass the pre-commit hook, you can commit with the `--no-verify` flag, for e
 git commit --no-verify -m "commit message"`
 ```
 
+### Running end-to-end tests
+
+We use [Playwright](https://playwright.dev/) for end-to-end tests. We test against Chrome, Firefox, and Webkit (Safari). Snapshots from E2E tests are only run against Linux so they can be validated in CI.
+
+You should be able to pass arguments to these commands as if you were running Playwright via CLI directly. For example, to test only `matplotlib.spec.ts` you could run `npm run e2e:docker -- ./tests/matplotlib.spec.ts`, or to test only `matplotlib.spec.ts` in Firefox, you could run `npm run e2e:docker -- --project firefox ./tests/matplotlib.spec.ts`. See [Playwright CLI](https://playwright.dev/docs/test-cli) for more details.
+
+It is highly recommended to use `npm run e2e:docker` (instead of `npm run e2e`) as CI also uses the same environment. You can also use `npm run e2e:update-snapshots` to regenerate snapshots in said environment.
+
 ### Running Python tests
 
 The above steps will also set up `tox` to run tests for the python plugins that support it.

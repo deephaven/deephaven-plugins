@@ -1,7 +1,6 @@
 import { WidgetDescriptor } from '@deephaven/dashboard';
 import { TestUtils } from '@deephaven/utils';
-import type { Widget } from '@deephaven/jsapi-types';
-import { WidgetWrapper } from './WidgetTypes';
+import type { dh } from '@deephaven/jsapi-types';
 
 export function makeDocumentUpdatedJsonRpc(
   document: Record<string, unknown> = {}
@@ -35,21 +34,10 @@ export function makeWidget({
   addEventListener = jest.fn(() => jest.fn()),
   getDataAsString = () => makeDocumentUpdatedJsonRpcString(),
   exportedObjects = [],
-}: Partial<Widget> = {}): Widget {
-  return TestUtils.createMockProxy<Widget>({
+}: Partial<dh.Widget> = {}): dh.Widget {
+  return TestUtils.createMockProxy<dh.Widget>({
     addEventListener,
     getDataAsString,
     exportedObjects,
   });
-}
-
-export function makeWidgetWrapper({
-  widget = makeWidgetDescriptor(),
-  fetch = () => Promise.resolve(makeWidget()),
-}: Partial<WidgetWrapper> = {}): WidgetWrapper {
-  return {
-    id: widget.id ?? 'widget-id',
-    widget,
-    fetch,
-  };
 }

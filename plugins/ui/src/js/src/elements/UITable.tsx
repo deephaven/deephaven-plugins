@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useSelector } from 'react-redux';
 import {
   DehydratedQuickFilter,
   IrisGrid,
@@ -8,13 +9,21 @@ import {
   IrisGridUtils,
 } from '@deephaven/iris-grid';
 import { useApi } from '@deephaven/jsapi-bootstrap';
-import type { Table } from '@deephaven/jsapi-types';
+import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
+import { getSettings, RootState } from '@deephaven/redux';
+import { EMPTY_ARRAY } from '@deephaven/utils';
 import { UITableProps } from './UITableUtils';
+import UITableMouseHandler from './UITableMouseHandler';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
 
 function UITable({
+  onCellPress,
+  onCellDoublePress,
+  onColumnPress,
+  onColumnDoublePress,
+  onRowPress,
   onRowDoublePress,
   canSearch,
   filters,
@@ -24,8 +33,9 @@ function UITable({
 }: UITableProps) {
   const dh = useApi();
   const [model, setModel] = useState<IrisGridModel>();
-  const [columns, setColumns] = useState<Table['columns']>();
+  const [columns, setColumns] = useState<dh.Table['columns']>();
   const utils = useMemo(() => new IrisGridUtils(dh), [dh]);
+  const settings = useSelector(getSettings<RootState>);
 
   const hydratedSorts = useMemo(() => {
     if (sorts !== undefined && columns !== undefined) {
@@ -59,7 +69,7 @@ function UITable({
     let isCancelled = false;
     async function loadModel() {
       const reexportedTable = await exportedTable.reexport();
-      const newTable = (await reexportedTable.fetch()) as Table;
+      const newTable = (await reexportedTable.fetch()) as dh.Table;
       const newModel = await IrisGridModelFactory.makeModel(dh, newTable);
       if (!isCancelled) {
         setColumns(newTable.columns);
@@ -74,20 +84,48 @@ function UITable({
     };
   }, [dh, exportedTable]);
 
+  const mouseHandlers = useMemo(
+    () =>
+      model
+        ? [
+            new UITableMouseHandler(
+              model,
+              onCellPress,
+              onCellDoublePress,
+              onColumnPress,
+              onColumnDoublePress,
+              onRowPress,
+              onRowDoublePress
+            ),
+          ]
+        : EMPTY_ARRAY,
+    [
+      model,
+      onCellPress,
+      onCellDoublePress,
+      onColumnPress,
+      onColumnDoublePress,
+      onRowPress,
+      onRowDoublePress,
+    ]
+  );
+
   const irisGridProps: Partial<IrisGridProps> = useMemo(
     () => ({
-      onDataSelected: onRowDoublePress,
+      mouseHandlers,
       alwaysFetchColumns,
       showSearchBar: canSearch,
       sorts: hydratedSorts,
       quickFilters: hydratedQuickFilters,
+      settings,
     }),
     [
-      onRowDoublePress,
+      mouseHandlers,
       alwaysFetchColumns,
       canSearch,
       hydratedSorts,
       hydratedQuickFilters,
+      settings,
     ]
   );
 

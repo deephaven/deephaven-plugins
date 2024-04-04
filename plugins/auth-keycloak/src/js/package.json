@@ -23,7 +23,8 @@
   "homepage": "https://github.com/deephaven/deephaven-js-plugins",
   "scripts": {
     "start": "vite build --watch",
-    "build": "vite build"
+    "build": "vite build",
+    "update-dh-packages": "node ../../../../tools/update-dh-packages.mjs"
   },
   "devDependencies": {
     "@types/plotly.js": "^2.12.18",

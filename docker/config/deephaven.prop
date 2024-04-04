@@ -2,8 +2,6 @@ includefiles=dh-defaults.prop
 
 deephaven.console.type=python
 
-# Add all plugins that you want installed here
-deephaven.jsPlugins.@deephaven/js-plugin-ui=/opt/deephaven/config/plugins/plugins/ui/src/js
 
 # Anonymous authentication so we don't need to put in a password
 AuthHandlers=io.deephaven.auth.AnonymousAuthenticationHandler

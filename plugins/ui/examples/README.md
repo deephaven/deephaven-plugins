@@ -13,73 +13,184 @@ docker run --rm --name deephaven-ui -p 10000:10000 --pull=always ghcr.io/deephav
 You'll need to find the link to open the UI in the Docker logs:
 ![docker](assets/docker.png)
 
-# Basic `use_state` Examples
+# Using components
 
-deephaven.ui uses functional components with "hooks" to create components. The most useful and basic hook is the `use_state` hook, which allows you to create a stateful component. The `use_state` hook returns a tuple of the current value of the state and a function to update the state. The function returned by `use_state` can be called with a new value to update the state, and the component will re-render with the new value. People familiar with React will be familiar with this paradigm.
-
-The below examples show a simple usage of the `use_state` hook, building some of the basic examples on the [React useState docs](https://react.dev/reference/react/useState#examples-basic).
-
-## Counter (number)
-
-A simple example to demonstrate how state can be used using the `use_state` hook. `count` holds the value of the counter, and pressing the button increments the number.
-
-We define our `counter` component as a function using the `@ui.component` decorator. This decorator allows the component to be rendered in the UI, when we assign the result of it to a value with the `c = counter()` line. The `counter` function returns a `ui.action_button` component, which is a [button that can be pressed](https://react-spectrum.adobe.com/react-spectrum/ActionButton.html). The `on_press` argument is a callback that is called when the button is pressed. In this case, we call the `set_count` function returned by `use_state` to update the value of `count`.
+Get started by importing the `deephaven.ui` package as `ui`:
 
 ```python
-import deephaven.ui as ui
-from deephaven.ui import use_state
+from deephaven import ui
+```
+
+The `ui` package contains many _components_, which you can display in the UI:
+
+```python
+hello_world = ui.heading("Hello World!")
+```
+
+![Basic Hello World example.](assets/hello_world.png)
+
+By assigning the component to the `hello_world` variable, it displays in the UI in a panel named `hello_world`.
+
+## Handling events
+
+Write functions to handle events. To write a button that will print event details to the console when clicked:
+
+```python
+my_button = ui.button("Click Me!", on_press=lambda e: print(f"Button was clicked! {e}"))
+```
+
+![Whenever the button is pressed, event details are printed to the console.](assets/handling_events.png)
+
+## Creating components
+
+Use the `@ui.component` decorator to create your own custom components. This decorator wraps the function provided as a Deephaven component. For more details on the architecture, see [TODO: Link to architecture]().
+
+We can display a heading above a button as our custom component:
+
+```python
+@ui.component
+def ui_foo_bar():
+    return [
+        ui.heading("Click button below"),
+        ui.button("Click Me!", on_press=lambda: print("Button was clicked!")),
+    ]
+
+
+foo_bar = ui_foo_bar()
+```
+
+![Custom component being displayed.](assets/foo_bar.png)
+
+## Using state
+
+Often, you'll want to react to the button presses and update the display. For example, to count the number of times a button has been pressed, use `ui.use_state` to introduce a _state variable_ in your custom component:
+
+```python
+@ui.component
+def ui_counter():
+    count, set_count = ui.use_state(0)
+    # ...
+```
+
+Returned from `ui.use_state` is a tuple with two values: the current state (`count`), and a function to update that state (`set_count`).
+
+The first time the button is displayed, the count will be `0` because that is the initial value passed into `ui.use_state`. Call `set_count` to update the state:
+
+```python
+@ui.component
+def ui_counter():
+    count, set_count = ui.use_state(0)
+    return ui.button(f"Pressed {count} times", on_press=lambda: set_count(count + 1))
+```
+
+When state is updated, deephaven.ui will call your component again to re-render with the new value. After clicking once, it will re-render with `count` set to `1`, then set to `2`, and so on.
+
+Each individual component has its own state:
+
+```python
+@ui.component
+def ui_counter():
+    count, set_count = ui.use_state(0)
+    return ui.button(f"Pressed {count} times", on_press=lambda: set_count(count + 1))
+
+
+c1 = ui_counter()
+c2 = ui_counter()
+```
+
+![Each counter has its own state.](assets/counter.png)
+
+> [!NOTE]
+> Functions are prefixed with `use_` are called _hooks_. `use_state` is built-in to deephaven.ui, and there are other hooks built-in shown below. You can also create your own hooks.
+> Hooks are special functions. They must only be used at the _top_ of a `@ui.component` or another hook. If you want to use one in a conditional or a loop, extract that logic to a new component and put it there.
+
+## Sharing state
+
+In the previous example, the two buttons incremented their counter independently. State was stored within the counter components:
+
+```mermaid
+stateDiagram-v2
+
+    state c1 {
+        count=1
+    }
+
+    state c2 {
+        count=3
+    }
+```
+
+What if we wanted to have two buttons share the same count? To do this, move the state `count` upward to a parent component:
+
+```mermaid
+stateDiagram-v2
+    c1: ui_controlled_counter
+    c2: ui_controlled_counter
+
+    ui_shared_state --> c1 : count=4
+    ui_shared_state --> c2 : count=4
+
+    state ui_shared_state {
+        count=4
+    }
+```
+
+In the example below, we create a parent component `ui_shared_state` that contains the state, and then passes the state down into two `ui_controlled_counter` components. Now the buttons will always be in sync:
+
+```python
+@ui.component
+def ui_controlled_counter(count, operation, on_press):
+    return ui.button(f"Value is {count}, press to {operation}", on_press=on_press)
 
 
 @ui.component
-def counter():
-    count, set_count = use_state(0)
-    return ui.action_button(
-        f"You pressed me {count} times", on_press=lambda _: set_count(count + 1)
-    )
+def ui_shared_state():
+    count, set_count = ui.use_state(0)
+
+    def handle_press():
+        set_count(count + 1)
+
+    return [
+        ui.heading(f"Value is {count}"),
+        ui_controlled_counter(count, "increment", lambda: set_count(count + 1)),
+        ui_controlled_counter(count, "decrement", lambda: set_count(count - 1)),
+    ]
 
 
-c = counter()
+shared_state = ui_shared_state()
 ```
 
-![Counter](assets/counter.png)
+![Buttons will always be in sync with shared state.](assets/shared_state.png)
+
+# Examples
+
+Below are some examples building custom components using deephaven.ui.
 
 ## Text field (string)
 
 You can create a [TextField](https://react-spectrum.adobe.com/react-spectrum/TextField.html) that takes input from the user. You can also use a [Flex](https://react-spectrum.adobe.com/react-spectrum/Flex.html) component to display multiple components in a row (or column, depending on the `direction` argument).
 
 ```python
-import deephaven.ui as ui
-from deephaven.ui import use_state
-
-
 @ui.component
-def my_input():
-    text, set_text = use_state("hello")
+def ui_input():
+    text, set_text = ui.use_state("hello")
 
-    return ui.flex(
-        ui.text_field(value=text, on_change=set_text),
-        ui.text(f"You typed {text}"),
-        direction="column",
-    )
+    return [ui.text_field(value=text, on_change=set_text), ui.text(f"You typed {text}")]
 
 
-mi = my_input()
+my_input = ui_input()
 ```
 
-![Text Field](assets/text_field.png)
+![Text field.](assets/text_field.png)
 
 ## Checkbox (boolean)
 
 You can use a [checkbox](https://react-spectrum.adobe.com/react-spectrum/Checkbox.html) to get a boolean value from the user.
 
 ```python
-import deephaven.ui as ui
-from deephaven.ui import use_state
-
-
 @ui.component
-def checkbox_example():
-    liked, set_liked = use_state(True)
+def ui_checkbox():
+    liked, set_liked = ui.use_state(True)
     return ui.flex(
         ui.checkbox("I liked this", is_selected=liked, on_change=set_liked),
         ui.text("You liked this" if liked else "You didn't like this"),
@@ -87,24 +198,57 @@ def checkbox_example():
     )
 
 
-ce = checkbox_example()
+my_checkbox = ui_checkbox()
 ```
 
 ![Checkbox](assets/checkbox.png)
 
-## Form (two variables)
+## Picker (string values)
 
-You can have state with multiple different variables in one component. In this example, we have a [text field](https://react-spectrum.adobe.com/react-spectrum/TextField.html) and a [slider](https://react-spectrum.adobe.com/react-spectrum/Slider.html), and we display the values of both of them.
+The `ui.picker` component can be used to select from a list of items. Here's a basic example for selecting from a list of string values and displaying the selected key in a text field.
 
 ```python
-import deephaven.ui as ui
-from deephaven.ui import use_state
-
-
 @ui.component
-def form_example():
-    name, set_name = use_state("Homer")
-    age, set_age = use_state(36)
+def ui_picker():
+    value, set_value = ui.use_state("")
+
+    # Picker for selecting values
+    pick = ui.picker(
+        "Text 1",
+        "Text 2",
+        "Text 3",
+        label="Text",
+        on_selection_change=set_value,
+        selected_key=value,
+    )
+
+    # Show current selection in a ui.text component
+    text = ui.text("Selection: " + value)
+
+    # Display picker and output in a flex column
+    return ui.flex(
+        pick,
+        text,
+        direction="column",
+        margin=10,
+        gap=10,
+    )
+
+
+my_picker = ui_picker()
+```
+
+![Use a picker to select from a list of items](assets/picker.png)
+
+## Form (two variables)
+
+You can have state with multiple different variables in one component. This example creates a [text field](https://react-spectrum.adobe.com/react-spectrum/TextField.html) and a [slider](https://react-spectrum.adobe.com/react-spectrum/Slider.html), and we display the values of both of them.
+
+```python
+@ui.component
+def ui_form():
+    name, set_name = ui.use_state("Homer")
+    age, set_age = ui.use_state(36)
 
     return ui.flex(
         ui.text_field(value=name, on_change=set_name),
@@ -114,19 +258,18 @@ def form_example():
     )
 
 
-fe = form_example()
+my_form = ui_form()
 ```
 
-## Form with Submit
+![Form with multiple inputs.](assets/form.png)
 
-You can also create a form that user can click Submit on and react to that on a callback you specify. In this example, we create a [Form](https://react-spectrum.adobe.com/react-spectrum/forms.html) that takes a name and age, and when the user clicks Submit, the values entered in the form are sent to the user on the forms `on_submit` callback.
+## Form with submit
+
+You can also create a form on which the user can click **Submit** and react to that on a specified callback. In this example, we create a [Form](https://react-spectrum.adobe.com/react-spectrum/forms.html) that takes a name and age, and when the user clicks **Submit**, the values entered in the form are sent to the user on the form's `on_submit` callback.
 
 ```python
-from deephaven import ui
-
-
 @ui.component
-def form_submit_example():
+def ui_form_submit():
     def handle_submit(data):
         print(f"Hello {data['name']}, you are {data['age']} years old")
 
@@ -138,20 +281,19 @@ def form_submit_example():
     )
 
 
-fs = form_submit_example()
+my_form_submit = ui_form_submit()
 ```
 
-## Events
+![Submitting a form and printing out the data.](assets/form_submit.png)
+
+## Button events
 
 Included with events are many details about the action itself, e.g. modifier keys held down, or the name of the target element. In this example, we create a custom component that prints all press, key, and focus events to the console, and add two of them to a panel to show interaction with both of them (e.g. when focus switches from one button to another):
 
 ```python
-import deephaven.ui as ui
-
-
 @ui.component
-def button_event_printer(*children, id="My Button"):
-    return ui.action_button(
+def ui_button_event_printer(*children, id="My Button"):
+    return ui.button(
         *children,
         on_key_down=print,
         on_key_up=print,
@@ -168,17 +310,17 @@ def button_event_printer(*children, id="My Button"):
 
 
 @ui.component
-def button_events():
+def ui_button_events():
     return [
-        button_event_printer("1", id="My Button 1"),
-        button_event_printer("2", id="My Button 2"),
+        ui_button_event_printer("1", id="My Button 1"),
+        ui_button_event_printer("2", id="My Button 2"),
     ]
 
 
-be = button_events()
+my_button_events = ui_button_events()
 ```
 
-![Events](assets/events.png)
+![Print the details of all events when pressing a button.](assets/button_events.png)
 
 # Data Examples
 
@@ -192,16 +334,12 @@ stocks = dx.data.stocks()
 
 ## Table with input filter
 
-You can take input from a user to filter a table using the `where` method. In this example, we have a [text field](https://react-spectrum.adobe.com/react-spectrum/TextField.html) that takes input from the user, and we filter the table based on the input. By simply returning the table `t` from the component, it will be displayed in the UI (as if we had set it to a variable name).
+User input can filter a table using the `where` method. In this example, a [text field](https://react-spectrum.adobe.com/react-spectrum/TextField.html) takes input from the user, and we filter the table based on the input. Simply returning the table `t` from the component will display it in the UI (as if we had set it to a variable name).
 
 ```python
-import deephaven.ui as ui
-from deephaven.ui import use_state
-
-
 @ui.component
-def text_filter_table(source, column):
-    value, set_value = use_state("FISH")
+def ui_text_filter_table(source, column):
+    value, set_value = ui.use_state("FISH")
     t = source.where(f"{column}=`{value}`")
     return ui.flex(
         ui.text_field(value=value, on_change=set_value),
@@ -211,23 +349,19 @@ def text_filter_table(source, column):
     )
 
 
-pp = text_filter_table(stocks, "sym")
+my_text_filter_table = ui_text_filter_table(stocks, "sym")
 ```
 
-![Text Filter Table](assets/text_filter_table.png)
+![Table with a text field for filtering.](assets/text_filter_table.png)
 
 ## Table with range filter
 
-You can also filter a table based on a range. In this example, we have a [range slider](https://react-spectrum.adobe.com/react-spectrum/RangeSlider.html) that takes input from the user, and we filter the table by price based on the input. By simply returning the table `t` from the component, it will be displayed in the UI (as if we had set it to a variable name).
+You can also filter a table based on a range. In this example, a [range slider](https://react-spectrum.adobe.com/react-spectrum/RangeSlider.html) takes input from the user, and we filter the table by price based on the input. Simply returning the table `t` from the component will display it in the UI (as if we had set it to a variable name).
 
 ```python
-import deephaven.ui as ui
-from deephaven.ui import use_state
-
-
 @ui.component
-def range_table(source, column):
-    range, set_range = use_state({"start": 1000, "end": 10000})
+def ui_range_table(source, column):
+    range, set_range = ui.use_state({"start": 1000, "end": 10000})
     t = source.where(f"{column} >= {range['start']} && {column} <= {range['end']}")
     return ui.flex(
         ui.range_slider(
@@ -239,26 +373,24 @@ def range_table(source, column):
     )
 
 
-srt = range_table(stocks, "size")
+my_range_table = ui_range_table(stocks, "size")
 ```
+
+![Table with a slider for selecting the range.](range_table.png)
 
 ## Table with required filters
 
-In the previous example, we took a users input. But we didn't display anything if the user didn't enter any text. We can display a different message prompting the user for input if they haven't entered anything. We use a few new components in this example:
+In the previous example, we took a user's input. Nothing was displayed if the user didn't enter any text. Instead, we can display a different message prompting the user for input. We use a few new components in this example:
 
 - [IllustratedMessage](https://react-spectrum.adobe.com/react-spectrum/IllustratedMessage.html) (ui.illustrated_message): A component that displays an icon, heading, and content. In this case, we display a warning icon, a heading, and some content.
 - [Icon](https://react-spectrum.adobe.com/react-spectrum/Icon.html) (ui.icon): A component that displays an icon. In this case, we display the warning icon, and set the font size to 48px so it appears large in the UI.
 - [Flex](https://react-spectrum.adobe.com/react-spectrum/Flex.html) (ui.flex): A component that displays its children in a row. In this case, we display the input text fields beside eachother in a row.
 
 ```python
-import deephaven.ui as ui
-from deephaven.ui import use_state
-
-
 @ui.component
-def stock_widget_table(source, default_sym="", default_exchange=""):
-    sym, set_sym = use_state(default_sym)
-    exchange, set_exchange = use_state(default_exchange)
+def ui_stock_widget_table(source, default_sym="", default_exchange=""):
+    sym, set_sym = ui.use_state(default_sym)
+    exchange, set_exchange = ui.use_state(default_exchange)
 
     ti1 = ui.text_field(
         label="Sym", label_position="side", value=sym, on_change=set_sym
@@ -280,7 +412,7 @@ def stock_widget_table(source, default_sym="", default_exchange=""):
     return ui.flex(ui.flex(ti1, ti2), t1, direction="column", flex_grow=1)
 
 
-swt = stock_widget_table(stocks, "", "")
+my_stock_widget_table = ui_stock_widget_table(stocks, "", "")
 ```
 
 ![Stock Widget Table Invalid Input](assets/stock_widget_table_invalid.png)
@@ -292,15 +424,13 @@ swt = stock_widget_table(stocks, "", "")
 You can also do plots as you would expect.
 
 ```python
-import deephaven.ui as ui
-from deephaven.ui import use_state
 from deephaven.plot.figure import Figure
 
 
 @ui.component
-def stock_widget_plot(source, default_sym="", default_exchange=""):
-    sym, set_sym = use_state(default_sym)
-    exchange, set_exchange = use_state(default_exchange)
+def ui_stock_widget_plot(source, default_sym="", default_exchange=""):
+    sym, set_sym = ui.use_state(default_sym)
+    exchange, set_exchange = ui.use_state(default_exchange)
 
     ti1 = ui.text_field(
         label="Sym", label_position="side", value=sym, on_change=set_sym
@@ -318,7 +448,7 @@ def stock_widget_plot(source, default_sym="", default_exchange=""):
     return ui.flex(ui.flex(ti1, ti2), t1, p, direction="column", flex_grow=1)
 
 
-swp = stock_widget_plot(stocks, "CAT", "TPET")
+my_stock_widget_plot = ui_stock_widget_plot(stocks, "CAT", "TPET")
 ```
 
 ![Stock Widget Plot](assets/stock_widget_plot.png)
@@ -391,7 +521,6 @@ We can also create our own components and add them to a dashboard. In this examp
 
 ```python
 from deephaven import ui, time_table
-from deephaven.ui import use_memo, use_state
 from deephaven.plot.figure import Figure
 
 
@@ -400,9 +529,9 @@ def use_wave_input():
     Demonstrating a custom hook.
     Creates an input panel that controls the amplitude, frequency, and phase for a wave
     """
-    amplitude, set_amplitude = use_state(1.0)
-    frequency, set_frequency = use_state(1.0)
-    phase, set_phase = use_state(1.0)
+    amplitude, set_amplitude = ui.use_state(1.0)
+    frequency, set_frequency = ui.use_state(1.0)
+    phase, set_phase = ui.use_state(1.0)
 
     input_panel = ui.flex(
         ui.slider(
@@ -439,8 +568,8 @@ def use_wave_input():
 def multiwave():
     amplitude, frequency, phase, wave_input = use_wave_input()
 
-    tt = use_memo(lambda: time_table("PT1s").update("x=i"), [])
-    t = use_memo(
+    tt = ui.use_memo(lambda: time_table("PT1s").update("x=i"), [])
+    t = ui.use_memo(
         lambda: tt.update(
             [
                 f"y_sin={amplitude}*Math.sin({frequency}*x+{phase})",
@@ -450,14 +579,14 @@ def multiwave():
         ),
         [amplitude, frequency, phase],
     )
-    p_sin = use_memo(
+    p_sin = ui.use_memo(
         lambda: Figure().plot_xy(series_name="Sine", t=t, x="x", y="y_sin").show(), [t]
     )
-    p_cos = use_memo(
+    p_cos = ui.use_memo(
         lambda: Figure().plot_xy(series_name="Cosine", t=t, x="x", y="y_cos").show(),
         [t],
     )
-    p_tan = use_memo(
+    p_tan = ui.use_memo(
         lambda: Figure().plot_xy(series_name="Tangent", t=t, x="x", y="y_tan").show(),
         [t],
     )
@@ -488,21 +617,20 @@ mw = ui.dashboard(multiwave())
 
 ## Memoization
 
-We can use the `use_memo` hook to memoize a value. This is useful if you have a value that is expensive to compute, and you only want to compute it when the inputs change. In this example, we create a time table with a new column `y_sin` that is a sine wave. We use `use_memo` to memoize the time table, so that it is only re-computed when the inputs to the `use_memo` function change (in this case, the function is a lambda that takes no arguments, so it will only re-compute when the dependencies change, which is never). We then use the `update` method to update the table with the new column, based on the values inputted on the sliders.
+We can use the `use_memo` hook to memoize a value. This is useful if you have a value that is expensive to compute and you only want to compute it when the inputs change. In this example, we create a time table with a new column, `y_sin,` which is a sine wave. We use `use_memo` to memoize the time table, so that it is only re-computed when the inputs to the `use_memo` function change (in this case, the function is a lambda that takes no arguments, so it will only re-compute when the dependencies change, which is never). We then use the `update` method to update the table with the new column, based on the values inputted on the sliders.
 
 ```python
-import deephaven.ui as ui
-from deephaven.ui import use_memo, use_state
+from deephaven import ui
 from deephaven import time_table
 
 
 @ui.component
 def waves():
-    amplitude, set_amplitude = use_state(1)
-    frequency, set_frequency = use_state(1)
-    phase, set_phase = use_state(1)
+    amplitude, set_amplitude = ui.use_state(1)
+    frequency, set_frequency = ui.use_state(1)
+    phase, set_phase = ui.use_state(1)
 
-    tt = use_memo(lambda: time_table("PT1s").update("x=i"), [])
+    tt = ui.use_memo(lambda: time_table("PT1s").update("x=i"), [])
     t = tt.update_view([f"y_sin={amplitude}*Math.sin({frequency}*x+{phase})"])
 
     return ui.flex(
@@ -545,8 +673,7 @@ w = waves()
 We can write custom hooks that can be re-used. In this example, we create a custom hook that creates an input panel that controls the amplitude, frequency, and phase for a wave. We then use this custom hook in our `waves` component.
 
 ```python
-import deephaven.ui as ui
-from deephaven.ui import use_memo, use_state
+from deephaven import ui
 from deephaven import time_table
 
 
@@ -555,9 +682,9 @@ def use_wave_input():
     Demonstrating a custom hook.
     Creates an input panel that controls the amplitude, frequency, and phase for a wave
     """
-    amplitude, set_amplitude = use_state(1.0)
-    frequency, set_frequency = use_state(1.0)
-    phase, set_phase = use_state(1.0)
+    amplitude, set_amplitude = ui.use_state(1.0)
+    frequency, set_frequency = ui.use_state(1.0)
+    phase, set_phase = ui.use_state(1.0)
 
     input_panel = ui.flex(
         ui.slider(
@@ -594,7 +721,7 @@ def use_wave_input():
 def waves():
     amplitude, frequency, phase, wave_input = use_wave_input()
 
-    tt = use_memo(lambda: time_table("PT1s").update("x=i"), [])
+    tt = ui.use_memo(lambda: time_table("PT1s").update("x=i"), [])
     t = tt.update([f"y_sin={amplitude}*Math.sin({frequency}*x+{phase})"])
 
     return ui.flex(wave_input, t, flex_grow=1)
@@ -608,8 +735,7 @@ w = waves()
 We can then re-use that hook to make a component that displays a plot as well:
 
 ```python
-import deephaven.ui as ui
-from deephaven.ui import use_memo
+from deephaven import ui
 from deephaven.plot.figure import Figure
 
 
@@ -617,8 +743,8 @@ from deephaven.plot.figure import Figure
 def waves_with_plot():
     amplitude, frequency, phase, wave_input = use_wave_input()
 
-    tt = use_memo(lambda: time_table("PT1s").update("x=i"), [])
-    t = use_memo(
+    tt = ui.use_memo(lambda: time_table("PT1s").update("x=i"), [])
+    t = ui.use_memo(
         lambda: tt.update(
             [
                 f"y_sin={amplitude}*Math.sin({frequency}*x+{phase})",
@@ -626,7 +752,7 @@ def waves_with_plot():
         ),
         [amplitude, frequency, phase],
     )
-    p = use_memo(
+    p = ui.use_memo(
         lambda: Figure().plot_xy(series_name="Sine", t=t, x="x", y="y_sin").show(), [t]
     )
 
@@ -644,7 +770,6 @@ When you return an array of elements, they automatically get created as individu
 
 ```python
 from deephaven import ui
-from deephaven.ui import use_state
 from deephaven.plot.figure import Figure
 
 
@@ -652,8 +777,8 @@ from deephaven.plot.figure import Figure
 def multiwave():
     amplitude, frequency, phase, wave_input = use_wave_input()
 
-    tt = use_memo(lambda: time_table("PT1s").update("x=i"), [])
-    t = use_memo(
+    tt = ui.use_memo(lambda: time_table("PT1s").update("x=i"), [])
+    t = ui.use_memo(
         lambda: tt.update(
             [
                 f"y_sin={amplitude}*Math.sin({frequency}*x+{phase})",
@@ -663,14 +788,14 @@ def multiwave():
         ),
         [amplitude, frequency, phase],
     )
-    p_sin = use_memo(
+    p_sin = ui.use_memo(
         lambda: Figure().plot_xy(series_name="Sine", t=t, x="x", y="y_sin").show(), [t]
     )
-    p_cos = use_memo(
+    p_cos = ui.use_memo(
         lambda: Figure().plot_xy(series_name="Cosine", t=t, x="x", y="y_cos").show(),
         [t],
     )
-    p_tan = use_memo(
+    p_tan = ui.use_memo(
         lambda: Figure().plot_xy(series_name="Tangent", t=t, x="x", y="y_tan").show(),
         [t],
     )
@@ -689,11 +814,10 @@ mw = multiwave()
 
 ## Using ui.table
 
-You can use `ui.table` to add interactivity to a table, or give other instructions to the UI. Here's an example that will create two tables and a plot. The first table `t1` is an unfiltered view of the stocks table, with a row double-press listener so if you double-click on a row, it will filter the second table `t2` to only show that row and the plot to show that selected sym and exchange.
+You can use `ui.table` to add interactivity to a table, or give other instructions to the UI. Here's an example that creates two tables and a plot. The first table, `t1`, is an unfiltered view of the stocks table, with a row double-press listener so if you double-click on a row, it will filter the second table, `t2`, to show that row only and the plot to show that selected sym and exchange.
 
 ```py
-import deephaven.ui as ui
-from deephaven.ui import use_state
+from deephaven import ui
 from deephaven.plot.figure import Figure
 import deephaven.plot.express as dx
 
@@ -702,8 +826,8 @@ stocks = dx.data.stocks()
 
 @ui.component
 def stock_table_input(source, default_sym="", default_exchange=""):
-    sym, set_sym = use_state(default_sym)
-    exchange, set_exchange = use_state(default_exchange)
+    sym, set_sym = ui.use_state(default_sym)
+    exchange, set_exchange = ui.use_state(default_exchange)
 
     t1 = source
     t2 = source.where([f"sym=`{sym.upper()}`", f"exchange=`{exchange}`"])
@@ -719,7 +843,7 @@ def stock_table_input(source, default_sym="", default_exchange=""):
 
     return [
         ui.panel(
-            ui.table(t1).on_row_double_press(handle_row_double_press),
+            ui.table(t1, on_row_double_press=handle_row_double_press),
             title="Stock Table Input",
         ),
         ui.panel(t2, title="Stock Filtered Table"),
@@ -730,18 +854,40 @@ def stock_table_input(source, default_sym="", default_exchange=""):
 sti = stock_table_input(stocks, "CAT", "TPET")
 ```
 
+### ui.table Events
+
+The `ui.table` component has a few events that you can listen to. You can listen to different kinds of press events that include the data about the region pressed.
+
+```py
+from deephaven import ui
+import deephaven.plot.express as dx
+
+te = ui.table(
+    dx.data.stocks(),
+    on_row_press=lambda row, data: print(f"Row Press: {row}, {data}"),
+    on_row_double_press=lambda row, data: print(f"Row Double Press: {row}, {data}"),
+    on_cell_press=lambda cell_index, data: print(f"Cell Press: {cell_index}, {data}"),
+    on_cell_double_press=lambda cell_index, data: print(
+        f"Cell Double Press: {cell_index}, {data}"
+    ),
+    on_column_press=lambda column: print(f"Column Press: {column}"),
+    on_column_double_press=lambda column: print(f"Column Double Press: {column}"),
+)
+```
+
+![Table events](table_events.png)
+
 ## Re-using components
 
 In a previous example, we created a text_filter_table component. We can re-use that component, and display two tables with an input filter side-by-side:
 
 ```python
-import deephaven.ui as ui
-from deephaven.ui import use_state
+from deephaven import ui
 
 
 @ui.component
 def text_filter_table(source, column, default_value=""):
-    value, set_value = use_state(default_value)
+    value, set_value = ui.use_state(default_value)
     return ui.flex(
         ui.text_field(
             label=column, label_position="side", value=value, on_change=set_value
@@ -771,8 +917,7 @@ dt = double_table(stocks)
 You can use the `rollup` method to create a rollup table. In this example, we create a rollup table that shows the average price of each stock and/or exchange. You can toggle the rollup by clicking on the [ToggleButton](https://react-spectrum.adobe.com/react-spectrum/ToggleButton.html). You can also highlight a specific stock by entering the symbol in the text field, but only when a rollup option isn't selected. We wrap the highlight input field with a `ui.fragment` that is conditionally used so that it doesn't appear when the rollup is selected. We also use the `ui.contextual_help` component to display a help message when you hover over the help icon.
 
 ```python
-import deephaven.ui as ui
-from deephaven.ui import use_memo, use_state
+from deephaven import ui
 from deephaven import agg
 import deephaven.plot.express as dx
 
@@ -793,18 +938,18 @@ def get_by_filter(**byargs):
 
 @ui.component
 def stock_table(source):
-    is_sym, set_is_sym = use_state(False)
-    is_exchange, set_is_exchange = use_state(False)
-    highlight, set_highlight = use_state("")
-    aggs, set_aggs = use_state(agg.avg(cols=["size", "price", "dollars"]))
+    is_sym, set_is_sym = ui.use_state(False)
+    is_exchange, set_is_exchange = ui.use_state(False)
+    highlight, set_highlight = ui.use_state("")
+    aggs, set_aggs = ui.use_state(agg.avg(cols=["size", "price", "dollars"]))
 
     by = get_by_filter(sym=is_sym, exchange=is_exchange)
 
-    formatted_table = use_memo(
+    formatted_table = ui.use_memo(
         lambda: source.format_row_where(f"sym=`{highlight}`", "LEMONCHIFFON"),
         [source, highlight],
     )
-    rolled_table = use_memo(
+    rolled_table = ui.use_memo(
         lambda: (
             formatted_table
             if len(by) == 0
@@ -858,7 +1003,7 @@ You can use the `use_table_listener` hook to listen to changes to a table. In th
 This is an advanced feature, requiring understanding of how the [table listeners](https://deephaven.io/core/docs/how-to-guides/table-listeners-python/) work, and limitations of running code while the Update Graph is running. Most usages of this are more appropriate to implement with [the table data hooks](#using-table-data-hooks).
 
 ```python
-import deephaven.ui as ui
+from deephaven import ui
 from deephaven.table import Table
 from deephaven import time_table, empty_table, merge
 from deephaven import pandas as dhpd
@@ -899,7 +1044,7 @@ def monitor_changed_data(source: Table):
         else:
             set_changed(empty_table(0))
 
-    ui.use_table_listener(source, listener)
+    ui.use_table_listener(source, listener, [])
 
     added_check = ui.checkbox(
         "Show Added", isSelected=show_added, on_change=set_show_added
@@ -930,7 +1075,7 @@ from deephaven import ui, time_table
 @ui.component
 def resetable_table():
     table, set_table = ui.use_state(lambda: time_table("PT1s"))
-    handle_press = ui.use_liveness_scope(lambda _: set_table(time_table("PT1s")))
+    handle_press = ui.use_liveness_scope(lambda _: set_table(time_table("PT1s")), [])
     return [
         ui.action_button(
             "Reset",
@@ -997,7 +1142,7 @@ There are five different hooks that can be used to get data from a table:
 In this example, the hooks are used to display various pieces of information about LIZARD trades.
 
 ```python
-import deephaven.ui as ui
+from deephaven import ui
 from deephaven.table import Table
 from deephaven import time_table, agg
 import deephaven.plot.express as dx
