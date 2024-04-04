@@ -31,6 +31,7 @@ import {
 import PortalPanel from './layout/PortalPanel';
 import PortalPanelManager from './layout/PortalPanelManager';
 import DashboardWidgetHandler from './widget/DashboardWidgetHandler';
+import { getPreservedData } from './widget/WidgetUtils';
 
 const NAME_ELEMENT = 'deephaven.ui.Element';
 const DASHBOARD_ELEMENT = 'deephaven.ui.Dashboard';
@@ -96,10 +97,12 @@ export function DashboardPlugin(
       log.info('Opening widget with ID', widgetId, widget);
       setWidgetMap(prevWidgetMap => {
         const newWidgetMap = new Map(prevWidgetMap);
+        const oldWidget = newWidgetMap.get(widgetId);
         newWidgetMap.set(widgetId, {
           fetch,
           id: widgetId,
           widget,
+          data: getPreservedData(oldWidget?.data),
         });
         return newWidgetMap;
       });
@@ -145,7 +148,7 @@ export function DashboardPlugin(
           break;
         }
         default: {
-          log.error('Unknown widget type', type);
+          break;
         }
       }
     },

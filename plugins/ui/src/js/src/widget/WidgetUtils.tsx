@@ -4,6 +4,7 @@ import React, { ComponentType } from 'react';
 // Importing `Item` and `Section` compnents directly since they should not be
 // wrapped due to how Spectrum collection components consume them.
 import { Item, Section } from '@deephaven/components';
+import { ReadonlyWidgetData } from './WidgetTypes';
 import {
   ElementNode,
   ELEMENT_KEY,
@@ -81,4 +82,24 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
   }
 
   return newElement.props?.children;
+}
+
+/** Data keys of a widget to preserve across re-opening. */
+const PRESERVED_DATA_KEYS: (keyof ReadonlyWidgetData)[] = ['panelIds'];
+const PRESERVED_DATA_KEYS_SET = new Set<string>(PRESERVED_DATA_KEYS);
+
+/**
+ * Returns an object with only the data preserved that should be preserved when re-opening a widget (e.g. opening it again from console).
+ * For example, if you re-open a widget, you want to keep the `panelIds` data because that will re-open the widget to where it was before.
+ * However, we do _not_ want to preserve the `state` in this case - we want to widget to start from a fresh state.
+ * Similar to how when you re-open a table, it'll open in the same spot, but all UI applied filters/operations will be reset.
+ * @param oldData The old data to get the preserved data from
+ * @returns The data to preserve
+ */
+export function getPreservedData(
+  oldData: ReadonlyWidgetData = {}
+): ReadonlyWidgetData {
+  return Object.fromEntries(
+    Object.entries(oldData).filter(([key]) => PRESERVED_DATA_KEYS_SET.has(key))
+  );
 }

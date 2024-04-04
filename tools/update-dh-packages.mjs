@@ -15,6 +15,9 @@
  *
  * Or for a specific plugin via:
  * `npm run update-dh-packages -- --scope=@deephaven/js-plugin-ui`
+ *
+ * To target a specific version, pass the version as an argument:
+ * `npm run update-dh-packages -- --scope=@deephaven/js-plugin-ui -- 0.70.1-alpha-picker-table.34`
  */
 
 /* eslint-disable no-console */
@@ -23,13 +26,18 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import process from 'process';
 
-// Optional targetVersion argument or fallback to 'latest'
-const targetVersion = process.argv[2] ?? 'latest';
-console.log('targetVersion:', targetVersion);
+// Optional targetVersionOverride argument
+const targetVersionOverride = process.argv[2];
+const targetVersionDefault = 'latest';
+
+console.log('targetVersion:', {
+  default: targetVersionDefault,
+  override: targetVersionOverride,
+});
 
 // Read package.json to get dependency lists
 const packageJsonPath = path.join(process.cwd(), 'package.json');
-const { dependencies, devDependencies } = JSON.parse(
+const { dependencies = {}, devDependencies = {} } = JSON.parse(
   String(await fs.readFile(packageJsonPath, 'utf8'))
 );
 
@@ -42,6 +50,17 @@ const dhPackageNames = [
   ),
 ];
 
+const dhPackageUpdates = new Map(
+  dhPackageNames.map(name => [
+    name,
+    // If targetVersionOverride is set, use it for all packages except for
+    // `@deephaven/jsapi-types` since it has it's own versioning cadence.
+    targetVersionOverride == null || name === '@deephaven/jsapi-types'
+      ? targetVersionDefault
+      : targetVersionOverride,
+  ])
+);
+
 if (dhPackageNames.length === 0) {
   console.log(
     'No @deephaven packages found in dependencies or devDependencies.'
@@ -49,10 +68,10 @@ if (dhPackageNames.length === 0) {
   process.exit(0);
 }
 
-console.log('Updating packages:', dhPackageNames);
+console.log('Updating packages:', dhPackageUpdates);
 
-const cmd = `npm i --save ${dhPackageNames
-  .map(name => `${name}@${targetVersion}`)
+const cmd = `npm i --save ${[...dhPackageUpdates.entries()]
+  .map(([name, version]) => `${name}@${version}`)
   .join(' ')}`;
 
 console.log(cmd);

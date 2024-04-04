@@ -2,6 +2,21 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.11.0 - 2024-04-03
+#### Bug Fixes
+- Re-opening widgets after re-hydrated (#379) - (42242a5) - mofojed
+- Wrap primitive Item children in Text (#370) - (c733932) - bmingles
+#### Documentation
+- Updating examples for consistency (#378) - (6292b3a) - mofojed
+- pydocs for ui.text_field (#357) - (d795c8d) - ethanalvizo
+#### Features
+- Picker table support (#382) - (2f84c96) - bmingles
+- Add Python list_view implementation  (#359) - (f0b8759) - Joe
+- only require typing_extension for python < 3.11 (#397) - (e31dc6f) - devinrsmith
+- sets the default flex gap to "size-100" (#347) - (5898502) - Don
+
+- - -
+
 ## ui-v0.10.0 - 2024-03-15
 #### Bug Fixes
 - Tighten use_memo dependency types (#356) - (48dea18) - Joe
