@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
-# Dockerfile for updating the snapshots.
-# Expects to be run from the root of the web-client-ui repo
+
+# Dockerfile for running and updating snapshots locally and on CI
 FROM mcr.microsoft.com/playwright:v1.41.2-jammy AS playwright
 WORKDIR /work/
 
