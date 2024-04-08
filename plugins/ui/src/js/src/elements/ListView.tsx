@@ -1,5 +1,7 @@
 import React, { ReactElement } from 'react';
 import { useSelector } from 'react-redux';
+import { isElementOfType } from '@deephaven/react-hooks';
+import { getSettings, RootState } from '@deephaven/redux';
 import {
   ListView as DHListView,
   ListViewProps as DHListViewProps,
@@ -7,16 +9,13 @@ import {
 import {
   ListView as DHListViewJSApi,
   ListViewProps as DHListViewJSApiProps,
-  useTableClose,
 } from '@deephaven/jsapi-components';
-import { isElementOfType, usePromiseFactory } from '@deephaven/react-hooks';
-import { getSettings, RootState } from '@deephaven/redux';
 import {
   SerializedListViewEventProps,
   useListViewProps,
 } from './useListViewProps';
 import ObjectView, { ObjectViewProps } from './ObjectView';
-import { fetchReexportedTable } from './ElementUtils';
+import useReExportedTable from './useReExportedTable';
 
 type WrappedDHListViewJSApiProps = Omit<DHListViewJSApiProps, 'table'> & {
   children: ReactElement<ObjectViewProps>;
@@ -30,17 +29,7 @@ function ListView({ children, ...props }: ListViewProps) {
   const listViewProps = useListViewProps(props);
 
   const isObjectView = isElementOfType(children, ObjectView);
-
-  const maybeExportedTable =
-    isObjectView && children.props.object.type === 'Table'
-      ? children.props.object
-      : null;
-
-  const { data: table } = usePromiseFactory(fetchReexportedTable, [
-    maybeExportedTable,
-  ]);
-
-  useTableClose(table);
+  const table = useReExportedTable(children);
 
   if (isObjectView) {
     return (

@@ -7,13 +7,12 @@ import {
 import {
   Picker as DHPickerJSApi,
   PickerProps as DHPickerJSApiProps,
-  useTableClose,
 } from '@deephaven/jsapi-components';
-import { isElementOfType, usePromiseFactory } from '@deephaven/react-hooks';
+import { isElementOfType } from '@deephaven/react-hooks';
 import { getSettings, RootState } from '@deephaven/redux';
 import { SerializedPickerEventProps, usePickerProps } from './usePickerProps';
 import ObjectView, { ObjectViewProps } from './ObjectView';
-import { fetchReexportedTable } from './ElementUtils';
+import useReExportedTable from './useReExportedTable';
 
 type WrappedDHPickerJSApiProps = Omit<DHPickerJSApiProps, 'table'> & {
   children: ReactElement<ObjectViewProps>;
@@ -27,17 +26,7 @@ function Picker({ children, ...props }: PickerProps): JSX.Element {
   const pickerProps = usePickerProps(props);
 
   const isObjectView = isElementOfType(children, ObjectView);
-
-  const maybeExportedTable =
-    isObjectView && children.props.object.type === 'Table'
-      ? children.props.object
-      : null;
-
-  const { data: table } = usePromiseFactory(fetchReexportedTable, [
-    maybeExportedTable,
-  ]);
-
-  useTableClose(table);
+  const table = useReExportedTable(children);
 
   if (isObjectView) {
     return (
