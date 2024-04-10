@@ -50,11 +50,11 @@ export function useListViewProps<T>(props: SerializedListViewEventProps & T) {
     ...otherProps
   } = props;
 
+  const serializedOnChange = useSelectionEventCallback(onChange);
   const serializedOnFocus = useFocusEventCallback(onFocus);
   const serializedOnBlur = useFocusEventCallback(onBlur);
   const serializedOnKeyDown = useKeyboardEventCallback(onKeyDown);
   const serializedOnKeyUp = useKeyboardEventCallback(onKeyUp);
-  const serializedOnChange = useSelectionEventCallback(onChange);
   const serializedOnSelectionChange =
     useSelectionEventCallback(onSelectionChange);
 
