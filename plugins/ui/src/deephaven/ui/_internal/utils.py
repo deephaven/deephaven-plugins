@@ -210,7 +210,7 @@ def create_props(args: dict[str, Any]) -> tuple[tuple[Any], dict[str, Any]]:
     Returns:
         A tuple of children and props
     """
-    children, props = args.pop("children"), args.pop("props")
+    children, props = args.pop("children", tuple()), args.pop("props", {})
     props.update(args)
     return children, props
 
