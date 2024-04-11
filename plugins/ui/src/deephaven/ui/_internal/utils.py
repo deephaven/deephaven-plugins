@@ -9,12 +9,6 @@ from deephaven.time import to_j_instant, to_j_zdt, to_j_local_date
 
 from ..types import Date
 
-DateConverter = (
-    Callable[[Date], Instant]  # type: ignore
-    | Callable[[Date], ZonedDateTime]  # type: ignore
-    | Callable[[Date], LocalDate]  # type: ignore
-)
-
 _UNSAFE_PREFIX = "UNSAFE_"
 _ARIA_PREFIX = "aria_"
 _ARIA_PREFIX_REPLACEMENT = "aria-"
@@ -299,7 +293,7 @@ def _prioritized_callable_converter(
     props: dict[str, Any],
     priority: Sequence[str],
     default_converter: Callable[[Date], Any],
-) -> DateConverter:
+) -> Callable[[Date], Any]:
     """
     Get a callable date converter based on the priority of the props.
     If none of the priority props are present, uses the default converter.
