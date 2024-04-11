@@ -141,14 +141,6 @@ def text(*children, **props):
     return spectrum_element("Text", *children, **props)
 
 
-def toggle_button(*children, **props):
-    """
-    Python implementation for the Adobe React Spectrum ToggleButton component.
-    https://react-spectrum.adobe.com/react-spectrum/ToggleButton.html
-    """
-    return spectrum_element("ToggleButton", *children, **props)
-
-
 def view(*children, **props):
     """
     Python implementation for the Adobe React Spectrum View component.
