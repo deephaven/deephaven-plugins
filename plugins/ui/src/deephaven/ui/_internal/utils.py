@@ -314,10 +314,30 @@ def _prioritized_callable_converter(
     return default_converter
 
 
+def convert_list_prop(
+    key: str,
+    value: list[Date],
+) -> list[Instant | ZonedDateTime | LocalDate]:  # type: ignore
+    """
+    Convert a list of Dates to Java date types.
+
+    Args:
+        key: The key of the prop.
+        value: A list of Dates to convert to Java date types.
+
+    Returns:
+        The list of Java date types.
+    """
+    if value is not None:
+        if not isinstance(value, list):
+            raise TypeError(f"{key} must be a list of Dates")
+        return [_convert_to_java_date(date) for date in value]
+    return []
+
+
 def convert_date_props(
     props: dict[str, Any],
     simple_date_props: set[str],
-    list_date_props: set[str],
     callable_date_props: set[str],
     priority: Sequence[str],
     default_converter: Callable[[Date], Any] = to_j_instant,
@@ -328,7 +348,6 @@ def convert_date_props(
     Args:
         props: The props passed to the component.
         simple_date_props: A set of simple date keys to convert. The prop value should be a single Date.
-        list_date_props: A set of list date keys to convert. The prop value should be a list of Dates.
         callable_date_props: A set of callable date keys to convert.
             The prop value should be a callable that takes a Date.
         priority: The priority of the props to check.
@@ -340,12 +359,6 @@ def convert_date_props(
     for key in simple_date_props:
         if props.get(key) is not None:
             props[key] = _convert_to_java_date(props[key])
-
-    for key in list_date_props:
-        if props.get(key) is not None:
-            if not isinstance(props[key], list):
-                raise TypeError(f"{key} must be a list of Dates")
-            props[key] = [_convert_to_java_date(date) for date in props[key]]
 
     # the simple props must be converted before this to simplify the callable conversion
     converter = _prioritized_callable_converter(props, priority, default_converter)

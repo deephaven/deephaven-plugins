@@ -21,10 +21,12 @@ from .spectrum import (
     PageBehavior,
     HourCycle,
 )
+from ..hooks import use_memo
 from ..elements import Element, BaseElement
 from .._internal.utils import (
     create_props,
     convert_date_props,
+    convert_list_prop,
 )
 from ..types import Date, Granularity
 
@@ -61,7 +63,6 @@ def _convert_date_picker_props(
     convert_date_props(
         props,
         _SIMPLE_DATE_PROPS,
-        _LIST_DATE_PROPS,
         _CALLABLE_DATE_PROPS,
         _DATE_PROPS_PRIORITY,
     )
@@ -263,5 +264,10 @@ def date_picker(
     _, props = create_props(locals())
 
     _convert_date_picker_props(props)
+
+    props["unavailable_values"] = use_memo(
+        lambda: convert_list_prop("unavailable_values", props["unavailable_values"]),
+        [unavailable_values],
+    )
 
     return BaseElement("deephaven.ui.components.DatePicker", **props)
