@@ -289,14 +289,35 @@ def _wrap_date_callable(
     return lambda date: wrap_callable(date_callable)(converter(date))
 
 
+def _get_first_set_key(props: dict[str, Any], sequence: Sequence[str]) -> str | None:
+    """
+    Of the keys in sequence, get the first key that has a non-None value in props.
+    If none of the keys have a non-None value, return None.
+
+    Args:
+        props: The props to check for non-None values.
+        sequence: The sequence to check.
+
+    Returns:
+        The first non-None prop, or None if all props are None.
+    """
+    for key in sequence:
+        if props.get(key) is not None:
+            return key
+    return None
+
+
 def _prioritized_callable_converter(
     props: dict[str, Any],
     priority: Sequence[str],
     default_converter: Callable[[Date], Any],
 ) -> Callable[[Date], Any]:
     """
-    Get a callable date converter based on the priority of the props.
-    If none of the priority props are present, uses the default converter.
+    Get a callable date converter based on the type of the first non-None prop set.
+    Checks the props in the order provided by the `priority` sequence.
+    All the props in `priority` should be Java date types already.
+    We do this so conversion so that the type returned on callbacks matches the type passed in by the user.
+    If none of the props in `priority` are present, returns the default converter.
 
     Args:
         props: The props passed to the component.
@@ -307,17 +328,18 @@ def _prioritized_callable_converter(
         The callable date converter.
     """
 
-    for prop in priority:
-        if props.get(prop):
-            return _jclass_converter(props[prop])
-
-    return default_converter
+    first_set_key = _get_first_set_key(props, priority)
+    return (
+        _jclass_converter(props[first_set_key])
+        if first_set_key is not None
+        else default_converter
+    )
 
 
 def convert_list_prop(
     key: str,
-    value: list[Date],
-) -> list[Instant | ZonedDateTime | LocalDate]:  # type: ignore
+    value: list[Date] | None,
+) -> list[Instant | ZonedDateTime | LocalDate] | None:  # type: ignore
     """
     Convert a list of Dates to Java date types.
 
@@ -328,11 +350,12 @@ def convert_list_prop(
     Returns:
         The list of Java date types.
     """
-    if value is not None:
-        if not isinstance(value, list):
-            raise TypeError(f"{key} must be a list of Dates")
-        return [_convert_to_java_date(date) for date in value]
-    return []
+    if value is None:
+        return None
+
+    if not isinstance(value, list):
+        raise TypeError(f"{key} must be a list of Dates")
+    return [_convert_to_java_date(date) for date in value]
 
 
 def convert_date_props(

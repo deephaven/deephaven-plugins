@@ -7,7 +7,7 @@ class DatePickerTest(BaseTestCase):
     def test_convert_date_props(self):
         from deephaven.time import to_j_instant, to_j_zdt, to_j_local_date
         from deephaven.ui.components.date_picker import _convert_date_picker_props
-        from deephaven.ui._internal.utils import get_jclass_name
+        from deephaven.ui._internal.utils import get_jclass_name, convert_list_prop
 
         def verify_is_local_date(date):
             self.assertEqual(get_jclass_name(date), "java.time.LocalDate")
@@ -25,7 +25,7 @@ class DatePickerTest(BaseTestCase):
             "placeholder_value": "2021-01-01",
             "value": "2021-01-01 UTC",
             "default_value": "2021-01-01 ET",
-            "unavailable_dates": [to_j_instant("2021-01-01 UTC")],
+            "unavailable_dates": [to_j_instant("2021-01-01 UTC"), "2021-01-01"],
             "min_value": to_j_zdt("2021-01-01 ET"),
             "max_value": to_j_local_date("2021-01-01"),
         }
@@ -35,6 +35,7 @@ class DatePickerTest(BaseTestCase):
             "default_value": to_j_zdt("2021-01-01 ET"),
             "placeholder_value": to_j_instant("2021-01-01 UTC"),
             "on_change": verify_is_local_date,
+            "unavailable_dates": None,
         }
 
         props3 = {
@@ -53,7 +54,13 @@ class DatePickerTest(BaseTestCase):
         props6 = {"on_change": empty_on_change}
 
         _convert_date_picker_props(props1)
+        props1["unavailable_dates"] = convert_list_prop(
+            "unavailable_dates", props1["unavailable_dates"]
+        )
         _convert_date_picker_props(props2)
+        props2["unavailable_dates"] = convert_list_prop(
+            "unavailable_dates", props2["unavailable_dates"]
+        )
         _convert_date_picker_props(props3)
         _convert_date_picker_props(props4)
         _convert_date_picker_props(props5)
@@ -62,11 +69,13 @@ class DatePickerTest(BaseTestCase):
         verify_is_local_date(props1["max_value"])
         verify_is_zdt(props1["min_value"])
         verify_is_instant(props1["unavailable_dates"][0])
+        verify_is_local_date(props1["unavailable_dates"][1])
         verify_is_instant(props1["value"])
         verify_is_instant(props1["default_value"])
         verify_is_local_date(props1["placeholder_value"])
 
         props2["on_change"]("2021-01-01")
+        self.assertIsNone(props2["unavailable_dates"])
         props3["on_change"]("2021-01-01 UTC")
         props4["on_change"]("2021-01-01 ET")
         props5["on_change"]("2021-01-01 UTC")
