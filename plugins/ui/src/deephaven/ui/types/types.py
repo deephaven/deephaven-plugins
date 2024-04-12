@@ -3,7 +3,7 @@ import pandas
 import numpy
 from typing import Any, Dict, Literal, Union, List, Tuple, Callable, TypedDict, Sequence
 from deephaven import SortDirection
-from deephaven.dtypes import LocalDate, Instant, ZonedDateTime
+from deephaven.dtypes import DType
 
 
 class CellData(TypedDict):
@@ -110,9 +110,13 @@ TableSortDirection = Union[StringSortDirection, SortDirection]
 Stringable = Union[str, int, float, bool]
 Key = Stringable
 ActionKey = Key
+LocalDate = DType
+Instant = DType
+ZonedDateTime = DType
+JavaDate = Union[LocalDate, Instant, ZonedDateTime]
 LocalDateConvertible = Union[
     None,
-    LocalDate,  # type: ignore
+    LocalDate,
     str,
     datetime.date,
     datetime.datetime,
@@ -126,9 +130,9 @@ ZonedDateTimeConvertible = Union[
     None, ZonedDateTime, str, datetime.datetime, numpy.datetime64, pandas.Timestamp  # type: ignore
 ]
 Date = Union[
-    Instant,  # type: ignore
-    LocalDate,  # type: ignore
-    ZonedDateTime,  # type: ignore
+    Instant,
+    LocalDate,
+    ZonedDateTime,
     LocalDateConvertible,
     InstantConvertible,
     ZonedDateTimeConvertible,

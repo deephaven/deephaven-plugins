@@ -4,10 +4,9 @@ from typing import Any, Callable, Set, cast, Sequence
 from inspect import signature
 import sys
 from functools import partial
-from deephaven.dtypes import Instant, ZonedDateTime, LocalDate
 from deephaven.time import to_j_instant, to_j_zdt, to_j_local_date
 
-from ..types import Date
+from ..types import Date, JavaDate
 
 _UNSAFE_PREFIX = "UNSAFE_"
 _ARIA_PREFIX = "aria_"
@@ -211,7 +210,7 @@ def create_props(args: dict[str, Any]) -> tuple[tuple[Any], dict[str, Any]]:
 
 def _convert_to_java_date(
     date: Date,
-) -> Instant | ZonedDateTime | LocalDate:  # type: ignore
+) -> JavaDate:
     """
     Convert a Date to a Java date type.
     In order of preference, tries to convert to Instant, ZonedDateTime, and LocalDate.
@@ -224,19 +223,19 @@ def _convert_to_java_date(
         The Java date type.
     """
     try:
-        return to_j_instant(date)
+        return to_j_instant(date)  # type: ignore
     except Exception:
         # ignore, try next
         pass
 
     try:
-        return to_j_zdt(date)
+        return to_j_zdt(date)  # type: ignore
     except Exception:
         # ignore, try next
         pass
 
     try:
-        return to_j_local_date(date)
+        return to_j_local_date(date)  # type: ignore
     except Exception:
         raise TypeError(
             f"Could not convert {date} to one of Instant, ZonedDateTime, or LocalDate."
@@ -257,7 +256,7 @@ def get_jclass_name(value: Any) -> str:
 
 
 def _jclass_converter(
-    value: Instant | ZonedDateTime | LocalDate,  # type: ignore
+    value: JavaDate,
 ) -> Callable[[Date], Any]:
     """
     Get the converter for the Java date type.
@@ -339,7 +338,7 @@ def _prioritized_callable_converter(
 def convert_list_prop(
     key: str,
     value: list[Date] | None,
-) -> list[Instant | ZonedDateTime | LocalDate] | None:  # type: ignore
+) -> list[JavaDate] | None:
     """
     Convert a list of Dates to Java date types.
 
