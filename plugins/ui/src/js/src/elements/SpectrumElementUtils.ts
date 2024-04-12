@@ -14,7 +14,6 @@ import {
   TabList,
   Text,
   ToggleButton,
-  View,
 } from '@adobe/react-spectrum';
 import { ValueOf } from '@deephaven/utils';
 import {
@@ -26,6 +25,7 @@ import {
   Slider,
   TabPanels,
   TextField,
+  View,
 } from './spectrum';
 import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
 

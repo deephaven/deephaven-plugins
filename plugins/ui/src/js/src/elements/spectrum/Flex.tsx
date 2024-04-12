@@ -1,9 +1,9 @@
 import React from 'react';
-import { Flex as SpectrumFlex, FlexProps } from '@adobe/react-spectrum';
+import { Flex as DHFlex, FlexProps } from '@deephaven/components';
 
-function Flex(props: FlexProps) {
+function Flex(props: FlexProps): JSX.Element {
   // eslint-disable-next-line react/jsx-props-no-spreading
-  return <SpectrumFlex {...props} />;
+  return <DHFlex {...props} />;
 }
 
 Flex.displayName = 'Flex';
