@@ -1043,16 +1043,24 @@ ui.section(
 ) -> SectionElement
 ```
 
+###### Parameters
+
+| Parameter   | Type          | Description                               |
+| ----------- |---------------|-------------------------------------------|
+| `*children` | `Item`        | The options to render within the section. |
+| `title`     | `str \| None` | The title of the section.                 |
+| `**props`   | `Any`         | Any other Section prop                    |
+
 ###### ui.list_action_group
 A group of action buttons that can be used to create a list of actions.
 This component should be used within the actions prop of a `ListView` component.
 
 ```py
 def list_action_group(
-        *children: ActionGroupItem,
-        on_action: Callable[[ActionKey, Key], None] | None = None,
-        on_selection_change: Callable[[Selection, Key], None] | None = None,
-        **props: Any
+    *children: ActionGroupItem,
+    on_action: Callable[[ActionKey, Key], None] | None = None,
+    on_selection_change: Callable[[Selection, Key], None] | None = None,
+    **props: Any
 ) -> ListActionGroupElement:
 ```
 
@@ -1065,17 +1073,16 @@ def list_action_group(
 | `**props`               | `Any`                                                      | Any other [ActionGroup](https://react-spectrum.adobe.com/react-spectrum/ActionGroup.html) prop.                                                    |
 
 
-
 ###### ui.list_action_menu
 A group of action buttons that can be used to create a list of actions.
 This component should be used within the actions prop of a `ListView` component.
 
 ```py
 def list_action_menu(
-        *children: ActionMenuItem,
-        on_action: Callable[[ActionKey, Key], None] | None = None,
-        on_open_change: Callable[[bool, Key], None] | None = None,
-        **props: Any
+    *children: ActionMenuItem,
+    on_action: Callable[[ActionKey, Key], None] | None = None,
+    on_open_change: Callable[[bool, Key], None] | None = None,
+    **props: Any
 ) -> ListActionMenuElement:
 ```
 
@@ -1086,15 +1093,6 @@ def list_action_menu(
 | `on_action`             | `Callable[[ActionKey, Key], None] \| None`                       | Handler that is called when an item is pressed. The first argument is the key of the action, the second argument is the key of the list_view item. |
 | `on_open_change`        | `Callable[[bool, Key], None] \| None`                      | The first argument is a boolean indicating if the menu is open, the second argument is the key of the list_view item.                              |
 | `**props`               | `Any`                                                      | Any other [ActionMenu](https://react-spectrum.adobe.com/react-spectrum/ActionMenu.html) prop.                                                      |
-
-
-###### Parameters
-
-| Parameter   | Type    | Description                               |
-| ----------- | ------- | ----------------------------------------- |
-| `*children` | `Item`  | The options to render within the section. |
-| `title`     | `str \| None` | The title of the section.                 |
-| `**props`   | `Any`   | Any other Section prop                    |
 
 ##### ui.item_table_source
 
