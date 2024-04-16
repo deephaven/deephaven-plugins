@@ -4,7 +4,7 @@ import PlotlyExpressChartModel from './PlotlyExpressChartModel.js';
 export function useHandleSceneTicks(
   model: PlotlyExpressChartModel | undefined,
   container: HTMLDivElement | null
-) {
+): void {
   useEffect(() => {
     // Plotly scenes and geo views reset when our data ticks
     // Pause rendering data updates when the user is manipulating a scene

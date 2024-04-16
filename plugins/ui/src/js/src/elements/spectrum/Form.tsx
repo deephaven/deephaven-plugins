@@ -5,7 +5,7 @@ function Form(
   props: SpectrumFormProps & {
     onSubmit?: (data: { [key: string]: FormDataEntryValue }) => void;
   }
-) {
+): JSX.Element {
   const { onSubmit: propOnSubmit, ...otherProps } = props;
 
   const onSubmit = useCallback(

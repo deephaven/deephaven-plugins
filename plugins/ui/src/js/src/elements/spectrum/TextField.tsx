@@ -9,7 +9,7 @@ const VALUE_CHANGE_DEBOUNCE = 250;
 
 const EMPTY_FUNCTION = () => undefined;
 
-function TextField(props: SpectrumTextFieldProps) {
+function TextField(props: SpectrumTextFieldProps): JSX.Element {
   const {
     defaultValue = '',
     value: propValue,

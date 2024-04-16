@@ -34,7 +34,9 @@ export type SerializedPressEventCallback = (
  * @param callback PressEvent callback to be called with the serialized event
  * @returns A callback to be passed into the Spectrum component that transforms the event and calls the provided callback
  */
-export function usePressEventCallback(callback?: SerializedPressEventCallback) {
+export function usePressEventCallback(
+  callback?: SerializedPressEventCallback
+): (e: PressEvent) => void {
   return useCallback(
     (e: PressEvent) => {
       callback?.(serializePressEvent(e));

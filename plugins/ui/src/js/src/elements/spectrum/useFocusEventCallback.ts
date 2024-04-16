@@ -31,7 +31,9 @@ export type SerializedFocusEventCallback = (
  * @param callback FocusEvent callback to be called with the serialized event
  * @returns A callback to be passed into the Spectrum component that transforms the event and calls the provided callback
  */
-export function useFocusEventCallback(callback?: SerializedFocusEventCallback) {
+export function useFocusEventCallback(
+  callback?: SerializedFocusEventCallback
+): (e: FocusEvent) => void {
   return useCallback(
     (e: FocusEvent) => {
       callback?.(serializeFocusEvent(e));

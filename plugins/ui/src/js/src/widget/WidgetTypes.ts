@@ -3,8 +3,8 @@ import type { dh } from '@deephaven/jsapi-types';
 export type WidgetId = string;
 
 export interface WidgetMessageDetails {
-  getDataAsBase64(): string;
-  getDataAsString(): string;
+  getDataAsBase64: () => string;
+  getDataAsString: () => string;
   exportedObjects: dh.WidgetExportedObject[];
 }
 

@@ -5,7 +5,10 @@ import {
 } from '@adobe/react-spectrum';
 import { SerializedButtonEventProps, useButtonProps } from './useButtonProps';
 
-function Button(props: SpectrumButtonProps & SerializedButtonEventProps) {
+function Button(
+  variant: SpectrumButtonProps['variant'],
+  props: SpectrumButtonProps & SerializedButtonEventProps
+): JSX.Element {
   const buttonProps = useButtonProps(props);
 
   // eslint-disable-next-line react/jsx-props-no-spreading

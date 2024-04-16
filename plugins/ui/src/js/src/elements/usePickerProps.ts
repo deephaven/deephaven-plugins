@@ -26,7 +26,9 @@ export interface SerializedPickerEventProps {
  * @param props Props to wrap
  * @returns Wrapped props
  */
-export function usePickerProps<T>(props: SerializedPickerEventProps & T) {
+export function usePickerProps<T>(
+  props: SerializedPickerEventProps & T
+): T & SerializedPickerEventProps {
   const { onFocus, onBlur, onKeyDown, onKeyUp, ...otherProps } = props;
 
   const serializedOnFocus = useFocusEventCallback(onFocus);
@@ -39,10 +41,6 @@ export function usePickerProps<T>(props: SerializedPickerEventProps & T) {
     onBlur: serializedOnBlur,
     onKeyDown: serializedOnKeyDown,
     onKeyUp: serializedOnKeyUp,
-    // The @deephaven/components `Picker` has its own normalization logic that
-    // handles primitive children types (string, number, boolean). It also
-    // handles nested children inside of `Item` and `Section` components, so
-    // we are intentionally not wrapping `otherProps` in `mapSpectrumProps`
     ...otherProps,
-  };
+  } as T & SerializedPickerEventProps;
 }
