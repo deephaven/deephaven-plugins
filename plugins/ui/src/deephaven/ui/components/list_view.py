@@ -42,8 +42,8 @@ def list_view(
         selected_keys:
             The currently selected keys in the collection (controlled).
         selection_mode:
-            Can be `MULTIPLE` to allow multiple selection, `SINGLE` to allow only single selection,
-            or None to allow no selection.
+            By default `"MULTIPLE"`, which allows multiple selection.
+            May also be `"SINGLE"` to allow only single selection, or `"None"`/`None` to allow no selection.
         render_empty_state:
             Sets what the `list_view` should render when there is no content to display.
         on_selection_change:

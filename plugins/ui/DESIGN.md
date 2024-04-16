@@ -1060,17 +1060,19 @@ def list_action_group(
     *children: ActionGroupItem,
     on_action: Callable[[ActionKey, Key], None] | None = None,
     on_selection_change: Callable[[Selection, Key], None] | None = None,
+    on_change: Callable[[Selection, Key], None] | None = None,
     **props: Any
 ) -> ListActionGroupElement:
 ```
 
 ###### Parameters
-| Parameter               | Type                                                       | Description                                                                                                                                        |
-|-------------------------|------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`             | `ActionGroupItem`                                          | The actions to render within the action group.                                                                                                           |
-| `on_action`             | `Callable[[ActionKey, Key], None] \| None`                 | Handler that is called when an item is pressed. The first argument is the key of the action, the second argument is the key of the list_view item. |
-| `on_selection_change`   | `Callable[[Selection, Key], None] \| None`                 | Handler that is called when the selection changes. The first argument is the selection, the second argument is the key of the list_view item.      |
-| `**props`               | `Any`                                                      | Any other [ActionGroup](https://react-spectrum.adobe.com/react-spectrum/ActionGroup.html) prop.                                                    |
+| Parameter               | Type                                                       | Description                                                                                                                                                              |
+|-------------------------|------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `*children`             | `ActionGroupItem`                                          | The actions to render within the action group.                                                                                                                           |
+| `on_action`             | `Callable[[ActionKey, Key], None] \| None`                 | Handler that is called when an item is pressed. The first argument is the key of the action, the second argument is the key of the list_view item.                       |
+| `on_selection_change`   | `Callable[[Selection, Key], None] \| None`                 | Handler that is called when the selection changes. The first argument is the selection, the second argument is the key of the list_view item.                            |
+| `on_change`             | `Callable[[Selection, Key], None] \| None`                 | Alias of `on_selection_change`. Handler that is called when the selection changes. The first argument is the selection, the second argument is the key of the list_view item.        |
+| `**props`               | `Any`                                                      | Any other [ActionGroup](https://react-spectrum.adobe.com/react-spectrum/ActionGroup.html) prop.                                                                          |
 
 
 ###### ui.list_action_menu
@@ -1287,15 +1289,15 @@ ui.list_view(
 ```
 
 ###### Parameters
-| Parameter               | Type                                                      | Description                                                                                                                                                   |
-|-------------------------|-----------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`             | `Item \| Table \| ItemTableSource`                        | The options to render within the list_view.                                                                                                                   |
-| `selection_mode`        | `SelectionMode \| None`                                   | Can be `MULTIPLE` to allow multiple selection, `SINGLE` to allow only single selection, or None to allow no selection.                                        |
-| `default_selected_keys` | `Selection \| None`                                       | The initial selected keys in the collection (uncontrolled).                                                                                                   |
-| `selected_keys`         | `Selection \| None`                                       | The currently selected keys in the collection (controlled).                                                                                                   |
-| `render_empty_state`    | `Element \| None`                                         | Sets what the `list_view` should render when there is no content to display.                                                                                  |
-| `on_selection_change`   | `Callable[[Selection], None] \| None`                     | Handler that is called when the selections changes.                                                                                                           |
-| `on_change`             | `Callable[[Selection], None] \| None`                     | Alias of `on_selection_change`. Handler that is called when the selections changes.                                                                           |
+| Parameter               | Type                                                      | Description                                                                                                                                                    |
+|-------------------------|-----------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `*children`             | `Item \| Table \| ItemTableSource`                        | The options to render within the list_view.                                                                                                                    |
+| `selection_mode`        | `SelectionMode \| None`                                   | By default `"MULTIPLE"`, which allows multiple selection. May also be `"SINGLE"` to allow only single selection, or `"None"`/`None` to allow no selection.                    |
+| `default_selected_keys` | `Selection \| None`                                       | The initial selected keys in the collection (uncontrolled).                                                                                                    |
+| `selected_keys`         | `Selection \| None`                                       | The currently selected keys in the collection (controlled).                                                                                                    |
+| `render_empty_state`    | `Element \| None`                                         | Sets what the `list_view` should render when there is no content to display.                                                                                   |
+| `on_selection_change`   | `Callable[[Selection], None] \| None`                     | Handler that is called when the selections changes.                                                                                                            |
+| `on_change`             | `Callable[[Selection], None] \| None`                     | Alias of `on_selection_change`. Handler that is called when the selections changes.                                                                            |
 | `**props`               | `Any`                                                     | Any other [ListView](https://react-spectrum.adobe.com/react-spectrum/ListView.html) prop, with the exception of `items`, `dragAndDropHooks`, and `onLoadMore`. |
 
 
