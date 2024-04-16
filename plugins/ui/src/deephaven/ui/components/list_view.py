@@ -8,7 +8,7 @@ from .item import ItemElement
 from .item_table_source import ItemTableSource
 from ..elements import BaseElement, Element
 from .._internal.utils import create_props
-from ..types import Stringable, Selection
+from ..types import Stringable, Selection, SelectionMode
 
 ListViewItem = Union[Stringable, ItemElement]
 ListViewElement = Element
@@ -18,6 +18,7 @@ def list_view(
     *children: ListViewItem | Table | ItemTableSource,
     default_selected_keys: Selection | None = None,
     selected_keys: Selection | None = None,
+    selection_mode: SelectionMode | None = "MULTIPLE",
     render_empty_state: Element | None = None,
     on_selection_change: Callable[[Selection], None] | None = None,
     on_change: Callable[[Selection], None] | None = None,
@@ -40,6 +41,9 @@ def list_view(
             The initial selected keys in the collection (uncontrolled).
         selected_keys:
             The currently selected keys in the collection (controlled).
+        selection_mode:
+            Can be `MULTIPLE` to allow multiple selection, `SINGLE` to allow only single selection,
+            or None to allow no selection.
         render_empty_state:
             Sets what the `list_view` should render when there is no content to display.
         on_selection_change:

@@ -1276,6 +1276,7 @@ Supported `ItemTableSource` arguments are `key_column`, `label_column`, `descrip
 import deephaven.ui as ui
 ui.list_view(
     *children: Item | Table | ItemTableSource,
+    selection_mode: SelectionMode | None = 'MULTIPLE',
     default_selected_keys: Selection | None = None,
     selected_keys: Selection | None = None,
     render_empty_state: Element | None = None,
@@ -1286,14 +1287,15 @@ ui.list_view(
 ```
 
 ###### Parameters
-| Parameter               | Type                                                      | Description                                                                                                                                                    |
-|-------------------------|-----------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`             | `Item \| Table \| ItemTableSource`                        | The options to render within the list_view.                                                                                                                    |
-| `default_selected_keys` | `Selection \| None`                                       | The initial selected keys in the collection (uncontrolled).                                                                                                    |
-| `selected_keys`         | `Selection \| None`                                       | The currently selected keys in the collection (controlled).                                                                                                    |
-| `render_empty_state`    | `Element \| None`                                         | Sets what the `list_view` should render when there is no content to display.                                                                                   |
-| `on_selection_change`   | `Callable[[Selection], None] \| None`                     | Handler that is called when the selections changes.                                                                                                            |
-| `on_change`             | `Callable[[Selection], None] \| None`                     | Alias of `on_selection_change`. Handler that is called when the selections changes.                                                                            |
+| Parameter               | Type                                                      | Description                                                                                                                                                   |
+|-------------------------|-----------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `*children`             | `Item \| Table \| ItemTableSource`                        | The options to render within the list_view.                                                                                                                   |
+| `selection_mode`        | `SelectionMode \| None`                                   | Can be `MULTIPLE` to allow multiple selection, `SINGLE` to allow only single selection, or None to allow no selection.                                        |
+| `default_selected_keys` | `Selection \| None`                                       | The initial selected keys in the collection (uncontrolled).                                                                                                   |
+| `selected_keys`         | `Selection \| None`                                       | The currently selected keys in the collection (controlled).                                                                                                   |
+| `render_empty_state`    | `Element \| None`                                         | Sets what the `list_view` should render when there is no content to display.                                                                                  |
+| `on_selection_change`   | `Callable[[Selection], None] \| None`                     | Handler that is called when the selections changes.                                                                                                           |
+| `on_change`             | `Callable[[Selection], None] \| None`                     | Alias of `on_selection_change`. Handler that is called when the selections changes.                                                                           |
 | `**props`               | `Any`                                                     | Any other [ListView](https://react-spectrum.adobe.com/react-spectrum/ListView.html) prop, with the exception of `items`, `dragAndDropHooks`, and `onLoadMore`. |
 
 
@@ -1366,7 +1368,6 @@ source = ui.item_table_source(
     label_column="Labels",
     description_column="Descriptions",
     icon_column="Icons",
-    title_column="SectionLabels",
     actions=button
 )
 list_view5 = ui.list_view(
