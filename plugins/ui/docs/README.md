@@ -240,6 +240,93 @@ my_picker = ui_picker()
 
 ![Use a picker to select from a list of items](_assets/picker.png)
 
+## ListView (string values)
+A list view that can be used to create a list of selectable items. Here's a basic example for selecting from a list of string values and displaying the selected key in a text field.
+
+```python
+import deephaven.ui as ui
+
+
+@ui.component
+def ui_list_view():
+    value, set_value = ui.use_state(["Text 2"])
+
+    # Picker for selecting values
+    lv = ui.list_view(
+        "Text 1",
+        "Text 2",
+        "Text 3",
+        on_change=set_value,
+        selected_keys=value,
+    )
+
+    # Show current selection in a ui.text component
+    text = ui.text("Selection: " + ", ".join(map(str, value)))
+
+    # Display picker and output in a flex column
+    return ui.flex(
+        lv,
+        text,
+        direction="column",
+        margin=10,
+        gap=10,
+    )
+
+
+lv = ui_list_view()
+```
+
+## ListView (table)
+```python
+import deephaven.ui as ui
+from deephaven import time_table
+import datetime
+
+# Ticking table with initial row count of 200 that adds a row every second
+initial_row_count = 200
+column_types = time_table(
+    "PT1S",
+    start_time=datetime.datetime.now() - datetime.timedelta(seconds=initial_row_count),
+).update(
+    [
+        "Int=new Integer(i)",
+        "Double=new Double(i+i/10)",
+    ]
+)
+
+
+@ui.component
+def ui_list_view_table():
+    value, set_value = ui.use_state([2, 4, 5])
+
+    lv = ui.list_view(
+        column_types,
+        key_column="Int",
+        label_column="Int",
+        aria_label="Int",
+        density="compact",
+        selection_mode="multiple",
+        on_change=set_value,
+        selected_keys=value,
+    )
+
+    # Show current selection in a ui.text component
+    text = ui.text("Selection: " + ", ".join(map(str, value)))
+
+    # Display picker and output in a flex column
+    return ui.flex(
+        lv,
+        text,
+        direction="column",
+        margin=10,
+        gap=10,
+        min_height=0,  # necessary to avoid overflowing container height
+    )
+
+
+lvt = ui_list_view_table()
+```
+
 ## Form (two variables)
 
 You can have state with multiple different variables in one component. This example creates a [text field](https://react-spectrum.adobe.com/react-spectrum/TextField.html) and a [slider](https://react-spectrum.adobe.com/react-spectrum/Slider.html), and we display the values of both of them.
