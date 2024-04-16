@@ -41,6 +41,10 @@ export function usePickerProps<T>(
     onBlur: serializedOnBlur,
     onKeyDown: serializedOnKeyDown,
     onKeyUp: serializedOnKeyUp,
+    // The @deephaven/components `Picker` has its own normalization logic that
+    // handles primitive children types (string, number, boolean). It also
+    // handles nested children inside of `Item` and `Section` components, so
+    // we are intentionally not wrapping `otherProps` in `mapSpectrumProps`
     ...otherProps,
   } as T & SerializedPickerEventProps;
 }
