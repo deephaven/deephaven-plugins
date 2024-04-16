@@ -1,5 +1,6 @@
 import React, { ReactElement } from 'react';
 import { useSelector } from 'react-redux';
+import type { SelectionMode } from '@react-types/shared';
 import { isElementOfType } from '@deephaven/react-hooks';
 import { getSettings, RootState } from '@deephaven/redux';
 import {
@@ -21,27 +22,51 @@ type WrappedDHListViewJSApiProps = Omit<DHListViewJSApiProps, 'table'> & {
   children: ReactElement<ObjectViewProps>;
 };
 
-export type ListViewProps = (DHListViewProps | WrappedDHListViewJSApiProps) &
+type WrappedDHListViewProps = Omit<DHListViewProps, 'selectionMode'> & {
+  // The spec specifies that selectionMode should be uppercase, but the Spectrum
+  // prop is lowercase. We'll accept either to keep things more flexible.s
+  selectionMode?: SelectionMode | Uppercase<SelectionMode>;
+};
+
+export type ListViewProps = (
+  | WrappedDHListViewProps
+  | WrappedDHListViewJSApiProps
+) &
   SerializedListViewEventProps;
 
-function ListView({ children, ...props }: ListViewProps) {
+function ListView({ children, selectionMode, ...props }: ListViewProps) {
   const settings = useSelector(getSettings<RootState>);
   const listViewProps = useListViewProps(props);
 
   const isObjectView = isElementOfType(children, ObjectView);
   const table = useReExportedTable(children);
 
+  const selectionModeLc = (selectionMode?.toLowerCase() ??
+    'none') as SelectionMode;
+
   if (isObjectView) {
     return (
       table && (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <DHListViewJSApi {...listViewProps} table={table} settings={settings} />
+        <DHListViewJSApi
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          {...listViewProps}
+          selectionMode={selectionModeLc}
+          table={table}
+          settings={settings}
+        />
       )
     );
   }
 
-  // eslint-disable-next-line react/jsx-props-no-spreading
-  return <DHListView {...listViewProps}>{children}</DHListView>;
+  return (
+    <DHListView
+      // eslint-disable-next-line react/jsx-props-no-spreading
+      {...listViewProps}
+      selectionMode={selectionModeLc}
+    >
+      {children}
+    </DHListView>
+  );
 }
 
 export default ListView;

@@ -9,7 +9,7 @@ from .list_action_group import ListActionGroupElement
 from .list_action_menu import ListActionMenuElement
 from ..elements import BaseElement, Element
 from .._internal.utils import create_props
-from ..types import ColumnName, Stringable, Selection
+from ..types import ColumnName, Stringable, Selection, SelectionMode
 
 ListViewItem = Union[Stringable, ItemElement]
 ListViewElement = Element
@@ -24,6 +24,7 @@ def list_view(
     actions: ListActionGroupElement | ListActionMenuElement | None = None,
     default_selected_keys: Selection | None = None,
     selected_keys: Selection | None = None,
+    selection_mode: SelectionMode | None = "MULTIPLE",
     render_empty_state: Element | None = None,
     on_selection_change: Callable[[Selection], None] | None = None,
     on_change: Callable[[Selection], None] | None = None,
