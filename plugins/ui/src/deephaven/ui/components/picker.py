@@ -4,20 +4,16 @@ from typing import Callable, Any
 
 from deephaven.table import Table, PartitionedTable
 from .section import SectionElement, PickerItem
+from .item_table_source import ItemTableSource
 from ..elements import BaseElement
 from .._internal.utils import create_props
-from ..types import ColumnName, Key
+from ..types import Key
 
 PickerElement = BaseElement
 
 
 def picker(
-    *children: PickerItem | SectionElement | Table | PartitionedTable,
-    key_column: ColumnName | None = None,
-    label_column: ColumnName | None = None,
-    description_column: ColumnName | None = None,
-    icon_column: ColumnName | None = None,
-    title_column: ColumnName | None = None,
+    *children: PickerItem | SectionElement | Table | PartitionedTable | ItemTableSource,
     default_selected_key: Key | None = None,
     selected_key: Key | None = None,
     on_selection_change: Callable[[Key], None] | None = None,
@@ -25,32 +21,22 @@ def picker(
     **props: Any,
 ) -> PickerElement:
     """
-    A picker that can be used to select from a list. Children should be one of four types:
-    If children are of type PickerItem, they are the dropdown options.
-    If children are of type SectionElement, they are the dropdown sections.
-    If children are of type Table, the values in the table are the dropdown options.
+    A picker that can be used to select from a list. Children should be one of five types:
+    1. If children are of type PickerItem, they are the dropdown options.
+    2. If children are of type SectionElement, they are the dropdown sections.
+    3. If children are of type Table, the values in the table are the dropdown options.
         There can only be one child, the Table.
-    If children are of type PartitionedTable, the values in the table are the dropdown options
+        The first column is used as the key and label by default.
+    4. If children are of type PartitionedTable, the values in the table are the dropdown options
         and the partitions create multiple sections. There can only be one child, the PartitionedTable.
+        The first column is used as the key and label by default.
+    5. If children are of type ItemTableSource, complex items are created from the source.
+        There can only be one child, the ItemTableSource.
+        Supported ItemTableSource arguments are `key_column`, `label_column`, `description_column`,
+        `icon_column`, and `title_column`.
 
     Args:
         *children: The options to render within the picker.
-        key_column:
-            Only valid if children are of type Table or PartitionedTable.
-            The column of values to use as item keys. Defaults to the first column.
-        label_column:
-            Only valid if children are of type Table or PartitionedTable.
-            The column of values to display as primary text. Defaults to the key_column value.
-        description_column:
-            Only valid if children are of type Table or PartitionedTable.
-            The column of values to display as descriptions.
-        icon_column: Only valid if children are of type Table or PartitionedTable.
-            The column of values to map to icons.
-        title_column:
-            Only valid if children is of type PartitionedTable.
-            The column of values to display as section names.
-            Should be the same for all values in the constituent Table.
-            If not specified, the section titles will be created from the key_columns of the PartitionedTable.
         default_selected_key:
             The initial selected key in the collection (uncontrolled).
         selected_key:

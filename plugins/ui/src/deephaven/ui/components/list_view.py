@@ -5,23 +5,17 @@ from typing import Callable, Any, Union
 from deephaven.table import Table
 
 from .item import ItemElement
-from .list_action_group import ListActionGroupElement
-from .list_action_menu import ListActionMenuElement
+from .item_table_source import ItemTableSource
 from ..elements import BaseElement, Element
 from .._internal.utils import create_props
-from ..types import ColumnName, Stringable, Selection
+from ..types import Stringable, Selection
 
 ListViewItem = Union[Stringable, ItemElement]
 ListViewElement = Element
 
 
 def list_view(
-    *children: ListViewItem | Table,
-    key_column: ColumnName | None = None,
-    label_column: ColumnName | None = None,
-    description_column: ColumnName | None = None,
-    icon_column: ColumnName | None = None,
-    actions: ListActionGroupElement | ListActionMenuElement | None = None,
+    *children: ListViewItem | Table | ItemTableSource,
     default_selected_keys: Selection | None = None,
     selected_keys: Selection | None = None,
     render_empty_state: Element | None = None,
@@ -30,28 +24,18 @@ def list_view(
     **props: Any,
 ) -> ListViewElement:
     """
-    A list view that can be used to create a list of items. Children should be one of two types:
+    A list view that can be used to create a list of items. Children should be one of three types:
     1. If children are of type `ListViewItem`, they are the list items.
     2. If children are of type `Table`, the values in the table are the list items.
         There can only be one child, the `Table`.
-
+        The first column is used as the key and label by default.
+    3. If children are of type ItemTableSource, complex items are created from the source.
+        There can only be one child, the `ItemTableSource`.
+        Supported `ItemTableSource` arguments are `key_column`, `label_column`, `description_column`,
+        `icon_column`, and `actions`.
 
     Args:
         *children: The options to render within the list_view.
-        key_column:
-            Only valid if children are of type Table.
-            The column of values to use as item keys. Defaults to the first column.
-        label_column:
-            Only valid if children are of type Table.
-            The column of values to display as primary text. Defaults to the key_column value.
-        description_column:
-            Only valid if children are of type Table.
-            The column of values to display as descriptions.
-        icon_column: Only valid if children are of type Table.
-            The column of values to map to icons.
-        actions:
-            Only valid if children are of type Table.
-            The action group or menus to render for all elements within the list view.
         default_selected_keys:
             The initial selected keys in the collection (uncontrolled).
         selected_keys:
