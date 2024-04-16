@@ -251,7 +251,7 @@ import deephaven.ui as ui
 def ui_list_view():
     value, set_value = ui.use_state(["Text 2"])
 
-    # Picker for selecting values
+    # list_view with text children
     lv = ui.list_view(
         "Text 1",
         "Text 2",
@@ -260,17 +260,18 @@ def ui_list_view():
         selected_keys=value,
     )
 
-    # Show current selection in a ui.text component
-    text = ui.text("Selection: " + ", ".join(map(str, value)))
-
-    # Display picker and output in a flex column
-    return ui.flex(
-        lv,
-        text,
-        direction="column",
-        margin=10,
-        gap=10,
+    # list_view with item children
+    lv2 = ui.list_view(
+        ui.item("Item 1", key="Text 1"),
+        ui.item("Item 2", key="Text 2"),
+        ui.item("Item 3", key="Text 3"),
+        on_change=set_value,
+        selected_keys=value,
     )
+
+    text = ui.text("Selection: " + ", ".join(map(str, value)), grid_column="span 2")
+
+    return ui.grid(text, lv, lv2, columns="repeat(2, 1fr)")
 
 
 lv = ui_list_view()
@@ -289,8 +290,8 @@ column_types = time_table(
     start_time=datetime.datetime.now() - datetime.timedelta(seconds=initial_row_count),
 ).update(
     [
-        "Int=new Integer(i)",
-        "Double=new Double(i+i/10)",
+        "Id=new Integer(i)",
+        "Display=new String(`Display `+i)",
     ]
 )
 
@@ -301,30 +302,27 @@ def ui_list_view_table():
 
     lv = ui.list_view(
         column_types,
-        key_column="Int",
-        label_column="Int",
-        aria_label="Int",
-        density="compact",
-        selection_mode="multiple",
+        key_column="Id",
+        label_column="Display",
+        aria_label="List View",
         on_change=set_value,
         selected_keys=value,
     )
 
-    # Show current selection in a ui.text component
     text = ui.text("Selection: " + ", ".join(map(str, value)))
 
-    # Display picker and output in a flex column
     return ui.flex(
         lv,
         text,
         direction="column",
         margin=10,
         gap=10,
-        min_height=0,  # necessary to avoid overflowing container height
+        # necessary to avoid overflowing container height
+        min_height=0,
     )
 
 
-lvt = ui_list_view_table()
+lv_table = ui_list_view_table()
 ```
 
 ## Form (two variables)
