@@ -6,7 +6,6 @@
  */
 export { default as ActionButton } from './ActionButton';
 export { default as Button } from './Button';
-export { default as Flex } from './Flex';
 export { default as Form } from './Form';
 export { default as RangeSlider } from './RangeSlider';
 export { default as Slider } from './Slider';

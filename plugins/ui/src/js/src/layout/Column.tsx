@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo } from 'react';
 import { useLayoutManager } from '@deephaven/dashboard';
 import type { RowOrColumn } from '@deephaven/golden-layout';
+import { Flex } from '@deephaven/components';
 import {
   normalizeColumnChildren,
   type ColumnElementProps,
 } from './LayoutUtils';
 import { ParentItemContext, useParentItem } from './ParentItemContext';
 import { usePanelId } from './ReactPanelContext';
-import { Flex } from '../elements/spectrum';
 
 function LayoutColumn({
   children,
