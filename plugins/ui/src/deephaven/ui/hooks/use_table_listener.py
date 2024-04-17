@@ -86,10 +86,6 @@ def use_table_listener(
         replay_lock: The lock type used during replay, default is ‘shared’, can also be ‘exclusive’.
     """
 
-    if not table.is_refreshing and not do_replay:
-        # if the table is not refreshing, and is not replaying, there is nothing to listen to
-        return
-
     def start_listener() -> Callable[[], None]:
         """
         Start the listener. Returns a function that can be called to stop the listener by the use_effect hook.
@@ -97,6 +93,9 @@ def use_table_listener(
         Returns:
             A function that can be called to stop the listener by the use_effect hook.
         """
+        if not table.is_refreshing and not do_replay:
+            return lambda: None
+
         handle = listen(
             table,
             wrap_listener(listener),
