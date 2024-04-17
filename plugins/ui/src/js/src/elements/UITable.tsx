@@ -30,7 +30,7 @@ function UITable({
   sorts,
   alwaysFetchColumns,
   table: exportedTable,
-}: UITableProps) {
+}: UITableProps): JSX.Element | null {
   const dh = useApi();
   const [model, setModel] = useState<IrisGridModel>();
   const [columns, setColumns] = useState<dh.Table['columns']>();

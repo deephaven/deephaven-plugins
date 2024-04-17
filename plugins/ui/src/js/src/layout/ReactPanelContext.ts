@@ -9,6 +9,6 @@ export const ReactPanelContext = createContext<string | null>(null);
  * Gets the panel ID from the nearest panel context.
  * @returns The panel ID or null if not in a panel
  */
-export function usePanelId() {
+export function usePanelId(): string | null {
   return useContext(ReactPanelContext);
 }

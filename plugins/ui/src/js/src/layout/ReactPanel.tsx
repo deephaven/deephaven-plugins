@@ -23,7 +23,7 @@ const log = Log.module('@deephaven/js-plugin-ui/ReactPanel');
  * Note that because the `PortalPanel` will be saved with the GoldenLayout config, it's possible there is already a panel that exists with the same ID.
  * In that case, the existing panel will be re-used.
  */
-function ReactPanel({ children, title }: ReactPanelProps) {
+function ReactPanel({ children, title }: ReactPanelProps): JSX.Element | null {
   const layoutManager = useLayoutManager();
   const { metadata, onClose, onOpen, panelId } = useReactPanel();
   const portalManager = usePortalPanelManager();

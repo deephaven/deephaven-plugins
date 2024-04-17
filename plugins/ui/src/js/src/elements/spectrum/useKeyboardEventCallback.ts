@@ -33,7 +33,7 @@ export type SerializedKeyboardEventCallback = (
  */
 export function useKeyboardEventCallback(
   callback?: SerializedKeyboardEventCallback
-) {
+): (e: KeyboardEvent) => void {
   return useCallback(
     (e: KeyboardEvent) => {
       callback?.(serializeKeyboardEvent(e));

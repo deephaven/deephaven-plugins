@@ -4,7 +4,7 @@ import type { dh } from '@deephaven/jsapi-types';
 
 export function makeDocumentUpdatedJsonRpc(
   document: Record<string, unknown> = {}
-) {
+): { jsonrpc: string; method: string; params: string[] } {
   return {
     jsonrpc: '2.0',
     method: 'documentUpdated',
@@ -14,7 +14,7 @@ export function makeDocumentUpdatedJsonRpc(
 
 export function makeDocumentUpdatedJsonRpcString(
   document: Record<string, unknown> = {}
-) {
+): string {
   return JSON.stringify(makeDocumentUpdatedJsonRpc(document));
 }
 

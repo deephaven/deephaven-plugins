@@ -126,7 +126,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     return this.layout;
   }
 
-  override close() {
+  override close(): void {
     super.close();
     this.widget?.close();
     this.widget = undefined;
@@ -180,7 +180,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.widget = undefined;
   }
 
-  updateLayout(data: PlotlyChartWidgetData) {
+  updateLayout(data: PlotlyChartWidgetData): void {
     const { figure } = data;
     const { plotly } = figure;
     const { layout: plotlyLayout = {} } = plotly;
@@ -255,7 +255,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.fireUpdate(this.getData());
   }
 
-  addTable(id: number, table: Table) {
+  addTable(id: number, table: Table): void {
     if (this.tableReferenceMap.has(id)) {
       return;
     }
@@ -267,7 +267,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     }
   }
 
-  subscribeTable(id: number) {
+  subscribeTable(id: number): void {
     const table = this.tableReferenceMap.get(id);
     const columnReplacements = this.tableColumnReplacementMap.get(id);
 
@@ -292,7 +292,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     }
   }
 
-  removeTable(id: number) {
+  removeTable(id: number): void {
     this.subscriptionCleanupMap.get(id)?.();
     this.tableSubscriptionMap.get(id)?.close();
 
