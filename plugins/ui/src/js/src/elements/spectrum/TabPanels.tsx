@@ -4,7 +4,9 @@ import {
   SpectrumTabPanelsProps,
 } from '@adobe/react-spectrum';
 
-function TabPanels(props: SpectrumTabPanelsProps<React.ReactNode>) {
+function TabPanels(
+  props: SpectrumTabPanelsProps<React.ReactNode>
+): JSX.Element {
   const { UNSAFE_style: unsafeStyle, ...otherProps } = props;
 
   return (

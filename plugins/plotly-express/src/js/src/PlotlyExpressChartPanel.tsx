@@ -7,7 +7,9 @@ import { useApi } from '@deephaven/jsapi-bootstrap';
 import PlotlyExpressChartModel from './PlotlyExpressChartModel.js';
 import { useHandleSceneTicks } from './useHandleSceneTicks.js';
 
-export function PlotlyExpressChartPanel(props: WidgetPanelProps<Widget>) {
+export function PlotlyExpressChartPanel(
+  props: WidgetPanelProps<Widget>
+): JSX.Element {
   const dh = useApi();
   const { fetch, metadata = {}, ...rest } = props;
   const containerRef = useRef<HTMLDivElement>(null);

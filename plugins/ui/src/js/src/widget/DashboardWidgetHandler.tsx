@@ -35,7 +35,7 @@ function DashboardWidgetHandler({
   onClose,
   onDataChange,
   ...otherProps
-}: DashboardWidgetHandlerProps) {
+}: DashboardWidgetHandlerProps): JSX.Element {
   const handleClose = useCallback(() => {
     log.debug('handleClose', id);
     onClose?.(id);

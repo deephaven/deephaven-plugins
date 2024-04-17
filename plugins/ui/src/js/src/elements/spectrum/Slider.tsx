@@ -9,7 +9,7 @@ const VALUE_CHANGE_DEBOUNCE = 250;
 
 const EMPTY_FUNCTION = () => undefined;
 
-function Slider(props: SpectrumSliderProps) {
+function Slider(props: SpectrumSliderProps): JSX.Element {
   const {
     defaultValue = 0,
     value: propValue,
