@@ -6,7 +6,7 @@ import mapSpectrumChildren from './mapSpectrumChildren';
  * @param props Props to map as spectrum props
  */
 export function mapSpectrumProps<
-  T extends PropsWithChildren<Record<string, unknown>>
+  T extends PropsWithChildren<Record<string, unknown>>,
 >(props: T): T {
   return {
     ...props,

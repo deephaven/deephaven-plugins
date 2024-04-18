@@ -15,6 +15,7 @@ from .list_view import list_view
 from .list_action_group import list_action_group
 from .list_action_menu import list_action_menu
 from .item_table_source import item_table_source
+from .date_picker import date_picker
 
 from . import html
 
@@ -29,6 +30,7 @@ __all__ = [
     "content",
     "contextual_help",
     "dashboard",
+    "date_picker",
     "flex",
     "form",
     "fragment",

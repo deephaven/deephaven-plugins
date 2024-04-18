@@ -22,7 +22,7 @@ type WrappedDHPickerJSApiProps = Omit<DHPickerJSApiProps, 'table'> & {
 export type PickerProps = (DHPickerProps | WrappedDHPickerJSApiProps) &
   SerializedPickerEventProps;
 
-function Picker({ children, ...props }: PickerProps) {
+function Picker({ children, ...props }: PickerProps): JSX.Element {
   const settings = useSelector(getSettings<RootState>);
   const pickerProps = usePickerProps(props);
 

@@ -4,7 +4,7 @@ import type { ContentItem } from '@deephaven/golden-layout';
 
 export const ParentItemContext = createContext<ContentItem | null>(null);
 
-export function useParentItem() {
+export function useParentItem(): ContentItem {
   const layoutManager = useLayoutManager();
   const parentContextItem = useContext(ParentItemContext);
   const parentItem = useMemo(

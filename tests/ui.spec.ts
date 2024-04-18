@@ -3,6 +3,6 @@ import { openPanel, gotoPage } from './utils';
 
 test('UI loads', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_component', '.ui-portal-panel');
-  await expect(page.locator('.ui-portal-panel')).toHaveScreenshot();
+  await openPanel(page, 'ui_component', '.dh-react-panel');
+  await expect(page.locator('.dh-react-panel')).toHaveScreenshot();
 });

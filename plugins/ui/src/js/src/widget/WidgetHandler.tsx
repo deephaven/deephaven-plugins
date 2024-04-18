@@ -58,7 +58,7 @@ function WidgetHandler({
   fetch,
   widget: descriptor,
   initialData: initialDataProp,
-}: WidgetHandlerProps) {
+}: WidgetHandlerProps): JSX.Element | null {
   const [widget, setWidget] = useState<dh.Widget>();
   const [document, setDocument] = useState<ReactNode>();
   const [initialData] = useState(initialDataProp);

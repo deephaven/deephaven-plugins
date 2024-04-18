@@ -1,15 +1,32 @@
+@import '@deephaven/components/scss/custom.scss';
+
 .ui-portal-panel {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-  position: relative;
+  display: contents;
 }
 
 .ui-object-container {
   display: contents;
-  flex-grow: 1;
-  flex-shrink: 1;
   position: relative;
+}
+
+.dh-react-panel {
+  .dh-inner-react-panel .iris-grid {
+    border: 1px solid var(--dh-color-bg);
+    border-radius: $border-radius;
+  }
+
+  &:has(.dh-inner-react-panel > .iris-grid:only-child),
+  &:has(
+      .dh-inner-react-panel
+        > .ui-object-container:only-child
+        > .iris-grid:only-child
+    ),
+  &:has(.dh-inner-react-panel > .chart-wrapper:only-child) {
+    // remove the default panel padding when grid or chart is the only child
+    padding: 0 !important; // important required to override inline spectrum style
+    .iris-grid {
+      border: none;
+      border-radius: 0;
+    }
+  }
 }

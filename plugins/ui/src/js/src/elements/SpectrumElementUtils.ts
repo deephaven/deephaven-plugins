@@ -14,13 +14,12 @@ import {
   TabList,
   Text,
   ToggleButton,
-  View,
 } from '@adobe/react-spectrum';
 import { ValueOf } from '@deephaven/utils';
+import { Flex, View } from '@deephaven/components';
 import {
   ActionButton,
   Button,
-  Flex,
   Form,
   RangeSlider,
   Slider,

@@ -1411,7 +1411,7 @@ ui.date_picker(
     granularity: Granularity | None = None,
     on_change: Callable[[Date], None] | None = None,
     **props: Any
-) -> ListViewElement
+) -> DatePickerElement
 ```
 
 ###### Parameters

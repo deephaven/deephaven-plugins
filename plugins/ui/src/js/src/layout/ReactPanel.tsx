@@ -7,6 +7,7 @@ import {
   useLayoutManager,
   useListener,
 } from '@deephaven/dashboard';
+import { View, ViewProps, Flex, FlexProps } from '@deephaven/components';
 import Log from '@deephaven/log';
 import PortalPanel from './PortalPanel';
 import { ReactPanelControl, useReactPanel } from './ReactPanelManager';
@@ -17,13 +18,64 @@ import { usePortalPanelManager } from './PortalPanelManagerContext';
 
 const log = Log.module('@deephaven/js-plugin-ui/ReactPanel');
 
+interface Props
+  extends ReactPanelProps,
+    Pick<
+      ViewProps,
+      | 'backgroundColor'
+      | 'padding'
+      | 'paddingTop'
+      | 'paddingBottom'
+      | 'paddingStart'
+      | 'paddingEnd'
+      | 'paddingX'
+      | 'paddingY'
+      | 'UNSAFE_style'
+      | 'UNSAFE_className'
+    >,
+    Pick<
+      FlexProps,
+      | 'wrap'
+      | 'direction'
+      | 'justifyContent'
+      | 'alignContent'
+      | 'alignItems'
+      | 'gap'
+      | 'rowGap'
+      | 'columnGap'
+    > {}
+
 /**
  * Adds and tracks a panel to the GoldenLayout. When the child element is updated, the contents of the panel will also be updated. When unmounted, the panel will be removed.
  * Will trigger an `onOpen` when the portal is opened, and `onClose` when closed.
  * Note that because the `PortalPanel` will be saved with the GoldenLayout config, it's possible there is already a panel that exists with the same ID.
  * In that case, the existing panel will be re-used.
  */
-function ReactPanel({ children, title }: ReactPanelProps) {
+function ReactPanel({
+  // Apply the same defaults as panel.py
+  // but also defined here, incase the panel
+  // is being implicitly created
+  children,
+  title,
+  backgroundColor,
+  direction = 'column',
+  wrap,
+  justifyContent,
+  alignContent,
+  alignItems,
+  gap = 'size-100',
+  rowGap,
+  columnGap,
+  padding = 'size-100',
+  paddingTop,
+  paddingBottom,
+  paddingStart,
+  paddingEnd,
+  paddingX,
+  paddingY,
+  UNSAFE_style,
+  UNSAFE_className,
+}: Props): JSX.Element | null {
   const layoutManager = useLayoutManager();
   const { metadata, onClose, onOpen, panelId } = useReactPanel();
   const portalManager = usePortalPanelManager();
@@ -117,7 +169,38 @@ function ReactPanel({ children, title }: ReactPanelProps) {
   return portal
     ? ReactDOM.createPortal(
         <ReactPanelContext.Provider value={panelId}>
-          {children}
+          <View
+            height="100%"
+            backgroundColor={backgroundColor}
+            padding={padding}
+            paddingTop={paddingTop}
+            paddingBottom={paddingBottom}
+            paddingStart={paddingStart}
+            paddingEnd={paddingEnd}
+            paddingX={paddingX}
+            paddingY={paddingY}
+            UNSAFE_style={UNSAFE_style}
+            UNSAFE_className={
+              UNSAFE_className == null
+                ? 'dh-react-panel'
+                : `${UNSAFE_className} dh-react-panel`
+            }
+          >
+            <Flex
+              UNSAFE_className="dh-inner-react-panel"
+              height="100%"
+              wrap={wrap}
+              direction={direction}
+              justifyContent={justifyContent}
+              alignContent={alignContent}
+              alignItems={alignItems}
+              gap={gap}
+              rowGap={rowGap}
+              columnGap={columnGap}
+            >
+              {children}
+            </Flex>
+          </View>
         </ReactPanelContext.Provider>,
         portal,
         contentKey

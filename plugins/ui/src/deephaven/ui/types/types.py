@@ -1,5 +1,9 @@
+import datetime
+import pandas
+import numpy
 from typing import Any, Dict, Literal, Union, List, Tuple, Callable, TypedDict, Sequence
 from deephaven import SortDirection
+from deephaven.dtypes import DType
 
 
 class CellData(TypedDict):
@@ -107,6 +111,34 @@ TableSortDirection = Union[StringSortDirection, SortDirection]
 Stringable = Union[str, int, float, bool]
 Key = Stringable
 ActionKey = Key
+LocalDate = DType
+Instant = DType
+ZonedDateTime = DType
+JavaDate = Union[LocalDate, Instant, ZonedDateTime]
+LocalDateConvertible = Union[
+    None,
+    LocalDate,
+    str,
+    datetime.date,
+    datetime.datetime,
+    numpy.datetime64,
+    pandas.Timestamp,
+]
+InstantConvertible = Union[
+    None, Instant, int, str, datetime.datetime, numpy.datetime64, pandas.Timestamp  # type: ignore
+]
+ZonedDateTimeConvertible = Union[
+    None, ZonedDateTime, str, datetime.datetime, numpy.datetime64, pandas.Timestamp  # type: ignore
+]
+Date = Union[
+    Instant,
+    LocalDate,
+    ZonedDateTime,
+    LocalDateConvertible,
+    InstantConvertible,
+    ZonedDateTimeConvertible,
+]
+Granularity = Literal["DAY", "HOUR", "MINUTE", "SECOND"]
 
 Dependencies = Union[Tuple[Any], List[Any]]
 Selection = Sequence[Key]

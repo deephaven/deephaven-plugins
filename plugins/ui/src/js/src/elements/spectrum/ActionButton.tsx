@@ -7,7 +7,7 @@ import { SerializedButtonEventProps, useButtonProps } from './useButtonProps';
 
 function ActionButton(
   props: SpectrumActionButtonProps & SerializedButtonEventProps
-) {
+): JSX.Element {
   const buttonProps = useButtonProps(props);
 
   // eslint-disable-next-line react/jsx-props-no-spreading
