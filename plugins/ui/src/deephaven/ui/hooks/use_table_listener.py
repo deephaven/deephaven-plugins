@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import partial
-from typing import Any, Callable, Sequence
+from typing import Callable
 
 from deephaven.table import Table
 from deephaven.table_listener import listen, TableUpdate, TableListener
