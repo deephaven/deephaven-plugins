@@ -1,15 +1,15 @@
 import React, { useCallback, useState } from 'react';
 import {
-  SpectrumTextFieldProps,
-  TextField as SpectrumTextField,
-} from '@adobe/react-spectrum';
+  TextField as DHCTextField,
+  TextFieldProps as DHCTextFieldProps,
+} from '@deephaven/components';
 import { useDebouncedCallback } from '@deephaven/react-hooks';
 
 const VALUE_CHANGE_DEBOUNCE = 250;
 
 const EMPTY_FUNCTION = () => undefined;
 
-function TextField(props: SpectrumTextFieldProps): JSX.Element {
+function TextField(props: DHCTextFieldProps): JSX.Element {
   const {
     defaultValue = '',
     value: propValue,
@@ -34,7 +34,7 @@ function TextField(props: SpectrumTextFieldProps): JSX.Element {
 
   return (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <SpectrumTextField value={value} onChange={onChange} {...otherProps} />
+    <DHCTextField value={value} onChange={onChange} {...otherProps} />
   );
 }
 
