@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.13.0 - 2024-04-18
+#### Bug Fixes
+- Fix conditional use_effect in use_table_listener (#422) - (5f4f238) - Joe
+- add on_change to toggle_button (#426) - (6ead733) - Joe
+- buttons not working due to extra prop (#423) - (b10f67c) - Don
+#### Features
+- python date picker implementation (#409) - (5ed66a7) - Joe
+
+- - -
+
 ## ui-v0.12.0 - 2024-04-17
 #### Documentation
 - Combo box spec (#392) - (da1076a) - Joe
