@@ -4,10 +4,19 @@ from typing import Any, Callable, Set, cast, Sequence
 from inspect import signature
 import sys
 from functools import partial
+from deephaven.time import to_j_instant, to_j_zdt, to_j_local_date
+
+from ..types import Date, JavaDate
 
 _UNSAFE_PREFIX = "UNSAFE_"
 _ARIA_PREFIX = "aria_"
 _ARIA_PREFIX_REPLACEMENT = "aria-"
+
+_CONVERTERS = {
+    "java.time.Instant": to_j_instant,
+    "java.time.ZonedDateTime": to_j_zdt,
+    "java.time.LocalDate": to_j_local_date,
+}
 
 
 def get_component_name(component: Any) -> str:
@@ -194,6 +203,190 @@ def create_props(args: dict[str, Any]) -> tuple[tuple[Any], dict[str, Any]]:
     Returns:
         A tuple of children and props
     """
-    children, props = args.pop("children"), args.pop("props")
+    children, props = args.pop("children", tuple()), args.pop("props", {})
     props.update(args)
     return children, props
+
+
+def _convert_to_java_date(
+    date: Date,
+) -> JavaDate:
+    """
+    Convert a Date to a Java date type.
+    In order of preference, tries to convert to Instant, ZonedDateTime, and LocalDate.
+    If none of these work, raises a TypeError.
+
+    Args:
+        date: The date to convert to a Java date type.
+
+    Returns:
+        The Java date type.
+    """
+    try:
+        return to_j_instant(date)  # type: ignore
+    except Exception:
+        # ignore, try next
+        pass
+
+    try:
+        return to_j_zdt(date)  # type: ignore
+    except Exception:
+        # ignore, try next
+        pass
+
+    try:
+        return to_j_local_date(date)  # type: ignore
+    except Exception:
+        raise TypeError(
+            f"Could not convert {date} to one of Instant, ZonedDateTime, or LocalDate."
+        )
+
+
+def get_jclass_name(value: Any) -> str:
+    """
+    Get the name of the Java class of the value.
+
+    Args:
+        value: The value to get the Java class name of.
+
+    Returns:
+        The name of the Java class of the value.
+    """
+    return str(value.jclass)[6:]
+
+
+def _jclass_converter(
+    value: JavaDate,
+) -> Callable[[Date], Any]:
+    """
+    Get the converter for the Java date type.
+
+    Args:
+        value: The Java date type to get the converter for.
+
+    Returns:
+        The converter for the Java date type.
+    """
+    return _CONVERTERS[get_jclass_name(value)]
+
+
+def _wrap_date_callable(
+    date_callable: Callable[[Date], None],
+    converter: Callable[[Date], Any],
+) -> Callable[[Date], None]:
+    """
+    Wrap a callable to convert the Date argument to a Java date type.
+    This maintains the original callable signature so that the Date argument can be dropped.
+
+    Args:
+        date_callable: The callable to wrap.
+        converter: The date converter to use.
+
+    Returns:
+        The wrapped callable.
+    """
+    return lambda date: wrap_callable(date_callable)(converter(date))
+
+
+def _get_first_set_key(props: dict[str, Any], sequence: Sequence[str]) -> str | None:
+    """
+    Of the keys in sequence, get the first key that has a non-None value in props.
+    If none of the keys have a non-None value, return None.
+
+    Args:
+        props: The props to check for non-None values.
+        sequence: The sequence to check.
+
+    Returns:
+        The first non-None prop, or None if all props are None.
+    """
+    for key in sequence:
+        if props.get(key) is not None:
+            return key
+    return None
+
+
+def _prioritized_callable_converter(
+    props: dict[str, Any],
+    priority: Sequence[str],
+    default_converter: Callable[[Date], Any],
+) -> Callable[[Date], Any]:
+    """
+    Get a callable date converter based on the type of the first non-None prop set.
+    Checks the props in the order provided by the `priority` sequence.
+    All the props in `priority` should be Java date types already.
+    We do this so conversion so that the type returned on callbacks matches the type passed in by the user.
+    If none of the props in `priority` are present, returns the default converter.
+
+    Args:
+        props: The props passed to the component.
+        priority: The priority of the props to check.
+        default_converter: The default converter to use if none of the priority props are present.
+
+    Returns:
+        The callable date converter.
+    """
+
+    first_set_key = _get_first_set_key(props, priority)
+    return (
+        _jclass_converter(props[first_set_key])
+        if first_set_key is not None
+        else default_converter
+    )
+
+
+def convert_list_prop(
+    key: str,
+    value: list[Date] | None,
+) -> list[JavaDate] | None:
+    """
+    Convert a list of Dates to Java date types.
+
+    Args:
+        key: The key of the prop.
+        value: A list of Dates to convert to Java date types.
+
+    Returns:
+        The list of Java date types.
+    """
+    if value is None:
+        return None
+
+    if not isinstance(value, list):
+        raise TypeError(f"{key} must be a list of Dates")
+    return [_convert_to_java_date(date) for date in value]
+
+
+def convert_date_props(
+    props: dict[str, Any],
+    simple_date_props: set[str],
+    callable_date_props: set[str],
+    priority: Sequence[str],
+    default_converter: Callable[[Date], Any] = to_j_instant,
+) -> None:
+    """
+    Convert date props to Java date types in place.
+
+    Args:
+        props: The props passed to the component.
+        simple_date_props: A set of simple date keys to convert. The prop value should be a single Date.
+        callable_date_props: A set of callable date keys to convert.
+            The prop value should be a callable that takes a Date.
+        priority: The priority of the props to check.
+        default_converter: The default converter to use if none of the priority props are present.
+
+    Returns:
+        The converted props.
+    """
+    for key in simple_date_props:
+        if props.get(key) is not None:
+            props[key] = _convert_to_java_date(props[key])
+
+    # the simple props must be converted before this to simplify the callable conversion
+    converter = _prioritized_callable_converter(props, priority, default_converter)
+
+    for key in callable_date_props:
+        if props.get(key) is not None:
+            if not callable(props[key]):
+                raise TypeError(f"{key} must be a callable")
+            props[key] = _wrap_date_callable(props[key], converter)
