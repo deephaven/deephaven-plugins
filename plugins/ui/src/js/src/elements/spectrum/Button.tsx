@@ -6,7 +6,6 @@ import {
 import { SerializedButtonEventProps, useButtonProps } from './useButtonProps';
 
 function Button(
-  variant: SpectrumButtonProps['variant'],
   props: SpectrumButtonProps & SerializedButtonEventProps
 ): JSX.Element {
   const buttonProps = useButtonProps(props);
