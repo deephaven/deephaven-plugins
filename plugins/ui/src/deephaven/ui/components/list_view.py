@@ -7,11 +7,19 @@ from deephaven.table import Table
 from .item import ItemElement
 from .item_table_source import ItemTableSource
 from ..elements import BaseElement, Element
-from .._internal.utils import create_props
+from .._internal.utils import create_props, unpack_item_table_source
 from ..types import Stringable, Selection, SelectionMode
 
 ListViewItem = Union[Stringable, ItemElement]
 ListViewElement = Element
+
+SUPPORTED_SOURCE_ARGS = {
+    "key_column",
+    "label_column",
+    "description_column",
+    "icon_column",
+    "actions",
+}
 
 
 def list_view(
@@ -57,5 +65,7 @@ def list_view(
         The rendered ListView.
     """
     children, props = create_props(locals())
+
+    children, props = unpack_item_table_source(children, props, SUPPORTED_SOURCE_ARGS)
 
     return BaseElement("deephaven.ui.components.ListView", *children, **props)

@@ -6,10 +6,18 @@ from deephaven.table import Table, PartitionedTable
 from .section import SectionElement, PickerItem
 from .item_table_source import ItemTableSource
 from ..elements import BaseElement
-from .._internal.utils import create_props
+from .._internal.utils import create_props, unpack_item_table_source
 from ..types import Key
 
 PickerElement = BaseElement
+
+SUPPORTED_SOURCE_ARGS = {
+    "key_column",
+    "label_column",
+    "description_column",
+    "icon_column",
+    "title_column",
+}
 
 
 def picker(
@@ -52,5 +60,7 @@ def picker(
         The rendered Picker.
     """
     children, props = create_props(locals())
+
+    children, props = unpack_item_table_source(children, props, SUPPORTED_SOURCE_ARGS)
 
     return BaseElement("deephaven.ui.components.Picker", *children, **props)
