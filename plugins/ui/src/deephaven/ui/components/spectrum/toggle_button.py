@@ -31,6 +31,7 @@ def toggle_button(
     is_quiet: bool | None = None,
     static_color: StaticColor | None = None,
     type: ButtonType = "button",
+    on_change: Callable[[bool], None] | None = None,
     on_press: PressEventCallable | None = None,
     on_press_start: PressEventCallable | None = None,
     on_press_end: PressEventCallable | None = None,
@@ -103,6 +104,7 @@ def toggle_button(
         is_quiet: Whether the button should be quiet.
         static_color: The static color style to apply. Useful when the button appears over a color background.
         type: The type of button to render. (default: "button")
+        on_change: Handler that is called when the element's selection state changes.
         on_press: Function called when the button is pressed.
         on_press_start: Function called when the button is pressed.
         on_press_end: Function called when a press interaction ends, either over the target or when the pointer leaves the target.
