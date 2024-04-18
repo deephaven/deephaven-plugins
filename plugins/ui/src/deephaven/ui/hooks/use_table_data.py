@@ -142,6 +142,10 @@ def use_table_data(
 
     table_updated = lambda: _set_new_data(table, sentinel, set_data, set_is_sentinel)
 
+    # call table_updated in the case of new table or sentinel
+    ui.use_effect(table_updated, [table, sentinel])
+
+    # call table_updated every time the table updates
     ui.use_table_listener(
         table, partial(_on_update, ctx, table_updated, executor_name), []
     )

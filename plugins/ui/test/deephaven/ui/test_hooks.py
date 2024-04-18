@@ -274,6 +274,51 @@ class HooksTest(BaseTestCase):
 
         self.assertEqual(result, expected)
 
+    def test_swapping_table_data(self):
+        from deephaven.ui.hooks import use_table_data
+        from deephaven import new_table
+        from deephaven.column import int_col
+        from deephaven import DynamicTableWriter
+        import deephaven.dtypes as dht
+
+        table = new_table(
+            [
+                int_col("X", [1, 2, 3]),
+                int_col("Y", [2, 4, 6]),
+            ]
+        )
+
+        def _test_table_data(t=table):
+            result = use_table_data(t, sentinel="sentinel")
+            return result
+
+        render_result = render_hook(_test_table_data)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        column_definitions = {"Numbers": dht.int32, "Words": dht.string}
+
+        table_writer = DynamicTableWriter(column_definitions)
+        dynamic_table = table_writer.table
+
+        # Need two rerenders because the first one will call set_data, which queues state updates
+        # that are resolved at the start of the second rerender
+        # The second rerender will then have the expected state values and return the expected result
+        rerender(dynamic_table)
+        result = rerender(dynamic_table)
+
+        # the initial render should return the sentinel value since the table is empty
+        self.assertEqual(result, "sentinel")
+
+        self.verify_table_updated(table_writer, dynamic_table, (1, "Testing"))
+
+        rerender(dynamic_table)
+        result = rerender(dynamic_table)
+
+        expected = {"Numbers": [1], "Words": ["Testing"]}
+
+        self.assertEqual(result, expected)
+
     def test_column_data(self):
         from deephaven.ui.hooks import use_column_data
         from deephaven import new_table
