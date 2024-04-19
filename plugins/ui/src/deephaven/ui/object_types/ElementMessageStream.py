@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import io
 import json
+import sys
+
 from jsonrpc import JSONRPCResponseManager, Dispatcher
 import logging
 import threading
@@ -352,4 +354,11 @@ class ElementMessageStream(MessageStream):
             logger.debug("Registering callable %s", callable_id)
             dispatcher[callable_id] = wrap_callable(callable)
         self._dispatcher = dispatcher
-        self._connection.on_data(payload.encode(), new_objects)
+        try:
+            self._connection.on_data(payload.encode(), new_objects)
+        except RuntimeError as e:
+            if "io.deephaven.plugin.type.ObjectCommunicationException" in str(e):
+                # can no longer send, don't need to raise exception but do need to exit
+                sys.exit()
+            else:
+                raise e
