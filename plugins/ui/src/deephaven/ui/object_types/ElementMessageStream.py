@@ -17,6 +17,7 @@ from .._internal import wrap_callable
 from ..elements import Element
 from ..renderer import NodeEncoder, Renderer, RenderedNode
 from .._internal import RenderContext, StateUpdateCallable, ExportedRenderState
+from .ErrorCode import ErrorCode
 
 logger = logging.getLogger(__name__)
 
@@ -159,6 +160,9 @@ class ElementMessageStream(MessageStream):
             self._send_document_update(node, state)
         except Exception as e:
             logger.exception("Error rendering %s", self._element.name)
+            # Try and send the error to the client
+            # There's a possibility this will error out too, but we can't do much about that
+            self._send_document_error(e)
             raise e
 
     def _process_callable_queue(self) -> None:
@@ -305,6 +309,29 @@ class ElementMessageStream(MessageStream):
             "id": self._get_next_message_id(),
         }
 
+    def _make_error(
+        self,
+        message: str,
+        code: ErrorCode = ErrorCode.UNKNOWN,
+        data: Any = None,
+    ) -> dict[str, Any]:
+        """
+        Make a JSON-RPC error message.
+
+        Args:
+            message: The short error message description
+            code: The error code
+            data: Additional data
+        """
+        return {
+            "jsonrpc": "2.0",
+            "error": {
+                "code": code,
+                "message": message,
+                "data": data,
+            },
+        }
+
     def _make_dispatcher(self) -> Dispatcher:
         dispatcher = Dispatcher()
         dispatcher["setState"] = self._set_state
@@ -353,3 +380,14 @@ class ElementMessageStream(MessageStream):
             dispatcher[callable_id] = wrap_callable(callable)
         self._dispatcher = dispatcher
         self._connection.on_data(payload.encode(), new_objects)
+
+    def _send_document_error(self, error: Exception) -> None:
+        """
+        Send an error to the client. This is called when an error occurs during rendering.
+
+        Args:
+            error: The error that occurred
+        """
+        request = self._make_error(str(error), ErrorCode.RENDER_ERROR)
+        payload = json.dumps(request)
+        self._connection.on_data(payload.encode(), [])

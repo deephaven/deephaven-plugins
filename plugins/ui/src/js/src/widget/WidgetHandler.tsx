@@ -32,6 +32,7 @@ import {
 } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
 import { getComponentForElement } from './WidgetUtils';
+import { parseServerErrorPayload } from './JSONRPCUtils';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
@@ -52,6 +53,12 @@ export interface WidgetHandlerProps {
   onDataChange?: (data: WidgetDataUpdate) => void;
 }
 
+type JsonRPCError = {
+  code: number;
+  message: string;
+
+}
+
 function WidgetHandler({
   onClose,
   onDataChange = EMPTY_FUNCTION,
@@ -62,6 +69,7 @@ function WidgetHandler({
   const [widget, setWidget] = useState<dh.Widget>();
   const [document, setDocument] = useState<ReactNode>();
   const [initialData] = useState(initialDataProp);
+  const [error, setError] = useState<string>();
 
   // When we fetch a widget, the client is then responsible for the exported objects.
   // These objects could stay alive even after the widget is closed if we wanted to,
@@ -80,7 +88,18 @@ function WidgetHandler({
             new JSONRPCClient(request => {
               log.debug('Sending request', request);
               widget.sendMessage(JSON.stringify(request), []);
-            })
+            }),
+            {
+              /**
+               * 
+               * @param message It just says an invalid JSON-RPC response was received
+               * @param payload The payload of the error message. This is the JSON-RPC response that was received.
+               */
+              errorListener: (message, payload) => {
+                log.warn('JSONRPCServer/Client error', message, payload);
+                setError(parseServerErrorPayload(payload));
+              },
+            }
           )
         : null,
     [widget]
@@ -220,14 +239,20 @@ function WidgetHandler({
 
       // Set a var to the client that we know will not be null in the closure below
       const activeClient = jsonClient;
-      function receiveData(
+      async function receiveData(
         data: string,
         newExportedObjects: dh.WidgetExportedObject[]
       ) {
         log.debug2('Data received', data, newExportedObjects);
         updateExportedObjects(newExportedObjects);
         if (data.length > 0) {
-          activeClient.receiveAndSend(JSON.parse(data));
+          try {
+            await activeClient.receiveAndSend(JSON.parse(data));
+          } catch (e) {
+            // We already have an `errorListener` registered when declaring the JSONRPCServerAndClient,
+            // and that contains more information than this error does, so just use that.
+            log.debug('Error receiving data', e);
+          }
         }
       }
 
@@ -298,6 +323,9 @@ function WidgetHandler({
     },
     [fetch, descriptor]
   );
+
+  // TODO: If there's an error, we should display it in a panel to the user
+  // Some sort of DocumentErrorHandler? Just displays an error message in all known `panelIds`, or opens a new `panelId`?
 
   return useMemo(
     () =>
