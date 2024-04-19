@@ -74,6 +74,8 @@ def use_table_listener(
 ) -> None:
     """
     Listen to a table and call a listener when the table updates.
+    If any dependencies change, the listener will be recreated.
+    In this case, updates may be missed if the table updates while the listener is being recreated.
 
     Args:
         table: The table to listen to.
