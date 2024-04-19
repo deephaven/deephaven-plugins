@@ -1,10 +1,11 @@
-import { ButtonGroup, Checkbox, Icon } from '@adobe/react-spectrum';
+import { ButtonGroup, Checkbox } from '@adobe/react-spectrum';
 import { ValueOf } from '@deephaven/utils';
 import {
   Content,
   ContextualHelp,
   Grid,
   Heading,
+  Icon,
   Item,
   IllustratedMessage,
   NumberField,
