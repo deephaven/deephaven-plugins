@@ -121,6 +121,11 @@ class ElementMessageStream(MessageStream):
     Captured ExecutionContext for this stream, to wrap all user code.
     """
 
+    _is_closed: bool
+    """
+    Whether or not the stream is closed. If closed, no more messages can be sent, and this component should exit.
+    """
+
     def __init__(self, element: Element, connection: MessageStream):
         """
         Create a new ElementMessageStream. Renders the element in a render context, and sends the rendered result to the
@@ -144,6 +149,7 @@ class ElementMessageStream(MessageStream):
         self._is_dirty = False
         self._render_state = _RenderState.IDLE
         self._exec_context = get_exec_ctx()
+        self._is_closed = False
 
     def _render(self) -> None:
         logger.debug("ElementMessageStream._render")
@@ -242,7 +248,7 @@ class ElementMessageStream(MessageStream):
         self._connection.on_data(b"", [])
 
     def on_close(self) -> None:
-        pass
+        self._is_closed = True
 
     def on_data(self, payload: bytes, references: list[Any]) -> None:
         """
@@ -354,11 +360,6 @@ class ElementMessageStream(MessageStream):
             logger.debug("Registering callable %s", callable_id)
             dispatcher[callable_id] = wrap_callable(callable)
         self._dispatcher = dispatcher
-        try:
-            self._connection.on_data(payload.encode(), new_objects)
-        except RuntimeError as e:
-            if "io.deephaven.plugin.type.ObjectCommunicationException" in str(e):
-                # can no longer send, don't need to raise exception but do need to exit
-                sys.exit()
-            else:
-                raise e
+        if self._is_closed:
+            sys.exit()
+        self._connection.on_data(payload.encode(), new_objects)
