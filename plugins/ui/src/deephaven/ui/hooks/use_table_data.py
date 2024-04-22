@@ -141,15 +141,15 @@ def use_table_data(
         executor_name = "concurrent"
 
     # memoize table_updated (and listener) so that they don't cause a start and stop of the listener
-    table_updated = ui.use_memo(
-        lambda: lambda: _set_new_data(table, sentinel, set_data, set_is_sentinel),
+    table_updated = ui.use_callback(
+        lambda: _set_new_data(table, sentinel, set_data, set_is_sentinel),
         [table, sentinel],
     )
 
     # call table_updated in the case of new table or sentinel
     ui.use_effect(table_updated, [table, sentinel])
-    listener = ui.use_memo(
-        lambda: partial(_on_update, ctx, table_updated, executor_name),
+    listener = ui.use_callback(
+        partial(_on_update, ctx, table_updated, executor_name),
         [table_updated, executor_name, ctx],
     )
 
