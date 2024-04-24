@@ -48,7 +48,8 @@ def plot_partitioned_table(table, initial_value):
     # memoize the partition by so that it only performed once
     partitioned_table = ui.use_memo(lambda: table.partition_by(["sym"]), [table])
     constituent_table = ui.use_memo(
-        lambda: partitioned_table.get_constituent(text.upper()), [partitioned_table, text]
+        lambda: partitioned_table.get_constituent(text.upper()),
+        [partitioned_table, text],
     )
     return [
         ui.text_field(value=text, on_change=set_text),
