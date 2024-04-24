@@ -16,7 +16,7 @@ _stocks = dx.data.stocks()
 
 
 @ui.component
-def plot_filtered_table(table, inital_value):
+def plot_filtered_table(table, initial_value):
     text, set_text = ui.use_state("DOG")
     # the filter is memoized so that it is only recalculated when the text changes
     filtered_table = ui.use_memo(
@@ -31,7 +31,7 @@ def plot_filtered_table(table, inital_value):
 p = plot_filtered_table(_stocks, "DOG")
 ```
 
-## Plotting a paritioned table
+## Plotting a partitioned table
 
 Using a partitioned table, as opposed to a where, can be more efficient if you are going to be filtering the same table multiple times with different values. This is because the partitioning is only done once, and then the key is selected from the partitioned table. Compared to using a where statement, it can be faster to return results, but at the expense of the query engine using more memory. Depending on the size of your table and the number of unique values in the partition key, this can be a tradeoff worth making or not.
 
@@ -43,28 +43,28 @@ _stocks = dx.data.stocks()
 
 
 @ui.component
-def plot_paritioned_table(table, inital_value):
-    text, set_text = ui.use_state(inital_value)
-    # memoize the parition by so that it only performed once
-    paritioned_table = ui.use_memo(lambda: table.partition_by(["sym"]), [table])
+def plot_partitioned_table(table, initial_value):
+    text, set_text = ui.use_state(initial_value)
+    # memoize the partition by so that it only performed once
+    partitioned_table = ui.use_memo(lambda: table.partition_by(["sym"]), [table])
     constituent_table = ui.use_memo(
-        lambda: paritioned_table.get_constituent(text.upper()), [paritioned_table, text]
+        lambda: partitioned_table.get_constituent(text.upper()), [partitioned_table, text]
     )
     return [
         ui.text_field(value=text, on_change=set_text),
-        # only attempt to plot valid parition keys
+        # only attempt to plot valid partition keys
         dx.line(
-            constituent_table, x="timestamp", y="price", title=f"Parition key: {text}"
+            constituent_table, x="timestamp", y="price", title=f"partition key: {text}"
         )
         if constituent_table != None
-        else ui.text("Please enter a valid parition."),
+        else ui.text("Please enter a valid partition."),
     ]
 
 
-p = plot_paritioned_table(_stocks, "DOG")
+p = plot_partitioned_table(_stocks, "DOG")
 ```
 
-## Combining a fitler and a parition by
+## Combining a fitler and a partition by
 
 Deephaven express allows you to plot by a partition and assign unique colors to each key. Sometimes as a user you may also want to filter the data in addition to partitioning it. We've previously referred to this as a "one-click plot by" behaviour in enterprise. This can be done by either filtering the table first and then partitioning it, or partitioning it first and then filtering it. The choice of which to use depends on the size of the table and the number of unique values in the partition key. The first example is more like a traditional "one-click" component, and the second is more like a parameterized query. Both will give you the same result, but the first one may return results faster, whereas the second one may be more memory efficient.
 
@@ -74,14 +74,14 @@ import deephaven.ui as ui
 
 _stocks = dx.data.stocks()
 
-# component using a parition_by[a,b] once, then filter on a
+# component using a partition_by[a,b] once, then filter on a
 @ui.component
-def parition_then_filter(table, by, inital_value):
-    text, set_text = ui.use_state(inital_value)
-    paritioned_table = ui.use_memo(lambda: table.partition_by(by), [table, by])
+def partition_then_filter(table, by, initial_value):
+    text, set_text = ui.use_state(initial_value)
+    partitioned_table = ui.use_memo(lambda: table.partition_by(by), [table, by])
     filtered = ui.use_memo(
-        lambda: paritioned_table.filter(f"{by[0]} = `{text.upper()}`"),
-        [text, paritioned_table],
+        lambda: partitioned_table.filter(f"{by[0]} = `{text.upper()}`"),
+        [text, partitioned_table],
     )
     return [
         ui.text_field(value=text, on_change=set_text),
@@ -89,10 +89,10 @@ def parition_then_filter(table, by, inital_value):
     ]
 
 
-# component using a where on a, then re-paritions on b
+# component using a where on a, then re-partitions on b
 @ui.component
-def where_then_parition(table, by, inital_value):
-    text, set_text = ui.use_state(inital_value)
+def where_then_partition(table, by, initial_value):
+    text, set_text = ui.use_state(initial_value)
     filtered = ui.use_memo(
         lambda: table.where(f"{by[0]} = `{text.upper()}`"), [text, table]
     )
@@ -103,6 +103,6 @@ def where_then_parition(table, by, inital_value):
 
 
 # outputs the same thing, done two different ways depending on how you want the work done
-ptf = parition_then_filter(_stocks, ["sym", "exchange"], "DOG")
-wtp = where_then_parition(_stocks, ["sym", "exchange"], "DOG")
+ptf = partition_then_filter(_stocks, ["sym", "exchange"], "DOG")
+wtp = where_then_partition(_stocks, ["sym", "exchange"], "DOG")
 ```
