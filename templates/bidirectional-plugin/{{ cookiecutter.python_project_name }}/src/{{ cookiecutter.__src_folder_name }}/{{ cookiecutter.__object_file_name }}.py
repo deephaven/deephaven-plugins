@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-class {{cookiecutter.py_pascal_case}}Object:
+class {{ cookiecutter.__object_name }}:
     def __init__(self):
         pass
 

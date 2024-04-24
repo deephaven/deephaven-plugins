@@ -1,11 +1,10 @@
 {
-  "name": "@deephaven/{{ cookiecutter.py_kebab_case }}",
+  "name": "{{ cookiecutter.javascript_project_name }}",
   "version": "0.1.0",
-  "description": "Deephaven plugin",
+  "description": "A plugin for deephaven",
   "keywords": [
     "Deephaven",
-    "plugin",
-    "deephaven-js-plugin"
+    "plugin"
   ],
   "author": "{{ cookiecutter.author_name }}",
   "license": "Apache-2.0",

@@ -3,7 +3,7 @@ import pathlib
 from deephaven.plugin.js import JsPlugin
 
 
-class {{cookiecutter.py_pascal_case}}JsPlugin(JsPlugin):
+class {{ cookiecutter.__js_plugin_obj_name }}(JsPlugin):
     def __init__(
         self,
         name: str,

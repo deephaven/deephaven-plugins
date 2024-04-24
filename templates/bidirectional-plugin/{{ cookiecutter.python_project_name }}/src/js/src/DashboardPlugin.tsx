@@ -18,12 +18,12 @@ import styles from './CustomPanel.scss?inline';
 /**
  * Create your own logger module to easily identify where logs are being printed from.
  */
-const log = Log.module('@deephaven/{{ cookiecutter.py_kebab_case }}.DashboardPlugin');
+const log = Log.module('{{ cookiecutter.javascript_project_name }}.DashboardPlugin');
 
 /**
  * Specify a plugin matching an expected custom object type to react to when that object type is opened.
  */
-export const VARIABLE_TYPE = '{{ cookiecutter.object_name }}';
+export const VARIABLE_TYPE = '{{ cookiecutter.__registered_object_name }}';
 
 /**
  * Dashboard Plugin. Registers with a dashboard. The rendered component will be rendered atop the dashboard layout.

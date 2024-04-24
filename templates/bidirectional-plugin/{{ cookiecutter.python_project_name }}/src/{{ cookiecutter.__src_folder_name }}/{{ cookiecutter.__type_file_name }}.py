@@ -3,18 +3,17 @@ from __future__ import annotations
 from typing import Any
 from deephaven.plugin.object_type import MessageStream, BidirectionalObjectType
 
-from .{{cookiecutter.project_slug}}_object import {{cookiecutter.py_pascal_case}}Object
+from .{{ cookiecutter.__object_file_name }} import {{ cookiecutter.__object_name }}
 
-class {{cookiecutter.py_pascal_case}}MessageStream(MessageStream):
+class {{ cookiecutter.__message_stream_name }}(MessageStream):
     """
-    Connection for DeephavenFigure
+    A custom MessageStream
 
     Attributes:
-        _listener: DeephavenFigureListener: The listener for the figure
         _client_connection: MessageStream: The connection to the client
     """
 
-    def __init__(self, obj, client_connection: MessageStream):
+    def __init__(self, obj: Any, client_connection: MessageStream):
         super().__init__()
         self._client_connection = client_connection
 
@@ -36,21 +35,20 @@ class {{cookiecutter.py_pascal_case}}MessageStream(MessageStream):
         pass
 
 
-class {{cookiecutter.py_pascal_case}}Type(BidirectionalObjectType):
+class {{ cookiecutter.__type_name }}(BidirectionalObjectType):
     """
     Defines the Element type for the Deephaven plugin system.
     """
 
     @property
     def name(self) -> str:
-        return "{{ cookiecutter.object_name }}"
+        return "{{ cookiecutter.__registered_object_name }}"
 
     def is_type(self, obj: Any) -> bool:
-        return isinstance(obj, {{cookiecutter.py_pascal_case}}Object)
+        return isinstance(obj, {{ cookiecutter.__object_name }})
 
     def create_client_connection(
         self, obj: object, connection: MessageStream
     ) -> MessageStream:
-        message_stream = {{cookiecutter.py_pascal_case}}MessageStream(obj, connection)
-        #message_stream.on_data(payload, references)
+        message_stream = {{ cookiecutter.__message_stream_name }}(obj, connection)
         return message_stream

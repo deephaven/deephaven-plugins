@@ -1,11 +1,18 @@
 {
   "project_name": "deephaven plugin template",
-  "project_slug": "{{ cookiecutter.project_name.lower().replace(' ', '_') }}",
-  "py_namespace": "plugins.{{cookiecutter.project_slug}}",
-  "py_folder_name": "plugins/{{cookiecutter.project_slug}}",
-  "py_pascal_case": "{{ cookiecutter.project_name.title().replace(' ', '') }}",
-  "py_kebab_case": "{{ cookiecutter.project_name.lower().replace(' ', '-') }}",
-  "object_name": "plugins.{{ cookiecutter.py_pascal_case }}",
+  "python_project_name": "{{ cookiecutter.project_name.lower().replace(' ', '_') }}",
+  "javascript_project_name": "{{ cookiecutter.project_name.lower().replace(' ', '-') }}",
   "author_name": "Anonymous",
-  "author_email": "Anonymous"
+  "author_email": "Anonymous",
+  "__py_namespace": "{{ cookiecutter.python_project_name }}",
+  "__src_folder_name": "{{ cookiecutter.python_project_name }}",
+  "__name_pascal_case": "{{ cookiecutter.python_project_name.replace('_', ' ') .title().replace(' ', '') }}",
+  "__registered_object_name": "{{ cookiecutter.__name_pascal_case }}",
+  "__object_name": "{{ cookiecutter.__name_pascal_case }}Object",
+  "__object_file_name": "{{ cookiecutter.python_project_name }}_object",
+  "__type_name": "{{ cookiecutter.__name_pascal_case }}Type",
+  "__type_file_name": "{{ cookiecutter.python_project_name }}_type",
+  "__message_stream_name": "{{ cookiecutter.__name_pascal_case }}MessageStream",
+  "__js_plugin_obj_name": "{{ cookiecutter.__name_pascal_case }}JsPlugin",
+  "__registration_name": "{{ cookiecutter.__name_pascal_case }}Registration"
 }

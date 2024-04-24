@@ -3,7 +3,7 @@ from .BaseTest import BaseTestCase
 
 
 class Test(BaseTestCase):
-    def test_is_table(self):
+    def test(self):
         # since the tests use the embedded server, the import must happen after the tests start
         from deephaven import Table
 
