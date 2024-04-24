@@ -1,0 +1,11 @@
+{
+  "project_name": "deephaven plugin template",
+  "project_slug": "{{ cookiecutter.project_name.lower().replace(' ', '_') }}",
+  "py_namespace": "plugins.{{cookiecutter.project_slug}}",
+  "py_folder_name": "plugins/{{cookiecutter.project_slug}}",
+  "py_pascal_case": "{{ cookiecutter.project_name.title().replace(' ', '') }}",
+  "py_kebab_case": "{{ cookiecutter.project_name.lower().replace(' ', '-') }}",
+  "object_name": "plugins.{{ cookiecutter.py_pascal_case }}",
+  "author_name": "Anonymous",
+  "author_email": "Anonymous"
+}

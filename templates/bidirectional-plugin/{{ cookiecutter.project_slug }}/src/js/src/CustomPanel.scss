@@ -1,0 +1,15 @@
+/**
+ * Import Deephaven custom styles so we can use the Deephaven color palette
+ */
+@import '@deephaven/components/scss/custom.scss';
+
+.custom-panel {
+  // From the Deephaven colour palette
+  color: $purple;
+  font-size: x-large;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+}
