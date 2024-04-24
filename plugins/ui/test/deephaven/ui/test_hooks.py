@@ -341,9 +341,7 @@ class HooksTest(BaseTestCase):
         queue.call_after_put(check_size)
 
         # call now in case the queue is (or was) already at the correct size
-        if check_size(queue):
-            queue.unregister_notify()
-            return
+        check_size(queue)
 
         if not event.wait(timeout=QUEUE_TIMEOUT):
             assert False, f"queue did not reach size {size}"
