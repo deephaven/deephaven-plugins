@@ -14,6 +14,7 @@ import deephaven.ui as ui
 
 _stocks = dx.data.stocks()
 
+
 @ui.component
 def plot_filtered_table(table, inital_value):
     text, set_text = ui.use_state("DOG")
@@ -39,6 +40,7 @@ import deephaven.plot.express as dx
 import deephaven.ui as ui
 
 _stocks = dx.data.stocks()
+
 
 @ui.component
 def plot_paritioned_table(table, inital_value):
@@ -76,25 +78,31 @@ _stocks = dx.data.stocks()
 @ui.component
 def parition_then_filter(table, by, inital_value):
     text, set_text = ui.use_state(inital_value)
-    paritioned_table = ui.use_memo(lambda: table.partition_by(by),[table, by])
-    filtered = ui.use_memo(lambda: paritioned_table.filter(f"{by[0]} = `{text.upper()}`"), [text, paritioned_table])
+    paritioned_table = ui.use_memo(lambda: table.partition_by(by), [table, by])
+    filtered = ui.use_memo(
+        lambda: paritioned_table.filter(f"{by[0]} = `{text.upper()}`"),
+        [text, paritioned_table],
+    )
     return [
         ui.text_field(value=text, on_change=set_text),
-        dx.line(filtered, x="timestamp", y="price", by=[f"{by[1]}"])
+        dx.line(filtered, x="timestamp", y="price", by=[f"{by[1]}"]),
     ]
+
 
 # component using a where on a, then re-paritions on b
 @ui.component
 def where_then_parition(table, by, inital_value):
     text, set_text = ui.use_state(inital_value)
-    filtered = ui.use_memo(lambda: table.where(f"{by[0]} = `{text.upper()}`"),[text, table])
+    filtered = ui.use_memo(
+        lambda: table.where(f"{by[0]} = `{text.upper()}`"), [text, table]
+    )
     return [
         ui.text_field(value=text, on_change=set_text),
-        dx.line(filtered, x="timestamp", y="price", by=[f"{by[1]}"])
+        dx.line(filtered, x="timestamp", y="price", by=[f"{by[1]}"]),
     ]
 
 
 # outputs the same thing, done two different ways depending on how you want the work done
-ptf = parition_then_filter(_stocks,["sym", "exchange"], "DOG")
-wtp = where_then_parition(_stocks,["sym", "exchange"], "DOG")
+ptf = parition_then_filter(_stocks, ["sym", "exchange"], "DOG")
+wtp = where_then_parition(_stocks, ["sym", "exchange"], "DOG")
 ```
