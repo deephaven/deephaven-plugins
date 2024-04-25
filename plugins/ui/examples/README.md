@@ -240,6 +240,57 @@ my_picker = ui_picker()
 
 ![Use a picker to select from a list of items](assets/picker.png)
 
+## Picker (table)
+
+A picker can also take a Table. It will use the first column as the key and label by default.
+
+```python
+import deephaven.ui as ui
+from deephaven import time_table
+import datetime
+
+# Ticking table with initial row count of 200 that adds a row every second
+initial_row_count = 200
+column_types = time_table(
+    "PT1S",
+    start_time=datetime.datetime.now() - datetime.timedelta(seconds=initial_row_count),
+).view(
+    [
+        "Id=new Integer(i)",
+        "Display=new String(`Display `+i)",
+    ]
+)
+
+
+@ui.component
+def ui_picker_table(table):
+    value, set_value = ui.use_state("")
+
+    pick_table = ui.picker(
+        table,
+        label="Text",
+        on_change=set_value,
+        selected_keys=value,
+    )
+
+    text = ui.text(f"Selection: {value}")
+
+    return ui.flex(pick_table, text, direction="column", margin=10, gap=10)
+
+
+pick_table = ui_picker_table(column_types)
+
+# If you'd like to specify columns to use, you can pass in a table source.
+
+table_source = ui.item_table_source(
+    column_types, key_column="Id", label_column="Display"
+)
+
+pick_table_source = ui_picker_table(table_source)
+```
+![Use a picker to select from a table](assets/pick_table.png)
+![Use a picker to select from a table source](assets/pick_table_source.png)
+
 ## Form (two variables)
 
 You can have state with multiple different variables in one component. This example creates a [text field](https://react-spectrum.adobe.com/react-spectrum/TextField.html) and a [slider](https://react-spectrum.adobe.com/react-spectrum/Slider.html), and we display the values of both of them.

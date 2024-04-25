@@ -410,7 +410,7 @@ def unpack_item_table_source(
         The unpacked children and props.
     """
     if len(children) == 1 and isinstance(children[0], dict):
-        item_table_source = children[0]
+        item_table_source = children[0].copy()
         children = (item_table_source.pop("table"),)
         for key in supported_args:
             if key in item_table_source:
