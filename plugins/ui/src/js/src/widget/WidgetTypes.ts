@@ -24,3 +24,22 @@ export type ReadonlyWidgetData = Readonly<WidgetData>;
 
 /** Contains an update for widget data. Only the keys that are updated are passed. */
 export type WidgetDataUpdate = Partial<ReadonlyWidgetData>;
+
+/** Widget error details */
+export type WidgetError = {
+  /** Message to display of the error */
+  message: string;
+
+  /** Type of the error */
+  type?: string;
+
+  /** Stack trace of the error */
+  stack?: string;
+
+  /** Specific error code */
+  code?: number;
+};
+
+export const METHOD_DOCUMENT_UPDATED = 'documentUpdated';
+
+export const METHOD_DOCUMENT_ERROR = 'documentError';

@@ -31,32 +31,63 @@
   }
 }
 
-.error-viewer {
+.widget-error-view {
+  display: flex;
+  flex-direction: column;
+  gap: $spacer-1;
+  flex-grow: 1;
+
+  .widget-error-view-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: $spacer-1;
+    flex-wrap: wrap;
+  }
+}
+
+.error-view {
   position: relative;
+  color: $danger;
+  border-radius: $border-radius;
+  background-color: negative-opacity($exception-transparency);
+  display: flex;
+  flex-direction: column;
+  flex-grow: 0;
+  &.expanded {
+    flex-grow: 1;
+  }
+  transition: flex-grow $transition ease-in-out;
+
+  font-family: $font-family-monospace;
+
+  label {
+    display: block;
+    padding: $spacer;
+    font-weight: bold;
+  }
+
   textarea {
     width: 100%;
-    color: $danger;
-    border-radius: $border-radius;
-    background-color: negative-opacity($exception-transparency);
     padding: $spacer;
+    color: $danger;
+    background-color: transparent;
     border: 0;
     resize: none;
     outline: none;
-    height: 100px;
+    min-height: 100px;
     transition: height $transition ease-in-out;
     white-space: pre;
-    &.expanded {
-      height: 55vh;
-    }
+    flex-grow: 1;
   }
 
-  .error-viewer-buttons {
+  .error-view-buttons {
     display: flex;
     flex-direction: row;
     gap: 1px;
     position: absolute;
-    bottom: $spacer-2;
-    right: $grid-gutter-width * 0.5;
+    top: 0;
+    right: 0;
 
     .btn-danger {
       color: $black;
@@ -67,13 +98,13 @@
       }
     }
 
-    .error-viewer-copy-button {
+    .error-view-copy-button {
       border-radius: 0;
       min-width: 3rem;
     }
 
-    .error-viewer-expand-button {
-      border-radius: 0 0 $border-radius 0;
+    .error-view-expand-button {
+      border-radius: 0 $border-radius 0 0;
       svg {
         margin-right: $spacer-1;
       }

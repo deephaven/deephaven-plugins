@@ -14,18 +14,10 @@ import {
   JSONRPCServer,
   JSONRPCServerAndClient,
 } from 'json-rpc-2.0';
-import {
-  Content,
-  Heading,
-  Icon,
-  IllustratedMessage,
-} from '@deephaven/components';
 import { WidgetDescriptor } from '@deephaven/dashboard';
-import { vsWarning } from '@deephaven/icons';
 import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { EMPTY_FUNCTION } from '@deephaven/utils';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   CALLABLE_KEY,
   OBJECT_KEY,
@@ -37,16 +29,14 @@ import {
   ReadonlyWidgetData,
   WidgetDataUpdate,
   WidgetMessageEvent,
+  WidgetError,
+  METHOD_DOCUMENT_ERROR,
+  METHOD_DOCUMENT_UPDATED,
 } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
 import { getComponentForElement } from './WidgetUtils';
-import {
-  ErrorNotificationPayload,
-  METHOD_DOCUMENT_ERROR,
-  METHOD_DOCUMENT_UPDATED,
-} from './JSONRPCUtils';
 import ReactPanel from '../layout/ReactPanel';
-import ErrorView from './ErrorView';
+import WidgetErrorView from './WidgetErrorView';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
@@ -76,7 +66,7 @@ function WidgetHandler({
 }: WidgetHandlerProps): JSX.Element | null {
   const [widget, setWidget] = useState<dh.Widget>();
   const [document, setDocument] = useState<ReactNode>();
-  const [initialData] = useState(initialDataProp);
+  const [initialData, setInitialData] = useState(initialDataProp);
 
   // When we fetch a widget, the client is then responsible for the exported objects.
   // These objects could stay alive even after the widget is closed if we wanted to,
@@ -85,26 +75,6 @@ function WidgetHandler({
     new Map()
   );
   const exportedObjectCount = useRef(0);
-
-  const setDocumentError = useCallback(
-    (errorMessage: string, type?: string) => {
-      // When we get an error for the server, we want to display it to the user.
-      // Display the error in a panel that the user can see.
-      setDocument(
-        <ReactPanel>
-          <ErrorView message={errorMessage} type={type} />
-          {/* <IllustratedMessage>
-          <Icon size="XL">
-            <FontAwesomeIcon icon={vsWarning} />
-          </Icon>
-          <Heading>Error</Heading>
-          <Content>{errorMessage}</Content>
-        </IllustratedMessage> */}
-        </ReactPanel>
-      );
-    },
-    []
-  );
 
   // Bi-directional communication as defined in https://www.npmjs.com/package/json-rpc-2.0
   const jsonClient = useMemo(
@@ -202,6 +172,32 @@ function WidgetHandler({
     []
   );
 
+  const setDocumentError = useCallback(
+    (error: WidgetError) => {
+      // When we get an error for the server, we want to display it to the user.
+      // Display the error in a panel that the user can see.
+      setDocument(
+        <ReactPanel>
+          <WidgetErrorView
+            error={error}
+            onReload={() => {
+              // Reset the state in the initial data. This will cause the widget to reload.
+              jsonClient?.request('setState', [{}]).then(
+                result => {
+                  log.debug('Set state result', result);
+                },
+                e => {
+                  log.error('Error setting initial state: ', e);
+                }
+              );
+            }}
+          />
+        </ReactPanel>
+      );
+    },
+    [jsonClient]
+  );
+
   useEffect(
     function initMethods() {
       if (jsonClient == null) {
@@ -232,8 +228,8 @@ function WidgetHandler({
 
       jsonClient.addMethod(METHOD_DOCUMENT_ERROR, (params: [string]) => {
         log.error('Document error', params);
-        const error: ErrorNotificationPayload = JSON.parse(params[0]);
-        setDocumentError(error.message, error.type);
+        const error: WidgetError = JSON.parse(params[0]);
+        setDocumentError(error);
       });
 
       return () => {

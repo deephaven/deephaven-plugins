@@ -16,34 +16,31 @@ function ErrorView({ message, type = 'Error' }: ErrorViewerProps): JSX.Element {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="error-viewer">
-      <label className="text-danger">
-        <FontAwesomeIcon icon={vsWarning} />
-        {type}
-      </label>
-      <textarea
-        readOnly
-        className={classNames({ expanded: isExpanded })}
-        value={message}
-      />
-      <div className="error-viewer-buttons">
-        <CopyButton
-          kind="danger"
-          className="error-viewer-copy-button"
-          tooltip="Copy exception contents"
-          copy={`${type}: ${message}`}
-        />
-        <Button
-          kind="danger"
-          className="error-viewer-expand-button"
-          onClick={() => {
-            setIsExpanded(!isExpanded);
-          }}
-          icon={isExpanded ? vsDiffRemoved : vsDiffAdded}
-        >
-          {isExpanded ? 'Show Less' : 'Show More'}
-        </Button>
+    <div className={classNames('error-view', { expanded: isExpanded })}>
+      <div className="error-view-header">
+        <label className="text-danger">
+          <FontAwesomeIcon icon={vsWarning} /> {type}
+        </label>
+        <div className="error-view-buttons">
+          <CopyButton
+            kind="danger"
+            className="error-view-copy-button"
+            tooltip="Copy exception contents"
+            copy={`${type}: ${message}`.trim()}
+          />
+          <Button
+            kind="danger"
+            className="error-view-expand-button"
+            onClick={() => {
+              setIsExpanded(!isExpanded);
+            }}
+            icon={isExpanded ? vsDiffRemoved : vsDiffAdded}
+          >
+            {isExpanded ? 'Show Less' : 'Show More'}
+          </Button>
+        </div>
       </div>
+      <textarea readOnly value={message} />
     </div>
   );
 }

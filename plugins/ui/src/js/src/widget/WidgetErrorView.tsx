@@ -1,0 +1,27 @@
+import React from 'react';
+import { Button } from '@deephaven/components';
+import ErrorView from './ErrorView';
+import { WidgetError } from './WidgetTypes';
+
+/** Component that takes a WidgetError and displays the contents in an ErrorView, and has a button to reload the widget from a fresh state. */
+function WidgetErrorView({
+  error,
+  onReload,
+}: {
+  error: WidgetError;
+  onReload: () => void;
+}): JSX.Element {
+  const displayMessage = `${error.message}\n\n${error.stack}`.trim();
+  return (
+    <div className="widget-error-view">
+      <ErrorView message={displayMessage} type={error.type} />
+      <div className="widget-error-view-footer">
+        <Button kind="tertiary" onClick={onReload}>
+          Reload
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+export default WidgetErrorView;

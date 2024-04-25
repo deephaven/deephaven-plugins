@@ -5,6 +5,7 @@ import json
 from jsonrpc import JSONRPCResponseManager, Dispatcher
 import logging
 import threading
+import traceback
 from enum import Enum
 from queue import Queue
 from typing import Any, Callable
@@ -162,7 +163,8 @@ class ElementMessageStream(MessageStream):
             logger.exception("Error rendering %s", self._element.name)
             # Try and send the error to the client
             # There's a possibility this will error out too, but we can't do much about that
-            self._send_document_error(e)
+            stack_trace = traceback.format_exc()
+            self._send_document_error(e, stack_trace)
             raise e
 
     def _process_callable_queue(self) -> None:
@@ -358,7 +360,7 @@ class ElementMessageStream(MessageStream):
         self._dispatcher = dispatcher
         self._connection.on_data(payload.encode(), new_objects)
 
-    def _send_document_error(self, error: Exception) -> None:
+    def _send_document_error(self, error: Exception, stack_trace: str) -> None:
         """
         Send an error to the client. This is called when an error occurs during rendering.
 
@@ -371,6 +373,7 @@ class ElementMessageStream(MessageStream):
                 {
                     "message": str(error),
                     "type": type(error).__name__,
+                    "stack": stack_trace,
                     "code": ErrorCode.DOCUMENT_ERROR.value,
                 }
             ),
