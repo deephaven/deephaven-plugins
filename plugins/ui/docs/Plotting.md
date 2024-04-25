@@ -67,7 +67,7 @@ p = plot_partitioned_table(_stocks, "DOG")
 
 ## Combining a fitler and a partition by
 
-Deephaven express allows you to plot by a partition and assign unique colors to each key. Sometimes as a user you may also want to filter the data in addition to partitioning it. We've previously referred to this as a "one-click plot by" behaviour in enterprise. This can be done by either filtering the table first and then partitioning it, or partitioning it first and then filtering it. The choice of which to use depends on the size of the table and the number of unique values in the partition key. The first example is more like a traditional "one-click" component, and the second is more like a parameterized query. Both will give you the same result, but the first one may return results faster, whereas the second one may be more memory efficient.
+Deephaven Express allows you to plot by a partition and assign unique colors to each key. Sometimes as a user you may also want to filter the data in addition to partitioning it. We've previously referred to this as a "one-click plot by" behaviour in enterprise. This can be done by either filtering the table first and then partitioning it, or partitioning it first and then filtering it. The choice of which to use depends on the size of the table and the number of unique values in the partition key. The first example is more like a traditional "one-click" component, and the second is more like a parameterized query. Both will give you the same result, but the first one may return results faster, whereas the second one may be more memory efficient.
 
 ```python
 import deephaven.plot.express as dx
@@ -75,9 +75,11 @@ import deephaven.ui as ui
 
 _stocks = dx.data.stocks()
 
-# component using a partition_by[a,b] once, then filter on a
 @ui.component
 def partition_then_filter(table, by, initial_value):
+    """
+    Parition the table by both passed columns, then filter it by the value entered by the user
+    """
     text, set_text = ui.use_state(initial_value)
     partitioned_table = ui.use_memo(lambda: table.partition_by(by), [table, by])
     filtered = ui.use_memo(
@@ -90,9 +92,11 @@ def partition_then_filter(table, by, initial_value):
     ]
 
 
-# component using a where on a, then re-partitions on b
 @ui.component
 def where_then_partition(table, by, initial_value):
+    """
+    Filter the table by the value entered by the user, then re-partition it by the second passed column
+    """
     text, set_text = ui.use_state(initial_value)
     filtered = ui.use_memo(
         lambda: table.where(f"{by[0]} = `{text.upper()}`"), [text, table]
