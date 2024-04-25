@@ -6,7 +6,7 @@ import { WidgetError } from './WidgetTypes';
 /** Component that takes a WidgetError and displays the contents in an ErrorView, and has a button to reload the widget from a fresh state. */
 function WidgetErrorView({
   error,
-  onReload,
+  onReload: onReset,
 }: {
   error: WidgetError;
   onReload: () => void;
@@ -16,7 +16,7 @@ function WidgetErrorView({
     <div className="widget-error-view">
       <ErrorView message={displayMessage} type={error.type} />
       <div className="widget-error-view-footer">
-        <Button kind="tertiary" onClick={onReload}>
+        <Button kind="tertiary" onClick={onReset}>
           Reload
         </Button>
       </div>

@@ -160,12 +160,13 @@ class ElementMessageStream(MessageStream):
             state = self._context.export_state()
             self._send_document_update(node, state)
         except Exception as e:
-            logger.exception("Error rendering %s", self._element.name)
-            # Try and send the error to the client
-            # There's a possibility this will error out too, but we can't do much about that
+            # Send the error to the client for displaying to the user
+            # If there's an error sending it to the client, then it will be caught by the render exception handler
+            # and logged as an error message.
+            # Just log it as debug here.
             stack_trace = traceback.format_exc()
+            logging.debug("Error rendering document: %s %s", repr(e), stack_trace)
             self._send_document_error(e, stack_trace)
-            raise e
 
     def _process_callable_queue(self) -> None:
         """
@@ -197,7 +198,9 @@ class ElementMessageStream(MessageStream):
                     else:
                         self._render_state = _RenderState.IDLE
         except Exception as e:
+            # Something catastrophic happened, log it and close the connection
             logger.exception(e)
+            self._connection.on_close()
 
     def _mark_dirty(self) -> None:
         """

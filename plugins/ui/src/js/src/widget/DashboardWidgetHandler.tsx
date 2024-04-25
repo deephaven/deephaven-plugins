@@ -11,7 +11,7 @@ import WidgetHandler from './WidgetHandler';
 const log = Log.module('@deephaven/js-plugin-ui/DashboardWidgetHandler');
 
 export interface DashboardWidgetHandlerProps {
-  /** ID of this widget */
+  /** ID of this widget instance */
   id: WidgetId;
 
   /** Widget for this to handle */
@@ -28,12 +28,16 @@ export interface DashboardWidgetHandlerProps {
 
   /** Triggered when the data in the widget changes */
   onDataChange?: (widgetId: WidgetId, data: WidgetDataUpdate) => void;
+
+  /** Triggered when a widget should be reloaded */
+  onReset?: (widgetId: WidgetId) => void;
 }
 
 function DashboardWidgetHandler({
   id,
   onClose,
   onDataChange,
+  onReset,
   ...otherProps
 }: DashboardWidgetHandlerProps): JSX.Element {
   const handleClose = useCallback(() => {
@@ -49,10 +53,16 @@ function DashboardWidgetHandler({
     [onDataChange, id]
   );
 
+  const handleReset = useCallback(() => {
+    log.debug('handleReset', id);
+    onReset?.(id);
+  }, [onReset, id]);
+
   return (
     <WidgetHandler
       onDataChange={handleDataChange}
       onClose={handleClose}
+      onReset={handleReset}
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...otherProps}
     />

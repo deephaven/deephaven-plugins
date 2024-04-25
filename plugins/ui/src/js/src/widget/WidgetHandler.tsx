@@ -55,18 +55,22 @@ export interface WidgetHandlerProps {
 
   /** Triggered when the data in the widget changes. Only the changed data is provided. */
   onDataChange?: (data: WidgetDataUpdate) => void;
+
+  /** Triggered when a widget should be reloaded from a fresh state */
+  onReset?: () => void;
 }
 
 function WidgetHandler({
   onClose,
   onDataChange = EMPTY_FUNCTION,
+  onReset = EMPTY_FUNCTION,
   fetch,
   widget: descriptor,
   initialData: initialDataProp,
 }: WidgetHandlerProps): JSX.Element | null {
   const [widget, setWidget] = useState<dh.Widget>();
   const [document, setDocument] = useState<ReactNode>();
-  const [initialData, setInitialData] = useState(initialDataProp);
+  const [initialData] = useState(initialDataProp);
 
   // When we fetch a widget, the client is then responsible for the exported objects.
   // These objects could stay alive even after the widget is closed if we wanted to,
@@ -172,30 +176,34 @@ function WidgetHandler({
     []
   );
 
+  const sendSetState = useCallback(
+    (newState: Record<string, unknown> = {}) => {
+      if (jsonClient == null) {
+        return;
+      }
+      jsonClient.request('setState', [newState]).then(
+        result => {
+          log.debug('Set state result', result);
+        },
+        e => {
+          log.error('Error setting state: ', e);
+        }
+      );
+    },
+    [jsonClient]
+  );
+
   const setDocumentError = useCallback(
     (error: WidgetError) => {
       // When we get an error for the server, we want to display it to the user.
       // Display the error in a panel that the user can see.
       setDocument(
         <ReactPanel>
-          <WidgetErrorView
-            error={error}
-            onReload={() => {
-              // Reset the state in the initial data. This will cause the widget to reload.
-              jsonClient?.request('setState', [{}]).then(
-                result => {
-                  log.debug('Set state result', result);
-                },
-                e => {
-                  log.error('Error setting initial state: ', e);
-                }
-              );
-            }}
-          />
+          <WidgetErrorView error={error} onReload={() => sendSetState()} />
         </ReactPanel>
       );
     },
-    [jsonClient]
+    [sendSetState]
   );
 
   useEffect(
@@ -292,14 +300,7 @@ function WidgetHandler({
       receiveData(widget.getDataAsString(), widget.exportedObjects);
 
       // We set the initial state of the widget. We'll then get a documentUpdated as a response.
-      activeClient.request('setState', [initialData?.state ?? {}]).then(
-        result => {
-          log.debug('Set state result', result);
-        },
-        e => {
-          log.error('Error setting initial state: ', e);
-        }
-      );
+      sendSetState(initialData?.state);
 
       return () => {
         log.debug('Cleaning up widget', widget);
@@ -312,7 +313,7 @@ function WidgetHandler({
         });
       };
     },
-    [jsonClient, initialData, updateExportedObjects, widget]
+    [jsonClient, initialData, sendSetState, updateExportedObjects, widget]
   );
 
   useEffect(
