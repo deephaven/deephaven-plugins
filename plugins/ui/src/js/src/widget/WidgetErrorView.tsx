@@ -11,7 +11,7 @@ function WidgetErrorView({
   error: WidgetError;
   onReload: () => void;
 }): JSX.Element {
-  const displayMessage = `${error.message}\n\n${error.stack}`.trim();
+  const displayMessage = `${error.message}\n\n${error.stack ?? ''}`.trim();
   return (
     <div className="widget-error-view">
       <ErrorView message={displayMessage} type={error.type} />

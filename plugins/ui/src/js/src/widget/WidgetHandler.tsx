@@ -40,6 +40,20 @@ import WidgetErrorView from './WidgetErrorView';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
+type JSONError = {
+  message: string;
+  code: number;
+  data?: {
+    type: string;
+    message: string;
+    args: string[];
+  };
+};
+
+function isJSONError(e: unknown): e is JSONError {
+  return typeof e === 'object' && e !== null && 'message' in e && 'code' in e;
+}
+
 export interface WidgetHandlerProps {
   /** Widget for this to handle */
   widget: WidgetDescriptor;
@@ -90,6 +104,37 @@ function WidgetHandler({
         : null,
     [widget]
   );
+
+  const sendSetState = useCallback(
+    (newState: Record<string, unknown> = {}) => {
+      if (jsonClient == null) {
+        return;
+      }
+      jsonClient.request('setState', [newState]).then(
+        result => {
+          log.debug('Set state result', result);
+        },
+        e => {
+          log.error('Error setting state: ', e);
+        }
+      );
+    },
+    [jsonClient]
+  );
+
+  const setDocumentError = useCallback(
+    (error: WidgetError) => {
+      // When we get an error for the server, we want to display it to the user.
+      // Display the error in a panel that the user can see.
+      setDocument(
+        <ReactPanel>
+          <WidgetErrorView error={error} onReload={() => sendSetState()} />
+        </ReactPanel>
+      );
+    },
+    [sendSetState]
+  );
+
   const parseDocument = useCallback(
     /**
      * Parse the data from the server, replacing some of the nodes on the way.
@@ -112,7 +157,22 @@ function WidgetHandler({
           log.debug2('Registering callableId', callableId);
           return async (...args: unknown[]) => {
             log.debug('Callable called', callableId, ...args);
-            return jsonClient?.request(callableId, args);
+            try {
+              return await jsonClient?.request(callableId, args);
+            } catch (e) {
+              log.error('Error calling callable', callableId, e);
+              if (isJSONError(e)) {
+                setDocumentError({
+                  message: `${e.message}: ${e.data?.message}`,
+                  code: e.code,
+                });
+              } else {
+                setDocumentError({
+                  message: `Unknown Error: ${e}`,
+                  code: -1,
+                });
+              }
+            }
           };
         }
         if (isObjectNode(value)) {
@@ -157,7 +217,7 @@ function WidgetHandler({
       );
       return parsedData;
     },
-    [jsonClient]
+    [jsonClient, setDocumentError]
   );
 
   const updateExportedObjects = useCallback(
@@ -170,36 +230,6 @@ function WidgetHandler({
       }
     },
     []
-  );
-
-  const sendSetState = useCallback(
-    (newState: Record<string, unknown> = {}) => {
-      if (jsonClient == null) {
-        return;
-      }
-      jsonClient.request('setState', [newState]).then(
-        result => {
-          log.debug('Set state result', result);
-        },
-        e => {
-          log.error('Error setting state: ', e);
-        }
-      );
-    },
-    [jsonClient]
-  );
-
-  const setDocumentError = useCallback(
-    (error: WidgetError) => {
-      // When we get an error for the server, we want to display it to the user.
-      // Display the error in a panel that the user can see.
-      setDocument(
-        <ReactPanel>
-          <WidgetErrorView error={error} onReload={() => sendSetState()} />
-        </ReactPanel>
-      );
-    },
-    [sendSetState]
   );
 
   useEffect(
