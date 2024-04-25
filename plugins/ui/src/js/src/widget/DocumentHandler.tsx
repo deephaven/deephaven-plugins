@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import shortid from 'shortid';
 import { WidgetDescriptor } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
@@ -48,6 +54,7 @@ function DocumentHandler({
   log.debug('Rendering document', widget);
   const panelOpenCountRef = useRef(0);
   const panelIdIndex = useRef(0);
+  const isUpdating = useRef(false);
 
   // Using `useState` here to initialize the data only once.
   // We don't want to use `useMemo`, because we only want it to be initialized once with the `initialData` (uncontrolled)
@@ -85,7 +92,9 @@ function DocumentHandler({
         throw new Error('Panel open count is negative');
       }
       log.debug('Panel closed, open count', panelOpenCountRef.current);
-      if (panelOpenCountRef.current === 0) {
+      if (panelOpenCountRef.current === 0 && !isUpdating.current) {
+        // Only send the close if we're not currently in the middle of an update
+        // It's possible that we update and then open another panel
         onClose?.();
         return;
       }
@@ -115,6 +124,11 @@ function DocumentHandler({
     }),
     [widget, getPanelId, handleClose, handleOpen]
   );
+
+  isUpdating.current = true;
+  useEffect(() => {
+    isUpdating.current = false;
+  });
 
   return (
     <ReactPanelManagerContext.Provider value={panelManager}>
