@@ -3,18 +3,16 @@ from enum import Enum
 
 class ErrorCode(int, Enum):
     """
-    ServerErrorCode is a list of error codes that can be returned by the server. Values are based on the JSON-RPC 2.0
-    specification. See https://www.jsonrpc.org/specification#error_object for more information.
-    The range -32000 to -32099 are reserved for implementation-defined server-errors.
+    ErrorCode is a list of error codes that can be returned by the server.
     """
 
     # General errors
-    UNKNOWN = -32600
+    UNKNOWN = 0
     """
     An unknown error occurred on the server.
     """
 
-    RENDER_ERROR = -32601
+    DOCUMENT_ERROR = 1
     """
     There was an error when rendering the document.
     """

@@ -309,29 +309,6 @@ class ElementMessageStream(MessageStream):
             "id": self._get_next_message_id(),
         }
 
-    def _make_error(
-        self,
-        message: str,
-        code: ErrorCode = ErrorCode.UNKNOWN,
-        data: Any = None,
-    ) -> dict[str, Any]:
-        """
-        Make a JSON-RPC error message.
-
-        Args:
-            message: The short error message description
-            code: The error code
-            data: Additional data
-        """
-        return {
-            "jsonrpc": "2.0",
-            "error": {
-                "code": code,
-                "message": message,
-                "data": data,
-            },
-        }
-
     def _make_dispatcher(self) -> Dispatcher:
         dispatcher = Dispatcher()
         dispatcher["setState"] = self._set_state
@@ -388,6 +365,15 @@ class ElementMessageStream(MessageStream):
         Args:
             error: The error that occurred
         """
-        request = self._make_error(str(error), ErrorCode.RENDER_ERROR)
+        request = self._make_notification(
+            "documentError",
+            json.dumps(
+                {
+                    "message": str(error),
+                    "type": type(error).__name__,
+                    "code": ErrorCode.DOCUMENT_ERROR.value,
+                }
+            ),
+        )
         payload = json.dumps(request)
         self._connection.on_data(payload.encode(), [])

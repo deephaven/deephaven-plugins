@@ -30,3 +30,53 @@
     }
   }
 }
+
+.error-viewer {
+  position: relative;
+  textarea {
+    width: 100%;
+    color: $danger;
+    border-radius: $border-radius;
+    background-color: negative-opacity($exception-transparency);
+    padding: $spacer;
+    border: 0;
+    resize: none;
+    outline: none;
+    height: 100px;
+    transition: height $transition ease-in-out;
+    white-space: pre;
+    &.expanded {
+      height: 55vh;
+    }
+  }
+
+  .error-viewer-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 1px;
+    position: absolute;
+    bottom: $spacer-2;
+    right: $grid-gutter-width * 0.5;
+
+    .btn-danger {
+      color: $black;
+      opacity: 0.8;
+      padding: $spacer-1;
+      &:active {
+        color: $black;
+      }
+    }
+
+    .error-viewer-copy-button {
+      border-radius: 0;
+      min-width: 3rem;
+    }
+
+    .error-viewer-expand-button {
+      border-radius: 0 0 $border-radius 0;
+      svg {
+        margin-right: $spacer-1;
+      }
+    }
+  }
+}

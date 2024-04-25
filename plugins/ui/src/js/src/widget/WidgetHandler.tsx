@@ -14,10 +14,18 @@ import {
   JSONRPCServer,
   JSONRPCServerAndClient,
 } from 'json-rpc-2.0';
+import {
+  Content,
+  Heading,
+  Icon,
+  IllustratedMessage,
+} from '@deephaven/components';
 import { WidgetDescriptor } from '@deephaven/dashboard';
+import { vsWarning } from '@deephaven/icons';
 import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { EMPTY_FUNCTION } from '@deephaven/utils';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   CALLABLE_KEY,
   OBJECT_KEY,
@@ -32,7 +40,13 @@ import {
 } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
 import { getComponentForElement } from './WidgetUtils';
-import { parseServerErrorPayload } from './JSONRPCUtils';
+import {
+  ErrorNotificationPayload,
+  METHOD_DOCUMENT_ERROR,
+  METHOD_DOCUMENT_UPDATED,
+} from './JSONRPCUtils';
+import ReactPanel from '../layout/ReactPanel';
+import ErrorView from './ErrorView';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
@@ -53,12 +67,6 @@ export interface WidgetHandlerProps {
   onDataChange?: (data: WidgetDataUpdate) => void;
 }
 
-type JsonRPCError = {
-  code: number;
-  message: string;
-
-}
-
 function WidgetHandler({
   onClose,
   onDataChange = EMPTY_FUNCTION,
@@ -69,7 +77,6 @@ function WidgetHandler({
   const [widget, setWidget] = useState<dh.Widget>();
   const [document, setDocument] = useState<ReactNode>();
   const [initialData] = useState(initialDataProp);
-  const [error, setError] = useState<string>();
 
   // When we fetch a widget, the client is then responsible for the exported objects.
   // These objects could stay alive even after the widget is closed if we wanted to,
@@ -78,6 +85,26 @@ function WidgetHandler({
     new Map()
   );
   const exportedObjectCount = useRef(0);
+
+  const setDocumentError = useCallback(
+    (errorMessage: string, type?: string) => {
+      // When we get an error for the server, we want to display it to the user.
+      // Display the error in a panel that the user can see.
+      setDocument(
+        <ReactPanel>
+          <ErrorView message={errorMessage} type={type} />
+          {/* <IllustratedMessage>
+          <Icon size="XL">
+            <FontAwesomeIcon icon={vsWarning} />
+          </Icon>
+          <Heading>Error</Heading>
+          <Content>{errorMessage}</Content>
+        </IllustratedMessage> */}
+        </ReactPanel>
+      );
+    },
+    []
+  );
 
   // Bi-directional communication as defined in https://www.npmjs.com/package/json-rpc-2.0
   const jsonClient = useMemo(
@@ -88,18 +115,7 @@ function WidgetHandler({
             new JSONRPCClient(request => {
               log.debug('Sending request', request);
               widget.sendMessage(JSON.stringify(request), []);
-            }),
-            {
-              /**
-               * 
-               * @param message It just says an invalid JSON-RPC response was received
-               * @param payload The payload of the error message. This is the JSON-RPC response that was received.
-               */
-              errorListener: (message, payload) => {
-                log.warn('JSONRPCServer/Client error', message, payload);
-                setError(parseServerErrorPayload(payload));
-              },
-            }
+            })
           )
         : null,
     [widget]
@@ -194,9 +210,9 @@ function WidgetHandler({
 
       log.debug('Adding methods to jsonClient');
       jsonClient.addMethod(
-        'documentUpdated',
+        METHOD_DOCUMENT_UPDATED,
         async (params: [string, string]) => {
-          log.debug2('documentUpdated', params);
+          log.debug2(METHOD_DOCUMENT_UPDATED, params);
           const [documentParam, stateParam] = params;
           const newDocument = parseDocument(documentParam);
           setDocument(newDocument);
@@ -214,11 +230,17 @@ function WidgetHandler({
         }
       );
 
+      jsonClient.addMethod(METHOD_DOCUMENT_ERROR, (params: [string]) => {
+        log.error('Document error', params);
+        const error: ErrorNotificationPayload = JSON.parse(params[0]);
+        setDocumentError(error.message, error.type);
+      });
+
       return () => {
         jsonClient.rejectAllPendingRequests('Widget was changed');
       };
     },
-    [jsonClient, onDataChange, parseDocument]
+    [jsonClient, onDataChange, parseDocument, setDocumentError]
   );
 
   /**
@@ -294,7 +316,7 @@ function WidgetHandler({
         });
       };
     },
-    [jsonClient, initialData, parseDocument, updateExportedObjects, widget]
+    [jsonClient, initialData, updateExportedObjects, widget]
   );
 
   useEffect(
@@ -323,9 +345,6 @@ function WidgetHandler({
     },
     [fetch, descriptor]
   );
-
-  // TODO: If there's an error, we should display it in a panel to the user
-  // Some sort of DocumentErrorHandler? Just displays an error message in all known `panelIds`, or opens a new `panelId`?
 
   return useMemo(
     () =>
