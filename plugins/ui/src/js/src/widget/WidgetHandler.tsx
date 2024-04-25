@@ -40,20 +40,6 @@ import WidgetErrorView from './WidgetErrorView';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
-type JSONError = {
-  message: string;
-  code: number;
-  data?: {
-    type: string;
-    message: string;
-    args: string[];
-  };
-};
-
-function isJSONError(e: unknown): e is JSONError {
-  return typeof e === 'object' && e !== null && 'message' in e && 'code' in e;
-}
-
 export interface WidgetHandlerProps {
   /** Widget for this to handle */
   widget: WidgetDescriptor;
@@ -157,22 +143,7 @@ function WidgetHandler({
           log.debug2('Registering callableId', callableId);
           return async (...args: unknown[]) => {
             log.debug('Callable called', callableId, ...args);
-            try {
-              return await jsonClient?.request(callableId, args);
-            } catch (e) {
-              log.error('Error calling callable', callableId, e);
-              if (isJSONError(e)) {
-                setDocumentError({
-                  message: `${e.message}: ${e.data?.message}`,
-                  code: e.code,
-                });
-              } else {
-                setDocumentError({
-                  message: `Unknown Error: ${e}`,
-                  code: -1,
-                });
-              }
-            }
+            return jsonClient?.request(callableId, args);
           };
         }
         if (isObjectNode(value)) {
@@ -217,7 +188,7 @@ function WidgetHandler({
       );
       return parsedData;
     },
-    [jsonClient, setDocumentError]
+    [jsonClient]
   );
 
   const updateExportedObjects = useCallback(
