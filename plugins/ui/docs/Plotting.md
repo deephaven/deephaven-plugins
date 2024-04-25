@@ -75,6 +75,7 @@ import deephaven.ui as ui
 
 _stocks = dx.data.stocks()
 
+
 @ui.component
 def partition_then_filter(table, by, initial_value):
     """
