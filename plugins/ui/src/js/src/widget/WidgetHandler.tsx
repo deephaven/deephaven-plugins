@@ -55,15 +55,11 @@ export interface WidgetHandlerProps {
 
   /** Triggered when the data in the widget changes. Only the changed data is provided. */
   onDataChange?: (data: WidgetDataUpdate) => void;
-
-  /** Triggered when a widget should be reloaded from a fresh state */
-  onReset?: () => void;
 }
 
 function WidgetHandler({
   onClose,
   onDataChange = EMPTY_FUNCTION,
-  onReset = EMPTY_FUNCTION,
   fetch,
   widget: descriptor,
   initialData: initialDataProp,

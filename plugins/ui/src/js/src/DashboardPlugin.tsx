@@ -65,9 +65,6 @@ interface WidgetWrapper {
 
   /** Data for the widget */
   data?: ReadonlyWidgetData;
-
-  /** When we reload the widget, we increase the iteration to use as a new key, rendering the widget fresh */
-  iteration?: number;
 }
 
 export function DashboardPlugin(
@@ -224,28 +221,6 @@ export function DashboardPlugin(
     });
   }, []);
 
-  const handleWidgetReset = useCallback((widgetId: string) => {
-    log.info('handleWidgetReset', widgetId);
-    setWidgetMap(prevWidgetMap => {
-      const newWidgetMap = new Map(prevWidgetMap);
-      const widget = newWidgetMap.get(widgetId);
-      if (widget == null) {
-        throw new Error(`Widget not found: ${widgetId}`);
-      }
-
-      // We want to re-render the widget from a fresh state
-      // We do that by removing the data and increasing the iteration of the widget
-      // Don't just use a new widgetId because that may have been provided when opening the
-      // widget (e.g. from the Console) and should remain stable.
-      newWidgetMap.set(widgetId, {
-        ...widget,
-        iteration: (widget.iteration ?? 0) + 1,
-        data: undefined,
-      });
-      return newWidgetMap;
-    });
-  }, []);
-
   useDashboardPanel({
     dashboardProps: props,
     componentName: PortalPanel.displayName,
@@ -326,19 +301,11 @@ export function DashboardPlugin(
               fetch={wrapper.fetch}
               onDataChange={handleWidgetDataChange}
               onClose={handleWidgetClose}
-              onReset={handleWidgetReset}
-              key={wrapper.iteration ?? 0}
             />
           </DeferredApiBootstrap>
         </ErrorBoundary>
       )),
-    [
-      handleWidgetClose,
-      handleWidgetDataChange,
-      handleWidgetReset,
-      widgetMap,
-      id,
-    ]
+    [handleWidgetClose, handleWidgetDataChange, widgetMap, id]
   );
 
   return (
