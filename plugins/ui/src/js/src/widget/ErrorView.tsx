@@ -11,6 +11,7 @@ export type ErrorViewerProps = {
 
 /**
  * Component that displays an error message in a textarea so user can scroll and a copy button.
+ * TODO: Use the one from @deephaven/components when it's merged: https://github.com/deephaven/web-client-ui/pull/1965
  */
 function ErrorView({ message, type = 'Error' }: ErrorViewerProps): JSX.Element {
   const [isExpanded, setIsExpanded] = useState(false);

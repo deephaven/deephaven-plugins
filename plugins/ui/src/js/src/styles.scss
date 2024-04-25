@@ -46,6 +46,7 @@
   }
 }
 
+// TODO: Remove once using the @deephaven/components ErrorView: https://github.com/deephaven/web-client-ui/pull/1965
 .error-view {
   position: relative;
   color: $danger;
