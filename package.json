@@ -22,10 +22,10 @@
     "update-dh-packages": "lerna run --concurrency 1 update-dh-packages"
   },
   "devDependencies": {
-    "@deephaven/babel-preset": "^0.74.0",
-    "@deephaven/eslint-config": "^0.74.0",
-    "@deephaven/prettier-config": "^0.74.0",
-    "@deephaven/tsconfig": "^0.74.0",
+    "@deephaven/babel-preset": "^0.72.0",
+    "@deephaven/eslint-config": "^0.72.0",
+    "@deephaven/prettier-config": "^0.72.0",
+    "@deephaven/tsconfig": "^0.72.0",
     "@playwright/test": "^1.41.2",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^12.1.3",
