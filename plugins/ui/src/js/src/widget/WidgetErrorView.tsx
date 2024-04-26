@@ -14,7 +14,9 @@ function WidgetErrorView({
   const displayMessage = `${error.message}\n\n${error.stack ?? ''}`.trim();
   return (
     <div className="widget-error-view">
-      <ErrorView message={displayMessage} type={error.type} />
+      <div className="widget-error-view-content">
+        <ErrorView message={displayMessage} type={error.type} isExpanded />
+      </div>
       <div className="widget-error-view-footer">
         <Button kind="tertiary" onClick={onReset}>
           Reload
