@@ -52,9 +52,14 @@ function DocumentHandler({
   onClose,
 }: DocumentHandlerProps): JSX.Element {
   log.debug('Rendering document', widget);
+  // We want to know if we're in the middle of an update, so we don't send a close event if we're in the middle of an update
+  // We set this as the first thing of this function, then set it to false at the end in a `useEffect` so it gets set after everything else
+  // is done in the render cycle.
+  const isUpdating = useRef(true);
+  isUpdating.current = true;
+
   const panelOpenCountRef = useRef(0);
   const panelIdIndex = useRef(0);
-  const isUpdating = useRef(false);
 
   // Using `useState` here to initialize the data only once.
   // We don't want to use `useMemo`, because we only want it to be initialized once with the `initialData` (uncontrolled)
@@ -125,8 +130,8 @@ function DocumentHandler({
     [widget, getPanelId, handleClose, handleOpen]
   );
 
-  isUpdating.current = true;
   useEffect(() => {
+    // Reset the updating flag after everything else is done
     isUpdating.current = false;
   });
 

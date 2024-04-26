@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from '@deephaven/components';
+import { vsRefresh } from '@deephaven/icons';
 import ErrorView from './ErrorView';
 import { WidgetError } from './WidgetTypes';
 
@@ -11,14 +12,16 @@ function WidgetErrorView({
   error: WidgetError;
   onReload: () => void;
 }): JSX.Element {
-  const displayMessage = `${error.message}\n\n${error.stack ?? ''}`.trim();
+  const displayMessage = `${error.message.trim()}\n\n${
+    error.stack ?? ''
+  }`.trim();
   return (
     <div className="widget-error-view">
       <div className="widget-error-view-content">
         <ErrorView message={displayMessage} type={error.type} isExpanded />
       </div>
       <div className="widget-error-view-footer">
-        <Button kind="tertiary" onClick={onReset}>
+        <Button kind="tertiary" icon={vsRefresh} onClick={onReset}>
           Reload
         </Button>
       </div>

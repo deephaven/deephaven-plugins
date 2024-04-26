@@ -163,7 +163,7 @@ class ElementMessageStream(MessageStream):
             # Send the error to the client for displaying to the user
             # If there's an error sending it to the client, then it will be caught by the render exception handler
             # and logged as an error message.
-            # Just log it as debug here.
+            # Just log it as debug here so we don't show it in the console and in the error panel.
             stack_trace = traceback.format_exc()
             logging.debug("Error rendering document: %s %s", repr(e), stack_trace)
             self._send_document_error(e, stack_trace)
@@ -199,6 +199,8 @@ class ElementMessageStream(MessageStream):
                         self._render_state = _RenderState.IDLE
         except Exception as e:
             # Something catastrophic happened, log it and close the connection
+            # We're just being safe to make sure there is an error logged if something unexpected does occur,
+            # as `submit_task` does not log any uncaught exceptions currently: https://github.com/deephaven/deephaven-core/issues/5192
             logger.exception(e)
             self._connection.on_close()
 
@@ -369,6 +371,7 @@ class ElementMessageStream(MessageStream):
 
         Args:
             error: The error that occurred
+            stack_trace: The stack trace of the error
         """
         request = self._make_notification(
             "documentError",

@@ -94,7 +94,7 @@ export function DashboardPlugin(
       widgetId: string;
       widget: WidgetDescriptor;
     }) => {
-      log.info('Opening widget with ID', widgetId, widget);
+      log.debug('Opening widget with ID', widgetId, widget);
       setWidgetMap(prevWidgetMap => {
         const newWidgetMap = new Map(prevWidgetMap);
         const oldWidget = newWidgetMap.get(widgetId);
@@ -213,7 +213,7 @@ export function DashboardPlugin(
   );
 
   const handleWidgetClose = useCallback((widgetId: string) => {
-    log.info('handleWidgetClose', widgetId);
+    log.debug('handleWidgetClose', widgetId);
     setWidgetMap(prevWidgetMap => {
       const newWidgetMap = new Map(prevWidgetMap);
       newWidgetMap.delete(widgetId);

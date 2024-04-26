@@ -66,6 +66,7 @@ function WidgetHandler({
 }: WidgetHandlerProps): JSX.Element | null {
   const [widget, setWidget] = useState<dh.Widget>();
   const [document, setDocument] = useState<ReactNode>();
+  const [error, setError] = useState<WidgetError>();
   const [initialData] = useState(initialDataProp);
 
   // When we fetch a widget, the client is then responsible for the exported objects.
@@ -102,23 +103,11 @@ function WidgetHandler({
         },
         e => {
           log.error('Error setting state: ', e);
+          setError(e);
         }
       );
     },
     [jsonClient]
-  );
-
-  const setDocumentError = useCallback(
-    (error: WidgetError) => {
-      // When we get an error for the server, we want to display it to the user.
-      // Display the error in a panel that the user can see.
-      setDocument(
-        <ReactPanel>
-          <WidgetErrorView error={error} onReload={() => sendSetState()} />
-        </ReactPanel>
-      );
-    },
-    [sendSetState]
   );
 
   const parseDocument = useCallback(
@@ -216,6 +205,7 @@ function WidgetHandler({
           log.debug2(METHOD_DOCUMENT_UPDATED, params);
           const [documentParam, stateParam] = params;
           const newDocument = parseDocument(documentParam);
+          setError(undefined);
           setDocument(newDocument);
           if (stateParam != null) {
             try {
@@ -233,15 +223,15 @@ function WidgetHandler({
 
       jsonClient.addMethod(METHOD_DOCUMENT_ERROR, (params: [string]) => {
         log.error('Document error', params);
-        const error: WidgetError = JSON.parse(params[0]);
-        setDocumentError(error);
+        const newError: WidgetError = JSON.parse(params[0]);
+        setError(newError);
       });
 
       return () => {
         jsonClient.rejectAllPendingRequests('Widget was changed');
       };
     },
-    [jsonClient, onDataChange, parseDocument, setDocumentError]
+    [jsonClient, onDataChange, parseDocument]
   );
 
   /**
@@ -272,9 +262,7 @@ function WidgetHandler({
           try {
             await activeClient.receiveAndSend(JSON.parse(data));
           } catch (e) {
-            // We already have an `errorListener` registered when declaring the JSONRPCServerAndClient,
-            // and that contains more information than this error does, so just use that.
-            log.debug('Error receiving data', e);
+            log.error('Error receiving data', e);
           }
         }
       }
@@ -340,19 +328,31 @@ function WidgetHandler({
     [fetch, descriptor]
   );
 
+  const renderedDocument = useMemo(
+    () =>
+      error != null ? (
+        <ReactPanel>
+          <WidgetErrorView error={error} onReload={() => sendSetState()} />
+        </ReactPanel>
+      ) : (
+        document
+      ),
+    [document, error, sendSetState]
+  );
+
   return useMemo(
     () =>
-      document != null ? (
+      renderedDocument != null ? (
         <DocumentHandler
           widget={descriptor}
           initialData={initialData}
           onDataChange={onDataChange}
           onClose={onClose}
         >
-          {document}
+          {renderedDocument}
         </DocumentHandler>
       ) : null,
-    [document, descriptor, initialData, onClose, onDataChange]
+    [renderedDocument, descriptor, initialData, onClose, onDataChange]
   );
 }
 

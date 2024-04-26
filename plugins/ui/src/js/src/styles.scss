@@ -57,7 +57,7 @@
 // TODO: Remove once using the @deephaven/components ErrorView: https://github.com/deephaven/web-client-ui/pull/1965
 .ui-error-view {
   position: relative;
-  color: $danger;
+  color: var(--dh-color-negative-bg);
   border-radius: $border-radius;
   background-color: negative-opacity($exception-transparency);
   display: flex;
@@ -133,7 +133,7 @@
     width: 100%;
     padding: $spacer;
     margin-bottom: 0;
-    color: $danger;
+    color: var(--dh-color-negative-bg);
     background-color: transparent;
     border: 0;
     resize: none;
