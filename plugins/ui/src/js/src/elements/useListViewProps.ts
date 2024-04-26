@@ -1,31 +1,27 @@
-import {
-  SerializedFocusEventCallback,
-  useFocusEventCallback,
-} from './spectrum/useFocusEventCallback';
-import {
-  SerializedKeyboardEventCallback,
-  useKeyboardEventCallback,
-} from './spectrum/useKeyboardEventCallback';
+import { ReactElement } from 'react';
+import type { SelectionMode } from '@react-types/shared';
+import { ListViewProps as DHListViewProps } from '@deephaven/components';
+import { ListViewProps as DHListViewJSApiProps } from '@deephaven/jsapi-components';
+import { ObjectViewProps } from './ObjectView';
 import {
   SerializedSelectionEventCallback,
   useSelectionEventCallback,
 } from './spectrum/useSelectionEventCallback';
 
+type WrappedDHListViewJSApiProps = Omit<DHListViewJSApiProps, 'table'> & {
+  children: ReactElement<ObjectViewProps>;
+};
+
+type WrappedDHListViewProps = Omit<DHListViewProps, 'selectionMode'> & {
+  // The dh UI spec specifies that selectionMode should be uppercase, but the
+  // Spectrum prop is lowercase. We'll accept either to keep things more
+  // flexible.
+  selectionMode?: SelectionMode | Uppercase<SelectionMode>;
+};
+
 export interface SerializedListViewEventProps {
   /** Handler that is called when selection changes */
   onChange?: SerializedSelectionEventCallback;
-
-  /** Handler that is called when the element receives focus. */
-  onFocus?: SerializedFocusEventCallback;
-
-  /** Handler that is called when the element loses focus. */
-  onBlur?: SerializedFocusEventCallback;
-
-  /** Handler that is called when a key is pressed */
-  onKeyDown?: SerializedKeyboardEventCallback;
-
-  /** Handler that is called when a key is released */
-  onKeyUp?: SerializedKeyboardEventCallback;
 
   /**
    * Handler that is called when the selection changes.
@@ -34,35 +30,32 @@ export interface SerializedListViewEventProps {
   onSelectionChange?: SerializedSelectionEventCallback;
 }
 
+export type SerializedListViewProps = (
+  | WrappedDHListViewProps
+  | WrappedDHListViewJSApiProps
+) &
+  SerializedListViewEventProps;
+
 /**
  * Wrap ListView props with the appropriate serialized event callbacks.
  * @param props Props to wrap
  * @returns Wrapped props
  */
-export function useListViewProps<T>(props: SerializedListViewEventProps & T) {
-  const {
-    onFocus,
-    onBlur,
-    onKeyDown,
-    onKeyUp,
-    onChange,
-    onSelectionChange,
-    ...otherProps
-  } = props;
+export function useListViewProps({
+  selectionMode,
+  onChange,
+  onSelectionChange,
+  ...otherProps
+}: SerializedListViewProps): DHListViewProps | WrappedDHListViewJSApiProps {
+  const selectionModeLc = (selectionMode?.toLowerCase() ??
+    'none') as SelectionMode;
 
   const serializedOnChange = useSelectionEventCallback(onChange);
-  const serializedOnFocus = useFocusEventCallback(onFocus);
-  const serializedOnBlur = useFocusEventCallback(onBlur);
-  const serializedOnKeyDown = useKeyboardEventCallback(onKeyDown);
-  const serializedOnKeyUp = useKeyboardEventCallback(onKeyUp);
   const serializedOnSelectionChange =
     useSelectionEventCallback(onSelectionChange);
 
   return {
-    onFocus: serializedOnFocus,
-    onBlur: serializedOnBlur,
-    onKeyDown: serializedOnKeyDown,
-    onKeyUp: serializedOnKeyUp,
+    selectionMode: selectionModeLc,
     onChange: serializedOnChange,
     onSelectionChange: serializedOnSelectionChange,
     // The @deephaven/components `ListView` has its own normalization logic that

@@ -32,7 +32,7 @@ export function serializeSelectionEvent(
  */
 export function useSelectionEventCallback(
   callback?: SerializedSelectionEventCallback
-) {
+): (selection: ItemSelection) => void {
   return useCallback(
     (selection: ItemSelection) => {
       callback?.(serializeSelectionEvent(selection));
