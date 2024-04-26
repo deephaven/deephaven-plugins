@@ -79,7 +79,7 @@ _stocks = dx.data.stocks()
 @ui.component
 def partition_then_filter(table, by, initial_value):
     """
-    Parition the table by both passed columns, then filter it by the value entered by the user
+    Partition the table by both passed columns, then filter it by the value entered by the user
     """
     text, set_text = ui.use_state(initial_value)
     partitioned_table = ui.use_memo(lambda: table.partition_by(by), [table, by])
