@@ -139,6 +139,6 @@ Date = Union[
     ZonedDateTimeConvertible,
 ]
 Granularity = Literal["DAY", "HOUR", "MINUTE", "SECOND"]
-
+Density = Literal["COMPACT", "NORMAL", "SPACIOUS"]
 Dependencies = Union[Tuple[Any], List[Any]]
 Selection = Sequence[Key]

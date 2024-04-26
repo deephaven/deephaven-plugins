@@ -8,14 +8,20 @@ import {
   useSelectionEventCallback,
 } from './spectrum/useSelectionEventCallback';
 
+type Density = Required<DHListViewProps>['density'];
+
 type WrappedDHListViewJSApiProps = Omit<DHListViewJSApiProps, 'table'> & {
   children: ReactElement<ObjectViewProps>;
 };
 
-type WrappedDHListViewProps = Omit<DHListViewProps, 'selectionMode'> & {
-  // The dh UI spec specifies that selectionMode should be uppercase, but the
-  // Spectrum prop is lowercase. We'll accept either to keep things more
-  // flexible.
+type WrappedDHListViewProps = Omit<
+  DHListViewProps,
+  'density' | 'selectionMode'
+> & {
+  // The dh UI spec specifies that density and selectionMode should be uppercase,
+  // but the Spectrum props are lowercase. We'll accept either to keep things
+  // more flexible.
+  density?: Density | Uppercase<Density>;
   selectionMode?: SelectionMode | Uppercase<SelectionMode>;
 };
 
@@ -42,19 +48,21 @@ export type SerializedListViewProps = (
  * @returns Wrapped props
  */
 export function useListViewProps({
+  density,
   selectionMode,
   onChange,
   onSelectionChange,
   ...otherProps
 }: SerializedListViewProps): DHListViewProps | WrappedDHListViewJSApiProps {
-  const selectionModeLc = (selectionMode?.toLowerCase() ??
-    'none') as SelectionMode;
+  const densityLc = density?.toLowerCase() as Density;
+  const selectionModeLc = selectionMode?.toLowerCase() as SelectionMode;
 
   const serializedOnChange = useSelectionEventCallback(onChange);
   const serializedOnSelectionChange =
     useSelectionEventCallback(onSelectionChange);
 
   return {
+    density: densityLc,
     selectionMode: selectionModeLc,
     onChange: serializedOnChange,
     onSelectionChange: serializedOnSelectionChange,
