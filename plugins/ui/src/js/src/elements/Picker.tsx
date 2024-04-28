@@ -1,4 +1,5 @@
 import React, { ReactElement } from 'react';
+import { useSelector } from 'react-redux';
 import {
   Picker as DHPicker,
   PickerProps as DHPickerProps,
@@ -9,6 +10,7 @@ import {
   useTableClose,
 } from '@deephaven/jsapi-components';
 import { isElementOfType, usePromiseFactory } from '@deephaven/react-hooks';
+import { getSettings, RootState } from '@deephaven/redux';
 import { SerializedPickerEventProps, usePickerProps } from './usePickerProps';
 import ObjectView, { ObjectViewProps } from './ObjectView';
 import { fetchReexportedTable } from './ElementUtils';
@@ -20,7 +22,8 @@ type WrappedDHPickerJSApiProps = Omit<DHPickerJSApiProps, 'table'> & {
 export type PickerProps = (DHPickerProps | WrappedDHPickerJSApiProps) &
   SerializedPickerEventProps;
 
-function Picker({ children, ...props }: PickerProps) {
+function Picker({ children, ...props }: PickerProps): JSX.Element {
+  const settings = useSelector(getSettings<RootState>);
   const pickerProps = usePickerProps(props);
 
   const isObjectView = isElementOfType(children, ObjectView);
@@ -37,8 +40,12 @@ function Picker({ children, ...props }: PickerProps) {
   useTableClose(table);
 
   if (isObjectView) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    return table && <DHPickerJSApi {...pickerProps} table={table} />;
+    return (
+      table && (
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <DHPickerJSApi {...pickerProps} table={table} settings={settings} />
+      )
+    );
   }
 
   // eslint-disable-next-line react/jsx-props-no-spreading

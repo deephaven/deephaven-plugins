@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text } from '@adobe/react-spectrum';
+import { Text } from '@deephaven/components';
 import type { dh } from '@deephaven/jsapi-types';
 import { ITEM_ELEMENT_NAME } from './ElementConstants';
 import ObjectView from './ObjectView';
@@ -25,7 +25,7 @@ export type ObjectNode = {
  */
 export type ElementNode<
   K extends string = string,
-  P extends Record<string, unknown> = Record<string, unknown>
+  P extends Record<string, unknown> = Record<string, unknown>,
 > = {
   /**
    * The type of this element. Can be something like `deephaven.ui.components.Panel`, or
@@ -37,7 +37,7 @@ export type ElementNode<
 
 export type ElementNodeWithChildren<
   K extends string = string,
-  P extends Record<string, unknown> = Record<string, unknown>
+  P extends Record<string, unknown> = Record<string, unknown>,
 > = ElementNode<K, P> & {
   props: React.PropsWithChildren<P>;
 };

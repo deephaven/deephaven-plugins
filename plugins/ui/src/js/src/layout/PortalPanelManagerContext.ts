@@ -7,7 +7,7 @@ export type PortalPanelMap = ReadonlyMap<string, HTMLElement>;
 export const PortalPanelManagerContext =
   React.createContext<PortalPanelMap | null>(null);
 
-export function usePortalPanelManager() {
+export function usePortalPanelManager(): PortalPanelMap {
   return useContextOrThrow(PortalPanelManagerContext, 'PortalPanelManager');
 }
 

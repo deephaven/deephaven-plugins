@@ -1,11 +1,14 @@
 import React, { useCallback } from 'react';
-import { Form as SpectrumForm, SpectrumFormProps } from '@adobe/react-spectrum';
+import {
+  Form as DHCForm,
+  FormProps as DHCFormProps,
+} from '@deephaven/components';
 
 function Form(
-  props: SpectrumFormProps & {
+  props: DHCFormProps & {
     onSubmit?: (data: { [key: string]: FormDataEntryValue }) => void;
   }
-) {
+): JSX.Element {
   const { onSubmit: propOnSubmit, ...otherProps } = props;
 
   const onSubmit = useCallback(
@@ -22,7 +25,7 @@ function Form(
 
   return (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <SpectrumForm onSubmit={onSubmit} {...otherProps} />
+    <DHCForm onSubmit={onSubmit} {...otherProps} />
   );
 }
 

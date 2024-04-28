@@ -44,7 +44,7 @@ function DocumentHandler({
   initialData: data = EMPTY_OBJECT,
   onDataChange = EMPTY_FUNCTION,
   onClose,
-}: DocumentHandlerProps) {
+}: DocumentHandlerProps): JSX.Element {
   log.debug('Rendering document', widget);
   const panelOpenCountRef = useRef(0);
   const panelIdIndex = useRef(0);

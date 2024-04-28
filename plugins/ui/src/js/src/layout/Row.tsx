@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo } from 'react';
 import { useLayoutManager } from '@deephaven/dashboard';
 import type { RowOrColumn } from '@deephaven/golden-layout';
+import { Flex } from '@deephaven/components';
 import { normalizeRowChildren, type RowElementProps } from './LayoutUtils';
 import { ParentItemContext, useParentItem } from './ParentItemContext';
 import { usePanelId } from './ReactPanelContext';
-import { Flex } from '../elements/spectrum';
 
 function LayoutRow({ children, height }: RowElementProps): JSX.Element | null {
   const layoutManager = useLayoutManager();

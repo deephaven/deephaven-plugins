@@ -43,7 +43,10 @@ export type SerializedButtonEventProps = {
   onKeyUp?: SerializedKeyboardEventCallback;
 };
 
-export function useButtonProps<T>(props: SerializedButtonEventProps & T) {
+// returns SpectrumButtonProps
+export function useButtonProps<T>(
+  props: SerializedButtonEventProps & T
+): T & SerializedButtonEventProps {
   const {
     onPress: propOnPress,
     onPressStart: propsOnPressStart,
@@ -75,5 +78,5 @@ export function useButtonProps<T>(props: SerializedButtonEventProps & T) {
     onKeyDown,
     onKeyUp,
     ...mapSpectrumProps(otherProps),
-  };
+  } as T & SerializedButtonEventProps;
 }

@@ -2,6 +2,35 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.13.1 - 2024-04-22
+#### Bug Fixes
+- toggle_button was not passing through `on_change` (#427) - (d452a00) - mofojed
+
+- - -
+
+## ui-v0.13.0 - 2024-04-18
+#### Bug Fixes
+- Fix conditional use_effect in use_table_listener (#422) - (5f4f238) - Joe
+- add on_change to toggle_button (#426) - (6ead733) - Joe
+- buttons not working due to extra prop (#423) - (b10f67c) - Don
+#### Features
+- python date picker implementation (#409) - (5ed66a7) - Joe
+
+- - -
+
+## ui-v0.12.0 - 2024-04-17
+#### Documentation
+- Combo box spec (#392) - (da1076a) - Joe
+- toggle button (#402) - (702ad2a) - ethanalvizo
+- date picker spec (#388) - (e1a135d) - Joe
+#### Features
+- improve default dh.ui layouts (#411) - (67f82e3) - Don
+- Picker - format settings (#394) - (f9a0e34) - bmingles
+#### Tests
+- bump ts, eslint and prettier configs (#416) - (a4761cc) - Don
+
+- - -
+
 ## ui-v0.11.0 - 2024-04-03
 #### Bug Fixes
 - Re-opening widgets after re-hydrated (#379) - (42242a5) - mofojed

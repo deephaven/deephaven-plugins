@@ -1,14 +1,14 @@
 import React from 'react';
 import {
-  TabPanels as SpectrumTabPanels,
-  SpectrumTabPanelsProps,
-} from '@adobe/react-spectrum';
+  TabPanels as DHCTabPanels,
+  TabPanelsProps as DHCTabPanelsProps,
+} from '@deephaven/components';
 
-function TabPanels(props: SpectrumTabPanelsProps<React.ReactNode>) {
+function TabPanels(props: DHCTabPanelsProps<React.ReactNode>): JSX.Element {
   const { UNSAFE_style: unsafeStyle, ...otherProps } = props;
 
   return (
-    <SpectrumTabPanels
+    <DHCTabPanels
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...otherProps}
       UNSAFE_style={{ display: 'flex', ...unsafeStyle }}

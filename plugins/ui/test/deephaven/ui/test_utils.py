@@ -217,6 +217,50 @@ class UtilsTest(BaseTestCase):
         # Test that wrapping a function without a signature doesn't throw an error
         wrapped = wrap_callable(print)
 
+    def test_create_props(self):
+        from deephaven.ui._internal.utils import create_props
+
+        children1, props1 = create_props(
+            {
+                "foo": "bar",
+                "baz": 42,
+                "fizz": "buzz",
+            }
+        )
+
+        self.assertEqual(children1, tuple())
+        self.assertDictEqual(
+            props1,
+            {
+                "foo": "bar",
+                "baz": 42,
+                "fizz": "buzz",
+            },
+        )
+
+        children2, props2 = create_props(
+            {
+                "children": ["item1", "item2"],
+                "test": "value",
+                "props": {
+                    "foo": "bar",
+                    "baz": 42,
+                    "fizz": "buzz",
+                },
+            }
+        )
+
+        self.assertEqual(children2, ["item1", "item2"])
+        self.assertDictEqual(
+            props2,
+            {
+                "foo": "bar",
+                "baz": 42,
+                "fizz": "buzz",
+                "test": "value",
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,15 +1,15 @@
 import React, { useCallback, useState } from 'react';
 import {
-  RangeSlider as SpectrumRangeSlider,
-  SpectrumRangeSliderProps,
-} from '@adobe/react-spectrum';
+  RangeSlider as DHCRangeSlider,
+  RangeSliderProps as DHCRangeSliderProps,
+} from '@deephaven/components';
 import { useDebouncedCallback } from '@deephaven/react-hooks';
 
 const VALUE_CHANGE_DEBOUNCE = 250;
 
 const EMPTY_FUNCTION = () => undefined;
 
-function RangeSlider(props: SpectrumRangeSliderProps) {
+function RangeSlider(props: DHCRangeSliderProps): JSX.Element {
   const {
     defaultValue = { start: 0, end: 0 },
     value: propValue,
@@ -34,7 +34,7 @@ function RangeSlider(props: SpectrumRangeSliderProps) {
 
   return (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <SpectrumRangeSlider value={value} onChange={onChange} {...otherProps} />
+    <DHCRangeSlider value={value} onChange={onChange} {...otherProps} />
   );
 }
 

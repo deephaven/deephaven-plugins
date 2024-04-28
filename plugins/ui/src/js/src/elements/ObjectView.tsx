@@ -6,7 +6,7 @@ import type { dh } from '@deephaven/jsapi-types';
 const log = Log.module('@deephaven/js-plugin-ui/ObjectView');
 
 export type ObjectViewProps = { object: dh.WidgetExportedObject };
-function ObjectView(props: ObjectViewProps) {
+function ObjectView(props: ObjectViewProps): JSX.Element {
   const { object } = props;
   log.info('Object is', object);
   const { type } = object;
