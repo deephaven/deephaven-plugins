@@ -39,6 +39,26 @@ class RowDataValue(CellData):
     """
 
 
+class SliderChange(TypedDict):
+    """
+    Data for a range slider change event.
+    { start: float, end: float }
+    """
+
+    start: float
+    """
+    Minimum value of the range slider.
+    """
+
+    end: float
+    """
+    Maximum value of the range slider.
+    """
+
+
+SliderChangeCallable = Callable[[SliderChange], None]
+
+
 ColumnIndex = int
 """
 Index of a column in a table.

@@ -8,4 +8,4 @@ TextFieldInputMode = Literal[
     "none", "text", "decimal", "numeric", "tel", "search", "email", "url"
 ]
 TextFieldValidationState = Literal["valid", "invalid"]
-TextFieldNecessityIndicator = Literal["icon", "label"]
+NecessityIndicator = Literal["icon", "label"]

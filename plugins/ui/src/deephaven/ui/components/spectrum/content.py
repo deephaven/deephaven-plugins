@@ -23,26 +23,8 @@ from .basic import spectrum_element
 from ...elements import Element
 
 
-def slider(
-    is_filled: bool | None = None,
-    fill_offset: Number | None = None,
-    track_gradient: list[str] | None = None,
-    # format_options, # omitted because need to connect it to Deephaven formatting options as well
-    label_position: LabelPosition = "top",
-    show_value_label: bool | None = None,
-    # get_value_label, # omitted because it needs to return a string synchronously
-    contextual_help: Any | None = None,
-    orientation: Orientation = "horizontal",
-    is_disabled: bool | None = None,
-    min_value: Number = 0,
-    max_value: Number = 100,
-    step: Number = 1,
-    value: Number | None = None,
-    default_value: Number | None = None,
-    label: Any | None = None,
-    name: str | None = None,
-    on_change_end: Callable[[Number], None] | None = None,
-    on_change: Callable[[Number], None] | None = None,
+def content(
+    *children: Any,
     flex: LayoutFlex | None = None,
     flex_grow: Number | None = None,
     flex_shrink: Number | None = None,
@@ -80,34 +62,14 @@ def slider(
     z_index: Number | None = None,
     is_hidden: bool | None = None,
     id: str | None = None,
-    aria_label: str | None = None,
-    aria_labelledby: str | None = None,
-    aria_describedby: str | None = None,
-    aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
 ) -> Element:
     """
-    Sliders allow users to quickly select a value within a range. They should be used when the upper and lower bounds to the range are invariable.
+    Content represents the primary content within a Spectrum container.
 
     Args:
-        is_filled: Whether the slider should be filled between the start of the slider and the current value.
-        fill_offset: The offset of the filled area from the start of the slider.
-        track_gradient: The background of the track, specified as the stops for a CSS background: linear-gradient(to right/left, ...trackGradient).
-        label_position: The position of the label relative to the slider.
-        show_value_label: Whether the value label should be displayed. True by default if the label is provided.
-        contextual_help: A ContextualHelp element to place next to the label.
-        orientation: The orientation of the slider.
-        is_disabled: Whether the slider is disabled.
-        min_value: The minimum value of the slider.
-        max_value: The maximum value of the slider.
-        step: The step value for the slider.
-        value: The current value of the slider.
-        default_value: The default value of the slider.
-        label: The content to display as the label.
-        name: The name of the input element, used when submitting an HTML form.
-        on_change_end: Function called when the slider stops moving
-        on_change: Function called when the input value changes
+        children: The content to render within the container.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -145,34 +107,12 @@ def slider(
         z_index: The stack order of the element.
         is_hidden: Whether the element is hidden.
         id: The unique identifier of the element.
-        aria_label: The label for the element.
-        aria_labelled_by: The id of the element that labels the current element.
-        aria_described_by: The id of the element that describes the current element.
-        aria_details: The id of the element that provides additional information about the current element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
     """
     return spectrum_element(
-        "Slider",
-        is_filled=is_filled,
-        fill_offset=fill_offset,
-        track_gradient=track_gradient,
-        # format_options=format_options,
-        label_position=label_position,
-        show_value_label=show_value_label,
-        # get_value_label=get_value_label,
-        contextual_help=contextual_help,
-        orientation=orientation,
-        is_disabled=is_disabled,
-        min_value=min_value,
-        max_value=max_value,
-        step=step,
-        value=value,
-        default_value=default_value,
-        label=label,
-        name=name,
-        on_change_end=on_change_end,
-        on_change=on_change,
+        "Content",
+        children=children,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
@@ -210,10 +150,6 @@ def slider(
         z_index=z_index,
         is_hidden=is_hidden,
         id=id,
-        aria_label=aria_label,
-        aria_labelledby=aria_labelledby,
-        aria_describedby=aria_describedby,
-        aria_details=aria_details,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
     )

@@ -18,14 +18,14 @@ from .layout import (
     Number,
     Position,
     LabelPosition,
-    LabelAlign,
+    Align,
 )
 from .validate import (
     InputType,
     TextFieldType,
     TextFieldInputMode,
     TextFieldValidationState,
-    TextFieldNecessityIndicator,
+    NecessityIndicator,
 )
 from .basic import spectrum_element
 from ...elements import Element
@@ -52,8 +52,8 @@ def text_field(
     name: str | None = None,
     validation_state: TextFieldValidationState | None = None,
     label_position: LabelPosition = "top",
-    label_align: LabelAlign = "start",
-    necessity_indicator: TextFieldNecessityIndicator = "icon",
+    label_align: Align = "start",
+    necessity_indicator: NecessityIndicator = "icon",
     contextual_help: Any | None = None,
     on_focus: FocusEventCallable | None = None,
     on_blur: FocusEventCallable | None = None,

@@ -6,6 +6,8 @@ from .events import (
     FocusEventCallable,
     KeyboardEventCallable,
     PressEventCallable,
+    SliderChange,
+    SliderChangeCallable,
     StaticColor,
     Orientation,
 )
@@ -23,10 +25,9 @@ from .basic import spectrum_element
 from ...elements import Element
 
 
-def slider(
-    is_filled: bool | None = None,
-    fill_offset: Number | None = None,
-    track_gradient: list[str] | None = None,
+def range_slider(
+    start_name: str | None = None,
+    end_name: str | None = None,
     # format_options, # omitted because need to connect it to Deephaven formatting options as well
     label_position: LabelPosition = "top",
     show_value_label: bool | None = None,
@@ -37,12 +38,12 @@ def slider(
     min_value: Number = 0,
     max_value: Number = 100,
     step: Number = 1,
-    value: Number | None = None,
-    default_value: Number | None = None,
+    value: SliderChange | None = None,
+    default_value: SliderChange | None = None,
     label: Any | None = None,
     name: str | None = None,
-    on_change_end: Callable[[Number], None] | None = None,
-    on_change: Callable[[Number], None] | None = None,
+    on_change_end: SliderChangeCallable | None = None,
+    on_change: SliderChangeCallable | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: Number | None = None,
     flex_shrink: Number | None = None,
@@ -91,9 +92,8 @@ def slider(
     Sliders allow users to quickly select a value within a range. They should be used when the upper and lower bounds to the range are invariable.
 
     Args:
-        is_filled: Whether the slider should be filled between the start of the slider and the current value.
-        fill_offset: The offset of the filled area from the start of the slider.
-        track_gradient: The background of the track, specified as the stops for a CSS background: linear-gradient(to right/left, ...trackGradient).
+        start_name: The name of the start input element.
+        end_name: The name of the end input element.
         label_position: The position of the label relative to the slider.
         show_value_label: Whether the value label should be displayed. True by default if the label is provided.
         contextual_help: A ContextualHelp element to place next to the label.
@@ -153,10 +153,9 @@ def slider(
         UNSAFE_style: A CSS style to apply to the element.
     """
     return spectrum_element(
-        "Slider",
-        is_filled=is_filled,
-        fill_offset=fill_offset,
-        track_gradient=track_gradient,
+        "RangeSlider",
+        start_name=start_name,
+        end_name=end_name,
         # format_options=format_options,
         label_position=label_position,
         show_value_label=show_value_label,
