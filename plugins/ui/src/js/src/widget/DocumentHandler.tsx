@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import shortid from 'shortid';
 import { WidgetDescriptor } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
@@ -52,12 +46,6 @@ function DocumentHandler({
   onClose,
 }: DocumentHandlerProps): JSX.Element {
   log.debug('Rendering document', widget);
-  // We want to know if we're in the middle of an update, so we don't send a close event if we're in the middle of an update
-  // We set this as the first thing of this function, then set it to false at the end in a `useEffect` so it gets set after everything else
-  // is done in the render cycle.
-  const isUpdating = useRef(true);
-  isUpdating.current = true;
-
   const panelOpenCountRef = useRef(0);
   const panelIdIndex = useRef(0);
 
@@ -97,9 +85,7 @@ function DocumentHandler({
         throw new Error('Panel open count is negative');
       }
       log.debug('Panel closed, open count', panelOpenCountRef.current);
-      if (panelOpenCountRef.current === 0 && !isUpdating.current) {
-        // Only send the close if we're not currently in the middle of an update
-        // It's possible that we update and then open another panel
+      if (panelOpenCountRef.current === 0) {
         onClose?.();
         return;
       }
@@ -129,11 +115,6 @@ function DocumentHandler({
     }),
     [widget, getPanelId, handleClose, handleOpen]
   );
-
-  useEffect(() => {
-    // Reset the updating flag after everything else is done
-    isUpdating.current = false;
-  });
 
   return (
     <ReactPanelManagerContext.Provider value={panelManager}>
