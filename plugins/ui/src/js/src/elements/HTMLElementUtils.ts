@@ -1,5 +1,5 @@
 import { ReactHTML } from 'react';
-import { HTMLElementType, HTML_ELEMENT_NAME_PREFIX } from './ElementConstants';
+import { ELEMENT_PREFIX, ElementPrefix } from './ElementConstants';
 import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
 
 /**
@@ -8,12 +8,12 @@ import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
  * For example, `deephaven.ui.html.div` would be rendered as `<div>`.
  * The props are passed directly to the HTML element as attributes.
  */
-export type HTMLElementNode = ElementNode<HTMLElementType>;
+export type HTMLElementNode = ElementNode<ElementPrefix['htmlPrefix']>;
 
 export function isHTMLElementNode(obj: unknown): obj is HTMLElementNode {
   return (
     isElementNode(obj) &&
-    (obj as HTMLElementNode)[ELEMENT_KEY].startsWith(HTML_ELEMENT_NAME_PREFIX)
+    (obj as HTMLElementNode)[ELEMENT_KEY].startsWith(ELEMENT_PREFIX.htmlPrefix)
   );
 }
 
@@ -22,6 +22,6 @@ export function isHTMLElementNode(obj: unknown): obj is HTMLElementNode {
  * @param name Name of the element
  * @returns The HTML tag name for the element
  */
-export function getHTMLTag(name: HTMLElementType): keyof ReactHTML {
-  return name.substring(HTML_ELEMENT_NAME_PREFIX.length) as keyof ReactHTML;
+export function getHTMLTag(name: ElementPrefix['htmlPrefix']): keyof ReactHTML {
+  return name.substring(ELEMENT_PREFIX.htmlPrefix.length) as keyof ReactHTML;
 }

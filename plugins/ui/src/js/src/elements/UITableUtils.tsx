@@ -1,7 +1,7 @@
 import type { dh } from '@deephaven/jsapi-types';
 import { ColumnName, DehydratedSort, RowIndex } from '@deephaven/iris-grid';
 import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
-import { UITableElementName, UITABLE_ELEMENT_TYPE } from './ElementConstants';
+import { ELEMENT_NAME, ElementName } from './ElementConstants';
 
 export type CellData = {
   type: string;
@@ -37,12 +37,12 @@ export interface UITableProps {
 }
 
 export type UITableNode = Required<
-  ElementNode<UITableElementName, UITableProps>
+  ElementNode<ElementName['uiTable'], UITableProps>
 >;
 
 export function isUITable(obj: unknown): obj is UITableNode {
   return (
     isElementNode(obj) &&
-    (obj as UITableNode)[ELEMENT_KEY] === UITABLE_ELEMENT_TYPE
+    (obj as UITableNode)[ELEMENT_KEY] === ELEMENT_NAME.uiTable
   );
 }

@@ -4,6 +4,7 @@ import React, { ComponentType } from 'react';
 // Importing `Item` and `Section` compnents directly since they should not be
 // wrapped due to how Spectrum collection components consume them.
 import { Item, Section } from '@deephaven/components';
+import { ValueOf } from '@deephaven/utils';
 import { ReadonlyWidgetData } from './WidgetTypes';
 import {
   ElementNode,
@@ -18,19 +19,7 @@ import SpectrumElementView from '../elements/SpectrumElementView';
 import { isIconElementNode } from '../elements/IconElementUtils';
 import IconElementView from '../elements/IconElementView';
 import UITable from '../elements/UITable';
-import {
-  COLUMN_ELEMENT_NAME,
-  DASHBOARD_ELEMENT_NAME,
-  FRAGMENT_ELEMENT_NAME,
-  ITEM_ELEMENT_NAME,
-  LIST_VIEW_NAME,
-  PANEL_ELEMENT_NAME,
-  PICKER_ELEMENT_NAME,
-  ROW_ELEMENT_NAME,
-  SECTION_ELEMENT_NAME,
-  STACK_ELEMENT_NAME,
-  UITABLE_ELEMENT_TYPE,
-} from '../elements/ElementConstants';
+import { ELEMENT_NAME, ElementName } from '../elements/ElementConstants';
 import ReactPanel from '../layout/ReactPanel';
 import Row from '../layout/Row';
 import Stack from '../layout/Stack';
@@ -43,18 +32,23 @@ import Picker from '../elements/Picker';
  * Map element node names to their corresponding React components
  */
 export const elementComponentMap = {
-  [PANEL_ELEMENT_NAME]: ReactPanel,
-  [ROW_ELEMENT_NAME]: Row,
-  [COLUMN_ELEMENT_NAME]: Column,
-  [FRAGMENT_ELEMENT_NAME]: React.Fragment,
-  [STACK_ELEMENT_NAME]: Stack,
-  [DASHBOARD_ELEMENT_NAME]: Dashboard,
-  [ITEM_ELEMENT_NAME]: Item,
-  [LIST_VIEW_NAME]: ListView,
-  [PICKER_ELEMENT_NAME]: Picker,
-  [SECTION_ELEMENT_NAME]: Section,
-  [UITABLE_ELEMENT_TYPE]: UITable,
-} as const;
+  // Elements
+  [ELEMENT_NAME.uiTable]: UITable,
+
+  // Layout
+  [ELEMENT_NAME.column]: Column,
+  [ELEMENT_NAME.dashboard]: Dashboard,
+  [ELEMENT_NAME.panel]: ReactPanel,
+  [ELEMENT_NAME.row]: Row,
+  [ELEMENT_NAME.stack]: Stack,
+
+  // Other components
+  [ELEMENT_NAME.fragment]: React.Fragment,
+  [ELEMENT_NAME.item]: Item,
+  [ELEMENT_NAME.listView]: ListView,
+  [ELEMENT_NAME.picker]: Picker,
+  [ELEMENT_NAME.section]: Section,
+} as const satisfies Record<ValueOf<ElementName>, unknown>;
 
 export function getComponentTypeForElement<P extends Record<string, unknown>>(
   element: ElementNode<string, P>

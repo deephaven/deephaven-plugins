@@ -1,6 +1,7 @@
 import { ButtonGroup, Checkbox } from '@adobe/react-spectrum';
 import { ValueOf } from '@deephaven/utils';
 import {
+  ActionGroup,
   Content,
   ContextualHelp,
   Grid,
@@ -8,6 +9,7 @@ import {
   Icon,
   Item,
   IllustratedMessage,
+  ListActionGroup,
   NumberField,
   Switch,
   Tabs,
