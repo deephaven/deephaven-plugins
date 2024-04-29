@@ -203,6 +203,30 @@ my_checkbox = ui_checkbox()
 
 ![Checkbox](_assets/checkbox.png)
 
+## ActionGroup (string values)
+An ActionGroup is a grouping of ActionButtons that are related to one another.
+
+```python
+@ui.component
+def action_group():
+    [action, on_action] = ui.use_state()
+
+    return ui.flex(
+        ui.action_group(
+            "Aaa",
+            "Bbb",
+            "Ccc",
+            action=action,
+            on_action=on_action,
+        ),
+        ui.text(action),
+        direction="column",
+    )
+
+
+ag = action_group()
+```
+
 ## Picker (string values)
 
 The `ui.picker` component can be used to select from a list of items. Here's a basic example for selecting from a list of string values and displaying the selected key in a text field.

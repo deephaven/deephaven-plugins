@@ -1,3 +1,4 @@
+from .action_group import action_group
 from .icon import icon
 from .make_component import make_component as component
 from .fragment import fragment
@@ -21,6 +22,7 @@ from . import html
 
 __all__ = [
     "action_button",
+    "action_group",
     "button",
     "button_group",
     "checkbox",

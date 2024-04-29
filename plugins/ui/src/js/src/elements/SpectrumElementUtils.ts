@@ -34,6 +34,7 @@ export const SPECTRUM_ELEMENT_TYPE_PREFIX = 'deephaven.ui.spectrum.';
 
 export const SpectrumSupportedTypes = {
   ActionButton,
+  ActionGroup,
   Button,
   ButtonGroup,
   Checkbox,
@@ -45,6 +46,7 @@ export const SpectrumSupportedTypes = {
   Heading,
   Icon,
   IllustratedMessage,
+  ListActionGroup,
   NumberField,
   Item,
   RangeSlider,

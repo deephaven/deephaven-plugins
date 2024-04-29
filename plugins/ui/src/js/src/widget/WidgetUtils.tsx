@@ -3,7 +3,12 @@
 import React, { ComponentType } from 'react';
 // Importing `Item` and `Section` compnents directly since they should not be
 // wrapped due to how Spectrum collection components consume them.
-import { Item, Section } from '@deephaven/components';
+import {
+  ActionGroup,
+  Item,
+  ListActionGroup,
+  Section,
+} from '@deephaven/components';
 import { ValueOf } from '@deephaven/utils';
 import { ReadonlyWidgetData } from './WidgetTypes';
 import {
@@ -43,8 +48,10 @@ export const elementComponentMap = {
   [ELEMENT_NAME.stack]: Stack,
 
   // Other components
+  [ELEMENT_NAME.actionGroup]: ActionGroup,
   [ELEMENT_NAME.fragment]: React.Fragment,
   [ELEMENT_NAME.item]: Item,
+  [ELEMENT_NAME.listActionGroup]: ListActionGroup,
   [ELEMENT_NAME.listView]: ListView,
   [ELEMENT_NAME.picker]: Picker,
   [ELEMENT_NAME.section]: Section,

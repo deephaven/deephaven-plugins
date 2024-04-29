@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text } from '@deephaven/components';
 import type { dh } from '@deephaven/jsapi-types';
-import { ITEM_ELEMENT_NAME } from './ElementConstants';
+import { ELEMENT_NAME } from './ElementConstants';
 import ObjectView from './ObjectView';
 
 export const CALLABLE_KEY = '__dhCbid';
@@ -159,7 +159,7 @@ export function wrapElementChildren(element: ElementNode): ElementNode {
 
   const newProps = { ...element.props };
 
-  const isItemElement = isElementNode(element, ITEM_ELEMENT_NAME);
+  const isItemElement = isElementNode(element, ELEMENT_NAME.item);
 
   // We will be wrapping all primitive `Item` children in a `Text` element to
   // ensure proper layout. Since `Item` components require a `textValue` prop
