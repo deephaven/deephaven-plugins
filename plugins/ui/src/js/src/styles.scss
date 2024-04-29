@@ -42,6 +42,9 @@
     position: relative;
     flex-shrink: 1;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
   }
 
   .widget-error-view-footer {
@@ -62,7 +65,7 @@
   background-color: negative-opacity($exception-transparency);
   display: flex;
   flex-direction: column;
-  flex-grow: 0;
+  flex-grow: 1;
   font-family: $font-family-monospace;
   transition: all $transition ease-in-out;
   max-height: 150px;
