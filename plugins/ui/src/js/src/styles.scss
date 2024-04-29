@@ -31,7 +31,7 @@
   }
 }
 
-.widget-error-view {
+.ui-widget-error-view {
   display: flex;
   flex-direction: column;
   gap: $spacer-1;
@@ -76,7 +76,7 @@
     flex-direction: row;
     justify-content: space-between;
     text-wrap: nowrap;
-    width: 100%;
+    max-width: 100%;
 
     .error-view-header-text {
       display: flex;
@@ -130,7 +130,7 @@
   }
 
   .error-view-text {
-    width: 100%;
+    max-width: 100%;
     padding: $spacer;
     margin-bottom: 0;
     color: var(--dh-color-negative-bg);
@@ -141,5 +141,24 @@
     white-space: pre;
     flex-grow: 1;
     overflow: auto;
+  }
+}
+
+.dh-react-panel-overlay {
+  background-color: black-opacity(90);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: $spacer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+
+  .ui-widget-error-view {
+    max-width: 100%;
   }
 }

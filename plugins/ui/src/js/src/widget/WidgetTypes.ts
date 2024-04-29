@@ -40,6 +40,8 @@ export type WidgetError = {
   code?: number;
 };
 
+/** Message containing a new document update */
 export const METHOD_DOCUMENT_UPDATED = 'documentUpdated';
 
+/** Message containing a document error */
 export const METHOD_DOCUMENT_ERROR = 'documentError';

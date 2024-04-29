@@ -16,7 +16,7 @@ function WidgetErrorView({
     error.stack ?? ''
   }`.trim();
   return (
-    <div className="widget-error-view">
+    <div className="ui-widget-error-view">
       <div className="widget-error-view-content">
         <ErrorView message={displayMessage} type={error.type} isExpanded />
       </div>

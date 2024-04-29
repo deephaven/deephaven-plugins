@@ -35,8 +35,8 @@ import {
 } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
 import { getComponentForElement } from './WidgetUtils';
-import ReactPanel from '../layout/ReactPanel';
 import WidgetErrorView from './WidgetErrorView';
+import ReactPanelContentOverlayContext from '../layout/ReactPanelContentOverlayContext';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
@@ -328,31 +328,51 @@ function WidgetHandler({
     [fetch, descriptor]
   );
 
-  const renderedDocument = useMemo(
-    () =>
-      error != null ? (
-        <ReactPanel>
-          <WidgetErrorView error={error} onReload={() => sendSetState()} />
-        </ReactPanel>
-      ) : (
-        document
-      ),
-    [document, error, sendSetState]
-  );
+  const errorView = useMemo(() => {
+    if (error != null) {
+      return <WidgetErrorView error={error} onReload={() => sendSetState()} />;
+    }
+    return null;
+  }, [error, sendSetState]);
+
+  const contentOverlay = useMemo(() => {
+    // We only show it as an overlay if there's already a document to show
+    // If there isn't, then we'll just render this as the document so it forces a panel to open
+    if (errorView != null && document != null) {
+      return errorView;
+    }
+    return null;
+  }, [document, errorView]);
+
+  const renderedDocument = useMemo(() => {
+    if (document != null) {
+      return document;
+    }
+    return errorView;
+  }, [document, errorView]);
 
   return useMemo(
     () =>
       renderedDocument != null ? (
-        <DocumentHandler
-          widget={descriptor}
-          initialData={initialData}
-          onDataChange={onDataChange}
-          onClose={onClose}
-        >
-          {renderedDocument}
-        </DocumentHandler>
+        <ReactPanelContentOverlayContext.Provider value={contentOverlay}>
+          <DocumentHandler
+            widget={descriptor}
+            initialData={initialData}
+            onDataChange={onDataChange}
+            onClose={onClose}
+          >
+            {renderedDocument}
+          </DocumentHandler>
+        </ReactPanelContentOverlayContext.Provider>
       ) : null,
-    [renderedDocument, descriptor, initialData, onClose, onDataChange]
+    [
+      contentOverlay,
+      descriptor,
+      renderedDocument,
+      initialData,
+      onClose,
+      onDataChange,
+    ]
   );
 }
 
