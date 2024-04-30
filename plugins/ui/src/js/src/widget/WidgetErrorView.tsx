@@ -1,7 +1,6 @@
 import React from 'react';
-import { Button } from '@deephaven/components';
+import { Button, ErrorView } from '@deephaven/components';
 import { vsRefresh } from '@deephaven/icons';
-import ErrorView from './ErrorView';
 import { WidgetError } from './WidgetTypes';
 
 /** Component that takes a WidgetError and displays the contents in an ErrorView, and has a button to reload the widget from a fresh state. */

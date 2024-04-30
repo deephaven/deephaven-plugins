@@ -55,95 +55,9 @@
     flex-wrap: wrap;
     flex-shrink: 0;
   }
-}
 
-// TODO: Remove once using the @deephaven/components ErrorView: https://github.com/deephaven/web-client-ui/pull/1965
-.ui-error-view {
-  position: relative;
-  color: var(--dh-color-negative-bg);
-  border-radius: $border-radius;
-  background-color: negative-opacity($exception-transparency);
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-  font-family: $font-family-monospace;
-  transition: all $transition ease-in-out;
-  max-height: 150px;
-
-  &.expanded {
-    max-height: 100%;
-  }
-
-  .error-view-header {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    text-wrap: nowrap;
-    max-width: 100%;
-
-    .error-view-header-text {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      padding-left: $spacer;
-      padding-right: $spacer;
-      font-weight: bold;
-      text-overflow: ellipsis;
-      flex-shrink: 1;
-      overflow: hidden;
-      white-space: nowrap;
-
-      span {
-        flex-shrink: 1;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        padding-left: $spacer-1;
-      }
-    }
-
-    .error-view-buttons {
-      display: flex;
-      flex-direction: row;
-      gap: 1px;
-      overflow: hidden;
-      border-radius: 0 $border-radius 0 0;
-      flex-shrink: 0;
-
-      .btn-danger {
-        border-radius: 0;
-        color: $black;
-        opacity: 0.8;
-        padding: $spacer-1;
-        &:active {
-          color: $black;
-        }
-      }
-
-      .error-view-copy-button {
-        min-width: 3rem;
-      }
-
-      .error-view-expand-button {
-        svg {
-          margin-right: $spacer-1;
-        }
-      }
-    }
-  }
-
-  .error-view-text {
-    max-width: 100%;
-    padding: $spacer;
-    margin-bottom: 0;
-    color: var(--dh-color-negative-bg);
-    background-color: transparent;
-    border: 0;
-    resize: none;
-    outline: none;
-    white-space: pre;
+  .error-view {
     flex-grow: 1;
-    overflow: auto;
   }
 }
 
