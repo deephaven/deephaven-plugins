@@ -2,8 +2,9 @@ import pathlib
 
 from deephaven.plugin.js import JsPlugin
 
-
-class {{ cookiecutter.__js_plugin_obj_name }}(JsPlugin):
+# This plugin allows the Python plugin to register a JavaScript plugin.
+# The properties will be filled in during the registration process.
+class {{ cookiecutter.__py_js_plugin_obj_name }}(JsPlugin):
     def __init__(
         self,
         name: str,

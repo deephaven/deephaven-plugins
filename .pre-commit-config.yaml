@@ -1,3 +1,4 @@
+exclude: templates
 repos:
   - repo: https://github.com/adamchainz/blacken-docs
     rev: 1.15.0
