@@ -1,12 +1,5 @@
 import type { Layout, Data } from 'plotly.js';
-import type {
-  dh as DhType,
-  ChartData,
-  Widget,
-  Table,
-  TableSubscription,
-  TableData,
-} from '@deephaven/jsapi-types';
+import type { dh as DhType } from '@deephaven/jsapi-types';
 import { ChartModel, ChartUtils } from '@deephaven/chart';
 import Log from '@deephaven/log';
 import {
@@ -19,7 +12,11 @@ import {
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
 
 export class PlotlyExpressChartModel extends ChartModel {
-  constructor(dh: DhType, widget: Widget, refetch: () => Promise<Widget>) {
+  constructor(
+    dh: typeof DhType,
+    widget: DhType.Widget,
+    refetch: () => Promise<DhType.Widget>
+  ) {
     super(dh);
 
     this.widget = widget;
@@ -41,21 +38,21 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   chartUtils: ChartUtils;
 
-  refetch: () => Promise<Widget>;
+  refetch: () => Promise<DhType.Widget>;
 
-  widget?: Widget;
+  widget?: DhType.Widget;
 
   widgetUnsubscribe?: () => void;
 
   /**
    * Map of table index to Table object.
    */
-  tableReferenceMap: Map<number, Table> = new Map();
+  tableReferenceMap: Map<number, DhType.Table> = new Map();
 
   /**
    * Map of table index to TableSubscription object.
    */
-  tableSubscriptionMap: Map<number, TableSubscription> = new Map();
+  tableSubscriptionMap: Map<number, DhType.TableSubscription> = new Map();
 
   /**
    * Map of table index to cleanup function for the subscription.
@@ -70,7 +67,7 @@ export class PlotlyExpressChartModel extends ChartModel {
   /**
    * Map of table index to ChartData object. Used to handle data delta updates.
    */
-  chartDataMap: Map<number, ChartData> = new Map();
+  chartDataMap: Map<number, DhType.plot.ChartData> = new Map();
 
   /**
    * Map of table index to object where the keys are column names and the values are arrays of data.
@@ -146,7 +143,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     }
 
     this.isSubscribed = true;
-    this.widgetUnsubscribe = this.widget.addEventListener<Widget>(
+    this.widgetUnsubscribe = this.widget.addEventListener<DhType.Widget>(
       this.dh.Widget.EVENT_MESSAGE,
       ({ detail }) => {
         this.handleWidgetUpdated(
@@ -192,7 +189,7 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   handleWidgetUpdated(
     data: PlotlyChartWidgetData,
-    references: Widget['exportedObjects']
+    references: DhType.Widget['exportedObjects']
   ): void {
     const {
       figure,
@@ -215,14 +212,17 @@ export class PlotlyExpressChartModel extends ChartModel {
 
     newReferences.forEach(async (id, i) => {
       this.tableDataMap.set(id, {}); // Plot may render while tables are being fetched. Set this to avoid a render error
-      const table = (await references[i].fetch()) as Table;
+      const table = (await references[i].fetch()) as DhType.Table;
       this.addTable(id, table);
     });
 
     removedReferences.forEach(id => this.removeTable(id));
   }
 
-  handleFigureUpdated(event: CustomEvent<TableData>, tableId: number): void {
+  handleFigureUpdated(
+    event: CustomEvent<DhType.SubscriptionTableData>,
+    tableId: number
+  ): void {
     const chartData = this.chartDataMap.get(tableId);
     const tableData = this.tableDataMap.get(tableId);
 
@@ -255,7 +255,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.fireUpdate(this.getData());
   }
 
-  addTable(id: number, table: Table): void {
+  addTable(id: number, table: DhType.Table): void {
     if (this.tableReferenceMap.has(id)) {
       return;
     }
@@ -284,7 +284,7 @@ export class PlotlyExpressChartModel extends ChartModel {
       this.tableSubscriptionMap.set(id, subscription);
       this.subscriptionCleanupMap.set(
         id,
-        subscription.addEventListener<TableData>(
+        subscription.addEventListener<DhType.SubscriptionTableData>(
           this.dh.Table.EVENT_UPDATED,
           e => this.handleFigureUpdated(e, id)
         )

@@ -1,9 +1,9 @@
 import type { Data, PlotlyDataLayoutConfig } from 'plotly.js';
-import type { Table, Widget } from '@deephaven/jsapi-types';
+import type { dh } from '@deephaven/jsapi-types';
 
 export interface PlotlyChartWidget {
   getDataAsBase64: () => string;
-  exportedObjects: { fetch: () => Promise<Table> }[];
+  exportedObjects: { fetch: () => Promise<dh.Table> }[];
   addEventListener: (
     type: string,
     fn: (event: CustomEvent<PlotlyChartWidget>) => () => void
@@ -28,7 +28,7 @@ export interface PlotlyChartWidgetData {
   removed_references: number[];
 }
 
-export function getWidgetData(widgetInfo: Widget): PlotlyChartWidgetData {
+export function getWidgetData(widgetInfo: dh.Widget): PlotlyChartWidgetData {
   return JSON.parse(widgetInfo.getDataAsString());
 }
 
