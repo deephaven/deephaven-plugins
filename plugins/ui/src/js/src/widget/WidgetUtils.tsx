@@ -5,8 +5,10 @@ import React, { ComponentType } from 'react';
 // wrapped due to how Spectrum collection components consume them.
 import {
   ActionGroup,
+  ActionMenu,
   Item,
   ListActionGroup,
+  ListActionMenu,
   Section,
 } from '@deephaven/components';
 import { ValueOf } from '@deephaven/utils';
@@ -49,9 +51,11 @@ export const elementComponentMap = {
 
   // Other components
   [ELEMENT_NAME.actionGroup]: ActionGroup,
+  [ELEMENT_NAME.actionMenu]: ActionMenu,
   [ELEMENT_NAME.fragment]: React.Fragment,
   [ELEMENT_NAME.item]: Item,
   [ELEMENT_NAME.listActionGroup]: ListActionGroup,
+  [ELEMENT_NAME.listActionMenu]: ListActionMenu,
   [ELEMENT_NAME.listView]: ListView,
   [ELEMENT_NAME.picker]: Picker,
   [ELEMENT_NAME.section]: Section,
