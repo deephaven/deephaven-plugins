@@ -11,7 +11,7 @@ docker run --rm --name deephaven-ui -p 10000:10000 --pull=always ghcr.io/deephav
 ```
 
 You'll need to find the link to open the UI in the Docker logs:
-![docker](assets/docker.png)
+![docker](_assets/docker.png)
 
 # Using components
 
@@ -27,7 +27,7 @@ The `ui` package contains many _components_, which you can display in the UI:
 hello_world = ui.heading("Hello World!")
 ```
 
-![Basic Hello World example.](assets/hello_world.png)
+![Basic Hello World example.](_assets/hello_world.png)
 
 By assigning the component to the `hello_world` variable, it displays in the UI in a panel named `hello_world`.
 
@@ -39,7 +39,7 @@ Write functions to handle events. To write a button that will print event detail
 my_button = ui.button("Click Me!", on_press=lambda e: print(f"Button was clicked! {e}"))
 ```
 
-![Whenever the button is pressed, event details are printed to the console.](assets/handling_events.png)
+![Whenever the button is pressed, event details are printed to the console.](_assets/handling_events.png)
 
 ## Creating components
 
@@ -59,7 +59,7 @@ def ui_foo_bar():
 foo_bar = ui_foo_bar()
 ```
 
-![Custom component being displayed.](assets/foo_bar.png)
+![Custom component being displayed.](_assets/foo_bar.png)
 
 ## Using state
 
@@ -98,7 +98,7 @@ c1 = ui_counter()
 c2 = ui_counter()
 ```
 
-![Each counter has its own state.](assets/counter.png)
+![Each counter has its own state.](_assets/counter.png)
 
 > [!NOTE]
 > Functions are prefixed with `use_` are called _hooks_. `use_state` is built-in to deephaven.ui, and there are other hooks built-in shown below. You can also create your own hooks.
@@ -160,7 +160,7 @@ def ui_shared_state():
 shared_state = ui_shared_state()
 ```
 
-![Buttons will always be in sync with shared state.](assets/shared_state.png)
+![Buttons will always be in sync with shared state.](_assets/shared_state.png)
 
 # Examples
 
@@ -181,7 +181,7 @@ def ui_input():
 my_input = ui_input()
 ```
 
-![Text field.](assets/text_field.png)
+![Text field.](_assets/text_field.png)
 
 ## Checkbox (boolean)
 
@@ -201,7 +201,7 @@ def ui_checkbox():
 my_checkbox = ui_checkbox()
 ```
 
-![Checkbox](assets/checkbox.png)
+![Checkbox](_assets/checkbox.png)
 
 ## Picker (string values)
 
@@ -238,7 +238,7 @@ def ui_picker():
 my_picker = ui_picker()
 ```
 
-![Use a picker to select from a list of items](assets/picker.png)
+![Use a picker to select from a list of items](_assets/picker.png)
 
 ## Picker (table)
 
@@ -288,8 +288,8 @@ table_source = ui.item_table_source(
 
 pick_table_source = ui_picker_table(table_source)
 ```
-![Use a picker to select from a table](assets/pick_table.png)
-![Use a picker to select from a table source](assets/pick_table_source.png)
+![Use a picker to select from a table](_assets/pick_table.png)
+![Use a picker to select from a table source](_assets/pick_table_source.png)
 
 ## Form (two variables)
 
@@ -312,7 +312,7 @@ def ui_form():
 my_form = ui_form()
 ```
 
-![Form with multiple inputs.](assets/form.png)
+![Form with multiple inputs.](_assets/form.png)
 
 ## Form with submit
 
@@ -335,7 +335,7 @@ def ui_form_submit():
 my_form_submit = ui_form_submit()
 ```
 
-![Submitting a form and printing out the data.](assets/form_submit.png)
+![Submitting a form and printing out the data.](_assets/form_submit.png)
 
 ## Button events
 
@@ -371,7 +371,7 @@ def ui_button_events():
 my_button_events = ui_button_events()
 ```
 
-![Print the details of all events when pressing a button.](assets/button_events.png)
+![Print the details of all events when pressing a button.](_assets/button_events.png)
 
 # Data Examples
 
@@ -403,7 +403,7 @@ def ui_text_filter_table(source, column):
 my_text_filter_table = ui_text_filter_table(stocks, "sym")
 ```
 
-![Table with a text field for filtering.](assets/text_filter_table.png)
+![Table with a text field for filtering.](_assets/text_filter_table.png)
 
 ## Table with range filter
 
@@ -466,9 +466,9 @@ def ui_stock_widget_table(source, default_sym="", default_exchange=""):
 my_stock_widget_table = ui_stock_widget_table(stocks, "", "")
 ```
 
-![Stock Widget Table Invalid Input](assets/stock_widget_table_invalid.png)
+![Stock Widget Table Invalid Input](_assets/stock_widget_table_invalid.png)
 
-![Stock Widget Table Valid Input](assets/stock_widget_table_valid.png)
+![Stock Widget Table Valid Input](_assets/stock_widget_table_valid.png)
 
 ## Plot with filters
 
@@ -502,7 +502,7 @@ def ui_stock_widget_plot(source, default_sym="", default_exchange=""):
 my_stock_widget_plot = ui_stock_widget_plot(stocks, "CAT", "TPET")
 ```
 
-![Stock Widget Plot](assets/stock_widget_plot.png)
+![Stock Widget Plot](_assets/stock_widget_plot.png)
 
 # Dashboard Examples
 
@@ -564,7 +564,7 @@ my_dash = ui.dashboard(
 )
 ```
 
-![Stock Dashboard](assets/my_dash.png)
+![Stock Dashboard](_assets/my_dash.png)
 
 ## Custom Components Dashboard
 
@@ -662,7 +662,7 @@ def multiwave():
 mw = ui.dashboard(multiwave())
 ```
 
-![Multiwave Dashboard](assets/multiwave_dashboard.png)
+![Multiwave Dashboard](_assets/multiwave_dashboard.png)
 
 # Other Examples
 
@@ -717,7 +717,7 @@ def waves():
 w = waves()
 ```
 
-![Waves](assets/waves.png)
+![Waves](_assets/waves.png)
 
 ## Custom hook
 
@@ -781,7 +781,7 @@ def waves():
 w = waves()
 ```
 
-![Wave Input](assets/wave_input.png)
+![Wave Input](_assets/wave_input.png)
 
 We can then re-use that hook to make a component that displays a plot as well:
 
@@ -813,7 +813,7 @@ def waves_with_plot():
 wp = waves_with_plot()
 ```
 
-![Waves with plot](assets/waves_with_plot.png)
+![Waves with plot](_assets/waves_with_plot.png)
 
 ## Using Panels
 
@@ -961,7 +961,7 @@ def double_table(source):
 dt = double_table(stocks)
 ```
 
-![Double Table](assets/double_table.png)
+![Double Table](_assets/double_table.png)
 
 ## Stock rollup
 
@@ -1045,7 +1045,7 @@ def stock_table(source):
 st = stock_table(stocks)
 ```
 
-![Stock Rollup](assets/stock_rollup.png)
+![Stock Rollup](_assets/stock_rollup.png)
 
 ## Listening to Table Updates
 
@@ -1143,7 +1143,7 @@ Without the `use_liveness_scope` wrapping the lamdba, the newly created live tab
 
 For more information on liveness scopes and why they are needed, see the [liveness scope documentation](https://deephaven.io/core/docs/conceptual/liveness-scope-concept/).
 
-![Change Monitor](assets/change_monitor.png)
+![Change Monitor](_assets/change_monitor.png)
 
 ## Tabs
 
@@ -1245,7 +1245,7 @@ def watch_lizards(source: Table):
 watch = watch_lizards(stocks)
 ```
 
-![Table Hooks](assets/table_hooks.png)
+![Table Hooks](_assets/table_hooks.png)
 
 ## Multi-threading
 

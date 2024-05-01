@@ -1,5 +1,5 @@
-import { Text } from '@adobe/react-spectrum';
 import React from 'react';
+import { Text } from '@deephaven/components';
 
 /**
  * Map the children of an element to Spectrum children, automatically wrapping strings and numbers in `Text` elements.

@@ -1046,7 +1046,7 @@ ui.section(
 ###### Parameters
 
 | Parameter   | Type          | Description                               |
-| ----------- |---------------|-------------------------------------------|
+| ----------- | ------------- | ----------------------------------------- |
 | `*children` | `Item`        | The options to render within the section. |
 | `title`     | `str \| None` | The title of the section.                 |
 | `**props`   | `Any`         | Any other Section prop                    |
@@ -1282,7 +1282,7 @@ ui.list_view(
     default_selected_keys: Selection | None = None,
     selected_keys: Selection | None = None,
     render_empty_state: Element | None = None,
-    on_selection_change: Callable[[Selection], None] | None = None, 
+    on_selection_change: Callable[[Selection], None] | None = None,
     on_change: Callable[[Selection], None] | None = None,
     **props: Any
 ) -> ListViewElement
@@ -1292,14 +1292,13 @@ ui.list_view(
 | Parameter               | Type                                                      | Description                                                                                                                                                    |
 |-------------------------|-----------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `*children`             | `Item \| Table \| ItemTableSource`                        | The options to render within the list_view.                                                                                                                    |
-| `selection_mode`        | `SelectionMode \| None`                                   | By default `"MULTIPLE"`, which allows multiple selection. May also be `"SINGLE"` to allow only single selection, or `"None"`/`None` to allow no selection.                    |
+| `selection_mode`        | `SelectionMode \| None`                                   | By default `"MULTIPLE"`, which allows multiple selection. May also be `"SINGLE"` to allow only single selection, or `"None"`/`None` to allow no selection.     |
 | `default_selected_keys` | `Selection \| None`                                       | The initial selected keys in the collection (uncontrolled).                                                                                                    |
 | `selected_keys`         | `Selection \| None`                                       | The currently selected keys in the collection (controlled).                                                                                                    |
 | `render_empty_state`    | `Element \| None`                                         | Sets what the `list_view` should render when there is no content to display.                                                                                   |
 | `on_selection_change`   | `Callable[[Selection], None] \| None`                     | Handler that is called when the selections changes.                                                                                                            |
 | `on_change`             | `Callable[[Selection], None] \| None`                     | Alias of `on_selection_change`. Handler that is called when the selections changes.                                                                            |
 | `**props`               | `Any`                                                     | Any other [ListView](https://react-spectrum.adobe.com/react-spectrum/ListView.html) prop, with the exception of `items`, `dragAndDropHooks`, and `onLoadMore`. |
-
 
 ```py
 import deephaven.ui as ui
@@ -1381,19 +1380,22 @@ list_view5 = ui.list_view(
 ```
 
 ###### ui.date_picker
-A date picker that can be used to select a date. 
+
+A date picker that can be used to select a date.
 
 There are three types that can be passed in to the props that control the date format:
-1. `LocalDate`: A LocalDate is a date without a time zone in the ISO-8601 system, such as "2007-12-03" or "2057-01-28".
-This will create a date picker with a granularity of days.
-2. `Instant`: An Instant represents an unambiguous specific point on the timeline, such as 2021-04-12T14:13:07 UTC.
-This will create a date picker with a granularity of seconds in UTC.
-3. `ZonedDateTime`: A ZonedDateTime represents an unambiguous specific point on the timeline with an associated time zone, such as 2021-04-12T14:13:07 America/New_York.
-This will create a date picker with a granularity of seconds in the specified time zone.
 
-The format of the date picker and the type of the value passed to the `on_change` handler 
+1. `LocalDate`: A LocalDate is a date without a time zone in the ISO-8601 system, such as "2007-12-03" or "2057-01-28".
+   This will create a date picker with a granularity of days.
+2. `Instant`: An Instant represents an unambiguous specific point on the timeline, such as 2021-04-12T14:13:07 UTC.
+   This will create a date picker with a granularity of seconds in UTC.
+3. `ZonedDateTime`: A ZonedDateTime represents an unambiguous specific point on the timeline with an associated time zone, such as 2021-04-12T14:13:07 America/New_York.
+   This will create a date picker with a granularity of seconds in the specified time zone.
+
+The format of the date picker and the type of the value passed to the `on_change` handler
 is determined by the type of the following props in order of precedence:
-1. `value` 
+
+1. `value`
 2. `default_value`
 3. `placeholder_value`
 
@@ -1415,8 +1417,9 @@ ui.date_picker(
 ```
 
 ###### Parameters
+
 | Parameter            | Type                             | Description                                                                                                                                                                               |
-|----------------------|----------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| -------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `placeholder_value`  | `Date \| None`                   | A placeholder date that influences the format of the placeholder shown when no value is selected. Defaults to today at midnight in the user's timezone.                                   |
 | `value`              | `Date \| None`                   | The current value (controlled).                                                                                                                                                           |
 | `default_value`      | `Date \| None`                   | The default value (uncontrolled).                                                                                                                                                         |
@@ -2200,7 +2203,7 @@ ListViewItem = Stringable | ItemElement
 LocalDateConvertible = Union[None, LocalDate, str, datetime.date, datetime.datetime, numpy.datetime64, pandas.Timestamp]
 InstantConvertible = Union[None, Instant, int, str, datetime.datetime, numpy.datetime64, pandas.Timestamp]
 ZonedDateTimeConvertible = Union[None, ZonedDateTime, str, datetime.datetime, numpy.datetime64, pandas.Timestamp]
-Date = Instant | LocalDate | ZonedDateTime | LocalDateConvertible | InstantConvertible | ZonedDateTimeConvertible 
+Date = Instant | LocalDate | ZonedDateTime | LocalDateConvertible | InstantConvertible | ZonedDateTimeConvertible
 Granularity = Literal["DAY", "HOUR", "MINUTE", "SECOND"]
 MenuTriggerAction = Literal["FOCUS", "INPUT", "MANUAL"]
 
@@ -2372,7 +2375,7 @@ tft = double_text_filter_table(_stocks)
 
 Which should result in a UI like this:
 
-![Double Text Filter Tables](examples/assets/double-tft.png)
+![Double Text Filter Tables](docs/_assets/double-tft.png)
 
 How does that look when the notebook is executed? When does each code block execute?
 
