@@ -216,7 +216,6 @@ def action_group():
             "Aaa",
             "Bbb",
             "Ccc",
-            action=action,
             on_action=on_action,
         ),
         ui.text(action),
@@ -225,6 +224,29 @@ def action_group():
 
 
 ag = action_group()
+```
+
+## ActionMenu (string values)
+ActionMenu combines an ActionButton with a Menu for simple "more actions" use cases.
+
+```python
+@ui.component
+def action_menu():
+    [action, on_action] = ui.use_state()
+
+    return ui.flex(
+        ui.action_menu(
+            "Aaa",
+            "Bbb",
+            "Ccc",
+            on_action=on_action,
+        ),
+        ui.text(action),
+        direction="column",
+    )
+
+
+ag = action_menu()
 ```
 
 ## Picker (string values)

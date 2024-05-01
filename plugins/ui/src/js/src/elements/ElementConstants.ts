@@ -24,9 +24,11 @@ export const ELEMENT_NAME = {
 
   /** Other Components */
   actionGroup: uiComponentName('ActionGroup'),
+  actionMenu: uiComponentName('ActionMenu'),
   fragment: uiComponentName('Fragment'),
   item: uiComponentName('Item'),
   listActionGroup: uiComponentName('ListActionGroup'),
+  listActionMenu: uiComponentName('ListActionMenu'),
   listView: uiComponentName('ListView'),
   picker: uiComponentName('Picker'),
   section: uiComponentName('Section'),

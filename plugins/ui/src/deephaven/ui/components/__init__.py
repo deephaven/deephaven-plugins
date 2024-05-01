@@ -23,6 +23,7 @@ from . import html
 __all__ = [
     "action_button",
     "action_group",
+    "action_menu",
     "button",
     "button_group",
     "checkbox",
