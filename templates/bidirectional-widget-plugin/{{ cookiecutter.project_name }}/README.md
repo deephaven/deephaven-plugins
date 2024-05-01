@@ -10,6 +10,16 @@ The plugin works out of the box, demonstrates basic plugin structure, and can be
 The `src` directory contains the Python and JavaScript code for the plugin.
 Within the `src` directory, the {{ cookiecutter.python_project_name }} directory contains the Python code, and the `js` directory contains the JavaScript code.
 
+The Python files have the following structure:
+`{{ cookiecutter.__object_file_name }}.py` defines a simple Python class that can send messages to the client.
+`{{ cookiecutter.__type_file_name }}.py` defines the Python type for the plugin (which is used for registration) and a simple message stream.
+`js_plugin.py` defines the Python class that will be used to setup the JavaScript side of the plugin.
+`register.py` registers the plugin with Deephaven.
+
+The JavaScript files have the following structure:
+`{{ cookiecutter.__js_plugin_obj }}.ts` registers the plugin with Deephaven.
+`{{ cookiecutter.__js_plugin_view_obj }}.tsx` defines the plugin panel and message handling.
+
 Additionally, the `test` directory contains Python tests for the plugin. This demonstrates how the embedded Deephaven server can be used in tests.
 It's recommended to use `tox` to run the tests, and the `tox.ini` file is included in the project.
 
