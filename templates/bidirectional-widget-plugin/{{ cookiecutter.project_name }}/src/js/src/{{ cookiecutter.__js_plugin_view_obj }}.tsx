@@ -35,6 +35,7 @@ export function {{ cookiecutter.__js_plugin_view_obj }}(props: WidgetComponentPr
             const text = detail.getDataAsString();
             if (text) {
               setText(text);
+              widget.sendMessage("message acknowledged", []);
             }
           }
       );

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 from typing import Any
 from deephaven.plugin.object_type import MessageStream, BidirectionalObjectType
 
@@ -44,7 +45,11 @@ class {{ cookiecutter.__message_stream_name }}(MessageStream):
         Returns:
             The payload to send to the client and the references to send to the client
         """
-        pass
+        # This is where you would process the payload.
+        # This is just an acknowledgement that the payload was received,
+        # so print.
+        payload = io.BytesIO(payload).read().decode()
+        print(f"Received payload: {payload}")
 
     def on_close(self) -> None:
         """
