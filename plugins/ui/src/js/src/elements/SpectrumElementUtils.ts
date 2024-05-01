@@ -1,6 +1,6 @@
+import { ButtonGroup, Checkbox } from '@adobe/react-spectrum';
+import { ValueOf } from '@deephaven/utils';
 import {
-  ButtonGroup,
-  Checkbox,
   Content,
   ContextualHelp,
   Grid,
@@ -14,9 +14,9 @@ import {
   TabList,
   Text,
   ToggleButton,
-} from '@adobe/react-spectrum';
-import { ValueOf } from '@deephaven/utils';
-import { Flex, View } from '@deephaven/components';
+  Flex,
+  View,
+} from '@deephaven/components';
 import {
   ActionButton,
   Button,

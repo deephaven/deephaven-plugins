@@ -176,6 +176,7 @@ def toggle_button(
         is_quiet=is_quiet,
         static_color=static_color,
         type=type,
+        on_change=on_change,
         on_press=on_press,
         on_press_start=on_press_start,
         on_press_end=on_press_end,
