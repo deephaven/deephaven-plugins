@@ -4,7 +4,6 @@ import React, { ComponentType } from 'react';
 // Importing `Item` and `Section` compnents directly since they should not be
 // wrapped due to how Spectrum collection components consume them.
 import {
-  ActionGroup,
   ActionMenu,
   Item,
   ListActionGroup,
@@ -34,6 +33,7 @@ import Column from '../layout/Column';
 import Dashboard from '../layout/Dashboard';
 import ListView from '../elements/ListView';
 import Picker from '../elements/Picker';
+import ActionGroup from '../elements/ActionGroup';
 
 /*
  * Map element node names to their corresponding React components
