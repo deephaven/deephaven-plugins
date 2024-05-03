@@ -273,9 +273,7 @@ def ui_list_view():
 
     text = ui.text("Selection: " + ", ".join(map(str, value)), grid_column="span 2")
 
-    return ui.grid(
-        text, lv, lv2, columns="repeat(2, 1fr)", rows="min-content", height="100%"
-    )
+    return text, lv, lv2
 
 
 lv = ui_list_view()
