@@ -256,6 +256,7 @@ def ui_list_view():
         "Text 1",
         "Text 2",
         "Text 3",
+        aria_label="List View - Basic",
         on_change=set_value,
         selected_keys=value,
     )
@@ -265,6 +266,7 @@ def ui_list_view():
         ui.item("Item 1", key="Text 1"),
         ui.item("Item 2", key="Text 2"),
         ui.item("Item 3", key="Text 3"),
+        aria_label="List View - Basic",
         on_change=set_value,
         selected_keys=value,
     )
