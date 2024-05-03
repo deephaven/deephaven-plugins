@@ -64,8 +64,9 @@ export function useListViewProps({
   return {
     density: densityLc,
     selectionMode: selectionModeLc,
-    onChange: serializedOnChange,
-    onSelectionChange: serializedOnSelectionChange,
+    onChange: onChange == null ? undefined : serializedOnChange,
+    onSelectionChange:
+      onSelectionChange == null ? undefined : serializedOnSelectionChange,
     // The @deephaven/components `ListView` has its own normalization logic that
     // handles primitive children types (string, number, boolean). It also
     // handles nested children inside of `Item` and `Section` components, so
