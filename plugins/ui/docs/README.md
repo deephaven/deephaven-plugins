@@ -244,7 +244,7 @@ my_picker = ui_picker()
 A list view that can be used to create a list of selectable items. Here's a basic example for selecting from a list of string values and displaying the selected key in a text field.
 
 ```python
-import deephaven.ui as ui
+from deephaven import ui
 
 
 @ui.component
@@ -271,7 +271,9 @@ def ui_list_view():
 
     text = ui.text("Selection: " + ", ".join(map(str, value)), grid_column="span 2")
 
-    return ui.grid(text, lv, lv2, columns="repeat(2, 1fr)")
+    return ui.grid(
+        text, lv, lv2, columns="repeat(2, 1fr)", rows="min-content", height="100%"
+    )
 
 
 lv = ui_list_view()
@@ -279,8 +281,7 @@ lv = ui_list_view()
 
 ## ListView (table)
 ```python
-import deephaven.ui as ui
-from deephaven import time_table
+from deephaven import time_table, ui
 import datetime
 
 # Ticking table with initial row count of 200 that adds a row every second
