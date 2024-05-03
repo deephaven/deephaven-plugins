@@ -361,5 +361,8 @@ class ElementMessageStream(MessageStream):
             dispatcher[callable_id] = wrap_callable(callable)
         self._dispatcher = dispatcher
         if self._is_closed:
+            # The connection is closed, so this component will not update anymore
+            # delete the context so the objects in the collected scope are released
+            del self._context
             sys.exit()
         self._connection.on_data(payload.encode(), new_objects)
