@@ -104,3 +104,16 @@ export function removeColorsFromData(colorway: string[], data: Data[]): void {
     }
   }
 }
+
+/**
+ * Gets the path parts from a path replacement string from the widget data.
+ * The parts start with the plotly data array as the root.
+ * E.g. /plotly/data/0/x -> ['0', 'x']
+ * @param path The path from the widget data
+ * @returns The path parts within the plotly data array
+ */
+export function getPathParts(path: string): string[] {
+  return path
+    .split('/')
+    .filter(part => part !== '' && part !== 'plotly' && part !== 'data');
+}
