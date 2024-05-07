@@ -2,10 +2,15 @@ from __future__ import annotations
 
 from deephaven.plugin.object_type import MessageStream
 
-# This is a simple object that demonstrates how to send messages to the client.
-# When the object is created, it will be passed a connection to the client.
-# This connection can be used to send messages back to the client.
 class {{ cookiecutter.__object_name }}:
+    """
+    This is a simple object that demonstrates how to send messages to the client.
+    When the object is created, it will be passed a connection to the client.
+    This connection can be used to send messages back to the client.
+
+    Attributes:
+        _connection: MessageStream: The connection to the client
+    """
     def __init__(self):
         self._connection: MessageStream = None
 

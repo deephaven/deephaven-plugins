@@ -32,13 +32,15 @@
     "@deephaven/jsapi-bootstrap": "^0.58.0",
     "@deephaven/jsapi-types": "^0.58.0",
     "@deephaven/log": "^0.58.0",
-    "@deephaven/plugin": "^0.58.0",
-    "shortid": "^2.2.16"
+    "@deephaven/plugin": "^0.58.0"
   },
   "publishConfig": {
     "access": "public"
   },
   "files": [
     "dist/index.js"
-  ]
+  ],
+  "engines": {
+    "node": "18.13.0"
+  }
 }

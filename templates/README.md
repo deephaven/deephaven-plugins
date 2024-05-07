@@ -16,7 +16,7 @@ cookiecutter gh:deephaven/deephaven-plugins --directory="templates/<template nam
 
 Currently, we offer the following templates:
 
-## bidirectional-widget-plugin
+## widget
 
 This creates a basic bidirectional widget plugin for Deephaven.
 A bidirectional plugin can send and receive messages on both the client and server.

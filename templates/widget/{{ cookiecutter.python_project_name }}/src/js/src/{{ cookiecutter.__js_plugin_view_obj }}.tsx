@@ -14,28 +14,32 @@ export const {{ cookiecutter.__js_plugin_view_obj_style }}: CSSProperties = {
   justifyContent: "center",
   alignItems: "center",
   height: "100%",
-  width: "100%"
+  width: "100%",
+  flexDirection: "column"
 };
 
 export function {{ cookiecutter.__js_plugin_view_obj }}(props: WidgetComponentProps): JSX.Element {
   const { fetch } = props;
   const [text, setText] = useState<string>("Call send_message on the object and the message will appear here.");
+  const [formText, setFormText] = useState('');
+  const [widget, setWidget] = useState<Widget | null>(null);
   const dh = useApi();
 
   useEffect(() => {
     async function init() {
        // Fetch the widget from the server
-      const widget = await fetch();
+      const fetched_widget = await fetch();
+      setWidget(fetched_widget);
+
 
       // Add an event listener to the widget to listen for messages from the server
-      widget.addEventListener<Widget>(
+      fetched_widget.addEventListener<Widget>(
           dh.Widget.EVENT_MESSAGE,
           ({ detail }) => {
             // When a message is received, update the text in the component
             const text = detail.getDataAsString();
             if (text) {
               setText(text);
-              widget.sendMessage("message acknowledged", []);
             }
           }
       );
@@ -45,8 +49,25 @@ export function {{ cookiecutter.__js_plugin_view_obj }}(props: WidgetComponentPr
   }, [dh, fetch]);
 
   return (
-    <div className="{{ cookiecutter.__js_plugin_view_class }}" style={{ "{" }}{{ cookiecutter.__js_plugin_view_obj_style }}{{ "}" }}>
-      {text}
+    <div style={{ "{" }}{{ cookiecutter.__js_plugin_view_obj_style }}{{ "}" }}>
+      <div>{text}</div>
+      <div>Send a message to the server:</div>
+      <div>
+        <input
+          type="text"
+          value={formText}
+          onChange={(e) => setFormText(e.target.value)}
+        />
+        <button
+          onClick={() => {
+            // Send the message to the server via the widget
+            fetch().then((widget) => {
+              widget.sendMessage(formText, []);
+            });
+          }}>
+          Send
+        </button>
+      </div>
     </div>
   );
 }

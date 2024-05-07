@@ -1,4 +1,4 @@
-# {{ cookiecutter.project_name }}
+# {{ cookiecutter.python_project_name }}
 
 This is a Python plugin for Deephaven generated from a [deephaven-plugin](https://github.com/deephaven/deephaven-plugins) template.
 
@@ -54,7 +54,14 @@ The built wheel file will be located in the `dist` directory.
 ## Installing the Plugin
 
 The plugin can be installed into a Deephaven instance with `pip install <wheel file>`.
+The wheel file is stored in the `dist` directory after building the plugin.
 Exactly how this is done will depend on how you are running Deephaven.
+If using the venv created above, the plugin and server can be created with the following commands:
+```sh
+pip install deephaven-server
+pip install dist/{{ cookiecutter.python_project_name }}-0.0.1-py3-none-any.whl
+deephaven server
+```
 See the [plug-in documentation](https://deephaven.io/core/docs/how-to-guides/use-plugins/) for more information.
 
 ## Using the Plugin
@@ -72,3 +79,10 @@ A panel should appear. You can now use the object to send messages to the client
 ```python
 obj.send_message("Hello, world!")
 ```
+
+The panel can also send messages back to the Python client by using the input field.
+
+## Distributing the Plugin
+To distribute the plugin, you can upload the wheel file to a package repository, such as [PyPI](https://pypi.org/).
+The version of the plugin can be updated in the `setup.cfg` file.
+See the [Python packaging documentation](https://packaging.python.org/en/latest/tutorials/packaging-projects/#uploading-the-distribution-archives) for more information.
