@@ -3,15 +3,20 @@ import type { dh as DhType } from '@deephaven/jsapi-types';
 import { ChartModel, ChartUtils } from '@deephaven/chart';
 import Log from '@deephaven/log';
 import {
+  DownsampleInfo,
   PlotlyChartWidgetData,
+  areSameAxisRange,
+  downsample,
   getDataMappings,
   getPathParts,
   getWidgetData,
+  isAutoAxis,
+  isLineSeries,
+  isLinearAxis,
   removeColorsFromData,
 } from './PlotlyExpressChartUtils.js';
 
 const AUTO_DOWNSAMPLE_SIZE = 30000;
-const FORCED_DOWNSAMPLE_SIZE = 250000;
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
 
@@ -55,7 +60,7 @@ export class PlotlyExpressChartModel extends ChartModel {
   /**
    * Map of downsampled table indexes to original Table object.
    */
-  downsampleOriginalMap: Map<number, DhType.Table> = new Map();
+  downsampleMap: Map<number, DownsampleInfo> = new Map();
 
   /**
    * Map of table index to TableSubscription object.
@@ -275,17 +280,28 @@ export class PlotlyExpressChartModel extends ChartModel {
       return;
     }
 
-    const downsampledTable = await this.downsampleIfNeeded(id, table);
+    let tableToAdd = table;
 
-    if (downsampledTable == null) {
-      return;
+    if (this.needsDownsample(table)) {
+      this.fireDownsampleStart(null);
+      const downsampleInfo = this.getDownsampleInfo(id, table);
+
+      if (typeof downsampleInfo === 'string') {
+        this.fireDownsampleFail(downsampleInfo);
+        return;
+      }
+
+      this.downsampleMap.set(id, downsampleInfo);
+      try {
+        tableToAdd = await downsample(this.dh, downsampleInfo);
+        this.fireDownsampleFinish(null);
+      } catch (e) {
+        this.fireDownsampleFail(e);
+        return;
+      }
     }
 
-    if (downsampledTable !== table) {
-      this.downsampleOriginalMap.set(id, table);
-    }
-
-    this.tableReferenceMap.set(id, downsampledTable);
+    this.tableReferenceMap.set(id, tableToAdd);
     this.tableDataMap.set(id, {});
 
     if (this.isSubscribed) {
@@ -293,30 +309,73 @@ export class PlotlyExpressChartModel extends ChartModel {
     }
   }
 
+  async updateDownsampledTable(id: number): Promise<void> {
+    const oldDownsampleInfo = this.downsampleMap.get(id);
+    if (oldDownsampleInfo == null) {
+      log.error(`No table found for id ${id}`);
+      return;
+    }
+
+    const downsampleInfo = this.getDownsampleInfo(
+      id,
+      oldDownsampleInfo.originalTable
+    );
+
+    if (typeof downsampleInfo === 'string') {
+      this.fireDownsampleFail(downsampleInfo);
+      return;
+    }
+
+    if (
+      areSameAxisRange(downsampleInfo.range, oldDownsampleInfo.range) &&
+      downsampleInfo.width === oldDownsampleInfo.width
+    ) {
+      log.debug('Range and width are the same, skipping downsample');
+      return;
+    }
+
+    log.debug('Updating downsampled table', downsampleInfo);
+
+    this.fireDownsampleStart(null);
+    this.subscriptionCleanupMap.get(id)?.();
+    this.tableSubscriptionMap.get(id)?.close();
+    this.subscriptionCleanupMap.delete(id);
+    this.tableSubscriptionMap.delete(id);
+    this.tableReferenceMap.delete(id);
+    this.addTable(id, oldDownsampleInfo.originalTable);
+  }
+
   override setDownsamplingDisabled(isDownsamplingDisabled: boolean): void {
     this.isDownsamplingDisabled = isDownsamplingDisabled;
     if (isDownsamplingDisabled && this.widget != null) {
       const widgetData = getWidgetData(this.widget);
       this.handleWidgetUpdated(widgetData, this.widget.exportedObjects);
+      this.fireDownsampleFinish(null);
     }
   }
 
-  async downsampleIfNeeded(
+  needsDownsample(table: DhType.Table): boolean {
+    return !this.isDownsamplingDisabled && table.size > AUTO_DOWNSAMPLE_SIZE;
+  }
+
+  /**
+   * Gets info on how to downsample a table for plotting.
+   * @param tableId The tableId to get downsample info for
+   * @param table The table to get downsample info for
+   * @returns DownsampleInfo if table can be downsampled.
+   *          A string of the reason if the table cannot be downsampled.
+   *          Null if the table does not need downsampling.
+   */
+  getDownsampleInfo(
     tableId: number,
     table: DhType.Table
-  ): Promise<DhType.Table | null> {
-    const downsampleFailMessage = `Disable downsampling to retrieve all ${table.size} items. This may be slow.`;
-    if (table.size < AUTO_DOWNSAMPLE_SIZE || this.isDownsamplingDisabled) {
-      log.debug(
-        `Table ${tableId} is small enough to not downsample: ${table.size} rows`
-      );
-      return table;
-    }
+  ): DownsampleInfo | string {
+    const downsampleFailMessage = `Disable downsampling to retrieve all ${table.size} items.\nThis may be slow.`;
 
     const replacementMap = this.tableColumnReplacementMap.get(tableId);
 
     if (!replacementMap) {
-      return table;
+      return 'Nothing to downsample';
     }
 
     const areAllLines = [...replacementMap.values()]
@@ -324,26 +383,16 @@ export class PlotlyExpressChartModel extends ChartModel {
       .map(path => getPathParts(path)[0])
       .every(seriesIndex => {
         const series = this.plotlyData[parseInt(seriesIndex, 10)];
-        // This could be undefined if the index is out of bounds or does not exist
-        // TS doesn't know that without an additional flag for strict array indexes
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        if (!series) {
-          return false;
-        }
-        return (
-          (series.type === 'scatter' || series.type === 'scattergl') &&
-          series.mode === 'lines'
-        );
+        return series != null && isLineSeries(series);
       });
 
     if (!areAllLines) {
       log.debug('Cannot downsample non-line series');
-      this.fireDownsampleFail(downsampleFailMessage);
-      return null;
+      return downsampleFailMessage;
     }
 
     let xCol = '';
-    let xAxis: Partial<LayoutAxis> | null = null;
+    let xAxis: Partial<LayoutAxis> | undefined;
     const yCols: string[] = [];
     const replacementEntries = [...replacementMap.entries()];
 
@@ -356,67 +405,41 @@ export class PlotlyExpressChartModel extends ChartModel {
         const series = this.plotlyData[parseInt(seriesIdx, 10)] as PlotData;
         if (xOrY === 'x') {
           if (xCol !== '') {
-            this.fireDownsampleFail(downsampleFailMessage);
-            return null;
+            return downsampleFailMessage;
           }
           xCol = columnName;
           const axisName = `${series.xaxis[0]}axis${series.xaxis[1] ?? ''}`;
-          xAxis = this.layout[axisName as 'xaxis'] ?? null; // The cast makes TS happy
-          if (
-            xAxis != null &&
-            xAxis.type != null &&
-            xAxis.type !== 'linear' &&
-            xAxis.type !== 'date'
-          ) {
-            this.fireDownsampleFail('Cannot downsample non-linear x axis');
-            return null;
+          xAxis = this.layout[axisName as 'xaxis']; // The cast makes TS happy
+          if (xAxis != null && !isLinearAxis(xAxis) && !isAutoAxis(xAxis)) {
+            return 'Cannot downsample non-linear x axis';
           }
         } else {
           yCols.push(columnName);
           const axisName = `${series.yaxis[0]}axis${series.yaxis[1] ?? ''}`;
           const yAxis = this.layout[axisName as 'yaxis']; // The cast makes TS happy
-          if (
-            yAxis != null &&
-            yAxis.type != null &&
-            yAxis.type !== 'linear' &&
-            yAxis.type !== 'date'
-          ) {
-            this.fireDownsampleFail('Cannot downsample non-linear y axis');
-            return null;
+          if (yAxis != null && !isLinearAxis(yAxis) && !isAutoAxis(yAxis)) {
+            return 'Cannot downsample non-linear y axis';
           }
         }
       }
     }
 
-    if (xCol === '') {
-      this.fireDownsampleFail('Cannot downsample without an x column');
-      return null;
+    if (xAxis == null) {
+      return 'Cannot downsample without an x axis';
     }
 
-    if (yCols.length === 0) {
-      this.fireDownsampleFail('Cannot downsample without any y columns');
-      return null;
-    }
+    // Copy the range in case plotly mutates it
+    const range = xAxis.autorange === false ? [...(xAxis.range ?? [])] : null;
 
-    this.fireDownsampleStart(null);
-
-    const range = xAxis?.autorange === false ? xAxis?.range : undefined;
-
-    try {
-      const downsampledTable = await this.dh.plot.Downsample.runChartDownsample(
-        table,
-        xCol,
-        yCols,
-        this.getPlotWidth(),
-        range
-      );
-      this.fireDownsampleFinish(null);
-      return downsampledTable;
-    } catch (e) {
-      this.fireDownsampleFail(e);
-    }
-
-    return null;
+    return {
+      type: 'linear',
+      originalTable: table,
+      xCol,
+      yCols,
+      width: this.getPlotWidth(),
+      range,
+      rangeType: xAxis.type === 'date' ? 'date' : 'number',
+    };
   }
 
   subscribeTable(id: number): void {
@@ -449,6 +472,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.tableSubscriptionMap.get(id)?.close();
 
     this.tableReferenceMap.delete(id);
+    this.downsampleMap.delete(id);
     this.subscriptionCleanupMap.delete(id);
     this.tableSubscriptionMap.delete(id);
     this.chartDataMap.delete(id);
@@ -473,9 +497,9 @@ export class PlotlyExpressChartModel extends ChartModel {
   override setDimensions(rect: DOMRect): void {
     super.setDimensions(rect);
     ChartUtils.getLayoutRanges(this.layout);
-    // this.downsampleOriginalMap.forEach((table, id) => {
-    //   this.addTable(id, table);
-    // });
+    this.downsampleMap.forEach((_, id) => {
+      this.updateDownsampledTable(id);
+    });
   }
 
   pauseUpdates(): void {
