@@ -61,9 +61,7 @@ export function {{ cookiecutter.__js_plugin_view_obj }}(props: WidgetComponentPr
         <button
           onClick={() => {
             // Send the message to the server via the widget
-            fetch().then((widget) => {
-              widget.sendMessage(formText, []);
-            });
+            widget.sendMessage(formText, []);
           }}>
           Send
         </button>

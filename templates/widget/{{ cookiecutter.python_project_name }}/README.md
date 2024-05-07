@@ -26,6 +26,7 @@ It's recommended to use `tox` to run the tests, and the `tox.ini` file is includ
 ## Building the Plugin
 
 To build the plugin, you will need `npm` and `python` installed, as well as the `build` package for Python.
+`nvm` is also strongly recommended, and an `.nvmrc` file is included in the project.
 The python venv can be created and the recommended packages installed with the following commands:
 ```sh
 cd {{ cookiecutter.python_project_name }}
@@ -38,6 +39,7 @@ Build the JavaScript plugin from the `src/js` directory:
 
 ```sh
 cd src/js
+nvm use
 npm install
 npm run build
 ```
