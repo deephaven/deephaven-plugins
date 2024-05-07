@@ -29,7 +29,7 @@ export function {{ cookiecutter.__js_plugin_view_obj }}(props: WidgetComponentPr
   useEffect(() => {
     async function init() {
        // Fetch the widget from the server
-      const fetched_widget = await fetch();
+      const fetched_widget = await fetch() as Widget;
       setWidget(fetched_widget);
 
 
@@ -62,7 +62,9 @@ export function {{ cookiecutter.__js_plugin_view_obj }}(props: WidgetComponentPr
         <button
           onClick={() => {
             // Send the message to the server via the widget
-            widget.sendMessage(formText, []);
+            if (widget) {
+              widget.sendMessage(formText, []);
+            }
           }}>
           Send
         </button>
