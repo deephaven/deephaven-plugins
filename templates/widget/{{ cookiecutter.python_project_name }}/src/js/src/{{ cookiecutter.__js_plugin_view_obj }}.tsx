@@ -2,6 +2,7 @@ import React, { CSSProperties, useEffect, useState } from 'react';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
 import { WidgetComponentProps } from '@deephaven/plugin';
+import type { Widget } from '@deephaven/jsapi-types';
 
 const log = Log.module('{{ cookiecutter.javascript_project_name }}.{{ cookiecutter.__js_plugin_view_obj }}');
 

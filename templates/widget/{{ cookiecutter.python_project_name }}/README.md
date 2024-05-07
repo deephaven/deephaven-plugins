@@ -61,7 +61,7 @@ Exactly how this is done will depend on how you are running Deephaven.
 If using the venv created above, the plugin and server can be created with the following commands:
 ```sh
 pip install deephaven-server
-pip install dist/{{ cookiecutter.python_project_name }}-0.0.1-py3-none-any.whl
+pip install dist/{{ cookiecutter.python_project_name }}-0.0.1.dev0-py3-none-any.whl
 deephaven server
 ```
 See the [plug-in documentation](https://deephaven.io/core/docs/how-to-guides/use-plugins/) for more information.
