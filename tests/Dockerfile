@@ -6,7 +6,7 @@ WORKDIR /work/
 
 # Update packages list and install some build tools.
 # Installing fonts-dejavu-core so we have some common fonts with the GH actions
-# runner that can be used to render unicode fonts. See README for more info.
+# runner that can be used to render unicode fonts. See web-client-ui README for more info.
 RUN set -eux; \
     apt-get update; \
     apt-get install build-essential --yes; \
