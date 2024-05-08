@@ -4,13 +4,12 @@ from typing import Callable, Any, Union
 
 from deephaven.table import Table
 
-from .item import ItemElement
 from .item_table_source import ItemTableSource
 from ..elements import BaseElement, Element
 from .._internal.utils import create_props, unpack_item_table_source
-from ..types import Stringable, Selection, SelectionMode
+from ..types import Selection, SelectionMode
+from .item import Item
 
-ListViewItem = Union[Stringable, ItemElement]
 ListViewElement = Element
 
 SUPPORTED_SOURCE_ARGS = {
@@ -23,7 +22,7 @@ SUPPORTED_SOURCE_ARGS = {
 
 
 def list_view(
-    *children: ListViewItem | Table | ItemTableSource,
+    *children: Item | Table | ItemTableSource,
     default_selected_keys: Selection | None = None,
     selected_keys: Selection | None = None,
     selection_mode: SelectionMode | None = "MULTIPLE",
@@ -34,11 +33,11 @@ def list_view(
 ) -> ListViewElement:
     """
     A list view that can be used to create a list of items. Children should be one of three types:
-    1. If children are of type `ListViewItem`, they are the list items.
+    1. If children are of type `Item`, they are the list items.
     2. If children are of type `Table`, the values in the table are the list items.
         There can only be one child, the `Table`.
         The first column is used as the key and label by default.
-    3. If children are of type ItemTableSource, complex items are created from the source.
+    3. If children are of type `ItemTableSource`, complex items are created from the source.
         There can only be one child, the `ItemTableSource`.
         Supported `ItemTableSource` arguments are `key_column`, `label_column`, `description_column`,
         `icon_column`, and `actions`.
