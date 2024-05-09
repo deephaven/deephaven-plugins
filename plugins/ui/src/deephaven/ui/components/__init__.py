@@ -15,6 +15,7 @@ from .list_view import list_view
 from .list_action_group import list_action_group
 from .list_action_menu import list_action_menu
 from .date_picker import date_picker
+from .combo_box import combo_box
 
 from . import html
 
@@ -25,6 +26,7 @@ __all__ = [
     "button_group",
     "checkbox",
     "column",
+    "combo_box",
     "component",
     "content",
     "contextual_help",
