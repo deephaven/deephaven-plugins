@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from typing import Callable, Any, Union
+from typing import Callable, Any
 
 from deephaven.table import Table
 
 from .item_table_source import ItemTableSource
 from ..elements import BaseElement, Element
 from .._internal.utils import create_props, unpack_item_table_source
-from ..types import Selection, SelectionMode
 from .item import Item
+from ..types import Density, Selection, SelectionMode
 
 ListViewElement = Element
 
@@ -23,6 +23,7 @@ SUPPORTED_SOURCE_ARGS = {
 
 def list_view(
     *children: Item | Table | ItemTableSource,
+    density: Density | None = "COMPACT",
     default_selected_keys: Selection | None = None,
     selected_keys: Selection | None = None,
     selection_mode: SelectionMode | None = "MULTIPLE",
@@ -44,6 +45,8 @@ def list_view(
 
     Args:
         *children: The options to render within the list_view.
+        density:
+            Sets the amount of vertical padding within each cell.
         default_selected_keys:
             The initial selected keys in the collection (uncontrolled).
         selected_keys:

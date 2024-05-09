@@ -1279,6 +1279,7 @@ import deephaven.ui as ui
 ui.list_view(
     *children: Item | Table | ItemTableSource,
     selection_mode: SelectionMode | None = 'MULTIPLE',
+    density: Density | None = "COMPACT",
     default_selected_keys: Selection | None = None,
     selected_keys: Selection | None = None,
     render_empty_state: Element | None = None,
