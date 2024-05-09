@@ -1,3 +1,7 @@
+import { PickerProps as DHPickerProps } from '@deephaven/components';
+import { PickerProps as DHPickerJSApiProps } from '@deephaven/jsapi-components';
+import { ReactElement } from 'react';
+import { ObjectViewProps } from './ObjectView';
 import {
   SerializedFocusEventCallback,
   useFocusEventCallback,
@@ -21,16 +25,28 @@ export interface SerializedPickerEventProps {
   onKeyUp?: SerializedKeyboardEventCallback;
 }
 
+type WrappedDHPickerJSApiProps = Omit<DHPickerJSApiProps, 'table'> & {
+  children: ReactElement<ObjectViewProps>;
+};
+
+export type SerializedPickerProps = (
+  | DHPickerProps
+  | WrappedDHPickerJSApiProps
+) &
+  SerializedPickerEventProps;
+
 /**
  * Wrap Picker props with the appropriate serialized event callbacks.
  * @param props Props to wrap
  * @returns Wrapped props
  */
-export function usePickerProps<T>(
-  props: SerializedPickerEventProps & T
-): T & SerializedPickerEventProps {
-  const { onFocus, onBlur, onKeyDown, onKeyUp, ...otherProps } = props;
-
+export function usePickerProps({
+  onFocus,
+  onBlur,
+  onKeyDown,
+  onKeyUp,
+  ...otherProps
+}: SerializedPickerProps): DHPickerProps | WrappedDHPickerJSApiProps {
   const serializedOnFocus = useFocusEventCallback(onFocus);
   const serializedOnBlur = useFocusEventCallback(onBlur);
   const serializedOnKeyDown = useKeyboardEventCallback(onKeyDown);
@@ -46,5 +62,5 @@ export function usePickerProps<T>(
     // handles nested children inside of `Item` and `Section` components, so
     // we are intentionally not wrapping `otherProps` in `mapSpectrumProps`
     ...otherProps,
-  } as T & SerializedPickerEventProps;
+  };
 }

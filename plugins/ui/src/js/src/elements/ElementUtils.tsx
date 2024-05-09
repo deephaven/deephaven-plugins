@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text } from '@adobe/react-spectrum';
+import { Text } from '@deephaven/components';
 import type { dh } from '@deephaven/jsapi-types';
 import { ITEM_ELEMENT_NAME } from './ElementConstants';
 import ObjectView from './ObjectView';

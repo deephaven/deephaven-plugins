@@ -1045,11 +1045,11 @@ ui.section(
 
 ###### Parameters
 
-| Parameter   | Type    | Description                               |
-| ----------- | ------- | ----------------------------------------- |
-| `*children` | `Item`  | The options to render within the section. |
+| Parameter   | Type          | Description                               |
+| ----------- | ------------- | ----------------------------------------- |
+| `*children` | `Item`        | The options to render within the section. |
 | `title`     | `str \| None` | The title of the section.                 |
-| `**props`   | `Any`   | Any other Section prop                    |
+| `**props`   | `Any`         | Any other Section prop                    |
 
 ##### ui.picker
 
@@ -1189,6 +1189,7 @@ picker7 = ui.picker(
 ```
 
 ###### ui.list_action_group
+
 A group of action buttons that can be used to create a list of actions.
 This component should be used within the actions prop of a `ListView` component.
 
@@ -1202,16 +1203,16 @@ def list_action_group(
 ```
 
 ###### Parameters
-| Parameter               | Type                                                       | Description                                                                                                                                        |
-|-------------------------|------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`             | `ActionGroupItem`                                          | The actions to render within the action group.                                                                                                           |
-| `on_action`             | `Callable[[ActionKey, Key], None] \| None`                 | Handler that is called when an item is pressed. The first argument is the key of the action, the second argument is the key of the list_view item. |
-| `on_selection_change`   | `Callable[[Selection, Key], None] \| None`                 | Handler that is called when the selection changes. The first argument is the selection, the second argument is the key of the list_view item.      |
-| `**props`               | `Any`                                                      | Any other [ActionGroup](https://react-spectrum.adobe.com/react-spectrum/ActionGroup.html) prop.                                                    |
 
-
+| Parameter             | Type                                       | Description                                                                                                                                        |
+| --------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `*children`           | `ActionGroupItem`                          | The actions to render within the action group.                                                                                                     |
+| `on_action`           | `Callable[[ActionKey, Key], None] \| None` | Handler that is called when an item is pressed. The first argument is the key of the action, the second argument is the key of the list_view item. |
+| `on_selection_change` | `Callable[[Selection, Key], None] \| None` | Handler that is called when the selection changes. The first argument is the selection, the second argument is the key of the list_view item.      |
+| `**props`             | `Any`                                      | Any other [ActionGroup](https://react-spectrum.adobe.com/react-spectrum/ActionGroup.html) prop.                                                    |
 
 ###### ui.list_action_menu
+
 A group of action buttons that can be used to create a list of actions.
 This component should be used within the actions prop of a `ListView` component.
 
@@ -1225,17 +1226,20 @@ def list_action_menu(
 ```
 
 ###### Parameters
-| Parameter               | Type                                                       | Description                                                                                                                                        |
-|-------------------------|------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`             | `ActionMenuItem`                                           | The options to render within the picker.                                                                                                           |
-| `on_action`             | `Callable[[ActionKey, Key], None] \| None`                       | Handler that is called when an item is pressed. The first argument is the key of the action, the second argument is the key of the list_view item. |
-| `on_open_change`        | `Callable[[bool, Key], None] \| None`                      | The first argument is a boolean indicating if the menu is open, the second argument is the key of the list_view item.                              |
-| `**props`               | `Any`                                                      | Any other [ActionMenu](https://react-spectrum.adobe.com/react-spectrum/ActionMenu.html) prop.                                                      |
+
+| Parameter        | Type                                       | Description                                                                                                                                        |
+| ---------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `*children`      | `ActionMenuItem`                           | The options to render within the picker.                                                                                                           |
+| `on_action`      | `Callable[[ActionKey, Key], None] \| None` | Handler that is called when an item is pressed. The first argument is the key of the action, the second argument is the key of the list_view item. |
+| `on_open_change` | `Callable[[bool, Key], None] \| None`      | The first argument is a boolean indicating if the menu is open, the second argument is the key of the list_view item.                              |
+| `**props`        | `Any`                                      | Any other [ActionMenu](https://react-spectrum.adobe.com/react-spectrum/ActionMenu.html) prop.                                                      |
 
 ###### ui.list_view
-A list view that can be used to create a list of items. Children should be one of two types:  
-1. If children are of type `Item`, they are the list items.  
-2. If children are of type `Table`, the values in the table are the list items. There can only be one child, the `Table`.   
+
+A list view that can be used to create a list of items. Children should be one of two types:
+
+1. If children are of type `Item`, they are the list items.
+2. If children are of type `Table`, the values in the table are the list items. There can only be one child, the `Table`.
 
 ```py
 import deephaven.ui as ui
@@ -1243,34 +1247,36 @@ ui.list_view(
     *children: Item | Table,
     key_column: ColumnName | None = None,
     label_column: ColumnName | None = None,
+    density: Density | None = "COMPACT",
     description_column: ColumnName | None = None,
     icon_column: ColumnName | None = None,
     actions: ListActionGroupElement | ListActionMenuElement | None = None,
     default_selected_keys: Selection | None = None,
     selected_keys: Selection | None = None,
+    selection_mode: SelectionMode | None = "MULTIPLE",
     render_empty_state: Element | None = None,
-    on_selection_change: Callable[[Selection], None] | None = None, 
+    on_selection_change: Callable[[Selection], None] | None = None,
     on_change: Callable[[Selection], None] | None = None,
     **props: Any
 ) -> ListViewElement
 ```
 
 ###### Parameters
-| Parameter               | Type                                                       | Description                                                                                                                                                    |
-|-------------------------|------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`             | `Item \| Table`                                    | The options to render within the list_view.                                                                                                                    |
-| `key_column`            | `ColumnName \| None`                                       | Only valid if children are of type `Table`. The column of values to use as item keys. Defaults to the first column.                                            |
-| `label_column`          | `ColumnName \| None`                                       | Only valid if children are of type `Table`. The column of values to display as primary text. Defaults to the `key_column` value.                               |
-| `description_column`    | `ColumnName \| None`                                       | Only valid if children are of type `Table`. The column of values to display as descriptions.                                                                   |
-| `icon_column`           | `ColumnName \| None`                                       | Only valid if children are of type `Table`. The column of values to map to icons.                                                                              |
-| `actions`               | `ListActionGroupElement \| ListActionMenuElement \| None`  | Only valid if children are of type Table. The action group or menus to render for all elements within the list view.                                           |
-| `default_selected_keys` | `Selection \| None`                                        | The initial selected keys in the collection (uncontrolled).                                                                                                    |
-| `selected_keys`         | `Selection \| None`                                        | The currently selected keys in the collection (controlled).                                                                                                    |
-| `render_empty_state`    | `Element \| None`                                          | Sets what the `list_view` should render when there is no content to display.                                                                                   |
-| `on_selection_change`   | `Callable[[Selection], None] \| None`                      | Handler that is called when the selections changes.                                                                                                            |
-| `on_change`             | `Callable[[Selection], None] \| None`                      | Alias of `on_selection_change`. Handler that is called when the selections changes.                                                                            |
-| `**props`               | `Any`                                                      | Any other [ListView](https://react-spectrum.adobe.com/react-spectrum/ListView.html) prop, with the exception of `items`, `dragAndDropHooks`, and `onLoadMore`. |
 
+| Parameter               | Type                                                      | Description                                                                                                                                                    |
+| ----------------------- | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `*children`             | `Item \| Table`                                           | The options to render within the list_view.                                                                                                                    |
+| `key_column`            | `ColumnName \| None`                                      | Only valid if children are of type `Table`. The column of values to use as item keys. Defaults to the first column.                                            |
+| `label_column`          | `ColumnName \| None`                                      | Only valid if children are of type `Table`. The column of values to display as primary text. Defaults to the `key_column` value.                               |
+| `description_column`    | `ColumnName \| None`                                      | Only valid if children are of type `Table`. The column of values to display as descriptions.                                                                   |
+| `icon_column`           | `ColumnName \| None`                                      | Only valid if children are of type `Table`. The column of values to map to icons.                                                                              |
+| `actions`               | `ListActionGroupElement \| ListActionMenuElement \| None` | Only valid if children are of type Table. The action group or menus to render for all elements within the list view.                                           |
+| `default_selected_keys` | `Selection \| None`                                       | The initial selected keys in the collection (uncontrolled).                                                                                                    |
+| `selected_keys`         | `Selection \| None`                                       | The currently selected keys in the collection (controlled).                                                                                                    |
+| `render_empty_state`    | `Element \| None`                                         | Sets what the `list_view` should render when there is no content to display.                                                                                   |
+| `on_selection_change`   | `Callable[[Selection], None] \| None`                     | Handler that is called when the selections changes.                                                                                                            |
+| `on_change`             | `Callable[[Selection], None] \| None`                     | Alias of `on_selection_change`. Handler that is called when the selections changes.                                                                            |
+| `**props`               | `Any`                                                     | Any other [ListView](https://react-spectrum.adobe.com/react-spectrum/ListView.html) prop, with the exception of `items`, `dragAndDropHooks`, and `onLoadMore`. |
 
 ```py
 import deephaven.ui as ui
@@ -1355,19 +1361,22 @@ list_view7 = ui.list_view(
 ```
 
 ###### ui.date_picker
-A date picker that can be used to select a date. 
+
+A date picker that can be used to select a date.
 
 There are three types that can be passed in to the props that control the date format:
-1. `LocalDate`: A LocalDate is a date without a time zone in the ISO-8601 system, such as "2007-12-03" or "2057-01-28".
-This will create a date picker with a granularity of days.
-2. `Instant`: An Instant represents an unambiguous specific point on the timeline, such as 2021-04-12T14:13:07 UTC.
-This will create a date picker with a granularity of seconds in UTC.
-3. `ZonedDateTime`: A ZonedDateTime represents an unambiguous specific point on the timeline with an associated time zone, such as 2021-04-12T14:13:07 America/New_York.
-This will create a date picker with a granularity of seconds in the specified time zone.
 
-The format of the date picker and the type of the value passed to the `on_change` handler 
+1. `LocalDate`: A LocalDate is a date without a time zone in the ISO-8601 system, such as "2007-12-03" or "2057-01-28".
+   This will create a date picker with a granularity of days.
+2. `Instant`: An Instant represents an unambiguous specific point on the timeline, such as 2021-04-12T14:13:07 UTC.
+   This will create a date picker with a granularity of seconds in UTC.
+3. `ZonedDateTime`: A ZonedDateTime represents an unambiguous specific point on the timeline with an associated time zone, such as 2021-04-12T14:13:07 America/New_York.
+   This will create a date picker with a granularity of seconds in the specified time zone.
+
+The format of the date picker and the type of the value passed to the `on_change` handler
 is determined by the type of the following props in order of precedence:
-1. `value` 
+
+1. `value`
 2. `default_value`
 3. `placeholder_value`
 
@@ -1389,8 +1398,9 @@ ui.date_picker(
 ```
 
 ###### Parameters
+
 | Parameter            | Type                             | Description                                                                                                                                                                               |
-|----------------------|----------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| -------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `placeholder_value`  | `Date \| None`                   | A placeholder date that influences the format of the placeholder shown when no value is selected. Defaults to today at midnight in the user's timezone.                                   |
 | `value`              | `Date \| None`                   | The current value (controlled).                                                                                                                                                           |
 | `default_value`      | `Date \| None`                   | The default value (uncontrolled).                                                                                                                                                         |
@@ -1516,7 +1526,7 @@ ui.combo_box(
 ###### Parameters
 
 | Parameter              | Type                                                  | Description                                                                                                                                                                                                                                                                  |
-| ---------------------- | ----------------------------------------------------- |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ---------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `*children`            | `Item \| SectionElement \| Table \| PartitionedTable` | The options to render within the combo_box.                                                                                                                                                                                                                                  |
 | `key_column`           | `ColumnName \| None`                                  | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to use as item keys. Defaults to the first column.                                                                                                                                    |
 | `label_column`         | `ColumnName \| None`                                  | Only valid if children are of type `Table` or `PartitionedTable`. The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                       |
@@ -1530,7 +1540,7 @@ ui.combo_box(
 | `on_input_change`      | `Callable[[str], None] \| None`                       | Handler that is called when the search input value changes.                                                                                                                                                                                                                  |
 | `on_selection_change`  | `Callable[[Key], None] \| None`                       | Handler that is called when the selection changes.                                                                                                                                                                                                                           |
 | `on_change`            | `Callable[[Key], None] \| None`                       | Alias of `on_selection_change`. Handler that is called when the selection changes.                                                                                                                                                                                           |
-| `on_open_change`       | `Callable[[bool, MenuTriggerAction], None] \| None`    | Method that is called when the open state of the menu changes. Returns the new open state and the action that caused the opening of the menu.                                                                         |
+| `on_open_change`       | `Callable[[bool, MenuTriggerAction], None] \| None`   | Method that is called when the open state of the menu changes. Returns the new open state and the action that caused the opening of the menu.                                                                                                                                |
 | `**props`              | `Any`                                                 | Any other [Combo_Box](https://react-spectrum.adobe.com/react-spectrum/ComboBox.html) prop, with the exception of `items`, `validate`, `errorMessage` (as a callback) and `onLoadMore`                                                                                        |
 
 ```py
@@ -2186,7 +2196,7 @@ ListViewItem = Stringable | ItemElement
 LocalDateConvertible = Union[None, LocalDate, str, datetime.date, datetime.datetime, numpy.datetime64, pandas.Timestamp]
 InstantConvertible = Union[None, Instant, int, str, datetime.datetime, numpy.datetime64, pandas.Timestamp]
 ZonedDateTimeConvertible = Union[None, ZonedDateTime, str, datetime.datetime, numpy.datetime64, pandas.Timestamp]
-Date = Instant | LocalDate | ZonedDateTime | LocalDateConvertible | InstantConvertible | ZonedDateTimeConvertible 
+Date = Instant | LocalDate | ZonedDateTime | LocalDateConvertible | InstantConvertible | ZonedDateTimeConvertible
 Granularity = Literal["DAY", "HOUR", "MINUTE", "SECOND"]
 MenuTriggerAction = Literal["FOCUS", "INPUT", "MANUAL"]
 
@@ -2358,7 +2368,7 @@ tft = double_text_filter_table(_stocks)
 
 Which should result in a UI like this:
 
-![Double Text Filter Tables](examples/assets/double-tft.png)
+![Double Text Filter Tables](docs/_assets/double-tft.png)
 
 How does that look when the notebook is executed? When does each code block execute?
 

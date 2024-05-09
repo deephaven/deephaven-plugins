@@ -1,15 +1,15 @@
 import React, { useCallback, useState } from 'react';
 import {
-  Slider as SpectrumSlider,
-  SpectrumSliderProps,
-} from '@adobe/react-spectrum';
+  Slider as DHCSlider,
+  SliderProps as DHCSliderProps,
+} from '@deephaven/components';
 import { useDebouncedCallback } from '@deephaven/react-hooks';
 
 const VALUE_CHANGE_DEBOUNCE = 250;
 
 const EMPTY_FUNCTION = () => undefined;
 
-function Slider(props: SpectrumSliderProps): JSX.Element {
+function Slider(props: DHCSliderProps): JSX.Element {
   const {
     defaultValue = 0,
     value: propValue,
@@ -34,7 +34,7 @@ function Slider(props: SpectrumSliderProps): JSX.Element {
 
   return (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <SpectrumSlider value={value} onChange={onChange} {...otherProps} />
+    <DHCSlider value={value} onChange={onChange} {...otherProps} />
   );
 }
 
