@@ -6,7 +6,7 @@ from ..shared import get_unique_names
 
 from deephaven.table import Table
 
-NANOS_PER_MILLI = 1000000
+NANOS_PER_MILLI = 1_000_000
 
 
 class TimePreprocessor:
