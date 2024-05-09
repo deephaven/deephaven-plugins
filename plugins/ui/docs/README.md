@@ -331,6 +331,9 @@ lv = ui_list_view()
 ```
 
 ## ListView (table)
+
+A ListView can also take a Table. It will use the first column as the key and label by default.
+
 ```python
 from deephaven import time_table, ui
 import datetime
@@ -349,13 +352,11 @@ column_types = time_table(
 
 
 @ui.component
-def ui_list_view_table():
-    value, set_value = ui.use_state([2, 4, 5])
+def ui_list_view_table(table, initial_selection):
+    value, set_value = ui.use_state(initial_selection)
 
     lv = ui.list_view(
-        column_types,
-        key_column="Id",
-        label_column="Display",
+        table,
         aria_label="List View",
         on_change=set_value,
         selected_keys=value,
@@ -374,8 +375,18 @@ def ui_list_view_table():
     )
 
 
-lv_table = ui_list_view_table()
+lv_table = ui_list_view_table(column_types, [])
+
+# If you'd like to specify columns to use, you can pass in a table source.
+
+table_source = ui.item_table_source(
+    column_types, key_column="Id", label_column="Display"
+)
+
+lv_table_source = ui_list_view_table(table_source, [2, 4, 5])
 ```
+![Use a picker to select from a table](_assets/lv_table.png)
+![Use a picker to select from a table source](_assets/lv_table_source.png)
 
 ## Form (two variables)
 
