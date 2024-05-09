@@ -9,7 +9,7 @@ from .list_action_group import ListActionGroupElement
 from .list_action_menu import ListActionMenuElement
 from ..elements import BaseElement, Element
 from .._internal.utils import create_props
-from ..types import ColumnName, Stringable, Selection
+from ..types import ColumnName, Density, Stringable, Selection, SelectionMode
 
 ListViewItem = Union[Stringable, ItemElement]
 ListViewElement = Element
@@ -19,11 +19,13 @@ def list_view(
     *children: ListViewItem | Table,
     key_column: ColumnName | None = None,
     label_column: ColumnName | None = None,
+    density: Density | None = "COMPACT",
     description_column: ColumnName | None = None,
     icon_column: ColumnName | None = None,
     actions: ListActionGroupElement | ListActionMenuElement | None = None,
     default_selected_keys: Selection | None = None,
     selected_keys: Selection | None = None,
+    selection_mode: SelectionMode | None = "MULTIPLE",
     render_empty_state: Element | None = None,
     on_selection_change: Callable[[Selection], None] | None = None,
     on_change: Callable[[Selection], None] | None = None,
@@ -44,6 +46,8 @@ def list_view(
         label_column:
             Only valid if children are of type Table.
             The column of values to display as primary text. Defaults to the key_column value.
+        density:
+            Sets the amount of vertical padding within each cell.
         description_column:
             Only valid if children are of type Table.
             The column of values to display as descriptions.

@@ -23,6 +23,7 @@ import {
   DASHBOARD_ELEMENT_NAME,
   FRAGMENT_ELEMENT_NAME,
   ITEM_ELEMENT_NAME,
+  LIST_VIEW_NAME,
   PANEL_ELEMENT_NAME,
   PICKER_ELEMENT_NAME,
   ROW_ELEMENT_NAME,
@@ -35,6 +36,7 @@ import Row from '../layout/Row';
 import Stack from '../layout/Stack';
 import Column from '../layout/Column';
 import Dashboard from '../layout/Dashboard';
+import ListView from '../elements/ListView';
 import Picker from '../elements/Picker';
 
 /*
@@ -48,6 +50,7 @@ export const elementComponentMap = {
   [STACK_ELEMENT_NAME]: Stack,
   [DASHBOARD_ELEMENT_NAME]: Dashboard,
   [ITEM_ELEMENT_NAME]: Item,
+  [LIST_VIEW_NAME]: ListView,
   [PICKER_ELEMENT_NAME]: Picker,
   [SECTION_ELEMENT_NAME]: Section,
   [UITABLE_ELEMENT_TYPE]: UITable,
