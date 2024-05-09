@@ -6,6 +6,7 @@ services:
     build:
       context: ../
       dockerfile: ./Dockerfile
+      pull: true # We need to always pull the latest server image used in the Dockerfile
     expose:
       - 10000
     volumes:
@@ -18,6 +19,7 @@ services:
     build:
       context: ../
       dockerfile: ./tests/Dockerfile
+      pull: true # We only use FROM with a pinned version here, but adding this just in case that changes in the future
     ports:
       - '9323:9323'
     ipc: host
@@ -25,7 +27,7 @@ services:
       - ../tests:/work/tests
       - ../test-results:/work/test-results
       - ../playwright-report:/work/playwright-report
-    entrypoint: "npx playwright test --config=playwright-docker.config.ts"
+    entrypoint: 'npx playwright test --config=playwright-docker.config.ts'
     depends_on:
       deephaven-plugins:
         condition: service_healthy
