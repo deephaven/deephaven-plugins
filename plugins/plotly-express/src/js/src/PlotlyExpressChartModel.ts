@@ -14,7 +14,7 @@ import {
   isLineSeries,
   isLinearAxis,
   removeColorsFromData,
-} from './PlotlyExpressChartUtils.js';
+} from './PlotlyExpressChartUtils';
 
 const AUTO_DOWNSAMPLE_SIZE = 30000;
 
