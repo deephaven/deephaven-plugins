@@ -63,6 +63,7 @@
 
 .dh-react-panel-overlay {
   background-color: bg-opacity(80);
+  backdrop-filter: blur(5px);
   position: absolute;
   top: 0;
   left: 0;
