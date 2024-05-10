@@ -37,6 +37,7 @@ export type HTMLElementType =
 export const FRAGMENT_ELEMENT_NAME =
   `${UI_COMPONENTS_NAMESPACE}.Fragment` as const;
 export const ITEM_ELEMENT_NAME = `${UI_COMPONENTS_NAMESPACE}.Item` as const;
+export const LIST_VIEW_NAME = `${UI_COMPONENTS_NAMESPACE}.ListView` as const;
 export const PICKER_ELEMENT_NAME = `${UI_COMPONENTS_NAMESPACE}.Picker` as const;
 export const SECTION_ELEMENT_NAME =
   `${UI_COMPONENTS_NAMESPACE}.Section` as const;

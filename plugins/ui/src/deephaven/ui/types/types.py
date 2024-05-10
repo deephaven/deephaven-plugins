@@ -101,7 +101,8 @@ RowData = Dict[ColumnName, Any]
 ColumnData = List[Any]
 TableData = Dict[ColumnName, ColumnData]
 SearchMode = Literal["SHOW", "HIDE", "DEFAULT"]
-SelectionMode = Literal["CELL", "ROW", "COLUMN"]
+SelectionArea = Literal["CELL", "ROW", "COLUMN"]
+SelectionMode = Literal["SINGLE", "MULTIPLE"]
 Sentinel = Any
 TransformedData = Any
 StringSortDirection = Literal["ASC", "DESC"]
@@ -138,6 +139,6 @@ Date = Union[
     ZonedDateTimeConvertible,
 ]
 Granularity = Literal["DAY", "HOUR", "MINUTE", "SECOND"]
-
+Density = Literal["COMPACT", "NORMAL", "SPACIOUS"]
 Dependencies = Union[Tuple[Any], List[Any]]
 Selection = Sequence[Key]

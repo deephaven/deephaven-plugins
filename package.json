@@ -20,7 +20,8 @@
     "e2e:ui": "playwright test --ui",
     "e2e:docker": "DEEPHAVEN_PORT=10001 ./tools/run_docker.sh e2e-tests",
     "e2e:update-snapshots": "./tools/run_docker.sh update-snapshots",
-    "update-dh-packages": "lerna run --concurrency 1 update-dh-packages"
+    "update-dh-packages": "lerna run --concurrency 1 update-dh-packages",
+    "update-dh-packages:ui": "npm run update-dh-packages -- --scope=@deephaven/js-plugin-ui --"
   },
   "devDependencies": {
     "@deephaven/babel-preset": "^0.72.0",
