@@ -18,6 +18,8 @@ import {
 
 const AUTO_DOWNSAMPLE_SIZE = 30000;
 
+const MAX_FETCH_SIZE = 1_000_000;
+
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
 
 export class PlotlyExpressChartModel extends ChartModel {
@@ -282,6 +284,14 @@ export class PlotlyExpressChartModel extends ChartModel {
 
     let tableToAdd = table;
 
+    if (!this.canFetch(table)) {
+      log.debug(`Table ${id} too big to fetch ${table.size} items`);
+      this.fireDownsampleFail(
+        `Too many items to plot: ${Number(table.size).toLocaleString()} items.`
+      );
+      return;
+    }
+
     if (this.needsDownsample(table)) {
       this.fireDownsampleStart(null);
       const downsampleInfo = this.getDownsampleInfo(id, table);
@@ -356,6 +366,10 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   needsDownsample(table: DhType.Table): boolean {
     return !this.isDownsamplingDisabled && table.size > AUTO_DOWNSAMPLE_SIZE;
+  }
+
+  canFetch(table: DhType.Table): boolean {
+    return table.size <= MAX_FETCH_SIZE;
   }
 
   /**
