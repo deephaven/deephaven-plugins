@@ -193,7 +193,7 @@ def wrap_callable(func: Callable) -> Callable:
         return func
 
 
-def create_props(args: dict[str, Any]) -> tuple[tuple[Any], dict[str, Any]]:
+def create_props(args: dict[str, Any]) -> tuple[tuple[Any, ...], dict[str, Any]]:
     """
     Create props from the args. Combines the named props with the kwargs props.
 
@@ -390,3 +390,29 @@ def convert_date_props(
             if not callable(props[key]):
                 raise TypeError(f"{key} must be a callable")
             props[key] = _wrap_date_callable(props[key], converter)
+
+
+def unpack_item_table_source(
+    children: tuple[Any, ...],
+    props: dict[str, Any],
+    supported_args: set[str],
+) -> tuple[tuple[Any, ...], dict[str, Any]]:
+    """
+    Unpack children and props if the children are of type dict
+    and merge the supported arguments into the props.
+
+    Args:
+        children: The children to possibly unpack.
+        props: The props to unpack.
+        supported_args: The supported arguments for the ItemTableSource.
+
+    Returns:
+        The unpacked children and props.
+    """
+    if len(children) == 1 and isinstance(children[0], dict):
+        item_table_source = children[0].copy()
+        children = (item_table_source.pop("table"),)
+        for key in supported_args:
+            if key in item_table_source:
+                props[key] = item_table_source.pop(key)
+    return children, props

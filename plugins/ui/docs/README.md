@@ -240,6 +240,91 @@ my_picker = ui_picker()
 
 ![Use a picker to select from a list of items](_assets/picker.png)
 
+## Picker (table)
+
+A picker can also take a Table. It will use the first column as the key and label by default.
+
+```python
+import deephaven.ui as ui
+from deephaven import time_table
+import datetime
+
+# Ticking table with initial row count of 200 that adds a row every second
+initial_row_count = 200
+column_types = time_table(
+    "PT1S",
+    start_time=datetime.datetime.now() - datetime.timedelta(seconds=initial_row_count),
+).view(
+    [
+        "Id=new Integer(i)",
+        "Display=new String(`Display `+i)",
+    ]
+)
+
+
+@ui.component
+def ui_picker_table():
+    value, set_value = ui.use_state("")
+
+    pick_table = ui.picker(
+        column_types,
+        label="Text",
+        on_change=set_value,
+        selected_keys=value,
+    )
+
+    text = ui.text(f"Selection: {value}")
+
+    return ui.flex(pick_table, text, direction="column", margin=10, gap=10)
+
+
+pick_table = ui_picker_table()
+```
+![Use a picker to select from a table](_assets/pick_table.png)
+
+## Picker (item table source)
+
+A picker can also take an `item_table_source`. It will use the columns specified.
+
+```python
+import deephaven.ui as ui
+from deephaven import time_table
+import datetime
+
+# Ticking table with initial row count of 200 that adds a row every second
+initial_row_count = 200
+column_types = time_table(
+    "PT1S",
+    start_time=datetime.datetime.now() - datetime.timedelta(seconds=initial_row_count),
+).view(
+    [
+        "Id=new Integer(i)",
+        "Display=new String(`Display `+i)",
+    ]
+)
+
+
+@ui.component
+def ui_picker_table_source():
+    value, set_value = ui.use_state("")
+
+    pick_table = ui.picker(
+        ui.item_table_source(column_types, key_column="Id", label_column="Display"),
+        label="Text",
+        on_change=set_value,
+        selected_keys=value,
+    )
+
+    text = ui.text(f"Selection: {value}")
+
+    return ui.flex(pick_table, text, direction="column", margin=10, gap=10)
+
+
+pick_table_source = ui_picker_table_source()
+```
+
+![Use a picker to select from a table source](_assets/pick_table_source.png)
+
 ## ListView (string values)
 A list view that can be used to create a list of selectable items. Here's a basic example for selecting from a list of string values and displaying the selected key in a text field.
 
@@ -280,6 +365,9 @@ lv = ui_list_view()
 ```
 
 ## ListView (table)
+
+A ListView can also take a Table. It will use the first column as the key and label by default.
+
 ```python
 from deephaven import time_table, ui
 import datetime
@@ -299,12 +387,10 @@ column_types = time_table(
 
 @ui.component
 def ui_list_view_table():
-    value, set_value = ui.use_state([2, 4, 5])
+    value, set_value = ui.use_state([])
 
     lv = ui.list_view(
         column_types,
-        key_column="Id",
-        label_column="Display",
         aria_label="List View",
         on_change=set_value,
         selected_keys=value,
@@ -325,6 +411,57 @@ def ui_list_view_table():
 
 lv_table = ui_list_view_table()
 ```
+![Use a list view to select from a table](_assets/lv_table.png)
+
+## ListView (item table source)
+
+A list view can also take an `item_table_source`. It will use the columns specified.
+
+```python
+from deephaven import time_table, ui
+import datetime
+
+# Ticking table with initial row count of 200 that adds a row every second
+initial_row_count = 200
+column_types = time_table(
+    "PT1S",
+    start_time=datetime.datetime.now() - datetime.timedelta(seconds=initial_row_count),
+).update(
+    [
+        "Id=new Integer(i)",
+        "Display=new String(`Display `+i)",
+    ]
+)
+
+
+@ui.component
+def ui_list_view_table_source():
+    value, set_value = ui.use_state([2, 4, 5])
+
+    lv = ui.list_view(
+        ui.item_table_source(column_types, key_column="Id", label_column="Display"),
+        aria_label="List View",
+        on_change=set_value,
+        selected_keys=value,
+    )
+
+    text = ui.text("Selection: " + ", ".join(map(str, value)))
+
+    return ui.flex(
+        lv,
+        text,
+        direction="column",
+        margin=10,
+        gap=10,
+        # necessary to avoid overflowing container height
+        min_height=0,
+    )
+
+
+lv_table_source = ui_list_view_table_source()
+```
+
+![Use a list view to select from a table source](_assets/lv_table_source.png)
 
 ## Form (two variables)
 
