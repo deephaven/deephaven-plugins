@@ -370,7 +370,9 @@ export class PlotlyExpressChartModel extends ChartModel {
     tableId: number,
     table: DhType.Table
   ): DownsampleInfo | string {
-    const downsampleFailMessage = `Disable downsampling to retrieve all ${table.size} items.\nThis may be slow.`;
+    const downsampleFailMessage = `Plotting ${Number(
+      table.size
+    ).toLocaleString()} items may be slow.\nAre you sure you want to continue?`;
 
     const replacementMap = this.tableColumnReplacementMap.get(tableId);
 
