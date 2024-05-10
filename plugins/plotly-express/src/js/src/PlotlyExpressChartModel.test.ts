@@ -1,3 +1,4 @@
+import type { Layout } from 'plotly.js';
 import { dh as DhType } from '@deephaven/jsapi-types';
 import { TestUtils } from '@deephaven/utils';
 import { PlotlyExpressChartModel } from './PlotlyExpressChartModel';
@@ -20,11 +21,28 @@ const SMALL_TABLE = TestUtils.createMockProxy<DhType.Table>({
 
 const LARGE_TABLE = TestUtils.createMockProxy<DhType.Table>({
   columns: [{ name: 'x' }, { name: 'y' }] as DhType.Column[],
-  size: 50000,
+  size: 50_000,
+  subscribe: () => TestUtils.createMockProxy(),
+});
+
+const REALLY_LARGE_TABLE = TestUtils.createMockProxy<DhType.Table>({
+  columns: [{ name: 'x' }, { name: 'y' }] as DhType.Column[],
+  size: 5_000_000,
   subscribe: () => TestUtils.createMockProxy(),
 });
 
 function createMockWidget(tables: DhType.Table[], plotType = 'scatter') {
+  const layoutAxes: Partial<Layout> = {};
+  tables.forEach((_, i) => {
+    if (i === 0) {
+      layoutAxes.xaxis = {};
+      layoutAxes.yaxis = {};
+    } else {
+      layoutAxes[`xaxis${i + 1}` as 'xaxis'] = {};
+      layoutAxes[`yaxis${i + 1}` as 'yaxis'] = {};
+    }
+  });
+
   const widgetData = {
     type: 'test',
     figure: {
@@ -48,10 +66,7 @@ function createMockWidget(tables: DhType.Table[], plotType = 'scatter') {
         })),
         layout: {
           title: 'layout',
-          xaxis: {},
-          yaxis: {},
-          xaxis2: {},
-          yaxis2: {},
+          ...layoutAxes,
         },
       },
     },
@@ -141,8 +156,8 @@ describe('PlotlyExpressChartModel', () => {
     );
 
     await chartModel.subscribe(jest.fn());
-    expect(mockDownsample).toHaveBeenCalledTimes(0);
     await new Promise(process.nextTick); // Subscribe and addTable are async
+    expect(mockDownsample).toHaveBeenCalledTimes(0);
     expect(chartModel.fireDownsampleStart).toHaveBeenCalledTimes(0);
     expect(chartModel.fireDownsampleFinish).toHaveBeenCalledTimes(0);
   });
@@ -156,14 +171,18 @@ describe('PlotlyExpressChartModel', () => {
     );
 
     await chartModel.subscribe(jest.fn());
-    expect(mockDownsample).toHaveBeenCalledTimes(1);
     await new Promise(process.nextTick); // Subscribe and addTable are async
+    expect(mockDownsample).toHaveBeenCalledTimes(1);
     expect(chartModel.fireDownsampleStart).toHaveBeenCalledTimes(1);
     expect(chartModel.fireDownsampleFinish).toHaveBeenCalledTimes(1);
   });
 
   it('should downsample only the required tables', async () => {
-    const mockWidget = createMockWidget([SMALL_TABLE, LARGE_TABLE]);
+    const mockWidget = createMockWidget([
+      SMALL_TABLE,
+      LARGE_TABLE,
+      REALLY_LARGE_TABLE,
+    ]);
     const chartModel = new PlotlyExpressChartModel(
       mockDh,
       mockWidget,
@@ -171,10 +190,10 @@ describe('PlotlyExpressChartModel', () => {
     );
 
     await chartModel.subscribe(jest.fn());
-    expect(mockDownsample).toHaveBeenCalledTimes(1);
     await new Promise(process.nextTick); // Subscribe and addTable are async
-    expect(chartModel.fireDownsampleStart).toHaveBeenCalledTimes(1);
-    expect(chartModel.fireDownsampleFinish).toHaveBeenCalledTimes(1);
+    expect(mockDownsample).toHaveBeenCalledTimes(2);
+    expect(chartModel.fireDownsampleStart).toHaveBeenCalledTimes(2);
+    expect(chartModel.fireDownsampleFinish).toHaveBeenCalledTimes(2);
   });
 
   it('should fail to downsample for non-line plots', async () => {
@@ -186,9 +205,43 @@ describe('PlotlyExpressChartModel', () => {
     );
 
     await chartModel.subscribe(jest.fn());
-    expect(mockDownsample).toHaveBeenCalledTimes(0);
     await new Promise(process.nextTick); // Subscribe and addTable are async
-    expect(chartModel.fireDownsampleStart).toHaveBeenCalledTimes(1);
+    expect(mockDownsample).toHaveBeenCalledTimes(0);
+    expect(chartModel.fireDownsampleStart).toHaveBeenCalledTimes(0);
+    expect(chartModel.fireDownsampleFinish).toHaveBeenCalledTimes(0);
+    expect(chartModel.fireDownsampleFail).toHaveBeenCalledTimes(1);
+  });
+
+  it('should fetch non-line plots under the max threshold with downsampling disabled', async () => {
+    const mockWidget = createMockWidget([LARGE_TABLE], 'scatterpolar');
+    const chartModel = new PlotlyExpressChartModel(
+      mockDh,
+      mockWidget,
+      jest.fn()
+    );
+
+    chartModel.isDownsamplingDisabled = true;
+    await chartModel.subscribe(jest.fn());
+    await new Promise(process.nextTick); // Subscribe and addTable are async
+    expect(mockDownsample).toHaveBeenCalledTimes(0);
+    expect(chartModel.fireDownsampleStart).toHaveBeenCalledTimes(0);
+    expect(chartModel.fireDownsampleFinish).toHaveBeenCalledTimes(0);
+    expect(chartModel.fireDownsampleFail).toHaveBeenCalledTimes(0);
+  });
+
+  it('should not fetch non-line plots over the max threshold with downsampling disabled', async () => {
+    const mockWidget = createMockWidget([REALLY_LARGE_TABLE], 'scatterpolar');
+    const chartModel = new PlotlyExpressChartModel(
+      mockDh,
+      mockWidget,
+      jest.fn()
+    );
+
+    chartModel.isDownsamplingDisabled = true;
+    await chartModel.subscribe(jest.fn());
+    await new Promise(process.nextTick); // Subscribe and addTable are async
+    expect(mockDownsample).toHaveBeenCalledTimes(0);
+    expect(chartModel.fireDownsampleStart).toHaveBeenCalledTimes(0);
     expect(chartModel.fireDownsampleFinish).toHaveBeenCalledTimes(0);
     expect(chartModel.fireDownsampleFail).toHaveBeenCalledTimes(1);
   });

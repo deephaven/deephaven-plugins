@@ -16,13 +16,17 @@ import {
   removeColorsFromData,
 } from './PlotlyExpressChartUtils';
 
-const AUTO_DOWNSAMPLE_SIZE = 30000;
-
-const MAX_FETCH_SIZE = 1_000_000;
-
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
 
 export class PlotlyExpressChartModel extends ChartModel {
+  static AUTO_DOWNSAMPLE_SIZE = 30000;
+
+  static MAX_FETCH_SIZE = 1_000_000;
+
+  static canFetch(table: DhType.Table): boolean {
+    return table.size <= PlotlyExpressChartModel.MAX_FETCH_SIZE;
+  }
+
   constructor(
     dh: typeof DhType,
     widget: DhType.Widget,
@@ -284,25 +288,33 @@ export class PlotlyExpressChartModel extends ChartModel {
 
     let tableToAdd = table;
 
-    if (!this.canFetch(table)) {
-      log.debug(`Table ${id} too big to fetch ${table.size} items`);
-      this.fireDownsampleFail(
-        `Too many items to plot: ${Number(table.size).toLocaleString()} items.`
-      );
-      return;
-    }
+    const downsampleInfo = this.getDownsampleInfo(id, table);
+    const needsDownsample =
+      table.size > PlotlyExpressChartModel.AUTO_DOWNSAMPLE_SIZE;
+    const canDownsample = typeof downsampleInfo !== 'string';
+    const canFetch = PlotlyExpressChartModel.canFetch(table);
+    const shouldDownsample = needsDownsample && !this.isDownsamplingDisabled;
 
-    if (this.needsDownsample(table)) {
-      this.fireDownsampleStart(null);
-      const downsampleInfo = this.getDownsampleInfo(id, table);
-
-      if (typeof downsampleInfo === 'string') {
+    if (!canDownsample) {
+      if (!canFetch) {
+        log.debug(`Table ${id} too big to fetch ${table.size} items`);
+        this.fireDownsampleFail(
+          `Too many items to plot: ${Number(
+            table.size
+          ).toLocaleString()} items.`
+        );
+        return;
+      }
+      if (shouldDownsample) {
         this.fireDownsampleFail(downsampleInfo);
         return;
       }
+    }
 
+    if (canDownsample && needsDownsample) {
       this.downsampleMap.set(id, downsampleInfo);
       try {
+        this.fireDownsampleStart(null);
         tableToAdd = await downsample(this.dh, downsampleInfo);
         this.fireDownsampleFinish(null);
       } catch (e) {
@@ -362,14 +374,6 @@ export class PlotlyExpressChartModel extends ChartModel {
       this.handleWidgetUpdated(widgetData, this.widget.exportedObjects);
       this.fireDownsampleFinish(null);
     }
-  }
-
-  needsDownsample(table: DhType.Table): boolean {
-    return !this.isDownsamplingDisabled && table.size > AUTO_DOWNSAMPLE_SIZE;
-  }
-
-  canFetch(table: DhType.Table): boolean {
-    return table.size <= MAX_FETCH_SIZE;
   }
 
   /**
