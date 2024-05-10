@@ -1,9 +1,10 @@
-from typing import Any
+from typing import Any, Union
 
 from ..elements import BaseElement
 from ..types import Stringable
 
 ItemElement = BaseElement
+Item = Union[Stringable, ItemElement]
 
 
 def item(*children: Stringable, **props: Any) -> ItemElement:

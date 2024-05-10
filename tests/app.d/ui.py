@@ -1,11 +1,10 @@
-import deephaven.ui as ui
-from deephaven.ui import use_state
+from deephaven import ui
 
 
 @ui.component
-def my_component():
-    count, set_count = use_state(0)
-    text, set_text = use_state("hello")
+def ui_basic_component():
+    count, set_count = ui.use_state(0)
+    text, set_text = ui.use_state("hello")
 
     return ui.flex(
         ui.action_button(
@@ -17,4 +16,21 @@ def my_component():
     )
 
 
-ui_component = my_component()
+@ui.component
+def ui_boom_component():
+    raise Exception("BOOM!")
+
+
+@ui.component
+def ui_boom_counter_component():
+    value, set_value = ui.use_state(0)
+
+    if value > 1:
+        raise ValueError("BOOM!")
+
+    return ui.button(f"Count is {value}", on_press=lambda _: set_value(value + 1))
+
+
+ui_component = ui_basic_component()
+ui_boom = ui_boom_component()
+ui_boom_counter = ui_boom_counter_component()
