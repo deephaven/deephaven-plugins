@@ -57,6 +57,7 @@ pre-commit run --all-files
 All steps should pass.
 
 To bypass the pre-commit hook, you can commit with the `--no-verify` flag, for example:
+
 ```shell
 git commit --no-verify -m "commit message"`
 ```
@@ -67,7 +68,7 @@ We use [Playwright](https://playwright.dev/) for end-to-end tests. We test again
 
 You should be able to pass arguments to these commands as if you were running Playwright via CLI directly. For example, to test only `matplotlib.spec.ts` you could run `npm run e2e:docker -- ./tests/matplotlib.spec.ts`, or to test only `matplotlib.spec.ts` in Firefox, you could run `npm run e2e:docker -- --project firefox ./tests/matplotlib.spec.ts`. See [Playwright CLI](https://playwright.dev/docs/test-cli) for more details.
 
-It is highly recommended to use `npm run e2e:docker` (instead of `npm run e2e`) as CI also uses the same environment. You can also use `npm run e2e:update-snapshots` to regenerate snapshots in said environment.
+It is highly recommended to use `npm run e2e:docker` (instead of `npm run e2e`) as CI also uses the same environment. You can also use `npm run e2e:update-snapshots` to regenerate snapshots in said environment. Run Playwright in [UI Mode](https://playwright.dev/docs/test-ui-mode) with `npm run e2e:ui` when creating new tests or debugging, as this will allow you to run each test individually, see the browser as it runs it, inspect the console, evaluate locators, etc.
 
 ### Running Python tests
 
@@ -229,6 +230,6 @@ After you have successfully run `tools/release.sh` once, you should be able to d
 
 As part of the release process, `cog` will, per our `cog.toml` configuration, invoke `tools/update_version.sh <packageName> <newVersion>`, which is a script that uses `sed` to update a plugin's version number in whatever source file we happen to use as the source of truth for version information in the given plugin.
 
-*[WARNING]* If you change where the source of truth for a plugin's version is located, you must update `tools/update_version.sh` to update the correct file with a new version number.
+_[WARNING]_ If you change where the source of truth for a plugin's version is located, you must update `tools/update_version.sh` to update the correct file with a new version number.
 
 We use `tools/update_version.sh` to remove any `.dev0` "developer version" suffix before creating a release, and to put the `.dev0` version suffix back after completing the release.

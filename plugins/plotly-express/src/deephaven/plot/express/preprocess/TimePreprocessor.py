@@ -4,8 +4,9 @@ from typing import Any, Generator
 
 from ..shared import get_unique_names
 
-from deephaven.time import to_j_instant
 from deephaven.table import Table
+
+NANOS_PER_MILLI = 1_000_000
 
 
 class TimePreprocessor:
@@ -45,12 +46,13 @@ class TimePreprocessor:
         x_diff = get_unique_names(table, ["x_diff"])["x_diff"]
 
         for table in tables:
+            # Times are assumed to be Instants which have nanosecond precision
+            # We convert them to milliseconds for plotly express
             yield table.update_view(
                 [
-                    f"{x_start} = (Instant) to_j_instant({x_start})",
-                    f"{x_end} = (Instant) to_j_instant({x_end})",
-                    f"{x_diff} = ((Instant) to_j_instant({x_end}) - "
-                    f"(Instant) to_j_instant({x_start})) / 1000000",
+                    f"{x_start} = {x_start}",
+                    f"{x_end} = {x_end}",
+                    f"{x_diff} = ({x_end} - {x_start}) / NANOS_PER_MILLI",
                     f"{y}",
                 ]
             ), {"x_diff": x_diff}

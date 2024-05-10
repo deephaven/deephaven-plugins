@@ -29,9 +29,14 @@ import {
   ReadonlyWidgetData,
   WidgetDataUpdate,
   WidgetMessageEvent,
+  WidgetError,
+  METHOD_DOCUMENT_ERROR,
+  METHOD_DOCUMENT_UPDATED,
 } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
 import { getComponentForElement } from './WidgetUtils';
+import WidgetErrorView from './WidgetErrorView';
+import ReactPanelContentOverlayContext from '../layout/ReactPanelContentOverlayContext';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
@@ -61,6 +66,7 @@ function WidgetHandler({
 }: WidgetHandlerProps): JSX.Element | null {
   const [widget, setWidget] = useState<dh.Widget>();
   const [document, setDocument] = useState<ReactNode>();
+  const [error, setError] = useState<WidgetError>();
   const [initialData] = useState(initialDataProp);
 
   // When we fetch a widget, the client is then responsible for the exported objects.
@@ -85,6 +91,25 @@ function WidgetHandler({
         : null,
     [widget]
   );
+
+  const sendSetState = useCallback(
+    (newState: Record<string, unknown> = {}) => {
+      if (jsonClient == null) {
+        return;
+      }
+      jsonClient.request('setState', [newState]).then(
+        result => {
+          log.debug('Set state result', result);
+        },
+        e => {
+          log.error('Error setting state: ', e);
+          setError(e);
+        }
+      );
+    },
+    [jsonClient]
+  );
+
   const parseDocument = useCallback(
     /**
      * Parse the data from the server, replacing some of the nodes on the way.
@@ -175,11 +200,12 @@ function WidgetHandler({
 
       log.debug('Adding methods to jsonClient');
       jsonClient.addMethod(
-        'documentUpdated',
+        METHOD_DOCUMENT_UPDATED,
         async (params: [string, string]) => {
-          log.debug2('documentUpdated', params);
+          log.debug2(METHOD_DOCUMENT_UPDATED, params);
           const [documentParam, stateParam] = params;
           const newDocument = parseDocument(documentParam);
+          setError(undefined);
           setDocument(newDocument);
           if (stateParam != null) {
             try {
@@ -194,6 +220,12 @@ function WidgetHandler({
           }
         }
       );
+
+      jsonClient.addMethod(METHOD_DOCUMENT_ERROR, (params: [string]) => {
+        log.error('Document error', params);
+        const newError: WidgetError = JSON.parse(params[0]);
+        setError(newError);
+      });
 
       return () => {
         jsonClient.rejectAllPendingRequests('Widget was changed');
@@ -220,14 +252,18 @@ function WidgetHandler({
 
       // Set a var to the client that we know will not be null in the closure below
       const activeClient = jsonClient;
-      function receiveData(
+      async function receiveData(
         data: string,
         newExportedObjects: dh.WidgetExportedObject[]
       ) {
         log.debug2('Data received', data, newExportedObjects);
         updateExportedObjects(newExportedObjects);
         if (data.length > 0) {
-          activeClient.receiveAndSend(JSON.parse(data));
+          try {
+            await activeClient.receiveAndSend(JSON.parse(data));
+          } catch (e) {
+            log.error('Error receiving data', e);
+          }
         }
       }
 
@@ -249,14 +285,7 @@ function WidgetHandler({
       receiveData(widget.getDataAsString(), widget.exportedObjects);
 
       // We set the initial state of the widget. We'll then get a documentUpdated as a response.
-      activeClient.request('setState', [initialData?.state ?? {}]).then(
-        result => {
-          log.debug('Set state result', result);
-        },
-        e => {
-          log.error('Error setting initial state: ', e);
-        }
-      );
+      sendSetState(initialData?.state);
 
       return () => {
         log.debug('Cleaning up widget', widget);
@@ -269,7 +298,7 @@ function WidgetHandler({
         });
       };
     },
-    [jsonClient, initialData, parseDocument, updateExportedObjects, widget]
+    [jsonClient, initialData, sendSetState, updateExportedObjects, widget]
   );
 
   useEffect(
@@ -299,19 +328,51 @@ function WidgetHandler({
     [fetch, descriptor]
   );
 
+  const errorView = useMemo(() => {
+    if (error != null) {
+      return <WidgetErrorView error={error} onReload={() => sendSetState()} />;
+    }
+    return null;
+  }, [error, sendSetState]);
+
+  const contentOverlay = useMemo(() => {
+    // We only show it as an overlay if there's already a document to show
+    // If there isn't, then we'll just render this as the document so it forces a panel to open
+    if (errorView != null && document != null) {
+      return errorView;
+    }
+    return null;
+  }, [document, errorView]);
+
+  const renderedDocument = useMemo(() => {
+    if (document != null) {
+      return document;
+    }
+    return errorView;
+  }, [document, errorView]);
+
   return useMemo(
     () =>
-      document != null ? (
-        <DocumentHandler
-          widget={descriptor}
-          initialData={initialData}
-          onDataChange={onDataChange}
-          onClose={onClose}
-        >
-          {document}
-        </DocumentHandler>
+      renderedDocument != null ? (
+        <ReactPanelContentOverlayContext.Provider value={contentOverlay}>
+          <DocumentHandler
+            widget={descriptor}
+            initialData={initialData}
+            onDataChange={onDataChange}
+            onClose={onClose}
+          >
+            {renderedDocument}
+          </DocumentHandler>
+        </ReactPanelContentOverlayContext.Provider>
       ) : null,
-    [document, descriptor, initialData, onClose, onDataChange]
+    [
+      contentOverlay,
+      descriptor,
+      renderedDocument,
+      initialData,
+      onClose,
+      onDataChange,
+    ]
   );
 }
 

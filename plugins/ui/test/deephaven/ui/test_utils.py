@@ -1,4 +1,5 @@
 import unittest
+
 from .BaseTest import BaseTestCase
 
 
@@ -259,6 +260,46 @@ class UtilsTest(BaseTestCase):
                 "fizz": "buzz",
                 "test": "value",
             },
+        )
+
+    def test_unpack_item_table_source(self):
+        from deephaven.ui._internal.utils import unpack_item_table_source
+        from deephaven.ui import item_table_source
+
+        children = ("table",)
+        props = {
+            "test": "foo",
+        }
+
+        expected_children = ("table",)
+        expected_props = {
+            "test": "foo",
+        }
+
+        self.assertTupleEqual(
+            unpack_item_table_source(children, props, {}),
+            (expected_children, expected_props),
+        )
+
+        item_data_source = item_table_source(
+            table="table", key_column="key", actions="actions"
+        )
+
+        children = (item_data_source,)
+        props = {
+            "test": "foo",
+        }
+
+        expected_children = ("table",)
+
+        expected_props = {
+            "test": "foo",
+            "key_column": "key",
+        }
+
+        self.assertTupleEqual(
+            unpack_item_table_source(children, props, {"table", "key_column"}),
+            (expected_children, expected_props),
         )
 
 

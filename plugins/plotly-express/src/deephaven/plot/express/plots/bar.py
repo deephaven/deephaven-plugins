@@ -274,9 +274,9 @@ def timeline(
       table: Table | None:  (Default value = None)
         A table to pull data from.
       x_start: str | None:  (Default value = None)
-        A column that contains starting x-axis values.
+        A column that contains starting x-axis values. Must be a `java.time.Instant` column.
       x_end: str | None:  (Default value = None)
-        A column that contains ending x-axis values.
+        A column that contains ending x-axis values. Must be a `java.time.Instant` column.
       by: str | list[str] | None:  (Default value = None)
         A column or list of columns that contain values to plot the figure traces by.
         All values or combination of values map to a unique design. The variable
