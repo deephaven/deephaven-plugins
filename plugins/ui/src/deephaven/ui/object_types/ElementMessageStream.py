@@ -7,6 +7,7 @@ import sys
 from jsonrpc import JSONRPCResponseManager, Dispatcher
 import logging
 import threading
+import traceback
 from enum import Enum
 from queue import Queue
 from typing import Any, Callable
@@ -19,6 +20,7 @@ from .._internal import wrap_callable
 from ..elements import Element
 from ..renderer import NodeEncoder, Renderer, RenderedNode
 from .._internal import RenderContext, StateUpdateCallable, ExportedRenderState
+from .ErrorCode import ErrorCode
 
 logger = logging.getLogger(__name__)
 
@@ -166,8 +168,13 @@ class ElementMessageStream(MessageStream):
             state = self._context.export_state()
             self._send_document_update(node, state)
         except Exception as e:
-            logger.exception("Error rendering %s", self._element.name)
-            raise e
+            # Send the error to the client for displaying to the user
+            # If there's an error sending it to the client, then it will be caught by the render exception handler
+            # and logged as an error message.
+            # Just log it as debug here so we don't show it in the console and in the error panel.
+            stack_trace = traceback.format_exc()
+            logging.debug("Error rendering document: %s %s", repr(e), stack_trace)
+            self._send_document_error(e, stack_trace)
 
     def _process_callable_queue(self) -> None:
         """
@@ -199,7 +206,11 @@ class ElementMessageStream(MessageStream):
                     else:
                         self._render_state = _RenderState.IDLE
         except Exception as e:
+            # Something catastrophic happened, log it and close the connection
+            # We're just being safe to make sure there is an error logged if something unexpected does occur,
+            # as `submit_task` does not log any uncaught exceptions currently: https://github.com/deephaven/deephaven-core/issues/5192
             logger.exception(e)
+            self._connection.on_close()
 
     def _mark_dirty(self) -> None:
         """
@@ -366,3 +377,25 @@ class ElementMessageStream(MessageStream):
             del self._context
             sys.exit()
         self._connection.on_data(payload.encode(), new_objects)
+
+    def _send_document_error(self, error: Exception, stack_trace: str) -> None:
+        """
+        Send an error to the client. This is called when an error occurs during rendering.
+
+        Args:
+            error: The error that occurred
+            stack_trace: The stack trace of the error
+        """
+        request = self._make_notification(
+            "documentError",
+            json.dumps(
+                {
+                    "message": str(error),
+                    "type": type(error).__name__,
+                    "stack": stack_trace,
+                    "code": ErrorCode.DOCUMENT_ERROR.value,
+                }
+            ),
+        )
+        payload = json.dumps(request)
+        self._connection.on_data(payload.encode(), [])

@@ -46,10 +46,19 @@
         "__dhObid": { "type": "number" }
       }
     },
-
     "documentUpdatedParams": {
       "type": "array",
-      "prefixItems": [{ "$ref": "#/defs/element" }],
+      "prefixItems": [{ "type": "string" }, { "type": "string" }],
+      "items": false
+    },
+    "documentErrorParams": {
+      "type": "array",
+      "prefixItems": [{ "type": "string" }, { "type": "string" }],
+      "items": false
+    },
+    "setStateParams": {
+      "type": "array",
+      "prefixItems": [{ "type": "object" }],
       "items": false
     }
   },
@@ -58,7 +67,7 @@
     "jsonrpc": "2.0",
     "method": {
       "anyOf": [
-        { "enum": ["documentUpdated"] },
+        { "enum": ["documentUpdated", "documentError"] },
         { "pattern": "^cb_(0-9)+_(0-9)+$" }
       ]
     },
@@ -72,6 +81,30 @@
         "then": {
           "properties": {
             "params": { "$ref": "#/defs/documentUpdatedParams" }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "method": { "const": "documentError" }
+          }
+        },
+        "then": {
+          "properties": {
+            "params": { "$ref": "#/defs/documentErrorParams" }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "method": { "const": "setState" }
+          }
+        },
+        "then": {
+          "properties": {
+            "params": { "$ref": "#/defs/setStateParams" }
           }
         }
       },

@@ -15,6 +15,7 @@ import { ReactPanelProps } from './LayoutUtils';
 import { useParentItem } from './ParentItemContext';
 import { ReactPanelContext } from './ReactPanelContext';
 import { usePortalPanelManager } from './PortalPanelManagerContext';
+import ReactPanelContentOverlay from './ReactPanelContentOverlay';
 
 const log = Log.module('@deephaven/js-plugin-ui/ReactPanel');
 
@@ -201,6 +202,7 @@ function ReactPanel({
               {children}
             </Flex>
           </View>
+          <ReactPanelContentOverlay />
         </ReactPanelContext.Provider>,
         portal,
         contentKey

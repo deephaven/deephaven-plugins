@@ -11,7 +11,7 @@ import WidgetHandler from './WidgetHandler';
 const log = Log.module('@deephaven/js-plugin-ui/DashboardWidgetHandler');
 
 export interface DashboardWidgetHandlerProps {
-  /** ID of this widget */
+  /** ID of this widget instance */
   id: WidgetId;
 
   /** Widget for this to handle */
