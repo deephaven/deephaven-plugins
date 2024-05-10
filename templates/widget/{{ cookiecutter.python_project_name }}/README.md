@@ -39,7 +39,7 @@ Build the JavaScript plugin from the `src/js` directory:
 
 ```sh
 cd src/js
-nvm use
+nvm install
 npm install
 npm run build
 ```
@@ -87,4 +87,35 @@ The panel can also send messages back to the Python client by using the input fi
 ## Distributing the Plugin
 To distribute the plugin, you can upload the wheel file to a package repository, such as [PyPI](https://pypi.org/).
 The version of the plugin can be updated in the `setup.cfg` file.
+
+There is a separate instance of PyPI for testing purposes.
+Start by creating an account at [TestPyPI](https://test.pypi.org/account/register/).
+Then, get an API token from [account management](https://test.pypi.org/manage/account/#api-tokens), setting the “Scope” to “Entire account”.
+
+To upload to the test instance, use the following commands:
+```sh
+python -m pip install --upgrade twine
+python -m twine upload --repository testpypi dist/*
+```
+
+Now, you can install the plugin from the test instance. The extra index is needed to find dependencies:
+```sh
+pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ {{ cookiecutter.python_project_name }}
+```
+
+For a production release, create an account at [PyPI](https://pypi.org/account/register/).
+Then, get an API token from [account management](https://pypi.org/manage/account/#api-tokens), setting the “Scope” to “Entire account”.
+
+To upload to the production instance, use the following commands. 
+Note that `--repository` is the production instance by default, so it can be omitted:
+```sh
+python -m pip install --upgrade twine
+python -m twine upload dist/*
+```
+
+Now, you can install the plugin from the production instance:
+```sh
+pip install {{ cookiecutter.python_project_name }}
+```
+
 See the [Python packaging documentation](https://packaging.python.org/en/latest/tutorials/packaging-projects/#uploading-the-distribution-archives) for more information.
