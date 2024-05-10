@@ -404,7 +404,8 @@ export class PlotlyExpressChartModel extends ChartModel {
         const [seriesIdx, xOrY] = pathParts[j];
         const series = this.plotlyData[parseInt(seriesIdx, 10)] as PlotData;
         if (xOrY === 'x') {
-          if (xCol !== '') {
+          if (xCol !== '' && columnName !== xCol) {
+            log.debug('Cannot downsample multiple x columns');
             return downsampleFailMessage;
           }
           xCol = columnName;
