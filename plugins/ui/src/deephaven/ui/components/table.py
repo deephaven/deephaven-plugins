@@ -18,6 +18,8 @@ def table(
     on_cell_double_press: CellPressCallback | None = None,
     on_column_press: ColumnPressCallback | None = None,
     on_column_double_press: ColumnPressCallback | None = None,
+    show_search: bool = False,
+    show_quick_filters: bool = False,
 ) -> UITable:
     """
     Customization to how a table is displayed, how it behaves, and listen to UI events.
@@ -40,6 +42,8 @@ def table(
             The first parameter is the column name.
         on_column_double_press: The callback function to run when a column is double clicked.
             The first parameter is the column name.
+        show_search: Whether to show the search bar by default.
+        show_quick_filters: Whether to show the quick filter bar by default.
     """
     props = locals()
     del props["table"]

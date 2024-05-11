@@ -25,11 +25,12 @@ function UITable({
   onColumnDoublePress,
   onRowPress,
   onRowDoublePress,
-  canSearch,
   filters,
   sorts,
   alwaysFetchColumns,
   table: exportedTable,
+  showSearchBar,
+  showQuickFilters,
 }: UITableProps): JSX.Element | null {
   const dh = useApi();
   const [model, setModel] = useState<IrisGridModel>();
@@ -114,15 +115,17 @@ function UITable({
     () => ({
       mouseHandlers,
       alwaysFetchColumns,
-      showSearchBar: canSearch,
+      showSearchBar,
       sorts: hydratedSorts,
       quickFilters: hydratedQuickFilters,
+      isFilterBarShown: showQuickFilters,
       settings,
     }),
     [
       mouseHandlers,
       alwaysFetchColumns,
-      canSearch,
+      showSearchBar,
+      showQuickFilters,
       hydratedSorts,
       hydratedQuickFilters,
       settings,

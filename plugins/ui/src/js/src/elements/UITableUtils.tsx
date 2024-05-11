@@ -30,9 +30,10 @@ export interface UITableProps {
   onColumnPress?: (columnName: ColumnName) => void;
   onColumnDoublePress?: (columnName: ColumnName) => void;
   alwaysFetchColumns?: string[];
-  canSearch?: boolean;
   filters?: Record<string, string>;
   sorts?: DehydratedSort[];
+  showSearchBar?: boolean;
+  showQuickFilters?: boolean;
   [key: string]: unknown;
 }
 
