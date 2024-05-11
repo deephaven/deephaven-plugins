@@ -25,11 +25,11 @@ function UITable({
   onColumnDoublePress,
   onRowPress,
   onRowDoublePress,
-  filters,
+  quickFilters,
   sorts,
   alwaysFetchColumns,
   table: exportedTable,
-  showSearchBar,
+  showSearch: showSearchBar,
   showQuickFilters,
 }: UITableProps): JSX.Element | null {
   const dh = useApi();
@@ -48,12 +48,16 @@ function UITable({
   }, [columns, utils, sorts]);
 
   const hydratedQuickFilters = useMemo(() => {
-    if (filters !== undefined && model !== undefined && columns !== undefined) {
-      log.debug('Hydrating filters', filters);
+    if (
+      quickFilters !== undefined &&
+      model !== undefined &&
+      columns !== undefined
+    ) {
+      log.debug('Hydrating filters', quickFilters);
 
       const dehydratedQuickFilters: DehydratedQuickFilter[] = [];
 
-      Object.entries(filters).forEach(([columnName, filter]) => {
+      Object.entries(quickFilters).forEach(([columnName, filter]) => {
         const columnIndex = model.getColumnIndexByName(columnName);
         if (columnIndex !== undefined) {
           dehydratedQuickFilters.push([columnIndex, { text: filter }]);
@@ -63,7 +67,7 @@ function UITable({
       return utils.hydrateQuickFilters(columns, dehydratedQuickFilters);
     }
     return undefined;
-  }, [filters, model, columns, utils]);
+  }, [quickFilters, model, columns, utils]);
 
   // Just load the object on mount
   useEffect(() => {

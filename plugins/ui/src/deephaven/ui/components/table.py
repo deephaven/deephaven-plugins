@@ -4,7 +4,9 @@ from deephaven.table import Table
 from ..elements import UITable
 from ..types import (
     CellPressCallback,
+    ColumnName,
     ColumnPressCallback,
+    QuickFilterExpression,
     RowPressCallback,
 )
 
@@ -18,6 +20,7 @@ def table(
     on_cell_double_press: CellPressCallback | None = None,
     on_column_press: ColumnPressCallback | None = None,
     on_column_double_press: ColumnPressCallback | None = None,
+    quick_filters: dict[ColumnName, QuickFilterExpression] | None = None,
     show_search: bool = False,
     show_quick_filters: bool = False,
 ) -> UITable:
@@ -43,6 +46,7 @@ def table(
         on_column_double_press: The callback function to run when a column is double clicked.
             The first parameter is the column name.
         show_search: Whether to show the search bar by default.
+        quick_filters: The quick filters to apply to the table. Dictionary of column name to filter value.
         show_quick_filters: Whether to show the quick filter bar by default.
     """
     props = locals()

@@ -489,7 +489,7 @@ class UITable(Element):
         Returns:
             A new UITable
         """
-        return self._with_dict_prop("filters", filter)
+        return self._with_dict_prop("quick_filters", filter)
 
     def selection_mode(self, mode: SelectionMode) -> "UITable":
         """
