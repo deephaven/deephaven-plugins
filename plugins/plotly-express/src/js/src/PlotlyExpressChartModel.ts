@@ -19,8 +19,18 @@ import {
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
 
 export class PlotlyExpressChartModel extends ChartModel {
-  static AUTO_DOWNSAMPLE_SIZE = 30000;
+  /**
+   * The size at which the chart will automatically downsample the data if it can be downsampled.
+   * If it cannot be downsampled, but the size is below MAX_FETCH_SIZE,
+   * the chart will show a confirmation to fetch the data since it might be a slow operation.
+   */
+  static AUTO_DOWNSAMPLE_SIZE = 30_000;
 
+  /**
+   * The maximum number of items that can be fetched from a table.
+   * If a table is larger than this, the chart will not be fetched.
+   * This is to prevent the chart from fetching too much data and crashing the browser.
+   */
   static MAX_FETCH_SIZE = 1_000_000;
 
   static canFetch(table: DhType.Table): boolean {

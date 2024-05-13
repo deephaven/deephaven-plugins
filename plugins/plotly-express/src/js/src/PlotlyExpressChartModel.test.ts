@@ -1,17 +1,9 @@
 import type { Layout } from 'plotly.js';
 import { dh as DhType } from '@deephaven/jsapi-types';
 import { TestUtils } from '@deephaven/utils';
+import { ChartModel } from '@deephaven/chart';
 import { PlotlyExpressChartModel } from './PlotlyExpressChartModel';
 import { PlotlyChartWidgetData } from './PlotlyExpressChartUtils';
-
-jest.mock('./PlotlyExpressChartModel', () => {
-  const original = jest.requireActual('./PlotlyExpressChartModel');
-  original.PlotlyExpressChartModel.prototype.fireDownsampleStart = jest.fn();
-  original.PlotlyExpressChartModel.prototype.fireDownsampleFinish = jest.fn();
-  original.PlotlyExpressChartModel.prototype.fireDownsampleFail = jest.fn();
-  original.PlotlyExpressChartModel.prototype.fireDownsampleNeeded = jest.fn();
-  return original;
-});
 
 const SMALL_TABLE = TestUtils.createMockProxy<DhType.Table>({
   columns: [{ name: 'x' }, { name: 'y' }] as DhType.Column[],
@@ -155,11 +147,13 @@ describe('PlotlyExpressChartModel', () => {
       jest.fn()
     );
 
-    await chartModel.subscribe(jest.fn());
+    const mockSubscribe = jest.fn();
+    await chartModel.subscribe(mockSubscribe);
     await new Promise(process.nextTick); // Subscribe and addTable are async
     expect(mockDownsample).toHaveBeenCalledTimes(0);
-    expect(chartModel.fireDownsampleStart).toHaveBeenCalledTimes(0);
-    expect(chartModel.fireDownsampleFinish).toHaveBeenCalledTimes(0);
+    expect(mockSubscribe).toHaveBeenCalledTimes(0);
+    // expect(chartModel.fireDownsampleStart).toHaveBeenCalledTimes(0);
+    // expect(chartModel.fireDownsampleFinish).toHaveBeenCalledTimes(0);
   });
 
   it('should downsample line charts when the table is big', async () => {
@@ -170,11 +164,18 @@ describe('PlotlyExpressChartModel', () => {
       jest.fn()
     );
 
-    await chartModel.subscribe(jest.fn());
+    const mockSubscribe = jest.fn();
+    await chartModel.subscribe(mockSubscribe);
     await new Promise(process.nextTick); // Subscribe and addTable are async
     expect(mockDownsample).toHaveBeenCalledTimes(1);
-    expect(chartModel.fireDownsampleStart).toHaveBeenCalledTimes(1);
-    expect(chartModel.fireDownsampleFinish).toHaveBeenCalledTimes(1);
+    expect(mockSubscribe).toHaveBeenCalledTimes(2);
+    expect(mockSubscribe).toHaveBeenNthCalledWith(
+      1,
+      new CustomEvent(ChartModel.EVENT_DOWNSAMPLESTARTED)
+    );
+    expect(mockSubscribe).toHaveBeenLastCalledWith(
+      new CustomEvent(ChartModel.EVENT_DOWNSAMPLEFINISHED)
+    );
   });
 
   it('should downsample only the required tables', async () => {
@@ -189,11 +190,26 @@ describe('PlotlyExpressChartModel', () => {
       jest.fn()
     );
 
-    await chartModel.subscribe(jest.fn());
+    const mockSubscribe = jest.fn();
+    await chartModel.subscribe(mockSubscribe);
     await new Promise(process.nextTick); // Subscribe and addTable are async
     expect(mockDownsample).toHaveBeenCalledTimes(2);
-    expect(chartModel.fireDownsampleStart).toHaveBeenCalledTimes(2);
-    expect(chartModel.fireDownsampleFinish).toHaveBeenCalledTimes(2);
+    expect(mockSubscribe).toHaveBeenCalledTimes(4);
+    expect(mockSubscribe).toHaveBeenNthCalledWith(
+      1,
+      new CustomEvent(ChartModel.EVENT_DOWNSAMPLESTARTED)
+    );
+    expect(mockSubscribe).toHaveBeenNthCalledWith(
+      2,
+      new CustomEvent(ChartModel.EVENT_DOWNSAMPLESTARTED)
+    );
+    expect(mockSubscribe).toHaveBeenNthCalledWith(
+      3,
+      new CustomEvent(ChartModel.EVENT_DOWNSAMPLEFINISHED)
+    );
+    expect(mockSubscribe).toHaveBeenLastCalledWith(
+      new CustomEvent(ChartModel.EVENT_DOWNSAMPLEFINISHED)
+    );
   });
 
   it('should fail to downsample for non-line plots', async () => {
@@ -204,12 +220,14 @@ describe('PlotlyExpressChartModel', () => {
       jest.fn()
     );
 
-    await chartModel.subscribe(jest.fn());
+    const mockSubscribe = jest.fn();
+    await chartModel.subscribe(mockSubscribe);
     await new Promise(process.nextTick); // Subscribe and addTable are async
     expect(mockDownsample).toHaveBeenCalledTimes(0);
-    expect(chartModel.fireDownsampleStart).toHaveBeenCalledTimes(0);
-    expect(chartModel.fireDownsampleFinish).toHaveBeenCalledTimes(0);
-    expect(chartModel.fireDownsampleFail).toHaveBeenCalledTimes(1);
+    expect(mockSubscribe).toHaveBeenCalledTimes(1);
+    expect(mockSubscribe).toHaveBeenCalledWith(
+      new CustomEvent(ChartModel.EVENT_DOWNSAMPLEFAILED)
+    );
   });
 
   it('should fetch non-line plots under the max threshold with downsampling disabled', async () => {
@@ -220,13 +238,12 @@ describe('PlotlyExpressChartModel', () => {
       jest.fn()
     );
 
+    const mockSubscribe = jest.fn();
     chartModel.isDownsamplingDisabled = true;
-    await chartModel.subscribe(jest.fn());
+    await chartModel.subscribe(mockSubscribe);
     await new Promise(process.nextTick); // Subscribe and addTable are async
     expect(mockDownsample).toHaveBeenCalledTimes(0);
-    expect(chartModel.fireDownsampleStart).toHaveBeenCalledTimes(0);
-    expect(chartModel.fireDownsampleFinish).toHaveBeenCalledTimes(0);
-    expect(chartModel.fireDownsampleFail).toHaveBeenCalledTimes(0);
+    expect(mockSubscribe).toHaveBeenCalledTimes(0);
   });
 
   it('should not fetch non-line plots over the max threshold with downsampling disabled', async () => {
@@ -237,12 +254,14 @@ describe('PlotlyExpressChartModel', () => {
       jest.fn()
     );
 
+    const mockSubscribe = jest.fn();
     chartModel.isDownsamplingDisabled = true;
-    await chartModel.subscribe(jest.fn());
+    await chartModel.subscribe(mockSubscribe);
     await new Promise(process.nextTick); // Subscribe and addTable are async
     expect(mockDownsample).toHaveBeenCalledTimes(0);
-    expect(chartModel.fireDownsampleStart).toHaveBeenCalledTimes(0);
-    expect(chartModel.fireDownsampleFinish).toHaveBeenCalledTimes(0);
-    expect(chartModel.fireDownsampleFail).toHaveBeenCalledTimes(1);
+    expect(mockSubscribe).toHaveBeenCalledTimes(1);
+    expect(mockSubscribe).toHaveBeenCalledWith(
+      new CustomEvent(ChartModel.EVENT_DOWNSAMPLEFAILED)
+    );
   });
 });
