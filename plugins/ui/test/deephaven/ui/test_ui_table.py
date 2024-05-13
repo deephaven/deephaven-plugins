@@ -142,7 +142,7 @@ class UITableTestCase(BaseTestCase):
             t,
             {
                 "table": self.source,
-                "filters": {"X": "X > 1"},
+                "quickFilters": {"X": "X > 1"},
             },
         )
 
@@ -152,7 +152,7 @@ class UITableTestCase(BaseTestCase):
             t,
             {
                 "table": self.source,
-                "filters": {"X": "X > 2"},
+                "quickFilters": {"X": "X > 2"},
             },
         )
 
@@ -162,7 +162,7 @@ class UITableTestCase(BaseTestCase):
             t,
             {
                 "table": self.source,
-                "filters": {"X": "X > 1", "Y": "Y < 2"},
+                "quickFilters": {"X": "X > 1", "Y": "Y < 2"},
             },
         )
 

@@ -190,7 +190,9 @@ class UITable(Element):
             A new UITable with the passed in prop added to the existing props
         """
         logger.debug("_with_dict_prop(%s, %s)", key, value)
-        existing = self._props.get(key, {})
+        existing = (
+            self._props.get(key) or {}
+        )  # Turn missing or explicit None into empty dict
         return UITable(**{**self._props, key: {**existing, **value}})  # type: ignore
 
     def render(self, context: RenderContext) -> dict[str, Any]:
