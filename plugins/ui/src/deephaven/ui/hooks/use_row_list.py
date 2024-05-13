@@ -37,7 +37,7 @@ def use_row_list(
 
     Args:
         table: The table to extract the row from.
-        sentinel: The sentinel value to return if the table is ticking but empty. Defaults to ()).
+        sentinel: The sentinel value to return if the table is ticking but empty. Defaults to ().
 
     Returns:
         The first row of the table as a list or the sentinel value.
