@@ -131,41 +131,6 @@ class UITableTestCase(BaseTestCase):
             },
         )
 
-    def test_quick_filter(self):
-        import deephaven.ui as ui
-
-        ui_table = ui.table(self.source)
-
-        t = ui_table.quick_filter({"X": "X > 1"})
-
-        self.expect_render(
-            t,
-            {
-                "table": self.source,
-                "quickFilters": {"X": "X > 1"},
-            },
-        )
-
-        t = ui_table.quick_filter({"X": "X > 1"}).quick_filter({"X": "X > 2"})
-
-        self.expect_render(
-            t,
-            {
-                "table": self.source,
-                "quickFilters": {"X": "X > 2"},
-            },
-        )
-
-        t = ui_table.quick_filter({"X": "X > 1", "Y": "Y < 2"})
-
-        self.expect_render(
-            t,
-            {
-                "table": self.source,
-                "quickFilters": {"X": "X > 1", "Y": "Y < 2"},
-            },
-        )
-
     def test_sort(self):
         import deephaven.ui as ui
         from deephaven import SortDirection

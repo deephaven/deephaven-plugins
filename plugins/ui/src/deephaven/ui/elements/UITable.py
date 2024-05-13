@@ -479,20 +479,6 @@ class UITable(Element):
         )
         return self._with_prop("on_row_double_press", callback)
 
-    def quick_filter(
-        self, filter: dict[ColumnName, QuickFilterExpression]
-    ) -> "UITable":
-        """
-        Add a quick filter for the UI to apply to the table.
-
-        Args:
-            filter: The quick filter to apply to the table.
-
-        Returns:
-            A new UITable
-        """
-        return self._with_dict_prop("quick_filters", filter)
-
     def selection_mode(self, mode: SelectionMode) -> "UITable":
         """
         Set the selection mode for the table.
