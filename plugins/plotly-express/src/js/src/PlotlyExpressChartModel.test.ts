@@ -152,8 +152,6 @@ describe('PlotlyExpressChartModel', () => {
     await new Promise(process.nextTick); // Subscribe and addTable are async
     expect(mockDownsample).toHaveBeenCalledTimes(0);
     expect(mockSubscribe).toHaveBeenCalledTimes(0);
-    // expect(chartModel.fireDownsampleStart).toHaveBeenCalledTimes(0);
-    // expect(chartModel.fireDownsampleFinish).toHaveBeenCalledTimes(0);
   });
 
   it('should downsample line charts when the table is big', async () => {
