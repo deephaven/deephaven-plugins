@@ -1,25 +1,47 @@
-import type { Layout, Data } from 'plotly.js';
-import type {
-  dh as DhType,
-  ChartData,
-  Widget,
-  Table,
-  TableSubscription,
-  TableData,
-} from '@deephaven/jsapi-types';
+import type { Layout, Data, PlotData, LayoutAxis } from 'plotly.js';
+import type { dh as DhType } from '@deephaven/jsapi-types';
 import { ChartModel, ChartUtils } from '@deephaven/chart';
 import Log from '@deephaven/log';
 import {
+  DownsampleInfo,
   PlotlyChartWidgetData,
+  areSameAxisRange,
+  downsample,
   getDataMappings,
+  getPathParts,
   getWidgetData,
+  isAutoAxis,
+  isLineSeries,
+  isLinearAxis,
   removeColorsFromData,
-} from './PlotlyExpressChartUtils.js';
+} from './PlotlyExpressChartUtils';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
 
 export class PlotlyExpressChartModel extends ChartModel {
-  constructor(dh: DhType, widget: Widget, refetch: () => Promise<Widget>) {
+  /**
+   * The size at which the chart will automatically downsample the data if it can be downsampled.
+   * If it cannot be downsampled, but the size is below MAX_FETCH_SIZE,
+   * the chart will show a confirmation to fetch the data since it might be a slow operation.
+   */
+  static AUTO_DOWNSAMPLE_SIZE = 30_000;
+
+  /**
+   * The maximum number of items that can be fetched from a table.
+   * If a table is larger than this, the chart will not be fetched.
+   * This is to prevent the chart from fetching too much data and crashing the browser.
+   */
+  static MAX_FETCH_SIZE = 1_000_000;
+
+  static canFetch(table: DhType.Table): boolean {
+    return table.size <= PlotlyExpressChartModel.MAX_FETCH_SIZE;
+  }
+
+  constructor(
+    dh: typeof DhType,
+    widget: DhType.Widget,
+    refetch: () => Promise<DhType.Widget>
+  ) {
     super(dh);
 
     this.widget = widget;
@@ -29,10 +51,9 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.handleFigureUpdated = this.handleFigureUpdated.bind(this);
     this.handleWidgetUpdated = this.handleWidgetUpdated.bind(this);
 
-    // This is mostly used for setting the initial layout.
     // Chart only fetches the model layout once on init, so it needs to be set
     // before the widget is subscribed to.
-    this.handleWidgetUpdated(getWidgetData(widget), widget.exportedObjects);
+    this.updateLayout(getWidgetData(widget));
 
     this.setTitle(this.getDefaultTitle());
   }
@@ -41,21 +62,26 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   chartUtils: ChartUtils;
 
-  refetch: () => Promise<Widget>;
+  refetch: () => Promise<DhType.Widget>;
 
-  widget?: Widget;
+  widget?: DhType.Widget;
 
   widgetUnsubscribe?: () => void;
 
   /**
    * Map of table index to Table object.
    */
-  tableReferenceMap: Map<number, Table> = new Map();
+  tableReferenceMap: Map<number, DhType.Table> = new Map();
+
+  /**
+   * Map of downsampled table indexes to original Table object.
+   */
+  downsampleMap: Map<number, DownsampleInfo> = new Map();
 
   /**
    * Map of table index to TableSubscription object.
    */
-  tableSubscriptionMap: Map<number, TableSubscription> = new Map();
+  tableSubscriptionMap: Map<number, DhType.TableSubscription> = new Map();
 
   /**
    * Map of table index to cleanup function for the subscription.
@@ -70,7 +96,7 @@ export class PlotlyExpressChartModel extends ChartModel {
   /**
    * Map of table index to ChartData object. Used to handle data delta updates.
    */
-  chartDataMap: Map<number, ChartData> = new Map();
+  chartDataMap: Map<number, DhType.plot.ChartData> = new Map();
 
   /**
    * Map of table index to object where the keys are column names and the values are arrays of data.
@@ -88,6 +114,8 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   hasInitialLoadCompleted = false;
 
+  isDownsamplingDisabled = false;
+
   override getData(): Partial<Data>[] {
     const hydratedData = [...this.plotlyData];
 
@@ -101,11 +129,7 @@ export class PlotlyExpressChartModel extends ChartModel {
       columnReplacements.forEach((paths, columnName) => {
         paths.forEach(destination => {
           // The JSON pointer starts w/ /plotly/data and we don't need that part
-          const parts = destination
-            .split('/')
-            .filter(
-              part => part !== '' && part !== 'plotly' && part !== 'data'
-            );
+          const parts = getPathParts(destination);
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           let selector: any = hydratedData;
           for (let i = 0; i < parts.length; i += 1) {
@@ -136,17 +160,20 @@ export class PlotlyExpressChartModel extends ChartModel {
     callback: (event: CustomEvent) => void
   ): Promise<void> {
     if (this.isSubscribed) {
+      log.debug('already subscribed');
       return;
     }
+    log.debug('subscribing');
     super.subscribe(callback);
     if (this.widget == null) {
       this.widget = await this.refetch();
-      const widgetData = getWidgetData(this.widget);
-      this.handleWidgetUpdated(widgetData, this.widget.exportedObjects);
     }
 
+    const widgetData = getWidgetData(this.widget);
+    this.handleWidgetUpdated(widgetData, this.widget.exportedObjects);
+
     this.isSubscribed = true;
-    this.widgetUnsubscribe = this.widget.addEventListener<Widget>(
+    this.widgetUnsubscribe = this.widget.addEventListener<DhType.Widget>(
       this.dh.Widget.EVENT_MESSAGE,
       ({ detail }) => {
         this.handleWidgetUpdated(
@@ -185,6 +212,12 @@ export class PlotlyExpressChartModel extends ChartModel {
     const { plotly } = figure;
     const { layout: plotlyLayout = {} } = plotly;
 
+    // @deephaven/chart Chart component mutates the layout
+    // If we want updates like the zoom range, we must only set the layout once on init
+    if (Object.keys(this.layout).length > 0) {
+      return;
+    }
+
     this.layout = {
       ...plotlyLayout,
     };
@@ -192,8 +225,9 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   handleWidgetUpdated(
     data: PlotlyChartWidgetData,
-    references: Widget['exportedObjects']
+    references: DhType.Widget['exportedObjects']
   ): void {
+    log.debug('handleWidgetUpdated', data, references);
     const {
       figure,
       new_references: newReferences,
@@ -204,7 +238,6 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.tableColumnReplacementMap = getDataMappings(data);
 
     this.plotlyData = plotly.data;
-    this.updateLayout(data);
 
     if (!deephaven.is_user_set_template) {
       removeColorsFromData(
@@ -215,14 +248,17 @@ export class PlotlyExpressChartModel extends ChartModel {
 
     newReferences.forEach(async (id, i) => {
       this.tableDataMap.set(id, {}); // Plot may render while tables are being fetched. Set this to avoid a render error
-      const table = (await references[i].fetch()) as Table;
+      const table = (await references[i].fetch()) as DhType.Table;
       this.addTable(id, table);
     });
 
     removedReferences.forEach(id => this.removeTable(id));
   }
 
-  handleFigureUpdated(event: CustomEvent<TableData>, tableId: number): void {
+  handleFigureUpdated(
+    event: CustomEvent<DhType.SubscriptionTableData>,
+    tableId: number
+  ): void {
     const chartData = this.chartDataMap.get(tableId);
     const tableData = this.tableDataMap.get(tableId);
 
@@ -255,16 +291,186 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.fireUpdate(this.getData());
   }
 
-  addTable(id: number, table: Table): void {
+  async addTable(id: number, table: DhType.Table): Promise<void> {
     if (this.tableReferenceMap.has(id)) {
       return;
     }
-    this.tableReferenceMap.set(id, table);
+
+    let tableToAdd = table;
+
+    const downsampleInfo = this.getDownsampleInfo(id, table);
+    const needsDownsample =
+      table.size > PlotlyExpressChartModel.AUTO_DOWNSAMPLE_SIZE;
+    const canDownsample = typeof downsampleInfo !== 'string';
+    const canFetch = PlotlyExpressChartModel.canFetch(table);
+    const shouldDownsample = needsDownsample && !this.isDownsamplingDisabled;
+
+    if (!canDownsample) {
+      if (!canFetch) {
+        log.debug(`Table ${id} too big to fetch ${table.size} items`);
+        this.fireDownsampleFail(
+          `Too many items to plot: ${Number(
+            table.size
+          ).toLocaleString()} items.`
+        );
+        return;
+      }
+      if (shouldDownsample) {
+        this.fireDownsampleFail(downsampleInfo);
+        return;
+      }
+    }
+
+    if (canDownsample && needsDownsample) {
+      this.downsampleMap.set(id, downsampleInfo);
+      try {
+        this.fireDownsampleStart(null);
+        tableToAdd = await downsample(this.dh, downsampleInfo);
+        this.fireDownsampleFinish(null);
+      } catch (e) {
+        this.fireDownsampleFail(e);
+        return;
+      }
+    }
+
+    this.tableReferenceMap.set(id, tableToAdd);
     this.tableDataMap.set(id, {});
 
     if (this.isSubscribed) {
       this.subscribeTable(id);
     }
+  }
+
+  async updateDownsampledTable(id: number): Promise<void> {
+    const oldDownsampleInfo = this.downsampleMap.get(id);
+    if (oldDownsampleInfo == null) {
+      log.error(`No table found for id ${id}`);
+      return;
+    }
+
+    const downsampleInfo = this.getDownsampleInfo(
+      id,
+      oldDownsampleInfo.originalTable
+    );
+
+    if (typeof downsampleInfo === 'string') {
+      this.fireDownsampleFail(downsampleInfo);
+      return;
+    }
+
+    if (
+      areSameAxisRange(downsampleInfo.range, oldDownsampleInfo.range) &&
+      downsampleInfo.width === oldDownsampleInfo.width
+    ) {
+      log.debug('Range and width are the same, skipping downsample');
+      return;
+    }
+
+    log.debug('Updating downsampled table', downsampleInfo);
+
+    this.fireDownsampleStart(null);
+    this.subscriptionCleanupMap.get(id)?.();
+    this.tableSubscriptionMap.get(id)?.close();
+    this.subscriptionCleanupMap.delete(id);
+    this.tableSubscriptionMap.delete(id);
+    this.tableReferenceMap.delete(id);
+    this.addTable(id, oldDownsampleInfo.originalTable);
+  }
+
+  override setDownsamplingDisabled(isDownsamplingDisabled: boolean): void {
+    this.isDownsamplingDisabled = isDownsamplingDisabled;
+    if (isDownsamplingDisabled && this.widget != null) {
+      const widgetData = getWidgetData(this.widget);
+      this.handleWidgetUpdated(widgetData, this.widget.exportedObjects);
+      this.fireDownsampleFinish(null);
+    }
+  }
+
+  /**
+   * Gets info on how to downsample a table for plotting.
+   * @param tableId The tableId to get downsample info for
+   * @param table The table to get downsample info for
+   * @returns DownsampleInfo if table can be downsampled.
+   *          A string of the reason if the table cannot be downsampled.
+   *          Null if the table does not need downsampling.
+   */
+  getDownsampleInfo(
+    tableId: number,
+    table: DhType.Table
+  ): DownsampleInfo | string {
+    const downsampleFailMessage = `Plotting ${Number(
+      table.size
+    ).toLocaleString()} items may be slow.\nAre you sure you want to continue?`;
+
+    const replacementMap = this.tableColumnReplacementMap.get(tableId);
+
+    if (!replacementMap) {
+      return 'Nothing to downsample';
+    }
+
+    const areAllLines = [...replacementMap.values()]
+      .flat()
+      .map(path => getPathParts(path)[0])
+      .every(seriesIndex => {
+        const series = this.plotlyData[parseInt(seriesIndex, 10)];
+        return series != null && isLineSeries(series);
+      });
+
+    if (!areAllLines) {
+      log.debug('Cannot downsample non-line series');
+      return downsampleFailMessage;
+    }
+
+    let xCol = '';
+    let xAxis: Partial<LayoutAxis> | undefined;
+    const yCols: string[] = [];
+    const replacementEntries = [...replacementMap.entries()];
+
+    for (let i = 0; i < replacementEntries.length; i += 1) {
+      const [columnName, paths] = replacementEntries[i];
+      const pathParts = paths.map(getPathParts);
+
+      for (let j = 0; j < pathParts.length; j += 1) {
+        const [seriesIdx, xOrY] = pathParts[j];
+        const series = this.plotlyData[parseInt(seriesIdx, 10)] as PlotData;
+        if (xOrY === 'x') {
+          if (xCol !== '' && columnName !== xCol) {
+            log.debug('Cannot downsample multiple x columns');
+            return downsampleFailMessage;
+          }
+          xCol = columnName;
+          const axisName = `${series.xaxis[0]}axis${series.xaxis[1] ?? ''}`;
+          xAxis = this.layout[axisName as 'xaxis']; // The cast makes TS happy
+          if (xAxis != null && !isLinearAxis(xAxis) && !isAutoAxis(xAxis)) {
+            return 'Cannot downsample non-linear x axis';
+          }
+        } else {
+          yCols.push(columnName);
+          const axisName = `${series.yaxis[0]}axis${series.yaxis[1] ?? ''}`;
+          const yAxis = this.layout[axisName as 'yaxis']; // The cast makes TS happy
+          if (yAxis != null && !isLinearAxis(yAxis) && !isAutoAxis(yAxis)) {
+            return 'Cannot downsample non-linear y axis';
+          }
+        }
+      }
+    }
+
+    if (xAxis == null) {
+      return 'Cannot downsample without an x axis';
+    }
+
+    // Copy the range in case plotly mutates it
+    const range = xAxis.autorange === false ? [...(xAxis.range ?? [])] : null;
+
+    return {
+      type: 'linear',
+      originalTable: table,
+      xCol,
+      yCols,
+      width: this.getPlotWidth(),
+      range,
+      rangeType: xAxis.type === 'date' ? 'date' : 'number',
+    };
   }
 
   subscribeTable(id: number): void {
@@ -284,7 +490,7 @@ export class PlotlyExpressChartModel extends ChartModel {
       this.tableSubscriptionMap.set(id, subscription);
       this.subscriptionCleanupMap.set(
         id,
-        subscription.addEventListener<TableData>(
+        subscription.addEventListener<DhType.SubscriptionTableData>(
           this.dh.Table.EVENT_UPDATED,
           e => this.handleFigureUpdated(e, id)
         )
@@ -297,6 +503,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.tableSubscriptionMap.get(id)?.close();
 
     this.tableReferenceMap.delete(id);
+    this.downsampleMap.delete(id);
     this.subscriptionCleanupMap.delete(id);
     this.tableSubscriptionMap.delete(id);
     this.chartDataMap.delete(id);
@@ -316,6 +523,14 @@ export class PlotlyExpressChartModel extends ChartModel {
       this.fireLoadFinished();
       this.hasInitialLoadCompleted = true;
     }
+  }
+
+  override setDimensions(rect: DOMRect): void {
+    super.setDimensions(rect);
+    ChartUtils.getLayoutRanges(this.layout);
+    this.downsampleMap.forEach((_, id) => {
+      this.updateDownsampledTable(id);
+    });
   }
 
   pauseUpdates(): void {

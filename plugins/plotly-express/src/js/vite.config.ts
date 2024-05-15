@@ -20,6 +20,7 @@ export default defineConfig(({ mode }) => ({
         'react-redux',
         '@deephaven/jsapi-bootstrap',
         '@deephaven/chart',
+        '@deephaven/log',
       ],
     },
   },
