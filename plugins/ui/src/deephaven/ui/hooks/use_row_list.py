@@ -9,7 +9,9 @@ from .use_table_data import use_table_data
 from ..types import Sentinel
 
 
-def _row_list(data: pd.DataFrame | Sentinel, is_sentinel: bool) -> list[Any] | Sentinel:
+def _row_list(
+    data: pd.DataFrame | Sentinel | None, is_sentinel: bool
+) -> list[Any] | Sentinel | None:
     """
     Return the first row of the table as a list.
 
@@ -21,19 +23,21 @@ def _row_list(data: pd.DataFrame | Sentinel, is_sentinel: bool) -> list[Any] | S
         The first row of the table as a list.
     """
     try:
-        return data if is_sentinel else data.iloc[0].values.tolist()
+        return data if is_sentinel or data is None else data.iloc[0].values.tolist()
     except IndexError:
         # if there is a static table with no rows, we will get an IndexError
         raise IndexError("Cannot get row list from an empty table")
 
 
-def use_row_list(table: Table, sentinel: Sentinel = None) -> list[Any] | Sentinel:
+def use_row_list(
+    table: Table | None, sentinel: Sentinel = ()
+) -> list[Any] | Sentinel | None:
     """
     Return the first row of the table as a list. The table should already be filtered to only have a single row.
 
     Args:
         table: The table to extract the row from.
-        sentinel: The sentinel value to return if the table is ticking but empty. Defaults to None.
+        sentinel: The sentinel value to return if the table is ticking but empty. Defaults to ().
 
     Returns:
         The first row of the table as a list or the sentinel value.

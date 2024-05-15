@@ -9,7 +9,9 @@ from .use_table_data import use_table_data
 from ..types import Sentinel
 
 
-def _cell_data(data: pd.DataFrame | Sentinel, is_sentinel: bool) -> Any | Sentinel:
+def _cell_data(
+    data: pd.DataFrame | Sentinel | None, is_sentinel: bool
+) -> Any | Sentinel:
     """
     Return the first cell of the table.
 
@@ -21,19 +23,19 @@ def _cell_data(data: pd.DataFrame | Sentinel, is_sentinel: bool) -> Any | Sentin
         The first cell of the table.
     """
     try:
-        return data if is_sentinel else data.iloc[0, 0]
+        return data if is_sentinel or data is None else data.iloc[0, 0]
     except IndexError:
         # if there is a static table with no rows, we will get an IndexError
         raise IndexError("Cannot get row list from an empty table")
 
 
-def use_cell_data(table: Table, sentinel: Sentinel = None) -> Any:
+def use_cell_data(table: Table | None, sentinel: Sentinel = ()) -> Any | Sentinel:
     """
     Return the first cell of the table. The table should already be filtered to only have a single cell.
 
     Args:
         table: The table to extract the cell from.
-        sentinel: The sentinel value to return if the table is ticking but empty. Defaults to None.
+        sentinel: The sentinel value to return if the table is ticking but empty. Defaults to ().
 
     Returns:
         Any: The first cell of the table.

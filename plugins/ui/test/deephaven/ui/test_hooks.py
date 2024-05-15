@@ -300,6 +300,16 @@ class HooksTest(BaseTestCase):
         table_writer = DynamicTableWriter(column_definitions)
         table = table_writer.table
 
+        # a ticking table with no data should return the sentinel value
+        def _test_table_data(t=table):
+            return use_table_data(t)
+
+        render_result = render_hook(_test_table_data)
+
+        result, _ = itemgetter("result", "rerender")(render_result)
+
+        self.assertEqual(result, ())
+
         def _test_table_data(t=table):
             return use_table_data(t, sentinel="sentinel")
 
@@ -398,6 +408,20 @@ class HooksTest(BaseTestCase):
         expected = {"Numbers": [1], "Words": ["Testing"]}
         self.assertEqual(result, expected)
 
+    def test_none_table_data(self):
+        from deephaven.ui.hooks import use_table_data
+
+        def _test_table_data(t=None):
+            return use_table_data(t)
+
+        render_result = render_hook(_test_table_data)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        expected = None
+
+        self.assertEqual(result, expected)
+
     def test_column_data(self):
         from deephaven.ui.hooks import use_column_data
         from deephaven import new_table
@@ -441,6 +465,16 @@ class HooksTest(BaseTestCase):
         table_writer = DynamicTableWriter(column_definitions)
         table = table_writer.table
 
+        # a ticking table with no data should return the sentinel value
+        def _test_column_data(t=table):
+            return use_column_data(t)
+
+        render_result = render_hook(_test_column_data)
+
+        result, _ = itemgetter("result", "rerender")(render_result)
+
+        self.assertEqual(result, ())
+
         def _test_column_data(t=table):
             return use_column_data(t, sentinel="sentinel")
 
@@ -460,6 +494,18 @@ class HooksTest(BaseTestCase):
         expected = ["Testing"]
 
         self.assertEqual(result, expected)
+
+    def test_none_column_data(self):
+        from deephaven.ui.hooks import use_column_data
+
+        def _test_column_data(t=None):
+            return use_column_data(t)
+
+        render_result = render_hook(_test_column_data)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        self.assertEqual(result, None)
 
     def test_row_data(self):
         from deephaven.ui.hooks import use_row_data
@@ -505,6 +551,16 @@ class HooksTest(BaseTestCase):
         table_writer = DynamicTableWriter(column_definitions)
         table = table_writer.table
 
+        # a ticking table with no data should return the sentinel value
+        def _test_row_data(t=table):
+            return use_row_data(t)
+
+        render_result = render_hook(_test_row_data)
+
+        result, _ = itemgetter("result", "rerender")(render_result)
+
+        self.assertEqual(result, ())
+
         def _test_row_data(t=table):
             return use_row_data(t, sentinel="sentinel")
 
@@ -524,6 +580,18 @@ class HooksTest(BaseTestCase):
         expected = {"Numbers": 1, "Words": "Testing"}
 
         self.assertEqual(result, expected)
+
+    def test_none_row_data(self):
+        from deephaven.ui.hooks import use_row_data
+
+        def _test_row_data(t=None):
+            return use_row_data(t)
+
+        render_result = render_hook(_test_row_data)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        self.assertEqual(result, None)
 
     def test_row_list(self):
         from deephaven.ui.hooks import use_row_list
@@ -569,6 +637,16 @@ class HooksTest(BaseTestCase):
         table_writer = DynamicTableWriter(column_definitions)
         table = table_writer.table
 
+        # a ticking table with no data should return the sentinel value
+        def _test_row_list(t=table):
+            return use_row_list(t)
+
+        render_result = render_hook(_test_row_list)
+
+        result, _ = itemgetter("result", "rerender")(render_result)
+
+        self.assertEqual(result, ())
+
         def _test_row_list(t=table):
             return use_row_list(t, sentinel="sentinel")
 
@@ -588,6 +666,18 @@ class HooksTest(BaseTestCase):
         expected = [1, "Testing"]
 
         self.assertEqual(result, expected)
+
+    def test_none_row_list(self):
+        from deephaven.ui.hooks import use_row_list
+
+        def _use_row_list(t=None):
+            return use_row_list(t)
+
+        render_result = render_hook(_use_row_list)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        self.assertEqual(result, None)
 
     def test_cell_data(self):
         from deephaven.ui.hooks import use_cell_data
@@ -632,6 +722,16 @@ class HooksTest(BaseTestCase):
         table_writer = DynamicTableWriter(column_definitions)
         table = table_writer.table
 
+        # a ticking table with no data should return the sentinel value
+        def _test_cell_data(t=table):
+            return use_cell_data(t)
+
+        render_result = render_hook(_test_cell_data)
+
+        result, _ = itemgetter("result", "rerender")(render_result)
+
+        self.assertEqual(result, ())
+
         def _test_cell_data(t=table):
             return use_cell_data(t, sentinel="sentinel")
 
@@ -651,6 +751,18 @@ class HooksTest(BaseTestCase):
         expected = "Testing"
 
         self.assertEqual(result, expected)
+
+    def test_none_cell_data(self):
+        from deephaven.ui.hooks import use_cell_data
+
+        def _test_cell_data(t=None):
+            return use_cell_data(t)
+
+        render_result = render_hook(_test_cell_data)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        self.assertEqual(result, None)
 
     def test_execution_context(self):
         from deephaven.ui.hooks import use_execution_context, use_state, use_memo

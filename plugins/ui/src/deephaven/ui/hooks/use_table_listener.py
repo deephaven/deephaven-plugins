@@ -65,7 +65,7 @@ def wrap_listener(
 
 
 def use_table_listener(
-    table: Table,
+    table: Table | None,
     listener: Callable[[TableUpdate, bool], None] | TableListener,
     dependencies: Dependencies,
     description: str | None = None,
@@ -95,7 +95,7 @@ def use_table_listener(
         Returns:
             A function that can be called to stop the listener by the use_effect hook.
         """
-        if not table.is_refreshing and not do_replay:
+        if table is None or (not table.is_refreshing and not do_replay):
             return lambda: None
 
         handle = listen(
