@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## matplotlib-v0.4.1 - 2024-05-16
+#### Documentation
+- Update some information about Matplotlib (#467) - (bb9bda5) - mofojed
+
+- - -
+
 ## matplotlib-v0.4.0 - 2024-05-16
 #### Bug Fixes
 - Type fixes and require pyright (#302) - (d5d003d) - Joe
