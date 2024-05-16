@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.8.0 - 2024-05-16
+#### Bug Fixes
+- Improve TimePreprocessor code (#455) - (be887f7) - Joe
+#### Features
+- Plotly express downsampling (#453) - (0101436) - Matthew Runyon
+#### Tests
+- bump ts, eslint and prettier configs (#416) - (a4761cc) - Don
+
+- - -
+
 ## plotly-express-v0.7.0 - 2024-04-03
 #### Bug Fixes
 - Ensure title is added to default figure (#396) - (2f0a8a0) - Joe
