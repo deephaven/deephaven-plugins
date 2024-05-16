@@ -3,6 +3,7 @@ import { useApi } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
 import { WidgetComponentProps } from '@deephaven/plugin';
 import type { Widget } from '@deephaven/jsapi-types';
+import { Button, TextField } from '@deephaven/components';
 
 const log = Log.module('{{ cookiecutter.javascript_project_name }}.{{ cookiecutter.__js_plugin_view_obj }}');
 
@@ -53,22 +54,20 @@ export function {{ cookiecutter.__js_plugin_view_obj }}(props: WidgetComponentPr
     <div style={{ "{" }}{{ cookiecutter.__js_plugin_view_obj_style }}{{ "}" }}>
       <div>{text}</div>
       <div>Send a message to the server:</div>
-      <div>
-        <input
-          type="text"
+      <TextField
           value={formText}
-          onChange={(e) => setFormText(e.target.value)}
-        />
-        <button
-          onClick={() => {
-            // Send the message to the server via the widget
-            if (widget) {
-              widget.sendMessage(formText, []);
-            }
-          }}>
-          Send
-        </button>
-      </div>
+          onChange={(value) => setFormText(value)}
+          marginBottom='size-50'
+      />
+      <Button
+        onClick={() => {
+          // Send the message to the server via the widget
+          if (widget) {
+            widget.sendMessage(formText, []);
+          }
+        }}>
+        Send
+      </Button>
     </div>
   );
 }
