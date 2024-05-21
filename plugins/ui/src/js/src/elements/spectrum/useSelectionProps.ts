@@ -64,7 +64,7 @@ export function useSelectionEventCallback(
 /**
  * Converts serialized selection props to props that can be passed to DHC
  * components.
- * @param props SerializedSelectionProps
+ * @param props serialized selection props
  * @returns selection props
  */
 export function useSelectionProps({
