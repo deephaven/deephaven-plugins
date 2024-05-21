@@ -27,14 +27,6 @@ def content(*children, **props):
     return spectrum_element("Content", *children, **props)
 
 
-def contextual_help(*children, **props):
-    """
-    Python implementation for the Adobe React Spectrum ContextualHelp component.
-    https://react-spectrum.adobe.com/react-spectrum/ContextualHelp.html
-    """
-    return spectrum_element("ContextualHelp", *children, **props)
-
-
 def grid(*children, **props):
     """
     Python implementation for the Adobe React Spectrum Grid component.

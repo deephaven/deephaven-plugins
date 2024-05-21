@@ -2,6 +2,7 @@ from .action_button import *
 from .basic import *
 from .button_group import *
 from .button import *
+from .contextual_help import *
 from .text_field import *
 from .toggle_button import *
 from .flex import *
