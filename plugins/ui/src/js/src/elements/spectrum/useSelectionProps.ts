@@ -8,6 +8,9 @@ export type SerializedSelectionEventCallback = (
   event: SerializedSelection
 ) => void;
 
+/**
+ * Serialized selection props we receive from dh ui.
+ */
 export interface SerializedSelectionProps {
   selectionMode?: SelectionMode | Uppercase<SelectionMode>;
 
@@ -21,6 +24,9 @@ export interface SerializedSelectionProps {
   onSelectionChange?: SerializedSelectionEventCallback;
 }
 
+/**
+ * Selection props that can be passed to DHC components.
+ */
 export interface SelectionProps {
   selectionMode?: SelectionMode;
   onChange?: (selection: ItemSelection) => void;
