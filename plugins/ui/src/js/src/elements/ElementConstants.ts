@@ -37,11 +37,11 @@ export const ELEMENT_NAME = {
 export type ElementName = typeof ELEMENT_NAME;
 
 export const ELEMENT_PREFIX = {
-  iconPrefix: 'deephaven.ui.icons.' as const,
-  htmlPrefix: 'deephaven.ui.html.' as const,
+  icon: 'deephaven.ui.icons.' as const,
+  html: 'deephaven.ui.html.' as const,
 };
 
 export type ElementPrefix = {
-  iconPrefix: `${typeof ELEMENT_PREFIX.iconPrefix}${keyof typeof icons}`;
-  htmlPrefix: `${typeof ELEMENT_PREFIX.htmlPrefix}${keyof ReactHTML}`;
+  icon: `${typeof ELEMENT_PREFIX.icon}${keyof typeof icons}`;
+  html: `${typeof ELEMENT_PREFIX.html}${keyof ReactHTML}`;
 };

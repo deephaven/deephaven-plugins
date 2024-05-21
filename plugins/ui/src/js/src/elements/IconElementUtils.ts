@@ -8,19 +8,17 @@ import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
  * For example, `deephaven.ui.icons.vsBell` will render the icon named `vsBell`.
  * The props are passed directly to the icon component.
  */
-export type IconElementNode = ElementNode<ElementPrefix['iconPrefix']>;
+export type IconElementNode = ElementNode<ElementPrefix['icon']>;
 
 export function isIconElementNode(obj: unknown): obj is IconElementNode {
   return (
     isElementNode(obj) &&
-    (obj as IconElementNode)[ELEMENT_KEY].startsWith(ELEMENT_PREFIX.iconPrefix)
+    (obj as IconElementNode)[ELEMENT_KEY].startsWith(ELEMENT_PREFIX.icon)
   );
 }
 
-export function getIcon(
-  name: ElementPrefix['iconPrefix']
-): icons.IconDefinition {
+export function getIcon(name: ElementPrefix['icon']): icons.IconDefinition {
   return icons[
-    name.substring(ELEMENT_PREFIX.iconPrefix.length) as keyof typeof icons
+    name.substring(ELEMENT_PREFIX.icon.length) as keyof typeof icons
   ] as icons.IconDefinition;
 }
