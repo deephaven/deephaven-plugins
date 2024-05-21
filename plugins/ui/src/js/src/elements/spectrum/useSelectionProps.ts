@@ -64,24 +64,28 @@ export function useSelectionEventCallback(
 /**
  * Converts serialized selection props to props that can be passed to DHC
  * components.
- * @param props serialized selection props
+ * @param selectionMode selection mode (may be uppercase)
+ * @param onChange serialized selection change event handler
+ * @param onSelectionChange serialized selection change event handler
  * @returns selection props
  */
 export function useSelectionProps({
-  selectionMode,
-  onChange,
-  onSelectionChange,
+  selectionMode: selectionModeMaybeUppercase,
+  onChange: serializedOnChange,
+  onSelectionChange: serializedOnSelectionChange,
 }: SerializedSelectionProps): SelectionProps {
-  const selectionModeLc = selectionMode?.toLowerCase() as SelectionMode;
+  const selectionModeLc =
+    selectionModeMaybeUppercase?.toLowerCase() as SelectionMode;
 
-  const serializedOnChange = useSelectionEventCallback(onChange);
-  const serializedOnSelectionChange =
-    useSelectionEventCallback(onSelectionChange);
+  const onChange = useSelectionEventCallback(serializedOnChange);
+  const onSelectionChange = useSelectionEventCallback(
+    serializedOnSelectionChange
+  );
 
   return {
     selectionMode: selectionModeLc,
-    onChange: onChange == null ? undefined : serializedOnChange,
+    onChange: serializedOnChange == null ? undefined : onChange,
     onSelectionChange:
-      onSelectionChange == null ? undefined : serializedOnSelectionChange,
+      serializedOnSelectionChange == null ? undefined : onSelectionChange,
   };
 }
