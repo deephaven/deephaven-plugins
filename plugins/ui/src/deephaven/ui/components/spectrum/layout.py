@@ -6,6 +6,30 @@ from typing import Any, Dict, Literal, Union
 Direction = Literal["row", "column", "row-reverse", "column-reverse"]
 Wrap = Literal["wrap", "nowrap", "wrap-reverse"]
 
+Placement = Literal[
+    "bottom",
+    "bottom left",
+    "bottom right",
+    "bottom start",
+    "bottom end",
+    "top",
+    "top left",
+    "top right",
+    "top start",
+    "top end",
+    "left",
+    "left top",
+    "left bottom",
+    "start",
+    "start top",
+    "start bottom",
+    "right",
+    "right top",
+    "right bottom",
+    "end",
+    "end top",
+]
+
 AlignContent = Literal[
     "start",
     "end",
