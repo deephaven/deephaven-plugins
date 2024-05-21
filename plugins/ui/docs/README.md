@@ -208,7 +208,7 @@ An ActionGroup is a grouping of ActionButtons that are related to one another.
 
 ```python
 @ui.component
-def action_group():
+def ui_action_group():
     [action, on_action] = ui.use_state()
 
     return ui.flex(
@@ -223,7 +223,7 @@ def action_group():
     )
 
 
-ag = action_group()
+my_action_group = ui_action_group()
 ```
 
 ## ActionMenu (string values)
@@ -231,7 +231,7 @@ ActionMenu combines an ActionButton with a Menu for simple "more actions" use ca
 
 ```python
 @ui.component
-def action_menu():
+def ui_action_menu():
     [action, on_action] = ui.use_state()
 
     return ui.flex(
@@ -246,7 +246,7 @@ def action_menu():
     )
 
 
-ag = action_menu()
+my_action_menu = ui_action_menu()
 ```
 
 ## Picker (string values)
@@ -560,11 +560,11 @@ def ui_list_view_action_group():
     return lv, text_selection, text_action
 
 
-lv_action_group = ui_list_view_action_group()
+my_list_view_action_group = ui_list_view_action_group()
 ```
 
 ## ListView (list action menu)
-A list view can take a `list_view_menu` as its `actions` prop.
+A list view can take a `list_action_menu` as its `actions` prop.
 
 ```python
 from deephaven import time_table, ui
@@ -613,7 +613,7 @@ def ui_list_view_action_menu():
     return lv, text_selection, text_action
 
 
-lv_action_menu = ui_list_view_action_menu()
+my_list_view_action_menu = ui_list_view_action_menu()
 ```
 
 ## Form (two variables)
