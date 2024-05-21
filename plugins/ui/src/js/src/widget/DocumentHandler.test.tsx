@@ -6,10 +6,7 @@ import DocumentHandler, { DocumentHandlerProps } from './DocumentHandler';
 import { ReactPanelProps } from '../layout/LayoutUtils';
 import { MixedPanelsError, NoChildrenError } from '../errors';
 import { getComponentForElement } from './WidgetUtils';
-import {
-  DASHBOARD_ELEMENT_NAME,
-  PANEL_ELEMENT_NAME,
-} from '../elements/ElementConstants';
+import { ELEMENT_NAME } from '../elements/ElementConstants';
 
 const mockReactPanel = jest.fn((props: ReactPanelProps) => (
   <div>ReactPanel</div>
@@ -67,7 +64,7 @@ it('should throw an error if the document mixes panel and non-panel elements', (
   TestUtils.disableConsoleOutput();
 
   const children = makeDocument([
-    makeElement(PANEL_ELEMENT_NAME),
+    makeElement(ELEMENT_NAME.panel),
     makeElement('not panel element'),
   ]);
   expect(() => render(makeDocumentHandler({ children }))).toThrow(
@@ -83,8 +80,8 @@ it('should combine multiple single elements into one panel', () => {
 
 it('should render multiple panels', () => {
   const children = makeDocument([
-    makeElement(PANEL_ELEMENT_NAME),
-    makeElement(PANEL_ELEMENT_NAME),
+    makeElement(ELEMENT_NAME.panel),
+    makeElement(ELEMENT_NAME.panel),
   ]);
   render(makeDocumentHandler({ children }));
   expect(mockReactPanel).toHaveBeenCalledTimes(2);
@@ -92,8 +89,8 @@ it('should render multiple panels', () => {
 
 it('should throw an error if the document mixes dashboard and non-dashboard elements', () => {
   const children = makeDocument([
-    makeElement(PANEL_ELEMENT_NAME),
-    makeElement(DASHBOARD_ELEMENT_NAME),
+    makeElement(ELEMENT_NAME.panel),
+    makeElement(ELEMENT_NAME.dashboard),
   ]);
   expect(() => render(makeDocumentHandler({ children }))).toThrow(
     MixedPanelsError
@@ -101,7 +98,7 @@ it('should throw an error if the document mixes dashboard and non-dashboard elem
 });
 
 it('should render a dashboard', () => {
-  const children = makeDocument([makeElement(DASHBOARD_ELEMENT_NAME)]);
+  const children = makeDocument([makeElement(ELEMENT_NAME.dashboard)]);
   render(makeDocumentHandler({ children }));
   expect(mockReactPanel).toHaveBeenCalledTimes(0);
 });

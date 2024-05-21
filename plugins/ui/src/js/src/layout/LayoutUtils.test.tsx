@@ -15,12 +15,7 @@ import {
 import Row from './Row';
 import Stack from './Stack';
 import ReactPanel from './ReactPanel';
-import {
-  PANEL_ELEMENT_NAME,
-  ROW_ELEMENT_NAME,
-  COLUMN_ELEMENT_NAME,
-  STACK_ELEMENT_NAME,
-} from '../elements/ElementConstants';
+import { ELEMENT_NAME } from '../elements/ElementConstants';
 
 beforeEach(() => {
   TestUtils.disableConsoleOutput();
@@ -30,7 +25,7 @@ describe('isPanelElementNode', () => {
   test.each([
     [{ props: { title: 'test' } }, false],
     [{ props: { title: 'test' }, __dhElemName: 'a different name' }, false],
-    [{ props: { title: 'test' }, __dhElemName: PANEL_ELEMENT_NAME }, true],
+    [{ props: { title: 'test' }, __dhElemName: ELEMENT_NAME.panel }, true],
   ])(`isPanelElementNode(%s)`, (element, result) => {
     expect(isPanelElementNode(element)).toBe(result);
   });
@@ -40,7 +35,7 @@ describe('isRowElementNode', () => {
   test.each([
     [{ props: { height: 100 } }, false],
     [{ props: { height: 100 }, __dhElemName: 'a different name' }, false],
-    [{ props: { height: 100 }, __dhElemName: ROW_ELEMENT_NAME }, true],
+    [{ props: { height: 100 }, __dhElemName: ELEMENT_NAME.row }, true],
   ])(`isRowElementNode(%s)`, (element, result) => {
     expect(isRowElementNode(element)).toBe(result);
   });
@@ -50,7 +45,7 @@ describe('isColumnElementNode', () => {
   test.each([
     [{ props: { width: 100 } }, false],
     [{ props: { width: 100 }, __dhElemName: 'a different name' }, false],
-    [{ props: { width: 100 }, __dhElemName: COLUMN_ELEMENT_NAME }, true],
+    [{ props: { width: 100 }, __dhElemName: ELEMENT_NAME.column }, true],
   ])(`isColumnElementNode(%s)`, (element, result) => {
     expect(isColumnElementNode(element)).toBe(result);
   });
@@ -64,7 +59,7 @@ describe('isStackElementNode', () => {
       false,
     ],
     [
-      { props: { height: 100, width: 100 }, __dhElemName: STACK_ELEMENT_NAME },
+      { props: { height: 100, width: 100 }, __dhElemName: ELEMENT_NAME.stack },
       true,
     ],
   ])(`isStackElementNode(%s)`, (element, result) => {
