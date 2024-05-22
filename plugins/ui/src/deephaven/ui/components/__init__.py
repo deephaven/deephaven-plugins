@@ -22,7 +22,8 @@ from . import html
 
 __all__ = [
     "action_button",
-    "action_group" "button",
+    "action_group",
+    "button",
     "button_group",
     "checkbox",
     "column",
