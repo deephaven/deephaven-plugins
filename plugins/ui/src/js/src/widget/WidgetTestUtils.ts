@@ -12,6 +12,17 @@ export function makeDocumentUpdatedJsonRpc(
   };
 }
 
+export function makeSetStateResponse(
+  id: number,
+  state: Record<string, unknown>
+): string {
+  return JSON.stringify({
+    jsonrpc: '2.0',
+    id,
+    result: '',
+  });
+}
+
 export function makeDocumentUpdatedJsonRpcString(
   document: Record<string, unknown> = {}
 ): string {
@@ -34,10 +45,12 @@ export function makeWidget({
   addEventListener = jest.fn(() => jest.fn()),
   getDataAsString = () => makeDocumentUpdatedJsonRpcString(),
   exportedObjects = [],
+  sendMessage = jest.fn(),
 }: Partial<dh.Widget> = {}): dh.Widget {
   return TestUtils.createMockProxy<dh.Widget>({
     addEventListener,
     getDataAsString,
     exportedObjects,
+    sendMessage,
   });
 }
