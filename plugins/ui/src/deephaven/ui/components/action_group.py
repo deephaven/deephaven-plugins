@@ -1,13 +1,13 @@
 from __future__ import annotations
 from numbers import Number
 from typing import Any, Callable, Iterable
-from plugins.ui.src.deephaven.ui.components.spectrum.events import (
+from ..components.spectrum.events import (
     ButtonLabelBehavior,
     Orientation,
     StaticColor,
 )
-from plugins.ui.src.deephaven.ui.elements import BaseElement
-from plugins.ui.src.deephaven.ui.types.types import (
+from ..elements import Element, BaseElement
+from ..types import (
     ActionGroupDensity,
     SelectedKeys,
     SelectionMode,
@@ -21,7 +21,6 @@ from .spectrum.layout import (
     OverflowMode,
     Position,
 )
-from ..elements import Element
 
 
 def action_group(
