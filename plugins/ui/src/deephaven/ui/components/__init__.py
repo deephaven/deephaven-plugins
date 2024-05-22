@@ -9,6 +9,7 @@ from .row import row
 from .column import column
 from .stack import stack
 from .picker import picker
+from .action_group import action_group
 from .section import section
 from .item import item
 from .list_view import list_view
@@ -21,7 +22,7 @@ from . import html
 
 __all__ = [
     "action_button",
-    "button",
+    "action_group" "button",
     "button_group",
     "checkbox",
     "column",

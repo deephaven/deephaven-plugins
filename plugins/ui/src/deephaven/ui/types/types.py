@@ -1,7 +1,18 @@
 import datetime
 import pandas
 import numpy
-from typing import Any, Dict, Literal, Union, List, Tuple, Callable, TypedDict, Sequence
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    Literal,
+    Union,
+    List,
+    Tuple,
+    Callable,
+    TypedDict,
+    Sequence,
+)
 from deephaven import SortDirection
 from deephaven.dtypes import DType
 
@@ -111,6 +122,7 @@ TableSortDirection = Union[StringSortDirection, SortDirection]
 Stringable = Union[str, int, float, bool]
 Key = Stringable
 ActionKey = Key
+SelectedKeys = Literal["all"]
 LocalDate = DType
 Instant = DType
 ZonedDateTime = DType
@@ -139,6 +151,7 @@ Date = Union[
     ZonedDateTimeConvertible,
 ]
 Granularity = Literal["DAY", "HOUR", "MINUTE", "SECOND"]
-Density = Literal["COMPACT", "NORMAL", "SPACIOUS"]
+ListViewDensity = Literal["COMPACT", "NORMAL", "SPACIOUS"]
+ActionGroupDensity = Literal["compact", "regular"]
 Dependencies = Union[Tuple[Any], List[Any]]
 Selection = Sequence[Key]
