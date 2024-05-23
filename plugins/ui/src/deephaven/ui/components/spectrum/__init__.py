@@ -8,4 +8,5 @@ from .toggle_button import *
 from .flex import *
 from .date_picker import *
 from .tabs import *
+from .tab_panel import *
 from .combo_box import *

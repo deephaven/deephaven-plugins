@@ -2592,6 +2592,34 @@ def user_list():
 ul = user_list()
 ```
 
+## New implementation of Tabs
+
+Potential example of how new tabs component could be implemented, no longer needing to specify tab_list and tab_panels 
+
+```python
+from deephaven import empty_table
+import deephaven.ui as ui
+from deephaven.plot import express as dx
+
+
+@ui.component
+def tabs_test():
+    return ui.tabs(
+        ui.tab_panel(
+            ui.flex(
+                "Hello World!",
+                ui.flex(empty_table(10).update("I=i")),
+            ),
+            "Tab 1",
+        ),
+        ui.tab_panel(ui.flex("Content 2", flex_grow=1), ui.icon("vsGithubAlt")),
+        ui.tab_panel(ui.item("Content 3", flex_grow=1), "Tab 3"),
+    )
+
+
+t = tabs_test()
+```
+
 ## Converting a Parameterized Query
 
 Taking the [example Parameterized Query from our docs](https://deephaven.io/enterprise/docs/development/parameterized-queries/):
