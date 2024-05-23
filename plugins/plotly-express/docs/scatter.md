@@ -52,7 +52,7 @@ import deephaven.plot.express as dx
 my_table = dx.data.iris() # import the example iris data set
 
 # Assign unique colors to each grouping key in a column
-scatter_plot = dx.scatter(my_table, x="sepal_width", y="sepal_length", color="species")
+scatter_plot_by_group = dx.scatter(my_table, x="sepal_width", y="sepal_length", color="species")
 ```
 
 ### Color using a continuous color scale
@@ -143,7 +143,7 @@ import deephaven.plot.express as dx
 my_table = dx.data.iris() # import the example iris data set
 
 # Ex 1. Assign a custom symbol
-scatter_plot_diamonds = dx.scatter(
+scatter_plot_symbol = dx.scatter(
     my_table,
     x="sepal_width",
     y="sepal_length",
