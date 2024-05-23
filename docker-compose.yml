@@ -11,6 +11,5 @@ services:
       - 10000
     volumes:
       - ./docker/data/:/data
-      - ./tests/app.d:/app.d
     environment:
       - START_OPTS=-Xmx4g -DAuthHandlers=io.deephaven.auth.AnonymousAuthenticationHandler -Ddeephaven.console.type=python -Ddeephaven.application.dir=./app.d

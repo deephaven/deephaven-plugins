@@ -9,3 +9,5 @@ TextFieldInputMode = Literal[
 ]
 TextFieldValidationState = Literal["valid", "invalid"]
 NecessityIndicator = Literal["icon", "label"]
+
+ContextualHelperVariant = Literal["help", "info"]

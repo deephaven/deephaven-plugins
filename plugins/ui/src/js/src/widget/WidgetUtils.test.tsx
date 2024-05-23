@@ -1,11 +1,6 @@
 import React from 'react';
 import { Text } from '@deephaven/components';
-import {
-  FRAGMENT_ELEMENT_NAME,
-  ITEM_ELEMENT_NAME,
-  HTML_ELEMENT_NAME_PREFIX,
-  ICON_ELEMENT_TYPE_PREFIX,
-} from '../elements/ElementConstants';
+import { ELEMENT_NAME, ELEMENT_PREFIX } from '../elements/ElementConstants';
 import { ElementNode, ELEMENT_KEY } from '../elements/ElementUtils';
 import HTMLElementView from '../elements/HTMLElementView';
 import IconElementView from '../elements/IconElementView';
@@ -33,9 +28,9 @@ describe('getComponentTypeForElement', () => {
 describe('getComponentForElement', () => {
   it.each([
     /* eslint-disable react/jsx-key */
-    [`${HTML_ELEMENT_NAME_PREFIX}div`, HTMLElementView],
+    [`${ELEMENT_PREFIX.html}div`, HTMLElementView],
     [`${SPECTRUM_ELEMENT_TYPE_PREFIX}ActionButton`, SpectrumElementView],
-    [`${ICON_ELEMENT_TYPE_PREFIX}vsAdd`, IconElementView],
+    [`${ELEMENT_PREFIX.icon}vsAdd`, IconElementView],
     /* eslint-enable react/jsx-key */
   ] as [string, ({ element }: { element: unknown }) => JSX.Element][])(
     'should use expected element factory function: %s',
@@ -52,12 +47,12 @@ describe('getComponentForElement', () => {
   )('should spread props for element nodes: %s', elementKey => {
     let element: ElementNode = { [ELEMENT_KEY]: elementKey };
 
-    if (elementKey === FRAGMENT_ELEMENT_NAME) {
+    if (elementKey === ELEMENT_NAME.fragment) {
       element = {
         ...element,
         props: { key: 'mock.key', children: ['Some child'] },
       };
-    } else if (elementKey === ITEM_ELEMENT_NAME) {
+    } else if (elementKey === ELEMENT_NAME.item) {
       element = {
         ...element,
         props: { children: <Text>Some child</Text> },

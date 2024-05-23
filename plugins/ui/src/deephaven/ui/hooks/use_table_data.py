@@ -12,7 +12,10 @@ from deephaven.liveness_scope import liveness_scope
 from deephaven.server.executors import submit_task
 from deephaven.update_graph import has_exclusive_lock
 
-import deephaven.ui as ui
+from .use_callback import use_callback
+from .use_effect import use_effect
+from .use_state import use_state
+from .use_table_listener import use_table_listener
 
 from ..types import Sentinel, TableData, TransformedData
 
@@ -49,9 +52,14 @@ def _on_update(
     submit_task(executor_name, partial(_deferred_update, ctx, func))
 
 
-def _get_data_values(table: Table, sentinel: Sentinel):
+def _get_data_values(
+    table: Table | None, sentinel: Sentinel
+) -> tuple[pd.DataFrame | None, bool]:
     """
     Called to get the new data and is_sentinel values when the table updates.
+    None is returned if the table is None.
+    The sentinel value is returned if the table is empty and refreshing.
+    Otherwise, the table data is returned.
 
     Args:
         table: The table that updated.
@@ -60,6 +68,8 @@ def _get_data_values(table: Table, sentinel: Sentinel):
     Returns:
         The table data and whether the sentinel value was returned.
     """
+    if table is None:
+        return None, False
     data = to_pandas(table)
     if table.is_refreshing:
         if data.empty:
@@ -71,7 +81,7 @@ def _get_data_values(table: Table, sentinel: Sentinel):
 
 
 def _set_new_data(
-    table: Table,
+    table: Table | None,
     sentinel: Sentinel,
     set_data: Callable[[pd.DataFrame | Sentinel], None],
     set_is_sentinel: Callable[[bool], None],
@@ -103,13 +113,15 @@ def _table_data(
     Returns:
         The table data.
     """
-    return data if is_sentinel else data.to_dict(orient="list")
+    return data if is_sentinel or data is None else data.to_dict(orient="list")
 
 
 def use_table_data(
-    table: Table,
-    sentinel: Sentinel | None = None,
-    transform: Callable[[pd.DataFrame | Sentinel, bool], TransformedData | Sentinel]
+    table: Table | None,
+    sentinel: Sentinel = (),
+    transform: Callable[
+        [pd.DataFrame | Sentinel | None, bool], TransformedData | Sentinel
+    ]
     | None = None,
 ) -> TableData | Sentinel | TransformedData:
     """
@@ -117,8 +129,8 @@ def use_table_data(
     changes, resulting in an updated frame.
 
     Args:
-        table: The table to listen to.
-        sentinel: The sentinel value to return if the table is ticking but empty. Defaults to None.
+        table: The table to listen to. If None, None will be returned, not the sentinel value.
+        sentinel: The sentinel value to return if the table is ticking but empty. Defaults to an empty tuple.
         transform: A function to transform the table data and is_sentinel values. Defaults to None, which will
             return the data as TableData.
 
@@ -126,8 +138,8 @@ def use_table_data(
         The table data or the sentinel value.
     """
     initial_data, initial_is_sentinel = _get_data_values(table, sentinel)
-    data, set_data = ui.use_state(initial_data)
-    is_sentinel, set_is_sentinel = ui.use_state(initial_is_sentinel)
+    data, set_data = use_state(initial_data)
+    is_sentinel, set_is_sentinel = use_state(initial_is_sentinel)
 
     if not transform:
         transform = _table_data
@@ -140,14 +152,20 @@ def use_table_data(
     else:
         executor_name = "concurrent"
 
-    table_updated = lambda: _set_new_data(table, sentinel, set_data, set_is_sentinel)
+    # memoize table_updated (and listener) so that they don't cause a start and stop of the listener
+    table_updated = use_callback(
+        lambda: _set_new_data(table, sentinel, set_data, set_is_sentinel),
+        [table, sentinel],
+    )
 
     # call table_updated in the case of new table or sentinel
-    ui.use_effect(table_updated, [table, sentinel])
+    use_effect(table_updated, [table, sentinel])
+    listener = use_callback(
+        partial(_on_update, ctx, table_updated, executor_name),
+        [table_updated, executor_name, ctx],
+    )
 
     # call table_updated every time the table updates
-    ui.use_table_listener(
-        table, partial(_on_update, ctx, table_updated, executor_name), []
-    )
+    use_table_listener(table, listener, [])
 
     return transform(data, is_sentinel)

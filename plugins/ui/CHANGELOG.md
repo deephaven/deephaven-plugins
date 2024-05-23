@@ -2,6 +2,26 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.14.0 - 2024-05-17
+#### Bug Fixes
+- Do not expost combo_box or date_picker yet (#464) - (cd63e20) - mofojed
+- Exit on communication failure (#429) - (0e96ef4) - Joe
+- Memoize use_table_data listener (#428) - (f342dad) - Joe
+#### Build system
+- Update requirements to require a newer version of core (#457) - (3e04cf2) - mofojed
+#### Documentation
+- start plotting docs including one-click behaviour (#431) - (b0574c2) - Don
+#### Features
+- Python combo box implementation (#460) - (b87a5c6) - Joe
+- Table data hooks allow None (#463) - (910a57c) - Joe
+- Implement python item_table_source (#415) - (ce1a019) - Joe
+- Display deephaven.ui widget errors in a panel so user can see them (#436) - (b23b571) - mofojed
+- ListView - ui plugins (#408) - (ff7f769) - bmingles
+#### Refactoring
+- Updated spectrum imports to use dh components (#424) - (db97c9a) - bmingles
+
+- - -
+
 ## ui-v0.13.1 - 2024-04-22
 #### Bug Fixes
 - toggle_button was not passing through `on_change` (#427) - (d452a00) - mofojed

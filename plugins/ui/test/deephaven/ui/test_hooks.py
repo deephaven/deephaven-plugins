@@ -2,14 +2,16 @@ import threading
 import unittest
 from operator import itemgetter
 from queue import Queue
+from time import sleep
 from typing import Callable
 from unittest.mock import Mock
 from .BaseTest import BaseTestCase
 
 LISTENER_TIMEOUT = 2.0
+QUEUE_TIMEOUT = 1.0
 
 
-def render_hook(fn: Callable):
+def render_hook(fn: Callable, queue=None):
     """
     Render a hook function and return the context, result, and a rerender function for updating it
 
@@ -17,10 +19,13 @@ def render_hook(fn: Callable):
       fn: Callable:
         The function to render. Pass in a function with a hook call within it.
         Re-render will call the same function but with the new args passed in.
+      queue: Queue:
+        The queue to put items on. If not provided, a new queue will be created.
     """
     from deephaven.ui._internal.RenderContext import RenderContext
 
-    queue = Queue()
+    if queue is None:
+        queue = Queue()
 
     context = RenderContext(lambda x: queue.put(x), lambda x: queue.put(x))
 
@@ -40,6 +45,47 @@ def render_hook(fn: Callable):
     _rerender()
 
     return return_dict
+
+
+class NotifyQueue(Queue):
+    """
+    A queue that notifies a function when an item is put on it
+    """
+
+    def __init__(self):
+        super().__init__()
+        self._notify_fn = None
+
+    def put(self, item: object, block: bool = True, timeout: float = None) -> None:
+        """
+        Put an item on the queue and notify the function
+
+        Args:
+            item: The item to put on the queue
+            block: True if the call should block until the item is put on the queue
+            timeout: The time to wait for the item to be put on the queue
+
+        Returns:
+            None
+        """
+        super().put(item)
+        if self._notify_fn:
+            self._notify_fn(self)
+
+    def call_after_put(self, fn: Callable[["NotifyQueue"], None]) -> None:
+        """
+        Register a function to be called after an item is put on the queue
+
+        Args:
+            fn: The function to call after an item is put on the queue
+        """
+        self._notify_fn = fn
+
+    def unregister_notify(self) -> None:
+        """
+        Unregister the notify function
+        """
+        self._notify_fn = None
 
 
 class HooksTest(BaseTestCase):
@@ -254,6 +300,16 @@ class HooksTest(BaseTestCase):
         table_writer = DynamicTableWriter(column_definitions)
         table = table_writer.table
 
+        # a ticking table with no data should return the sentinel value
+        def _test_table_data(t=table):
+            return use_table_data(t)
+
+        render_result = render_hook(_test_table_data)
+
+        result, _ = itemgetter("result", "rerender")(render_result)
+
+        self.assertEqual(result, ())
+
         def _test_table_data(t=table):
             return use_table_data(t, sentinel="sentinel")
 
@@ -274,6 +330,34 @@ class HooksTest(BaseTestCase):
 
         self.assertEqual(result, expected)
 
+    def verify_queue_has_size(self, queue: NotifyQueue, size: int):
+        """
+        Verify that the queue has the expected size in a multi-threaded context
+
+        Args:
+            queue: The queue to check
+            size: The expected size of the quexue
+
+        Returns:
+            None
+        """
+        event = threading.Event()
+
+        def check_size(q):
+            if q.qsize() == size:
+                event.set()
+
+        # call after each put in case the queue is not at the correct size yet
+        queue.call_after_put(check_size)
+
+        # call now in case the queue is (or was) already at the correct size
+        check_size(queue)
+
+        if not event.wait(timeout=QUEUE_TIMEOUT):
+            assert False, f"queue did not reach size {size}"
+
+        queue.unregister_notify()
+
     def test_swapping_table_data(self):
         from deephaven.ui.hooks import use_table_data
         from deephaven import new_table
@@ -292,7 +376,9 @@ class HooksTest(BaseTestCase):
             result = use_table_data(t, sentinel="sentinel")
             return result
 
-        render_result = render_hook(_test_table_data)
+        queue = NotifyQueue()
+
+        render_result = render_hook(_test_table_data, queue)
 
         result, rerender = itemgetter("result", "rerender")(render_result)
 
@@ -313,9 +399,26 @@ class HooksTest(BaseTestCase):
         self.verify_table_updated(table_writer, dynamic_table, (1, "Testing"))
 
         rerender(dynamic_table)
+        # the queue should have two items eventually, one for each set_state in _set_new_data in use_table_data
+        # this check is needed because the set_state calls come from the listener, which is called in a separate thread
+        # so the queue might not have the correct size immediately
+        self.verify_queue_has_size(queue, 2)
         result = rerender(dynamic_table)
 
         expected = {"Numbers": [1], "Words": ["Testing"]}
+        self.assertEqual(result, expected)
+
+    def test_none_table_data(self):
+        from deephaven.ui.hooks import use_table_data
+
+        def _test_table_data(t=None):
+            return use_table_data(t)
+
+        render_result = render_hook(_test_table_data)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        expected = None
 
         self.assertEqual(result, expected)
 
@@ -362,6 +465,16 @@ class HooksTest(BaseTestCase):
         table_writer = DynamicTableWriter(column_definitions)
         table = table_writer.table
 
+        # a ticking table with no data should return the sentinel value
+        def _test_column_data(t=table):
+            return use_column_data(t)
+
+        render_result = render_hook(_test_column_data)
+
+        result, _ = itemgetter("result", "rerender")(render_result)
+
+        self.assertEqual(result, ())
+
         def _test_column_data(t=table):
             return use_column_data(t, sentinel="sentinel")
 
@@ -381,6 +494,18 @@ class HooksTest(BaseTestCase):
         expected = ["Testing"]
 
         self.assertEqual(result, expected)
+
+    def test_none_column_data(self):
+        from deephaven.ui.hooks import use_column_data
+
+        def _test_column_data(t=None):
+            return use_column_data(t)
+
+        render_result = render_hook(_test_column_data)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        self.assertEqual(result, None)
 
     def test_row_data(self):
         from deephaven.ui.hooks import use_row_data
@@ -426,6 +551,16 @@ class HooksTest(BaseTestCase):
         table_writer = DynamicTableWriter(column_definitions)
         table = table_writer.table
 
+        # a ticking table with no data should return the sentinel value
+        def _test_row_data(t=table):
+            return use_row_data(t)
+
+        render_result = render_hook(_test_row_data)
+
+        result, _ = itemgetter("result", "rerender")(render_result)
+
+        self.assertEqual(result, ())
+
         def _test_row_data(t=table):
             return use_row_data(t, sentinel="sentinel")
 
@@ -445,6 +580,18 @@ class HooksTest(BaseTestCase):
         expected = {"Numbers": 1, "Words": "Testing"}
 
         self.assertEqual(result, expected)
+
+    def test_none_row_data(self):
+        from deephaven.ui.hooks import use_row_data
+
+        def _test_row_data(t=None):
+            return use_row_data(t)
+
+        render_result = render_hook(_test_row_data)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        self.assertEqual(result, None)
 
     def test_row_list(self):
         from deephaven.ui.hooks import use_row_list
@@ -490,6 +637,16 @@ class HooksTest(BaseTestCase):
         table_writer = DynamicTableWriter(column_definitions)
         table = table_writer.table
 
+        # a ticking table with no data should return the sentinel value
+        def _test_row_list(t=table):
+            return use_row_list(t)
+
+        render_result = render_hook(_test_row_list)
+
+        result, _ = itemgetter("result", "rerender")(render_result)
+
+        self.assertEqual(result, ())
+
         def _test_row_list(t=table):
             return use_row_list(t, sentinel="sentinel")
 
@@ -509,6 +666,18 @@ class HooksTest(BaseTestCase):
         expected = [1, "Testing"]
 
         self.assertEqual(result, expected)
+
+    def test_none_row_list(self):
+        from deephaven.ui.hooks import use_row_list
+
+        def _use_row_list(t=None):
+            return use_row_list(t)
+
+        render_result = render_hook(_use_row_list)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        self.assertEqual(result, None)
 
     def test_cell_data(self):
         from deephaven.ui.hooks import use_cell_data
@@ -553,6 +722,16 @@ class HooksTest(BaseTestCase):
         table_writer = DynamicTableWriter(column_definitions)
         table = table_writer.table
 
+        # a ticking table with no data should return the sentinel value
+        def _test_cell_data(t=table):
+            return use_cell_data(t)
+
+        render_result = render_hook(_test_cell_data)
+
+        result, _ = itemgetter("result", "rerender")(render_result)
+
+        self.assertEqual(result, ())
+
         def _test_cell_data(t=table):
             return use_cell_data(t, sentinel="sentinel")
 
@@ -572,6 +751,18 @@ class HooksTest(BaseTestCase):
         expected = "Testing"
 
         self.assertEqual(result, expected)
+
+    def test_none_cell_data(self):
+        from deephaven.ui.hooks import use_cell_data
+
+        def _test_cell_data(t=None):
+            return use_cell_data(t)
+
+        render_result = render_hook(_test_cell_data)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        self.assertEqual(result, None)
 
     def test_execution_context(self):
         from deephaven.ui.hooks import use_execution_context, use_state, use_memo

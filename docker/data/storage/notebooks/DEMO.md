@@ -166,8 +166,6 @@ def filterable_plot(source):
             on_change=set_value,
             label="Sym",
             label_position="side",
-            marginX=10,
-            marginTop=10,
         ),
         dx.line(t, x="timestamp", y="price", by=["exchange"]),
     ]

@@ -12,6 +12,7 @@ ActionMenuItem = Union[Stringable, ItemElement]
 ListActionMenuElement = Element
 
 
+# TODO: pydocs for list_action_menu #484
 def list_action_menu(
     *children: ActionMenuItem,
     on_action: Callable[[ActionKey, Key], None] | None = None,

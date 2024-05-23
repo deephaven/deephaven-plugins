@@ -1,6 +1,6 @@
-# Deephaven Plugin for matplotlib
+# Deephaven Plugin for Matplotlib
 
-The Deephaven Plugin for matplotlib. Allows for opening matplotlib plots in a Deephaven environment. Any matplotlib plot
+The Deephaven Plugin for Matplotlib. Allows for opening Matplotlib plots in a Deephaven environment. Any Matplotlib plot
 should be viewable by default. For example:
 
 ```python
@@ -15,7 +15,7 @@ You can also use `TableAnimation`, which allows updating a plot whenever a Deeph
 
 ## `TableAnimation` Usage
 
-`TableAnimation` is a matplotlib `Animation` that is driven by updates in a Deephaven Table. Every time the table that
+`TableAnimation` is a Matplotlib `Animation` that is driven by updates in a Deephaven Table. Every time the table that
 is being listened to updates, the provided function will run again.
 
 ### Line Plot

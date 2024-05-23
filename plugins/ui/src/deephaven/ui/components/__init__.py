@@ -1,3 +1,5 @@
+from .action_group import action_group
+from .action_menu import action_menu
 from .icon import icon
 from .make_component import make_component as component
 from .fragment import fragment
@@ -14,13 +16,15 @@ from .item import item
 from .list_view import list_view
 from .list_action_group import list_action_group
 from .list_action_menu import list_action_menu
-from .date_picker import date_picker
+from .item_table_source import item_table_source
 
 from . import html
 
 
 __all__ = [
     "action_button",
+    "action_group",
+    "action_menu",
     "button",
     "button_group",
     "checkbox",
@@ -29,7 +33,6 @@ __all__ = [
     "content",
     "contextual_help",
     "dashboard",
-    "date_picker",
     "flex",
     "form",
     "fragment",
@@ -38,6 +41,7 @@ __all__ = [
     "icon",
     "icon_wrapper",
     "item",
+    "item_table_source",
     "illustrated_message",
     "list_view",
     "list_action_group",

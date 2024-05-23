@@ -1,14 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Plotly from 'plotly.js-dist-min';
 import { Chart } from '@deephaven/chart';
-import type { Widget } from '@deephaven/jsapi-types';
+import type { dh } from '@deephaven/jsapi-types';
 import { type WidgetComponentProps } from '@deephaven/plugin';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import PlotlyExpressChartModel from './PlotlyExpressChartModel.js';
 import { useHandleSceneTicks } from './useHandleSceneTicks.js';
 
 export function PlotlyExpressChart(
-  props: WidgetComponentProps<Widget>
+  props: WidgetComponentProps<dh.Widget>
 ): JSX.Element | null {
   const dh = useApi();
   const { fetch } = props;
