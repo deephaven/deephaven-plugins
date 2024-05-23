@@ -203,6 +203,52 @@ my_checkbox = ui_checkbox()
 
 ![Checkbox](_assets/checkbox.png)
 
+## ActionGroup (string values)
+An ActionGroup is a grouping of ActionButtons that are related to one another.
+
+```python
+@ui.component
+def ui_action_group():
+    [action, on_action] = ui.use_state()
+
+    return ui.flex(
+        ui.action_group(
+            "Aaa",
+            "Bbb",
+            "Ccc",
+            on_action=on_action,
+        ),
+        ui.text(action),
+        direction="column",
+    )
+
+
+my_action_group = ui_action_group()
+```
+
+## ActionMenu (string values)
+ActionMenu combines an ActionButton with a Menu for simple "more actions" use cases.
+
+```python
+@ui.component
+def ui_action_menu():
+    [action, on_action] = ui.use_state()
+
+    return ui.flex(
+        ui.action_menu(
+            "Aaa",
+            "Bbb",
+            "Ccc",
+            on_action=on_action,
+        ),
+        ui.text(action),
+        direction="column",
+    )
+
+
+my_action_menu = ui_action_menu()
+```
+
 ## Picker (string values)
 
 The `ui.picker` component can be used to select from a list of items. Here's a basic example for selecting from a list of string values and displaying the selected key in a text field.
@@ -462,6 +508,113 @@ lv_table_source = ui_list_view_table_source()
 ```
 
 ![Use a list view to select from a table source](_assets/lv_table_source.png)
+
+## ListView (list action group)
+
+A list view can take a `list_action_group` as its `actions` prop.
+
+```python
+from deephaven import time_table, ui
+import datetime
+
+# Ticking table with initial row count of 200 that adds a row every second
+initial_row_count = 200
+_column_types = time_table(
+    "PT1S",
+    start_time=datetime.datetime.now() - datetime.timedelta(seconds=initial_row_count),
+).update(
+    [
+        "Id=new String(`key-`+i)",
+        "Display=new String(`Display `+i)",
+    ]
+)
+
+# `ui.list_view`` with `ui.list_action_group` actions
+@ui.component
+def ui_list_view_action_group():
+    value, set_value = ui.use_state(["key-2", "key-4", "key-5"])
+
+    action_item_keys, set_action_item_idx = ui.use_state(["", ""])
+    on_action = ui.use_callback(
+        lambda action_key, item_key: set_action_item_idx([action_key, str(item_key)]),
+        [],
+    )
+
+    lv = ui.list_view(
+        _column_types,
+        key_column="Id",
+        label_column="Display",
+        aria_label="List View",
+        on_change=set_value,
+        selected_keys=value,
+        actions=ui.list_action_group(
+            "Edit",
+            "Delete",
+            on_action=on_action,
+        ),
+    )
+
+    text_selection = ui.text("Selection: " + ", ".join(map(str, value)))
+    text_action = ui.text("Action: " + " ".join(map(str, action_item_keys)))
+
+    return lv, text_selection, text_action
+
+
+my_list_view_action_group = ui_list_view_action_group()
+```
+
+## ListView (list action menu)
+A list view can take a `list_action_menu` as its `actions` prop.
+
+```python
+from deephaven import time_table, ui
+import datetime
+
+# Ticking table with initial row count of 200 that adds a row every second
+initial_row_count = 200
+_column_types = time_table(
+    "PT1S",
+    start_time=datetime.datetime.now() - datetime.timedelta(seconds=initial_row_count),
+).update(
+    [
+        "Id=new String(`key-`+i)",
+        "Display=new String(`Display `+i)",
+    ]
+)
+
+# `ui.list_view`` with `ui.list_action_menu` actions
+@ui.component
+def ui_list_view_action_menu():
+    value, set_value = ui.use_state(["key-2", "key-4", "key-5"])
+
+    action_item_keys, set_action_item_idx = ui.use_state(["", ""])
+    on_action = ui.use_callback(
+        lambda action_key, item_key: set_action_item_idx([action_key, str(item_key)]),
+        [],
+    )
+
+    lv = ui.list_view(
+        _column_types,
+        key_column="Id",
+        label_column="Display",
+        aria_label="List View",
+        on_change=set_value,
+        selected_keys=value,
+        actions=ui.list_action_menu(
+            "Edit",
+            "Delete",
+            on_action=on_action,
+        ),
+    )
+
+    text_selection = ui.text("Selection: " + ", ".join(map(str, value)))
+    text_action = ui.text("Action: " + " ".join(map(str, action_item_keys)))
+
+    return lv, text_selection, text_action
+
+
+my_list_view_action_menu = ui_list_view_action_menu()
+```
 
 ## Form (two variables)
 
