@@ -1,6 +1,8 @@
 import { ButtonGroup, Checkbox } from '@adobe/react-spectrum';
 import { ValueOf } from '@deephaven/utils';
 import {
+  ActionGroup,
+  ActionMenu,
   Content,
   ContextualHelp,
   Grid,
@@ -8,6 +10,8 @@ import {
   Icon,
   Item,
   IllustratedMessage,
+  ListActionGroup,
+  ListActionMenu,
   NumberField,
   Switch,
   Tabs,
@@ -32,6 +36,8 @@ export const SPECTRUM_ELEMENT_TYPE_PREFIX = 'deephaven.ui.spectrum.';
 
 export const SpectrumSupportedTypes = {
   ActionButton,
+  ActionGroup,
+  ActionMenu,
   Button,
   ButtonGroup,
   Checkbox,
@@ -43,6 +49,8 @@ export const SpectrumSupportedTypes = {
   Heading,
   Icon,
   IllustratedMessage,
+  ListActionGroup,
+  ListActionMenu,
   NumberField,
   Item,
   RangeSlider,

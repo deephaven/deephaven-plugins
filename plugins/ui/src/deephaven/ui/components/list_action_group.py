@@ -11,6 +11,7 @@ ActionGroupItem = Union[Stringable, ItemElement]
 ListActionGroupElement = Element
 
 
+# TODO: pydocs for list_action_group #483
 def list_action_group(
     *children: ActionGroupItem,
     on_action: Callable[[ActionKey, Key], None] | None = None,
