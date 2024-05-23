@@ -104,6 +104,8 @@ JustifySelf = Literal[
     "stretch",
 ]
 
+ActionMenuAlignment = Literal["start", "end"]
+
 Number = Union[int, float]
 
 LayoutFlex = Union[str, Number, bool]
