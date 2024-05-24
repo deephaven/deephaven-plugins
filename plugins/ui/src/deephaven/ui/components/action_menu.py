@@ -9,7 +9,7 @@ from .spectrum.events import TriggerType
 from ..types import Key, ActionKey, ActionMenuDirection
 from ..elements import BaseElement, Element
 
-from .spectrum.layout import (
+from .spectrum import (
     Alignment,
     AlignSelf,
     CSSProperties,

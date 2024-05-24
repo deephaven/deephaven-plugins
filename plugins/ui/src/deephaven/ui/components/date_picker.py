@@ -19,9 +19,9 @@ from .spectrum import (
     ValidationState,
     PageBehavior,
     HourCycle,
+    Alignment,
 )
 
-from .spectrum.layout import Alignment
 from ..hooks import use_memo
 from ..elements import Element, BaseElement
 from .._internal.utils import (

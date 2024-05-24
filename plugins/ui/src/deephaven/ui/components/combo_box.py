@@ -18,19 +18,20 @@ from .spectrum import (
     ValidationState,
     MenuTriggerAction,
     Align,
-    Direction,
+    MenuDirection,
     LoadingState,
     FormValue,
+    Alignment,
 )
 
 from deephaven.table import Table, PartitionedTable
 from .section import SectionElement
-from .spectrum.layout import Alignment
 from .item import Item
 from .item_table_source import ItemTableSource
 from ..elements import BaseElement, Element
 from .._internal.utils import create_props, unpack_item_table_source
 from ..types import Key
+from combo_box import Direction
 
 ComboBoxElement = BaseElement
 
@@ -48,7 +49,7 @@ def combo_box(
     menu_trigger: MenuTriggerAction | None = "input",
     is_quiet: bool | None = None,
     align: Align | None = "end",
-    direction: Direction | None = "bottom",
+    direction: MenuDirection | None = "bottom",
     loading_state: LoadingState | None = None,
     should_flip: bool = True,
     menu_width: DimensionValue | None = None,
