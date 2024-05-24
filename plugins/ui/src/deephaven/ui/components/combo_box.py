@@ -13,15 +13,15 @@ from .spectrum import (
     Position,
     CSSProperties,
     LabelPosition,
-    Alignment,
     ValidationBehavior,
     NecessityIndicator,
     ValidationState,
     MenuTriggerAction,
     Align,
-    Direction,
+    MenuDirection,
     LoadingState,
     FormValue,
+    Alignment,
 )
 
 from deephaven.table import Table, PartitionedTable
@@ -48,7 +48,7 @@ def combo_box(
     menu_trigger: MenuTriggerAction | None = "input",
     is_quiet: bool | None = None,
     align: Align | None = "end",
-    direction: Direction | None = "bottom",
+    direction: MenuDirection | None = "bottom",
     loading_state: LoadingState | None = None,
     should_flip: bool = True,
     menu_width: DimensionValue | None = None,

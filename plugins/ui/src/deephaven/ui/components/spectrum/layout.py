@@ -104,6 +104,8 @@ JustifySelf = Literal[
     "stretch",
 ]
 
+Alignment = Literal["start", "end"]
+
 Number = Union[int, float]
 
 LayoutFlex = Union[str, Number, bool]

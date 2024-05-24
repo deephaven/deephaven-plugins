@@ -2,7 +2,7 @@ from typing import Literal
 
 MenuTriggerAction = Literal["focus", "input", "manual"]
 Align = Literal["start", "end"]
-Direction = Literal["bottom", "top"]
+MenuDirection = Literal["bottom", "top"]
 LoadingState = Literal[
     "loading", "sorting", "loadingMore", "error", "idle", "filtering"
 ]

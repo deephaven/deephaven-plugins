@@ -105,6 +105,7 @@ SelectionArea = Literal["CELL", "ROW", "COLUMN"]
 SelectionMode = Literal["SINGLE", "MULTIPLE"]
 Sentinel = Any
 TransformedData = Any
+ActionMenuDirection = Literal["bottom", "top", "left", "right", "start", "end"]
 StringSortDirection = Literal["ASC", "DESC"]
 TableSortDirection = Union[StringSortDirection, SortDirection]
 # Stringable is a type that is naturally convertible to a string
