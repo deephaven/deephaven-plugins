@@ -34,7 +34,6 @@ def action_group(
     button_label_behavior: ButtonLabelBehavior | None = "show",
     summary_icon: Element | None = None,
     orientation: Orientation | None = "horizontal",
-    items: Iterable[object] | None = None,
     disabled_keys: Iterable[str] | None = None,
     is_disabled: bool | None = None,
     selection_mode: SelectionMode | None = None,
@@ -88,10 +87,10 @@ def action_group(
     UNSAFE_style: CSSProperties | None = None,
 ) -> Element:
     """
-    A contextual help is a quiet action button that triggers an informational popover.
+    An action grouping of action items that are related to each other.
     Args:
         *children: The children of the contextual help popover.
-        is_emphasized: An list of Item elements or a function. If the latter, a list of items must be provided using the items prop.
+        is_emphasized: Whether the action buttons should be displayed with emphasized style.
         density: Sets the amount of space between buttons.
         is_justified: Whether the ActionButtons should be justified in their container.
         is_quiet: Whether ActionButtons should use the quiet style.
@@ -100,7 +99,6 @@ def action_group(
         button_label_behaviour: Defines when the text within the buttons should be hidden and only the icon should be shown.
         summary_icon: The icon displayed in the dropdown menu button when a selectable ActionGroup is collapsed.
         orientation: The axis the ActionGroup should align with.
-        items: A list of items to display as children. Must be used with a function as the sole child.
         disabled_keys: A list of keys to disable.
         is_disabled: Whether the ActionGroup is disabled. Shows that a selection exists, but is not available in that circumstance.
         selection_mode: The type of selection that is allowed in the collection.
@@ -165,7 +163,6 @@ def action_group(
         button_label_behavior=button_label_behavior,
         summary_icon=summary_icon,
         orientation=orientation,
-        items=items,
         disabled_keys=disabled_keys,
         is_disabled=is_disabled,
         selection_mode=selection_mode,
