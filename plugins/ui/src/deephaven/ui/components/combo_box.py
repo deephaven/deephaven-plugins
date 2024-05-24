@@ -31,7 +31,6 @@ from .item_table_source import ItemTableSource
 from ..elements import BaseElement, Element
 from .._internal.utils import create_props, unpack_item_table_source
 from ..types import Key
-from combo_box import Direction
 
 ComboBoxElement = BaseElement
 
