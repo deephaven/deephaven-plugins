@@ -11,14 +11,6 @@ def spectrum_element(name: str, /, *children: Any, **props: Any) -> BaseElement:
     return BaseElement(f"deephaven.ui.spectrum.{name}", *children, **props)
 
 
-def contextual_help(*children, **props):
-    """
-    Python implementation for the Adobe React Spectrum ContextualHelp component.
-    https://react-spectrum.adobe.com/react-spectrum/ContextualHelp.html
-    """
-    return spectrum_element("ContextualHelp", *children, **props)
-
-
 def grid(*children, **props):
     """
     Python implementation for the Adobe React Spectrum Grid component.
