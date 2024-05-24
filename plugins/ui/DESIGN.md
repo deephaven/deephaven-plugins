@@ -2594,7 +2594,13 @@ ul = user_list()
 
 ## New implementation of Tabs
 
-Potential example of how new tabs component could be implemented, no longer needing to specify tab_list and tab_panels 
+Potential example of how new tabs component could be implemented, no longer needing to specify tab_list and tab_panels.
+
+Some Key Information: 
+
+To specify keys for tabs, we can pass in a key prop (as done in Tab 3), or it will automatically default to the text_value.
+
+To have a title with both an ui.icon and text, we have to pass in a ui.flex containing both.
 
 ```python
 from deephaven import empty_table
@@ -2605,15 +2611,17 @@ from deephaven.plot import express as dx
 @ui.component
 def tabs_test():
     return ui.tabs(
+        # Should render a tab with the github logo as the title with "Content 1" as tab content
+        ui.tab_panel("Content 1", ui.icon("vsGithubAlt")),
+        # Should render a "Hello World" header above a table
         ui.tab_panel(
             ui.flex(
                 "Hello World!",
                 ui.flex(empty_table(10).update("I=i")),
             ),
-            "Tab 1",
+            "Tab 2",
         ),
-        ui.tab_panel(ui.flex("Content 2", flex_grow=1), ui.icon("vsGithubAlt")),
-        ui.tab_panel(ui.item("Content 3", flex_grow=1), "Tab 3"),
+        ui.tab_panel(ui.item("Content 3", flex_grow=1), "Tab 3", "Key 3"),
     )
 
 
