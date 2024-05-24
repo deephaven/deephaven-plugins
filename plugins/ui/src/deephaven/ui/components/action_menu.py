@@ -30,6 +30,8 @@ def action_menu(
     trigger: TriggerType | None = "press",
     is_open: bool | None = None,
     default_open: bool | None = None,
+    on_action: Callable[[ActionKey], None] | None = None,
+    on_open_change: Callable[[bool], None] | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: Number | None = None,
     flex_shrink: Number | None = None,
@@ -90,6 +92,8 @@ def action_menu(
         trigger: How the menu is triggered.
         is_open: Whether the overlay is open by default (controlled).
         default_open: Whether the overlay is open by default (uncontrolled).
+        on_action: Handler that is called when an item is selected.
+        on_open_change: Handler that is called when the overlay's open state changes.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -148,6 +152,8 @@ def action_menu(
         trigger=trigger,
         is_open=is_open,
         default_open=default_open,
+        on_action=on_action,
+        on_open_change=on_open_change,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
