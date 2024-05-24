@@ -4,8 +4,6 @@ import type { dh } from '@deephaven/jsapi-types';
 import WidgetHandler, { WidgetHandlerProps } from './WidgetHandler';
 import { DocumentHandlerProps } from './DocumentHandler';
 import {
-  makeDocumentUpdatedJsonRpcString,
-  makeJsonRpcResponseString,
   makeWidget,
   makeWidgetDescriptor,
   makeWidgetEventDocumentUpdated,
@@ -97,22 +95,10 @@ it('updates the document when event is received', async () => {
   // Send the initial document
   await act(async () => {
     // Respond to the setState call first
-    listener({
-      detail: {
-        getDataAsString: jest.fn(() => makeJsonRpcResponseString(1, {})),
-        exportedObjects: [],
-      },
-    });
+    listener(makeWidgetEventJsonRpcResponse(1));
 
     // Then send the initial document update
-    listener({
-      detail: {
-        getDataAsString: jest.fn(() =>
-          makeDocumentUpdatedJsonRpcString(initialDocument)
-        ),
-        exportedObjects: [],
-      },
-    });
+    listener(makeWidgetEventDocumentUpdated(initialDocument));
   });
 
   expect(mockDocumentHandler).toHaveBeenCalledWith(
@@ -129,14 +115,7 @@ it('updates the document when event is received', async () => {
 
   // Send the updated document
   await act(async () => {
-    listener({
-      detail: {
-        getDataAsString: jest.fn(() =>
-          makeDocumentUpdatedJsonRpcString(updatedDocument)
-        ),
-        exportedObjects: [],
-      },
-    });
+    listener(makeWidgetEventDocumentUpdated(updatedDocument));
   });
   expect(mockDocumentHandler).toHaveBeenCalledWith(
     expect.objectContaining({
@@ -288,22 +267,10 @@ it('updates the initial data only when fetch has changed', async () => {
   // Send the initial document
   await act(async () => {
     // Respond to the setState call first
-    listener({
-      detail: {
-        getDataAsString: jest.fn(() => makeJsonRpcResponseString(1, {})),
-        exportedObjects: [],
-      },
-    });
+    listener(makeWidgetEventJsonRpcResponse(1));
 
     // Then send the initial document update
-    listener({
-      detail: {
-        getDataAsString: jest.fn(() =>
-          makeDocumentUpdatedJsonRpcString(document2)
-        ),
-        exportedObjects: [],
-      },
-    });
+    listener(makeWidgetEventDocumentUpdated(document2));
   });
 
   expect(mockDocumentHandler).toHaveBeenCalledWith(
