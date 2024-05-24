@@ -1,9 +1,11 @@
 import React from 'react';
 import { act, render } from '@testing-library/react';
-import type { dh } from '@deephaven/jsapi-types';
+import { useWidget } from '@deephaven/jsapi-bootstrap';
+import { dh } from '@deephaven/jsapi-types';
 import WidgetHandler, { WidgetHandlerProps } from './WidgetHandler';
 import { DocumentHandlerProps } from './DocumentHandler';
 import {
+  makeDocumentUpdatedJsonRpcString,
   makeWidget,
   makeWidgetDescriptor,
   makeWidgetEventDocumentUpdated,
@@ -11,8 +13,13 @@ import {
 } from './WidgetTestUtils';
 
 const mockApi = { Widget: { EVENT_MESSAGE: 'message' } };
+let mockWidgetWrapper: ReturnType<typeof useWidget> = {
+  widget: null,
+  error: null,
+};
 jest.mock('@deephaven/jsapi-bootstrap', () => ({
   useApi: jest.fn(() => mockApi),
+  useWidget: jest.fn(() => mockWidgetWrapper),
 }));
 
 const mockDocumentHandler = jest.fn((props: DocumentHandlerProps) => (
@@ -24,14 +31,12 @@ jest.mock(
 );
 
 function makeWidgetHandler({
-  fetch = () => Promise.resolve(makeWidget()),
   widget = makeWidgetDescriptor(),
   onClose = jest.fn(),
   initialData = undefined,
 }: Partial<WidgetHandlerProps> = {}) {
   return (
     <WidgetHandler
-      fetch={fetch}
       widget={widget}
       onClose={onClose}
       initialData={initialData}
@@ -40,6 +45,7 @@ function makeWidgetHandler({
 }
 
 beforeEach(() => {
+  mockWidgetWrapper = { widget: null, error: null };
   mockDocumentHandler.mockClear();
 });
 
@@ -49,33 +55,23 @@ it('mounts and unmounts', async () => {
 });
 
 it('updates the document when event is received', async () => {
-  let fetchResolve: (value: dh.Widget | PromiseLike<dh.Widget>) => void;
-  const fetchPromise = new Promise<dh.Widget>(resolve => {
-    fetchResolve = resolve;
-  });
-  const fetch = jest.fn(() => fetchPromise);
   const widget = makeWidgetDescriptor();
   const cleanup = jest.fn();
   const mockAddEventListener = jest.fn(() => cleanup);
   const mockSendMessage = jest.fn();
   const initialData = { state: { fiz: 'baz' } };
   const initialDocument = { foo: 'bar' };
-  const widgetObject = makeWidget({
-    addEventListener: mockAddEventListener,
-    getDataAsString: jest.fn(() => ''),
-    sendMessage: mockSendMessage,
-  });
+  mockWidgetWrapper = {
+    widget: makeWidget({
+      addEventListener: mockAddEventListener,
+      getDataAsString: jest.fn(() =>
+        makeDocumentUpdatedJsonRpcString(initialDocument)
+      ),
+    }),
+    error: null,
+  };
 
-  const { unmount } = render(makeWidgetHandler({ widget, fetch, initialData }));
-  expect(fetch).toHaveBeenCalledTimes(1);
-  expect(mockAddEventListener).not.toHaveBeenCalled();
-  expect(mockDocumentHandler).not.toHaveBeenCalled();
-  expect(mockSendMessage).not.toHaveBeenCalled();
-  await act(async () => {
-    fetchResolve!(widgetObject);
-    await fetchPromise;
-  });
-
+  const { unmount } = render(makeWidgetHandler({ widget, initialData }));
   expect(mockAddEventListener).toHaveBeenCalledTimes(1);
   expect(mockDocumentHandler).not.toHaveBeenCalled();
 
@@ -109,13 +105,16 @@ it('updates the document when event is received', async () => {
     })
   );
 
-  const updatedDocument = { FOO: 'BAR' };
-
   mockDocumentHandler.mockClear();
 
-  // Send the updated document
-  await act(async () => {
-    listener(makeWidgetEventDocumentUpdated(updatedDocument));
+  const updatedDocument = { fiz: 'baz' };
+
+  act(() => {
+    // Send an updated document event to the listener of the widget
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (mockAddEventListener.mock.calls[0] as any)[1](
+      makeWidgetEventDocumentUpdated(updatedDocument)
+    );
   });
   expect(mockDocumentHandler).toHaveBeenCalledWith(
     expect.objectContaining({
