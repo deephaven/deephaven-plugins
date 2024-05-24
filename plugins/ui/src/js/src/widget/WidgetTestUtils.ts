@@ -1,6 +1,7 @@
 import { WidgetDescriptor } from '@deephaven/dashboard';
 import { TestUtils } from '@deephaven/utils';
 import type { dh } from '@deephaven/jsapi-types';
+import { WidgetMessageEvent } from './WidgetTypes';
 
 export function makeDocumentUpdatedJsonRpc(
   document: Record<string, unknown> = {}
@@ -12,14 +13,11 @@ export function makeDocumentUpdatedJsonRpc(
   };
 }
 
-export function makeSetStateResponse(
-  id: number,
-  state: Record<string, unknown>
-): string {
+export function makeJsonRpcResponseString(id: number, result = ''): string {
   return JSON.stringify({
     jsonrpc: '2.0',
     id,
-    result: '',
+    result,
   });
 }
 
@@ -27,6 +25,29 @@ export function makeDocumentUpdatedJsonRpcString(
   document: Record<string, unknown> = {}
 ): string {
   return JSON.stringify(makeDocumentUpdatedJsonRpc(document));
+}
+
+export function makeWidgetEvent(data = ''): WidgetMessageEvent {
+  return new CustomEvent('message', {
+    detail: {
+      getDataAsBase64: () => '',
+      getDataAsString: () => data,
+      exportedObjects: [],
+    },
+  });
+}
+
+export function makeWidgetEventJsonRpcResponse(
+  id: number,
+  response = ''
+): WidgetMessageEvent {
+  return makeWidgetEvent(makeJsonRpcResponseString(id, response));
+}
+
+export function makeWidgetEventDocumentUpdated(
+  document: Record<string, unknown> = {}
+): WidgetMessageEvent {
+  return makeWidgetEvent(makeDocumentUpdatedJsonRpcString(document));
 }
 
 export function makeWidgetDescriptor({

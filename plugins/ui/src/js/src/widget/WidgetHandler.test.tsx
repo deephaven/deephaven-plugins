@@ -5,9 +5,11 @@ import WidgetHandler, { WidgetHandlerProps } from './WidgetHandler';
 import { DocumentHandlerProps } from './DocumentHandler';
 import {
   makeDocumentUpdatedJsonRpcString,
-  makeSetStateResponse,
+  makeJsonRpcResponseString,
   makeWidget,
   makeWidgetDescriptor,
+  makeWidgetEventDocumentUpdated,
+  makeWidgetEventJsonRpcResponse,
 } from './WidgetTestUtils';
 
 const mockApi = { Widget: { EVENT_MESSAGE: 'message' } };
@@ -97,7 +99,7 @@ it('updates the document when event is received', async () => {
     // Respond to the setState call first
     listener({
       detail: {
-        getDataAsString: jest.fn(() => makeSetStateResponse(1, {})),
+        getDataAsString: jest.fn(() => makeJsonRpcResponseString(1, {})),
         exportedObjects: [],
       },
     });
@@ -203,22 +205,10 @@ it('updates the initial data only when fetch has changed', async () => {
   // Send the initial document
   await act(async () => {
     // Respond to the setState call first
-    listener({
-      detail: {
-        getDataAsString: jest.fn(() => makeSetStateResponse(1, {})),
-        exportedObjects: [],
-      },
-    });
+    listener(makeWidgetEventJsonRpcResponse(1));
 
     // Then send the initial document update
-    listener({
-      detail: {
-        getDataAsString: jest.fn(() =>
-          makeDocumentUpdatedJsonRpcString(document1)
-        ),
-        exportedObjects: [],
-      },
-    });
+    listener(makeWidgetEventDocumentUpdated(document1));
   });
 
   expect(mockDocumentHandler).toHaveBeenCalledWith(
@@ -261,7 +251,7 @@ it('updates the initial data only when fetch has changed', async () => {
   expect(fetch1).not.toHaveBeenCalled();
   expect(sendMessage).not.toHaveBeenCalled();
 
-  // Re-render with the fetch changed, it should set the state with the updated data
+  // Re-render with the widget descriptor changed, it should set the state with the updated data
   rerender(
     makeWidgetHandler({
       widget: widget2,
@@ -300,7 +290,7 @@ it('updates the initial data only when fetch has changed', async () => {
     // Respond to the setState call first
     listener({
       detail: {
-        getDataAsString: jest.fn(() => makeSetStateResponse(1, {})),
+        getDataAsString: jest.fn(() => makeJsonRpcResponseString(1, {})),
         exportedObjects: [],
       },
     });

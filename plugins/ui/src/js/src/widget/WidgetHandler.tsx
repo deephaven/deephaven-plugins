@@ -67,7 +67,7 @@ function WidgetHandler({
   const [widget, setWidget] = useState<dh.Widget>();
   const [document, setDocument] = useState<ReactNode>();
   const [error, setError] = useState<WidgetError>();
-  // const [initialData] = useState(initialDataProp);
+
   // We want to update the initial data if the widget changes, as we'll need to re-fetch the widget and want to start with a fresh state.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const initialData = useMemo(() => initialDataProp, [widget]);
