@@ -13,7 +13,6 @@ from .spectrum import (
     Position,
     CSSProperties,
     LabelPosition,
-    Alignment,
     ValidationBehavior,
     NecessityIndicator,
     ValidationState,
@@ -26,6 +25,7 @@ from .spectrum import (
 
 from deephaven.table import Table, PartitionedTable
 from .section import SectionElement
+from .spectrum.layout import Alignment
 from .item import Item
 from .item_table_source import ItemTableSource
 from ..elements import BaseElement, Element

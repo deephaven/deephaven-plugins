@@ -7,7 +7,7 @@ from ..types import Key, ActionKey, ActionMenuDirection
 from ..elements import BaseElement, Element
 
 from .spectrum.layout import (
-    ActionMenuAlignment,
+    Alignment,
     AlignSelf,
     CSSProperties,
     DimensionValue,
@@ -22,17 +22,14 @@ def action_menu(
     is_disabled: bool | None = None,
     is_quiet: bool | None = None,
     auto_focus: bool | None = None,
-    items: Iterable[object] | None = None,
     disabled_keys: Iterable[Key] | None = None,
-    align: ActionMenuAlignment | None = "start",
+    align: Alignment | None = "start",
     direction: ActionMenuDirection | None = "bottom",
     should_flip: bool | None = True,
     close_on_select: bool | None = True,
     trigger: TriggerType | None = "press",
     is_open: bool | None = None,
     default_open: bool | None = None,
-    on_action: Callable[[ActionKey, Key], None] | None = None,
-    on_open_change: Callable[[bool, Key], None] | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: Number | None = None,
     flex_shrink: Number | None = None,
@@ -85,7 +82,6 @@ def action_menu(
         is_disabled: Whether the button is disabled.
         is_quiet: Whether the button should be displayed with a quiet style.
         auto_focus: Whether the element should receive focus on render.
-        items: Item objects in the collection.
         disabled_keys: The item keys that are disabled. These items cannot be selected, focused, or otherwise interacted with.
         align: Alignment of the menu relative to the trigger.
         direction: Where the Menu opens relative to its trigger.
@@ -94,8 +90,6 @@ def action_menu(
         trigger: How the menu is triggered.
         is_open: Whether the overlay is open by default (controlled).
         default_open: Whether the overlay is open by default (uncontrolled).
-        on_action: Handler that is called when an item is selected.
-        on_open_change: Handler that is called when the overlay's open state changes.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -146,7 +140,6 @@ def action_menu(
         is_disabled=is_disabled,
         is_quiet=is_quiet,
         auto_focus=auto_focus,
-        items=items,
         disabled_keys=disabled_keys,
         align=align,
         direction=direction,
@@ -155,8 +148,6 @@ def action_menu(
         trigger=trigger,
         is_open=is_open,
         default_open=default_open,
-        on_action=on_action,
-        on_open_change=on_open_change,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,

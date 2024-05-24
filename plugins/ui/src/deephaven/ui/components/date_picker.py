@@ -14,13 +14,14 @@ from .spectrum import (
     AriaPressed,
     CSSProperties,
     LabelPosition,
-    Alignment,
     ValidationBehavior,
     NecessityIndicator,
     ValidationState,
     PageBehavior,
     HourCycle,
 )
+
+from .spectrum.layout import Alignment
 from ..hooks import use_memo
 from ..elements import Element, BaseElement
 from .._internal.utils import (
