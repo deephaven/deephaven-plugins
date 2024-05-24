@@ -1,6 +1,9 @@
 from __future__ import annotations
 from numbers import Number
-from typing import Any, Callable, Iterable
+from typing import Callable, Iterable
+
+from .item import Item
+from .section import SectionElement
 
 from .spectrum.events import TriggerType
 from ..types import Key, ActionKey, ActionMenuDirection
@@ -18,7 +21,7 @@ from .spectrum.layout import (
 
 
 def action_menu(
-    *children: Any,
+    *children: Item | SectionElement,
     is_disabled: bool | None = None,
     is_quiet: bool | None = None,
     auto_focus: bool | None = None,
@@ -80,7 +83,7 @@ def action_menu(
     ActionMenu combines an ActionButton with a Menu for simple "more actions" use cases.
 
     Args:
-        children: A list of Item or primitive elements.
+        children: The contents of the collection.
         is_disabled: Whether the button is disabled.
         is_quiet: Whether the button should be displayed with a quiet style.
         auto_focus: Whether the element should receive focus on render.
