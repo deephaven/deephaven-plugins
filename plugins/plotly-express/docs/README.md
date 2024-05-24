@@ -60,10 +60,10 @@ This page contains a collection of links to examples demonstrating 24 different 
 ### Concepts
 
 [![Plot by](_assets/plot_icons/plot_by_partition.svg)](plot-by.md)
-[![Sub plot](_assets/plot_icons/sub_plot.svg)](sub-plot.md)
+[![Sub plot](_assets/plot_icons/sub_plot.svg)](sub-plots.md)
 [![Layer plot](_assets/plot_icons/layer_plots.svg)](layer-plots.md)
 [![Multiple axes](_assets/plot_icons/multiple_axes.svg)](multiple-axes.md)
-[![Titles and legends](_assets/plot_icons/titles_legends.svg)](titles-legends.md)
+[![Titles and legends](_assets/plot_icons/titles_legends.svg)](other.md)
 
 ## Getting Started
 
