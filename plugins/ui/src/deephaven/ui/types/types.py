@@ -112,6 +112,7 @@ TableSortDirection = Union[StringSortDirection, SortDirection]
 Stringable = Union[str, int, float, bool]
 Key = Stringable
 ActionKey = Key
+SelectedKeys = Literal["all"]
 LocalDate = DType
 Instant = DType
 ZonedDateTime = DType
@@ -140,6 +141,8 @@ Date = Union[
     ZonedDateTimeConvertible,
 ]
 Granularity = Literal["DAY", "HOUR", "MINUTE", "SECOND"]
+ListViewDensity = Literal["COMPACT", "NORMAL", "SPACIOUS"]
+ActionGroupDensity = Literal["compact", "regular"]
 Density = Literal["COMPACT", "NORMAL", "SPACIOUS"]
 Dependencies = Union[Tuple[Any], List[Any]]
 Selection = Sequence[Key]
