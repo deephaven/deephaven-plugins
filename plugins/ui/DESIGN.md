@@ -2612,16 +2612,18 @@ from deephaven.plot import express as dx
 def tabs_test():
     return ui.tabs(
         # Should render a tab with the github logo as the title with "Content 1" as tab content
-        ui.tab_panel("Content 1", ui.icon("vsGithubAlt")),
+        ui.item("Content 1", ui.icon("vsGithubAlt")),
         # Should render a "Hello World" header above a table
-        ui.tab_panel(
+        ui.item(
             ui.flex(
                 "Hello World!",
                 ui.flex(empty_table(10).update("I=i")),
             ),
             "Tab 2",
         ),
-        ui.tab_panel(ui.item("Content 3", flex_grow=1), "Tab 3", "Key 3"),
+        # Should render "Content 3" in a tab called "Tab 3"
+        # Demonstrates that we can pass a variety of elements into the content of tabs
+        ui.item(ui.item("Content 3", flex_grow=1), "Tab 3", "Key 3"),
     )
 
 
