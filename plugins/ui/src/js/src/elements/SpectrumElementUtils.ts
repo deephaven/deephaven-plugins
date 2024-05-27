@@ -10,7 +10,6 @@ import {
   IllustratedMessage,
   NumberField,
   Switch,
-  Tabs,
   TabList,
   Text,
   ToggleButton,
@@ -25,6 +24,7 @@ import {
   Slider,
   TabPanels,
   TextField,
+  Tabs,
 } from './spectrum';
 import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
 

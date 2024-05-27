@@ -1,62 +1,238 @@
-from typing import Callable
-from .basic import spectrum_element, tab_list, tab_panels
-from .flex import flex
+from __future__ import annotations
+from numbers import Number
+from typing import Any, Callable, Iterable, TypedDict
 
-# Draft 2
-def tabs(*items):
+
+from ...elements import BaseElement
+
+from .events import KeyboardActivationType, Orientation
+from .layout import (
+    AlignSelf,
+    CSSProperties,
+    DimensionValue,
+    JustifySelf,
+    LayoutFlex,
+    Position,
+)
+from ...types import Key, TabDensity
+from .basic import spectrum_element
+
+
+class TabPanelListProps(TypedDict, total=False):
+    flex: LayoutFlex | None
+    flex_grow: Number | None
+    flex_shrink: Number | None
+    flex_basis: DimensionValue | None
+    align_self: AlignSelf | None
+    justify_self: JustifySelf | None
+    order: Number | None
+    grid_area: str | None
+    grid_row: str | None
+    grid_column: str | None
+    grid_row_start: str | None
+    grid_row_end: str | None
+    grid_column_start: str | None
+    grid_column_end: str | None
+    margin: DimensionValue | None
+    margin_top: DimensionValue | None
+    margin_bottom: DimensionValue | None
+    margin_start: DimensionValue | None
+    margin_end: DimensionValue | None
+    margin_x: DimensionValue | None
+    margin_y: DimensionValue | None
+    width: DimensionValue | None
+    height: DimensionValue | None
+    min_width: DimensionValue | None
+    min_height: DimensionValue | None
+    max_width: DimensionValue | None
+    max_height: DimensionValue | None
+    position: Position | None
+    top: DimensionValue | None
+    bottom: DimensionValue | None
+    left: DimensionValue | None
+    right: DimensionValue | None
+    start: DimensionValue | None
+    end: DimensionValue | None
+    z_index: Number | None
+    is_hidden: bool | None
+    id: str | None
+    UNSAFE_class_name: str | None
+    UNSAFE_style: CSSProperties | None
+
+
+def tabs(
+    *children: Any,
+    disabled_keys: Iterable[Key] | None = None,
+    is_disabled: bool | None = None,
+    is_quiet: bool | None = None,
+    is_emphasized: bool | None = None,
+    density: TabDensity | None = "regular",
+    keyboard_activation: KeyboardActivationType | None = "automatic",
+    orientation: Orientation | None = "horizontal",
+    disallow_empty_selection: bool | None = None,
+    selected_key: Key | None = None,
+    default_selected_key: Key | None = None,
+    on_selection_change: Callable[[Key], None] | None = None,
+    flex: LayoutFlex | None = None,
+    flex_grow: Number | None = None,
+    flex_shrink: Number | None = None,
+    flex_basis: DimensionValue | None = None,
+    align_self: AlignSelf | None = None,
+    justify_self: JustifySelf | None = None,
+    order: Number | None = None,
+    grid_area: str | None = None,
+    grid_row: str | None = None,
+    grid_column: str | None = None,
+    grid_row_start: str | None = None,
+    grid_row_end: str | None = None,
+    grid_column_start: str | None = None,
+    grid_column_end: str | None = None,
+    margin: DimensionValue | None = None,
+    margin_top: DimensionValue | None = None,
+    margin_bottom: DimensionValue | None = None,
+    margin_start: DimensionValue | None = None,
+    margin_end: DimensionValue | None = None,
+    margin_x: DimensionValue | None = None,
+    margin_y: DimensionValue | None = None,
+    width: DimensionValue | None = None,
+    height: DimensionValue | None = None,
+    min_width: DimensionValue | None = None,
+    min_height: DimensionValue | None = None,
+    max_width: DimensionValue | None = None,
+    max_height: DimensionValue | None = None,
+    position: Position | None = None,
+    top: DimensionValue | None = None,
+    bottom: DimensionValue | None = None,
+    left: DimensionValue | None = None,
+    right: DimensionValue | None = None,
+    start: DimensionValue | None = None,
+    end: DimensionValue | None = None,
+    z_index: Number | None = None,
+    is_hidden: bool | None = None,
+    id: str | None = None,
+    aria_label: str | None = None,
+    aria_labelled_by: str | None = None,
+    aria_described_by: str | None = None,
+    aria_details: str | None = None,
+    UNSAFE_class_name: str | None = None,
+    UNSAFE_style: CSSProperties | None = None,
+    tab_list_props: TabPanelListProps | None = None,
+    tab_panel_props: TabPanelListProps | None = None,
+):
     """
-    Python implementation for Adobe React Spectrum Tabs.
+    Python implementation for the Adobe React Spectrum Tabs component.
+    https://react-spectrum.adobe.com/react-spectrum/Tabs.html
+
+    Args:
+        *children: The children of the button group.
+        disabled_keys: The keys of the tabs that are disabled. These tabs cannot be selected, focused, or otherwise interacted with.
+        is_disabled: Whether the Tabs are disabled.
+        is_quiet: Whether the tabs are displayed in a quiet style.
+        is_emphasized: Whether the tabs are displayed in an emphasized style.
+        density: The amount of space between the tabs.
+        keyboard_activation: Whether tabs are activated automatically on focus or manually.
+        orientation: The orientation of the tabs.
+        disallow_empty_selection: Whether the collection allows empty selection.
+        selected_key: The currently selected key in the collection (controlled).
+        default_selected_key: The initial selected key in the collection (uncontrolled).
+        on_selection_change: Callback for when the selected key changes.
+        flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
+        flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
+        flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
+        flex_basis: When used in a flex layout, specifies the initial main size of the element.
+        align_self: Overrides the alignItems property of a flex or grid container.
+        justify_self: Species how the element is justified inside a flex or grid container.
+        order: The layout order for the element within a flex or grid container.
+        grid_area: When used in a grid layout specifies, specifies the named grid area that the element should be placed in within the grid.
+        grid_row: When used in a grid layout, specifies the row the element should be placed in within the grid.
+        grid_column: When used in a grid layout, specifies the column the element should be placed in within the grid.
+        grid_row_start: When used in a grid layout, specifies the starting row to span within the grid.
+        grid_row_end: When used in a grid layout, specifies the ending row to span within the grid.
+        grid_column_start: When used in a grid layout, specifies the starting column to span within the grid.
+        grid_column_end: When used in a grid layout, specifies the ending column to span within the grid.
+        margin: The margin for all four sides of the element.
+        margin_top: The margin for the top side of the element.
+        margin_bottom: The margin for the bottom side of the element.
+        margin_start: The margin for the logical start side of the element, depending on layout direction.
+        margin_end: The margin for the logical end side of the element, depending on layout direction.
+        margin_x: The margin for the left and right sides of the element.
+        margin_y: The margin for the top and bottom sides of the element.
+        position: Specifies how the element is position.
+        top: The top position of the element.
+        bottom: The bottom position of the element.
+        left: The left position of the element.
+        right: The right position of the element.
+        start: The logical start position of the element, depending on layout direction.
+        end: The logical end position of the element, depending on layout direction.
+        z_index: The stacking order for the element
+        is_hidden: Hides the element.
+        id: The unique identifier of the element.
+        aria_label: Defines a string value that labels the current element.
+        aria_labelled_by: Identifies the element (or elements) that labels the current element.
+        aria_described_by: Identifies the element (or elements) that describes the object.
+        aria_details: Identifies the element (or elements) that provide a detailed, extended description for the object.
+        UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
+        UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
+        tab_list_props: The props for the tab list.
+        tab_panel_props: The props for the tab panels.
     """
-    tab_list = []
-    tab_panels = []
-
-    for item in items:
-        tab_list.append(
-            spectrum_element(
-                "Item", item.title, key=item.key, text_value=item.text_value
-            )
-        )
-        tab_panels.append(
-            spectrum_element(
-                "Item",
-                flex(
-                    item.content,
-                    flex_grow=1,
-                    direction="column",
-                    height="100%",
-                    width="100%",
-                ),
-                key=item.key,
-                text_value=item.text_value,
-            )
-        )
-
-    return tab_list, tab_panels
-
-
-# Draft 1
-
-# def tabs(
-#     *tab_panel_args, on_selection_change: Callable[[bool], None] | None = None, **props
-# ):
-#     """
-#     Python implementation for the Adobe React Spectrum Tabs component.
-#     https://react-spectrum.adobe.com/react-spectrum/Tabs.html
-#     """
-#     tab_list_params = []
-#     tab_panel_params = []
-
-#     for tab_panel in tab_panel_args:
-#         tab_item, panel_item = tab_panel
-
-#         tab_list_params.append(tab_item)
-#         tab_panel_params.append(panel_item)
-
-#     return spectrum_element(
-#         "Tabs",
-#         tab_list(*tab_list_params),
-#         tab_panels(*tab_panel_params, flex_grow=1, position="relative"),
-#         on_selection_change=on_selection_change,
-#         flex_grow=1,
-#         **props
-#     )
+    return spectrum_element(
+        "Tabs",
+        *children,
+        disabled_keys=disabled_keys,
+        is_disabled=is_disabled,
+        is_quiet=is_quiet,
+        is_emphasized=is_emphasized,
+        density=density,
+        keyboard_activation=keyboard_activation,
+        orientation=orientation,
+        disallow_empty_selection=disallow_empty_selection,
+        selected_key=selected_key,
+        default_selected_key=default_selected_key,
+        on_selection_change=on_selection_change,
+        flex=flex,
+        flex_grow=flex_grow,
+        flex_shrink=flex_shrink,
+        flex_basis=flex_basis,
+        align_self=align_self,
+        justify_self=justify_self,
+        order=order,
+        grid_area=grid_area,
+        grid_row=grid_row,
+        grid_column=grid_column,
+        grid_row_start=grid_row_start,
+        grid_row_end=grid_row_end,
+        grid_column_start=grid_column_start,
+        grid_column_end=grid_column_end,
+        margin=margin,
+        margin_top=margin_top,
+        margin_bottom=margin_bottom,
+        margin_start=margin_start,
+        margin_end=margin_end,
+        margin_x=margin_x,
+        margin_y=margin_y,
+        width=width,
+        height=height,
+        min_width=min_width,
+        min_height=min_height,
+        max_width=max_width,
+        max_height=max_height,
+        position=position,
+        top=top,
+        bottom=bottom,
+        left=left,
+        right=right,
+        start=start,
+        end=end,
+        z_index=z_index,
+        is_hidden=is_hidden,
+        id=id,
+        aria_label=aria_label,
+        aria_labelled_by=aria_labelled_by,
+        aria_described_by=aria_described_by,
+        aria_details=aria_details,
+        UNSAFE_class_name=UNSAFE_class_name,
+        UNSAFE_style=UNSAFE_style,
+        tab_list_props=tab_list_props,
+        tab_panel_props=tab_panel_props,
+    )

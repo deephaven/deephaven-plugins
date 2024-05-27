@@ -95,6 +95,7 @@ class PressEvent(TypedDict):
 
 PointerType = Literal["mouse", "touch", "pen", "keyboard", "virtual"]
 PressEventType = Literal["pressstart", "pressend", "pressup", "press"]
+KeyboardActivationType = Literal["automatic", "manual"]
 
 StaticColor = Literal["white", "black"]
 ButtonType = Literal["button", "submit", "reset"]

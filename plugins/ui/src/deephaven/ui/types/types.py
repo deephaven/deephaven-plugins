@@ -140,5 +140,6 @@ Date = Union[
 ]
 Granularity = Literal["DAY", "HOUR", "MINUTE", "SECOND"]
 Density = Literal["COMPACT", "NORMAL", "SPACIOUS"]
+TabDensity = Literal["compact", "regular"]
 Dependencies = Union[Tuple[Any], List[Any]]
 Selection = Sequence[Key]

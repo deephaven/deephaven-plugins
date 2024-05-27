@@ -11,3 +11,4 @@ export { default as RangeSlider } from './RangeSlider';
 export { default as Slider } from './Slider';
 export { default as TabPanels } from './TabPanels';
 export { default as TextField } from './TextField';
+export { default as Tabs } from './Tabs';
