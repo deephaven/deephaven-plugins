@@ -9,7 +9,7 @@ import {
   TabPanelsProps,
 } from '@deephaven/components';
 import { Item, Flex } from '@adobe/react-spectrum';
-import { CollectionChildren, Node } from '@react-types/shared';
+import { CollectionChildren } from '@react-types/shared';
 
 type TabItemProps = ItemProps<ReactNode> & {
   key: string;
@@ -25,29 +25,28 @@ type TabComponentProps = TabsProps<TabItemProps> & {
 function Tabs(props: TabComponentProps): JSX.Element {
   const { children, tabListProps, tabPanelProps, ...otherTabProps } = props;
 
-  // NEED TO CLARIFY: Issues with children type
+  const tabItems = React.Children.map(
+    children as React.ReactElement<TabItemProps>[],
+    (child: React.ReactElement<TabItemProps>, index) => (
+      <Item
+        key={child.props.key !== undefined ? child.props.key : index}
+        textValue={child.props.title as string}
+      >
+        {child.props.title}
+      </Item>
+    )
+  );
 
-  // const tabItems = React.Children.map(
-  //   children,
-  //   (child: React.ReactElement<SectionProps<ItemProps<ReactNode>>>, index) => (
-  //     <Item key={child.props.key || index} textValue={child.props.title as string}>
-  //       {child.props.title}
-  //     </Item>
-  //   )
-  // );
-
-  // NEED TO CLARIFY: Issues with children type=
-
-  // const tabPanels = React.Children.map(
-  //   children,
-  //   (child: React.ReactElement<SectionProps<ItemProps<ReactNode>>>, index) => (
-  //     <Item key={child.props.key || index}>
-  //       <Flex direction="column" height="100%" width="100%" flexGrow={1}>
-  //         {child.props.children}
-  //       </Flex>
-  //     </Item>
-  //   )
-  // );
+  const tabPanels = React.Children.map(
+    children as React.ReactElement<TabItemProps>[],
+    (child: React.ReactElement<TabItemProps>, index) => (
+      <Item key={child.props.key !== undefined ? child.props.key : index}>
+        <Flex direction="column" height="100%" width="100%" flexGrow={1}>
+          {child.props.children}
+        </Flex>
+      </Item>
+    )
+  );
 
   return (
     <DHCTabs
@@ -58,17 +57,15 @@ function Tabs(props: TabComponentProps): JSX.Element {
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...tabListProps}
       >
-        {children}
-        {/* NEED TO FIX */}
-        {/* {tabItems as CollectionChildren<TabItemProps>} */}
+        {/* {children} */}
+        {tabItems}
       </TabList>
       <TabPanels
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...tabPanelProps}
       >
-        {children}
-        {/* NEED TO FIX */}
-        {/* {tabPanels as CollectionChildren<TabItemProps>} */}
+        {/* {children} */}
+        {tabPanels as CollectionChildren<ReactNode>}
       </TabPanels>
     </DHCTabs>
   );

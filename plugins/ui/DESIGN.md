@@ -2600,35 +2600,100 @@ Some Key Information:
 
 To specify keys for tabs, we can pass in a key prop (as done in Tab 3), or it will automatically default to the text_value.
 
-To have a title with both an ui.icon and text, we have to pass in a ui.flex containing both.
+To have a title with both an ui.icon and text, we have to pass in a ui.flex / ui.item containing both.
+
+A key is required, if not provided, it is set by default to the title
 
 ```python
 from deephaven import empty_table
 import deephaven.ui as ui
 from deephaven.plot import express as dx
 
-
+# Example 1
 @ui.component
-def tabs_test():
+def tabs_test_1():
     return ui.tabs(
-        # Should render a tab with the github logo as the title with "Content 1" as tab content
-        ui.item("Content 1", ui.icon("vsGithubAlt")),
-        # Should render a "Hello World" header above a table
+        # Example 1a: Elementary case, title and content passed in as string literals
+        # Should render a tab with the title "Tab 1" with "Content 1" as tab content, keyed "Key 1"
+        ui.item(title="Tab 1", content="Content 1", key="Key 1"),
+        # Example 1b: Content that contains a flex, showing that our content does not have to be a string
+        # Should render a tab with the title "Tab 2" with "Hello World" header above a table as the tab content
+        # Given that the key is not provided, the title "Tab 2" defaults as the key
         ui.item(
+            title="Tab 2",
             ui.flex(
                 "Hello World!",
                 ui.flex(empty_table(10).update("I=i")),
             ),
-            "Tab 2",
+            key="Key 2",
         ),
-        # Should render "Content 3" in a tab called "Tab 3"
-        # Demonstrates that we can pass a variety of elements into the content of tabs
-        ui.item(ui.item("Content 3", flex_grow=1), "Tab 3", "Key 3"),
+        # Example 1c: Tab with text and icon as title
+        # Should render "Content 3" in a tab called "<GITHUB LOGO> Tab 3"
+        ui.item(ui.item("Tab 3", ui.icon("vsGithubAlt")), "Content 3", "Key 3"),
     )
 
 
 t = tabs_test()
+
+# Example 2: Tab with on_selection_change callback
+@ui.component
+def tabs_test_2():
+    return ui.tabs(
+        # Should render a tabs that have an on_selection_change, which prints the selected tab key when a tab is selected
+        ui.item("Tab 1", "Content 1", key="Key 1"),
+        ui.item("Tab 2", "Content 2", key="Key 2"),
+        on_selection_change=lambda key: print(f"Selected key: {key}"),
+    )
+
+
+t2 = tabs_test_2()
+
+# Example 3: Tabs with custom tab_list_props and tab_panel_props
+@ui.component
+def tabs_test_3():
+    return ui.tabs(
+        # Should render a tabs component with custom properties for the tab list and the tab panel
+        # First tab here cause an error, given that the key could NOT be set as an empty string, it could not be set (but then defaults to title)
+        ui.item("Tab 1", "Content 1", key=""),
+        ui.item("Tab 2", "Content 2", key="Key 2"),
+        tab_list_props={
+            min_width: "200px",
+            min_height: "50px",
+            max_width: "500px",
+            max_height: "200px",
+        },
+        tab_panel_props={
+            aria_label: "Tab panel",
+            aria_labelled_by: "TabPanelLabel",
+            aria_described_by: "TabPanelDescription",
+            aria_details: "TabPanelDetails",
+            UNSAFE_class_name: "TabPanelClassName",
+            UNSAFE_style: {"backgroundColor": "blue"},
+        },
+    )
+
+
+t3 = tabs_test_3()
+
+# Example 4: Some error-causing cases
+@ui.component
+def tabs_test_4():
+    # Example 4a: No tab items passed in
+    # Should cause an error, given that no items are passed into the tabs (cannot have blank tabs)
+
+    return ui.tabs()
+
+    # Example 4b: Tab items with the same keys
+    # Should cause an error if there are identical keys (or at the very least, should have a check tha checks if the key already exists, and if so, sets the second
+    # key to be the title)
+
+    # return
+    #     ui.tabs(
+    #         ui.item("Tab 1", "Content 1", key="Key 1"),
+    #         ui.item("Tab 2", "Content 2", key="Key 1"),
+    #     )
 ```
+
 
 ## Converting a Parameterized Query
 
