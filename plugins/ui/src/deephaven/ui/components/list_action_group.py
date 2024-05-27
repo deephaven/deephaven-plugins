@@ -25,12 +25,12 @@ from .spectrum.layout import (
 )
 from .spectrum.events import ButtonLabelBehavior, Orientation, StaticColor
 
-ActionMenuItem = Union[Stringable, ItemElement]
-ListActionMenuElement = Element
+ActionGroupItem = Union[Stringable, ItemElement]
+ListActionGroupElement = Element
 
 
 def list_action_group(
-    *children: ActionMenuItem,
+    *children: ActionGroupItem,
     on_action: Callable[[ActionKey, Key], None] | None = None,
     on_selection_change: Callable[[Selection, Key], None] | None = None,
     on_change: Callable[[Selection, Key], None] | None = None,
@@ -92,7 +92,7 @@ def list_action_group(
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
-) -> ListActionMenuElement:
+) -> ListActionGroupElement:
     """
     A group of action buttons that can be used to create a list of actions.
     This component should be used within the actions prop of a `ListView` component.
