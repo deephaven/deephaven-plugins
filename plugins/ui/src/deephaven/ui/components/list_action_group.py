@@ -29,7 +29,7 @@ ActionMenuItem = Union[Stringable, ItemElement]
 ListActionMenuElement = Element
 
 
-def list_action_menu(
+def list_action_group(
     *children: ActionMenuItem,
     on_action: Callable[[ActionKey, Key], None] | None = None,
     on_selection_change: Callable[[Selection, Key], None] | None = None,
@@ -171,7 +171,7 @@ def list_action_menu(
     """
 
     return BaseElement(
-        "deephaven.ui.components.ListActionMenu",
+        "deephaven.ui.components.ListActionGroup",
         *children,
         on_action=on_action,
         on_selection_change=on_selection_change,
