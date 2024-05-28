@@ -2605,8 +2605,7 @@ To have a title with both an ui.icon and text, we have to pass in a ui.flex / ui
 A key is required, if not provided, it is set by default to the title
 
 ```python
-from deephaven import empty_table
-import deephaven.ui as ui
+from deephaven import empty_table, ui
 from deephaven.plot import express as dx
 
 # Example 1
@@ -2614,22 +2613,25 @@ from deephaven.plot import express as dx
 def tabs_test_1():
     return ui.tabs(
         # Example 1a: Elementary case, title and content passed in as string literals
-        # Should render a tab with the title "Tab 1" with "Content 1" as tab content, keyed "Key 1"
-        ui.item(title="Tab 1", content="Content 1", key="Key 1"),
-        # Example 1b: Content that contains a flex, showing that our content does not have to be a string
-        # Should render a tab with the title "Tab 2" with "Hello World" header above a table as the tab content
-        # Given that the key is not provided, the title "Tab 2" defaults as the key
+        # Should render a tab with the title "Tab 1" with "Content 1" as tab content, that given no key passed, would be set to "Tab 1 Key"
+        ui.item("Content 1", title="Tab 1"),
+        # Example 1b: Elementary case with key set when passed in
+        # Should render a tab with the title "Tab 2" with "Content 2" as tab content, keyed "Key 2"
+        ui.item("Content 2", title="Tab 2", key="Key 2"),
+        # Example 1c: Content that contains a flex, showing that our content does not have to be a string
+        # Should render a tab with the title "Tab 3" with "Hello World" header above a table as the tab content
+        # Given that the key is not provided, the title "Tab 3" defaults as the key
         ui.item(
-            title="Tab 2",
             ui.flex(
                 "Hello World!",
                 ui.flex(empty_table(10).update("I=i")),
             ),
-            key="Key 2",
+            title="Tab 3",
+            key="Key 3",
         ),
-        # Example 1c: Tab with text and icon as title
-        # Should render "Content 3" in a tab called "<GITHUB LOGO> Tab 3"
-        ui.item(ui.item("Tab 3", ui.icon("vsGithubAlt")), "Content 3", "Key 3"),
+        # Example 1d: Tab with text and icon as title
+        # Should render "Content 4" in a tab called "<GITHUB LOGO> Tab 4", keyed "<GITHUB LOGO> Tab 4 Key"
+        ui.item("Content 4", title=ui.item("Tab 3", ui.icon("vsGithubAlt"))),
     )
 
 
@@ -2640,8 +2642,8 @@ t = tabs_test()
 def tabs_test_2():
     return ui.tabs(
         # Should render a tabs that have an on_selection_change, which prints the selected tab key when a tab is selected
-        ui.item("Tab 1", "Content 1", key="Key 1"),
-        ui.item("Tab 2", "Content 2", key="Key 2"),
+        ui.item("Content 1", title="Tab 1", key="Key 1"),
+        ui.item("Content 2", title="Tab 2", key="Key 2"),
         on_selection_change=lambda key: print(f"Selected key: {key}"),
     )
 
@@ -2654,8 +2656,8 @@ def tabs_test_3():
     return ui.tabs(
         # Should render a tabs component with custom properties for the tab list and the tab panel
         # First tab here cause an error, given that the key could NOT be set as an empty string, it could not be set (but then defaults to title)
-        ui.item("Tab 1", "Content 1", key=""),
-        ui.item("Tab 2", "Content 2", key="Key 2"),
+        ui.item("Content 1", title="Tab 1", key=""),
+        ui.item("Content 2", title="Tab 2", key="Key 2"),
         tab_list_props={
             min_width: "200px",
             min_height: "50px",
@@ -2689,8 +2691,8 @@ def tabs_test_4():
 
     # return
     #     ui.tabs(
-    #         ui.item("Tab 1", "Content 1", key="Key 1"),
-    #         ui.item("Tab 2", "Content 2", key="Key 1"),
+    #         ui.item("Content 1", title="Tab 1", key="Key 1"),
+    #         ui.item("Content 2", title="Tab 2", key="Key 1"),
     #     )
 ```
 
