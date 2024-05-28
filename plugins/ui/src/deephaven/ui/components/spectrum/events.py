@@ -99,6 +99,7 @@ TriggerType = Literal["press", "longPress"]
 
 StaticColor = Literal["white", "black"]
 ButtonType = Literal["button", "submit", "reset"]
+ButtonLabelBehavior = Literal["show", "collapse", "hide"]
 ButtonVariant = Literal[
     "accent", "primary", "secondary", "negative", "cta", "overBackground"
 ]
