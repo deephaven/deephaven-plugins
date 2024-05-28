@@ -22,7 +22,6 @@ from .spectrum.layout import (
 
 def action_group(
     *children: Any,
-    on_change: Callable[[ActionKey, Key], None] | None = None,
     is_emphasized: bool | None = None,
     density: ActionGroupDensity | None = "regular",
     is_justified: bool | None = None,
@@ -39,6 +38,7 @@ def action_group(
     selected_keys: SelectedKeys | Iterable[str] | None = None,
     default_selected_keys: SelectedKeys | Iterable[str] | None = None,
     on_action: Callable[[str], None] | None = None,
+    on_change: Callable[[ActionKey, Key], None] | None = None,
     on_selection_change: Callable[[str], None] | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: Number | None = None,
@@ -88,9 +88,6 @@ def action_group(
     An action grouping of action items that are related to each other.
     Args:
         *children: The children of the contextual help popover.
-        on_change: Alias of on_selection_change.
-            Handler that is called when the selection changes.
-            The first argument is the selection, the second argument is the key of the list_view item.
         is_emphasized: Whether the action buttons should be displayed with emphasized style.
         density: Sets the amount of space between buttons.
         is_justified: Whether the ActionButtons should be justified in their container.
@@ -107,6 +104,9 @@ def action_group(
         selected_keys: The currently selected keys in the collection (controlled).
         default_selected_keys: The initial selected keys in the collection (uncontrolled).
         on_action: Invoked when an action is taken on a child. Especially useful when selectionMode is none. The sole argument key is the key for the item.
+        on_change: Alias of on_selection_change.
+            Handler that is called when the selection changes.
+            The first argument is the selection, the second argument is the key of the list_view item.
         on_selection_change: Handler that is called when the selection changes.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
