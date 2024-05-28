@@ -30,7 +30,6 @@ ListActionGroupElement = Element
 def list_action_group(
     *children: Item,
     on_action: Callable[[ActionKey, Key], None] | None = None,
-    on_selection_change: Callable[[Selection, Key], None] | None = None,
     on_change: Callable[[Selection, Key], None] | None = None,
     is_emphasized: bool | None = None,
     density: ActionGroupDensity | None = "regular",
@@ -99,8 +98,6 @@ def list_action_group(
         *children: The options to render within the list_action_menu.
         on_action: Handler that is called when an item is pressed.
             The first argument is the key of the action, the second argument is the key of the list_view item.
-        on_selection_change: Handler that is called when the selection changes.
-            The first argument is the selection, the second argument is the key of the list_view item.
         on_change: Alias of on_selection_change.
             Handler that is called when the selection changes.
             The first argument is the selection, the second argument is the key of the list_view item.
@@ -119,7 +116,6 @@ def list_action_group(
         disallow_empty_selection: Whether the collection allows empty selection.
         selected_keys: The currently selected keys in the collection (controlled).
         default_selected_keys: The initial selected keys in the collection (uncontrolled).
-        on_selection_change: Handler that is called when the selection changes.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -172,7 +168,6 @@ def list_action_group(
         "deephaven.ui.components.ListActionGroup",
         *children,
         on_action=on_action,
-        on_selection_change=on_selection_change,
         on_change=on_change,
         is_emphasized=is_emphasized,
         density=density,
