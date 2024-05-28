@@ -95,7 +95,7 @@ def list_action_group(
 ) -> ListActionGroupElement:
     """
     A group of action buttons that can be used to create a list of actions.
-    This component should be used within the actions prop of a `ListView` component.
+    This component should be used within the actions prop of a `ui.list_view` component.
 
     Args:
         *children: The options to render within the list_action_menu.
@@ -167,7 +167,7 @@ def list_action_group(
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
 
     Returns:
-        A ListActionGroup that can be used within the actions prop of a `ListView` component.
+        A ListActionGroup that can be used within the actions prop of a `ui.list_view` component.
     """
 
     return BaseElement(
