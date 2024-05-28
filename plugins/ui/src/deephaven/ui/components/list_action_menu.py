@@ -4,9 +4,9 @@ from numbers import Number
 from typing import Callable, Iterable, Union
 
 
-from .item import ItemElement
+from .item import Item
 from ..elements import BaseElement, Element
-from ..types import Stringable, Key, ActionKey, ActionMenuDirection
+from ..types import Key, ActionKey, ActionMenuDirection
 from .spectrum.layout import (
     AlignSelf,
     Alignment,
@@ -18,12 +18,11 @@ from .spectrum.layout import (
 )
 from .spectrum.events import TriggerType
 
-ActionMenuItem = Union[Stringable, ItemElement]
 ListActionMenuElement = Element
 
 
 def list_action_menu(
-    *children: ActionMenuItem,
+    *children: Item,
     on_action: Callable[[ActionKey, Key], None] | None = None,
     on_open_change: Callable[[bool, Key], None] | None = None,
     is_disabled: bool | None = None,
@@ -146,7 +145,7 @@ def list_action_menu(
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
     Returns:
-        A ListActionMenu that can be used within the actions prop of a `ListView` component.
+        A ListActionMenu that can be used within the actions prop of a `ui.list_view` component.
     """
 
     return BaseElement(

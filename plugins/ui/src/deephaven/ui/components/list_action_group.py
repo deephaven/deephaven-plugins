@@ -21,7 +21,7 @@ def list_action_group(
 ) -> ListActionGroupElement:
     """
     A group of action buttons that can be used to create a list of actions.
-    This component should be used within the actions prop of a `ListView` component.
+    This component should be used within the actions prop of a `ui.list_view` component.
 
     Args:
         *children: The options to render within the list_action_group.
@@ -35,7 +35,7 @@ def list_action_group(
         **props: Any other ActionGroup prop.
 
     Returns:
-        A ListActionGroup that can be used within the actions prop of a `ListView` component.
+        A ListActionGroup that can be used within the actions prop of a `ui.list_view` component.
     """
     children, props = create_props(locals())
 

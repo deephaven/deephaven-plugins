@@ -56,7 +56,7 @@ export function useListViewProps({
     selectionMode,
     onChange,
     onSelectionChange,
-    // The @deephaven/components `ListView` has its own normalization logic that
+    // The @deephaven/components `ui.list_view` has its own normalization logic that
     // handles primitive children types (string, number, boolean). It also
     // handles nested children inside of `Item` and `Section` components, so
     // we are intentionally not wrapping `otherProps` in `mapSpectrumProps`
