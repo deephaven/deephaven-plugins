@@ -1,17 +1,14 @@
 from __future__ import annotations
 from numbers import Number
 from typing import Any, Callable, Iterable
+
 from ..components.spectrum.events import (
     ButtonLabelBehavior,
     Orientation,
     StaticColor,
 )
 from ..elements import Element, BaseElement
-from ..types import (
-    ActionGroupDensity,
-    SelectedKeys,
-    SelectionMode,
-)
+from ..types import ActionGroupDensity, SelectedKeys, SelectionMode, ActionKey, Key
 from .spectrum.layout import (
     AlignSelf,
     CSSProperties,
@@ -25,6 +22,7 @@ from .spectrum.layout import (
 
 def action_group(
     *children: Any,
+    on_change: Callable[[ActionKey, Key], None] | None = None,
     is_emphasized: bool | None = None,
     density: ActionGroupDensity | None = "regular",
     is_justified: bool | None = None,
@@ -90,6 +88,9 @@ def action_group(
     An action grouping of action items that are related to each other.
     Args:
         *children: The children of the contextual help popover.
+        on_change: Alias of on_selection_change.
+            Handler that is called when the selection changes.
+            The first argument is the selection, the second argument is the key of the list_view item.
         is_emphasized: Whether the action buttons should be displayed with emphasized style.
         density: Sets the amount of space between buttons.
         is_justified: Whether the ActionButtons should be justified in their container.
@@ -154,6 +155,7 @@ def action_group(
     return BaseElement(
         "deephaven.ui.components.ActionGroup",
         *children,
+        on_change=on_change,
         is_emphasized=is_emphasized,
         density=density,
         is_justified=is_justified,
