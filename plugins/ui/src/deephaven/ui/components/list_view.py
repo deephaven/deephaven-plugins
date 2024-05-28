@@ -8,7 +8,7 @@ from .item_table_source import ItemTableSource
 from ..elements import BaseElement, Element
 from .._internal.utils import create_props, unpack_item_table_source
 from .item import Item
-from ..types import Density, Selection, SelectionMode
+from ..types import ListViewDensity, Selection, SelectionMode
 
 ListViewElement = Element
 
@@ -23,7 +23,7 @@ SUPPORTED_SOURCE_ARGS = {
 
 def list_view(
     *children: Item | Table | ItemTableSource,
-    density: Density | None = "COMPACT",
+    density: ListViewDensity | None = "COMPACT",
     default_selected_keys: Selection | None = None,
     selected_keys: Selection | None = None,
     selection_mode: SelectionMode | None = "MULTIPLE",

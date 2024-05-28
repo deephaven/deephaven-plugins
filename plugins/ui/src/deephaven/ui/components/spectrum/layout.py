@@ -104,6 +104,8 @@ JustifySelf = Literal[
     "stretch",
 ]
 
+OverflowMode = Literal["wrap", "collapse"]
+
 Alignment = Literal["start", "end"]
 
 OverflowMode = Literal["wrap", "collapse"]
