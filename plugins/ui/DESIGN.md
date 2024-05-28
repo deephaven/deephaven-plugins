@@ -1052,6 +1052,7 @@ ui.section(
 | `**props`   | `Any`         | Any other Section prop                    |
 
 ###### ui.list_action_group
+
 A group of action buttons that can be used to create a list of actions.
 This component should be used within the actions prop of a `ListView` component.
 
@@ -1066,16 +1067,17 @@ def list_action_group(
 ```
 
 ###### Parameters
-| Parameter               | Type                                                       | Description                                                                                                                                                              |
-|-------------------------|------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`             | `ActionGroupItem`                                          | The actions to render within the action group.                                                                                                                           |
-| `on_action`             | `Callable[[ActionKey, Key], None] \| None`                 | Handler that is called when an item is pressed. The first argument is the key of the action, the second argument is the key of the list_view item.                       |
-| `on_selection_change`   | `Callable[[Selection, Key], None] \| None`                 | Handler that is called when the selection changes. The first argument is the selection, the second argument is the key of the list_view item.                            |
-| `on_change`             | `Callable[[Selection, Key], None] \| None`                 | Alias of `on_selection_change`. Handler that is called when the selection changes. The first argument is the selection, the second argument is the key of the list_view item.        |
-| `**props`               | `Any`                                                      | Any other [ActionGroup](https://react-spectrum.adobe.com/react-spectrum/ActionGroup.html) prop.                                                                          |
 
+| Parameter             | Type                                       | Description                                                                                                                                                                   |
+| --------------------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `*children`           | `ActionGroupItem`                          | The actions to render within the action group.                                                                                                                                |
+| `on_action`           | `Callable[[ActionKey, Key], None] \| None` | Handler that is called when an item is pressed. The first argument is the key of the action, the second argument is the key of the list_view item.                            |
+| `on_selection_change` | `Callable[[Selection, Key], None] \| None` | Handler that is called when the selection changes. The first argument is the selection, the second argument is the key of the list_view item.                                 |
+| `on_change`           | `Callable[[Selection, Key], None] \| None` | Alias of `on_selection_change`. Handler that is called when the selection changes. The first argument is the selection, the second argument is the key of the list_view item. |
+| `**props`             | `Any`                                      | Any other [ActionGroup](https://react-spectrum.adobe.com/react-spectrum/ActionGroup.html) prop.                                                                               |
 
 ###### ui.list_action_menu
+
 A group of action buttons that can be used to create a list of actions.
 This component should be used within the actions prop of a `ListView` component.
 
@@ -1089,12 +1091,13 @@ def list_action_menu(
 ```
 
 ###### Parameters
-| Parameter               | Type                                                       | Description                                                                                                                                        |
-|-------------------------|------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`             | `ActionMenuItem`                                           | The options to render within the picker.                                                                                                           |
-| `on_action`             | `Callable[[ActionKey, Key], None] \| None`                       | Handler that is called when an item is pressed. The first argument is the key of the action, the second argument is the key of the list_view item. |
-| `on_open_change`        | `Callable[[bool, Key], None] \| None`                      | The first argument is a boolean indicating if the menu is open, the second argument is the key of the list_view item.                              |
-| `**props`               | `Any`                                                      | Any other [ActionMenu](https://react-spectrum.adobe.com/react-spectrum/ActionMenu.html) prop.                                                      |
+
+| Parameter        | Type                                       | Description                                                                                                                                        |
+| ---------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `*children`      | `ActionMenuItem`                           | The options to render within the picker.                                                                                                           |
+| `on_action`      | `Callable[[ActionKey, Key], None] \| None` | Handler that is called when an item is pressed. The first argument is the key of the action, the second argument is the key of the list_view item. |
+| `on_open_change` | `Callable[[bool, Key], None] \| None`      | The first argument is a boolean indicating if the menu is open, the second argument is the key of the list_view item.                              |
+| `**props`        | `Any`                                      | Any other [ActionMenu](https://react-spectrum.adobe.com/react-spectrum/ActionMenu.html) prop.                                                      |
 
 ##### ui.item_table_source
 
@@ -1119,27 +1122,28 @@ ui.item_table_source(
 
 ###### Parameters
 
-| Parameter              | Type                                                  | Description                                                                                                                                                                                                                                                               |
-| ---------------------- | ----------------------------------------------------- |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`            | `Item \| SectionElement \| Table \| PartitionedTable` | The options to render within the picker.                                                                                                                                                                                                                                  |
-| `key_column`           | `ColumnName \| None`                                  | The column of values to use as item keys. Defaults to the first column.                                                                                                                                                                                                   |
-| `label_column`         | `ColumnName \| None`                                  | The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                                                                                      |
-| `description_column`   | `ColumnName \| None`                                  | The column of values to display as descriptions.                                                                                                                                                                                                                          |
-| `icon_column`          | `ColumnName \| None`                                  | The column of values to map to icons.                                                                                                                                                                                                                                     |
-| `title_column`         | `ColumnName \| None`                                  | Only valid if table is of type `PartitionedTable`. The column of values to display as section names. Should be the same for all values in the constituent `Table`. If not specified, the section titles will be created from the `key_columns` of the `PartitionedTable`. |
-| `actions`               | `ListActionGroupElement \| ListActionMenuElement \| None`  | The action group or menus to render for all elements within the component, if supported.                                                                                                                                                                                  |
+| Parameter            | Type                                                      | Description                                                                                                                                                                                                                                                               |
+| -------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `*children`          | `Item \| SectionElement \| Table \| PartitionedTable`     | The options to render within the picker.                                                                                                                                                                                                                                  |
+| `key_column`         | `ColumnName \| None`                                      | The column of values to use as item keys. Defaults to the first column.                                                                                                                                                                                                   |
+| `label_column`       | `ColumnName \| None`                                      | The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                                                                                      |
+| `description_column` | `ColumnName \| None`                                      | The column of values to display as descriptions.                                                                                                                                                                                                                          |
+| `icon_column`        | `ColumnName \| None`                                      | The column of values to map to icons.                                                                                                                                                                                                                                     |
+| `title_column`       | `ColumnName \| None`                                      | Only valid if table is of type `PartitionedTable`. The column of values to display as section names. Should be the same for all values in the constituent `Table`. If not specified, the section titles will be created from the `key_columns` of the `PartitionedTable`. |
+| `actions`            | `ListActionGroupElement \| ListActionMenuElement \| None` | The action group or menus to render for all elements within the component, if supported.                                                                                                                                                                                  |
 
 ##### ui.picker
 
-A picker that can be used to select from a list. Children should be one of five types:  
-1. If children are of type `Item`, they are the dropdown options.  
-2. If children are of type `SectionElement`, they are the dropdown sections.  
+A picker that can be used to select from a list. Children should be one of five types:
+
+1. If children are of type `Item`, they are the dropdown options.
+2. If children are of type `SectionElement`, they are the dropdown sections.
 3. If children are of type `Table`, the values in the table are the dropdown options. There can only be one child, the `Table`.
 4. If children are of type `PartitionedTable`, the values in the table are the dropdown options and the partitions create multiple sections. There can only be one child, the `PartitionedTable`.
-5. If children are of type `ItemTableSource`, complex items are created from the source. 
-There can only be one child, the `ItemTableSource`.
-Supported ItemTableSource arguments are `key_column`, `label_column`, `description_column`,
-`icon_column`, and `title_column`.
+5. If children are of type `ItemTableSource`, complex items are created from the source.
+   There can only be one child, the `ItemTableSource`.
+   Supported ItemTableSource arguments are `key_column`, `label_column`, `description_column`,
+   `icon_column`, and `title_column`.
 
 ```py
 import deephaven.ui as ui
@@ -1155,14 +1159,14 @@ ui.picker(
 
 ###### Parameters
 
-| Parameter              | Type                                                                     | Description                                                                                                                                                                                                                                                                  |
-| ---------------------- |--------------------------------------------------------------------------| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `*children`            | `Item \| SectionElement \| Table \| PartitionedTable \| ItemTableSource` | The options to render within the picker.                                                                                                                                                                                                                                     |
-| `default_selected_key` | `Key \| None`                                                            | The initial selected key in the collection (uncontrolled).                                                                                                                                                                                                                   |
-| `selected_key`         | `Key \| None`                                                            | The currently selected key in the collection (controlled).                                                                                                                                                                                                                   |
-| `on_selection_change`  | `Callable[[Key], None] \| None`                                          | Handler that is called when the selection changes.                                                                                                                                                                                                                           |
-| `on_change`            | `Callable[[Key], None] \| None`                                          | Alias of `on_selection_change`. Handler that is called when the selection changes.                                                                                                                                                                                           |
-| `**props`              | `Any`                                                                    | Any other [Picker](https://react-spectrum.adobe.com/react-spectrum/Picker.html) prop, with the exception of `items`, `validate`, `errorMessage` (as a callback) and `onLoadMore`                                                                                             |
+| Parameter              | Type                                                                     | Description                                                                                                                                                                      |
+| ---------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `*children`            | `Item \| SectionElement \| Table \| PartitionedTable \| ItemTableSource` | The options to render within the picker.                                                                                                                                         |
+| `default_selected_key` | `Key \| None`                                                            | The initial selected key in the collection (uncontrolled).                                                                                                                       |
+| `selected_key`         | `Key \| None`                                                            | The currently selected key in the collection (controlled).                                                                                                                       |
+| `on_selection_change`  | `Callable[[Key], None] \| None`                                          | Handler that is called when the selection changes.                                                                                                                               |
+| `on_change`            | `Callable[[Key], None] \| None`                                          | Alias of `on_selection_change`. Handler that is called when the selection changes.                                                                                               |
+| `**props`              | `Any`                                                                    | Any other [Picker](https://react-spectrum.adobe.com/react-spectrum/Picker.html) prop, with the exception of `items`, `validate`, `errorMessage` (as a callback) and `onLoadMore` |
 
 ```py
 import deephaven.ui as ui
@@ -1266,13 +1270,15 @@ picker7 = ui.picker(
 ```
 
 ###### ui.list_view
-A list view that can be used to create a list of items. Children should be one of three types:  
-1. If children are of type `Item`, they are the list items.  
-2. If children are of type `Table`, the values in the table are the list items. There can only be one child, the `Table`.   
-3. If children are of type ItemTableSource, complex items are created from the table. 
-There can only be one child, the `ItemTableSource`.
-Supported `ItemTableSource` arguments are `key_column`, `label_column`, `description_column`, 
-`icon_column`, and `actions`.
+
+A list view that can be used to create a list of items. Children should be one of three types:
+
+1. If children are of type `Item`, they are the list items.
+2. If children are of type `Table`, the values in the table are the list items. There can only be one child, the `Table`.
+3. If children are of type ItemTableSource, complex items are created from the table.
+   There can only be one child, the `ItemTableSource`.
+   Supported `ItemTableSource` arguments are `key_column`, `label_column`, `description_column`,
+   `icon_column`, and `actions`.
 
 ```py
 import deephaven.ui as ui
@@ -1290,16 +1296,17 @@ ui.list_view(
 ```
 
 ###### Parameters
-| Parameter               | Type                                                      | Description                                                                                                                                                    |
-|-------------------------|-----------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`             | `Item \| Table \| ItemTableSource`                        | The options to render within the list_view.                                                                                                                    |
-| `selection_mode`        | `SelectionMode \| None`                                   | By default `"MULTIPLE"`, which allows multiple selection. May also be `"SINGLE"` to allow only single selection, or `"None"`/`None` to allow no selection.     |
-| `default_selected_keys` | `Selection \| None`                                       | The initial selected keys in the collection (uncontrolled).                                                                                                    |
-| `selected_keys`         | `Selection \| None`                                       | The currently selected keys in the collection (controlled).                                                                                                    |
-| `render_empty_state`    | `Element \| None`                                         | Sets what the `list_view` should render when there is no content to display.                                                                                   |
-| `on_selection_change`   | `Callable[[Selection], None] \| None`                     | Handler that is called when the selections changes.                                                                                                            |
-| `on_change`             | `Callable[[Selection], None] \| None`                     | Alias of `on_selection_change`. Handler that is called when the selections changes.                                                                            |
-| `**props`               | `Any`                                                     | Any other [ListView](https://react-spectrum.adobe.com/react-spectrum/ListView.html) prop, with the exception of `items`, `dragAndDropHooks`, and `onLoadMore`. |
+
+| Parameter               | Type                                  | Description                                                                                                                                                    |
+| ----------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `*children`             | `Item \| Table \| ItemTableSource`    | The options to render within the list_view.                                                                                                                    |
+| `selection_mode`        | `SelectionMode \| None`               | By default `"MULTIPLE"`, which allows multiple selection. May also be `"SINGLE"` to allow only single selection, or `"None"`/`None` to allow no selection.     |
+| `default_selected_keys` | `Selection \| None`                   | The initial selected keys in the collection (uncontrolled).                                                                                                    |
+| `selected_keys`         | `Selection \| None`                   | The currently selected keys in the collection (controlled).                                                                                                    |
+| `render_empty_state`    | `Element \| None`                     | Sets what the `list_view` should render when there is no content to display.                                                                                   |
+| `on_selection_change`   | `Callable[[Selection], None] \| None` | Handler that is called when the selections changes.                                                                                                            |
+| `on_change`             | `Callable[[Selection], None] \| None` | Alias of `on_selection_change`. Handler that is called when the selections changes.                                                                            |
+| `**props`               | `Any`                                 | Any other [ListView](https://react-spectrum.adobe.com/react-spectrum/ListView.html) prop, with the exception of `items`, `dragAndDropHooks`, and `onLoadMore`. |
 
 ```py
 import deephaven.ui as ui
@@ -1516,14 +1523,15 @@ date_picker8 = ui.date_picker(
 ##### ui.combo_box
 
 A combo_box that can be used to search or select from a list. Children should be one of five types:
-1. If children are of type `Item`, they are the dropdown options.  
-2. If children are of type `SectionElement`, they are the dropdown sections.  
+
+1. If children are of type `Item`, they are the dropdown options.
+2. If children are of type `SectionElement`, they are the dropdown sections.
 3. If children are of type `Table`, the values in the table are the dropdown options. There can only be one child, the `Table`.
 4. If children are of type `PartitionedTable`, the values in the table are the dropdown options and the partitions create multiple sections. There can only be one child, the `PartitionedTable`.
-5. If children are of type `ItemTableSource`, complex items are created from the source. 
-There can only be one child, the ItemTableSource.
-Supported ItemTableSource arguments are `key_column`, `label_column`, `description_column`,
-`icon_column`, and `title_column`.
+5. If children are of type `ItemTableSource`, complex items are created from the source.
+   There can only be one child, the ItemTableSource.
+   Supported ItemTableSource arguments are `key_column`, `label_column`, `description_column`,
+   `icon_column`, and `title_column`.
 
 ```py
 import deephaven.ui as ui
@@ -1543,18 +1551,18 @@ ui.combo_box(
 
 ###### Parameters
 
-| Parameter              | Type                                                                     | Description                                                                                                                                                                                                                                                                 |
-| ---------------------- |--------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `*children`            | `Item \| SectionElement \| Table \| PartitionedTable \| ItemTableSource` | The options to render within the combo_box.                                                                                                                                                                                                                                  |
-| `default_selected_key` | `Key \| None`                                                            | The initial selected key in the collection (uncontrolled).                                                                                                                                                                                                                  |
-| `selected_key`         | `Key \| None`                                                            | The currently selected key in the collection (controlled).                                                                                                                                                                                                                  |
-| `input_value`          | `str \| None`                                                            | The value of the search input (controlled).                                                                                                                                                                                                                                 |
-| `default_input_value`  | `str \| None`                                                            | The default value of the search input (uncontrolled).                                                                                                                                                                                                                       |
-| `on_input_change`      | `Callable[[str], None] \| None`                                          | Handler that is called when the search input value changes.                                                                                                                                                                                                                 |
-| `on_selection_change`  | `Callable[[Key], None] \| None`                                          | Handler that is called when the selection changes.                                                                                                                                                                                                                          |
-| `on_change`            | `Callable[[Key], None] \| None`                                          | Alias of `on_selection_change`. Handler that is called when the selection changes.                                                                                                                                                                                          |
-| `on_open_change`       | `Callable[[bool, MenuTriggerAction], None] \| None`                      | Method that is called when the open state of the menu changes. Returns the new open state and the action that caused the opening of the menu.                                                                        |
-| `**props`              | `Any`                                                                    | Any other [Combo_Box](https://react-spectrum.adobe.com/react-spectrum/ComboBox.html) prop, with the exception of `items`, `validate`, `errorMessage` (as a callback) and `onLoadMore`                                                                                       |
+| Parameter              | Type                                                                     | Description                                                                                                                                                                           |
+| ---------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `*children`            | `Item \| SectionElement \| Table \| PartitionedTable \| ItemTableSource` | The options to render within the combo_box.                                                                                                                                           |
+| `default_selected_key` | `Key \| None`                                                            | The initial selected key in the collection (uncontrolled).                                                                                                                            |
+| `selected_key`         | `Key \| None`                                                            | The currently selected key in the collection (controlled).                                                                                                                            |
+| `input_value`          | `str \| None`                                                            | The value of the search input (controlled).                                                                                                                                           |
+| `default_input_value`  | `str \| None`                                                            | The default value of the search input (uncontrolled).                                                                                                                                 |
+| `on_input_change`      | `Callable[[str], None] \| None`                                          | Handler that is called when the search input value changes.                                                                                                                           |
+| `on_selection_change`  | `Callable[[Key], None] \| None`                                          | Handler that is called when the selection changes.                                                                                                                                    |
+| `on_change`            | `Callable[[Key], None] \| None`                                          | Alias of `on_selection_change`. Handler that is called when the selection changes.                                                                                                    |
+| `on_open_change`       | `Callable[[bool, MenuTriggerAction], None] \| None`                      | Method that is called when the open state of the menu changes. Returns the new open state and the action that caused the opening of the menu.                                         |
+| `**props`              | `Any`                                                                    | Any other [Combo_Box](https://react-spectrum.adobe.com/react-spectrum/ComboBox.html) prop, with the exception of `items`, `validate`, `errorMessage` (as a callback) and `onLoadMore` |
 
 ```py
 import deephaven.ui as ui
@@ -1723,8 +1731,9 @@ ui_table(
     front_columns: ColumnNameCombination | None,
     hide_columns: ColumnNameCombination | None,
     quick_filters: dict[ColumnName, QuickFilterExpression] | None,
-    show_search: bool | None,
-    show_quick_filters: bool | None,
+    show_search: bool,
+    can_search: bool,
+    show_quick_filters: bool,
     show_column_headers: bool | None,
     selection_mode: SelectionMode | None,
     selection_area: SelectionArea | None,
@@ -1756,8 +1765,9 @@ ui_table(
 | `front_columns`          | `ColumnNameCombination \| None`                               | The columns to show at the front of the table. May be a single column name. These will not be moveable in the UI.                                                                                                                                                                   |
 | `hide_columns`           | `ColumnNameCombination \| None`                               | The columns to hide by default from the table. May be a single column name. The user can still resize the columns to view them.                                                                                                                                                     |
 | `quick_filters`          | `dict[ColumnName, QuickFilterExpression] \| None`             | Quick filters for the UI to apply to the table.                                                                                                                                                                                                                                     |
-| `show_search`            | `bool \| None`                                                | `True` to show the search bar by default, `False` to not.                                                                                                                                                                                                                           |
-| `show_quick_filters`     | `bool \| None`                                                | `True` to show the quick filters by default, `False` to not.                                                                                                                                                                                                                        |
+| `show_search`            | `bool`                                                        | `True` to show the search bar by default, `False` to not. `False` by default.                                                                                                                                                                                                       |
+| `can_search`             | `bool`                                                        | `True` to allow the user to search, `False` to not. `True` by default.                                                                                                                                                                                                              |
+| `show_quick_filters`     | `bool`                                                        | `True` to show the quick filters by default, `False` to not. `False` by default.                                                                                                                                                                                                    |
 | `show_column_headers`    | `bool \| None`                                                | `True` to show the column headers by default, `False` to not.                                                                                                                                                                                                                       |
 | `selection_mode`         | `SelectionMode \| None`                                       | Can be `MULTIPLE` to allow multiple selection or `SINGLE` to not allow it.                                                                                                                                                                                                          |
 | `selection_area`         | `SelectionArea \| None`                                       | The unit that is selected on press. Can be `ROW`, `COLUMN`, or `CELL`.                                                                                                                                                                                                              |
