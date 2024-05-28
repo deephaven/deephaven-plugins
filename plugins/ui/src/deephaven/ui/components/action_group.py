@@ -105,7 +105,8 @@ def action_group(
         selected_keys: The currently selected keys in the collection (controlled).
         default_selected_keys: The initial selected keys in the collection (uncontrolled).
         on_action: Invoked when an action is taken on a child. Especially useful when selectionMode is none. The sole argument key is the key for the item.
-        on_change: Handler that is called when the selection changes.
+        on_change: Alias of on_selection_change.
+            Handler that is called when the selection changes.
             The first argument is the key of the selection, the second argument is the key of the list_view item.
         on_selection_change: Handler that is called when the selection changes.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.

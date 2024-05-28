@@ -98,9 +98,8 @@ def list_action_group(
         *children: The options to render within the list_action_menu.
         on_action: Handler that is called when an item is pressed.
             The first argument is the key of the action, the second argument is the key of the list_view item.
-        on_change: Alias of on_selection_change.
-            Handler that is called when the selection changes.
-            The first argument is the selection, the second argument is the key of the list_view item.
+        on_change: Handler that is called when the selection changes.
+            The first argument is the key of the selection, the second argument is the key of the list_view item.
         is_emphasized: Whether the action buttons should be displayed with emphasized style.
         density: Sets the amount of space between buttons.
         is_justified: Whether the ActionButtons should be justified in their container.
