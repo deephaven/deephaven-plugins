@@ -2,13 +2,14 @@ from __future__ import annotations
 from numbers import Number
 from typing import Any, Callable, Iterable
 
+
 from ..components.spectrum.events import (
     ButtonLabelBehavior,
     Orientation,
     StaticColor,
 )
 from ..elements import Element, BaseElement
-from ..types import ActionGroupDensity, SelectedKeys, SelectionMode, Key
+from ..types import ActionGroupDensity, SelectedKeys, SelectionMode, Key, Selection
 from .spectrum.layout import (
     AlignSelf,
     CSSProperties,
@@ -39,7 +40,7 @@ def action_group(
     default_selected_keys: SelectedKeys | Iterable[str] | None = None,
     on_action: Callable[[str], None] | None = None,
     on_change: Callable[[Key], None] | None = None,
-    on_selection_change: Callable[[str], None] | None = None,
+    on_selection_change: Callable[[Selection], None] | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: Number | None = None,
     flex_shrink: Number | None = None,
@@ -106,7 +107,7 @@ def action_group(
         on_action: Invoked when an action is taken on a child. Especially useful when selectionMode is none. The sole argument key is the key for the item.
         on_change: Alias of on_selection_change.
             Handler that is called when the selection changes.
-            The first argument is the selection, the second argument is the key of the list_view item.
+            The first argument is the key of the selection, the second argument is the key of the list_view item.
         on_selection_change: Handler that is called when the selection changes.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
