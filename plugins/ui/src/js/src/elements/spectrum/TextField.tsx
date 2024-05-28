@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   TextField as DHCTextField,
   TextFieldProps as DHCTextFieldProps,
@@ -23,6 +23,11 @@ function TextField(props: DHCTextFieldProps): JSX.Element {
     propOnChange,
     VALUE_CHANGE_DEBOUNCE
   );
+
+  // update state when propValue changes
+  useEffect(() => {
+    setValue(propValue ?? defaultValue);
+  }, [propValue, defaultValue]);
 
   const onChange = useCallback(
     newValue => {
