@@ -33,7 +33,6 @@ export interface UITableProps {
   quickFilters?: Record<string, string>;
   sorts?: DehydratedSort[];
   showSearch: boolean;
-  canSearch: boolean;
   showQuickFilters: boolean;
   [key: string]: unknown;
 }

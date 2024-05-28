@@ -23,7 +23,6 @@ def table(
     quick_filters: dict[ColumnName, QuickFilterExpression] | None = None,
     show_quick_filters: bool = False,
     show_search: bool = False,
-    can_search: bool = True,
 ) -> UITable:
     """
     Customization to how a table is displayed, how it behaves, and listen to UI events.
@@ -49,7 +48,6 @@ def table(
         quick_filters: The quick filters to apply to the table. Dictionary of column name to filter value.
         show_quick_filters: Whether to show the quick filter bar by default.
         show_search: Whether to show the search bar by default.
-        can_search: Whether the user can display and use the search bar at all.
     """
     props = locals()
     del props["table"]

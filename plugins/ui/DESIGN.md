@@ -1732,7 +1732,6 @@ ui_table(
     hide_columns: ColumnNameCombination | None,
     quick_filters: dict[ColumnName, QuickFilterExpression] | None,
     show_search: bool,
-    can_search: bool,
     show_quick_filters: bool,
     show_column_headers: bool | None,
     selection_mode: SelectionMode | None,
@@ -1766,7 +1765,6 @@ ui_table(
 | `hide_columns`           | `ColumnNameCombination \| None`                               | The columns to hide by default from the table. May be a single column name. The user can still resize the columns to view them.                                                                                                                                                     |
 | `quick_filters`          | `dict[ColumnName, QuickFilterExpression] \| None`             | Quick filters for the UI to apply to the table.                                                                                                                                                                                                                                     |
 | `show_search`            | `bool`                                                        | `True` to show the search bar by default, `False` to not. `False` by default.                                                                                                                                                                                                       |
-| `can_search`             | `bool`                                                        | `True` to allow the user to search, `False` to not. `True` by default.                                                                                                                                                                                                              |
 | `show_quick_filters`     | `bool`                                                        | `True` to show the quick filters by default, `False` to not. `False` by default.                                                                                                                                                                                                    |
 | `show_column_headers`    | `bool \| None`                                                | `True` to show the column headers by default, `False` to not.                                                                                                                                                                                                                       |
 | `selection_mode`         | `SelectionMode \| None`                                       | Can be `MULTIPLE` to allow multiple selection or `SINGLE` to not allow it.                                                                                                                                                                                                          |

@@ -30,7 +30,6 @@ function UITable({
   alwaysFetchColumns,
   table: exportedTable,
   showSearch: showSearchBar,
-  canSearch,
   showQuickFilters,
 }: UITableProps): JSX.Element | null {
   const dh = useApi();
@@ -121,8 +120,7 @@ function UITable({
       ({
         mouseHandlers,
         alwaysFetchColumns,
-        showSearchBar: canSearch && showSearchBar,
-        canToggleSearch: canSearch,
+        showSearchBar,
         sorts: hydratedSorts,
         quickFilters: hydratedQuickFilters,
         isFilterBarShown: showQuickFilters,
@@ -132,7 +130,6 @@ function UITable({
       mouseHandlers,
       alwaysFetchColumns,
       showSearchBar,
-      canSearch,
       showQuickFilters,
       hydratedSorts,
       hydratedQuickFilters,

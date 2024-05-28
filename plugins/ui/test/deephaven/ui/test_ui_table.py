@@ -77,36 +77,6 @@ class UITableTestCase(BaseTestCase):
             },
         )
 
-    def test_can_search(self):
-        import deephaven.ui as ui
-
-        t = ui.table(self.source)
-
-        self.expect_render(
-            t,
-            {
-                "canSearch": True,
-            },
-        )
-
-        t = ui.table(self.source, can_search=True)
-
-        self.expect_render(
-            t,
-            {
-                "canSearch": True,
-            },
-        )
-
-        t = ui.table(self.source, can_search=False)
-
-        self.expect_render(
-            t,
-            {
-                "canSearch": False,
-            },
-        )
-
     def test_quick_filters(self):
         import deephaven.ui as ui
 
