@@ -8,7 +8,7 @@ from ..components.spectrum.events import (
     StaticColor,
 )
 from ..elements import Element, BaseElement
-from ..types import ActionGroupDensity, SelectedKeys, SelectionMode, ActionKey, Key
+from ..types import ActionGroupDensity, SelectedKeys, SelectionMode, Key
 from .spectrum.layout import (
     AlignSelf,
     CSSProperties,
@@ -38,7 +38,7 @@ def action_group(
     selected_keys: SelectedKeys | Iterable[str] | None = None,
     default_selected_keys: SelectedKeys | Iterable[str] | None = None,
     on_action: Callable[[str], None] | None = None,
-    on_change: Callable[[ActionKey, Key], None] | None = None,
+    on_change: Callable[[Key], None] | None = None,
     on_selection_change: Callable[[str], None] | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: Number | None = None,
