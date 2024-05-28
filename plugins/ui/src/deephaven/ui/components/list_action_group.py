@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 from numbers import Number
-from typing import Callable, Iterable, Union
+from typing import Callable, Iterable
 
-from .item import ItemElement
+from .item import Item
 from ..elements import BaseElement, Element
 from ..types import (
-    Stringable,
     Key,
     ActionKey,
     ActionGroupDensity,
@@ -25,12 +24,11 @@ from .spectrum.layout import (
 )
 from .spectrum.events import ButtonLabelBehavior, Orientation, StaticColor
 
-ActionGroupItem = Union[Stringable, ItemElement]
 ListActionGroupElement = Element
 
 
 def list_action_group(
-    *children: ActionGroupItem,
+    *children: Item,
     on_action: Callable[[ActionKey, Key], None] | None = None,
     on_selection_change: Callable[[Selection, Key], None] | None = None,
     on_change: Callable[[Selection, Key], None] | None = None,
