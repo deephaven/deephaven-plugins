@@ -18,16 +18,18 @@ function TextField(props: DHCTextFieldProps): JSX.Element {
   } = props;
 
   const [value, setValue] = useState(propValue ?? defaultValue);
+  const [prevPropValue, setPrevPropValue] = useState(propValue);
+
+  // update state when propValue changes
+  if (propValue !== prevPropValue) {
+    setPrevPropValue(propValue);
+    setValue(propValue ?? defaultValue);
+  }
 
   const debouncedOnChange = useDebouncedCallback(
     propOnChange,
     VALUE_CHANGE_DEBOUNCE
   );
-
-  // update state when propValue changes
-  useEffect(() => {
-    setValue(propValue ?? defaultValue);
-  }, [propValue, defaultValue]);
 
   const onChange = useCallback(
     newValue => {
