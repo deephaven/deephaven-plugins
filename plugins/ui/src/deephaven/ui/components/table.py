@@ -21,8 +21,9 @@ def table(
     on_column_press: ColumnPressCallback | None = None,
     on_column_double_press: ColumnPressCallback | None = None,
     quick_filters: dict[ColumnName, QuickFilterExpression] | None = None,
-    show_search: bool | None = None,
-    show_quick_filters: bool | None = None,
+    show_search: bool = False,
+    can_search: bool = True,
+    show_quick_filters: bool = False,
 ) -> UITable:
     """
     Customization to how a table is displayed, how it behaves, and listen to UI events.
@@ -46,6 +47,7 @@ def table(
         on_column_double_press: The callback function to run when a column is double clicked.
             The first parameter is the column name.
         show_search: Whether to show the search bar by default.
+        can_search: Whether the user can display and use the search bar at all.
         quick_filters: The quick filters to apply to the table. Dictionary of column name to filter value.
         show_quick_filters: Whether to show the quick filter bar by default.
     """

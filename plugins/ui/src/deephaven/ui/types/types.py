@@ -100,7 +100,6 @@ QuickFilterExpression = str
 RowData = Dict[ColumnName, Any]
 ColumnData = List[Any]
 TableData = Dict[ColumnName, ColumnData]
-SearchMode = Literal["SHOW", "HIDE", "DEFAULT"]
 SelectionArea = Literal["CELL", "ROW", "COLUMN"]
 SelectionMode = Literal["SINGLE", "MULTIPLE"]
 Sentinel = Any
