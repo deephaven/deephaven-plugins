@@ -116,17 +116,18 @@ function UITable({
     ]
   );
 
-  const irisGridProps: Partial<IrisGridProps> = useMemo(
-    () => ({
-      mouseHandlers,
-      alwaysFetchColumns,
-      showSearchBar,
-      canSearch,
-      sorts: hydratedSorts,
-      quickFilters: hydratedQuickFilters,
-      isFilterBarShown: showQuickFilters,
-      settings,
-    }),
+  const irisGridProps = useMemo(
+    () =>
+      ({
+        mouseHandlers,
+        alwaysFetchColumns,
+        showSearchBar: canSearch && showSearchBar,
+        canToggleSearch: canSearch,
+        sorts: hydratedSorts,
+        quickFilters: hydratedQuickFilters,
+        isFilterBarShown: showQuickFilters,
+        settings,
+      }) satisfies Partial<IrisGridProps>,
     [
       mouseHandlers,
       alwaysFetchColumns,
