@@ -155,7 +155,6 @@ def action_group(
     return BaseElement(
         "deephaven.ui.components.ActionGroup",
         *children,
-        on_change=on_change,
         is_emphasized=is_emphasized,
         density=density,
         is_justified=is_justified,
@@ -172,6 +171,7 @@ def action_group(
         selected_keys=selected_keys,
         default_selected_keys=default_selected_keys,
         on_action=on_action,
+        on_change=on_change,
         on_selection_change=on_selection_change,
         flex=flex,
         flex_grow=flex_grow,
