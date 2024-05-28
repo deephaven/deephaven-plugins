@@ -124,7 +124,6 @@ Stringable = Union[str, int, float, bool]
 Key = Stringable
 ActionKey = Key
 SelectedKeys = Literal["all"]
-SelectedKeys = Literal["all"]
 LocalDate = DType
 Instant = DType
 ZonedDateTime = DType
