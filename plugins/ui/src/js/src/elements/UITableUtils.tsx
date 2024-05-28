@@ -32,8 +32,9 @@ export interface UITableProps {
   alwaysFetchColumns?: string[];
   quickFilters?: Record<string, string>;
   sorts?: DehydratedSort[];
-  showSearch?: boolean;
-  showQuickFilters?: boolean;
+  showSearch: boolean;
+  canSearch: boolean;
+  showQuickFilters: boolean;
   [key: string]: unknown;
 }
 
