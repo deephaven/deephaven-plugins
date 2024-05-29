@@ -25,11 +25,12 @@ function UITable({
   onColumnDoublePress,
   onRowPress,
   onRowDoublePress,
-  canSearch,
-  filters,
+  quickFilters,
   sorts,
   alwaysFetchColumns,
   table: exportedTable,
+  showSearch: showSearchBar,
+  showQuickFilters,
 }: UITableProps): JSX.Element | null {
   const dh = useApi();
   const [model, setModel] = useState<IrisGridModel>();
@@ -47,12 +48,16 @@ function UITable({
   }, [columns, utils, sorts]);
 
   const hydratedQuickFilters = useMemo(() => {
-    if (filters !== undefined && model !== undefined && columns !== undefined) {
-      log.debug('Hydrating filters', filters);
+    if (
+      quickFilters !== undefined &&
+      model !== undefined &&
+      columns !== undefined
+    ) {
+      log.debug('Hydrating filters', quickFilters);
 
       const dehydratedQuickFilters: DehydratedQuickFilter[] = [];
 
-      Object.entries(filters).forEach(([columnName, filter]) => {
+      Object.entries(quickFilters).forEach(([columnName, filter]) => {
         const columnIndex = model.getColumnIndexByName(columnName);
         if (columnIndex !== undefined) {
           dehydratedQuickFilters.push([columnIndex, { text: filter }]);
@@ -62,7 +67,7 @@ function UITable({
       return utils.hydrateQuickFilters(columns, dehydratedQuickFilters);
     }
     return undefined;
-  }, [filters, model, columns, utils]);
+  }, [quickFilters, model, columns, utils]);
 
   // Just load the object on mount
   useEffect(() => {
@@ -110,19 +115,22 @@ function UITable({
     ]
   );
 
-  const irisGridProps: Partial<IrisGridProps> = useMemo(
-    () => ({
-      mouseHandlers,
-      alwaysFetchColumns,
-      showSearchBar: canSearch,
-      sorts: hydratedSorts,
-      quickFilters: hydratedQuickFilters,
-      settings,
-    }),
+  const irisGridProps = useMemo(
+    () =>
+      ({
+        mouseHandlers,
+        alwaysFetchColumns,
+        showSearchBar,
+        sorts: hydratedSorts,
+        quickFilters: hydratedQuickFilters,
+        isFilterBarShown: showQuickFilters,
+        settings,
+      }) satisfies Partial<IrisGridProps>,
     [
       mouseHandlers,
       alwaysFetchColumns,
-      canSearch,
+      showSearchBar,
+      showQuickFilters,
       hydratedSorts,
       hydratedQuickFilters,
       settings,
