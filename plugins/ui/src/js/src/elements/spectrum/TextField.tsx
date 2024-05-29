@@ -1,9 +1,9 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   TextField as DHCTextField,
   TextFieldProps as DHCTextFieldProps,
 } from '@deephaven/components';
-import { useDebouncedCallback } from '@deephaven/react-hooks';
+import { useDebouncedCallback, usePrevious } from '@deephaven/react-hooks';
 
 const VALUE_CHANGE_DEBOUNCE = 250;
 
@@ -18,18 +18,15 @@ function TextField(props: DHCTextFieldProps): JSX.Element {
   } = props;
 
   const [value, setValue] = useState(propValue ?? defaultValue);
-  const prevPropValue = useRef(propValue);
-  const pendingUpdate = useRef(false);
+  const prevPropValue = usePrevious(propValue);
 
   if (
-    propValue !== prevPropValue.current &&
+    propValue !== prevPropValue &&
     propValue !== value &&
-    !pendingUpdate.current
+    propValue !== undefined
   ) {
-    setValue(propValue ?? defaultValue);
+    setValue(propValue);
   }
-
-  prevPropValue.current = propValue; // Always up to date after the check and doesn't trigger a re-render if the prop matches the current value
 
   const debouncedOnChange = useDebouncedCallback(
     propOnChange,
@@ -38,10 +35,8 @@ function TextField(props: DHCTextFieldProps): JSX.Element {
 
   const onChange = useCallback(
     newValue => {
-      pendingUpdate.current = true;
       setValue(newValue);
       debouncedOnChange(newValue);
-      pendingUpdate.current = false;
     },
     [debouncedOnChange]
   );
