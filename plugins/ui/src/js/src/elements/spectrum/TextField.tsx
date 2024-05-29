@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   TextField as DHCTextField,
   TextFieldProps as DHCTextFieldProps,
@@ -18,13 +18,18 @@ function TextField(props: DHCTextFieldProps): JSX.Element {
   } = props;
 
   const [value, setValue] = useState(propValue ?? defaultValue);
-  const [prevPropValue, setPrevPropValue] = useState(propValue);
+  const prevPropValue = useRef(propValue);
+  const pendingUpdate = useRef(false);
 
-  // update state when propValue changes
-  if (propValue !== prevPropValue) {
-    setPrevPropValue(propValue);
+  if (
+    propValue !== prevPropValue.current &&
+    propValue !== value &&
+    !pendingUpdate.current
+  ) {
     setValue(propValue ?? defaultValue);
   }
+
+  prevPropValue.current = propValue; // Always up to date after the check and doesn't trigger a re-render if the prop matches the current value
 
   const debouncedOnChange = useDebouncedCallback(
     propOnChange,
@@ -33,8 +38,10 @@ function TextField(props: DHCTextFieldProps): JSX.Element {
 
   const onChange = useCallback(
     newValue => {
+      pendingUpdate.current = true;
       setValue(newValue);
       debouncedOnChange(newValue);
+      pendingUpdate.current = false;
     },
     [debouncedOnChange]
   );
