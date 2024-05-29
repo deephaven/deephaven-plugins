@@ -62,6 +62,8 @@ function WidgetHandler({
   initialData: initialDataProp,
 }: WidgetHandlerProps): JSX.Element | null {
   const { widget, error: widgetError } = useWidget(descriptor);
+
+  log.debug2('xxx WidgetHandler', descriptor, widget, widgetError);
   const [document, setDocument] = useState<ReactNode>();
 
   // We want to update the initial data if the widget changes, as we'll need to re-fetch the widget and want to start with a fresh state.
