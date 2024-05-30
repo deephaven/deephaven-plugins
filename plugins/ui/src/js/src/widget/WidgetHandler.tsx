@@ -33,6 +33,7 @@ import {
   WidgetError,
   METHOD_DOCUMENT_ERROR,
   METHOD_DOCUMENT_UPDATED,
+  isWidgetError,
 } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
 import { getComponentForElement } from './WidgetUtils';
@@ -71,10 +72,17 @@ function WidgetHandler({
   const initialData = useMemo(() => initialDataProp, [widget]);
   const [internalError, setInternalError] = useState<WidgetError>();
 
-  const error = useMemo(
-    () => internalError ?? widgetError,
-    [internalError, widgetError]
-  );
+  const error = useMemo(() => {
+    if (internalError != null) {
+      return internalError;
+    }
+
+    if (isWidgetError(widgetError)) {
+      return widgetError;
+    }
+
+    return undefined;
+  }, [internalError, widgetError]);
 
   // When we fetch a widget, the client is then responsible for the exported objects.
   // These objects could stay alive even after the widget is closed if we wanted to,

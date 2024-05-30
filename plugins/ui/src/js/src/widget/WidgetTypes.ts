@@ -25,6 +25,10 @@ export type ReadonlyWidgetData = Readonly<WidgetData>;
 /** Contains an update for widget data. Only the keys that are updated are passed. */
 export type WidgetDataUpdate = Partial<ReadonlyWidgetData>;
 
+export function isWidgetError(value: unknown): value is WidgetError {
+  return typeof value === 'object' && value !== null && 'message' in value;
+}
+
 /** Widget error details */
 export type WidgetError = {
   /** Message to display of the error */
