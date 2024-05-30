@@ -4,7 +4,7 @@ title: Box Plot
 
 A box plot, also known as a box-and-whisker plot, is a data visualization that presents a summary of a dataset's distribution. It displays key statistics such as the median, quartiles, and potential outliers, making it a useful tool for visually representing the central tendency and variability of data.
 
-Advantages that make box plots a valuable tool in data visualization and statistical analysis are:
+Box plots are useful for:
 
 1. **Visualizing Spread and Center**: Box plots provide a clear representation of the spread and central tendency of data, making it easy to understand the distribution's characteristics.
 2. **Identification of Outliers**: They are effective in identifying outliers within a dataset, helping to pinpoint data points that deviate significantly from the norm.

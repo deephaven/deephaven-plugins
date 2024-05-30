@@ -1,4 +1,4 @@
-# Contibuting to our plotting docs
+# Contributing to our plotting docs
 
 ## Goal
 

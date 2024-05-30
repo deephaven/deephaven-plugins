@@ -4,7 +4,7 @@ title: 3D Scatter Plot
 
 A 3D scatter plot is a type of data visualization that displays data points in three-dimensional space. Each data point is represented as a marker or point, and its position in the plot is determined by the values of three different variables, one for each axis (x, y, and z). This plot allows for the visualization of relationships and patterns among three continuous variables simultaneously.
 
-A 3D scatter plot is useful in several ways:
+A 3D scatter plot is useful for:
 
 1. **Visualizing Multivariate Data**: When you have three variables of interest, a 3D scatter plot allows you to visualize and explore their relationships in a single plot. It enables you to see how changes in one variable affect the other two, providing a more comprehensive understanding of the data.
 2. **Identifying Clusters and Patterns**: In some datasets, 3D scatter plots can reveal clusters or patterns that might not be evident in 2D scatter plots. The added dimensionality can help identify complex structures and relationships that exist in the data.

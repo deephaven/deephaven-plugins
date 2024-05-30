@@ -8,7 +8,7 @@ Interpreting a candlestick chart involves understanding the visual representatio
 
 In a bullish (upward, typically shown as green) candlestick, the open is typically at the bottom of the body, and the close is at the top, indicating a price increase. In a bearish (downward, typically shown as red) candlestick, the open is at the top of the body, and the close is at the bottom, suggesting a price decrease. One can use these patterns, along with the length of the wicks and the context of adjacent candlesticks, to analyze trends.
 
-Candlestick charts are particularly useful when:
+Candlestick plots are useful for:
 
 1. **Analyzing Financial Markets**: They are a standard tool in technical analysis for understanding price movements, identifying trends, and potential reversal points in financial markets, such as stocks, forex, and cryptocurrencies.
 2. **Short to Medium-Term Trading**: Candlestick patterns are well-suited for short to medium-term trading strategies, where timely decisions are based on price patterns and trends over a specific time frame.
