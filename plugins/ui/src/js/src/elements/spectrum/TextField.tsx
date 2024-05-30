@@ -3,6 +3,7 @@ import {
   TextField as DHCTextField,
   TextFieldProps as DHCTextFieldProps,
 } from '@deephaven/components';
+import Log from '@deephaven/log';
 import { useDebouncedCallback, usePrevious } from '@deephaven/react-hooks';
 
 const VALUE_CHANGE_DEBOUNCE = 250;
@@ -35,8 +36,12 @@ function TextField(props: TextFieldProps): JSX.Element {
   }
 
   const propDebouncedOnChange = useCallback(
-    (newValue: string) => {
-      propOnChange(newValue);
+    async (newValue: string) => {
+      try {
+        await propOnChange(newValue);
+      } catch (e) {
+        Log.warn('Error returned from onChange', e);
+      }
       setPending(false);
     },
     [propOnChange]
@@ -49,8 +54,8 @@ function TextField(props: TextFieldProps): JSX.Element {
 
   const onChange = useCallback(
     (newValue: string) => {
-      debouncedOnChange(newValue);
       setPending(true);
+      debouncedOnChange(newValue);
       setValue(newValue);
     },
     [debouncedOnChange]
