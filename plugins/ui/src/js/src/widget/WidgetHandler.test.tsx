@@ -1,11 +1,9 @@
 import React from 'react';
 import { act, render } from '@testing-library/react';
 import { useWidget } from '@deephaven/jsapi-bootstrap';
-import { dh } from '@deephaven/jsapi-types';
 import WidgetHandler, { WidgetHandlerProps } from './WidgetHandler';
 import { DocumentHandlerProps } from './DocumentHandler';
 import {
-  makeDocumentUpdatedJsonRpcString,
   makeWidget,
   makeWidgetDescriptor,
   makeWidgetEventDocumentUpdated,
@@ -64,9 +62,8 @@ it('updates the document when event is received', async () => {
   mockWidgetWrapper = {
     widget: makeWidget({
       addEventListener: mockAddEventListener,
-      getDataAsString: jest.fn(() =>
-        makeDocumentUpdatedJsonRpcString(initialDocument)
-      ),
+      getDataAsString: jest.fn(() => ''),
+      sendMessage: mockSendMessage,
     }),
     error: null,
   };
@@ -128,12 +125,7 @@ it('updates the document when event is received', async () => {
   expect(cleanup).toHaveBeenCalledTimes(1);
 });
 
-it('updates the initial data only when fetch has changed', async () => {
-  let fetchResolve1: (value: dh.Widget | PromiseLike<dh.Widget>) => void;
-  const fetchPromise1 = new Promise<dh.Widget>(resolve => {
-    fetchResolve1 = resolve;
-  });
-  const fetch1 = jest.fn(() => fetchPromise1);
+it('updates the initial data only when widget has changed', async () => {
   const widget1 = makeWidgetDescriptor();
   const cleanup = jest.fn();
   const addEventListener = jest.fn(() => cleanup);
@@ -141,32 +133,24 @@ it('updates the initial data only when fetch has changed', async () => {
   const onClose = jest.fn();
   const data1 = { state: { fiz: 'baz' } };
   const document1 = { foo: 'bar' };
-  const widgetObject1 = makeWidget({
-    addEventListener,
-    getDataAsString: jest.fn(() => ''),
-    sendMessage,
-  });
+  mockWidgetWrapper = {
+    widget: makeWidget({
+      addEventListener,
+      getDataAsString: jest.fn(() => ''),
+      sendMessage,
+    }),
+    error: null,
+  };
 
   const { rerender, unmount } = render(
     makeWidgetHandler({
       widget: widget1,
-      fetch: fetch1,
       initialData: data1,
       onClose,
     })
   );
-  expect(fetch1).toHaveBeenCalledTimes(1);
-  expect(addEventListener).not.toHaveBeenCalled();
-  expect(mockDocumentHandler).not.toHaveBeenCalled();
-  expect(sendMessage).not.toHaveBeenCalled();
-  await act(async () => {
-    fetchResolve1!(widgetObject1);
-    await fetchPromise1;
-  });
-
   expect(addEventListener).toHaveBeenCalledTimes(1);
   expect(mockDocumentHandler).not.toHaveBeenCalled();
-
   expect(sendMessage).toHaveBeenCalledWith(
     JSON.stringify({
       jsonrpc: '2.0',
@@ -197,54 +181,43 @@ it('updates the initial data only when fetch has changed', async () => {
     })
   );
 
-  let fetchResolve2: (value: dh.Widget | PromiseLike<dh.Widget>) => void;
-  const fetchPromise2 = new Promise<dh.Widget>(resolve => {
-    fetchResolve2 = resolve;
-  });
-  const widget2 = makeWidgetDescriptor();
-  const document2 = { FOO: 'BAR' };
   const data2 = { state: { FIZ: 'BAZ' } };
-  const fetch2 = jest.fn(() => fetchPromise2);
-  const widgetObject2 = makeWidget({
-    addEventListener,
-    getDataAsString: jest.fn(() => ''),
-    sendMessage,
-  });
 
   addEventListener.mockClear();
   mockDocumentHandler.mockClear();
   sendMessage.mockClear();
-  fetch1.mockClear();
 
   // Re-render with just initial data change. It should not set the state again
   rerender(
     makeWidgetHandler({
       widget: widget1,
-      fetch: fetch1,
       initialData: data2,
       onClose,
     })
   );
 
-  expect(fetch1).not.toHaveBeenCalled();
   expect(sendMessage).not.toHaveBeenCalled();
+
+  const widget2 = makeWidgetDescriptor();
+  const document2 = { FOO: 'BAR' };
+  mockWidgetWrapper = {
+    widget: makeWidget({
+      addEventListener,
+      getDataAsString: jest.fn(() => ''),
+      sendMessage,
+    }),
+    error: null,
+  };
 
   // Re-render with the widget descriptor changed, it should set the state with the updated data
   rerender(
     makeWidgetHandler({
       widget: widget2,
-      fetch: fetch2,
       initialData: data2,
       onClose,
     })
   );
 
-  await act(async () => {
-    fetchResolve2!(widgetObject2);
-    await fetchPromise2;
-  });
-
-  expect(fetch2).toHaveBeenCalledTimes(1);
   // Should have been called when the widget was updated
   expect(cleanup).toHaveBeenCalledTimes(1);
   cleanup.mockClear();
