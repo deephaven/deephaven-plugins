@@ -19,7 +19,9 @@ class UITableTestCase(BaseTestCase):
         context = RenderContext(on_change, on_queue)
         result = ui_table.render(context)
 
-        self.assertDictEqual(result, expected_props)
+        # Can replace 2nd param with result | expected_props after dropping Python 3.8
+        # https://stackoverflow.com/questions/20050913/python-unittests-assertdictcontainssubset-recommended-alternative
+        self.assertDictEqual(result, {**result, **expected_props})
 
     def test_empty_ui_table(self):
         import deephaven.ui as ui
@@ -39,7 +41,6 @@ class UITableTestCase(BaseTestCase):
         self.expect_render(
             t,
             {
-                "table": self.source,
                 "onRowDoublePress": callback,
             },
         )
@@ -54,7 +55,6 @@ class UITableTestCase(BaseTestCase):
         self.expect_render(
             t,
             {
-                "table": self.source,
                 "alwaysFetchColumns": ["X"],
             },
         )
@@ -64,7 +64,6 @@ class UITableTestCase(BaseTestCase):
         self.expect_render(
             t,
             {
-                "table": self.source,
                 "alwaysFetchColumns": ["X", "Y"],
             },
         )
@@ -74,95 +73,88 @@ class UITableTestCase(BaseTestCase):
         self.expect_render(
             t,
             {
-                "table": self.source,
                 "alwaysFetchColumns": ["X", "Y"],
             },
         )
 
-    def test_can_search(self):
+    def test_quick_filters(self):
         import deephaven.ui as ui
 
-        ui_table = ui.table(self.source)
-
-        t = ui_table.can_search("SHOW")
+        t = ui.table(self.source, quick_filters={"X": "X > 1"})
 
         self.expect_render(
             t,
             {
-                "table": self.source,
-                "canSearch": True,
+                "quickFilters": {"X": "X > 1"},
             },
         )
 
-        t = ui_table.can_search("HIDE")
+        t = ui.table(self.source, quick_filters={"X": "X > 1", "Y": "Y < 2"})
 
         self.expect_render(
             t,
             {
-                "table": self.source,
-                "canSearch": False,
+                "quickFilters": {"X": "X > 1", "Y": "Y < 2"},
             },
         )
 
-        t = ui_table.can_search("DEFAULT")
-
-        self.expect_render(
-            t,
-            {
-                "table": self.source,
-            },
-        )
-
-        t = ui_table.can_search("SHOW").can_search("DEFAULT")
-
-        self.expect_render(
-            t,
-            {
-                "table": self.source,
-            },
-        )
-
-        t = ui_table.can_search("HIDE").can_search("DEFAULT")
-
-        self.expect_render(
-            t,
-            {
-                "table": self.source,
-            },
-        )
-
-    def test_quick_filter(self):
+    def test_show_quick_filters(self):
         import deephaven.ui as ui
 
-        ui_table = ui.table(self.source)
-
-        t = ui_table.quick_filter({"X": "X > 1"})
+        t = ui.table(self.source)
 
         self.expect_render(
             t,
             {
-                "table": self.source,
-                "filters": {"X": "X > 1"},
+                "showQuickFilters": False,
             },
         )
 
-        t = ui_table.quick_filter({"X": "X > 1"}).quick_filter({"X": "X > 2"})
+        t = ui.table(self.source, show_quick_filters=True)
 
         self.expect_render(
             t,
             {
-                "table": self.source,
-                "filters": {"X": "X > 2"},
+                "showQuickFilters": True,
             },
         )
 
-        t = ui_table.quick_filter({"X": "X > 1", "Y": "Y < 2"})
+        t = ui.table(self.source, show_quick_filters=False)
 
         self.expect_render(
             t,
             {
-                "table": self.source,
-                "filters": {"X": "X > 1", "Y": "Y < 2"},
+                "showQuickFilters": False,
+            },
+        )
+
+    def test_show_search(self):
+        import deephaven.ui as ui
+
+        t = ui.table(self.source)
+
+        self.expect_render(
+            t,
+            {
+                "showSearch": False,
+            },
+        )
+
+        t = ui.table(self.source, show_search=True)
+
+        self.expect_render(
+            t,
+            {
+                "showSearch": True,
+            },
+        )
+
+        t = ui.table(self.source, show_search=False)
+
+        self.expect_render(
+            t,
+            {
+                "showSearch": False,
             },
         )
 
@@ -176,7 +168,6 @@ class UITableTestCase(BaseTestCase):
         self.expect_render(
             t,
             {
-                "table": self.source,
                 "sorts": [{"column": "X", "direction": "ASC", "is_abs": False}],
             },
         )
@@ -185,7 +176,6 @@ class UITableTestCase(BaseTestCase):
         self.expect_render(
             t,
             {
-                "table": self.source,
                 "sorts": [{"column": "X", "direction": "DESC", "is_abs": False}],
             },
         )
@@ -208,7 +198,6 @@ class UITableTestCase(BaseTestCase):
         self.expect_render(
             t,
             {
-                "table": self.source,
                 "sorts": [
                     {"column": "X", "direction": "ASC", "is_abs": False},
                     {"column": "Y", "direction": "DESC", "is_abs": False},
@@ -221,7 +210,6 @@ class UITableTestCase(BaseTestCase):
         self.expect_render(
             t,
             {
-                "table": self.source,
                 "sorts": [
                     {"column": "X", "direction": "DESC", "is_abs": False},
                     {"column": "Y", "direction": "ASC", "is_abs": False},

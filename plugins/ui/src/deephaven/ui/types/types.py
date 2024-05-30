@@ -1,7 +1,18 @@
 import datetime
 import pandas
 import numpy
-from typing import Any, Dict, Literal, Union, List, Tuple, Callable, TypedDict, Sequence
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    Literal,
+    Union,
+    List,
+    Tuple,
+    Callable,
+    TypedDict,
+    Sequence,
+)
 from deephaven import SortDirection
 from deephaven.dtypes import DType
 
@@ -100,17 +111,18 @@ QuickFilterExpression = str
 RowData = Dict[ColumnName, Any]
 ColumnData = List[Any]
 TableData = Dict[ColumnName, ColumnData]
-SearchMode = Literal["SHOW", "HIDE", "DEFAULT"]
 SelectionArea = Literal["CELL", "ROW", "COLUMN"]
 SelectionMode = Literal["SINGLE", "MULTIPLE"]
 Sentinel = Any
 TransformedData = Any
+ActionMenuDirection = Literal["bottom", "top", "left", "right", "start", "end"]
 StringSortDirection = Literal["ASC", "DESC"]
 TableSortDirection = Union[StringSortDirection, SortDirection]
 # Stringable is a type that is naturally convertible to a string
 Stringable = Union[str, int, float, bool]
 Key = Stringable
 ActionKey = Key
+SelectedKeys = Literal["all"]
 LocalDate = DType
 Instant = DType
 ZonedDateTime = DType
@@ -139,7 +151,8 @@ Date = Union[
     ZonedDateTimeConvertible,
 ]
 Granularity = Literal["DAY", "HOUR", "MINUTE", "SECOND"]
-Density = Literal["COMPACT", "NORMAL", "SPACIOUS"]
+ListViewDensity = Literal["COMPACT", "NORMAL", "SPACIOUS"]
+ActionGroupDensity = Literal["compact", "regular"]
 TabDensity = Literal["compact", "regular"]
 Dependencies = Union[Tuple[Any], List[Any]]
 Selection = Sequence[Key]

@@ -16,7 +16,6 @@ from .Element import Element
 from ..types import (
     ColumnName,
     AggregationOperation,
-    SearchMode,
     QuickFilterExpression,
     Color,
     ContextMenuAction,
@@ -58,11 +57,6 @@ def remap_sort_direction(direction: TableSortDirection | str) -> Literal["ASC", 
 
 
 class UITableProps(TypedDict):
-    can_search: NotRequired[bool]
-    """
-    Whether the search bar is accessible or not. Use the system default if no value set.
-    """
-
     on_row_press: NotRequired[RowPressCallback]
     """
     Callback function to run when a row is clicked.
@@ -190,7 +184,9 @@ class UITable(Element):
             A new UITable with the passed in prop added to the existing props
         """
         logger.debug("_with_dict_prop(%s, %s)", key, value)
-        existing = self._props.get(key, {})
+        existing = (
+            self._props.get(key) or {}
+        )  # Turn missing or explicit None into empty dict
         return UITable(**{**self._props, key: {**existing, **value}})  # type: ignore
 
     def render(self, context: RenderContext) -> dict[str, Any]:
@@ -249,29 +245,6 @@ class UITable(Element):
             A new UITable
         """
         raise NotImplementedError()
-
-    def can_search(self, mode: SearchMode) -> "UITable":
-        """
-        Set the search bar to explicitly be accessible or inaccessible, or use the system default.
-
-        Args:
-            mode: Set the search bar to explicitly be accessible or inaccessible,
-                or use the system default.
-
-        Returns:
-            A new UITable
-        """
-        if mode == "SHOW":
-            return self._with_prop("can_search", True)
-        elif mode == "HIDE":
-            return self._with_prop("can_search", False)
-        elif mode == "DEFAULT":
-            new = self._with_prop("can_search", None)
-            # pop current can_search value if it exists
-            new._props.pop("can_search", None)
-            return new
-
-        raise ValueError(f"Invalid search mode: {mode}")
 
     def column_group(
         self, name: str, children: list[str], color: str | None
@@ -476,20 +449,6 @@ class UITable(Element):
             stacklevel=2,
         )
         return self._with_prop("on_row_double_press", callback)
-
-    def quick_filter(
-        self, filter: dict[ColumnName, QuickFilterExpression]
-    ) -> "UITable":
-        """
-        Add a quick filter for the UI to apply to the table.
-
-        Args:
-            filter: The quick filter to apply to the table.
-
-        Returns:
-            A new UITable
-        """
-        return self._with_dict_prop("filters", filter)
 
     def selection_mode(self, mode: SelectionMode) -> "UITable":
         """

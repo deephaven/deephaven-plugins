@@ -9,7 +9,7 @@ import {
   wrapElementChildren,
 } from './ElementUtils';
 import ObjectView from './ObjectView';
-import { ITEM_ELEMENT_NAME } from './ElementConstants';
+import { ELEMENT_NAME } from './ElementConstants';
 
 const { asMock, createMockProxy } = TestUtils;
 
@@ -136,7 +136,7 @@ describe('wrapElementChildren', () => {
             : textValue;
 
         const expected = {
-          [ELEMENT_KEY]: ITEM_ELEMENT_NAME,
+          [ELEMENT_KEY]: ELEMENT_NAME.item,
           props: {
             key: itemKey ?? textValue,
             textValue: expectedTextValue,
@@ -145,7 +145,7 @@ describe('wrapElementChildren', () => {
         };
 
         const actual = wrapElementChildren({
-          [ELEMENT_KEY]: ITEM_ELEMENT_NAME,
+          [ELEMENT_KEY]: ELEMENT_NAME.item,
           props: givenProps,
         });
 

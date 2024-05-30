@@ -9,4 +9,5 @@ from .flex import *
 from .date_picker import *
 from .tabs import *
 from .combo_box import *
+from .layout import *
 from .tabs import *

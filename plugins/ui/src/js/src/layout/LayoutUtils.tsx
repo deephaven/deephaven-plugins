@@ -13,18 +13,7 @@ import Column from './Column';
 import Row from './Row';
 import Stack from './Stack';
 import ReactPanel from './ReactPanel';
-import {
-  ColumnElementType,
-  COLUMN_ELEMENT_NAME,
-  DashboardElementType,
-  DASHBOARD_ELEMENT_NAME,
-  PanelElementType,
-  PANEL_ELEMENT_NAME,
-  RowElementType,
-  ROW_ELEMENT_NAME,
-  StackElementType,
-  STACK_ELEMENT_NAME,
-} from '../elements/ElementConstants';
+import { ElementName, ELEMENT_NAME } from '../elements/ElementConstants';
 
 export type GoldenLayoutParent = RowOrColumn | GLStack | Root;
 
@@ -37,7 +26,10 @@ export type ReactPanelProps = React.PropsWithChildren<{
  * Describes a panel element that can be rendered in the UI.
  * Will be placed in the current dashboard, or within a user created dashboard if specified.
  */
-export type PanelElementNode = ElementNode<PanelElementType, ReactPanelProps>;
+export type PanelElementNode = ElementNode<
+  ElementName['panel'],
+  ReactPanelProps
+>;
 
 /**
  * Check if an object is a PanelElementNode
@@ -47,7 +39,7 @@ export type PanelElementNode = ElementNode<PanelElementType, ReactPanelProps>;
 export function isPanelElementNode(obj: unknown): obj is PanelElementNode {
   return (
     isElementNode(obj) &&
-    (obj as ElementNode)[ELEMENT_KEY] === PANEL_ELEMENT_NAME
+    (obj as ElementNode)[ELEMENT_KEY] === ELEMENT_NAME.panel
   );
 }
 
@@ -58,7 +50,7 @@ export type RowElementProps = React.PropsWithChildren<{
 /**
  * Describes a row element that can be rendered in the UI.
  */
-export type RowElementNode = ElementNode<RowElementType, RowElementProps>;
+export type RowElementNode = ElementNode<ElementName['row'], RowElementProps>;
 
 /**
  * Check if an object is a RowElementNode
@@ -67,7 +59,7 @@ export type RowElementNode = ElementNode<RowElementType, RowElementProps>;
  */
 export function isRowElementNode(obj: unknown): obj is RowElementNode {
   return (
-    isElementNode(obj) && (obj as ElementNode)[ELEMENT_KEY] === ROW_ELEMENT_NAME
+    isElementNode(obj) && (obj as ElementNode)[ELEMENT_KEY] === ELEMENT_NAME.row
   );
 }
 
@@ -79,7 +71,7 @@ export type ColumnElementProps = React.PropsWithChildren<{
  * Describes a column element that can be rendered in the UI.
  */
 export type ColumnElementNode = ElementNode<
-  ColumnElementType,
+  ElementName['column'],
   ColumnElementProps
 >;
 
@@ -91,7 +83,7 @@ export type ColumnElementNode = ElementNode<
 export function isColumnElementNode(obj: unknown): obj is ColumnElementNode {
   return (
     isElementNode(obj) &&
-    (obj as ElementNode)[ELEMENT_KEY] === COLUMN_ELEMENT_NAME
+    (obj as ElementNode)[ELEMENT_KEY] === ELEMENT_NAME.column
   );
 }
 
@@ -104,7 +96,10 @@ export type StackElementProps = React.PropsWithChildren<{
 /**
  * Describes a stack element that can be rendered in the UI.
  */
-export type StackElementNode = ElementNode<StackElementType, StackElementProps>;
+export type StackElementNode = ElementNode<
+  ElementName['stack'],
+  StackElementProps
+>;
 
 /**
  * Check if an object is a StackElementNode
@@ -114,7 +109,7 @@ export type StackElementNode = ElementNode<StackElementType, StackElementProps>;
 export function isStackElementNode(obj: unknown): obj is StackElementNode {
   return (
     isElementNode(obj) &&
-    (obj as ElementNode)[ELEMENT_KEY] === STACK_ELEMENT_NAME
+    (obj as ElementNode)[ELEMENT_KEY] === ELEMENT_NAME.stack
   );
 }
 
@@ -126,7 +121,7 @@ export type DashboardElementProps = React.PropsWithChildren<
  * Describes a dashboard element that can be rendered in the UI.
  */
 export type DashboardElementNode = ElementNode<
-  DashboardElementType,
+  ElementName['dashboard'],
   DashboardElementProps
 >;
 
@@ -140,7 +135,7 @@ export function isDashboardElementNode(
 ): obj is DashboardElementNode {
   return (
     isElementNode(obj) &&
-    (obj as ElementNode)[ELEMENT_KEY] === DASHBOARD_ELEMENT_NAME
+    (obj as ElementNode)[ELEMENT_KEY] === ELEMENT_NAME.dashboard
   );
 }
 

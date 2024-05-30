@@ -1,41 +1,46 @@
 from __future__ import annotations
-
 from numbers import Number
-from typing import Callable, Iterable, Union
+from typing import Any, Callable, Iterable
 
 
-from .item import Item
-from ..elements import BaseElement, Element
-from ..types import Key, ActionKey, ActionMenuDirection
+from ..components.spectrum.events import (
+    ButtonLabelBehavior,
+    Orientation,
+    StaticColor,
+)
+from ..elements import Element, BaseElement
+from ..types import ActionGroupDensity, SelectedKeys, SelectionMode, Key, Selection
 from .spectrum.layout import (
     AlignSelf,
-    Alignment,
     CSSProperties,
     DimensionValue,
     JustifySelf,
     LayoutFlex,
+    OverflowMode,
     Position,
 )
-from .spectrum.events import TriggerType
-
-ListActionMenuElement = Element
 
 
-def list_action_menu(
-    *children: Item,
-    on_action: Callable[[ActionKey, Key], None] | None = None,
-    on_open_change: Callable[[bool, Key], None] | None = None,
-    is_disabled: bool | None = None,
+def action_group(
+    *children: Any,
+    is_emphasized: bool | None = None,
+    density: ActionGroupDensity | None = "regular",
+    is_justified: bool | None = None,
     is_quiet: bool | None = None,
-    auto_focus: bool | None = None,
-    disabled_keys: Iterable[Key] | None = None,
-    align: Alignment | None = "start",
-    direction: ActionMenuDirection | None = "bottom",
-    should_flip: bool | None = True,
-    close_on_select: bool | None = True,
-    trigger: TriggerType | None = "press",
-    is_open: bool | None = None,
-    default_open: bool | None = None,
+    static_color: StaticColor | None = None,
+    overflow_mode: OverflowMode | None = "wrap",
+    button_label_behavior: ButtonLabelBehavior | None = "show",
+    summary_icon: Element | None = None,
+    orientation: Orientation | None = "horizontal",
+    disabled_keys: Iterable[str] | None = None,
+    is_disabled: bool | None = None,
+    selection_mode: SelectionMode | None = None,
+    disallow_empty_selection: bool | None = None,
+    selected_keys: SelectedKeys | Iterable[str] | None = None,
+    default_selected_keys: SelectedKeys | Iterable[str] | None = None,
+    on_action: Callable[[str], None] | None = None,
+    on_change: Callable[[Key], None] | None = None,
+    on_selection_change: Callable[[Selection], None] | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: Number | None = None,
     flex_shrink: Number | None = None,
@@ -45,11 +50,11 @@ def list_action_menu(
     order: Number | None = None,
     grid_area: str | None = None,
     grid_row: str | None = None,
-    grid_row_start: str | None = None,
-    grid_row_end: str | None = None,
     grid_column: str | None = None,
     grid_column_start: str | None = None,
     grid_column_end: str | None = None,
+    grid_row_start: str | None = None,
+    grid_row_end: str | None = None,
     margin: DimensionValue | None = None,
     margin_top: DimensionValue | None = None,
     margin_bottom: DimensionValue | None = None,
@@ -66,10 +71,10 @@ def list_action_menu(
     position: Position | None = None,
     top: DimensionValue | None = None,
     bottom: DimensionValue | None = None,
-    start: DimensionValue | None = None,
-    end: DimensionValue | None = None,
     left: DimensionValue | None = None,
     right: DimensionValue | None = None,
+    start: DimensionValue | None = None,
+    end: DimensionValue | None = None,
     z_index: Number | None = None,
     is_hidden: bool | None = None,
     id: str | None = None,
@@ -79,28 +84,31 @@ def list_action_menu(
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
-) -> ListActionMenuElement:
+) -> Element:
     """
-    A menu of action buttons that can be used to create a list of actions.
-    This component should be used within the actions prop of a `ui.list_view` component.
-
+    An action grouping of action items that are related to each other.
     Args:
-        *children: The options to render within the list_action_menu.
-        on_action: Handler that is called when an item is selected.
-            The first argument is the key of the action, the second argument is the key of the list_view item.
-        on_open_change: Handler that is called when the menu is opened or closed.
-            The first argument is a boolean indicating if the menu is open, the second argument is the key of the list_view item.
-        is_disabled: Whether the button is disabled.
-        is_quiet: Whether the button should be displayed with a quiet style.
-        auto_focus: Whether the element should receive focus on render.
-        disabled_keys: The item keys that are disabled. These items cannot be selected, focused, or otherwise interacted with.
-        align: Alignment of the menu relative to the trigger.
-        direction: Where the Menu opens relative to its trigger.
-        should_flip: Whether the menu should automatically flip direction when space is limited.
-        close_on_select: Whether the Menu closes when a selection is made.
-        trigger: How the menu is triggered.
-        is_open: Whether the overlay is open by default (controlled).
-        default_open: Whether the overlay is open by default (uncontrolled).
+        *children: The children of the contextual help popover.
+        is_emphasized: Whether the action buttons should be displayed with emphasized style.
+        density: Sets the amount of space between buttons.
+        is_justified: Whether the ActionButtons should be justified in their container.
+        is_quiet: Whether ActionButtons should use the quiet style.
+        static_color: The static color style to apply. Useful when the ActionGroup appears over a color background.
+        overflow_mode: The behavior of the ActionGroup when the buttons do not fit in the available space.
+        button_label_behaviour: Defines when the text within the buttons should be hidden and only the icon should be shown.
+        summary_icon: The icon displayed in the dropdown menu button when a selectable ActionGroup is collapsed.
+        orientation: The axis the ActionGroup should align with.
+        disabled_keys: A list of keys to disable.
+        is_disabled: Whether the ActionGroup is disabled. Shows that a selection exists, but is not available in that circumstance.
+        selection_mode: The type of selection that is allowed in the collection.
+        disallow_empty_selection: Whether the collection allows empty selection.
+        selected_keys: The currently selected keys in the collection (controlled).
+        default_selected_keys: The initial selected keys in the collection (uncontrolled).
+        on_action: Invoked when an action is taken on a child. Especially useful when selectionMode is none. The sole argument key is the key for the item.
+        on_change: Alias of on_selection_change.
+            Handler that is called when the selection changes.
+            The first argument is the selection, the second argument is the key of the list_view item.
+        on_selection_change: Handler that is called when the selection changes.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -144,26 +152,28 @@ def list_action_menu(
         aria-details: Identifies the element (or elements) that provide a detailed, extended description for the object.
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
-    Returns:
-        A ListActionMenu that can be used within the actions prop of a `ui.list_view` component.
     """
-
     return BaseElement(
-        "deephaven.ui.components.ListActionMenu",
+        "deephaven.ui.components.ActionGroup",
         *children,
-        on_action=on_action,
-        on_open_change=on_open_change,
-        is_disabled=is_disabled,
+        is_emphasized=is_emphasized,
+        density=density,
+        is_justified=is_justified,
         is_quiet=is_quiet,
-        auto_focus=auto_focus,
+        static_color=static_color,
+        overflow_mode=overflow_mode,
+        button_label_behavior=button_label_behavior,
+        summary_icon=summary_icon,
+        orientation=orientation,
         disabled_keys=disabled_keys,
-        align=align,
-        direction=direction,
-        should_flip=should_flip,
-        close_on_select=close_on_select,
-        trigger=trigger,
-        is_open=is_open,
-        default_open=default_open,
+        is_disabled=is_disabled,
+        selection_mode=selection_mode,
+        disallow_empty_selection=disallow_empty_selection,
+        selected_keys=selected_keys,
+        default_selected_keys=default_selected_keys,
+        on_action=on_action,
+        on_change=on_change,
+        on_selection_change=on_selection_change,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
@@ -173,11 +183,11 @@ def list_action_menu(
         order=order,
         grid_area=grid_area,
         grid_row=grid_row,
-        grid_row_start=grid_row_start,
-        grid_row_end=grid_row_end,
         grid_column=grid_column,
         grid_column_start=grid_column_start,
         grid_column_end=grid_column_end,
+        grid_row_start=grid_row_start,
+        grid_row_end=grid_row_end,
         margin=margin,
         margin_top=margin_top,
         margin_bottom=margin_bottom,
@@ -194,10 +204,10 @@ def list_action_menu(
         position=position,
         top=top,
         bottom=bottom,
-        start=start,
-        end=end,
         left=left,
         right=right,
+        start=start,
+        end=end,
         z_index=z_index,
         is_hidden=is_hidden,
         id=id,

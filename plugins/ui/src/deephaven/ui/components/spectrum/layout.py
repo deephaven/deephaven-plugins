@@ -104,6 +104,10 @@ JustifySelf = Literal[
     "stretch",
 ]
 
+OverflowMode = Literal["wrap", "collapse"]
+
+Alignment = Literal["start", "end"]
+
 Number = Union[int, float]
 
 LayoutFlex = Union[str, Number, bool]
