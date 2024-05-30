@@ -73,6 +73,7 @@ def tabs(
     selected_key: Key | None = None,
     default_selected_key: Key | None = None,
     on_selection_change: Callable[[Key], None] | None = None,
+    on_change: Callable[[Key], None] | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: Number | None = None,
     flex_shrink: Number | None = None,
@@ -116,8 +117,8 @@ def tabs(
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
-    tab_list_props: TabPanelListProps | None = None,
-    tab_panel_props: TabPanelListProps | None = None,
+    list_props: TabPanelListProps | None = None,
+    panel_props: TabPanelListProps | None = None,
 ):
     """
     Python implementation for the Adobe React Spectrum Tabs component.
@@ -136,6 +137,8 @@ def tabs(
         selected_key: The currently selected key in the collection (controlled).
         default_selected_key: The initial selected key in the collection (uncontrolled).
         on_selection_change: Callback for when the selected key changes.
+        on_change:
+            Alias of `on_selection_change`. Handler that is called when the selection changes.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -189,7 +192,7 @@ def tabs(
         disallow_empty_selection=disallow_empty_selection,
         selected_key=selected_key,
         default_selected_key=default_selected_key,
-        on_selection_change=on_selection_change,
+        on_selection_change=on_selection_change if on_selection_change else on_change,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
@@ -233,6 +236,6 @@ def tabs(
         aria_details=aria_details,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
-        tab_list_props=tab_list_props,
-        tab_panel_props=tab_panel_props,
+        list_props=list_props,
+        panel_props=panel_props,
     )

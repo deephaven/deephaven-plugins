@@ -2602,15 +2602,17 @@ ul = user_list()
 
 ## New implementation of Tabs
 
-Potential example of how new tabs component could be implemented, no longer needing to specify tab_list and tab_panels.
+The tabs component will now be more flexible in how it can be used, with two main options.
 
-Some Key Information: 
+The user can specify tabs by passing in `ui.tab_panels` and `ui.tab_list` components or can specify tabs using `ui.item`'s
+
+### Key Information: 
 
 To specify keys for tabs, we can pass in a key prop (as done in Tab 3), or it will automatically default to the text_value.
 
 To have a title with both an ui.icon and text, we have to pass in a ui.flex / ui.item containing both.
 
-A key is required, if not provided, it is set by default to the title
+A key is required, if not provided, it will either be set to the title (if the title is a string), or a generated key (ie. Key 2)
 
 ```python
 from deephaven import empty_table, ui
@@ -2627,7 +2629,7 @@ def tabs_test_1():
         # Should render a tab with the title "Tab 2" with "Content 2" as tab content, keyed "Key 2"
         ui.item("Content 2", title="Tab 2", key="Key 2"),
         # Example 1c: Content that contains a flex, showing that our content does not have to be a string
-        # Should render a tab with the title "Tab 3" with "Hello World" header above a table as the tab content
+        # Should render a tab with the title "Tab 3" with "Hello World" header with a table beside it as the tab content
         # Given that the key is not provided, the title "Tab 3" defaults as the key
         ui.item(
             ui.flex(
@@ -2643,7 +2645,7 @@ def tabs_test_1():
     )
 
 
-t = tabs_test()
+t = tabs_test_1()
 
 # Example 2: Tab with on_change callback
 @ui.component
@@ -2658,27 +2660,20 @@ def tabs_test_2():
 
 t2 = tabs_test_2()
 
-# Example 3: Tabs with custom tab list props and tab panelprops
+# Example 3: Tabs with tab_panels and tab_list passed in
 @ui.component
-def tabs_test_3():
+def tab_test_3():
     return ui.tabs(
-        # Should render a tabs component with custom properties for the tab list and the tab panel
-        ui.item("Content 1", title="Tab 1", key=""),
-        ui.item("Content 2", title="Tab 2", key="Key 2"),
-        list_props={
-            min_width: "200px",
-            min_height: "50px",
-            max_width: "500px",
-            max_height: "200px",
-        },
-        panel_props={
-            aria_label: "Tab panel",
-            aria_labelled_by: "TabPanelLabel",
-            aria_described_by: "TabPanelDescription",
-            aria_details: "TabPanelDetails",
-            UNSAFE_class_name: "TabPanelClassName",
-            UNSAFE_style: {"backgroundColor": "blue"},
-        },
+        # Should render a Tab with a title of "Tab 1", with a content of "Content 1", keyed "Key 1"
+        # But will not, given the raising of a KeyError, since there are mismatching keys for "Tab 2"
+        ui.tab_list(ui.item("Tab 1", key="Key 1"), ui.item("Tab 2", key="Key 2")),
+        ui.tab_panels(
+            ui.item("Content 3", key="Key 1"),
+            ui.item("Content 2", key="Key 3"),
+            flex_grow=1,
+            position="relative",
+        ),
+        flex_grow=1,
     )
 
 
@@ -2702,36 +2697,24 @@ def tabs_test_4():
     #         ui.item("Content 2", title="Tab 2", key="Key 1"),
     #     )
 
+    # Example 4c: Combination of ui.item and ui.tab_panels and ui.tab_list
+    # Should cause an error since the user should either pass in items or pass in tab panels and tab lists when specifying tabs, not both
 
-# Example 5: Mock up of combined approach, where ui.item is a "short-form way" to create a tab
-@ui.component
-def tabs_test_5():
-    return ui.tabs(
-        # While suggested in Github ticket comment thread, I see a couple of issues with this approach:
-        # 1. Can cause confusion for users in terms of what is the "proper" way to create tabs
-        # 2a. Will lead to use having to keep the existing tab_panels and tab_list implementation, while creating a seperate tabs implementation that takes item
-        # 2b. Unsure how we will have these two "combine", since the ui.item under the hood is creating a TabPanel and TabList with the info, so it may be problematic to have 2
-        # TabPanels and TabList component under one Tabs component
-        # 3. Passing in props becomes difficult as well, since we can pass in props into the tab_list and tab_panels, but then those props should somehow also apply the tab
-        # outlined by the ui.item, and vice-versa
-        # Should render a tabs component with twp tabs, one outlined by the ui.item, and one specified by the combination of tab_panels and tab_list
-        ui.item("Content 1", title="Tab 1", key="Key 1"),
-        ui.tab_list(ui.item("Tab 2", key="Key 2")),
-        ui.tab_panels(
-            ui.item(
-                ui.flex(
-                    "Content 2",
-                    ui.flex(
-                        empty_table(10).update("I=i"), flex_grow=1, direction="column"
-                    ),
-                ),
-                key="Key 2",
-            ),
-        ),
-    )
-
-
-t3 = tabs_test_3()
+    # return ui.tabs(
+    #     ui.item("Content 1", title="Tab 1", key="Key 1"),
+    #     ui.tab_list(ui.item("Tab 2", key="Key 2")),
+    #     ui.tab_panels(
+    #         ui.item(
+    #             ui.flex(
+    #                 "Content 2",
+    #                 ui.flex(
+    #                     empty_table(10).update("I=i"), flex_grow=1, direction="column"
+    #                 ),
+    #             ),
+    #             key="Key 2",
+    #         ),
+    #     ),
+    # )
 ```
 
 
