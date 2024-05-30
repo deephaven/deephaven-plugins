@@ -7,15 +7,17 @@ import { useDebouncedCallback, usePrevious } from '@deephaven/react-hooks';
 
 const VALUE_CHANGE_DEBOUNCE = 250;
 
+const EMPTY_FUNCTION = () => undefined;
+
 interface TextFieldProps extends DHCTextFieldProps {
-  onChange: (value: string) => Promise<void>;
+  onChange?: (value: string) => Promise<void>;
 }
 
 function TextField(props: TextFieldProps): JSX.Element {
   const {
     defaultValue = '',
     value: propValue,
-    onChange: propOnChange,
+    onChange: propOnChange = EMPTY_FUNCTION,
     ...otherProps
   } = props;
 
