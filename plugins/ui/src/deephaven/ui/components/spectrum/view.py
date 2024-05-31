@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Any, Callable
 from .events import (
+    ElementTypes,
     StaticColor,
 )
 from .layout import (
@@ -21,8 +22,7 @@ from ...elements import Element
 
 def view(
     *children: Any,
-    element_type: str
-    | Any = None,  # double check for this. Can take string or JSXElementConstructor<any>
+    element_type: ElementTypes | None = None,
     color_version: ColorVersion = 5,
     flex: LayoutFlex | None = None,
     flex_grow: Number | None = None,
@@ -67,8 +67,8 @@ def view(
     border_bottom_width: BorderSize | None = None,
     border_x_width: BorderSize | None = None,
     border_y_width: BorderSize | None = None,
-    # not any color seems to work. Needs to be their theme
-    border_color: StaticColor | None = None,
+    border_color: StaticColor
+    | None = None,  # not any color seems to work. Needs to be their theme
     border_start_color: StaticColor | None = None,
     border_end_color: StaticColor | None = None,
     border_top_color: StaticColor | None = None,
