@@ -29,13 +29,13 @@ jest.mock(
 );
 
 function makeWidgetHandler({
-  widget = makeWidgetDescriptor(),
+  widgetDescriptor: widget = makeWidgetDescriptor(),
   onClose = jest.fn(),
   initialData = undefined,
 }: Partial<WidgetHandlerProps> = {}) {
   return (
     <WidgetHandler
-      widget={widget}
+      widgetDescriptor={widget}
       onClose={onClose}
       initialData={initialData}
     />
@@ -68,7 +68,9 @@ it('updates the document when event is received', async () => {
     error: null,
   };
 
-  const { unmount } = render(makeWidgetHandler({ widget, initialData }));
+  const { unmount } = render(
+    makeWidgetHandler({ widgetDescriptor: widget, initialData })
+  );
   expect(mockAddEventListener).toHaveBeenCalledTimes(1);
   expect(mockDocumentHandler).not.toHaveBeenCalled();
 
@@ -144,7 +146,7 @@ it('updates the initial data only when widget has changed', async () => {
 
   const { rerender, unmount } = render(
     makeWidgetHandler({
-      widget: widget1,
+      widgetDescriptor: widget1,
       initialData: data1,
       onClose,
     })
@@ -190,7 +192,7 @@ it('updates the initial data only when widget has changed', async () => {
   // Re-render with just initial data change. It should not set the state again
   rerender(
     makeWidgetHandler({
-      widget: widget1,
+      widgetDescriptor: widget1,
       initialData: data2,
       onClose,
     })
@@ -212,7 +214,7 @@ it('updates the initial data only when widget has changed', async () => {
   // Re-render with the widget descriptor changed, it should set the state with the updated data
   rerender(
     makeWidgetHandler({
-      widget: widget2,
+      widgetDescriptor: widget2,
       initialData: data2,
       onClose,
     })

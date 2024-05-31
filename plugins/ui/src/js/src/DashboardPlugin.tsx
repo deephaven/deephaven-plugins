@@ -280,7 +280,7 @@ export function DashboardPlugin(
         >
           <DeferredApiBootstrap widget={wrapper.widget}>
             <DashboardWidgetHandler
-              widget={wrapper.widget}
+              widgetDescriptor={wrapper.widget}
               id={wrapper.id}
               initialData={wrapper.data}
               onDataChange={handleWidgetDataChange}

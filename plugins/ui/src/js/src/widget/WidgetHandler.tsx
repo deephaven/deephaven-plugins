@@ -44,7 +44,7 @@ const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
 export interface WidgetHandlerProps {
   /** Widget for this to handle */
-  widget: WidgetDescriptor;
+  widgetDescriptor: WidgetDescriptor;
 
   /** Widget data to display */
   initialData?: ReadonlyWidgetData;
@@ -59,12 +59,12 @@ export interface WidgetHandlerProps {
 function WidgetHandler({
   onClose,
   onDataChange = EMPTY_FUNCTION,
-  widget: descriptor,
+  widgetDescriptor,
   initialData: initialDataProp,
 }: WidgetHandlerProps): JSX.Element | null {
-  const { widget, error: widgetError } = useWidget(descriptor);
+  const { widget, error: widgetError } = useWidget(widgetDescriptor);
 
-  log.debug2('xxx WidgetHandler', descriptor, widget, widgetError);
+  log.debug2('WidgetHandler', widgetDescriptor, widget, widgetError);
   const [document, setDocument] = useState<ReactNode>();
 
   // We want to update the initial data if the widget changes, as we'll need to re-fetch the widget and want to start with a fresh state.
@@ -344,7 +344,7 @@ function WidgetHandler({
       renderedDocument != null ? (
         <ReactPanelContentOverlayContext.Provider value={contentOverlay}>
           <DocumentHandler
-            widget={descriptor}
+            widget={widgetDescriptor}
             initialData={initialData}
             onDataChange={onDataChange}
             onClose={onClose}
@@ -355,7 +355,7 @@ function WidgetHandler({
       ) : null,
     [
       contentOverlay,
-      descriptor,
+      widgetDescriptor,
       renderedDocument,
       initialData,
       onClose,
