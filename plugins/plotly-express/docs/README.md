@@ -5,10 +5,6 @@ title: How to use Deephaven Express
 
 [Deephaven Express](https://github.com/deephaven/deephaven-plugin-plotly-express) is a powerful plotting library built on top of [Plotly Express](https://plotly.com/python/plotly-express/) that enhances its capabilities by adding support for real-time Deephaven tables, automatic downsampling, and server-side data grouping and aggregation using the Deephaven query engine. This library seamlessly integrates real-time data from Deephaven with the interactive and expressive visualizations of Plotly Express, allowing you to easily plot or aggregate millions of data points.
 
-:::caution
-Please note these docs are under active development. We will continue adding examples and descriptions in the coming months. 
-:::
-
 ## Features
 
 - **Real-Time Deephaven Tables**: Deephaven Plotly Express enables direct integration with real-time Deephaven tables, allowing you to visualize and analyze data as it updates in real time.
