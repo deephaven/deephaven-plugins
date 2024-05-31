@@ -1,9 +1,7 @@
 from __future__ import annotations
 from numbers import Number
-from typing import Any, Callable, Iterable, TypedDict
+from typing import Any, Callable, Iterable
 
-
-from ...elements import BaseElement
 
 from .events import KeyboardActivationType, Orientation
 from .layout import (
@@ -16,48 +14,6 @@ from .layout import (
 )
 from ...types import Key, TabDensity
 from .basic import spectrum_element
-
-
-class TabPanelListProps(TypedDict, total=False):
-    flex: LayoutFlex | None
-    flex_grow: Number | None
-    flex_shrink: Number | None
-    flex_basis: DimensionValue | None
-    align_self: AlignSelf | None
-    justify_self: JustifySelf | None
-    order: Number | None
-    grid_area: str | None
-    grid_row: str | None
-    grid_column: str | None
-    grid_row_start: str | None
-    grid_row_end: str | None
-    grid_column_start: str | None
-    grid_column_end: str | None
-    margin: DimensionValue | None
-    margin_top: DimensionValue | None
-    margin_bottom: DimensionValue | None
-    margin_start: DimensionValue | None
-    margin_end: DimensionValue | None
-    margin_x: DimensionValue | None
-    margin_y: DimensionValue | None
-    width: DimensionValue | None
-    height: DimensionValue | None
-    min_width: DimensionValue | None
-    min_height: DimensionValue | None
-    max_width: DimensionValue | None
-    max_height: DimensionValue | None
-    position: Position | None
-    top: DimensionValue | None
-    bottom: DimensionValue | None
-    left: DimensionValue | None
-    right: DimensionValue | None
-    start: DimensionValue | None
-    end: DimensionValue | None
-    z_index: Number | None
-    is_hidden: bool | None
-    id: str | None
-    UNSAFE_class_name: str | None
-    UNSAFE_style: CSSProperties | None
 
 
 def tabs(
@@ -117,8 +73,6 @@ def tabs(
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
-    list_props: TabPanelListProps | None = None,
-    panel_props: TabPanelListProps | None = None,
 ):
     """
     Python implementation for the Adobe React Spectrum Tabs component.
@@ -176,8 +130,6 @@ def tabs(
         aria_details: Identifies the element (or elements) that provide a detailed, extended description for the object.
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
-        tab_list_props: The props for the tab list.
-        tab_panel_props: The props for the tab panels.
     """
     return spectrum_element(
         "Tabs",
@@ -236,6 +188,4 @@ def tabs(
         aria_details=aria_details,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
-        list_props=list_props,
-        panel_props=panel_props,
     )
