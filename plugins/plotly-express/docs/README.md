@@ -5,6 +5,10 @@ title: How to use Deephaven Express
 
 [Deephaven Express](https://github.com/deephaven/deephaven-plugin-plotly-express) is a powerful plotting library built on top of [Plotly Express](https://plotly.com/python/plotly-express/) that enhances its capabilities by adding support for real-time Deephaven tables, automatic downsampling, and server-side data grouping and aggregation using the Deephaven query engine. This library seamlessly integrates real-time data from Deephaven with the interactive and expressive visualizations of Plotly Express, allowing you to easily plot or aggregate millions of data points.
 
+:::caution
+Please note these docs are under active development. We will continue adding examples and descriptions in the coming months. 
+:::
+
 ## Features
 
 - **Real-Time Deephaven Tables**: Deephaven Plotly Express enables direct integration with real-time Deephaven tables, allowing you to visualize and analyze data as it updates in real time.
@@ -35,12 +39,14 @@ This page contains a collection of links to examples demonstrating 24 different 
 [![Box plot](_assets/plot_icons/box.svg)](box.md)
 [![Violin plot](_assets/plot_icons/violin.svg)](violin.md)
 [![Strip plot](_assets/plot_icons/strip.svg)](strip.md)
-[![ECDF plot](_assets/plot_icons/ecdf.svg)](ecdf.md)
 
 ### Financial Plots
 
 [![Candlestick](_assets/plot_icons/candlestick.svg)](candlestick.md)
 [![OHLC](_assets/plot_icons/ohlc.svg)](ohlc.md)
+
+### Hierarchical Plots
+
 [![Treemap](_assets/plot_icons/treemap.svg)](treemap.md)
 [![Icicle](_assets/plot_icons/icicle.svg)](icicle.md)
 [![Sunburst](_assets/plot_icons/sunburst.svg)](sunburst.md)
