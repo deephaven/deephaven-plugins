@@ -134,7 +134,7 @@ scatter_plot_color_column = dx.scatter(
 
 ### Symbols by group
 
-Symbols can be statically assigned, assigned to a group as part of a `parition_by` operation drawing from a sequence, or from a map. See the symbol list for all available symbols.
+Symbols can be statically assigned, assigned to a group as part of a `partition_by` operation drawing from a sequence, or from a map. See the symbol list for all available symbols.
 
 <!-- TODO: link to symbol list -->
 

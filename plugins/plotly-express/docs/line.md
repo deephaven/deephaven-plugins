@@ -16,20 +16,20 @@ Here are some reasons why you might choose to use a line plot over other types o
 
 ### A basic line plot
 
-Visualize the relationship between two variables. Defined as an x and y pair supplied using column names.
+Visualize the relationship between two variables. Column names are passed in directly as `x` and `y`.
 
 ```python order=line_plot,my_table
 import deephaven.plot.express as dx
 my_table = dx.data.stocks() # import the example stock market data set
 dog_prices = my_table.where("sym = `DOG`")
 
-# Create a basic scatter plot by specifying the x and y column
+# Create a basic line plot by specifying the x and y column
 line_plot = dx.line(dog_prices, x="timestamp", y="price")
 ```
 
 ### Color line plot by group
 
-Plot values by group. The query engine performs a `parition_by` on the column provide to the color argument and assigns a unique color to each group.
+Plot values by group. The query engine performs a `partition_by` on the column provide to the color argument and assigns a unique color to each group.
 
 ```python order=line_plot,mytable
 import deephaven.plot.express as dx
@@ -87,7 +87,7 @@ scatter_plot_color_column = dx.scatter(
 
 ### Symbols by group
 
-Symbols can be statically assigned, assigned to a group as part of a `parition_by` operation drawing from a sequence, or from a map. See the symbol list for all available symbols.
+Symbols can be statically assigned, assigned to a group as part of a `partition_by` operation drawing from a sequence, or from a map. See the symbol list for all available symbols.
 
 <!-- TODO: link to symbol list -->
 
@@ -297,7 +297,7 @@ scatter_stocks = dx.scatter(
     stocks_table,
     x="timestamp",
     y="price",
-    # Parition color by sym
+    # Partition color by sym
     color="sym",
     # Apply each trace to a different axis
     yaxis_sequence=[1, 2],
