@@ -13,6 +13,6 @@ Candlestick plots are useful for:
 1. **Analyzing Financial Markets**: They are a standard tool in technical analysis for understanding price movements, identifying trends, and potential reversal points in financial markets, such as stocks, forex, and cryptocurrencies.
 2. **Short to Medium-Term Trading**: Candlestick patterns are well-suited for short to medium-term trading strategies, where timely decisions are based on price patterns and trends over a specific time frame.
 3. **Pattern Recognition**: They aid in recognizing and interpreting common candlestick patterns, which can provide insights into market sentiment and potential price movements.
-4. **Visualizing Price Data**: Candlestick charts offer a visually intuitive way to represent price data, making them valuable for traders and analysts who prefer a visual approach to data analysis.
+4. **Visualizing Variation in Price Data**: Candlestick charts offer a visually intuitive way to represent variability in price data, making them valuable for traders and analysts who prefer a visual approach to data analysis.
 
 ## Examples

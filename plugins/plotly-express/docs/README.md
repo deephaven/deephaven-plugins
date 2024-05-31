@@ -35,12 +35,14 @@ This page contains a collection of links to examples demonstrating 24 different 
 [![Box plot](_assets/plot_icons/box.svg)](box.md)
 [![Violin plot](_assets/plot_icons/violin.svg)](violin.md)
 [![Strip plot](_assets/plot_icons/strip.svg)](strip.md)
-[![ECDF plot](_assets/plot_icons/ecdf.svg)](ecdf.md)
 
 ### Financial Plots
 
 [![Candlestick](_assets/plot_icons/candlestick.svg)](candlestick.md)
 [![OHLC](_assets/plot_icons/ohlc.svg)](ohlc.md)
+
+### Hierarchical Plots
+
 [![Treemap](_assets/plot_icons/treemap.svg)](treemap.md)
 [![Icicle](_assets/plot_icons/icicle.svg)](icicle.md)
 [![Sunburst](_assets/plot_icons/sunburst.svg)](sunburst.md)
