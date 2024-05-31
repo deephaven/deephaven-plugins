@@ -1269,6 +1269,114 @@ picker7 = ui.picker(
 )
 ```
 
+###### ui.tabs
+
+A tabs component can be used to organize content in a collection of tabs, allowing users to navigating between the different tabs. Children (the tabs) can be specified in one of two ways:
+
+1. They can be of type `Item`, where each item represents an individual tab panel
+2. They can be of types `TabList` and `TabPanels`, which when combined, outline all tabs and the respective contents
+
+###### Parameters
+
+| Parameter               | Type                                  | Description                                                                                                                                                    |
+| ----------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `*children`             | `Item \| TabList \| TabPanels`        | The tab panels to render within the tabs component.                                                                                                                                                                                               |
+| `on_change`             | `Callable[[Key], None] \| None` | Alias of `on_selection_change`. Handler that is called when the tab selection changes.                                                                            |
+| `**props`               | `Any`                                 | Any other [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html) prop 
+|
+
+```py
+from deephaven import empty_table, ui
+from deephaven.plot import express as dx
+
+# Elementary Cases
+ui.tabs(
+    # Title and content passed in as string literals
+    # Should render a tab with the title "Tab 1" with "Content 1" as tab content, that given no key passed, would be set to "Tab 1 Key"
+    ui.item("Content 1", title="Tab 1"),
+
+    # Title, key, and content passed in as string literals
+    # Should render a tab with the title "Tab 2" with "Content 2" as tab content, keyed "Key 2"
+    ui.item("Content 2", title="Tab 2", key="Key 2"),
+
+    # Content passed in that contains a flex, illustrating that tab content does not have to be a string
+    # Should render a tab with the title "Tab 3" with "Hello World" header with a table beside it as the tab content
+    # Given that the key is not provided, the title "Tab 3" defaults as the key
+    ui.item(
+        ui.flex(
+            "Hello World!",
+            ui.flex(empty_table(10).update("I=i")),
+        ),
+        title="Tab 3",
+        key="Key 3",
+    ),
+
+    # Tab with text and icon as title
+    # Should render "Content 4" in a tab called "<GITHUB LOGO> Tab 4", keyed "<GITHUB LOGO> Tab 4 Key"
+    ui.item("Content 4", title=ui.item("Tab 3", ui.icon("vsGithubAlt")))
+)
+
+# Tab with on_change callback
+ui.tabs(
+    # Should render a tabs that have an on_change, which prints the selected tab key when a tab is selected
+    ui.item("Content 1", title="Tab 1", key="Key 1"),
+    ui.item("Content 2", title="Tab 2", key="Key 2"),
+    on_change=lambda key: print(f"Selected key: {key}"),
+)
+
+
+# Tabs specified by passing in tab_panels and tab_list
+ui.tabs(
+    # Should render a Tab with a title of "Tab 1", with a content of "Content 1", keyed "Key 1"
+    # But will not, given the raising of a KeyError, since there are mismatching keys for "Tab 2"
+    ui.tab_list(ui.item("Tab 1", key="Key 1"), ui.item("Tab 2", key="Key 2")),
+    ui.tab_panels(
+        ui.item("Content 3", key="Key 1"),
+        ui.item("Content 2", key="Key 3"),
+        flex_grow=1,
+        position="relative",
+    ),
+    flex_grow=1,
+)
+
+# Some error-causing cases
+@ui.component
+def tabs_error_cases():
+    # No tab items passed in
+    # Should cause an error, given that no items are passed into the tabs (cannot have blank tabs)
+
+    return ui.tabs()
+
+    # Tab items with the same keys
+    # Should cause an error if there are identical keys (or at the very least, should have a check tha checks if the key already exists, and if so, sets the second
+    # key to be the title)
+
+    return
+        ui.tabs(
+            ui.item("Content 1", title="Tab 1", key="Key 1"),
+            ui.item("Content 2", title="Tab 2", key="Key 1"),
+        )
+
+    # Combination of ui.item and ui.tab_panels and ui.tab_list
+    # Should cause an error since the user should either pass in items or pass in tab panels and tab lists when specifying tabs, not both
+
+    return ui.tabs(
+        ui.item("Content 1", title="Tab 1", key="Key 1"),
+        ui.tab_list(ui.item("Tab 2", key="Key 2")),
+        ui.tab_panels(
+            ui.item(
+                ui.flex(
+                    "Content 2",
+                    ui.flex(
+                        empty_table(10).update("I=i"), flex_grow=1, direction="column"
+                    ),
+                ),
+                key="Key 2",
+            ),
+        ),
+    )
+```
+
 ###### ui.list_view
 
 A list view that can be used to create a list of items. Children should be one of three types:
