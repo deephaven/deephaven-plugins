@@ -6,6 +6,8 @@ import {
 import Log from '@deephaven/log';
 import { useDebouncedCallback, usePrevious } from '@deephaven/react-hooks';
 
+const log = Log.module('@deephaven/js-plugin-ui/TextField');
+
 const VALUE_CHANGE_DEBOUNCE = 250;
 
 const EMPTY_FUNCTION = () => undefined;
@@ -40,7 +42,7 @@ function TextField(props: TextFieldProps): JSX.Element {
       try {
         await propOnChange(newValue);
       } catch (e) {
-        Log.warn('Error returned from onChange', e);
+        log.warn('Error returned from onChange', e);
       }
       setPending(false);
     },
