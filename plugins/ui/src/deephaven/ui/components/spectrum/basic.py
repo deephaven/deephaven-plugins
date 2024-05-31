@@ -99,11 +99,3 @@ def text(*children, **props):
     https://react-spectrum.adobe.com/react-spectrum/Text.html
     """
     return spectrum_element("Text", *children, **props)
-
-
-def view(*children, **props):
-    """
-    Python implementation for the Adobe React Spectrum View component.
-    https://react-spectrum.adobe.com/react-spectrum/View.html
-    """
-    return spectrum_element("View", *children, **props)
