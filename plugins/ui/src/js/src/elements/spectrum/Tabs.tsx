@@ -10,10 +10,10 @@ import {
 } from '@deephaven/components';
 import { Item, Flex } from '@adobe/react-spectrum';
 import { CollectionChildren } from '@react-types/shared';
+// import useRenderNormalizedItem from '@deephaven/utils';
 
 type TabItemProps = ItemProps<ReactNode> & {
   key: string;
-  title: string;
 };
 
 type TabComponentProps = TabsProps<TabItemProps> & {
@@ -27,6 +27,11 @@ function Tabs(props: TabComponentProps): JSX.Element {
   const { children, tabListProps, tabPanelProps, ...otherTabProps } = props;
 
   const { onSelectionChange, onChange } = otherTabProps;
+
+  // const renderNormalizedItem = useRenderNormalizedItem({
+  //   itemIconSlot: 'icon',
+  //   showItemDescriptions: false,
+  // });
 
   let tabItems;
   let tabPanels;
@@ -90,7 +95,6 @@ function Tabs(props: TabComponentProps): JSX.Element {
             ? child.props.title
             : `Key ${index}`
         }
-        textValue={child.props.title}
       >
         {child.props.title}
       </Item>
