@@ -81,14 +81,14 @@ def iris(ticking: bool = True) -> Table:
     # Get a random gaussian value based on the mean and std of the existing
     # data, where col is the column name ('sepal_length', etc) and index is the
     # row number used as a random seed so that the data is deterministicly generated
-    def get_random_value(col, index, species) -> float:
+    def get_random_value(col: str, index: int, species: str) -> float:
         mean = species_descriptions[col]["mean"][species]
         std = species_descriptions[col]["std"][species]
         random.seed(index)
         return round(random.gauss(mean, std), 1)
 
     # Lookup species_id by index and add one as original dataset is not zero indexed
-    def get_index(species) -> int:
+    def get_index(species: str) -> int:
         return species_list.index(species) + 1
 
     # convert the pandas DataFrame to a Deephaven Table
