@@ -75,6 +75,10 @@ def iris(ticking: bool = True) -> Table:
     # Load the iris dataset and cast the species column to string
     # group it and get the mean and std of each species
     df = px.data.iris().astype({"species": "string"})
+    df_len = len(df)
+    # add index column using pandas, which is faster than an update() call
+    df.insert(0, "index", range(df_len))
+
     grouped_df = df.groupby("species")
     species_descriptions = grouped_df.describe()
 
@@ -92,14 +96,15 @@ def iris(ticking: bool = True) -> Table:
         return species_list.index(species) + 1
 
     # convert the pandas DataFrame to a Deephaven Table
-    source_table = to_table(df).update("index = ii")
+    source_table = to_table(df)
 
     if ticking:
         ticking_table = (
             time_table("PT1S")
             .update(
                 [
-                    "index = ii",
+                    # need an index created before the merge, to use it after
+                    "index = ii + df_len",
                     # pick a random species from the list, using the index as a seed
                     "species = (String)species_list[(int)new Random(ii).nextInt(3)]",
                     "sepal_length = get_random_value(`sepal_length`, ii, species)",
