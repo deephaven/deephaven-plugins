@@ -28,6 +28,7 @@ function TextField(props: TextFieldProps): JSX.Element {
   const [pending, setPending] = useState(false);
   const prevPropValue = usePrevious(propValue);
 
+  // Update local value to new propValue if the server sent a new propValue and no user changes have been queued
   if (
     propValue !== prevPropValue &&
     propValue !== value &&
