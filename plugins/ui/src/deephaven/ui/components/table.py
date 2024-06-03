@@ -23,6 +23,7 @@ def table(
     quick_filters: dict[ColumnName, QuickFilterExpression] | None = None,
     show_quick_filters: bool = False,
     show_search: bool = False,
+    context_actions: list[dict[str, str]] | None = None,
 ) -> UITable:
     """
     Customization to how a table is displayed, how it behaves, and listen to UI events.

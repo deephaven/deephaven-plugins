@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   DehydratedQuickFilter,
   IrisGrid,
+  type IrisGridContextMenuData,
   IrisGridModel,
   IrisGridModelFactory,
   IrisGridProps,
@@ -31,6 +32,7 @@ function UITable({
   table: exportedTable,
   showSearch: showSearchBar,
   showQuickFilters,
+  contextActions,
 }: UITableProps): JSX.Element | null {
   const dh = useApi();
   const [model, setModel] = useState<IrisGridModel>();
@@ -115,6 +117,15 @@ function UITable({
     ]
   );
 
+  const onContextMenu = useCallback(
+    (data: IrisGridContextMenuData) =>
+      contextActions?.map(propAction => ({
+        ...propAction,
+        action: () => propAction.action?.(data),
+      })) ?? [],
+    [contextActions]
+  );
+
   const irisGridProps = useMemo(
     () =>
       ({
@@ -125,6 +136,7 @@ function UITable({
         quickFilters: hydratedQuickFilters,
         isFilterBarShown: showQuickFilters,
         settings,
+        onContextMenu,
       }) satisfies Partial<IrisGridProps>,
     [
       mouseHandlers,
@@ -134,6 +146,7 @@ function UITable({
       hydratedSorts,
       hydratedQuickFilters,
       settings,
+      onContextMenu,
     ]
   );
 

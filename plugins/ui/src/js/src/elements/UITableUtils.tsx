@@ -2,6 +2,7 @@ import type { dh } from '@deephaven/jsapi-types';
 import { ColumnName, DehydratedSort, RowIndex } from '@deephaven/iris-grid';
 import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
 import { ELEMENT_NAME, ElementName } from './ElementConstants';
+import { ContextAction } from '@deephaven/components';
 
 export type CellData = {
   type: string;
@@ -34,6 +35,7 @@ export interface UITableProps {
   sorts?: DehydratedSort[];
   showSearch: boolean;
   showQuickFilters: boolean;
+  contextActions?: ContextAction[];
   [key: string]: unknown;
 }
 
