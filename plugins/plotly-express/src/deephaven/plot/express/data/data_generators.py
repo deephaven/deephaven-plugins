@@ -85,7 +85,7 @@ def iris(ticking: bool = True) -> Table:
         mean = species_descriptions[col]["mean"][species]
         std = species_descriptions[col]["std"][species]
         random.seed(index)
-        return round(random.gauss(mean, std), 1)
+        return round(random.gauss(float(mean), float(std)), 1)
 
     # Lookup species_id by index and add one as original dataset is not zero indexed
     def get_index(species: str) -> int:
