@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import pandas as pd
 from plotly import express as px
-import random, math
+import math
+import random
 
 from deephaven.pandas import to_table
 from deephaven.replay import TableReplayer
@@ -75,21 +76,21 @@ def iris(ticking: bool = True) -> Table:
     # Load the iris dataset and cast the species column to string
     # group it and get the mean and std of each species
     df = px.data.iris().astype({"species": "string"})
-    df_len = len(df)
-    # add index column using pandas, which is faster than an update() call
-    df.insert(0, "index", range(df_len))
-
     grouped_df = df.groupby("species")
     species_descriptions = grouped_df.describe()
+
+    df_len = len(df)
+    # add index column using pandas, which is faster than an update() call
+    df.insert(0, "index", list(range(df_len)))
 
     # Get a random gaussian value based on the mean and std of the existing
     # data, where col is the column name ('sepal_length', etc) and index is the
     # row number used as a random seed so that the data is deterministicly generated
     def get_random_value(col: str, index: int, species: str) -> float:
-        mean = species_descriptions[col]["mean"][species]
-        std = species_descriptions[col]["std"][species]
+        mean = float(species_descriptions[col]["mean"][species])
+        std = float(species_descriptions[col]["std"][species])
         random.seed(index)
-        return round(random.gauss(float(mean), float(std)), 1)
+        return math.round(random.gauss(mean, std), 1)
 
     # Lookup species_id by index and add one as original dataset is not zero indexed
     def get_index(species: str) -> int:
