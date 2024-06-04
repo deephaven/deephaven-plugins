@@ -12,3 +12,9 @@ Area plots are useful for:
 4. **Time Series Analysis**: For time-dependent data, area plots are valuable for displaying changes in categorical contributions and overall trends over time.
 
 ## Examples
+
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.area
+```

@@ -11,3 +11,8 @@ Sunburst plots are useful for:
 3. **Drill-Down Data Exploration**: Developers can implement sunburst plots for drill-down data exploration, allowing users to interactively explore and delve deeper into hierarchical data by clicking on sectors to reveal lower-level categories or information. This use case is valuable in applications that require detailed hierarchical data analysis.
 
 ## Examples
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.sunburst
+```

@@ -133,3 +133,8 @@ scatter_plot_color_column = dx.scatter_3d(
     color_discrete_map="identity"
 )
 ```
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.scatter_3d
+```

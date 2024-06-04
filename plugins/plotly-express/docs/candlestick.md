@@ -16,3 +16,8 @@ Candlestick plots are useful for:
 4. **Visualizing Variation in Price Data**: Candlestick charts offer a visually intuitive way to represent variability in price data, making them valuable for traders and analysts who prefer a visual approach to data analysis.
 
 ## Examples
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.candlestick
+```

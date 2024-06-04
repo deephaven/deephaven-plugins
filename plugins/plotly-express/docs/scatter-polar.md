@@ -11,3 +11,9 @@ Polar scatter plots are useful for:
 3. **Angular or Periodic Data Relationships**: Polar scatter plots aid in exploring relationships and correlations in data with angular or periodic dependencies, making them suitable for applications where understanding circular patterns is essential.
 
 ## Examples
+
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.scatter_polar
+```

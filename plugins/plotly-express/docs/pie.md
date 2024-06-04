@@ -15,3 +15,8 @@ Limitations of pie plots include:
 2. **Comparison Complexity**: Comparing the sizes of slices in a pie plot is less precise than with other chart types, such as bar plots or stacked bar charts. This makes it less suitable for situations where accurate quantitative comparisons are crucial.
 
 ## Examples
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.pie
+```
