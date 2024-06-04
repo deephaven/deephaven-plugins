@@ -1,9 +1,10 @@
 import React from 'react';
 import { SpectrumButton, SpectrumButtonProps } from '@deephaven/components';
-import { SerializedButtonEventProps, useButtonProps } from './useButtonProps';
+import { useButtonProps } from './useButtonProps';
+import { SerializedButtonEventProps } from '../SerializedPropTypes';
 
 function Button(
-  props: SpectrumButtonProps & SerializedButtonEventProps
+  props: SerializedButtonEventProps<SpectrumButtonProps>
 ): JSX.Element {
   const buttonProps = useButtonProps(props);
 
