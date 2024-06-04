@@ -1,8 +1,5 @@
 import React from 'react';
-import {
-  Button as SpectrumButton,
-  SpectrumButtonProps,
-} from '@adobe/react-spectrum';
+import { SpectrumButton, SpectrumButtonProps } from '@deephaven/components';
 import { SerializedButtonEventProps, useButtonProps } from './useButtonProps';
 
 function Button(

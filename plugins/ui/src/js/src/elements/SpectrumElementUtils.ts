@@ -1,8 +1,8 @@
-import { ButtonGroup, Checkbox } from '@adobe/react-spectrum';
 import { ValueOf } from '@deephaven/utils';
 import {
   ActionGroup,
   ActionMenu,
+  ButtonGroup,
   Content,
   ContextualHelp,
   Grid,
@@ -13,6 +13,7 @@ import {
   ListActionGroup,
   ListActionMenu,
   NumberField,
+  SpectrumCheckbox,
   Switch,
   Tabs,
   TabList,
@@ -40,7 +41,6 @@ export const SpectrumSupportedTypes = {
   ActionMenu,
   Button,
   ButtonGroup,
-  Checkbox,
   Content,
   ContextualHelp,
   Flex,
@@ -55,6 +55,7 @@ export const SpectrumSupportedTypes = {
   Item,
   RangeSlider,
   Slider,
+  SpectrumCheckbox,
   Switch,
   Tabs,
   TabList,
