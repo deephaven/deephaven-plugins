@@ -7,10 +7,10 @@ import {
   ItemProps,
   TabListProps,
   TabPanelsProps,
+  useRenderNormalizedItem,
 } from '@deephaven/components';
 import { Item, Flex } from '@adobe/react-spectrum';
 import { CollectionChildren } from '@react-types/shared';
-// import useRenderNormalizedItem from '@deephaven/utils';
 
 type TabItemProps = ItemProps<ReactNode> & {
   key: string;
@@ -28,10 +28,12 @@ function Tabs(props: TabComponentProps): JSX.Element {
 
   const { onSelectionChange, onChange } = otherTabProps;
 
-  // const renderNormalizedItem = useRenderNormalizedItem({
-  //   itemIconSlot: 'icon',
-  //   showItemDescriptions: false,
-  // });
+  const renderNormalizedItem = useRenderNormalizedItem({
+    itemIconSlot: 'icon',
+    showItemDescriptions: false,
+    showItemIcons: true,
+    tooltipOptions: null,
+  });
 
   let tabItems;
   let tabPanels;
@@ -117,6 +119,7 @@ function Tabs(props: TabComponentProps): JSX.Element {
       >
         <Flex height="100%" width="100%" flexGrow={1}>
           {child.props.children}
+          {/* {useRenderNormalizedItem(child.props.children)} */}
         </Flex>
       </Item>
     )
