@@ -1,15 +1,21 @@
 from __future__ import annotations
 
 import pandas as pd
+import numpy as np
+from plotly import express as px
+import math
+import random
+import typing
+
+from deephaven.pandas import to_table
 from deephaven.replay import TableReplayer
 from deephaven.table import Table
-from deephaven import empty_table
+from deephaven import empty_table, time_table, merge
 from deephaven.time import (
     to_j_instant,
     to_pd_timestamp,
 )
 from deephaven.updateby import rolling_sum_tick, ema_tick
-import random, math
 
 SECOND = 1_000_000_000  #: One second in nanoseconds.
 MINUTE = 60 * SECOND  #: One minute in nanoseconds.
@@ -29,7 +35,7 @@ def _cast_timestamp(time: pd.Timestamp | None) -> pd.Timestamp:
     return time
 
 
-def iris(ticking: bool = True, size: int = 300) -> Table:
+def iris(ticking: bool = True) -> Table:
     """
     Returns a ticking version of the 1936 Iris flower dataset.
 
@@ -51,8 +57,6 @@ def iris(ticking: bool = True, size: int = 300) -> Table:
             If true, the table will tick using a replayer starting
             with a third of the table already ticked. If false the
             whole table will be returned as a static table.
-        size:
-            The number of rows to create for the table
 
     Returns:
         A Deephaven Table
@@ -63,68 +67,67 @@ def iris(ticking: bool = True, size: int = 300) -> Table:
 
     Examples:
         ```
-        import deephaven.plot.express as dx
+        from deephaven.plot import express as dx
         iris = dx.data.iris()
         ```
     """
-
-    base_time = to_j_instant("1936-01-01T08:00:00 UTC")
-    pd_base_time = _cast_timestamp(to_pd_timestamp(base_time))
-
     species_list: list[str] = ["setosa", "versicolor", "virginica"]
-    col_ids = {"sepal_length": 0, "sepal_width": 1, "petal_length": 2, "petal_width": 3}
-    # statistical values extracted from the iris data set https://en.wikipedia.org/wiki/Iris_flower_data_set
-    # average [setosa, versicolor, virginica] and [sepal_length, sepal_width, petal_length, petal_width]
-    avg: list[list[float]] = [
-        [5.01, 3.42, 1.46, 0.24],
-        [5.94, 2.77, 4.26, 1.33],
-        [6.59, 2.97, 5.55, 2.03],
-    ]
-    # std [setosa, versicolor, virginica] and [sepal_length, sepal_width, petal_length, petal_width]
-    std: list[list[float]] = [
-        [0.35, 0.38, 0.17, 0.11],
-        [0.52, 0.31, 0.47, 0.20],
-        [0.64, 0.32, 0.55, 0.27],
-    ]
+    # Give this dataset a timestamp column based on original year from this data
+    base_time = to_j_instant("1936-01-01T08:00:00 ET")
 
-    def generate_value(seed: int, species_id: int, col: str) -> float:
-        col_id = col_ids[col]
-        if col_id == 0:
-            random.seed(
-                5001 + seed
-            )  # set seed once per row + offset that made it look nice
-        return round(
-            random.gauss(avg[species_id][col_id], std[species_id][col_id]),
-            1,
-        )
+    # Load the iris dataset and cast the species column to string
+    # group it and get the mean and std of each species
+    df = px.data.iris().astype({"species": "string"})
+    grouped_df = df.groupby("species")
+    species_descriptions = grouped_df.describe()
 
-    static_table = (
-        empty_table(size)
-        .update(
-            [
-                "timestamp = base_time + (long)(ii * SECOND)",
-                "species_id = i % 3",
-                "species = (String)species_list[species_id]",
-                "sepal_length = generate_value(i, species_id,`sepal_length`)",
-                "sepal_width = generate_value(i, species_id, `sepal_width`)",
-                "petal_length = generate_value(i, species_id,`petal_length`)",
-                "petal_width = generate_value(i, species_id, `petal_width`)",
-            ]
-        )
-        .move_columns_down("species_id")
-    )
+    df_len = len(df)
+    # add index column using pandas, which is faster than an update() call
+    df.insert(0, "index", np.ndarray(range(df_len)))
+
+    # Get a random gaussian value based on the mean and std of the existing
+    # data, where col is the column name ('sepal_length', etc) and index is the
+    # row number used as a random seed so that the data is deterministically generated
+    def get_random_value(col: str, index: int, species: str) -> float:
+        mean = float(typing.cast(float, species_descriptions[col]["mean"][species]))
+        std = float(typing.cast(float, species_descriptions[col]["std"][species]))
+        random.seed(index)
+        return round(random.gauss(mean, std), 1)
+
+    # Lookup species_id by index and add one as original dataset is not zero indexed
+    def get_index(species: str) -> int:
+        return species_list.index(species) + 1
+
+    # convert the pandas DataFrame to a Deephaven Table
+    source_table = to_table(df)
 
     if ticking:
-        result_replayer = TableReplayer(
-            # start with one third of the table already ticked
-            pd_base_time + pd.Timedelta(round(size * 0.33) * SECOND),
-            pd_base_time + pd.Timedelta(size * SECOND),
+        ticking_table = (
+            time_table("PT1S")
+            .update(
+                [
+                    # need an index created before the merge, to use it after
+                    "index = ii + df_len",
+                    # pick a random species from the list, using the index as a seed
+                    "species = (String)species_list[(int)new Random(ii).nextInt(3)]",
+                    "sepal_length = get_random_value(`sepal_length`, ii, species)",
+                    "sepal_width = get_random_value(`sepal_width`, ii, species)",
+                    "petal_length = get_random_value(`petal_length`, ii, species)",
+                    "petal_width = get_random_value(`petal_width`, ii, species)",
+                    "species_id = get_index(species)",
+                ]
+            )
+            .drop_columns("Timestamp")
         )
-        replayer_table = result_replayer.add_table(static_table, "timestamp")
-        result_replayer.start()
-        return replayer_table
+        t = merge([source_table, ticking_table])
     else:
-        return static_table
+        t = source_table
+
+    return (
+        t.update("timestamp = base_time + (long)(index * SECOND)")
+        .move_columns_up("timestamp")
+        .drop_columns("index")
+    )
 
 
 def stocks(ticking: bool = True, hours_of_data: int = 1) -> Table:
