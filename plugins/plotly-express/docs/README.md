@@ -88,7 +88,7 @@ This page contains a collection of links to examples demonstrating different plo
 
 ## Quickstart
 
-1. Install with docker, use a docker image with it already installed (`server-ui`), or pip install with
+1. Install with Docker, use a Docker image with it already installed (`server-ui`), or pip install with:
 
 ```bash
  pip install deephaven-plugin-plotly-express
