@@ -331,7 +331,7 @@ def tips(ticking: bool = True) -> Table:
     smoker_list: list[str] = ["No", "Yes"]
     day_list: list[str] = ["Thur", "Fri", "Sat", "Sun"]
     time_list: list[str] = ["Dinner", "Lunch"]
-    size_list: list[str] = [1, 2, 3, 4, 5, 6]
+    size_list: list[int] = [1, 2, 3, 4, 5, 6]
 
     # explicitly set empirical frequencies for categorical groups
     sex_probs: list[float] = [0.64, 0.36]
