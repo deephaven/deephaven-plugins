@@ -1269,7 +1269,7 @@ picker7 = ui.picker(
 )
 ```
 
-###### ui.tabs
+##### ui.tabs
 
 A tabs component can be used to organize content in a collection of tabs, allowing users to navigating between the different tabs. Children (the tabs) can be specified in one of two ways:
 
@@ -1282,11 +1282,11 @@ A tabs component can be used to organize content in a collection of tabs, allowi
 | ----------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `*children`             | `Item \| TabList \| TabPanels`        | The tab panels to render within the tabs component.                                                                                                                                                                                               |
 | `on_change`             | `Callable[[Key], None] \| None` | Alias of `on_selection_change`. Handler that is called when the tab selection changes.                                                                            |
-| `**props`               | `Any`                                 | Any other [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html) prop 
+| `**props`               | `Any`                                 | Any other [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html#tabs-props) prop 
 |
 
 
-Tabs using `ui.tab`
+###### Tabs using `ui.tab`
 
 If you're just using the default tab layout and don't need to customize the appearance of the tabs, you can simply pass in `ui.tab` to `ui.tabs` as a concise method of specifying your tabs.
 
@@ -1317,7 +1317,7 @@ ui.tabs(
 )
 ```
 
-Tabs created with custom `on_change` prop, `on_change` is an alias of an `on_selection_change`
+###### Listening for tab changes
 
 ```py
 from deephaven import ui
@@ -1329,11 +1329,11 @@ ui.tabs(
 )
 ```
 
-Tabs using `ui.tab_list` and `ui.tab_panels`
+###### Tabs using `ui.tab_list` and `ui.tab_panels`
 
 If you need more control over the layout, types, and styling of the tabs, you can specify tabs using  `ui.tab_list` and `ui.tab_panels` with `ui.tabs`. This approach provides greater flexibility for complex or customized tab structures, compared to the concise method of passing `ui.tab` to `ui.tabs`.
 
-With this method, the keys for the tabs declared in the `ui.tab_list` and `ui.tab_panels` must match.
+With this method, the keys must be provided and match for the tabs declared in the `ui.tab_list` and `ui.tab_panels`.
 
 ```py
 from deephaven import ui
@@ -1351,7 +1351,7 @@ ui.tabs(
 )
 ```
 
-Error-causing cases
+###### Error-causing cases
 
 ```py
 from deephaven import ui
@@ -1395,7 +1395,7 @@ t4 = ui.tabs(
 )
 ```
 
-###### ui.list_view
+##### ui.list_view
 
 A list view that can be used to create a list of items. Children should be one of three types:
 
