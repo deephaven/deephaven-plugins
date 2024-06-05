@@ -63,6 +63,7 @@ __all__ = [
     "tab_list",
     "tab_panels",
     "tabs",
+    "tab",
     "text",
     "text_field",
     "toggle_button",

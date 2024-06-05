@@ -11,3 +11,4 @@ from .tabs import *
 from .combo_box import *
 from .layout import *
 from .tabs import *
+from .tab import *

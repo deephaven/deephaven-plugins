@@ -1,93 +1,85 @@
-import React, { ReactNode, ReactElement, Children, Key } from 'react';
+import React, { ReactElement, Children, Key } from 'react';
 import {
   Tabs as DHCTabs,
   TabsProps,
   TabPanels,
   TabList,
-  ItemProps,
-  TabListProps,
-  TabPanelsProps,
-  useRenderNormalizedItem,
+  Item,
+  Flex,
 } from '@deephaven/components';
-import { Item, Flex } from '@adobe/react-spectrum';
 import { CollectionChildren } from '@react-types/shared';
+import { TabProps } from './Tab';
 
-type TabItemProps = ItemProps<ReactNode> & {
-  key: string;
-};
-
-type TabComponentProps = TabsProps<TabItemProps> & {
-  children: CollectionChildren<TabItemProps>;
-  tabListProps?: TabListProps<ReactNode>;
-  tabPanelProps?: TabPanelsProps<ReactNode>;
+type TabComponentProps = TabsProps<TabProps> & {
+  children: CollectionChildren<TabProps>;
   onChange?: (key: Key) => void;
 };
 
+// NEED TO CLARIFY MISMATCHING KEYS -> CURRENTLY DOES NOT RAISE ERROR
+// NEED TO CLARIFY HOW TO HAVE ERROR RAISE IN CONSOLE
+
 function Tabs(props: TabComponentProps): JSX.Element {
-  const { children, tabListProps, tabPanelProps, ...otherTabProps } = props;
+  const { children, ...otherTabProps } = props;
 
   const { onSelectionChange, onChange } = otherTabProps;
-
-  const renderNormalizedItem = useRenderNormalizedItem({
-    itemIconSlot: 'icon',
-    showItemDescriptions: false,
-    showItemIcons: true,
-    tooltipOptions: null,
-  });
 
   let tabItems;
   let tabPanels;
 
   const childrenArray = Children.toArray(children);
 
-  // handle case where no children are passed
-  if (childrenArray.length === 0) {
-    throw new Error('Tabs must have at least one tab specified.');
-  }
+  let hasTabChild = false;
+  let hasTabPanelsOrTabListChild = false;
 
-  // handle case where children are TabList or TabPanels components
-  if (
-    childrenArray.some(
-      child =>
-        (child as ReactElement).type === TabPanels ||
-        (child as ReactElement).type === TabList
-    )
-  ) {
-    // handle case where children are TabList or TabPanels components, but tried to pass props in tabListProps or tabPanelProps
-    if (tabListProps !== undefined || tabPanelProps !== undefined) {
-      throw new Error(
-        'Props for the TabList and TabPanels components must be passed within the respective component, not in panel_props and or list_props.'
-      );
-    } else {
-      return (
-        <DHCTabs
-          UNSAFE_style={{
-            display: 'flex',
-            flexGrow: 1,
-            height: '100%',
-            width: '100%',
-          }}
-          onSelectionChange={onSelectionChange ?? onChange}
-          // eslint-disable-next-line react/jsx-props-no-spreading
-          {...otherTabProps}
-        >
-          {children}
-        </DHCTabs>
-      );
+  childrenArray.forEach(child => {
+    if ((child as ReactElement).type === Item) {
+      hasTabChild = true;
     }
+    if (
+      (child as ReactElement).type === TabPanels ||
+      (child as ReactElement).type === TabList
+    ) {
+      hasTabPanelsOrTabListChild = true;
+    }
+  });
+
+  if (hasTabChild && hasTabPanelsOrTabListChild) {
+    throw new Error(
+      'Tabs cannot have both Tab and TabPanels or TabList children.'
+    );
+  } else if (!hasTabChild && !hasTabPanelsOrTabListChild) {
+    throw new Error(
+      'Tabs must have at least one Tab or TabPanels or TabList child.'
+    );
+  } else if (hasTabPanelsOrTabListChild) {
+    return (
+      <DHCTabs
+        UNSAFE_style={{
+          display: 'flex',
+          flexGrow: 1,
+          height: '100%',
+          width: '100%',
+        }}
+        onSelectionChange={onSelectionChange ?? onChange}
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...otherTabProps}
+      >
+        {children}
+      </DHCTabs>
+    );
   }
 
   // handle case where children are Item components
   // check for duplicate keys
-  const keys = childrenArray.map(child => (child as TabItemProps).key);
+  const keys = childrenArray.map(child => (child as TabProps).key);
   if (new Set(keys).size !== keys.length) {
     throw new Error('Duplicate keys found in Tab items.');
   }
 
   // eslint-disable-next-line prefer-const
   tabItems = Children.map(
-    children as ReactElement<TabItemProps>[],
-    (child: ReactElement<TabItemProps>, index) => (
+    children as ReactElement<TabProps>[],
+    (child: ReactElement<TabProps>, index) => (
       <Item
         key={
           // eslint-disable-next-line no-nested-ternary
@@ -105,8 +97,8 @@ function Tabs(props: TabComponentProps): JSX.Element {
 
   // eslint-disable-next-line prefer-const
   tabPanels = Children.map(
-    children as ReactElement<TabItemProps>[],
-    (child: ReactElement<TabItemProps>, index) => (
+    children as ReactElement<TabProps>[],
+    (child: ReactElement<TabProps>, index) => (
       <Item
         key={
           // eslint-disable-next-line no-nested-ternary
@@ -119,7 +111,6 @@ function Tabs(props: TabComponentProps): JSX.Element {
       >
         <Flex height="100%" width="100%" flexGrow={1}>
           {child.props.children}
-          {/* {useRenderNormalizedItem(child.props.children)} */}
         </Flex>
       </Item>
     )
@@ -138,9 +129,9 @@ function Tabs(props: TabComponentProps): JSX.Element {
       {...otherTabProps}
     >
       {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-      <TabList {...tabListProps}>{tabItems}</TabList>
+      <TabList>{tabItems}</TabList>
       {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-      <TabPanels {...tabPanelProps}>{tabPanels}</TabPanels>
+      <TabPanels>{tabPanels}</TabPanels>
     </DHCTabs>
   );
 }
