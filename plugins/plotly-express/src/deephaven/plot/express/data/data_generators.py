@@ -290,19 +290,6 @@ def stocks(ticking: bool = True, hours_of_data: int = 1) -> Table:
     else:
         return static_table
 
-from __future__ import annotations
-
-import pandas as pd
-from plotly import express as px
-import random
-
-from deephaven.pandas import to_table
-from deephaven.table import Table
-from deephaven import empty_table, time_table, merge
-
-SECOND = 1_000_000_000  #: One second in nanoseconds.
-MINUTE = 60 * SECOND  #: One minute in nanoseconds.
-
 
 def tips(ticking: bool = True) -> Table:
     """
