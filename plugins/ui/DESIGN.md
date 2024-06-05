@@ -1752,40 +1752,44 @@ ui_table(
     on_quick_filter: Callable[[ColumnName, QuickFilterExpression], None] | None
     on_freeze_column: Callable[[ColumnName], None] | None,
     on_hide_column: Callable[[ColumnName], None] | None,
-    on_sort: Callable[[ColumnName, LiteralSortDirection], None] | None
+    on_sort: Callable[[ColumnName, LiteralSortDirection], None] | None,
+    context_menu_items: List[ContextMenuItem] | None,
 ) -> UITable
 ```
 
-| Parameter                | Type                                                          | Description                                                                                                                                                                                                                                                                         |
-| ------------------------ | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `always_fetch_columns`   | `ColumnNameCombination \| None`                               | The columns to always fetch from the server. May be a single column name. These will not be affected by the users current viewport/horizontal scrolling. Useful if you have a column with key value data that you want to always include in the data sent for row click operations. |
-| `back_columns`           | `ColumnNameCombination \| None`                               | The columns to show at the back of the table. May be a single column name. These will not be moveable in the UI.                                                                                                                                                                    |
-| `freeze_columns`         | `ColumnNameCombination \| None`                               | The columns to freeze to the front of the table. May be a single column name. These will always be visible and not affected by horizontal scrolling.                                                                                                                                |
-| `front_columns`          | `ColumnNameCombination \| None`                               | The columns to show at the front of the table. May be a single column name. These will not be moveable in the UI.                                                                                                                                                                   |
-| `hide_columns`           | `ColumnNameCombination \| None`                               | The columns to hide by default from the table. May be a single column name. The user can still resize the columns to view them.                                                                                                                                                     |
-| `quick_filters`          | `dict[ColumnName, QuickFilterExpression] \| None`             | Quick filters for the UI to apply to the table.                                                                                                                                                                                                                                     |
-| `show_search`            | `bool`                                                        | `True` to show the search bar by default, `False` to not. `False` by default.                                                                                                                                                                                                       |
-| `show_quick_filters`     | `bool`                                                        | `True` to show the quick filters by default, `False` to not. `False` by default.                                                                                                                                                                                                    |
-| `show_column_headers`    | `bool \| None`                                                | `True` to show the column headers by default, `False` to not.                                                                                                                                                                                                                       |
-| `selection_mode`         | `SelectionMode \| None`                                       | Can be `MULTIPLE` to allow multiple selection or `SINGLE` to not allow it.                                                                                                                                                                                                          |
-| `selection_area`         | `SelectionArea \| None`                                       | The unit that is selected on press. Can be `ROW`, `COLUMN`, or `CELL`.                                                                                                                                                                                                              |
-| `selection_style`        | `SelectionStyleCombination \| None`                           | The style of the selection. Can be `HIGHLIGHT`, `CHECKBOX`, or a combination of those.                                                                                                                                                                                              |
-| `selected_rows`          | `RowIndexCombination \| None`                                 | The rows that are selected by default. Only valid if `selection_area` is `ROW`.                                                                                                                                                                                                     |
-| `selected_columns`       | `ColumnIndexCombination \| None`                              | The columns that are selected by default. Only valid if `selection_area` is `COLUMN`.                                                                                                                                                                                               |
-| `selected_cells`         | `CellIndexCombination \| None`                                | The cells that are selected by default. Only valid if `selection_area` is `CELL`.                                                                                                                                                                                                   |
-| `density`                | `DensityMode \| None`                                         | The density of the table. Can be `COMPACT`, `REGULAR`, or `SPACIOUS`.                                                                                                                                                                                                               |
-| `column_display_names`   | `dict[ColumnName, ColumnNameCombination] \| None`             | The display names. If a sequence of column names is provided for a column, the display name will be set to the longest column name that can be fully displayed.                                                                                                                     |
-| `on_row_press`           | `Callable[[RowIndex, RowData], None] \| None`                 | The callback function to run when a cell in a row is released (such as a click). The first parameter is the row index, and the second is the row data provided in a dictionary where the column names are the keys.                                                                 |
-| `on_row_double_press`    | `Callable[[RowIndex, RowData], None] \| None`                 | The callback function to run when a cell in a row is double pressed. The first parameter is the row index, and the second is the row data provided in a dictionary where the column names are the keys.                                                                             |
-| `on_cell_press`          | `Callable[[CellIndex, CellData], None] \| None`               | The callback function to run when a cell is released (such as a click). The first parameter is the cell index, and the second is the cell data.                                                                                                                                     |
-| `on_cell_double_press`   | `Callable[[CellIndex, CellData], None] \| None`               | The callback function to run when a cell is double pressed. The first parameter is the cell index, and the second is the cell data.                                                                                                                                                 |
-| `on_column_press`        | `Callable[[ColumnName], None] \| None`                        | The callback function to run when a column is released (such as a click). The only parameter is the column name.                                                                                                                                                                    |
-| `on_column_double_press` | `Callable[[ColumnName], None] \| None`                        | The callback function to run when a cell in a column is double pressed. The only parameter is the column name.                                                                                                                                                                      |
-| `on_search`              | `Callable[[str], None] \| None`                               | The callback function to run when the search bar is used. The only parameter is the search string.                                                                                                                                                                                  |
-| `on_quick_filter`        | `Callable[[ColumnName, QuickFilterExpression], None] \| None` | The callback function to run when a quick filter is applied. The first parameter is the column name, and the second is the quick filter expression.                                                                                                                                 |
-| `on_freeze_column`       | `Callable[[ColumnName], None] \| None`                        | The callback function to run when a column is frozen. The only parameter is the frozen column name.                                                                                                                                                                                 |
-| `on_hide_column`         | `Callable[[ColumnName], None] \| None`                        | The callback function to run when a column is hidden. The only parameter is the hidden column name.                                                                                                                                                                                 |
-| `on_sort`                | `Callable[[ColumnName, LiteralSortDirection], None] \| None`  | The callback function to run when a column is sorted. The first parameter is the column name, and the second is the sort direction.                                                                                                                                                 |
+| Parameter                     | Type                                                          | Description                                                                                                                                                                                                                                                                         |
+| ----------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `always_fetch_columns`        | `ColumnNameCombination \| None`                               | The columns to always fetch from the server. May be a single column name. These will not be affected by the users current viewport/horizontal scrolling. Useful if you have a column with key value data that you want to always include in the data sent for row click operations. |
+| `back_columns`                | `ColumnNameCombination \| None`                               | The columns to show at the back of the table. May be a single column name. These will not be moveable in the UI.                                                                                                                                                                    |
+| `freeze_columns`              | `ColumnNameCombination \| None`                               | The columns to freeze to the front of the table. May be a single column name. These will always be visible and not affected by horizontal scrolling.                                                                                                                                |
+| `front_columns`               | `ColumnNameCombination \| None`                               | The columns to show at the front of the table. May be a single column name. These will not be moveable in the UI.                                                                                                                                                                   |
+| `hide_columns`                | `ColumnNameCombination \| None`                               | The columns to hide by default from the table. May be a single column name. The user can still resize the columns to view them.                                                                                                                                                     |
+| `quick_filters`               | `dict[ColumnName, QuickFilterExpression] \| None`             | Quick filters for the UI to apply to the table.                                                                                                                                                                                                                                     |
+| `show_search`                 | `bool`                                                        | `True` to show the search bar by default, `False` to not. `False` by default.                                                                                                                                                                                                       |
+| `show_quick_filters`          | `bool`                                                        | `True` to show the quick filters by default, `False` to not. `False` by default.                                                                                                                                                                                                    |
+| `show_column_headers`         | `bool \| None`                                                | `True` to show the column headers by default, `False` to not.                                                                                                                                                                                                                       |
+| `selection_mode`              | `SelectionMode \| None`                                       | Can be `MULTIPLE` to allow multiple selection or `SINGLE` to not allow it.                                                                                                                                                                                                          |
+| `selection_area`              | `SelectionArea \| None`                                       | The unit that is selected on press. Can be `ROW`, `COLUMN`, or `CELL`.                                                                                                                                                                                                              |
+| `selection_style`             | `SelectionStyleCombination \| None`                           | The style of the selection. Can be `HIGHLIGHT`, `CHECKBOX`, or a combination of those.                                                                                                                                                                                              |
+| `selected_rows`               | `RowIndexCombination \| None`                                 | The rows that are selected by default. Only valid if `selection_area` is `ROW`.                                                                                                                                                                                                     |
+| `selected_columns`            | `ColumnIndexCombination \| None`                              | The columns that are selected by default. Only valid if `selection_area` is `COLUMN`.                                                                                                                                                                                               |
+| `selected_cells`              | `CellIndexCombination \| None`                                | The cells that are selected by default. Only valid if `selection_area` is `CELL`.                                                                                                                                                                                                   |
+| `density`                     | `DensityMode \| None`                                         | The density of the table. Can be `COMPACT`, `REGULAR`, or `SPACIOUS`.                                                                                                                                                                                                               |
+| `column_display_names`        | `dict[ColumnName, ColumnNameCombination] \| None`             | The display names. If a sequence of column names is provided for a column, the display name will be set to the longest column name that can be fully displayed.                                                                                                                     |
+| `on_row_press`                | `Callable[[RowIndex, RowData], None] \| None`                 | The callback function to run when a cell in a row is released (such as a click). The first parameter is the row index, and the second is the row data provided in a dictionary where the column names are the keys.                                                                 |
+| `on_row_double_press`         | `Callable[[RowIndex, RowData], None] \| None`                 | The callback function to run when a cell in a row is double pressed. The first parameter is the row index, and the second is the row data provided in a dictionary where the column names are the keys.                                                                             |
+| `on_cell_press`               | `Callable[[CellIndex, CellData], None] \| None`               | The callback function to run when a cell is released (such as a click). The first parameter is the cell index, and the second is the cell data.                                                                                                                                     |
+| `on_cell_double_press`        | `Callable[[CellIndex, CellData], None] \| None`               | The callback function to run when a cell is double pressed. The first parameter is the cell index, and the second is the cell data.                                                                                                                                                 |
+| `on_column_press`             | `Callable[[ColumnName], None] \| None`                        | The callback function to run when a column is released (such as a click). The only parameter is the column name.                                                                                                                                                                    |
+| `on_column_double_press`      | `Callable[[ColumnName], None] \| None`                        | The callback function to run when a cell in a column is double pressed. The only parameter is the column name.                                                                                                                                                                      |
+| `on_search`                   | `Callable[[str], None] \| None`                               | The callback function to run when the search bar is used. The only parameter is the search string.                                                                                                                                                                                  |
+| `on_quick_filter`             | `Callable[[ColumnName, QuickFilterExpression], None] \| None` | The callback function to run when a quick filter is applied. The first parameter is the column name, and the second is the quick filter expression.                                                                                                                                 |
+| `on_freeze_column`            | `Callable[[ColumnName], None] \| None`                        | The callback function to run when a column is frozen. The only parameter is the frozen column name.                                                                                                                                                                                 |
+| `on_hide_column`              | `Callable[[ColumnName], None] \| None`                        | The callback function to run when a column is hidden. The only parameter is the hidden column name.                                                                                                                                                                                 |
+| `on_sort`                     | `Callable[[ColumnName, LiteralSortDirection], None] \| None`  | The callback function to run when a column is sorted. The first parameter is the column name, and the second is the sort direction.                                                                                                                                                 |
+| `context_items`               | `List[ContextMenuItem] \| None`                               | The context menu items to show when right-clicking on a cell in the table. Can be a list of items or a callback that takes the cell data and returns a list of actions. Can also contain `ContextMenuSubmenuItem`s to define submenus.                                              |
+| `context_column_header_items` | `List[ContextMenuItem] \| None`                               | The context menu items to show when right-clicking on the column header (i.e. column name). Can be a list of items or a callback that takes the cell data and returns a list of actions. Can also contain `ContextMenuSubmenuItem`s to define submenus.                             |
+| `context_row_header_items`    | `List[ContextMenuItem] \| None`                               | The context menu items to show when right-clicking on a row header (i.e. row numbers). Can be a list of items or a callback that takes the cell data and returns a list of actions. Can also contain `ContextMenuSubmenuItem`s to define submenus.                                  |
 
 `ui.table` will also support the below methods.
 
@@ -1891,28 +1895,6 @@ ui_table.color_row(
 | `where`            | `QuickFilterExpression` | The filter to apply to the expression. Uses quick filter format (e.g. `>10`). |
 | `color`            | `Color \| None`         | The text color. Accepts hex color strings or Deephaven color names.           |
 | `background_color` | `Color \| None`         | The background color. Accepts hex color strings or Deephaven color names.     |
-
-##### context_menu
-
-Add custom items to the context menu. You can provide a list of actions that always appear, or a callback that can process the selection and send back menu items asynchronously. You can also specify whether you want the menu items provided for a cell context menu, a header context menu, or some combination of those. You can also chain multiple sets of menu items by calling `.context_menu` multiple times.
-
-###### Syntax
-
-```py
-ui_table.context_menu(
-    items: ContextMenuAction
-    | list[ContextMenuAction]
-    | Callable[[CellIndex, RowData], ContextMenuAction | list[ContextMenuAction]],
-    mode: ContextMenuMode = "CELL",
-) -> UITable
-```
-
-###### Parameters
-
-| Parameter | Type                                                                                                                           | Description                                                                                                                                                                                                                                                                      |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `items`   | `ContextMenuAction \| list[ContextMenuAction] \| Callable[[CellIndex, RowData], ContextMenuAction \| list[ContextMenuAction]]` | The items to add to the context menu. May be a single `ContextMenuAction`, a list of `ContextMenuAction` objects, or a callback function that takes the cell index and row data and returns either a single `ContextMenuAction` or a list of `ContextMenuAction` objects.        |
-| `mode`    | `ContextMenuMode`                                                                                                              | Which specific context menu(s) to add the menu item(s) to. Can be one or more modes. Using `None` will add menu items in all cases.<br/>- `CELL`: Triggered from a cell.<br/>- `ROW_HEADER`: Triggered from a row header.<br/>- `COLUMN_HEADER`: Triggered from a column header. |
 
 ##### data_bar
 
@@ -2180,7 +2162,6 @@ ColumnName = str
 ColumnData = list[Any]
 # ID of a component. Used for linking.
 ComponentId = str
-ContextMenuAction = dict[str, Any]
 ContextMenuModeOption = Literal["CELL", "ROW_HEADER", "COLUMN_HEADER"]
 ContextMenuMode = ContextMenuModeOption | list[ContextMenuModeOption] | None
 DataBarAxis = Literal["PROPORTIONAL", "MIDDLE", "DIRECTIONAL"]
@@ -2271,6 +2252,99 @@ class LinkPoint(TypedDict):
 
     # Column to link to
     column: str
+
+
+class ContextMenuActionParams(TypedDict):
+    """
+    Parameters given to a context menu action
+    """
+
+    value: Any
+    """
+    Value of the cell.
+    """
+
+    text_value: str
+    """
+    Rendered text for the cell.
+    """
+
+    row_index: int | None
+    """
+    Index of the row. None if the context menu was opened on a column header.
+    """
+
+    column_index: int | None
+    """
+    Index of the column. None if the context menu was opened on a row header.
+    """
+
+    column_name: str
+    """
+    Name of the column.
+    """
+
+    is_column_header: bool
+    """
+    Whether the context menu was opened on a column header.
+    """
+
+    is_row_header: bool
+    """
+    Whether the context menu was opened on a row header.
+    """
+
+
+ContextMenuAction = Callable[[ContextMenuActionParams], None]
+"""
+The action to execute when the context menu item is clicked.
+"""
+
+
+class ContextMenuItemBase(TypedDict):
+    """
+    Base props that context menu items and submenu items share.
+    """
+
+    title: str
+    """
+    Title to display for the action.
+    """
+
+    description: NotRequired[str]
+    """
+    Description for the action. Will be used as a tooltip for the action.
+    """
+
+
+class ContextMenuActionItem(ContextMenuItemBase):
+    """
+    An item that appears in a context menu and performs an action when clicked.
+    """
+
+    action: ContextMenuAction
+    """
+    Action to run when the menu item is clicked.
+    """
+
+
+class ContextMenuSubmenuItem(ContextMenuItemBase):
+    """
+    An item that contains a submenu for a context menu.
+    """
+
+    actions: List[Union[ContextMenuActionItem, "ContextMenuSubmenuItem"]]
+    """
+    A list of actions that will form the submenu for the item.
+    """
+
+
+ContextMenuItem = Union[ContextMenuActionItem, ContextMenuSubmenuItem]
+"""
+An item that can appear in a context menu.
+May contain an action item or a submenu item.
+"""
+
 ```
 
 #### Context
