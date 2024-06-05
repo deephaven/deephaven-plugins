@@ -1,15 +1,7 @@
 from __future__ import annotations
 from typing import Any, Callable
-from .accessibility import AriaExpanded, AriaHasPopup, AriaPressed
-from .events import (
-    ButtonType,
-    FocusEventCallable,
-    KeyboardEventCallable,
-    PressEventCallable,
-    StaticColor,
-    Orientation,
-)
-from .layout import (
+from .types import (
+    # Layout
     AlignSelf,
     CSSProperties,
     DimensionValue,
@@ -18,15 +10,12 @@ from .layout import (
     Number,
     Position,
 )
-from .basic import spectrum_element
-from ...elements import Element
+from .basic import base_element
+from ..elements import Element
 
 
-def button_group(
+def content(
     *children: Any,
-    is_disabled: bool | None = None,
-    orientation: Orientation = "horizontal",
-    alignment: AlignSelf = "start",
     flex: LayoutFlex | None = None,
     flex_grow: Number | None = None,
     flex_shrink: Number | None = None,
@@ -36,9 +25,9 @@ def button_group(
     order: Number | None = None,
     grid_area: str | None = None,
     grid_row: str | None = None,
-    grid_column: str | None = None,
     grid_row_start: str | None = None,
     grid_row_end: str | None = None,
+    grid_column: str | None = None,
     grid_column_start: str | None = None,
     grid_column_end: str | None = None,
     margin: DimensionValue | None = None,
@@ -57,10 +46,10 @@ def button_group(
     position: Position | None = None,
     top: DimensionValue | None = None,
     bottom: DimensionValue | None = None,
-    left: DimensionValue | None = None,
-    right: DimensionValue | None = None,
     start: DimensionValue | None = None,
     end: DimensionValue | None = None,
+    left: DimensionValue | None = None,
+    right: DimensionValue | None = None,
     z_index: Number | None = None,
     is_hidden: bool | None = None,
     id: str | None = None,
@@ -68,13 +57,10 @@ def button_group(
     UNSAFE_style: CSSProperties | None = None,
 ) -> Element:
     """
-    A button group is a grouping of button whose actions are related to each other.
+    Content represents the primary content within a Spectrum container.
 
     Args:
-        *children: The children of the button group.
-        is_disabled: Whether the button group is disabled.
-        orientation: The axis the ButtonGroup should align with. Setting this to 'vertical' will prevent any switching behaviours between 'vertical' and horizontal'.
-        alignment: The alignment of the buttons within the ButtonGroup.
+        children: The content to render within the container.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -96,25 +82,28 @@ def button_group(
         margin_end: The margin for the logical end side of the element, depending on layout direction.
         margin_x: The margin for the left and right sides of the element.
         margin_y: The margin for the top and bottom sides of the element.
-        position: Specifies how the element is position.
-        top: The top position of the element.
-        bottom: The bottom position of the element.
-        left: The left position of the element.
-        right: The right position of the element.
-        start: The logical start position of the element, depending on layout direction.
-        end: The logical end position of the element, depending on layout direction.
-        z_index: The stacking order for the element
-        is_hidden: Hides the element.
+        width: The width of the element.
+        min_width: The minimum width of the element.
+        max_width: The maximum width of the element.
+        height: The height of the element.
+        min_height: The minimum height of the element.
+        max_height: The maximum height of the element.
+        position: The position of the element.
+        top: The distance from the top of the containing element.
+        bottom: The distance from the bottom of the containing element.
+        left: The distance from the left of the containing element.
+        right: The distance from the right of the containing element.
+        start: The distance from the start of the containing element, depending on layout direction.
+        end: The distance from the end of the containing element, depending on layout direction.
+        z_index: The stack order of the element.
+        is_hidden: Whether the element is hidden.
         id: The unique identifier of the element.
-        UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
-        UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
+        UNSAFE_class_name: A CSS class to apply to the element.
+        UNSAFE_style: A CSS style to apply to the element.
     """
-    return spectrum_element(
-        "ButtonGroup",
-        *children,
-        is_disabled=is_disabled,
-        orientation=orientation,
-        alignment=alignment,
+    return base_element(
+        "Content",
+        children=children,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
@@ -124,9 +113,9 @@ def button_group(
         order=order,
         grid_area=grid_area,
         grid_row=grid_row,
-        grid_column=grid_column,
         grid_row_start=grid_row_start,
         grid_row_end=grid_row_end,
+        grid_column=grid_column,
         grid_column_start=grid_column_start,
         grid_column_end=grid_column_end,
         margin=margin,
@@ -145,10 +134,10 @@ def button_group(
         position=position,
         top=top,
         bottom=bottom,
-        left=left,
-        right=right,
         start=start,
         end=end,
+        left=left,
+        right=right,
         z_index=z_index,
         is_hidden=is_hidden,
         id=id,

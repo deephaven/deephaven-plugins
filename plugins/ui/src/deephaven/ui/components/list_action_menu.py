@@ -7,7 +7,10 @@ from typing import Callable, Iterable, Union
 from .item import Item
 from ..elements import BaseElement, Element
 from ..types import Key, ActionKey, ActionMenuDirection
-from .spectrum.layout import (
+from .types import (
+    # Events
+    TriggerType,
+    # Layout
     AlignSelf,
     Alignment,
     CSSProperties,
@@ -16,7 +19,6 @@ from .spectrum.layout import (
     LayoutFlex,
     Position,
 )
-from .spectrum.events import TriggerType
 
 ListActionMenuElement = Element
 

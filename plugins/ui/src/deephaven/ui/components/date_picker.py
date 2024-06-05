@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Sequence, Callable
 
-from .spectrum import (
+from .types import (
     FocusEventCallable,
     KeyboardEventCallable,
     LayoutFlex,

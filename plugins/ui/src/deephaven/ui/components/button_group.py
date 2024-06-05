@@ -1,31 +1,26 @@
 from __future__ import annotations
-from numbers import Number
-from typing import Any, Callable
-from .validate import ContextualHelperVariant
-from .layout import (
+from typing import Any
+from .types import (
+    # Events
+    Orientation,
+    # Layout
     AlignSelf,
     CSSProperties,
     DimensionValue,
     JustifySelf,
     LayoutFlex,
-    Placement,
+    Number,
     Position,
 )
-from .basic import spectrum_element
-from ...elements import Element
+from .basic import base_element
+from ..elements import Element
 
 
-def contextual_help(
+def button_group(
     *children: Any,
-    variant: ContextualHelperVariant | None = "help",
-    placement: Placement | None = "bottom start",
-    is_open: bool | None = None,
-    default_open: bool | None = None,
-    container_padding: Number | None = None,
-    offset: Number | None = None,
-    cross_offset: Number | None = None,
-    should_flip: bool | None = None,
-    on_open_change: Callable[[bool], None] | None = None,
+    is_disabled: bool | None = None,
+    orientation: Orientation = "horizontal",
+    alignment: AlignSelf = "start",
     flex: LayoutFlex | None = None,
     flex_grow: Number | None = None,
     flex_shrink: Number | None = None,
@@ -36,10 +31,10 @@ def contextual_help(
     grid_area: str | None = None,
     grid_row: str | None = None,
     grid_column: str | None = None,
-    grid_column_start: str | None = None,
-    grid_column_end: str | None = None,
     grid_row_start: str | None = None,
     grid_row_end: str | None = None,
+    grid_column_start: str | None = None,
+    grid_column_end: str | None = None,
     margin: DimensionValue | None = None,
     margin_top: DimensionValue | None = None,
     margin_bottom: DimensionValue | None = None,
@@ -63,26 +58,17 @@ def contextual_help(
     z_index: Number | None = None,
     is_hidden: bool | None = None,
     id: str | None = None,
-    aria_label: str | None = None,
-    aria_labelledby: str | None = None,
-    aria_describedby: str | None = None,
-    aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
 ) -> Element:
     """
-    A contextual help is a quiet action button that triggers an informational popover.
+    A button group is a grouping of button whose actions are related to each other.
+
     Args:
-        *children: The children of the contextual help popover.
-        variant: Indicates whether contents are informative or provides helpful guidance.
-        placement: The placement of the popover relative to the action button.
-        is_open: Whether the popover is open by default (controlled).
-        default_open: Whether the popover is open by default (uncontrolled).
-        container_padding: The placement padding that should be applied between the element and its surrounding container.
-        offset: The additional offset applied along the main axis between the element and its anchor element.
-        cross_offset: The additional offset applied along the cross axis between the element and its anchor element.
-        should_flip: Whether the element should flip its orientation when there is insufficient room for it to render completely.
-        on_open_change: Handler that is called when the overlay's open state changes.
+        *children: The children of the button group.
+        is_disabled: Whether the button group is disabled.
+        orientation: The axis the ButtonGroup should align with. Setting this to 'vertical' will prevent any switching behaviours between 'vertical' and horizontal'.
+        alignment: The alignment of the buttons within the ButtonGroup.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -104,12 +90,6 @@ def contextual_help(
         margin_end: The margin for the logical end side of the element, depending on layout direction.
         margin_x: The margin for the left and right sides of the element.
         margin_y: The margin for the top and bottom sides of the element.
-        width: The width of the element.
-        height: The height of the element.
-        min_width: The minimum width of the element.
-        min_height: The minimum height of the element.
-        max_width: The maximum width of the element.
-        max_height: The maximum height of the element.
         position: Specifies how the element is position.
         top: The top position of the element.
         bottom: The bottom position of the element.
@@ -120,25 +100,15 @@ def contextual_help(
         z_index: The stacking order for the element
         is_hidden: Hides the element.
         id: The unique identifier of the element.
-        aria-label: Defines a string value that labels the current element.
-        aria-labelledby: Identifies the element (or elements) that labels the current element.
-        aria-describedby: Identifies the element (or elements) that describes the object.
-        aria-details: Identifies the element (or elements) that provide a detailed, extended description for the object.
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
     """
-    return spectrum_element(
-        "ContextualHelp",
+    return base_element(
+        "ButtonGroup",
         *children,
-        variant=variant,
-        placement=placement,
-        is_open=is_open,
-        default_open=default_open,
-        container_padding=container_padding,
-        offset=offset,
-        cross_offset=cross_offset,
-        should_flip=should_flip,
-        on_open_change=on_open_change,
+        is_disabled=is_disabled,
+        orientation=orientation,
+        alignment=alignment,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
@@ -149,10 +119,10 @@ def contextual_help(
         grid_area=grid_area,
         grid_row=grid_row,
         grid_column=grid_column,
-        grid_column_start=grid_column_start,
-        grid_column_end=grid_column_end,
         grid_row_start=grid_row_start,
         grid_row_end=grid_row_end,
+        grid_column_start=grid_column_start,
+        grid_column_end=grid_column_end,
         margin=margin,
         margin_top=margin_top,
         margin_bottom=margin_bottom,
@@ -176,10 +146,6 @@ def contextual_help(
         z_index=z_index,
         is_hidden=is_hidden,
         id=id,
-        aria_label=aria_label,
-        aria_labelledby=aria_labelledby,
-        aria_describedby=aria_describedby,
-        aria_details=aria_details,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
     )

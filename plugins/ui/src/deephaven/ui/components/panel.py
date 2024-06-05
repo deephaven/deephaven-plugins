@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 from ..elements import BaseElement
 from .._internal.utils import create_props
-from .spectrum import (
+from .types import (
     Direction,
     Wrap,
     JustifyContent,

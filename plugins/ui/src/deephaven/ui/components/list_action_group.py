@@ -13,7 +13,12 @@ from ..types import (
     SelectionMode,
     Selection,
 )
-from .spectrum.layout import (
+from .types import (
+    # Events
+    ButtonLabelBehavior,
+    Orientation,
+    StaticColor,
+    # Layout
     AlignSelf,
     CSSProperties,
     DimensionValue,
@@ -22,7 +27,6 @@ from .spectrum.layout import (
     OverflowMode,
     Position,
 )
-from .spectrum.events import ButtonLabelBehavior, Orientation, StaticColor
 
 ListActionGroupElement = Element
 

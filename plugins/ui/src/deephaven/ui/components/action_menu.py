@@ -5,11 +5,19 @@ from typing import Callable, Iterable
 from .item import Item
 from .section import SectionElement
 
-from .spectrum.events import TriggerType
 from ..types import Key, ActionKey, ActionMenuDirection
 from ..elements import BaseElement, Element
 
-from .spectrum import (
+from ..types import (
+    Key,
+    ActionKey,
+    ActionMenuDirection,
+)
+
+from .types import (
+    # Events
+    TriggerType,
+    # Layout
     Alignment,
     AlignSelf,
     CSSProperties,

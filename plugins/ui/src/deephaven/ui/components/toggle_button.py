@@ -1,14 +1,17 @@
 from __future__ import annotations
 from typing import Any, Callable
-from .accessibility import AriaExpanded, AriaHasPopup, AriaPressed
-from .events import (
+from .types import (
+    # Accessibility
+    AriaExpanded,
+    AriaHasPopup,
+    AriaPressed,
+    # Events
     ButtonType,
     FocusEventCallable,
     KeyboardEventCallable,
     PressEventCallable,
     StaticColor,
-)
-from .layout import (
+    # Layout
     AlignSelf,
     CSSProperties,
     DimensionValue,
@@ -17,8 +20,8 @@ from .layout import (
     Number,
     Position,
 )
-from .basic import spectrum_element
-from ...elements import Element
+from .basic import base_element
+from ..elements import Element
 
 
 def toggle_button(
@@ -165,7 +168,7 @@ def toggle_button(
         UNSAFE_style: A CSS style to apply to the element.
     """
 
-    return spectrum_element(
+    return base_element(
         "ToggleButton",
         *children,
         is_emphasized=is_emphasized,

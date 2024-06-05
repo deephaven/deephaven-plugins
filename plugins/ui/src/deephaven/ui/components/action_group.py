@@ -3,14 +3,12 @@ from numbers import Number
 from typing import Any, Callable, Iterable
 
 
-from ..components.spectrum.events import (
+from .types import (
+    # Events
     ButtonLabelBehavior,
     Orientation,
     StaticColor,
-)
-from ..elements import Element, BaseElement
-from ..types import ActionGroupDensity, SelectedKeys, SelectionMode, Key, Selection
-from .spectrum.layout import (
+    # Layout
     AlignSelf,
     CSSProperties,
     DimensionValue,
@@ -19,6 +17,8 @@ from .spectrum.layout import (
     OverflowMode,
     Position,
 )
+from ..elements import Element, BaseElement
+from ..types import ActionGroupDensity, SelectedKeys, SelectionMode, Key, Selection
 
 
 def action_group(
