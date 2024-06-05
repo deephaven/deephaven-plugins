@@ -1,6 +1,4 @@
----
-title: Pie Plot
----
+# Pie Plot
 
 A pie plot is a circular data visualization that illustrates the relative proportions of discrete categories within a dataset by dividing a circle into sectors. This format provides a quick and straightforward way to convey the composition of data.
 

@@ -1,6 +1,4 @@
----
-title: Strip Plot
----
+# Strip Plot
 
 In a strip plot, individual data points are displayed along a single axis, providing a clear view of the distribution of data points without the additional density estimation and summary statistics provided by a violin plot. While strip plots offer a detailed look at individual data points, they may not convey the overall distribution shape and density as effectively as a violin plot. The choice between strip plots and violin plots depends on the specific analytical needs and the level of detail required for data representation.
 

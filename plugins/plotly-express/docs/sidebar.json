@@ -1,0 +1,145 @@
+{
+  "config": {
+    "name": "Deephaven Express Docs"
+  },
+  "nav": [
+    {
+      "label": "Main",
+      "sidebar": "main"
+    }
+  ],
+  "sidebars": {
+    "main": [
+      {
+        "label": "Introduction",
+        "path": "README.md"
+      },
+      {
+        "label": "Plot Types",
+        "items": [
+          {
+            "label": "Area",
+            "path": "area.md"
+          },
+          {
+            "label": "Bar",
+            "path": "bar.md"
+          },
+          {
+            "label": "Box",
+            "path": "box.md"
+          },
+          {
+            "label": "Candlestick",
+            "path": "candlestick.md"
+          },
+          {
+            "label": "ECDF",
+            "path": "ecdf.md"
+          },
+          {
+            "label": "Funnel",
+            "path": "funnel.md"
+          },
+          {
+            "label": "Funnel Area",
+            "path": "funnel-area.md"
+          },
+          {
+            "label": "Histogram",
+            "path": "histogram.md"
+          },
+          {
+            "label": "Icicle",
+            "path": "icicle.md"
+          },
+          {
+            "label": "Line",
+            "path": "line.md"
+          },
+          {
+            "label": "Line 3d",
+            "path": "line-3d.md"
+          },
+          {
+            "label": "Line Polar",
+            "path": "line-polar.md"
+          },
+          {
+            "label": "Line Ternary",
+            "path": "line-ternary.md"
+          },
+          {
+            "label": "OHLC",
+            "path": "ohlc.md"
+          },
+          {
+            "label": "Pie",
+            "path": "pie.md"
+          },
+          {
+            "label": "Scatter",
+            "path": "scatter.md"
+          },
+          {
+            "label": "Scatter 3d",
+            "path": "scatter-3d.md"
+          },
+          {
+            "label": "Scatter Polar",
+            "path": "scatter-polar.md"
+          },
+          {
+            "label": "Scatter Ternary",
+            "path": "scatter-ternary.md"
+          },
+          {
+            "label": "Strip",
+            "path": "strip.md"
+          },
+          {
+            "label": "Sunburst",
+            "path": "sunburst.md"
+          },
+          {
+            "label": "Timeline",
+            "path": "timeline.md"
+          },
+          {
+            "label": "Treemap",
+            "path": "treemap.md"
+          },
+          {
+            "label": "Violin",
+            "path": "violin.md"
+          }
+        ]
+      },
+      {
+        "label": "Concepts",
+        "items": [
+          {
+            "label": "Plot by",
+            "path": "plot-by.md"
+          },
+          {
+            "label": "Sub plot",
+            "path": "sub-plots.md"
+          },
+          {
+            "label": "Layer plot",
+            "path": "layer-plots.md"
+          },
+          {
+            "label": "Multiple axes",
+            "path": "multiple-axes.md"
+          },
+          {
+            "label": "Titles and legends",
+            "path": "other.md"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,6 +1,4 @@
----
-title: Titles, labels and legends
----
+# Titles, labels and legends
 
 ## Titles
 
