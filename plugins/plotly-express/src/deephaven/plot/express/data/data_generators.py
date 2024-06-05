@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import pandas as pd
+import numpy as np
 from plotly import express as px
 import math
 import random
+import typing
 
 from deephaven.pandas import to_table
 from deephaven.replay import TableReplayer
@@ -81,14 +83,14 @@ def iris(ticking: bool = True) -> Table:
 
     df_len = len(df)
     # add index column using pandas, which is faster than an update() call
-    df.insert(0, "index", list(range(df_len)))
+    df.insert(0, "index", np.ndarray(range(df_len)))
 
     # Get a random gaussian value based on the mean and std of the existing
     # data, where col is the column name ('sepal_length', etc) and index is the
     # row number used as a random seed so that the data is deterministically generated
     def get_random_value(col: str, index: int, species: str) -> float:
-        mean = float(species_descriptions[col]["mean"][species])
-        std = float(species_descriptions[col]["std"][species])
+        mean = float(typing.cast(float, species_descriptions[col]["mean"][species]))
+        std = float(typing.cast(float, species_descriptions[col]["std"][species]))
         random.seed(index)
         return round(random.gauss(mean, std), 1)
 
