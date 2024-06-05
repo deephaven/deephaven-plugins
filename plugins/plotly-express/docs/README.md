@@ -94,9 +94,3 @@ Deephaven's Plotly Express plugin is licensed under the [Apache License 2.0](htt
 ## Acknowledgments
 
 We would like to express our gratitude to the Plotly and the Plotly Express team for creating a remarkable plotting library and making it open-source. Their work forms the foundation of the Deephaven Plotly Express plugin.
-
-```{toctree}
-:maxdepth: 3
-:glob:
-*
-```

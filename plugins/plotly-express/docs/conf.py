@@ -18,16 +18,15 @@ release = "0.7.0"
 
 extensions = [
     "myst_parser",
-    "sphinx_markdown_builder",
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
+    "sphinx_markdown_builder",
 ]
-
-python_maximum_signature_line_length = 20
 
 source_suffix = [".rst", ".md"]  # Can use either rst or markdown files as input
 
-root_doc = "README"
+# show hints in the description so that the function definition is not cluttered
+autodoc_typehints = "description"
 
 suppress_warnings = ["myst.header"]
 
@@ -38,9 +37,3 @@ from deephaven_server import Server
 
 s = Server(port=10075)
 s.start()
-
-# Sphinx - need py 3.9 for latest versions for python_maximum_signature_line_length
-# myst-parser
-# sphinx-markdown-builder
-# deephaven-server
-# dx wheel

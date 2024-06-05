@@ -1,0 +1,4 @@
+deephaven-server
+Sphinx
+myst_parser
+sphinx_markdown_builder
