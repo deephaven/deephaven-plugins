@@ -1216,7 +1216,7 @@ ui.item(
 | `**props`   | `Any`        | Any other Item prop                    |
 
 
-###### ui.list_action_group
+##### ui.list_action_group
 
 A group of action buttons that can be used to create a list of actions.
 This component should be used within the actions prop of a `ListView` component.
@@ -1241,7 +1241,7 @@ def list_action_group(
 | `on_change`           | `Callable[[Selection, Key], None] \| None` | Alias of `on_selection_change`. Handler that is called when the selection changes. The first argument is the selection, the second argument is the key of the list_view item. |
 | `**props`             | `Any`                                      | Any other [ActionGroup](https://react-spectrum.adobe.com/react-spectrum/ActionGroup.html) prop.                                                                               |
 
-###### ui.list_action_menu
+##### ui.list_action_menu
 
 A group of action buttons that can be used to create a list of actions.
 This component should be used within the actions prop of a `ListView` component.
