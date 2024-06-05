@@ -1753,7 +1753,9 @@ ui_table(
     on_freeze_column: Callable[[ColumnName], None] | None,
     on_hide_column: Callable[[ColumnName], None] | None,
     on_sort: Callable[[ColumnName, LiteralSortDirection], None] | None,
-    context_menu_items: List[ContextMenuItem] | None,
+    context_items: List[ContextMenuItem] | None,
+    context_column_header_items: List[ContextMenuItem] | None,
+    context_row_header_items: List[ContextMenuItem] | None,
 ) -> UITable
 ```
 
