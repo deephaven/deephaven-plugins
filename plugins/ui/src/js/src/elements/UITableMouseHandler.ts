@@ -42,11 +42,15 @@ function getRowDataMap(rowIndex: RowIndex, model: IrisGridModel): RowDataMap {
     const isExpandable =
       isExpandableGridModel(model) && model.isRowExpandable(rowIndex);
     const isGrouped = groupedColumns.find(c => c.name === name) != null;
-    dataMap[name] = {
-      ...getCellData(i, rowIndex, model),
-      isGrouped,
-      isExpandable,
-    };
+    const cellData = getCellData(i, rowIndex, model);
+    // If the cellData.value is undefined, that means we don't have any data for that column (i.e. the column is not visible), don't send it back
+    if (cellData.value !== undefined) {
+      dataMap[name] = {
+        ...cellData,
+        isGrouped,
+        isExpandable,
+      };
+    }
   }
   return dataMap;
 }
