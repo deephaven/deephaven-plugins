@@ -1011,25 +1011,6 @@ def my_dashboard():
 d = my_dashboard()
 ```
 
-##### ui.item
-
-An item that can be added to a menu, such as a `ui.picker`
-
-```py
-import deephaven.ui as ui
-ui.item(
-    children: Stringable,
-    **props: Any
-) -> ItemElement
-```
-
-###### Parameters
-
-| Parameter   | Type         | Description                            |
-| ----------- | ------------ | -------------------------------------- |
-| `*children` | `Stringable` | The options to render within the item. |
-| `**props`   | `Any`        | Any other Item prop                    |
-
 ##### ui.section
 
 A section that can be added to a menu, such as a `ui.picker`. Children are the dropdown options.
@@ -1050,6 +1031,190 @@ ui.section(
 | `*children` | `Item`        | The options to render within the section. |
 | `title`     | `str \| None` | The title of the section.                 |
 | `**props`   | `Any`         | Any other Section prop                    |
+
+
+##### ui.item_table_source
+
+An item table source wraps a Table or PartitionedTable to provide additional information for
+creating complex items from a table.
+A PartitionedTable is only supported if the component itself supports a PartitionedTable as a child.
+A PartitionedTable passed here will lead to the same behavior as passing
+the PartitionedTable directly to a component, such as creating sections from the partitions in the case of a Picker.
+
+```py
+import deephaven.ui as ui
+ui.item_table_source(
+    table: Table | PartitionedTable,
+    key_column: ColumnName | None = None,
+    label_column: ColumnName | None = None,
+    description_column: ColumnName | None = None,
+    icon_column: ColumnName | None = None,
+    title_column: ColumnName | None = None,
+    actions: ListActionGroupElement | ListActionMenuElement | None = None,
+) -> ItemTableSource:
+```
+
+###### Parameters
+
+| Parameter            | Type                                                      | Description                                                                                                                                                                                                                                                               |
+| -------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `*children`          | `Item \| SectionElement \| Table \| PartitionedTable`     | The options to render within the picker.                                                                                                                                                                                                                                  |
+| `key_column`         | `ColumnName \| None`                                      | The column of values to use as item keys. Defaults to the first column.                                                                                                                                                                                                   |
+| `label_column`       | `ColumnName \| None`                                      | The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                                                                                      |
+| `description_column` | `ColumnName \| None`                                      | The column of values to display as descriptions.                                                                                                                                                                                                                          |
+| `icon_column`        | `ColumnName \| None`                                      | The column of values to map to icons.                                                                                                                                                                                                                                     |
+| `title_column`       | `ColumnName \| None`                                      | Only valid if table is of type `PartitionedTable`. The column of values to display as section names. Should be the same for all values in the constituent `Table`. If not specified, the section titles will be created from the `key_columns` of the `PartitionedTable`. |
+| `actions`            | `ListActionGroupElement \| ListActionMenuElement \| None` | The action group or menus to render for all elements within the component, if supported.                                                                                                                                                                                  |
+
+
+##### ui.tabs
+
+A tabs component can be used to organize content in a collection of tabs, allowing users to navigating between the different tabs. Children (the tabs) can be specified in one of two ways:
+
+1. They can be of type `Tab`, where each tab child represents an individual tab panel. This is a concise way to create tabs without too much syntax.
+2. They can be of types `TabList` and `TabPanels`, which when combined, outline all tabs and their respective contents. This offers more control over the layout and styling of the panels and lists.
+
+###### Parameters
+
+| Parameter               | Type                                  | Description                                                                                                                                                    |
+| ----------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `*children`             | `Item \| TabList \| TabPanels`        | The tab panels to render within the tabs component.                                                                                                                                                                                               |
+| `on_change`             | `Callable[[Key], None] \| None` | Alias of `on_selection_change`. Handler that is called when the tab selection changes.                                                                            |
+| `**props`               | `Any`                                 | Any other [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html#tabs-props) prop 
+|
+
+
+###### Tabs using `ui.tab`
+
+If you're just using the default tab layout and don't need to customize the appearance of the tabs, you can simply pass in `ui.tab` to `ui.tabs` as a concise method of specifying your tabs.
+
+```py
+from deephaven import empty_table, ui
+
+ui.tabs(
+    # Render a tab with the title "Tab 1" with "Content 1" as tab content, given that no key is passed, would be set to "Tab 1"
+    ui.tab("Content 1", title="Tab 1"),
+
+    # Render a tab with the title "Tab 2" with "Content 2" as tab content, keyed "Key 2"
+    ui.tab("Content 2", title="Tab 2", key="Key 2"),
+
+    # Content passed in that contains a flex, illustrating that tab content does not have to be a string
+    # Render a tab with the title "Tab 3" with "Hello World" header with a table beside it as the tab content, given that no key is passed, would be set to "Tab 1"
+    ui.tab(
+        ui.flex(
+            "Hello World!",
+            ui.flex(empty_table(10).update("I=i")),
+        ),
+        title="Tab 3",
+        key="Key 3",
+    ),
+
+    # Tab with text and icon as title
+    # Render "Content 4" in a tab called "Tab 4 <GITHUB LOGO>", keyed "Tab 4"
+    ui.tab("Content 4", title=ui.item("Tab 4", ui.icon("vsGithubAlt")))
+)
+```
+
+###### Listening for tab changes
+
+```py
+from deephaven import ui
+ui.tabs(
+    # Render a tabs that have an on_change, which prints the selected tab key when a tab is selected
+    ui.tab("Content 1", title="Tab 1", key="Key 1"),
+    ui.tab("Content 2", title="Tab 2", key="Key 2"),
+    on_change=lambda key: print(f"Selected key: {key}"),
+)
+```
+
+###### Tabs using `ui.tab_list` and `ui.tab_panels`
+
+If you need more control over the layout, types, and styling of the tabs, you can specify tabs using  `ui.tab_list` and `ui.tab_panels` with `ui.tabs`. This approach provides greater flexibility for complex or customized tab structures, compared to the concise method of passing `ui.tab` to `ui.tabs`.
+
+With this method, the keys must be provided and match for the tabs declared in the `ui.tab_list` and `ui.tab_panels`.
+
+```py
+from deephaven import ui
+# Tabs specified by passing in tab_panels and tab_list
+ui.tabs(
+    # Render a Tab with a title of "Tab 1", with a content of "Content 1", keyed "Key 1"
+    ui.tab_list(ui.item("Tab 1", key="Key 1"), ui.item("Tab 2", key="Key 2")),
+    ui.tab_panels(
+        ui.item("Content 3", key="Key 1"),
+        ui.item("Content 2", key="Key 2"),
+        flex_grow=1,
+        position="relative",
+    ),
+    flex_grow=1,
+)
+```
+
+###### Error-causing cases
+
+```py
+from deephaven import ui
+
+# Causes an error, given that no tab children are passed into the tabs (cannot have blank tabs)
+t1 = ui.tabs()
+
+# Causes an error if there are identical keys
+t2 = ui.tabs(
+    ui.tab("Content 1", title="Tab 1", key="Key 1"),
+    ui.tab("Content 2", title="Tab 2", key="Key 1"),
+)
+
+# Causes a KeyError, since there are mismatching keys for "Tab 2"
+t3 = ui.tabs(
+    ui.tab_list(ui.item("Tab 1", key="Key 1"), ui.item("Tab 2", key="Key 2")),
+    ui.tab_panels(
+        ui.item("Content 3", key="Key 1"),
+        ui.item("Content 2", key="Key 3"),
+        flex_grow=1,
+        position="relative",
+    ),
+    flex_grow=1,
+)
+
+# Causes an error since cannot specify tabs with combination of ui.tab and ui.tab_panels and ui.tab_list
+t4 = ui.tabs(
+    ui.tab("Content 1", title="Tab 1", key="Key 1"),
+    ui.tab_list(ui.item("Tab 2", key="Key 2")),
+    ui.tab_panels(
+        ui.item(
+            ui.flex(
+                "Content 2",
+                ui.flex(
+                    empty_table(10).update("I=i"), flex_grow=1, direction="column"
+                ),
+            ),
+            key="Key 2",
+        ),
+    ),
+)
+```
+
+
+#### Components
+
+##### ui.item
+
+An item that can be added to a menu, such as a `ui.picker`
+
+```py
+import deephaven.ui as ui
+ui.item(
+    children: Stringable,
+    **props: Any
+) -> ItemElement
+```
+
+###### Parameters
+
+| Parameter   | Type         | Description                            |
+| ----------- | ------------ | -------------------------------------- |
+| `*children` | `Stringable` | The options to render within the item. |
+| `**props`   | `Any`        | Any other Item prop                    |
+
 
 ###### ui.list_action_group
 
@@ -1099,38 +1264,8 @@ def list_action_menu(
 | `on_open_change` | `Callable[[bool, Key], None] \| None`      | The first argument is a boolean indicating if the menu is open, the second argument is the key of the list_view item.                              |
 | `**props`        | `Any`                                      | Any other [ActionMenu](https://react-spectrum.adobe.com/react-spectrum/ActionMenu.html) prop.                                                      |
 
-##### ui.item_table_source
 
-An item table source wraps a Table or PartitionedTable to provide additional information for
-creating complex items from a table.
-A PartitionedTable is only supported if the component itself supports a PartitionedTable as a child.
-A PartitionedTable passed here will lead to the same behavior as passing
-the PartitionedTable directly to a component, such as creating sections from the partitions in the case of a Picker.
 
-```py
-import deephaven.ui as ui
-ui.item_table_source(
-    table: Table | PartitionedTable,
-    key_column: ColumnName | None = None,
-    label_column: ColumnName | None = None,
-    description_column: ColumnName | None = None,
-    icon_column: ColumnName | None = None,
-    title_column: ColumnName | None = None,
-    actions: ListActionGroupElement | ListActionMenuElement | None = None,
-) -> ItemTableSource:
-```
-
-###### Parameters
-
-| Parameter            | Type                                                      | Description                                                                                                                                                                                                                                                               |
-| -------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `*children`          | `Item \| SectionElement \| Table \| PartitionedTable`     | The options to render within the picker.                                                                                                                                                                                                                                  |
-| `key_column`         | `ColumnName \| None`                                      | The column of values to use as item keys. Defaults to the first column.                                                                                                                                                                                                   |
-| `label_column`       | `ColumnName \| None`                                      | The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                                                                                      |
-| `description_column` | `ColumnName \| None`                                      | The column of values to display as descriptions.                                                                                                                                                                                                                          |
-| `icon_column`        | `ColumnName \| None`                                      | The column of values to map to icons.                                                                                                                                                                                                                                     |
-| `title_column`       | `ColumnName \| None`                                      | Only valid if table is of type `PartitionedTable`. The column of values to display as section names. Should be the same for all values in the constituent `Table`. If not specified, the section titles will be created from the `key_columns` of the `PartitionedTable`. |
-| `actions`            | `ListActionGroupElement \| ListActionMenuElement \| None` | The action group or menus to render for all elements within the component, if supported.                                                                                                                                                                                  |
 
 ##### ui.picker
 
@@ -1268,133 +1403,6 @@ picker7 = ui.picker(
     on_selection_change=set_color
 )
 ```
-
-##### ui.tabs
-
-A tabs component can be used to organize content in a collection of tabs, allowing users to navigating between the different tabs. Children (the tabs) can be specified in one of two ways:
-
-1. They can be of type `Tab`, where each tab child represents an individual tab panel. This is a concise way to create tabs without too much syntax.
-2. They can be of types `TabList` and `TabPanels`, which when combined, outline all tabs and their respective contents. This offers more control over the layout and styling of the panels and lists.
-
-###### Parameters
-
-| Parameter               | Type                                  | Description                                                                                                                                                    |
-| ----------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `*children`             | `Item \| TabList \| TabPanels`        | The tab panels to render within the tabs component.                                                                                                                                                                                               |
-| `on_change`             | `Callable[[Key], None] \| None` | Alias of `on_selection_change`. Handler that is called when the tab selection changes.                                                                            |
-| `**props`               | `Any`                                 | Any other [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html#tabs-props) prop 
-|
-
-
-###### Tabs using `ui.tab`
-
-If you're just using the default tab layout and don't need to customize the appearance of the tabs, you can simply pass in `ui.tab` to `ui.tabs` as a concise method of specifying your tabs.
-
-```py
-from deephaven import empty_table, ui
-
-ui.tabs(
-    # Render a tab with the title "Tab 1" with "Content 1" as tab content, given that no key is passed, would be set to "Tab 1"
-    ui.tab("Content 1", title="Tab 1"),
-
-    # Render a tab with the title "Tab 2" with "Content 2" as tab content, keyed "Key 2"
-    ui.tab("Content 2", title="Tab 2", key="Key 2"),
-
-    # Content passed in that contains a flex, illustrating that tab content does not have to be a string
-    # Render a tab with the title "Tab 3" with "Hello World" header with a table beside it as the tab content, given that no key is passed, would be set to "Tab 1"
-    ui.tab(
-        ui.flex(
-            "Hello World!",
-            ui.flex(empty_table(10).update("I=i")),
-        ),
-        title="Tab 3",
-        key="Key 3",
-    ),
-
-    # Tab with text and icon as title
-    # Render "Content 4" in a tab called "Tab 4 <GITHUB LOGO>", keyed "Tab 4"
-    ui.tab("Content 4", title=ui.item("Tab 4", ui.icon("vsGithubAlt")))
-)
-```
-
-###### Listening for tab changes
-
-```py
-from deephaven import ui
-ui.tabs(
-    # Render a tabs that have an on_change, which prints the selected tab key when a tab is selected
-    ui.tab("Content 1", title="Tab 1", key="Key 1"),
-    ui.tab("Content 2", title="Tab 2", key="Key 2"),
-    on_change=lambda key: print(f"Selected key: {key}"),
-)
-```
-
-###### Tabs using `ui.tab_list` and `ui.tab_panels`
-
-If you need more control over the layout, types, and styling of the tabs, you can specify tabs using  `ui.tab_list` and `ui.tab_panels` with `ui.tabs`. This approach provides greater flexibility for complex or customized tab structures, compared to the concise method of passing `ui.tab` to `ui.tabs`.
-
-With this method, the keys must be provided and match for the tabs declared in the `ui.tab_list` and `ui.tab_panels`.
-
-```py
-from deephaven import ui
-# Tabs specified by passing in tab_panels and tab_list
-ui.tabs(
-    # Render a Tab with a title of "Tab 1", with a content of "Content 1", keyed "Key 1"
-    ui.tab_list(ui.item("Tab 1", key="Key 1"), ui.item("Tab 2", key="Key 2")),
-    ui.tab_panels(
-        ui.item("Content 3", key="Key 1"),
-        ui.item("Content 2", key="Key 2"),
-        flex_grow=1,
-        position="relative",
-    ),
-    flex_grow=1,
-)
-```
-
-###### Error-causing cases
-
-```py
-from deephaven import ui
-
-# Causes an error, given that no tab children are passed into the tabs (cannot have blank tabs)
-t1 = ui.tabs()
-
-# Causes an error if there are identical keys
-t2 = ui.tabs(
-    ui.tab("Content 1", title="Tab 1", key="Key 1"),
-    ui.tab("Content 2", title="Tab 2", key="Key 1"),
-)
-
-# Causes a KeyError, since there are mismatching keys for "Tab 2"
-t3 = ui.tabs(
-    ui.tab_list(ui.item("Tab 1", key="Key 1"), ui.item("Tab 2", key="Key 2")),
-    ui.tab_panels(
-        ui.item("Content 3", key="Key 1"),
-        ui.item("Content 2", key="Key 3"),
-        flex_grow=1,
-        position="relative",
-    ),
-    flex_grow=1,
-)
-
-# Causes an error since cannot specify tabs with combination of ui.tab and ui.tab_panels and ui.tab_list
-t4 = ui.tabs(
-    ui.tab("Content 1", title="Tab 1", key="Key 1"),
-    ui.tab_list(ui.item("Tab 2", key="Key 2")),
-    ui.tab_panels(
-        ui.item(
-            ui.flex(
-                "Content 2",
-                ui.flex(
-                    empty_table(10).update("I=i"), flex_grow=1, direction="column"
-                ),
-            ),
-            key="Key 2",
-        ),
-    ),
-)
-```
-
 ##### ui.list_view
 
 A list view that can be used to create a list of items. Children should be one of three types:
