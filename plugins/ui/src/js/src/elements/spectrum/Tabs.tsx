@@ -15,9 +15,6 @@ type TabComponentProps = TabsProps<TabProps> & {
   onChange?: (key: Key) => void;
 };
 
-// NEED TO CLARIFY MISMATCHING KEYS -> CURRENTLY DOES NOT RAISE ERROR
-// NEED TO CLARIFY HOW TO HAVE ERROR RAISE IN CONSOLE
-
 function Tabs(props: TabComponentProps): JSX.Element {
   const { children, ...otherTabProps } = props;
 
@@ -28,35 +25,17 @@ function Tabs(props: TabComponentProps): JSX.Element {
 
   const childrenArray = Children.toArray(children);
 
-  let hasTabChild = false;
-  let hasTabPanelsOrTabListChild = false;
-
-  childrenArray.forEach(child => {
-    if ((child as ReactElement).type === Item) {
-      hasTabChild = true;
-    }
-    if (
-      (child as ReactElement).type === TabPanels ||
-      (child as ReactElement).type === TabList
-    ) {
-      hasTabPanelsOrTabListChild = true;
-    }
-  });
-
-  if (hasTabChild && hasTabPanelsOrTabListChild) {
-    throw new Error(
-      'Tabs cannot have both Tab and TabPanels or TabList children.'
-    );
-  } else if (!hasTabChild && !hasTabPanelsOrTabListChild) {
-    throw new Error(
-      'Tabs must have at least one Tab or TabPanels or TabList child.'
-    );
-  } else if (hasTabPanelsOrTabListChild) {
+  if (
+    childrenArray.some(
+      child =>
+        (child as ReactElement).type === TabPanels ||
+        (child as ReactElement).type === TabList
+    )
+  ) {
     return (
       <DHCTabs
         UNSAFE_style={{
           display: 'flex',
-          flexGrow: 1,
           height: '100%',
           width: '100%',
         }}
@@ -109,7 +88,7 @@ function Tabs(props: TabComponentProps): JSX.Element {
             : `Key ${index}`
         }
       >
-        <Flex height="100%" width="100%" flexGrow={1}>
+        <Flex height="100%" width="100%">
           {child.props.children}
         </Flex>
       </Item>
@@ -120,7 +99,6 @@ function Tabs(props: TabComponentProps): JSX.Element {
     <DHCTabs
       UNSAFE_style={{
         display: 'flex',
-        flexGrow: 1,
         height: '100%',
         width: '100%',
       }}

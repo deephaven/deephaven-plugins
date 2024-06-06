@@ -131,6 +131,22 @@ def tabs(
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
     """
+    if not children:
+        raise ValueError("Tabs must have at least one child.")
+
+    tab_children = [
+        child for child in children if child.name == "deephaven.ui.components.Item"
+    ]
+    tab_list_or_panel_children = [
+        child
+        for child in children
+        if child.name
+        in ["deephaven.ui.spectrum.TabList", "deephaven.ui.spectrum.TabPanels"]
+    ]
+
+    if tab_children and tab_list_or_panel_children:
+        raise ValueError("Tabs cannot have both Tab and TabList or TabPanels children.")
+
     return spectrum_element(
         "Tabs",
         *children,
