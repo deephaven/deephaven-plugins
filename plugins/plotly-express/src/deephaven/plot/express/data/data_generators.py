@@ -299,28 +299,22 @@ def tips(ticking: bool = True) -> Table:
     Returns a ticking version of the Tips dataset.
     One waiter recorded information about each tip he received over a period of
     a few months working in one restaurant. These data were then published in 1995.
-
     This function generates a deterministically random dataset inspired by Tips dataset.
-
     Notes:
         - The total_bill and tip amounts are generated from a statistical linear model,
-          where total_bill is generated from the significant covariates 'smoker' and 'size'
-          plus a random noise term, and then tip is generated from total_bill plus a random
-          noise term.
-
+        where total_bill is generated from the significant covariates 'smoker' and 'size'
+        plus a random noise term, and then tip is generated from total_bill plus a random
+        noise term.
     Args:
         ticking:
             If true, the table will tick using a replayer starting
             with a third of the table already ticked. If false the
             whole table will be returned as a static table.
-
     Returns:
         A Deephaven Table
-
     References:
         - Bryant, P. G. and Smith, M (1995) Practical Data Analysis: Case Studies in Business Statistics.
-          Homewood, IL: Richard D. Irwin Publishing.
-
+        Homewood, IL: Richard D. Irwin Publishing.
     Examples:
         ```
         from deephaven.plot import express as dx
@@ -331,7 +325,7 @@ def tips(ticking: bool = True) -> Table:
     smoker_list: list[str] = ["No", "Yes"]
     day_list: list[str] = ["Thur", "Fri", "Sat", "Sun"]
     time_list: list[str] = ["Dinner", "Lunch"]
-    size_list: list[int] = [1, 2, 3, 4, 5, 6]
+    size_list: list[str] = [1, 2, 3, 4, 5, 6]
 
     # explicitly set empirical frequencies for categorical groups
     sex_probs: list[float] = [0.64, 0.36]
@@ -344,8 +338,6 @@ def tips(ticking: bool = True) -> Table:
     df = px.data.tips().astype({"sex": "string", "smoker": "string", "day": "string", "time": "string", "size": "int"})
 
     df_len = len(df)
-    # add index column using pandas, which is faster than an update() call
-    df.insert(0, "index", list(range(df_len)))
 
     # the following functions use the above category frequencies as well as an independent
     # statistical analysis to generate values for each column in the data frame
@@ -386,15 +378,13 @@ def tips(ticking: bool = True) -> Table:
             time_table("PT1S")
             .update(
                 [
-                    # need an index created before the merge, to use it after
-                    "index = ii + df_len",
-                    "sex = generate_sex(index)",
-                    "smoker = generate_smoker(index)",
-                    "day = generate_day(index)",
-                    "time = generate_time(index)",
-                    "size = generate_size(index)",
-                    "total_bill = generate_total_bill(smoker, size, index)",
-                    "tip = generate_tip(total_bill, index)"
+                    "sex = generate_sex(ii)",
+                    "smoker = generate_smoker(ii)",
+                    "day = generate_day(ii)",
+                    "time = generate_time(ii)",
+                    "size = generate_size(ii)",
+                    "total_bill = generate_total_bill(smoker, size, ii)",
+                    "tip = generate_tip(total_bill, ii)"
                 ]
             )
             .drop_columns("Timestamp")
@@ -403,6 +393,4 @@ def tips(ticking: bool = True) -> Table:
     else:
         t = source_table
 
-    return (
-        t.drop_columns("index")
-    )
+    return t
