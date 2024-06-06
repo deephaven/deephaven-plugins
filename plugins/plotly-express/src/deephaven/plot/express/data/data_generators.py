@@ -298,7 +298,7 @@ def tips(ticking: bool = True) -> Table:
     """
     Returns a ticking version of the Tips dataset.
     One waiter recorded information about each tip he received over a period of
-    a few months working in one restaurant. These data were then published in 1995.
+    a few months working in one restaurant. This data was published in 1995.
     This function generates a deterministically random dataset inspired by Tips dataset.
     Notes:
         - The total_bill and tip amounts are generated from a statistical linear model,
@@ -307,9 +307,9 @@ def tips(ticking: bool = True) -> Table:
         noise term.
     Args:
         ticking:
-            If true, the table will tick using a replayer starting
-            with a third of the table already ticked. If false the
-            whole table will be returned as a static table.
+            If true, a ticking table containing the entire Tips dataset will be returned,
+            and new rows of synthetic data will tick in every second. If false, the Tips
+            dataset will be returned as a static table.
     Returns:
         A Deephaven Table
     References:
