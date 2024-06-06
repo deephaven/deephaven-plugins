@@ -1,6 +1,4 @@
----
-title: Bar Plot
----
+# Bar Plot
 
 A bar plot is a graphical representation of data that uses rectangular bars to display the values of different categories or groups, making it easy to compare and visualize the distribution of data.
 

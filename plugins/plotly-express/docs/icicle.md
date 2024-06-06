@@ -1,6 +1,4 @@
----
-title: Icicle Plot
----
+# Icicle Plot
 
 Icicle plots, a hierarchical data visualization technique, are used to represent structured data with nested categories or levels. They are characterized by a rectangular layout where each column represents a level of the hierarchy, and the width of each subcolumn is proportional to the quantity of data within its respective category, facilitating the visualization of data structure and distribution.
 

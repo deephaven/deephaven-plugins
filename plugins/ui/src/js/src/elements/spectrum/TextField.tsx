@@ -3,13 +3,20 @@ import {
   TextField as DHCTextField,
   TextFieldProps as DHCTextFieldProps,
 } from '@deephaven/components';
-import { useDebouncedCallback } from '@deephaven/react-hooks';
+import Log from '@deephaven/log';
+import { useDebouncedCallback, usePrevious } from '@deephaven/react-hooks';
+
+const log = Log.module('@deephaven/js-plugin-ui/TextField');
 
 const VALUE_CHANGE_DEBOUNCE = 250;
 
 const EMPTY_FUNCTION = () => undefined;
 
-function TextField(props: DHCTextFieldProps): JSX.Element {
+interface TextFieldProps extends DHCTextFieldProps {
+  onChange?: (value: string) => Promise<void>;
+}
+
+function TextField(props: TextFieldProps): JSX.Element {
   const {
     defaultValue = '',
     value: propValue,
@@ -18,16 +25,41 @@ function TextField(props: DHCTextFieldProps): JSX.Element {
   } = props;
 
   const [value, setValue] = useState(propValue ?? defaultValue);
+  const [pending, setPending] = useState(false);
+  const prevPropValue = usePrevious(propValue);
+
+  // Update local value to new propValue if the server sent a new propValue and no user changes have been queued
+  if (
+    propValue !== prevPropValue &&
+    propValue !== value &&
+    propValue !== undefined &&
+    !pending
+  ) {
+    setValue(propValue);
+  }
+
+  const propDebouncedOnChange = useCallback(
+    async (newValue: string) => {
+      try {
+        await propOnChange(newValue);
+      } catch (e) {
+        log.warn('Error returned from onChange', e);
+      }
+      setPending(false);
+    },
+    [propOnChange]
+  );
 
   const debouncedOnChange = useDebouncedCallback(
-    propOnChange,
+    propDebouncedOnChange,
     VALUE_CHANGE_DEBOUNCE
   );
 
   const onChange = useCallback(
-    newValue => {
-      setValue(newValue);
+    (newValue: string) => {
+      setPending(true);
       debouncedOnChange(newValue);
+      setValue(newValue);
     },
     [debouncedOnChange]
   );

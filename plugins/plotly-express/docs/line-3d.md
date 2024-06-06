@@ -1,6 +1,4 @@
----
-title: 3D Line Plot
----
+# 3D Line Plot
 
 3D line plots are a data visualization technique that displays data points as connected line segments in a three-dimensional space. They are used to visualize and analyze data that has dependencies on three variables, facilitating the exploration of patterns, trends, and relationships within the data.
 

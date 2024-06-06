@@ -1,6 +1,4 @@
----
-title: Candlestick Plot
----
+# Candlestick Plot
 
 Candlestick plots are a financial data visualization tool commonly used in technical analysis. Similar to an OHLC, they also represent the open, close, high, and low prices of a financial instrument for a specific time period, providing insights into price movements and patterns, and aiding in the identification of trends and potential reversal points in financial markets.
 

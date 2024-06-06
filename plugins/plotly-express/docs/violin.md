@@ -1,6 +1,4 @@
----
-title: Violin Plot
----
+# Violin Plot
 
 A violin plot is a data visualization that combines a box plot with a rotated kernel density plot to provide a comprehensive representation of the data distribution. It offers a detailed view of the data's central tendency, spread and density.
 

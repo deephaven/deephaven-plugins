@@ -1,6 +1,4 @@
----
-title: Line Plot
----
+# Line Plot
 
 A line plot is a graphical representation that displays data points connected by straight lines, commonly employed in time series analysis to depict temporal trends or relationships in a dataset.
 

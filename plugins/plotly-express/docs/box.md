@@ -1,6 +1,4 @@
----
-title: Box Plot
----
+# Box Plot
 
 A box plot, also known as a box-and-whisker plot, is a data visualization that presents a summary of a dataset's distribution. It displays key statistics such as the median, quartiles, and potential outliers, making it a useful tool for visually representing the central tendency and variability of data.
 
