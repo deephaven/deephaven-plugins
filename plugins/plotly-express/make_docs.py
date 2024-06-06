@@ -23,6 +23,8 @@ for root, dirs, files in os.walk(BUILT_DOCS):
             with open(os.path.join(root, file), "w") as f:
                 for line in lines:
                     if "### deephaven.plot.express." in line:
+                        # remove escaped \* with * as it's not needed when in a code block
+                        line = line.replace("\\*", "*")
                         # first add the lines here
                         line = line.replace("### deephaven.plot.express.", "")
                         before = "<Syntax>\n\n```python\n"
