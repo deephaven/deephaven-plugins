@@ -325,7 +325,7 @@ def tips(ticking: bool = True) -> Table:
     smoker_list: list[str] = ["No", "Yes"]
     day_list: list[str] = ["Thur", "Fri", "Sat", "Sun"]
     time_list: list[str] = ["Dinner", "Lunch"]
-    size_list: list[str] = [1, 2, 3, 4, 5, 6]
+    size_list: list[int] = [1, 2, 3, 4, 5, 6]
 
     # explicitly set empirical frequencies for categorical groups
     sex_probs: list[float] = [0.64, 0.36]
@@ -335,14 +335,22 @@ def tips(ticking: bool = True) -> Table:
     size_probs: list[float] = [0.02, 0.64, 0.15, 0.15, 0.02, 0.02]
 
     # Load the tips dataset and cast the category columns to strings
-    df = px.data.tips().astype({"sex": "string", "smoker": "string", "day": "string", "time": "string", "size": "int"})
+    df = px.data.tips().astype(
+        {
+            "sex": "string",
+            "smoker": "string",
+            "day": "string",
+            "time": "string",
+            "size": "int",
+        }
+    )
 
     df_len = len(df)
 
     # the following functions use the above category frequencies as well as an independent
     # statistical analysis to generate values for each column in the data frame
     # row number used as a random seed so that the data is deterministically generated
-    def generate_sex(index: int) -> str :
+    def generate_sex(index: int) -> str:
         random.seed(index)
         return random.choices(sex_list, weights=sex_probs)[0]
 
@@ -364,11 +372,17 @@ def tips(ticking: bool = True) -> Table:
 
     def generate_total_bill(smoker: str, size: int, index: int) -> float:
         random.seed(index)
-        return round(3.68 + 3.08*(smoker == "Yes") + 5.81*size + (random.gauss(3.41, 0.99)**2 - 12.63), 2)
+        return round(
+            3.68
+            + 3.08 * (smoker == "Yes")
+            + 5.81 * size
+            + (random.gauss(3.41, 0.99) ** 2 - 12.63),
+            2,
+        )
 
     def generate_tip(total_bill: float, index: int) -> float:
         random.seed(index)
-        return max(0, round(0.92 + .11*total_bill + random.gauss(0.0, 1.02), 2))
+        return max(0, round(0.92 + 0.11 * total_bill + random.gauss(0.0, 1.02), 2))
 
     # convert the pandas DataFrame to a Deephaven Table
     source_table = to_table(df)
@@ -384,11 +398,11 @@ def tips(ticking: bool = True) -> Table:
                     "time = generate_time(ii)",
                     "size = generate_size(ii)",
                     "total_bill = generate_total_bill(smoker, size, ii)",
-                    "tip = generate_tip(total_bill, ii)"
+                    "tip = generate_tip(total_bill, ii)",
                 ]
             )
             .drop_columns("Timestamp")
         )
         return merge([source_table, ticking_table])
-    
+
     return source_table
