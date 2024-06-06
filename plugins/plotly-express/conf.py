@@ -32,6 +32,9 @@ autodoc_typehints = "description"
 # exclude build directory
 exclude_patterns = ["build", "Thumbs.db", ".DS_Store"]
 
+# options for sphinx_autodoc_typehints
+always_use_bars_union = True
+
 from deephaven_server import Server
 
 s = Server(port=10075)
