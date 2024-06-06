@@ -31,7 +31,7 @@ def treemap(
     branchvalues: str | None = None,
     maxdepth: int | None = None,
     unsafe_update_figure: Callable = default_callback,
-):
+) -> DeephavenFigure:
     """Returns a treemap chart
 
     Args:
@@ -99,7 +99,7 @@ def sunburst(
     branchvalues: str | None = None,
     maxdepth: int | None = None,
     unsafe_update_figure: Callable = default_callback,
-):
+) -> DeephavenFigure:
     """Returns a sunburst chart
 
     Args:
@@ -167,7 +167,7 @@ def icicle(
     branchvalues: str | None = None,
     maxdepth: int | None = None,
     unsafe_update_figure: Callable = default_callback,
-):
+) -> DeephavenFigure:
     """Returns a icicle chart
 
     Args:
@@ -306,7 +306,7 @@ def funnel_area(
     template: str | None = None,
     opacity: float | None = None,
     unsafe_update_figure: Callable = default_callback,
-):
+) -> DeephavenFigure:
     """Returns a funnel area chart
 
     Args:

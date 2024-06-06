@@ -229,7 +229,7 @@ def timeline(
     title: str | None = None,
     template: str | None = None,
     unsafe_update_figure: Callable = default_callback,
-):
+) -> DeephavenFigure:
     """Returns a timeline (otherwise known as a gantt chart)
 
     Args:
@@ -325,7 +325,7 @@ def frequency_bar(
     title: str | None = None,
     template: str | None = None,
     unsafe_update_figure: Callable = default_callback,
-):
+) -> DeephavenFigure:
     """Returns a bar chart that contains the counts of the specified columns
 
     Args:

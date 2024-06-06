@@ -9,6 +9,7 @@ from deephaven.table import Table
 
 from ._private_utils import process_args
 from ..shared import default_callback
+from ..deephaven_figure import DeephavenFigure
 
 
 def scatter_geo(
@@ -51,7 +52,7 @@ def scatter_geo(
     title: str | None = None,
     template: str | None = None,
     unsafe_update_figure: Callable = default_callback,
-):
+) -> DeephavenFigure:
     """
     Create a scatter_geo plot
 
@@ -183,7 +184,7 @@ def scatter_mapbox(
     title: str | None = None,
     template: str | None = None,
     unsafe_update_figure: Callable = default_callback,
-):
+) -> DeephavenFigure:
     """
     Create a scatter_mapbox plot
 
@@ -300,7 +301,7 @@ def line_geo(
     title: str | None = None,
     template: str | None = None,
     unsafe_update_figure: Callable = default_callback,
-):
+) -> DeephavenFigure:
     """
     Create a line_geo plot
 
@@ -439,7 +440,7 @@ def line_mapbox(
     title: str | None = None,
     template: str | None = None,
     unsafe_update_figure: Callable = default_callback,
-):
+) -> DeephavenFigure:
     """
     Create a line_mapbox plot
 
@@ -547,7 +548,7 @@ def density_mapbox(
     title: str | None = None,
     template: str | None = None,
     unsafe_update_figure: Callable = default_callback,
-):
+) -> DeephavenFigure:
     """
     Create a density_mapbox plot
 

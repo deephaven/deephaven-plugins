@@ -1,4 +1,4 @@
 deephaven-server
 Sphinx
 myst_parser
-sphinx_markdown_builder
+sphinx_markdown_builder==0.6.6
