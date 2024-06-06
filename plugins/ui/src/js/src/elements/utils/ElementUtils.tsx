@@ -1,4 +1,4 @@
-import React, { PropsWithChildren } from 'react';
+import React from 'react';
 import { Text } from '@deephaven/components';
 import type { dh } from '@deephaven/jsapi-types';
 import { ELEMENT_NAME } from '../model/ElementConstants';
@@ -226,18 +226,4 @@ export function wrapTextChildren(children: React.ReactNode): React.ReactNode {
     }
     return child;
   });
-}
-
-/**
- * Map the props of an element to Spectrum props, automatically wrapping children strings and numbers in `Text` elements.
- * @param props Props to map as spectrum props
- */
-export function wrapPropsTextChildren<
-  T extends PropsWithChildren<Record<string, unknown>>,
->(props: T): T {
-  return {
-    ...props,
-    children:
-      props?.children != null ? wrapTextChildren(props.children) : undefined,
-  };
 }
