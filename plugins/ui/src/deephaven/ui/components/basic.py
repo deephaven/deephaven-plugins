@@ -34,6 +34,7 @@ def icon_wrapper(*children, **props):
     Named icon_wrapper so as not to conflict with the Deephaven icon component.
     TODO: This doesn't seem to work correctly. It throws an error saying `Cannot read properties of undefined (reading 'className')`.
     https://react-spectrum.adobe.com/react-spectrum/Icon.html
+    https://github.com/deephaven/deephaven-plugins/issues/526
     """
     return base_element("Icon", *children, **props)
 
