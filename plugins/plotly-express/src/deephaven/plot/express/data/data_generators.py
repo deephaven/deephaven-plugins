@@ -389,8 +389,6 @@ def tips(ticking: bool = True) -> Table:
             )
             .drop_columns("Timestamp")
         )
-        t = merge([source_table, ticking_table])
-    else:
-        t = source_table
-
-    return t
+        return merge([source_table, ticking_table])
+    
+    return source_table
