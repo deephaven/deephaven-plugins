@@ -1,7 +1,5 @@
 import { ValueOf } from '@deephaven/utils';
 import {
-  ActionGroup,
-  ActionMenu,
   ButtonGroup,
   Content,
   ContextualHelp,
@@ -10,10 +8,7 @@ import {
   Icon,
   Item,
   IllustratedMessage,
-  ListActionGroup,
-  ListActionMenu,
   NumberField,
-  RadioGroup,
   SpectrumCheckbox as Checkbox,
   Switch,
   Tabs,
@@ -34,12 +29,12 @@ import {
 } from './spectrum';
 import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
 
-export const SPECTRUM_ELEMENT_TYPE_PREFIX = 'deephaven.ui.spectrum.';
+// TODO: #425 will be removing Spectrum utils altogether. Just keeping this for
+// now to keep the initial PR smaller.
+export const SPECTRUM_ELEMENT_TYPE_PREFIX = 'deephaven.ui.components.';
 
 export const SpectrumSupportedTypes = {
   ActionButton,
-  ActionGroup,
-  ActionMenu,
   Button,
   ButtonGroup,
   Checkbox,
@@ -51,11 +46,8 @@ export const SpectrumSupportedTypes = {
   Heading,
   Icon,
   IllustratedMessage,
-  ListActionGroup,
-  ListActionMenu,
   NumberField,
   Item,
-  RadioGroup,
   RangeSlider,
   Slider,
   Switch,
@@ -83,11 +75,16 @@ export type SpectrumElementNode = ElementNode<SpectrumElementName>;
 export function isSpectrumElementNode(
   obj: unknown
 ): obj is SpectrumElementNode {
+  if (!isElementNode(obj)) {
+    return false;
+  }
+
+  const name = (obj as SpectrumElementNode)[ELEMENT_KEY];
+
   return (
-    isElementNode(obj) &&
-    (obj as SpectrumElementNode)[ELEMENT_KEY].startsWith(
-      SPECTRUM_ELEMENT_TYPE_PREFIX
-    )
+    name.startsWith(SPECTRUM_ELEMENT_TYPE_PREFIX) &&
+    name.substring(SPECTRUM_ELEMENT_TYPE_PREFIX.length) in
+      SpectrumSupportedTypes
   );
 }
 
