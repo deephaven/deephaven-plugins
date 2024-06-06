@@ -63,10 +63,9 @@ Install the necessary dependencies:
 pip install -r requirements.txt
 pip install ../dist/deephaven_plugin_plotly_express-*.whl
 ```
-then run the docs make and post make commands:
+then run the docs make script:
 ```shell
-make markdown
-python post_make.py
+python make_docs.py
 ```
 
 Note that these built files should not be committed to the repository.

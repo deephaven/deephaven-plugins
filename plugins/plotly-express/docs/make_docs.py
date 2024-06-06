@@ -1,11 +1,17 @@
 import os
 
-os.system("cp -r _assets build/markdown/_assets")
+os.system("make clean")
 
-# remove the index.md
+print("Building markdown")
+os.system("make markdown")
+
+print("Copying assets")
+os.system("cp -r _assets build/markdown/_assets")
+os.system("cp sidebar.json build/markdown/sidebar.json")
+
 os.system("rm build/markdown/index.md")
 
-# go through each markdown file, look for ### deephaven.plot.express then excape any < characters
+# go through each markdown file, look for ### deephaven.plot.express then escape any < characters
 # this ensures function default values are shown
 for root, dirs, files in os.walk("build/markdown"):
     for file in files:

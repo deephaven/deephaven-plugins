@@ -33,8 +33,6 @@ source_suffix = [".rst", ".md"]  # Can use either rst or markdown files as input
 # show hints in the description so that the function definition is not cluttered
 autodoc_typehints = "description"
 
-suppress_warnings = ["myst.header"]
-
 # exclude build directory
 exclude_patterns = ["build", "Thumbs.db", ".DS_Store"]
 
