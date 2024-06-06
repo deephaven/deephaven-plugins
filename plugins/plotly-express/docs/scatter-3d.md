@@ -1,6 +1,4 @@
----
-title: 3D Scatter Plot
----
+# 3D Scatter Plot
 
 A 3D scatter plot is a type of data visualization that displays data points in three-dimensional space. Each data point is represented as a marker or point, and its position in the plot is determined by the values of three different variables, one for each axis (x, y, and z). This plot allows for the visualization of relationships and patterns among three continuous variables simultaneously.
 

@@ -1,6 +1,4 @@
----
-title: ECDF Plot
----
+# ECDF Plot
 
 An Empirical Cumulative Distribution Function (ECDF) plot is a non-parametric statistical tool used to visualize the distribution of data. It displays the cumulative proportion of data points that are less than or equal to a given value, providing insights into data spread and characteristics without making assumptions about the underlying probability distribution.
 

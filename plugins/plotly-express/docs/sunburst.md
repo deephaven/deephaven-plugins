@@ -1,6 +1,4 @@
----
-title: Sunburst Plot
----
+# Sunburst Plot
 
 Sunburst plots are a data visualization technique used to represent hierarchical data with a radial layout. They display data as nested rings or sectors, where each level of the hierarchy is represented by a ring, and each category or subcategory is shown as a sector within the ring. Sunburst plots provide an effective way to visualize hierarchical data structures and the relationships between different levels and categories within the data, making them a valuable tool for understanding complex data hierarchies.
 
