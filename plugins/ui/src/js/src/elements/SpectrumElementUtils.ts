@@ -6,7 +6,6 @@ import {
   Grid,
   Heading,
   Icon,
-  Item,
   IllustratedMessage,
   NumberField,
   SpectrumCheckbox as Checkbox,
