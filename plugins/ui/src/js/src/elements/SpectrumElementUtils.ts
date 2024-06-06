@@ -47,7 +47,6 @@ export const SpectrumSupportedTypes = {
   Icon,
   IllustratedMessage,
   NumberField,
-  Item,
   RangeSlider,
   Slider,
   Switch,
