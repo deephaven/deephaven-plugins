@@ -1,8 +1,13 @@
 import type { dh } from '@deephaven/jsapi-types';
-import { ColumnName, DehydratedSort, RowIndex } from '@deephaven/iris-grid';
+import type {
+  ColumnName,
+  DehydratedSort,
+  IrisGridContextMenuData,
+  RowIndex,
+} from '@deephaven/iris-grid';
+import type { ContextAction } from '@deephaven/components';
 import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
 import { ELEMENT_NAME, ElementName } from './ElementConstants';
-import { ContextAction } from '@deephaven/components';
 
 export type CellData = {
   type: string;
@@ -19,6 +24,19 @@ export type ColumnIndex = number;
 
 export type RowDataMap = Record<ColumnName, RowDataValue>;
 
+export type UIContextItem = Omit<ContextAction, 'action' | 'actions'> & {
+  action?: (params: {
+    value: unknown;
+    text_value: string | null;
+    row_index: number | null;
+    column_index: number | null;
+    column_name: string;
+    is_column_header: boolean;
+    is_row_header: boolean;
+  }) => void;
+
+  actions?: UIContextItem[];
+};
 export interface UITableProps {
   table: dh.WidgetExportedObject;
   onCellPress?: (cellIndex: [ColumnIndex, RowIndex], data: CellData) => void;
@@ -35,7 +53,9 @@ export interface UITableProps {
   sorts?: DehydratedSort[];
   showSearch: boolean;
   showQuickFilters: boolean;
-  contextActions?: ContextAction[];
+  contextItems?: UIContextItem[];
+  contextColumnHeaderItems?: UIContextItem[];
+  contextRowHeaderItems?: UIContextItem[];
   [key: string]: unknown;
 }
 
@@ -48,4 +68,33 @@ export function isUITable(obj: unknown): obj is UITableNode {
     isElementNode(obj) &&
     (obj as UITableNode)[ELEMENT_KEY] === ELEMENT_NAME.uiTable
   );
+}
+
+/**
+ * Wraps context item actions from the server so they are called with the cell info.
+ * @param items The context items from the server
+ * @param data The context menu data to use for the context items
+ * @returns Context items with the UI actions wrapped so they receive the cell info
+ */
+export function wrapContextActions(
+  items: UIContextItem[],
+  data: IrisGridContextMenuData
+): ContextAction[] {
+  return items.map(item => ({
+    ...item,
+    action: item.action
+      ? () => {
+          item.action?.({
+            value: data.value,
+            text_value: data.valueText,
+            row_index: data.rowIndex,
+            column_index: data.columnIndex,
+            column_name: data.column.name,
+            is_column_header: data.rowIndex == null,
+            is_row_header: data.columnIndex == null,
+          });
+        }
+      : undefined,
+    actions: item.actions ? wrapContextActions(item.actions, data) : undefined,
+  }));
 }

@@ -8,6 +8,7 @@ from ..types import (
     ColumnPressCallback,
     QuickFilterExpression,
     RowPressCallback,
+    ContextMenuItem,
 )
 
 
@@ -23,7 +24,9 @@ def table(
     quick_filters: dict[ColumnName, QuickFilterExpression] | None = None,
     show_quick_filters: bool = False,
     show_search: bool = False,
-    context_actions: list[dict[str, str]] | None = None,
+    context_items: list[ContextMenuItem] | None = None,
+    context_column_header_items: list[ContextMenuItem] | None = None,
+    context_row_header_items: list[ContextMenuItem] | None = None,
 ) -> UITable:
     """
     Customization to how a table is displayed, how it behaves, and listen to UI events.
@@ -49,6 +52,9 @@ def table(
         quick_filters: The quick filters to apply to the table. Dictionary of column name to filter value.
         show_quick_filters: Whether to show the quick filter bar by default.
         show_search: Whether to show the search bar by default.
+        context_items: The context menu items to show when a cell is right clicked. May contain action items or submenu items.
+        context_column_header_items: The context menu items to show when a column header is right clicked. May contain action items or submenu items.
+        context_row_header_items: The context menu items to show when a row header is right clicked. May contain action items or submenu items.
     """
     props = locals()
     del props["table"]

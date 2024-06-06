@@ -14,7 +14,7 @@ import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { getSettings, RootState } from '@deephaven/redux';
 import { EMPTY_ARRAY } from '@deephaven/utils';
-import { UITableProps } from './UITableUtils';
+import { UITableProps, wrapContextActions } from './UITableUtils';
 import UITableMouseHandler from './UITableMouseHandler';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
@@ -32,7 +32,7 @@ function UITable({
   table: exportedTable,
   showSearch: showSearchBar,
   showQuickFilters,
-  contextActions,
+  contextItems,
 }: UITableProps): JSX.Element | null {
   const dh = useApi();
   const [model, setModel] = useState<IrisGridModel>();
@@ -119,11 +119,11 @@ function UITable({
 
   const onContextMenu = useCallback(
     (data: IrisGridContextMenuData) =>
-      contextActions?.map(propAction => ({
-        ...propAction,
-        action: () => propAction.action?.(data),
-      })) ?? [],
-    [contextActions]
+      wrapContextActions(contextItems ?? [], data).map(item => ({
+        group: 999999, // Put it at the bottom of the list
+        ...item,
+      })),
+    [contextItems]
   );
 
   const irisGridProps = useMemo(
