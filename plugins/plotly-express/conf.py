@@ -16,16 +16,12 @@ release = "0.7.0"
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-# monkey patch to remove literal_emphasis rendering - it doesn't work well with type hints
-from sphinx_markdown_builder.translator import PREDEFINED_ELEMENTS
-
-PREDEFINED_ELEMENTS["literal_emphasis"] = None
-
 extensions = [
     "myst_parser",
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx_markdown_builder",
+    "sphinx_autodoc_typehints",
 ]
 
 source_suffix = [".rst", ".md"]  # Can use either rst or markdown files as input
