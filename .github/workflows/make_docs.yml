@@ -15,6 +15,9 @@ jobs:
     if: ${{ github.event.inputs.package }} == 'plotly-express'
     runs-on: ubuntu-22.04
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
       - name: Build Python Package
         uses: ./.github/workflows/build-python-package.yml
         with:

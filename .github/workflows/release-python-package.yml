@@ -19,6 +19,9 @@ jobs:
     permissions:
       id-token: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
       - name: Build Python Package
         uses: ./.github/workflows/build-python-package.yml
         with:
