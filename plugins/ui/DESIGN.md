@@ -1269,7 +1269,133 @@ picker7 = ui.picker(
 )
 ```
 
-###### ui.list_view
+##### ui.tabs
+
+A tabs component can be used to organize content in a collection of tabs, allowing users to navigating between the different tabs. Children (the tabs) can be specified in one of two ways:
+
+1. They can be of type `Tab`, where each tab child represents an individual tab panel. This is a concise way to create tabs without too much syntax.
+2. They can be of types `TabList` and `TabPanels`, which when combined, outline all tabs and their respective contents. This offers more control over the layout and styling of the panels and lists.
+
+###### Parameters
+
+| Parameter               | Type                                  | Description                                                                                                                                                    |
+| ----------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `*children`             | `Item \| TabList \| TabPanels`        | The tab panels to render within the tabs component.                                                                                                                                                                                               |
+| `on_change`             | `Callable[[Key], None] \| None` | Alias of `on_selection_change`. Handler that is called when the tab selection changes.                                                                            |
+| `**props`               | `Any`                                 | Any other [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html#tabs-props) prop 
+|
+
+
+###### Tabs using `ui.tab`
+
+If you're just using the default tab layout and don't need to customize the appearance of the tabs, you can simply pass in `ui.tab` to `ui.tabs` as a concise method of specifying your tabs.
+
+```py
+from deephaven import empty_table, ui
+
+ui.tabs(
+    # Render a tab with the title "Tab 1" with "Content 1" as tab content, given that no key is passed, would be set to "Tab 1"
+    ui.tab("Content 1", title="Tab 1"),
+
+    # Render a tab with the title "Tab 2" with "Content 2" as tab content, keyed "Key 2"
+    ui.tab("Content 2", title="Tab 2", key="Key 2"),
+
+    # Content passed in that contains a flex, illustrating that tab content does not have to be a string
+    # Render a tab with the title "Tab 3" with "Hello World" header with a table beside it as the tab content, given that no key is passed, would be set to "Tab 1"
+    ui.tab(
+        ui.flex(
+            "Hello World!",
+            ui.flex(empty_table(10).update("I=i")),
+        ),
+        title="Tab 3",
+        key="Key 3",
+    ),
+
+    # Tab with text and icon as title
+    # Render "Content 4" in a tab called "Tab 4 <GITHUB LOGO>", keyed "Tab 4"
+    ui.tab("Content 4", title=ui.item("Tab 4", ui.icon("vsGithubAlt")))
+)
+```
+
+###### Listening for tab changes
+
+```py
+from deephaven import ui
+ui.tabs(
+    # Render a tabs that have an on_change, which prints the selected tab key when a tab is selected
+    ui.tab("Content 1", title="Tab 1", key="Key 1"),
+    ui.tab("Content 2", title="Tab 2", key="Key 2"),
+    on_change=lambda key: print(f"Selected key: {key}"),
+)
+```
+
+###### Tabs using `ui.tab_list` and `ui.tab_panels`
+
+If you need more control over the layout, types, and styling of the tabs, you can specify tabs using  `ui.tab_list` and `ui.tab_panels` with `ui.tabs`. This approach provides greater flexibility for complex or customized tab structures, compared to the concise method of passing `ui.tab` to `ui.tabs`.
+
+With this method, the keys must be provided and match for the tabs declared in the `ui.tab_list` and `ui.tab_panels`.
+
+```py
+from deephaven import ui
+# Tabs specified by passing in tab_panels and tab_list
+ui.tabs(
+    # Render a Tab with a title of "Tab 1", with a content of "Content 1", keyed "Key 1"
+    ui.tab_list(ui.item("Tab 1", key="Key 1"), ui.item("Tab 2", key="Key 2")),
+    ui.tab_panels(
+        ui.item("Content 3", key="Key 1"),
+        ui.item("Content 2", key="Key 2"),
+        flex_grow=1,
+        position="relative",
+    ),
+    flex_grow=1,
+)
+```
+
+###### Error-causing cases
+
+```py
+from deephaven import ui
+
+# Causes an error, given that no tab children are passed into the tabs (cannot have blank tabs)
+t1 = ui.tabs()
+
+# Causes an error if there are identical keys
+t2 = ui.tabs(
+    ui.tab("Content 1", title="Tab 1", key="Key 1"),
+    ui.tab("Content 2", title="Tab 2", key="Key 1"),
+)
+
+# Causes a KeyError, since there are mismatching keys for "Tab 2"
+t3 = ui.tabs(
+    ui.tab_list(ui.item("Tab 1", key="Key 1"), ui.item("Tab 2", key="Key 2")),
+    ui.tab_panels(
+        ui.item("Content 3", key="Key 1"),
+        ui.item("Content 2", key="Key 3"),
+        flex_grow=1,
+        position="relative",
+    ),
+    flex_grow=1,
+)
+
+# Causes an error since cannot specify tabs with combination of ui.tab and ui.tab_panels and ui.tab_list
+t4 = ui.tabs(
+    ui.tab("Content 1", title="Tab 1", key="Key 1"),
+    ui.tab_list(ui.item("Tab 2", key="Key 2")),
+    ui.tab_panels(
+        ui.item(
+            ui.flex(
+                "Content 2",
+                ui.flex(
+                    empty_table(10).update("I=i"), flex_grow=1, direction="column"
+                ),
+            ),
+            key="Key 2",
+        ),
+    ),
+)
+```
+
+##### ui.list_view
 
 A list view that can be used to create a list of items. Children should be one of three types:
 
