@@ -382,7 +382,7 @@ def tips(ticking: bool = True) -> Table:
 
     def generate_tip(total_bill: float, index: int) -> float:
         random.seed(index)
-        return max(0, round(0.92 + 0.11 * total_bill + random.gauss(0.0, 1.02), 2))
+        return max(1, round(0.92 + 0.11 * total_bill + random.gauss(0.0, 1.02), 2))
 
     # convert the pandas DataFrame to a Deephaven Table
     source_table = to_table(df)
