@@ -79,7 +79,9 @@ def tabs(
     https://react-spectrum.adobe.com/react-spectrum/Tabs.html
 
     Args:
-        *children: The children of the button group.
+        *children: The children of the tabs component outline how the tabs will be created, they can be either:
+            ui.tab: A tab item that is a shorthand way to create a tab item.
+            ui.tab_list & ui.tab_panels: A tab list and tab panels allow for more customization when creating tabs.
         disabled_keys: The keys of the tabs that are disabled. These tabs cannot be selected, focused, or otherwise interacted with.
         is_disabled: Whether the Tabs are disabled.
         is_quiet: Whether the tabs are displayed in a quiet style.
@@ -135,7 +137,7 @@ def tabs(
         raise ValueError("Tabs must have at least one child.")
 
     tab_children = [
-        child for child in children if child.name == "deephaven.ui.components.Item"
+        child for child in children if child.name == "deephaven.ui.spectrum.Tab"
     ]
     tab_list_or_panel_children = [
         child
@@ -145,7 +147,7 @@ def tabs(
     ]
 
     if tab_children and tab_list_or_panel_children:
-        raise ValueError("Tabs cannot have both Tab and TabList or TabPanels children.")
+        raise TypeError("Tabs cannot have both Tab and TabList or TabPanels children.")
 
     return spectrum_element(
         "Tabs",

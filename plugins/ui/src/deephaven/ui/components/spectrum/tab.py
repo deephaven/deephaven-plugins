@@ -15,15 +15,15 @@ def tab(
     key: Key | None = None,
 ):
     """
-    Tab item implemenation for tabs component.
+    Tab item implementation for tabs component.
 
     Args:
-        *children: The children of the button group.
+        *children: Content of the tab item.
         title: The title of the tab item.
         key: The key of the tab item.
     """
     return BaseElement(
-        "deephaven.ui.components.Item",
+        "deephaven.ui.spectrum.Tab",
         *children,
         title=title,
         key=key,

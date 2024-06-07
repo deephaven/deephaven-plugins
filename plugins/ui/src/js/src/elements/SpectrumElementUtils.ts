@@ -29,6 +29,7 @@ import {
   TabPanels,
   TextField,
   Tabs,
+  Tab,
 } from './spectrum';
 import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
 
@@ -57,6 +58,7 @@ export const SpectrumSupportedTypes = {
   Slider,
   Switch,
   Tabs,
+  Tab,
   TabList,
   TabPanels,
   Text,
