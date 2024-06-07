@@ -1351,6 +1351,22 @@ ui.tabs(
 )
 ```
 
+If there are tabs with mismatching keys when specifying tabs with `ui.tab_list` and `ui.tab_panels` as there is below, the item outlined in the `tab_list` will render as a tab, but with no content. The item in the `tab_panels` will be disregarded, since there is no corresponding item in the `tab_list`.
+
+```py
+ui.tabs(
+    ui.tab_list(ui.item("Tab 1", key="Key 1"), ui.item("Tab 2", key="Key 2")),
+    # No tab in tab_panels keyed "Key 2"
+    ui.tab_panels(
+        ui.item("Content 3", key="Key 1"),
+        ui.item("Content 2", key="Key 3"),
+        flex_grow=1,
+        position="relative",
+    ),
+    flex_grow=1,
+)
+```
+
 ###### Error-causing cases
 
 ```py
@@ -1365,20 +1381,8 @@ t2 = ui.tabs(
     ui.tab("Content 2", title="Tab 2", key="Key 1"),
 )
 
-# Causes a KeyError, since there are mismatching keys for "Tab 2"
-t3 = ui.tabs(
-    ui.tab_list(ui.item("Tab 1", key="Key 1"), ui.item("Tab 2", key="Key 2")),
-    ui.tab_panels(
-        ui.item("Content 3", key="Key 1"),
-        ui.item("Content 2", key="Key 3"),
-        flex_grow=1,
-        position="relative",
-    ),
-    flex_grow=1,
-)
-
 # Causes an error since cannot specify tabs with combination of ui.tab and ui.tab_panels and ui.tab_list
-t4 = ui.tabs(
+t3 = ui.tabs(
     ui.tab("Content 1", title="Tab 1", key="Key 1"),
     ui.tab_list(ui.item("Tab 2", key="Key 2")),
     ui.tab_panels(
