@@ -292,3 +292,115 @@ def stocks(ticking: bool = True, hours_of_data: int = 1) -> Table:
         return replayer_table
     else:
         return static_table
+
+
+def tips(ticking: bool = True) -> Table:
+    """
+    Returns a ticking version of the Tips dataset.
+    One waiter recorded information about each tip he received over a period of
+    a few months working in one restaurant. This data was published in 1995.
+    This function generates a deterministically random dataset inspired by Tips dataset.
+    Notes:
+        - The total_bill and tip amounts are generated from a statistical linear model,
+        where total_bill is generated from the significant covariates 'smoker' and 'size'
+        plus a random noise term, and then tip is generated from total_bill plus a random
+        noise term.
+    Args:
+        ticking:
+            If true, a ticking table containing the entire Tips dataset will be returned,
+            and new rows of synthetic data will tick in every second. If false, the Tips
+            dataset will be returned as a static table.
+    Returns:
+        A Deephaven Table
+    References:
+        - Bryant, P. G. and Smith, M (1995) Practical Data Analysis: Case Studies in Business Statistics.
+        Homewood, IL: Richard D. Irwin Publishing.
+    Examples:
+        ```
+        from deephaven.plot import express as dx
+        tips = dx.data.tips()
+        ```
+    """
+    sex_list: list[str] = ["Male", "Female"]
+    smoker_list: list[str] = ["No", "Yes"]
+    day_list: list[str] = ["Thur", "Fri", "Sat", "Sun"]
+    time_list: list[str] = ["Dinner", "Lunch"]
+    size_list: list[int] = [1, 2, 3, 4, 5, 6]
+
+    # explicitly set empirical frequencies for categorical groups
+    sex_probs: list[float] = [0.64, 0.36]
+    smoker_probs: list[float] = [0.62, 0.38]
+    day_probs: list[float] = [0.25, 0.08, 0.36, 0.31]
+    time_probs: list[float] = [0.72, 0.28]
+    size_probs: list[float] = [0.02, 0.64, 0.15, 0.15, 0.02, 0.02]
+
+    # Load the tips dataset and cast the category columns to strings
+    df = px.data.tips().astype(
+        {
+            "sex": "string",
+            "smoker": "string",
+            "day": "string",
+            "time": "string",
+            "size": "int",
+        }
+    )
+
+    # the following functions use the above category frequencies as well as an independent
+    # statistical analysis to generate values for each column in the data frame
+    # row number used as a random seed so that the data is deterministically generated
+    def generate_sex(index: int) -> str:
+        random.seed(index)
+        return random.choices(sex_list, weights=sex_probs)[0]
+
+    def generate_smoker(index: int) -> str:
+        random.seed(index)
+        return random.choices(smoker_list, weights=smoker_probs)[0]
+
+    def generate_day(index: int) -> str:
+        random.seed(index)
+        return random.choices(day_list, weights=day_probs)[0]
+
+    def generate_time(index: int) -> str:
+        random.seed(index)
+        return random.choices(time_list, weights=time_probs)[0]
+
+    def generate_size(index: int) -> int:
+        random.seed(index)
+        return random.choices(size_list, weights=size_probs)[0]
+
+    def generate_total_bill(smoker: str, size: int, index: int) -> float:
+        random.seed(index)
+        return round(
+            3.68
+            + 3.08 * (smoker == "Yes")
+            + 5.81 * size
+            + (random.gauss(3.41, 0.99) ** 2 - 12.63),
+            2,
+        )
+
+    def generate_tip(total_bill: float, index: int) -> float:
+        random.seed(index)
+        return max(1, round(0.92 + 0.11 * total_bill + random.gauss(0.0, 1.02), 2))
+
+    # convert the pandas DataFrame to a Deephaven Table
+    source_table = to_table(df)
+
+    if ticking:
+        ticking_table = (
+            time_table("PT1S")
+            .update(
+                [
+                    "sex = generate_sex(ii)",
+                    "smoker = generate_smoker(ii)",
+                    "day = generate_day(ii)",
+                    "time = generate_time(ii)",
+                    "size = generate_size(ii)",
+                    "total_bill = generate_total_bill(smoker, size, ii)",
+                    "tip = generate_tip(total_bill, ii)",
+                ]
+            )
+            .drop_columns("Timestamp")
+        )
+        return merge([source_table, ticking_table])
+
+    return source_table
