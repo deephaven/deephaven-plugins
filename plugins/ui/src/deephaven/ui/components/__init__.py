@@ -60,6 +60,7 @@ __all__ = [
     "button_group",
     "checkbox",
     "column",
+    "combo_box",
     "component",
     "content",
     "contextual_help",
