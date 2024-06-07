@@ -68,4 +68,5 @@ then run the docs make script:
 python make_docs.py
 ```
 
+The files will be built into `docs/build/markdown`.
 Note that these built files should not be committed to the repository.
