@@ -103,7 +103,7 @@ jobs:
 
   main-docs:
     needs: changes
-    if: ${{ needs.changes.outputs.packages != '[]' && needs.changes.outputs.packages != '' }} && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: ${{ needs.changes.outputs.packages != '[]' && needs.changes.outputs.packages != '' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     strategy:
       matrix:
         package: ${{ fromJSON(needs.changes.outputs.packages) }}
