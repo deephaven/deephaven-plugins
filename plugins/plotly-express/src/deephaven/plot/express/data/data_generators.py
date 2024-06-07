@@ -345,7 +345,6 @@ def tips(ticking: bool = True) -> Table:
         }
     )
 
-    df_len = len(df)
 
     # the following functions use the above category frequencies as well as an independent
     # statistical analysis to generate values for each column in the data frame
