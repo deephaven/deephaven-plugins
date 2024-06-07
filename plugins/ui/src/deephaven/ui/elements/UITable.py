@@ -18,12 +18,8 @@ from ..types import (
     AggregationOperation,
     QuickFilterExpression,
     Color,
-    ContextMenuAction,
-    CellIndex,
     CellPressCallback,
     ColumnPressCallback,
-    RowData,
-    ContextMenuMode,
     DataBarAxis,
     DataBarValuePlacement,
     DataBarDirection,
@@ -301,42 +297,6 @@ class UITable(Element):
               Uses quick filter format (e.g. `>10`).
             color: The text color. Accepts hex color strings or Deephaven color names.
             background_color: The background color. Accepts hex color strings or Deephaven color names.
-
-        Returns:
-            A new UITable
-        """
-        raise NotImplementedError()
-
-    def context_menu(
-        self,
-        items: (
-            ContextMenuAction
-            | list[ContextMenuAction]
-            | Callable[
-                [CellIndex, RowData], ContextMenuAction | list[ContextMenuAction]
-            ]
-        ),
-        mode: ContextMenuMode = "CELL",
-    ) -> "UITable":
-        """
-        Add custom items to the context menu.
-        You can provide a list of actions that always appear,
-        or a callback that can process the selection and send back menu items asynchronously.
-        You can also specify whether you want the menu items provided for a cell context menu,
-        a header context menu, or some combination of those.
-        You can also chain multiple sets of menu items by calling `.context_menu` multiple times.
-
-        Args:
-            items: The items to add to the context menu.
-                May be a single `ContextMenuAction`, a list of `ContextMenuAction` objects,
-                or a callback function that takes the cell index and row data and returns either a single
-                `ContextMenuAction` or a list of `ContextMenuAction` objects.
-            mode: Which specific context menu(s) to add the menu item(s) to.
-                Can be one or more modes.
-                Using `None` will add menu items in all cases.
-                `CELL`: Triggered from a cell.
-                `ROW_HEADER`: Triggered from a row header.
-                `COLUMN_HEADER`: Triggered from a column header.
 
         Returns:
             A new UITable

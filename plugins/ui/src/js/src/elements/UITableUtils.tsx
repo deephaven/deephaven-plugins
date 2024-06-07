@@ -53,7 +53,6 @@ export interface UITableProps {
   showQuickFilters: boolean;
   contextItems?: UIContextItem[];
   contextColumnHeaderItems?: UIContextItem[];
-  contextRowHeaderItems?: UIContextItem[];
   [key: string]: unknown;
 }
 

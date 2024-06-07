@@ -42,7 +42,6 @@ function UITable({
   showQuickFilters,
   contextItems,
   contextColumnHeaderItems,
-  contextRowHeaderItems,
 }: UITableProps): JSX.Element | null {
   const dh = useApi();
   const irisGridRef = useRef<IrisGridType>(null);
@@ -127,8 +126,7 @@ function UITable({
               irisGrid,
               model,
               contextItems,
-              contextColumnHeaderItems,
-              contextRowHeaderItems
+              contextColumnHeaderItems
             ),
           ] as readonly GridMouseHandler[])
         : undefined,
@@ -144,7 +142,6 @@ function UITable({
       onRowDoublePress,
       contextItems,
       contextColumnHeaderItems,
-      contextRowHeaderItems,
     ]
   );
 

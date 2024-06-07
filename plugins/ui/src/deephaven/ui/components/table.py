@@ -26,7 +26,6 @@ def table(
     show_search: bool = False,
     context_items: list[ContextMenuItem] | None = None,
     context_column_header_items: list[ContextMenuItem] | None = None,
-    context_row_header_items: list[ContextMenuItem] | None = None,
 ) -> UITable:
     """
     Customization to how a table is displayed, how it behaves, and listen to UI events.
@@ -54,7 +53,6 @@ def table(
         show_search: Whether to show the search bar by default.
         context_items: The context menu items to show when a cell is right clicked. May contain action items or submenu items.
         context_column_header_items: The context menu items to show when a column header is right clicked. May contain action items or submenu items.
-        context_row_header_items: The context menu items to show when a row header is right clicked. May contain action items or submenu items.
     """
     props = locals()
     del props["table"]
