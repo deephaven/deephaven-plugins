@@ -11,4 +11,3 @@ TextFieldValidationState = Literal["valid", "invalid"]
 NecessityIndicator = Literal["icon", "label"]
 
 ContextualHelperVariant = Literal["help", "info"]
-ColorVersion = Literal[5, 6]

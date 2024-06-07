@@ -15,7 +15,6 @@ from .layout import (
     Number,
     Position,
 )
-from .validate import ColorVersion
 from .basic import spectrum_element
 from ...elements import Element
 
@@ -23,7 +22,6 @@ from ...elements import Element
 def view(
     *children: Any,
     element_type: ElementTypes | None = None,
-    color_version: ColorVersion = 5,
     flex: LayoutFlex | None = None,
     flex_grow: Number | None = None,
     flex_shrink: Number | None = None,
@@ -67,8 +65,7 @@ def view(
     border_bottom_width: BorderSize | None = None,
     border_x_width: BorderSize | None = None,
     border_y_width: BorderSize | None = None,
-    border_color: StaticColor
-    | None = None,  # not any color seems to work. Needs to be their theme
+    border_color: StaticColor | None = None,
     border_start_color: StaticColor | None = None,
     border_end_color: StaticColor | None = None,
     border_top_color: StaticColor | None = None,
@@ -99,7 +96,6 @@ def view(
     Args:
         children: The content to render within the container.
         element_type: The type of element to render.
-        color_version: The Spectrum color version to use.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -174,7 +170,6 @@ def view(
         "View",
         children=children,
         element_type=element_type,
-        color_version=color_version,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
