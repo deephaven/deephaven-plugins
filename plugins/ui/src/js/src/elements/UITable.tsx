@@ -1,8 +1,15 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useSelector } from 'react-redux';
 import {
   DehydratedQuickFilter,
   IrisGrid,
+  IrisGridType,
   type IrisGridContextMenuData,
   IrisGridModel,
   IrisGridModelFactory,
@@ -13,9 +20,10 @@ import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { getSettings, RootState } from '@deephaven/redux';
-import { EMPTY_ARRAY } from '@deephaven/utils';
+import { GridMouseHandler } from '@deephaven/grid';
 import { UITableProps, wrapContextActions } from './UITableUtils';
 import UITableMouseHandler from './UITableMouseHandler';
+import UITableContextMenuHandler from './UITableContextMenuHandler';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
 
@@ -33,12 +41,22 @@ function UITable({
   showSearch: showSearchBar,
   showQuickFilters,
   contextItems,
+  contextColumnHeaderItems,
+  contextRowHeaderItems,
 }: UITableProps): JSX.Element | null {
   const dh = useApi();
+  const irisGridRef = useRef<IrisGridType>(null);
+  const [irisGrid, setIrisGrid] = useState<IrisGridType | null>(null);
   const [model, setModel] = useState<IrisGridModel>();
   const [columns, setColumns] = useState<dh.Table['columns']>();
   const utils = useMemo(() => new IrisGridUtils(dh), [dh]);
   const settings = useSelector(getSettings<RootState>);
+
+  useEffect(() => {
+    if (irisGridRef.current) {
+      setIrisGrid(irisGridRef.current);
+    }
+  }, []);
 
   const hydratedSorts = useMemo(() => {
     if (sorts !== undefined && columns !== undefined) {
@@ -93,8 +111,8 @@ function UITable({
 
   const mouseHandlers = useMemo(
     () =>
-      model
-        ? [
+      model && irisGrid
+        ? ([
             new UITableMouseHandler(
               model,
               onCellPress,
@@ -104,25 +122,35 @@ function UITable({
               onRowPress,
               onRowDoublePress
             ),
-          ]
-        : EMPTY_ARRAY,
+            new UITableContextMenuHandler(
+              dh,
+              irisGrid,
+              model,
+              contextItems,
+              contextColumnHeaderItems,
+              contextRowHeaderItems
+            ),
+          ] as readonly GridMouseHandler[])
+        : undefined,
     [
       model,
+      dh,
+      irisGrid,
       onCellPress,
       onCellDoublePress,
       onColumnPress,
       onColumnDoublePress,
       onRowPress,
       onRowDoublePress,
+      contextItems,
+      contextColumnHeaderItems,
+      contextRowHeaderItems,
     ]
   );
 
   const onContextMenu = useCallback(
     (data: IrisGridContextMenuData) =>
-      wrapContextActions(contextItems ?? [], data).map(item => ({
-        group: 999999, // Put it at the bottom of the list
-        ...item,
-      })),
+      wrapContextActions(contextItems ?? [], data),
     [contextItems]
   );
 
@@ -155,8 +183,12 @@ function UITable({
 
   return model ? (
     <div className="ui-object-container">
-      {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-      <IrisGrid model={model} {...irisGridProps} />
+      <IrisGrid
+        ref={ref => setIrisGrid(ref)}
+        model={model}
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...irisGridProps}
+      />
     </div>
   ) : null;
 }

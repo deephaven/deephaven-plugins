@@ -28,8 +28,6 @@ export type UIContextItem = Omit<ContextAction, 'action' | 'actions'> & {
   action?: (params: {
     value: unknown;
     text_value: string | null;
-    row_index: number | null;
-    column_index: number | null;
     column_name: string;
     is_column_header: boolean;
     is_row_header: boolean;
@@ -78,17 +76,16 @@ export function isUITable(obj: unknown): obj is UITableNode {
  */
 export function wrapContextActions(
   items: UIContextItem[],
-  data: IrisGridContextMenuData
+  data: Omit<IrisGridContextMenuData, 'model' | 'modelRow' | 'modelColumn'>
 ): ContextAction[] {
   return items.map(item => ({
+    group: 999999, // Default to the end of the menu
     ...item,
     action: item.action
       ? () => {
           item.action?.({
             value: data.value,
             text_value: data.valueText,
-            row_index: data.rowIndex,
-            column_index: data.columnIndex,
             column_name: data.column.name,
             is_column_header: data.rowIndex == null,
             is_row_header: data.columnIndex == null,
