@@ -1755,7 +1755,6 @@ ui_table(
     on_sort: Callable[[ColumnName, LiteralSortDirection], None] | None,
     context_items: List[ContextMenuItem] | None,
     context_column_header_items: List[ContextMenuItem] | None,
-    context_row_header_items: List[ContextMenuItem] | None,
 ) -> UITable
 ```
 
@@ -1789,9 +1788,8 @@ ui_table(
 | `on_freeze_column`            | `Callable[[ColumnName], None] \| None`                        | The callback function to run when a column is frozen. The only parameter is the frozen column name.                                                                                                                                                                                 |
 | `on_hide_column`              | `Callable[[ColumnName], None] \| None`                        | The callback function to run when a column is hidden. The only parameter is the hidden column name.                                                                                                                                                                                 |
 | `on_sort`                     | `Callable[[ColumnName, LiteralSortDirection], None] \| None`  | The callback function to run when a column is sorted. The first parameter is the column name, and the second is the sort direction.                                                                                                                                                 |
-| `context_items`               | `List[ContextMenuItem] \| None`                               | The context menu items to show when right-clicking on a cell in the table. Can be a list of items or a callback that takes the cell data and returns a list of actions. Can also contain `ContextMenuSubmenuItem`s to define submenus.                                              |
-| `context_column_header_items` | `List[ContextMenuItem] \| None`                               | The context menu items to show when right-clicking on the column header (i.e. column name). Can be a list of items or a callback that takes the cell data and returns a list of actions. Can also contain `ContextMenuSubmenuItem`s to define submenus.                             |
-| `context_row_header_items`    | `List[ContextMenuItem] \| None`                               | The context menu items to show when right-clicking on a row header (i.e. row numbers). Can be a list of items or a callback that takes the cell data and returns a list of actions. Can also contain `ContextMenuSubmenuItem`s to define submenus.                                  |
+| `context_items`               | `List[ContextMenuItem] \| None`                               | The context menu items to show when right-clicking on a cell in the table. Can contain `ContextMenuSubmenuItem`s to define submenus.                                                                                                                                                |
+| `context_column_header_items` | `List[ContextMenuItem] \| None`                               | The context menu items to show when right-clicking on the column header (i.e. column name). Can contain `ContextMenuSubmenuItem`s to define submenus.                                                                                                                               |
 
 `ui.table` will also support the below methods.
 
@@ -2261,24 +2259,14 @@ class ContextMenuActionParams(TypedDict):
     Parameters given to a context menu action
     """
 
-    value: Any
+    value: Any | None
     """
     Value of the cell.
     """
 
-    text_value: str
+    text_value: str | None
     """
     Rendered text for the cell.
-    """
-
-    row_index: int | None
-    """
-    Index of the row. None if the context menu was opened on a column header.
-    """
-
-    column_index: int | None
-    """
-    Index of the column. None if the context menu was opened on a row header.
     """
 
     column_name: str
@@ -2289,11 +2277,7 @@ class ContextMenuActionParams(TypedDict):
     is_column_header: bool
     """
     Whether the context menu was opened on a column header.
-    """
-
-    is_row_header: bool
-    """
-    Whether the context menu was opened on a row header.
+    Value and text_value will be None if this is True.
     """
 
 
