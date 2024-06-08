@@ -26,7 +26,7 @@ def item(
         text_value: A string representatino of the item's contents, used for features like typeahead.
         aria_label: An accessibility label for this item.
         child_items: A list of child items objects. Used for dynamic collections.
-        has_child_items: Whether this item has childnre, even if not loaded yet.
+        has_child_items: Whether this item has children, even if not loaded yet.
         **props: Any other Item prop.
     """
     return BaseElement("deephaven.ui.components.Item", *children, **props)
