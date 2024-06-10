@@ -383,7 +383,7 @@ class ElementMessageStream(MessageStream):
             return
         result = fn(*args)
         if callable(result):
-            new_id = f"temp{self._temp_callable_next_id}"
+            new_id = f"tempCb{self._temp_callable_next_id}"
             self._temp_callable_next_id += 1
             self._temp_callable_dict[new_id] = result
             return {

@@ -116,6 +116,7 @@ function WidgetHandler({
   const callableFinalizationRegistry = useMemo(
     () =>
       new FinalizationRegistry(callableId => {
+        log.debug2('Closing callable', callableId);
         jsonClient?.request('closeCallable', [callableId]);
       }),
     [jsonClient]
