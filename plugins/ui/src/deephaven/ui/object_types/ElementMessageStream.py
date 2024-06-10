@@ -393,7 +393,9 @@ class ElementMessageStream(MessageStream):
             json.dumps(result)
             return result
         except Exception:
-            return {"error": f"Cannot serialize callable {callable_id} result"}
+            return {
+                "serialization_error": f"Cannot serialize callable {callable_id} result"
+            }
 
     def _close_callable(self, callable_id: str) -> None:
         """
