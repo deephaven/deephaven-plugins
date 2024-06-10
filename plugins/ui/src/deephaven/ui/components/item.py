@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Any, Union, List
 
 from ..elements import BaseElement
@@ -15,7 +16,7 @@ def item(
     aria_label: str | None = None,
     child_items: ItemList | None = None,
     has_child_items: bool | None = None,
-    **props: Any
+    **props: Any,
 ) -> ItemElement:
     """
     An item that can be added to a menu, such as a picker
