@@ -128,10 +128,9 @@ _my_html_elements = ui_html_elements()
 
 ui_render_all = ui.dashboard(
     ui.stack(
-        ui.panel("Panel A", title="Panel A"),
         ui.panel(
             ui.table(_column_types),
-            ui.grid(_my_components, _my_html_elements, columns=["1fr", "1fr"]),
+            ui.grid(_my_components, _my_html_elements, columns=["1fr", "1fr", "1fr"]),
             title="Panel B",
         ),
     )
