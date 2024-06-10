@@ -21,7 +21,9 @@ function RadioGroup({
 }: SerializedRadioGroupProps): JSX.Element {
   const onFocus = useFocusEventCallback(serializedOnFocus);
   const onBlur = useFocusEventCallback(serializedOnBlur);
-  const orientationLc = orientationMaybeUppercase?.toLowerCase() as Orientation;
+  const orientationLc = orientationMaybeUppercase?.toLowerCase() as
+    | Orientation
+    | undefined;
 
   return (
     <DHRadioGroup
