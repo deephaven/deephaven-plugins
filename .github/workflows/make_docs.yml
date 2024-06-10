@@ -11,17 +11,17 @@ on:
         type: string
 
 jobs:
+  build-plugin:
+    uses: ./.github/workflows/build-python-package.yml
+    with:
+      package: ${{ github.event.inputs.package }}
+
   make-docs:
     if: ${{ github.event.inputs.package }} == 'plotly-express'
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
-      - name: Build Python Package
-        uses: ./.github/workflows/build-python-package.yml
-        with:
-          package: ${{ github.event.inputs.package }}
 
       - name: Download dist
         uses: actions/download-artifact@v3
