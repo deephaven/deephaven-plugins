@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Any
-from .basic import base_element
+from .basic import component_element
 from .types import (
     LayoutFlex,
     Direction,
@@ -40,7 +40,7 @@ def flex(
         column_gap: The space to display between columns of children.
         row_gap: The space to display between rows of children.
     """
-    return base_element(
+    return component_element(
         "Flex",
         *children,
         flex=flex,

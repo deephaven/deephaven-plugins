@@ -31,6 +31,7 @@ from .item_table_source import ItemTableSource
 from ..elements import BaseElement, Element
 from .._internal.utils import create_props, unpack_item_table_source
 from ..types import Key
+from .basic import component_element
 
 ComboBoxElement = BaseElement
 
@@ -239,4 +240,4 @@ def combo_box(
 
     children, props = unpack_item_table_source(children, props, SUPPORTED_SOURCE_ARGS)
 
-    return BaseElement("deephaven.ui.components.ComboBox", *children, **props)
+    return component_element("ComboBox", *children, **props)

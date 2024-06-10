@@ -12,7 +12,7 @@ from .types import (
     Number,
     Position,
 )
-from .basic import base_element
+from .basic import component_element
 from ..elements import Element
 
 
@@ -103,7 +103,7 @@ def button_group(
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
     """
-    return base_element(
+    return component_element(
         "ButtonGroup",
         *children,
         is_disabled=is_disabled,

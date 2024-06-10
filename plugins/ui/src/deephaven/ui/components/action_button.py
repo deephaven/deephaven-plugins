@@ -21,7 +21,7 @@ from .types import (
     Position,
 )
 
-from .basic import base_element
+from .basic import component_element
 from ..elements import Element
 
 ActionButtonElement = Element
@@ -163,7 +163,7 @@ def action_button(
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
     """
-    return base_element(
+    return component_element(
         "ActionButton",
         *children,
         type=type,

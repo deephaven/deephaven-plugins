@@ -2,7 +2,7 @@ from .action_button import action_button
 from .action_group import action_group
 from .action_menu import action_menu
 from .basic import (
-    base_element,
+    component_element,
     grid,
     heading,
     icon_wrapper,
@@ -55,7 +55,7 @@ __all__ = [
     "action_button",
     "action_group",
     "action_menu",
-    "base_element",
+    "component_element",
     "button",
     "button_group",
     "checkbox",

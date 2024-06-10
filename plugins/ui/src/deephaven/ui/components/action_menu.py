@@ -6,7 +6,8 @@ from .item import Item
 from .section import SectionElement
 
 from ..types import Key, ActionKey, ActionMenuDirection
-from ..elements import BaseElement, Element
+from .basic import component_element
+from ..elements import Element
 
 from ..types import (
     Key,
@@ -149,8 +150,8 @@ def action_menu(
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
     """
-    return BaseElement(
-        f"deephaven.ui.components.ActionMenu",
+    return component_element(
+        f"ActionMenu",
         *children,
         is_disabled=is_disabled,
         is_quiet=is_quiet,

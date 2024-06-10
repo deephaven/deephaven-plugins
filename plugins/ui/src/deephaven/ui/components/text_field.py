@@ -23,7 +23,7 @@ from .types import (
     TextFieldValidationState,
     NecessityIndicator,
 )
-from .basic import base_element
+from .basic import component_element
 from ..elements import Element
 
 
@@ -189,7 +189,7 @@ def text_field(
         UNSAFE_style: A CSS style to apply to the element.
     """
 
-    return base_element(
+    return component_element(
         "TextField",
         icon=icon,
         is_quiet=is_quiet,

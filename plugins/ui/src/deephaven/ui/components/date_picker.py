@@ -23,13 +23,14 @@ from .types import (
 )
 
 from ..hooks import use_memo
-from ..elements import Element, BaseElement
+from ..elements import Element
 from .._internal.utils import (
     create_props,
     convert_date_props,
     convert_list_prop,
 )
 from ..types import Date, Granularity
+from .basic import component_element
 
 DatePickerElement = Element
 
@@ -271,4 +272,4 @@ def date_picker(
         [unavailable_values],
     )
 
-    return BaseElement("deephaven.ui.components.DatePicker", **props)
+    return component_element("DatePicker", **props)

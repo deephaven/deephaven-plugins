@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
-from ..elements import BaseElement
+from .basic import component_element
 from .._internal.utils import create_props
 from .types import (
     Direction,
@@ -57,8 +57,8 @@ def panel(
     """
 
     children, props = create_props(locals())
-    return BaseElement(
-        "deephaven.ui.components.Panel",
+    return component_element(
+        "Panel",
         *children,
         **props,
     )

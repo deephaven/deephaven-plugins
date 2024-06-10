@@ -15,7 +15,7 @@ from .types import (
     Position,
     LabelPosition,
 )
-from .basic import base_element
+from .basic import component_element
 from ..elements import Element
 
 
@@ -146,7 +146,7 @@ def range_slider(
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
     """
-    return base_element(
+    return component_element(
         "RangeSlider",
         start_name=start_name,
         end_name=end_name,

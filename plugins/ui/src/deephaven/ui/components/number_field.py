@@ -18,7 +18,7 @@ from .types import (
     LabelPosition,
     Align,
 )
-from .basic import base_element
+from .basic import component_element
 from ..elements import Element
 
 
@@ -178,7 +178,7 @@ def number_field(
         UNSAFE_style: A CSS style to apply to the element.
     """
 
-    return base_element(
+    return component_element(
         "NumberField",
         is_quiet=is_quiet,
         hide_stepper=hide_stepper,

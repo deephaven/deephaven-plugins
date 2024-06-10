@@ -17,7 +17,8 @@ from .types import (
     OverflowMode,
     Position,
 )
-from ..elements import Element, BaseElement
+from .basic import component_element
+from ..elements import Element
 from ..types import ActionGroupDensity, SelectedKeys, SelectionMode, Key, Selection
 
 
@@ -153,8 +154,8 @@ def action_group(
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
     """
-    return BaseElement(
-        "deephaven.ui.components.ActionGroup",
+    return component_element(
+        "ActionGroup",
         *children,
         is_emphasized=is_emphasized,
         density=density,
