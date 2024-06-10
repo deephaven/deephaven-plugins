@@ -34,7 +34,7 @@ import {
   METHOD_DOCUMENT_UPDATED,
 } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
-import { getComponentForElement } from './WidgetUtils';
+import { getComponentForElement, wrapCallable } from './WidgetUtils';
 import WidgetErrorView from './WidgetErrorView';
 import ReactPanelContentOverlayContext from '../layout/ReactPanelContentOverlayContext';
 
@@ -113,6 +113,14 @@ function WidgetHandler({
     [jsonClient]
   );
 
+  const callableFinalizationRegistry = useMemo(
+    () =>
+      new FinalizationRegistry(callableId => {
+        jsonClient?.request('closeCallable', [callableId]);
+      }),
+    [jsonClient]
+  );
+
   const parseDocument = useCallback(
     /**
      * Parse the data from the server, replacing some of the nodes on the way.
@@ -124,6 +132,10 @@ function WidgetHandler({
      * @returns The parsed data
      */
     (data: string) => {
+      if (jsonClient == null) {
+        log.warn('No jsonClient set. Skipping parsing data');
+        return;
+      }
       // Keep track of exported objects that are no longer in use after this render.
       // We close those objects that are no longer referenced, as they will never be referenced again.
       const deadObjectMap = new Map(exportedObjectMap.current);
@@ -133,10 +145,11 @@ function WidgetHandler({
         if (isCallableNode(value)) {
           const callableId = value[CALLABLE_KEY];
           log.debug2('Registering callableId', callableId);
-          return async (...args: unknown[]) => {
-            log.debug('Callable called', callableId, ...args);
-            return jsonClient?.request(callableId, args);
-          };
+          return wrapCallable(
+            jsonClient,
+            callableId,
+            callableFinalizationRegistry
+          );
         }
         if (isObjectNode(value)) {
           // Replace this node with the exported object
@@ -180,7 +193,7 @@ function WidgetHandler({
       );
       return parsedData;
     },
-    [jsonClient]
+    [jsonClient, callableFinalizationRegistry]
   );
 
   const updateExportedObjects = useCallback(

@@ -1,6 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable import/prefer-default-export */
 import React, { ComponentType } from 'react';
+import type { JSONRPCServerAndClient } from 'json-rpc-2.0';
 // Importing `Item` and `Section` compnents directly since they should not be
 // wrapped due to how Spectrum collection components consume them.
 import {
@@ -11,12 +12,15 @@ import {
   Section,
 } from '@deephaven/components';
 import { ValueOf } from '@deephaven/utils';
+import Log from '@deephaven/log';
 import { ReadonlyWidgetData } from './WidgetTypes';
 import {
   ElementNode,
   ELEMENT_KEY,
   isElementNode,
   wrapElementChildren,
+  isCallableNode,
+  CALLABLE_KEY,
 } from '../elements/ElementUtils';
 import HTMLElementView from '../elements/HTMLElementView';
 import { isHTMLElementNode } from '../elements/HTMLElementUtils';
@@ -36,6 +40,8 @@ import Picker from '../elements/Picker';
 import ActionGroup from '../elements/ActionGroup';
 import Radio from '../elements/Radio';
 import RadioGroup from '../elements/RadioGroup';
+
+const log = Log.module('@deephaven/js-plugin-ui/WidgetUtils');
 
 /*
  * Map element node names to their corresponding React components
@@ -114,4 +120,37 @@ export function getPreservedData(
   return Object.fromEntries(
     Object.entries(oldData).filter(([key]) => PRESERVED_DATA_KEYS_SET.has(key))
   );
+}
+
+/**
+ * Wraps a callable returned by the server so any returned callables are also wrapped.
+ * The callable will also be added to the finalization registry so it can be cleaned up
+ * when there are no more strong references to the callable.
+ * @param jsonClient The JSON client to send callable requests to
+ * @param callableId The callableId to return a wrapped callable for
+ * @param registry The finalization registry to register the callable with.
+ * @returns A wrapped callable that will automatically wrap any nested callables returned by the server
+ */
+export function wrapCallable(
+  jsonClient: JSONRPCServerAndClient,
+  callableId: string,
+  registry: FinalizationRegistry<string>
+): (...args: unknown[]) => Promise<unknown> {
+  const callable = async (...args: unknown[]) => {
+    log.debug2('Callable called', callableId, ...args);
+    const result = await jsonClient.request('callCallable', [callableId, args]);
+    if (isCallableNode(result)) {
+      const nestedCallable = wrapCallable(
+        jsonClient,
+        result[CALLABLE_KEY],
+        registry
+      );
+      nestedCallable('Hello');
+      return nestedCallable;
+    }
+  };
+
+  registry.register(callable, callableId, callable);
+
+  return callable;
 }
