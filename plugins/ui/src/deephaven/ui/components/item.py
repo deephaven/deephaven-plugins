@@ -30,4 +30,5 @@ def item(
         has_child_items: Whether this item has children, even if not loaded yet.
         **props: Any other Item prop.
     """
+    props = locals()
     return BaseElement("deephaven.ui.components.Item", *children, **props)
