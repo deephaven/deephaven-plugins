@@ -13,3 +13,4 @@ from .flex import *
 from .date_picker import *
 from .combo_box import *
 from .layout import *
+from .illustrated_message import *
