@@ -368,10 +368,11 @@ class ElementMessageStream(MessageStream):
     def _call_callable(self, callable_id: str, args: Any) -> Any:
         """
         Call a callable by its ID.
+        If the result is a callable, it is registered as a temporary callable.
 
         Args:
             callable_id: The ID of the callable to call
-            args: The arguments to pass to the callable
+            args: The array of arguments to pass to the callable. These will be spread as positional args to the callable.
         """
         logger.debug("Calling callable %s with %s", callable_id, args)
         fn = self._callable_dict.get(callable_id) or self._temp_callable_dict.get(
@@ -380,7 +381,7 @@ class ElementMessageStream(MessageStream):
         if fn is None:
             logger.error("Callable not found: %s", callable_id)
             return
-        result = fn(args)
+        result = fn(*args)
         if callable(result):
             new_id = f"temp{self._temp_callable_next_id}"
             self._temp_callable_next_id += 1
@@ -388,7 +389,11 @@ class ElementMessageStream(MessageStream):
             return {
                 CALLABLE_KEY: new_id,
             }
-        return result
+        try:
+            json.dumps(result)
+            return result
+        except Exception:
+            return {"error": f"Cannot serialize callable {callable_id} result"}
 
     def _close_callable(self, callable_id: str) -> None:
         """

@@ -137,15 +137,15 @@ export function wrapCallable(
   registry: FinalizationRegistry<string>
 ): (...args: unknown[]) => Promise<unknown> {
   const callable = async (...args: unknown[]) => {
-    log.debug2('Callable called', callableId, ...args);
+    log.debug2(`Callable ${callableId} called`, args);
     const result = await jsonClient.request('callCallable', [callableId, args]);
+    log.debug2(`Callable ${callableId} result`, result);
     if (isCallableNode(result)) {
       const nestedCallable = wrapCallable(
         jsonClient,
         result[CALLABLE_KEY],
         registry
       );
-      nestedCallable('Hello');
       return nestedCallable;
     }
   };
