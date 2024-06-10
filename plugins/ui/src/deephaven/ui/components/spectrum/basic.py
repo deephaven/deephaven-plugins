@@ -45,14 +45,6 @@ def form(*children, **props):
     return spectrum_element("Form", *children, **props)
 
 
-def number_field(*children, **props):
-    """
-    Python implementation for the Adobe React Spectrum NumberField component.
-    https://react-spectrum.adobe.com/react-spectrum/NumberField.html
-    """
-    return spectrum_element("NumberField", *children, **props)
-
-
 def switch(*children, **props):
     """
     Python implementation for the Adobe React Spectrum Switch component.

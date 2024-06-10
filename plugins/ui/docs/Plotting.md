@@ -1,6 +1,4 @@
----
-title: Plotting and dh.ui
----
+# Plotting and dh.ui
 
 Creating dynamic plots that respond to user input is a common task in data analysis. The `dh.ui` module provides a simple interface for creating interactive plots using the `deephaven-express` library. This guide will show you how to create plots that updates based on user input.
 

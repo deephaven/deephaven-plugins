@@ -2,12 +2,8 @@ from __future__ import annotations
 from typing import Any, Callable
 from .accessibility import AriaExpanded, AriaHasPopup, AriaAutoComplete
 from .events import (
-    ButtonType,
     FocusEventCallable,
     KeyboardEventCallable,
-    PressEventCallable,
-    StaticColor,
-    Orientation,
 )
 from .layout import (
     AlignSelf,
@@ -21,7 +17,6 @@ from .layout import (
     Align,
 )
 from .validate import (
-    InputType,
     TextFieldType,
     TextFieldInputMode,
     TextFieldValidationState,
