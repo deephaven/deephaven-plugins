@@ -5,6 +5,8 @@
 import os
 import sys
 
+sys.path.append(os.path.abspath("./_ext"))
+
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
@@ -22,6 +24,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx_markdown_builder",
     "sphinx_autodoc_typehints",
+    "helloworld",
 ]
 
 source_suffix = [".rst", ".md"]  # Can use either rst or markdown files as input
@@ -34,7 +37,7 @@ exclude_patterns = ["build", "Thumbs.db", ".DS_Store"]
 
 # options for sphinx_autodoc_typehints
 always_use_bars_union = True
-typehints_defaults = "comma"
+# typehints_defaults = "comma"
 
 from deephaven_server import Server
 
