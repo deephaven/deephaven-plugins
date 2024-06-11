@@ -3,6 +3,7 @@ from typing import Any, Union, List
 
 from ..elements import BaseElement
 from ..types import Stringable
+from .._internal.utils import create_props
 
 ItemElement = BaseElement
 Item = Union[Stringable, ItemElement]
@@ -30,5 +31,5 @@ def item(
         has_child_items: Whether this item has children, even if not loaded yet.
         **props: Any other Item prop.
     """
-    props = locals()
+    children, props = create_props(locals())
     return BaseElement("deephaven.ui.components.Item", *children, **props)
