@@ -10,3 +10,30 @@ Box plots are useful for:
 4. **Robustness**: Box plots are robust to extreme values and data skewness, providing a reliable means of visualizing data distributions even in the presence of outliers or non-normal data.
 
 ## Examples
+
+### A basic box plot
+
+Visualize the distribution of a single continuous variable using a box plot. Singular points lying outside the "fences" are candidates for being outliers.
+
+```python order=total_bill_plot,tips
+import deephaven.plot.express as dx
+tips = dx.data.tips() # import a ticking version of the Tips dataset
+
+# create a basic box plot by specifying the variable of interest with `y`
+total_bill_plot = dx.box(tips, y="total_bill")
+```
+
+### Distributions for multiple groups
+
+Box plots are useful making comparisons between the distributions of two or more groups of data. Use the `by` argument to specify a grouping column.
+
+```python order=total_bill_smoke,total_bill_sex,tips
+import deephaven.plot.express as dx
+tips = dx.data.tips() # import a ticking version of the Tips dataset
+
+# Ex 1. Total bill distribution by smoker / non-smoker
+total_bill_smoke = dx.box(tips, y="total_bill", by="smoker")
+
+# Ex 2. Total bill distribution by male / female
+total_bill_sex = dx.box(tips, y="total_bill", by="sex")
+```

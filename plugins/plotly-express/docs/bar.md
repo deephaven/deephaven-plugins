@@ -12,3 +12,30 @@ Advantages of bar plots include:
 Bar plots have limitations and are not suitable for certain scenarios. They are not ideal for continuous data, ineffective for multi-dimensional data exceeding two dimensions, and unsuitable for time-series data trends. Additionally, they become less practical with extremely sparse datasets and are inadequate for representing complex interactions or correlations among multiple variables.
 
 ## Examples
+
+### A basic bar plot
+
+Visualize the relationship between a continuous variable and a categorical or discrete variable. By default, the y-axis shows the cumulative value for each group over the whole dataset.
+
+```python order=bar_plot,tips
+import deephaven.plot.express as dx
+tips = dx.data.tips() # import a ticking version of the Tips dataset
+
+# create a basic bar plot by specifying columns for the `x` and `y` axes
+bar_plot = dx.bar(tips, x="day", y="total_bill")
+```
+
+### Partition bars by group
+
+Use the `by` argument to break each bar up into contributions from the given group.
+
+```python order=bar_plot_smoke,bar_plot_sex,tips
+import deephaven.plot.express as dx
+tips = dx.data.tips() # import a ticking version of the Tips dataset
+
+# Ex 1. Partition bars by smoker / non-smoker
+bar_plot_smoke = dx.bar(tips, x="day", y="total_bill", by="smoker")
+
+# Ex 2. Partition bars by male / female
+bar_plot_sex = dx.bar(tips, x="day", y="total_bill", by="sex")
+```
