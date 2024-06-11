@@ -6,6 +6,7 @@ from plotly import express as px
 import math
 import random
 import typing
+import jpy
 
 from deephaven.pandas import to_table
 from deephaven.replay import TableReplayer
@@ -404,3 +405,190 @@ def tips(ticking: bool = True) -> Table:
         return merge([source_table, ticking_table])
 
     return source_table
+
+
+def gapminder(ticking: bool = True) -> Table:
+    """
+    TODO: Docstring
+    """
+    # read in the dataset from the plotly-express library
+    gapminder = (
+        px.data.gapminder()
+        .astype(
+            {
+                "country": "string",
+                "continent": "string",
+                "year": "object",
+                "lifeExp": "object",
+                "pop": "object",
+                "gdpPercap": "object",
+            }
+        )
+        .drop(["iso_alpha", "iso_num"], axis=1)
+    )
+
+    ### First, we're going to construct the expanded, interpolated dataset
+
+    # functions for producing lists to expand original dataset
+    def create_years(year: int, reps: int) -> typing.List[int]:
+        return [year + i for i in range(reps)]
+
+    def create_empty(val: typing.Any, reps: int) -> typing.List[typing.Any]:
+        return [val, *[np.nan for _ in range(reps - 1)]]
+
+    # split gapminder into pre-2007 and 2007, since 2007 need not be expanded in the same way as previous years
+    gapminder_no_2007 = typing.cast(pd.DataFrame, gapminder[gapminder["year"] != 2007])
+    gapminder_2007 = typing.cast(pd.DataFrame, gapminder[gapminder["year"] == 2007])
+
+    # expand pre-2007 dataset into consecutive years, where each new year gets filled with np.nan
+    gapminder_no_2007.loc[:, ["year"]] = gapminder_no_2007["year"].apply(
+        lambda x: create_years(x, 5)
+    )
+    gapminder_no_2007.loc[:, ["lifeExp", "pop", "gdpPercap"]] = gapminder_no_2007[
+        ["lifeExp", "pop", "gdpPercap"]
+    ].map(lambda x: create_empty(x, 5))
+    gapminder_no_2007 = gapminder_no_2007.explode(
+        column=["year", "lifeExp", "pop", "gdpPercap"]
+    )
+
+    # insert month column, where each element is a list of all 12 months
+    gapminder_no_2007.insert(
+        loc=3,
+        column="month",
+        value=typing.cast(
+            pd.Series,
+            [[month for month in range(1, 13)] for _ in range(len(gapminder_no_2007))],
+        ),
+    )
+
+    # expand pre-2007 dataset into consecutive months
+    gapminder_no_2007.loc[:, ["lifeExp", "pop", "gdpPercap"]] = gapminder_no_2007[
+        ["lifeExp", "pop", "gdpPercap"]
+    ].map(lambda x: create_empty(x, 12))
+    gapminder_no_2007 = gapminder_no_2007.explode(
+        column=["month", "lifeExp", "pop", "gdpPercap"]
+    )
+
+    # insert a month column into the 2007 dataset to merge the two easily
+    gapminder_2007.insert(
+        loc=3,
+        column="month",
+        value=typing.cast(pd.Series, [1 for _ in range(len(gapminder_2007))]),
+    )
+
+    # combine expanded pre-2007 dataset with 2007 dataset, sort by country and year
+    gapminder_combined = (
+        pd.concat([gapminder_no_2007, gapminder_2007])
+        .sort_values(by=["country", "year"])
+        .reset_index(drop=True)
+    )
+
+    # define types of new combined dataset
+    gapminder_combined = gapminder_combined.astype(
+        {
+            "year": "int",
+            "month": "int",
+            "lifeExp": "float",
+            "pop": "float",
+            "gdpPercap": "float",
+        }
+    )
+
+    # compute linearly interpolated values for each month, round population
+    gapminder_interp_vals = typing.cast(
+        pd.DataFrame,
+        (
+            gapminder_combined.groupby("country", observed=True, as_index=True)[
+                ["lifeExp", "pop", "gdpPercap"]
+            ]
+            .apply(lambda country: country.interpolate(method="linear"))
+            .reset_index(drop=True)
+        ),
+    )
+    gapminder_interp_vals.loc[:, "pop"] = gapminder_interp_vals["pop"].apply(
+        lambda x: round(x)
+    )
+
+    # create new expanded dataset with interpolated values filled in
+    gapminder_interp = gapminder_combined
+    gapminder_interp.loc[:, ["lifeExp", "pop", "gdpPercap"]] = gapminder_interp_vals
+
+    # drop 2007, since we will not use that single point in the ticking version
+    gapminder_interp = gapminder_interp[gapminder_interp["year"] != 2007]
+
+    # final processing before ticking - convert population to int, sort, reset index
+    gapminder_interp = (
+        gapminder_interp.astype({"pop": "int"})
+        .sort_values(by=["year", "month", "country"])  # type: ignore
+        .reset_index(drop=True)
+    )
+
+    ### Now, use Deephaven to create a ticking version of the dataset
+
+    # Create Java arrays of countries and continents - assumed constant, so compute once
+    j_countries = jpy.array("java.lang.String", list(gapminder_2007["country"]))
+    j_continents = jpy.array("java.lang.String", list(gapminder_2007["continent"]))
+    j_counter = jpy.array("long", [i for i in range(142)])
+
+    def get_life_expectancy(index: int) -> float:
+        return gapminder_interp.loc[index, "lifeExp"]
+
+    def get_population(index: int) -> int:
+        return gapminder_interp.loc[index, "pop"]
+
+    def get_gdp_per_cap(index: int) -> float:
+        return gapminder_interp.loc[index, "gdpPercap"]
+
+    TOTAL_YEARS = 55
+    STATIC_YEARS = 9
+    TICKING_YEARS = TOTAL_YEARS - STATIC_YEARS
+
+    TOTAL_MONTHS = TOTAL_YEARS * 12
+    STATIC_MONTHS = STATIC_YEARS * 12
+    TICKING_MONTHS = TOTAL_MONTHS - STATIC_MONTHS
+
+    TOTAL_ROWS = TOTAL_MONTHS * 142
+    STATIC_ROWS = STATIC_MONTHS * 142
+    TICKING_ROWS = TOTAL_ROWS - STATIC_ROWS
+
+    ticking_table = (
+        time_table("PT1S")
+        .update_view(
+            [
+                "iteration_num = (long)floor(ii / TICKING_MONTHS) + 1",
+                "idx = iteration_num * STATIC_ROWS + ii + (ii * 141)",
+                "mod_idx = idx % TOTAL_ROWS",
+                "year = 1961 + (long)floor((ii % TICKING_MONTHS) / 12)",
+                "month = (ii % 12) + 1",
+            ]
+        )
+        .group_by("iteration_num")
+        .tail(1)
+        .drop_columns(["iteration_num", "Timestamp", "idx"])
+        .ungroup(["mod_idx", "year", "month"])
+        .update_view(
+            ["counter = j_counter", "country = j_countries", "continent = j_continents"]
+        )
+        .ungroup(["country", "continent", "counter"])
+        .update_view("mod_idx = mod_idx + counter")
+        .update(
+            [
+                "lifeExp = get_life_expectancy(mod_idx)",
+                "pop = get_population(mod_idx)",
+                "gdpPercap = get_gdp_per_cap(mod_idx)",
+            ]
+        )
+        .drop_columns(["mod_idx", "counter"])
+        .view(["country", "continent", "year", "month", "lifeExp", "pop", "gdpPercap"])
+    )
+
+    return merge(
+        [
+            to_table(
+                typing.cast(
+                    pd.DataFrame, gapminder_interp[gapminder_interp["year"] <= 1960]
+                )
+            ),
+            ticking_table,
+        ]
+    )
