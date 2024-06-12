@@ -10,3 +10,8 @@ Funnel area plots are useful for:
 4. **Data Funneling**: When representing data where values funnel through stages or categories.
 
 ## Examples
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.funnel_area
+```
