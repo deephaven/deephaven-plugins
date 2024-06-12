@@ -40,8 +40,8 @@ function UITable({
   table: exportedTable,
   showSearch: showSearchBar,
   showQuickFilters,
-  contextItems,
-  contextColumnHeaderItems,
+  contextMenu,
+  contextColumnMenu,
 }: UITableProps): JSX.Element | null {
   const dh = useApi();
   const irisGridRef = useRef<IrisGridType>(null);
@@ -125,8 +125,8 @@ function UITable({
               dh,
               irisGrid,
               model,
-              contextItems,
-              contextColumnHeaderItems
+              contextMenu,
+              contextColumnMenu
             ),
           ] as readonly GridMouseHandler[])
         : undefined,
@@ -140,15 +140,15 @@ function UITable({
       onColumnDoublePress,
       onRowPress,
       onRowDoublePress,
-      contextItems,
-      contextColumnHeaderItems,
+      contextMenu,
+      contextColumnMenu,
     ]
   );
 
   const onContextMenu = useCallback(
     (data: IrisGridContextMenuData) =>
-      wrapContextActions(contextItems ?? [], data),
-    [contextItems]
+      wrapContextActions(contextMenu ?? [], data),
+    [contextMenu]
   );
 
   const irisGridProps = useMemo(

@@ -51,8 +51,8 @@ export interface UITableProps {
   sorts?: DehydratedSort[];
   showSearch: boolean;
   showQuickFilters: boolean;
-  contextItems?: UIContextItem[];
-  contextColumnHeaderItems?: UIContextItem[];
+  contextMenu?: UIContextItem[];
+  contextColumnMenu?: UIContextItem[];
   [key: string]: unknown;
 }
 
