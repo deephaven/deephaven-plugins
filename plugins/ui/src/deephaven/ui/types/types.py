@@ -76,16 +76,6 @@ class ContextMenuActionParams(TypedDict):
     Rendered text for the cell.
     """
 
-    row_index: int | None
-    """
-    Index of the row. None if the context menu was opened on a column header.
-    """
-
-    column_index: int | None
-    """
-    Index of the column. None if the context menu was opened on a row header.
-    """
-
     column_name: str
     """
     Name of the column.
