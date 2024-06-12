@@ -15,7 +15,7 @@ jobs:
     if: ${{ inputs.package }} == 'plotly-express'
     uses: ./.github/workflows/build-python-package.yml
     with:
-      package: ${{inputs.package }}
+      package: ${{ inputs.package }}
 
   make-docs:
     needs: build-plugin
@@ -28,20 +28,20 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: dist-${{ inputs.package }}
-          path: plugins/${{ github.event.inputs.package }}/dist/
+          path: plugins/${{ inputs.package }}/dist/
 
       - name: Install requirements
-        run: pip install -r plugins/${{ github.event.inputs.package }}/requirements.txt
+        run: pip install -r plugins/${{ inputs.package }}/requirements.txt
 
       - name: Install wheel
-        run: pip install plugins/${{ github.event.inputs.package }}/dist/*.whl
+        run: pip install plugins/${{ inputs.package }}/dist/*.whl
 
       - name: Run make_docs.py
-        run: python plugins/${{ github.event.inputs.package }}/make_docs.py
+        run: python plugins/${{ inputs.package }}/make_docs.py
 
       - name: Upload docs
         uses: actions/upload-artifact@v3
         with:
-          name: website/deephaven/deephaven-plugins/plotly-express/${{ github.event.inputs.version }}
-          path: plugins/${{ github.event.inputs.package }}/docs/build/markdown/
+          name: website/deephaven/deephaven-plugins/plotly-express/${{ inputs.version }}
+          path: plugins/${{ inputs.package }}/docs/build/markdown/
           if-no-files-found: error
