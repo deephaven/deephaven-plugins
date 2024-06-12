@@ -5,7 +5,6 @@ import {
   TabPanels,
   TabList,
   Item,
-  Flex,
 } from '@deephaven/components';
 import { CollectionChildren } from '@react-types/shared';
 import { TabProps } from './Tab';
