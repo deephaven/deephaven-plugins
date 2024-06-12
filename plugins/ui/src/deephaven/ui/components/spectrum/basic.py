@@ -11,22 +11,6 @@ def spectrum_element(name: str, /, *children: Any, **props: Any) -> BaseElement:
     return BaseElement(f"deephaven.ui.spectrum.{name}", *children, **props)
 
 
-def checkbox(*children, **props):
-    """
-    Python implementation for the Adobe React Spectrum Checkbox component.
-    https://react-spectrum.adobe.com/react-spectrum/Checkbox.html
-    """
-    return spectrum_element("Checkbox", *children, **props)
-
-
-def content(*children, **props):
-    """
-    Python implementation for the Adobe React Spectrum Content component.
-    https://react-spectrum.adobe.com/react-spectrum/Content.html
-    """
-    return spectrum_element("Content", *children, **props)
-
-
 def grid(*children, **props):
     """
     Python implementation for the Adobe React Spectrum Grid component.
@@ -67,30 +51,6 @@ def form(*children, **props):
     https://react-spectrum.adobe.com/react-spectrum/Form.html
     """
     return spectrum_element("Form", *children, **props)
-
-
-def number_field(*children, **props):
-    """
-    Python implementation for the Adobe React Spectrum NumberField component.
-    https://react-spectrum.adobe.com/react-spectrum/NumberField.html
-    """
-    return spectrum_element("NumberField", *children, **props)
-
-
-def range_slider(*children, **props):
-    """
-    Python implementation for the Adobe React Spectrum RangeSlider component.
-    https://react-spectrum.adobe.com/react-spectrum/RangeSlider.html
-    """
-    return spectrum_element("RangeSlider", *children, **props)
-
-
-def slider(*children, **props):
-    """
-    Python implementation for the Adobe React Spectrum Slider component.
-    https://react-spectrum.adobe.com/react-spectrum/Slider.html
-    """
-    return spectrum_element("Slider", *children, **props)
 
 
 def switch(*children, **props):

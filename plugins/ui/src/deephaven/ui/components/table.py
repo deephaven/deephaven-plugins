@@ -33,16 +33,16 @@ def table(
     Args:
         table: The table to wrap
         on_row_press: The callback function to run when a row is clicked.
-            The first parameter is the row index, and the second is the row data provided in a dictionary where the
+            The first parameter is the row index, and the second is the visible row data provided in a dictionary where the
             column names are the keys.
         on_row_double_press: The callback function to run when a row is double clicked.
-            The first parameter is the row index, and the second is the row data provided in a dictionary where the
+            The first parameter is the row index, and the second is the visible row data provided in a dictionary where the
             column names are the keys.
         on_cell_press: The callback function to run when a cell is clicked.
-            The first parameter is the cell index, and the second is the row data provided in a dictionary where the
+            The first parameter is the cell index, and the second is the cell data provided in a dictionary where the
             column names are the keys.
         on_cell_double_press: The callback function to run when a cell is double clicked.
-            The first parameter is the cell index, and the second is the row data provided in a dictionary where the
+            The first parameter is the cell index, and the second is the cell data provided in a dictionary where the
             column names are the keys.
         on_column_press: The callback function to run when a column is clicked.
             The first parameter is the column name.

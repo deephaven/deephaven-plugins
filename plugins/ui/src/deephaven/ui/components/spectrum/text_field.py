@@ -2,12 +2,8 @@ from __future__ import annotations
 from typing import Any, Callable
 from .accessibility import AriaExpanded, AriaHasPopup, AriaAutoComplete
 from .events import (
-    ButtonType,
     FocusEventCallable,
     KeyboardEventCallable,
-    PressEventCallable,
-    StaticColor,
-    Orientation,
 )
 from .layout import (
     AlignSelf,
@@ -18,14 +14,13 @@ from .layout import (
     Number,
     Position,
     LabelPosition,
-    LabelAlign,
+    Align,
 )
 from .validate import (
-    InputType,
     TextFieldType,
     TextFieldInputMode,
     TextFieldValidationState,
-    TextFieldNecessityIndicator,
+    NecessityIndicator,
 )
 from .basic import spectrum_element
 from ...elements import Element
@@ -52,8 +47,8 @@ def text_field(
     name: str | None = None,
     validation_state: TextFieldValidationState | None = None,
     label_position: LabelPosition = "top",
-    label_align: LabelAlign = "start",
-    necessity_indicator: TextFieldNecessityIndicator = "icon",
+    label_align: Align = "start",
+    necessity_indicator: NecessityIndicator = "icon",
     contextual_help: Any | None = None,
     on_focus: FocusEventCallable | None = None,
     on_blur: FocusEventCallable | None = None,
@@ -115,82 +110,82 @@ def text_field(
     TextFields are text inputs that allow users to input custom text entries with a keyboard. Various decorations can be displayed around the field to communicate the entry requirements.
 
     Args:
-    icon: An icon to display at the start of the input
-    is_quiet: Whether the input should be displayed with a quiet style
-    is_disabled: Whether the input should be disabled
-    is_read_only: Whether the input scan be selected but not changed by the user
-    is_required: Whether the input is required before form submission
-    description: A description for the field. Provides a hint such as specific requirements for what to choose.
-    error_message: An error message to display when the field is invalid
-    auto_focus: Whether the input should be focused on page load
-    value: The current value of the input
-    default_value: The default value of the input
-    label: The label for the input
-    auto_complete: Describes the type of autocomplete functionality the input should provide
-    max_length: The maximum number of characters the input can accept
-    min_length: The minimum number of characters the input can accept
-    pattern: A regular expression that the input's value must match
-    type: The type of input to display
-    input_mode: Hints at the tpye of data that might be entered by the user while editing the element or its contents
-    name: The name of the input, used when submitting an HTML form
-    validation_state: Whether the input should display its "valid" or "invalid" state
-    label_position: The position of the label relative to the input
-    label_align: The alignment of the label relative to the input
-    necessity_indicator: Whether the required state should be shown as an icon or text
-    contextual_help: A ContentualHelp element to place next to the label
-    on_focus: Function called when the button receives focus.
-    on_blur: Function called when the button loses focus.
-    on_focus_change: Function called when the focus state changes.
-    on_key_down: Function called when a key is pressed.
-    on_key_up: Function called when a key is released.
-    on_change: Function called when the input value changes
-    flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
-    flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
-    flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
-    flex_basis: When used in a flex layout, specifies the initial main size of the element.
-    align_self: Overrides the alignItems property of a flex or grid container.
-    justify_self: Species how the element is justified inside a flex or grid container.
-    order: The layout order for the element within a flex or grid container.
-    grid_area: When used in a grid layout specifies, specifies the named grid area that the element should be placed in within the grid.
-    grid_row: When used in a grid layout, specifies the row the element should be placed in within the grid.
-    grid_column: When used in a grid layout, specifies the column the element should be placed in within the grid.
-    grid_row_start: When used in a grid layout, specifies the starting row to span within the grid.
-    grid_row_end: When used in a grid layout, specifies the ending row to span within the grid.
-    grid_column_start: When used in a grid layout, specifies the starting column to span within the grid.
-    grid_column_end: When used in a grid layout, specifies the ending column to span within the grid.
-    margin: The margin for all four sides of the element.
-    margin_top: The margin for the top side of the element.
-    margin_bottom: The margin for the bottom side of the element.
-    margin_start: The margin for the logical start side of the element, depending on layout direction.
-    margin_end: The margin for the logical end side of the element, depending on layout direction.
-    margin_x: The margin for the left and right sides of the element.
-    margin_y: The margin for the top and bottom sides of the element.
-    width: The width of the element.
-    min_width: The minimum width of the element.
-    max_width: The maximum width of the element.
-    height: The height of the element.
-    min_height: The minimum height of the element.
-    max_height: The maximum height of the element.
-    position: The position of the element.
-    top: The distance from the top of the containing element.
-    bottom: The distance from the bottom of the containing element.
-    left: The distance from the left of the containing element.
-    right: The distance from the right of the containing element.
-    start: The distance from the start of the containing element, depending on layout direction.
-    end: The distance from the end of the containing element, depending on layout direction.
-    z_index: The stack order of the element.
-    is_hidden: Whether the element is hidden.
-    id: The unique identifier of the element.
-    exclude_from_tab_order: Whether the element should be excluded from the tab order.
-    aria_active_descendant: Identifies the currently active element when DOM focus is on a composite widget, textbox, group, or application.
-    aria_auto_complete: Indicates whether inputting text could trigger display of one or more predictions of the user's intended value for an input and specifies how predictions would be presented if they are made.
-    aria_label: The label for the element.
-    aria_labelled_by: The id of the element that labels the current element.
-    aria_described_by: The id of the element that describes the current element.
-    aria_details: The id of the element that provides additional information about the current element.
-    aria_errormessage: The id of the element that provides an error message for the current element.
-    UNSAFE_class_name: A CSS class to apply to the element.
-    UNSAFE_style: A CSS style to apply to the element.
+        icon: An icon to display at the start of the input
+        is_quiet: Whether the input should be displayed with a quiet style
+        is_disabled: Whether the input should be disabled
+        is_read_only: Whether the input scan be selected but not changed by the user
+        is_required: Whether the input is required before form submission
+        description: A description for the field. Provides a hint such as specific requirements for what to choose.
+        error_message: An error message to display when the field is invalid
+        auto_focus: Whether the input should be focused on page load
+        value: The current value of the input
+        default_value: The default value of the input
+        label: The label for the input
+        auto_complete: Describes the type of autocomplete functionality the input should provide
+        max_length: The maximum number of characters the input can accept
+        min_length: The minimum number of characters the input can accept
+        pattern: A regular expression that the input's value must match
+        type: The type of input to display
+        input_mode: Hints at the tpye of data that might be entered by the user while editing the element or its contents
+        name: The name of the input, used when submitting an HTML form
+        validation_state: Whether the input should display its "valid" or "invalid" state
+        label_position: The position of the label relative to the input
+        label_align: The alignment of the label relative to the input
+        necessity_indicator: Whether the required state should be shown as an icon or text
+        contextual_help: A ContentualHelp element to place next to the label
+        on_focus: Function called when the button receives focus.
+        on_blur: Function called when the button loses focus.
+        on_focus_change: Function called when the focus state changes.
+        on_key_down: Function called when a key is pressed.
+        on_key_up: Function called when a key is released.
+        on_change: Function called when the input value changes
+        flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
+        flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
+        flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
+        flex_basis: When used in a flex layout, specifies the initial main size of the element.
+        align_self: Overrides the alignItems property of a flex or grid container.
+        justify_self: Species how the element is justified inside a flex or grid container.
+        order: The layout order for the element within a flex or grid container.
+        grid_area: When used in a grid layout specifies, specifies the named grid area that the element should be placed in within the grid.
+        grid_row: When used in a grid layout, specifies the row the element should be placed in within the grid.
+        grid_column: When used in a grid layout, specifies the column the element should be placed in within the grid.
+        grid_row_start: When used in a grid layout, specifies the starting row to span within the grid.
+        grid_row_end: When used in a grid layout, specifies the ending row to span within the grid.
+        grid_column_start: When used in a grid layout, specifies the starting column to span within the grid.
+        grid_column_end: When used in a grid layout, specifies the ending column to span within the grid.
+        margin: The margin for all four sides of the element.
+        margin_top: The margin for the top side of the element.
+        margin_bottom: The margin for the bottom side of the element.
+        margin_start: The margin for the logical start side of the element, depending on layout direction.
+        margin_end: The margin for the logical end side of the element, depending on layout direction.
+        margin_x: The margin for the left and right sides of the element.
+        margin_y: The margin for the top and bottom sides of the element.
+        width: The width of the element.
+        min_width: The minimum width of the element.
+        max_width: The maximum width of the element.
+        height: The height of the element.
+        min_height: The minimum height of the element.
+        max_height: The maximum height of the element.
+        position: The position of the element.
+        top: The distance from the top of the containing element.
+        bottom: The distance from the bottom of the containing element.
+        left: The distance from the left of the containing element.
+        right: The distance from the right of the containing element.
+        start: The distance from the start of the containing element, depending on layout direction.
+        end: The distance from the end of the containing element, depending on layout direction.
+        z_index: The stack order of the element.
+        is_hidden: Whether the element is hidden.
+        id: The unique identifier of the element.
+        exclude_from_tab_order: Whether the element should be excluded from the tab order.
+        aria_active_descendant: Identifies the currently active element when DOM focus is on a composite widget, textbox, group, or application.
+        aria_auto_complete: Indicates whether inputting text could trigger display of one or more predictions of the user's intended value for an input and specifies how predictions would be presented if they are made.
+        aria_label: The label for the element.
+        aria_labelled_by: The id of the element that labels the current element.
+        aria_described_by: The id of the element that describes the current element.
+        aria_details: The id of the element that provides additional information about the current element.
+        aria_errormessage: The id of the element that provides an error message for the current element.
+        UNSAFE_class_name: A CSS class to apply to the element.
+        UNSAFE_style: A CSS style to apply to the element.
     """
 
     return spectrum_element(

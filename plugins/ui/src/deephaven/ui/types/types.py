@@ -152,6 +152,26 @@ An item that can appear in a context menu.
 May contain an action item or a submenu item.
 """
 
+
+class SliderChange(TypedDict):
+    """
+    Data for a range slider change event.
+    """
+
+    start: float
+    """
+    Minimum value of the range slider.
+    """
+
+    end: float
+    """
+    Maximum value of the range slider.
+    """
+
+
+SliderChangeCallable = Callable[[SliderChange], None]
+
+
 ColumnIndex = int
 """
 Index of a column in a table.

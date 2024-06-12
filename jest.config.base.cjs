@@ -5,7 +5,7 @@ module.exports = {
     '^.+\\.(ts|tsx|js|jsx)$': ['babel-jest', { rootMode: 'upward' }],
   },
   transformIgnorePatterns: [
-    '/node_modules/(?!(@deephaven|monaco-editor|d3-interpolate|d3-color)/)',
+    '/node_modules/(?!(@deephaven|monaco-editor|d3-interpolate|d3-color|nanoid)/)',
   ],
   moduleNameMapper: {
     'theme-([^/]+?)\\.css(\\?(?:inline|raw))?$': path.join(
