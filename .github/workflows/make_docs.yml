@@ -12,12 +12,13 @@ on:
 
 jobs:
   build-plugin:
+    if: ${{ inputs.package }} == 'plotly-express'
     uses: ./.github/workflows/build-python-package.yml
     with:
-      package: ${{ github.event.inputs.package }}
+      package: ${{inputs.package }}
 
   make-docs:
-    if: ${{ github.event.inputs.package }} == 'plotly-express'
+    needs: build-plugin
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
