@@ -6,8 +6,6 @@ from ...elements import BaseElement
 
 from ...types import Key
 
-# from .basic import spectrum_element
-
 
 def tab(
     *children: Any,

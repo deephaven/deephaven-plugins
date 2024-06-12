@@ -36,6 +36,8 @@ function Tabs(props: TabComponentProps): JSX.Element {
       <DHCTabs
         UNSAFE_style={{
           display: 'flex',
+          flexDirection: 'column',
+          flexGrow: 1,
           height: '100%',
           width: '100%',
         }}
@@ -88,9 +90,7 @@ function Tabs(props: TabComponentProps): JSX.Element {
             : `Key ${index}`
         }
       >
-        <Flex height="100%" width="100%">
-          {child.props.children}
-        </Flex>
+        {child.props.children}
       </Item>
     )
   );
@@ -99,6 +99,8 @@ function Tabs(props: TabComponentProps): JSX.Element {
     <DHCTabs
       UNSAFE_style={{
         display: 'flex',
+        flexDirection: 'column',
+        flexGrow: 1,
         height: '100%',
         width: '100%',
       }}
@@ -106,9 +108,7 @@ function Tabs(props: TabComponentProps): JSX.Element {
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...otherTabProps}
     >
-      {/* eslint-disable-next-line react/jsx-props-no-spreading */}
       <TabList>{tabItems}</TabList>
-      {/* eslint-disable-next-line react/jsx-props-no-spreading */}
       <TabPanels>{tabPanels}</TabPanels>
     </DHCTabs>
   );

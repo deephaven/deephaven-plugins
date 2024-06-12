@@ -164,7 +164,7 @@ def tabs(
         default_selected_key=default_selected_key,
         on_selection_change=on_selection_change if on_selection_change else on_change,
         flex=flex,
-        flex_grow=flex_grow,
+        flex_grow=flex_grow if flex_grow is not None else 1,
         flex_shrink=flex_shrink,
         flex_basis=flex_basis,
         align_self=align_self,
