@@ -42,6 +42,6 @@ jobs:
       - name: Upload docs
         uses: actions/upload-artifact@v3
         with:
-          name: website/deephaven/deephaven-plugins/plotly-express/${{ inputs.version }}
+          name: docs-plotly-express-${{ inputs.version }}
           path: plugins/${{ inputs.package }}/docs/build/markdown/
           if-no-files-found: error
