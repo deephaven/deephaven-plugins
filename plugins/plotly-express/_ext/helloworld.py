@@ -8,8 +8,12 @@ from sphinx.application import Sphinx
 from sphinx.util.typing import ExtensionMetadata
 import re
 
+ParamData = list[dict[str, str]]
 
-def extract_parameter_defaults(node: sphinx.addnodes.desc_parameterlist) -> dict:
+
+def extract_parameter_defaults(
+    node: sphinx.addnodes.desc_parameterlist,
+) -> dict[str, str]:
     defaults = {}
     for child in node.children:
         params = child.astext().split("=")
@@ -19,7 +23,9 @@ def extract_parameter_defaults(node: sphinx.addnodes.desc_parameterlist) -> dict
     return defaults
 
 
-def extract_signature_data(node: sphinx.addnodes.desc_signature) -> (dict, dict):
+def extract_signature_data(
+    node: sphinx.addnodes.desc_signature,
+) -> tuple[dict[str, str], dict[str, str]]:
     result = {}
     param_defaults = {}
     for child in node.children:
@@ -32,7 +38,7 @@ def extract_signature_data(node: sphinx.addnodes.desc_signature) -> (dict, dict)
     return result, param_defaults
 
 
-def extract_list_item(node: docutils.nodes.list_item) -> dict:
+def extract_list_item(node: docutils.nodes.list_item) -> dict[str, str]:
     field = node.astext().replace("\n", " ")
     matched = re.match(r"(.+) \((.*)\) -- (.+)", field).groups()
     param = {
@@ -43,12 +49,11 @@ def extract_list_item(node: docutils.nodes.list_item) -> dict:
     return param
 
 
-def extract_list_items(node: docutils.nodes.bullet_list) -> list:
+def extract_list_items(node: docutils.nodes.bullet_list) -> ParamData:
     return list(map(extract_list_item, node.children))
 
 
-def extract_field_body(node: docutils.nodes.field_body) -> dict | list:
-
+def extract_field_body(node: docutils.nodes.field_body) -> dict[str, str] | ParamData:
     # should only be one child, a paragraph or a list
     child = node.children[0]
     if isinstance(child, docutils.nodes.paragraph):
@@ -57,7 +62,7 @@ def extract_field_body(node: docutils.nodes.field_body) -> dict | list:
         return extract_list_items(child)
 
 
-def extract_field(node: docutils.nodes.field) -> dict:
+def extract_field(node: docutils.nodes.field) -> dict[str, str | ParamData]:
     name = None
     body = None
     for node in node.children:
@@ -68,7 +73,7 @@ def extract_field(node: docutils.nodes.field) -> dict:
     return {name: body}
 
 
-def extract_field_list(node: docutils.nodes.field_list) -> dict:
+def extract_field_list(node: docutils.nodes.field_list) -> dict[str, str | ParamData]:
     result = {}
     for node in node.children:
         if isinstance(node, docutils.nodes.field):
@@ -76,7 +81,9 @@ def extract_field_list(node: docutils.nodes.field_list) -> dict:
     return result
 
 
-def extract_content_data(node: sphinx.addnodes.desc_content) -> dict:
+def extract_content_data(
+    node: sphinx.addnodes.desc_content,
+) -> dict[str, str | ParamData]:
     result = {}
     for node in node.children:
         if isinstance(node, docutils.nodes.field_list):
@@ -94,7 +101,7 @@ def attach_parameter_defaults(
             param["default"] = param_defaults[name]
 
 
-def extract_data(node: sphinx.addnodes.desc) -> dict:
+def extract_data(node: sphinx.addnodes.desc) -> dict[str, str | ParamData]:
     result = {}
     param_defaults = {}
     for node in node.children:
@@ -109,22 +116,34 @@ def extract_data(node: sphinx.addnodes.desc) -> dict:
     result["return_type"] = result.pop("Return type")
     attach_parameter_defaults(result["parameters"], param_defaults)
 
+    return result
+
+
+def to_mdx(node: sphinx.addnodes.desc) -> docutils.nodes.TextElement:
+    result = extract_data(node)
     import json
 
-    # print(json.dumps(result, sort_keys=True, indent=4, separators=(",", ": ")))
+    dat = json.dumps(result, sort_keys=True, indent=4, separators=(",", ": "))
+
+    return docutils.nodes.paragraph(text=dat)
 
 
 class HelloWorld(AutodocDirective):
     def run(self) -> list:
-        import xml.etree.ElementTree as ET
-
         self.name = "autofunction"
         nodes = super().run()
 
+        new_data = []
+
         for node in nodes:
             if isinstance(node, sphinx.addnodes.desc):
-                extract_data(node)
-        return nodes
+                new_data.append(to_mdx(node))
+            # else:
+            # new_data.append(node)
+
+        print(nodes)
+        print(new_data)
+        return new_data
 
 
 def setup(app: Sphinx) -> ExtensionMetadata:
