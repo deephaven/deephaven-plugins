@@ -17,7 +17,7 @@ Candlestick plots are useful for:
 
 ### A basic candlestick plot
 
-```python
+```python order=candlestick_plot,stocks_1min_ohlc,stocks
 import deephaven.plot.express as dx
 import deephaven.agg as agg
 
