@@ -107,9 +107,6 @@ jobs:
     strategy:
       matrix:
         package: ${{ fromJSON(needs.changes.outputs.packages) }}
-        # currently, we only build docs for plotly-express
-        include:
-            - package: plotly-express
     uses: ./.github/workflows/build-main-docs.yml
     with:
       package: ${{ matrix.package }}

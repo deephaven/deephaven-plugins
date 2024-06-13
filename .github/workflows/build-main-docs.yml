@@ -9,6 +9,7 @@ on:
 
 jobs:
   build-plugin:
+    if: ${{ inputs.package == 'plotly-express' }}
     uses: ./.github/workflows/build-python-package.yml
     with:
       package: ${{ inputs.package }}
