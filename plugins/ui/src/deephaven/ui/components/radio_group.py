@@ -1,4 +1,4 @@
-from .basic import component_element
+from ..elements import BaseElement
 
 # TODO: Add pydocs #514
 def radio_group(*children, **props):
@@ -11,4 +11,4 @@ def radio_group(*children, **props):
         children: The Radio(s) contained within the RadioGroup.
         **props: Any other RadioGroup props.
     """
-    return component_element(f"RadioGroup", *children, **props)
+    return BaseElement(f"deephaven.ui.components.RadioGroup", *children, **props)

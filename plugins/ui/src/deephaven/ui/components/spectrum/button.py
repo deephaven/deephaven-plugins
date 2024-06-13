@@ -1,17 +1,17 @@
 from __future__ import annotations
 from typing import Any, Callable
-from .types import (
-    # Accessibility
-    AriaExpanded,
-    AriaHasPopup,
-    AriaPressed,
-    # Events
+from .accessibility import AriaExpanded, AriaHasPopup, AriaPressed
+from .events import (
     ButtonType,
+    ButtonVariant,
+    ButtonStyle,
     FocusEventCallable,
     KeyboardEventCallable,
     PressEventCallable,
     StaticColor,
-    # Layout
+    ElementTypes,
+)
+from .layout import (
     AlignSelf,
     CSSProperties,
     DimensionValue,
@@ -20,26 +20,28 @@ from .types import (
     Number,
     Position,
 )
-from .basic import component_element
-from ..elements import Element
+from .basic import spectrum_element
+from ...elements import Element
 
 
-def toggle_button(
+def button(
     *children: Any,
-    is_emphasized: bool | None = None,
-    is_selected: bool | None = None,
-    default_selected: bool | None = None,
+    variant: ButtonVariant | None = None,
+    style: ButtonStyle | None = None,
+    static_color: StaticColor | None = None,
+    is_pending: bool | None = None,
+    type: ButtonType = "button",
     is_disabled: bool | None = None,
     auto_focus: bool | None = None,
-    is_quiet: bool | None = None,
-    static_color: StaticColor | None = None,
-    type: ButtonType = "button",
-    on_change: Callable[[bool], None] | None = None,
+    href: str | None = None,
+    target: str | None = None,
+    rel: str | None = None,
+    element_type: ElementTypes = "button",
     on_press: PressEventCallable | None = None,
     on_press_start: PressEventCallable | None = None,
     on_press_end: PressEventCallable | None = None,
-    on_press_change: Callable[[bool], None] | None = None,
     on_press_up: PressEventCallable | None = None,
+    on_press_change: Callable[[bool], None] | None = None,
     on_focus: FocusEventCallable | None = None,
     on_blur: FocusEventCallable | None = None,
     on_focus_change: Callable[[bool], None] | None = None,
@@ -67,10 +69,10 @@ def toggle_button(
     margin_x: DimensionValue | None = None,
     margin_y: DimensionValue | None = None,
     width: DimensionValue | None = None,
-    height: DimensionValue | None = None,
     min_width: DimensionValue | None = None,
-    min_height: DimensionValue | None = None,
     max_width: DimensionValue | None = None,
+    height: DimensionValue | None = None,
+    min_height: DimensionValue | None = None,
     max_height: DimensionValue | None = None,
     position: Position | None = None,
     top: DimensionValue | None = None,
@@ -84,107 +86,110 @@ def toggle_button(
     id: str | None = None,
     exclude_from_tab_order: bool | None = None,
     aria_expanded: AriaExpanded | None = None,
-    aria_haspopup: AriaHasPopup | None = None,
+    aria_has_popup: AriaHasPopup | None = None,
     aria_controls: str | None = None,
-    aria_label: str | None = None,
-    aria_labelledby: str | None = None,
-    aria_describedby: str | None = None,
     aria_pressed: AriaPressed | None = None,
+    aria_label: str | None = None,
+    aria_labelled_by: str | None = None,
+    aria_described_by: str | None = None,
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
 ) -> Element:
     """
-    ToggleButtons allow users to toggle a selection on or off, for example switching between two states or modes.
+    Buttons allow users to perform an action or to navigate to another page. They have multiple styles for various needs, and are ideal for calling attention to where a user needs to do something in order to move forward in a flow.
+    Python implementation for the Adobe React Spectrum Button component: https://react-spectrum.adobe.com/react-spectrum/Button.html
 
     Args:
-        *children: The children to render inside the button.
-        is_emphasized: Whether the button should be displayed with an emphasized style.
-        is_selected: Whether the button is selected.
-        default_selected: Whether the button is selected by default.
-        is_disabled: Whether the button is disabled.
-        auto_focus: Whether the button should automatically get focus when the page loads.
-        is_quiet: Whether the button should be quiet.
+        *children: The contents to display inside the button.
+        variant: The visual style of the button.
+        style: The background style of the button.
         static_color: The static color style to apply. Useful when the button appears over a color background.
-        type: The type of button to render. (default: "button")
-        on_change: Handler that is called when the element's selection state changes.
+        is_pending: Whether to disable events immediately and display a loading spinner after a 1 second delay.
+        type: The behavior of the button when used in an HTML form.
+        is_disabled: Whether the button is disabled.
+        auto_focus: Whether the button should automatically receive focus when the page loads.
+        href: A URL to link to if elementType="a".
+        target: The target window or tab to open the linked URL in.
+        rel: The relationship between the current document and the linked URL.
         on_press: Function called when the button is pressed.
-        on_press_start: Function called when the button is pressed.
-        on_press_end: Function called when a press interaction ends, either over the target or when the pointer leaves the target.
+        on_press_start: Function called when the button is pressed and held.
+        on_press_end: Function called when the button is released after being pressed.
         on_press_up: Function called when the button is released.
-        on_press_change: Function called when the press state changes.
+        on_press_change: Function called when the pressed state changes.
         on_focus: Function called when the button receives focus.
         on_blur: Function called when the button loses focus.
         on_focus_change: Function called when the focus state changes.
-        on_key_down: Function called when a key is pressed.
+        on_key_down: Function called when a key is pressed down.
         on_key_up: Function called when a key is released.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how much the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how much the element will shrink to fit the space available.
         flex_basis: When used in a flex layout, specifies the initial size of the element.
-        align_self: Overrides the align_items property of a flex or grid container.
+        align_self: Overrides the alignItems property of a flex or grid container.
         justify_self: Specifies how the element is justified inside a flex or grid container.
-        order: The layout order for the element within a flex or grid container.
-        grid_area: The name of the grid area to place the element in.
-        grid_row: The name of the grid row to place the element in.
-        grid_row_start: The name of the grid row to start the element in.
-        grid_row_end: The name of the grid row to end the element in.
-        grid_column: The name of the grid column to place the element in.
-        grid_column_start: The name of the grid column to start the element in.
-        grid_column_end: The name of the grid column to end the element in.
-        margin: The margin to apply around the element.
-        margin_top: The margin to apply above the element.
-        margin_bottom: The margin to apply below the element.
-        margin_start: The margin to apply before the element.
-        margin_end: The margin to apply after the element.
-        margin_x: The margin to apply to the left and right of the element.
-        margin_y: The margin to apply to the top and bottom of the element.
+        order: The layout for the element within a flex or grid container.
+        grid_area: The name of grid area to place the element in.
+        grid_column: The name of grid column to place the element in.
+        grid_row: The name of grid row to place the element in.
+        grid_column_start: The name of grid column to start the element in.
+        grid_column_end: The name of grid column to end the element in.
+        grid_row_start: The name of grid row to start the element in.
+        grid_row_end: The name of grid row to end the element in.
+        margin: The margin around the element.
+        margin_top: The margin above the element.
+        margin_bottom: The margin below the element.
+        margin_start: The margin for the logical start side of the element, depending on layout direction.
+        margin_end: The margin for the logical end side of the element, depending on layout direction.
+        margin_x: The margin for the horizontal sides of the element.
+        margin_y: The margin for the vertical sides of the element.
         width: The width of the element.
-        height: The height of the element.
         min_width: The minimum width of the element.
-        min_height: The minimum height of the element.
         max_width: The maximum width of the element.
+        height: The height of the element.
+        min_height: The minimum height of the element.
         max_height: The maximum height of the element.
-        position: Specifies how the element is positioned.
+        position: The position of the element.
         top: The distance from the top of the containing element.
         bottom: The distance from the bottom of the containing element.
-        start: The distance from the start of the containing element.
-        end: The distance from the end of the containing element.
         left: The distance from the left of the containing element.
         right: The distance from the right of the containing element.
+        start: The distance from the start of the containing element, depending on layout direction.
+        end: The distance from the end of the containing element, depending on layout direction.
         z_index: The stack order of the element.
         is_hidden: Whether the element is hidden.
-        id: A unique identifier for the element.
+        id: The unique identifier of the element.
         exclude_from_tab_order: Whether the element should be excluded from the tab order.
         aria_expanded: Whether the element is expanded.
-        aria_haspopup: Whether the element has a popup.
-        aria_controls: The id of the element that the element controls.
-        aria_label: The label for the element.
-        aria_labelledby: The id of the element that labels the element.
-        aria_describedby: The id of the element that describes the element.
+        aria_has_popup: Whether the element has a popup.
+        aria_controls: The id of the element controlled by the current element.
         aria_pressed: Whether the element is pressed.
-        aria_details: The details for the element.
+        aria_label: The label for the element.
+        aria_labelled_by: The id of the element that labels the current element.
+        aria_described_by: The id of the element that describes the current element.
+        aria_details: The details of the current element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
-    """
 
-    return component_element(
-        "ToggleButton",
+    """
+    return spectrum_element(
+        "Button",
         *children,
-        is_emphasized=is_emphasized,
-        is_selected=is_selected,
-        default_selected=default_selected,
+        variant=variant,
+        style=style,
+        static_color=static_color,
+        is_pending=is_pending,
+        type=type,
         is_disabled=is_disabled,
         auto_focus=auto_focus,
-        is_quiet=is_quiet,
-        static_color=static_color,
-        type=type,
-        on_change=on_change,
+        href=href,
+        target=target,
+        rel=rel,
         on_press=on_press,
         on_press_start=on_press_start,
         on_press_end=on_press_end,
-        on_press_change=on_press_change,
         on_press_up=on_press_up,
+        on_press_change=on_press_change,
         on_focus=on_focus,
         on_blur=on_blur,
         on_focus_change=on_focus_change,
@@ -212,10 +217,10 @@ def toggle_button(
         margin_x=margin_x,
         margin_y=margin_y,
         width=width,
-        height=height,
         min_width=min_width,
-        min_height=min_height,
         max_width=max_width,
+        height=height,
+        min_height=min_height,
         max_height=max_height,
         position=position,
         top=top,
@@ -229,12 +234,12 @@ def toggle_button(
         id=id,
         exclude_from_tab_order=exclude_from_tab_order,
         aria_expanded=aria_expanded,
-        aria_haspopup=aria_haspopup,
+        aria_has_popup=aria_has_popup,
         aria_controls=aria_controls,
-        aria_label=aria_label,
-        aria_labelledby=aria_labelledby,
-        aria_describedby=aria_describedby,
         aria_pressed=aria_pressed,
+        aria_label=aria_label,
+        aria_labelled_by=aria_labelled_by,
+        aria_described_by=aria_described_by,
         aria_details=aria_details,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,

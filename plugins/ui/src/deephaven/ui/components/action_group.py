@@ -3,12 +3,14 @@ from numbers import Number
 from typing import Any, Callable, Iterable
 
 
-from .types import (
-    # Events
+from ..components.spectrum.events import (
     ButtonLabelBehavior,
     Orientation,
     StaticColor,
-    # Layout
+)
+from ..elements import Element, BaseElement
+from ..types import ActionGroupDensity, SelectedKeys, SelectionMode, Key, Selection
+from .spectrum.layout import (
     AlignSelf,
     CSSProperties,
     DimensionValue,
@@ -17,9 +19,6 @@ from .types import (
     OverflowMode,
     Position,
 )
-from .basic import component_element
-from ..elements import Element
-from ..types import ActionGroupDensity, SelectedKeys, SelectionMode, Key, Selection
 
 
 def action_group(
@@ -154,8 +153,8 @@ def action_group(
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
     """
-    return component_element(
-        "ActionGroup",
+    return BaseElement(
+        "deephaven.ui.components.ActionGroup",
         *children,
         is_emphasized=is_emphasized,
         density=density,

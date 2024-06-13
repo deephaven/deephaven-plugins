@@ -3,8 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from .._internal.utils import create_props
-from ..elements import Element
-from .basic import component_element
+from ..elements import Element, BaseElement
 from .item import Item
 
 SectionElement = Element
@@ -25,4 +24,4 @@ def section(*children: Item, title: str | None = None, **props: Any) -> SectionE
 
     children, props = create_props(locals())
 
-    return component_element("Section", *children, **props)
+    return BaseElement("deephaven.ui.components.Section", *children, **props)

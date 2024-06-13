@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
-from .basic import component_element
+from ..elements import BaseElement
 
 
 def column(*children: Any, width: float | None = None, **kwargs: Any):
@@ -13,4 +13,6 @@ def column(*children: Any, width: float | None = None, **kwargs: Any):
         children: Elements to render in the column.
         width: The percent width of the column relative to other children of its parent. If not provided, the column will be sized automatically.
     """
-    return component_element("Column", *children, width=width, **kwargs)
+    return BaseElement(
+        "deephaven.ui.components.Column", *children, width=width, **kwargs
+    )

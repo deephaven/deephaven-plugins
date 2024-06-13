@@ -1,4 +1,4 @@
-from .basic import component_element
+from ..elements import BaseElement
 
 # TODO: Add pydocs #515
 def radio(*children, **props):
@@ -11,4 +11,4 @@ def radio(*children, **props):
         children: The label for the Radio. Accepts any renderable node.
         **props: Any other Radio props.
     """
-    return component_element(f"Radio", *children, **props)
+    return BaseElement(f"deephaven.ui.components.Radio", *children, **props)

@@ -1,41 +1,34 @@
 import { expect, test } from '@playwright/test';
 import { openPanel, gotoPage } from './utils';
 
-const selector = {
-  REACT_PANEL_VISIBLE: '.dh-react-panel:visible',
-  REACT_PANEL_OVERLAY: '.dh-react-panel-overlay',
-};
-
 test('UI loads', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_component', selector.REACT_PANEL_VISIBLE);
-  await expect(page.locator(selector.REACT_PANEL_VISIBLE)).toHaveScreenshot();
+  await openPanel(page, 'ui_component', '.dh-react-panel');
+  await expect(page.locator('.dh-react-panel')).toHaveScreenshot();
 });
 
 test('boom component shows an error in a panel', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_boom', selector.REACT_PANEL_VISIBLE);
-  await expect(page.locator(selector.REACT_PANEL_VISIBLE)).toBeVisible();
+  await openPanel(page, 'ui_boom', '.dh-react-panel');
+  await expect(page.locator('.dh-react-panel')).toBeVisible();
   await expect(
-    page
-      .locator(selector.REACT_PANEL_VISIBLE)
-      .getByText('Exception', { exact: true })
+    page.locator('.dh-react-panel').getByText('Exception', { exact: true })
   ).toBeVisible();
   await expect(
     page
-      .locator(selector.REACT_PANEL_VISIBLE)
+      .locator('.dh-react-panel')
       .getByText('BOOM! Traceback (most recent call last)')
   ).toBeVisible();
-  await expect(page.locator(selector.REACT_PANEL_OVERLAY)).not.toBeVisible();
+  await expect(page.locator('.dh-react-panel-overlay')).not.toBeVisible();
 });
 
 test('boom counter component shows error overlay after clicking the button twice', async ({
   page,
 }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_boom_counter', selector.REACT_PANEL_VISIBLE);
+  await openPanel(page, 'ui_boom_counter', '.dh-react-panel');
 
-  const panelLocator = page.locator(selector.REACT_PANEL_VISIBLE);
+  const panelLocator = page.locator('.dh-react-panel');
 
   let btn = await panelLocator.getByRole('button', { name: 'Count is 0' });
   await expect(btn).toBeVisible();
@@ -45,7 +38,7 @@ test('boom counter component shows error overlay after clicking the button twice
   await expect(btn).toBeVisible();
   btn.click();
 
-  const overlayLocator = page.locator(selector.REACT_PANEL_OVERLAY);
+  const overlayLocator = page.locator('.dh-react-panel-overlay');
 
   await expect(
     overlayLocator.getByText('ValueError', { exact: true })
@@ -53,10 +46,4 @@ test('boom counter component shows error overlay after clicking the button twice
   await expect(
     overlayLocator.getByText('BOOM! Traceback (most recent call last)')
   ).toBeVisible();
-});
-
-test('UI all components render', async ({ page }) => {
-  await gotoPage(page, '');
-  await openPanel(page, 'ui_render_all', selector.REACT_PANEL_VISIBLE);
-  await expect(page.locator(selector.REACT_PANEL_VISIBLE)).toHaveScreenshot();
 });
