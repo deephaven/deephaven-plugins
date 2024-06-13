@@ -32,6 +32,7 @@ import {
   ELEMENT_KEY,
   isElementNode,
   wrapElementChildren,
+  wrapTextChildren,
 } from '../elements/utils/ElementUtils';
 import HTMLElementView from '../elements/HTMLElementView';
 import { isHTMLElementNode } from '../elements/utils/HTMLElementUtils';
@@ -58,6 +59,16 @@ import {
   TextField,
   UITable,
 } from '../elements';
+
+/**
+ * Elements to implicitly wrap primitive children in <Text> components.
+ */
+const shouldWrapTextChildren = new Set<string>([
+  ELEMENT_NAME.column,
+  ELEMENT_NAME.flex,
+  ELEMENT_NAME.grid,
+  ELEMENT_NAME.view,
+]);
 
 /*
  * Map element node names to their corresponding React components
@@ -130,7 +141,16 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
     const Component = getComponentTypeForElement(newElement);
 
     if (Component != null) {
-      return <Component {...newElement.props} />;
+      const props =
+        shouldWrapTextChildren.has(newElement[ELEMENT_KEY]) &&
+        newElement.props?.children != null
+          ? {
+              ...newElement.props,
+              children: wrapTextChildren(newElement.props.children),
+            }
+          : newElement.props;
+
+      return <Component {...props} />;
     }
   }
 
