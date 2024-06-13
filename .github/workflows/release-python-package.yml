@@ -17,12 +17,13 @@ jobs:
       package: ${{ inputs.package }}
 
   build-plugin:
+    needs: test
     uses: ./.github/workflows/build-python-package.yml
     with:
       package: ${{ inputs.package }}
 
   release:
-    needs: test
+    needs: build-plugin
     runs-on: ubuntu-22.04
     permissions:
       id-token: write
@@ -42,8 +43,9 @@ jobs:
           packages-dir: plugins/${{ inputs.package }}/dist/
 
   release-docs:
+    needs: build-plugin
     if: ${{ inputs.package == 'plotly-express' }}
     uses: ./.github/workflows/make-docs.yml
     with:
-      package: ${{ needs.filter-release.outputs.package }}
-      version: ${{ needs.filter-release.outputs.version }}
+      package: ${{ inputs.package }}
+      version: ${{ inputs.version }}
