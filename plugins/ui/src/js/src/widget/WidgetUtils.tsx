@@ -138,16 +138,29 @@ export function wrapCallable(
 ): (...args: unknown[]) => Promise<unknown> {
   const callable = async (...args: unknown[]) => {
     log.debug2(`Callable ${callableId} called`, args);
-    const result = await jsonClient.request('callCallable', [callableId, args]);
-    log.debug2(`Callable ${callableId} result`, result);
-    if (isCallableNode(result)) {
-      const nestedCallable = wrapCallable(
-        jsonClient,
-        result[CALLABLE_KEY],
-        registry
-      );
-      return nestedCallable;
-    }
+    const resultString = await jsonClient.request('callCallable', [
+      callableId,
+      args,
+    ]);
+
+    log.debug2(`Callable ${callableId} result string`, resultString);
+
+    // Do NOT add anything that logs result
+    // It creates a strong ref to the result object in the console logs
+    // As a result, any returned callables will never be GC'd and the finalization registry will never clean them up
+    const result = JSON.parse(resultString, (key, value) => {
+      if (isCallableNode(value)) {
+        const nestedCallable = wrapCallable(
+          jsonClient,
+          value[CALLABLE_KEY],
+          registry
+        );
+        return nestedCallable;
+      }
+      return value;
+    });
+
+    return result;
   };
 
   registry.register(callable, callableId, callable);

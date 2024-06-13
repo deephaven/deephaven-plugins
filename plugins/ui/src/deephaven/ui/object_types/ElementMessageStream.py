@@ -113,7 +113,7 @@ class ElementMessageStream(MessageStream):
     This should not be cleaned out on each render like _callable_dict.
     """
 
-    _temp_callable_next_id: int
+    _next_temp_callable_id: int
     """
     The next ID to use for temporary callables.
     """
@@ -169,7 +169,7 @@ class ElementMessageStream(MessageStream):
         self._callable_queue = Queue()
         self._callable_dict = {}
         self._temp_callable_dict = {}
-        self._temp_callable_next_id = 0
+        self._next_temp_callable_id = 0
         self._render_lock = threading.Lock()
         self._is_dirty = False
         self._render_state = _RenderState.IDLE
@@ -382,17 +382,26 @@ class ElementMessageStream(MessageStream):
             logger.error("Callable not found: %s", callable_id)
             return
         result = fn(*args)
-        if callable(result):
-            new_id = f"tempCb{self._temp_callable_next_id}"
-            self._temp_callable_next_id += 1
-            self._temp_callable_dict[new_id] = result
-            return {
-                CALLABLE_KEY: new_id,
-            }
+
+        def serialize_callables(node: Any) -> Any:
+            if callable(node):
+                new_id = f"tempCb{self._next_temp_callable_id}"
+                self._next_temp_callable_id += 1
+                self._temp_callable_dict[new_id] = node
+                return {
+                    CALLABLE_KEY: new_id,
+                }
+            raise TypeError(
+                f"A Deephaven UI callback returned a non-serializable value. Object of type {type(node).__name__} is not JSON serializable"
+            )
+
         try:
-            json.dumps(result)
-            return result
-        except Exception:
+            return json.dumps(result, default=serialize_callables)
+        except Exception as e:
+            # This is shown to the user in the Python console
+            # The stack trace from logger.exception is useless to the user
+            # Stack trace only includes the internals of the serialization process
+            logger.error(e)
             return {
                 "serialization_error": f"Cannot serialize callable {callable_id} result"
             }

@@ -17,7 +17,7 @@ import {
 import { WidgetDescriptor } from '@deephaven/dashboard';
 import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
-import { EMPTY_FUNCTION } from '@deephaven/utils';
+import { EMPTY_FUNCTION, assertNotNull } from '@deephaven/utils';
 import {
   CALLABLE_KEY,
   OBJECT_KEY,
@@ -133,10 +133,7 @@ function WidgetHandler({
      * @returns The parsed data
      */
     (data: string) => {
-      if (jsonClient == null) {
-        log.warn('No jsonClient set. Skipping parsing data');
-        return;
-      }
+      assertNotNull(jsonClient);
       // Keep track of exported objects that are no longer in use after this render.
       // We close those objects that are no longer referenced, as they will never be referenced again.
       const deadObjectMap = new Map(exportedObjectMap.current);
