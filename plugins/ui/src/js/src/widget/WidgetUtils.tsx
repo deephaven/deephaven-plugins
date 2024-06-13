@@ -145,22 +145,26 @@ export function wrapCallable(
 
     log.debug2(`Callable ${callableId} result string`, resultString);
 
-    // Do NOT add anything that logs result
-    // It creates a strong ref to the result object in the console logs
-    // As a result, any returned callables will never be GC'd and the finalization registry will never clean them up
-    const result = JSON.parse(resultString, (key, value) => {
-      if (isCallableNode(value)) {
-        const nestedCallable = wrapCallable(
-          jsonClient,
-          value[CALLABLE_KEY],
-          registry
-        );
-        return nestedCallable;
-      }
-      return value;
-    });
+    try {
+      // Do NOT add anything that logs result
+      // It creates a strong ref to the result object in the console logs
+      // As a result, any returned callables will never be GC'd and the finalization registry will never clean them up
+      const result = JSON.parse(resultString, (key, value) => {
+        if (isCallableNode(value)) {
+          const nestedCallable = wrapCallable(
+            jsonClient,
+            value[CALLABLE_KEY],
+            registry
+          );
+          return nestedCallable;
+        }
+        return value;
+      });
 
-    return result;
+      return result;
+    } catch {
+      throw new Error(`Error parsing callable result: ${resultString}`);
+    }
   };
 
   registry.register(callable, callableId, callable);

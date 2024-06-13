@@ -1,7 +1,13 @@
 import React from 'react';
+import type { JSONRPCServerAndClient } from 'json-rpc-2.0';
 import { Text } from '@deephaven/components';
+import { TestUtils } from '@deephaven/utils';
 import { ELEMENT_NAME, ELEMENT_PREFIX } from '../elements/ElementConstants';
-import { ElementNode, ELEMENT_KEY } from '../elements/ElementUtils';
+import {
+  ElementNode,
+  ELEMENT_KEY,
+  CALLABLE_KEY,
+} from '../elements/ElementUtils';
 import HTMLElementView from '../elements/HTMLElementView';
 import IconElementView from '../elements/IconElementView';
 import { SPECTRUM_ELEMENT_TYPE_PREFIX } from '../elements/SpectrumElementUtils';
@@ -11,7 +17,22 @@ import {
   getComponentForElement,
   getComponentTypeForElement,
   getPreservedData,
+  wrapCallable,
 } from './WidgetUtils';
+
+const mockJsonRequest = jest.fn(() =>
+  Promise.resolve(JSON.stringify({ result: 'mock' }))
+);
+
+const mockJsonClient = TestUtils.createMockProxy<JSONRPCServerAndClient>({
+  request: mockJsonRequest,
+});
+
+const mockFinilizationRegistry = TestUtils.createMockProxy<
+  FinalizationRegistry<unknown>
+>({
+  register: jest.fn(),
+});
 
 describe('getComponentTypeForElement', () => {
   it.each(
@@ -89,5 +110,104 @@ describe('getPreservedData', () => {
 
     const actual = getPreservedData(widgetData);
     expect(actual).toEqual({ panelIds: widgetData.panelIds });
+  });
+});
+
+describe('wrapCallable', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should return a function that sends a request to the client', () => {
+    wrapCallable(mockJsonClient, 'testMethod', mockFinilizationRegistry)();
+    expect(mockJsonClient.request).toHaveBeenCalledWith('callCallable', [
+      'testMethod',
+      [],
+    ]);
+  });
+
+  it('should return a function that sends a request to the client with args', () => {
+    wrapCallable(
+      mockJsonClient,
+      'testMethod',
+      mockFinilizationRegistry
+    )('a', { b: 'b' });
+    expect(mockJsonClient.request).toHaveBeenCalledWith('callCallable', [
+      'testMethod',
+      ['a', { b: 'b' }],
+    ]);
+  });
+
+  it('should register the function in the finalization registry', () => {
+    const wrapped = wrapCallable(
+      mockJsonClient,
+      'testMethod',
+      mockFinilizationRegistry
+    );
+
+    expect(mockFinilizationRegistry.register).toHaveBeenCalledWith(
+      wrapped,
+      'testMethod',
+      wrapped
+    );
+  });
+
+  it('should wrap returned callables', async () => {
+    mockJsonRequest.mockResolvedValueOnce(
+      JSON.stringify({
+        [CALLABLE_KEY]: 'nestedCb',
+      })
+    );
+
+    const wrappedResult = await wrapCallable(
+      mockJsonClient,
+      'testMethod',
+      mockFinilizationRegistry
+    )();
+    expect(wrappedResult).toBeInstanceOf(Function);
+
+    expect(mockFinilizationRegistry.register).toHaveBeenCalledTimes(2);
+    expect(mockFinilizationRegistry.register).toHaveBeenLastCalledWith(
+      wrappedResult,
+      'nestedCb',
+      wrappedResult
+    );
+  });
+
+  it('should wrap nested returned callables', async () => {
+    mockJsonRequest.mockResolvedValueOnce(
+      JSON.stringify({
+        nestedCallable: {
+          [CALLABLE_KEY]: 'nestedCb',
+        },
+        someOtherProp: 'mock',
+      })
+    );
+
+    const wrappedResult = (await wrapCallable(
+      mockJsonClient,
+      'testMethod',
+      mockFinilizationRegistry
+    )()) as { nestedCallable: () => void; someOtherProp: string };
+
+    expect(wrappedResult).toMatchObject({
+      nestedCallable: expect.any(Function),
+      someOtherProp: 'mock',
+    });
+
+    expect(mockFinilizationRegistry.register).toHaveBeenCalledTimes(2);
+    expect(mockFinilizationRegistry.register).toHaveBeenLastCalledWith(
+      wrappedResult.nestedCallable,
+      'nestedCb',
+      wrappedResult.nestedCallable
+    );
+  });
+
+  it('should reject if the result is not parseable', () => {
+    mockJsonRequest.mockResolvedValueOnce('not a json string');
+
+    expect(
+      wrapCallable(mockJsonClient, 'testMethod', mockFinilizationRegistry)()
+    ).rejects.toBeInstanceOf(Error);
   });
 });
