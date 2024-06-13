@@ -11,3 +11,36 @@ OHLC (Open-High-Low-Close) plots are useful for:
 3. **Quantitative Analysis**: OHLC data can be leveraged for quantitative analysis, statistical modeling, and the development of trading strategies, making them valuable in algorithmic and systematic trading.
 
 ## Examples
+
+### A basic OHLC plot
+
+Visualize the key summary statics of a single continuous variable as it evolves. This plot is functionally similar to a candlestick plot, but has a different appearance.
+
+```python order=ohlc_plot,stocks_1min_ohlc,stocks
+import deephaven.plot.express as dx
+import deephaven.agg as agg
+stocks = dx.data.stocks()  # import the example stock market data set
+
+# compute ohlc per symbol for each minute
+stocks_1min_ohlc = stocks.update_view(
+    "binnedTimestamp = lowerBin(timestamp, 'PT1m')"
+).agg_by(
+    [
+        agg.first("open=price"),
+        agg.max_("high=price"),
+        agg.min_("low=price"),
+        agg.last("close=price"),
+    ],
+    by=["sym", "binnedTimestamp"],
+)
+
+# create a basic candlestick plot - the `open`, `high`, `low`, and `close` arguments must be specified
+ohlc_plot = dx.ohlc(
+    stocks_1min_ohlc.where("sym == `DOG`"),
+    x="binnedTimestamp",
+    open="open",
+    high="high",
+    low="low",
+    close="close",
+)
+```

@@ -17,7 +17,9 @@ Alternatives to 3D line plots include:
 
 ### A basic 3D line plot
 
-```python
+Visualize a 3D plot by specifying each of the x, y, and z components. Click and drag on the resulting chart to rotate it for new perspectives.
+
+```python order=spiral_plot,spiral
 import deephaven.plot.express as dx
 from deephaven import time_table
 

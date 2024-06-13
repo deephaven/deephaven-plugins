@@ -10,3 +10,18 @@ Strip plots are useful for:
 4. **Comparing Data Categories**: Comparing the distribution and spread of data across different categories or groups, making it useful for categorical data analysis.
 
 ## Examples
+
+### A basic strip plot
+
+Visualize the distributions of several groups of data at once. Specify the grouping column with the `by` argument.
+
+```python order=bill_distr,tips
+import deephaven.plot.express as dx
+tips = dx.data.tips() # import a ticking version of the Tips dataset
+
+bill_distr = dx.strip(tips, x="total_bill", by="day", color_discrete_sequence=["lightblue"])
+```
+
+:::note
+At the moment, `color_discrete_sequence` must be specified explicitly.
+:::

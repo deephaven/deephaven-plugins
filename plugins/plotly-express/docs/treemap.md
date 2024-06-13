@@ -9,3 +9,21 @@ Treemap plots are useful for:
 3. **Data Summarization**: Treemaps are effective for summarizing large amounts of hierarchical data into a compact, visual format. Developers can use treemaps to provide users with an overview of hierarchical data, and users can drill down into specific categories for more detailed information.
 
 ## Examples
+
+### A basic treemap plot
+
+```python order=continent_population,gapminder_recent,gapminder
+import deephaven.plot.express as dx
+gapminder = dx.data.gapminder() # import a ticking version of the Gapminder dataset
+
+# create table of only the most recent year of data, compute total population for each continent
+gapminder_recent = (
+    gapminder
+    .last_by("country")
+    .view(["continent", "pop"])
+    .sum_by("continent")
+)
+
+# create a basic treemap plot by specifying the categories, the values of interest, and a single root 'world'
+continent_population = dx.treemap(gapminder_recent.update("world = `world`"), names="continent", values="pop", parents="world")
+```

@@ -17,10 +17,11 @@ Candlestick plots are useful for:
 
 ### A basic candlestick plot
 
+Visualize the key summary statics of a single continuous variable as it evolves.
+
 ```python order=candlestick_plot,stocks_1min_ohlc,stocks
 import deephaven.plot.express as dx
 import deephaven.agg as agg
-
 stocks = dx.data.stocks()  # import the example stock market data set
 
 # compute ohlc per symbol for each minute

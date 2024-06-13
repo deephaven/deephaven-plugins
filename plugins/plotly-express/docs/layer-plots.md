@@ -11,7 +11,6 @@ Use a candlestick plot and a line plot for two different perspectives on the sam
 ```python order=financial_plot,dog_prices,dog_ohlc,stocks
 import deephaven.plot.express as dx
 import deephaven.agg as agg
-
 stocks = dx.data.stocks()  # import the example stock market data set
 
 # select only DOG prices and compute ohlc

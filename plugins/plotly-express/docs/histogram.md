@@ -18,6 +18,8 @@ Visualize the distribution of a single continuous variable.
 ```python order=setosa_sep_length,setosa,iris
 import deephaven.plot.express as dx
 iris = dx.data.iris() # import a ticking version of the Iris dataset
+
+# subset to get specific species
 setosa = iris.where("species == `setosa`")
 
 # create a basic histogram by specifying the variable of interest

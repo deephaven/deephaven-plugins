@@ -10,3 +10,23 @@ Icicle plots are useful for:
 4. **Comparative Analysis**: The consistent and proportional layout of icicle charts makes them effective for comparing the size and structure of different branches within the hierarchy. Users can easily identify and compare the relative importance or size of various categories, facilitating better decision-making and resource allocation.
 
 ## Examples
+
+### A basic icicle plot
+
+Visualize a hierarchical dataset as nested rectangles, with categories displayed left-to-right, and the size of each category displayed top-to-bottom.
+
+```python order=continent_population,gapminder_recent,gapminder
+import deephaven.plot.express as dx
+gapminder = dx.data.gapminder() # import a ticking version of the Gapminder dataset
+
+# create table of only the most recent year of data, compute total population for each continent
+gapminder_recent = (
+    gapminder
+    .last_by("country")
+    .view(["continent", "pop"])
+    .sum_by("continent")
+)
+
+# create a basic icicle plot by specifying the categories, the values of interest, and a single root 'world'
+continent_population = dx.icicle(gapminder_recent.update("world = `world`"), names="continent", values="pop", parents="world")
+```

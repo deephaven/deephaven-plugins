@@ -9,3 +9,23 @@ Sunburst plots are useful for:
 3. **Drill-Down Data Exploration**: Developers can implement sunburst plots for drill-down data exploration, allowing users to interactively explore and delve deeper into hierarchical data by clicking on sectors to reveal lower-level categories or information. This use case is valuable in applications that require detailed hierarchical data analysis.
 
 ## Examples
+
+### A basic sunburst plot
+
+Visualize a hierarchical dataset as concentric circles, with the size of each group decreasing in a counter-clockwise fashion.
+
+```python order=continent_population,gapminder_recent,gapminder
+import deephaven.plot.express as dx
+gapminder = dx.data.gapminder() # import a ticking version of the Gapminder dataset
+
+# create table of only the most recent year of data, compute total population for each continent
+gapminder_recent = (
+    gapminder
+    .last_by("country")
+    .view(["continent", "pop"])
+    .sum_by("continent")
+)
+
+# create a basic sunburst plot by specifying the categories, the values of interest, and a single root 'world'
+continent_population = dx.sunburst(gapminder_recent.update("world = `world`"), names="continent", values="pop", parents="world")
+```

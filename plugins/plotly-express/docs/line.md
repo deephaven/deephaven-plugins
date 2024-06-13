@@ -19,6 +19,8 @@ Visualize the relationship between two variables. Column names are passed in dir
 ```python order=line_plot,my_table
 import deephaven.plot.express as dx
 my_table = dx.data.stocks() # import the example stock market data set
+
+# subset data for just DOG transactions
 dog_prices = my_table.where("sym = `DOG`")
 
 # Create a basic line plot by specifying the x and y column

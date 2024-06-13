@@ -13,3 +13,21 @@ Limitations of pie plots include:
 2. **Comparison Complexity**: Comparing the sizes of slices in a pie plot is less precise than with other chart types, such as bar plots or stacked bar charts. This makes it less suitable for situations where accurate quantitative comparisons are crucial.
 
 ## Examples
+
+# A basic pie plot
+
+Visualize the contribution of each part to the whole, arranged clockwise from greatest to least contribution.
+
+```python order=continent_population,gapminder_recent_pop,gapminder
+import deephaven.plot.express as dx
+gapminder = dx.data.gapminder()
+
+gapminder_recent_pop = (
+    gapminder
+    .last_by("country")
+    .drop_columns(["country", "lifeExp", "gdpPercap"])
+    .sum_by(["year", "month", "continent"])
+)
+
+continent_population = dx.pie(gapminder_recent_pop, names="continent", values="pop")
+```

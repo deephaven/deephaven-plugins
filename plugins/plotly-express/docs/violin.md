@@ -10,3 +10,15 @@ Violin plots are useful for:
 4. **Multimodal Data**: They are particularly useful when dealing with data that exhibits multiple modes or peaks, as they can reveal these underlying patterns effectively.
 
 ## Examples
+
+### A basic violin plot
+
+Visualize the distribution of a continuous variable, for each group in a grouping column.
+
+```python order=sepal_length_distribution,iris
+import deephaven.plot.express as dx
+iris = dx.data.iris() # import a ticking version of the Iris dataset
+
+# create a basic violin plot, specifying `x` will plot the violins horizontally, while specifying `y` will plot them vertically
+sepal_length_distribution = dx.violin(iris, x="sepal_length", by="species")
+```

@@ -18,6 +18,8 @@ Visualize the relationship between two variables. In this case, an area plot is 
 ```python order=area_plot,usa_population
 import deephaven.plot.express as dx
 gapminder = dx.data.gapminder() # import a ticking version of the Gapminder dataset
+
+# subset to get a specific group
 usa_population = gapminder.where("country == `United States`")
 
 # create a basic area plot by specifying columns for the `x` and `y` axes
