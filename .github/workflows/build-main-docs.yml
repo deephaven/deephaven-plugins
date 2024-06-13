@@ -14,6 +14,7 @@ jobs:
       package: ${{ inputs.package }}
 
   main-docs:
+    needs: build-plugin
     uses: ./.github/workflows/make-docs.yml
     with:
       package: ${{ inputs.package }}

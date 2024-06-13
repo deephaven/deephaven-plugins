@@ -113,4 +113,3 @@ jobs:
     uses: ./.github/workflows/build-main-docs.yml
     with:
       package: ${{ matrix.package }}
-      version: 'main'
