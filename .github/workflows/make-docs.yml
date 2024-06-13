@@ -11,12 +11,6 @@ on:
         type: string
 
 jobs:
-  build-plugin:
-    if: ${{ inputs.package }} == 'plotly-express'
-    uses: ./.github/workflows/build-python-package.yml
-    with:
-      package: ${{ inputs.package }}
-
   make-docs:
     needs: build-plugin
     runs-on: ubuntu-22.04
@@ -24,6 +18,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+        # assume that the dist artifact is already available from calling build-python-package.yml before this workflow
       - name: Download dist
         uses: actions/download-artifact@v3
         with:
@@ -42,6 +37,6 @@ jobs:
       - name: Upload docs
         uses: actions/upload-artifact@v3
         with:
-          name: docs-plotly-express-${{ inputs.version }}
+          name: docs-${{ inputs.package }}-${{ inputs.version }}
           path: plugins/${{ inputs.package }}/docs/build/markdown/
           if-no-files-found: error

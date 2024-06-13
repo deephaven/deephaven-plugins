@@ -88,7 +88,6 @@ jobs:
         id: filter-tag
         run: |
           echo "package=$(echo ${{ github.ref }} | sed -E 's|^refs/tags/([^/]+)-v[0-9]+\.[0-9]+\.[0-9]+$|\1|')" >> $GITHUB_OUTPUT
-          # get the version after the v
           echo "version=$(echo ${{ github.ref }} | sed -E 's|^refs/tags/[^/]+-v([0-9]+\.[0-9]+\.[0-9]+)$|\1|')" >> $GITHUB_OUTPUT
     outputs:
       package: ${{ steps.filter-tag.outputs.package }}
@@ -100,24 +99,18 @@ jobs:
     uses: ./.github/workflows/release-python-package.yml
     with:
       package: ${{ needs.filter-release.outputs.package }}
+      version: ${{ needs.filter-release.outputs.version }}
 
-  main-docs:
+  build-main-docs:
     needs: changes
     if: ${{ needs.changes.outputs.packages != '[]' && needs.changes.outputs.packages != '' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     strategy:
       matrix:
         package: ${{ fromJSON(needs.changes.outputs.packages) }}
-    uses: ./.github/workflows/make_docs.yml
+        # currently, we only build docs for plotly-express
+        include:
+            - package: plotly-express
+    uses: ./.github/workflows/build-main-docs.yml
     with:
       package: ${{ matrix.package }}
       version: 'main'
-
-  release-docs:
-    needs: 
-      - release 
-      - filter-release
-    if: ${{ needs.filter-release.outputs.package != '' }}
-    uses: ./.github/workflows/make_docs.yml
-    with:
-      package: ${{ needs.filter-release.outputs.package }}
-      version: ${{ needs.filter-release.outputs.version }}

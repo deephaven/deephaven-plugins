@@ -6,6 +6,9 @@ on:
       package:
         required: true
         type: string
+      version:
+        required: true
+        type: string
 
 jobs:
   test:
@@ -13,7 +16,12 @@ jobs:
     with:
       package: ${{ inputs.package }}
 
-  build-dist:
+  build-plugin:
+    uses: ./.github/workflows/build-python-package.yml
+    with:
+      package: ${{ inputs.package }}
+
+  release:
     needs: test
     runs-on: ubuntu-22.04
     permissions:
@@ -21,11 +29,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
-      - name: Build Python Package
-        uses: ./.github/workflows/build-python-package.yml
-        with:
-          package: ${{ inputs.package }}
 
       - name: Download dist
         uses: actions/download-artifact@v3
@@ -37,3 +40,10 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: plugins/${{ inputs.package }}/dist/
+
+  release-docs:
+    if: ${{ inputs.package == 'plotly-express' }}
+    uses: ./.github/workflows/make-docs.yml
+    with:
+      package: ${{ needs.filter-release.outputs.package }}
+      version: ${{ needs.filter-release.outputs.version }}
