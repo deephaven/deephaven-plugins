@@ -249,36 +249,6 @@ def ui_action_menu():
 my_action_menu = ui_action_menu()
 ```
 
-## ButtonGroup
-
-ButtonGroup handles overflow for a grouping of buttons whose actions are related to each other.
-
-```python
-@ui.component
-def ui_button_group():
-    return ui.button_group(ui.button("One"), ui.button("Two"))
-
-
-my_button_group = ui_button_group()
-```
-
-## RadioGroup
-
-Radio buttons allow users to select a single option from a list of mutually exclusive options. All possible options are exposed up front for users to compare.
-
-```python
-@ui.component
-def ui_radio_group():
-    return ui.radio_group(
-        ui.radio("One", value="one"),
-        ui.radio("Two", value="two"),
-        label="Radio Group",
-    )
-
-
-my_radio_group = ui_radio_group()
-```
-
 ## Picker (string values)
 
 The `ui.picker` component can be used to select from a list of items. Here's a basic example for selecting from a list of string values and displaying the selected key in a text field.

@@ -34,8 +34,6 @@ import Dashboard from '../layout/Dashboard';
 import ListView from '../elements/ListView';
 import Picker from '../elements/Picker';
 import ActionGroup from '../elements/ActionGroup';
-import Radio from '../elements/Radio';
-import RadioGroup from '../elements/RadioGroup';
 
 /*
  * Map element node names to their corresponding React components
@@ -60,8 +58,6 @@ export const elementComponentMap = {
   [ELEMENT_NAME.listActionMenu]: ListActionMenu,
   [ELEMENT_NAME.listView]: ListView,
   [ELEMENT_NAME.picker]: Picker,
-  [ELEMENT_NAME.radio]: Radio,
-  [ELEMENT_NAME.radioGroup]: RadioGroup,
   [ELEMENT_NAME.section]: Section,
 } as const satisfies Record<ValueOf<ElementName>, unknown>;
 
