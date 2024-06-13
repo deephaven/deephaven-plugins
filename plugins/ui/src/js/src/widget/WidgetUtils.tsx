@@ -11,7 +11,11 @@ import {
   Section,
 } from '@deephaven/components';
 import { ValueOf } from '@deephaven/utils';
-import { ReadonlyWidgetData } from './WidgetTypes';
+import {
+  ReadonlyWidgetData,
+  WidgetAction,
+  isWidgetAction,
+} from './WidgetTypes';
 import {
   ElementNode,
   ELEMENT_KEY,
@@ -114,4 +118,83 @@ export function getPreservedData(
   return Object.fromEntries(
     Object.entries(oldData).filter(([key]) => PRESERVED_DATA_KEYS_SET.has(key))
   );
+}
+
+/**
+ * Get the name of an error type
+ * @param error Name of an error
+ * @returns The name of the error
+ */
+export function getErrorName(error: unknown): string {
+  if (
+    typeof error === 'object' &&
+    error != null &&
+    'name' in error &&
+    typeof error.name === 'string'
+  ) {
+    return error.constructor.name;
+  }
+  return 'Unknown error';
+}
+
+/**
+ * Get the message of an error
+ * @param error Error object
+ * @returns The error message
+ */
+export function getErrorMessage(error: unknown): string {
+  if (
+    typeof error === 'object' &&
+    error != null &&
+    'message' in error &&
+    typeof error.message === 'string'
+  ) {
+    return error.message.trim();
+  }
+  return 'Unknown error';
+}
+
+/**
+ * Get the short message of an error. Just the first line of the error message.
+ * @param error Error object
+ * @returns The error short message
+ */
+export function getErrorShortMessage(error: unknown): string {
+  const message = getErrorMessage(error);
+  const lines = message.split('\n');
+  return lines[0].trim();
+}
+
+/**
+ * Get the stack trace of an error
+ * @param error Error object
+ * @returns The error stack trace
+ */
+export function getErrorStack(error: unknown): string {
+  if (
+    typeof error === 'object' &&
+    error != null &&
+    'stack' in error &&
+    typeof error.stack === 'string'
+  ) {
+    return error.stack;
+  }
+  return '';
+}
+
+/**
+ * Get the action from an error object if it exists
+ * @param error Error object
+ * @returns The action from the error, if it exists
+ */
+export function getErrorAction(error: unknown): WidgetAction | null {
+  if (
+    typeof error === 'object' &&
+    error != null &&
+    'action' in error &&
+    isWidgetAction(error.action)
+  ) {
+    return error.action;
+  }
+  return null;
 }

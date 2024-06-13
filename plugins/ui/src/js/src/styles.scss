@@ -80,3 +80,12 @@
     max-width: 100%;
   }
 }
+
+.ui-text-wrap-balance {
+  text-wrap: balance;
+}
+
+.ui-monospace-text {
+  font-family: $font-family-monospace;
+  white-space: pre;
+}

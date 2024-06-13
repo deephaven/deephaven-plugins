@@ -33,7 +33,6 @@ import {
   WidgetError,
   METHOD_DOCUMENT_ERROR,
   METHOD_DOCUMENT_UPDATED,
-  isWidgetError,
 } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
 import { getComponentForElement } from './WidgetUtils';
@@ -64,7 +63,6 @@ function WidgetHandler({
 }: WidgetHandlerProps): JSX.Element | null {
   const { widget, error: widgetError } = useWidget(widgetDescriptor);
 
-  log.debug2('WidgetHandler', widgetDescriptor, widget, widgetError);
   const [document, setDocument] = useState<ReactNode>();
 
   // We want to update the initial data if the widget changes, as we'll need to re-fetch the widget and want to start with a fresh state.
@@ -72,17 +70,10 @@ function WidgetHandler({
   const initialData = useMemo(() => initialDataProp, [widget]);
   const [internalError, setInternalError] = useState<WidgetError>();
 
-  const error = useMemo(() => {
-    if (internalError != null) {
-      return internalError;
-    }
-
-    if (isWidgetError(widgetError)) {
-      return widgetError;
-    }
-
-    return undefined;
-  }, [internalError, widgetError]);
+  const error = useMemo(
+    () => internalError ?? widgetError ?? undefined,
+    [internalError, widgetError]
+  );
 
   // When we fetch a widget, the client is then responsible for the exported objects.
   // These objects could stay alive even after the widget is closed if we wanted to,
@@ -239,6 +230,10 @@ function WidgetHandler({
       jsonClient.addMethod(METHOD_DOCUMENT_ERROR, (params: [string]) => {
         log.error('Document error', params);
         const newError: WidgetError = JSON.parse(params[0]);
+        newError.action = {
+          title: 'Reload',
+          action: () => sendSetState(),
+        };
         setInternalError(newError);
       });
 
@@ -246,7 +241,7 @@ function WidgetHandler({
         jsonClient.rejectAllPendingRequests('Widget was changed');
       };
     },
-    [jsonClient, onDataChange, parseDocument]
+    [jsonClient, onDataChange, parseDocument, sendSetState]
   );
 
   /**
@@ -318,10 +313,10 @@ function WidgetHandler({
 
   const errorView = useMemo(() => {
     if (error != null) {
-      return <WidgetErrorView error={error} onReload={() => sendSetState()} />;
+      return <WidgetErrorView error={error} />;
     }
     return null;
-  }, [error, sendSetState]);
+  }, [error]);
 
   const contentOverlay = useMemo(() => {
     // We only show it as an overlay if there's already a document to show
