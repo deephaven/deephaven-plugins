@@ -4,7 +4,7 @@ import {
   FormProps as DHCFormProps,
 } from '@deephaven/components';
 
-function Form(
+export function Form(
   props: DHCFormProps & {
     onSubmit?: (data: { [key: string]: FormDataEntryValue }) => void;
   }

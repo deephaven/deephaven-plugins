@@ -24,7 +24,7 @@ import {
   isCallableNode,
   isElementNode,
   isObjectNode,
-} from '../elements/ElementUtils';
+} from '../elements/utils/ElementUtils';
 import {
   ReadonlyWidgetData,
   WidgetDataUpdate,

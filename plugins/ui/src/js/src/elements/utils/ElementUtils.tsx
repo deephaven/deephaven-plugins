@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { PropsWithChildren } from 'react';
 import { Text } from '@deephaven/components';
 import type { dh } from '@deephaven/jsapi-types';
-import { ELEMENT_NAME } from './ElementConstants';
-import ObjectView from './ObjectView';
+import { ELEMENT_NAME } from '../model/ElementConstants';
+import ObjectView from '../ObjectView';
 
 export const CALLABLE_KEY = '__dhCbid';
 export const OBJECT_KEY = '__dhObid';
@@ -210,5 +210,34 @@ export function wrapElementChildren(element: ElementNode): ElementNode {
   return {
     ...element,
     props: newProps,
+  };
+}
+
+/**
+ * Map the children of an element to an array, automatically wrapping primitive
+ * values in `Text` elements.
+ * @param children Children to map as an array.
+ */
+export function wrapTextChildren(children: React.ReactNode): React.ReactNode {
+  const childrenArray = Array.isArray(children) ? children : [children];
+  return childrenArray.map(child => {
+    if (isPrimitive(child)) {
+      return <Text key={String(child)}>{String(child)}</Text>;
+    }
+    return child;
+  });
+}
+
+/**
+ * Map the props of an element to Spectrum props, automatically wrapping children strings and numbers in `Text` elements.
+ * @param props Props to map as spectrum props
+ */
+export function wrapPropsTextChildren<
+  T extends PropsWithChildren<Record<string, unknown>>,
+>(props: T): T {
+  return {
+    ...props,
+    children:
+      props?.children != null ? wrapTextChildren(props.children) : undefined,
   };
 }

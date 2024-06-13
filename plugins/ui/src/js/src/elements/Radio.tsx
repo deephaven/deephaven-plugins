@@ -5,15 +5,15 @@ import {
 import {
   SerializedFocusEventProps,
   SerializedKeyboardEventProps,
-} from './SerializedPropTypes';
-import { useFocusEventCallback } from './spectrum/useFocusEventCallback';
-import { useKeyboardEventCallback } from './spectrum/useKeyboardEventCallback';
+} from './model/SerializedPropTypes';
+import { useFocusEventCallback } from './hooks/useFocusEventCallback';
+import { useKeyboardEventCallback } from './hooks/useKeyboardEventCallback';
 
 export type SerializedRadioProps = SerializedFocusEventProps<
   SerializedKeyboardEventProps<DHRadioProps>
 >;
 
-function Radio({
+export function Radio({
   onFocus: serializedOnFocus,
   onBlur: serializedOnBlur,
   onKeyDown: serializedOnKeyDown,

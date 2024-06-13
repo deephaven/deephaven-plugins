@@ -1,6 +1,7 @@
-import { SerializedFocusEventCallback } from './spectrum/useFocusEventCallback';
-import { SerializedKeyboardEventCallback } from './spectrum/useKeyboardEventCallback';
-import { SerializedPressEventCallback } from './spectrum/usePressEventCallback';
+import React from 'react';
+import { SerializedFocusEventCallback } from '../hooks/useFocusEventCallback';
+import { SerializedKeyboardEventCallback } from '../hooks/useKeyboardEventCallback';
+import { SerializedPressEventCallback } from '../hooks/usePressEventCallback';
 
 export type SerializedFocusEventProps<T> = Omit<T, 'onFocus' | 'onBlur'> & {
   /** Handler that is called when the element receives focus. */
@@ -45,4 +46,4 @@ export type SerializedPressEventProps<T> = Omit<
 
 export type SerializedButtonEventProps<T> = SerializedFocusEventProps<
   SerializedKeyboardEventProps<SerializedPressEventProps<T>>
->;
+> & { children: React.ReactNode };

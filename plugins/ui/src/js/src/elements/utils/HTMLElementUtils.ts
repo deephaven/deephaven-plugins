@@ -1,5 +1,5 @@
 import { ReactHTML } from 'react';
-import { ELEMENT_PREFIX, ElementPrefix } from './ElementConstants';
+import { ELEMENT_PREFIX, ElementPrefix } from '../model/ElementConstants';
 import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
 
 /**

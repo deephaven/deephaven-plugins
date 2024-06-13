@@ -8,12 +8,12 @@ import {
   ELEMENT_KEY,
   ElementNode,
   isElementNode,
-} from '../elements/ElementUtils';
+} from '../elements/utils/ElementUtils';
 import Column from './Column';
 import Row from './Row';
 import Stack from './Stack';
 import ReactPanel from './ReactPanel';
-import { ElementName, ELEMENT_NAME } from '../elements/ElementConstants';
+import { ElementName, ELEMENT_NAME } from '../elements/model/ElementConstants';
 
 export type GoldenLayoutParent = RowOrColumn | GLStack | Root;
 

@@ -3,11 +3,11 @@ import { Picker as DHPicker } from '@deephaven/components';
 import { Picker as DHPickerJSApi } from '@deephaven/jsapi-components';
 import { isElementOfType } from '@deephaven/react-hooks';
 import { getSettings, RootState } from '@deephaven/redux';
-import { SerializedPickerProps, usePickerProps } from './usePickerProps';
+import { SerializedPickerProps, usePickerProps } from './hooks/usePickerProps';
 import ObjectView from './ObjectView';
-import useReExportedTable from './useReExportedTable';
+import useReExportedTable from './hooks/useReExportedTable';
 
-function Picker(props: SerializedPickerProps): JSX.Element | null {
+export function Picker(props: SerializedPickerProps): JSX.Element | null {
   const settings = useSelector(getSettings<RootState>);
   const { children, ...pickerProps } = usePickerProps(props);
 

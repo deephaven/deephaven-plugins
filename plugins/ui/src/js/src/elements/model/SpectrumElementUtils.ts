@@ -1,61 +1,34 @@
 import { ValueOf } from '@deephaven/utils';
-import {
-  ButtonGroup,
-  Content,
-  ContextualHelp,
-  Grid,
-  Heading,
-  Icon,
-  IllustratedMessage,
-  NumberField,
-  SpectrumCheckbox as Checkbox,
-  Switch,
-  Tabs,
-  TabList,
-  Text,
-  ToggleButton,
-  Flex,
-  View,
-} from '@deephaven/components';
-import {
-  ActionButton,
-  Button,
-  Form,
-  RangeSlider,
-  Slider,
-  TabPanels,
-  TextField,
-} from './spectrum';
-import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
+import { ElementNode } from '../utils/ElementUtils';
 
 // TODO: #425 will be removing Spectrum utils altogether. Just keeping this for
 // now to keep the initial PR smaller.
 export const SPECTRUM_ELEMENT_TYPE_PREFIX = 'deephaven.ui.components.';
 
 export const SpectrumSupportedTypes = {
-  ActionButton,
-  Button,
-  ButtonGroup,
-  Checkbox,
-  Content,
-  ContextualHelp,
-  Flex,
-  Form,
-  Grid,
-  Heading,
-  Icon,
-  IllustratedMessage,
-  NumberField,
-  RangeSlider,
-  Slider,
-  Switch,
-  Tabs,
-  TabList,
-  TabPanels,
-  Text,
-  TextField,
-  ToggleButton,
-  View,
+  // ActionButton,
+  // Button,
+  // ButtonGroup,
+  // Checkbox,
+  // Content,
+  // ContextualHelp,
+  // Flex,
+  // Form,
+  // Grid,
+  // Heading,
+  // Icon,
+  // IllustratedMessage,
+  // NumberField,
+  // RangeSlider,
+  // Slider,
+  // Switch,
+  // Tabs,
+  // TabList,
+  // TabPanels,
+  // Text,
+  // TextField,
+  // ToggleButton,
+  // View,
 } as const;
 
 export type SpectrumElementName =
@@ -70,22 +43,6 @@ export type SpectrumElementName =
  */
 export type SpectrumElementNode = ElementNode<SpectrumElementName>;
 
-export function isSpectrumElementNode(
-  obj: unknown
-): obj is SpectrumElementNode {
-  if (!isElementNode(obj)) {
-    return false;
-  }
-
-  const name = (obj as SpectrumElementNode)[ELEMENT_KEY];
-
-  return (
-    name.startsWith(SPECTRUM_ELEMENT_TYPE_PREFIX) &&
-    name.substring(SPECTRUM_ELEMENT_TYPE_PREFIX.length) in
-      SpectrumSupportedTypes
-  );
-}
-
 /**
  * Get the Spectrum Component for the element
  * @param name Name of the element
@@ -96,7 +53,7 @@ export function getSpectrumComponent(
 ): ValueOf<typeof SpectrumSupportedTypes> {
   const Component =
     SpectrumSupportedTypes[
-      name.substring(
+      (name as string).substring(
         SPECTRUM_ELEMENT_TYPE_PREFIX.length
       ) as keyof typeof SpectrumSupportedTypes
     ];

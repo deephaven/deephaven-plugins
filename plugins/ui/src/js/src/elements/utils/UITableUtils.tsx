@@ -1,7 +1,7 @@
 import type { dh } from '@deephaven/jsapi-types';
 import { ColumnName, DehydratedSort, RowIndex } from '@deephaven/iris-grid';
 import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
-import { ELEMENT_NAME, ElementName } from './ElementConstants';
+import { ELEMENT_NAME, ElementName } from '../model/ElementConstants';
 
 export type CellData = {
   type: string;
