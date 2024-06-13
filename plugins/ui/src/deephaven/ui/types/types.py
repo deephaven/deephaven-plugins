@@ -108,6 +108,12 @@ class ContextMenuItemBase(TypedDict):
     Title to display for the action.
     """
 
+    icon: NotRequired[str]
+    """
+    The name of the icon to display next to the action.
+    The name must be a valid name for ui.icon.
+    """
+
     description: NotRequired[str]
     """
     Description for the action. Will be used as a tooltip for the action.

@@ -7,7 +7,13 @@ import type {
 } from '@deephaven/iris-grid';
 import type { ContextAction } from '@deephaven/components';
 import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
-import { ELEMENT_NAME, ElementName } from './ElementConstants';
+import {
+  ELEMENT_NAME,
+  ELEMENT_PREFIX,
+  ElementName,
+  ElementPrefix,
+} from './ElementConstants';
+import { getIcon } from './IconElementUtils';
 
 export type CellData = {
   type: string;
@@ -80,6 +86,9 @@ export function wrapContextActions(
   return items.map(item => ({
     group: 999999, // Default to the end of the menu
     ...item,
+    icon: item.icon
+      ? getIcon(`${ELEMENT_PREFIX.icon}${item.icon}` as ElementPrefix['icon'])
+      : undefined,
     action: item.action
       ? () => {
           item.action?.({
