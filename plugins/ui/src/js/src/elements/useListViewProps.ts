@@ -37,13 +37,13 @@ export type SerializedListViewProps = (
  * @returns Wrapped props
  */
 export function useListViewProps({
-  density: densityMaybeUppercase,
+  density,
   selectionMode: selectionModeMaybeUppercase,
   onChange: serializedOnChange,
   onSelectionChange: serializedOnSelectionChange,
   ...otherProps
 }: SerializedListViewProps): DHListViewProps | WrappedDHListViewJSApiProps {
-  const densityLc = densityMaybeUppercase?.toLowerCase() as Density | undefined;
+  const densityLc = density?.toLowerCase() as Density;
 
   const { selectionMode, onChange, onSelectionChange } = useSelectionProps({
     selectionMode: selectionModeMaybeUppercase,

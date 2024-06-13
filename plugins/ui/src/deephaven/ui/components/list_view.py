@@ -5,9 +5,8 @@ from typing import Callable, Any
 from deephaven.table import Table
 
 from .item_table_source import ItemTableSource
-from ..elements import Element
+from ..elements import BaseElement, Element
 from .._internal.utils import create_props, unpack_item_table_source
-from .basic import component_element
 from .item import Item
 from ..types import ListViewDensity, Selection, SelectionMode
 
@@ -71,4 +70,4 @@ def list_view(
 
     children, props = unpack_item_table_source(children, props, SUPPORTED_SOURCE_ARGS)
 
-    return component_element("ListView", *children, **props)
+    return BaseElement("deephaven.ui.components.ListView", *children, **props)

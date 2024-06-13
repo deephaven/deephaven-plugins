@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Sequence, Callable
 
-from .types import (
+from .spectrum import (
     FocusEventCallable,
     KeyboardEventCallable,
     LayoutFlex,
@@ -23,14 +23,13 @@ from .types import (
 )
 
 from ..hooks import use_memo
-from ..elements import Element
+from ..elements import Element, BaseElement
 from .._internal.utils import (
     create_props,
     convert_date_props,
     convert_list_prop,
 )
 from ..types import Date, Granularity
-from .basic import component_element
 
 DatePickerElement = Element
 
@@ -272,4 +271,4 @@ def date_picker(
         [unavailable_values],
     )
 
-    return component_element("DatePicker", **props)
+    return BaseElement("deephaven.ui.components.DatePicker", **props)

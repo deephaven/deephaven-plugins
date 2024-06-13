@@ -31,8 +31,6 @@ export const ELEMENT_NAME = {
   listActionMenu: uiComponentName('ListActionMenu'),
   listView: uiComponentName('ListView'),
   picker: uiComponentName('Picker'),
-  radio: uiComponentName('Radio'),
-  radioGroup: uiComponentName('RadioGroup'),
   section: uiComponentName('Section'),
 } as const;
 

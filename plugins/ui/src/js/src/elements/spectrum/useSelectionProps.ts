@@ -80,9 +80,8 @@ export function useSelectionProps({
   onChange: serializedOnChange,
   onSelectionChange: serializedOnSelectionChange,
 }: SerializedSelectionProps): SelectionProps {
-  const selectionModeLc = selectionModeMaybeUppercase?.toLowerCase() as
-    | SelectionMode
-    | undefined;
+  const selectionModeLc =
+    selectionModeMaybeUppercase?.toLowerCase() as SelectionMode;
 
   const onChange = useSelectionEventCallback(serializedOnChange);
   const onSelectionChange = useSelectionEventCallback(

@@ -17,6 +17,7 @@ export default defineConfig(({ mode }) => ({
         'react-dom',
         'redux',
         'react-redux',
+        '@adobe/react-spectrum',
         '@deephaven/chart',
         '@deephaven/components',
         '@deephaven/dashboard',
