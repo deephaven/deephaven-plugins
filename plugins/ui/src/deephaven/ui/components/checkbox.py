@@ -1,11 +1,11 @@
 from __future__ import annotations
 from typing import Any, Callable
-from .accessibility import AriaExpanded, AriaHasPopup, AriaAutoComplete
-from .events import (
+
+from .types import (
+    # Events
     FocusEventCallable,
     KeyboardEventCallable,
-)
-from .layout import (
+    # Layout
     AlignSelf,
     CSSProperties,
     DimensionValue,
@@ -13,49 +13,32 @@ from .layout import (
     LayoutFlex,
     Number,
     Position,
-    LabelPosition,
-    Align,
 )
-from .validate import (
-    TextFieldType,
-    TextFieldInputMode,
-    TextFieldValidationState,
-    NecessityIndicator,
-)
-from .basic import spectrum_element
-from ...elements import Element
+from .basic import component_element
+from ..elements import Element
 
 
-def text_field(
-    icon: Element | None = None,
-    is_quiet: bool | None = None,
+def checkbox(
+    *children: Any,
+    is_emphasized: bool | None = None,
+    is_indeterminate: bool | None = None,
+    default_selected: bool | None = None,
+    is_selected: bool | None = None,
+    value: str | None = None,
     is_disabled: bool | None = None,
     is_read_only: bool | None = None,
     is_required: bool | None = None,
-    description: Any | None = None,
-    error_message: Any | None = None,
+    is_invalid: bool | None = None,
+    # validation_behaviour, # omitted because validate is not implemented
+    # validate, # omitted because it needs to return a ValidationError synchronously
     auto_focus: bool | None = None,
-    value: str | None = None,
-    default_value: str | None = None,
-    label: Any | None = None,
-    auto_complete: str | None = None,
-    max_length: int | None = None,
-    min_length: int | None = None,
-    pattern: str | None = None,
-    type: TextFieldType | None = None,
-    input_mode: TextFieldInputMode | None = None,
     name: str | None = None,
-    validation_state: TextFieldValidationState | None = None,
-    label_position: LabelPosition = "top",
-    label_align: Align = "start",
-    necessity_indicator: NecessityIndicator = "icon",
-    contextual_help: Any | None = None,
+    on_change: Callable[[bool], None] | None = None,
     on_focus: FocusEventCallable | None = None,
     on_blur: FocusEventCallable | None = None,
     on_focus_change: Callable[[bool], None] | None = None,
     on_key_down: KeyboardEventCallable | None = None,
     on_key_up: KeyboardEventCallable | None = None,
-    on_change: Callable[[str], None] | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: Number | None = None,
     flex_shrink: Number | None = None,
@@ -94,9 +77,7 @@ def text_field(
     is_hidden: bool | None = None,
     id: str | None = None,
     exclude_from_tab_order: bool | None = None,
-    aria_active_descendant: str | None = None,
-    aria_auto_complete: AriaAutoComplete | None = None,
-    aria_haspopup: AriaHasPopup | None = None,
+    aria_controls: str | None = None,
     aria_label: str | None = None,
     aria_labelledby: str | None = None,
     aria_describedby: str | None = None,
@@ -104,41 +85,29 @@ def text_field(
     aria_errormessage: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
-    # missing properties that are clipboard or composition events
 ) -> Element:
     """
-    TextFields are text inputs that allow users to input custom text entries with a keyboard. Various decorations can be displayed around the field to communicate the entry requirements.
+    Checkboxes allow users to select multiple items from a list of individual items, or to mark one individual item as selected.
 
     Args:
-        icon: An icon to display at the start of the input
-        is_quiet: Whether the input should be displayed with a quiet style
-        is_disabled: Whether the input should be disabled
-        is_read_only: Whether the input scan be selected but not changed by the user
-        is_required: Whether the input is required before form submission
-        description: A description for the field. Provides a hint such as specific requirements for what to choose.
-        error_message: An error message to display when the field is invalid
-        auto_focus: Whether the input should be focused on page load
-        value: The current value of the input
-        default_value: The default value of the input
-        label: The label for the input
-        auto_complete: Describes the type of autocomplete functionality the input should provide
-        max_length: The maximum number of characters the input can accept
-        min_length: The minimum number of characters the input can accept
-        pattern: A regular expression that the input's value must match
-        type: The type of input to display
-        input_mode: Hints at the tpye of data that might be entered by the user while editing the element or its contents
-        name: The name of the input, used when submitting an HTML form
-        validation_state: Whether the input should display its "valid" or "invalid" state
-        label_position: The position of the label relative to the input
-        label_align: The alignment of the label relative to the input
-        necessity_indicator: Whether the required state should be shown as an icon or text
-        contextual_help: A ContentualHelp element to place next to the label
-        on_focus: Function called when the button receives focus.
-        on_blur: Function called when the button loses focus.
-        on_focus_change: Function called when the focus state changes.
-        on_key_down: Function called when a key is pressed.
-        on_key_up: Function called when a key is released.
-        on_change: Function called when the input value changes
+        children: The checkbox label.
+        is_emphasized: This prop sets the emphasized style which provides visual prominence.
+        is_indeterminate: Indeterminism is presentational only. The indeterminate visual representation remains regardless of user interaction.
+        default_selected: Whether the element should be selected (uncontrolled).
+        is_selected: Whether the element should be selected (controlled).
+        value: The value of the input element, used when submitting a form.
+        is_disabled: Whether the element is disabled.
+        is_read_only: Whether the element is read-only.
+        is_required: Whether the element is required before form submission.
+        is_invalid: Whether the element is invalid.
+        auto_focus: Whether the element should automatically get focus on render.
+        name: The name of the input element, used when submitting a form.
+        on_change: Handler that is called when the element is selected or deselected.
+        on_focus: Handler that is called when the element receives focus.
+        on_blur: Handler that is called when the element loses focus.
+        on_focus_change: Handler that is called when the element receives or loses focus.
+        on_key_down: Handler that is called when a key is pressed down.
+        on_key_up: Handler that is called when a key is released.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -176,49 +145,39 @@ def text_field(
         z_index: The stack order of the element.
         is_hidden: Whether the element is hidden.
         id: The unique identifier of the element.
-        exclude_from_tab_order: Whether the element should be excluded from the tab order.
-        aria_active_descendant: Identifies the currently active element when DOM focus is on a composite widget, textbox, group, or application.
-        aria_auto_complete: Indicates whether inputting text could trigger display of one or more predictions of the user's intended value for an input and specifies how predictions would be presented if they are made.
+        exclude_from_tab_order: Whether the element should be excluded from the tab order. If true, the element will not be focusable via the keyboard by tabbing.
+        aria_controls: The id of the element that the current element controls.
         aria_label: The label for the element.
-        aria_labelled_by: The id of the element that labels the current element.
-        aria_described_by: The id of the element that describes the current element.
+        aria_labelledby: The id of the element that labels the current element.
+        aria_describedby: The id of the element that describes the current element.
         aria_details: The id of the element that provides additional information about the current element.
-        aria_errormessage: The id of the element that provides an error message for the current element.
+        aria_errormessage: The id of the element that provides error information for the current element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
     """
 
-    return spectrum_element(
-        "TextField",
-        icon=icon,
-        is_quiet=is_quiet,
+    return component_element(
+        "Checkbox",
+        children=children,
+        is_emphasized=is_emphasized,
+        is_indeterminate=is_indeterminate,
+        default_selected=default_selected,
+        is_selected=is_selected,
+        value=value,
         is_disabled=is_disabled,
         is_read_only=is_read_only,
         is_required=is_required,
-        description=description,
-        error_message=error_message,
+        is_invalid=is_invalid,
+        # validation_behaviour = validation_behaviour,
+        # validate = validate,
         auto_focus=auto_focus,
-        value=value,
-        default_value=default_value,
-        label=label,
-        auto_complete=auto_complete,
-        max_length=max_length,
-        min_length=min_length,
-        pattern=pattern,
-        type=type,
-        input_mode=input_mode,
         name=name,
-        validation_state=validation_state,
-        label_position=label_position,
-        label_align=label_align,
-        necessity_indicator=necessity_indicator,
-        contextual_help=contextual_help,
+        on_change=on_change,
         on_focus=on_focus,
         on_blur=on_blur,
         on_focus_change=on_focus_change,
         on_key_down=on_key_down,
         on_key_up=on_key_up,
-        on_change=on_change,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
@@ -257,9 +216,7 @@ def text_field(
         is_hidden=is_hidden,
         id=id,
         exclude_from_tab_order=exclude_from_tab_order,
-        aria_active_descendant=aria_active_descendant,
-        aria_auto_complete=aria_auto_complete,
-        aria_haspopup=aria_haspopup,
+        aria_controls=aria_controls,
         aria_label=aria_label,
         aria_labelledby=aria_labelledby,
         aria_describedby=aria_describedby,
