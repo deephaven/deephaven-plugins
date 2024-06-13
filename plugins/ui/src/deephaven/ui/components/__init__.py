@@ -19,6 +19,8 @@ from .list_view import list_view
 from .list_action_group import list_action_group
 from .list_action_menu import list_action_menu
 from .item_table_source import item_table_source
+from .radio import radio
+from .radio_group import radio_group
 
 from . import html
 
@@ -52,6 +54,8 @@ __all__ = [
     "number_field",
     "panel",
     "picker",
+    "radio",
+    "radio_group",
     "range_slider",
     "row",
     "section",
