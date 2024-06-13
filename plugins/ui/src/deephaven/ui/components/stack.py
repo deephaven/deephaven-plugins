@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
-from ..elements import BaseElement
+from .basic import component_element
 
 
 def stack(
@@ -20,8 +20,8 @@ def stack(
         height: The percent height of the stack relative to other children of its parent. If not provided, the stack will be sized automatically.
         width: The percent width of the stack relative to other children of its parent. If not provided, the stack will be sized automatically.
     """
-    return BaseElement(
-        "deephaven.ui.components.Stack",
+    return component_element(
+        "Stack",
         *children,
         height=height,
         width=width,

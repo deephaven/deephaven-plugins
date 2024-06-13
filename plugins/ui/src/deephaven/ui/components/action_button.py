@@ -1,14 +1,17 @@
 from __future__ import annotations
 from typing import Any, Callable
-from .accessibility import AriaExpanded, AriaHasPopup, AriaPressed
-from .events import (
+from .types import (
+    # Accessibility
+    AriaExpanded,
+    AriaHasPopup,
+    AriaPressed,
+    # Events
     ButtonType,
     FocusEventCallable,
     KeyboardEventCallable,
     PressEventCallable,
     StaticColor,
-)
-from .layout import (
+    # Layout
     AlignSelf,
     CSSProperties,
     DimensionValue,
@@ -17,31 +20,30 @@ from .layout import (
     Number,
     Position,
 )
-from .basic import spectrum_element
-from ...elements import Element
+
+from .basic import component_element
+from ..elements import Element
+
+ActionButtonElement = Element
 
 
-def toggle_button(
+def action_button(
     *children: Any,
-    is_emphasized: bool | None = None,
-    is_selected: bool | None = None,
-    default_selected: bool | None = None,
-    is_disabled: bool | None = None,
-    auto_focus: bool | None = None,
-    is_quiet: bool | None = None,
-    static_color: StaticColor | None = None,
     type: ButtonType = "button",
-    on_change: Callable[[bool], None] | None = None,
     on_press: PressEventCallable | None = None,
     on_press_start: PressEventCallable | None = None,
     on_press_end: PressEventCallable | None = None,
-    on_press_change: Callable[[bool], None] | None = None,
     on_press_up: PressEventCallable | None = None,
+    on_press_change: Callable[[bool], None] | None = None,
     on_focus: FocusEventCallable | None = None,
     on_blur: FocusEventCallable | None = None,
     on_focus_change: Callable[[bool], None] | None = None,
     on_key_down: KeyboardEventCallable | None = None,
     on_key_up: KeyboardEventCallable | None = None,
+    auto_focus: bool | None = None,
+    is_disabled: bool | None = None,
+    is_quiet: bool | None = None,
+    static_color: StaticColor | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: Number | None = None,
     flex_shrink: Number | None = None,
@@ -50,12 +52,12 @@ def toggle_button(
     justify_self: JustifySelf | None = None,
     order: Number | None = None,
     grid_area: str | None = None,
-    grid_column: str | None = None,
     grid_row: str | None = None,
-    grid_column_start: str | None = None,
-    grid_column_end: str | None = None,
     grid_row_start: str | None = None,
     grid_row_end: str | None = None,
+    grid_column: str | None = None,
+    grid_column_start: str | None = None,
+    grid_column_end: str | None = None,
     margin: DimensionValue | None = None,
     margin_top: DimensionValue | None = None,
     margin_bottom: DimensionValue | None = None,
@@ -72,10 +74,10 @@ def toggle_button(
     position: Position | None = None,
     top: DimensionValue | None = None,
     bottom: DimensionValue | None = None,
-    left: DimensionValue | None = None,
-    right: DimensionValue | None = None,
     start: DimensionValue | None = None,
     end: DimensionValue | None = None,
+    left: DimensionValue | None = None,
+    right: DimensionValue | None = None,
     z_index: Number | None = None,
     is_hidden: bool | None = None,
     id: str | None = None,
@@ -90,21 +92,14 @@ def toggle_button(
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
-) -> Element:
+) -> ActionButtonElement:
     """
-    ToggleButtons allow users to toggle a selection on or off, for example switching between two states or modes.
+    ActionButtons allow users to perform an action. They're used for similar, task-based options within a workflow, and are ideal for interfaces where buttons aren't meant to draw a lot of attention.
+    Python implementation for the Adobe React Spectrum ActionButton component: https://react-spectrum.adobe.com/react-spectrum/ActionButton.html
 
     Args:
-        *children: The children to render inside the button.
-        is_emphasized: Whether the button should be displayed with an emphasized style.
-        is_selected: Whether the button is selected.
-        default_selected: Whether the button is selected by default.
-        is_disabled: Whether the button is disabled.
-        auto_focus: Whether the button should automatically get focus when the page loads.
-        is_quiet: Whether the button should be quiet.
-        static_color: The static color style to apply. Useful when the button appears over a color background.
+        *children: The content to display inside the button.
         type: The type of button to render. (default: "button")
-        on_change: Handler that is called when the element's selection state changes.
         on_press: Function called when the button is pressed.
         on_press_start: Function called when the button is pressed.
         on_press_end: Function called when a press interaction ends, either over the target or when the pointer leaves the target.
@@ -115,6 +110,10 @@ def toggle_button(
         on_focus_change: Function called when the focus state changes.
         on_key_down: Function called when a key is pressed.
         on_key_up: Function called when a key is released.
+        auto_focus: Whether the button should automatically get focus when the page loads.
+        is_disabled: Whether the button is disabled.
+        is_quiet: Whether the button should be quiet.
+        static_color: The static color style to apply. Useful when the button appears over a color background.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how much the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how much the element will shrink to fit the space available.
@@ -164,29 +163,24 @@ def toggle_button(
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
     """
-
-    return spectrum_element(
-        "ToggleButton",
+    return component_element(
+        "ActionButton",
         *children,
-        is_emphasized=is_emphasized,
-        is_selected=is_selected,
-        default_selected=default_selected,
-        is_disabled=is_disabled,
-        auto_focus=auto_focus,
-        is_quiet=is_quiet,
-        static_color=static_color,
         type=type,
-        on_change=on_change,
         on_press=on_press,
         on_press_start=on_press_start,
         on_press_end=on_press_end,
-        on_press_change=on_press_change,
         on_press_up=on_press_up,
+        on_press_change=on_press_change,
         on_focus=on_focus,
         on_blur=on_blur,
         on_focus_change=on_focus_change,
         on_key_down=on_key_down,
         on_key_up=on_key_up,
+        auto_focus=auto_focus,
+        is_disabled=is_disabled,
+        is_quiet=is_quiet,
+        static_color=static_color,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
@@ -195,12 +189,12 @@ def toggle_button(
         justify_self=justify_self,
         order=order,
         grid_area=grid_area,
-        grid_column=grid_column,
         grid_row=grid_row,
-        grid_column_start=grid_column_start,
-        grid_column_end=grid_column_end,
         grid_row_start=grid_row_start,
         grid_row_end=grid_row_end,
+        grid_column=grid_column,
+        grid_column_start=grid_column_start,
+        grid_column_end=grid_column_end,
         margin=margin,
         margin_top=margin_top,
         margin_bottom=margin_bottom,
@@ -217,10 +211,10 @@ def toggle_button(
         position=position,
         top=top,
         bottom=bottom,
-        left=left,
-        right=right,
         start=start,
         end=end,
+        left=left,
+        right=right,
         z_index=z_index,
         is_hidden=is_hidden,
         id=id,
