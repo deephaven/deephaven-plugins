@@ -35,7 +35,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: dist-${{ inputs.package }}
-          path: plugins/${{ github.event.inputs.package }}/dist/
+          path: plugins/${{ inputs.package }}/dist/
 
       - name: Publish package
         uses: pypa/gh-action-pypi-publish@release/v1
