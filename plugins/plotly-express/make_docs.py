@@ -9,7 +9,6 @@ cwd = os.getcwd()
 dirname = os.path.dirname(__file__)
 os.chdir(dirname)
 
-
 os.system("make clean")
 
 print("Building markdown")
