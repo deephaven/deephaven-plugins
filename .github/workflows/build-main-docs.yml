@@ -1,0 +1,21 @@
+name: Build Main Docs
+
+on:
+  workflow_call:
+    inputs:
+      package:
+        required: true
+        type: string
+
+jobs:
+  build-plugin:
+    uses: ./.github/workflows/build-python-package.yml
+    with:
+      package: ${{ inputs.package }}
+
+  main-docs:
+    uses: ./.github/workflows/make-docs.yml
+    with:
+      package: ${{ inputs.package }}
+      version: 'main'
+
