@@ -43,7 +43,7 @@ jobs:
           packages-dir: plugins/${{ inputs.package }}/dist/
 
   release-docs:
-    needs: build-plugin
+    needs: release
     if: ${{ inputs.package == 'plotly-express' }}
     uses: ./.github/workflows/make-docs.yml
     with:
