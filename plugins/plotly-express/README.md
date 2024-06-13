@@ -54,3 +54,19 @@ source = new_table(
 
 fig = dx.bar(table=source, x="Categories", y="Values")
 ```
+
+## Docs
+Docs can be built locally
+
+Install the necessary dependencies:
+```shell
+pip install -r requirements.txt
+pip install dist/deephaven_plugin_plotly_express-*.whl
+```
+then run the docs make script:
+```shell
+python make_docs.py
+```
+
+The files will be built into `docs/build/markdown`.
+Note that these built files should not be committed to the repository.

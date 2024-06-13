@@ -10,3 +10,9 @@ Strip plots are useful for:
 4. **Comparing Data Categories**: Comparing the distribution and spread of data across different categories or groups, making it useful for categorical data analysis.
 
 ## Examples
+
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.strip
+```
