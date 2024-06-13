@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
-from ..elements import BaseElement
+from .basic import component_element
 
 
 def row(*children: Any, height: float | None = None, **kwargs: Any):
@@ -13,6 +13,4 @@ def row(*children: Any, height: float | None = None, **kwargs: Any):
         children: Elements to render in the row.
         height: The percent height of the row relative to other children of its parent. If not provided, the row will be sized automatically.
     """
-    return BaseElement(
-        "deephaven.ui.components.Row", *children, height=height, **kwargs
-    )
+    return component_element("Row", *children, height=height, **kwargs)

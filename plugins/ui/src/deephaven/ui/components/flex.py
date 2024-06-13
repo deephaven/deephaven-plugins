@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Any
-from .basic import spectrum_element
-from .layout import (
+from .basic import component_element
+from .types import (
     LayoutFlex,
     Direction,
     Wrap,
@@ -40,7 +40,7 @@ def flex(
         column_gap: The space to display between columns of children.
         row_gap: The space to display between rows of children.
     """
-    return spectrum_element(
+    return component_element(
         "Flex",
         *children,
         flex=flex,

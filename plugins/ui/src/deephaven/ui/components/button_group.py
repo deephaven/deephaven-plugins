@@ -1,15 +1,9 @@
 from __future__ import annotations
-from typing import Any, Callable
-from .accessibility import AriaExpanded, AriaHasPopup, AriaPressed
-from .events import (
-    ButtonType,
-    FocusEventCallable,
-    KeyboardEventCallable,
-    PressEventCallable,
-    StaticColor,
+from typing import Any
+from .types import (
+    # Events
     Orientation,
-)
-from .layout import (
+    # Layout
     AlignSelf,
     CSSProperties,
     DimensionValue,
@@ -18,8 +12,8 @@ from .layout import (
     Number,
     Position,
 )
-from .basic import spectrum_element
-from ...elements import Element
+from .basic import component_element
+from ..elements import Element
 
 
 def button_group(
@@ -109,7 +103,7 @@ def button_group(
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
     """
-    return spectrum_element(
+    return component_element(
         "ButtonGroup",
         *children,
         is_disabled=is_disabled,
