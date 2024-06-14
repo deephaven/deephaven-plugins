@@ -391,7 +391,7 @@ class ElementMessageStream(MessageStream):
             json.dumps(
                 {
                     "message": str(error),
-                    "type": type(error).__name__,
+                    "name": type(error).__name__,
                     "stack": stack_trace,
                     "code": ErrorCode.DOCUMENT_ERROR.value,
                 }

@@ -26,7 +26,7 @@ def ui_boom_counter_component():
     value, set_value = ui.use_state(0)
 
     if value > 1:
-        raise ValueError("BOOM!")
+        raise ValueError("BOOM! Value too big.")
 
     return ui.button(f"Count is {value}", on_press=lambda _: set_value(value + 1))
 
