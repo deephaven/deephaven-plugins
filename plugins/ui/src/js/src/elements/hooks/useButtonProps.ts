@@ -1,8 +1,8 @@
 import { usePressEventCallback } from './usePressEventCallback';
 import { useFocusEventCallback } from './useFocusEventCallback';
 import { useKeyboardEventCallback } from './useKeyboardEventCallback';
-import { mapSpectrumProps } from './mapSpectrumProps';
-import { SerializedButtonEventProps } from '../SerializedPropTypes';
+import { SerializedButtonEventProps } from '../model/SerializedPropTypes';
+import { wrapTextChildren } from '../utils';
 
 // returns SpectrumButtonProps
 export function useButtonProps<T>(props: SerializedButtonEventProps<T>): T {
@@ -15,6 +15,7 @@ export function useButtonProps<T>(props: SerializedButtonEventProps<T>): T {
     onBlur: propOnBlur,
     onKeyDown: propOnKeyDown,
     onKeyUp: propOnKeyUp,
+    children,
     ...otherProps
   } = props;
 
@@ -36,7 +37,8 @@ export function useButtonProps<T>(props: SerializedButtonEventProps<T>): T {
     onBlur,
     onKeyDown,
     onKeyUp,
-    ...mapSpectrumProps(otherProps),
+    children: wrapTextChildren(children),
+    ...otherProps,
   } as T;
 }
 

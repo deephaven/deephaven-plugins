@@ -2,11 +2,11 @@ import { ReactElement } from 'react';
 import type { SelectionMode } from '@react-types/shared';
 import { ListViewProps as DHListViewProps } from '@deephaven/components';
 import { ListViewProps as DHListViewJSApiProps } from '@deephaven/jsapi-components';
-import { ObjectViewProps } from './ObjectView';
+import { ObjectViewProps } from '../ObjectView';
 import {
   SerializedSelectionProps,
   useSelectionProps,
-} from './spectrum/useSelectionProps';
+} from './useSelectionProps';
 
 type Density = Required<DHListViewProps>['density'];
 
