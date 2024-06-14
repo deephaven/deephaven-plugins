@@ -1,15 +1,21 @@
 from __future__ import annotations
 
 import pandas as pd
+import numpy as np
+from plotly import express as px
+import math
+import random
+import typing
+
+from deephaven.pandas import to_table
 from deephaven.replay import TableReplayer
 from deephaven.table import Table
-from deephaven import empty_table
+from deephaven import empty_table, time_table, merge
 from deephaven.time import (
     to_j_instant,
     to_pd_timestamp,
 )
 from deephaven.updateby import rolling_sum_tick, ema_tick
-import random, math
 
 SECOND = 1_000_000_000  #: One second in nanoseconds.
 MINUTE = 60 * SECOND  #: One minute in nanoseconds.
@@ -29,7 +35,7 @@ def _cast_timestamp(time: pd.Timestamp | None) -> pd.Timestamp:
     return time
 
 
-def iris(ticking: bool = True, size: int = 300) -> Table:
+def iris(ticking: bool = True) -> Table:
     """
     Returns a ticking version of the 1936 Iris flower dataset.
 
@@ -41,18 +47,14 @@ def iris(ticking: bool = True, size: int = 300) -> Table:
     Notes:
         - The ticking feature starts from 1936-01-01T08:00:00UTC and increases
           by 1 second for each observation.
-        - The dataset contains a default of 300 number of samples but can be
-          set to any size, with 4 original features (sepal length, sepal width,
-          petal length, and petal width), along with a timestamp, id and species.
-        - The original Iris species labels are included (setosa, versicolor, and virginica).
+        - The initial dataset contains 150 samples and includes the 4 original
+          features (sepal length, sepal width, petal length, and petal width),
+          along with a timestamp, id and species name.
+        - The original Iris species names are included (setosa, versicolor, and virginica).
 
     Args:
         ticking:
-            If true, the table will tick using a replayer starting
-            with a third of the table already ticked. If false the
-            whole table will be returned as a static table.
-        size:
-            The number of rows to create for the table
+            If true, the table will tick new data every second.
 
     Returns:
         A Deephaven Table
@@ -63,68 +65,63 @@ def iris(ticking: bool = True, size: int = 300) -> Table:
 
     Examples:
         ```
-        import deephaven.plot.express as dx
+        from deephaven.plot import express as dx
         iris = dx.data.iris()
         ```
     """
-
-    base_time = to_j_instant("1936-01-01T08:00:00 UTC")
+    species_list: list[str] = ["setosa", "versicolor", "virginica"]
+    # Give this dataset a timestamp column based on original year from this data
+    base_time = to_j_instant("1936-01-01T08:00:00 ET")
     pd_base_time = _cast_timestamp(to_pd_timestamp(base_time))
 
-    species_list: list[str] = ["setosa", "versicolor", "virginica"]
-    col_ids = {"sepal_length": 0, "sepal_width": 1, "petal_length": 2, "petal_width": 3}
-    # statistical values extracted from the iris data set https://en.wikipedia.org/wiki/Iris_flower_data_set
-    # average [setosa, versicolor, virginica] and [sepal_length, sepal_width, petal_length, petal_width]
-    avg: list[list[float]] = [
-        [5.01, 3.42, 1.46, 0.24],
-        [5.94, 2.77, 4.26, 1.33],
-        [6.59, 2.97, 5.55, 2.03],
-    ]
-    # std [setosa, versicolor, virginica] and [sepal_length, sepal_width, petal_length, petal_width]
-    std: list[list[float]] = [
-        [0.35, 0.38, 0.17, 0.11],
-        [0.52, 0.31, 0.47, 0.20],
-        [0.64, 0.32, 0.55, 0.27],
-    ]
+    # Load the iris dataset and cast the species column to string
+    # group it and get the mean and std of each species
+    df = px.data.iris().astype({"species": "string"})
+    grouped_df = df.groupby("species")
+    species_descriptions = grouped_df.describe()
 
-    def generate_value(seed: int, species_id: int, col: str) -> float:
-        col_id = col_ids[col]
-        if col_id == 0:
-            random.seed(
-                5001 + seed
-            )  # set seed once per row + offset that made it look nice
-        return round(
-            random.gauss(avg[species_id][col_id], std[species_id][col_id]),
-            1,
-        )
+    df_len = len(df)
 
-    static_table = (
-        empty_table(size)
-        .update(
-            [
-                "timestamp = base_time + (long)(ii * SECOND)",
-                "species_id = i % 3",
-                "species = (String)species_list[species_id]",
-                "sepal_length = generate_value(i, species_id,`sepal_length`)",
-                "sepal_width = generate_value(i, species_id, `sepal_width`)",
-                "petal_length = generate_value(i, species_id,`petal_length`)",
-                "petal_width = generate_value(i, species_id, `petal_width`)",
-            ]
-        )
-        .move_columns_down("species_id")
-    )
+    # Add a timestamp column to the DataFrame
+    df["timestamp"] = pd_base_time + pd.to_timedelta(df.index * SECOND)
+
+    # Get a random gaussian value based on the mean and std of the existing
+    # data, where col is the column name ('sepal_length', etc) and index is the
+    # row number used as a random seed so that the data is deterministically generated
+    def get_random_value(col: str, index: int, species: str) -> float:
+        mean = float(typing.cast(float, species_descriptions[col]["mean"][species]))
+        std = float(typing.cast(float, species_descriptions[col]["std"][species]))
+        random.seed(index)
+        return round(random.gauss(mean, std), 1)
+
+    # Lookup species_id by index and add one as original dataset is not zero indexed
+    def get_index(species: str) -> int:
+        return species_list.index(species) + 1
+
+    # convert the pandas DataFrame to a Deephaven Table
+    source_table = to_table(df).move_columns_up("timestamp")
 
     if ticking:
-        result_replayer = TableReplayer(
-            # start with one third of the table already ticked
-            pd_base_time + pd.Timedelta(round(size * 0.33) * SECOND),
-            pd_base_time + pd.Timedelta(size * SECOND),
+        ticking_table = (
+            time_table("PT1S").update(
+                [
+                    # make timestamp start after the source table timestamp
+                    "timestamp = base_time + (long)((ii + df_len) * SECOND)",
+                    # pick a random species from the list, using the index as a seed
+                    "species = (String)species_list[(int)new Random(ii).nextInt(3)]",
+                    "sepal_length = get_random_value(`sepal_length`, ii, species)",
+                    "sepal_width = get_random_value(`sepal_width`, ii, species)",
+                    "petal_length = get_random_value(`petal_length`, ii, species)",
+                    "petal_width = get_random_value(`petal_width`, ii, species)",
+                    "species_id = get_index(species)",
+                ]
+            )
+            # we have our own timestamp column, so drop the one generated by time_table
+            .drop_columns("Timestamp")
         )
-        replayer_table = result_replayer.add_table(static_table, "timestamp")
-        result_replayer.start()
-        return replayer_table
-    else:
-        return static_table
+        return merge([source_table, ticking_table])
+
+    return source_table
 
 
 def stocks(ticking: bool = True, hours_of_data: int = 1) -> Table:
@@ -289,3 +286,115 @@ def stocks(ticking: bool = True, hours_of_data: int = 1) -> Table:
         return replayer_table
     else:
         return static_table
+
+
+def tips(ticking: bool = True) -> Table:
+    """
+    Returns a ticking version of the Tips dataset.
+    One waiter recorded information about each tip he received over a period of
+    a few months working in one restaurant. This data was published in 1995.
+    This function generates a deterministically random dataset inspired by Tips dataset.
+    Notes:
+        - The total_bill and tip amounts are generated from a statistical linear model,
+        where total_bill is generated from the significant covariates 'smoker' and 'size'
+        plus a random noise term, and then tip is generated from total_bill plus a random
+        noise term.
+    Args:
+        ticking:
+            If true, a ticking table containing the entire Tips dataset will be returned,
+            and new rows of synthetic data will tick in every second. If false, the Tips
+            dataset will be returned as a static table.
+    Returns:
+        A Deephaven Table
+    References:
+        - Bryant, P. G. and Smith, M (1995) Practical Data Analysis: Case Studies in Business Statistics.
+        Homewood, IL: Richard D. Irwin Publishing.
+    Examples:
+        ```
+        from deephaven.plot import express as dx
+        tips = dx.data.tips()
+        ```
+    """
+    sex_list: list[str] = ["Male", "Female"]
+    smoker_list: list[str] = ["No", "Yes"]
+    day_list: list[str] = ["Thur", "Fri", "Sat", "Sun"]
+    time_list: list[str] = ["Dinner", "Lunch"]
+    size_list: list[int] = [1, 2, 3, 4, 5, 6]
+
+    # explicitly set empirical frequencies for categorical groups
+    sex_probs: list[float] = [0.64, 0.36]
+    smoker_probs: list[float] = [0.62, 0.38]
+    day_probs: list[float] = [0.25, 0.08, 0.36, 0.31]
+    time_probs: list[float] = [0.72, 0.28]
+    size_probs: list[float] = [0.02, 0.64, 0.15, 0.15, 0.02, 0.02]
+
+    # Load the tips dataset and cast the category columns to strings
+    df = px.data.tips().astype(
+        {
+            "sex": "string",
+            "smoker": "string",
+            "day": "string",
+            "time": "string",
+            "size": "int",
+        }
+    )
+
+    # the following functions use the above category frequencies as well as an independent
+    # statistical analysis to generate values for each column in the data frame
+    # row number used as a random seed so that the data is deterministically generated
+    def generate_sex(index: int) -> str:
+        random.seed(index)
+        return random.choices(sex_list, weights=sex_probs)[0]
+
+    def generate_smoker(index: int) -> str:
+        random.seed(index)
+        return random.choices(smoker_list, weights=smoker_probs)[0]
+
+    def generate_day(index: int) -> str:
+        random.seed(index)
+        return random.choices(day_list, weights=day_probs)[0]
+
+    def generate_time(index: int) -> str:
+        random.seed(index)
+        return random.choices(time_list, weights=time_probs)[0]
+
+    def generate_size(index: int) -> int:
+        random.seed(index)
+        return random.choices(size_list, weights=size_probs)[0]
+
+    def generate_total_bill(smoker: str, size: int, index: int) -> float:
+        random.seed(index)
+        return round(
+            3.68
+            + 3.08 * (smoker == "Yes")
+            + 5.81 * size
+            + (random.gauss(3.41, 0.99) ** 2 - 12.63),
+            2,
+        )
+
+    def generate_tip(total_bill: float, index: int) -> float:
+        random.seed(index)
+        return max(1, round(0.92 + 0.11 * total_bill + random.gauss(0.0, 1.02), 2))
+
+    # convert the pandas DataFrame to a Deephaven Table
+    source_table = to_table(df)
+
+    if ticking:
+        ticking_table = (
+            time_table("PT1S")
+            .update(
+                [
+                    "sex = generate_sex(ii)",
+                    "smoker = generate_smoker(ii)",
+                    "day = generate_day(ii)",
+                    "time = generate_time(ii)",
+                    "size = generate_size(ii)",
+                    "total_bill = generate_total_bill(smoker, size, ii)",
+                    "tip = generate_tip(total_bill, ii)",
+                ]
+            )
+            .drop_columns("Timestamp")
+        )
+        return merge([source_table, ticking_table])
+
+    return source_table

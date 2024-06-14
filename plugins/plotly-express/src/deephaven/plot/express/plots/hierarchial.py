@@ -11,9 +11,6 @@ from ._private_utils import process_args
 from ..shared import default_callback
 from ..deephaven_figure import DeephavenFigure
 
-# The functions in this file are exempt from the styleguide rule that types should not be in the description if there
-# is a type annotation.
-
 
 def treemap(
     table: Table | None = None,
@@ -34,57 +31,39 @@ def treemap(
     branchvalues: str | None = None,
     maxdepth: int | None = None,
     unsafe_update_figure: Callable = default_callback,
-):
+) -> DeephavenFigure:
     """Returns a treemap chart
 
     Args:
-      table: Table | None:  (Default value = None)
-        A table to pull data from.
-      names: str | None:  (Default value = None)
-        The column containing names of the sections
-      values: str | None:  (Default value = None)
-        The column containing values of the sections
-      parents: str | None:  (Default value = None)
-        The column containing parents of the sections
-      ids: str | None:  (Default value = None)
-        The column containing ids of the sections. Unlike values, these
+      table: A table to pull data from.
+      names: The column containing names of the sections
+      values: The column containing values of the sections
+      parents: The column containing parents of the sections
+      ids: The column containing ids of the sections. Unlike values, these
         must be unique. Values are used for ids if ids are not specified.
-      color: str | list[str] | None: (Default value = None)
-        A column or list of columns that contain color values.
+      color: A column or list of columns that contain color values.
         If only one column is passed, and it contains numeric values, the value
         is used as a value on a continuous color scale. Otherwise, the value is
         used for a plot by on color.
         See color_discrete_map for additional behaviors.
-      hover_name: str | None:  (Default value = None)
-        A column that contains names to bold in the hover tooltip.
-      labels: dict[str, str] | None:  (Default value = None)
-        A dictionary of labels mapping columns to new labels.
-      color_discrete_sequence: list[str] | None:  (Default value = None)
-        A list of colors to sequentially apply to
+      hover_name: A column that contains names to bold in the hover tooltip.
+      labels: A dictionary of labels mapping columns to new labels.
+      color_discrete_sequence: A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
         colors will be reused.
-      color_discrete_map: dict[str | tuple[str], str] | None: (Default value = None)
-        If dict, the keys should be strings of the column values (or a tuple
+      color_discrete_map: If dict, the keys should be strings of the column values (or a tuple
         of combinations of column values) which map to colors.
-      color_continuous_scale: list[str] | None: (Default value = None)
-        A list of colors for a continuous scale
-      range_color: list[Number] | None: (Default value = None)
-        A list of two numbers that form the endpoints of the color axis
-      color_continuous_midpoint: Number | None: (Default value = None)
-        A number that is the midpoint of the color axis
-      title: str | None: (Default value = None)
-        The title of the chart
-      template: str | None:  (Default value = None)
-        The template for the chart.
-      branchvalues: str | None:  (Default value = None)
-        Set to 'total' to take the value at a level to include
+      color_continuous_scale: A list of colors for a continuous scale
+      range_color: A list of two numbers that form the endpoints of the color axis
+      color_continuous_midpoint: A number that is the midpoint of the color axis
+      title: The title of the chart
+      template: The template for the chart.
+      branchvalues: Set to 'total' to take the value at a level to include
         all descendants and 'remainder' to the value as the remainder after
         subtracting leaf values.
-      maxdepth: int | None:  (Default value = None)
-        Sets the total number of visible levels. Set to -1 to
+      maxdepth: Sets the total number of visible levels. Set to -1 to
         render all levels.
-      unsafe_update_figure: Callable:  (Default value = default_callback)
-        An update function that takes a plotly figure
+      unsafe_update_figure: An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is
         not returned, the plotly figure passed will be assumed to be the return
         value. Used to add any custom changes to the underlying plotly figure.
@@ -120,57 +99,39 @@ def sunburst(
     branchvalues: str | None = None,
     maxdepth: int | None = None,
     unsafe_update_figure: Callable = default_callback,
-):
+) -> DeephavenFigure:
     """Returns a sunburst chart
 
     Args:
-      table: Table | None:  (Default value = None)
-        A table to pull data from.
-      names: str | None:  (Default value = None)
-        The column containing names of the sections
-      values: str | None:  (Default value = None)
-        The column containing values of the sections
-      parents: str | None:  (Default value = None)
-        The column containing parents of the sections
-      ids: str | None:  (Default value = None)
-        The column containing ids of the sections. Unlike values, these
+      table: A table to pull data from.
+      names: The column containing names of the sections
+      values: The column containing values of the sections
+      parents: The column containing parents of the sections
+      ids: The column containing ids of the sections. Unlike values, these
         must be unique. Values are used for ids if ids are not specified.
-      color: str | list[str] | None: (Default value = None)
-        A column or list of columns that contain color values.
+      color: A column or list of columns that contain color values.
         If only one column is passed, and it contains numeric values, the value
         is used as a value on a continuous color scale. Otherwise, the value is
         used for a plot by on color.
         See color_discrete_map for additional behaviors.
-      hover_name: str | None:  (Default value = None)
-        A column that contains names to bold in the hover tooltip.
-      color_discrete_sequence: list[str] | None:  (Default value = None)
-        A list of colors to sequentially apply to
+      hover_name: A column that contains names to bold in the hover tooltip.
+      color_discrete_sequence: A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
         colors will be reused.
-      color_discrete_map: dict[str | tuple[str], str] | None: (Default value = None)
-        If dict, the keys should be strings of the column values (or a tuple
+      color_discrete_map: If dict, the keys should be strings of the column values (or a tuple
         of combinations of column values) which map to colors.
-      color_continuous_scale: list[str] | None: (Default value = None)
-        A list of colors for a continuous scale
-      range_color: list[Number] | None: (Default value = None)
-        A list of two numbers that form the endpoints of the color axis
-      color_continuous_midpoint: Number | None: (Default value = None)
-        A number that is the midpoint of the color axis
-      labels: dict[str, str] | None:  (Default value = None)
-        A dictionary of labels mapping columns to new labels.
-      title: str | None: (Default value = None)
-        The title of the chart
-      template: str | None:  (Default value = None)
-        The template for the chart.
-      branchvalues: str | None:  (Default value = None)
-        Set to 'total' to take the value at a level to include
+      color_continuous_scale: A list of colors for a continuous scale
+      range_color: A list of two numbers that form the endpoints of the color axis
+      color_continuous_midpoint: A number that is the midpoint of the color axis
+      labels: A dictionary of labels mapping columns to new labels.
+      title: The title of the chart
+      template: The template for the chart.
+      branchvalues: Set to 'total' to take the value at a level to include
         all descendants and 'remainder' to the value as the remainder after
         subtracting leaf values.
-      maxdepth: int | None:  (Default value = None)
-        Sets the total number of visible levels. Set to -1 to
+      maxdepth: Sets the total number of visible levels. Set to -1 to
         render all levels.
-      unsafe_update_figure: Callable:  (Default value = default_callback)
-        An update function that takes a plotly figure
+      unsafe_update_figure: An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is
         not returned, the plotly figure passed will be assumed to be the return
         value. Used to add any custom changes to the underlying plotly figure.
@@ -206,57 +167,39 @@ def icicle(
     branchvalues: str | None = None,
     maxdepth: int | None = None,
     unsafe_update_figure: Callable = default_callback,
-):
+) -> DeephavenFigure:
     """Returns a icicle chart
 
     Args:
-      table: Table | None:  (Default value = None)
-        A table to pull data from.
-      names: str | None:  (Default value = None)
-        The column containing names of the sections
-      values: str | None:  (Default value = None)
-        The column containing values of the sections
-      parents: str | None:  (Default value = None)
-        The column containing parents of the sections
-      color: str | list[str] | None: (Default value = None)
-        A column or list of columns that contain color values.
+      table: A table to pull data from.
+      names: The column containing names of the sections
+      values: The column containing values of the sections
+      parents: The column containing parents of the sections
+      color: A column or list of columns that contain color values.
         If only one column is passed, and it contains numeric values, the value
         is used as a value on a continuous color scale. Otherwise, the value is
         used for a plot by on color.
         See color_discrete_map for additional behaviors.
-      ids: str | None:  (Default value = None)
-        The column containing ids of the sections. Unlike values, these
+      ids: The column containing ids of the sections. Unlike values, these
         must be unique. Values are used for ids if ids are not specified.
-      hover_name: str | None:  (Default value = None)
-        A column that contains names to bold in the hover tooltip.
-      color_discrete_sequence: list[str] | None:  (Default value = None)
-        A list of colors to sequentially apply to
+      hover_name: A column that contains names to bold in the hover tooltip.
+      color_discrete_sequence: A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
         colors will be reused.
-      color_discrete_map: dict[str | tuple[str], str] | None: (Default value = None)
-        If dict, the keys should be strings of the column values (or a tuple
+      color_discrete_map: If dict, the keys should be strings of the column values (or a tuple
         of combinations of column values) which map to colors.
-      color_continuous_scale: list[str] | None: (Default value = None)
-        A list of colors for a continuous scale
-      range_color: list[Number] | None: (Default value = None)
-        A list of two numbers that form the endpoints of the color axis
-      color_continuous_midpoint: Number | None: (Default value = None)
-        A number that is the midpoint of the color axis
-      labels: dict[str, str] | None:  (Default value = None)
-        A dictionary of labels mapping columns to new labels.
-      title: str | None: (Default value = None)
-        The title of the chart
-      template: str | None:  (Default value = None)
-        The template for the chart.
-      branchvalues: str | None:  (Default value = None)
-        Set to 'total' to take the value at a level to include
+      color_continuous_scale: A list of colors for a continuous scale
+      range_color: A list of two numbers that form the endpoints of the color axis
+      color_continuous_midpoint: A number that is the midpoint of the color axis
+      labels: A dictionary of labels mapping columns to new labels.
+      title: The title of the chart
+      template: The template for the chart.
+      branchvalues: Set to 'total' to take the value at a level to include
         all descendants and 'remainder' to the value as the remainder after
         subtracting leaf values.
-      maxdepth: int | None:  (Default value = None)
-        Sets the total number of visible levels. Set to -1 to
+      maxdepth: Sets the total number of visible levels. Set to -1 to
         render all levels.
-      unsafe_update_figure: Callable:  (Default value = default_callback)
-        An update function that takes a plotly figure
+      unsafe_update_figure: An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is
         not returned, the plotly figure passed will be assumed to be the return
         value. Used to add any custom changes to the underlying plotly figure.
@@ -298,62 +241,42 @@ def funnel(
     """Returns a funnel chart
 
     Args:
-      table: Table | None:  (Default value = None)
-        A table to pull data from.
-      x: str | list[str] | None:  (Default value = None)
-        A column or list of columns that contain x-axis values.
-      y: str | list[str] | None:  (Default value = None)
-        A column or list of columns that contain y-axis values.
-      by: str | list[str] | None:  (Default value = None)
-        A column or list of columns that contain values to plot the figure traces by.
+      table: A table to pull data from.
+      x: A column or list of columns that contain x-axis values.
+      y: A column or list of columns that contain y-axis values.
+      by: A column or list of columns that contain values to plot the figure traces by.
         All values or combination of values map to a unique design. The variable
         by_vars specifies which design elements are used.
         This is overriden if any specialized design variables such as color are specified
-      by_vars: str | list[str]:  (Default value = "color")
-        A string or list of string that contain design elements to plot by.
+      by_vars: A string or list of string that contain design elements to plot by.
         Can contain color and pattern_shape.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
-      color: str | list[str] | None: (Default value = None)
-        A column or list of columns that contain color values.
+      color: A column or list of columns that contain color values.
         If only one column is passed, and it contains numeric values, the value
         is used as a value on a continuous color scale. Otherwise, the value is
         used for a plot by on color.
         See color_discrete_map for additional behaviors.
-      text: str | None:  (Default value = None)
-        A column that contains text annotations.
-      hover_name: str | None:  (Default value = None)
-        A column that contains names to bold in the hover tooltip.
-      labels: dict[str, str] | None:  (Default value = None)
-        A dictionary of labels mapping columns to new labels.
-      color_discrete_sequence: list[str] | None:  (Default value = None)
-        A list of colors to sequentially apply to
+      text: A column that contains text annotations.
+      hover_name: A column that contains names to bold in the hover tooltip.
+      labels: A dictionary of labels mapping columns to new labels.
+      color_discrete_sequence: A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
         colors will be reused.
-      color_discrete_map: dict[str | tuple[str], str] | None: (Default value = None)
-        If dict, the keys should be strings of the column values (or a tuple
+      color_discrete_map: If dict, the keys should be strings of the column values (or a tuple
         of combinations of column values) which map to colors.
-      opacity: float | None:  (Default value = None)
-        Opacity to apply to all markers. 0 is completely transparent
+      opacity: Opacity to apply to all markers. 0 is completely transparent
         and 1 is completely opaque.
-      orientation: str | None:  (Default value = None)
-        "h" for horizontal or "v" for vertical
-      log_x: bool
-        A boolean that specifies if the corresponding axis is a log
+      orientation: "h" for horizontal or "v" for vertical
+      log_x: A boolean that specifies if the corresponding axis is a log
         axis or not.
-      log_y: bool
-        A boolean that specifies if the corresponding axis is a log
+      log_y: A boolean that specifies if the corresponding axis is a log
         axis or not.
-      range_x: list[int] | None:  (Default value = None)
-        A list of two numbers that specify the range of the x-axis.
-      range_y: list[int] | None:  (Default value = None)
-        A list of two numbers that specify the range of the y-axis.
-      title: str | None: (Default value = None)
-        The title of the chart
-      template: str | None:  (Default value = None)
-        The template for the chart.
-      unsafe_update_figure: Callable:  (Default value = default_callback)
-        An update function that takes a plotly figure
+      range_x: A list of two numbers that specify the range of the x-axis.
+      range_y: A list of two numbers that specify the range of the y-axis.
+      title: The title of the chart
+      template: The template for the chart.
+      unsafe_update_figure: An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is
         not returned, the plotly figure passed will be assumed to be the return
         value. Used to add any custom changes to the underlying plotly figure.
@@ -383,42 +306,30 @@ def funnel_area(
     template: str | None = None,
     opacity: float | None = None,
     unsafe_update_figure: Callable = default_callback,
-):
+) -> DeephavenFigure:
     """Returns a funnel area chart
 
     Args:
-      table: Table | None:  (Default value = None)
-        A table to pull data from.
-      names: str | None:  (Default value = None)
-        The column containing names of the sections
-      values: str | None:  (Default value = None)
-        The column containing values of the sections
-      color: str | list[str] | None: (Default value = None)
-        A column or list of columns that contain color values.
+      table: A table to pull data from.
+      names: The column containing names of the sections
+      values: The column containing values of the sections
+      color: A column or list of columns that contain color values.
         If only one column is passed, and it contains numeric values, the value
         is used as a value on a continuous color scale. Otherwise, the value is
         used for a plot by on color.
         See color_discrete_map for additional behaviors.
-      hover_name: str | None:  (Default value = None)
-        A column that contains names to bold in the hover tooltip.
-      labels: dict[str, str] | None:  (Default value = None)
-        A dictionary of labels mapping columns to new labels.
-      color_discrete_sequence: list[str] | None:  (Default value = None)
-        A list of colors to sequentially apply to
+      hover_name: A column that contains names to bold in the hover tooltip.
+      labels: A dictionary of labels mapping columns to new labels.
+      color_discrete_sequence: A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
         colors will be reused.
-      color_discrete_map: dict[str | tuple[str], str] | None: (Default value = None)
-        If dict, the keys should be strings of the column values (or a tuple
+      color_discrete_map: If dict, the keys should be strings of the column values (or a tuple
         of combinations of column values) which map to colors.
-      title: str | None: (Default value = None)
-        The title of the chart
-      template: str | None:  (Default value = None)
-        The template for the chart.
-      opacity: float | None:  (Default value = None)
-        Opacity to apply to all markers. 0 is completely transparent
+      title: The title of the chart
+      template: The template for the chart.
+      opacity: Opacity to apply to all markers. 0 is completely transparent
         and 1 is completely opaque.
-      unsafe_update_figure: Callable:  (Default value = default_callback)
-        An update function that takes a plotly figure
+      unsafe_update_figure: An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is
         not returned, the plotly figure passed will be assumed to be the return
         value. Used to add any custom changes to the underlying plotly figure.

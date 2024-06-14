@@ -4,6 +4,7 @@ from typing import Any, Union, List
 from ..elements import BaseElement
 from ..types import Stringable
 from .._internal.utils import create_props
+from .basic import component_element
 
 ItemElement = BaseElement
 Item = Union[Stringable, ItemElement]
@@ -32,4 +33,4 @@ def item(
         **props: Any other Item prop.
     """
     children, props = create_props(locals())
-    return BaseElement("deephaven.ui.components.Item", *children, **props)
+    return component_element("Item", *children, **props)
