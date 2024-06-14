@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.15.1 - 2024-06-14
+#### Features
+- Use `useWidget` hook to load widgets (#502) (#555) - (d70eea9) - mofojed
+
+- - -
+
 ## ui-v0.15.0 - 2024-06-13
 #### Bug Fixes
 - UI plotting doc typo (#542) - (df6c9b9) - Matthew Runyon
