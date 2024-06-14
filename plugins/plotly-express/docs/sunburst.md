@@ -1,6 +1,4 @@
----
-title: Sunburst Plot
----
+# Sunburst Plot
 
 Sunburst plots are a data visualization technique used to represent hierarchical data with a radial layout. They display data as nested rings or sectors, where each level of the hierarchy is represented by a ring, and each category or subcategory is shown as a sector within the ring. Sunburst plots provide an effective way to visualize hierarchical data structures and the relationships between different levels and categories within the data, making them a valuable tool for understanding complex data hierarchies.
 
@@ -11,3 +9,8 @@ Sunburst plots are useful for:
 3. **Drill-Down Data Exploration**: Developers can implement sunburst plots for drill-down data exploration, allowing users to interactively explore and delve deeper into hierarchical data by clicking on sectors to reveal lower-level categories or information. This use case is valuable in applications that require detailed hierarchical data analysis.
 
 ## Examples
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.sunburst
+```

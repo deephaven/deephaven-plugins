@@ -1,5 +1,5 @@
 import React from 'react';
-import { Icon } from '@adobe/react-spectrum';
+import { Icon } from '@deephaven/components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { getIcon, IconElementNode } from './IconElementUtils';
 import { ELEMENT_KEY } from './ElementUtils';

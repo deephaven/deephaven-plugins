@@ -1,15 +1,9 @@
 from __future__ import annotations
 from typing import Any, Callable
-from .accessibility import AriaExpanded, AriaHasPopup, AriaPressed
-from .events import (
-    ButtonType,
-    FocusEventCallable,
-    KeyboardEventCallable,
-    PressEventCallable,
-    StaticColor,
+from .types import (
+    # Events
     Orientation,
-)
-from .layout import (
+    # Layout
     AlignSelf,
     CSSProperties,
     DimensionValue,
@@ -19,8 +13,8 @@ from .layout import (
     Position,
     LabelPosition,
 )
-from .basic import spectrum_element
-from ...elements import Element
+from .basic import component_element
+from ..elements import Element
 
 
 def slider(
@@ -152,7 +146,7 @@ def slider(
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
     """
-    return spectrum_element(
+    return component_element(
         "Slider",
         is_filled=is_filled,
         fill_offset=fill_offset,

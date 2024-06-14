@@ -1,6 +1,4 @@
----
-title: Ternary Scatter Plot
----
+# Ternary Scatter Plot
 
 Ternary scatter plots are a data visualization method used to represent data within a triangular coordinate system. They display individual data points as markers or dots in the triangular space, offering a means to visualize the distribution, relationships, or patterns in data that consist of three mutually exclusive components. Ternary scatter plots are particularly useful when analyzing compositional data or data involving proportions that sum to a constant total.
 
@@ -11,3 +9,9 @@ Ternary scatter plots are useful for:
 3. **Optimization Studies**: Ternary scatter plots aid in optimization studies to understand how adjustments in the proportions of three components impact the overall composition, making them valuable in informed decision-making processes.
 
 ## Examples
+
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.scatter_ternary
+```

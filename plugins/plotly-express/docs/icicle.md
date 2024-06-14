@@ -1,6 +1,4 @@
----
-title: Icicle Plot
----
+# Icicle Plot
 
 Icicle plots, a hierarchical data visualization technique, are used to represent structured data with nested categories or levels. They are characterized by a rectangular layout where each column represents a level of the hierarchy, and the width of each subcolumn is proportional to the quantity of data within its respective category, facilitating the visualization of data structure and distribution.
 
@@ -12,3 +10,8 @@ Icicle plots are useful for:
 4. **Comparative Analysis**: The consistent and proportional layout of icicle charts makes them effective for comparing the size and structure of different branches within the hierarchy. Users can easily identify and compare the relative importance or size of various categories, facilitating better decision-making and resource allocation.
 
 ## Examples
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.icicle
+```

@@ -1,6 +1,4 @@
----
-title: Violin Plot
----
+# Violin Plot
 
 A violin plot is a data visualization that combines a box plot with a rotated kernel density plot to provide a comprehensive representation of the data distribution. It offers a detailed view of the data's central tendency, spread and density.
 
@@ -12,3 +10,9 @@ Violin plots are useful for:
 4. **Multimodal Data**: They are particularly useful when dealing with data that exhibits multiple modes or peaks, as they can reveal these underlying patterns effectively.
 
 ## Examples
+
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.violin
+```

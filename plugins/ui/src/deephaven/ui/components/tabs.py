@@ -1,32 +1,36 @@
 from __future__ import annotations
-from typing import Any, Callable
-from .accessibility import AriaExpanded, AriaHasPopup, AriaPressed
-from .events import (
-    ButtonType,
-    FocusEventCallable,
-    KeyboardEventCallable,
-    PressEventCallable,
-    StaticColor,
+from numbers import Number
+from typing import Any, Callable, Iterable
+
+
+from components.types import (
+    KeyboardActivationType,
     Orientation,
-)
-from .layout import (
     AlignSelf,
     CSSProperties,
     DimensionValue,
     JustifySelf,
     LayoutFlex,
-    Number,
     Position,
 )
-from .basic import spectrum_element
-from ...elements import Element
+from ..types import Key, TabDensity
+from .basic import component_element
 
 
-def button_group(
+def tabs(
     *children: Any,
+    disabled_keys: Iterable[Key] | None = None,
     is_disabled: bool | None = None,
-    orientation: Orientation = "horizontal",
-    alignment: AlignSelf = "start",
+    is_quiet: bool | None = None,
+    is_emphasized: bool | None = None,
+    density: TabDensity | None = "regular",
+    keyboard_activation: KeyboardActivationType | None = "automatic",
+    orientation: Orientation | None = "horizontal",
+    disallow_empty_selection: bool | None = None,
+    selected_key: Key | None = None,
+    default_selected_key: Key | None = None,
+    on_selection_change: Callable[[Key], None] | None = None,
+    on_change: Callable[[Key], None] | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: Number | None = None,
     flex_shrink: Number | None = None,
@@ -64,17 +68,34 @@ def button_group(
     z_index: Number | None = None,
     is_hidden: bool | None = None,
     id: str | None = None,
+    aria_label: str | None = None,
+    aria_labelled_by: str | None = None,
+    aria_described_by: str | None = None,
+    aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
-) -> Element:
+):
     """
-    A button group is a grouping of button whose actions are related to each other.
+    Python implementation for the Adobe React Spectrum Tabs component.
+    https://react-spectrum.adobe.com/react-spectrum/Tabs.html
 
     Args:
-        *children: The children of the button group.
-        is_disabled: Whether the button group is disabled.
-        orientation: The axis the ButtonGroup should align with. Setting this to 'vertical' will prevent any switching behaviours between 'vertical' and horizontal'.
-        alignment: The alignment of the buttons within the ButtonGroup.
+        *children: The children of the tabs component outline how the tabs will be created, they can be either:
+            ui.tab: A tab item that is a shorthand way to create a tab item.
+            ui.tab_list & ui.tab_panels: A tab list and tab panels allow for more customization when creating tabs.
+        disabled_keys: The keys of the tabs that are disabled. These tabs cannot be selected, focused, or otherwise interacted with.
+        is_disabled: Whether the Tabs are disabled.
+        is_quiet: Whether the tabs are displayed in a quiet style.
+        is_emphasized: Whether the tabs are displayed in an emphasized style.
+        density: The amount of space between the tabs.
+        keyboard_activation: Whether tabs are activated automatically on focus or manually.
+        orientation: The orientation of the tabs.
+        disallow_empty_selection: Whether the collection allows empty selection.
+        selected_key: The currently selected key in the collection (controlled).
+        default_selected_key: The initial selected key in the collection (uncontrolled).
+        on_selection_change: Callback for when the selected key changes.
+        on_change:
+            Alias of `on_selection_change`. Handler that is called when the selection changes.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -106,17 +127,45 @@ def button_group(
         z_index: The stacking order for the element
         is_hidden: Hides the element.
         id: The unique identifier of the element.
+        aria_label: Defines a string value that labels the current element.
+        aria_labelled_by: Identifies the element (or elements) that labels the current element.
+        aria_described_by: Identifies the element (or elements) that describes the object.
+        aria_details: Identifies the element (or elements) that provide a detailed, extended description for the object.
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
     """
-    return spectrum_element(
-        "ButtonGroup",
+    if not children:
+        raise ValueError("Tabs must have at least one child.")
+
+    tab_children = [
+        child for child in children if child.name == "deephaven.ui.spectrum.Tab"
+    ]
+    tab_list_or_panel_children = [
+        child
+        for child in children
+        if child.name
+        in ["deephaven.ui.spectrum.TabList", "deephaven.ui.spectrum.TabPanels"]
+    ]
+
+    if tab_children and tab_list_or_panel_children:
+        raise TypeError("Tabs cannot have both Tab and TabList or TabPanels children.")
+
+    return component_element(
+        "Tabs",
         *children,
+        disabled_keys=disabled_keys,
         is_disabled=is_disabled,
+        is_quiet=is_quiet,
+        is_emphasized=is_emphasized,
+        density=density,
+        keyboard_activation=keyboard_activation,
         orientation=orientation,
-        alignment=alignment,
+        disallow_empty_selection=disallow_empty_selection,
+        selected_key=selected_key,
+        default_selected_key=default_selected_key,
+        on_selection_change=on_selection_change if on_selection_change else on_change,
         flex=flex,
-        flex_grow=flex_grow,
+        flex_grow=flex_grow if flex_grow is not None else 1,
         flex_shrink=flex_shrink,
         flex_basis=flex_basis,
         align_self=align_self,
@@ -152,6 +201,10 @@ def button_group(
         z_index=z_index,
         is_hidden=is_hidden,
         id=id,
+        aria_label=aria_label,
+        aria_labelled_by=aria_labelled_by,
+        aria_described_by=aria_described_by,
+        aria_details=aria_details,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
     )

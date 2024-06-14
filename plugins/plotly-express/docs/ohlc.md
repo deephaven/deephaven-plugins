@@ -1,6 +1,4 @@
----
-title: OHLC Plot
----
+# OHLC Plot
 
 OHLC (Open-High-Low-Close) plots, are a common data visualization tool used in finance to represent the price data of a financial instrument over a specific time frame. Similar to Candlesticks, they display four key prices: the opening price, the highest price (high), the lowest price (low), and the closing price, typically as vertical bars on a chart, providing insights into price movements and trends.
 
@@ -13,3 +11,9 @@ OHLC (Open-High-Low-Close) plots are useful for:
 3. **Quantitative Analysis**: OHLC data can be leveraged for quantitative analysis, statistical modeling, and the development of trading strategies, making them valuable in algorithmic and systematic trading.
 
 ## Examples
+
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.ohlc
+```

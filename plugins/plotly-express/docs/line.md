@@ -1,6 +1,4 @@
----
-title: Line Plot
----
+# Line Plot
 
 A line plot is a graphical representation that displays data points connected by straight lines, commonly employed in time series analysis to depict temporal trends or relationships in a dataset.
 
@@ -396,4 +394,9 @@ scatter_plot_opacity = dx.scatter(
     # For data sets with a high degree of overlap between points, consider setting opacity
     opacity=0.5
 )
+```
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.line
 ```

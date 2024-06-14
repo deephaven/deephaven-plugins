@@ -1,11 +1,13 @@
 from __future__ import annotations
 from typing import Any, Callable
-from .accessibility import AriaExpanded, AriaHasPopup, AriaAutoComplete
-from .events import (
+from .types import (
+    # Accessibility
+    AriaHasPopup,
+    AriaAutoComplete,
+    # Events
     FocusEventCallable,
     KeyboardEventCallable,
-)
-from .layout import (
+    # Layout
     AlignSelf,
     CSSProperties,
     DimensionValue,
@@ -15,15 +17,14 @@ from .layout import (
     Position,
     LabelPosition,
     Align,
-)
-from .validate import (
+    # Validation
     TextFieldType,
     TextFieldInputMode,
     TextFieldValidationState,
     NecessityIndicator,
 )
-from .basic import spectrum_element
-from ...elements import Element
+from .basic import component_element
+from ..elements import Element
 
 
 def text_field(
@@ -188,7 +189,7 @@ def text_field(
         UNSAFE_style: A CSS style to apply to the element.
     """
 
-    return spectrum_element(
+    return component_element(
         "TextField",
         icon=icon,
         is_quiet=is_quiet,

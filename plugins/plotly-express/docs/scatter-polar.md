@@ -1,6 +1,4 @@
----
-title: Polar Scatter Plot
----
+# Polar Scatter Plot
 
 Polar scatter plots are a data visualization method that represents data points on a polar coordinate system. They display individual data points as dots or markers in a circular plot, providing a means to visualize the distribution, relationships, or patterns in data with angular or directional dependencies. Polar scatter plots are particularly useful for exploring data within a circular context, where the angle or periodic nature of the data is a significant aspect.
 
@@ -11,3 +9,9 @@ Polar scatter plots are useful for:
 3. **Angular or Periodic Data Relationships**: Polar scatter plots aid in exploring relationships and correlations in data with angular or periodic dependencies, making them suitable for applications where understanding circular patterns is essential.
 
 ## Examples
+
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.scatter_polar
+```

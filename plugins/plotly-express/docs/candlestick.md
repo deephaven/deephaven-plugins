@@ -1,6 +1,4 @@
----
-title: Candlestick Plot
----
+# Candlestick Plot
 
 Candlestick plots are a financial data visualization tool commonly used in technical analysis. Similar to an OHLC, they also represent the open, close, high, and low prices of a financial instrument for a specific time period, providing insights into price movements and patterns, and aiding in the identification of trends and potential reversal points in financial markets.
 
@@ -16,3 +14,8 @@ Candlestick plots are useful for:
 4. **Visualizing Variation in Price Data**: Candlestick charts offer a visually intuitive way to represent variability in price data, making them valuable for traders and analysts who prefer a visual approach to data analysis.
 
 ## Examples
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.candlestick
+```

@@ -1,10 +1,8 @@
 from __future__ import annotations
 from typing import Any
 
-from ...elements import BaseElement
-
-
-from ...types import Key
+from ..elements import BaseElement
+from ..types import Key
 
 
 def tab(

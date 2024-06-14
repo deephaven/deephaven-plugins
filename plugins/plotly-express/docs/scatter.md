@@ -1,6 +1,4 @@
----
-title: Scatter Plot
----
+# Scatter Plot
 
 A scatter plot is a type of data visualization that uses Cartesian coordinates to display values for typically two variables. It represents individual data points as dots on a graph, with each dot's position indicating its corresponding values on the two variables being plotted.
 
@@ -443,4 +441,9 @@ scatter_plot_opacity = dx.scatter(
     # For data sets with a high degree of overlap between points, consider setting opacity
     opacity=0.5
 )
+```
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.scatter
 ```

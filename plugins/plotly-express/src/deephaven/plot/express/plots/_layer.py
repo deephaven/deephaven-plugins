@@ -1,19 +1,14 @@
 from __future__ import annotations
 
 from functools import partial
-from typing import Any, Callable, cast, Tuple
+from typing import Any, Callable, cast, Tuple, TypedDict
+
 
 from plotly.graph_objs import Figure
 
 from ..deephaven_figure import DeephavenFigure
 from ..shared import default_callback, unsafe_figure_update_wrapper
 from deephaven.execution_context import make_user_exec_ctx
-
-
-# The function layer in this file is exempt from the styleguide rule that types should not be in the
-# description if there is a type annotation.
-
-from typing import TypedDict
 
 
 class LayerSpecDict(TypedDict, total=False):
@@ -538,12 +533,11 @@ def layer(
     figures.
 
     Args:
-      *figs: DeephavenFigure | Figure: The charts to layer
-      which_layout: int | None:  (Default value = None) None to layer layouts, or an
+      *figs: The charts to layer
+      which_layout: None to layer layouts, or an
         index of which arg to take the layout from. Currently only valid if
         domains are not specified.
-      specs: list[dict[str, Any]] | None:
-        A list of dictionaries that contains keys of "x" and "y"
+      specs: A list of dictionaries that contains keys of "x" and "y"
         that have values that are lists of two floats from 0 to 1. The chart
         that corresponds with a domain will be resized to that domain. Either
         x or y can be excluded if only resizing on one axis.
@@ -552,7 +546,7 @@ def layer(
         Can also specify "matched_xaxis" or "matched_yaxis" to add this figure
         to a match group. All figures with the same value of this group will
         have matching axes.
-      unsafe_update_figure: Callable: An update function that takes a plotly figure
+      unsafe_update_figure: An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is not
         returned, the plotly figure passed will be assumed to be the return value.
         Used to add any custom changes to the underlying plotly figure. Note that

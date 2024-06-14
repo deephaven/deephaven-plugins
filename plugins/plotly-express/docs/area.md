@@ -1,6 +1,4 @@
----
-title: Area Plot
----
+# Area Plot
 
 An area plot, also known as a stacked area chart, is a data visualization that uses multiple filled areas stacked on top of one another to represent the cumulative contribution of distinct categories over a continuous interval or time period. This makes it valuable for illustrating the composition and trends within data, especially when comparing the distribution of different categories.
 
@@ -12,3 +10,9 @@ Area plots are useful for:
 4. **Time Series Analysis**: For time-dependent data, area plots are valuable for displaying changes in categorical contributions and overall trends over time.
 
 ## Examples
+
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.area
+```

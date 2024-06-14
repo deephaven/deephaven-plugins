@@ -1,6 +1,4 @@
----
-title: Treemap Plot
----
+# Treemap Plot
 
 Treemap plots are a data visualization technique used to represent hierarchical data in a space-filling manner. They display data as nested rectangles or squares, where the size and color of each rectangle represent the values or categories within the hierarchy. Developers can create treemaps to provide users with an efficient and visually intuitive way to explore hierarchical data structures and understand relationships between categories and subcategories, making them a valuable tool for various applications that involve hierarchical data presentation, analysis, and exploration.
 
@@ -11,3 +9,9 @@ Treemap plots are useful for:
 3. **Data Summarization**: Treemaps are effective for summarizing large amounts of hierarchical data into a compact, visual format. Developers can use treemaps to provide users with an overview of hierarchical data, and users can drill down into specific categories for more detailed information.
 
 ## Examples
+
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.treemap
+```
