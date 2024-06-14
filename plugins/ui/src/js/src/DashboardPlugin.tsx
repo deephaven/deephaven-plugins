@@ -14,10 +14,7 @@ import {
   useDashboardPanel,
 } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
-import {
-  DeferredApiBootstrap,
-  useObjectFetcher,
-} from '@deephaven/jsapi-bootstrap';
+import { DeferredApiBootstrap } from '@deephaven/jsapi-bootstrap';
 import { dh } from '@deephaven/jsapi-types';
 import { ErrorBoundary } from '@deephaven/components';
 import { useDebouncedCallback } from '@deephaven/react-hooks';
@@ -25,7 +22,6 @@ import styles from './styles.scss?inline';
 import {
   ReadonlyWidgetData,
   WidgetDataUpdate,
-  WidgetFetch,
   WidgetId,
 } from './widget/WidgetTypes';
 import PortalPanel from './layout/PortalPanel';
@@ -54,9 +50,6 @@ interface DashboardPluginData {
 }
 
 interface WidgetWrapper {
-  /** Function to fetch the widget instance from the server */
-  fetch: WidgetFetch;
-
   /** ID of this widget */
   id: WidgetId;
 
@@ -77,8 +70,6 @@ export function DashboardPlugin(
   ) as unknown as [DashboardPluginData, (data: DashboardPluginData) => void];
   const [initialPluginData] = useState(pluginData);
 
-  const objectFetcher = useObjectFetcher();
-
   // Keep track of the widgets we've got opened.
   const [widgetMap, setWidgetMap] = useState<
     ReadonlyMap<WidgetId, WidgetWrapper>
@@ -86,11 +77,9 @@ export function DashboardPlugin(
 
   const handleWidgetOpen = useCallback(
     ({
-      fetch,
       widgetId = shortid.generate(),
       widget,
     }: {
-      fetch: () => Promise<dh.Widget>;
       widgetId: string;
       widget: WidgetDescriptor;
     }) => {
@@ -99,7 +88,6 @@ export function DashboardPlugin(
         const newWidgetMap = new Map(prevWidgetMap);
         const oldWidget = newWidgetMap.get(widgetId);
         newWidgetMap.set(widgetId, {
-          fetch,
           id: widgetId,
           widget,
           data: getPreservedData(oldWidget?.data),
@@ -131,7 +119,6 @@ export function DashboardPlugin(
 
   const handlePanelOpen = useCallback(
     ({
-      fetch,
       panelId: widgetId = shortid.generate(),
       widget,
     }: PanelOpenEventDetail<dh.Widget>) => {
@@ -139,8 +126,7 @@ export function DashboardPlugin(
 
       switch (type) {
         case NAME_ELEMENT: {
-          const widgetFetch = fetch ?? (() => objectFetcher(widget));
-          handleWidgetOpen({ fetch: widgetFetch, widgetId, widget });
+          handleWidgetOpen({ widgetId, widget });
           break;
         }
         case DASHBOARD_ELEMENT: {
@@ -152,7 +138,7 @@ export function DashboardPlugin(
         }
       }
     },
-    [handleDashboardOpen, handleWidgetOpen, objectFetcher]
+    [handleDashboardOpen, handleWidgetOpen]
   );
 
   useEffect(
@@ -171,7 +157,6 @@ export function DashboardPlugin(
           Object.entries(openWidgets).forEach(
             ([widgetId, { descriptor, data }]) => {
               newWidgetMap.set(widgetId, {
-                fetch: () => objectFetcher(descriptor),
                 id: widgetId,
                 widget: descriptor,
                 data,
@@ -182,7 +167,7 @@ export function DashboardPlugin(
         return newWidgetMap;
       });
     },
-    [objectFetcher, initialPluginData, id]
+    [initialPluginData, id]
   );
 
   const handlePanelClose = useCallback(
@@ -295,10 +280,9 @@ export function DashboardPlugin(
         >
           <DeferredApiBootstrap widget={wrapper.widget}>
             <DashboardWidgetHandler
-              widget={wrapper.widget}
+              widgetDescriptor={wrapper.widget}
               id={wrapper.id}
               initialData={wrapper.data}
-              fetch={wrapper.fetch}
               onDataChange={handleWidgetDataChange}
               onClose={handleWidgetClose}
             />
