@@ -16,7 +16,7 @@ from deephaven.time import (
     to_j_instant,
     to_pd_timestamp,
 )
-from deephaven.updateby import rolling_sum_tick, ema_tick
+from deephaven.updateby import rolling_sum_tick, ema_tick, cum_max
 
 SECOND = 1_000_000_000  #: One second in nanoseconds.
 MINUTE = 60 * SECOND  #: One minute in nanoseconds.
@@ -430,10 +430,14 @@ def gapminder(ticking: bool = True) -> Table:
     ### First, we're going to construct the expanded, interpolated dataset
 
     # functions for producing lists to expand original dataset
-    def create_years(year: int, reps: int) -> typing.List[int]:
+    def create_months(reps: int) -> list[list[int]]:
+        months = [month for month in range(1, 13)]
+        return [months for _ in range(reps)]
+
+    def create_years(year: int, reps: int) -> list[int]:
         return [year + i for i in range(reps)]
 
-    def create_empty(val: typing.Any, reps: int) -> typing.List[typing.Any]:
+    def create_empty(val: typing.Any, reps: int) -> list[typing.Any]:
         return [val, *[np.nan for _ in range(reps - 1)]]
 
     # split gapminder into pre-2007 and 2007, since 2007 need not be expanded in the same way as previous years
@@ -457,7 +461,7 @@ def gapminder(ticking: bool = True) -> Table:
         column="month",
         value=typing.cast(
             pd.Series,
-            [[month for month in range(1, 13)] for _ in range(len(gapminder_no_2007))],
+            create_months(len(gapminder_no_2007)),
         ),
     )
 
@@ -505,9 +509,7 @@ def gapminder(ticking: bool = True) -> Table:
             .reset_index(drop=True)
         ),
     )
-    gapminder_interp_vals.loc[:, "pop"] = gapminder_interp_vals["pop"].apply(
-        lambda x: round(x)
-    )
+    gapminder_interp_vals.loc[:, "pop"] = gapminder_interp_vals["pop"].apply(round)
 
     # create new expanded dataset with interpolated values filled in
     gapminder_interp = gapminder_combined
@@ -562,10 +564,10 @@ def gapminder(ticking: bool = True) -> Table:
                 "month = (ii % 12) + 1",
             ]
         )
-        .group_by("iteration_num")
-        .tail(1)
-        .drop_columns(["iteration_num", "Timestamp", "idx"])
-        .ungroup(["mod_idx", "year", "month"])
+        .last_by(["year", "month"])
+        .update_by(cum_max("max_iteration = iteration_num"))
+        .where("iteration_num == max_iteration")
+        .drop_columns(["Timestamp", "iteration_num", "idx", "max_iteration"])
         .update_view(
             ["counter = j_counter", "country = j_countries", "continent = j_continents"]
         )
