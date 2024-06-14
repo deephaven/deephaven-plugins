@@ -2,6 +2,7 @@ from typing import Any, Union
 
 from ..elements import BaseElement
 from ..types import Stringable
+from .basic import component_element
 
 ItemElement = BaseElement
 Item = Union[Stringable, ItemElement]
@@ -15,4 +16,4 @@ def item(*children: Stringable, **props: Any) -> ItemElement:
         children: The options to render within the item.
         **props: Any other Item prop.
     """
-    return BaseElement("deephaven.ui.components.Item", *children, **props)
+    return component_element("Item", *children, **props)

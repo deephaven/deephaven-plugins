@@ -8,3 +8,9 @@ Funnel plots are useful for:
 2. **Sequential Processes**: Funnel plots are suitable for visualizing data within sequential processes, where data typically funnels through various stages.
 3. **Data Distribution**: When you want to gain insights into the distribution of data at each stage within a process, and you can represent multiple categories as stacked bars for comparative analysis.
 4. **Efficiency Assessment**: To assess the efficiency and effectiveness of a process, particularly when evaluating the attrition or conversion of elements at each stage.
+
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.funnel
+```

@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Callable, Any
 
 from deephaven.table import Table, PartitionedTable
+from .basic import component_element
 from .section import SectionElement, Item
 from .item_table_source import ItemTableSource
 from ..elements import BaseElement
@@ -63,4 +64,4 @@ def picker(
 
     children, props = unpack_item_table_source(children, props, SUPPORTED_SOURCE_ARGS)
 
-    return BaseElement("deephaven.ui.components.Picker", *children, **props)
+    return component_element("Picker", *children, **props)

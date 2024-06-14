@@ -12,3 +12,9 @@ Alternatives to 3D line plots include:
 
 - **Scatter Plots with Color or Size Mapping**: These can be used to represent three variables with the addition of color or size mapping to signify the third dimension.
 - **Surface Plots**: When visualizing continuous data over a 3D space, surface plots may be more appropriate, as they create a continuous surface representation.
+
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.line_3d
+```

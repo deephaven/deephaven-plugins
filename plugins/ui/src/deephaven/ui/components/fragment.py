@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
-from ..elements import BaseElement
+from .basic import component_element
 
 
 def fragment(*children: Any):
@@ -12,4 +12,4 @@ def fragment(*children: Any):
     Args:
         children: The children in the fragment.
     """
-    return BaseElement("deephaven.ui.components.Fragment", children=children)
+    return component_element("Fragment", children=children)
