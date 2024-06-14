@@ -1,32 +1,20 @@
 from __future__ import annotations
-from typing import Any, Callable
-from .accessibility import AriaExpanded, AriaHasPopup, AriaPressed
-from .events import (
-    ButtonType,
-    FocusEventCallable,
-    KeyboardEventCallable,
-    PressEventCallable,
-    StaticColor,
-    Orientation,
-)
-from .layout import (
+from numbers import Number
+from typing import Any
+from .types import (
     AlignSelf,
     CSSProperties,
     DimensionValue,
     JustifySelf,
     LayoutFlex,
-    Number,
     Position,
 )
-from .basic import spectrum_element
-from ...elements import Element
+from .basic import component_element
+from ..elements import Element
 
 
-def button_group(
+def illustrated_message(
     *children: Any,
-    is_disabled: bool | None = None,
-    orientation: Orientation = "horizontal",
-    alignment: AlignSelf = "start",
     flex: LayoutFlex | None = None,
     flex_grow: Number | None = None,
     flex_shrink: Number | None = None,
@@ -37,10 +25,10 @@ def button_group(
     grid_area: str | None = None,
     grid_row: str | None = None,
     grid_column: str | None = None,
-    grid_row_start: str | None = None,
-    grid_row_end: str | None = None,
     grid_column_start: str | None = None,
     grid_column_end: str | None = None,
+    grid_row_start: str | None = None,
+    grid_row_end: str | None = None,
     margin: DimensionValue | None = None,
     margin_top: DimensionValue | None = None,
     margin_bottom: DimensionValue | None = None,
@@ -68,13 +56,9 @@ def button_group(
     UNSAFE_style: CSSProperties | None = None,
 ) -> Element:
     """
-    A button group is a grouping of button whose actions are related to each other.
-
+    An IllustratedMessage displays an illustration and a message, usually for an empty state or an error page.
     Args:
-        *children: The children of the button group.
-        is_disabled: Whether the button group is disabled.
-        orientation: The axis the ButtonGroup should align with. Setting this to 'vertical' will prevent any switching behaviours between 'vertical' and horizontal'.
-        alignment: The alignment of the buttons within the ButtonGroup.
+        *children: The content of the IllustratedMessage which consist of three areas: an illustration, a title, and a body.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -96,6 +80,12 @@ def button_group(
         margin_end: The margin for the logical end side of the element, depending on layout direction.
         margin_x: The margin for the left and right sides of the element.
         margin_y: The margin for the top and bottom sides of the element.
+        width: The width of the element.
+        height: The height of the element.
+        min_width: The minimum width of the element.
+        min_height: The minimum height of the element.
+        max_width: The maximum width of the element.
+        max_height: The maximum height of the element.
         position: Specifies how the element is position.
         top: The top position of the element.
         bottom: The bottom position of the element.
@@ -108,13 +98,26 @@ def button_group(
         id: The unique identifier of the element.
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
+
+    Examples:
+        prompt = ui.illustrated_message(
+            ui.heading("Enter URL above"),
+            ui.content("Enter a URL of a CSV above and click 'Load' to load it"),
+        )
+        warning = ui.illustrated_message(
+            ui.icon("vsWarning"),
+            ui.heading("Error loading table"),
+            ui.content(f"{error}"),
+        )
+        error_message = ui.illustrated_message(
+            ui.icon("vsWarning", style={"fontSize": "48px"}),
+            ui.heading("Invalid Input"),
+            ui.content("Please enter 'Sym' and 'Exchange' above"),
+        )
     """
-    return spectrum_element(
-        "ButtonGroup",
+    return component_element(
+        "IllustratedMessage",
         *children,
-        is_disabled=is_disabled,
-        orientation=orientation,
-        alignment=alignment,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
@@ -125,10 +128,10 @@ def button_group(
         grid_area=grid_area,
         grid_row=grid_row,
         grid_column=grid_column,
-        grid_row_start=grid_row_start,
-        grid_row_end=grid_row_end,
         grid_column_start=grid_column_start,
         grid_column_end=grid_column_end,
+        grid_row_start=grid_row_start,
+        grid_row_end=grid_row_end,
         margin=margin,
         margin_top=margin_top,
         margin_bottom=margin_bottom,

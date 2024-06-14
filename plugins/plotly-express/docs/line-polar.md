@@ -10,3 +10,8 @@ Polar line plots are useful for:
 4. **Circular Data Exploration**: They can be used to explore and analyze data where the angular or periodic nature of the data is a significant aspect, making them useful in fields like meteorology, geophysics, and biology.
 
 ## Examples
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.line_polar
+```

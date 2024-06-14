@@ -1,31 +1,43 @@
 from __future__ import annotations
-from numbers import Number
 from typing import Any, Callable
-from .validate import ContextualHelperVariant
-from .layout import (
+from .types import (
+    # Events
+    SliderChange,
+    SliderChangeCallable,
+    Orientation,
+    # Layout
     AlignSelf,
     CSSProperties,
     DimensionValue,
     JustifySelf,
     LayoutFlex,
-    Placement,
+    Number,
     Position,
+    LabelPosition,
 )
-from .basic import spectrum_element
-from ...elements import Element
+from .basic import component_element
+from ..elements import Element
 
 
-def contextual_help(
-    *children: Any,
-    variant: ContextualHelperVariant | None = "help",
-    placement: Placement | None = "bottom start",
-    is_open: bool | None = None,
-    default_open: bool | None = None,
-    container_padding: Number | None = None,
-    offset: Number | None = None,
-    cross_offset: Number | None = None,
-    should_flip: bool | None = None,
-    on_open_change: Callable[[bool], None] | None = None,
+def range_slider(
+    start_name: str | None = None,
+    end_name: str | None = None,
+    # format_options, # omitted because need to connect it to Deephaven formatting options as well
+    label_position: LabelPosition = "top",
+    show_value_label: bool | None = None,
+    # get_value_label, # omitted because it needs to return a string synchronously
+    contextual_help: Any | None = None,
+    orientation: Orientation = "horizontal",
+    is_disabled: bool | None = None,
+    min_value: Number = 0,
+    max_value: Number = 100,
+    step: Number = 1,
+    value: SliderChange | None = None,
+    default_value: SliderChange | None = None,
+    label: Any | None = None,
+    name: str | None = None,
+    on_change_end: SliderChangeCallable | None = None,
+    on_change: SliderChangeCallable | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: Number | None = None,
     flex_shrink: Number | None = None,
@@ -35,11 +47,11 @@ def contextual_help(
     order: Number | None = None,
     grid_area: str | None = None,
     grid_row: str | None = None,
+    grid_row_start: str | None = None,
+    grid_row_end: str | None = None,
     grid_column: str | None = None,
     grid_column_start: str | None = None,
     grid_column_end: str | None = None,
-    grid_row_start: str | None = None,
-    grid_row_end: str | None = None,
     margin: DimensionValue | None = None,
     margin_top: DimensionValue | None = None,
     margin_bottom: DimensionValue | None = None,
@@ -56,10 +68,10 @@ def contextual_help(
     position: Position | None = None,
     top: DimensionValue | None = None,
     bottom: DimensionValue | None = None,
-    left: DimensionValue | None = None,
-    right: DimensionValue | None = None,
     start: DimensionValue | None = None,
     end: DimensionValue | None = None,
+    left: DimensionValue | None = None,
+    right: DimensionValue | None = None,
     z_index: Number | None = None,
     is_hidden: bool | None = None,
     id: str | None = None,
@@ -71,18 +83,25 @@ def contextual_help(
     UNSAFE_style: CSSProperties | None = None,
 ) -> Element:
     """
-    A contextual help is a quiet action button that triggers an informational popover.
+    Sliders allow users to quickly select a value within a range. They should be used when the upper and lower bounds to the range are invariable.
+
     Args:
-        *children: The children of the contextual help popover.
-        variant: Indicates whether contents are informative or provides helpful guidance.
-        placement: The placement of the popover relative to the action button.
-        is_open: Whether the popover is open by default (controlled).
-        default_open: Whether the popover is open by default (uncontrolled).
-        container_padding: The placement padding that should be applied between the element and its surrounding container.
-        offset: The additional offset applied along the main axis between the element and its anchor element.
-        cross_offset: The additional offset applied along the cross axis between the element and its anchor element.
-        should_flip: Whether the element should flip its orientation when there is insufficient room for it to render completely.
-        on_open_change: Handler that is called when the overlay's open state changes.
+        start_name: The name of the start input element.
+        end_name: The name of the end input element.
+        label_position: The position of the label relative to the slider.
+        show_value_label: Whether the value label should be displayed. True by default if the label is provided.
+        contextual_help: A ContextualHelp element to place next to the label.
+        orientation: The orientation of the slider.
+        is_disabled: Whether the slider is disabled.
+        min_value: The minimum value of the slider.
+        max_value: The maximum value of the slider.
+        step: The step value for the slider.
+        value: The current value of the slider.
+        default_value: The default value of the slider.
+        label: The content to display as the label.
+        name: The name of the input element, used when submitting an HTML form.
+        on_change_end: Function called when the slider stops moving
+        on_change: Function called when the input value changes
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -105,40 +124,48 @@ def contextual_help(
         margin_x: The margin for the left and right sides of the element.
         margin_y: The margin for the top and bottom sides of the element.
         width: The width of the element.
-        height: The height of the element.
         min_width: The minimum width of the element.
-        min_height: The minimum height of the element.
         max_width: The maximum width of the element.
+        height: The height of the element.
+        min_height: The minimum height of the element.
         max_height: The maximum height of the element.
-        position: Specifies how the element is position.
-        top: The top position of the element.
-        bottom: The bottom position of the element.
-        left: The left position of the element.
-        right: The right position of the element.
-        start: The logical start position of the element, depending on layout direction.
-        end: The logical end position of the element, depending on layout direction.
-        z_index: The stacking order for the element
-        is_hidden: Hides the element.
+        position: The position of the element.
+        top: The distance from the top of the containing element.
+        bottom: The distance from the bottom of the containing element.
+        left: The distance from the left of the containing element.
+        right: The distance from the right of the containing element.
+        start: The distance from the start of the containing element, depending on layout direction.
+        end: The distance from the end of the containing element, depending on layout direction.
+        z_index: The stack order of the element.
+        is_hidden: Whether the element is hidden.
         id: The unique identifier of the element.
-        aria-label: Defines a string value that labels the current element.
-        aria-labelledby: Identifies the element (or elements) that labels the current element.
-        aria-describedby: Identifies the element (or elements) that describes the object.
-        aria-details: Identifies the element (or elements) that provide a detailed, extended description for the object.
-        UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
-        UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
+        aria_label: The label for the element.
+        aria_labelled_by: The id of the element that labels the current element.
+        aria_described_by: The id of the element that describes the current element.
+        aria_details: The id of the element that provides additional information about the current element.
+        UNSAFE_class_name: A CSS class to apply to the element.
+        UNSAFE_style: A CSS style to apply to the element.
     """
-    return spectrum_element(
-        "ContextualHelp",
-        *children,
-        variant=variant,
-        placement=placement,
-        is_open=is_open,
-        default_open=default_open,
-        container_padding=container_padding,
-        offset=offset,
-        cross_offset=cross_offset,
-        should_flip=should_flip,
-        on_open_change=on_open_change,
+    return component_element(
+        "RangeSlider",
+        start_name=start_name,
+        end_name=end_name,
+        # format_options=format_options,
+        label_position=label_position,
+        show_value_label=show_value_label,
+        # get_value_label=get_value_label,
+        contextual_help=contextual_help,
+        orientation=orientation,
+        is_disabled=is_disabled,
+        min_value=min_value,
+        max_value=max_value,
+        step=step,
+        value=value,
+        default_value=default_value,
+        label=label,
+        name=name,
+        on_change_end=on_change_end,
+        on_change=on_change,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
@@ -148,11 +175,11 @@ def contextual_help(
         order=order,
         grid_area=grid_area,
         grid_row=grid_row,
+        grid_row_start=grid_row_start,
+        grid_row_end=grid_row_end,
         grid_column=grid_column,
         grid_column_start=grid_column_start,
         grid_column_end=grid_column_end,
-        grid_row_start=grid_row_start,
-        grid_row_end=grid_row_end,
         margin=margin,
         margin_top=margin_top,
         margin_bottom=margin_bottom,
@@ -169,10 +196,10 @@ def contextual_help(
         position=position,
         top=top,
         bottom=bottom,
-        left=left,
-        right=right,
         start=start,
         end=end,
+        left=left,
+        right=right,
         z_index=z_index,
         is_hidden=is_hidden,
         id=id,
