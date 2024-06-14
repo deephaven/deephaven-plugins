@@ -4,10 +4,14 @@ from numbers import Number
 from typing import Callable, Iterable, Union
 
 
+from .basic import component_element
 from .item import Item
-from ..elements import BaseElement, Element
+from ..elements import Element
 from ..types import Key, ActionKey, ActionMenuDirection
-from .spectrum.layout import (
+from .types import (
+    # Events
+    TriggerType,
+    # Layout
     AlignSelf,
     Alignment,
     CSSProperties,
@@ -16,7 +20,6 @@ from .spectrum.layout import (
     LayoutFlex,
     Position,
 )
-from .spectrum.events import TriggerType
 
 ListActionMenuElement = Element
 
@@ -148,8 +151,8 @@ def list_action_menu(
         A ListActionMenu that can be used within the actions prop of a `ui.list_view` component.
     """
 
-    return BaseElement(
-        "deephaven.ui.components.ListActionMenu",
+    return component_element(
+        "ListActionMenu",
         *children,
         on_action=on_action,
         on_open_change=on_open_change,

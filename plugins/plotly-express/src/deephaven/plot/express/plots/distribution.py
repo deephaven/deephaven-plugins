@@ -26,9 +26,6 @@ from ..shared import (
     unsafe_figure_update_wrapper,
 )
 
-# The functions in this file are exempt from the styleguide rule that types should not be in the description if there
-# is a type annotation.
-
 
 def violin(
     table: Table | None = None,
@@ -55,66 +52,46 @@ def violin(
     """Returns a violin chart
 
     Args:
-      table:  Table | None:  (Default value = None)
-        A table to pull data from.
-      x: str | list[str] | None:  (Default value = None)
-        A column name or list of columns that contain x-axis values.
+      table: A table to pull data from.
+      x: A column name or list of columns that contain x-axis values.
         Only one of x or y can be specified. If x is specified,
         the violins are drawn horizontally.
-      y: str | list[str] | None:  (Default value = None)
-        A column name or list of columns that contain y-axis values.
+      y: A column name or list of columns that contain y-axis values.
         Only one of x or y can be specified. If y is specified, the
         violins are drawn vertically.
-      by: str | list[str] | None:  (Default value = None)
-        A column or list of columns that contain values to plot the figure traces by.
+      by: A column or list of columns that contain values to plot the figure traces by.
         All values or combination of values map to a unique design. The variable
         by_vars specifies which design elements are used.
         This is overriden if any specialized design variables such as color are specified
-      by_vars: str | list[str]:  (Default value = "color")
-        A string or list of string that contain design elements to plot by.
+      by_vars: A string or list of string that contain design elements to plot by.
         Can contain color.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
-      color: str | list[str] | None: (Default value = None)
-        A column or list of columns that contain color values.
+      color: A column or list of columns that contain color values.
         The value is used for a plot by on color.
         See color_discrete_map for additional behaviors.
-      hover_name: str | None:  (Default value = None)
-        A column that contains names to bold in the hover tooltip.
-      labels: dict[str, str] | None:  (Default value = None)
-        A dictionary of labels mapping columns to new labels.
-      color_discrete_sequence: list[str] | None:  (Default value = None)
-        A list of colors to sequentially apply to
+      hover_name: A column that contains names to bold in the hover tooltip.
+      labels: A dictionary of labels mapping columns to new labels.
+      color_discrete_sequence: A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
         colors will be reused.
-      color_discrete_map: dict[str | tuple[str], str] | None (Default value = None)
-        If dict, the keys should be strings of the column values (or a tuple
+      color_discrete_map: If dict, the keys should be strings of the column values (or a tuple
         of combinations of column values) which map to colors.
-      violinmode: str:  (Default value = 'group')
-        Default 'group', which draws the violins next
+      violinmode: Default 'group', which draws the violins next
         to each other or 'overlay' which draws them on top of each other.
-      log_x: bool
-        A boolean that specifies if the corresponding axis is a log
+      log_x: A boolean that specifies if the corresponding axis is a log
         axis or not.
-      log_y: bool
-        A boolean that specifies if the corresponding axis is a log
+      log_y: A boolean that specifies if the corresponding axis is a log
         axis or not.
-      range_x: list[int] | None:  (Default value = None)
-        A list of two numbers that specify the range of the x-axis.
-      range_y: list[int] | None:  (Default value = None)
-        A list of two numbers that specify the range of the y-axis.
-      points:  bool | str:  (Default value = 'outliers')
-        Default 'outliers', which draws points outside the whiskers.
+      range_x: A list of two numbers that specify the range of the x-axis.
+      range_y: A list of two numbers that specify the range of the y-axis.
+      points: Default 'outliers', which draws points outside the whiskers.
         'suspectedoutliers' draws points below 4*Q1-3*Q3 and above 4*Q3-3*Q1.
         'all' draws all points and False draws no points.
-      box: bool:  (Default value = False)
-        Draw boxes inside the violin if True.
-      title: str | None: (Default value = None)
-        The title of the chart
-      template: str | None:  (Default value = None)
-        The template for the chart.
-      unsafe_update_figure: Callable:  (Default value = default_callback)
-        An update function that takes a plotly figure
+      box: Draw boxes inside the violin if True.
+      title: The title of the chart
+      template: The template for the chart.
+      unsafe_update_figure: An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is
         not returned, the plotly figure passed will be assumed to be the return
         value. Used to add any custom changes to the underlying plotly figure.
@@ -159,66 +136,46 @@ def box(
     """Returns a box chart
 
     Args:
-      table:  Table | None:  (Default value = None)
-        A table to pull data from.
-      x: str | list[str] | None:  (Default value = None)
-        A column name or list of columns that contain x-axis values.
+      table: A table to pull data from.
+      x: A column name or list of columns that contain x-axis values.
         Only one of x or y can be specified. If x is specified,
         the boxes are drawn horizontally.
-      y: str | list[str] | None:  (Default value = None)
-        A column name or list of columns that contain y-axis values.
+      y: A column name or list of columns that contain y-axis values.
         Only one of x or y can be specified. If y is specified, the
         boxes are drawn vertically.
-      by: str | list[str] | None:  (Default value = None)
-        A column or list of columns that contain values to plot the figure traces by.
+      by: A column or list of columns that contain values to plot the figure traces by.
         All values or combination of values map to a unique design. The variable
         by_vars specifies which design elements are used.
         This is overriden if any specialized design variables such as color are specified
-      by_vars: str | list[str]:  (Default value = "color")
-        A string or list of string that contain design elements to plot by.
+      by_vars: A string or list of string that contain design elements to plot by.
         Can contain color.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
-      color: str | list[str] | None: (Default value = None)
-        A column or list of columns that contain color values.
+      color: A column or list of columns that contain color values.
         The value is used for a plot by on color.
         See color_discrete_map for additional behaviors.
-      hover_name: str | None:  (Default value = None)
-        A column that contains names to bold in the hover tooltip.
-      labels: dict[str, str] | None:  (Default value = None)
-        A dictionary of labels mapping columns to new labels.
-      color_discrete_sequence | None: list[str]:  (Default value = None)
-        A list of colors to sequentially apply to
+      hover_name: A column that contains names to bold in the hover tooltip.
+      labels: A dictionary of labels mapping columns to new labels.
+      color_discrete_sequence | None: A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
         colors will be reused.
-      color_discrete_map: dict[str | tuple[str], str] | None: (Default value = None)
-        If dict, the keys should be strings of the column values (or a tuple
+      color_discrete_map: If dict, the keys should be strings of the column values (or a tuple
         of combinations of column values) which map to colors.
-      boxmode: str:  (Default value = 'group')
-        Default 'group', which draws the boxes next
+      boxmode: Default 'group', which draws the boxes next
         to each other or 'overlay' which draws them on top of each other.
-      log_x: bool
-        A boolean that specifies if the corresponding axis is a log
+      log_x: A boolean that specifies if the corresponding axis is a log
         axis or not.
-      log_y: bool
-        A boolean that specifies if the corresponding axis is a log
+      log_y: A boolean that specifies if the corresponding axis is a log
         axis or not.
-      range_x: list[int] | None:  (Default value = None)
-        A list of two numbers that specify the range of the x-axis.
-      range_y: list[int] | None:  (Default value = None)
-        A list of two numbers that specify the range of the y-axis.
-      points:  bool | str:  (Default value = 'outliers')
-        Default 'outliers', which draws points outside the whiskers.
+      range_x: A list of two numbers that specify the range of the x-axis.
+      range_y: A list of two numbers that specify the range of the y-axis.
+      points: Default 'outliers', which draws points outside the whiskers.
         'suspectedoutliers' draws points below 4*Q1-3*Q3 and above 4*Q3-3*Q1.
         'all' draws all points and False draws no points.
-      notched:  bool:  (Default value = False)
-         If True boxes are drawn with notches
-      title: str | None: (Default value = None)
-        The title of the chart
-      template: str | None:  (Default value = None)
-        The template for the chart.
-      unsafe_update_figure: Callable:  (Default value = default_callback)
-        An update function that takes a plotly figure
+      notched: If True boxes are drawn with notches
+      title: The title of the chart
+      template: The template for the chart.
+      unsafe_update_figure: An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is
         not returned, the plotly figure passed will be assumed to be the return
         value. Used to add any custom changes to the underlying plotly figure.
@@ -261,60 +218,42 @@ def strip(
     """Returns a strip chart
 
     Args:
-      table:  Table | None:  (Default value = None)
-        A table to pull data from.
-      x: str | list[str] | None:  (Default value = None)
-        A column name or list of columns that contain x-axis values.
+      table: A table to pull data from.
+      x: A column name or list of columns that contain x-axis values.
         Only one of x or y can be specified. If x is specified,
         the strips are drawn horizontally.
-      y: str | list[str] | None:  (Default value = None)
-        A column name or list of columns that contain y-axis values.
+      y: A column name or list of columns that contain y-axis values.
         Only one of x or y can be specified. If y is specified, the
         strips are drawn vertically.
-      by: str | list[str] | None:  (Default value = None)
-        A column or list of columns that contain values to plot the figure traces by.
+      by: A column or list of columns that contain values to plot the figure traces by.
         All values or combination of values map to a unique design. The variable
         by_vars specifies which design elements are used.
         This is overriden if any specialized design variables such as color are specified
-      by_vars: str | list[str]:  (Default value = "color")
-        A string or list of string that contain design elements to plot by.
+      by_vars: A string or list of string that contain design elements to plot by.
         Can contain color.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
-      color: str | list[str] | None: (Default value = None)
-        A column or list of columns that contain color values.
+      color: A column or list of columns that contain color values.
         The value is used for a plot by on color.
         See color_discrete_map for additional behaviors.
-      hover_name: str | None:  (Default value = None)
-        A column that contains names to bold in the hover tooltip.
-      labels: dict[str, str] | None:  (Default value = None)
-        A dictionary of labels mapping columns to new labels.
-      color_discrete_sequence: list[str] | None:  (Default value = None)
-        A list of colors to sequentially apply to
+      hover_name: A column that contains names to bold in the hover tooltip.
+      labels: A dictionary of labels mapping columns to new labels.
+      color_discrete_sequence: A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
         colors will be reused.
-      color_discrete_map: dict[str | tuple[str], str] | None: (Default value = None)
-        If dict, the keys should be strings of the column values (or a tuple
+      color_discrete_map: If dict, the keys should be strings of the column values (or a tuple
         of combinations of column values) which map to colors.
-      stripmode: str:  (Default value = 'group')
-        Default 'group', which draws the strips next
+      stripmode: Default 'group', which draws the strips next
         to each other or 'overlay' which draws them on top of each other.
-      log_x: bool
-        A boolean that specifies if the corresponding axis is a log
+      log_x: A boolean that specifies if the corresponding axis is a log
         axis or not.
-      log_y: bool
-        A boolean that specifies if the corresponding axis is a log
+      log_y: A boolean that specifies if the corresponding axis is a log
         axis or not.
-      range_x: list[int] | None:  (Default value = None)
-        A list of two numbers that specify the range of the x-axis.
-      range_y: list[int] | None:  (Default value = None)
-        A list of two numbers that specify the range of the y-axis.
-      title: str | None: (Default value = None)
-        The title of the chart
-      template: str | None:  (Default value = None)
-        The template for the chart.
-      unsafe_update_figure: Callable:  (Default value = default_callback)
-        An update function that takes a plotly figure
+      range_x: A list of two numbers that specify the range of the x-axis.
+      range_y: A list of two numbers that specify the range of the y-axis.
+      title: The title of the chart
+      template: The template for the chart.
+      unsafe_update_figure: An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is
         not returned, the plotly figure passed will be assumed to be the return
         value. Used to add any custom changes to the underlying plotly figure.
@@ -416,98 +355,69 @@ def histogram(
     """Returns a histogram
 
     Args:
-      table:  Table | None:  (Default value = None)
-        A table to pull data from.
-      x: str | list[str] | None:  (Default value = None)
-        A column name or list of columns that contain x-axis values.
+      table: A table to pull data from.
+      x: A column name or list of columns that contain x-axis values.
         Only one of x or y can be specified. If x is specified,
         the bars are drawn horizontally.
-      y: str | list[str] | None:  (Default value = None)
-        A column name or list of columns that contain y-axis values.
+      y: A column name or list of columns that contain y-axis values.
         Only one of x or y can be specified. If y is specified, the
         bars are drawn vertically.
-      by: str | list[str] | None:  (Default value = None)
-        A column or list of columns that contain values to plot the figure traces by.
+      by: A column or list of columns that contain values to plot the figure traces by.
         All values or combination of values map to a unique design. The variable
         by_vars specifies which design elements are used.
         This is overriden if any specialized design variables such as color are specified
-      by_vars: str | list[str]:  (Default value = "color")
-        A string or list of string that contain design elements to plot by.
+      by_vars: A string or list of string that contain design elements to plot by.
         Can contain color.
         If associated maps or sequences are specified, they are used to map by column values
         to designs. Otherwise, default values are used.
-      color: str | list[str] | None: (Default value = None)
-        A column or list of columns that contain color values.
+      color: A column or list of columns that contain color values.
         The value is used for a plot by on color.
         See color_discrete_map for additional behaviors.
-      pattern_shape: str | list[str] | None: (Default value = None)
-        A column or list of columns that contain pattern shape values.
+      pattern_shape: A column or list of columns that contain pattern shape values.
         The value is used for a plot by on pattern shape.
         See pattern_shape_map for additional behaviors.
-      labels: dict[str, str] | None:  (Default value = None)
-        A dictionary of labels mapping columns to new labels.
-      color_discrete_sequence: list[str] | None:  (Default value = None)
-        A list of colors to sequentially apply to
+      labels: A dictionary of labels mapping columns to new labels.
+      color_discrete_sequence: A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
         colors will be reused.
-      color_discrete_map: dict[str | tuple[str], str] | None: (Default value = None)
-        If dict, the keys should be strings of the column values (or a tuple
+      color_discrete_map: If dict, the keys should be strings of the column values (or a tuple
         of combinations of column values) which map to colors.
-      pattern_shape_sequence: list[str] | None:  (Default value = None)
-        A list of patterns to sequentially apply
+      pattern_shape_sequence: A list of patterns to sequentially apply
         to the series. The patterns loop, so if there are more series than
         patterns, patterns will be reused.
-      pattern_shape_map: dict[str | tuple[str], str] | None: (Default value = None)
-        If dict, the keys should be strings of the column values (or a tuple
+      pattern_shape_map: If dict, the keys should be strings of the column values (or a tuple
         of combinations of column values) which map to patterns.
-      marginal: str | None:  (Default value = None)
-        The type of marginal; histogram, violin, rug, box
-      opacity: float | None:  (Default value = None)
-        Opacity to apply to all markers. 0 is completely transparent
+      marginal: The type of marginal; histogram, violin, rug, box
+      opacity: Opacity to apply to all markers. 0 is completely transparent
         and 1 is completely opaque.
-      barmode: str:  (Default value = 'relative')
-        If 'relative', bars are stacked. If
+      barmode: If 'relative', bars are stacked. If
         'overlay', bars are drawn on top of each other. If 'group', bars are
         drawn next to each other.
-      barnorm: str | None:  (Default value = None)
-        If 'fraction', the value of the bar is divided by all bars at that
+      barnorm: If 'fraction', the value of the bar is divided by all bars at that
         location. If 'percentage', the result is the same but multiplied by
         100.
-      histnorm: str | None:  (Default value = None)
-        If 'probability', the value at this bin is divided out of the total
+      histnorm: If 'probability', the value at this bin is divided out of the total
         of all bins in this column. If 'percent', result is the same as
         'probability' but multiplied by 100. If 'density', the value is divided
         by the width of the bin. If 'probability density', the value is divided
         out of the total of all bins in this column and the width of the bin.
-      log_x: bool
-        A boolean that specifies if the corresponding axis is a log
+      log_x: A boolean that specifies if the corresponding axis is a log
         axis or not.
-      log_y: bool
-        A boolean that specifies if the corresponding axis is a log
+      log_y: A boolean that specifies if the corresponding axis is a log
         axis or not.
-      range_x: list[int] | None:  (Default value = None)
-        A list of two numbers that specify the range of the x-axis.
-      range_y: list[int] | None:  (Default value = None)
-        A list of two numbers that specify the range of the y-axis.
-      range_bins: list[int]:
-        A list of two numbers that specify the range of data that is used.
-      histfunc: str:  (Default value = 'count')
-        The function to use when aggregating within bins. One of
+      range_x: A list of two numbers that specify the range of the x-axis.
+      range_y: A list of two numbers that specify the range of the y-axis.
+      range_bins: A list of two numbers that specify the range of data that is used.
+      histfunc: The function to use when aggregating within bins. One of
         'avg', 'count', 'count_distinct', 'max', 'median', 'min', 'std', 'sum',
         or 'var'
-      cumulative: bool:  (Default value = False)
-        If True, values are cumulative.
-      nbins: int:  (Default value = 10)
-        The number of bins to use.
-      text_auto: bool | str:  (Default value = False)
-        If True, display the value at each bar.
+      cumulative: If True, values are cumulative.
+      nbins: The number of bins to use.
+      text_auto: If True, display the value at each bar.
         If a string, specifies a plotly texttemplate.
-      title: str | None: (Default value = None)
-        The title of the chart
-      template: str | None:  (Default value = None)
-        The template for the chart.
-      unsafe_update_figure: Callable:  (Default value = default_callback)
-        An update function that takes a plotly figure
+      title: The title of the chart
+      template: The template for the chart.
+      unsafe_update_figure: An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is
         not returned, the plotly figure passed will be assumed to be the return
         value. Used to add any custom changes to the underlying plotly figure.
