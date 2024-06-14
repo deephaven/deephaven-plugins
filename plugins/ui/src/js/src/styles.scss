@@ -31,36 +31,6 @@
   }
 }
 
-.ui-widget-error-view {
-  display: flex;
-  flex-direction: column;
-  gap: $spacer-1;
-  flex-grow: 1;
-  max-height: 100%;
-
-  .widget-error-view-content {
-    position: relative;
-    flex-shrink: 1;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-  }
-
-  .widget-error-view-footer {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: $spacer-1;
-    flex-wrap: wrap;
-    flex-shrink: 0;
-  }
-
-  .error-view {
-    flex-grow: 1;
-  }
-}
-
 .dh-react-panel-overlay {
   background-color: bg-opacity(80);
   backdrop-filter: blur(5px);
@@ -77,7 +47,8 @@
   z-index: 1000;
 
   .ui-widget-error-view {
-    max-width: 100%;
+    width: 100%;
+    overflow: auto;
   }
 }
 

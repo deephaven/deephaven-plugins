@@ -33,7 +33,7 @@ function WidgetErrorView({
   const action = getErrorAction(error);
 
   return (
-    <IllustratedMessage>
+    <IllustratedMessage UNSAFE_className="ui-widget-error-view">
       <Icon size="XXL" marginBottom="size-100">
         <FontAwesomeIcon icon={vsWarning} />
       </Icon>
