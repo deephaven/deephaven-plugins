@@ -26,7 +26,12 @@ export type ReadonlyWidgetData = Readonly<WidgetData>;
 export type WidgetDataUpdate = Partial<ReadonlyWidgetData>;
 
 export function isWidgetError(value: unknown): value is WidgetError {
-  return typeof value === 'object' && value !== null && 'message' in value;
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'message' in value &&
+    'name' in value
+  );
 }
 
 export type WidgetAction = {
@@ -48,8 +53,8 @@ export type WidgetError = {
   /** Message to display of the error */
   message: string;
 
-  /** Type of the error */
-  type?: string;
+  /** Name of the error */
+  name: string;
 
   /** Stack trace of the error */
   stack?: string;

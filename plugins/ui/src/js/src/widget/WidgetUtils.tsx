@@ -11,11 +11,7 @@ import {
   Section,
 } from '@deephaven/components';
 import { ValueOf } from '@deephaven/utils';
-import {
-  ReadonlyWidgetData,
-  WidgetAction,
-  isWidgetAction,
-} from './WidgetTypes';
+import { ReadonlyWidgetData, WidgetAction, isWidgetError } from './WidgetTypes';
 import {
   ElementNode,
   ELEMENT_KEY,
@@ -126,13 +122,8 @@ export function getPreservedData(
  * @returns The name of the error
  */
 export function getErrorName(error: unknown): string {
-  if (
-    typeof error === 'object' &&
-    error != null &&
-    'name' in error &&
-    typeof error.name === 'string'
-  ) {
-    return error.constructor.name;
+  if (isWidgetError(error)) {
+    return error.name;
   }
   return 'Unknown error';
 }
@@ -143,12 +134,7 @@ export function getErrorName(error: unknown): string {
  * @returns The error message
  */
 export function getErrorMessage(error: unknown): string {
-  if (
-    typeof error === 'object' &&
-    error != null &&
-    'message' in error &&
-    typeof error.message === 'string'
-  ) {
+  if (isWidgetError(error)) {
     return error.message.trim();
   }
   return 'Unknown error';
@@ -171,13 +157,8 @@ export function getErrorShortMessage(error: unknown): string {
  * @returns The error stack trace
  */
 export function getErrorStack(error: unknown): string {
-  if (
-    typeof error === 'object' &&
-    error != null &&
-    'stack' in error &&
-    typeof error.stack === 'string'
-  ) {
-    return error.stack;
+  if (isWidgetError(error)) {
+    return error.stack ?? '';
   }
   return '';
 }
@@ -188,13 +169,8 @@ export function getErrorStack(error: unknown): string {
  * @returns The action from the error, if it exists
  */
 export function getErrorAction(error: unknown): WidgetAction | null {
-  if (
-    typeof error === 'object' &&
-    error != null &&
-    'action' in error &&
-    isWidgetAction(error.action)
-  ) {
-    return error.action;
+  if (isWidgetError(error)) {
+    return error.action ?? null;
   }
   return null;
 }
