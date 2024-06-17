@@ -8,8 +8,8 @@ import {
   isPrimitive,
   wrapElementChildren,
 } from './ElementUtils';
-import ObjectView from './ObjectView';
-import { ELEMENT_NAME } from './ElementConstants';
+import ObjectView from '../ObjectView';
+import { ELEMENT_NAME } from '../model/ElementConstants';
 
 const { asMock, createMockProxy } = TestUtils;
 

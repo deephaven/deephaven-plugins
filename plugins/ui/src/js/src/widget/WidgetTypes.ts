@@ -25,19 +25,45 @@ export type ReadonlyWidgetData = Readonly<WidgetData>;
 /** Contains an update for widget data. Only the keys that are updated are passed. */
 export type WidgetDataUpdate = Partial<ReadonlyWidgetData>;
 
+export function isWidgetError(value: unknown): value is WidgetError {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'message' in value &&
+    'name' in value
+  );
+}
+
+export type WidgetAction = {
+  title: string;
+  action: () => void;
+};
+
+export function isWidgetAction(value: unknown): value is WidgetAction {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'title' in value &&
+    'action' in value
+  );
+}
+
 /** Widget error details */
 export type WidgetError = {
   /** Message to display of the error */
   message: string;
 
-  /** Type of the error */
-  type?: string;
+  /** Name of the error */
+  name: string;
 
   /** Stack trace of the error */
   stack?: string;
 
   /** Specific error code */
   code?: number;
+
+  /** An action to take to recover from the error */
+  action?: WidgetAction;
 };
 
 /** Message containing a new document update */

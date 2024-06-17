@@ -16,7 +16,7 @@ interface TextFieldProps extends DHCTextFieldProps {
   onChange?: (value: string) => Promise<void>;
 }
 
-function TextField(props: TextFieldProps): JSX.Element {
+export function TextField(props: TextFieldProps): JSX.Element {
   const {
     defaultValue = '',
     value: propValue,

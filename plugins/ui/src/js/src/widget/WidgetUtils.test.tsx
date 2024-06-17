@@ -1,11 +1,12 @@
 import React from 'react';
 import { Text } from '@deephaven/components';
-import { ELEMENT_NAME, ELEMENT_PREFIX } from '../elements/ElementConstants';
-import { ElementNode, ELEMENT_KEY } from '../elements/ElementUtils';
+import {
+  ELEMENT_NAME,
+  ELEMENT_PREFIX,
+} from '../elements/model/ElementConstants';
+import { ElementNode, ELEMENT_KEY } from '../elements/utils/ElementUtils';
 import HTMLElementView from '../elements/HTMLElementView';
 import IconElementView from '../elements/IconElementView';
-import { SPECTRUM_ELEMENT_TYPE_PREFIX } from '../elements/SpectrumElementUtils';
-import SpectrumElementView from '../elements/SpectrumElementView';
 import {
   elementComponentMap,
   getComponentForElement,
@@ -29,7 +30,6 @@ describe('getComponentForElement', () => {
   it.each([
     /* eslint-disable react/jsx-key */
     [`${ELEMENT_PREFIX.html}div`, HTMLElementView],
-    [`${SPECTRUM_ELEMENT_TYPE_PREFIX}ActionButton`, SpectrumElementView],
     [`${ELEMENT_PREFIX.icon}vsAdd`, IconElementView],
     /* eslint-enable react/jsx-key */
   ] as [string, ({ element }: { element: unknown }) => JSX.Element][])(

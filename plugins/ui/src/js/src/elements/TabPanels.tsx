@@ -4,7 +4,9 @@ import {
   TabPanelsProps as DHCTabPanelsProps,
 } from '@deephaven/components';
 
-function TabPanels(props: DHCTabPanelsProps<React.ReactNode>): JSX.Element {
+export function TabPanels(
+  props: DHCTabPanelsProps<React.ReactNode>
+): JSX.Element {
   const { UNSAFE_style: unsafeStyle, ...otherProps } = props;
 
   return (
