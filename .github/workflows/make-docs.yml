@@ -48,6 +48,7 @@ jobs:
           mkdir -p $HOME/.config
           mkdir -p $HOME/.config/rclone
           echo ${{ secrets.RCLONE_CONFIG }} | base64 -d > $HOME/.config/rclone/rclone.conf
+          cat $HOME/.config/rclone/rclone.conf
 
       - name: Sync docs
         run: rclone sync plugins/${{ inputs.package }}/docs/build/markdown/ plugindocs:website/deephaven/deephaven-plugins/${{ inputs.package }}/${{ inputs.version }}/
