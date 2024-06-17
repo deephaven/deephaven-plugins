@@ -88,7 +88,16 @@
     "@rollup/rollup-linux-x64-musl": "4.9.6",
     "@rollup/rollup-win32-arm64-msvc": "4.9.6",
     "@rollup/rollup-win32-ia32-msvc": "4.9.6",
-    "@rollup/rollup-win32-x64-msvc": "4.9.6"
+    "@rollup/rollup-win32-x64-msvc": "4.9.6",
+    "@swc/core-darwin-arm64": "1.3.99",
+    "@swc/core-darwin-x64": "1.3.99",
+    "@swc/core-linux-arm64-gnu": "1.3.99",
+    "@swc/core-linux-arm64-musl": "1.3.99",
+    "@swc/core-linux-x64-gnu": "1.3.99",
+    "@swc/core-linux-x64-musl": "1.3.99",
+    "@swc/core-win32-arm64-msvc": "1.3.99",
+    "@swc/core-win32-ia32-msvc": "1.3.99",
+    "@swc/core-win32-x64-msvc": "1.3.99"
   },
   "prettier": "@deephaven/prettier-config"
 }
