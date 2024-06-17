@@ -58,7 +58,7 @@ export interface UITableProps {
   showSearch: boolean;
   showQuickFilters: boolean;
   contextMenu?: UIContextItem[];
-  contextColumnMenu?: UIContextItem[];
+  contextHeaderMenu?: UIContextItem[];
   [key: string]: unknown;
 }
 
