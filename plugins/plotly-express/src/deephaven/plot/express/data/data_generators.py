@@ -458,6 +458,53 @@ def election(ticking: bool = True):
     return merge([election_table.head(STATIC_ROWS - 1), ticking_table])
 
 
+def wind(ticking: bool = True):
+    """TODO: Docstring"""
+    wind_df = px.data.wind().astype({"direction": "string", "strength": "string"})
+    wind_table = to_table(wind_df)
+
+    if not ticking:
+        return wind_table
+
+    # functions to get correctly-typed values out of columns by index
+    def get_str_val(column: str, index: int) -> str:
+        return wind_df.loc[index, column]
+
+    def get_float_val(column: str, index: int) -> float:
+        return wind_df.loc[index, column]
+
+    TOTAL_ROWS = len(wind_df)
+    STATIC_ROWS = math.floor(TOTAL_ROWS * 0.33)
+    TICKING_ROWS = TOTAL_ROWS - STATIC_ROWS
+
+    # create ticking table
+    ticking_table = (
+        time_table("PT1S")
+        .update_view(
+            [
+                "iteration_num = (long)floor(ii / TICKING_ROWS) + 1",
+                "idx = iteration_num * STATIC_ROWS + ii",
+                "mod_idx = idx % TOTAL_ROWS",
+            ]
+        )
+        .last_by("mod_idx")
+        .update_by(cum_max("max_iteration = iteration_num"))
+        .where("iteration_num == max_iteration")
+        .drop_columns(["Timestamp", "iteration_num", "idx", "max_iteration"])
+        .update_view(
+            [
+                "direction = get_str_val(`direction`, mod_idx)",
+                "strength = get_str_val(`strength`, mod_idx)",
+                "frequency = get_float_val(`frequency`, mod_idx)",
+            ]
+        )
+        .drop_columns("mod_idx")
+    )
+
+    # combine initial static table and looping ticking table into one
+    return merge([wind_table.head(STATIC_ROWS - 1), ticking_table])
+
+
 def gapminder(ticking: bool = True) -> Table:
     """
     TODO: Docstring
