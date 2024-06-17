@@ -33,13 +33,6 @@ jobs:
       - name: Run make_docs.py
         run: python plugins/${{ inputs.package }}/make_docs.py
 
-      - name: Upload docs
-        uses: actions/upload-artifact@v3
-        with:
-          name: docs-${{ inputs.package }}-${{ inputs.version }}
-          path: plugins/${{ inputs.package }}/docs/build/markdown/
-          if-no-files-found: error
-
       - name: Setup rclone
         run: |
           sudo apt-get update
@@ -47,6 +40,7 @@ jobs:
           
           mkdir -p $HOME/.config
           mkdir -p $HOME/.config/rclone
+          # get hash of rclone config
           echo ${{ secrets.RCLONE_CONFIG }} | base64 -d > $HOME/.config/rclone/rclone.conf
 
       - name: Sync docs
