@@ -5,8 +5,8 @@ import numpy as np
 from plotly import express as px
 import math
 import random
-import typing
 import jpy
+from typing import Any, cast
 
 from deephaven.pandas import to_table
 from deephaven.replay import TableReplayer
@@ -90,8 +90,8 @@ def iris(ticking: bool = True) -> Table:
     # data, where col is the column name ('sepal_length', etc) and index is the
     # row number used as a random seed so that the data is deterministically generated
     def get_random_value(col: str, index: int, species: str) -> float:
-        mean = float(typing.cast(float, species_descriptions[col]["mean"][species]))
-        std = float(typing.cast(float, species_descriptions[col]["std"][species]))
+        mean = float(cast(float, species_descriptions[col]["mean"][species]))
+        std = float(cast(float, species_descriptions[col]["std"][species]))
         random.seed(index)
         return round(random.gauss(mean, std), 1)
 
@@ -437,12 +437,12 @@ def gapminder(ticking: bool = True) -> Table:
     def create_years(year: int, reps: int) -> list[int]:
         return [year + i for i in range(reps)]
 
-    def create_empty(val: typing.Any, reps: int) -> list[typing.Any]:
+    def create_empty(val: Any, reps: int) -> list[Any]:
         return [val, *[np.nan for _ in range(reps - 1)]]
 
     # split gapminder into pre-2007 and 2007, since 2007 need not be expanded in the same way as previous years
-    gapminder_no_2007 = typing.cast(pd.DataFrame, gapminder[gapminder["year"] != 2007])
-    gapminder_2007 = typing.cast(pd.DataFrame, gapminder[gapminder["year"] == 2007])
+    gapminder_no_2007 = cast(pd.DataFrame, gapminder[gapminder["year"] != 2007])
+    gapminder_2007 = cast(pd.DataFrame, gapminder[gapminder["year"] == 2007])
 
     # expand pre-2007 dataset into consecutive years, where each new year gets filled with np.nan
     gapminder_no_2007.loc[:, ["year"]] = gapminder_no_2007["year"].apply(
@@ -459,7 +459,7 @@ def gapminder(ticking: bool = True) -> Table:
     gapminder_no_2007.insert(
         loc=3,
         column="month",
-        value=typing.cast(
+        value=cast(
             pd.Series,
             create_months(len(gapminder_no_2007)),
         ),
@@ -477,7 +477,7 @@ def gapminder(ticking: bool = True) -> Table:
     gapminder_2007.insert(
         loc=3,
         column="month",
-        value=typing.cast(pd.Series, [1 for _ in range(len(gapminder_2007))]),
+        value=cast(pd.Series, [1 for _ in range(len(gapminder_2007))]),
     )
 
     # combine expanded pre-2007 dataset with 2007 dataset, sort by country and year
@@ -499,7 +499,7 @@ def gapminder(ticking: bool = True) -> Table:
     )
 
     # compute linearly interpolated values for each month, round population
-    gapminder_interp_vals = typing.cast(
+    gapminder_interp_vals = cast(
         pd.DataFrame,
         (
             gapminder_combined.groupby("country", observed=True, as_index=True)[
@@ -587,9 +587,7 @@ def gapminder(ticking: bool = True) -> Table:
     return merge(
         [
             to_table(
-                typing.cast(
-                    pd.DataFrame, gapminder_interp[gapminder_interp["year"] <= 1960]
-                )
+                cast(pd.DataFrame, gapminder_interp[gapminder_interp["year"] <= 1960])
             ),
             ticking_table,
         ]
