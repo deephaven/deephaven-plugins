@@ -39,3 +39,10 @@ jobs:
           name: docs-${{ inputs.package }}-${{ inputs.version }}
           path: plugins/${{ inputs.package }}/docs/build/markdown/
           if-no-files-found: error
+
+      - name: Setup Rclone
+        uses: AnimMouse/setup-rclone@v1
+        with:
+          rclone_config: ${{ secrets.RCLONE_CONFIG }}
+
+      - run: rclone sync plugins/${{ inputs.package }}/docs/build/markdown/ plugindocs:website/deephaven/deephaven-plugins/${{ inputs.package }}/${{ inputs.version }}/
