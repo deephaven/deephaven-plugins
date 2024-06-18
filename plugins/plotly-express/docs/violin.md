@@ -10,3 +10,9 @@ Violin plots are useful for:
 4. **Multimodal Data**: They are particularly useful when dealing with data that exhibits multiple modes or peaks, as they can reveal these underlying patterns effectively.
 
 ## Examples
+
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.violin
+```

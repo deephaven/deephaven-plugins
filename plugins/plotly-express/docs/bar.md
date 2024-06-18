@@ -12,3 +12,8 @@ Advantages of bar plots include:
 Bar plots have limitations and are not suitable for certain scenarios. They are not ideal for continuous data, ineffective for multi-dimensional data exceeding two dimensions, and unsuitable for time-series data trends. Additionally, they become less practical with extremely sparse datasets and are inadequate for representing complex interactions or correlations among multiple variables.
 
 ## Examples
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.bar
+```
