@@ -1,4 +1,4 @@
-import React, { Children, Key, isValidElement } from 'react';
+import React, { Children, Key, ReactElement, isValidElement } from 'react';
 import {
   Tabs as DHCTabs,
   TabsProps,
@@ -45,9 +45,11 @@ function Tabs(props: TabComponentProps): JSX.Element {
     throw new Error('Duplicate keys found in Tab items.');
   }
 
-  const tabChildrenConfig = (isTabList: boolean) =>
-    childrenArray.map((child, index) => {
-      if (!React.isValidElement(child)) return null;
+  const tabChildrenConfig = (isTabList: boolean) => {
+    const items = childrenArray.map((child, index) => {
+      if (!isValidElement(child)) {
+        return null;
+      }
       const key =
         child.key ??
         (typeof child.props.title === 'string'
@@ -59,6 +61,63 @@ function Tabs(props: TabComponentProps): JSX.Element {
         </Item>
       );
     });
+    return items;
+  };
+
+  // const tabChildrenConfig = (isTabList: boolean) =>
+  //   Children.map(
+  //     children as ReactElement<TabProps>[],
+  //     (child: ReactElement<TabProps>, index: number) => (
+  //       <Item
+  //         key={
+  //           // eslint-disable-next-line no-nested-ternary
+  //           child.props.key !== undefined
+  //             ? child.props.key
+  //             : typeof child.props.title === 'string'
+  //             ? child.props.title
+  //             : `Key ${index}`
+  //         }
+  //       >
+  //         {isTabList ? child.props.title : child.props.children}
+  //       </Item>
+  //     )
+  //   );
+
+  const tabItems = Children.map(
+    children as ReactElement<TabProps>[],
+    (child: ReactElement<TabProps>, index) => (
+      <Item
+        key={
+          // eslint-disable-next-line no-nested-ternary
+          child.props.key !== undefined
+            ? child.props.key
+            : typeof child.props.title === 'string'
+            ? child.props.title
+            : `Key ${index}`
+        }
+      >
+        {child.props.title}
+      </Item>
+    )
+  );
+
+  const tabPanels = Children.map(
+    children as ReactElement<TabProps>[],
+    (child: ReactElement<TabProps>, index) => (
+      <Item
+        key={
+          // eslint-disable-next-line no-nested-ternary
+          child.props.key !== undefined
+            ? child.props.key
+            : typeof child.props.title === 'string'
+            ? child.props.title
+            : `Key ${index}`
+        }
+      >
+        {child.props.children}
+      </Item>
+    )
+  );
 
   return (
     <DHCTabs
@@ -67,12 +126,8 @@ function Tabs(props: TabComponentProps): JSX.Element {
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...otherTabProps}
     >
-      <TabList>
-        {tabChildrenConfig(true) as CollectionChildren<TabProps>}
-      </TabList>
-      <TabPanels>
-        {tabChildrenConfig(false) as CollectionChildren<TabProps>}
-      </TabPanels>
+      <TabList>{tabItems as CollectionChildren<unknown>}</TabList>
+      <TabPanels>{tabPanels as CollectionChildren<unknown>}</TabPanels>
     </DHCTabs>
   );
 }

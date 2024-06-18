@@ -1,7 +1,8 @@
 from __future__ import annotations
 from typing import Any
 
-from ..elements import BaseElement
+from .basic import component_element
+
 from ..types import Key
 
 
@@ -18,8 +19,8 @@ def tab(
         title: The title of the tab item.
         key: The unique key of the tab item.
     """
-    return BaseElement(
-        "deephaven.ui.spectrum.Tab",
+    return component_element(
+        "Tab",
         *children,
         title=title,
         key=key,

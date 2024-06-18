@@ -2,8 +2,9 @@ from __future__ import annotations
 from numbers import Number
 from typing import Any, Callable, Iterable
 
+from .basic import component_element
 
-from components.types import (
+from .types import (
     KeyboardActivationType,
     Orientation,
     AlignSelf,
@@ -13,8 +14,8 @@ from components.types import (
     LayoutFlex,
     Position,
 )
+
 from ..types import Key, TabDensity
-from .basic import component_element
 
 
 def tabs(
