@@ -5,7 +5,7 @@
 import os
 import sys
 
-sys.path.append(os.path.abspath("./_ext"))
+sys.path.append(os.path.abspath("../../sphinx_ext"))
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -24,7 +24,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx_markdown_builder",
     "sphinx_autodoc_typehints",
-    "helloworld",
+    "deephaven_autodoc",
 ]
 
 source_suffix = [".rst", ".md"]  # Can use either rst or markdown files as input
