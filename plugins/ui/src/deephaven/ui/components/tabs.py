@@ -140,14 +140,21 @@ def tabs(
     tab_children = [
         child for child in children if child.name == "deephaven.ui.spectrum.Tab"
     ]
-    tab_list_or_panel_children = [
-        child
-        for child in children
-        if child.name
-        in ["deephaven.ui.spectrum.TabList", "deephaven.ui.spectrum.TabPanels"]
+
+    tab_list_children = [
+        child for child in children if child.name == "deephaven.ui.spectrum.TabList"
+    ]
+    tab_panels_children = [
+        child for child in children if child.name == "deephaven.ui.spectrum.TabPanels"
     ]
 
-    if tab_children and tab_list_or_panel_children:
+    tab_list_keys = {list_child.key for list_child in tab_list_children}
+    tab_panels_keys = {panel_child.key for panel_child in tab_panels_children}
+
+    if tab_list_keys != tab_panels_keys:
+        raise ValueError("Mismatching keys found between tab list and tab panels.")
+
+    if tab_children and (tab_list_children and tab_panels_children):
         raise TypeError("Tabs cannot have both Tab and TabList or TabPanels children.")
 
     return component_element(

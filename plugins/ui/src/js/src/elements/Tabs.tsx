@@ -1,4 +1,4 @@
-import React, { ReactElement, Children, Key } from 'react';
+import React, { Children, Key, isValidElement } from 'react';
 import {
   Tabs as DHCTabs,
   TabsProps,
@@ -6,6 +6,7 @@ import {
   TabList,
   Item,
 } from '@deephaven/components';
+// TODO: #2084 Re-export @react-types/shared types
 import { CollectionChildren } from '@react-types/shared';
 import { TabProps } from './Tab';
 
@@ -15,32 +16,21 @@ type TabComponentProps = TabsProps<TabProps> & {
 };
 
 function Tabs(props: TabComponentProps): JSX.Element {
-  const { children, ...otherTabProps } = props;
-
-  const { onSelectionChange, onChange } = otherTabProps;
-
-  let tabItems;
-  let tabPanels;
-
+  const { children, onSelectionChange, ...otherTabProps } = props;
   const childrenArray = Children.toArray(children);
 
   if (
     childrenArray.some(
       child =>
-        (child as ReactElement).type === TabPanels ||
-        (child as ReactElement).type === TabList
+        // isValidElement check is necessary to avoid TS error when accessing type of child
+        isValidElement(child) &&
+        (child.type === TabPanels || child.type === TabList)
     )
   ) {
     return (
       <DHCTabs
-        UNSAFE_style={{
-          display: 'flex',
-          flexDirection: 'column',
-          flexGrow: 1,
-          height: '100%',
-          width: '100%',
-        }}
-        onSelectionChange={onSelectionChange ?? onChange}
+        UNSAFE_className="dh-tabs"
+        onSelectionChange={onSelectionChange}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...otherTabProps}
       >
@@ -49,66 +39,40 @@ function Tabs(props: TabComponentProps): JSX.Element {
     );
   }
 
-  // handle case where children are Item components
   // check for duplicate keys
   const keys = childrenArray.map(child => (child as TabProps).key);
   if (new Set(keys).size !== keys.length) {
     throw new Error('Duplicate keys found in Tab items.');
   }
 
-  // eslint-disable-next-line prefer-const
-  tabItems = Children.map(
-    children as ReactElement<TabProps>[],
-    (child: ReactElement<TabProps>, index) => (
-      <Item
-        key={
-          // eslint-disable-next-line no-nested-ternary
-          child.props.key !== undefined
-            ? child.props.key
-            : typeof child.props.title === 'string'
-            ? child.props.title
-            : `Key ${index}`
-        }
-      >
-        {child.props.title}
-      </Item>
-    )
-  );
-
-  // eslint-disable-next-line prefer-const
-  tabPanels = Children.map(
-    children as ReactElement<TabProps>[],
-    (child: ReactElement<TabProps>, index) => (
-      <Item
-        key={
-          // eslint-disable-next-line no-nested-ternary
-          child.props.key !== undefined
-            ? child.props.key
-            : typeof child.props.title === 'string'
-            ? child.props.title
-            : `Key ${index}`
-        }
-      >
-        {child.props.children}
-      </Item>
-    )
-  );
+  const tabChildrenConfig = (isTabList: boolean) =>
+    childrenArray.map((child, index) => {
+      if (!React.isValidElement(child)) return null;
+      const key =
+        child.key ??
+        (typeof child.props.title === 'string'
+          ? child.props.title
+          : `Key-${index}`);
+      return (
+        <Item key={key}>
+          {isTabList ? child.props.title : child.props.children}
+        </Item>
+      );
+    });
 
   return (
     <DHCTabs
-      UNSAFE_style={{
-        display: 'flex',
-        flexDirection: 'column',
-        flexGrow: 1,
-        height: '100%',
-        width: '100%',
-      }}
-      onSelectionChange={onSelectionChange ?? onChange}
+      UNSAFE_className="dh-tabs"
+      onSelectionChange={onSelectionChange}
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...otherTabProps}
     >
-      <TabList>{tabItems}</TabList>
-      <TabPanels>{tabPanels}</TabPanels>
+      <TabList>
+        {tabChildrenConfig(true) as CollectionChildren<TabProps>}
+      </TabList>
+      <TabPanels>
+        {tabChildrenConfig(false) as CollectionChildren<TabProps>}
+      </TabPanels>
     </DHCTabs>
   );
 }

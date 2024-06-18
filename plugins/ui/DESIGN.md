@@ -1036,7 +1036,7 @@ If you're just using the default tab layout and don't need to customize the appe
 ```py
 from deephaven import empty_table, ui
 
-ui.tabs(
+t= ui.tabs(
     # Render a tab with the title "Tab 1" with "Content 1" as tab content, given that no key is passed, would be set to "Tab 1"
     ui.tab("Content 1", title="Tab 1"),
 
@@ -1064,7 +1064,7 @@ ui.tabs(
 
 ```py
 from deephaven import ui
-ui.tabs(
+t = ui.tabs(
     # Render a tabs that have an on_change, which prints the selected tab key when a tab is selected
     ui.tab("Content 1", title="Tab 1", key="Key 1"),
     ui.tab("Content 2", title="Tab 2", key="Key 2"),
@@ -1081,7 +1081,7 @@ With this method, the keys must be provided and match for the tabs declared in t
 ```py
 from deephaven import ui
 # Tabs specified by passing in tab_panels and tab_list
-ui.tabs(
+t = ui.tabs(
     # Render a Tab with a title of "Tab 1", with a content of "Content 1", keyed "Key 1"
     ui.tab_list(ui.item("Tab 1", key="Key 1"), ui.item("Tab 2", key="Key 2")),
     ui.tab_panels(
@@ -1097,12 +1097,13 @@ ui.tabs(
 If there are tabs with mismatching keys when specifying tabs with `ui.tab_list` and `ui.tab_panels` as there is below, the item outlined in the `tab_list` will render as a tab, but with no content. The item in the `tab_panels` will be disregarded, since there is no corresponding item in the `tab_list`.
 
 ```py
-ui.tabs(
-    ui.tab_list(ui.item("Tab 1", key="Key 1"), ui.item("Tab 2", key="Key 2")),
-    # No tab in tab_panels keyed "Key 2"
+t = ui.tabs(
+    ui.tab_list(
+      ui.item("Tab 1", key="Key 1"),
+      ui.item("Tab 2", key="Key 2")), # No tab in tab_panels keyed "Key 2"
     ui.tab_panels(
         ui.item("Content 3", key="Key 1"),
-        ui.item("Content 2", key="Key 3"),
+        ui.item("Content 2", key="Key 3"), # No header w/ "Key 3". Will be dropped
         flex_grow=1,
         position="relative",
     ),

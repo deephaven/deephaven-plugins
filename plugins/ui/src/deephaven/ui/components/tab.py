@@ -16,7 +16,7 @@ def tab(
     Args:
         *children: Content of the tab item.
         title: The title of the tab item.
-        key: The key of the tab item.
+        key: The unique key of the tab item.
     """
     return BaseElement(
         "deephaven.ui.spectrum.Tab",
