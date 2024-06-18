@@ -20,7 +20,6 @@ import {
   Section,
   Switch,
   TabList,
-  Tabs,
   Text,
   ToggleButton,
   View,
@@ -58,6 +57,8 @@ import {
   TabPanels,
   TextField,
   UITable,
+  Tab,
+  Tabs,
 } from '../elements';
 
 /**
@@ -113,6 +114,7 @@ export const elementComponentMap = {
   [ELEMENT_NAME.switch]: Switch,
   [ELEMENT_NAME.tabList]: TabList,
   [ELEMENT_NAME.tabPanels]: TabPanels,
+  [ELEMENT_NAME.tab]: Tab,
   [ELEMENT_NAME.tabs]: Tabs,
   [ELEMENT_NAME.text]: Text,
   [ELEMENT_NAME.textField]: TextField,

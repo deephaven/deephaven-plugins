@@ -7,7 +7,7 @@ export interface TabProps {
   key: string | number;
 }
 
-function Tab(props: TabProps): React.JSX.Element {
+export function Tab(props: TabProps): React.JSX.Element {
   const { title, children, key } = props;
   return (
     <Item key={key} title={title}>

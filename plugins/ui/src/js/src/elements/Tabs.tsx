@@ -1,4 +1,4 @@
-import React, { Children, Key, ReactElement, isValidElement } from 'react';
+import React, { Children, Key, isValidElement } from 'react';
 import {
   Tabs as DHCTabs,
   TabsProps,
@@ -15,7 +15,7 @@ type TabComponentProps = TabsProps<TabProps> & {
   onChange?: (key: Key) => void;
 };
 
-function Tabs(props: TabComponentProps): JSX.Element {
+export function Tabs(props: TabComponentProps): JSX.Element {
   const { children, onSelectionChange, ...otherTabProps } = props;
   const childrenArray = Children.toArray(children);
 
@@ -46,78 +46,34 @@ function Tabs(props: TabComponentProps): JSX.Element {
   }
 
   const tabChildrenConfig = (isTabList: boolean) => {
-    const items = childrenArray.map((child, index) => {
-      if (!isValidElement(child)) {
-        return null;
-      }
-      const key =
-        child.key ??
-        (typeof child.props.title === 'string'
-          ? child.props.title
-          : `Key-${index}`);
-      return (
-        <Item key={key}>
-          {isTabList ? child.props.title : child.props.children}
-        </Item>
-      );
-    });
+    const items = childrenArray
+      .map((child, index) => {
+        if (!isValidElement(child)) {
+          return null;
+        }
+        const key =
+          child.key ??
+          (typeof child.props.title === 'string'
+            ? child.props.title
+            : `Key-${index}`);
+        return (
+          <Item key={key}>
+            {isTabList ? child.props.title : child.props.children}
+          </Item>
+        );
+      })
+      .filter(isTabElement);
     return items;
   };
 
-  // const tabChildrenConfig = (isTabList: boolean) =>
-  //   Children.map(
-  //     children as ReactElement<TabProps>[],
-  //     (child: ReactElement<TabProps>, index: number) => (
-  //       <Item
-  //         key={
-  //           // eslint-disable-next-line no-nested-ternary
-  //           child.props.key !== undefined
-  //             ? child.props.key
-  //             : typeof child.props.title === 'string'
-  //             ? child.props.title
-  //             : `Key ${index}`
-  //         }
-  //       >
-  //         {isTabList ? child.props.title : child.props.children}
-  //       </Item>
-  //     )
-  //   );
-
-  const tabItems = Children.map(
-    children as ReactElement<TabProps>[],
-    (child: ReactElement<TabProps>, index) => (
-      <Item
-        key={
-          // eslint-disable-next-line no-nested-ternary
-          child.props.key !== undefined
-            ? child.props.key
-            : typeof child.props.title === 'string'
-            ? child.props.title
-            : `Key ${index}`
-        }
-      >
-        {child.props.title}
-      </Item>
-    )
-  );
-
-  const tabPanels = Children.map(
-    children as ReactElement<TabProps>[],
-    (child: ReactElement<TabProps>, index) => (
-      <Item
-        key={
-          // eslint-disable-next-line no-nested-ternary
-          child.props.key !== undefined
-            ? child.props.key
-            : typeof child.props.title === 'string'
-            ? child.props.title
-            : `Key ${index}`
-        }
-      >
-        {child.props.children}
-      </Item>
-    )
-  );
+  function isTabElement(item: any): item is React.ReactElement {
+    return (
+      item !== null &&
+      typeof item === 'object' &&
+      'type' in item &&
+      'props' in item
+    );
+  }
 
   return (
     <DHCTabs
@@ -126,8 +82,10 @@ function Tabs(props: TabComponentProps): JSX.Element {
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...otherTabProps}
     >
-      <TabList>{tabItems as CollectionChildren<unknown>}</TabList>
-      <TabPanels>{tabPanels as CollectionChildren<unknown>}</TabPanels>
+      <TabList>{tabChildrenConfig(true)}</TabList>
+      <TabPanels UNSAFE_className="dh-tabs">
+        {tabChildrenConfig(false)}
+      </TabPanels>
     </DHCTabs>
   );
 }
