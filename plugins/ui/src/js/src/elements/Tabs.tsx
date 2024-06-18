@@ -66,6 +66,7 @@ export function Tabs(props: TabComponentProps): JSX.Element {
     return items;
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function isTabElement(item: any): item is React.ReactElement {
     return (
       item !== null &&
