@@ -404,7 +404,37 @@ def tips(ticking: bool = True) -> Table:
 
 
 def election(ticking: bool = True):
-    """TODO: Docstring"""
+    """
+    Returns a ticking version of the Election dataset included in the plotly-express package.
+
+    When this function is called, it will return a table containing the first 19 rows of the dataset.
+    Then, a new row will tick in each second, until all 58 rows are included in the table. The table will
+    then reset to the first 19 rows, and continue ticking in this manner until it is deleted or otherwise cleaned up.
+
+    Notes:
+        Contains the following columns:
+        - district: a string containing the name of the district that the votes were cast in
+        - Coderre: the number of votes that the candidate Coderre received in the district
+        - Bergeron: the number of votes that the candidate Bergeron received in the district
+        - Joly: the number of votes that the candidate Joly received in the district
+        - total: the total number of votes cast in the district
+        - winner: a string containing the name of the winning candidate for that district
+        - result: a string indicating whether the victory was by majority or plurality
+        - district_id: a numerical ID for the district
+
+    Args:
+        ticking:
+            If true, the table will tick new data every second.
+
+    Returns:
+        A Deephaven Table
+
+    Examples:
+        ```
+        from deephaven.plot import express as dx
+        election = dx.data.election()
+        ```
+    """
     # read in election data, cast types appropriately, convert to Deephaven table
     election_df = px.data.election().astype(
         {"district": "string", "winner": "string", "result": "string"}
@@ -459,7 +489,32 @@ def election(ticking: bool = True):
 
 
 def wind(ticking: bool = True):
-    """TODO: Docstring"""
+    """
+    Returns a ticking version of the Wind dataset included in the plotly-express package.
+
+    When this function is called, it will return a table containing the first 42 rows of the dataset.
+    Then, a new row will tick in each second, until all 128 rows are included in the table. The table will
+    then reset to the first 42 rows, and continue ticking in this manner until it is deleted or otherwise cleaned up.
+
+    Notes:
+        Contains the following columns:
+        - direction: a string indicating the direction of the wind gust
+        - strength: a string indicating the strength of the wind gust, from 0-1 to 6+
+        - frequency: the frequency of each gust strength in each direction
+
+    Args:
+        ticking:
+            If true, the table will tick new data every second.
+
+    Returns:
+        A Deephaven Table
+
+    Examples:
+        ```
+        from deephaven.plot import express as dx
+        wind = dx.data.wind()
+        ```
+    """
     wind_df = px.data.wind().astype({"direction": "string", "strength": "string"})
     wind_table = to_table(wind_df)
 
@@ -507,7 +562,42 @@ def wind(ticking: bool = True):
 
 def gapminder(ticking: bool = True) -> Table:
     """
-    TODO: Docstring
+    Returns a ticking version of the Gapminder world statistics dataset.
+
+    The original Gapminder dataset from the plotly-express package has a single measurement per country once every five
+    years, starting in 1952 and ending in 2007. This resolution is not ideal for ticking data. So, this ticking version
+    creates new data points for every country at every month between measurements. For example, between two real
+    observations in 1952 and 1957, there are 12 * 5 - 1 synthetic observations for population, life expectancy, and GDP.
+    The synthetic data are simply computed by linear interpolation of the two nearest real observations. Finally, the
+    dataset ticks in one new month every second, and every country in the dataset gets updated each time, so a total of
+    142 rows tick in per second. The dataset starts with years up to 1961, ticks in each month till 2007, and then
+    repeats until the table is cleaned up or deleted.
+
+    Notes:
+        Contains the following columns:
+        - country: a string containing the name of the country
+        - continent: a string containing the name of the continent that the country belongs to
+        - year: the year that the measurement was taken
+        - month: the month (1 - 12) that the measurement was taken
+        - lifeExp: average life expectancy
+        - pop: population total
+        - gdpPercap: per-capita GDP
+
+    Args:
+        ticking:
+            If true, the table will tick new data every second.
+
+    Returns:
+        A Deephaven Table
+
+    References:
+        - https://www.gapminder.org/data/
+
+    Examples:
+        ```
+        from deephaven.plot import express as dx
+        gapminder = dx.data.gapminder()
+        ```
     """
     # static and ticking cases are treated differently due to different types needed for pandas manipulation
     if not ticking:
