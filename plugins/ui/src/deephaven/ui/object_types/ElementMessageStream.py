@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from hmac import new
 import io
 import json
 import sys
