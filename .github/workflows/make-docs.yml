@@ -40,7 +40,6 @@ jobs:
           
           mkdir -p $HOME/.config
           mkdir -p $HOME/.config/rclone
-          # get hash of rclone config
           echo ${{ secrets.RCLONE_CONFIG }} | base64 -d > $HOME/.config/rclone/rclone.conf
 
       - name: Sync docs

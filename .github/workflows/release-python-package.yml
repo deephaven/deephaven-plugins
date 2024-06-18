@@ -46,6 +46,7 @@ jobs:
     needs: release
     if: ${{ inputs.package == 'plotly-express' }}
     uses: ./.github/workflows/make-docs.yml
+    secrets: inherit
     with:
       package: ${{ inputs.package }}
       version: ${{ inputs.version }}
