@@ -9,3 +9,13 @@ Ternary scatter plots are useful for:
 3. **Optimization Studies**: Ternary scatter plots aid in optimization studies to understand how adjustments in the proportions of three components impact the overall composition, making them valuable in informed decision-making processes.
 
 ## Examples
+
+### A basic ternary scatter plot
+
+```python order=election_scatter,election
+import deephaven.plot.express as dx
+election = dx.data.election() # import a ticking version of the Election dataset
+
+# create a ternary scatter plot by specifying the columns for the three points of the triangle
+election_scatter = dx.scatter_ternary(election, a="Joly", b="Coderre", c="Bergeron")
+```

@@ -7,3 +7,15 @@ Ternary line plots are useful for:
 1. **Compositional Data Representation**: Ternary line plots are suitable for representing compositional data where the total proportion remains constant, allowing for the visualization of how components change relative to one another.
 2. **Multivariate Data Analysis**: They are useful in multivariate data analysis to visualize relationships and trends among three variables or components that are interrelated.
 3. **Optimization Studies**: Ternary line plots can be applied in optimization studies to understand how adjustments in the proportions of three components impact the overall composition, aiding in informed decision-making.
+
+## Examples
+
+### A basic ternary line plot
+
+```python order=election_line,election
+import deephaven.plot.express as dx
+election = dx.data.election() # import a ticking version of the Election dataset
+
+# create a ternary line plot by specifying the columns for the three points of the triangle
+election_line = dx.line_ternary(election, a="Joly", b="Coderre", c="Bergeron")
+```

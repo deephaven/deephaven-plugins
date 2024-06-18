@@ -14,5 +14,3 @@ Empirical Cumulative Distribution Function (ECDF) are useful for:
 2. **Comparison of Datasets**: For comparing the distributions of multiple datasets or variables, particularly when assessing how they differ or overlap.
 3. **Outlier Identification**: To identify potential outliers and extreme values within the dataset, as they often stand out in the ECDF plot.
 4. **Hypothesis Testing**: When conducting hypothesis tests, an ECDF can help assess whether the observed data conforms to a specific theoretical distribution or model, aiding in statistical analysis and decision-making.
-
-## Examples

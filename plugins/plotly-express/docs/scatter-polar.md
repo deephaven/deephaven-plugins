@@ -9,3 +9,13 @@ Polar scatter plots are useful for:
 3. **Angular or Periodic Data Relationships**: Polar scatter plots aid in exploring relationships and correlations in data with angular or periodic dependencies, making them suitable for applications where understanding circular patterns is essential.
 
 ## Examples
+
+### A basic polar scatter plot
+
+```python order=wind_scatter,wind
+import deephaven.plot.express as dx
+wind = dx.data.wind() # import a ticking version of the Wind dataset
+
+# create a polar scatter plot by specifying r and theta. `by` is used to separate data by groups
+wind_scatter = dx.scatter_polar(wind, r="frequency", theta="direction", by="strength")
+```

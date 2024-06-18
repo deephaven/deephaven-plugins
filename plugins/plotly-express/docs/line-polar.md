@@ -10,3 +10,13 @@ Polar line plots are useful for:
 4. **Circular Data Exploration**: They can be used to explore and analyze data where the angular or periodic nature of the data is a significant aspect, making them useful in fields like meteorology, geophysics, and biology.
 
 ## Examples
+
+### A basic polar line plot
+
+```python order=wind_line,wind
+import deephaven.plot.express as dx
+wind = dx.data.wind() # import a ticking version of the Wind dataset
+
+# create a polar line plot by specifying r and theta. `by` is used to separate data by groups
+wind_line = dx.line_polar(wind, r="frequency", theta="direction", by="strength")
+```
