@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   DehydratedQuickFilter,
@@ -44,18 +38,11 @@ function UITable({
   contextHeaderMenu,
 }: UITableProps): JSX.Element | null {
   const dh = useApi();
-  const irisGridRef = useRef<IrisGridType>(null);
   const [irisGrid, setIrisGrid] = useState<IrisGridType | null>(null);
   const [model, setModel] = useState<IrisGridModel>();
   const [columns, setColumns] = useState<dh.Table['columns']>();
   const utils = useMemo(() => new IrisGridUtils(dh), [dh]);
   const settings = useSelector(getSettings<RootState>);
-
-  useEffect(() => {
-    if (irisGridRef.current) {
-      setIrisGrid(irisGridRef.current);
-    }
-  }, []);
 
   const hydratedSorts = useMemo(() => {
     if (sorts !== undefined && columns !== undefined) {
