@@ -1,6 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable import/prefer-default-export */
 import React, { ComponentType } from 'react';
+import type { JSONRPCServerAndClient } from 'json-rpc-2.0';
 // Importing `Item` and `Section` compnents directly since they should not be
 // wrapped due to how Spectrum collection components consume them.
 import {
@@ -26,12 +27,15 @@ import {
   View,
 } from '@deephaven/components';
 import { ValueOf } from '@deephaven/utils';
+import Log from '@deephaven/log';
 import { ReadonlyWidgetData, WidgetAction, isWidgetError } from './WidgetTypes';
 import {
   ElementNode,
   ELEMENT_KEY,
   isElementNode,
   wrapElementChildren,
+  isCallableNode,
+  CALLABLE_KEY,
   wrapTextChildren,
 } from '../elements/utils/ElementUtils';
 import HTMLElementView from '../elements/HTMLElementView';
@@ -69,6 +73,8 @@ const shouldWrapTextChildren = new Set<string>([
   ELEMENT_NAME.grid,
   ELEMENT_NAME.view,
 ]);
+
+const log = Log.module('@deephaven/js-plugin-ui/WidgetUtils');
 
 /*
  * Map element node names to their corresponding React components
@@ -175,6 +181,56 @@ export function getPreservedData(
   return Object.fromEntries(
     Object.entries(oldData).filter(([key]) => PRESERVED_DATA_KEYS_SET.has(key))
   );
+}
+
+/**
+ * Wraps a callable returned by the server so any returned callables are also wrapped.
+ * The callable will also be added to the finalization registry so it can be cleaned up
+ * when there are no more strong references to the callable.
+ * @param jsonClient The JSON client to send callable requests to
+ * @param callableId The callableId to return a wrapped callable for
+ * @param registry The finalization registry to register the callable with.
+ * @returns A wrapped callable that will automatically wrap any nested callables returned by the server
+ */
+export function wrapCallable(
+  jsonClient: JSONRPCServerAndClient,
+  callableId: string,
+  registry: FinalizationRegistry<string>
+): (...args: unknown[]) => Promise<unknown> {
+  const callable = async (...args: unknown[]) => {
+    log.debug2(`Callable ${callableId} called`, args);
+    const resultString = await jsonClient.request('callCallable', [
+      callableId,
+      args,
+    ]);
+
+    log.debug2(`Callable ${callableId} result string`, resultString);
+
+    try {
+      // Do NOT add anything that logs result
+      // It creates a strong ref to the result object in the console logs
+      // As a result, any returned callables will never be GC'd and the finalization registry will never clean them up
+      const result = JSON.parse(resultString, (key, value) => {
+        if (isCallableNode(value)) {
+          const nestedCallable = wrapCallable(
+            jsonClient,
+            value[CALLABLE_KEY],
+            registry
+          );
+          return nestedCallable;
+        }
+        return value;
+      });
+
+      return result;
+    } catch {
+      throw new Error(`Error parsing callable result: ${resultString}`);
+    }
+  };
+
+  registry.register(callable, callableId, callable);
+
+  return callable;
 }
 
 /**
