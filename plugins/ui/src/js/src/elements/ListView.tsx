@@ -3,11 +3,14 @@ import { isElementOfType } from '@deephaven/react-hooks';
 import { getSettings, RootState } from '@deephaven/redux';
 import { ListView as DHListView } from '@deephaven/components';
 import { ListView as DHListViewJSApi } from '@deephaven/jsapi-components';
-import { SerializedListViewProps, useListViewProps } from './useListViewProps';
+import {
+  SerializedListViewProps,
+  useListViewProps,
+} from './hooks/useListViewProps';
 import ObjectView from './ObjectView';
-import useReExportedTable from './useReExportedTable';
+import useReExportedTable from './hooks/useReExportedTable';
 
-function ListView(props: SerializedListViewProps): JSX.Element | null {
+export function ListView(props: SerializedListViewProps): JSX.Element | null {
   const settings = useSelector(getSettings<RootState>);
   const { children, ...listViewProps } = useListViewProps(props);
 

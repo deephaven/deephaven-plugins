@@ -15,13 +15,13 @@ import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { getSettings, RootState } from '@deephaven/redux';
 import { GridMouseHandler } from '@deephaven/grid';
-import { UITableProps, wrapContextActions } from './UITableUtils';
-import UITableMouseHandler from './UITableMouseHandler';
+import { UITableProps, wrapContextActions } from './utils/UITableUtils';
+import UITableMouseHandler from './utils/UITableMouseHandler';
 import UITableContextMenuHandler from './UITableContextMenuHandler';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
 
-function UITable({
+export function UITable({
   onCellPress,
   onCellDoublePress,
   onColumnPress,

@@ -3,8 +3,9 @@ from __future__ import annotations
 from numbers import Number
 from typing import Callable, Iterable
 
+from .basic import component_element
 from .item import Item
-from ..elements import BaseElement, Element
+from ..elements import Element
 from ..types import (
     Key,
     ActionKey,
@@ -13,7 +14,12 @@ from ..types import (
     SelectionMode,
     Selection,
 )
-from .spectrum.layout import (
+from .types import (
+    # Events
+    ButtonLabelBehavior,
+    Orientation,
+    StaticColor,
+    # Layout
     AlignSelf,
     CSSProperties,
     DimensionValue,
@@ -22,7 +28,6 @@ from .spectrum.layout import (
     OverflowMode,
     Position,
 )
-from .spectrum.events import ButtonLabelBehavior, Orientation, StaticColor
 
 ListActionGroupElement = Element
 
@@ -163,8 +168,8 @@ def list_action_group(
         A ListActionGroup that can be used within the actions prop of a `ui.list_view` component.
     """
 
-    return BaseElement(
-        "deephaven.ui.components.ListActionGroup",
+    return component_element(
+        "ListActionGroup",
         *children,
         on_action=on_action,
         on_change=on_change,

@@ -10,3 +10,8 @@ Box plots are useful for:
 4. **Robustness**: Box plots are robust to extreme values and data skewness, providing a reliable means of visualizing data distributions even in the presence of outliers or non-normal data.
 
 ## Examples
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.box
+```

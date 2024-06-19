@@ -9,3 +9,9 @@ Ternary scatter plots are useful for:
 3. **Optimization Studies**: Ternary scatter plots aid in optimization studies to understand how adjustments in the proportions of three components impact the overall composition, making them valuable in informed decision-making processes.
 
 ## Examples
+
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.scatter_ternary
+```

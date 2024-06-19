@@ -3,8 +3,8 @@ import {
   RadioGroupProps as DHRadioGroupProps,
 } from '@deephaven/components';
 import { Orientation } from '@react-types/shared';
-import { SerializedFocusEventProps } from './SerializedPropTypes';
-import { useFocusEventCallback } from './spectrum/useFocusEventCallback';
+import { SerializedFocusEventProps } from './model/SerializedPropTypes';
+import { useFocusEventCallback } from './hooks/useFocusEventCallback';
 
 export type SerializedRadioGroupProps = Omit<
   SerializedFocusEventProps<DHRadioGroupProps>,
@@ -13,7 +13,7 @@ export type SerializedRadioGroupProps = Omit<
   orientation?: Orientation | Uppercase<Orientation>;
 };
 
-function RadioGroup({
+export function RadioGroup({
   onFocus: serializedOnFocus,
   onBlur: serializedOnBlur,
   orientation: orientationMaybeUppercase,
