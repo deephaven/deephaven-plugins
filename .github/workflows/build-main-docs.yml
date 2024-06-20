@@ -4,12 +4,25 @@ on:
   workflow_call:
     inputs:
       package:
+        description: The plugin to publish the docs for
         required: true
         type: string
 
 jobs:
+  check-make-docs:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Check file existence
+        id: check_files
+        uses: andstor/file-existence-action@v3
+        with:
+          files: "plugins/${{ inputs.package }}/make_docs.py"
+
   build-plugin:
-    if: ${{ inputs.package == 'plotly-express' }}
+    if: steps.check-make-docs.outputs.files_exists == 'true'
     uses: ./.github/workflows/build-python-package.yml
     with:
       package: ${{ inputs.package }}

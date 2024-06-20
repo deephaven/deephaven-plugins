@@ -40,7 +40,18 @@ jobs:
           
           mkdir -p $HOME/.config
           mkdir -p $HOME/.config/rclone
-          echo ${{ secrets.RCLONE_CONFIG }} | base64 -d > $HOME/.config/rclone/rclone.conf
+          
+          cat << EOF > $HOME/.config/rclone/rclone.conf
+          [plugindocs]
+          type = s3
+          provider = Cloudflare
+          access_key_id = ${{ secrets.CLOUDFLARE_ACCESS_KEY_ID }}
+          secret_access_key = ${{ secrets.CLOUDFLARE_SECRET_ACCESS_KEY }}
+          endpoint = ${{ secrets.CLOUDFLARE_ENDPOINT }}
+          no_check_bucket = true
+          acl = private
+          EOF
+          
 
       - name: Sync docs
         run: rclone sync plugins/${{ inputs.package }}/docs/build/markdown/ plugindocs:website/deephaven/deephaven-plugins/${{ inputs.package }}/${{ inputs.version }}/

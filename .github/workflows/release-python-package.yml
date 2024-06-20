@@ -6,9 +6,6 @@ on:
       package:
         required: true
         type: string
-      version:
-        required: true
-        type: string
 
 jobs:
   test:
@@ -37,16 +34,41 @@ jobs:
           name: dist-${{ inputs.package }}
           path: plugins/${{ inputs.package }}/dist/
 
+      - name: Get the name of the whl file
+        id: get_whl
+        run: |
+          WHL_DIR=plugins/${{ inputs.package }}/dist/
+          WHL_FILE=$(ls $WHL_DIR | grep .whl)
+          echo "::set-output name=whl_path::${WHL_DIR}${WHL_FILE}"
+
+      - name: Install pkginfo
+        run: pip install pkginfo
+
+      - name: Extract package version
+        run: echo "::set-output name=version::$(python -c 'import pkginfo; print(pkginfo.Wheel("${{ steps.get_whl.outputs.whl_path }}").version)')"
+
       - name: Publish package
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: plugins/${{ inputs.package }}/dist/
 
+  check-make-docs:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Check file existence
+        id: check_files
+        uses: andstor/file-existence-action@v3
+        with:
+          files: "plugins/${{ inputs.package }}/make_docs.py"
+
   release-docs:
+    if: steps.check-make-docs.outputs.files_exists == 'true'
     needs: release
-    if: ${{ inputs.package == 'plotly-express' }}
     uses: ./.github/workflows/make-docs.yml
     secrets: inherit
     with:
       package: ${{ inputs.package }}
-      version: ${{ inputs.version }}
+      version: ${{ steps.release.outputs.version }}
