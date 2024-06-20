@@ -65,8 +65,10 @@ jobs:
           files: "plugins/${{ inputs.package }}/make_docs.py"
 
   release-docs:
-    if: steps.check-make-docs.outputs.files_exists == 'true'
-    needs: release
+    if: needs.check-make-docs.outputs.files_exists == 'true'
+    needs: 
+      - release
+      - check-make-docs
     uses: ./.github/workflows/make-docs.yml
     secrets: inherit
     with:
