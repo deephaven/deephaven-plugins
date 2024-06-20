@@ -35,6 +35,8 @@ Area plots are unique in that the y-axis demonstrates each groups' total contrib
 ```python order=area_plot_multi,large_countries_population
 import deephaven.plot.express as dx
 gapminder = dx.data.gapminder() # import a ticking version of the Gapminder dataset
+
+# subset to get a few categories to compare
 large_countries_population = gapminder.where("country in `United States`, `India`, `China`")
 
 # the `by` uses unique values in the supplied column to color the plot according to those column values
