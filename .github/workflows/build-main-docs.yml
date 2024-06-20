@@ -22,7 +22,8 @@ jobs:
           files: "plugins/${{ inputs.package }}/make_docs.py"
 
   build-plugin:
-    if: steps.check-make-docs.outputs.files_exists == 'true'
+    if: needs.check-make-docs.outputs.files_exists == 'true'
+    needs: check-make-docs
     uses: ./.github/workflows/build-python-package.yml
     with:
       package: ${{ inputs.package }}
