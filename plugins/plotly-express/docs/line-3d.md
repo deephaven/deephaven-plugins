@@ -2,11 +2,11 @@
 
 3D line plots are a data visualization technique that displays data points as connected line segments in a three-dimensional space. They are used to visualize and continuous variables that depend on two continuous independent variables, facilitating the exploration of patterns, trends, and relationships within the data.
 
-3D line plots are useful for:
+#### What are 3D line plots useful for?
 
-1. **Multidimensional Data Visualization**: They allow for the representation of data in a 3D space, providing a more comprehensive view of complex relationships.
-2. **Trend Exploration**: 3D line plots are useful for exploring and understanding trends, patterns, and variations in data within a 3D space, making them valuable in scientific and engineering fields.
-3. **Data Interaction**: They enable the visualization of data interactions within three-dimensional datasets, aiding in the analysis of data dependencies and correlations.
+- **Multidimensional Data Visualization**: They allow for the representation of data in a 3D space, providing a more comprehensive view of complex relationships.
+- **Trend Exploration**: 3D line plots are useful for exploring and understanding trends, patterns, and variations in data within a 3D space, making them valuable in scientific and engineering fields.
+- **Data Interaction**: They enable the visualization of data interactions within three-dimensional datasets, aiding in the analysis of data dependencies and correlations.
 
 Alternatives to 3D line plots include:
 

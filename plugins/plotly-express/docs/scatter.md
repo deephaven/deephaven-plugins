@@ -2,14 +2,18 @@
 
 A scatter plot is a type of data visualization that uses Cartesian coordinates to display values for typically two variables. It represents individual data points as dots on a graph, with each dot's position indicating its corresponding values on the two variables being plotted.
 
-Scatter plots are useful for:
+#### When are scatter plots appropriate?
 
-1. **Relationship Exploration**: Scatter plots are useful for exploring and visualizing the relationship between two continuous variables. By plotting the data points, you can quickly identify patterns, trends, or correlations between the variables. It helps in understanding how changes in one variable affect the other.
-2. **Outlier Detection**: Scatter plots are effective in identifying outliers or extreme values in a dataset. Outliers appear as points that deviate significantly from the general pattern of the data. By visualizing the data in a scatter plot, you can easily spot these outliers, which may be important in certain analyses.
-3. **Clustering Analysis**: If you suspect that your data might exhibit clusters or groups, a scatter plot can help you identify those clusters. By observing the distribution of the points, you can visually determine if there are distinct groups forming or if the points are evenly spread out.
-4. **Comparison of Data Sets**: Scatter plots are useful for comparing two different data sets or groups. By plotting them on the same scatter plot, you can visually assess similarities, differences, or relationships between the two sets of data. This can be particularly helpful in scientific research, social sciences, or business analytics.
-5. **Visualizing Multivariate Data**: While scatter plots typically display two variables, you can extend them to visualize multivariate data by using different techniques. For example, you can represent the third variable through the size or color of the data points, creating a 3D scatter plot or using bubble charts.
-6. **Create Event Markers**: You can layer a scatter plot on top of another plot type to act as markers on the line and represent events. For example, on a line plot you can layer a scatter plot on top to act as markers representing a stock split or dividend being payed at a certain time.
+Scatter plots are appropriate when the data contain a continuous response variable that directly depends on a continuous explanatory variable. If there is an additional categorical variable that the response variable depends on, shapes or colors can be used in the scatter plot to distinguish the categories.
+
+#### What are scatter plots useful for?
+
+- **Relationship Exploration**: Scatter plots are useful for exploring and visualizing the relationship between two continuous variables. By plotting the data points, you can quickly identify patterns, trends, or correlations between the variables. It helps in understanding how changes in one variable affect the other.
+- **Outlier Detection**: Scatter plots are effective in identifying outliers or extreme values in a dataset. Outliers appear as points that deviate significantly from the general pattern of the data. By visualizing the data in a scatter plot, you can easily spot these outliers, which may be important in certain analyses.
+- **Clustering Analysis**: If you suspect that your data might exhibit clusters or groups, a scatter plot can help you identify those clusters. By observing the distribution of the points, you can visually determine if there are distinct groups forming or if the points are evenly spread out.
+- **Comparison of Data Sets**: Scatter plots are useful for comparing two different data sets or groups. By plotting them on the same scatter plot, you can visually assess similarities, differences, or relationships between the two sets of data. This can be particularly helpful in scientific research, social sciences, or business analytics.
+- **Visualizing Multivariate Data**: While scatter plots typically display two variables, you can extend them to visualize multivariate data by using different techniques. For example, you can represent the third variable through the size or color of the data points, creating a 3D scatter plot or using bubble charts.
+- **Create Event Markers**: You can layer a scatter plot on top of another plot type to act as markers on the line and represent events. For example, on a line plot you can layer a scatter plot on top to act as markers representing a stock split or dividend being payed at a certain time.
 
 Remember that the choice of plot depends on the nature of your data, the specific questions you want to answer, and the insights you want to gain. While scatter plots are versatile and provide valuable information about relationships between variables, other types of plots such as bar charts, line graphs, or histograms may be more appropriate for different scenarios.
 

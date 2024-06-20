@@ -6,12 +6,12 @@ Interpreting a candlestick chart involves understanding the visual representatio
 
 In a bullish (upward, typically shown as green) candlestick, the open is typically at the bottom of the body, and the close is at the top, indicating a price increase. In a bearish (downward, typically shown as red) candlestick, the open is at the top of the body, and the close is at the bottom, suggesting a price decrease. One can use these patterns, along with the length of the wicks and the context of adjacent candlesticks, to analyze trends.
 
-Candlestick plots are useful for:
+#### What are candlestick plots useful for?
 
-1. **Analyzing Financial Markets**: They are a standard tool in technical analysis for understanding price movements, identifying trends, and potential reversal points in financial markets, such as stocks, forex, and cryptocurrencies.
-2. **Short to Medium-Term Trading**: Candlestick patterns are well-suited for short to medium-term trading strategies, where timely decisions are based on price patterns and trends over a specific time frame.
-3. **Pattern Recognition**: They aid in recognizing and interpreting common candlestick patterns, which can provide insights into market sentiment and potential price movements.
-4. **Visualizing Variation in Price Data**: Candlestick charts offer a visually intuitive way to represent variability in price data, making them valuable for traders and analysts who prefer a visual approach to data analysis.
+- **Analyzing Financial Markets**: They are a standard tool in technical analysis for understanding price movements, identifying trends, and potential reversal points in financial markets, such as stocks, forex, and cryptocurrencies.
+- **Short to Medium-Term Trading**: Candlestick patterns are well-suited for short to medium-term trading strategies, where timely decisions are based on price patterns and trends over a specific time frame.
+- **Pattern Recognition**: They aid in recognizing and interpreting common candlestick patterns, which can provide insights into market sentiment and potential price movements.
+- **Visualizing Variation in Price Data**: Candlestick charts offer a visually intuitive way to represent variability in price data, making them valuable for traders and analysts who prefer a visual approach to data analysis.
 
 ## Examples
 

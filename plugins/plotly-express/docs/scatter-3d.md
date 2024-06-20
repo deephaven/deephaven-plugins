@@ -2,11 +2,11 @@
 
 A 3D scatter plot is a type of data visualization that displays data points in three-dimensional space. Each data point is represented as a marker or point, and its position in the plot is determined by the values of three different variables, one for each axis (x, y, and z). This plot allows for the visualization of relationships and patterns among three continuous variables simultaneously.
 
-A 3D scatter plot is useful for:
+#### What are 3D scatter plots useful for?
 
-1. **Visualizing Multivariate Data**: When you have three variables of interest, a 3D scatter plot allows you to visualize and explore their relationships in a single plot. It enables you to see how changes in one variable affect the other two, providing a more comprehensive understanding of the data.
-2. **Identifying Clusters and Patterns**: In some datasets, 3D scatter plots can reveal clusters or patterns that might not be evident in 2D scatter plots. The added dimensionality can help identify complex structures and relationships that exist in the data.
-3. **Outlier Detection**: Outliers, which are data points that deviate significantly from the general pattern, can be more easily spotted in a 3D scatter plot. They may appear as isolated points away from the main cluster, drawing attention to potentially interesting observations or anomalies.
+- **Visualizing Multivariate Data**: When you have three variables of interest, a 3D scatter plot allows you to visualize and explore their relationships in a single plot. It enables you to see how changes in one variable affect the other two, providing a more comprehensive understanding of the data.
+- **Identifying Clusters and Patterns**: In some datasets, 3D scatter plots can reveal clusters or patterns that might not be evident in 2D scatter plots. The added dimensionality can help identify complex structures and relationships that exist in the data.
+- **Outlier Detection**: Outliers, which are data points that deviate significantly from the general pattern, can be more easily spotted in a 3D scatter plot. They may appear as isolated points away from the main cluster, drawing attention to potentially interesting observations or anomalies.
 
 However, 3D scatter plots also have some limitations. When dealing with more than three variables, visual interpretation can become challenging. Overplotting (many points overlapping) can obscure patterns, and certain perspectives may lead to misinterpretation. In such cases, alternative visualizations like 3D surface plots or parallel coordinate plots might be considered.
 

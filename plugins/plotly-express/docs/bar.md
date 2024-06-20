@@ -4,7 +4,7 @@ A bar plot is a graphical representation of data that uses rectangular bars to d
 
 #### When are bar plots appropriate?
 
-Bar plots are appropriate for visualizing a single continuous response variable that is directly related to a categorical explanatory variable. Additionally, if the response variable is a cumulative total of contributions from different subcategories, each bar can be broken up to demonstrate those contributions.
+Bar plots are appropriate when the data contain a continuous response variable that is directly related to a categorical explanatory variable. Additionally, if the response variable is a cumulative total of contributions from different subcategories, each bar can be broken up to demonstrate those contributions.
 
 #### What are bar plots useful for?
 

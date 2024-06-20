@@ -4,7 +4,7 @@ An area plot, also known as a stacked area chart, is a data visualization that u
 
 #### When are area plots appropriate?
 
-Area plots are appropriate for visualizing a single continuous response variable that directly depends on a continuous explanatory variable, such as time. Further, the response variable can be broken down into contributions from each of several independent categories, and those categories are represented by an additional categorical variable. 
+Area plots are appropriate when the data contain a continuous response variable that directly depends on a continuous explanatory variable, such as time. Further, the response variable can be broken down into contributions from each of several independent categories, and those categories are represented by an additional categorical variable. 
 
 #### What are area plots are useful for?
 

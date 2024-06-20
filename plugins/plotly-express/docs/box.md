@@ -4,7 +4,7 @@ A box plot, also known as a box-and-whisker plot, is a data visualization that p
 
 #### When are box plots appropriate?
 
-Box plots are appropriate for visualizing a single continuous variable.
+Box plots are appropriate when the data have a continuous variable of interest. If there is an additional categorical variable that the variable of interest depends on, side-by-side box plots may be appropriate.
 
 #### What are box plots are useful for?
 

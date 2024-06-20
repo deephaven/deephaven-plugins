@@ -2,13 +2,13 @@
 
 A line plot is a graphical representation that displays data points connected by straight lines, commonly employed in time series analysis to depict temporal trends or relationships in a dataset.
 
-Here are some reasons why you might choose to use a line plot over other types of plots:
+#### What are line plots useful for?
 
-1. **Visualizing Trends:** Line plots excel at revealing trends and patterns in data, making them ideal for time series analysis and showcasing changes over a continuous range.
-2. **Connecting Data Points:** They effectively connect data points with straight lines, emphasizing the continuity and sequence of values, which is especially useful when dealing with ordered data.
-3. **Simplicity and Clarity:** Line plots offer a straightforward and uncluttered representation, enhancing readability and allowing developers to focus on the data's inherent structure.
-4. **Comparing Multiple Series:** Line plots make it easy to compare multiple data series on the same graph, aiding in the identification of similarities and differences.
-5. **Highlighting Outliers:** Outliers or abrupt changes in data become readily apparent in line plots, aiding in the detection of anomalies or significant events.
+- **Visualizing Trends:** Line plots excel at revealing trends and patterns in data, making them ideal for time series analysis and showcasing changes over a continuous range.
+- **Connecting Data Points:** They effectively connect data points with straight lines, emphasizing the continuity and sequence of values, which is especially useful when dealing with ordered data.
+- **Simplicity and Clarity:** Line plots offer a straightforward and uncluttered representation, enhancing readability and allowing developers to focus on the data's inherent structure.
+- **Comparing Multiple Series:** Line plots make it easy to compare multiple data series on the same graph, aiding in the identification of similarities and differences.
+- **Highlighting Outliers:** Outliers or abrupt changes in data become readily apparent in line plots, aiding in the detection of anomalies or significant events.
 
 ## Examples
 
