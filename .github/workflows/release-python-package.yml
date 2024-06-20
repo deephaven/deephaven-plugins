@@ -54,6 +54,8 @@ jobs:
 
   check-make-docs:
     runs-on: ubuntu-22.04
+    outputs:
+        files_exists: ${{ steps.check_files.outputs.files_exists }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
