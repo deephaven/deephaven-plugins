@@ -71,4 +71,4 @@ jobs:
     secrets: inherit
     with:
       package: ${{ inputs.package }}
-      version: ${{ steps.release.outputs.version }}
+      version: ${{ needs.release.outputs.version }}
