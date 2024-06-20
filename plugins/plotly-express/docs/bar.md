@@ -2,14 +2,15 @@
 
 A bar plot is a graphical representation of data that uses rectangular bars to display the values of different categories or groups, making it easy to compare and visualize the distribution of data.
 
-Advantages of bar plots include:
+#### When are bar plots appropriate?
 
-1. **Comparative Clarity**: Bar plots are highly effective for comparing data across different categories or groups. They provide a clear visual representation of relative differences and make it easy to identify trends within the dataset.
-2. **Categorical Representation**: Bar plots excel at representing categorical data, such as survey responses, product sales by region, or user preferences. Each category is presented as a distinct bar, simplifying the visualization of categorical information.
-3. **Ease of Use**: Bar plots are user-friendly and quick to generate, making them a practical choice for various applications.
-4. **Data Aggregation**: Bar plots allow for easy aggregation of data within categories, simplifying the visualization of complex datasets, and aiding in summarizing and comparing information efficiently.
+Bar plots are appropriate for visualizing a single continuous response variable that is directly related to a categorical explanatory variable. Additionally, if the response variable is a cumulative total of contributions from different subcategories, each bar can be broken up to demonstrate those contributions.
 
-Bar plots have limitations and are not suitable for certain scenarios. They are not ideal for continuous data, ineffective for multi-dimensional data exceeding two dimensions, and unsuitable for time-series data trends. Additionally, they become less practical with extremely sparse datasets and are inadequate for representing complex interactions or correlations among multiple variables.
+#### What are bar plots useful for?
+
+- **Comparing Categorical Data**: Bar plots are ideal for comparing the quantities or frequencies of different categories. The height of each bar represents the value of each category, making it easy to compare them at a glance.
+- **Decomposing Data by Category**: When the data belong to several independent categories, bar plots make it easy to visualize the relative contributions of each category to the overall total. The bar segments are colored by category, making it easy to identify the contribution of each.
+- **Tracking Trends**: If the categorical explanatory variable can be ordered left-to-right (like day of week), then bar plots provide a visualization of how the response variable changes as the explanatory variable evolves.
 
 ## Examples
 

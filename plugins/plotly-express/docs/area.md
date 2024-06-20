@@ -4,12 +4,13 @@ An area plot, also known as a stacked area chart, is a data visualization that u
 
 #### When are area plots appropriate?
 
-Area plots are appropriate when the data contain a single continuous response variable that directly depends on a continuous explanatory variable, such as time. Further, the response variable can be broken down into contributions from each of several independent categories, and those categories are represented by an additional categorical variable. 
+Area plots are appropriate for visualizing a single continuous response variable that directly depends on a continuous explanatory variable, such as time. Further, the response variable can be broken down into contributions from each of several independent categories, and those categories are represented by an additional categorical variable. 
 
 #### What are area plots are useful for?
 
-- **Decomposing Contribution by Category**: When several categories contribute to the value of the response variable, area plots are used to examine the relative contribution from each category to the whole.
-- **Track Trends in Contributions**: Area plots provide more than a single snapshot of each category's contribution - they display how these contributions change and evolve over the course of the data.
+- **Visualizing Trends Over Time**: Area plots are great for displaying the trend of a single continuous variable. The filled areas can make it easier to see the magnitude of changes and trends compared to line plots.
+- **Displaying Cumulative Totals**: Area plots are effective in showing cumulative totals over a period. They can help in understanding the contribution of different categories to the total amount and how these contributions evolve.
+- **Comparing Multiple Categories**: Rather than providing a single snapshot of the composition of a total, area plots show how contributions from each category change over time. The different colored or shaded areas help distinguish each category, making it easier to see their individual contributions and to compare how those categories evolve.
 
 ## Examples
 
