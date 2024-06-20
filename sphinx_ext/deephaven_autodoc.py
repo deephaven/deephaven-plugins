@@ -118,7 +118,7 @@ def extract_list_items(node: docutils.nodes.bullet_list) -> Params:
     return list(map(extract_list_item, node.children))
 
 
-def extract_field_body(node: docutils.nodes.field_body) -> str | Params:
+def extract_field_body(node: docutils.nodes.field_body) -> SignatureValue:
     """
     Extract the body of a field node
     If a list, extract the list items
@@ -262,7 +262,7 @@ def to_mdx(node: sphinx.addnodes.desc) -> docutils.nodes.TextElement:
 class DeephavenAutodoc(AutodocDirective):
     def __init__(self, *args, **kwargs):
         # this is mostly just passthrough, but set the name to autofunction so it is processed correctly
-        # before we extract the data
+        # by sphinx autodoc and other extensions before we extract the data
         super().__init__(*args, **kwargs)
         self.name = "autofunction"
 
@@ -284,6 +284,16 @@ class DeephavenAutodoc(AutodocDirective):
 
 
 def setup(app: Sphinx) -> ExtensionMetadata:
+    """
+    Setup the deephaven autodoc extension
+    Adds the deephaven autodoc directive to the app
+
+    Args:
+        app: The Sphinx application
+
+    Returns:
+        The metadata for the extension
+    """
     app.add_directive("dhautodoc", DeephavenAutodoc)
 
     return {
