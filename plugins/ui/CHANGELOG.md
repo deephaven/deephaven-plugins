@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.16.1 - 2024-06-21
+#### Bug Fixes
+- Wrap the children of ReactPanel with an ErrorBoundary (#565) (#569) - (dbebdd2) - mofojed
+
+- - -
+
+## ui-v0.15.1 - 2024-06-21
+#### Features
+- Use `useWidget` hook to load widgets (#502) (#555) - (d70eea9) - mofojed
+
+- - -
+
 ## ui-v0.15.1 - 2024-06-14
 #### Features
 - Use `useWidget` hook to load widgets (#502) (#555) - (d70eea9) - mofojed
