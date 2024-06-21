@@ -36,3 +36,8 @@ financial_plot = dx.layer(
         open="open", high="high", low="low", close="close")
 )
 ```
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.layer
+```

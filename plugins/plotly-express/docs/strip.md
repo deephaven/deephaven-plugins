@@ -23,9 +23,15 @@ Visualize the distributions of several groups of data at once. Specify the group
 import deephaven.plot.express as dx
 tips = dx.data.tips() # import a ticking version of the Tips dataset
 
+# create a strip plot by specifying the variable of interest
 bill_distr = dx.strip(tips, x="total_bill", by="day", color_discrete_sequence=["lightblue"])
 ```
 
 :::note
 At the moment, `color_discrete_sequence` must be specified explicitly.
 :::
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.strip
+```

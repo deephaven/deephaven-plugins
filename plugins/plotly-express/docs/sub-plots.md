@@ -33,3 +33,8 @@ tipping_plots = dx.make_subplots(
     rows=2, cols=2, shared_xaxes=False, shared_yaxes=False
 )
 ```
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.make_subplots
+```

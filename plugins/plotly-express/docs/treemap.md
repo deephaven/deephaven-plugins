@@ -31,3 +31,8 @@ gapminder_recent = (
 # create a basic treemap plot by specifying the categories, the values of interest, and a single root 'world'
 continent_population = dx.treemap(gapminder_recent.update("world = `world`"), names="continent", values="pop", parents="world")
 ```
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.treemap
+```

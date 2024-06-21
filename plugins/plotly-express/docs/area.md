@@ -43,3 +43,8 @@ large_countries_population = gapminder.where("country in `United States`, `India
 # the `by` uses unique values in the supplied column to color the plot according to those column values
 area_plot_multi = dx.area(large_countries_population, x="year", y="pop", by="country")
 ```
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.area
+```

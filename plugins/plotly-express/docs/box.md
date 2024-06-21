@@ -40,3 +40,8 @@ total_bill_smoke = dx.box(tips, y="total_bill", by="smoker")
 # Ex 2. Total bill distribution by male / female
 total_bill_sex = dx.box(tips, y="total_bill", by="sex")
 ```
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.box
+```

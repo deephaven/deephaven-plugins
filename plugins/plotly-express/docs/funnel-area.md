@@ -10,3 +10,8 @@ A funnel area plot is a data visualization that is typically used to represent d
 - **Data Funneling**: When representing data where values funnel through stages or categories.
 
 ## Examples
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.funnel_area
+```

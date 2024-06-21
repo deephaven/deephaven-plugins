@@ -23,3 +23,8 @@ election = dx.data.election() # import a ticking version of the Election dataset
 # create a ternary line plot by specifying the columns for the three points of the triangle
 election_line = dx.line_ternary(election, a="Joly", b="Coderre", c="Bergeron")
 ```
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.line_ternary
+```

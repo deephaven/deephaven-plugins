@@ -2,26 +2,16 @@
  * Handles document events for one widget.
  */
 import React, { useCallback } from 'react';
-import { WidgetDescriptor } from '@deephaven/dashboard';
-import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
-import { ReadonlyWidgetData, WidgetDataUpdate, WidgetId } from './WidgetTypes';
-import WidgetHandler from './WidgetHandler';
+import { WidgetDataUpdate, WidgetId } from './WidgetTypes';
+import WidgetHandler, { WidgetHandlerProps } from './WidgetHandler';
 
 const log = Log.module('@deephaven/js-plugin-ui/DashboardWidgetHandler');
 
-export interface DashboardWidgetHandlerProps {
+export interface DashboardWidgetHandlerProps
+  extends Omit<WidgetHandlerProps, 'onClose' | 'onDataChange'> {
   /** ID of this widget instance */
   id: WidgetId;
-
-  /** Widget for this to handle */
-  widget: WidgetDescriptor;
-
-  /** Fetch the widget instance */
-  fetch: () => Promise<dh.Widget>;
-
-  /** Widget data to display */
-  initialData?: ReadonlyWidgetData;
 
   /** Triggered when all panels opened from this widget have closed */
   onClose?: (widgetId: WidgetId) => void;

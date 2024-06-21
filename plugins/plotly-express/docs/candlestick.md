@@ -47,3 +47,8 @@ candlestick_plot = dx.candlestick(
     close="close",
 )
 ```
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.candlestick
+```

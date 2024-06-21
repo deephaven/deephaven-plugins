@@ -80,3 +80,8 @@ import deephaven.plot.express as dx
 # create a timeline plot using the table created above
 largest_gdp_growth_plot = dx.timeline(timeline_table, x_start="startYear", x_end="endYear", y="largestGrowth")
 ```
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.timeline
+```

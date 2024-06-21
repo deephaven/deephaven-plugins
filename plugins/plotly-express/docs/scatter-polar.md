@@ -23,3 +23,8 @@ wind = dx.data.wind() # import a ticking version of the Wind dataset
 # create a polar scatter plot by specifying r and theta. `by` is used to separate data by groups
 wind_scatter = dx.scatter_polar(wind, r="frequency", theta="direction", by="strength")
 ```
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.scatter_polar
+```

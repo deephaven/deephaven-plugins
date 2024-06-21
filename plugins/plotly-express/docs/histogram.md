@@ -44,3 +44,8 @@ sep_length_multi = dx.histogram(iris, x="sepal_length", by="species")
 # Ex 2. Each bin is overlaid with the others
 sep_length_multi_overlay = dx.histogram(iris, x="sepal_length", by="species", barmode="overlay")
 ```
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.histogram
+```

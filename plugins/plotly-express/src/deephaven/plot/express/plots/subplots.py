@@ -8,9 +8,6 @@ from plotly.graph_objs import Figure
 from ._layer import layer, LayerSpecDict
 from .. import DeephavenFigure
 
-# The function make_subplots in this file is exempt from the styleguide rule that types should not be in the
-# description if there is a type annotation.
-
 # generic grid that is a list of lists of anything
 T = TypeVar("T")
 Grid = List[List[T]]
@@ -227,37 +224,26 @@ def make_subplots(
     should be passed.
 
     Args:
-      *figs: Figure | DeephavenFigure
-        Figures to use. Should be used with rows and/or cols.
-      rows: int | None: (Default value = None)
-        A list of rows in the resulting subplot grid. This is
+      *figs: Figures to use. Should be used with rows and/or cols.
+      rows: A list of rows in the resulting subplot grid. This is
         calculated from cols and number of figs provided if not passed
         but cols is.
         One of rows or cols should be provided if passing figs directly.
-      cols: int | None: (Default value = None)
-        A list of cols in the resulting subplot grid. This is
+      cols: A list of cols in the resulting subplot grid. This is
         calculated from rows and number of figs provided if not passed
         but rows is.
         One of rows or cols should be provided if passing figs directly.
-      shared_xaxes: str | bool | None: (Default value = None)
-        "rows", "cols"/True, "all" or None depending on what axes
+      shared_xaxes: "rows", "cols"/True, "all" or None depending on what axes
         should be shared
-      shared_yaxes: str | bool | None: (Default value = None)
-        "rows"/True, "cols", "all" or None depending on what axes
+      shared_yaxes: "rows"/True, "cols", "all" or None depending on what axes
         should be shared
-      grid: list[list[Figure | DeephavenFigure]] | None: (Default value = None)
-        A grid (list of lists) of figures to draw. None can be
+      grid: A grid (list of lists) of figures to draw. None can be
         provided in a grid entry
-      horizontal_spacing: float | None: (Default value = None)
-        Spacing between each column. Default 0.2 / cols
-      vertical_spacing: float | None: (Default value = None)
-        Spacing between each row. Default 0.3 / rows
-      column_widths: list[float]: (Default value = None)
-        The widths of each column. Should sum to 1.
-      row_heights: list[float] | None: (Default value = None)
-        The heights of each row. Should sum to 1.
-      specs: list[SubplotSpecDict] | Grid[SubplotSpecDict] | None:
-        (Default value = None)
+      horizontal_spacing: Spacing between each column. Default 0.2 / cols
+      vertical_spacing: Spacing between each row. Default 0.3 / rows
+      column_widths: The widths of each column. Should sum to 1.
+      row_heights: The heights of each row. Should sum to 1.
+      specs: (Default value = None)
         A list or grid of dicts that contain specs. An empty
         dictionary represents no specs, and None represents no figure, either
         to leave a gap on the subplots on provide room for a figure spanning

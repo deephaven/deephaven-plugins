@@ -34,3 +34,8 @@ gapminder_recent = (
 # create a basic icicle plot by specifying the categories, the values of interest, and a single root 'world'
 continent_population = dx.icicle(gapminder_recent.update("world = `world`"), names="continent", values="pop", parents="world")
 ```
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.icicle
+```

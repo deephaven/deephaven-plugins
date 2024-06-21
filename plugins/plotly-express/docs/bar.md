@@ -40,3 +40,8 @@ bar_plot_smoke = dx.bar(tips, x="day", y="total_bill", by="smoker")
 # Ex 2. Partition bars by male / female
 bar_plot_sex = dx.bar(tips, x="day", y="total_bill", by="sex")
 ```
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.bar
+```

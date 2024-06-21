@@ -33,3 +33,8 @@ gapminder_recent = (
 # create a basic sunburst plot by specifying the categories, the values of interest, and a single root 'world'
 continent_population = dx.sunburst(gapminder_recent.update("world = `world`"), names="continent", values="pop", parents="world")
 ```
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.sunburst
+```

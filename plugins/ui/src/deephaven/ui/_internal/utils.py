@@ -127,7 +127,7 @@ def _wrapped_callable(
     func: Callable,
     *args: Any,
     **kwargs: Any,
-) -> None:
+) -> Any:
     """
     Filter the args and kwargs and call the specified function with the filtered args and kwargs.
 
@@ -139,6 +139,9 @@ def _wrapped_callable(
         func: The function to call
         *args: args, used by the dispatcher
         **kwargs: kwargs, used by the dispatcher
+
+    Returns:
+        The result of the function call.
     """
     args = args if max_args is None else args[:max_args]
     kwargs = (
@@ -146,7 +149,7 @@ def _wrapped_callable(
         if kwargs_set is None
         else {k: v for k, v in kwargs.items() if k in kwargs_set}
     )
-    func(*args, **kwargs)
+    return func(*args, **kwargs)
 
 
 def wrap_callable(func: Callable) -> Callable:

@@ -26,3 +26,8 @@ iris = dx.data.iris() # import a ticking version of the Iris dataset
 # create a basic violin plot, specifying `x` will plot the violins horizontally, while specifying `y` will plot them vertically
 sepal_length_distribution = dx.violin(iris, x="sepal_length", by="species")
 ```
+
+## API Reference
+```{eval-rst}
+.. autofunction:: deephaven.plot.express.violin
+```
