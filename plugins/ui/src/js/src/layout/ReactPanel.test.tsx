@@ -1,6 +1,7 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, within } from '@testing-library/react';
 import { LayoutUtils, useListener } from '@deephaven/dashboard';
+import { TestUtils } from '@deephaven/utils';
 import ReactPanel from './ReactPanel';
 import {
   ReactPanelManager,
@@ -259,4 +260,36 @@ it('calls setActiveContentItem if metadata changed while the panel already exist
   expect(onOpen).toHaveBeenCalledTimes(1);
   expect(onClose).not.toHaveBeenCalled();
   expect(mockStack.setActiveContentItem).toHaveBeenCalledTimes(1);
+});
+
+it('catches an error thrown by children, renders error view', () => {
+  TestUtils.disableConsoleOutput();
+
+  const error = new Error('test error');
+  const ErrorComponent = () => {
+    throw error;
+  };
+
+  const portal = document.createElement('div');
+  const portals = new Map([[mockPanelId, portal]]);
+
+  const { rerender } = render(
+    <PortalPanelManagerContext.Provider value={portals}>
+      {makeReactPanelManager({
+        children: <ErrorComponent />,
+      })}
+    </PortalPanelManagerContext.Provider>
+  );
+  const { getByText } = within(portal);
+  expect(getByText('Error: test error')).toBeDefined();
+
+  rerender(
+    <PortalPanelManagerContext.Provider value={portals}>
+      {makeReactPanelManager({
+        children: <div>Hello</div>,
+      })}
+    </PortalPanelManagerContext.Provider>
+  );
+
+  expect(getByText('Hello')).toBeDefined();
 });
