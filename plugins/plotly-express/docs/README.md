@@ -108,6 +108,23 @@ my_plot = dx.line(table=my_table, x="timestamp", y="price", color="sym")
 
 In this example, we create a Deephaven table and create a line plot of `timestamp` against `price` with automatic downsampling. A trace is created for each value in the `sym` column, each of which has a unique color.
 
+## Documentation Terminology
+
+The documentation for Deephaven Express will routinely use some common terms to help clarify how plots are intended to be used:
+
+- **Variable**: Variables, usually represented as columns in a Deephaven table, are a series of data points or observations of a particular characteristic in the data set. Examples include age, GDP, stock price, wind direction, sex, zip code, shoe size, square footage, and height.
+
+The following terms define different types of variable. Variable types are important because any given plot is usually only intended to be used with a specific variable type:
+
+- **Categorical variable**: This is a variable with a countable (often small) number of possible measurements for which an average cannot be computed. Examples include sex, country, flower species, stock symbol, and last name. Zip code is also a categorical variable, because while it is made of numbers and can technically be averaged, the "average zip code" is not a sensible concept.
+- **Discrete numeric variable** (often abbreviated to _discrete variable_): This is a variable with a countable number of possible measurements for which an average can be computed. These are typically represented with whole numbers. Examples include the number of wins in a season, number of bedrooms in a house, the size of one's immediate family, and the number of letters in a word.
+- **Continuous numberic variable** (often abbreviated to _continuous variable_): This is a variable with a spectrum of possible measurements for which an average can be computed. These are typically represented with decimal or fractional numbers. Examples include height, square footage of a home, length of a flower petal, price of a stock, and the distance between two stars.
+
+The following terms define relationships between variables. They do not describe attributes of a variable, but describe how a variable relates to others:
+
+- **Explanatory variable**: An explanatory variable is a variable that other variables depend on in some important way. The most common example is time. If there are explanatory variables displayed in a plot, they are presented on the x-axis by convention.
+- **Response variable**: A response variable is a variable that depends directly on another variable (the explanatory variable) in some important way. A rule of thumb is that explanatory variables are used to make predictions about repsonse variables, but not conversely. If there are response variables displayed in a plot, they are presented on the y-axis by convention.
+
 ## Contributing
 
 We welcome contributions to Deephaven Express! If you encounter any issues, have ideas for improvements, or would like to add new features, please open an issue or submit a pull request on the [GitHub repository](https://github.com/deephaven/deephaven-plugins).

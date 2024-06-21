@@ -2,6 +2,10 @@
 
 A pie plot is a circular data visualization that illustrates the relative proportions of discrete categories within a dataset by dividing a circle into sectors. This format provides a quick and straightforward way to convey the composition of data.
 
+#### When are pie plots appropriate?
+
+Pie plots are appropriate when the data contain a categorical variable where the frequencies of each category can be computed.
+
 #### What are pie plots useful for?
 
 - **Proportional Representation**: Pie plots effectively convey the proportional distribution of categories, making them useful when you want to highlight the relative size of discrete components within a whole.

@@ -2,6 +2,10 @@
 
 Polar scatter plots are a data visualization method that represents data points on a polar coordinate system. They display individual data points as dots or markers in a circular plot, providing a means to visualize the distribution, relationships, or patterns in data with angular or directional dependencies. Polar scatter plots are particularly useful for exploring data within a circular context, where the angle or periodic nature of the data is a significant aspect.
 
+#### When are polar scatter plots appropriate?
+
+Polar scatter plots are appropriate when the data contain a continuous variable represented in polar coordinates, with a radial and an angular component instead of the typical x and y components.
+
 #### What are polar scatter plots useful for?
 
 - **Cyclical Data Analysis**: Polar scatter plots are valuable for analyzing data with cyclical or periodic patterns, as they enable the visualization of cyclic trends and periodic variations within the data.

@@ -2,6 +2,10 @@
 
 Ternary line plots are a data visualization technique that represents data in a triangular coordinate system. They display data as connected line segments within the triangular space, making them useful for visualizing relationships, trends, and compositional data that sum to a constant total. Ternary line plots are particularly valuable when dealing with data involving three mutually exclusive components or proportions.
 
+#### When are ternary line plots appropriate?
+
+Ternary line plots are appropriate when the data contain three interrelated mutually exclusive categories whose relationships can be quantified with a continuous variable. Further, ternary line plots are preferable to ternary scatter plots when the explanatory variables are ordered.
+
 #### What are ternary line plots useful for?
 
 - **Compositional Data Representation**: Ternary line plots are suitable for representing compositional data where the total proportion remains constant, allowing for the visualization of how components change relative to one another.

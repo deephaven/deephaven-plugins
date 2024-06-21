@@ -2,6 +2,10 @@
 
 A histogram plot is a data visualization technique commonly used in statistics and data analysis to visualize the distribution of a single continuous variable. It consists of a series of contiguous, non-overlapping bars that provide a visual summary of the frequency or density of data points within predefined intervals or "bins." The number of bins used has a significant impact on the vizualization, and this number currently must be set manually.
 
+#### When are histograms appropriate?
+
+Histograms are appropriate when the data contain a continuous variable of interest. If there is an additional categorical variable that the variable of interest depends on, layered histograms may be appropriate.
+
 #### What are histograms useful for?
 
 - **Data Distribution Analysis**: Histograms are a valuable tool to gain insights into the distribution of a dataset, making it easier to understand the central tendencies, spread, and skewness of the data.

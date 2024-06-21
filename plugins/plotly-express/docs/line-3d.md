@@ -2,6 +2,10 @@
 
 3D line plots are a data visualization technique that displays data points as connected line segments in a three-dimensional space. They are used to visualize and continuous variables that depend on two continuous independent variables, facilitating the exploration of patterns, trends, and relationships within the data.
 
+#### When are 3D line plots appropriate?
+
+3D scatter plots are appropriate when a continuous reponse variable depends on two continuous explanatory variables. If there is an additional categorical variable that the response variable depends on, shapes or colors can be used in the scatter plot to distinguish the categories. Further, line plots are preferable to scatter plots when the explanatory variables are ordered.
+
 #### What are 3D line plots useful for?
 
 - **Multidimensional Data Visualization**: They allow for the representation of data in a 3D space, providing a more comprehensive view of complex relationships.
