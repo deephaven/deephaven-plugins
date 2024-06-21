@@ -39,13 +39,15 @@ jobs:
         run: |
           WHL_DIR=plugins/${{ inputs.package }}/dist/
           WHL_FILE=$(ls $WHL_DIR | grep .whl)
-          echo "::set-output name=whl_path::${WHL_DIR}${WHL_FILE}"
+          echo "whl_path=${WHL_DIR}${WHL_FILE}" >> $GITHUB_OUTPUT
 
       - name: Install pkginfo
         run: pip install pkginfo
 
       - name: Extract package version
-        run: echo "::set-output name=version::$(python -c 'import pkginfo; print(pkginfo.Wheel("${{ steps.get_whl.outputs.whl_path }}").version)')"
+        run: |
+          VERSION=$(python -c 'import pkginfo; print(pkginfo.Wheel("${{ steps.get_whl.outputs.whl_path }}").version)')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
       - name: Publish package
         uses: pypa/gh-action-pypi-publish@release/v1
