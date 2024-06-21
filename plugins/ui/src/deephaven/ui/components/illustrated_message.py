@@ -106,11 +106,11 @@ def illustrated_message(
         )
         warning = ui.illustrated_message(
             ui.icon("vsWarning"),
-            ui.heading("Error loading table"),
-            ui.content(f"{error}"),
+            ui.heading("Warning"),
+            ui.content("This is a warning message."),
         )
         error_message = ui.illustrated_message(
-            ui.icon("vsWarning", style={"fontSize": "48px"}),
+            ui.icon("vsWarning", size="XXL", margin_bottom="size-10"),
             ui.heading("Invalid Input"),
             ui.content("Please enter 'Sym' and 'Exchange' above"),
         )
