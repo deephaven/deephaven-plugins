@@ -25,7 +25,7 @@ jobs:
     permissions:
       id-token: write
     outputs:
-      version: ${{ steps.publish_package.outputs.version }}
+      version: ${{ steps.extract_version.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -47,6 +47,7 @@ jobs:
         run: pip install pkginfo
 
       - name: Extract package version
+        id: extract_version
         run: |
           VERSION=$(python -c 'import pkginfo; print(pkginfo.Wheel("${{ steps.get_whl.outputs.whl_path }}").version)')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
