@@ -27,9 +27,8 @@ tips = dx.data.tips() # import a ticking version of the Tips dataset
 bill_distr = dx.strip(tips, x="total_bill", by="day", color_discrete_sequence=["lightblue"])
 ```
 
-:::note
-At the moment, `color_discrete_sequence` must be specified explicitly.
-:::
+> [!NOTE]
+> At the moment, `color_discrete_sequence` must be specified explicitly.
 
 ## API Reference
 ```{eval-rst}
