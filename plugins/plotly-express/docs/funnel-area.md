@@ -7,7 +7,6 @@ A funnel area plot is a data visualization that is typically used to represent d
 - **Sequential Data**: When visualizing data that follows a sequential or staged progression.
 - **Progression Analysis**: For analyzing attrition, conversion rates, or transitions between stages.
 - **Efficiency Evaluation**: To assess the efficiency and effectiveness of a process or workflow.
-- **Data Funneling**: When representing data where values funnel through stages or categories.
 
 ## Examples
 

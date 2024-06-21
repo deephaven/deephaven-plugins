@@ -8,10 +8,9 @@ Strip plots are appropriate when the data contain a continuous variable of inter
 
 #### What are strip plots useful for?
 
-- **Individual Data Points**: Displaying individual data points along an axis, allowing for a detailed view of each data point in the dataset.
+- **Comparing Data Categories**: Comparing the distribution and spread of data across different categories or groups, making it useful for categorical data analysis.
 - **Identifying Outliers**: Facilitating the easy identification of outliers and anomalies within the data, aiding in data quality assessment.
 - **Small to Moderate Dataset Visualization**: Suitable for datasets of small to moderate sizes where individual data points can be effectively represented.
-- **Comparing Data Categories**: Comparing the distribution and spread of data across different categories or groups, making it useful for categorical data analysis.
 
 ## Examples
 

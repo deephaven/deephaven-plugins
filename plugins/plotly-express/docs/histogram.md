@@ -10,7 +10,6 @@ Histograms are appropriate when the data contain a continuous variable of intere
 
 - **Data Distribution Analysis**: Histograms are a valuable tool to gain insights into the distribution of a dataset, making it easier to understand the central tendencies, spread, and skewness of the data.
 - **Identifying Outliers**: Histograms help in detecting outliers or anomalies in a dataset by highlighting data points that fall outside the typical distribution.
-- **Quantitative Comparison**: When comparing the distribution of multiple datasets or subsets, histograms provide a straightforward visual means of assessing differences in data patterns.
 - **Density Estimation**: Histograms can serve as the basis for density estimation methods, helping to model and understand underlying data distributions, which is crucial in statistical analysis and machine learning.
 
 ## Examples

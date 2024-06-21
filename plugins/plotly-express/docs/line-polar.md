@@ -11,7 +11,6 @@ Polar line plots are appropriate when the data contain a continuous variable rep
 - **Cyclical Data Analysis**: They are ideal for analyzing cyclical or periodic data, such as daily temperature fluctuations, seasonal patterns, or circular processes in physics and engineering.
 - **Directional Data Representation**: Polar line plots are valuable for representing directional data, such as wind direction, compass bearings, or circular measurements, offering a clear way to visualize and analyze patterns.
 - **Phase or Angular Relationships**: When assessing phase shifts, angular dependencies, or correlations in data, polar line plots provide an intuitive representation for understanding relationships within circular data.
-- **Circular Data Exploration**: They can be used to explore and analyze data where the angular or periodic nature of the data is a significant aspect, making them useful in fields like meteorology, geophysics, and biology.
 
 ## Examples
 

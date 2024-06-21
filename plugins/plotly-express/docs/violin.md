@@ -9,7 +9,6 @@ Violin plots are appropriate when the data contain a continuous variable of inte
 #### What are violin plots useful for?
 
 - **Data Distribution Comparison**: Violin plots are effective for visually comparing and contrasting the distribution of multiple datasets or categories, allowing for quick identification of differences in data patterns.
-- **Density Estimation**: They offer a detailed view of data density, making it easier to understand the distribution's shape, modes, and any potential multi-modality.
 - **Central Tendency and Spread**: Violin plots provide insights into the central tendencies and variability of data, including the median, quartiles, and potential outliers.
 - **Multimodal Data**: They are particularly useful when dealing with data that exhibits multiple modes or peaks, as they can reveal these underlying patterns effectively.
 

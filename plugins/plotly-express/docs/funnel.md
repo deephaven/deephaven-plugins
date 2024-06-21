@@ -4,7 +4,6 @@ A funnel plot is a data visualization that represents a process with various sta
 
 #### What are funnel plots useful for?
 
-- **Progression Analysis**: When you need to analyze the progression, attrition, or conversion rates of data as it moves through different stages and by categories.
 - **Sequential Processes**: Funnel plots are suitable for visualizing data within sequential processes, where data typically funnels through various stages.
 - **Data Distribution**: When you want to gain insights into the distribution of data at each stage within a process, and you can represent multiple categories as stacked bars for comparative analysis.
 - **Efficiency Assessment**: To assess the efficiency and effectiveness of a process, particularly when evaluating the attrition or conversion of elements at each stage.
