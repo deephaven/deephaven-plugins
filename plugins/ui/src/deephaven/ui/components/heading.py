@@ -71,7 +71,7 @@ def heading(
         align_self: Overrides the alignItems property of a flex or grid container.
         justify_self: Species how the element is justified inside a flex or grid container.
         order: The layout order for the element within a flex or grid container.
-        grid_area: When used in a grid layout specifies, specifies the named grid area that the element should be placed in within the grid.
+        grid_area: When used in a grid layout, specifies the named grid area that the element should be placed in within the grid.
         grid_row: When used in a grid layout, specifies the row the element should be placed in within the grid.
         grid_column: When used in a grid layout, specifies the column the element should be placed in within the grid.
         grid_row_start: When used in a grid layout, specifies the starting row to span within the grid.
