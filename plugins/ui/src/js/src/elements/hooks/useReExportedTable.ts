@@ -2,8 +2,8 @@ import { ReactNode } from 'react';
 import { useTableClose } from '@deephaven/jsapi-components';
 import type { dh } from '@deephaven/jsapi-types';
 import { isElementOfType, usePromiseFactory } from '@deephaven/react-hooks';
-import ObjectView from './ObjectView';
-import { fetchReexportedTable } from './ElementUtils';
+import ObjectView from '../ObjectView';
+import { fetchReexportedTable } from '../utils';
 
 export function useReExportedTable(node: ReactNode): dh.Table | null {
   const isObjectView = isElementOfType(node, ObjectView);

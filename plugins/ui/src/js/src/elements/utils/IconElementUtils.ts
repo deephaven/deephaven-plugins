@@ -1,5 +1,5 @@
 import * as icons from '@deephaven/icons';
-import { ELEMENT_PREFIX, ElementPrefix } from './ElementConstants';
+import { ELEMENT_PREFIX, ElementPrefix } from '../model/ElementConstants';
 import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
 
 /**

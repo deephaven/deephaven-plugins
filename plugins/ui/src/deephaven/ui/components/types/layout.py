@@ -154,3 +154,11 @@ LabelPosition = Literal["top", "side"]
 Align = Literal["start", "end"]
 
 GridFlow = Literal["row", "column", "row dense", "column dense"]
+BorderSize = Literal["none", "thin", "thick", "thicker", "thickest"]
+BorderRadius = Literal[
+    "xsmall",
+    "small",
+    "regular",
+    "medium",
+    "large",
+]

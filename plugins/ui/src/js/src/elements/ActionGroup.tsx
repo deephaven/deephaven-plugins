@@ -5,7 +5,7 @@ import {
 import {
   SerializedSelectionProps,
   useSelectionProps,
-} from './spectrum/useSelectionProps';
+} from './hooks/useSelectionProps';
 
 export type SerializedActionGroupProps<T> = Omit<
   DHActionGroupProps<T>,
@@ -13,7 +13,7 @@ export type SerializedActionGroupProps<T> = Omit<
 > &
   SerializedSelectionProps;
 
-function ActionGroup<T>({
+export function ActionGroup<T>({
   selectionMode: selectionModeMaybeUppercase,
   onChange: serializedOnChange,
   onSelectionChange: serializedOnSelectionChange,

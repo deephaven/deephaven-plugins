@@ -6,7 +6,7 @@ import DocumentHandler, { DocumentHandlerProps } from './DocumentHandler';
 import { ReactPanelProps } from '../layout/LayoutUtils';
 import { MixedPanelsError, NoChildrenError } from '../errors';
 import { getComponentForElement } from './WidgetUtils';
-import { ELEMENT_NAME } from '../elements/ElementConstants';
+import { ELEMENT_NAME } from '../elements/model/ElementConstants';
 
 const mockReactPanel = jest.fn((props: ReactPanelProps) => (
   <div>ReactPanel</div>

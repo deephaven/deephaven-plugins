@@ -1,15 +1,15 @@
 import { PickerProps as DHPickerProps } from '@deephaven/components';
 import { PickerProps as DHPickerJSApiProps } from '@deephaven/jsapi-components';
 import { ReactElement } from 'react';
-import { ObjectViewProps } from './ObjectView';
+import { ObjectViewProps } from '../ObjectView';
 import {
   SerializedFocusEventCallback,
   useFocusEventCallback,
-} from './spectrum/useFocusEventCallback';
+} from './useFocusEventCallback';
 import {
   SerializedKeyboardEventCallback,
   useKeyboardEventCallback,
-} from './spectrum/useKeyboardEventCallback';
+} from './useKeyboardEventCallback';
 
 export interface SerializedPickerEventProps {
   /** Handler that is called when the element receives focus. */
