@@ -24,6 +24,8 @@ jobs:
     runs-on: ubuntu-22.04
     permissions:
       id-token: write
+    outputs:
+      version: ${{ steps.publish_package.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -53,6 +55,7 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: plugins/${{ inputs.package }}/dist/
+          repository-url: https://test.pypi.org/legacy/
 
   check-make-docs:
     runs-on: ubuntu-22.04
