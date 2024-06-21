@@ -1,6 +1,6 @@
 import React from 'react';
-import { HTMLElementNode, getHTMLTag } from './HTMLElementUtils';
-import { ELEMENT_KEY } from './ElementUtils';
+import { HTMLElementNode, getHTMLTag } from './utils/HTMLElementUtils';
+import { ELEMENT_KEY } from './utils/ElementUtils';
 
 export type HTMLElementViewProps = {
   element: HTMLElementNode;

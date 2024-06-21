@@ -1,8 +1,8 @@
 import React from 'react';
 import { Text } from '@deephaven/components';
 import type { dh } from '@deephaven/jsapi-types';
-import { ELEMENT_NAME } from './ElementConstants';
-import ObjectView from './ObjectView';
+import { ELEMENT_NAME } from '../model/ElementConstants';
+import ObjectView from '../ObjectView';
 
 export const CALLABLE_KEY = '__dhCbid';
 export const OBJECT_KEY = '__dhObid';
@@ -211,4 +211,19 @@ export function wrapElementChildren(element: ElementNode): ElementNode {
     ...element,
     props: newProps,
   };
+}
+
+/**
+ * Map the children of an element to an array, automatically wrapping primitive
+ * values in `Text` elements.
+ * @param children Children to map as an array.
+ */
+export function wrapTextChildren(children: React.ReactNode): React.ReactNode {
+  const childrenArray = Array.isArray(children) ? children : [children];
+  return childrenArray.map(child => {
+    if (isPrimitive(child)) {
+      return <Text key={String(child)}>{String(child)}</Text>;
+    }
+    return child;
+  });
 }

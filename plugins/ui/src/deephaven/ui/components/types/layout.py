@@ -131,3 +131,12 @@ A dictionary of CSS properties.
 """
 LabelPosition = Literal["top", "side"]
 Align = Literal["start", "end"]
+
+BorderSize = Literal["none", "thin", "thick", "thicker", "thickest"]
+BorderRadius = Literal[
+    "xsmall",
+    "small",
+    "regular",
+    "medium",
+    "large",
+]
