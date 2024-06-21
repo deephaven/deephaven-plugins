@@ -3,5 +3,13 @@
   "useWorkspaces": true,
   "useNx": true,
   "version": "independent",
-  "packages": ["plugins/*/src/js/"]
+  "packages": ["plugins/*/src/js/"],
+  "command": {
+    "publish": {
+      "distTag": "ui-v0.15"
+    },
+    "version": {
+      "changelogPreset": "conventionalcommits"
+    }
+  }
 }
