@@ -85,7 +85,7 @@ def grid(
         auto_columns: The size of auto-generated columns.
         auto_rows: The size of auto-generated rows.
         auto_flow: The flow direction for auto-generated grid items.
-        justify_items: The defailt justifySelf for all items in the grid.
+        justify_items: The defailt justify_self for all items in the grid.
         justify_content: The distribution of space around items along the main axis.
         align_content: The distribution of space around items along the cross axis.
         align_items: The alignment of children within their container.
@@ -99,7 +99,7 @@ def grid(
         align_self: Overrides the alignItems property of a flex or grid container.
         justify_self: Species how the element is justified inside a flex or grid container.
         order: The layout order for the element within a flex or grid container.
-        grid_area: When used in a grid layout specifies, specifies the named grid area that the element should be placed in within the grid.
+        grid_area: When used in a grid layout, specifies the named grid area that the element should be placed in within the grid.
         grid_row: When used in a grid layout, specifies the row the element should be placed in within the grid.
         grid_column: When used in a grid layout, specifies the column the element should be placed in within the grid.
         grid_row_start: When used in a grid layout, specifies the starting row to span within the grid.
