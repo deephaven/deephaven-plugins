@@ -13,5 +13,5 @@ Histogram plots are useful for:
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.histogram
+.. dhautofunction:: deephaven.plot.express.histogram
 ```

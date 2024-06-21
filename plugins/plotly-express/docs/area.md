@@ -14,5 +14,5 @@ Area plots are useful for:
 
 ## API Reference
 ```{eval-rst}
-.. helloworld:: deephaven.plot.express.area
+.. dhautofunction:: deephaven.plot.express.area
 ```

@@ -7,5 +7,5 @@ Multiple sub plots can be combined into one plot using the `make_subplots` funct
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.make_subplots
+.. dhautofunction:: deephaven.plot.express.make_subplots
 ```

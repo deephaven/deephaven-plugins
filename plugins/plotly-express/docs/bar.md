@@ -15,5 +15,5 @@ Bar plots have limitations and are not suitable for certain scenarios. They are 
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.bar
+.. dhautofunction:: deephaven.plot.express.bar
 ```

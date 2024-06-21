@@ -2,25 +2,25 @@ from __future__ import annotations
 
 import re
 import json
-from typing import TypedDict, NotRequired, Literal, Union
+from typing import TypedDict, Union, List, Dict
 
 import docutils.nodes
 import sphinx.addnodes
 from sphinx.ext.autodoc.directive import AutodocDirective
 
 from sphinx.application import Sphinx
-from sphinx.util.typing import ExtensionMetadata
 
 
-class ParamData(TypedDict):
+class ParamData(TypedDict, total=False):
     name: str
     type: str
     description: str
-    default: NotRequired[str | None]
+    # default is not required
+    default: str | None
 
 
-Params = list[ParamData]
-ParamDefaults = dict[str, str]
+Params = List[ParamData]
+ParamDefaults = Dict[str, str]
 
 
 class FunctionMetadata(TypedDict):
@@ -96,7 +96,10 @@ def extract_list_item(node: docutils.nodes.list_item) -> ParamData:
         The param data
     """
     field = node.astext().replace("\n", " ")
-    matched = re.match(r"(.+) \((.*)\) -- (.+)", field).groups()
+    try:
+        matched = re.match(r"(.+) \((.*)\) -- (.+)", field).groups()
+    except AttributeError:
+        raise ValueError(f"Could not match {field}")
     param = {
         "name": matched[0],
         "type": matched[1],
@@ -283,7 +286,7 @@ class DeephavenAutodoc(AutodocDirective):
         return new_data
 
 
-def setup(app: Sphinx) -> ExtensionMetadata:
+def setup(app: Sphinx):
     """
     Setup the deephaven autodoc extension
     Adds the deephaven autodoc directive to the app
@@ -294,7 +297,7 @@ def setup(app: Sphinx) -> ExtensionMetadata:
     Returns:
         The metadata for the extension
     """
-    app.add_directive("dhautodoc", DeephavenAutodoc)
+    app.add_directive("dhautofunction", DeephavenAutodoc)
 
     return {
         "version": "0.1",
