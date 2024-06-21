@@ -1,70 +1,73 @@
-import React, { Children, Key, isValidElement } from 'react';
+import React, { Key, ReactElement } from 'react';
 import {
   Tabs as DHCTabs,
   TabsProps,
   TabPanels,
   TabList,
   Item,
+  TabPanelsProps,
+  Text,
 } from '@deephaven/components';
-// TODO: #2084 Re-export @react-types/shared types
 import { CollectionChildren } from '@react-types/shared';
-import { TabProps } from './Tab';
+
+type TabProps = {
+  children: ReactElement;
+  title: string;
+  key: string | null;
+  icon?: ReactElement;
+};
+
+type TabPanelsListProps = TabPanelsProps<TabProps>;
 
 type TabComponentProps = TabsProps<TabProps> & {
-  children: CollectionChildren<TabProps>;
+  children:
+    | CollectionChildren<TabProps>
+    | CollectionChildren<TabPanelsListProps>;
   onChange?: (key: Key) => void;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function isTabElement(item: any): item is React.ReactElement {
-  return (
-    item !== null &&
-    typeof item === 'object' &&
-    'type' in item &&
-    'props' in item
-  );
-}
-
-function tabChildrenConfig(
-  childrenArray: React.ReactNode[],
-  isTabList: boolean
-) {
-  const items = childrenArray
-    .map((child, index) => {
-      if (!isValidElement(child)) {
-        return null;
-      }
-      const key =
-        child.key ??
-        (typeof child.props.title === 'string'
-          ? child.props.title
-          : `Key-${index}`);
-      return (
-        <Item key={key}>
-          {isTabList ? child.props.title : child.props.children}
-        </Item>
-      );
-    })
-    .filter(isTabElement);
+function tabChildrenConfig(childrenArray: TabProps[], isTabList: boolean) {
+  const items = childrenArray.map(child => {
+    const key = child.key ?? child.title;
+    return (
+      <Item key={key}>
+        {isTabList && child.icon && (
+          <>
+            {child.icon}
+            <Text>{child.title}</Text>
+          </>
+        )}
+        {isTabList && !child.icon && child.title}
+        {!isTabList && child.children}
+      </Item>
+    );
+  });
   return items;
 }
 
 export function Tabs(props: TabComponentProps): JSX.Element {
-  const { children, onSelectionChange, ...otherTabProps } = props;
-  const childrenArray = Children.toArray(children);
+  const { children, onChange, ...otherTabProps } = props;
+  let hasTabPanelsOrLists = false;
 
-  if (
-    childrenArray.some(
-      child =>
-        // isValidElement check is necessary to avoid TS error when accessing type of child
-        isValidElement(child) &&
-        (child.type === TabPanels || child.type === TabList)
-    )
-  ) {
+  const childrenArray: TabProps[] = [];
+  React.Children.forEach(children, child => {
+    const element = child as ReactElement<TabProps>;
+    if (element.type === TabPanels || element.type === TabList) {
+      hasTabPanelsOrLists = true;
+      return;
+    }
+    const tabProps: TabProps = {
+      ...element.props,
+      key: element.key != null ? element.key : null,
+    };
+    childrenArray.push(tabProps);
+  });
+
+  if (hasTabPanelsOrLists) {
     return (
       <DHCTabs
         UNSAFE_className="dh-tabs"
-        onSelectionChange={onSelectionChange}
+        onSelectionChange={onChange}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...otherTabProps}
       >
@@ -74,22 +77,14 @@ export function Tabs(props: TabComponentProps): JSX.Element {
   }
 
   // check for duplicate keys
-  const keys = childrenArray.map(child => {
-    if (!isValidElement(child)) {
-      throw new Error('Children must be of type TabPanel, TabList, or Tabå.');
-      return null;
-    }
-    return child.key;
-  });
-
+  const keys = childrenArray.map(child => child.key);
   if (new Set(keys).size !== keys.length) {
     throw new Error('Duplicate keys found in Tab items.');
   }
-
   return (
     <DHCTabs
       UNSAFE_className="dh-tabs"
-      onSelectionChange={onSelectionChange}
+      onSelectionChange={onChange}
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...otherTabProps}
     >
@@ -100,7 +95,5 @@ export function Tabs(props: TabComponentProps): JSX.Element {
     </DHCTabs>
   );
 }
-
 Tabs.displayName = 'Tabs';
-
 export default Tabs;

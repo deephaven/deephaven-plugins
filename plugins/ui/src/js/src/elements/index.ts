@@ -13,7 +13,6 @@ export * from './Radio';
 export * from './RadioGroup';
 export * from './RangeSlider';
 export * from './Slider';
-export * from './Tab';
 export * from './Tabs';
 export * from './TabPanels';
 export * from './TextField';

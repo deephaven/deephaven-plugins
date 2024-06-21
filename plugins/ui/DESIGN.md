@@ -1023,7 +1023,7 @@ A tabs component can be used to organize content in a collection of tabs, allowi
 
 | Parameter               | Type                                  | Description                                                                                                                                                    |
 | ----------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `*children`             | `Item \| TabList \| TabPanels`        | The tab panels to render within the tabs component.                                                                                                                                                                                               |
+| `*children`             | `Tab \| TabList \| TabPanels`        | The tab panels to render within the tabs component.                                                                                                                                                                                               |
 | `on_change`             | `Callable[[Key], None] \| None` | Alias of `on_selection_change`. Handler that is called when the tab selection changes.                                                                            |
 | `**props`               | `Any`                                 | Any other [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html#tabs-props) prop 
 |
@@ -1055,8 +1055,8 @@ t= ui.tabs(
     ),
 
     # Tab with text and icon as title
-    # Render "Content 4" in a tab called "Tab 4 <GITHUB LOGO>", keyed "Tab 4"
-    ui.tab("Content 4", title=ui.item("Tab 4", ui.icon("vsGithubAlt")))
+    # Render "Content 4" in a tab called "<GITHUB LOGO> Tab 4", keyed "Tab 4"
+    ui.tab("Content 4", title="Tab 4", key ="Key 4", icon=ui.icon("vsGithubAlt"))
 )
 ```
 
