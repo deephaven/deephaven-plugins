@@ -11,25 +11,30 @@ export function IllustratedMessage(
 ): JSX.Element {
   const { children, ...otherProps } = props;
 
+  /* eslint-disable-next-line react/jsx-props-no-spreading */
   if (children === undefined) return <DHCAIllustratedMessage {...props} />;
 
-  const childrenClone = React.Children.toArray(children);
-  const newChildren = React.Children.map(childrenClone, element => {
+  const newChildren = React.Children.map(children, element => {
     if (isElementOfType(element, Icon) === true) {
-      if (element.props.size === undefined) element.props.size = 'XL';
-      if (
-        element.props.margin === undefined &&
-        element.props.marginY === undefined &&
-        element.props.marginBottom === undefined
-      ) {
-        element.props.marginBottom = 'size-10';
-      }
+      const size = element.props.size ?? 'XL';
+      const marginBottom =
+        element.props.margin ??
+        element.props.marginY ??
+        element.props.marginBottom ??
+        'size-10';
+
+      return React.cloneElement(element, {
+        ...element.props,
+        size,
+        marginBottom,
+      });
     }
 
     return element;
   });
 
   return (
+    /* eslint-disable-next-line react/jsx-props-no-spreading */
     <DHCAIllustratedMessage {...otherProps}>
       {newChildren}
     </DHCAIllustratedMessage>
