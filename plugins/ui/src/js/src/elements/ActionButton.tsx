@@ -3,10 +3,10 @@ import {
   ActionButton as DHCActionButton,
   ActionButtonProps as DHCActionButtonProps,
 } from '@deephaven/components';
-import { useButtonProps } from './useButtonProps';
-import { SerializedButtonEventProps } from '../SerializedPropTypes';
+import { useButtonProps } from './hooks/useButtonProps';
+import { SerializedButtonEventProps } from './model/SerializedPropTypes';
 
-function ActionButton(
+export function ActionButton(
   props: SerializedButtonEventProps<DHCActionButtonProps>
 ): JSX.Element {
   const buttonProps = useButtonProps(props);

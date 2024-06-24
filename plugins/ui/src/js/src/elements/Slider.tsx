@@ -9,7 +9,7 @@ const VALUE_CHANGE_DEBOUNCE = 250;
 
 const EMPTY_FUNCTION = () => undefined;
 
-function Slider(props: DHCSliderProps): JSX.Element {
+export function Slider(props: DHCSliderProps): JSX.Element {
   const {
     defaultValue = 0,
     value: propValue,

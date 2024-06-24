@@ -2,6 +2,19 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.16.0 - 2024-06-19
+#### Documentation
+- view (#506) - (e4b7137) - ethanalvizo
+#### Features
+- Return callables from callables in Deephaven UI (#540) - (8322c2d) - Matthew Runyon
+- Use `useWidget` hook to load widgets (#502) - (d9d1e5e) - mofojed
+#### Refactoring
+- Cleanup js mappings for ui components + utils (#530) - (bbce797) - bmingles
+#### Revert
+- "revert: Revert some changes that are not compatible with v0.78 (#550)" (#551) - (3502f02) - mofojed
+
+- - -
+
 ## ui-v0.15.0 - 2024-06-13
 #### Bug Fixes
 - UI plotting doc typo (#542) - (df6c9b9) - Matthew Runyon

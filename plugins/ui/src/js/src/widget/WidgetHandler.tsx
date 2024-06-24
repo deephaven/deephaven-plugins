@@ -15,16 +15,17 @@ import {
   JSONRPCServerAndClient,
 } from 'json-rpc-2.0';
 import { WidgetDescriptor } from '@deephaven/dashboard';
+import { useWidget } from '@deephaven/jsapi-bootstrap';
 import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
-import { EMPTY_FUNCTION } from '@deephaven/utils';
+import { EMPTY_FUNCTION, assertNotNull } from '@deephaven/utils';
 import {
   CALLABLE_KEY,
   OBJECT_KEY,
   isCallableNode,
   isElementNode,
   isObjectNode,
-} from '../elements/ElementUtils';
+} from '../elements/utils/ElementUtils';
 import {
   ReadonlyWidgetData,
   WidgetDataUpdate,
@@ -34,7 +35,7 @@ import {
   METHOD_DOCUMENT_UPDATED,
 } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
-import { getComponentForElement } from './WidgetUtils';
+import { getComponentForElement, wrapCallable } from './WidgetUtils';
 import WidgetErrorView from './WidgetErrorView';
 import ReactPanelContentOverlayContext from '../layout/ReactPanelContentOverlayContext';
 
@@ -42,10 +43,7 @@ const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
 export interface WidgetHandlerProps {
   /** Widget for this to handle */
-  widget: WidgetDescriptor;
-
-  /** Fetch the widget instance */
-  fetch: () => Promise<dh.Widget>;
+  widgetDescriptor: WidgetDescriptor;
 
   /** Widget data to display */
   initialData?: ReadonlyWidgetData;
@@ -60,17 +58,22 @@ export interface WidgetHandlerProps {
 function WidgetHandler({
   onClose,
   onDataChange = EMPTY_FUNCTION,
-  fetch,
-  widget: descriptor,
+  widgetDescriptor,
   initialData: initialDataProp,
 }: WidgetHandlerProps): JSX.Element | null {
-  const [widget, setWidget] = useState<dh.Widget>();
+  const { widget, error: widgetError } = useWidget(widgetDescriptor);
+
   const [document, setDocument] = useState<ReactNode>();
-  const [error, setError] = useState<WidgetError>();
 
   // We want to update the initial data if the widget changes, as we'll need to re-fetch the widget and want to start with a fresh state.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const initialData = useMemo(() => initialDataProp, [widget]);
+  const [internalError, setInternalError] = useState<WidgetError>();
+
+  const error = useMemo(
+    () => internalError ?? widgetError ?? undefined,
+    [internalError, widgetError]
+  );
 
   // When we fetch a widget, the client is then responsible for the exported objects.
   // These objects could stay alive even after the widget is closed if we wanted to,
@@ -106,10 +109,19 @@ function WidgetHandler({
         },
         e => {
           log.error('Error setting state: ', e);
-          setError(e);
+          setInternalError(e);
         }
       );
     },
+    [jsonClient]
+  );
+
+  const callableFinalizationRegistry = useMemo(
+    () =>
+      new FinalizationRegistry(callableId => {
+        log.debug2('Closing callable', callableId);
+        jsonClient?.request('closeCallable', [callableId]);
+      }),
     [jsonClient]
   );
 
@@ -124,6 +136,7 @@ function WidgetHandler({
      * @returns The parsed data
      */
     (data: string) => {
+      assertNotNull(jsonClient);
       // Keep track of exported objects that are no longer in use after this render.
       // We close those objects that are no longer referenced, as they will never be referenced again.
       const deadObjectMap = new Map(exportedObjectMap.current);
@@ -133,10 +146,11 @@ function WidgetHandler({
         if (isCallableNode(value)) {
           const callableId = value[CALLABLE_KEY];
           log.debug2('Registering callableId', callableId);
-          return async (...args: unknown[]) => {
-            log.debug('Callable called', callableId, ...args);
-            return jsonClient?.request(callableId, args);
-          };
+          return wrapCallable(
+            jsonClient,
+            callableId,
+            callableFinalizationRegistry
+          );
         }
         if (isObjectNode(value)) {
           // Replace this node with the exported object
@@ -180,7 +194,7 @@ function WidgetHandler({
       );
       return parsedData;
     },
-    [jsonClient]
+    [jsonClient, callableFinalizationRegistry]
   );
 
   const updateExportedObjects = useCallback(
@@ -208,7 +222,7 @@ function WidgetHandler({
           log.debug2(METHOD_DOCUMENT_UPDATED, params);
           const [documentParam, stateParam] = params;
           const newDocument = parseDocument(documentParam);
-          setError(undefined);
+          setInternalError(undefined);
           setDocument(newDocument);
           if (stateParam != null) {
             try {
@@ -227,14 +241,18 @@ function WidgetHandler({
       jsonClient.addMethod(METHOD_DOCUMENT_ERROR, (params: [string]) => {
         log.error('Document error', params);
         const newError: WidgetError = JSON.parse(params[0]);
-        setError(newError);
+        newError.action = {
+          title: 'Reload',
+          action: () => sendSetState(),
+        };
+        setInternalError(newError);
       });
 
       return () => {
         jsonClient.rejectAllPendingRequests('Widget was changed');
       };
     },
-    [jsonClient, onDataChange, parseDocument]
+    [jsonClient, onDataChange, parseDocument, sendSetState]
   );
 
   /**
@@ -304,39 +322,12 @@ function WidgetHandler({
     [jsonClient, initialData, sendSetState, updateExportedObjects, widget]
   );
 
-  useEffect(
-    function loadWidget() {
-      log.debug('loadWidget', descriptor);
-      let isCancelled = false;
-      async function loadWidgetInternal() {
-        const newWidget = await fetch();
-        if (isCancelled) {
-          log.debug2('loadWidgetInternal cancelled', descriptor, newWidget);
-          newWidget.close();
-          newWidget.exportedObjects.forEach(
-            (exportedObject: dh.WidgetExportedObject) => {
-              exportedObject.close();
-            }
-          );
-          return;
-        }
-        log.debug('loadWidgetInternal done', descriptor, newWidget);
-        setWidget(newWidget);
-      }
-      loadWidgetInternal();
-      return () => {
-        isCancelled = true;
-      };
-    },
-    [fetch, descriptor]
-  );
-
   const errorView = useMemo(() => {
     if (error != null) {
-      return <WidgetErrorView error={error} onReload={() => sendSetState()} />;
+      return <WidgetErrorView error={error} />;
     }
     return null;
-  }, [error, sendSetState]);
+  }, [error]);
 
   const contentOverlay = useMemo(() => {
     // We only show it as an overlay if there's already a document to show
@@ -359,7 +350,7 @@ function WidgetHandler({
       renderedDocument != null ? (
         <ReactPanelContentOverlayContext.Provider value={contentOverlay}>
           <DocumentHandler
-            widget={descriptor}
+            widget={widgetDescriptor}
             initialData={initialData}
             onDataChange={onDataChange}
             onClose={onClose}
@@ -370,7 +361,7 @@ function WidgetHandler({
       ) : null,
     [
       contentOverlay,
-      descriptor,
+      widgetDescriptor,
       renderedDocument,
       initialData,
       onClose,

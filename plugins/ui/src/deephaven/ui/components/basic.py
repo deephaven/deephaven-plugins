@@ -12,14 +12,6 @@ def component_element(name: str, /, *children: Any, **props: Any) -> BaseElement
     return BaseElement(f"deephaven.ui.components.{name}", *children, **props)
 
 
-def grid(*children, **props):
-    """
-    Python implementation for the Adobe React Spectrum Grid component.
-    https://react-spectrum.adobe.com/react-spectrum/Grid.html
-    """
-    return component_element("Grid", *children, **props)
-
-
 def icon_wrapper(*children, **props):
     """
     Python implementation for the Adobe React Spectrum Icon component.
@@ -85,11 +77,3 @@ def text(*children, **props):
     https://react-spectrum.adobe.com/react-spectrum/Text.html
     """
     return component_element("Text", *children, **props)
-
-
-def view(*children, **props):
-    """
-    Python implementation for the Adobe React Spectrum View component.
-    https://react-spectrum.adobe.com/react-spectrum/View.html
-    """
-    return component_element("View", *children, **props)

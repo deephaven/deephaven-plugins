@@ -7,7 +7,13 @@ import {
   useLayoutManager,
   useListener,
 } from '@deephaven/dashboard';
-import { View, ViewProps, Flex, FlexProps } from '@deephaven/components';
+import {
+  View,
+  ViewProps,
+  Flex,
+  FlexProps,
+  ErrorBoundary,
+} from '@deephaven/components';
 import Log from '@deephaven/log';
 import PortalPanel from './PortalPanel';
 import { ReactPanelControl, useReactPanel } from './ReactPanelManager';
@@ -93,6 +99,10 @@ function ReactPanel({
   // We want to regenerate the key every time the metadata changes, so that the portal is re-rendered
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const contentKey = useMemo(() => shortid.generate(), [metadata]);
+
+  // We want to regenerate the error boundary key every time the children change, so that the error is cleared
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const errorKey = useMemo(() => shortid.generate(), [children]);
 
   const parent = useParentItem();
   const { eventHub } = layoutManager;
@@ -199,7 +209,8 @@ function ReactPanel({
               rowGap={rowGap}
               columnGap={columnGap}
             >
-              {children}
+              {/* Have an ErrorBoundary around the children to display an error in the panel if there's any errors thrown when rendering the children */}
+              <ErrorBoundary key={errorKey}>{children}</ErrorBoundary>
             </Flex>
           </View>
           <ReactPanelContentOverlay />
