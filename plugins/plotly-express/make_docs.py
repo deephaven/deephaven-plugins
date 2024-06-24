@@ -13,8 +13,6 @@ os.system(f"cp docs/sidebar.json {BUILT_DOCS}/sidebar.json")
 
 os.system(f"rm {BUILT_DOCS}/index.md")
 
-# go through each markdown file, look for ### deephaven.plot.express then escape any < characters
-# this ensures function default values are shown
 for root, dirs, files in os.walk(BUILT_DOCS):
     for file in files:
         if file.endswith(".md"):
@@ -22,13 +20,10 @@ for root, dirs, files in os.walk(BUILT_DOCS):
                 lines = f.readlines()
             with open(os.path.join(root, file), "w") as f:
                 for line in lines:
-                    if "### deephaven.plot.express." in line:
-                        # remove escaped \* with * as it's not needed when in a code block
-                        line = line.replace("\\*", "*")
-                        # first add the lines here
-                        line = line.replace("### deephaven.plot.express.", "")
-                        before = "<Syntax>\n\n```python\n"
-                        after = "```\n\n</Syntax>\n"
-                        line = before + line + after
-                        # then here
+                    if "<ParamTable param={{" in line:
+                        # remove the comment markers
+                        # these are added in deephaven_autodoc.py to prevent special characters from being escaped
+                        # by the markdown renderer
+                        line = line.replace("<!-- ", "")
+                        line = line.replace(" -->", "")
                     f.write(line)

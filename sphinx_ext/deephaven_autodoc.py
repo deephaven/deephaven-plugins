@@ -245,9 +245,9 @@ def extract_desc_data(node: sphinx.addnodes.desc) -> SignatureData:
     return result
 
 
-def to_mdx(node: sphinx.addnodes.desc) -> docutils.nodes.TextElement:
+def to_mdx(node: sphinx.addnodes.desc) -> docutils.nodes.comment:
     """
-    Convert the provided description node to a TextElement that is a mdx component
+    Convert the provided description node to a node that is a mdx component
 
     Args:
         node: The node to convert
@@ -257,9 +257,13 @@ def to_mdx(node: sphinx.addnodes.desc) -> docutils.nodes.TextElement:
     """
     result = extract_desc_data(node)
 
-    dat = json.dumps(result, sort_keys=True, indent=4, separators=(",", ": "))
+    dat = json.dumps(result)
 
-    return docutils.nodes.paragraph(text=dat)
+    param_table = f"<ParamTable param={{{dat}}} />"
+
+    # This is a little hacky, but this way the markdown renderer will not escape the special characters
+    # such as * and \. The comment markers will be removed by make_docs.py.
+    return docutils.nodes.comment("", "", docutils.nodes.raw("", param_table))
 
 
 class DeephavenAutodoc(AutodocDirective):
