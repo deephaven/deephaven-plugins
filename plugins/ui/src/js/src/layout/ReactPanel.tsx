@@ -100,10 +100,6 @@ function ReactPanel({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const contentKey = useMemo(() => shortid.generate(), [metadata]);
 
-  // We want to regenerate the error boundary key every time the children change, so that the error is cleared
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const errorKey = useMemo(() => shortid.generate(), [children]);
-
   const parent = useParentItem();
   const { eventHub } = layoutManager;
 
@@ -210,7 +206,7 @@ function ReactPanel({
               columnGap={columnGap}
             >
               {/* Have an ErrorBoundary around the children to display an error in the panel if there's any errors thrown when rendering the children */}
-              <ErrorBoundary key={errorKey}>{children}</ErrorBoundary>
+              <ErrorBoundary>{children}</ErrorBoundary>
             </Flex>
           </View>
           <ReactPanelContentOverlay />
