@@ -1546,8 +1546,8 @@ from deephaven import ui
 @ui.component
 def ui_tabs():
     return ui.tabs(
-        ui.tab("Content 1", title="Tab 1", key="Key 1"),
-        ui.tab("Content 2", title="Tab 2", key="Key 2"),
+        ui.tab("Content 1", title="Tab 1"),
+        ui.tab("Content 2", title="Tab 2"),
     )
 
 

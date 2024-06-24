@@ -1044,19 +1044,18 @@ t = ui.tabs(
     ui.tab("Content 2", title="Tab 2", key="Key 2"),
 
     # Content passed in that contains a flex, illustrating that tab content does not have to be a string
-    # Render a tab with the title "Tab 3" with "Hello World" header with a table beside it as the tab content, given that no key is passed, would be set to "Tab 1"
+    # Render a tab with the title "Tab 3" with "Hello World" header with a table beside it as the tab content, given that no key is passed, would be set to "Tab 3"
     ui.tab(
         ui.flex(
             "Hello World!",
             ui.flex(empty_table(10).update("I=i")),
         ),
         title="Tab 3",
-        key="Key 3",
     ),
 
     # Tab with text and icon as title
     # Render "Content 4" in a tab called "<GITHUB LOGO> Tab 4", keyed "Tab 4"
-    ui.tab("Content 4", title="Tab 4", key ="Key 4", icon=ui.icon("vsGithubAlt"))
+    ui.tab("Content 4", title="Tab 4", icon=ui.icon("vsGithubAlt"))
 )
 ```
 
@@ -1127,7 +1126,7 @@ t2 = ui.tabs(
 
 # Causes an error since cannot specify tabs with combination of ui.tab and ui.tab_panels and ui.tab_list
 t3 = ui.tabs(
-    ui.tab("Content 1", title="Tab 1", key="Key 1"),
+    ui.tab("Content 1", title="Tab 1"),
     ui.tab_list(ui.item("Tab 2", key="Key 2")),
     ui.tab_panels(
         ui.item(

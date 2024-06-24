@@ -13,6 +13,7 @@ def tab(
     title: Any | None = None,
     key: Key | None = None,
     icon: Element | None = None,
+    text_value: str | None = None,
 ):
     """
     Tab item implementation for tabs component.
@@ -21,5 +22,9 @@ def tab(
         *children: Content of the tab item.
         title: The title of the tab item.
         key: The unique key of the tab item.
+        icon: The icon of the tab item.
+        text_value: The text value of the tab item.
     """
-    return component_element("Item", *children, title=title, key=key, icon=icon)
+    return component_element(
+        "Item", *children, title=title, key=key, icon=icon, text_value=text_value
+    )
