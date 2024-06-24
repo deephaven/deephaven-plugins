@@ -1,4 +1,4 @@
-import React, { Key, ReactElement } from 'react';
+import React, { Key, ReactElement, useMemo } from 'react';
 import {
   Tabs as DHCTabs,
   TabsProps,
@@ -9,6 +9,7 @@ import {
   Text,
 } from '@deephaven/components';
 import { CollectionChildren } from '@react-types/shared';
+import { isElementOfType } from '@deephaven/react-hooks';
 
 type TabProps = {
   children: ReactElement;
@@ -25,6 +26,11 @@ type TabComponentProps = TabsProps<TabProps> & {
     | CollectionChildren<TabPanelsListProps>;
   onChange?: (key: Key) => void;
 };
+
+function containsDuplicateKeys(childrenArray: TabProps[]) {
+  const keys = childrenArray.map(child => child.key);
+  return new Set(keys).size !== keys.length;
+}
 
 function tabChildrenConfig(childrenArray: TabProps[], isTabList: boolean) {
   const items = childrenArray.map(child => {
@@ -48,14 +54,29 @@ function tabChildrenConfig(childrenArray: TabProps[], isTabList: boolean) {
 export function Tabs(props: TabComponentProps): JSX.Element {
   const { children, onChange, ...otherTabProps } = props;
   let hasTabPanelsOrLists = false;
+  const childrenArray: TabProps[] = useMemo(() => [], []);
 
-  const childrenArray: TabProps[] = [];
+  const hasDuplicates = useMemo(
+    () => containsDuplicateKeys(childrenArray),
+    [childrenArray]
+  );
+
+  if (hasDuplicates) {
+    throw new Error('Duplicate keys found in Tab items.');
+  }
+
   React.Children.forEach(children, child => {
-    const element = child as ReactElement<TabProps>;
-    if (element.type === TabPanels || element.type === TabList) {
+    if (
+      isElementOfType(child, TabPanels<TabProps>) ||
+      isElementOfType(child, TabList<TabProps>)
+    ) {
       hasTabPanelsOrLists = true;
       return;
     }
+    // TODO: web-client-ui#2094 to fix the `isElementOfType` type guard which
+    // which is not properly narrowing the child type. Once that is fixed, we
+    // should be able to remove the `as` ReactElement<TabProps> assertion.
+    const element = child as ReactElement<TabProps>;
     const tabProps: TabProps = {
       ...element.props,
       key: element.key != null ? element.key : null,
@@ -77,10 +98,10 @@ export function Tabs(props: TabComponentProps): JSX.Element {
   }
 
   // check for duplicate keys
-  const keys = childrenArray.map(child => child.key);
-  if (new Set(keys).size !== keys.length) {
+  if (containsDuplicateKeys(childrenArray)) {
     throw new Error('Duplicate keys found in Tab items.');
   }
+
   return (
     <DHCTabs
       UNSAFE_className="dh-tabs"

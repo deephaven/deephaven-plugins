@@ -1036,7 +1036,7 @@ If you're just using the default tab layout and don't need to customize the appe
 ```py
 from deephaven import empty_table, ui
 
-t= ui.tabs(
+t = ui.tabs(
     # Render a tab with the title "Tab 1" with "Content 1" as tab content, given that no key is passed, would be set to "Tab 1"
     ui.tab("Content 1", title="Tab 1"),
 
