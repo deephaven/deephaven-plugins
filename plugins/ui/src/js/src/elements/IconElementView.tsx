@@ -17,8 +17,8 @@ export function IconElementView({
   }
 
   return (
+    /* eslint-disable-next-line react/jsx-props-no-spreading */
     <Icon {...props}>
-      {/* eslint-disable-next-line react/jsx-props-no-spreading */}
       <FontAwesomeIcon icon={icon} />
     </Icon>
   );
