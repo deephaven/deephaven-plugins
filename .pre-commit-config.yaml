@@ -15,7 +15,7 @@ repos:
     rev: v1.1.334
     hooks:
       - id: pyright
-        files: plugins.*\/src.*\.py
+        files: (plugins.*\/src|sphinx_ext).*\.py
         additional_dependencies:
           [
             pandas,
