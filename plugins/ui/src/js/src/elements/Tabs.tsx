@@ -1,4 +1,4 @@
-import React, { Key, ReactElement, useMemo } from 'react';
+import React, { Key, ReactElement, useMemo, useRef } from 'react';
 import {
   Tabs as DHCTabs,
   TabsProps,
@@ -53,8 +53,29 @@ function tabChildrenConfig(childrenArray: TabProps[], isTabList: boolean) {
 
 export function Tabs(props: TabComponentProps): JSX.Element {
   const { children, onChange, ...otherTabProps } = props;
-  let hasTabPanelsOrLists = false;
-  const childrenArray: TabProps[] = useMemo(() => [], []);
+  const hasTabPanelsOrLists = useRef(false);
+  const childrenArray: TabProps[] = useMemo(() => {
+    const tempChildrenArray: TabProps[] = [];
+    React.Children.forEach(children, child => {
+      if (
+        isElementOfType(child, TabPanels<TabProps>) ||
+        isElementOfType(child, TabList<TabProps>)
+      ) {
+        hasTabPanelsOrLists.current = true;
+        return;
+      }
+      // TODO: web-client-ui#2094 to fix the `isElementOfType` type guard which
+      // is not properly narrowing the child type. Once that is fixed, we
+      // should be able to remove the `as` ReactElement<TabProps> assertion.
+      const element = child as ReactElement<TabProps>;
+      const tabProps: TabProps = {
+        ...element.props,
+        key: element.key != null ? element.key : null,
+      };
+      tempChildrenArray.push(tabProps);
+    });
+    return tempChildrenArray;
+  }, [children]);
 
   const hasDuplicates = useMemo(
     () => containsDuplicateKeys(childrenArray),
@@ -65,26 +86,7 @@ export function Tabs(props: TabComponentProps): JSX.Element {
     throw new Error('Duplicate keys found in Tab items.');
   }
 
-  React.Children.forEach(children, child => {
-    if (
-      isElementOfType(child, TabPanels<TabProps>) ||
-      isElementOfType(child, TabList<TabProps>)
-    ) {
-      hasTabPanelsOrLists = true;
-      return;
-    }
-    // TODO: web-client-ui#2094 to fix the `isElementOfType` type guard which
-    // which is not properly narrowing the child type. Once that is fixed, we
-    // should be able to remove the `as` ReactElement<TabProps> assertion.
-    const element = child as ReactElement<TabProps>;
-    const tabProps: TabProps = {
-      ...element.props,
-      key: element.key != null ? element.key : null,
-    };
-    childrenArray.push(tabProps);
-  });
-
-  if (hasTabPanelsOrLists) {
+  if (hasTabPanelsOrLists.current) {
     return (
       <DHCTabs
         UNSAFE_className="dh-tabs"
