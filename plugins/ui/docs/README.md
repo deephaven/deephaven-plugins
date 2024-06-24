@@ -1291,13 +1291,15 @@ te = ui.table(
 
 ### ui.table Context Menu
 
-Items can be added to the bottom of the `ui.table` context menu (right-click menu) by using the `context_menu` or `context_header_menu` props. The `context_menu` prop adds items for each cell, while the `context_header_menu` prop adds items for the header cells.
+Items can be added to the bottom of the `ui.table` context menu (right-click menu) by using the `context_menu` or `context_header_menu` props. The `context_menu` prop adds items to the cell context menu, while the `context_header_menu` prop adds items to the column header context menu.
 
 Menu items must have a `title` and either an `action` or `actions` prop. They may have an `icon` which is the name of the icon that will be passed to `ui.icon`.
 
 The `action` prop is a callback that is called when the item is clicked and receives info about the cell that was clicked when the menu was opened.
 
 The `actions` prop is an array of menu items that will be displayed in a sub-menu. Sub-menus can contain other sub-menus for a nested menu.
+
+Menu items can be dynamically created by instead passing a function as the context item. The function will be called with the data of the cell that was clicked when the menu was opened, and must return the menu items or None.
 
 ```py
 from deephaven import ui
@@ -1332,6 +1334,28 @@ t = ui.table(
             "action": lambda d: print("Header context menu item", d)
         }
     ]
+)
+```
+
+The following example shows creating context menu items dynamically so that the item only appears on the `sym` column. Note the function is still passed as part of a list. If multiple functions are passed, each will be called and any items they return will be added to the context menu.
+
+```py
+from deephaven import ui
+import deephaven.plot.express as dx
+
+def create_context_menu(data):
+    if data["column_name"] == "sym":
+        return [
+            {
+                "title": f"Print {data['value']}",
+                "action": lambda d: print(d['value'])
+            },
+        ]
+    return None
+
+t = ui.table(
+    dx.data.stocks(),
+    context_menu=[create_context_menu]
 )
 ```
 

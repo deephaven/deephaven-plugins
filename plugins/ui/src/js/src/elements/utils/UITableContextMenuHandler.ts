@@ -20,14 +20,14 @@ class UITableContextMenuHandler extends IrisGridContextMenuHandler {
 
   private contextMenuItems: UITableProps['contextMenu'];
 
-  private contextColumnHeaderItems: UITableProps['contextColumnMenu'];
+  private contextColumnHeaderItems: UITableProps['contextHeaderMenu'];
 
   constructor(
     dh: typeof DhType,
     irisGrid: IrisGridType,
     model: IrisGridModel,
     contextMenuItems: UITableProps['contextMenu'],
-    contextColumnHeaderItems: UITableProps['contextColumnMenu']
+    contextColumnHeaderItems: UITableProps['contextHeaderMenu']
   ) {
     super(irisGrid, dh);
     this.irisGrid = irisGrid;

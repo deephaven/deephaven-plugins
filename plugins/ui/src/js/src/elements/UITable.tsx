@@ -17,7 +17,7 @@ import { getSettings, RootState } from '@deephaven/redux';
 import { GridMouseHandler } from '@deephaven/grid';
 import { UITableProps, wrapContextActions } from './utils/UITableUtils';
 import UITableMouseHandler from './utils/UITableMouseHandler';
-import UITableContextMenuHandler from './UITableContextMenuHandler';
+import UITableContextMenuHandler from './utils/UITableContextMenuHandler';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
 
