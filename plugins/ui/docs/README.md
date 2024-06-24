@@ -1500,9 +1500,9 @@ For more information on liveness scopes and why they are needed, see the [livene
 
 ![Change Monitor](_assets/change_monitor.png)
 
-## Tabs
+## Tabs using ui.tab_panels and ui.tab_list
 
-You can add [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html) within a panel by using the `ui.tabs` method. In this example, we create a tabbed panel with multiple tabs:
+You can add [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html) within a panel by using the `ui.tabs` method. In this example, we create a tabbed panel with multiple tabs by passing in the `ui.tab_panels` and `ui.tab_list` as children:
 
 - Unfiltered table
 - Table filtered on sym `CAT`. We also include an icon in the tab header.
@@ -1516,7 +1516,7 @@ stocks = dx.data.stocks()
 
 
 @ui.component
-def table_tabs(source):
+def ui_tabs(source):
     return ui.tabs(
         ui.tab_list(
             ui.item("Unfiltered", key="Unfiltered"),
@@ -1532,7 +1532,26 @@ def table_tabs(source):
     )
 
 
-tt = table_tabs(stocks)
+my_tabs = ui.tabs(stocks)
+```
+
+## Tabs using ui.tab
+
+You can add [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html) within a panel by using the `ui.tabs` method. In this example, we create a panel with two tabs by passing in two instances of `ui.tab` as children:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def ui_tabs():
+    return ui.tabs(
+        ui.tab("Content 1", title="Tab 1", key="Key 1"),
+        ui.tab("Content 2", title="Tab 2", key="Key 2"),
+    )
+
+
+my_tabs = ui.tabs()
 ```
 
 ## Using Table Data Hooks
