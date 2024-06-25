@@ -15,9 +15,9 @@ import { ReactPanelProps } from './LayoutUtils';
 import { useParentItem } from './ParentItemContext';
 import { ReactPanelContext } from './ReactPanelContext';
 import { usePortalPanelManager } from './PortalPanelManagerContext';
-import ReactPanelContentOverlay from './ReactPanelContentOverlay';
 import ReactPanelErrorBoundary from './ReactPanelErrorBoundary';
-import usePanelContentOverlay from './usePanelContentOverlay';
+import useWidgetError from './useWidgetError';
+import WidgetErrorView from '../widget/WidgetErrorView';
 
 const log = Log.module('@deephaven/js-plugin-ui/ReactPanel');
 
@@ -168,7 +168,7 @@ function ReactPanel({
     },
     [parent, metadata, onOpen, panelId, title]
   );
-  const overlayContent = usePanelContentOverlay();
+  const widgetError = useWidgetError();
 
   return portal
     ? ReactDOM.createPortal(
@@ -203,14 +203,16 @@ function ReactPanel({
               columnGap={columnGap}
             >
               {/**
-               * Don't render the children if there's an error overlay. If there's an error with the widget, we can assume the children won't render properly.
+               * Don't render the children if there's an error with the widget. If there's an error with the widget, we can assume the children won't render properly,
+               * but we still want the panels to appear so things don't disappear/jump around.
                */}
-              {overlayContent == null && (
+              {widgetError != null ? (
+                <WidgetErrorView error={widgetError} />
+              ) : (
                 <ReactPanelErrorBoundary>{children}</ReactPanelErrorBoundary>
               )}
             </Flex>
           </View>
-          <ReactPanelContentOverlay />
         </ReactPanelContext.Provider>,
         portal,
         contentKey

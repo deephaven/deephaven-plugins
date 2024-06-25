@@ -37,7 +37,7 @@ import {
 import DocumentHandler from './DocumentHandler';
 import { getComponentForElement } from './WidgetUtils';
 import WidgetErrorView from './WidgetErrorView';
-import ReactPanelContentOverlayContext from '../layout/ReactPanelContentOverlayContext';
+import WidgetErrorContext from '../layout/WidgetErrorContext';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
@@ -311,33 +311,21 @@ function WidgetHandler({
     [jsonClient, initialData, sendSetState, updateExportedObjects, widget]
   );
 
-  const errorView = useMemo(() => {
-    if (error != null) {
-      return <WidgetErrorView error={error} />;
-    }
-    return null;
-  }, [error]);
-
-  const contentOverlay = useMemo(() => {
-    // We only show it as an overlay if there's already a document to show
-    // If there isn't, then we'll just render this as the document so it forces a panel to open
-    if (errorView != null && document != null) {
-      return errorView;
-    }
-    return null;
-  }, [document, errorView]);
-
   const renderedDocument = useMemo(() => {
     if (document != null) {
       return document;
     }
-    return errorView;
-  }, [document, errorView]);
+    if (error != null) {
+      // If there's an error and the document hasn't rendered yet, explicitly show an error view
+      return <WidgetErrorView error={error} />;
+    }
+    return null;
+  }, [document, error]);
 
   return useMemo(
     () =>
       renderedDocument != null ? (
-        <ReactPanelContentOverlayContext.Provider value={contentOverlay}>
+        <WidgetErrorContext.Provider value={error}>
           <DocumentHandler
             widget={widgetDescriptor}
             initialData={initialData}
@@ -346,10 +334,10 @@ function WidgetHandler({
           >
             {renderedDocument}
           </DocumentHandler>
-        </ReactPanelContentOverlayContext.Provider>
+        </WidgetErrorContext.Provider>
       ) : null,
     [
-      contentOverlay,
+      error,
       widgetDescriptor,
       renderedDocument,
       initialData,
