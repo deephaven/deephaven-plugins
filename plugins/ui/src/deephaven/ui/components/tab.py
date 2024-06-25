@@ -26,5 +26,5 @@ def tab(
         text_value: The text value of the tab item.
     """
     return component_element(
-        "Item", *children, title=title, key=key, icon=icon, text_value=text_value
+        "Tab", *children, title=title, key=key, icon=icon, text_value=text_value
     )
