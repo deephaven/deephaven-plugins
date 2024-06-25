@@ -1,4 +1,3 @@
-import React from 'react';
 import { Icon } from '@deephaven/components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { getIcon, IconElementNode } from './utils/IconElementUtils';
@@ -18,9 +17,9 @@ export function IconElementView({
   }
 
   return (
-    <Icon>
-      {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-      <FontAwesomeIcon icon={icon} {...props} />
+    /* eslint-disable-next-line react/jsx-props-no-spreading */
+    <Icon {...props}>
+      <FontAwesomeIcon icon={icon} />
     </Icon>
   );
 }

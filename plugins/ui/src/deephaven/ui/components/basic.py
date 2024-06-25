@@ -23,14 +23,6 @@ def icon_wrapper(*children, **props):
     return component_element("Icon", *children, **props)
 
 
-def illustrated_message(*children, **props):
-    """
-    Python implementation for the Adobe React Spectrum IllustratedMessage component.
-    https://react-spectrum.adobe.com/react-spectrum/IllustratedMessage.html
-    """
-    return component_element("IllustratedMessage", *children, **props)
-
-
 def form(*children, **props):
     """
     Python implementation for the Adobe React Spectrum Form component.
