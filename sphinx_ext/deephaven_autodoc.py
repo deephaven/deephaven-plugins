@@ -82,7 +82,7 @@ def extract_signature_data(
             result["name"] = child.astext()
         elif isinstance(child, sphinx.addnodes.desc_parameterlist):
             param_defaults = extract_parameter_defaults(child)
-    return result, param_defaults
+    return FunctionMetadata(**result), param_defaults
 
 
 def extract_list_item(node: docutils.nodes.list_item) -> ParamData:
@@ -97,15 +97,13 @@ def extract_list_item(node: docutils.nodes.list_item) -> ParamData:
     """
     field = node.astext().replace("\n", " ")
     try:
-        matched = re.match(r"(.+) \((.*)\) -- (.+)", field).groups()
+        match = re.match(r"(.+) \((.*)\) -- (.+)", field)
+        if match is None:
+            raise ValueError(f"Could not match {field} to extract param data")
+        matched = match.groups()
     except AttributeError:
         raise ValueError(f"Could not match {field}")
-    param = {
-        "name": matched[0],
-        "type": matched[1],
-        "description": matched[2],
-    }
-    return param
+    return ParamData(name=matched[0], type=matched[1], description=matched[2])
 
 
 def extract_list_items(node: docutils.nodes.bullet_list) -> Params:
@@ -139,6 +137,7 @@ def extract_field_body(node: docutils.nodes.field_body) -> SignatureValue:
         return node.astext().replace("\n", " ")
     elif isinstance(child, docutils.nodes.bullet_list):
         return extract_list_items(child)
+    raise ValueError(f"Could not extract field body from {node}")
 
 
 def extract_field(node: docutils.nodes.field) -> dict[str, SignatureValue]:
@@ -158,6 +157,8 @@ def extract_field(node: docutils.nodes.field) -> dict[str, SignatureValue]:
             name = node.astext()
         elif isinstance(node, docutils.nodes.field_body):
             body = extract_field_body(node)
+    if name is None or body is None:
+        raise ValueError(f"Could not extract field data from {node}")
     return {name: body}
 
 
@@ -194,7 +195,9 @@ def extract_content_data(
         The extracted content data
     """
     result = {}
-    for node in node.children:
+    print(type(node))
+    for node in node.children:  # type: ignore
+        print(type(node))
         if isinstance(node, docutils.nodes.field_list):
             result.update(extract_field_list(node))
         elif isinstance(node, docutils.nodes.paragraph):
@@ -212,7 +215,7 @@ def attach_parameter_defaults(params: Params, param_defaults: ParamDefaults) -> 
         param_defaults: The defaults to attach
     """
     for param in params:
-        if (name := param["name"]) in param_defaults:
+        if "name" in param and (name := param["name"]) in param_defaults:
             param["default"] = param_defaults[name]
 
 
@@ -229,7 +232,7 @@ def extract_desc_data(node: sphinx.addnodes.desc) -> SignatureData:
     """
     result = {}
     param_defaults = {}
-    for node in node.children:
+    for node in node.children:  # type: ignore
         if isinstance(node, sphinx.addnodes.desc_signature):
             signature_results, param_defaults = extract_signature_data(node)
             result.update(signature_results)
@@ -242,7 +245,7 @@ def extract_desc_data(node: sphinx.addnodes.desc) -> SignatureData:
 
     attach_parameter_defaults(result["parameters"], param_defaults)
 
-    return result
+    return SignatureData(**result)
 
 
 def to_mdx(node: sphinx.addnodes.desc) -> docutils.nodes.comment:
@@ -275,7 +278,7 @@ class DeephavenAutodoc(AutodocDirective):
 
     def run(self) -> list[docutils.nodes.TextElement]:
         """
-        Create the mdx components for the autodoc directive
+        Create the mdx components for the autodoc directive.
 
         Returns:
             The mdx components.
