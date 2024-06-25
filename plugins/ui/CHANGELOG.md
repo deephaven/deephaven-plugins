@@ -2,6 +2,51 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.16.0 - 2024-06-19
+#### Documentation
+- view (#506) - (e4b7137) - ethanalvizo
+#### Features
+- Return callables from callables in Deephaven UI (#540) - (8322c2d) - Matthew Runyon
+- Use `useWidget` hook to load widgets (#502) - (d9d1e5e) - mofojed
+#### Refactoring
+- Cleanup js mappings for ui components + utils (#530) - (bbce797) - bmingles
+#### Revert
+- "revert: Revert some changes that are not compatible with v0.78 (#550)" (#551) - (3502f02) - mofojed
+
+- - -
+
+## ui-v0.15.0 - 2024-06-13
+#### Bug Fixes
+- UI plotting doc typo (#542) - (df6c9b9) - Matthew Runyon
+- Clean up positioning and headers of components in DESIGN.md (#518) - (5d4a131) - Akshat Jawne
+- Don't send back undefined cell data (#516) - (469eb1d) - mofojed
+- ui.text_field value not changing with use_state (#498) - (7d41072) - Akshat Jawne
+- Reset state when new instance of widget created (#486) - (df587a8) - mofojed
+- fix use_callback hook (#468) - (f267572) - Joe
+#### Build system
+- Fix package-lock changes (#472) - (39a883e) - mofojed
+#### Documentation
+- add plotting sidebar and plotting docs edits (#519) - (a9840cb) - Don
+- number field (#505) - (691d190) - ethanalvizo
+- slider, range slider, checkbox, and content (#439) - (9ba1a04) - ethanalvizo
+- list_action_group (#493) - (6732ad6) - Akshat Jawne
+- list_action_menu (#492) - (727d5f2) - Akshat Jawne
+- action_group (#485) - (ef115c9) - Akshat Jawne
+- action_menu (#490) - (071d645) - Akshat Jawne
+- contextual_help (#480) - (94ef543) - Akshat Jawne
+#### Features
+- Make RadioGroup orientation prop case insensitive (#536) - (9b0b498) - bmingles
+- ui.checkbox, ui.button, ui.button_group, ui.radio, ui.radio_group, ui.icon (#512) - (6b1dbeb) - bmingles
+- Add show_search and show_quick_filters to ui.table (#461) - (4923017) - Matthew Runyon
+- ListView actions (#448) - (ca65b69) - bmingles
+#### Refactoring
+- Cleanup component mappings and utils (python side) (#523) - (195f334) - bmingles
+- Refactored ui.tabs component design (#504) - (f012eaa) - Akshat Jawne
+#### Revert
+- Revert some changes that are not compatible with v0.78 (#550) - (27414e1) - mofojed
+
+- - -
+
 ## ui-v0.14.0 - 2024-05-17
 #### Bug Fixes
 - Do not expost combo_box or date_picker yet (#464) - (cd63e20) - mofojed

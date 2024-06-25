@@ -1,0 +1,57 @@
+name: Make Docs
+
+on:
+  workflow_call:
+    inputs:
+      package:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
+
+jobs:
+  make-docs:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+        # assume that the dist artifact is already available from calling build-python-package.yml before this workflow
+      - name: Download dist
+        uses: actions/download-artifact@v3
+        with:
+          name: dist-${{ inputs.package }}
+          path: plugins/${{ inputs.package }}/dist/
+
+      - name: Install requirements
+        run: pip install -r plugins/${{ inputs.package }}/requirements.txt
+
+      - name: Install wheel
+        run: pip install plugins/${{ inputs.package }}/dist/*.whl
+
+      - name: Run make_docs.py
+        run: python plugins/${{ inputs.package }}/make_docs.py
+
+      - name: Setup rclone
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rclone
+          
+          mkdir -p $HOME/.config
+          mkdir -p $HOME/.config/rclone
+          
+          cat << EOF > $HOME/.config/rclone/rclone.conf
+          [plugindocs]
+          type = s3
+          provider = Cloudflare
+          access_key_id = ${{ secrets.DOCS_CLOUDFLARE_ACCESS_KEY_ID }}
+          secret_access_key = ${{ secrets.DOCS_CLOUDFLARE_SECRET_ACCESS_KEY }}
+          endpoint = ${{ secrets.DOCS_CLOUDFLARE_ENDPOINT }}
+          no_check_bucket = true
+          acl = private
+          EOF
+          
+
+      - name: Sync docs
+        run: rclone sync plugins/${{ inputs.package }}/docs/build/markdown/ plugindocs:website/deephaven/deephaven-plugins/${{ inputs.package }}/${{ inputs.version }}/

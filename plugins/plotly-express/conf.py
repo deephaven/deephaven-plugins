@@ -37,7 +37,6 @@ exclude_patterns = ["build", "Thumbs.db", ".DS_Store"]
 
 # options for sphinx_autodoc_typehints
 always_use_bars_union = True
-# typehints_defaults = "comma"
 
 from deephaven_server import Server
 

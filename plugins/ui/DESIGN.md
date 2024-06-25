@@ -1,4 +1,4 @@
-# deephaven.ui Plugin (alpha)
+# deephaven.ui Plugin (beta)
 
 Prototype of the deephaven.ui plugin, mocking out some ideas of how to code up programmatic layouts and callbacks. This is currently very much a prototype and should be used for discussion and evaluation purposes only. Name `deephaven.ui` is not set in stone.
 
@@ -1011,263 +1011,6 @@ def my_dashboard():
 d = my_dashboard()
 ```
 
-##### ui.item
-
-An item that can be added to a menu, such as a `ui.picker`
-
-```py
-import deephaven.ui as ui
-ui.item(
-    children: Stringable,
-    **props: Any
-) -> ItemElement
-```
-
-###### Parameters
-
-| Parameter   | Type         | Description                            |
-| ----------- | ------------ | -------------------------------------- |
-| `*children` | `Stringable` | The options to render within the item. |
-| `**props`   | `Any`        | Any other Item prop                    |
-
-##### ui.section
-
-A section that can be added to a menu, such as a `ui.picker`. Children are the dropdown options.
-
-```py
-import deephaven.ui as ui
-ui.section(
-    *children: Item,
-    title: str | None = None,
-    **props: Any
-) -> SectionElement
-```
-
-###### Parameters
-
-| Parameter   | Type          | Description                               |
-| ----------- | ------------- | ----------------------------------------- |
-| `*children` | `Item`        | The options to render within the section. |
-| `title`     | `str \| None` | The title of the section.                 |
-| `**props`   | `Any`         | Any other Section prop                    |
-
-###### ui.list_action_group
-
-A group of action buttons that can be used to create a list of actions.
-This component should be used within the actions prop of a `ListView` component.
-
-```py
-def list_action_group(
-    *children: ActionGroupItem,
-    on_action: Callable[[ActionKey, Key], None] | None = None,
-    on_selection_change: Callable[[Selection, Key], None] | None = None,
-    on_change: Callable[[Selection, Key], None] | None = None,
-    **props: Any
-) -> ListActionGroupElement:
-```
-
-###### Parameters
-
-| Parameter             | Type                                       | Description                                                                                                                                                                   |
-| --------------------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `*children`           | `ActionGroupItem`                          | The actions to render within the action group.                                                                                                                                |
-| `on_action`           | `Callable[[ActionKey, Key], None] \| None` | Handler that is called when an item is pressed. The first argument is the key of the action, the second argument is the key of the list_view item.                            |
-| `on_selection_change` | `Callable[[Selection, Key], None] \| None` | Handler that is called when the selection changes. The first argument is the selection, the second argument is the key of the list_view item.                                 |
-| `on_change`           | `Callable[[Selection, Key], None] \| None` | Alias of `on_selection_change`. Handler that is called when the selection changes. The first argument is the selection, the second argument is the key of the list_view item. |
-| `**props`             | `Any`                                      | Any other [ActionGroup](https://react-spectrum.adobe.com/react-spectrum/ActionGroup.html) prop.                                                                               |
-
-###### ui.list_action_menu
-
-A group of action buttons that can be used to create a list of actions.
-This component should be used within the actions prop of a `ListView` component.
-
-```py
-def list_action_menu(
-    *children: ActionMenuItem,
-    on_action: Callable[[ActionKey, Key], None] | None = None,
-    on_open_change: Callable[[bool, Key], None] | None = None,
-    **props: Any
-) -> ListActionMenuElement:
-```
-
-###### Parameters
-
-| Parameter        | Type                                       | Description                                                                                                                                        |
-| ---------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `*children`      | `ActionMenuItem`                           | The options to render within the picker.                                                                                                           |
-| `on_action`      | `Callable[[ActionKey, Key], None] \| None` | Handler that is called when an item is pressed. The first argument is the key of the action, the second argument is the key of the list_view item. |
-| `on_open_change` | `Callable[[bool, Key], None] \| None`      | The first argument is a boolean indicating if the menu is open, the second argument is the key of the list_view item.                              |
-| `**props`        | `Any`                                      | Any other [ActionMenu](https://react-spectrum.adobe.com/react-spectrum/ActionMenu.html) prop.                                                      |
-
-##### ui.item_table_source
-
-An item table source wraps a Table or PartitionedTable to provide additional information for
-creating complex items from a table.
-A PartitionedTable is only supported if the component itself supports a PartitionedTable as a child.
-A PartitionedTable passed here will lead to the same behavior as passing
-the PartitionedTable directly to a component, such as creating sections from the partitions in the case of a Picker.
-
-```py
-import deephaven.ui as ui
-ui.item_table_source(
-    table: Table | PartitionedTable,
-    key_column: ColumnName | None = None,
-    label_column: ColumnName | None = None,
-    description_column: ColumnName | None = None,
-    icon_column: ColumnName | None = None,
-    title_column: ColumnName | None = None,
-    actions: ListActionGroupElement | ListActionMenuElement | None = None,
-) -> ItemTableSource:
-```
-
-###### Parameters
-
-| Parameter            | Type                                                      | Description                                                                                                                                                                                                                                                               |
-| -------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `*children`          | `Item \| SectionElement \| Table \| PartitionedTable`     | The options to render within the picker.                                                                                                                                                                                                                                  |
-| `key_column`         | `ColumnName \| None`                                      | The column of values to use as item keys. Defaults to the first column.                                                                                                                                                                                                   |
-| `label_column`       | `ColumnName \| None`                                      | The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                                                                                      |
-| `description_column` | `ColumnName \| None`                                      | The column of values to display as descriptions.                                                                                                                                                                                                                          |
-| `icon_column`        | `ColumnName \| None`                                      | The column of values to map to icons.                                                                                                                                                                                                                                     |
-| `title_column`       | `ColumnName \| None`                                      | Only valid if table is of type `PartitionedTable`. The column of values to display as section names. Should be the same for all values in the constituent `Table`. If not specified, the section titles will be created from the `key_columns` of the `PartitionedTable`. |
-| `actions`            | `ListActionGroupElement \| ListActionMenuElement \| None` | The action group or menus to render for all elements within the component, if supported.                                                                                                                                                                                  |
-
-##### ui.picker
-
-A picker that can be used to select from a list. Children should be one of five types:
-
-1. If children are of type `Item`, they are the dropdown options.
-2. If children are of type `SectionElement`, they are the dropdown sections.
-3. If children are of type `Table`, the values in the table are the dropdown options. There can only be one child, the `Table`.
-4. If children are of type `PartitionedTable`, the values in the table are the dropdown options and the partitions create multiple sections. There can only be one child, the `PartitionedTable`.
-5. If children are of type `ItemTableSource`, complex items are created from the source.
-   There can only be one child, the `ItemTableSource`.
-   Supported ItemTableSource arguments are `key_column`, `label_column`, `description_column`,
-   `icon_column`, and `title_column`.
-
-```py
-import deephaven.ui as ui
-ui.picker(
-    *children: Item | SectionElement | Table | PartitionedTable | ItemTableSource,
-    default_selected_key: Key | None = None,
-    selected_key: Key | None = None,
-    on_selection_change: Callable[[Key], None] | None = None,
-    on_change: Callable[[Key], None] | None = None,
-    **props: Any
-) -> PickerElement
-```
-
-###### Parameters
-
-| Parameter              | Type                                                                     | Description                                                                                                                                                                      |
-| ---------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `*children`            | `Item \| SectionElement \| Table \| PartitionedTable \| ItemTableSource` | The options to render within the picker.                                                                                                                                         |
-| `default_selected_key` | `Key \| None`                                                            | The initial selected key in the collection (uncontrolled).                                                                                                                       |
-| `selected_key`         | `Key \| None`                                                            | The currently selected key in the collection (controlled).                                                                                                                       |
-| `on_selection_change`  | `Callable[[Key], None] \| None`                                          | Handler that is called when the selection changes.                                                                                                                               |
-| `on_change`            | `Callable[[Key], None] \| None`                                          | Alias of `on_selection_change`. Handler that is called when the selection changes.                                                                                               |
-| `**props`              | `Any`                                                                    | Any other [Picker](https://react-spectrum.adobe.com/react-spectrum/Picker.html) prop, with the exception of `items`, `validate`, `errorMessage` (as a callback) and `onLoadMore` |
-
-```py
-import deephaven.ui as ui
-
-# simple picker that takes ui.items and is uncontrolled
-picker1 = ui.picker(
-    ui.item("Option 1"),
-    ui.item("Option 2"),
-    ui.item("Option 3"),
-    ui.item("Option 4"),
-    default_selected_key="Option 2"
-)
-
-# simple picker that takes picker options directly and is controlled
-option, set_option = ui.use_state("Option 2")
-
-picker2 = ui.picker(
-    "Option 1",
-    "Option 2",
-    "Option 3",
-    "Option 4",
-    selected_key=option,
-    on_selection_change=set_option
-)
-
-# manually create a section with items
-picker3 = ui.picker(
-    ui.section(
-        ui.item("Option 1"),
-        ui.item("Option 2"),
-        title="Section 1"
-    ),
-    ui.section(
-        ui.item("Option 3"),
-        ui.item("Option 4"),
-        title="Section 2"
-    )
-)
-
-# manually create a section with picker options directly
-picker4 = ui.picker(
-    ui.section(
-        "Option 1",
-        "Option 2",
-    ),
-    ui.section(
-        "Option 3",
-        "Option 4",
-    )
-)
-
-from deephaven import empty_table
-
-table1 = empty_table(4).update_view("data=i")
-table2 = empty_table(1).update_view("data=10")
-
-# data hooks can be used to create a picker from a table
-# this should be avoided as it is not as performant as just passing in the table directly
-options = ui.use_column_data(table1)
-
-picker5 = ui.picker(
-    children=options
-)
-
-# instead, pass in the table directly
-picker6 = ui.picker(
-    table1
-)
-
-from deephaven import new_table
-from deephaven.column import string_col, int_col
-
-color_table = new_table([
-    string_col("Sections", ["Interesting Colors", 'Interesting Colors', "Other Colors"]),
-    string_col("SectionNames", ["Favorites", 'Favorites', "Other"]),
-    int_col("Keys", ["salmon", "lemonchiffon", "black"]),
-    string_col("Labels", ["Salmon", "Lemon Chiffon", "Black"]),
-    string_col("Descriptions", ["An interesting color", "Another interesting color", "A color"]),
-    string_col("Icons", ["Amusementpark", "Teapot", "Sentiment Negative"])
-])
-partitioned_table = color_table.partition_by("Sections")
-
-color, set_color = ui.use_state("salmon")
-
-# this will create a picker with two sections, one for each partition
-# in order to customize the columns used for the picker, use an item_table_source
-source = ui.item_table_source(
-    partitioned_table,
-    key_column="Keys",
-    label_column="Labels",
-    description_column="Descriptions",
-    icon_column="Icons",
-    title_column="SectionNames"
-)
-
-picker7 = ui.picker(
-    source,
-    selected_key=color,
-    on_selection_change=set_color
-)
-```
 
 ##### ui.tabs
 
@@ -1395,6 +1138,58 @@ t4 = ui.tabs(
 )
 ```
 
+
+#### Components
+
+##### ui.list_action_group
+
+A group of action buttons that can be used to create a list of actions.
+This component should be used within the actions prop of a `ListView` component.
+
+```py
+def list_action_group(
+    *children: ActionGroupItem,
+    on_action: Callable[[ActionKey, Key], None] | None = None,
+    on_selection_change: Callable[[Selection, Key], None] | None = None,
+    on_change: Callable[[Selection, Key], None] | None = None,
+    **props: Any
+) -> ListActionGroupElement:
+```
+
+###### Parameters
+
+| Parameter             | Type                                       | Description                                                                                                                                                                   |
+| --------------------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `*children`           | `ActionGroupItem`                          | The actions to render within the action group.                                                                                                                                |
+| `on_action`           | `Callable[[ActionKey, Key], None] \| None` | Handler that is called when an item is pressed. The first argument is the key of the action, the second argument is the key of the list_view item.                            |
+| `on_selection_change` | `Callable[[Selection, Key], None] \| None` | Handler that is called when the selection changes. The first argument is the selection, the second argument is the key of the list_view item.                                 |
+| `on_change`           | `Callable[[Selection, Key], None] \| None` | Alias of `on_selection_change`. Handler that is called when the selection changes. The first argument is the selection, the second argument is the key of the list_view item. |
+| `**props`             | `Any`                                      | Any other [ActionGroup](https://react-spectrum.adobe.com/react-spectrum/ActionGroup.html) prop.                                                                               |
+
+##### ui.list_action_menu
+
+A group of action buttons that can be used to create a list of actions.
+This component should be used within the actions prop of a `ListView` component.
+
+```py
+def list_action_menu(
+    *children: ActionMenuItem,
+    on_action: Callable[[ActionKey, Key], None] | None = None,
+    on_open_change: Callable[[bool, Key], None] | None = None,
+    **props: Any
+) -> ListActionMenuElement:
+```
+
+###### Parameters
+
+| Parameter        | Type                                       | Description                                                                                                                                        |
+| ---------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `*children`      | `ActionMenuItem`                           | The options to render within the picker.                                                                                                           |
+| `on_action`      | `Callable[[ActionKey, Key], None] \| None` | Handler that is called when an item is pressed. The first argument is the key of the action, the second argument is the key of the list_view item. |
+| `on_open_change` | `Callable[[bool, Key], None] \| None`      | The first argument is a boolean indicating if the menu is open, the second argument is the key of the list_view item.                              |
+| `**props`        | `Any`                                      | Any other [ActionMenu](https://react-spectrum.adobe.com/react-spectrum/ActionMenu.html) prop.                                                      |
+
+
 ##### ui.list_view
 
 A list view that can be used to create a list of items. Children should be one of three types:
@@ -1511,7 +1306,10 @@ list_view5 = ui.list_view(
     on_selection_change=set_colors
 )
 
+
 ```
+
+
 
 ###### ui.date_picker
 
@@ -1815,6 +1613,217 @@ filtered_items = ui.use_memo(lambda: filter(lambda item: item.startswith(filter_
 
 combo_box10 = ui.combo_box(*filtered_items, on_input_change=set_filter_value)
 ```
+
+#### ui.picker
+
+A picker that can be used to select from a list. Children should be one of five types:
+
+1. If children are of type `Item`, they are the dropdown options.
+2. If children are of type `SectionElement`, they are the dropdown sections.
+3. If children are of type `Table`, the values in the table are the dropdown options. There can only be one child, the `Table`.
+4. If children are of type `PartitionedTable`, the values in the table are the dropdown options and the partitions create multiple sections. There can only be one child, the `PartitionedTable`.
+5. If children are of type `ItemTableSource`, complex items are created from the source.
+   There can only be one child, the `ItemTableSource`.
+   Supported ItemTableSource arguments are `key_column`, `label_column`, `description_column`,
+   `icon_column`, and `title_column`.
+
+```py
+import deephaven.ui as ui
+ui.picker(
+    *children: Item | SectionElement | Table | PartitionedTable | ItemTableSource,
+    default_selected_key: Key | None = None,
+    selected_key: Key | None = None,
+    on_selection_change: Callable[[Key], None] | None = None,
+    on_change: Callable[[Key], None] | None = None,
+    **props: Any
+) -> PickerElement
+```
+
+###### Parameters
+
+| Parameter              | Type                                                                     | Description                                                                                                                                                                      |
+| ---------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `*children`            | `Item \| SectionElement \| Table \| PartitionedTable \| ItemTableSource` | The options to render within the picker.                                                                                                                                         |
+| `default_selected_key` | `Key \| None`                                                            | The initial selected key in the collection (uncontrolled).                                                                                                                       |
+| `selected_key`         | `Key \| None`                                                            | The currently selected key in the collection (controlled).                                                                                                                       |
+| `on_selection_change`  | `Callable[[Key], None] \| None`                                          | Handler that is called when the selection changes.                                                                                                                               |
+| `on_change`            | `Callable[[Key], None] \| None`                                          | Alias of `on_selection_change`. Handler that is called when the selection changes.                                                                                               |
+| `**props`              | `Any`                                                                    | Any other [Picker](https://react-spectrum.adobe.com/react-spectrum/Picker.html) prop, with the exception of `items`, `validate`, `errorMessage` (as a callback) and `onLoadMore` |
+
+```py
+import deephaven.ui as ui
+
+# simple picker that takes ui.items and is uncontrolled
+picker1 = ui.picker(
+    ui.item("Option 1"),
+    ui.item("Option 2"),
+    ui.item("Option 3"),
+    ui.item("Option 4"),
+    default_selected_key="Option 2"
+)
+
+# simple picker that takes picker options directly and is controlled
+option, set_option = ui.use_state("Option 2")
+
+picker2 = ui.picker(
+    "Option 1",
+    "Option 2",
+    "Option 3",
+    "Option 4",
+    selected_key=option,
+    on_selection_change=set_option
+)
+
+# manually create a section with items
+picker3 = ui.picker(
+    ui.section(
+        ui.item("Option 1"),
+        ui.item("Option 2"),
+        title="Section 1"
+    ),
+    ui.section(
+        ui.item("Option 3"),
+        ui.item("Option 4"),
+        title="Section 2"
+    )
+)
+
+# manually create a section with picker options directly
+picker4 = ui.picker(
+    ui.section(
+        "Option 1",
+        "Option 2",
+    ),
+    ui.section(
+        "Option 3",
+        "Option 4",
+    )
+)
+
+from deephaven import empty_table
+
+table1 = empty_table(4).update_view("data=i")
+table2 = empty_table(1).update_view("data=10")
+
+# data hooks can be used to create a picker from a table
+# this should be avoided as it is not as performant as just passing in the table directly
+options = ui.use_column_data(table1)
+
+picker5 = ui.picker(
+    children=options
+)
+
+# instead, pass in the table directly
+picker6 = ui.picker(
+    table1
+)
+
+from deephaven import new_table
+from deephaven.column import string_col, int_col
+
+color_table = new_table([
+    string_col("Sections", ["Interesting Colors", 'Interesting Colors', "Other Colors"]),
+    string_col("SectionNames", ["Favorites", 'Favorites', "Other"]),
+    int_col("Keys", ["salmon", "lemonchiffon", "black"]),
+    string_col("Labels", ["Salmon", "Lemon Chiffon", "Black"]),
+    string_col("Descriptions", ["An interesting color", "Another interesting color", "A color"]),
+    string_col("Icons", ["Amusementpark", "Teapot", "Sentiment Negative"])
+])
+partitioned_table = color_table.partition_by("Sections")
+
+color, set_color = ui.use_state("salmon")
+
+# this will create a picker with two sections, one for each partition
+# in order to customize the columns used for the picker, use an item_table_source
+source = ui.item_table_source(
+    partitioned_table,
+    key_column="Keys",
+    label_column="Labels",
+    description_column="Descriptions",
+    icon_column="Icons",
+    title_column="SectionNames"
+)
+
+picker7 = ui.picker(
+    source,
+    selected_key=color,
+    on_selection_change=set_color
+)
+```
+##### ui.section
+
+A section that can be added to a menu, such as a `ui.picker`. Children are the dropdown options.
+
+```py
+import deephaven.ui as ui
+ui.section(
+    *children: Item,
+    title: str | None = None,
+    **props: Any
+) -> SectionElement
+```
+
+###### Parameters
+
+| Parameter   | Type          | Description                               |
+| ----------- | ------------- | ----------------------------------------- |
+| `*children` | `Item`        | The options to render within the section. |
+| `title`     | `str \| None` | The title of the section.                 |
+| `**props`   | `Any`         | Any other Section prop                    |
+
+##### ui.item
+
+An item that can be added to a menu, such as a `ui.picker`
+
+```py
+import deephaven.ui as ui
+ui.item(
+    children: Stringable,
+    **props: Any
+) -> ItemElement
+```
+
+###### Parameters
+
+| Parameter   | Type         | Description                            |
+| ----------- | ------------ | -------------------------------------- |
+| `*children` | `Stringable` | The options to render within the item. |
+| `**props`   | `Any`        | Any other Item prop                    |
+
+
+##### ui.item_table_source
+
+An item table source wraps a Table or PartitionedTable to provide additional information for
+creating complex items from a table.
+A PartitionedTable is only supported if the component itself supports a PartitionedTable as a child.
+A PartitionedTable passed here will lead to the same behavior as passing
+the PartitionedTable directly to a component, such as creating sections from the partitions in the case of a Picker.
+
+```py
+import deephaven.ui as ui
+ui.item_table_source(
+    table: Table | PartitionedTable,
+    key_column: ColumnName | None = None,
+    label_column: ColumnName | None = None,
+    description_column: ColumnName | None = None,
+    icon_column: ColumnName | None = None,
+    title_column: ColumnName | None = None,
+    actions: ListActionGroupElement | ListActionMenuElement | None = None,
+) -> ItemTableSource:
+```
+
+###### Parameters
+
+| Parameter            | Type                                                      | Description                                                                                                                                                                                                                                                               |
+| -------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `*children`          | `Item \| SectionElement \| Table \| PartitionedTable`     | The options to render within the picker.                                                                                                                                                                                                                                  |
+| `key_column`         | `ColumnName \| None`                                      | The column of values to use as item keys. Defaults to the first column.                                                                                                                                                                                                   |
+| `label_column`       | `ColumnName \| None`                                      | The column of values to display as primary text. Defaults to the `key_column` value.                                                                                                                                                                                      |
+| `description_column` | `ColumnName \| None`                                      | The column of values to display as descriptions.                                                                                                                                                                                                                          |
+| `icon_column`        | `ColumnName \| None`                                      | The column of values to map to icons.                                                                                                                                                                                                                                     |
+| `title_column`       | `ColumnName \| None`                                      | Only valid if table is of type `PartitionedTable`. The column of values to display as section names. Should be the same for all values in the constituent `Table`. If not specified, the section titles will be created from the `key_columns` of the `PartitionedTable`. |
+| `actions`            | `ListActionGroupElement \| ListActionMenuElement \| None` | The action group or menus to render for all elements within the component, if supported.                                                                                                                                                                                  |
+
 
 #### ui.table
 

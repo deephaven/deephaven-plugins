@@ -7,7 +7,13 @@ import {
   useLayoutManager,
   useListener,
 } from '@deephaven/dashboard';
-import { View, ViewProps, Flex, FlexProps } from '@deephaven/components';
+import {
+  View,
+  ViewProps,
+  Flex,
+  FlexProps,
+  ErrorBoundary,
+} from '@deephaven/components';
 import Log from '@deephaven/log';
 import PortalPanel from './PortalPanel';
 import { ReactPanelControl, useReactPanel } from './ReactPanelManager';
@@ -199,7 +205,8 @@ function ReactPanel({
               rowGap={rowGap}
               columnGap={columnGap}
             >
-              {children}
+              {/* Have an ErrorBoundary around the children to display an error in the panel if there's any errors thrown when rendering the children */}
+              <ErrorBoundary>{children}</ErrorBoundary>
             </Flex>
           </View>
           <ReactPanelContentOverlay />

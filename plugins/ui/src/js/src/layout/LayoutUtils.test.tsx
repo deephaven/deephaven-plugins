@@ -15,7 +15,7 @@ import {
 import Row from './Row';
 import Stack from './Stack';
 import ReactPanel from './ReactPanel';
-import { ELEMENT_NAME } from '../elements/ElementConstants';
+import { ELEMENT_NAME } from '../elements/model/ElementConstants';
 
 beforeEach(() => {
   TestUtils.disableConsoleOutput();

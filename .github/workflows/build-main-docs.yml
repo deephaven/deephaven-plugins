@@ -1,0 +1,41 @@
+name: Build Main Docs
+
+on:
+  workflow_call:
+    inputs:
+      package:
+        description: The plugin to publish the docs for
+        required: true
+        type: string
+
+jobs:
+  check-make-docs:
+    runs-on: ubuntu-22.04
+    outputs:
+        files_exists: ${{ steps.check_files.outputs.files_exists }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Check file existence
+        id: check_files
+        uses: andstor/file-existence-action@v3
+        with:
+          files: "plugins/${{ inputs.package }}/make_docs.py"
+
+  build-plugin:
+    if: needs.check-make-docs.outputs.files_exists == 'true'
+    needs: check-make-docs
+    uses: ./.github/workflows/build-python-package.yml
+    with:
+      package: ${{ inputs.package }}
+
+  main-docs:
+    needs: build-plugin
+    uses: ./.github/workflows/make-docs.yml
+    secrets: inherit
+    with:
+      package: ${{ inputs.package }}
+      version: 'main'
+
+
