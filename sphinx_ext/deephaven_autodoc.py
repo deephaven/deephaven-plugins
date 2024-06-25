@@ -195,9 +195,7 @@ def extract_content_data(
         The extracted content data
     """
     result = {}
-    print(type(node))
     for node in node.children:  # type: ignore
-        print(type(node))
         if isinstance(node, docutils.nodes.field_list):
             result.update(extract_field_list(node))
         elif isinstance(node, docutils.nodes.paragraph):
