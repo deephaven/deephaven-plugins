@@ -1532,7 +1532,7 @@ def ui_tabs(source):
     )
 
 
-my_tabs = ui.tabs(stocks)
+my_tabs = ui_tabs(stocks)
 ```
 
 ## Tabs using ui.tab
@@ -1548,10 +1548,11 @@ def ui_tabs():
     return ui.tabs(
         ui.tab("Content 1", title="Tab 1"),
         ui.tab("Content 2", title="Tab 2"),
+        aria_label="Sample label",
     )
 
 
-my_tabs = ui.tabs()
+my_tabs = ui_tabs()
 ```
 
 ## Using Table Data Hooks

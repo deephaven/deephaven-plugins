@@ -1055,7 +1055,8 @@ t = ui.tabs(
 
     # Tab with text and icon as title
     # Render "Content 4" in a tab called "<GITHUB LOGO> Tab 4", keyed "Tab 4"
-    ui.tab("Content 4", title="Tab 4", icon=ui.icon("vsGithubAlt"))
+    ui.tab("Content 4", title="Tab 4", icon=ui.icon("vsGithubAlt")),
+    aria_label="Some label"
 )
 ```
 
@@ -1067,6 +1068,7 @@ t = ui.tabs(
     # Render a tabs that have an on_change, which prints the selected tab key when a tab is selected
     ui.tab("Content 1", title="Tab 1", key="Key 1"),
     ui.tab("Content 2", title="Tab 2", key="Key 2"),
+    aria_label="Some label"
     on_change=lambda key: print(f"Selected key: {key}"),
 )
 ```
