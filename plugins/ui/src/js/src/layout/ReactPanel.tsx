@@ -7,13 +7,7 @@ import {
   useLayoutManager,
   useListener,
 } from '@deephaven/dashboard';
-import {
-  View,
-  ViewProps,
-  Flex,
-  FlexProps,
-  ErrorBoundary,
-} from '@deephaven/components';
+import { View, ViewProps, Flex, FlexProps } from '@deephaven/components';
 import Log from '@deephaven/log';
 import PortalPanel from './PortalPanel';
 import { ReactPanelControl, useReactPanel } from './ReactPanelManager';
@@ -22,6 +16,8 @@ import { useParentItem } from './ParentItemContext';
 import { ReactPanelContext } from './ReactPanelContext';
 import { usePortalPanelManager } from './PortalPanelManagerContext';
 import ReactPanelContentOverlay from './ReactPanelContentOverlay';
+import ReactPanelErrorBoundary from './ReactPanelErrorBoundary';
+import usePanelContentOverlay from './usePanelContentOverlay';
 
 const log = Log.module('@deephaven/js-plugin-ui/ReactPanel');
 
@@ -172,6 +168,7 @@ function ReactPanel({
     },
     [parent, metadata, onOpen, panelId, title]
   );
+  const overlayContent = usePanelContentOverlay();
 
   return portal
     ? ReactDOM.createPortal(
@@ -205,8 +202,12 @@ function ReactPanel({
               rowGap={rowGap}
               columnGap={columnGap}
             >
-              {/* Have an ErrorBoundary around the children to display an error in the panel if there's any errors thrown when rendering the children */}
-              <ErrorBoundary>{children}</ErrorBoundary>
+              {/**
+               * Don't render the children if there's an error overlay. If there's an error with the widget, we can assume the children won't render properly.
+               */}
+              {overlayContent == null && (
+                <ReactPanelErrorBoundary>{children}</ReactPanelErrorBoundary>
+              )}
             </Flex>
           </View>
           <ReactPanelContentOverlay />
