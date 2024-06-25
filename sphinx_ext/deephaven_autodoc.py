@@ -195,11 +195,11 @@ def extract_content_data(
         The extracted content data
     """
     result = {}
-    for node in node.children:  # type: ignore
-        if isinstance(node, docutils.nodes.field_list):
-            result.update(extract_field_list(node))
-        elif isinstance(node, docutils.nodes.paragraph):
-            result["description"] = node.astext().replace("\n", " ")
+    for child_node in node.children:
+        if isinstance(child_node, docutils.nodes.field_list):
+            result.update(extract_field_list(child_node))
+        elif isinstance(child_node, docutils.nodes.paragraph):
+            result["description"] = child_node.astext().replace("\n", " ")
 
     return result
 
@@ -230,12 +230,12 @@ def extract_desc_data(node: sphinx.addnodes.desc) -> SignatureData:
     """
     result = {}
     param_defaults = {}
-    for node in node.children:  # type: ignore
-        if isinstance(node, sphinx.addnodes.desc_signature):
-            signature_results, param_defaults = extract_signature_data(node)
+    for child_node in node.children:
+        if isinstance(child_node, sphinx.addnodes.desc_signature):
+            signature_results, param_defaults = extract_signature_data(child_node)
             result.update(signature_results)
-        elif isinstance(node, sphinx.addnodes.desc_content):
-            result.update(extract_content_data(node))
+        elif isinstance(child_node, sphinx.addnodes.desc_content):
+            result.update(extract_content_data(child_node))
     # map all to lowercase for consistency
     result["parameters"] = result.pop("Parameters")
     result["return_description"] = result.pop("Returns")
