@@ -45,9 +45,9 @@ jobs:
           [plugindocs]
           type = s3
           provider = Cloudflare
-          access_key_id = ${{ secrets.CLOUDFLARE_ACCESS_KEY_ID }}
-          secret_access_key = ${{ secrets.CLOUDFLARE_SECRET_ACCESS_KEY }}
-          endpoint = ${{ secrets.CLOUDFLARE_ENDPOINT }}
+          access_key_id = ${{ secrets.DOCS_CLOUDFLARE_ACCESS_KEY_ID }}
+          secret_access_key = ${{ secrets.DOCS_CLOUDFLARE_SECRET_ACCESS_KEY }}
+          endpoint = ${{ secrets.DOCS_CLOUDFLARE_ENDPOINT }}
           no_check_bucket = true
           acl = private
           EOF
