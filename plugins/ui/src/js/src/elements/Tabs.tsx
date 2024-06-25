@@ -39,7 +39,8 @@ function tabChildrenConfig(
   childrenArray: ReactElement<TabProps>[],
   isTabList: boolean
 ) {
-  const items = childrenArray.map(({ key, props }) => {
+  const items = childrenArray.map(({ key: propKey, props }) => {
+    const key = propKey ?? props.title;
     const textValue = props.textValue ?? props.title;
     return (
       <Item key={key} textValue={textValue}>
