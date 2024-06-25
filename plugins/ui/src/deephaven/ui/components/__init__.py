@@ -3,7 +3,6 @@ from .action_group import action_group
 from .action_menu import action_menu
 from .basic import (
     component_element,
-    heading,
     icon_wrapper,
     illustrated_message,
     form,
@@ -24,6 +23,7 @@ from .dashboard import dashboard
 from .date_picker import date_picker
 from .flex import flex
 from .fragment import fragment
+from .heading import heading
 from .grid import grid
 from .icon import icon
 from .item import item

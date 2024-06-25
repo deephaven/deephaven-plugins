@@ -12,14 +12,6 @@ def component_element(name: str, /, *children: Any, **props: Any) -> BaseElement
     return BaseElement(f"deephaven.ui.components.{name}", *children, **props)
 
 
-def heading(*children, **props):
-    """
-    Python implementation for the Adobe React Spectrum Heading component.
-    https://react-spectrum.adobe.com/react-spectrum/Heading.html
-    """
-    return component_element("Heading", *children, **props)
-
-
 def icon_wrapper(*children, **props):
     """
     Python implementation for the Adobe React Spectrum Icon component.
