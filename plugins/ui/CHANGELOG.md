@@ -2,12 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+
+## ui-v0.15.4 - 2024-06-26
+#### Bug Fixes
+- Don't render objects/children of panels if there's a widget error (#577) - ([3a74dcc](https://github.com/deephaven/deephaven-plugins/commit/3a74dcc0dbad6922d8f13b46d8f7390166fa607e)) - [@mofojed](https://github.com/mofojed)
+
+- - -
+
 ## ui-v0.15.3 - 2024-06-24
 #### Bug Fixes
 - Don't use a key for the ErrorBoundary in a Panel (#574) (#576) - ([e7bfdec](https://github.com/deephaven/deephaven-plugins/commit/e7bfdecd388626616248abc0f161d4d9bf8dfc94)) - [@mofojed](https://github.com/mofojed)
 - deephaven-plugin-ui is compatible with deephaven-core 0.33.5 (#572) - ([9b4611a](https://github.com/deephaven/deephaven-plugins/commit/9b4611aee62c7282a01af109e34b556c6658d37b)) - [@mofojed](https://github.com/mofojed)
 
 - - -
+
 ## ui-v0.15.2 - 2024-06-21
 #### Bug Fixes
 - Wrap the children of ReactPanel with an ErrorBoundary (#565) (#569) - (dbebdd2) - mofojed
