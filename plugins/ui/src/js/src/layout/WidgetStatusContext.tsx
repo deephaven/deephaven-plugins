@@ -22,7 +22,7 @@ export type WidgetStatus =
   | WidgetStatusError
   | WidgetStatusReady;
 
-/** Error status of the widget within this context */
+/** Status of the widget within this context */
 export const WidgetStatusContext = createContext<WidgetStatus | null>(null);
 
 export default WidgetStatusContext;

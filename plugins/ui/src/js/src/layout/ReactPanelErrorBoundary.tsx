@@ -2,7 +2,7 @@ import Log from '@deephaven/log';
 import React, { Component, ReactNode } from 'react';
 import WidgetErrorView from '../widget/WidgetErrorView';
 
-const log = Log.module('ErrorBoundary');
+const log = Log.module('ReactPanelErrorBoundary');
 
 export interface ReactPanelErrorBoundaryProps {
   /** Children to catch errors from. Error will reset when the children have been updated. */

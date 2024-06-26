@@ -2,8 +2,8 @@ import { useContextOrThrow } from '@deephaven/react-hooks';
 import { WidgetStatus, WidgetStatusContext } from './WidgetStatusContext';
 
 /**
- * Gets the overlay content from the nearest panel context.
- * @returns The overlay content or null if not in a panel
+ * Gets the widget status from the closest WidgetStatusContext.
+ * @returns Widget status or throws an error if WidgetStatusContext is not set
  */
 export function useWidgetStatus(): WidgetStatus {
   return useContextOrThrow(WidgetStatusContext);
