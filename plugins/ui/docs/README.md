@@ -1522,7 +1522,7 @@ def ui_tabs(source):
         ui.tab_list(
             ui.item("Unfiltered", text_value="Unfiltered"),
             ui.item(ui.icon("vsGithubAlt"), "CAT", text_value="CAT"),
-            ui.item("DOG", key="DOG"),
+            ui.item("DOG", text_value="DOG"),
         ),
         ui.tab_panels(
             ui.item(source, text_value="Unfiltered"),
