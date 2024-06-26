@@ -1507,6 +1507,7 @@ You can add [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html) wi
 - Unfiltered table
 - Table filtered on sym `CAT`. We also include an icon in the tab header.
 - Table filtered on sym `DOG`
+- Using `text_value` instead of `key` on `ui.item `is an optional accessibility improvement for cases where `ui.item` contains non-text content
 
 ```python
 from deephaven import ui
@@ -1519,16 +1520,17 @@ stocks = dx.data.stocks()
 def ui_tabs(source):
     return ui.tabs(
         ui.tab_list(
-            ui.item("Unfiltered", key="Unfiltered"),
-            ui.item(ui.icon("vsGithubAlt"), "CAT", key="CAT"),
+            ui.item("Unfiltered", text_value="Unfiltered"),
+            ui.item(ui.icon("vsGithubAlt"), "CAT", text_value="CAT"),
             ui.item("DOG", key="DOG"),
         ),
         ui.tab_panels(
-            ui.item(source, key="Unfiltered"),
-            ui.item(source.where("sym=`CAT`"), key="CAT"),
-            ui.item(source.where("sym=`DOG`"), key="DOG"),
+            ui.item(source, text_value="Unfiltered"),
+            ui.item(source.where("sym=`CAT`"), text_value="CAT"),
+            ui.item(source.where("sym=`DOG`"), text_value="CAT"),
         ),
         flex_grow=1,
+        aria_label="Tabs",  # aria_label is set for aria accessibility and is otherwise optional
     )
 
 
