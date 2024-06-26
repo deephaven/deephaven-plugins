@@ -36,8 +36,10 @@ import {
 } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
 import { getComponentForElement } from './WidgetUtils';
+import WidgetStatusContext, {
+  WidgetStatus,
+} from '../layout/WidgetStatusContext';
 import WidgetErrorView from './WidgetErrorView';
-import WidgetErrorContext from '../layout/WidgetErrorContext';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
@@ -322,10 +324,20 @@ function WidgetHandler({
     return null;
   }, [document, error]);
 
+  const widgetStatus: WidgetStatus = useMemo(() => {
+    if (error != null) {
+      return { status: 'error', descriptor: widgetDescriptor, error };
+    }
+    if (renderedDocument != null) {
+      return { status: 'ready', descriptor: widgetDescriptor };
+    }
+    return { status: 'loading', descriptor: widgetDescriptor };
+  }, [error, renderedDocument, widgetDescriptor]);
+
   return useMemo(
     () =>
-      renderedDocument != null ? (
-        <WidgetErrorContext.Provider value={error}>
+      renderedDocument ? (
+        <WidgetStatusContext.Provider value={widgetStatus}>
           <DocumentHandler
             widget={widgetDescriptor}
             initialData={initialData}
@@ -334,15 +346,15 @@ function WidgetHandler({
           >
             {renderedDocument}
           </DocumentHandler>
-        </WidgetErrorContext.Provider>
+        </WidgetStatusContext.Provider>
       ) : null,
     [
-      error,
       widgetDescriptor,
       renderedDocument,
       initialData,
       onClose,
       onDataChange,
+      widgetStatus,
     ]
   );
 }
