@@ -33,7 +33,7 @@ def tabs(
     on_selection_change: Callable[[Key], None] | None = None,
     on_change: Callable[[Key], None] | None = None,
     flex: LayoutFlex | None = None,
-    flex_grow: int | None = 1,
+    flex_grow: int | float | None = 1,
     flex_shrink: Number | None = None,
     flex_basis: DimensionValue | None = None,
     align_self: AlignSelf | None = None,
