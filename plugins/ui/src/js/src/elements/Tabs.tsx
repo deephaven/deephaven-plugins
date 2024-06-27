@@ -100,11 +100,15 @@ export function Tabs(props: TabComponentProps): JSX.Element {
     tabPanelsOrLists.length + tabItems.length !== childrenArray.length;
 
   if (hasTabPanelsOrLists && hasTabItems) {
-    throw new Error('Cannot mix');
+    throw new Error(
+      'Cannot declare tabs with ui.tab and ui.tab_list/ui.tab_panels at the same time.'
+    );
   }
 
   if (hasUnsupportedChild) {
-    throw new Error('Tabs can only take ui.tab or ui.tab_list/ui.tab_panel');
+    throw new Error(
+      'Unknown child in tabs component. Only use ui.tab or ui.tab_list/ui.tab_panels.'
+    );
   }
 
   const tabListChildren = useMemo(
