@@ -5,4 +5,4 @@ select = ["ANN001", "TID251"]
 "**/{test,matplotlib,json,plotly}/*" = ["ANN001"]
 
 [lint.flake8-tidy-imports.banned-api]
-"Number".msg = "Import from Number is likely an accident. `float` includes `int` and is likely the desired type."
+"numbers".msg = "Import from numbers is likely an accident. `float` includes `int` and is likely the desired type."
