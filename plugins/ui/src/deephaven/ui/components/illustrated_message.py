@@ -1,5 +1,4 @@
 from __future__ import annotations
-from numbers import Number
 from typing import Any
 from .types import (
     AlignSelf,
@@ -16,12 +15,12 @@ from ..elements import Element
 def illustrated_message(
     *children: Any,
     flex: LayoutFlex | None = None,
-    flex_grow: Number | None = None,
-    flex_shrink: Number | None = None,
+    flex_grow: float | None = None,
+    flex_shrink: float | None = None,
     flex_basis: DimensionValue | None = None,
     align_self: AlignSelf | None = None,
     justify_self: JustifySelf | None = None,
-    order: Number | None = None,
+    order: float | None = None,
     grid_area: str | None = None,
     grid_row: str | None = None,
     grid_column: str | None = None,
@@ -49,7 +48,7 @@ def illustrated_message(
     right: DimensionValue | None = None,
     start: DimensionValue | None = None,
     end: DimensionValue | None = None,
-    z_index: Number | None = None,
+    z_index: float | None = None,
     is_hidden: bool | None = None,
     id: str | None = None,
     UNSAFE_class_name: str | None = None,

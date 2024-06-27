@@ -129,14 +129,12 @@ OverflowMode = Literal["wrap", "collapse"]
 
 Alignment = Literal["start", "end"]
 
-Number = Union[int, float]
-
-LayoutFlex = Union[str, Number, bool]
+LayoutFlex = Union[str, float, bool]
 """
 The flex CSS shorthand property sets how a flex item will grow or shrink to fit the space available in its flex container.
 """
 
-DimensionValue = Union[str, Number]
+DimensionValue = Union[str, float]
 """
 A dimension value can be a string providing a unit, such as "10px", or a number, which is assumed to be in pixels.
 """
