@@ -30,7 +30,9 @@ try:
                     lines = f.readlines()
                 with open(os.path.join(root, file), "w") as f:
                     for line in lines:
-                        if line.startswith("<!-- <ParamTable param={{"):
+                        if line.startswith(
+                            "<!-- <ParamTable param={{"
+                        ) and line.endswith("}} /> -->\n"):
                             # remove the comment markers
                             # these are added in deephaven_autodoc.py to prevent special characters from being escaped
                             # by the markdown renderer
