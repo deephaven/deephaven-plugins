@@ -22,7 +22,6 @@ os.system(f"cp docs/sidebar.json {BUILT_DOCS}/sidebar.json")
 os.system(f"rm {BUILT_DOCS}/index.md")
 
 try:
-    # go through each markdown file, look for ### deephaven.plot.express then add the syntax block
     for root, dirs, files in os.walk(BUILT_DOCS):
         for file in files:
             if file.endswith(".md"):
