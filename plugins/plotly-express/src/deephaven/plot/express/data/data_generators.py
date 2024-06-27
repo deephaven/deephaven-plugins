@@ -654,9 +654,15 @@ def gapminder(ticking: bool = True) -> Table:
     gapminder_no_2007.loc[:, ["year"]] = gapminder_no_2007["year"].apply(
         lambda x: create_years(x, 5)
     )
-    gapminder_no_2007.loc[:, ["lifeExp", "pop", "gdpPercap"]] = gapminder_no_2007[
-        ["lifeExp", "pop", "gdpPercap"]
-    ].map(lambda x: create_empty(x, 5))
+    gapminder_no_2007.loc[:, ["lifeExp"]] = gapminder_no_2007["lifeExp"].apply(
+        lambda x: create_empty(x, 5)
+    )
+    gapminder_no_2007.loc[:, ["pop"]] = gapminder_no_2007["pop"].apply(
+        lambda x: create_empty(x, 5)
+    )
+    gapminder_no_2007.loc[:, ["gdpPercap"]] = gapminder_no_2007["gdpPercap"].apply(
+        lambda x: create_empty(x, 5)
+    )
     gapminder_no_2007 = gapminder_no_2007.explode(
         column=["year", "lifeExp", "pop", "gdpPercap"]
     )
@@ -672,9 +678,15 @@ def gapminder(ticking: bool = True) -> Table:
     )
 
     # expand pre-2007 dataset into consecutive months
-    gapminder_no_2007.loc[:, ["lifeExp", "pop", "gdpPercap"]] = gapminder_no_2007[
-        ["lifeExp", "pop", "gdpPercap"]
-    ].map(lambda x: create_empty(x, 12))
+    gapminder_no_2007.loc[:, ["lifeExp"]] = gapminder_no_2007["lifeExp"].apply(
+        lambda x: create_empty(x, 12)
+    )
+    gapminder_no_2007.loc[:, ["pop"]] = gapminder_no_2007["pop"].apply(
+        lambda x: create_empty(x, 12)
+    )
+    gapminder_no_2007.loc[:, ["gdpPercap"]] = gapminder_no_2007["gdpPercap"].apply(
+        lambda x: create_empty(x, 12)
+    )
     gapminder_no_2007 = gapminder_no_2007.explode(
         column=["month", "lifeExp", "pop", "gdpPercap"]
     )
