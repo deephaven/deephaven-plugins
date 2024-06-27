@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Callable, Any
 
+from numbers import Number
+
 from deephaven.table import Table
 
 from .item_table_source import ItemTableSource
