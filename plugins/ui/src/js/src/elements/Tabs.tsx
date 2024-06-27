@@ -23,6 +23,7 @@ type TabProps = {
 type TabComponentProps = TabsProps<TabProps> & {
   children: TabChild | TabChild[];
   onChange?: (key: Key) => void;
+  onSelectionChange?: (key: Key) => void;
 };
 
 type TabChild =
@@ -35,23 +36,37 @@ function containsDuplicateKeys(childrenArray: JSX.Element[]) {
   return new Set(keys).size !== keys.length;
 }
 
-function tabChildrenConfig(
+/**
+ * `transformTabsToItems` processes an array of React elements representing tab children,
+ *  mapping them to a collection of `Item` components for the React Spectrum `TabList` and `TabPanels` components.
+ *
+ * @param childrenArray An array of React elements, each representing a tab child with props.
+ * @param data A boolean indicating if the current processing is for a TabList, changing how content is structured within each resulting `Item`.
+ */
+function transformTabsToItems(
   childrenArray: ReactElement<TabProps>[],
   isTabList: boolean
 ) {
   const items = childrenArray.map(({ key: propKey, props }) => {
     const key = propKey ?? props.title;
     const textValue = props.textValue ?? props.title;
-    return (
-      <Item key={key} textValue={textValue}>
-        {isTabList && props.icon && (
+    let content = props.children;
+
+    if (isTabList) {
+      if (props.icon) {
+        content = (
           <>
             {props.icon}
             <Text>{props.title}</Text>
           </>
-        )}
-        {isTabList && !props.icon && props.title}
-        {!isTabList && props.children}
+        );
+      } else {
+        content = <Text>{props.title}</Text>;
+      }
+    }
+    return (
+      <Item key={key} textValue={textValue}>
+        {content}
       </Item>
     );
   });
@@ -62,42 +77,54 @@ function tabChildrenConfig(
 }
 
 export function Tabs(props: TabComponentProps): JSX.Element {
-  const { children, onChange, ...otherTabProps } = props;
+  const {
+    children,
+    onSelectionChange: onSelectionChangeProp,
+    onChange,
+    ...otherTabProps
+  } = props;
   const childrenArray = useMemo(() => ensureArray(children), [children]);
 
-  const hasTabPanelsOrList = childrenArray.some(
+  const onSelectionChange = onSelectionChangeProp ?? onChange;
+
+  const hasTabPanelsOrLists = childrenArray.some(
     child =>
-      isElementOfType(child, TabPanels<TabProps>) ||
-      isElementOfType(child, TabList<TabProps>)
+      isElementOfType(child, TabPanels) || isElementOfType(child, TabList)
   );
+  const hasTabItems = childrenArray.some(child => isElementOfType(child, Item));
+
+  if (hasTabPanelsOrLists && hasTabItems) {
+    throw new Error(
+      'Cannot declare tabs with ui.tab and ui.tab_list/ui.tab_panels at the same time.'
+    );
+  }
 
   const tabListChildren = useMemo(
     () =>
-      hasTabPanelsOrList
+      hasTabPanelsOrLists
         ? []
-        : tabChildrenConfig(
+        : transformTabsToItems(
             childrenArray as unknown as ReactElement<TabProps>[],
             true
           ),
-    [hasTabPanelsOrList, childrenArray]
+    [hasTabPanelsOrLists, childrenArray]
   );
 
   const tabPanelsChildren = useMemo(
     () =>
-      hasTabPanelsOrList
+      hasTabPanelsOrLists
         ? []
-        : tabChildrenConfig(
+        : transformTabsToItems(
             childrenArray as unknown as ReactElement<TabProps>[],
             false
           ),
-    [hasTabPanelsOrList, childrenArray]
+    [hasTabPanelsOrLists, childrenArray]
   );
 
-  if (hasTabPanelsOrList) {
+  if (hasTabPanelsOrLists) {
     return (
       <DHCTabs
-        UNSAFE_className="dh-tabs"
-        onSelectionChange={onChange}
+        onSelectionChange={onSelectionChange}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...otherTabProps}
       >
@@ -108,8 +135,7 @@ export function Tabs(props: TabComponentProps): JSX.Element {
 
   return (
     <DHCTabs
-      UNSAFE_className="dh-tabs"
-      onSelectionChange={onChange}
+      onSelectionChange={onSelectionChange}
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...otherTabProps}
     >
@@ -118,5 +144,6 @@ export function Tabs(props: TabComponentProps): JSX.Element {
     </DHCTabs>
   );
 }
+
 Tabs.displayName = 'Tabs';
 export default Tabs;

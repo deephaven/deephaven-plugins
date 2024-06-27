@@ -1500,6 +1500,31 @@ For more information on liveness scopes and why they are needed, see the [livene
 
 ![Change Monitor](_assets/change_monitor.png)
 
+## Tabs using ui.tab
+
+You can add [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html) within a panel by using the `ui.tabs` method. In this example, we create a panel with two tabs by passing in two instances of `ui.tab` as children.
+
+When specifying tabs with this format, the following must be noted:
+- The `title` prop has to be unique, if not, the `key` prop has to be unique
+- The `text_value` prop is an optional accessibility improvement prop
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def ui_tabs():
+    return ui.tabs(
+        ui.tab("Content 1", title="Tab 1"),
+        ui.tab("Content 2", title="Tab 2", key="Key 2"),
+        ui.tab("Content 3", title="Tab 3", icon=ui.icon("vsGithubAlt"))
+        # aria_label="Sample label",
+    )
+
+
+my_tabs = ui_tabs()
+```
+
 ## Tabs using ui.tab_panels and ui.tab_list
 
 You can add [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html) within a panel by using the `ui.tabs` method. In this example, we create a tabbed panel with multiple tabs by passing in the `ui.tab_panels` and `ui.tab_list` as children:
@@ -1507,7 +1532,6 @@ You can add [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html) wi
 - Unfiltered table
 - Table filtered on sym `CAT`. We also include an icon in the tab header.
 - Table filtered on sym `DOG`
-- Using `text_value` instead of `key` on `ui.item `is an optional accessibility improvement for cases where `ui.item` contains non-text content
 
 ```python
 from deephaven import ui
@@ -1520,14 +1544,14 @@ stocks = dx.data.stocks()
 def ui_tabs(source):
     return ui.tabs(
         ui.tab_list(
-            ui.item("Unfiltered", text_value="Unfiltered"),
-            ui.item(ui.icon("vsGithubAlt"), "CAT", text_value="CAT"),
-            ui.item("DOG", text_value="DOG"),
+            ui.item("Unfiltered", key="Unfiltered"),
+            ui.item(ui.icon("vsGithubAlt"), "CAT", key="CAT"),
+            ui.item("DOG", key="DOG"),
         ),
         ui.tab_panels(
-            ui.item(source, text_value="Unfiltered"),
-            ui.item(source.where("sym=`CAT`"), text_value="CAT"),
-            ui.item(source.where("sym=`DOG`"), text_value="CAT"),
+            ui.item(source, key="Unfiltered"),
+            ui.item(source.where("sym=`CAT`"), key="CAT"),
+            ui.item(source.where("sym=`DOG`"), key="CAT"),
         ),
         flex_grow=1,
         aria_label="Tabs",  # aria_label is set for aria accessibility and is otherwise optional
@@ -1535,26 +1559,6 @@ def ui_tabs(source):
 
 
 my_tabs = ui_tabs(stocks)
-```
-
-## Tabs using ui.tab
-
-You can add [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html) within a panel by using the `ui.tabs` method. In this example, we create a panel with two tabs by passing in two instances of `ui.tab` as children:
-
-```python
-from deephaven import ui
-
-
-@ui.component
-def ui_tabs():
-    return ui.tabs(
-        ui.tab("Content 1", title="Tab 1"),
-        ui.tab("Content 2", title="Tab 2"),
-        aria_label="Sample label",
-    )
-
-
-my_tabs = ui_tabs()
 ```
 
 ## Using Table Data Hooks

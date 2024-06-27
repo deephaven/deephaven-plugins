@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-// TODO: #2084 Re-export @react-types/shared types
+// TODO: web-client-ui#2084 Re-export @react-types/shared types
 import type { SelectionMode } from '@react-types/shared';
 import type { ItemKey, ItemSelection } from '@deephaven/components';
 
