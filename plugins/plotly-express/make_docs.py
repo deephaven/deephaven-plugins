@@ -7,7 +7,8 @@ cwd = os.getcwd()
 
 # change to the directory of this file
 dirname = os.path.dirname(__file__)
-os.chdir(dirname)
+if dirname:
+    os.chdir(dirname)
 
 os.system("make clean")
 
@@ -29,7 +30,7 @@ try:
                     lines = f.readlines()
                 with open(os.path.join(root, file), "w") as f:
                     for line in lines:
-                        if "<ParamTable param={{" in line:
+                        if line.startswith("<!-- <ParamTable param={{"):
                             # remove the comment markers
                             # these are added in deephaven_autodoc.py to prevent special characters from being escaped
                             # by the markdown renderer

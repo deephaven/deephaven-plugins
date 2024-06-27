@@ -2,7 +2,13 @@ from __future__ import annotations
 
 import re
 import json
+import sys
 from typing import TypedDict, Union, List, Dict
+
+if sys.version_info < (3, 11):
+    from typing_extensions import NotRequired
+else:
+    from typing import NotRequired
 
 import docutils.nodes
 import sphinx.addnodes
@@ -11,12 +17,11 @@ from sphinx.ext.autodoc.directive import AutodocDirective
 from sphinx.application import Sphinx
 
 
-class ParamData(TypedDict, total=False):
+class ParamData(TypedDict):
     name: str
     type: str
     description: str
-    # default is not required
-    default: str | None
+    default: NotRequired[str | None]
 
 
 Params = List[ParamData]
