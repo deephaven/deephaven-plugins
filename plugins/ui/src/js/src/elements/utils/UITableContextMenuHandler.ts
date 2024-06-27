@@ -1,5 +1,5 @@
 import { GridPoint, ModelIndex } from '@deephaven/grid';
-import type { ContextAction } from '@deephaven/components';
+import type { ResolvableContextAction } from '@deephaven/components';
 import {
   IrisGridModel,
   IrisGridType,
@@ -12,10 +12,6 @@ import { UITableProps, wrapContextActions } from './UITableUtils';
  * Context menu handler for UITable.
  */
 class UITableContextMenuHandler extends IrisGridContextMenuHandler {
-  order = 890;
-
-  private irisGrid: IrisGridType;
-
   private model: IrisGridModel;
 
   private contextMenuItems: UITableProps['contextMenu'];
@@ -30,16 +26,20 @@ class UITableContextMenuHandler extends IrisGridContextMenuHandler {
     contextColumnHeaderItems: UITableProps['contextHeaderMenu']
   ) {
     super(irisGrid, dh);
+    this.order -= 1; // Make it just above the default handler priority
     this.irisGrid = irisGrid;
     this.model = model;
     this.contextMenuItems = contextMenuItems;
     this.contextColumnHeaderItems = contextColumnHeaderItems;
   }
 
+  // TODO: web-client-ui#2117 Remove the ts-ignore when the new types have been published
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   getHeaderActions(
     modelIndex: ModelIndex,
     gridPoint: GridPoint
-  ): ContextAction[] {
+  ): ResolvableContextAction[] {
     const { irisGrid, contextColumnHeaderItems, model } = this;
 
     const { column: columnIndex } = gridPoint;

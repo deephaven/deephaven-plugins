@@ -136,22 +136,24 @@ class ContextMenuSubmenuItem(ContextMenuItemBase):
     An item that contains a submenu for a context menu.
     """
 
-    actions: List["ResolvableContextMenuItem"]
+    actions: list["ResolvableContextMenuItem"]
     """
     A list of actions that will form the submenu for the item.
     """
 
 
-ContextMenuItem = Union[ContextMenuActionItem, ContextMenuSubmenuItem]
+ContextMenuItem = ContextMenuActionItem | ContextMenuSubmenuItem
 """
 An item that can appear in a context menu.
 May contain an action item or a submenu item.
 """
 
-ResolvableContextMenuItem = Union[
-    ContextMenuItem,
-    Callable[[ContextMenuActionParams], Union[List[ContextMenuItem], None]],
-]
+ResolvableContextMenuItem = (
+    ContextMenuItem
+    | Callable[
+        [ContextMenuActionParams], ContextMenuItem | list[ContextMenuItem] | None
+    ]
+)
 """
 A context menu item or a function that returns a list of context menu items or None.
 This can be used to dynamically generate context menu items based on the cell the menu is opened on.

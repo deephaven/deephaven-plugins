@@ -1328,16 +1328,14 @@ t = ui.table(
             ]
         }
     ],
-    context_header_menu=[
-        {
-            "title": "Header context menu item",
-            "action": lambda d: print("Header context menu item", d)
-        }
-    ]
+    context_header_menu={
+        "title": "Header context menu item",
+        "action": lambda d: print("Header context menu item", d)
+    }
 )
 ```
 
-The following example shows creating context menu items dynamically so that the item only appears on the `sym` column. Note the function is still passed as part of a list. If multiple functions are passed, each will be called and any items they return will be added to the context menu.
+The following example shows creating context menu items dynamically so that the item only appears on the `sym` column. If multiple functions are passed in a list, each will be called and any items they return will be added to the context menu.
 
 ```py
 from deephaven import ui
@@ -1345,17 +1343,15 @@ import deephaven.plot.express as dx
 
 def create_context_menu(data):
     if data["column_name"] == "sym":
-        return [
-            {
-                "title": f"Print {data['value']}",
-                "action": lambda d: print(d['value'])
-            },
-        ]
+        return {
+            "title": f"Print {data['value']}",
+            "action": lambda d: print(d['value'])
+        }
     return None
 
 t = ui.table(
     dx.data.stocks(),
-    context_menu=[create_context_menu]
+    context_menu=create_context_menu
 )
 ```
 

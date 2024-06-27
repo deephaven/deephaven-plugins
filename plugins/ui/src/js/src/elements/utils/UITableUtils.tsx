@@ -9,6 +9,7 @@ import type {
   ContextAction,
   ResolvableContextAction,
 } from '@deephaven/components';
+import { ensureArray } from '@deephaven/utils';
 import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
 import { getIcon } from './IconElementUtils';
 import {
@@ -49,7 +50,9 @@ export type UIContextItem = Omit<ContextAction, 'action' | 'actions'> & {
 
 type ResolvableUIContextItem =
   | UIContextItem
-  | ((params: UIContextItemParams) => Promise<UIContextItem[] | null>);
+  | ((
+      params: UIContextItemParams
+    ) => Promise<UIContextItem | UIContextItem[] | null>);
 
 export interface UITableProps {
   table: dh.WidgetExportedObject;
@@ -67,8 +70,8 @@ export interface UITableProps {
   sorts?: DehydratedSort[];
   showSearch: boolean;
   showQuickFilters: boolean;
-  contextMenu?: ResolvableUIContextItem[];
-  contextHeaderMenu?: ResolvableUIContextItem[];
+  contextMenu?: ResolvableUIContextItem | ResolvableUIContextItem[];
+  contextHeaderMenu?: ResolvableUIContextItem | ResolvableUIContextItem[];
   [key: string]: unknown;
 }
 
@@ -109,10 +112,10 @@ function wrapUIContextItem(
 }
 
 function wrapUIContextItems(
-  items: UIContextItem[],
+  items: UIContextItem | UIContextItem[],
   data: Omit<IrisGridContextMenuData, 'model' | 'modelRow' | 'modelColumn'>
 ): ContextAction[] {
-  return items.map(item => wrapUIContextItem(item, data));
+  return ensureArray(items).map(item => wrapUIContextItem(item, data));
 }
 
 /**
@@ -122,10 +125,10 @@ function wrapUIContextItems(
  * @returns Context items with the UI actions wrapped so they receive the cell info
  */
 export function wrapContextActions(
-  items: ResolvableUIContextItem[],
+  items: ResolvableUIContextItem | ResolvableUIContextItem[],
   data: Omit<IrisGridContextMenuData, 'model' | 'modelRow' | 'modelColumn'>
 ): ResolvableContextAction[] {
-  return items.map(item => {
+  return ensureArray(items).map(item => {
     if (typeof item === 'function') {
       return async () =>
         wrapUIContextItems(
