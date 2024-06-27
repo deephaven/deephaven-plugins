@@ -21,7 +21,7 @@ def tab(
     Args:
         *children: Content of the tab item.
         title: The title of the tab item.
-        key: The unique key of the tab item, defaults to title.
+        key: The unique key of the tab item. Defaults to title.
         icon: The icon of the tab item.
         text_value: The text value of the tab item.
     """

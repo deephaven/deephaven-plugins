@@ -1528,9 +1528,9 @@ my_tabs = ui_tabs()
 
 You can add [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html) within a panel by using the `ui.tabs` method. In this example, we create a tabbed panel with multiple tabs by passing in the `ui.tab_panels` and `ui.tab_list` as children:
 
-- Unfiltered table
-- Table filtered on sym `CAT`. We also include an icon in the tab header.
-- Table filtered on sym `DOG`
+`tab_list` is the container of tab headers. It expects children of `ui.item` which have a unique key. `text_value` may be added for accessibility, but by default the `key` will be used for accessibility.
+
+`tab_panels` is the content of the tabs. It expects children of `ui.item` which have a matching key with an item in the `tab_list`.
 
 ```python
 from deephaven import ui
@@ -1550,7 +1550,7 @@ def ui_tabs(source):
         ui.tab_panels(
             ui.item(source, key="Unfiltered"),
             ui.item(source.where("sym=`CAT`"), key="CAT"),
-            ui.item(source.where("sym=`DOG`"), key="CAT"),
+            ui.item(source.where("sym=`DOG`"), key="DOG"),
         ),
         flex_grow=1,
         aria_label="Tabs",  # aria_label is set for aria accessibility and is otherwise optional

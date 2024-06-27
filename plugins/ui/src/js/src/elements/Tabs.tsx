@@ -87,16 +87,24 @@ export function Tabs(props: TabComponentProps): JSX.Element {
 
   const onSelectionChange = onSelectionChangeProp ?? onChange;
 
-  const hasTabPanelsOrLists = childrenArray.some(
+  const tabPanelsOrLists = childrenArray.filter(
     child =>
-      isElementOfType(child, TabPanels) || isElementOfType(child, TabList)
+      isElementOfType(child, TabList) || isElementOfType(child, TabPanels)
   );
-  const hasTabItems = childrenArray.some(child => isElementOfType(child, Item));
+  const hasTabPanelsOrLists = tabPanelsOrLists.length > 0;
+
+  const tabItems = childrenArray.filter(child => isElementOfType(child, Item));
+  const hasTabItems = tabItems.length > 0;
+
+  const hasUnsupportedChild =
+    tabPanelsOrLists.length + tabItems.length !== childrenArray.length;
 
   if (hasTabPanelsOrLists && hasTabItems) {
-    throw new Error(
-      'Cannot declare tabs with ui.tab and ui.tab_list/ui.tab_panels at the same time.'
-    );
+    throw new Error('Cannot mix');
+  }
+
+  if (hasUnsupportedChild) {
+    throw new Error('Tabs can only take ui.tab or ui.tab_list/ui.tab_panel');
   }
 
   const tabListChildren = useMemo(
