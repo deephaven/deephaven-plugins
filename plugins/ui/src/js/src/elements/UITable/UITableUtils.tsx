@@ -1,6 +1,6 @@
 import type { dh } from '@deephaven/jsapi-types';
 import { ColumnName, DehydratedSort, RowIndex } from '@deephaven/iris-grid';
-import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
+import { ELEMENT_KEY, ElementNode, isElementNode } from '../utils/ElementUtils';
 import { ELEMENT_NAME, ElementName } from '../model/ElementConstants';
 
 export type CellData = {
@@ -18,7 +18,7 @@ export type ColumnIndex = number;
 
 export type RowDataMap = Record<ColumnName, RowDataValue>;
 
-export interface UITableProps {
+export type UITableProps = {
   table: dh.WidgetExportedObject;
   onCellPress?: (cellIndex: [ColumnIndex, RowIndex], data: CellData) => void;
   onCellDoublePress?: (
@@ -34,8 +34,12 @@ export interface UITableProps {
   sorts?: DehydratedSort[];
   showSearch: boolean;
   showQuickFilters: boolean;
-  [key: string]: unknown;
-}
+  frontColumns?: string[];
+  backColumns?: string[];
+  frozenColumns?: string[];
+  hiddenColumns?: string[];
+  columnGroups?: dh.ColumnGroup[];
+};
 
 export type UITableNode = Required<
   ElementNode<ElementName['uiTable'], UITableProps>

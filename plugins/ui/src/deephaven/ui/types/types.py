@@ -1,6 +1,4 @@
-import datetime
-import pandas
-import numpy
+import sys
 from typing import (
     Any,
     Dict,
@@ -10,9 +8,18 @@ from typing import (
     List,
     Tuple,
     Callable,
-    TypedDict,
     Sequence,
 )
+
+if sys.version_info < (3, 11):
+    from typing_extensions import TypedDict, NotRequired
+else:
+    from typing import TypedDict, NotRequired
+
+import datetime
+import pandas
+import numpy
+
 from deephaven import SortDirection
 from deephaven.dtypes import DType
 
@@ -51,6 +58,31 @@ class RowDataValue(CellData):
     isGrouped: bool
     """
     Whether this row is grouped.
+    """
+
+
+class ColumnGroup(TypedDict):
+    """
+    Group of columns in a table.
+    Groups are displayed in the table header.
+    Groups may be nested.
+    """
+
+    name: str
+    """
+    Name of the column group.
+    Must follow column naming rules and be unique within the column and group names.
+    """
+
+    children: List[str]
+    """
+    List of child columns or groups in the group.
+    Names are other columns or groups.
+    """
+
+    color: NotRequired[str]
+    """
+    Color for the group header.
     """
 
 

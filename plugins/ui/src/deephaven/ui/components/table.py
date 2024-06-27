@@ -4,6 +4,7 @@ from deephaven.table import Table
 from ..elements import UITable
 from ..types import (
     CellPressCallback,
+    ColumnGroup,
     ColumnName,
     ColumnPressCallback,
     QuickFilterExpression,
@@ -23,6 +24,11 @@ def table(
     quick_filters: dict[ColumnName, QuickFilterExpression] | None = None,
     show_quick_filters: bool = False,
     show_search: bool = False,
+    front_columns: list[ColumnName] | None = None,
+    back_columns: list[ColumnName] | None = None,
+    frozen_columns: list[ColumnName] | None = None,
+    hidden_columns: list[ColumnName] | None = None,
+    column_groups: list[ColumnGroup] | None = None,
 ) -> UITable:
     """
     Customization to how a table is displayed, how it behaves, and listen to UI events.
@@ -48,6 +54,14 @@ def table(
         quick_filters: The quick filters to apply to the table. Dictionary of column name to filter value.
         show_quick_filters: Whether to show the quick filter bar by default.
         show_search: Whether to show the search bar by default.
+        front_columns: The columns to pin to the front of the table. These will not be movable by the user.
+        back_columns: The columns to pin to the back of the table. These will not be movable by the user.
+        frozen_columns: The columns to freeze at the front of the table.
+            These will always be visible regardless of horizontal scrolling.
+        hidden_columns: The columns to hide by default. Users may show the columns by expanding them.
+        column_groups: Columns to group together. The groups will be shown in the table header.
+            Group names must be unique within the column and group names.
+            Groups may be nested by providing the group name as a child of another group.
     """
     props = locals()
     del props["table"]
