@@ -136,7 +136,7 @@ class ContextMenuSubmenuItem(ContextMenuItemBase):
     An item that contains a submenu for a context menu.
     """
 
-    actions: list["ResolvableContextMenuItem"]
+    actions: List["ResolvableContextMenuItem"]
     """
     A list of actions that will form the submenu for the item.
     """
@@ -151,7 +151,7 @@ May contain an action item or a submenu item.
 ResolvableContextMenuItem = (
     ContextMenuItem
     | Callable[
-        [ContextMenuActionParams], ContextMenuItem | list[ContextMenuItem] | None
+        [ContextMenuActionParams], ContextMenuItem | List[ContextMenuItem] | None
     ]
 )
 """
