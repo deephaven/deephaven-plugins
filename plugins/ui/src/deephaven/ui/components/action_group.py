@@ -1,5 +1,4 @@
 from __future__ import annotations
-from numbers import Number
 from typing import Any, Callable, Iterable
 
 
@@ -16,6 +15,7 @@ from .types import (
     LayoutFlex,
     OverflowMode,
     Position,
+    Number,
 )
 from .basic import component_element
 from ..elements import Element

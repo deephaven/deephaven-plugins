@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from numbers import Number
 from typing import Callable, Iterable
 
 from .basic import component_element
@@ -27,6 +26,7 @@ from .types import (
     LayoutFlex,
     OverflowMode,
     Position,
+    Number,
 )
 
 ListActionGroupElement = Element

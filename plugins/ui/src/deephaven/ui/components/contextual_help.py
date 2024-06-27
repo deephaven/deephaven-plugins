@@ -1,5 +1,4 @@
 from __future__ import annotations
-from numbers import Number
 from typing import Any, Callable
 from .types import (
     # Validation
@@ -12,6 +11,7 @@ from .types import (
     LayoutFlex,
     Placement,
     Position,
+    Number,
 )
 from .basic import component_element
 from ..elements import Element

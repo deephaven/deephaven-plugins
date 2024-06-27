@@ -1,13 +1,13 @@
 from __future__ import annotations
-from numbers import Number
 from typing import Callable, Iterable
 
 from .item import Item
 from .section import SectionElement
 
-from ..types import Key, ActionKey, ActionMenuDirection
 from .basic import component_element
 from ..elements import Element
+
+from .types import Number
 
 from ..types import (
     Key,
@@ -26,6 +26,7 @@ from .types import (
     JustifySelf,
     LayoutFlex,
     Position,
+    Number,
 )
 
 

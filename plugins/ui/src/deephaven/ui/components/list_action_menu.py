@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from numbers import Number
 from typing import Callable, Iterable, Union
 
 
@@ -19,6 +18,7 @@ from .types import (
     JustifySelf,
     LayoutFlex,
     Position,
+    Number,
 )
 
 ListActionMenuElement = Element

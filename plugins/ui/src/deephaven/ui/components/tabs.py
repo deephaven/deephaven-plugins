@@ -1,11 +1,11 @@
 from __future__ import annotations
-from numbers import Number
 from typing import Any, Callable, Iterable, Union
 
 from .basic import component_element
 
 from .types import (
     KeyboardActivationType,
+    Number,
     Orientation,
     AlignSelf,
     CSSProperties,
@@ -33,7 +33,7 @@ def tabs(
     on_selection_change: Callable[[Key], None] | None = None,
     on_change: Callable[[Key], None] | None = None,
     flex: LayoutFlex | None = None,
-    flex_grow: Union[int, float] | None = 1,
+    flex_grow: Number | None = 1,
     flex_shrink: Number | None = None,
     flex_basis: DimensionValue | None = None,
     align_self: AlignSelf | None = None,
