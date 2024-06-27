@@ -24,7 +24,6 @@ test('boom component shows an error in a panel', async ({ page }) => {
   await expect(
     page.locator(selector.REACT_PANEL_VISIBLE).getByText('BOOM!')
   ).toBeVisible();
-  await expect(page.locator(selector.REACT_PANEL_OVERLAY)).not.toBeVisible();
 });
 
 test('boom counter component shows error overlay after clicking the button twice', async ({
@@ -43,12 +42,10 @@ test('boom counter component shows error overlay after clicking the button twice
   await expect(btn).toBeVisible();
   btn.click();
 
-  const overlayLocator = page.locator(selector.REACT_PANEL_OVERLAY);
-
   await expect(
-    overlayLocator.getByText('ValueError', { exact: true })
+    panelLocator.getByText('ValueError', { exact: true })
   ).toBeVisible();
-  await expect(overlayLocator.getByText('BOOM! Value too big.')).toBeVisible();
+  await expect(panelLocator.getByText('BOOM! Value too big.')).toBeVisible();
 });
 
 test('UI all components render', async ({ page }) => {
