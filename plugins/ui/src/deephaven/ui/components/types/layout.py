@@ -104,6 +104,27 @@ JustifySelf = Literal[
     "stretch",
 ]
 
+JustifyItems = Literal[
+    "auto",
+    "normal",
+    "start",
+    "end",
+    "center",
+    "left",
+    "right",
+    "stretch",
+    "self-start",
+    "self-end",
+    "baseline",
+    "first baseline",
+    "last baseline",
+    "safe center",
+    "unsafe center",
+    "legacy right",
+    "legacy left",
+    "legacy center",
+]
+
 OverflowMode = Literal["wrap", "collapse"]
 
 Alignment = Literal["start", "end"]
@@ -132,6 +153,7 @@ A dictionary of CSS properties.
 LabelPosition = Literal["top", "side"]
 Align = Literal["start", "end"]
 
+GridFlow = Literal["row", "column", "row dense", "column dense"]
 BorderSize = Literal["none", "thin", "thick", "thicker", "thickest"]
 BorderRadius = Literal[
     "xsmall",

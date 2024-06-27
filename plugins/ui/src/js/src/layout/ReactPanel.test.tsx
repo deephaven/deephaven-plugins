@@ -1,16 +1,28 @@
 import React from 'react';
-import { render } from '@testing-library/react';
-import { LayoutUtils, useListener } from '@deephaven/dashboard';
+import { render, within } from '@testing-library/react';
+import {
+  LayoutUtils,
+  WidgetDescriptor,
+  useListener,
+} from '@deephaven/dashboard';
+import { TestUtils } from '@deephaven/utils';
 import ReactPanel from './ReactPanel';
 import {
   ReactPanelManager,
   ReactPanelManagerContext,
 } from './ReactPanelManager';
 import { ReactPanelProps } from './LayoutUtils';
-import PortalPanelManager from './PortalPanelManager';
-import PortalPanelManagerContext from './PortalPanelManagerContext';
+import PortalPanelManagerContext, {
+  PortalPanelMap,
+} from './PortalPanelManagerContext';
+import WidgetStatusContext, { WidgetStatus } from './WidgetStatusContext';
 
 const mockPanelId = 'test-panel-id';
+const defaultDescriptor = { name: 'test-name', type: 'test-type' };
+const defaultStatus: WidgetStatus = {
+  status: 'ready',
+  descriptor: defaultDescriptor,
+};
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -18,7 +30,7 @@ beforeEach(() => {
 
 function makeReactPanelManager({
   children,
-  metadata = { name: 'test-name', type: 'test-type' },
+  metadata = defaultDescriptor,
   onClose = jest.fn(),
   onOpen = jest.fn(),
   getPanelId = jest.fn(() => mockPanelId),
@@ -40,23 +52,32 @@ function makeReactPanelManager({
 
 function makeTestComponent({
   children,
-  metadata = { name: 'test-name', type: 'test-type' },
+  metadata = defaultDescriptor,
   onClose = jest.fn(),
   onOpen = jest.fn(),
   getPanelId = jest.fn(() => mockPanelId),
+  portals = new Map(),
+  status = defaultStatus,
   title = 'test title',
-}: Partial<ReactPanelProps> & Partial<ReactPanelManager> = {}) {
+}: Partial<ReactPanelProps> &
+  Partial<ReactPanelManager> & {
+    metadata?: WidgetDescriptor;
+    portals?: PortalPanelMap;
+    status?: WidgetStatus;
+  } = {}) {
   return (
-    <PortalPanelManager>
-      {makeReactPanelManager({
-        children,
-        metadata,
-        onClose,
-        onOpen,
-        getPanelId,
-        title,
-      })}
-    </PortalPanelManager>
+    <WidgetStatusContext.Provider value={status}>
+      <PortalPanelManagerContext.Provider value={portals}>
+        {makeReactPanelManager({
+          children,
+          metadata,
+          onClose,
+          onOpen,
+          getPanelId,
+          title,
+        })}
+      </PortalPanelManagerContext.Provider>
+    </WidgetStatusContext.Provider>
   );
 }
 
@@ -180,14 +201,13 @@ it('does not call openComponent or setActiveContentItem if panel already exists 
   const metadata = { type: 'bar' };
   const children = 'hello';
   const { rerender } = render(
-    <PortalPanelManagerContext.Provider value={portals}>
-      {makeReactPanelManager({
-        children,
-        onOpen,
-        onClose,
-        metadata,
-      })}
-    </PortalPanelManagerContext.Provider>
+    makeTestComponent({
+      children,
+      onOpen,
+      onClose,
+      metadata,
+      portals,
+    })
   );
   expect(LayoutUtils.openComponent).not.toHaveBeenCalled();
   expect(LayoutUtils.closeComponent).not.toHaveBeenCalled();
@@ -199,14 +219,13 @@ it('does not call openComponent or setActiveContentItem if panel already exists 
 
   // Now check that it focuses it if it's called after the metadata changes
   rerender(
-    <PortalPanelManagerContext.Provider value={portals}>
-      {makeReactPanelManager({
-        children: 'world',
-        onOpen,
-        onClose,
-        metadata: { type: 'baz' },
-      })}
-    </PortalPanelManagerContext.Provider>
+    makeTestComponent({
+      children: 'world',
+      onOpen,
+      onClose,
+      metadata: { type: 'baz' },
+      portals,
+    })
   );
 
   expect(LayoutUtils.openComponent).not.toHaveBeenCalled();
@@ -259,4 +278,50 @@ it('calls setActiveContentItem if metadata changed while the panel already exist
   expect(onOpen).toHaveBeenCalledTimes(1);
   expect(onClose).not.toHaveBeenCalled();
   expect(mockStack.setActiveContentItem).toHaveBeenCalledTimes(1);
+});
+
+it('catches an error thrown by children, renders error view', () => {
+  TestUtils.disableConsoleOutput();
+
+  const error = new Error('test error');
+  const ErrorComponent = () => {
+    throw error;
+  };
+
+  const portal = document.createElement('div');
+  const portals = new Map([[mockPanelId, portal]]);
+
+  const { rerender } = render(
+    makeTestComponent({
+      children: <ErrorComponent />,
+      portals,
+    })
+  );
+  const { getByText } = within(portal);
+  expect(getByText('test error')).toBeDefined();
+
+  rerender(
+    makeTestComponent({
+      children: <div>Hello</div>,
+      portals,
+    })
+  );
+
+  expect(getByText('Hello')).toBeDefined();
+});
+
+it('displays an error if the widget is in an error state', () => {
+  const error = new Error('test error');
+  const portal = document.createElement('div');
+  const portals = new Map([[mockPanelId, portal]]);
+  const status: WidgetStatus = {
+    status: 'error',
+    descriptor: defaultDescriptor,
+    error,
+  };
+
+  render(makeTestComponent({ portals, status }));
+
+  const { getByText } = within(portal);
+  expect(getByText('test error')).toBeDefined();
 });

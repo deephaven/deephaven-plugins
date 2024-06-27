@@ -36,8 +36,10 @@ import {
 } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
 import { getComponentForElement, wrapCallable } from './WidgetUtils';
+import WidgetStatusContext, {
+  WidgetStatus,
+} from '../layout/WidgetStatusContext';
 import WidgetErrorView from './WidgetErrorView';
-import ReactPanelContentOverlayContext from '../layout/ReactPanelContentOverlayContext';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
@@ -322,33 +324,31 @@ function WidgetHandler({
     [jsonClient, initialData, sendSetState, updateExportedObjects, widget]
   );
 
-  const errorView = useMemo(() => {
-    if (error != null) {
-      return <WidgetErrorView error={error} />;
-    }
-    return null;
-  }, [error]);
-
-  const contentOverlay = useMemo(() => {
-    // We only show it as an overlay if there's already a document to show
-    // If there isn't, then we'll just render this as the document so it forces a panel to open
-    if (errorView != null && document != null) {
-      return errorView;
-    }
-    return null;
-  }, [document, errorView]);
-
   const renderedDocument = useMemo(() => {
     if (document != null) {
       return document;
     }
-    return errorView;
-  }, [document, errorView]);
+    if (error != null) {
+      // If there's an error and the document hasn't rendered yet, explicitly show an error view
+      return <WidgetErrorView error={error} />;
+    }
+    return null;
+  }, [document, error]);
+
+  const widgetStatus: WidgetStatus = useMemo(() => {
+    if (error != null) {
+      return { status: 'error', descriptor: widgetDescriptor, error };
+    }
+    if (renderedDocument != null) {
+      return { status: 'ready', descriptor: widgetDescriptor };
+    }
+    return { status: 'loading', descriptor: widgetDescriptor };
+  }, [error, renderedDocument, widgetDescriptor]);
 
   return useMemo(
     () =>
-      renderedDocument != null ? (
-        <ReactPanelContentOverlayContext.Provider value={contentOverlay}>
+      renderedDocument ? (
+        <WidgetStatusContext.Provider value={widgetStatus}>
           <DocumentHandler
             widget={widgetDescriptor}
             initialData={initialData}
@@ -357,15 +357,15 @@ function WidgetHandler({
           >
             {renderedDocument}
           </DocumentHandler>
-        </ReactPanelContentOverlayContext.Provider>
+        </WidgetStatusContext.Provider>
       ) : null,
     [
-      contentOverlay,
       widgetDescriptor,
       renderedDocument,
       initialData,
       onClose,
       onDataChange,
+      widgetStatus,
     ]
   );
 }
