@@ -61,6 +61,31 @@ class RowDataValue(CellData):
     """
 
 
+class ColumnGroup(TypedDict):
+    """
+    Group of columns in a table.
+    Groups are displayed in the table header.
+    Groups may be nested.
+    """
+
+    name: str
+    """
+    Name of the column group.
+    Must follow column naming rules and be unique within the column and group names.
+    """
+
+    children: List[str]
+    """
+    List of child columns or groups in the group.
+    Names are other columns or groups.
+    """
+
+    color: NotRequired[str]
+    """
+    Color for the group header.
+    """
+
+
 class ContextMenuActionParams(TypedDict):
     """
     Parameters given to a context menu action

@@ -1,5 +1,5 @@
 import type { dh } from '@deephaven/jsapi-types';
-import type {
+import {
   ColumnName,
   DehydratedSort,
   IrisGridContextMenuData,
@@ -10,8 +10,9 @@ import type {
   ResolvableContextAction,
 } from '@deephaven/components';
 import { ensureArray } from '@deephaven/utils';
-import { ELEMENT_KEY, ElementNode, isElementNode } from './ElementUtils';
-import { getIcon } from './IconElementUtils';
+import { ELEMENT_KEY, ElementNode, isElementNode } from '../utils/ElementUtils';
+
+import { getIcon } from '../utils/IconElementUtils';
 import {
   ELEMENT_NAME,
   ELEMENT_PREFIX,
@@ -54,7 +55,7 @@ type ResolvableUIContextItem =
       params: UIContextItemParams
     ) => Promise<UIContextItem | UIContextItem[] | null>);
 
-export interface UITableProps {
+export type UITableProps = {
   table: dh.WidgetExportedObject;
   onCellPress?: (cellIndex: [ColumnIndex, RowIndex], data: CellData) => void;
   onCellDoublePress?: (
@@ -70,10 +71,14 @@ export interface UITableProps {
   sorts?: DehydratedSort[];
   showSearch: boolean;
   showQuickFilters: boolean;
+  frontColumns?: string[];
+  backColumns?: string[];
+  frozenColumns?: string[];
+  hiddenColumns?: string[];
+  columnGroups?: dh.ColumnGroup[];
   contextMenu?: ResolvableUIContextItem | ResolvableUIContextItem[];
   contextHeaderMenu?: ResolvableUIContextItem | ResolvableUIContextItem[];
-  [key: string]: unknown;
-}
+};
 
 export type UITableNode = Required<
   ElementNode<ElementName['uiTable'], UITableProps>

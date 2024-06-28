@@ -15,5 +15,5 @@ export * from './RangeSlider';
 export * from './Slider';
 export * from './TabPanels';
 export * from './TextField';
-export * from './UITable';
+export * from './UITable/UITable';
 export * from './utils';
