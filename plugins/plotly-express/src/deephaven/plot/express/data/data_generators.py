@@ -125,6 +125,107 @@ def iris(ticking: bool = True) -> Table:
     return source_table
 
 
+def jobs(ticking: bool = True):
+    def generate_resource(index: int) -> str:
+        random.seed(index)
+        return ["Mike", "Matti", "Steve", "John", "Jane"][random.randint(0, 4)]
+
+    static_jobs = empty_table(5).update(
+        [
+            "Job = `Job` + String.valueOf((ii % 5) + 1)",
+            "StartTime = '2020-01-01T00:00:00Z' + ('P1d' * i * 2)",
+            "EndTime = StartTime + 'P5d'",
+            "Resource = generate_resource(ii)",
+        ]
+    )
+
+    if not ticking:
+        return static_jobs
+
+    ticking_jobs = merge(
+        [
+            static_jobs,
+            time_table("PT1s")
+            .drop_columns("Timestamp")
+            .update(
+                [
+                    "Job = `Job` + String.valueOf((ii % 5) + 1)",
+                    "StartTime = '2020-01-11T00:00:00Z' + ('P1d' * i * 2)",
+                    "EndTime = StartTime + 'P5d'",
+                    "Resource = generate_resource(ii)",
+                ]
+            ),
+        ]
+    ).last_by("Job")
+
+    return ticking_jobs
+
+
+def marketing(ticking: bool = True):
+
+    random.seed(12345566)
+    _ColsToRowsTransform = jpy.get_type(
+        "io.deephaven.engine.table.impl.util.ColumnsToRowsTransform"
+    )
+
+    def weighted_selection(prob: float) -> bool:
+        return random.uniform(0, 1) < prob
+
+    static_marketing = empty_table(100).update(
+        [
+            "VisitedWebsite = true",  # appearing in this table assumes a website visit
+            "Downloaded = VisitedWebsite ? weighted_selection(0.45) : false",  # 45% of visits download product
+            "PotentialCustomer = Downloaded ? weighted_selection(0.77) : false",  # 77% of downloads are potential customers
+            "RequestedPrice = PotentialCustomer ? weighted_selection(0.82) : false",  # 82% of flagged potential customers request price
+            "InvoiceSent = RequestedPrice ? weighted_selection(0.24) : false",  # 24% of those who requested price get invoice
+        ]
+    )
+
+    if not ticking:
+        return Table(
+            _ColsToRowsTransform.columnsToRows(
+                static_marketing.sum_by().j_table,
+                "Stage",
+                "Count",
+                "VisitedWebsite",
+                "Downloaded",
+                "PotentialCustomer",
+                "RequestedPrice",
+                "InvoiceSent",
+            )
+        )
+
+    ticking_marketing = merge(
+        [
+            static_marketing,
+            time_table("PT1s")
+            .update(
+                [
+                    "VisitedWebsite = true",  # appearing in this table assumes a website visit
+                    "Downloaded = VisitedWebsite ? weighted_selection(0.45) : false",  # 45% of visits download product
+                    "PotentialCustomer = Downloaded ? weighted_selection(0.77) : false",  # 77% of downloads are potential customers
+                    "RequestedPrice = PotentialCustomer ? weighted_selection(0.82) : false",  # 82% of flagged potential customers request price
+                    "InvoiceSent = RequestedPrice ? weighted_selection(0.24) : false",  # 24% of those who requested price get invoice
+                ]
+            )
+            .drop_columns("Timestamp"),
+        ]
+    ).sum_by()
+
+    return Table(
+        _ColsToRowsTransform.columnsToRows(
+            ticking_marketing.j_table,
+            "Stage",
+            "Count",
+            "VisitedWebsite",
+            "Downloaded",
+            "PotentialCustomer",
+            "RequestedPrice",
+            "InvoiceSent",
+        )
+    )
+
+
 def stocks(ticking: bool = True, hours_of_data: int = 1) -> Table:
     """Returns a Deephaven table containing a generated example data set.
 
