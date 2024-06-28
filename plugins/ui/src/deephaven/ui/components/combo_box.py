@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable
+from typing import Callable, Any
 
 from .types import (
     FocusEventCallable,
@@ -126,6 +126,7 @@ def combo_box(
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    **props: Any,
 ) -> ComboBoxElement:
     """
     A combo box that can be used to search or select from a list. Children should be one of five types:

@@ -46,7 +46,6 @@ from .table import table
 from .text_field import text_field
 from .toggle_button import toggle_button
 from .view import view
-from .types import *
 
 from . import html
 
