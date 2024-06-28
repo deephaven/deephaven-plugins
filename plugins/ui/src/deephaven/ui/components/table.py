@@ -63,10 +63,11 @@ def table(
         show_search: Whether to show the search bar by default.
         front_columns: The columns to pin to the front of the table. These will not be movable by the user.
         back_columns: The columns to pin to the back of the table. These will not be movable by the user.
-        frozen_columns: The columns to freeze at the front of the table.
+        frozen_columns: The columns to freeze by default at the front of the table.
             These will always be visible regardless of horizontal scrolling.
+            The user may unfreeze columns or freeze additional columns.
         hidden_columns: The columns to hide by default. Users may show the columns by expanding them.
-        column_groups: Columns to group together. The groups will be shown in the table header.
+        column_groups: Columns to group together by default. The groups will be shown in the table header.
             Group names must be unique within the column and group names.
             Groups may be nested by providing the group name as a child of another group.
         context_menu: The context menu items to show when a cell is right clicked.
