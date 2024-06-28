@@ -8,7 +8,7 @@ In a bullish (upward, typically shown as green) candlestick, the open is typical
 
 #### When are candlestick plots appropriate?
 
-Candle stick plots are generally only appropriate for financial data, due to their specialized requirements.
+Candlestick plots are generally only appropriate for financial data, due to their specialized requirements.
 
 #### What are candlestick plots useful for?
 
@@ -20,7 +20,7 @@ Candle stick plots are generally only appropriate for financial data, due to the
 
 ### A basic candlestick plot
 
-Visualize the key summary statics of a single continuous variable as it evolves.
+Visualize the key summary statistics of a single continuous variable as it evolves.
 
 ```python order=candlestick_plot,stocks_1min_ohlc,stocks
 import deephaven.plot.express as dx

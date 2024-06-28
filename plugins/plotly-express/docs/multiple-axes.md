@@ -1,6 +1,8 @@
 # Multiple Axes
 
-You can create multiple x or y axes in a single plot in a few different ways, from columns or from paritions, or as layers from multiple plots. Passing multiple columns to the `x` or `y` parameters along with setting a `yaxis_sequence` or `xaxis_sequence` will create multiple axes. Using the `by` parameter along with an axis sequence can also create multiple axes, with one for each unique value in the column. The `layer` function can also be used to create multiple axes.
+You can create multiple x or y axes in a single plot in a few different ways, from columns or from paritions, or as layers from multiple plots. Multiple axis plots are useful for visualizing the relationship between variables that are expected to have some significant relationship, but have very different units or scales. In these cases, multiple axes can help display that relationship without forcing one variable to conform to the scale of the other.
+
+In Deephaven Express, passing multiple columns to the `x` or `y` parameters along with setting a `yaxis_sequence` or `xaxis_sequence` will create multiple axes. Using the `by` parameter along with an axis sequence can also create multiple axes, with one for each unique value in the column. The `layer` function can also be used to create multiple axes.
 
 ## Examples
 

@@ -4,7 +4,7 @@ In a strip plot, individual data points are displayed along a single axis, provi
 
 #### When are strip plots appropriate?
 
-Strip plots are appropriate when the data contain a continuous variable of interest. If there is an additional categorical variable that the variable of interest depends on, stacked strip plots may be appropriate. The data should be relatively sparse, as strip plots can get crowded quickly with large datasets. In such cases, box plots or violin plots may be more appropriate.
+Strip plots are appropriate when the data contain a continuous variable of interest. If there is an additional categorical variable that the variable of interest depends on, stacked strip plots may be appropriate. The data should be relatively sparse, as strip plots can get crowded quickly with large datasets. This may make it difficult to spot multimodal distributions, heavy-tailed distributions, or outliers. In such cases, box plots or violin plots may be more appropriate.
 
 #### What are strip plots useful for?
 

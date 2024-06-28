@@ -6,7 +6,7 @@ A box plot, also known as a box-and-whisker plot, is a data visualization that p
 
 Box plots are appropriate when the data have a continuous variable of interest. If there is an additional categorical variable that the variable of interest depends on, side-by-side box plots may be appropriate.
 
-#### What are box plots are useful for?
+#### What are box plots useful for?
 
 - **Visualizing Overall Distribution**: Box plots reveal the distribution of the variable of interest. They are good first-line tools for assessing whether a variable's distribution is symmetric, right-skewed, or left-skewed.
 - **Assessing Center and Spread**: A box plot displays the center (median) of a dataset using the middle line, and displays the spread (IQR) using the width of the box.

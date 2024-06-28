@@ -33,7 +33,7 @@ spiral = time_table("PT0.01s").update_view(
 )
 
 # create a basic 3d line plot by specifying each spatial component
-spiral_plot = dx.line_3d(t, x="X", y="Y", z="Z")
+spiral_plot = dx.line_3d(spiral, x="X", y="Y", z="Z")
 ```
 
 ## API Reference

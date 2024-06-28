@@ -110,7 +110,7 @@ In this example, we create a Deephaven table and create a line plot of `timestam
 
 ## Documentation Terminology
 
-The documentation for Deephaven Express will routinely use some common terms to help clarify how plots are intended to be used:
+The documentation for Deephaven Express routinely uses some common terms to help clarify how plots are intended to be used:
 
 - **Variable**: Variables, usually represented as columns in a Deephaven table, are a series of data points or observations of a particular characteristic in the data set. Examples include age, GDP, stock price, wind direction, sex, zip code, shoe size, square footage, and height.
 
