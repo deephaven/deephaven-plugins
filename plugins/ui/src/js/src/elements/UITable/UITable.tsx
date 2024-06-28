@@ -1,8 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   DehydratedQuickFilter,
   IrisGrid,
+  IrisGridType,
+  type IrisGridContextMenuData,
   IrisGridModel,
   IrisGridModelFactory,
   IrisGridProps,
@@ -12,10 +14,11 @@ import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { getSettings, RootState } from '@deephaven/redux';
-import { EMPTY_ARRAY } from '@deephaven/utils';
-import { UITableProps } from './UITableUtils';
+import { GridMouseHandler } from '@deephaven/grid';
+import { UITableProps, wrapContextActions } from './UITableUtils';
 import UITableMouseHandler from './UITableMouseHandler';
 import JsTableProxy from './JsTableProxy';
+import UITableContextMenuHandler from './UITableContextMenuHandler';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
 
@@ -37,8 +40,11 @@ export function UITable({
   frozenColumns,
   hiddenColumns,
   columnGroups,
+  contextMenu,
+  contextHeaderMenu,
 }: UITableProps): JSX.Element | null {
   const dh = useApi();
+  const [irisGrid, setIrisGrid] = useState<IrisGridType | null>(null);
   const [model, setModel] = useState<IrisGridModel>();
   const [columns, setColumns] = useState<dh.Table['columns']>();
   const utils = useMemo(() => new IrisGridUtils(dh), [dh]);
@@ -108,8 +114,8 @@ export function UITable({
 
   const mouseHandlers = useMemo(
     () =>
-      model
-        ? [
+      model && irisGrid
+        ? ([
             new UITableMouseHandler(
               model,
               onCellPress,
@@ -119,17 +125,34 @@ export function UITable({
               onRowPress,
               onRowDoublePress
             ),
-          ]
-        : EMPTY_ARRAY,
+            new UITableContextMenuHandler(
+              dh,
+              irisGrid,
+              model,
+              contextMenu,
+              contextHeaderMenu
+            ),
+          ] as readonly GridMouseHandler[])
+        : undefined,
     [
       model,
+      dh,
+      irisGrid,
       onCellPress,
       onCellDoublePress,
       onColumnPress,
       onColumnDoublePress,
       onRowPress,
       onRowDoublePress,
+      contextMenu,
+      contextHeaderMenu,
     ]
+  );
+
+  const onContextMenu = useCallback(
+    (data: IrisGridContextMenuData) =>
+      wrapContextActions(contextMenu ?? [], data),
+    [contextMenu]
   );
 
   const irisGridProps = useMemo(
@@ -142,6 +165,7 @@ export function UITable({
         quickFilters: hydratedQuickFilters,
         isFilterBarShown: showQuickFilters,
         settings,
+        onContextMenu,
       }) satisfies Partial<IrisGridProps>,
     [
       mouseHandlers,
@@ -151,6 +175,7 @@ export function UITable({
       hydratedSorts,
       hydratedQuickFilters,
       settings,
+      onContextMenu,
     ]
   );
 
@@ -159,8 +184,12 @@ export function UITable({
 
   return model ? (
     <div className="ui-object-container">
-      {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-      <IrisGrid model={model} {...irisGridProps} />
+      <IrisGrid
+        ref={ref => setIrisGrid(ref)}
+        model={model}
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...irisGridProps}
+      />
     </div>
   ) : null;
 }

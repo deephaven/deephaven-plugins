@@ -9,6 +9,7 @@ from ..types import (
     ColumnPressCallback,
     QuickFilterExpression,
     RowPressCallback,
+    ResolvableContextMenuItem,
 )
 
 
@@ -29,6 +30,12 @@ def table(
     frozen_columns: list[ColumnName] | None = None,
     hidden_columns: list[ColumnName] | None = None,
     column_groups: list[ColumnGroup] | None = None,
+    context_menu: (
+        ResolvableContextMenuItem | list[ResolvableContextMenuItem] | None
+    ) = None,
+    context_header_menu: (
+        ResolvableContextMenuItem | list[ResolvableContextMenuItem] | None
+    ) = None,
 ) -> UITable:
     """
     Customization to how a table is displayed, how it behaves, and listen to UI events.
@@ -62,6 +69,12 @@ def table(
         column_groups: Columns to group together. The groups will be shown in the table header.
             Group names must be unique within the column and group names.
             Groups may be nested by providing the group name as a child of another group.
+        context_menu: The context menu items to show when a cell is right clicked.
+            May contain action items or submenu items.
+            May also be a function that receives the cell data and returns the context menu items or None.
+        context_header_menu: The context menu items to show when a column header is right clicked.
+            May contain action items or submenu items.
+            May also be a function that receives the column header data and returns the context menu items or None.
     """
     props = locals()
     del props["table"]

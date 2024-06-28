@@ -1,42 +1,19 @@
 from __future__ import annotations
-from typing import Any, Callable
+from typing import Any
 from .types import (
-    # Events
-    SliderChange,
-    SliderChangeCallable,
-    Orientation,
-    # Layout
     AlignSelf,
     CSSProperties,
     DimensionValue,
     JustifySelf,
     LayoutFlex,
     Position,
-    LabelPosition,
 )
 from .basic import component_element
 from ..elements import Element
 
 
-def range_slider(
-    start_name: str | None = None,
-    end_name: str | None = None,
-    # format_options, # omitted because need to connect it to Deephaven formatting options as well
-    label_position: LabelPosition = "top",
-    show_value_label: bool | None = None,
-    # get_value_label, # omitted because it needs to return a string synchronously
-    contextual_help: Any | None = None,
-    orientation: Orientation = "horizontal",
-    is_disabled: bool | None = None,
-    min_value: float = 0,
-    max_value: float = 100,
-    step: float = 1,
-    value: SliderChange | None = None,
-    default_value: SliderChange | None = None,
-    label: Any | None = None,
-    name: str | None = None,
-    on_change_end: SliderChangeCallable | None = None,
-    on_change: SliderChangeCallable | None = None,
+def illustrated_message(
+    *children: Any,
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,
@@ -46,11 +23,11 @@ def range_slider(
     order: int | None = None,
     grid_area: str | None = None,
     grid_row: str | None = None,
-    grid_row_start: str | None = None,
-    grid_row_end: str | None = None,
     grid_column: str | None = None,
     grid_column_start: str | None = None,
     grid_column_end: str | None = None,
+    grid_row_start: str | None = None,
+    grid_row_end: str | None = None,
     margin: DimensionValue | None = None,
     margin_top: DimensionValue | None = None,
     margin_bottom: DimensionValue | None = None,
@@ -67,40 +44,20 @@ def range_slider(
     position: Position | None = None,
     top: DimensionValue | None = None,
     bottom: DimensionValue | None = None,
-    start: DimensionValue | None = None,
-    end: DimensionValue | None = None,
     left: DimensionValue | None = None,
     right: DimensionValue | None = None,
+    start: DimensionValue | None = None,
+    end: DimensionValue | None = None,
     z_index: int | None = None,
     is_hidden: bool | None = None,
     id: str | None = None,
-    aria_label: str | None = None,
-    aria_labelledby: str | None = None,
-    aria_describedby: str | None = None,
-    aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
 ) -> Element:
     """
-    Sliders allow users to quickly select a value within a range. They should be used when the upper and lower bounds to the range are invariable.
-
+    An IllustratedMessage displays an illustration and a message, usually for an empty state or an error page.
     Args:
-        start_name: The name of the start input element.
-        end_name: The name of the end input element.
-        label_position: The position of the label relative to the slider.
-        show_value_label: Whether the value label should be displayed. True by default if the label is provided.
-        contextual_help: A ContextualHelp element to place next to the label.
-        orientation: The orientation of the slider.
-        is_disabled: Whether the slider is disabled.
-        min_value: The minimum value of the slider.
-        max_value: The maximum value of the slider.
-        step: The step value for the slider.
-        value: The current value of the slider.
-        default_value: The default value of the slider.
-        label: The content to display as the label.
-        name: The name of the input element, used when submitting an HTML form.
-        on_change_end: Function called when the slider stops moving
-        on_change: Function called when the input value changes
+        *children: The content of the IllustratedMessage which consist of three areas: an illustration, a title, and a body.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -123,48 +80,43 @@ def range_slider(
         margin_x: The margin for the left and right sides of the element.
         margin_y: The margin for the top and bottom sides of the element.
         width: The width of the element.
-        min_width: The minimum width of the element.
-        max_width: The maximum width of the element.
         height: The height of the element.
+        min_width: The minimum width of the element.
         min_height: The minimum height of the element.
+        max_width: The maximum width of the element.
         max_height: The maximum height of the element.
-        position: The position of the element.
-        top: The distance from the top of the containing element.
-        bottom: The distance from the bottom of the containing element.
-        left: The distance from the left of the containing element.
-        right: The distance from the right of the containing element.
-        start: The distance from the start of the containing element, depending on layout direction.
-        end: The distance from the end of the containing element, depending on layout direction.
-        z_index: The stack order of the element.
-        is_hidden: Whether the element is hidden.
+        position: Specifies how the element is position.
+        top: The top position of the element.
+        bottom: The bottom position of the element.
+        left: The left position of the element.
+        right: The right position of the element.
+        start: The logical start position of the element, depending on layout direction.
+        end: The logical end position of the element, depending on layout direction.
+        z_index: The stacking order for the element
+        is_hidden: Hides the element.
         id: The unique identifier of the element.
-        aria_label: The label for the element.
-        aria_labelled_by: The id of the element that labels the current element.
-        aria_described_by: The id of the element that describes the current element.
-        aria_details: The id of the element that provides additional information about the current element.
-        UNSAFE_class_name: A CSS class to apply to the element.
-        UNSAFE_style: A CSS style to apply to the element.
+        UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
+        UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
+
+    Examples:
+        prompt = ui.illustrated_message(
+            ui.heading("Enter URL above"),
+            ui.content("Enter a URL of a CSV above and click 'Load' to load it"),
+        )
+        warning = ui.illustrated_message(
+            ui.icon("vsWarning"),
+            ui.heading("Warning"),
+            ui.content("This is a warning message."),
+        )
+        error_message = ui.illustrated_message(
+            ui.icon("vsWarning", size="XXL", margin_bottom="size-10"),
+            ui.heading("Invalid Input"),
+            ui.content("Please enter 'Sym' and 'Exchange' above"),
+        )
     """
     return component_element(
-        "RangeSlider",
-        start_name=start_name,
-        end_name=end_name,
-        # format_options=format_options,
-        label_position=label_position,
-        show_value_label=show_value_label,
-        # get_value_label=get_value_label,
-        contextual_help=contextual_help,
-        orientation=orientation,
-        is_disabled=is_disabled,
-        min_value=min_value,
-        max_value=max_value,
-        step=step,
-        value=value,
-        default_value=default_value,
-        label=label,
-        name=name,
-        on_change_end=on_change_end,
-        on_change=on_change,
+        "IllustratedMessage",
+        *children,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
@@ -174,11 +126,11 @@ def range_slider(
         order=order,
         grid_area=grid_area,
         grid_row=grid_row,
-        grid_row_start=grid_row_start,
-        grid_row_end=grid_row_end,
         grid_column=grid_column,
         grid_column_start=grid_column_start,
         grid_column_end=grid_column_end,
+        grid_row_start=grid_row_start,
+        grid_row_end=grid_row_end,
         margin=margin,
         margin_top=margin_top,
         margin_bottom=margin_bottom,
@@ -195,17 +147,13 @@ def range_slider(
         position=position,
         top=top,
         bottom=bottom,
-        start=start,
-        end=end,
         left=left,
         right=right,
+        start=start,
+        end=end,
         z_index=z_index,
         is_hidden=is_hidden,
         id=id,
-        aria_label=aria_label,
-        aria_labelledby=aria_labelledby,
-        aria_describedby=aria_describedby,
-        aria_details=aria_details,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
     )
