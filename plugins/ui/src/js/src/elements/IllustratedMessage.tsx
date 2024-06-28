@@ -35,9 +35,7 @@ export function IllustratedMessage(
 
   return (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <DHCIllustratedMessage {...otherProps}>
-      {newChildren}
-    </DHCIllustratedMessage>
+    <DHCIllustratedMessage {...otherProps}>{newChildren}</DHCIllustratedMessage>
   );
 }
 
