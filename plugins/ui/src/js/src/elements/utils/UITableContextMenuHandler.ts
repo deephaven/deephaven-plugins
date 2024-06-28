@@ -33,9 +33,6 @@ class UITableContextMenuHandler extends IrisGridContextMenuHandler {
     this.contextColumnHeaderItems = contextColumnHeaderItems;
   }
 
-  // TODO: web-client-ui#2117 Remove the ts-ignore when the new types have been published
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
   getHeaderActions(
     modelIndex: ModelIndex,
     gridPoint: GridPoint
