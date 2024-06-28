@@ -99,5 +99,18 @@ jobs:
     needs: filter-release
     if: ${{ needs.filter-release.outputs.package != '' }}
     uses: ./.github/workflows/release-python-package.yml
+    secrets: inherit
     with:
       package: ${{ needs.filter-release.outputs.package }}
+
+  # Main docs are built here, whereas release docs are built in release-python-package.yml
+  build-main-docs:
+    needs: changes
+    if: ${{ needs.changes.outputs.packages != '[]' && needs.changes.outputs.packages != '' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    strategy:
+      matrix:
+        package: ${{ fromJSON(needs.changes.outputs.packages) }}
+    uses: ./.github/workflows/build-main-docs.yml
+    secrets: inherit
+    with:
+      package: ${{ matrix.package }}

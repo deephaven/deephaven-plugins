@@ -3,8 +3,6 @@ from .action_group import action_group
 from .action_menu import action_menu
 from .basic import (
     component_element,
-    grid,
-    heading,
     icon_wrapper,
     form,
     switch,
@@ -24,6 +22,8 @@ from .dashboard import dashboard
 from .date_picker import date_picker
 from .flex import flex
 from .fragment import fragment
+from .heading import heading
+from .grid import grid
 from .icon import icon
 from .illustrated_message import illustrated_message
 from .item import item
