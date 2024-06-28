@@ -1,5 +1,8 @@
 [lint]
-select = ["ANN001"]
+select = ["ANN001", "TID251"]
 
 [lint.per-file-ignores]
 "**/{test,matplotlib,json,plotly}/*" = ["ANN001"]
+
+[lint.flake8-tidy-imports.banned-api]
+"numbers".msg = "Import from numbers is likely an accident. `float` includes `int` and is likely the desired type."

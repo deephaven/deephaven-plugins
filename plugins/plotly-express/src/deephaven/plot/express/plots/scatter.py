@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from numbers import Number
 from typing import Callable
 
 from plotly import express as px
@@ -44,8 +43,8 @@ def scatter(
     | dict[str | tuple[str], str]
     | None = None,
     color_continuous_scale: list[str] | None = None,
-    range_color: list[Number] | None = None,
-    color_continuous_midpoint: Number | None = None,
+    range_color: list[float] | None = None,
+    color_continuous_midpoint: float | None = None,
     xaxis_sequence: list[int] | None = None,
     yaxis_sequence: list[int] | None = None,
     opacity: float | None = None,
@@ -221,8 +220,8 @@ def scatter_3d(
     | dict[str | tuple[str], str]
     | None = None,
     color_continuous_scale: list[str] | None = None,
-    range_color: list[Number] | None = None,
-    color_continuous_midpoint: Number | None = None,
+    range_color: list[float] | None = None,
+    color_continuous_midpoint: float | None = None,
     opacity: float | None = None,
     log_x: bool = False,
     log_y: bool = False,
@@ -367,8 +366,8 @@ def scatter_polar(
     | dict[str | tuple[str], str]
     | None = None,
     color_continuous_scale: list[str] | None = None,
-    range_color: list[Number] | None = None,
-    color_continuous_midpoint: Number | None = None,
+    range_color: list[float] | None = None,
+    color_continuous_midpoint: float | None = None,
     opacity: float | None = None,
     direction: str = "clockwise",
     start_angle: int = 90,
@@ -493,8 +492,8 @@ def scatter_ternary(
     | dict[str | tuple[str], str]
     | None = None,
     color_continuous_scale: list[str] | None = None,
-    range_color: list[Number] | None = None,
-    color_continuous_midpoint: Number | None = None,
+    range_color: list[float] | None = None,
+    color_continuous_midpoint: float | None = None,
     opacity: float | None = None,
     title: str | None = None,
     template: str | None = None,

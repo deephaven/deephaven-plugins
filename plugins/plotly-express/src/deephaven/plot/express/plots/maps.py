@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from numbers import Number
 from typing import Callable
 
 from plotly import express as px
@@ -41,8 +40,8 @@ def scatter_geo(
     | dict[str | tuple[str], str]
     | None = None,
     color_continuous_scale: list[str] | None = None,
-    range_color: list[Number] | None = None,
-    color_continuous_midpoint: Number | None = None,
+    range_color: list[float] | None = None,
+    color_continuous_midpoint: float | None = None,
     opacity: float | None = None,
     projection: str | None = None,
     scope: str | None = None,
@@ -175,8 +174,8 @@ def scatter_mapbox(
     | dict[str | tuple[str], str]
     | None = None,
     color_continuous_scale: list[str] | None = None,
-    range_color: list[Number] | None = None,
-    color_continuous_midpoint: Number | None = None,
+    range_color: list[float] | None = None,
+    color_continuous_midpoint: float | None = None,
     opacity: float | None = None,
     zoom: float | None = None,
     center: dict[str, float] | None = None,

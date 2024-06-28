@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from numbers import Number
 from typing import Callable
 
 from plotly import express as px
@@ -23,8 +22,8 @@ def treemap(
     color_discrete_sequence: list[str] | None = None,
     color_discrete_map: dict[str | tuple[str], str] | None = None,
     color_continuous_scale: list[str] | None = None,
-    range_color: list[Number] | None = None,
-    color_continuous_midpoint: Number | None = None,
+    range_color: list[float] | None = None,
+    color_continuous_midpoint: float | None = None,
     labels: dict[str, str] | None = None,
     title: str | None = None,
     template: str | None = None,
@@ -91,8 +90,8 @@ def sunburst(
     color_discrete_sequence: list[str] | None = None,
     color_discrete_map: dict[str | tuple[str], str] | None = None,
     color_continuous_scale: list[str] | None = None,
-    range_color: list[Number] | None = None,
-    color_continuous_midpoint: Number | None = None,
+    range_color: list[float] | None = None,
+    color_continuous_midpoint: float | None = None,
     labels: dict[str, str] | None = None,
     title: str | None = None,
     template: str | None = None,
@@ -159,8 +158,8 @@ def icicle(
     color_discrete_sequence: list[str] | None = None,
     color_discrete_map: dict[str | tuple[str], str] | None = None,
     color_continuous_scale: list[str] | None = None,
-    range_color: list[Number] | None = None,
-    color_continuous_midpoint: Number | None = None,
+    range_color: list[float] | None = None,
+    color_continuous_midpoint: float | None = None,
     labels: dict[str, str] | None = None,
     title: str | None = None,
     template: str | None = None,
