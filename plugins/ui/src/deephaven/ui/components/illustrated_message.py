@@ -100,20 +100,21 @@ def illustrated_message(
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
 
     Examples:
-        prompt = ui.illustrated_message(
-            ui.heading("Enter URL above"),
-            ui.content("Enter a URL of a CSV above and click 'Load' to load it"),
+        no_results = ui.illustrated_message(
+            ui.heading("No Results"),
+            ui.content("Try another search"),
         )
         warning = ui.illustrated_message(
             ui.icon("vsWarning"),
-            ui.heading("Warning"),
-            ui.content("This is a warning message."),
+            ui.heading("Invalid input"),
+            ui.content("No special characters allowed."),
         )
         error_message = ui.illustrated_message(
-            ui.icon("vsWarning", size="XXL", margin_bottom="size-10"),
-            ui.heading("Invalid Input"),
-            ui.content("Please enter 'Sym' and 'Exchange' above"),
+            ui.icon("vsError"),
+            ui.heading("Access denied"),
+            ui.content("You do not have permissions to access this page."),
         )
+
     """
     return component_element(
         "IllustratedMessage",

@@ -1,22 +1,22 @@
 import React from 'react';
 import {
-  IllustratedMessage as DHCAIllustratedMessage,
-  IllustratedMessageProps as DHCAIllustratedMessageProps,
+  IllustratedMessage as DHCIllustratedMessage,
+  IllustratedMessageProps as DHCIllustratedMessageProps,
   Icon,
 } from '@deephaven/components';
 import { isElementOfType } from '@deephaven/react-hooks';
 
 export function IllustratedMessage(
-  props: DHCAIllustratedMessageProps
+  props: DHCIllustratedMessageProps
 ): JSX.Element {
   const { children, ...otherProps } = props;
 
   /* eslint-disable-next-line react/jsx-props-no-spreading */
-  if (children === undefined) return <DHCAIllustratedMessage {...props} />;
+  if (children === undefined) return <DHCIllustratedMessage {...props} />;
 
   const newChildren = React.Children.map(children, element => {
     if (isElementOfType(element, Icon) === true) {
-      const size = element.props.size ?? 'XL';
+      const size = element.props.size ?? 'XXL';
       const marginBottom =
         element.props.margin ??
         element.props.marginY ??
@@ -35,9 +35,9 @@ export function IllustratedMessage(
 
   return (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <DHCAIllustratedMessage {...otherProps}>
+    <DHCIllustratedMessage {...otherProps}>
       {newChildren}
-    </DHCAIllustratedMessage>
+    </DHCIllustratedMessage>
   );
 }
 
