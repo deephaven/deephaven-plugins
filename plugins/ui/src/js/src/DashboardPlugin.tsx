@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import shortid from 'shortid';
+import { nanoid } from 'nanoid';
 import {
   DashboardPluginComponentProps,
   LayoutManagerContext,
@@ -77,7 +77,7 @@ export function DashboardPlugin(
 
   const handleWidgetOpen = useCallback(
     ({
-      widgetId = shortid.generate(),
+      widgetId = nanoid(),
       widget,
     }: {
       widgetId: string;
@@ -119,7 +119,7 @@ export function DashboardPlugin(
 
   const handlePanelOpen = useCallback(
     ({
-      panelId: widgetId = shortid.generate(),
+      panelId: widgetId = nanoid(),
       widget,
     }: PanelOpenEventDetail<dh.Widget>) => {
       const { type } = widget;

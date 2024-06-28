@@ -43,7 +43,7 @@
     "plotly.js-dist-min": "^2.29.1",
     "prop-types": "^15.8.1",
     "react-plotly.js": "^2.4.0",
-    "shortid": "^2.2.16"
+    "nanoid" : "^5.0.7"
   },
   "publishConfig": {
     "access": "public"
