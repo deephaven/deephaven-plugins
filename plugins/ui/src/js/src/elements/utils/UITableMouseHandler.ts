@@ -4,7 +4,11 @@ import {
   GridPoint,
   isExpandableGridModel,
 } from '@deephaven/grid';
-import { IrisGridModel, RowIndex } from '@deephaven/iris-grid';
+import {
+  IrisGridModel,
+  type IrisGridType,
+  RowIndex,
+} from '@deephaven/iris-grid';
 import {
   CellData,
   ColumnIndex,
@@ -61,6 +65,8 @@ function getRowDataMap(rowIndex: RowIndex, model: IrisGridModel): RowDataMap {
 class UITableMouseHandler extends GridMouseHandler {
   private model: IrisGridModel;
 
+  private irisGrid: IrisGridType;
+
   private onCellPress: UITableProps['onCellPress'];
 
   private onCellDoublePress: UITableProps['onCellDoublePress'];
@@ -75,6 +81,7 @@ class UITableMouseHandler extends GridMouseHandler {
 
   constructor(
     model: IrisGridModel,
+    irisGrid: IrisGridType,
     onCellPress: UITableProps['onCellPress'],
     onCellDoublePress: UITableProps['onCellDoublePress'],
     onColumnPress: UITableProps['onColumnPress'],
@@ -84,6 +91,7 @@ class UITableMouseHandler extends GridMouseHandler {
   ) {
     super(890);
     this.model = model;
+    this.irisGrid = irisGrid;
     this.onCellPress = onCellPress;
     this.onCellDoublePress = onCellDoublePress;
     this.onColumnPress = onColumnPress;
@@ -93,36 +101,49 @@ class UITableMouseHandler extends GridMouseHandler {
   }
 
   onClick(gridPoint: GridPoint): EventHandlerResult {
-    const { column, row } = gridPoint;
-    const { model, onCellPress, onRowPress, onColumnPress } = this;
-    if (onCellPress != null && column != null && row != null) {
-      const cellData = getCellData(column, row, model);
-      onCellPress([column, row], cellData);
+    const { column: visibleColumn, row: visibleRow } = gridPoint;
+    const { model, irisGrid, onCellPress, onRowPress, onColumnPress } = this;
+
+    const modelColumn = irisGrid.getModelColumn(visibleColumn);
+    const modelRow = irisGrid.getModelRow(visibleRow);
+
+    if (onCellPress != null && modelColumn != null && modelRow != null) {
+      const cellData = getCellData(modelColumn, modelRow, model);
+      onCellPress(cellData);
     }
-    if (onRowPress != null && row != null) {
-      const rowData = getRowDataMap(row, model);
-      onRowPress(row, rowData);
+    if (onRowPress != null && modelRow != null) {
+      const rowData = getRowDataMap(modelRow, model);
+      onRowPress(rowData);
     }
-    if (onColumnPress && column != null) {
-      onColumnPress(model.columns[column].name);
+    if (onColumnPress && modelColumn != null) {
+      onColumnPress(model.columns[modelColumn].name);
     }
     return false;
   }
 
   onDoubleClick(gridPoint: GridPoint): EventHandlerResult {
-    const { column, row } = gridPoint;
-    const { model, onCellDoublePress, onRowDoublePress, onColumnDoublePress } =
-      this;
-    if (onCellDoublePress != null && column != null && row != null) {
-      const cellData = getCellData(column, row, model);
-      onCellDoublePress([column, row], cellData);
+    const { column: visibleColumn, row: visibleRow } = gridPoint;
+    const {
+      model,
+      irisGrid,
+      onCellDoublePress,
+      onRowDoublePress,
+      onColumnDoublePress,
+    } = this;
+
+    const modelColumn = irisGrid.getModelColumn(visibleColumn);
+    const modelRow = irisGrid.getModelRow(visibleRow);
+
+    if (onCellDoublePress != null && modelColumn != null && modelRow != null) {
+      const cellData = getCellData(modelColumn, modelRow, model);
+      onCellDoublePress(cellData);
     }
-    if (onRowDoublePress != null && row != null) {
-      const rowData = getRowDataMap(row, model);
-      onRowDoublePress(row, rowData);
+    if (onRowDoublePress != null && modelRow != null) {
+      const rowData = getRowDataMap(modelRow, model);
+      onRowDoublePress(rowData);
     }
-    if (onColumnDoublePress && column != null) {
-      onColumnDoublePress(model.columns[column].name);
+    if (onColumnDoublePress && modelColumn != null) {
+      onColumnDoublePress(model.columns[modelColumn].name);
     }
     return false;
   }
