@@ -101,6 +101,7 @@ export function UITable({
         ? ([
             new UITableMouseHandler(
               model,
+              irisGrid,
               onCellPress,
               onCellDoublePress,
               onColumnPress,
