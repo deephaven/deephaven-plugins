@@ -5,6 +5,7 @@ export * from './Form';
 export * from './hooks';
 export * from './HTMLElementView';
 export * from './IconElementView';
+export * from './IllustratedMessage';
 export * from './ListView';
 export * from './model';
 export * from './ObjectView';
