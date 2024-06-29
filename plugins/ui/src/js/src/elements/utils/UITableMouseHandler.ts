@@ -95,13 +95,14 @@ class UITableMouseHandler extends GridMouseHandler {
   onClick(gridPoint: GridPoint): EventHandlerResult {
     const { column, row } = gridPoint;
     const { model, onCellPress, onRowPress, onColumnPress } = this;
+
     if (onCellPress != null && column != null && row != null) {
       const cellData = getCellData(column, row, model);
-      onCellPress([column, row], cellData);
+      onCellPress(cellData);
     }
     if (onRowPress != null && row != null) {
       const rowData = getRowDataMap(row, model);
-      onRowPress(row, rowData);
+      onRowPress(rowData);
     }
     if (onColumnPress && column != null) {
       onColumnPress(model.columns[column].name);
@@ -113,13 +114,14 @@ class UITableMouseHandler extends GridMouseHandler {
     const { column, row } = gridPoint;
     const { model, onCellDoublePress, onRowDoublePress, onColumnDoublePress } =
       this;
+
     if (onCellDoublePress != null && column != null && row != null) {
       const cellData = getCellData(column, row, model);
-      onCellDoublePress([column, row], cellData);
+      onCellDoublePress(cellData);
     }
     if (onRowDoublePress != null && row != null) {
       const rowData = getRowDataMap(row, model);
-      onRowDoublePress(row, rowData);
+      onRowDoublePress(rowData);
     }
     if (onColumnDoublePress && column != null) {
       onColumnDoublePress(model.columns[column].name);

@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import {
   DehydratedQuickFilter,
   IrisGrid,
-  IrisGridType,
+  type IrisGridType,
   type IrisGridContextMenuData,
   IrisGridModel,
   IrisGridModelFactory,
