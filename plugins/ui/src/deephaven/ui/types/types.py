@@ -178,32 +178,10 @@ class SliderChange(TypedDict):
 
 SliderChangeCallable = Callable[[SliderChange], None]
 
-
-ColumnIndex = int
-"""
-Index of a column in a table.
-"""
-
-RowIndex = int
-"""
-Index of a row in a table.
-"""
-
-CellIndex = Tuple[ColumnIndex, RowIndex]
-"""
-Index of a cell in a table.
-"""
-
-GridIndex = Tuple[Union[ColumnIndex, None], Union[RowIndex, None]]
-"""
-Index of a spot on the grid. A value of None indicates a header row or column.
-"""
-
-
 ColumnName = str
 RowDataMap = Dict[str, Any]
-RowPressCallback = Callable[[RowIndex, RowDataMap], None]
-CellPressCallback = Callable[[CellIndex, CellData], None]
+RowPressCallback = Callable[[RowDataMap], None]
+CellPressCallback = Callable[[CellData], None]
 ColumnPressCallback = Callable[[ColumnName], None]
 AggregationOperation = Literal[
     "COUNT",
