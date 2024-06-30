@@ -1,6 +1,6 @@
 from __future__ import annotations
-from ..elements import BaseElement, Element
 from numbers import Number
+from ..elements import BaseElement, Element
 from typing import Any
 from .types import (
     AlignSelf,
