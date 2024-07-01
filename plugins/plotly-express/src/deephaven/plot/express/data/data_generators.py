@@ -125,7 +125,36 @@ def iris(ticking: bool = True) -> Table:
     return source_table
 
 
-def jobs(ticking: bool = True):
+def jobs(ticking: bool = True) -> Table:
+    """
+    Returns a synthetic dataset containing five different jobs and their durations over time.
+
+    This dataset is intended to be used with a timeline plot. It demonstrates five different "jobs", each starting
+    two days after the previous, and each lasting 5 days in total. The job's "resource", or the name of the individual
+    assigned to the job, is randomly selected. The dataset continues to loop in this way, moving across time until
+    it is deleted or the server is shut down.
+
+    Notes:
+        Contains the following columns:
+        - Job: a string column denoting the name of the job, ranging from Job1 to Job5
+        - StartTime: a Java Instant column containing the start time of the job
+        - EndTime: a Java Instant column containing the end time of the job
+        - Resource: a string column indicating the name of the person that the job is assigned to
+
+    Args:
+        ticking:
+            If true, the table will tick new data every second.
+
+    Returns:
+        A Deephaven Table
+
+    Examples:
+        ```
+        from deephaven.plot import express as dx
+        jobs = dx.data.jobs()
+        ```
+    """
+
     def generate_resource(index: int) -> str:
         random.seed(index)
         return ["Mike", "Matti", "Steve", "John", "Jane"][random.randint(0, 4)]
@@ -161,8 +190,34 @@ def jobs(ticking: bool = True):
     return ticking_jobs
 
 
-def marketing(ticking: bool = True):
+def marketing(ticking: bool = True) -> Table:
+    """
+    Returns a synthetic ticking dataset tracking the movement of customers from website visit to product purchase.
 
+    This dataset is intended to be used with the `dx.funnel` and `dx.funnel_area` plot types. Each row in this dataset
+    represents an individual that has visited a company website. The individual may download an instance of the product,
+    be considered a potential customer, formally request the price of the product, or purchase the product and receive
+    an invoice. Each of these categories is a strict subset of the last, so it lends itself well to funnel plots.
+
+    Notes:
+        Contains the following columns:
+        - Stage: a string column containing the stage of a customers interest:
+                 VisitedWebsite, Downloaded, PotentialCustomer, RequestedPrice, and InvoiceSent
+        - Count: an integer column counting the number of customers to fall into each category
+
+    Args:
+        ticking:
+            If true, the table will tick new data every second.
+
+    Returns:
+        A Deephaven Table
+
+    Examples:
+        ```
+        from deephaven.plot import express as dx
+        marketing = dx.data.marketing()
+        ```
+    """
     random.seed(12345566)
     _ColsToRowsTransform = jpy.get_type(
         "io.deephaven.engine.table.impl.util.ColumnsToRowsTransform"
@@ -212,17 +267,15 @@ def marketing(ticking: bool = True):
         ]
     ).sum_by()
 
-    return Table(
-        _ColsToRowsTransform.columnsToRows(
-            ticking_marketing.j_table,
-            "Stage",
-            "Count",
-            "VisitedWebsite",
-            "Downloaded",
-            "PotentialCustomer",
-            "RequestedPrice",
-            "InvoiceSent",
-        )
+    return _ColsToRowsTransform.columnsToRows(
+        ticking_marketing.j_table,
+        "Stage",
+        "Count",
+        "VisitedWebsite",
+        "Downloaded",
+        "PotentialCustomer",
+        "RequestedPrice",
+        "InvoiceSent",
     )
 
 
@@ -504,7 +557,7 @@ def tips(ticking: bool = True) -> Table:
     return merge([tips_table, ticking_table])
 
 
-def election(ticking: bool = True):
+def election(ticking: bool = True) -> Table:
     """
     Returns a ticking version of the Election dataset included in the plotly-express package.
 
@@ -589,7 +642,7 @@ def election(ticking: bool = True):
     return merge([election_table.head(STATIC_ROWS - 1), ticking_table])
 
 
-def wind(ticking: bool = True):
+def wind(ticking: bool = True) -> Table:
     """
     Returns a ticking version of the Wind dataset included in the plotly-express package.
 
