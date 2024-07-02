@@ -6,7 +6,6 @@ from .basic import (
     icon_wrapper,
     form,
     switch,
-    tabs,
     tab_list,
     tab_panels,
     text,
@@ -42,7 +41,9 @@ from .row import row
 from .section import section
 from .slider import slider
 from .stack import stack
+from .tab import tab
 from .table import table
+from .tabs import tabs
 from .text_field import text_field
 from .toggle_button import toggle_button
 from .view import view
@@ -95,6 +96,7 @@ __all__ = [
     "tab_list",
     "tab_panels",
     "tabs",
+    "tab",
     "text",
     "text_field",
     "toggle_button",

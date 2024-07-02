@@ -114,6 +114,7 @@ SliderChangeCallable = Callable[[SliderChange], None]
 PointerType = Literal["mouse", "touch", "pen", "keyboard", "virtual"]
 PressEventType = Literal["pressstart", "pressend", "pressup", "press"]
 TriggerType = Literal["press", "longPress"]
+KeyboardActivationType = Literal["automatic", "manual"]
 
 StaticColor = Literal["white", "black"]
 ButtonType = Literal["button", "submit", "reset"]

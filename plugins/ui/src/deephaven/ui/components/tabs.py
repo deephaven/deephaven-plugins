@@ -1,23 +1,11 @@
 from __future__ import annotations
-from typing import Callable, Iterable
-
-from .item import Item
-from .section import SectionElement
+from typing import Any, Callable, Iterable, Union
 
 from .basic import component_element
-from ..elements import Element
-
-from ..types import (
-    Key,
-    ActionKey,
-    ActionMenuDirection,
-)
 
 from .types import (
-    # Events
-    TriggerType,
-    # Layout
-    Alignment,
+    KeyboardActivationType,
+    Orientation,
     AlignSelf,
     CSSProperties,
     DimensionValue,
@@ -26,24 +14,25 @@ from .types import (
     Position,
 )
 
+from ..types import Key, TabDensity
 
-def action_menu(
-    *children: Item | SectionElement,
+
+def tabs(
+    *children: Any,
+    disabled_keys: Iterable[Key] | None = None,
     is_disabled: bool | None = None,
     is_quiet: bool | None = None,
-    auto_focus: bool | None = None,
-    disabled_keys: Iterable[Key] | None = None,
-    align: Alignment | None = "start",
-    direction: ActionMenuDirection | None = "bottom",
-    should_flip: bool | None = True,
-    close_on_select: bool | None = True,
-    trigger: TriggerType | None = "press",
-    is_open: bool | None = None,
-    default_open: bool | None = None,
-    on_action: Callable[[ActionKey], None] | None = None,
-    on_open_change: Callable[[bool], None] | None = None,
+    is_emphasized: bool | None = None,
+    density: TabDensity | None = "regular",
+    keyboard_activation: KeyboardActivationType | None = "automatic",
+    orientation: Orientation | None = "horizontal",
+    disallow_empty_selection: bool | None = None,
+    selected_key: Key | None = None,
+    default_selected_key: Key | None = None,
+    on_selection_change: Callable[[Key], None] | None = None,
+    on_change: Callable[[Key], None] | None = None,
     flex: LayoutFlex | None = None,
-    flex_grow: float | None = None,
+    flex_grow: float | None = 1,
     flex_shrink: float | None = None,
     flex_basis: DimensionValue | None = None,
     align_self: AlignSelf | None = None,
@@ -51,9 +40,9 @@ def action_menu(
     order: int | None = None,
     grid_area: str | None = None,
     grid_row: str | None = None,
+    grid_column: str | None = None,
     grid_row_start: str | None = None,
     grid_row_end: str | None = None,
-    grid_column: str | None = None,
     grid_column_start: str | None = None,
     grid_column_end: str | None = None,
     margin: DimensionValue | None = None,
@@ -72,38 +61,41 @@ def action_menu(
     position: Position | None = None,
     top: DimensionValue | None = None,
     bottom: DimensionValue | None = None,
-    start: DimensionValue | None = None,
-    end: DimensionValue | None = None,
     left: DimensionValue | None = None,
     right: DimensionValue | None = None,
+    start: DimensionValue | None = None,
+    end: DimensionValue | None = None,
     z_index: int | None = None,
     is_hidden: bool | None = None,
     id: str | None = None,
     aria_label: str | None = None,
-    aria_labelledby: str | None = None,
-    aria_describedby: str | None = None,
+    aria_labelled_by: str | None = None,
+    aria_described_by: str | None = None,
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
-) -> Element:
+):
     """
-    ActionMenu combines an ActionButton with a Menu for simple "more actions" use cases.
+    Python implementation for the Adobe React Spectrum Tabs component.
+    https://react-spectrum.adobe.com/react-spectrum/Tabs.html
 
     Args:
-        children: The contents of the collection.
-        is_disabled: Whether the button is disabled.
-        is_quiet: Whether the button should be displayed with a quiet style.
-        auto_focus: Whether the element should receive focus on render.
-        disabled_keys: The item keys that are disabled. These items cannot be selected, focused, or otherwise interacted with.
-        align: Alignment of the menu relative to the trigger.
-        direction: Where the Menu opens relative to its trigger.
-        should_flip: Whether the menu should automatically flip direction when space is limited.
-        close_on_select: Whether the Menu closes when a selection is made.
-        trigger: How the menu is triggered.
-        is_open: Whether the overlay is open by default (controlled).
-        default_open: Whether the overlay is open by default (uncontrolled).
-        on_action: Handler that is called when an item is selected.
-        on_open_change: Handler that is called when the overlay's open state changes.
+        *children: The children of the tabs component outline how the tabs will be created, they can be either:
+            ui.tab: A tab item that is a shorthand way to create a tab item.
+            ui.tab_list & ui.tab_panels: A tab list and tab panels allow for more customization when creating tabs.
+        disabled_keys: The keys of the tabs that are disabled. These tabs cannot be selected, focused, or otherwise interacted with.
+        is_disabled: Whether the Tabs are disabled.
+        is_quiet: Whether the tabs are displayed in a quiet style.
+        is_emphasized: Whether the tabs are displayed in an emphasized style.
+        density: The amount of space between the tabs.
+        keyboard_activation: Whether tabs are activated automatically on focus or manually.
+        orientation: The orientation of the tabs.
+        disallow_empty_selection: Whether the collection allows empty selection.
+        selected_key: The currently selected key in the collection (controlled).
+        default_selected_key: The initial selected key in the collection (uncontrolled).
+        on_selection_change: Callback for when the selected key changes.
+        on_change:
+            Alias of `on_selection_change`. Handler that is called when the selection changes.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -125,12 +117,6 @@ def action_menu(
         margin_end: The margin for the logical end side of the element, depending on layout direction.
         margin_x: The margin for the left and right sides of the element.
         margin_y: The margin for the top and bottom sides of the element.
-        width: The width of the element.
-        height: The height of the element.
-        min_width: The minimum width of the element.
-        min_height: The minimum height of the element.
-        max_width: The maximum width of the element.
-        max_height: The maximum height of the element.
         position: Specifies how the element is position.
         top: The top position of the element.
         bottom: The bottom position of the element.
@@ -141,29 +127,51 @@ def action_menu(
         z_index: The stacking order for the element
         is_hidden: Hides the element.
         id: The unique identifier of the element.
-        aria-label: Defines a string value that labels the current element.
-        aria-labelledby: Identifies the element (or elements) that labels the current element.
-        aria-describedby: Identifies the element (or elements) that describes the object.
-        aria-details: Identifies the element (or elements) that provide a detailed, extended description for the object.
+        aria_label: Defines a string value that labels the current element.
+        aria_labelled_by: Identifies the element (or elements) that labels the current element.
+        aria_described_by: Identifies the element (or elements) that describes the object.
+        aria_details: Identifies the element (or elements) that provide a detailed, extended description for the object.
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
     """
+    if not children:
+        raise ValueError("Tabs must have at least one child.")
+
+    tab_children = [
+        child for child in children if child.name == "deephaven.ui.spectrum.Tab"
+    ]
+
+    tab_list_children = [
+        child for child in children if child.name == "deephaven.ui.spectrum.TabList"
+    ]
+    tab_panels_children = [
+        child for child in children if child.name == "deephaven.ui.spectrum.TabPanels"
+    ]
+
+    tab_list_keys = {list_child.key for list_child in tab_list_children}
+    tab_panels_keys = {panel_child.key for panel_child in tab_panels_children}
+
+    if tab_list_keys != tab_panels_keys:
+        raise ValueError("Mismatching keys found between tab list and tab panels.")
+
+    if tab_children and (tab_list_children and tab_panels_children):
+        raise TypeError("Tabs cannot have both Tab and TabList or TabPanels children.")
+
     return component_element(
-        f"ActionMenu",
+        "Tabs",
         *children,
+        disabled_keys=disabled_keys,
         is_disabled=is_disabled,
         is_quiet=is_quiet,
-        auto_focus=auto_focus,
-        disabled_keys=disabled_keys,
-        align=align,
-        direction=direction,
-        should_flip=should_flip,
-        close_on_select=close_on_select,
-        trigger=trigger,
-        is_open=is_open,
-        default_open=default_open,
-        on_action=on_action,
-        on_open_change=on_open_change,
+        is_emphasized=is_emphasized,
+        density=density,
+        keyboard_activation=keyboard_activation,
+        orientation=orientation,
+        disallow_empty_selection=disallow_empty_selection,
+        selected_key=selected_key,
+        default_selected_key=default_selected_key,
+        on_selection_change=on_selection_change,
+        on_change=on_change,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
@@ -173,9 +181,9 @@ def action_menu(
         order=order,
         grid_area=grid_area,
         grid_row=grid_row,
+        grid_column=grid_column,
         grid_row_start=grid_row_start,
         grid_row_end=grid_row_end,
-        grid_column=grid_column,
         grid_column_start=grid_column_start,
         grid_column_end=grid_column_end,
         margin=margin,
@@ -194,16 +202,16 @@ def action_menu(
         position=position,
         top=top,
         bottom=bottom,
-        start=start,
-        end=end,
         left=left,
         right=right,
+        start=start,
+        end=end,
         z_index=z_index,
         is_hidden=is_hidden,
         id=id,
         aria_label=aria_label,
-        aria_labelledby=aria_labelledby,
-        aria_describedby=aria_describedby,
+        aria_labelled_by=aria_labelled_by,
+        aria_described_by=aria_described_by,
         aria_details=aria_details,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,

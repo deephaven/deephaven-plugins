@@ -1572,13 +1572,37 @@ For more information on liveness scopes and why they are needed, see the [livene
 
 ![Change Monitor](_assets/change_monitor.png)
 
-## Tabs
+## Tabs using ui.tab
 
-You can add [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html) within a panel by using the `ui.tabs` method. In this example, we create a tabbed panel with multiple tabs:
+You can add [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html) within a panel by using the `ui.tabs` method. In this example, we create a panel with two tabs by passing in two instances of `ui.tab` as children.
 
-- Unfiltered table
-- Table filtered on sym `CAT`. We also include an icon in the tab header.
-- Table filtered on sym `DOG`
+When specifying tabs with this format, the following must be noted:
+- The `title` prop has to be unique, if not, the `key` prop has to be unique
+- The `text_value` prop is an optional accessibility improvement prop
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def ui_tabs():
+    return ui.tabs(
+        ui.tab("Content 1", title="Tab 1"),
+        ui.tab("Content 2", title="Tab 2", key="Key 2"),
+        ui.tab("Content 3", title="Tab 3", icon=ui.icon("vsGithubAlt")),
+    )
+
+
+my_tabs = ui_tabs()
+```
+
+## Tabs using ui.tab_panels and ui.tab_list
+
+You can add [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html) within a panel by using the `ui.tabs` method. In this example, we create a tabbed panel with multiple tabs by passing in the `ui.tab_panels` and `ui.tab_list` as children:
+
+`tab_list` is the container of tab headers. It expects children of `ui.item` which have a unique key. `text_value` may be added for accessibility, but by default the `key` will be used for accessibility.
+
+`tab_panels` is the content of the tabs. It expects children of `ui.item` which have a matching key with an item in the `tab_list`.
 
 ```python
 from deephaven import ui
@@ -1588,7 +1612,7 @@ stocks = dx.data.stocks()
 
 
 @ui.component
-def table_tabs(source):
+def ui_tabs(source):
     return ui.tabs(
         ui.tab_list(
             ui.item("Unfiltered", key="Unfiltered"),
@@ -1601,10 +1625,11 @@ def table_tabs(source):
             ui.item(source.where("sym=`DOG`"), key="DOG"),
         ),
         flex_grow=1,
+        aria_label="Tabs",  # aria_label is set for aria accessibility and is otherwise optional
     )
 
 
-tt = table_tabs(stocks)
+my_tabs = ui_tabs(stocks)
 ```
 
 ## Using Table Data Hooks
