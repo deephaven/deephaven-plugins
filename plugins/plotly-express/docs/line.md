@@ -2,13 +2,15 @@
 
 A line plot is a graphical representation that displays data points connected by straight lines, commonly employed in time series analysis to depict temporal trends or relationships in a dataset.
 
-Here are some reasons why you might choose to use a line plot over other types of plots:
+#### When are line plots appropriate?
 
-1. **Visualizing Trends:** Line plots excel at revealing trends and patterns in data, making them ideal for time series analysis and showcasing changes over a continuous range.
-2. **Connecting Data Points:** They effectively connect data points with straight lines, emphasizing the continuity and sequence of values, which is especially useful when dealing with ordered data.
-3. **Simplicity and Clarity:** Line plots offer a straightforward and uncluttered representation, enhancing readability and allowing developers to focus on the data's inherent structure.
-4. **Comparing Multiple Series:** Line plots make it easy to compare multiple data series on the same graph, aiding in the identification of similarities and differences.
-5. **Highlighting Outliers:** Outliers or abrupt changes in data become readily apparent in line plots, aiding in the detection of anomalies or significant events.
+Line plots are appropriate when the data contain a continuous response variable that directly depends on a continuous explanatory variable. Further, line plots are preferable to scatter plots when the explanatory variables are ordered.
+
+#### What are line plots useful for?
+
+- **Visualizing Trends:** Line plots excel at revealing trends and patterns in data, making them ideal for time series analysis and showcasing changes over a continuous range.
+- **Simplicity and Clarity:** Line plots offer a straightforward and uncluttered representation, enhancing readability and allowing developers to focus on the data's inherent structure.
+- **Comparing Multiple Series:** Line plots make it easy to compare multiple data series on the same graph, aiding in the identification of similarities and differences.
 
 ## Examples
 
@@ -19,6 +21,8 @@ Visualize the relationship between two variables. Column names are passed in dir
 ```python order=line_plot,my_table
 import deephaven.plot.express as dx
 my_table = dx.data.stocks() # import the example stock market data set
+
+# subset data for just DOG transactions
 dog_prices = my_table.where("sym = `DOG`")
 
 # Create a basic line plot by specifying the x and y column

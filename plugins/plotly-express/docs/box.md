@@ -2,14 +2,44 @@
 
 A box plot, also known as a box-and-whisker plot, is a data visualization that presents a summary of a dataset's distribution. It displays key statistics such as the median, quartiles, and potential outliers, making it a useful tool for visually representing the central tendency and variability of data.
 
-Box plots are useful for:
+#### When are box plots appropriate?
 
-1. **Visualizing Spread and Center**: Box plots provide a clear representation of the spread and central tendency of data, making it easy to understand the distribution's characteristics.
-2. **Identification of Outliers**: They are effective in identifying outliers within a dataset, helping to pinpoint data points that deviate significantly from the norm.
-3. **Comparative Analysis**: Box plots allow for easy visual comparison of multiple datasets or categories, making them useful for assessing variations and trends in data.
-4. **Robustness**: Box plots are robust to extreme values and data skewness, providing a reliable means of visualizing data distributions even in the presence of outliers or non-normal data.
+Box plots are appropriate when the data have a continuous variable of interest. If there is an additional categorical variable that the variable of interest depends on, side-by-side box plots may be appropriate.
+
+#### What are box plots useful for?
+
+- **Visualizing Overall Distribution**: Box plots reveal the distribution of the variable of interest. They are good first-line tools for assessing whether a variable's distribution is symmetric, right-skewed, or left-skewed.
+- **Assessing Center and Spread**: A box plot displays the center (median) of a dataset using the middle line, and displays the spread (IQR) using the width of the box.
+- **Identifying Potential Outliers**: The dots displayed outside of the fenceposts in a box plot are considered candidates for being outliers. These should be examined closely, and their frequency can help determine whether the data come from a heavy-tailed distribution.
 
 ## Examples
+
+### A basic box plot
+
+Visualize the distribution of a single continuous variable using a box plot. Singular points lying outside the "fences" are candidates for being outliers.
+
+```python order=total_bill_plot,tips
+import deephaven.plot.express as dx
+tips = dx.data.tips() # import a ticking version of the Tips dataset
+
+# create a basic box plot by specifying the variable of interest with `y`
+total_bill_plot = dx.box(tips, y="total_bill")
+```
+
+### Distributions for multiple groups
+
+Box plots are useful making comparisons between the distributions of two or more groups of data. Use the `by` argument to specify a grouping column.
+
+```python order=total_bill_smoke,total_bill_sex,tips
+import deephaven.plot.express as dx
+tips = dx.data.tips() # import a ticking version of the Tips dataset
+
+# Ex 1. Total bill distribution by smoker / non-smoker
+total_bill_smoke = dx.box(tips, y="total_bill", by="smoker")
+
+# Ex 2. Total bill distribution by male / female
+total_bill_sex = dx.box(tips, y="total_bill", by="sex")
+```
 
 ## API Reference
 ```{eval-rst}
