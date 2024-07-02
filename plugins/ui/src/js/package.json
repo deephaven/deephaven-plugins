@@ -60,8 +60,8 @@
     "@react-types/shared": "^3.22.0",
     "classnames": "^2.5.1",
     "json-rpc-2.0": "^1.6.0",
-    "react-redux": "^7.x",
-    "shortid": "^2.2.16"
+    "nanoid": "^5.0.7",
+    "react-redux": "^7.x"
   },
   "publishConfig": {
     "access": "public"

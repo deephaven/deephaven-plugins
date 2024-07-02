@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react';
-import shortid from 'shortid';
+import { nanoid } from 'nanoid';
 import {
   DashboardPluginComponentProps,
   LayoutUtils,
@@ -27,7 +27,7 @@ export function DashboardPlugin(
       dragEvent,
       fetch,
       metadata = {},
-      panelId = shortid.generate(),
+      panelId = nanoid(),
       widget,
     }: {
       dragEvent?: React.DragEvent;
