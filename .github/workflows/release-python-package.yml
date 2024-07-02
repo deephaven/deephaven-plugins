@@ -13,54 +13,71 @@ jobs:
     with:
       package: ${{ inputs.package }}
 
-  build-dist:
+  build-plugin:
     needs: test
+    uses: ./.github/workflows/build-python-package.yml
+    with:
+      package: ${{ inputs.package }}
+
+  release:
+    needs: build-plugin
     runs-on: ubuntu-22.04
     permissions:
       id-token: write
+    outputs:
+      version: ${{ steps.extract_version.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Setup Node
-        uses: actions/setup-node@v3
+      - name: Download dist
+        uses: actions/download-artifact@v3
         with:
-          node-version: '18.x'
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Check file existence
-        id: check_files
-        uses: andstor/file-existence-action@v3
-        with:
-          files: "plugins/${{ inputs.package }}/src/js/package.json"
-  
-      - name: Install npm dependencies
-        if: steps.check_files.outputs.files_exists == 'true'
-        run: npm ci
-
-      - name: Build npm packages
-        if: steps.check_files.outputs.files_exists == 'true'
-        run: npm run build -- --scope "@deephaven/js-plugin-${{ inputs.package }}"
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Install build dependencies
-        run: python -m pip install --upgrade setuptools wheel build
-
-      - name: Build wheel
-        run: python -m build --wheel --sdist plugins/${{ inputs.package }}
-
-      - name: Upload dist
-        uses: actions/upload-artifact@v3
-        with:
-          name: dist
+          name: dist-${{ inputs.package }}
           path: plugins/${{ inputs.package }}/dist/
-          if-no-files-found: error
+
+      - name: Get the name of the whl file
+        id: get_whl
+        run: |
+          WHL_DIR=plugins/${{ inputs.package }}/dist/
+          WHL_FILE=$(ls $WHL_DIR | grep .whl)
+          echo "whl_path=${WHL_DIR}${WHL_FILE}" >> $GITHUB_OUTPUT
+
+      - name: Install pkginfo
+        run: pip install pkginfo
+
+      - name: Extract package version
+        id: extract_version
+        run: |
+          VERSION=$(python -c 'import pkginfo; print(pkginfo.Wheel("${{ steps.get_whl.outputs.whl_path }}").version)')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
       - name: Publish package
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: plugins/${{ inputs.package }}/dist/
+
+  check-make-docs:
+    runs-on: ubuntu-22.04
+    outputs:
+        files_exists: ${{ steps.check_files.outputs.files_exists }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Check file existence
+        id: check_files
+        uses: andstor/file-existence-action@v3
+        with:
+          files: "plugins/${{ inputs.package }}/make_docs.py"
+
+  release-docs:
+    if: needs.check-make-docs.outputs.files_exists == 'true'
+    needs: 
+      - release
+      - check-make-docs
+    uses: ./.github/workflows/make-docs.yml
+    secrets: inherit
+    with:
+      package: ${{ inputs.package }}
+      version: ${{ needs.release.outputs.version }}

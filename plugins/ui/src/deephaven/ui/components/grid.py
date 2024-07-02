@@ -1,10 +1,6 @@
 from __future__ import annotations
-from typing import Any, Callable
+from typing import Any
 from .types import (
-    # Events
-    SliderChange,
-    SliderChangeCallable,
-    Orientation,
     # Layout
     AlignSelf,
     CSSProperties,
@@ -12,31 +8,31 @@ from .types import (
     JustifySelf,
     LayoutFlex,
     Position,
-    LabelPosition,
+    GridFlow,
+    JustifyItems,
+    JustifyContent,
+    AlignContent,
+    AlignItems,
 )
 from .basic import component_element
 from ..elements import Element
 
 
-def range_slider(
-    start_name: str | None = None,
-    end_name: str | None = None,
-    # format_options, # omitted because need to connect it to Deephaven formatting options as well
-    label_position: LabelPosition = "top",
-    show_value_label: bool | None = None,
-    # get_value_label, # omitted because it needs to return a string synchronously
-    contextual_help: Any | None = None,
-    orientation: Orientation = "horizontal",
-    is_disabled: bool | None = None,
-    min_value: float = 0,
-    max_value: float = 100,
-    step: float = 1,
-    value: SliderChange | None = None,
-    default_value: SliderChange | None = None,
-    label: Any | None = None,
-    name: str | None = None,
-    on_change_end: SliderChangeCallable | None = None,
-    on_change: SliderChangeCallable | None = None,
+def grid(
+    *children: Any,
+    areas: list[str] | None = None,
+    rows: str | list[DimensionValue] | None = None,
+    columns: str | list[DimensionValue] | None = None,
+    auto_columns: DimensionValue | None = None,
+    auto_rows: DimensionValue | None = None,
+    auto_flow: GridFlow | None = None,
+    justify_items: JustifyItems | None = None,
+    justify_content: JustifyContent = "stretch",
+    align_content: AlignContent = "start",
+    align_items: AlignItems = "stretch",
+    gap: DimensionValue | None = None,
+    column_gap: DimensionValue | None = None,
+    row_gap: DimensionValue | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,
@@ -74,33 +70,27 @@ def range_slider(
     z_index: int | None = None,
     is_hidden: bool | None = None,
     id: str | None = None,
-    aria_label: str | None = None,
-    aria_labelledby: str | None = None,
-    aria_describedby: str | None = None,
-    aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
 ) -> Element:
     """
-    Sliders allow users to quickly select a value within a range. They should be used when the upper and lower bounds to the range are invariable.
+    A layout container using CSS grid. Supports Spectrum dimensions as values to ensure consistent and adaptive sizing and spacing.
 
     Args:
-        start_name: The name of the start input element.
-        end_name: The name of the end input element.
-        label_position: The position of the label relative to the slider.
-        show_value_label: Whether the value label should be displayed. True by default if the label is provided.
-        contextual_help: A ContextualHelp element to place next to the label.
-        orientation: The orientation of the slider.
-        is_disabled: Whether the slider is disabled.
-        min_value: The minimum value of the slider.
-        max_value: The maximum value of the slider.
-        step: The step value for the slider.
-        value: The current value of the slider.
-        default_value: The default value of the slider.
-        label: The content to display as the label.
-        name: The name of the input element, used when submitting an HTML form.
-        on_change_end: Function called when the slider stops moving
-        on_change: Function called when the input value changes
+        children: The content to render within the container.
+        areas: The named grid areas to use for the grid.
+        rows: The row sizes for the grid.
+        columns: The column sizes for the grid.
+        auto_columns: The size of auto-generated columns.
+        auto_rows: The size of auto-generated rows.
+        auto_flow: The flow direction for auto-generated grid items.
+        justify_items: The defailt justify_self for all items in the grid.
+        justify_content: The distribution of space around items along the main axis.
+        align_content: The distribution of space around items along the cross axis.
+        align_items: The alignment of children within their container.
+        gap: The gap between rows and columns.
+        column_gap: The gap between columns.
+        row_gap: The gap between rows.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -108,13 +98,13 @@ def range_slider(
         align_self: Overrides the alignItems property of a flex or grid container.
         justify_self: Species how the element is justified inside a flex or grid container.
         order: The layout order for the element within a flex or grid container.
-        grid_area: When used in a grid layout specifies, specifies the named grid area that the element should be placed in within the grid.
+        grid_area: When used in a grid layout, specifies the named grid area that the element should be placed in within the grid.
         grid_row: When used in a grid layout, specifies the row the element should be placed in within the grid.
         grid_column: When used in a grid layout, specifies the column the element should be placed in within the grid.
         grid_row_start: When used in a grid layout, specifies the starting row to span within the grid.
         grid_row_end: When used in a grid layout, specifies the ending row to span within the grid.
         grid_column_start: When used in a grid layout, specifies the starting column to span within the grid.
-        grid_column_end: When used in a grid layout, specifies the ending column to span within the grid.
+        grid_column_end: When used in a grid layout, specifies the ending column to span within the grid
         margin: The margin for all four sides of the element.
         margin_top: The margin for the top side of the element.
         margin_bottom: The margin for the bottom side of the element.
@@ -127,7 +117,7 @@ def range_slider(
         max_width: The maximum width of the element.
         height: The height of the element.
         min_height: The minimum height of the element.
-        max_height: The maximum height of the element.
+        max_height: The maximum height of the element
         position: The position of the element.
         top: The distance from the top of the containing element.
         bottom: The distance from the bottom of the containing element.
@@ -138,33 +128,25 @@ def range_slider(
         z_index: The stack order of the element.
         is_hidden: Whether the element is hidden.
         id: The unique identifier of the element.
-        aria_label: The label for the element.
-        aria_labelled_by: The id of the element that labels the current element.
-        aria_described_by: The id of the element that describes the current element.
-        aria_details: The id of the element that provides additional information about the current element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
     """
     return component_element(
-        "RangeSlider",
-        start_name=start_name,
-        end_name=end_name,
-        # format_options=format_options,
-        label_position=label_position,
-        show_value_label=show_value_label,
-        # get_value_label=get_value_label,
-        contextual_help=contextual_help,
-        orientation=orientation,
-        is_disabled=is_disabled,
-        min_value=min_value,
-        max_value=max_value,
-        step=step,
-        value=value,
-        default_value=default_value,
-        label=label,
-        name=name,
-        on_change_end=on_change_end,
-        on_change=on_change,
+        "Grid",
+        children=children,
+        areas=areas,
+        rows=rows,
+        columns=columns,
+        auto_columns=auto_columns,
+        auto_rows=auto_rows,
+        auto_flow=auto_flow,
+        justify_items=justify_items,
+        justify_content=justify_content,
+        align_content=align_content,
+        align_items=align_items,
+        gap=gap,
+        column_gap=column_gap,
+        row_gap=row_gap,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
@@ -202,10 +184,6 @@ def range_slider(
         z_index=z_index,
         is_hidden=is_hidden,
         id=id,
-        aria_label=aria_label,
-        aria_labelledby=aria_labelledby,
-        aria_describedby=aria_describedby,
-        aria_details=aria_details,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
     )

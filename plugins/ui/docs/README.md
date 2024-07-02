@@ -204,6 +204,7 @@ my_checkbox = ui_checkbox()
 ![Checkbox](_assets/checkbox.png)
 
 ## ActionGroup (string values)
+
 An ActionGroup is a grouping of ActionButtons that are related to one another.
 
 ```python
@@ -227,6 +228,7 @@ my_action_group = ui_action_group()
 ```
 
 ## ActionMenu (string values)
+
 ActionMenu combines an ActionButton with a Menu for simple "more actions" use cases.
 
 ```python
@@ -356,6 +358,7 @@ def ui_picker_table():
 
 pick_table = ui_picker_table()
 ```
+
 ![Use a picker to select from a table](_assets/pick_table.png)
 
 ## Picker (item table source)
@@ -402,6 +405,7 @@ pick_table_source = ui_picker_table_source()
 ![Use a picker to select from a table source](_assets/pick_table_source.png)
 
 ## ListView (string values)
+
 A list view that can be used to create a list of selectable items. Here's a basic example for selecting from a list of string values and displaying the selected key in a text field.
 
 ```python
@@ -487,6 +491,7 @@ def ui_list_view_table():
 
 lv_table = ui_list_view_table()
 ```
+
 ![Use a list view to select from a table](_assets/lv_table.png)
 
 ## ListView (item table source)
@@ -594,6 +599,7 @@ my_list_view_action_group = ui_list_view_action_group()
 ```
 
 ## ListView (list action menu)
+
 A list view can take a `list_action_menu` as its `actions` prop.
 
 ```python
@@ -1282,6 +1288,72 @@ te = ui.table(
 ```
 
 ![Table events](table_events.png)
+
+### ui.table Context Menu
+
+Items can be added to the bottom of the `ui.table` context menu (right-click menu) by using the `context_menu` or `context_header_menu` props. The `context_menu` prop adds items to the cell context menu, while the `context_header_menu` prop adds items to the column header context menu.
+
+Menu items must have a `title` and either an `action` or `actions` prop. They may have an `icon` which is the name of the icon that will be passed to `ui.icon`.
+
+The `action` prop is a callback that is called when the item is clicked and receives info about the cell that was clicked when the menu was opened.
+
+The `actions` prop is an array of menu items that will be displayed in a sub-menu. Sub-menus can contain other sub-menus for a nested menu.
+
+Menu items can be dynamically created by instead passing a function as the context item. The function will be called with the data of the cell that was clicked when the menu was opened, and must return the menu items or None.
+
+```py
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(
+    dx.data.stocks(),
+    context_menu=[
+        {
+            "title": "Context item",
+            "icon": "dhTruck",
+            "action": lambda d: print("Context item", d)
+        },
+        {
+            "title": "Nested menu",
+            "actions": [
+                {
+                    "title": "Nested item 1",
+                    "action": lambda d: print("Nested item 1", d)
+                }
+                {
+                    "title": "Nested item 2",
+                    "icon": "vsCheck"
+                    "action": lambda d: print("Nested item 2", d)
+                }
+            ]
+        }
+    ],
+    context_header_menu={
+        "title": "Header context menu item",
+        "action": lambda d: print("Header context menu item", d)
+    }
+)
+```
+
+The following example shows creating context menu items dynamically so that the item only appears on the `sym` column. If multiple functions are passed in a list, each will be called and any items they return will be added to the context menu.
+
+```py
+from deephaven import ui
+import deephaven.plot.express as dx
+
+def create_context_menu(data):
+    if data["column_name"] == "sym":
+        return {
+            "title": f"Print {data['value']}",
+            "action": lambda d: print(d['value'])
+        }
+    return None
+
+t = ui.table(
+    dx.data.stocks(),
+    context_menu=create_context_menu
+)
+```
 
 ## Re-using components
 

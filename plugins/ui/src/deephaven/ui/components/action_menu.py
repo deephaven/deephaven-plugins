@@ -7,8 +7,6 @@ from .section import SectionElement
 from .basic import component_element
 from ..elements import Element
 
-from .types import Number
-
 from ..types import (
     Key,
     ActionKey,
@@ -26,7 +24,6 @@ from .types import (
     JustifySelf,
     LayoutFlex,
     Position,
-    Number,
 )
 
 
@@ -46,12 +43,12 @@ def action_menu(
     on_action: Callable[[ActionKey], None] | None = None,
     on_open_change: Callable[[bool], None] | None = None,
     flex: LayoutFlex | None = None,
-    flex_grow: Number | None = None,
-    flex_shrink: Number | None = None,
+    flex_grow: float | None = None,
+    flex_shrink: float | None = None,
     flex_basis: DimensionValue | None = None,
     align_self: AlignSelf | None = None,
     justify_self: JustifySelf | None = None,
-    order: Number | None = None,
+    order: int | None = None,
     grid_area: str | None = None,
     grid_row: str | None = None,
     grid_row_start: str | None = None,
@@ -79,7 +76,7 @@ def action_menu(
     end: DimensionValue | None = None,
     left: DimensionValue | None = None,
     right: DimensionValue | None = None,
-    z_index: Number | None = None,
+    z_index: int | None = None,
     is_hidden: bool | None = None,
     id: str | None = None,
     aria_label: str | None = None,

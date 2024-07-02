@@ -18,7 +18,7 @@ import { WidgetDescriptor } from '@deephaven/dashboard';
 import { useWidget } from '@deephaven/jsapi-bootstrap';
 import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
-import { EMPTY_FUNCTION } from '@deephaven/utils';
+import { EMPTY_FUNCTION, assertNotNull } from '@deephaven/utils';
 import {
   CALLABLE_KEY,
   OBJECT_KEY,
@@ -35,9 +35,11 @@ import {
   METHOD_DOCUMENT_UPDATED,
 } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
-import { getComponentForElement } from './WidgetUtils';
+import { getComponentForElement, wrapCallable } from './WidgetUtils';
+import WidgetStatusContext, {
+  WidgetStatus,
+} from '../layout/WidgetStatusContext';
 import WidgetErrorView from './WidgetErrorView';
-import ReactPanelContentOverlayContext from '../layout/ReactPanelContentOverlayContext';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
@@ -116,6 +118,15 @@ function WidgetHandler({
     [jsonClient]
   );
 
+  const callableFinalizationRegistry = useMemo(
+    () =>
+      new FinalizationRegistry(callableId => {
+        log.debug2('Closing callable', callableId);
+        jsonClient?.request('closeCallable', [callableId]);
+      }),
+    [jsonClient]
+  );
+
   const parseDocument = useCallback(
     /**
      * Parse the data from the server, replacing some of the nodes on the way.
@@ -127,6 +138,7 @@ function WidgetHandler({
      * @returns The parsed data
      */
     (data: string) => {
+      assertNotNull(jsonClient);
       // Keep track of exported objects that are no longer in use after this render.
       // We close those objects that are no longer referenced, as they will never be referenced again.
       const deadObjectMap = new Map(exportedObjectMap.current);
@@ -136,10 +148,11 @@ function WidgetHandler({
         if (isCallableNode(value)) {
           const callableId = value[CALLABLE_KEY];
           log.debug2('Registering callableId', callableId);
-          return async (...args: unknown[]) => {
-            log.debug('Callable called', callableId, ...args);
-            return jsonClient?.request(callableId, args);
-          };
+          return wrapCallable(
+            jsonClient,
+            callableId,
+            callableFinalizationRegistry
+          );
         }
         if (isObjectNode(value)) {
           // Replace this node with the exported object
@@ -183,7 +196,7 @@ function WidgetHandler({
       );
       return parsedData;
     },
-    [jsonClient]
+    [jsonClient, callableFinalizationRegistry]
   );
 
   const updateExportedObjects = useCallback(
@@ -311,33 +324,31 @@ function WidgetHandler({
     [jsonClient, initialData, sendSetState, updateExportedObjects, widget]
   );
 
-  const errorView = useMemo(() => {
-    if (error != null) {
-      return <WidgetErrorView error={error} />;
-    }
-    return null;
-  }, [error]);
-
-  const contentOverlay = useMemo(() => {
-    // We only show it as an overlay if there's already a document to show
-    // If there isn't, then we'll just render this as the document so it forces a panel to open
-    if (errorView != null && document != null) {
-      return errorView;
-    }
-    return null;
-  }, [document, errorView]);
-
   const renderedDocument = useMemo(() => {
     if (document != null) {
       return document;
     }
-    return errorView;
-  }, [document, errorView]);
+    if (error != null) {
+      // If there's an error and the document hasn't rendered yet, explicitly show an error view
+      return <WidgetErrorView error={error} />;
+    }
+    return null;
+  }, [document, error]);
+
+  const widgetStatus: WidgetStatus = useMemo(() => {
+    if (error != null) {
+      return { status: 'error', descriptor: widgetDescriptor, error };
+    }
+    if (renderedDocument != null) {
+      return { status: 'ready', descriptor: widgetDescriptor };
+    }
+    return { status: 'loading', descriptor: widgetDescriptor };
+  }, [error, renderedDocument, widgetDescriptor]);
 
   return useMemo(
     () =>
-      renderedDocument != null ? (
-        <ReactPanelContentOverlayContext.Provider value={contentOverlay}>
+      renderedDocument ? (
+        <WidgetStatusContext.Provider value={widgetStatus}>
           <DocumentHandler
             widget={widgetDescriptor}
             initialData={initialData}
@@ -346,15 +357,15 @@ function WidgetHandler({
           >
             {renderedDocument}
           </DocumentHandler>
-        </ReactPanelContentOverlayContext.Provider>
+        </WidgetStatusContext.Provider>
       ) : null,
     [
-      contentOverlay,
       widgetDescriptor,
       renderedDocument,
       initialData,
       onClose,
       onDataChange,
+      widgetStatus,
     ]
   );
 }

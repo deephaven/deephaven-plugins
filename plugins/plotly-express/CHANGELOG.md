@@ -2,6 +2,25 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.9.0 - 2024-06-20
+#### Bug Fixes
+- update init to bring in new datasets (#564) - (048e1d6) - Alex Peters
+#### Build system
+- Require deephaven-core>=0.34.0 for plotly-express (#469) - (c735dec) - mofojed
+#### Documentation
+- function autodocs embedded in docs (#527) - (6977a33) - Joe
+- add plotting sidebar and plotting docs edits (#519) - (a9840cb) - Don
+- initial rough draft of dx docs with templates (#487) - (50f6e9a) - Don
+#### Features
+- ticking gapminder, wind, election datasets (#541) - (c8845b6) - Alex Peters
+- Ticking tips data set (#521) - (ed9baef) - Alex Peters
+#### Performance Improvements
+- minor improvement to dx.data.iris() time to display (#525) - (932a550) - Don
+#### Refactoring
+- re-write dx.data.iris() using px.data to calculate base mean/std (#509) - (58f8a97) - Don
+
+- - -
+
 ## plotly-express-v0.8.0 - 2024-05-16
 #### Bug Fixes
 - Improve TimePreprocessor code (#455) - (be887f7) - Joe

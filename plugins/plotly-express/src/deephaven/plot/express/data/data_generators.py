@@ -5,7 +5,8 @@ import numpy as np
 from plotly import express as px
 import math
 import random
-import typing
+import jpy
+from typing import Any, cast
 
 from deephaven.pandas import to_table
 from deephaven.replay import TableReplayer
@@ -15,7 +16,7 @@ from deephaven.time import (
     to_j_instant,
     to_pd_timestamp,
 )
-from deephaven.updateby import rolling_sum_tick, ema_tick
+from deephaven.updateby import rolling_sum_tick, ema_tick, cum_max
 
 SECOND = 1_000_000_000  #: One second in nanoseconds.
 MINUTE = 60 * SECOND  #: One minute in nanoseconds.
@@ -89,8 +90,8 @@ def iris(ticking: bool = True) -> Table:
     # data, where col is the column name ('sepal_length', etc) and index is the
     # row number used as a random seed so that the data is deterministically generated
     def get_random_value(col: str, index: int, species: str) -> float:
-        mean = float(typing.cast(float, species_descriptions[col]["mean"][species]))
-        std = float(typing.cast(float, species_descriptions[col]["std"][species]))
+        mean = float(cast(float, species_descriptions[col]["mean"][species]))
+        std = float(cast(float, species_descriptions[col]["std"][species]))
         random.seed(index)
         return round(random.gauss(mean, std), 1)
 
@@ -315,6 +316,22 @@ def tips(ticking: bool = True) -> Table:
         tips = dx.data.tips()
         ```
     """
+    # load the tips dataset, cast the category columns to strings, convert to Deephaven table
+    tips_df = px.data.tips().astype(
+        {
+            "sex": "string",
+            "smoker": "string",
+            "day": "string",
+            "time": "string",
+            "size": "int",
+        }
+    )
+    tips_table = to_table(tips_df)
+
+    if not ticking:
+        return tips_table
+
+    # constants that will be used for data generation
     sex_list: list[str] = ["Male", "Female"]
     smoker_list: list[str] = ["No", "Yes"]
     day_list: list[str] = ["Thur", "Fri", "Sat", "Sun"]
@@ -327,17 +344,6 @@ def tips(ticking: bool = True) -> Table:
     day_probs: list[float] = [0.25, 0.08, 0.36, 0.31]
     time_probs: list[float] = [0.72, 0.28]
     size_probs: list[float] = [0.02, 0.64, 0.15, 0.15, 0.02, 0.02]
-
-    # Load the tips dataset and cast the category columns to strings
-    df = px.data.tips().astype(
-        {
-            "sex": "string",
-            "smoker": "string",
-            "day": "string",
-            "time": "string",
-            "size": "int",
-        }
-    )
 
     # the following functions use the above category frequencies as well as an independent
     # statistical analysis to generate values for each column in the data frame
@@ -376,25 +382,423 @@ def tips(ticking: bool = True) -> Table:
         random.seed(index)
         return max(1, round(0.92 + 0.11 * total_bill + random.gauss(0.0, 1.02), 2))
 
-    # convert the pandas DataFrame to a Deephaven Table
-    source_table = to_table(df)
-
-    if ticking:
-        ticking_table = (
-            time_table("PT1S")
-            .update(
-                [
-                    "sex = generate_sex(ii)",
-                    "smoker = generate_smoker(ii)",
-                    "day = generate_day(ii)",
-                    "time = generate_time(ii)",
-                    "size = generate_size(ii)",
-                    "total_bill = generate_total_bill(smoker, size, ii)",
-                    "tip = generate_tip(total_bill, ii)",
-                ]
-            )
-            .drop_columns("Timestamp")
+    # create synthetic ticking version of the tips dataset that generates one new observation per period
+    ticking_table = (
+        time_table("PT1S")
+        .update(
+            [
+                "sex = generate_sex(ii)",
+                "smoker = generate_smoker(ii)",
+                "day = generate_day(ii)",
+                "time = generate_time(ii)",
+                "size = generate_size(ii)",
+                "total_bill = generate_total_bill(smoker, size, ii)",
+                "tip = generate_tip(total_bill, ii)",
+            ]
         )
-        return merge([source_table, ticking_table])
+        .drop_columns("Timestamp")
+    )
 
-    return source_table
+    # combine new synthetic data with real static dataset and return as one
+    return merge([tips_table, ticking_table])
+
+
+def election(ticking: bool = True):
+    """
+    Returns a ticking version of the Election dataset included in the plotly-express package.
+
+    When this function is called, it will return a table containing the first 19 rows of the dataset.
+    Then, a new row will tick in each second, until all 58 rows are included in the table. The table will
+    then reset to the first 19 rows, and continue ticking in this manner until it is deleted or otherwise cleaned up.
+
+    Notes:
+        Contains the following columns:
+        - district: a string containing the name of the district that the votes were cast in
+        - Coderre: the number of votes that the candidate Coderre received in the district
+        - Bergeron: the number of votes that the candidate Bergeron received in the district
+        - Joly: the number of votes that the candidate Joly received in the district
+        - total: the total number of votes cast in the district
+        - winner: a string containing the name of the winning candidate for that district
+        - result: a string indicating whether the victory was by majority or plurality
+        - district_id: a numerical ID for the district
+
+    Args:
+        ticking:
+            If true, the table will tick new data every second.
+
+    Returns:
+        A Deephaven Table
+
+    Examples:
+        ```
+        from deephaven.plot import express as dx
+        election = dx.data.election()
+        ```
+    """
+    # read in election data, cast types appropriately, convert to Deephaven table
+    election_df = px.data.election().astype(
+        {"district": "string", "winner": "string", "result": "string"}
+    )
+    election_table = to_table(election_df)
+
+    if not ticking:
+        return election_table
+
+    # functions to get correctly-typed values out of columns by index
+    def get_str_val(column: str, index: int) -> str:
+        return election_df.loc[index, column]
+
+    def get_long_val(column: str, index: int) -> int:
+        return election_df.loc[index, column]
+
+    TOTAL_ROWS = len(election_df)
+    STATIC_ROWS = math.floor(TOTAL_ROWS * 0.33)
+    TICKING_ROWS = TOTAL_ROWS - STATIC_ROWS
+
+    # create ticking table
+    ticking_table = (
+        time_table("PT1S")
+        .update_view(
+            [
+                "iteration_num = (long)floor(ii / TICKING_ROWS) + 1",
+                "idx = iteration_num * STATIC_ROWS + ii",
+                "mod_idx = idx % TOTAL_ROWS",
+            ]
+        )
+        .last_by("mod_idx")
+        .update_by(cum_max("max_iteration = iteration_num"))
+        .where("iteration_num == max_iteration")
+        .drop_columns(["Timestamp", "iteration_num", "idx", "max_iteration"])
+        .update_view(
+            [
+                "district = get_str_val(`district`, mod_idx)",
+                "Coderre = get_long_val(`Coderre`, mod_idx)",
+                "Bergeron = get_long_val(`Bergeron`, mod_idx)",
+                "Joly = get_long_val(`Joly`, mod_idx)",
+                "total = get_long_val(`total`, mod_idx)",
+                "winner = get_str_val(`winner`, mod_idx)",
+                "result = get_str_val(`result`, mod_idx)",
+                "district_id = get_long_val(`district_id`, mod_idx)",
+            ]
+        )
+        .drop_columns("mod_idx")
+    )
+
+    # combine initial static table and looping ticking table into one
+    return merge([election_table.head(STATIC_ROWS - 1), ticking_table])
+
+
+def wind(ticking: bool = True):
+    """
+    Returns a ticking version of the Wind dataset included in the plotly-express package.
+
+    When this function is called, it will return a table containing the first 42 rows of the dataset.
+    Then, a new row will tick in each second, until all 128 rows are included in the table. The table will
+    then reset to the first 42 rows, and continue ticking in this manner until it is deleted or otherwise cleaned up.
+
+    Notes:
+        Contains the following columns:
+        - direction: a string indicating the direction of the wind gust
+        - strength: a string indicating the strength of the wind gust, from 0-1 to 6+
+        - frequency: the frequency of each gust strength in each direction
+
+    Args:
+        ticking:
+            If true, the table will tick new data every second.
+
+    Returns:
+        A Deephaven Table
+
+    Examples:
+        ```
+        from deephaven.plot import express as dx
+        wind = dx.data.wind()
+        ```
+    """
+    wind_df = px.data.wind().astype({"direction": "string", "strength": "string"})
+    wind_table = to_table(wind_df)
+
+    if not ticking:
+        return wind_table
+
+    # functions to get correctly-typed values out of columns by index
+    def get_str_val(column: str, index: int) -> str:
+        return wind_df.loc[index, column]
+
+    def get_float_val(column: str, index: int) -> float:
+        return wind_df.loc[index, column]
+
+    TOTAL_ROWS = len(wind_df)
+    STATIC_ROWS = math.floor(TOTAL_ROWS * 0.33)
+    TICKING_ROWS = TOTAL_ROWS - STATIC_ROWS
+
+    # create ticking table
+    ticking_table = (
+        time_table("PT1S")
+        .update_view(
+            [
+                "iteration_num = (long)floor(ii / TICKING_ROWS) + 1",
+                "idx = iteration_num * STATIC_ROWS + ii",
+                "mod_idx = idx % TOTAL_ROWS",
+            ]
+        )
+        .last_by("mod_idx")
+        .update_by(cum_max("max_iteration = iteration_num"))
+        .where("iteration_num == max_iteration")
+        .drop_columns(["Timestamp", "iteration_num", "idx", "max_iteration"])
+        .update_view(
+            [
+                "direction = get_str_val(`direction`, mod_idx)",
+                "strength = get_str_val(`strength`, mod_idx)",
+                "frequency = get_float_val(`frequency`, mod_idx)",
+            ]
+        )
+        .drop_columns("mod_idx")
+    )
+
+    # combine initial static table and looping ticking table into one
+    return merge([wind_table.head(STATIC_ROWS - 1), ticking_table])
+
+
+def gapminder(ticking: bool = True) -> Table:
+    """
+    Returns a ticking version of the Gapminder world statistics dataset.
+
+    The original Gapminder dataset from the plotly-express package has a single measurement per country once every five
+    years, starting in 1952 and ending in 2007. This resolution is not ideal for ticking data. So, this ticking version
+    creates new data points for every country at every month between measurements. For example, between two real
+    observations in 1952 and 1957, there are 12 * 5 - 1 synthetic observations for population, life expectancy, and GDP.
+    The synthetic data are simply computed by linear interpolation of the two nearest real observations. Finally, the
+    dataset ticks in one new month every second, and every country in the dataset gets updated each time, so a total of
+    142 rows tick in per second. The dataset starts with years up to 1961, ticks in each month till 2007, and then
+    repeats until the table is cleaned up or deleted.
+
+    Notes:
+        Contains the following columns:
+        - country: a string containing the name of the country
+        - continent: a string containing the name of the continent that the country belongs to
+        - year: the year that the measurement was taken
+        - month: the month (1 - 12) that the measurement was taken
+        - lifeExp: average life expectancy
+        - pop: population total
+        - gdpPercap: per-capita GDP
+
+    Args:
+        ticking:
+            If true, the table will tick new data every second.
+
+    Returns:
+        A Deephaven Table
+
+    References:
+        - https://www.gapminder.org/data/
+
+    Examples:
+        ```
+        from deephaven.plot import express as dx
+        gapminder = dx.data.gapminder()
+        ```
+    """
+    # static and ticking cases are treated differently due to different types needed for pandas manipulation
+    if not ticking:
+        gapminder_df = (
+            px.data.gapminder()
+            .astype(
+                {
+                    "country": "string",
+                    "continent": "string",
+                    "year": "int",
+                    "lifeExp": "float",
+                    "pop": "int",
+                    "gdpPercap": "float",
+                }
+            )
+            .drop(["iso_alpha", "iso_num"], axis=1)
+        )
+
+        return to_table(cast(pd.DataFrame, gapminder_df))
+
+    gapminder_df = (
+        px.data.gapminder()
+        .astype(
+            {
+                "country": "string",
+                "continent": "string",
+                "year": "object",
+                "lifeExp": "object",
+                "pop": "object",
+                "gdpPercap": "object",
+            }
+        )
+        .drop(["iso_alpha", "iso_num"], axis=1)
+    )
+
+    ### First, we're going to construct the expanded, interpolated dataset
+
+    # functions for producing lists to expand original dataset
+    def create_months(reps: int) -> list[list[int]]:
+        months = [month for month in range(1, 13)]
+        return [months for _ in range(reps)]
+
+    def create_years(year: int, reps: int) -> list[int]:
+        return [year + i for i in range(reps)]
+
+    def create_empty(val: Any, reps: int) -> list[Any]:
+        return [val, *[np.nan for _ in range(reps - 1)]]
+
+    # split gapminder into pre-2007 and 2007, since 2007 need not be expanded in the same way as previous years
+    gapminder_no_2007 = cast(pd.DataFrame, gapminder_df[gapminder_df["year"] != 2007])
+    gapminder_2007 = cast(pd.DataFrame, gapminder_df[gapminder_df["year"] == 2007])
+
+    # expand pre-2007 dataset into consecutive years, where each new year gets filled with np.nan
+    gapminder_no_2007.loc[:, ["year"]] = gapminder_no_2007["year"].apply(
+        lambda x: create_years(x, 5)
+    )
+    for col in ["lifeExp", "pop", "gdpPercap"]:
+        gapminder_no_2007.loc[:, [col]] = gapminder_no_2007[col].apply(
+            lambda x: create_empty(x, 5)
+        )
+    gapminder_no_2007 = gapminder_no_2007.explode(
+        column=["year", "lifeExp", "pop", "gdpPercap"]
+    )
+
+    # insert month column, where each element is a list of all 12 months
+    gapminder_no_2007.insert(
+        loc=3,
+        column="month",
+        value=cast(
+            pd.Series,
+            create_months(len(gapminder_no_2007)),
+        ),
+    )
+
+    # expand pre-2007 dataset into consecutive months
+    for col in ["lifeExp", "pop", "gdpPercap"]:
+        gapminder_no_2007.loc[:, [col]] = gapminder_no_2007[col].apply(
+            lambda x: create_empty(x, 12)
+        )
+    gapminder_no_2007 = gapminder_no_2007.explode(
+        column=["month", "lifeExp", "pop", "gdpPercap"]
+    )
+
+    # insert a month column into the 2007 dataset to merge the two easily
+    gapminder_2007.insert(
+        loc=3,
+        column="month",
+        value=cast(pd.Series, [1 for _ in range(len(gapminder_2007))]),
+    )
+
+    # combine expanded pre-2007 dataset with 2007 dataset, sort by country and year
+    gapminder_combined = (
+        pd.concat([gapminder_no_2007, gapminder_2007])
+        .sort_values(by=["country", "year"])
+        .reset_index(drop=True)
+    )
+
+    # define types of new combined dataset
+    gapminder_combined = gapminder_combined.astype(
+        {
+            "year": "int",
+            "month": "int",
+            "lifeExp": "float",
+            "pop": "float",
+            "gdpPercap": "float",
+        }
+    )
+
+    # compute linearly interpolated values for each month, round population
+    gapminder_interp_vals = cast(
+        pd.DataFrame,
+        (
+            gapminder_combined.groupby("country", observed=True, as_index=True)[
+                ["lifeExp", "pop", "gdpPercap"]
+            ]
+            .apply(lambda country: country.interpolate(method="linear"))
+            .reset_index(drop=True)
+        ),
+    )
+    gapminder_interp_vals.loc[:, "pop"] = gapminder_interp_vals["pop"].apply(round)
+
+    # create new expanded dataset with interpolated values filled in
+    gapminder_interp = gapminder_combined
+    gapminder_interp.loc[:, ["lifeExp", "pop", "gdpPercap"]] = gapminder_interp_vals
+
+    # drop 2007, since we will not use that single point in the ticking version
+    gapminder_interp = gapminder_interp[gapminder_interp["year"] != 2007]
+
+    # final processing before ticking - convert population to int, sort, reset index
+    gapminder_interp = (
+        gapminder_interp.astype({"pop": "int"})
+        .sort_values(by=["year", "month", "country"])  # type: ignore
+        .reset_index(drop=True)
+    )
+
+    ### Now, use Deephaven to create a ticking version of the dataset
+
+    # create Java arrays of countries and continents - assumed constant, so compute once
+    j_countries = jpy.array("java.lang.String", list(gapminder_2007["country"]))
+    j_continents = jpy.array("java.lang.String", list(gapminder_2007["continent"]))
+    j_counter = jpy.array("long", [i for i in range(142)])
+
+    def get_life_expectancy(index: int) -> float:
+        return gapminder_interp.loc[index, "lifeExp"]
+
+    def get_population(index: int) -> int:
+        return gapminder_interp.loc[index, "pop"]
+
+    def get_gdp_per_cap(index: int) -> float:
+        return gapminder_interp.loc[index, "gdpPercap"]
+
+    TOTAL_YEARS = 55
+    STATIC_YEARS = 9
+    TICKING_YEARS = TOTAL_YEARS - STATIC_YEARS
+
+    TOTAL_MONTHS = TOTAL_YEARS * 12
+    STATIC_MONTHS = STATIC_YEARS * 12
+    TICKING_MONTHS = TOTAL_MONTHS - STATIC_MONTHS
+
+    TOTAL_ROWS = TOTAL_MONTHS * 142
+    STATIC_ROWS = STATIC_MONTHS * 142
+    TICKING_ROWS = TOTAL_ROWS - STATIC_ROWS
+
+    # create ticking version of interpolated dataset
+    # query requires some complex steps due to looping, and ticking in all countries at once
+    ticking_table = (
+        time_table("PT1S")
+        .update_view(
+            [
+                "iteration_num = (long)floor(ii / TICKING_MONTHS) + 1",
+                "idx = iteration_num * STATIC_ROWS + ii + (ii * 141)",
+                "mod_idx = idx % TOTAL_ROWS",
+                "year = 1961 + (long)floor((ii % TICKING_MONTHS) / 12)",
+                "month = (ii % 12) + 1",
+            ]
+        )
+        .last_by(["year", "month"])
+        .update_by(cum_max("max_iteration = iteration_num"))
+        .where("iteration_num == max_iteration")
+        .drop_columns(["Timestamp", "iteration_num", "idx", "max_iteration"])
+        .update_view(
+            ["counter = j_counter", "country = j_countries", "continent = j_continents"]
+        )
+        .ungroup(["country", "continent", "counter"])
+        .update_view("mod_idx = mod_idx + counter")
+        .update(
+            [
+                "lifeExp = get_life_expectancy(mod_idx)",
+                "pop = get_population(mod_idx)",
+                "gdpPercap = get_gdp_per_cap(mod_idx)",
+            ]
+        )
+        .drop_columns(["mod_idx", "counter"])
+        .view(["country", "continent", "year", "month", "lifeExp", "pop", "gdpPercap"])
+    )
+
+    return merge(
+        [
+            to_table(
+                cast(pd.DataFrame, gapminder_interp[gapminder_interp["year"] <= 1960])
+            ),
+            ticking_table,
+        ]
+    )

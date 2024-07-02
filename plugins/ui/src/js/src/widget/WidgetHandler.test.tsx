@@ -1,6 +1,8 @@
 import React from 'react';
 import { act, render } from '@testing-library/react';
 import { useWidget } from '@deephaven/jsapi-bootstrap';
+import { dh } from '@deephaven/jsapi-types';
+import { TestUtils } from '@deephaven/utils';
 import WidgetHandler, { WidgetHandlerProps } from './WidgetHandler';
 import { DocumentHandlerProps } from './DocumentHandler';
 import {
@@ -11,10 +13,14 @@ import {
 } from './WidgetTestUtils';
 
 const mockApi = { Widget: { EVENT_MESSAGE: 'message' } };
-let mockWidgetWrapper: ReturnType<typeof useWidget> = {
-  widget: null,
+const defaultWidgetWrapper: ReturnType<typeof useWidget> = {
+  widget: TestUtils.createMockProxy<dh.Widget>({
+    getDataAsString: jest.fn(() => ''),
+    exportedObjects: [],
+  }),
   error: null,
 };
+let mockWidgetWrapper: ReturnType<typeof useWidget> = defaultWidgetWrapper;
 jest.mock('@deephaven/jsapi-bootstrap', () => ({
   useApi: jest.fn(() => mockApi),
   useWidget: jest.fn(() => mockWidgetWrapper),
@@ -43,7 +49,7 @@ function makeWidgetHandler({
 }
 
 beforeEach(() => {
-  mockWidgetWrapper = { widget: null, error: null };
+  mockWidgetWrapper = defaultWidgetWrapper;
   mockDocumentHandler.mockClear();
 });
 
