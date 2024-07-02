@@ -15,5 +15,5 @@ OHLC (Open-High-Low-Close) plots are useful for:
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.ohlc
+.. dhautofunction:: deephaven.plot.express.ohlc
 ```

@@ -7,5 +7,5 @@ To "layer" or "stack" multiple plots on top of each other, use the `layer` funct
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.layer
+.. dhautofunction:: deephaven.plot.express.layer
 ```

@@ -16,5 +16,5 @@ Limitations of pie plots include:
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.pie
+.. dhautofunction:: deephaven.plot.express.pie
 ```

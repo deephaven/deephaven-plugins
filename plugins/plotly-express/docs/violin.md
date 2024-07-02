@@ -14,5 +14,5 @@ Violin plots are useful for:
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.violin
+.. dhautofunction:: deephaven.plot.express.violin
 ```

@@ -13,5 +13,5 @@ Funnel area plots are useful for:
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.funnel_area
+.. dhautofunction:: deephaven.plot.express.funnel_area
 ```

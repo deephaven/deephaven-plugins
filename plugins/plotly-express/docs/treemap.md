@@ -13,5 +13,5 @@ Treemap plots are useful for:
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.treemap
+.. dhautofunction:: deephaven.plot.express.treemap
 ```

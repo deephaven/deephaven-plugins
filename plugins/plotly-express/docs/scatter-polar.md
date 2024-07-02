@@ -13,5 +13,5 @@ Polar scatter plots are useful for:
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.scatter_polar
+.. dhautofunction:: deephaven.plot.express.scatter_polar
 ```

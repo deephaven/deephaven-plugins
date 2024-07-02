@@ -1,0 +1,6 @@
+deephaven-server
+Sphinx
+myst-parser
+sphinx-markdown-builder
+sphinx-autodoc-typehints
+typing_extensions;python_version<'3.11'

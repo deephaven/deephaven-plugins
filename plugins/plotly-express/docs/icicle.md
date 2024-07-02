@@ -13,5 +13,5 @@ Icicle plots are useful for:
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.icicle
+.. dhautofunction:: deephaven.plot.express.icicle
 ```

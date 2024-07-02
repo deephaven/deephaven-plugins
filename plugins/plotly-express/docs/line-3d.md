@@ -16,5 +16,5 @@ Alternatives to 3D line plots include:
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.line_3d
+.. dhautofunction:: deephaven.plot.express.line_3d
 ```

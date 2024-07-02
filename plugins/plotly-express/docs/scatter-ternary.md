@@ -13,5 +13,5 @@ Ternary scatter plots are useful for:
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.scatter_ternary
+.. dhautofunction:: deephaven.plot.express.scatter_ternary
 ```

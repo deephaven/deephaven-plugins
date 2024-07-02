@@ -13,5 +13,5 @@ Box plots are useful for:
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.box
+.. dhautofunction:: deephaven.plot.express.box
 ```

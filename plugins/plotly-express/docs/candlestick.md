@@ -17,5 +17,5 @@ Candlestick plots are useful for:
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.candlestick
+.. dhautofunction:: deephaven.plot.express.candlestick
 ```

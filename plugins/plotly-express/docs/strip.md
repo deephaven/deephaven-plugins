@@ -14,5 +14,5 @@ Strip plots are useful for:
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.strip
+.. dhautofunction:: deephaven.plot.express.strip
 ```
