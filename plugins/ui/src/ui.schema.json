@@ -60,6 +60,16 @@
       "type": "array",
       "prefixItems": [{ "type": "object" }],
       "items": false
+    },
+    "callCallableParams": {
+      "type": "array",
+      "prefixItems": [{ "type": "string" }, { "type": "array" }],
+      "items": false
+    },
+    "closeCallableParams": {
+      "type": "array",
+      "prefixItems": [{ "type": "string" }],
+      "items": false
     }
   },
   "type": "object",
@@ -67,8 +77,15 @@
     "jsonrpc": "2.0",
     "method": {
       "anyOf": [
-        { "enum": ["documentUpdated", "documentError"] },
-        { "pattern": "^cb_(0-9)+_(0-9)+$" }
+        {
+          "enum": [
+            "documentUpdated",
+            "documentError",
+            "setState",
+            "callCallable",
+            "closeCallable"
+          ]
+        }
       ]
     },
     "allOf": [
@@ -111,15 +128,24 @@
       {
         "if": {
           "properties": {
-            "method": { "pattern": "^cb_(0-9)+_(0-9)+$" }
+            "method": { "pattern": "callCallable" }
           }
         },
         "then": {
           "properties": {
-            "params": {
-              "type": "array",
-              "items": { "type": "any" }
-            }
+            "params": { "$ref": "#/defs/callCallableParams" }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "method": { "pattern": "closeCallable" }
+          }
+        },
+        "then": {
+          "properties": {
+            "params": { "$ref": "#/defs/closeCallableParams" }
           }
         }
       }

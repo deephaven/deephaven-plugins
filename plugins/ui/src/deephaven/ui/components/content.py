@@ -7,7 +7,6 @@ from .types import (
     DimensionValue,
     JustifySelf,
     LayoutFlex,
-    Number,
     Position,
 )
 from .basic import component_element
@@ -17,12 +16,12 @@ from ..elements import Element
 def content(
     *children: Any,
     flex: LayoutFlex | None = None,
-    flex_grow: Number | None = None,
-    flex_shrink: Number | None = None,
+    flex_grow: float | None = None,
+    flex_shrink: float | None = None,
     flex_basis: DimensionValue | None = None,
     align_self: AlignSelf | None = None,
     justify_self: JustifySelf | None = None,
-    order: Number | None = None,
+    order: int | None = None,
     grid_area: str | None = None,
     grid_row: str | None = None,
     grid_row_start: str | None = None,
@@ -50,7 +49,7 @@ def content(
     end: DimensionValue | None = None,
     left: DimensionValue | None = None,
     right: DimensionValue | None = None,
-    z_index: Number | None = None,
+    z_index: int | None = None,
     is_hidden: bool | None = None,
     id: str | None = None,
     UNSAFE_class_name: str | None = None,
