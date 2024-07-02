@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import shortid from 'shortid';
+import { nanoid } from 'nanoid';
 import { WidgetDescriptor } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
 import { EMPTY_FUNCTION } from '@deephaven/utils';
@@ -101,7 +101,7 @@ function DocumentHandler({
     // If there are no more known IDs, generate a new one.
     // This can happen if the document hasn't been opened before, or if it's rehydrated and a new panel is added.
     // Note that if the order of panels changes, the worst case scenario is that panels appear in the wrong location in the layout.
-    const panelId = widgetData.panelIds?.[panelIdIndex.current] ?? shortid();
+    const panelId = widgetData.panelIds?.[panelIdIndex.current] ?? nanoid();
     panelIdIndex.current += 1;
     return panelId;
   }, [widgetData]);

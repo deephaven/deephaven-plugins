@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import ReactDOM from 'react-dom';
-import shortid from 'shortid';
+import { nanoid } from 'nanoid';
 import {
   LayoutUtils,
   PanelEvent,
@@ -94,7 +94,7 @@ function ReactPanel({
 
   // We want to regenerate the key every time the metadata changes, so that the portal is re-rendered
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const contentKey = useMemo(() => shortid.generate(), [metadata]);
+  const contentKey = useMemo(() => nanoid(), [metadata]);
 
   const parent = useParentItem();
   const { eventHub } = layoutManager;

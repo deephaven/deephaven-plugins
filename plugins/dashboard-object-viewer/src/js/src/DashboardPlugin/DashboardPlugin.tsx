@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import shortid from 'shortid';
+import { nanoid } from 'nanoid';
 import type { DashboardPluginComponentProps } from '@deephaven/dashboard';
 import LayoutUtils from '@deephaven/dashboard/dist/layout/LayoutUtils';
 import { useListener } from '@deephaven/dashboard/dist/layout/hooks';
@@ -19,7 +19,7 @@ export function DashboardPlugin({
     ({
       dragEvent,
       fetch,
-      panelId = shortid.generate(),
+      panelId = nanoid(),
       widget,
     }: {
       dragEvent?: DragEvent;
