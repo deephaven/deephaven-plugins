@@ -1,4 +1,4 @@
-import React, { Key, ReactElement, useMemo } from 'react';
+import React, { Key, ReactElement, isValidElement, useMemo } from 'react';
 import {
   Tabs as DHCTabs,
   TabsProps,
@@ -89,7 +89,9 @@ export function Tabs(props: TabComponentProps): JSX.Element {
 
   const tabPanelsOrLists = childrenArray.filter(
     child =>
-      isElementOfType(child, TabList) || isElementOfType(child, TabPanels)
+      isValidElement(child) &&
+      // `Opt` type is the default type set by Spectrum for the `TabList` component
+      (child.type === 'Opt' || child.type === 'TabPanels')
   );
   const hasTabPanelsOrLists = tabPanelsOrLists.length > 0;
 
@@ -136,7 +138,11 @@ export function Tabs(props: TabComponentProps): JSX.Element {
   if (hasTabPanelsOrLists) {
     return (
       <DHCTabs
+        density="compact"
         onSelectionChange={onSelectionChange}
+        UNSAFE_style={{
+          paddingTop: '5px',
+        }}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...otherTabProps}
       >
@@ -148,11 +154,15 @@ export function Tabs(props: TabComponentProps): JSX.Element {
   return (
     <DHCTabs
       onSelectionChange={onSelectionChange}
+      density="compact"
+      UNSAFE_style={{
+        paddingTop: '5px',
+      }}
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...otherTabProps}
     >
       <TabList>{tabListChildren}</TabList>
-      <TabPanels UNSAFE_className="dh-tabs">{tabPanelsChildren}</TabPanels>
+      <TabPanels>{tabPanelsChildren}</TabPanels>
     </DHCTabs>
   );
 }
