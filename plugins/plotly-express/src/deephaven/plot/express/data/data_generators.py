@@ -110,10 +110,10 @@ def iris(ticking: bool = True) -> Table:
                     "timestamp = base_time + (long)((ii + df_len) * SECOND)",
                     # pick a random species from the list, using the index as a seed
                     "species = (String)species_list[(int)new Random(ii).nextInt(3)]",
-                    "sepal_length = get_random_value(`sepal_length`, ii, species)",
-                    "sepal_width = get_random_value(`sepal_width`, ii, species)",
-                    "petal_length = get_random_value(`petal_length`, ii, species)",
-                    "petal_width = get_random_value(`petal_width`, ii, species)",
+                    "sepal_length = get_random_value(`sepal_length`, ii + 1, species)",
+                    "sepal_width = get_random_value(`sepal_width`, ii + 2, species)",
+                    "petal_length = get_random_value(`petal_length`, ii + 3, species)",
+                    "petal_width = get_random_value(`petal_width`, ii + 4, species)",
                     "species_id = get_index(species)",
                 ]
             )
@@ -212,20 +212,20 @@ def marketing(ticking: bool = True) -> Table:
         marketing = dx.data.marketing()
         ```
     """
-    random.seed(12345566)
     _ColsToRowsTransform = jpy.get_type(
         "io.deephaven.engine.table.impl.util.ColumnsToRowsTransform"
     )
 
-    def weighted_selection(prob: float) -> bool:
+    def weighted_selection(prob: float, index: int) -> bool:
+        random.seed(index)
         return random.uniform(0, 1) < prob
 
     marketing_query_strings = [
         "VisitedWebsite = true",  # appearing in this table assumes a website visit
-        "Downloaded = VisitedWebsite ? weighted_selection(0.45) : false",  # 45% of visits download product
-        "PotentialCustomer = Downloaded ? weighted_selection(0.77) : false",  # 77% of downloads are potential customers
-        "RequestedPrice = PotentialCustomer ? weighted_selection(0.82) : false",  # 82% of flagged potential customers request price
-        "InvoiceSent = RequestedPrice ? weighted_selection(0.24) : false",  # 24% of those who requested price get invoice
+        "Downloaded = VisitedWebsite ? weighted_selection(0.45, ii) : false",  # 45% of visits download product
+        "PotentialCustomer = Downloaded ? weighted_selection(0.77, ii + 1) : false",  # 77% of downloads are potential customers
+        "RequestedPrice = PotentialCustomer ? weighted_selection(0.82, ii + 2) : false",  # 82% of flagged potential customers request price
+        "InvoiceSent = RequestedPrice ? weighted_selection(0.24, ii + 3) : false",  # 24% of those who requested price get invoice
     ]
 
     marketing_table = empty_table(100).update(marketing_query_strings)
@@ -482,23 +482,23 @@ def tips(ticking: bool = True) -> Table:
         return random.choices(sex_list, weights=sex_probs)[0]
 
     def generate_smoker(index: int) -> str:
-        random.seed(index)
+        random.seed(index + 1)
         return random.choices(smoker_list, weights=smoker_probs)[0]
 
     def generate_day(index: int) -> str:
-        random.seed(index)
+        random.seed(index + 2)
         return random.choices(day_list, weights=day_probs)[0]
 
     def generate_time(index: int) -> str:
-        random.seed(index)
+        random.seed(index + 3)
         return random.choices(time_list, weights=time_probs)[0]
 
     def generate_size(index: int) -> int:
-        random.seed(index)
+        random.seed(index + 4)
         return random.choices(size_list, weights=size_probs)[0]
 
     def generate_total_bill(smoker: str, size: int, index: int) -> float:
-        random.seed(index)
+        random.seed(index + 5)
         return round(
             3.68
             + 3.08 * (smoker == "Yes")
@@ -508,7 +508,7 @@ def tips(ticking: bool = True) -> Table:
         )
 
     def generate_tip(total_bill: float, index: int) -> float:
-        random.seed(index)
+        random.seed(index + 6)
         return max(1, round(0.92 + 0.11 * total_bill + random.gauss(0.0, 1.02), 2))
 
     # create synthetic ticking version of the tips dataset that generates one new observation per period
