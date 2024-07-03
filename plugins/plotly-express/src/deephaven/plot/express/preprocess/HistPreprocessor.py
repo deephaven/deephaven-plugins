@@ -73,8 +73,8 @@ class HistPreprocessor(UnivariatePreprocessor):
         )
         self.range_table = create_range_table(
             self.args["table"],
+            self.cols,
             self.range_bins,
-            [self.var],
             self.nbins,
             self.names["range"],
         )

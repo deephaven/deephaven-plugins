@@ -118,11 +118,11 @@ def draw_density_heatmap(
     y: str,
     z: str,
     range_color: list[float] | None = None,
-    color_continuous_scale: str = "Viridis",
-    color_continuous_midpoint=None,
-    opacity=1.0,
-    title=None,
-    template=None,
+    color_continuous_scale: str | None = "Viridis",
+    color_continuous_midpoint: list[float] | None = None,
+    opacity: float = 1.0,
+    title: str | None = None,
+    template: str | None = None,
 ) -> Figure:
     """Create a density heatmap
 
@@ -160,15 +160,15 @@ def draw_density_heatmap(
         )
     )
 
-    range_color = range_color or [None, None]
+    range_color_list = range_color or [None, None]
 
     colorscale_validator = ColorscaleValidator("colorscale", "make_figure")
 
     coloraxis_layout = dict(
         colorscale=colorscale_validator.validate_coerce(color_continuous_scale),
         cmid=color_continuous_midpoint,
-        cmin=range_color[0],
-        cmax=range_color[1],
+        cmin=range_color_list[0],
+        cmax=range_color_list[1],
     )
 
     heatmap.update_layout(

@@ -67,8 +67,10 @@ class DeephavenFigureListener:
         Setup listeners for the partitioned tables
         """
         for table, node in self._partitioned_tables.values():
+            print(table, node)
             listen_func = partial(self._on_update, node)
             handle = listen(table, listen_func)
+            print(handle)
             self._handles.append(handle)
             self._liveness_scope.manage(handle)
 

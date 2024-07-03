@@ -91,10 +91,10 @@ class HeatmapPreprocessor:
         table = tables[0]
 
         range_table_x = create_range_table(
-            table, x, self.range_bins_x, self.nbinsx, range_name=range_x
+            table, x, self.range_bins_x, self.nbinsx, range_x
         )
         range_table_y = create_range_table(
-            table, y, self.range_bins_y, self.nbinsy, range_name=range_y
+            table, y, self.range_bins_y, self.nbinsy, range_y
         )
         range_table = range_table_x.join(range_table_y)
 
