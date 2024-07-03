@@ -162,7 +162,7 @@ def draw_density_heatmap(
 
     range_color_list = range_color or [None, None]
 
-    colorscale_validator = ColorscaleValidator("colorscale", "make_figure")
+    colorscale_validator = ColorscaleValidator("colorscale", "draw_density_heatmap")
 
     coloraxis_layout = dict(
         colorscale=colorscale_validator.validate_coerce(color_continuous_scale),
