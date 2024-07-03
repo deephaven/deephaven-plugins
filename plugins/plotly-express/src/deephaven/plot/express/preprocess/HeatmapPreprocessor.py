@@ -22,8 +22,13 @@ class HeatmapPreprocessor:
 
     Attributes:
         args: dict[str, Any]: The arguments used to create the plot
-        range_table: The range table, calculated over the whole original table
-
+        histfunc: str: The histfunc to use
+        nbinsx: int: The number of bins in the x direction
+        nbinsy: int: The number of bins in the y direction
+        range_bins_x: list[float | None]: The range of the x bins
+        range_bins_y: list[float | None]: The range of the y bins
+        names: dict[str, str]: A mapping of ideal name to unique names
+            Also contains the names of the x, y, and z columns for ease of use
     """
 
     def __init__(self, args: dict[str, Any]):
@@ -70,9 +75,13 @@ class HeatmapPreprocessor:
         Args:
             tables: a list of tables to preprocess
             column: the column to aggregate on
+                ignored for this preprocessor because heatmap always gets the joint count
+                distribution of x and y or the histfunc of z depending on if z is provided
 
         Returns:
             A tuple containing (the new table, an update to make to the args)
+                The update should contain the z column name and the heatmap_agg_label
+                which is the histfunc of z if z is not None, otherwise just the histfunc
 
         """
 
@@ -126,9 +135,9 @@ class HeatmapPreprocessor:
             ranged_bin_counts, self.names, histfunc_col
         )
 
-        heatmap_title = f"{self.histfunc} of {z}" if z else self.histfunc
+        heatmap_agg_label = f"{self.histfunc} of {z}" if z else self.histfunc
 
         yield bin_counts_with_midpoint.view([x, y, histfunc_col]), {
             "z": histfunc_col,
-            "heatmap_title": heatmap_title,
+            "heatmap_agg_label": heatmap_agg_label,
         }
