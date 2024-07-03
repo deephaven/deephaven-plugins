@@ -1,6 +1,8 @@
 # Funnel Plot
 
-A funnel plot is a data visualization that represents a process with various stages and allows multiple stacked categories, showing the quantitative values or counts at each stage in a funnel shape. It is a useful tool for tracking the progression or attrition of data through different stages, providing a visual overview of data distribution within the process. A funnel area plot, on the other hand, is another visualization that represents data progressing through stages, but it uses filled polygons to depict the proportional quantity of data at each stage, making it a valuable tool for comparing the relative size of categories within a process but can only represent one category.
+A funnel plot is a data visualization that represents a process with various stages and allows multiple stacked categories, showing the quantitative values or counts at each stage in a funnel shape. It is a useful tool for tracking the progression or attrition of data through different stages, providing a visual overview of data distribution within the process.
+
+Funnel plots differ from funnel area plots in that they display the absolute count of data points in each category, while funnel area plots display the percentage of data points that belong to each category. Funnel plots also count each data point as belonging to _at least one_ category, so the categories are represented as subsets of eachother. On the other hand, funnel area plots also count each data point as belonging to _exactly one_ category, and display the categories as mutually exclusive.
 
 #### When are funnel plots appropriate?
 
@@ -18,13 +20,12 @@ Funnel plots are appropriate when the data contain a categorical variable where 
 
 Visualize the trend in consecutive stages of a categorical variable.
 
-```python
+```python order=marketing_trend,marketing
 import deephaven.plot.express as dx
-
 marketing = dx.data.marketing()  # import the ticking marketing dataset
 
 # create a basic funnel plot by specifying column names for `x` and `y`
-marketing_trend = dx.funnel(marketing_table, x="Count", y="Stage")
+marketing_trend = dx.funnel(marketing, x="Count", y="Stage")
 ```
 
 ## API Reference
