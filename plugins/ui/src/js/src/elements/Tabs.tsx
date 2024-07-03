@@ -1,8 +1,7 @@
-import React, { Key, ReactElement, isValidElement, useMemo } from 'react';
+import React, { Key, ReactElement, useMemo } from 'react';
 import {
   Tabs as DHCTabs,
   TabsProps,
-  TabPanels,
   TabList,
   Item,
   TabPanelsProps,
@@ -11,6 +10,7 @@ import {
 } from '@deephaven/components';
 import { isElementOfType } from '@deephaven/react-hooks';
 import { ensureArray } from '@deephaven/utils';
+import { TabPanels } from './TabPanels';
 
 type TabProps = {
   children: ReactElement;
@@ -29,7 +29,7 @@ type TabComponentProps = TabsProps<TabProps> & {
 type TabChild =
   | ReactElement<TabProps>
   | ReactElement<TabListProps<TabProps>, typeof TabList<TabProps>>
-  | ReactElement<TabPanelsProps<TabProps>, typeof TabPanels<TabProps>>;
+  | ReactElement<TabPanelsProps<TabProps>, typeof TabPanels>;
 
 function containsDuplicateKeys(childrenArray: JSX.Element[]) {
   const keys = childrenArray.map(child => child.key);
@@ -89,9 +89,7 @@ export function Tabs(props: TabComponentProps): JSX.Element {
 
   const tabPanelsOrLists = childrenArray.filter(
     child =>
-      isValidElement(child) &&
-      // `Opt` type is the default type set by Spectrum for the `TabList` component
-      (child.type === 'Opt' || child.type === 'TabPanels')
+      isElementOfType(child, TabList) || isElementOfType(child, TabPanels)
   );
   const hasTabPanelsOrLists = tabPanelsOrLists.length > 0;
 
@@ -138,11 +136,7 @@ export function Tabs(props: TabComponentProps): JSX.Element {
   if (hasTabPanelsOrLists) {
     return (
       <DHCTabs
-        density="compact"
         onSelectionChange={onSelectionChange}
-        UNSAFE_style={{
-          paddingTop: '5px',
-        }}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...otherTabProps}
       >
@@ -154,10 +148,6 @@ export function Tabs(props: TabComponentProps): JSX.Element {
   return (
     <DHCTabs
       onSelectionChange={onSelectionChange}
-      density="compact"
-      UNSAFE_style={{
-        paddingTop: '5px',
-      }}
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...otherTabProps}
     >
