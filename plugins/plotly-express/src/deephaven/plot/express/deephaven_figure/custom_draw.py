@@ -10,13 +10,13 @@ from plotly.validators.heatmap import ColorscaleValidator
 
 
 def draw_finance(
-        data_frame: DataFrame,
-        x_finance: str | list[str],
-        open: str | list[str],
-        high: str | list[str],
-        low: str | list[str],
-        close: str | list[str],
-        go_func: Callable,
+    data_frame: DataFrame,
+    x_finance: str | list[str],
+    open: str | list[str],
+    high: str | list[str],
+    low: str | list[str],
+    close: str | list[str],
+    go_func: Callable,
 ) -> Figure:
     """Draws a finance (OHLC or candlestick) chart
 
@@ -34,7 +34,7 @@ def draw_finance(
 
     """
     if not all(len(open) == len(ls) for ls in [high, low, close]) and (
-            len(open) == len(x_finance) or len(x_finance) == 1
+        len(open) == len(x_finance) or len(x_finance) == 1
     ):
         raise ValueError(
             "open, high, low, close must have same length and x "
@@ -44,7 +44,7 @@ def draw_finance(
     data = []
 
     for x_f, o, h, l, c in zip_longest(
-            x_finance, open, high, low, close, fillvalue=x_finance[0]
+        x_finance, open, high, low, close, fillvalue=x_finance[0]
     ):
         data.append(
             go_func(
@@ -60,12 +60,12 @@ def draw_finance(
 
 
 def draw_ohlc(
-        data_frame: DataFrame,
-        x_finance: str | list[str],
-        open: str | list[str],
-        high: str | list[str],
-        low: str | list[str],
-        close: str | list[str],
+    data_frame: DataFrame,
+    x_finance: str | list[str],
+    open: str | list[str],
+    high: str | list[str],
+    low: str | list[str],
+    close: str | list[str],
 ) -> Figure:
     """Create a plotly OHLC chart.
 
@@ -86,12 +86,12 @@ def draw_ohlc(
 
 
 def draw_candlestick(
-        data_frame: DataFrame,
-        x_finance: str | list[str],
-        open: str | list[str],
-        high: str | list[str],
-        low: str | list[str],
-        close: str | list[str],
+    data_frame: DataFrame,
+    x_finance: str | list[str],
+    open: str | list[str],
+    high: str | list[str],
+    low: str | list[str],
+    close: str | list[str],
 ) -> Figure:
     """Create a plotly candlestick chart.
 

@@ -972,7 +972,9 @@ def create_hover_and_axis_titles(
 
     current_partition = custom_call_args.get("current_partition", {})
 
-    compute_labels(hover_mapping, hist_val_name, heatmap_title, types, labels, current_partition)
+    compute_labels(
+        hover_mapping, hist_val_name, heatmap_title, types, labels, current_partition
+    )
 
     hover_text = hover_text_generator(hover_mapping, types, current_partition)
 

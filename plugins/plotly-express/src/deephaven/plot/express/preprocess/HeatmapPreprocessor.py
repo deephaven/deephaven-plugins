@@ -6,8 +6,13 @@ from deephaven import new_table
 from deephaven.column import long_col
 
 from ..shared import get_unique_names
-from .utilities import create_range_table, validate_heatmap_histfunc, create_tmp_view, \
-    aggregate_heatmap_bins, calculate_bin_locations
+from .utilities import (
+    create_range_table,
+    validate_heatmap_histfunc,
+    create_tmp_view,
+    aggregate_heatmap_bins,
+    calculate_bin_locations,
+)
 from deephaven.table import Table
 
 
@@ -107,9 +112,7 @@ class HeatmapPreprocessor:
         # filter to only the tmp (data) columns, and join the range table to the tmp
         ranged_tmp_view = table.view(tmp_view).join(range_table)
 
-        agg_table = aggregate_heatmap_bins(
-            ranged_tmp_view, self.names, self.histfunc
-        )
+        agg_table = aggregate_heatmap_bins(ranged_tmp_view, self.names, self.histfunc)
 
         # join the aggregated values to the already created comprehensive bin table
         bin_counts = bin_counts.natural_join(
@@ -126,5 +129,6 @@ class HeatmapPreprocessor:
         heatmap_title = f"{self.histfunc} of {z}" if z else self.histfunc
 
         yield bin_counts_with_midpoint.view([x, y, histfunc_col]), {
-            "z": histfunc_col, "heatmap_title": heatmap_title
+            "z": histfunc_col,
+            "heatmap_title": heatmap_title,
         }

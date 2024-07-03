@@ -22,8 +22,8 @@ HISTFUNC_AGGS = {
 
 
 def get_aggs(
-        base: str,
-        columns: list[str],
+    base: str,
+    columns: list[str],
 ) -> tuple[list[str], str]:
     """Create aggregations over all columns
 
@@ -59,11 +59,11 @@ def single_table(table: Table | PartitionedTable) -> Table:
 
 
 def discretized_range_view(
-        table: Table,
-        range_min: float | str,
-        range_max: float | str,
-        nbins: int,
-        range_name: str,
+    table: Table,
+    range_min: float | str,
+    range_max: float | str,
+    nbins: int,
+    range_name: str,
 ) -> Table:
     """
     Create a discretized range view that can be joined with a table to compute indices
@@ -87,11 +87,11 @@ def discretized_range_view(
 
 
 def create_range_table(
-        table: Table,
-        cols: str | list[str],
-        range_bins: list[float | None] | None,
-        nbins: int,
-        range_name: str,
+    table: Table,
+    cols: str | list[str],
+    range_bins: list[float | None] | None,
+    nbins: int,
+    range_name: str,
 ) -> Table:
     """
     Create single row tables with range objects that can compute bin membership
@@ -140,10 +140,7 @@ def create_range_table(
     )
 
 
-def validate_heatmap_histfunc(
-        z: str | None,
-        histfunc: str
-) -> None:
+def validate_heatmap_histfunc(z: str | None, histfunc: str) -> None:
     """
     Check if the histfunc is valid
 
@@ -161,11 +158,11 @@ def validate_heatmap_histfunc(
 
 
 def create_tmp_view(
-        names: dict[str, str],
+    names: dict[str, str],
 ) -> list[str]:
     """
     Create a temporary view that avoids column name collisions
-    
+
     Args:
         names: The names used for columns so that they don't collide
 
@@ -192,9 +189,9 @@ def create_tmp_view(
 
 
 def aggregate_heatmap_bins(
-        table: Table,
-        names: dict[str, str],
-        histfunc: str,
+    table: Table,
+    names: dict[str, str],
+    histfunc: str,
 ) -> Table:
     """
     Create count tables that aggregate up values into bins
@@ -218,8 +215,7 @@ def aggregate_heatmap_bins(
     agg_col = names["agg_col"]
 
     count_table = (
-        table
-        .update_view(
+        table.update_view(
             [
                 f"{range_index_x} = {range_x}.index({tmp_x})",
                 f"{range_index_y} = {range_y}.index({tmp_y})",
@@ -232,9 +228,9 @@ def aggregate_heatmap_bins(
 
 
 def calculate_bin_locations(
-        ranged_bin_counts: Table,
-        names: dict[str, str],
-        histfunc_col: str,
+    ranged_bin_counts: Table,
+    names: dict[str, str],
+    histfunc_col: str,
 ) -> Table:
     """
     Compute the center of the bins for the x and y axes
@@ -260,17 +256,14 @@ def calculate_bin_locations(
     y = names["y"]
     agg_col = names["agg_col"]
 
-    return (
-        ranged_bin_counts
-        .update_view(
-            [
-                f"{bin_min_x} = {range_x}.binMin({range_index_x})",
-                f"{bin_max_x} = {range_x}.binMax({range_index_x})",
-                f"{x}=0.5*({bin_min_x}+{bin_max_x})",
-                f"{bin_min_y} = {range_y}.binMin({range_index_y})",
-                f"{bin_max_y} = {range_y}.binMax({range_index_y})",
-                f"{y}=0.5*({bin_min_y}+{bin_max_y})",
-                f"{histfunc_col} = {agg_col}",
-            ]
-        )
+    return ranged_bin_counts.update_view(
+        [
+            f"{bin_min_x} = {range_x}.binMin({range_index_x})",
+            f"{bin_max_x} = {range_x}.binMax({range_index_x})",
+            f"{x}=0.5*({bin_min_x}+{bin_max_x})",
+            f"{bin_min_y} = {range_y}.binMin({range_index_y})",
+            f"{bin_max_y} = {range_y}.binMax({range_index_y})",
+            f"{y}=0.5*({bin_min_y}+{bin_max_y})",
+            f"{histfunc_col} = {agg_col}",
+        ]
     )
