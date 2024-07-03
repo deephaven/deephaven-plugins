@@ -863,7 +863,7 @@ def calculate_density_heatmap_labels(
     The z column is renamed to the heatmap_agg_label
 
     Args:
-      heatmap_agg_label: The title of the colorbar
+      heatmap_agg_label: The name of the heatmap aggregate label
       hover_mapping: The mapping of variables to columns
 
     """
