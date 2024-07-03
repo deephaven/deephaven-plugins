@@ -860,7 +860,7 @@ def calculate_density_heatmap_labels(
     hover_mapping: dict[str, str],
 ) -> None:
     """Calculate the labels for a density heatmap
-    The z column is renamed to the colorbar title
+    The z column is renamed to the heatmap_agg_label
 
     Args:
       heatmap_agg_label: The title of the colorbar
