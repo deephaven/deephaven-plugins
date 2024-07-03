@@ -6,16 +6,17 @@ from typing import Callable
 from pandas import DataFrame
 import plotly.graph_objects as go
 from plotly.graph_objects import Figure
+from plotly.validators.heatmap import ColorscaleValidator
 
 
 def draw_finance(
-    data_frame: DataFrame,
-    x_finance: str | list[str],
-    open: str | list[str],
-    high: str | list[str],
-    low: str | list[str],
-    close: str | list[str],
-    go_func: Callable,
+        data_frame: DataFrame,
+        x_finance: str | list[str],
+        open: str | list[str],
+        high: str | list[str],
+        low: str | list[str],
+        close: str | list[str],
+        go_func: Callable,
 ) -> Figure:
     """Draws a finance (OHLC or candlestick) chart
 
@@ -33,7 +34,7 @@ def draw_finance(
 
     """
     if not all(len(open) == len(ls) for ls in [high, low, close]) and (
-        len(open) == len(x_finance) or len(x_finance) == 1
+            len(open) == len(x_finance) or len(x_finance) == 1
     ):
         raise ValueError(
             "open, high, low, close must have same length and x "
@@ -43,7 +44,7 @@ def draw_finance(
     data = []
 
     for x_f, o, h, l, c in zip_longest(
-        x_finance, open, high, low, close, fillvalue=x_finance[0]
+            x_finance, open, high, low, close, fillvalue=x_finance[0]
     ):
         data.append(
             go_func(
@@ -59,12 +60,12 @@ def draw_finance(
 
 
 def draw_ohlc(
-    data_frame: DataFrame,
-    x_finance: str | list[str],
-    open: str | list[str],
-    high: str | list[str],
-    low: str | list[str],
-    close: str | list[str],
+        data_frame: DataFrame,
+        x_finance: str | list[str],
+        open: str | list[str],
+        high: str | list[str],
+        low: str | list[str],
+        close: str | list[str],
 ) -> Figure:
     """Create a plotly OHLC chart.
 
@@ -85,12 +86,12 @@ def draw_ohlc(
 
 
 def draw_candlestick(
-    data_frame: DataFrame,
-    x_finance: str | list[str],
-    open: str | list[str],
-    high: str | list[str],
-    low: str | list[str],
-    close: str | list[str],
+        data_frame: DataFrame,
+        x_finance: str | list[str],
+        open: str | list[str],
+        high: str | list[str],
+        low: str | list[str],
+        close: str | list[str],
 ) -> Figure:
     """Create a plotly candlestick chart.
 
@@ -109,3 +110,73 @@ def draw_candlestick(
     """
 
     return draw_finance(data_frame, x_finance, open, high, low, close, go.Candlestick)
+
+
+def draw_density_heatmap(
+    data_frame: DataFrame,
+    x: str,
+    y: str,
+    z: str,
+    range_color: list[float] | None = None,
+    color_continuous_scale: str = "Viridis",
+    color_continuous_midpoint=None,
+    opacity=1.0,
+    title=None,
+    template=None,
+) -> Figure:
+    """Create a density heatmap
+
+    Args:
+      data_frame: The data frame to draw with
+      x: The name of the column containing x-axis values
+      y: The name of the column containing y-axis values
+      z: The name of the column containing bin values
+      color_continuous_scale: A list of colors for a continuous scale
+      range_color: A list of two numbers that form the endpoints of the color axis
+      color_continuous_midpoint: A number that is the midpoint of the color axis
+      opacity: Opacity to apply to all markers. 0 is completely transparent
+        and 1 is completely opaque.
+      title: The title of the chart
+      template: The template for the chart.
+
+    Returns:
+      The plotly density heatmap
+
+    """
+
+    # currently, most plots rely on px setting several attributes such as coloraxis, opacity, etc.
+    # so we need to set some things manually
+    # this could be done with handle_custom_args in generate.py in the future if
+    # we need to provide more options, but it's much easier to just set it here
+    # and doesn't risk breaking any other plots
+
+    heatmap = go.Figure(
+        go.Heatmap(
+            x=data_frame[x],
+            y=data_frame[y],
+            z=data_frame[z],
+            coloraxis="coloraxis1",
+            opacity=opacity,
+        )
+    )
+
+    range_color = range_color or [None, None]
+
+    colorscale_validator = ColorscaleValidator("colorscale", "make_figure")
+
+    coloraxis_layout = dict(
+        colorscale=colorscale_validator.validate_coerce(color_continuous_scale),
+        cmid=color_continuous_midpoint,
+        cmin=range_color[0],
+        cmax=range_color[1],
+    )
+
+    heatmap.update_layout(
+        coloraxis1=coloraxis_layout,
+        title=title,
+        template=template,
+        xaxis_title=x,
+        yaxis_title=y,
+    )
+
+    return heatmap

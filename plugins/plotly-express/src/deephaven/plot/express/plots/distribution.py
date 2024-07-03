@@ -409,8 +409,8 @@ def histogram(
       range_y: A list of two numbers that specify the range of the y-axis.
       range_bins: A list of two numbers that specify the range of data that is used.
       histfunc: The function to use when aggregating within bins. One of
-        'avg', 'count', 'count_distinct', 'max', 'median', 'min', 'std', 'sum',
-        or 'var'
+        'abs_sum', 'avg', 'count', 'count_distinct', 'max', 'median', 'min', 'std',
+        'sum', or 'var'
       cumulative: If True, values are cumulative.
       nbins: The number of bins to use.
       text_auto: If True, display the value at each bar.
