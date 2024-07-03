@@ -157,16 +157,16 @@ def jobs(ticking: bool = True) -> Table:
 
     def generate_resource(index: int) -> str:
         random.seed(index)
-        return ["Mike", "Matti", "Steve", "John", "Jane"][random.randint(0, 4)]
+        return random.choice(["Mike", "Matti", "Steve", "John", "Jane"])
 
-    static_jobs = empty_table(5).update(
-        [
-            "Job = `Job` + String.valueOf((ii % 5) + 1)",
-            "StartTime = '2020-01-01T00:00:00Z' + ('P1d' * i * 2)",
-            "EndTime = StartTime + 'P5d'",
-            "Resource = generate_resource(ii)",
-        ]
-    )
+    jobs_query_strings = [
+        "Job = `Job` + String.valueOf((ii % 5) + 1)",
+        "StartTime = '2020-01-01T00:00:00Z' + ('P1d' * i * 2)",
+        "EndTime = StartTime + 'P5d'",
+        "Resource = generate_resource(ii)",
+    ]
+
+    static_jobs = empty_table(5).update(jobs_query_strings)
 
     if not ticking:
         return static_jobs
@@ -176,14 +176,8 @@ def jobs(ticking: bool = True) -> Table:
             static_jobs,
             time_table("PT1s")
             .drop_columns("Timestamp")
-            .update(
-                [
-                    "Job = `Job` + String.valueOf((ii % 5) + 1)",
-                    "StartTime = '2020-01-11T00:00:00Z' + ('P1d' * i * 2)",
-                    "EndTime = StartTime + 'P5d'",
-                    "Resource = generate_resource(ii)",
-                ]
-            ),
+            .update(jobs_query_strings)
+            .update("StartTime = StartTime + 'P10d'"),
         ]
     ).last_by("Job")
 
@@ -226,56 +220,37 @@ def marketing(ticking: bool = True) -> Table:
     def weighted_selection(prob: float) -> bool:
         return random.uniform(0, 1) < prob
 
-    static_marketing = empty_table(100).update(
-        [
-            "VisitedWebsite = true",  # appearing in this table assumes a website visit
-            "Downloaded = VisitedWebsite ? weighted_selection(0.45) : false",  # 45% of visits download product
-            "PotentialCustomer = Downloaded ? weighted_selection(0.77) : false",  # 77% of downloads are potential customers
-            "RequestedPrice = PotentialCustomer ? weighted_selection(0.82) : false",  # 82% of flagged potential customers request price
-            "InvoiceSent = RequestedPrice ? weighted_selection(0.24) : false",  # 24% of those who requested price get invoice
-        ]
-    )
+    marketing_query_strings = [
+        "VisitedWebsite = true",  # appearing in this table assumes a website visit
+        "Downloaded = VisitedWebsite ? weighted_selection(0.45) : false",  # 45% of visits download product
+        "PotentialCustomer = Downloaded ? weighted_selection(0.77) : false",  # 77% of downloads are potential customers
+        "RequestedPrice = PotentialCustomer ? weighted_selection(0.82) : false",  # 82% of flagged potential customers request price
+        "InvoiceSent = RequestedPrice ? weighted_selection(0.24) : false",  # 24% of those who requested price get invoice
+    ]
 
-    if not ticking:
-        return Table(
-            _ColsToRowsTransform.columnsToRows(
-                static_marketing.sum_by().j_table,
-                "Stage",
-                "Count",
-                "VisitedWebsite",
-                "Downloaded",
-                "PotentialCustomer",
-                "RequestedPrice",
-                "InvoiceSent",
-            )
+    marketing_table = empty_table(100).update(marketing_query_strings)
+
+    if ticking:
+        marketing_table = merge(
+            [
+                marketing_table,
+                time_table("PT1s")
+                .update(marketing_query_strings)
+                .drop_columns("Timestamp"),
+            ]
         )
 
-    ticking_marketing = merge(
-        [
-            static_marketing,
-            time_table("PT1s")
-            .update(
-                [
-                    "VisitedWebsite = true",  # appearing in this table assumes a website visit
-                    "Downloaded = VisitedWebsite ? weighted_selection(0.45) : false",  # 45% of visits download product
-                    "PotentialCustomer = Downloaded ? weighted_selection(0.77) : false",  # 77% of downloads are potential customers
-                    "RequestedPrice = PotentialCustomer ? weighted_selection(0.82) : false",  # 82% of flagged potential customers request price
-                    "InvoiceSent = RequestedPrice ? weighted_selection(0.24) : false",  # 24% of those who requested price get invoice
-                ]
-            )
-            .drop_columns("Timestamp"),
-        ]
-    ).sum_by()
-
-    return _ColsToRowsTransform.columnsToRows(
-        ticking_marketing.j_table,
-        "Stage",
-        "Count",
-        "VisitedWebsite",
-        "Downloaded",
-        "PotentialCustomer",
-        "RequestedPrice",
-        "InvoiceSent",
+    return Table(
+        _ColsToRowsTransform.columnsToRows(
+            marketing_table.sum_by().j_table,
+            "Stage",
+            "Count",
+            "VisitedWebsite",
+            "Downloaded",
+            "PotentialCustomer",
+            "RequestedPrice",
+            "InvoiceSent",
+        )
     )
 
 
