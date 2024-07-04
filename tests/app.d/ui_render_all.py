@@ -64,7 +64,11 @@ def ui_components():
         ui.heading("Heading"),
         ui.icon("vsSymbolMisc"),
         # TODO: #526 ui.icon_wrapper("TODO: fix this"),
-        ui.illustrated_message(ui.icon("vsSymbolMisc"), "Illustrated Message"),
+        ui.illustrated_message(
+            ui.icon("vsWarning"),
+            ui.heading("Warning"),
+            ui.content("This is a warning message."),
+        ),
         ui.list_view(
             _item_table_source_with_action_group,
             aria_label="List View - List action group",
