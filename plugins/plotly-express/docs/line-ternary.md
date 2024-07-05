@@ -11,5 +11,5 @@ Ternary line plots are useful for:
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.line_ternary
+.. dhautofunction:: deephaven.plot.express.line_ternary
 ```

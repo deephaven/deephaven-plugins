@@ -1,7 +1,7 @@
 import { PickerProps as DHPickerProps } from '@deephaven/components';
 import { PickerProps as DHPickerJSApiProps } from '@deephaven/jsapi-components';
 import { ReactElement } from 'react';
-import { ObjectViewProps } from '../ObjectView';
+import ObjectView, { ObjectViewProps } from '../ObjectView';
 import {
   SerializedFocusEventCallback,
   useFocusEventCallback,
@@ -26,7 +26,7 @@ export interface SerializedPickerEventProps {
 }
 
 type WrappedDHPickerJSApiProps = Omit<DHPickerJSApiProps, 'table'> & {
-  children: ReactElement<ObjectViewProps>;
+  children: ReactElement<ObjectViewProps, typeof ObjectView>;
 };
 
 export type SerializedPickerProps = (
