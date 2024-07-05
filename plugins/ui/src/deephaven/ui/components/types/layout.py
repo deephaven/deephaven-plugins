@@ -162,3 +162,4 @@ BorderRadius = Literal[
     "medium",
     "large",
 ]
+MenuDirection = Literal["bottom", "top"]
