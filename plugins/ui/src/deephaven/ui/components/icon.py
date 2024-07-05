@@ -16,7 +16,6 @@ from .._internal.utils import create_props
 
 def icon(
     name: str,
-    *children,
     size: IconSize | None = None,
     color: IconColor | None = None,
     flex: LayoutFlex | None = None,
@@ -70,7 +69,6 @@ def icon(
 
     Args:
         name: The name of the icon to get.
-        children: The content to display. Should be an SVG,
         size: The size of the icon (changes based on scale).
         color: The color of the icon.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
