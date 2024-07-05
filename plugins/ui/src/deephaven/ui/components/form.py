@@ -1,19 +1,24 @@
 from __future__ import annotations
 from typing import Any
 from .types import (
-    # Events
-    ElementTypes,
-    StaticColor,
     # Layout
     AlignSelf,
-    BorderRadius,
-    BorderSize,
     CSSProperties,
     DimensionValue,
     JustifySelf,
     LayoutFlex,
     Number,
     Position,
+    ValidationState,
+    ValidationBehavior,
+    EncodingType,
+    HTTPMethods,
+    Target,
+    AutoCompleteModes,
+    AutoCapitalizeModes,
+    LabelPosition,
+    Alignment,
+    NecessityIndicator,
 )
 from .basic import component_element
 from ..elements import Element
@@ -21,7 +26,27 @@ from ..elements import Element
 
 def form(
     *children: Any,
-    element_type: ElementTypes | None = None,
+    is_quiet: bool | None = None,
+    is_emphasized: bool | None = None,
+    is_disabled: bool | None = None,
+    is_required: bool | None = None,
+    is_read_only: bool | None = None,
+    validation_state: ValidationState | None = "valid",
+    validation_behavior: ValidationBehavior | None = "aria",
+    # validation_errors # omitted because synchronous return
+    # action # omitted because not sure what "server" the form is sending it's data to
+    enc_type: EncodingType | None = None,
+    method: HTTPMethods | None = None,
+    target: Target | None = None,
+    auto_complete: AutoCompleteModes | None = None,
+    auto_capitalize: AutoCapitalizeModes | None = None,
+    label_position: LabelPosition = "top",
+    label_alignment: Alignment = "start",
+    necessity_indicator: NecessityIndicator = "icon",
+    # omitting the following events because we don't have callables for it yet
+    # on_submit,
+    # on_reset,
+    # on_invalid,
     flex: LayoutFlex | None = None,
     flex_grow: Number | None = None,
     flex_shrink: Number | None = None,
@@ -44,39 +69,12 @@ def form(
     margin_end: DimensionValue | None = None,
     margin_x: DimensionValue | None = None,
     margin_y: DimensionValue | None = None,
-    padding: DimensionValue | None = None,
-    padding_top: DimensionValue | None = None,
-    padding_bottom: DimensionValue | None = None,
-    padding_start: DimensionValue | None = None,
-    padding_end: DimensionValue | None = None,
-    padding_x: DimensionValue | None = None,
-    padding_y: DimensionValue | None = None,
     width: DimensionValue | None = None,
     height: DimensionValue | None = None,
     min_width: DimensionValue | None = None,
     min_height: DimensionValue | None = None,
     max_width: DimensionValue | None = None,
     max_height: DimensionValue | None = None,
-    background_color: StaticColor | None = None,
-    border_width: BorderSize | None = None,
-    border_start_width: BorderSize | None = None,
-    border_end_width: BorderSize | None = None,
-    border_top_width: BorderSize | None = None,
-    border_bottom_width: BorderSize | None = None,
-    border_x_width: BorderSize | None = None,
-    border_y_width: BorderSize | None = None,
-    border_color: StaticColor | None = None,
-    border_start_color: StaticColor | None = None,
-    border_end_color: StaticColor | None = None,
-    border_top_color: StaticColor | None = None,
-    border_bottom_color: StaticColor | None = None,
-    border_x_color: StaticColor | None = None,
-    border_y_color: StaticColor | None = None,
-    border_radius: BorderRadius | None = None,
-    border_top_start_radius: BorderRadius | None = None,
-    border_top_end_radius: BorderRadius | None = None,
-    border_bottom_start_radius: BorderRadius | None = None,
-    border_bottom_end_radius: BorderRadius | None = None,
     position: Position | None = None,
     top: DimensionValue | None = None,
     bottom: DimensionValue | None = None,
@@ -87,6 +85,10 @@ def form(
     z_index: Number | None = None,
     is_hidden: bool | None = None,
     id: str | None = None,
+    aria_label: str | None = None,
+    aria_labelledby: str | None = None,
+    aria_describedby: str | None = None,
+    aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
 ) -> Element:
@@ -95,7 +97,21 @@ def form(
 
     Args:
         children: The content to render within the container.
-        element_type: The type of element to render.
+        is_quiet: Whether the form should be quiet.
+        is_emphasized: Whether the form should be emphasized.
+        is_disabled: Whether the form should be disabled.
+        is_required: Whether the form should be required.
+        is_read_only: Whether the form should be read only.
+        validation_state: Whether the Form elements should display their "valid" or "invalid" visual styling.
+        validation_behavior: Whether to use native HTML form validation to prevent form submission when a field value is missing or invalid, or mark fields as required or invalid via ARIA.
+        enc_type: The enctype attribute specifies how the form-data should be encoded when submitting it to the server.
+        method: The HTTP method of the form.
+        target: The target attribute specifies a name or a keyword that indicates where to display the response that is received after submitting the form.
+        auto_complete: Indicates whether input elements can by default have their values automatically completed by the browser.
+        auto_capitalize: Controls whether inputted text is automatically capitalized and, if so, in what manner.
+        label_position: The label's overall position relative to the element it is labeling.
+        label_alignment: The label's horizontal alignment relative to the element it is labeling.
+        necessity_indicator: Whether the required state should be shown as an icon or text.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -118,41 +134,12 @@ def form(
         margin_end: The margin for the logical end side of the element, depending on layout direction.
         margin_x: The margin for the left and right sides of the element.
         margin_y: The margin for the top and bottom sides of the element.
-        padding: The padding for all four sides of the element.
-        padding_top: The padding for the top side of the element.
-        padding_bottom: The padding for the bottom side of the element.
-        padding_start: The padding for the logical start side of the element, depending on layout direction.
-        padding_end: The padding for the logical end side of the element, depending on layout direction.
-        padding_x: The padding for the left and right sides of the element.
-        padding_y: The padding for the top and bottom sides of the element.
         width: The width of the element.
         min_width: The minimum width of the element.
         max_width: The maximum width of the element.
         height: The height of the element.
         min_height: The minimum height of the element.
         max_height: The maximum height of the element.
-        background_color: The background color of the element.
-        border_width: The width of the border for all four sides of the element.
-        border_start_width: The width of the border for the start side of the element, depending on layout direction.
-        border_end_width: The width of the border for the end side of the element, depending on layout direction.
-        border_top_width: The width of the border for the top side of the element.
-        border_bottom_width: The width of the border for the bottom side of the element.
-        border_x_width: The width of the border for the left and right sides of the element.
-        border_y_width: The width of the border for the top and bottom sides of the element.
-
-        border_color: The color of the border for all four sides of the element.
-        border_start_color: The color of the border for the start side of the element, depending on layout direction.
-        border_end_color: The color of the border for the end side of the element, depending on layout direction.
-        border_top_color: The color of the border for the top side of the element.
-        border_bottom_color: The color of the border for the bottom side of the element.
-        border_x_color: The color of the border for the left and right sides of the element.
-        border_y_color: The color of the border for the top and bottom sides of the element.
-
-        border_radius: The radius of the border for all four corners of the element.
-        border_top_start_radius: The radius of the border for the top start corner of the element.
-        border_top_end_radius: The radius of the border for the top end corner of the element.
-        border_bottom_start_radius: The radius of the border for the bottom start corner of the element.
-        border_bottom_end_radius: The radius of the border for the bottom end corner of the element.
         position: The position of the element.
         top: The distance from the top of the containing element.
         bottom: The distance from the bottom of the containing element.
@@ -163,13 +150,31 @@ def form(
         z_index: The stack order of the element.
         is_hidden: Whether the element is hidden.
         id: The unique identifier of the element.
+        aria_label: The label for the element.
+        aria_labelledby: The id of the element that labels the element.
+        aria_describedby: The id of the element that describes the element.
+        aria_details: The details for the element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
     """
     return component_element(
         "Form",
         children=children,
-        element_type=element_type,
+        is_quiet=is_quiet,
+        is_emphasized=is_emphasized,
+        is_disabled=is_disabled,
+        is_required=is_required,
+        is_read_only=is_read_only,
+        validation_state=validation_state,
+        validation_behavior=validation_behavior,
+        enc_type=enc_type,
+        method=method,
+        target=target,
+        auto_complete=auto_complete,
+        auto_capitalize=auto_capitalize,
+        label_position=label_position,
+        label_alignment=label_alignment,
+        necessity_indicator=necessity_indicator,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
@@ -192,39 +197,12 @@ def form(
         margin_end=margin_end,
         margin_x=margin_x,
         margin_y=margin_y,
-        padding=padding,
-        padding_top=padding_top,
-        padding_bottom=padding_bottom,
-        padding_start=padding_start,
-        padding_end=padding_end,
-        padding_x=padding_x,
-        padding_y=padding_y,
         width=width,
         height=height,
         min_width=min_width,
         min_height=min_height,
         max_width=max_width,
         max_height=max_height,
-        background_color=background_color,
-        border_width=border_width,
-        border_start_width=border_start_width,
-        border_end_width=border_end_width,
-        border_top_width=border_top_width,
-        border_bottom_width=border_bottom_width,
-        border_x_width=border_x_width,
-        border_y_width=border_y_width,
-        border_color=border_color,
-        border_start_color=border_start_color,
-        border_end_color=border_end_color,
-        border_top_color=border_top_color,
-        border_bottom_color=border_bottom_color,
-        border_x_color=border_x_color,
-        border_y_color=border_y_color,
-        border_radius=border_radius,
-        border_top_start_radius=border_top_start_radius,
-        border_top_end_radius=border_top_end_radius,
-        border_bottom_start_radius=border_bottom_start_radius,
-        border_bottom_end_radius=border_bottom_end_radius,
         position=position,
         top=top,
         bottom=bottom,
@@ -235,6 +213,10 @@ def form(
         z_index=z_index,
         is_hidden=is_hidden,
         id=id,
+        aria_label=aria_label,
+        aria_labelledby=aria_labelledby,
+        aria_describedby=aria_describedby,
+        aria_details=aria_details,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
     )
