@@ -14,6 +14,7 @@ export * from './Radio';
 export * from './RadioGroup';
 export * from './RangeSlider';
 export * from './Slider';
+export * from './Tabs';
 export * from './TabPanels';
 export * from './TextField';
 export * from './UITable';

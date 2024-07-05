@@ -255,5 +255,6 @@ Date = Union[
 Granularity = Literal["DAY", "HOUR", "MINUTE", "SECOND"]
 ListViewDensity = Literal["COMPACT", "NORMAL", "SPACIOUS"]
 ActionGroupDensity = Literal["compact", "regular"]
+TabDensity = Literal["compact", "regular"]
 Dependencies = Union[Tuple[Any], List[Any]]
 Selection = Sequence[Key]

@@ -52,6 +52,7 @@ export const ELEMENT_NAME = {
   tabList: uiComponentName('TabList'),
   tabPanels: uiComponentName('TabPanels'),
   tabs: uiComponentName('Tabs'),
+  tab: uiComponentName('Tab'),
   text: uiComponentName('Text'),
   textField: uiComponentName('TextField'),
   toggleButton: uiComponentName('ToggleButton'),
