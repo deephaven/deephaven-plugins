@@ -20,7 +20,7 @@ def panel(
     wrap: Wrap | None = None,
     justify_content: JustifyContent | None = None,
     align_content: AlignContent | None = None,
-    align_items: AlignItems | None = None,
+    align_items: AlignItems | None = "start",
     gap: DimensionValue | None = "size-100",
     column_gap: DimensionValue | None = None,
     row_gap: DimensionValue | None = None,
