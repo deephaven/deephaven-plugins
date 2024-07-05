@@ -348,7 +348,7 @@ def ui_picker_table():
         column_types,
         label="Text",
         on_change=set_value,
-        selected_keys=value,
+        selected_key=value,
     )
 
     text = ui.text(f"Selection: {value}")
@@ -356,7 +356,7 @@ def ui_picker_table():
     return ui.flex(pick_table, text, direction="column", margin=10, gap=10)
 
 
-pick_table = ui_picker_table()
+my_picker_table = ui_picker_table()
 ```
 
 ![Use a picker to select from a table](_assets/pick_table.png)
@@ -391,7 +391,7 @@ def ui_picker_table_source():
         ui.item_table_source(column_types, key_column="Id", label_column="Display"),
         label="Text",
         on_change=set_value,
-        selected_keys=value,
+        selected_key=value,
     )
 
     text = ui.text(f"Selection: {value}")
@@ -399,10 +399,85 @@ def ui_picker_table_source():
     return ui.flex(pick_table, text, direction="column", margin=10, gap=10)
 
 
-pick_table_source = ui_picker_table_source()
+my_picker_table_source = ui_picker_table_source()
 ```
 
 ![Use a picker to select from a table source](_assets/pick_table_source.png)
+
+## ComboBox (string values)
+
+The `ui.combo_box` component can be used to select from a list of items. It also provides a search field to filter available results. Note that the search behavior differs slightly for different data types.
+- Numeric types - only support exact match
+- Text based data types - support partial search matching
+- Date types support searching by different date parts (e.g. `2024`, `2024-01`, `2024-01-02`, `2024-01-02 00`, `2024-07-06 00:43`, `2024-07-06 00:43:14`, `2024-07-06 00:43:14.247`)
+
+Here's a basic example for selecting from a list of string values and displaying the selected key in a text field.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def ui_combo_box():
+    value, set_value = ui.use_state("")
+
+    combo = ui.combo_box(
+        "Text 1",
+        "Text 2",
+        "Text 3",
+        label="Text",
+        on_selection_change=set_value,
+        selected_key=value,
+    )
+
+    text = ui.text("Selection: " + str(value))
+
+    return combo, text
+
+
+my_combo_box = ui_combo_box()
+```
+
+## ComboBox (item table source)
+
+A combo_box can also take an `item_table_source`. It will use the columns specified.
+
+```python
+import deephaven.ui as ui
+from deephaven import time_table
+import datetime
+
+# Ticking table with initial row count of 200 that adds a row every second
+initial_row_count = 200
+_table = time_table(
+    "PT1S",
+    start_time=datetime.datetime.now() - datetime.timedelta(seconds=initial_row_count),
+).update(
+    [
+        "Id=new Integer(i)",
+        "Display=new String(`Display `+i)",
+    ]
+)
+
+
+@ui.component
+def ui_combo_box_item_table_source(table):
+    value, set_value = ui.use_state("")
+
+    combo = ui.combo_box(
+        ui.item_table_source(table, key_column="Id", label_column="Display"),
+        label="Text",
+        on_change=set_value,
+        selected_key=value,
+    )
+
+    text = ui.text(f"Selection: {value}")
+
+    return combo, text
+
+
+my_combo_box_item_table_source = ui_combo_box_item_table_source(_table)
+```
 
 ## ListView (string values)
 
