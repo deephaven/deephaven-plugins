@@ -23,8 +23,8 @@
     "@deephaven/dashboard": "^0.40.0",
     "@deephaven/jsapi-types": "^0.40.0",
     "@deephaven/log": "^0.40.0",
-    "react-json-view": "^1.21.3",
-    "shortid": "^2.2.16"
+    "nanoid": "^5.0.7",
+    "react-json-view": "^1.21.3"
   },
   "devDependencies": {
     "@types/react": "^17.0.2",
