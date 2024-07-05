@@ -65,7 +65,7 @@ function ReactPanel({
   wrap,
   justifyContent,
   alignContent,
-  alignItems,
+  alignItems = 'start',
   gap = 'size-100',
   rowGap,
   columnGap,
