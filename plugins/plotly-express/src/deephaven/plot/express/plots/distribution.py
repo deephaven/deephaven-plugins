@@ -156,7 +156,7 @@ def box(
         See color_discrete_map for additional behaviors.
       hover_name: A column that contains names to bold in the hover tooltip.
       labels: A dictionary of labels mapping columns to new labels.
-      color_discrete_sequence | None: A list of colors to sequentially apply to
+      color_discrete_sequence: A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
         colors will be reused.
       color_discrete_map: If dict, the keys should be strings of the column values (or a tuple

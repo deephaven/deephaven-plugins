@@ -36,6 +36,7 @@ jobs:
             plotly-express:
               - plugins/plotly-express/**
               - .github/workflows/test-*.yml
+              - sphinx_ext/*
             plotly:
               - plugins/plotly/**
               - .github/workflows/test-*.yml
