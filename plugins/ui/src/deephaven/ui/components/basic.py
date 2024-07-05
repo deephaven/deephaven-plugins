@@ -23,14 +23,6 @@ def icon_wrapper(*children, **props):
     return component_element("Icon", *children, **props)
 
 
-def form(*children, **props):
-    """
-    Python implementation for the Adobe React Spectrum Form component.
-    https://react-spectrum.adobe.com/react-spectrum/Form.html
-    """
-    return component_element("Form", *children, **props)
-
-
 def switch(*children, **props):
     """
     Python implementation for the Adobe React Spectrum Switch component.
