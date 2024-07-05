@@ -29,6 +29,7 @@ export const ELEMENT_NAME = {
   button: uiComponentName('Button'),
   buttonGroup: uiComponentName('ButtonGroup'),
   checkbox: uiComponentName('Checkbox'),
+  comboBox: uiComponentName('ComboBox'),
   content: uiComponentName('Content'),
   contextualHelp: uiComponentName('ContextualHelp'),
   flex: uiComponentName('Flex'),
