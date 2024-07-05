@@ -20,6 +20,7 @@ export default defineConfig(({ mode }) => ({
         '@deephaven/chart',
         '@deephaven/components',
         '@deephaven/dashboard',
+        '@deephaven/golden-layout',
         '@deephaven/icons',
         '@deephaven/iris-grid',
         '@deephaven/jsapi-bootstrap',
