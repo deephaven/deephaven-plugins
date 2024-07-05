@@ -13,5 +13,5 @@ Polar line plots are useful for:
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.line_polar
+.. dhautofunction:: deephaven.plot.express.line_polar
 ```

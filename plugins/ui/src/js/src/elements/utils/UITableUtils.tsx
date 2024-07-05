@@ -3,7 +3,6 @@ import type {
   ColumnName,
   DehydratedSort,
   IrisGridContextMenuData,
-  RowIndex,
 } from '@deephaven/iris-grid';
 import type {
   ContextAction,
@@ -56,13 +55,10 @@ type ResolvableUIContextItem =
 
 export interface UITableProps {
   table: dh.WidgetExportedObject;
-  onCellPress?: (cellIndex: [ColumnIndex, RowIndex], data: CellData) => void;
-  onCellDoublePress?: (
-    cellIndex: [ColumnIndex, RowIndex],
-    data: CellData
-  ) => void;
-  onRowPress?: (rowIndex: RowIndex, rowData: RowDataMap) => void;
-  onRowDoublePress?: (rowIndex: RowIndex, rowData: RowDataMap) => void;
+  onCellPress?: (data: CellData) => void;
+  onCellDoublePress?: (data: CellData) => void;
+  onRowPress?: (rowData: RowDataMap) => void;
+  onRowDoublePress?: (rowData: RowDataMap) => void;
   onColumnPress?: (columnName: ColumnName) => void;
   onColumnDoublePress?: (columnName: ColumnName) => void;
   alwaysFetchColumns?: string[];
