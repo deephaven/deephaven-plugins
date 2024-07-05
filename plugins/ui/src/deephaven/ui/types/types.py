@@ -23,6 +23,10 @@ import numpy
 from deephaven import SortDirection
 from deephaven.dtypes import DType
 
+DeephavenColor = Literal["salmon", "lemonchiffon"]
+HexColor = str
+Color = Union[DeephavenColor, HexColor]
+
 
 class CellData(TypedDict):
     """
@@ -80,7 +84,7 @@ class ColumnGroup(TypedDict):
     Names are other columns or groups.
     """
 
-    color: NotRequired[str]
+    color: Color
     """
     Color for the group header.
     """
@@ -246,9 +250,6 @@ AggregationOperation = Literal[
     "UNIQUE",
     "SKIP",
 ]
-DeephavenColor = Literal["salmon", "lemonchiffon"]
-HexColor = str
-Color = Union[DeephavenColor, HexColor]
 ContextMenuModeOption = Literal["CELL", "ROW_HEADER", "COLUMN_HEADER"]
 ContextMenuMode = Union[ContextMenuModeOption, List[ContextMenuModeOption], None]
 DataBarAxis = Literal["PROPORTIONAL", "MIDDLE", "DIRECTIONAL"]
