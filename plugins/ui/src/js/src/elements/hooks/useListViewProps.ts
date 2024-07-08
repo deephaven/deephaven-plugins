@@ -1,6 +1,7 @@
 import { ReactElement } from 'react';
-// TODO: web-client-ui#2084 Re-export @react-types/shared types
 import type { SelectionMode } from '@react-types/shared';
+// TODO: Remove the above line and uncomment the following line after version bump
+// import { ListViewProps as DHListViewProps, SelectionMode } from '@deephaven/components';
 import { ListViewProps as DHListViewProps } from '@deephaven/components';
 import { ListViewProps as DHListViewJSApiProps } from '@deephaven/jsapi-components';
 import ObjectView, { ObjectViewProps } from '../ObjectView';

@@ -2,8 +2,9 @@ import {
   RadioGroup as DHRadioGroup,
   RadioGroupProps as DHRadioGroupProps,
 } from '@deephaven/components';
-// TODO: web-client-ui#2084 Re-export @react-types/shared types
 import { Orientation } from '@react-types/shared';
+// TODO: Remove the above line and uncomment the following line after version bump
+// import { Orientation } from '@deephaven/components'
 import { SerializedFocusEventProps } from './model/SerializedPropTypes';
 import { useFocusEventCallback } from './hooks/useFocusEventCallback';
 

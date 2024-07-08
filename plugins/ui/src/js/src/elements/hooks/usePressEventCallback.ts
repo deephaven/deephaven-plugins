@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
-// TODO: web-client-ui#2084 Re-export @react-types/shared types
 import { PressEvent } from '@react-types/shared';
+// TODO: Remove the above line and uncomment the following line after version bump
+// import { PressEvent } from '@deephaven/components';
 import { getTargetName } from '../utils';
 
 export function serializePressEvent(event: PressEvent): SerializedPressEvent {
