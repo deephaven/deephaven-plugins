@@ -137,7 +137,7 @@ export function Tabs(props: TabComponentProps): JSX.Element {
     return (
       <DHCTabs
         onSelectionChange={onSelectionChange}
-        // density="compact"
+        density="compact"
         UNSAFE_className="dh-tabs"
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...otherTabProps}
@@ -150,7 +150,7 @@ export function Tabs(props: TabComponentProps): JSX.Element {
   return (
     <DHCTabs
       onSelectionChange={onSelectionChange}
-      // density="compact"
+      density="compact"
       UNSAFE_className="dh-tabs"
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...otherTabProps}
