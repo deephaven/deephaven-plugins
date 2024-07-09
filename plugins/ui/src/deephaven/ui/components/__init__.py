@@ -6,7 +6,6 @@ from .basic import (
     icon_wrapper,
     form,
     switch,
-    tab_list,
     tab_panels,
     text,
 )
@@ -41,6 +40,7 @@ from .row import row
 from .section import section
 from .slider import slider
 from .stack import stack
+from .tab_list import tab_list
 from .tab import tab
 from .table import table
 from .tabs import tabs

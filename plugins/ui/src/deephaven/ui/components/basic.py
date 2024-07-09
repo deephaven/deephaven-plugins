@@ -39,14 +39,6 @@ def switch(*children, **props):
     return component_element("Switch", *children, **props)
 
 
-def tab_list(*children, **props):
-    """
-    Python implementation for the Adobe React Spectrum TabList component.
-    https://react-spectrum.adobe.com/react-spectrum/Tabs.html
-    """
-    return component_element("TabList", *children, **props)
-
-
 def tab_panels(*children, **props):
     """
     Python implementation for the Adobe React Spectrum TabPanels component.

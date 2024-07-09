@@ -138,7 +138,6 @@ export function Tabs(props: TabComponentProps): JSX.Element {
       <DHCTabs
         onSelectionChange={onSelectionChange}
         density="compact"
-        UNSAFE_className="dh-tabs"
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...otherTabProps}
       >
@@ -151,11 +150,12 @@ export function Tabs(props: TabComponentProps): JSX.Element {
     <DHCTabs
       onSelectionChange={onSelectionChange}
       density="compact"
-      UNSAFE_className="dh-tabs"
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...otherTabProps}
     >
-      <TabList>{tabListChildren}</TabList>
+      <TabList UNSAFE_style={{ marginBottom: '8px' }}>
+        {tabListChildren}
+      </TabList>
       <TabPanels>{tabPanelsChildren}</TabPanels>
     </DHCTabs>
   );
