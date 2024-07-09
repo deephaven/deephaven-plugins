@@ -29,7 +29,7 @@ from ..elements import Element
 def button(
     *children: Any,
     variant: ButtonVariant | None = "accent",
-    style: ButtonStyle | None = None,
+    style: ButtonStyle | None = "fill",
     static_color: StaticColor | None = None,
     is_pending: bool | None = None,
     type: ButtonType = "button",
@@ -38,7 +38,7 @@ def button(
     href: str | None = None,
     target: str | None = None,
     rel: str | None = None,
-    element_type: ElementTypes = "button",
+    element_type: ElementTypes | None = None,
     on_press: PressEventCallable | None = None,
     on_press_start: PressEventCallable | None = None,
     on_press_end: PressEventCallable | None = None,
