@@ -440,7 +440,7 @@ my_combo_box = ui_combo_box()
 
 ## ComboBox (item table source)
 
-A combo_box can also take an `item_table_source`. It will use the columns specified.
+A `combo_box` can also take an `item_table_source`. It will use the columns specified.
 
 ```python
 import deephaven.ui as ui
