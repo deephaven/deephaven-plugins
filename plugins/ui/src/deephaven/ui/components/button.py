@@ -28,7 +28,7 @@ from ..elements import Element
 
 def button(
     *children: Any,
-    variant: ButtonVariant | None = None,
+    variant: ButtonVariant | None = "accent",
     style: ButtonStyle | None = None,
     static_color: StaticColor | None = None,
     is_pending: bool | None = None,
