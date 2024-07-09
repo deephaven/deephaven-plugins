@@ -1,23 +1,20 @@
 import { ReactElement } from 'react';
-import type { SelectionMode } from '@react-types/shared';
-// TODO: Remove the above line and uncomment the following line after version bump
-// import { ListViewProps as DHListViewProps, SelectionMode } from '@deephaven/components';
-import { ListViewProps as DHListViewProps } from '@deephaven/components';
 import { ListViewProps as DHListViewJSApiProps } from '@deephaven/jsapi-components';
+import { SelectionMode } from '@deephaven/components';
 import ObjectView, { ObjectViewProps } from '../ObjectView';
 import {
   SerializedSelectionProps,
   useSelectionProps,
 } from './useSelectionProps';
 
-type Density = Required<DHListViewProps>['density'];
+type Density = Required<DHListViewJSApiProps>['density'];
 
 type WrappedDHListViewJSApiProps = Omit<DHListViewJSApiProps, 'table'> & {
   children: ReactElement<ObjectViewProps, typeof ObjectView>;
 };
 
 type WrappedDHListViewProps = Omit<
-  DHListViewProps,
+  DHListViewJSApiProps,
   'density' | 'selectionMode'
 > & {
   // The dh UI spec specifies that density and selectionMode should be uppercase,
@@ -44,7 +41,9 @@ export function useListViewProps({
   onChange: serializedOnChange,
   onSelectionChange: serializedOnSelectionChange,
   ...otherProps
-}: SerializedListViewProps): DHListViewProps | WrappedDHListViewJSApiProps {
+}: SerializedListViewProps):
+  | DHListViewJSApiProps
+  | WrappedDHListViewJSApiProps {
   const densityLc = densityMaybeUppercase?.toLowerCase() as Density | undefined;
 
   const { selectionMode, onChange, onSelectionChange } = useSelectionProps({
