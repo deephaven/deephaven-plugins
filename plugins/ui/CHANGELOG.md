@@ -2,6 +2,28 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v2.0.0 - 2024-07-09
+#### Bug Fixes
+- Remove type imports from @react-types/shared (#610) - (66dc4bf) - Akshat Jawne
+- ui.table cell and row press event data can be wrong (#593) - (c4a2fe7) - Matthew Runyon
+- icons in illustrated message (#575) - (1623ff5) - ethanalvizo
+- remove Number type and replace with float/int (#590) - (d0e24f4) - Akshat Jawne
+#### Build system
+- Update DHC packages to ^0.85.0 (#605) - (df6786a) - bmingles
+#### Documentation
+- icon (#594) - (20fe042) - ethanalvizo
+#### Features
+- UI table layout hints (#587) - (5e3c5e2) - Matthew Runyon
+- UI ComboBox component (#588) - (0564299) - bmingles
+- make ui.panel flex align-items start by default (#604) - (be97ad8) - Don
+- UI Tabs Improvement (#489) - (145493a) - Akshat Jawne
+- Replace shortid with nanoid (#591) - (ad8aad9) - Akshat Jawne
+- ui.table context menu items (#522) - (32d09e8) - Matthew Runyon
+#### Refactoring
+- Remove row and column indexes from table press handlers (#592) - (05fc8f0) - Matthew Runyon
+
+- - -
+
 ## ui-v0.16.0 - 2024-06-19
 #### Documentation
 - view (#506) - (e4b7137) - ethanalvizo
