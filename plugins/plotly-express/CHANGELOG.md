@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.10.0 - 2024-07-09
+#### Bug Fixes
+- remove Number type and replace with float/int (#590) - (d0e24f4) - Akshat Jawne
+- gapminder to be compatible with Pandas 2.0.3 (#586) - (fae2f75) - Alex Peters
+#### Documentation
+- Make autodoc output structured (#582) - (d1aa3d5) - Joe
+#### Features
+- add dx.data.jobs and dx.data.marketing example data sets (#595) - (41c7f7e) - Alex Peters
+- Replace shortid with nanoid (#591) - (ad8aad9) - Akshat Jawne
+
+- - -
+
 ## plotly-express-v0.9.0 - 2024-06-20
 #### Bug Fixes
 - update init to bring in new datasets (#564) - (048e1d6) - Alex Peters
