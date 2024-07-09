@@ -23,6 +23,10 @@ import numpy
 from deephaven import SortDirection
 from deephaven.dtypes import DType
 
+DeephavenColor = Literal["salmon", "lemonchiffon"]
+HexColor = str
+Color = Union[DeephavenColor, HexColor]
+
 
 class CellData(TypedDict):
     """
@@ -58,6 +62,31 @@ class RowDataValue(CellData):
     isGrouped: bool
     """
     Whether this row is grouped.
+    """
+
+
+class ColumnGroup(TypedDict):
+    """
+    Group of columns in a table.
+    Groups are displayed in the table header.
+    Groups may be nested.
+    """
+
+    name: str
+    """
+    Name of the column group.
+    Must follow column naming rules and be unique within the column and group names.
+    """
+
+    children: List[str]
+    """
+    List of child columns or groups in the group.
+    Names are other columns or groups.
+    """
+
+    color: Color
+    """
+    Color for the group header.
     """
 
 
@@ -199,9 +228,6 @@ AggregationOperation = Literal[
     "UNIQUE",
     "SKIP",
 ]
-DeephavenColor = Literal["salmon", "lemonchiffon"]
-HexColor = str
-Color = Union[DeephavenColor, HexColor]
 ContextMenuModeOption = Literal["CELL", "ROW_HEADER", "COLUMN_HEADER"]
 ContextMenuMode = Union[ContextMenuModeOption, List[ContextMenuModeOption], None]
 DataBarAxis = Literal["PROPORTIONAL", "MIDDLE", "DIRECTIONAL"]
