@@ -13,7 +13,6 @@ from .types import (
     KeyboardEventCallable,
     PressEventCallable,
     StaticColor,
-    ElementTypes,
     # Layout
     AlignSelf,
     CSSProperties,
@@ -38,7 +37,6 @@ def button(
     href: str | None = None,
     target: str | None = None,
     rel: str | None = None,
-    element_type: ElementTypes | None = None,
     on_press: PressEventCallable | None = None,
     on_press_start: PressEventCallable | None = None,
     on_press_end: PressEventCallable | None = None,
@@ -114,7 +112,6 @@ def button(
         href: A URL to link to if element_type="a".
         target: The target window or tab to open the linked URL in.
         rel: The relationship between the current document and the linked URL.
-        element_type: The type of html element to render the button.
         on_press: Function called when the button is pressed.
         on_press_start: Function called when the button is pressed and held.
         on_press_end: Function called when the button is released after being pressed.
@@ -188,7 +185,9 @@ def button(
         href=href,
         target=target,
         rel=rel,
-        element_type=element_type,
+        # intentionally not exposing element_type to the user
+        # for href links we can handle on their behalf
+        element_type=None if href is None else "a",
         on_press=on_press,
         on_press_start=on_press_start,
         on_press_end=on_press_end,
