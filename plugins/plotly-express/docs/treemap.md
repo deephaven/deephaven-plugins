@@ -34,5 +34,5 @@ continent_population = dx.treemap(gapminder_recent.update("world = `world`"), na
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.treemap
+.. dhautofunction:: deephaven.plot.express.treemap
 ```

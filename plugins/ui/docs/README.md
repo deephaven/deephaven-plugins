@@ -204,6 +204,7 @@ my_checkbox = ui_checkbox()
 ![Checkbox](_assets/checkbox.png)
 
 ## ActionGroup (string values)
+
 An ActionGroup is a grouping of ActionButtons that are related to one another.
 
 ```python
@@ -227,6 +228,7 @@ my_action_group = ui_action_group()
 ```
 
 ## ActionMenu (string values)
+
 ActionMenu combines an ActionButton with a Menu for simple "more actions" use cases.
 
 ```python
@@ -346,7 +348,7 @@ def ui_picker_table():
         column_types,
         label="Text",
         on_change=set_value,
-        selected_keys=value,
+        selected_key=value,
     )
 
     text = ui.text(f"Selection: {value}")
@@ -354,8 +356,9 @@ def ui_picker_table():
     return ui.flex(pick_table, text, direction="column", margin=10, gap=10)
 
 
-pick_table = ui_picker_table()
+my_picker_table = ui_picker_table()
 ```
+
 ![Use a picker to select from a table](_assets/pick_table.png)
 
 ## Picker (item table source)
@@ -388,7 +391,7 @@ def ui_picker_table_source():
         ui.item_table_source(column_types, key_column="Id", label_column="Display"),
         label="Text",
         on_change=set_value,
-        selected_keys=value,
+        selected_key=value,
     )
 
     text = ui.text(f"Selection: {value}")
@@ -396,12 +399,88 @@ def ui_picker_table_source():
     return ui.flex(pick_table, text, direction="column", margin=10, gap=10)
 
 
-pick_table_source = ui_picker_table_source()
+my_picker_table_source = ui_picker_table_source()
 ```
 
 ![Use a picker to select from a table source](_assets/pick_table_source.png)
 
+## ComboBox (string values)
+
+The `ui.combo_box` component can be used to select from a list of items. It also provides a search field to filter available results. Note that the search behavior differs slightly for different data types.
+- Numeric types - only support exact match
+- Text based data types - support partial search matching
+- Date types support searching by different date parts (e.g. `2024`, `2024-01`, `2024-01-02`, `2024-01-02 00`, `2024-07-06 00:43`, `2024-07-06 00:43:14`, `2024-07-06 00:43:14.247`)
+
+Here's a basic example for selecting from a list of string values and displaying the selected key in a text field.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def ui_combo_box():
+    value, set_value = ui.use_state("")
+
+    combo = ui.combo_box(
+        "Text 1",
+        "Text 2",
+        "Text 3",
+        label="Text",
+        on_selection_change=set_value,
+        selected_key=value,
+    )
+
+    text = ui.text("Selection: " + str(value))
+
+    return combo, text
+
+
+my_combo_box = ui_combo_box()
+```
+
+## ComboBox (item table source)
+
+A `combo_box` can also take an `item_table_source`. It will use the columns specified.
+
+```python
+import deephaven.ui as ui
+from deephaven import time_table
+import datetime
+
+# Ticking table with initial row count of 200 that adds a row every second
+initial_row_count = 200
+_table = time_table(
+    "PT1S",
+    start_time=datetime.datetime.now() - datetime.timedelta(seconds=initial_row_count),
+).update(
+    [
+        "Id=new Integer(i)",
+        "Display=new String(`Display `+i)",
+    ]
+)
+
+
+@ui.component
+def ui_combo_box_item_table_source(table):
+    value, set_value = ui.use_state("")
+
+    combo = ui.combo_box(
+        ui.item_table_source(table, key_column="Id", label_column="Display"),
+        label="Text",
+        on_change=set_value,
+        selected_key=value,
+    )
+
+    text = ui.text(f"Selection: {value}")
+
+    return combo, text
+
+
+my_combo_box_item_table_source = ui_combo_box_item_table_source(_table)
+```
+
 ## ListView (string values)
+
 A list view that can be used to create a list of selectable items. Here's a basic example for selecting from a list of string values and displaying the selected key in a text field.
 
 ```python
@@ -487,6 +566,7 @@ def ui_list_view_table():
 
 lv_table = ui_list_view_table()
 ```
+
 ![Use a list view to select from a table](_assets/lv_table.png)
 
 ## ListView (item table source)
@@ -594,6 +674,7 @@ my_list_view_action_group = ui_list_view_action_group()
 ```
 
 ## ListView (list action menu)
+
 A list view can take a `list_action_menu` as its `actions` prop.
 
 ```python
@@ -1283,6 +1364,72 @@ te = ui.table(
 
 ![Table events](table_events.png)
 
+### ui.table Context Menu
+
+Items can be added to the bottom of the `ui.table` context menu (right-click menu) by using the `context_menu` or `context_header_menu` props. The `context_menu` prop adds items to the cell context menu, while the `context_header_menu` prop adds items to the column header context menu.
+
+Menu items must have a `title` and either an `action` or `actions` prop. They may have an `icon` which is the name of the icon that will be passed to `ui.icon`.
+
+The `action` prop is a callback that is called when the item is clicked and receives info about the cell that was clicked when the menu was opened.
+
+The `actions` prop is an array of menu items that will be displayed in a sub-menu. Sub-menus can contain other sub-menus for a nested menu.
+
+Menu items can be dynamically created by instead passing a function as the context item. The function will be called with the data of the cell that was clicked when the menu was opened, and must return the menu items or None.
+
+```py
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(
+    dx.data.stocks(),
+    context_menu=[
+        {
+            "title": "Context item",
+            "icon": "dhTruck",
+            "action": lambda d: print("Context item", d)
+        },
+        {
+            "title": "Nested menu",
+            "actions": [
+                {
+                    "title": "Nested item 1",
+                    "action": lambda d: print("Nested item 1", d)
+                }
+                {
+                    "title": "Nested item 2",
+                    "icon": "vsCheck"
+                    "action": lambda d: print("Nested item 2", d)
+                }
+            ]
+        }
+    ],
+    context_header_menu={
+        "title": "Header context menu item",
+        "action": lambda d: print("Header context menu item", d)
+    }
+)
+```
+
+The following example shows creating context menu items dynamically so that the item only appears on the `sym` column. If multiple functions are passed in a list, each will be called and any items they return will be added to the context menu.
+
+```py
+from deephaven import ui
+import deephaven.plot.express as dx
+
+def create_context_menu(data):
+    if data["column_name"] == "sym":
+        return {
+            "title": f"Print {data['value']}",
+            "action": lambda d: print(d['value'])
+        }
+    return None
+
+t = ui.table(
+    dx.data.stocks(),
+    context_menu=create_context_menu
+)
+```
+
 ## Re-using components
 
 In a previous example, we created a text_filter_table component. We can re-use that component, and display two tables with an input filter side-by-side:
@@ -1500,13 +1647,37 @@ For more information on liveness scopes and why they are needed, see the [livene
 
 ![Change Monitor](_assets/change_monitor.png)
 
-## Tabs
+## Tabs using ui.tab
 
-You can add [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html) within a panel by using the `ui.tabs` method. In this example, we create a tabbed panel with multiple tabs:
+You can add [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html) within a panel by using the `ui.tabs` method. In this example, we create a panel with two tabs by passing in two instances of `ui.tab` as children.
 
-- Unfiltered table
-- Table filtered on sym `CAT`. We also include an icon in the tab header.
-- Table filtered on sym `DOG`
+When specifying tabs with this format, the following must be noted:
+- The `title` prop has to be unique, if not, the `key` prop has to be unique
+- The `text_value` prop is an optional accessibility improvement prop
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def ui_tabs():
+    return ui.tabs(
+        ui.tab("Content 1", title="Tab 1"),
+        ui.tab("Content 2", title="Tab 2", key="Key 2"),
+        ui.tab("Content 3", title="Tab 3", icon=ui.icon("vsGithubAlt")),
+    )
+
+
+my_tabs = ui_tabs()
+```
+
+## Tabs using ui.tab_panels and ui.tab_list
+
+You can add [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html) within a panel by using the `ui.tabs` method. In this example, we create a tabbed panel with multiple tabs by passing in the `ui.tab_panels` and `ui.tab_list` as children:
+
+`tab_list` is the container of tab headers. It expects children of `ui.item` which have a unique key. `text_value` may be added for accessibility, but by default the `key` will be used for accessibility.
+
+`tab_panels` is the content of the tabs. It expects children of `ui.item` which have a matching key with an item in the `tab_list`.
 
 ```python
 from deephaven import ui
@@ -1516,7 +1687,7 @@ stocks = dx.data.stocks()
 
 
 @ui.component
-def table_tabs(source):
+def ui_tabs(source):
     return ui.tabs(
         ui.tab_list(
             ui.item("Unfiltered", key="Unfiltered"),
@@ -1529,10 +1700,11 @@ def table_tabs(source):
             ui.item(source.where("sym=`DOG`"), key="DOG"),
         ),
         flex_grow=1,
+        aria_label="Tabs",  # aria_label is set for aria accessibility and is otherwise optional
     )
 
 
-tt = table_tabs(stocks)
+my_tabs = ui_tabs(stocks)
 ```
 
 ## Using Table Data Hooks

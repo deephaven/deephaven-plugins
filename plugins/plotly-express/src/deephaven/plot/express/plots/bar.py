@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from numbers import Number
 from typing import Callable
 
 from plotly import express as px
@@ -38,8 +37,8 @@ def bar(
     | dict[str | tuple[str], str]
     | None = None,
     color_continuous_scale: list[str] | None = None,
-    range_color: list[Number] | None = None,
-    color_continuous_midpoint: Number | None = None,
+    range_color: list[float] | None = None,
+    color_continuous_midpoint: float | None = None,
     opacity: float | None = None,
     barmode: str = "relative",
     log_x: bool = False,
@@ -221,8 +220,8 @@ def timeline(
     | dict[str | tuple[str], str]
     | None = None,
     color_continuous_scale: list[str] | None = None,
-    range_color: list[Number] | None = None,
-    color_continuous_midpoint: Number | None = None,
+    range_color: list[float] | None = None,
+    color_continuous_midpoint: float | None = None,
     opacity: float | None = None,
     range_x: list[int] | None = None,
     range_y: list[int] | None = None,

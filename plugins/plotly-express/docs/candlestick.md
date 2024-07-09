@@ -53,5 +53,5 @@ candlestick_plot = dx.candlestick(
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.candlestick
+.. dhautofunction:: deephaven.plot.express.candlestick
 ```

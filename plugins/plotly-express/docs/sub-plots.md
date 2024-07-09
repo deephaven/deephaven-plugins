@@ -36,5 +36,5 @@ tipping_plots = dx.make_subplots(
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.make_subplots
+.. dhautofunction:: deephaven.plot.express.make_subplots
 ```

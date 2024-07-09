@@ -30,5 +30,5 @@ marketing_trend_percentage = dx.funnel_area(marketing, names="Stage", values="Co
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.funnel_area
+.. dhautofunction:: deephaven.plot.express.funnel_area
 ```

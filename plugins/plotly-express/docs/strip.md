@@ -31,5 +31,5 @@ bill_distr = dx.strip(tips, x="total_bill", by="day", color_discrete_sequence=["
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.strip
+.. dhautofunction:: deephaven.plot.express.strip
 ```

@@ -30,5 +30,5 @@ marketing_trend = dx.funnel(marketing, x="Count", y="Stage")
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.funnel
+.. dhautofunction:: deephaven.plot.express.funnel
 ```

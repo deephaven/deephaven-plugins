@@ -36,5 +36,5 @@ continent_population = dx.icicle(gapminder_recent.update("world = `world`"), nam
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.icicle
+.. dhautofunction:: deephaven.plot.express.icicle
 ```

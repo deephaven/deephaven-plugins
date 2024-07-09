@@ -38,5 +38,5 @@ spiral_plot = dx.line_3d(spiral, x="X", y="Y", z="Z")
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.line_3d
+.. dhautofunction:: deephaven.plot.express.line_3d
 ```

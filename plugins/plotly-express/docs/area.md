@@ -46,5 +46,5 @@ area_plot_multi = dx.area(large_countries_population, x="year", y="pop", by="cou
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.area
+.. dhautofunction:: deephaven.plot.express.area
 ```

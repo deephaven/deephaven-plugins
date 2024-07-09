@@ -64,7 +64,11 @@ def ui_components():
         ui.heading("Heading"),
         ui.icon("vsSymbolMisc"),
         # TODO: #526 ui.icon_wrapper("TODO: fix this"),
-        ui.illustrated_message(ui.icon("vsSymbolMisc"), "Illustrated Message"),
+        ui.illustrated_message(
+            ui.icon("vsWarning"),
+            ui.heading("Warning"),
+            ui.content("This is a warning message."),
+        ),
         ui.list_view(
             _item_table_source_with_action_group,
             aria_label="List View - List action group",
@@ -130,7 +134,12 @@ ui_render_all = ui.dashboard(
     ui.stack(
         ui.panel(
             ui.table(_column_types),
-            ui.grid(_my_components, _my_html_elements, columns=["1fr", "1fr", "1fr"]),
+            ui.grid(
+                _my_components,
+                _my_html_elements,
+                columns=["1fr", "1fr", "1fr"],
+                width="100%",
+            ),
             title="Panel B",
         ),
     )

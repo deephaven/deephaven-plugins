@@ -26,5 +26,5 @@ wind_scatter = dx.scatter_polar(wind, r="frequency", theta="direction", by="stre
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.scatter_polar
+.. dhautofunction:: deephaven.plot.express.scatter_polar
 ```

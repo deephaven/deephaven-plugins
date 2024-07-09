@@ -21,7 +21,7 @@ import {
 } from './WidgetUtils';
 
 /** Component that display an error message. Will automatically show a button for more info and an action button if the error has an Action defined */
-function WidgetErrorView({
+export function WidgetErrorView({
   error,
 }: {
   error: NonNullable<unknown>;

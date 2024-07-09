@@ -39,5 +39,5 @@ financial_plot = dx.layer(
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.layer
+.. dhautofunction:: deephaven.plot.express.layer
 ```

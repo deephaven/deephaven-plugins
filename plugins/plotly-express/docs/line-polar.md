@@ -26,5 +26,5 @@ wind_line = dx.line_polar(wind, r="frequency", theta="direction", by="strength")
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.line_polar
+.. dhautofunction:: deephaven.plot.express.line_polar
 ```

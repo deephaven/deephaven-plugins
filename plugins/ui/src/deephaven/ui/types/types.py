@@ -1,6 +1,4 @@
-import datetime
-import pandas
-import numpy
+import sys
 from typing import (
     Any,
     Dict,
@@ -10,11 +8,24 @@ from typing import (
     List,
     Tuple,
     Callable,
-    TypedDict,
     Sequence,
 )
+
+if sys.version_info < (3, 11):
+    from typing_extensions import TypedDict, NotRequired
+else:
+    from typing import TypedDict, NotRequired
+
+import datetime
+import pandas
+import numpy
+
 from deephaven import SortDirection
 from deephaven.dtypes import DType
+
+DeephavenColor = Literal["salmon", "lemonchiffon"]
+HexColor = str
+Color = Union[DeephavenColor, HexColor]
 
 
 class CellData(TypedDict):
@@ -54,6 +65,130 @@ class RowDataValue(CellData):
     """
 
 
+class ColumnGroup(TypedDict):
+    """
+    Group of columns in a table.
+    Groups are displayed in the table header.
+    Groups may be nested.
+    """
+
+    name: str
+    """
+    Name of the column group.
+    Must follow column naming rules and be unique within the column and group names.
+    """
+
+    children: List[str]
+    """
+    List of child columns or groups in the group.
+    Names are other columns or groups.
+    """
+
+    color: Color
+    """
+    Color for the group header.
+    """
+
+
+class ContextMenuActionParams(TypedDict):
+    """
+    Parameters given to a context menu action
+    """
+
+    value: Any
+    """
+    Value of the cell.
+    """
+
+    text_value: str
+    """
+    Rendered text for the cell.
+    """
+
+    column_name: str
+    """
+    Name of the column.
+    """
+
+    is_column_header: bool
+    """
+    Whether the context menu was opened on a column header.
+    """
+
+    is_row_header: bool
+    """
+    Whether the context menu was opened on a row header.
+    """
+
+
+ContextMenuAction = Callable[[ContextMenuActionParams], None]
+"""
+The action to execute when the context menu item is clicked.
+"""
+
+
+class ContextMenuItemBase(TypedDict):
+    """
+    Base props that context menu items and submenu items share.
+    """
+
+    title: str
+    """
+    Title to display for the action.
+    """
+
+    icon: NotRequired[str]
+    """
+    The name of the icon to display next to the action.
+    The name must be a valid name for ui.icon.
+    """
+
+    description: NotRequired[str]
+    """
+    Description for the action. Will be used as a tooltip for the action.
+    """
+
+
+class ContextMenuActionItem(ContextMenuItemBase):
+    """
+    An item that appears in a context menu and performs an action when clicked.
+    """
+
+    action: ContextMenuAction
+    """
+    Action to run when the menu item is clicked.
+    """
+
+
+class ContextMenuSubmenuItem(ContextMenuItemBase):
+    """
+    An item that contains a submenu for a context menu.
+    """
+
+    actions: List["ResolvableContextMenuItem"]
+    """
+    A list of actions that will form the submenu for the item.
+    """
+
+
+ContextMenuItem = Union[ContextMenuActionItem, ContextMenuSubmenuItem]
+"""
+An item that can appear in a context menu.
+May contain an action item or a submenu item.
+"""
+
+ResolvableContextMenuItem = Union[
+    ContextMenuItem,
+    Callable[
+        [ContextMenuActionParams], Union[ContextMenuItem, List[ContextMenuItem], None]
+    ],
+]
+"""
+A context menu item or a function that returns a list of context menu items or None.
+This can be used to dynamically generate context menu items based on the cell the menu is opened on.
+"""
+
+
 class SliderChange(TypedDict):
     """
     Data for a range slider change event.
@@ -72,32 +207,10 @@ class SliderChange(TypedDict):
 
 SliderChangeCallable = Callable[[SliderChange], None]
 
-
-ColumnIndex = int
-"""
-Index of a column in a table.
-"""
-
-RowIndex = int
-"""
-Index of a row in a table.
-"""
-
-CellIndex = Tuple[ColumnIndex, RowIndex]
-"""
-Index of a cell in a table.
-"""
-
-GridIndex = Tuple[Union[ColumnIndex, None], Union[RowIndex, None]]
-"""
-Index of a spot on the grid. A value of None indicates a header row or column.
-"""
-
-
 ColumnName = str
-RowDataMap = Dict[str, Any]
-RowPressCallback = Callable[[RowIndex, RowDataMap], None]
-CellPressCallback = Callable[[CellIndex, CellData], None]
+RowDataMap = Dict[ColumnName, RowDataValue]
+RowPressCallback = Callable[[RowDataMap], None]
+CellPressCallback = Callable[[CellData], None]
 ColumnPressCallback = Callable[[ColumnName], None]
 AggregationOperation = Literal[
     "COUNT",
@@ -115,10 +228,6 @@ AggregationOperation = Literal[
     "UNIQUE",
     "SKIP",
 ]
-DeephavenColor = Literal["salmon", "lemonchiffon"]
-HexColor = str
-Color = Union[DeephavenColor, HexColor]
-ContextMenuAction = Dict[str, Any]
 ContextMenuModeOption = Literal["CELL", "ROW_HEADER", "COLUMN_HEADER"]
 ContextMenuMode = Union[ContextMenuModeOption, List[ContextMenuModeOption], None]
 DataBarAxis = Literal["PROPORTIONAL", "MIDDLE", "DIRECTIONAL"]
@@ -172,5 +281,6 @@ Date = Union[
 Granularity = Literal["DAY", "HOUR", "MINUTE", "SECOND"]
 ListViewDensity = Literal["COMPACT", "NORMAL", "SPACIOUS"]
 ActionGroupDensity = Literal["compact", "regular"]
+TabDensity = Literal["compact", "regular"]
 Dependencies = Union[Tuple[Any], List[Any]]
 Selection = Sequence[Key]

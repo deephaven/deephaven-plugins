@@ -1,8 +1,8 @@
 import {
   RadioGroup as DHRadioGroup,
   RadioGroupProps as DHRadioGroupProps,
+  Orientation,
 } from '@deephaven/components';
-import { Orientation } from '@react-types/shared';
 import { SerializedFocusEventProps } from './model/SerializedPropTypes';
 import { useFocusEventCallback } from './hooks/useFocusEventCallback';
 

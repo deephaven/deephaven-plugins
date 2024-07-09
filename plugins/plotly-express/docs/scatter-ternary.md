@@ -26,5 +26,5 @@ election_scatter = dx.scatter_ternary(election, a="Joly", b="Coderre", c="Berger
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.scatter_ternary
+.. dhautofunction:: deephaven.plot.express.scatter_ternary
 ```

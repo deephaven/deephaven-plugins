@@ -446,5 +446,5 @@ scatter_plot_opacity = dx.scatter(
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.scatter
+.. dhautofunction:: deephaven.plot.express.scatter
 ```

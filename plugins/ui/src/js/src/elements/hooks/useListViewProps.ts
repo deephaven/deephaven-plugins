@@ -1,8 +1,10 @@
 import { ReactElement } from 'react';
-import type { SelectionMode } from '@react-types/shared';
-import { ListViewProps as DHListViewProps } from '@deephaven/components';
+import {
+  ListViewProps as DHListViewProps,
+  SelectionMode,
+} from '@deephaven/components';
 import { ListViewProps as DHListViewJSApiProps } from '@deephaven/jsapi-components';
-import { ObjectViewProps } from '../ObjectView';
+import ObjectView, { ObjectViewProps } from '../ObjectView';
 import {
   SerializedSelectionProps,
   useSelectionProps,
@@ -11,7 +13,7 @@ import {
 type Density = Required<DHListViewProps>['density'];
 
 type WrappedDHListViewJSApiProps = Omit<DHListViewJSApiProps, 'table'> & {
-  children: ReactElement<ObjectViewProps>;
+  children: ReactElement<ObjectViewProps, typeof ObjectView>;
 };
 
 type WrappedDHListViewProps = Omit<

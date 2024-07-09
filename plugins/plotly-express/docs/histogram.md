@@ -46,5 +46,5 @@ sep_length_multi_overlay = dx.histogram(iris, x="sepal_length", by="species", ba
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.histogram
+.. dhautofunction:: deephaven.plot.express.histogram
 ```

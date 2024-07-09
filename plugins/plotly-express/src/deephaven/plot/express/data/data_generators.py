@@ -110,10 +110,10 @@ def iris(ticking: bool = True) -> Table:
                     "timestamp = base_time + (long)((ii + df_len) * SECOND)",
                     # pick a random species from the list, using the index as a seed
                     "species = (String)species_list[(int)new Random(ii).nextInt(3)]",
-                    "sepal_length = get_random_value(`sepal_length`, ii, species)",
-                    "sepal_width = get_random_value(`sepal_width`, ii, species)",
-                    "petal_length = get_random_value(`petal_length`, ii, species)",
-                    "petal_width = get_random_value(`petal_width`, ii, species)",
+                    "sepal_length = get_random_value(`sepal_length`, ii + 1, species)",
+                    "sepal_width = get_random_value(`sepal_width`, ii + 2, species)",
+                    "petal_length = get_random_value(`petal_length`, ii + 3, species)",
+                    "petal_width = get_random_value(`petal_width`, ii + 4, species)",
                     "species_id = get_index(species)",
                 ]
             )
@@ -123,6 +123,135 @@ def iris(ticking: bool = True) -> Table:
         return merge([source_table, ticking_table])
 
     return source_table
+
+
+def jobs(ticking: bool = True) -> Table:
+    """
+    Returns a synthetic dataset containing five different jobs and their durations over time.
+
+    This dataset is intended to be used with a timeline plot. It demonstrates five different "jobs", each starting
+    two days after the previous, and each lasting 5 days in total. The job's "resource", or the name of the individual
+    assigned to the job, is randomly selected. The dataset continues to loop in this way, moving across time until
+    it is deleted or the server is shut down.
+
+    Notes:
+        Contains the following columns:
+        - Job: a string column denoting the name of the job, ranging from Job1 to Job5
+        - StartTime: a Java Instant column containing the start time of the job
+        - EndTime: a Java Instant column containing the end time of the job
+        - Resource: a string column indicating the name of the person that the job is assigned to
+
+    Args:
+        ticking:
+            If true, the table will tick new data every second.
+
+    Returns:
+        A Deephaven Table
+
+    Examples:
+        ```
+        from deephaven.plot import express as dx
+        jobs = dx.data.jobs()
+        ```
+    """
+
+    def generate_resource(index: int) -> str:
+        random.seed(index)
+        return random.choice(["Mike", "Matti", "Steve", "John", "Jane"])
+
+    jobs_query_strings = [
+        "Job = `Job` + String.valueOf((ii % 5) + 1)",
+        "StartTime = '2020-01-01T00:00:00Z' + ('P1d' * i * 2)",
+        "EndTime = StartTime + 'P5d'",
+        "Resource = generate_resource(ii)",
+    ]
+
+    static_jobs = empty_table(5).update(jobs_query_strings)
+
+    if not ticking:
+        return static_jobs
+
+    ticking_jobs = merge(
+        [
+            static_jobs,
+            time_table("PT1s")
+            .drop_columns("Timestamp")
+            .update(jobs_query_strings)
+            .update("StartTime = StartTime + 'P10d'"),
+        ]
+    ).last_by("Job")
+
+    return ticking_jobs
+
+
+def marketing(ticking: bool = True) -> Table:
+    """
+    Returns a synthetic ticking dataset tracking the movement of customers from website visit to product purchase.
+
+    This dataset is intended to be used with the `dx.funnel` and `dx.funnel_area` plot types. Each row in this dataset
+    represents an individual that has visited a company website. The individual may download an instance of the product,
+    be considered a potential customer, formally request the price of the product, or purchase the product and receive
+    an invoice. Each of these categories is a strict subset of the last, so it lends itself well to funnel plots.
+
+    Notes:
+        Contains the following columns:
+        - Stage: a string column containing the stage of a customers interest:
+                 VisitedWebsite, Downloaded, PotentialCustomer, RequestedPrice, and InvoiceSent
+        - Count: an integer column counting the number of customers to fall into each category
+
+    Args:
+        ticking:
+            If true, the table will tick new data every second.
+
+    Returns:
+        A Deephaven Table
+
+    Examples:
+        ```
+        from deephaven.plot import express as dx
+        marketing = dx.data.marketing()
+        ```
+    """
+    _ColsToRowsTransform = jpy.get_type(
+        "io.deephaven.engine.table.impl.util.ColumnsToRowsTransform"
+    )
+
+    def weighted_selection(prob: float, index: int) -> bool:
+        random.seed(index)
+        return random.uniform(0, 1) < prob
+
+    marketing_query_strings = [
+        "VisitedWebsite = true",  # appearing in this table assumes a website visit
+        "Downloaded = VisitedWebsite ? weighted_selection(0.45, ii) : false",  # 45% of visits download product
+        "PotentialCustomer = Downloaded ? weighted_selection(0.77, ii + 1) : false",  # 77% of downloads are potential customers
+        "RequestedPrice = PotentialCustomer ? weighted_selection(0.82, ii + 2) : false",  # 82% of flagged potential customers request price
+        "InvoiceSent = RequestedPrice ? weighted_selection(0.24, ii + 3) : false",  # 24% of those who requested price get invoice
+    ]
+
+    marketing_table = empty_table(100).update(marketing_query_strings)
+
+    if ticking:
+        marketing_table = merge(
+            [
+                marketing_table,
+                time_table("PT1s")
+                .update(marketing_query_strings)
+                .drop_columns("Timestamp"),
+            ]
+        )
+
+    return Table(
+        _ColsToRowsTransform.columnsToRows(
+            marketing_table.sum_by().j_table,
+            "Stage",
+            "Count",
+            "VisitedWebsite",
+            "Downloaded",
+            "PotentialCustomer",
+            "RequestedPrice",
+            "InvoiceSent",
+        )
+    )
 
 
 def stocks(ticking: bool = True, hours_of_data: int = 1) -> Table:
@@ -353,23 +482,23 @@ def tips(ticking: bool = True) -> Table:
         return random.choices(sex_list, weights=sex_probs)[0]
 
     def generate_smoker(index: int) -> str:
-        random.seed(index)
+        random.seed(index + 1)
         return random.choices(smoker_list, weights=smoker_probs)[0]
 
     def generate_day(index: int) -> str:
-        random.seed(index)
+        random.seed(index + 2)
         return random.choices(day_list, weights=day_probs)[0]
 
     def generate_time(index: int) -> str:
-        random.seed(index)
+        random.seed(index + 3)
         return random.choices(time_list, weights=time_probs)[0]
 
     def generate_size(index: int) -> int:
-        random.seed(index)
+        random.seed(index + 4)
         return random.choices(size_list, weights=size_probs)[0]
 
     def generate_total_bill(smoker: str, size: int, index: int) -> float:
-        random.seed(index)
+        random.seed(index + 5)
         return round(
             3.68
             + 3.08 * (smoker == "Yes")
@@ -379,7 +508,7 @@ def tips(ticking: bool = True) -> Table:
         )
 
     def generate_tip(total_bill: float, index: int) -> float:
-        random.seed(index)
+        random.seed(index + 6)
         return max(1, round(0.92 + 0.11 * total_bill + random.gauss(0.0, 1.02), 2))
 
     # create synthetic ticking version of the tips dataset that generates one new observation per period
@@ -403,7 +532,7 @@ def tips(ticking: bool = True) -> Table:
     return merge([tips_table, ticking_table])
 
 
-def election(ticking: bool = True):
+def election(ticking: bool = True) -> Table:
     """
     Returns a ticking version of the Election dataset included in the plotly-express package.
 
@@ -488,7 +617,7 @@ def election(ticking: bool = True):
     return merge([election_table.head(STATIC_ROWS - 1), ticking_table])
 
 
-def wind(ticking: bool = True):
+def wind(ticking: bool = True) -> Table:
     """
     Returns a ticking version of the Wind dataset included in the plotly-express package.
 
@@ -654,9 +783,10 @@ def gapminder(ticking: bool = True) -> Table:
     gapminder_no_2007.loc[:, ["year"]] = gapminder_no_2007["year"].apply(
         lambda x: create_years(x, 5)
     )
-    gapminder_no_2007.loc[:, ["lifeExp", "pop", "gdpPercap"]] = gapminder_no_2007[
-        ["lifeExp", "pop", "gdpPercap"]
-    ].map(lambda x: create_empty(x, 5))
+    for col in ["lifeExp", "pop", "gdpPercap"]:
+        gapminder_no_2007.loc[:, [col]] = gapminder_no_2007[col].apply(
+            lambda x: create_empty(x, 5)
+        )
     gapminder_no_2007 = gapminder_no_2007.explode(
         column=["year", "lifeExp", "pop", "gdpPercap"]
     )
@@ -672,9 +802,10 @@ def gapminder(ticking: bool = True) -> Table:
     )
 
     # expand pre-2007 dataset into consecutive months
-    gapminder_no_2007.loc[:, ["lifeExp", "pop", "gdpPercap"]] = gapminder_no_2007[
-        ["lifeExp", "pop", "gdpPercap"]
-    ].map(lambda x: create_empty(x, 12))
+    for col in ["lifeExp", "pop", "gdpPercap"]:
+        gapminder_no_2007.loc[:, [col]] = gapminder_no_2007[col].apply(
+            lambda x: create_empty(x, 12)
+        )
     gapminder_no_2007 = gapminder_no_2007.explode(
         column=["month", "lifeExp", "pop", "gdpPercap"]
     )

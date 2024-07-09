@@ -36,5 +36,5 @@ continent_population = dx.sunburst(gapminder_recent.update("world = `world`"), n
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.sunburst
+.. dhautofunction:: deephaven.plot.express.sunburst
 ```

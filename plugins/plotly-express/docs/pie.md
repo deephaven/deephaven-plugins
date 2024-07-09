@@ -38,5 +38,5 @@ continent_population = dx.pie(gapminder_recent_pop, names="continent", values="p
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.pie
+.. dhautofunction:: deephaven.plot.express.pie
 ```

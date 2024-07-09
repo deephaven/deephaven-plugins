@@ -9,3 +9,5 @@ AriaExpanded = BoolLiteral
 AriaHasPopup = Union[BoolLiteral, Literal["menu", "listbox", "tree", "grid", "dialog"]]
 AriaPressed = Union[BoolLiteral, Literal["mixed"]]
 AriaAutoComplete = Union[BoolLiteral, Literal["inline", "list", "both", "none"]]
+
+HeadingLevel = Literal[1, 2, 3, 4, 5, 6]

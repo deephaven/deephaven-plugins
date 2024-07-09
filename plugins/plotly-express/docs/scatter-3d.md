@@ -138,5 +138,5 @@ scatter_plot_color_column = dx.scatter_3d(
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.scatter_3d
+.. dhautofunction:: deephaven.plot.express.scatter_3d
 ```

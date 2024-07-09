@@ -43,5 +43,5 @@ bar_plot_sex = dx.bar(tips, x="day", y="total_bill", by="sex")
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.bar
+.. dhautofunction:: deephaven.plot.express.bar
 ```

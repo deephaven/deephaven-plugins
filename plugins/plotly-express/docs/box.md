@@ -43,5 +43,5 @@ total_bill_sex = dx.box(tips, y="total_bill", by="sex")
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.box
+.. dhautofunction:: deephaven.plot.express.box
 ```

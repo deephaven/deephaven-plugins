@@ -1,12 +1,12 @@
-import { PickerProps as DHPickerProps } from '@deephaven/components';
-import { PickerProps as DHPickerJSApiProps } from '@deephaven/jsapi-components';
 import { ReactElement } from 'react';
-import { ObjectViewProps } from '../ObjectView';
+import ObjectView, { ObjectViewProps } from '../ObjectView';
 import {
+  DeserializedFocusEventCallback,
   SerializedFocusEventCallback,
   useFocusEventCallback,
 } from './useFocusEventCallback';
 import {
+  DeserializedKeyboardEventCallback,
   SerializedKeyboardEventCallback,
   useKeyboardEventCallback,
 } from './useKeyboardEventCallback';
@@ -25,28 +25,44 @@ export interface SerializedPickerEventProps {
   onKeyUp?: SerializedKeyboardEventCallback;
 }
 
-type WrappedDHPickerJSApiProps = Omit<DHPickerJSApiProps, 'table'> & {
-  children: ReactElement<ObjectViewProps>;
+export interface DeserializedPickerEventProps {
+  /** Handler that is called when the element receives focus. */
+  onFocus?: DeserializedFocusEventCallback;
+
+  /** Handler that is called when the element loses focus. */
+  onBlur?: DeserializedFocusEventCallback;
+
+  /** Handler that is called when a key is pressed */
+  onKeyDown?: DeserializedKeyboardEventCallback;
+
+  /** Handler that is called when a key is released */
+  onKeyUp?: DeserializedKeyboardEventCallback;
+}
+
+export type WrappedDHPickerJSApiProps<TProps> = Omit<TProps, 'table'> & {
+  children: ReactElement<ObjectViewProps, typeof ObjectView>;
 };
 
-export type SerializedPickerProps = (
-  | DHPickerProps
-  | WrappedDHPickerJSApiProps
-) &
-  SerializedPickerEventProps;
+export type SerializedPickerProps<TProps> = TProps & SerializedPickerEventProps;
+
+export type DeserializedPickerProps<TProps> = Omit<
+  TProps,
+  keyof SerializedPickerEventProps
+> &
+  DeserializedPickerEventProps;
 
 /**
  * Wrap Picker props with the appropriate serialized event callbacks.
  * @param props Props to wrap
  * @returns Wrapped props
  */
-export function usePickerProps({
+export function usePickerProps<TProps>({
   onFocus,
   onBlur,
   onKeyDown,
   onKeyUp,
   ...otherProps
-}: SerializedPickerProps): DHPickerProps | WrappedDHPickerJSApiProps {
+}: SerializedPickerProps<TProps>): DeserializedPickerProps<TProps> {
   const serializedOnFocus = useFocusEventCallback(onFocus);
   const serializedOnBlur = useFocusEventCallback(onBlur);
   const serializedOnKeyDown = useKeyboardEventCallback(onKeyDown);

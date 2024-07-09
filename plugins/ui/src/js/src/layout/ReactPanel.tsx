@@ -1,19 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import ReactDOM from 'react-dom';
-import shortid from 'shortid';
+import { nanoid } from 'nanoid';
 import {
   LayoutUtils,
   PanelEvent,
   useLayoutManager,
   useListener,
 } from '@deephaven/dashboard';
-import {
-  View,
-  ViewProps,
-  Flex,
-  FlexProps,
-  ErrorBoundary,
-} from '@deephaven/components';
+import { View, ViewProps, Flex, FlexProps } from '@deephaven/components';
 import Log from '@deephaven/log';
 import PortalPanel from './PortalPanel';
 import { ReactPanelControl, useReactPanel } from './ReactPanelManager';
@@ -21,7 +15,9 @@ import { ReactPanelProps } from './LayoutUtils';
 import { useParentItem } from './ParentItemContext';
 import { ReactPanelContext } from './ReactPanelContext';
 import { usePortalPanelManager } from './PortalPanelManagerContext';
-import ReactPanelContentOverlay from './ReactPanelContentOverlay';
+import ReactPanelErrorBoundary from './ReactPanelErrorBoundary';
+import useWidgetStatus from './useWidgetStatus';
+import WidgetErrorView from '../widget/WidgetErrorView';
 
 const log = Log.module('@deephaven/js-plugin-ui/ReactPanel');
 
@@ -69,7 +65,7 @@ function ReactPanel({
   wrap,
   justifyContent,
   alignContent,
-  alignItems,
+  alignItems = 'start',
   gap = 'size-100',
   rowGap,
   columnGap,
@@ -98,11 +94,7 @@ function ReactPanel({
 
   // We want to regenerate the key every time the metadata changes, so that the portal is re-rendered
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const contentKey = useMemo(() => shortid.generate(), [metadata]);
-
-  // We want to regenerate the error boundary key every time the children change, so that the error is cleared
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const errorKey = useMemo(() => shortid.generate(), [children]);
+  const contentKey = useMemo(() => nanoid(), [metadata]);
 
   const parent = useParentItem();
   const { eventHub } = layoutManager;
@@ -176,6 +168,7 @@ function ReactPanel({
     },
     [parent, metadata, onOpen, panelId, title]
   );
+  const widgetStatus = useWidgetStatus();
 
   return portal
     ? ReactDOM.createPortal(
@@ -209,11 +202,19 @@ function ReactPanel({
               rowGap={rowGap}
               columnGap={columnGap}
             >
-              {/* Have an ErrorBoundary around the children to display an error in the panel if there's any errors thrown when rendering the children */}
-              <ErrorBoundary key={errorKey}>{children}</ErrorBoundary>
+              <ReactPanelErrorBoundary>
+                {/**
+                 * Don't render the children if there's an error with the widget. If there's an error with the widget, we can assume the children won't render properly,
+                 * but we still want the panels to appear so things don't disappear/jump around.
+                 */}
+                {widgetStatus.status === 'error' ? (
+                  <WidgetErrorView error={widgetStatus.error} />
+                ) : (
+                  children
+                )}
+              </ReactPanelErrorBoundary>
             </Flex>
           </View>
-          <ReactPanelContentOverlay />
         </ReactPanelContext.Provider>,
         portal,
         contentKey

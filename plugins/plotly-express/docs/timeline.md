@@ -34,5 +34,5 @@ jobs_resource_tracking = dx.timeline(jobs, x_start="StartTime", x_end="EndTime",
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.timeline
+.. dhautofunction:: deephaven.plot.express.timeline
 ```

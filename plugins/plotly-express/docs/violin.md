@@ -28,5 +28,5 @@ sepal_length_distribution = dx.violin(iris, x="sepal_length", by="species")
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.violin
+.. dhautofunction:: deephaven.plot.express.violin
 ```

@@ -104,18 +104,37 @@ JustifySelf = Literal[
     "stretch",
 ]
 
+JustifyItems = Literal[
+    "auto",
+    "normal",
+    "start",
+    "end",
+    "center",
+    "left",
+    "right",
+    "stretch",
+    "self-start",
+    "self-end",
+    "baseline",
+    "first baseline",
+    "last baseline",
+    "safe center",
+    "unsafe center",
+    "legacy right",
+    "legacy left",
+    "legacy center",
+]
+
 OverflowMode = Literal["wrap", "collapse"]
 
 Alignment = Literal["start", "end"]
 
-Number = Union[int, float]
-
-LayoutFlex = Union[str, Number, bool]
+LayoutFlex = Union[str, float, bool]
 """
 The flex CSS shorthand property sets how a flex item will grow or shrink to fit the space available in its flex container.
 """
 
-DimensionValue = Union[str, Number]
+DimensionValue = Union[str, float]
 """
 A dimension value can be a string providing a unit, such as "10px", or a number, which is assumed to be in pixels.
 """
@@ -132,6 +151,7 @@ A dictionary of CSS properties.
 LabelPosition = Literal["top", "side"]
 Align = Literal["start", "end"]
 
+GridFlow = Literal["row", "column", "row dense", "column dense"]
 BorderSize = Literal["none", "thin", "thick", "thicker", "thickest"]
 BorderRadius = Literal[
     "xsmall",
@@ -140,3 +160,5 @@ BorderRadius = Literal[
     "medium",
     "large",
 ]
+IconSize = Literal["XXS", "XS", "S", "M", "L", "XL", "XXL"]
+IconColor = Literal["negative", "notice", "positive", "informative"]

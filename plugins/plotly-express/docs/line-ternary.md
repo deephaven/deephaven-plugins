@@ -26,5 +26,5 @@ election_line = dx.line_ternary(election, a="Joly", b="Coderre", c="Bergeron")
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.line_ternary
+.. dhautofunction:: deephaven.plot.express.line_ternary
 ```
