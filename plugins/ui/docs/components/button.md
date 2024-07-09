@@ -27,12 +27,15 @@ Buttons accept a value to display and can trigger actions based on events such a
 ```python
 from deephaven import ui
 
+
 @ui.component
 def counter():
     count, set_count = use_state(0)
     return ui.button(
-        f"Pressed {count} times", on_press=lambda: set_count(count + 1),
+        f"Pressed {count} times",
+        on_press=lambda: set_count(count + 1),
     )
+
 
 counter_example = counter()
 ```
@@ -43,6 +46,7 @@ Buttons can have different styles to indicate their purpose.
 
 ```python
 from deephaven import ui
+
 
 @ui.component
 def button_variants():
@@ -57,6 +61,7 @@ def button_variants():
         ui.button("Negative outline", variant="negative", style="outline"),
     ]
 
+
 button_variants_example = button_variants()
 ```
 
@@ -65,27 +70,42 @@ Static color buttons are available in pure white and black, and should only be u
 ```python
 from deephaven import ui
 
+
 @ui.component
 def static_buttons():
     return [
         ui.view(
             ui.flex(
-                ui.button("White color fill",  variant="primary", static_color="white", style="fill"),
-                ui.button("White color outline",  variant="primary", static_color="white", style="outline"),
+                ui.button(
+                    "White fill", variant="primary", static_color="white", style="fill"
+                ),
+                ui.button(
+                    "White outline",
+                    variant="primary",
+                    static_color="white",
+                    style="outline",
+                ),
             ),
             background_color="#000066",
             padding="size-300",
         ),
         ui.view(
             ui.flex(
-                ui.button("Black color fill",  variant="primary", static_color="black", style="fill"),
-                ui.button("Black color outline",  variant="primary", static_color="black", style="outline"),
+                ui.button(
+                    "Black fill", variant="primary", static_color="black", style="fill"
+                ),
+                ui.button(
+                    "Black outline",
+                    variant="primary",
+                    static_color="black",
+                    style="outline",
+                ),
             ),
             background_color="#FFFF00",
             padding="size-300",
-            flex_grow=1
         ),
     ]
+
 
 static_buttons_example = static_buttons()
 ```
@@ -97,12 +117,14 @@ Buttons can have icons when necessary to provide additional context. If no visib
 ```python
 from deephaven import ui
 
+
 @ui.component
 def icon_buttons():
     return [
         ui.button(ui.icon("squirrel"), "Squirrel"),
         ui.button(ui.icon("squirrel"), aria_label="Squirrel"),
     ]
+
 
 icon_buttons_example = icon_buttons()
 ```
@@ -114,6 +136,7 @@ Buttons can be have a pending state to indicate that an action is in progress (s
 ```python
 from deephaven import ui
 from threading import Timer
+
 
 @ui.component
 def pending_button():
@@ -137,6 +160,7 @@ def pending_button():
         is_pending=pending,
         variant="accent",
     )
+
 
 pending_example = pending_button()
 ```
