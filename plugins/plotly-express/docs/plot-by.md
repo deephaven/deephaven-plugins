@@ -50,3 +50,27 @@ total_bill_tip_size = dx.scatter(
     size_map={"1": 5, "2": 7, "3": 11, "4": 13, "5": 15, "6": 17}
 )
 ```
+
+### Scatter plot by several categorical variables
+
+Pass two or more column names to the `by` argument to color points based on unique combinations of values.
+
+```python order=total_bill_sex_smoker,tips
+import deephaven.plot.express as dx
+tips = dx.data.tips() # import a ticking version of the Tips dataset
+
+# passing a list to `by` gives unique colors for each combination of values in the given columns
+total_bill_sex_smoker = dx.scatter(tips, x="total_bill", y="tip", by=["sex", "smoker"])
+```
+
+Alternatively, use other arguments such as `symbol` or `size` to differentiate groups.
+
+```python order=total_bill_sex_smoker_sym,tips
+import deephaven.plot.express as dx
+tips = dx.data.tips() # import a ticking version of the Tips dataset
+
+# use color to denote sex, and symbol to denote smoking status
+total_bill_sex_smoker_sym = dx.scatter(tips, x="total_bill", y="tip", by="sex", symbol="smoker")
+```
+
+<!--- TODO: Fill out with more examples -->
