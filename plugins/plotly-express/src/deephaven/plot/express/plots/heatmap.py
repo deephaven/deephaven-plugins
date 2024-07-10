@@ -15,7 +15,7 @@ def density_heatmap(
     y: str | None = None,
     z: str | None = None,
     labels: dict[str, str] | None = None,
-    color_continuous_scale: str = "Viridis",
+    color_continuous_scale: str | None = None,
     range_color: list[float] | None = None,
     color_continuous_midpoint: float | None = None,
     opacity: float = 1.0,
@@ -33,7 +33,7 @@ def density_heatmap(
     unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """
-    Create a density heatmap
+    A density heatmap creates a grid of colored bins. Each bin represents an aggregation of data points in that region.
 
     Args:
       table: A table to pull data from.

@@ -117,6 +117,7 @@ def draw_density_heatmap(
     x: str,
     y: str,
     z: str,
+    labels: dict[str, str] | None = None,
     range_color: list[float] | None = None,
     color_continuous_scale: str | None = "Viridis",
     color_continuous_midpoint: list[float] | None = None,
@@ -131,6 +132,7 @@ def draw_density_heatmap(
       x: The name of the column containing x-axis values
       y: The name of the column containing y-axis values
       z: The name of the column containing bin values
+      labels: A dictionary of labels mapping columns to new labels
       color_continuous_scale: A list of colors for a continuous scale
       range_color: A list of two numbers that form the endpoints of the color axis
       color_continuous_midpoint: A number that is the midpoint of the color axis
@@ -170,6 +172,10 @@ def draw_density_heatmap(
         cmin=range_color_list[0],
         cmax=range_color_list[1],
     )
+
+    if labels:
+        x = labels.get(x, x)
+        y = labels.get(y, y)
 
     heatmap.update_layout(
         coloraxis1=coloraxis_layout,

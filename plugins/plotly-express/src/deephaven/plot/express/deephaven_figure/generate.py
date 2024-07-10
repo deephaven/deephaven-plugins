@@ -850,7 +850,7 @@ def compute_labels(
 
     calculate_hist_labels(hist_val_name, hover_mapping[0])
 
-    calculate_density_heatmap_labels(heatmap_agg_label, hover_mapping[0])
+    calculate_density_heatmap_labels(heatmap_agg_label, hover_mapping[0], labels)
 
     relabel_columns(labels, hover_mapping, types, current_partition)
 
@@ -858,6 +858,7 @@ def compute_labels(
 def calculate_density_heatmap_labels(
     heatmap_agg_label: str | None,
     hover_mapping: dict[str, str],
+    labels: dict[str, str] | None,
 ) -> None:
     """Calculate the labels for a density heatmap
     The z column is renamed to the heatmap_agg_label
@@ -865,10 +866,18 @@ def calculate_density_heatmap_labels(
     Args:
       heatmap_agg_label: The name of the heatmap aggregate label
       hover_mapping: The mapping of variables to columns
+      labels: A dictionary of labels mapping columns to new labels.
 
     """
+    labels = labels or {}
     if heatmap_agg_label:
-        hover_mapping["z"] = heatmap_agg_label
+        # the last part of the label is the z column, and could be replaced by labels
+        split_label = heatmap_agg_label.split(" ")
+        split_label[-1] = labels.get(split_label[-1], split_label[-1])
+        # it's also possible that someone wants to override the whole label
+        # plotly doesn't seem to do that, but it seems reasonable to allow
+        new_label = " ".join(split_label)
+        hover_mapping["z"] = labels.get(new_label, new_label)
 
 
 def calculate_hist_labels(
@@ -955,6 +964,9 @@ def create_hover_and_axis_titles(
     (such as the y-axis if the x-axis is specified). Otherwise, there is a
     legend or not depending on if there is a list of columns or not.
 
+    Density heatmaps are also an exception. If "heatmap_agg_label" is specified,
+    the z column is renamed to this label.
+
     Args:
       custom_call_args: The custom_call_args that are used to
         create hover and axis titles
@@ -982,6 +994,10 @@ def create_hover_and_axis_titles(
     )
 
     hover_text = hover_text_generator(hover_mapping, types, current_partition)
+
+    if heatmap_agg_label:
+        # it's possible that heatmap_agg_label was relabeled, so grab the new label
+        heatmap_agg_label = hover_mapping[0]["z"]
 
     add_axis_titles(custom_call_args, hover_mapping, hist_val_name, heatmap_agg_label)
 

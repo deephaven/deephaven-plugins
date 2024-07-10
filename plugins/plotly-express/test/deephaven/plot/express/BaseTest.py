@@ -1,7 +1,24 @@
 import unittest
 from unittest.mock import patch
 
+import pandas as pd
 from deephaven_server import Server
+
+
+def remap_types(
+    df: pd.DataFrame,
+) -> None:
+    """
+    Remap the types of the columns to the correct types
+
+    Args:
+        df: The dataframe to remap the types of
+    """
+    for col in df.columns:
+        if df[col].dtype == "int64":
+            df[col] = df[col].astype("Int64")
+        elif df[col].dtype == "float64":
+            df[col] = df[col].astype("Float64")
 
 
 class BaseTestCase(unittest.TestCase):
