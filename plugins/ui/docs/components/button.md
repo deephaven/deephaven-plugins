@@ -2,7 +2,7 @@
 
 Buttons allow users to perform an action or to navigate to another page. They have multiple styles for various needs, and are ideal for calling attention to where a user needs to do something in order to move forward in a flow.
 
-Consider using [`action_button`](./action_button.md) for task-based actions, or in cases where buttons aren't meant to draw attention to themselves. To represent a binary choice button, use a [`toggle_button`](./toggle_button.md) instead. If you have a collection of related buttons, you can group them using a [`button_group`](./button_group.md).
+## Example
 
 ```python
 from deephaven import ui
@@ -19,6 +19,8 @@ Recommendations for creating clear and effective buttons:
 3. Use sentence case for button text with more than one word. For example, "Add friend" instead of "Add Friend".
 4. Use icons only when necessary, and not as a replacement for text or decoration. Icons should be used to provide additional context to the button's action.
 5. No punctuation is needed at the end of the button text.
+
+Consider using [`action_button`](./action_button.md) for task-based actions, or in cases where buttons aren't meant to draw attention to themselves. To represent a binary choice button, use a [`toggle_button`](./toggle_button.md) instead. If you have a collection of related buttons, you can group them using a [`button_group`](./button_group.md).
 
 ## Events
 
@@ -65,7 +67,7 @@ def button_variants():
 button_variants_example = button_variants()
 ```
 
-Static color buttons are available in pure white and black, and should only be used over solid background colors that do not change based on the theme.
+Static color buttons are available in white and black. Static colored buttons don't dynamically change in response to the users theme. They should only be used over fixed color backgrounds, and not over theme colors that may change.
 
 ```python
 from deephaven import ui
@@ -76,12 +78,9 @@ def static_buttons():
     return [
         ui.view(
             ui.flex(
-                ui.button(
-                    "White fill", variant="primary", static_color="white", style="fill"
-                ),
+                ui.button("White fill", static_color="white", style="fill"),
                 ui.button(
                     "White outline",
-                    variant="primary",
                     static_color="white",
                     style="outline",
                 ),
@@ -91,12 +90,9 @@ def static_buttons():
         ),
         ui.view(
             ui.flex(
-                ui.button(
-                    "Black fill", variant="primary", static_color="black", style="fill"
-                ),
+                ui.button("Black fill", static_color="black", style="fill"),
                 ui.button(
                     "Black outline",
-                    variant="primary",
                     static_color="black",
                     style="outline",
                 ),
