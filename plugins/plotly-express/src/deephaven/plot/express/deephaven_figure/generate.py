@@ -783,7 +783,6 @@ def get_hover_body(
 
 def hover_text_generator(
     hover_mapping: list[dict[str, str]],
-    # hover_data - todo, dependent on arrays supported in data mappings
     types: set[str] | None = None,
     current_partition: dict[str, str] | None = None,
 ) -> Generator[dict[str, Any], None, None]:

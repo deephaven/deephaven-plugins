@@ -46,18 +46,18 @@ def density_heatmap(
       color_continuous_midpoint: A number that is the midpoint of the color axis
       opacity: Opacity to apply to all markers. 0 is completely transparent
         and 1 is completely opaque.
-      log_x: A boolean or list of booleans that specify if
-        the corresponding axis is a log axis or not. The booleans loop, so if there
-        are more series than booleans, booleans will be reused.
-      log_y: A boolean or list of booleans that specify if
-        the corresponding axis is a log axis or not. The booleans loop, so if there
-        are more series than booleans, booleans will be reused.
+      log_x: A boolean that specifies if the corresponding axis is a log axis or not.
+      log_y: A boolean that specifies if the corresponding axis is a log axis or not.
       range_x: A list of two numbers that specify the range of the x axes.
         None can be specified for no range
       range_y: A list of two numbers that specify the range of the y axes.
         None can be specified for no range
       range_bins_x: A list of two numbers that specify the range of data that is used for x.
+        None can be specified to use the min and max of the data.
+        None can also be specified for either of the list values to use the min or max of the data, respectively.
       range_bins_y: A list of two numbers that specify the range of data that is used for y.
+        None can be specified to use the min and max of the data.
+        None can also be specified for either of the list values to use the min or max of the data, respectively.
       histfunc: The function to use when aggregating within bins. One of
         'abs_sum', 'avg', 'count', 'count_distinct', 'max', 'median', 'min', 'std',
         'sum', or 'var'
