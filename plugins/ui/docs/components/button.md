@@ -16,9 +16,9 @@ Recommendations for creating clear and effective buttons:
 
 1. Buttons text should be clear and concise. No more than 4 words or 20 characters is recommended.
 2. Use verbs for button text to indicate the action that will be taken when the button is clicked. (eg. "Save", "Delete", "Add friend" not "Ok", "Cancel"). Nouns or adjectives tend to be less clear.
-3. Use sentence case for button text with more than one word. For example, "Add friend" instead of "Add Friend".
-4. Use icons only when necessary, and not as a replacement for text or decoration. Icons should be used to provide additional context to the button's action.
-5. No punctuation is needed at the end of the button text.
+3. Use sentence case for button text with more than one word. For example, "Add friend" instead of "Add Friend" or "ADD FRIEND".
+4. No punctuation is needed at the end of the button text.
+5. Use icons only when necessary, and not as a replacement for text or decoration. Icons should be used to provide additional context to the button's action.
 6. When presenting choices, use a single filled accent button to suggest to users the recommended choice, paired with outlined primary or secondary buttons for the other options. This helps to visually distinguish the primary action from the secondary actions.
 7. Use negative buttons sparingly, as they can be visually distracting. They should be used for actions that are destructive or irreversible.
 
