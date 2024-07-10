@@ -1,6 +1,6 @@
 # Button
 
-Buttons allow users to perform an action or to navigate to another page. They have multiple styles for various needs, and are ideal for calling attention to where a user needs to do something in order to move forward in a flow.
+Buttons allow users to trigger an action or to navigate to another page. They are available in multiple styles for various purposes. Buttons are ideal for calling attention to actions users need to perform in order to move forward in a flow.
 
 ## Example
 
@@ -19,6 +19,8 @@ Recommendations for creating clear and effective buttons:
 3. Use sentence case for button text with more than one word. For example, "Add friend" instead of "Add Friend".
 4. Use icons only when necessary, and not as a replacement for text or decoration. Icons should be used to provide additional context to the button's action.
 5. No punctuation is needed at the end of the button text.
+6. When presenting choices, use a single filled accent button to suggest to users the recommended choice, paired with outlined primary or secondary buttons for the other options. This helps to visually distinguish the primary action from the secondary actions.
+7. Use negative buttons sparingly, as they can be visually distracting. They should be used for actions that are destructive or irreversible.
 
 Consider using [`action_button`](./action_button.md) for task-based actions, or in cases where buttons aren't meant to draw attention to themselves. To represent a binary choice button, use a [`toggle_button`](./toggle_button.md) instead. If you have a collection of related buttons, you can group them using a [`button_group`](./button_group.md).
 
