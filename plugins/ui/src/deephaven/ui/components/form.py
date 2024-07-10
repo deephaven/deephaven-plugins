@@ -1,7 +1,6 @@
 from __future__ import annotations
-from typing import Any
+from typing import Any, Callable
 from .types import (
-    # Layout
     AlignSelf,
     CSSProperties,
     DimensionValue,
@@ -33,7 +32,7 @@ def form(
     validation_state: ValidationState | None = "valid",
     validation_behavior: ValidationBehavior | None = "aria",
     # validation_errors # omitted because synchronous return
-    # action # omitted because not sure what "server" the form is sending it's data to
+    action: str | None = None,
     enc_type: EncodingType | None = None,
     method: HTTPMethods | None = None,
     target: Target | None = None,
@@ -42,10 +41,9 @@ def form(
     label_position: LabelPosition = "top",
     label_alignment: Alignment = "start",
     necessity_indicator: NecessityIndicator = "icon",
-    # omitting the following events because we don't have callables for it yet
-    # on_submit,
-    # on_reset,
-    # on_invalid,
+    on_submit: Callable[[Any], None] | None = None,
+    on_reset: Callable[[Any], None] | None = None,
+    on_invalid: Callable[[Any], None] | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,
@@ -103,6 +101,7 @@ def form(
         is_read_only: Whether the form should be read only.
         validation_state: Whether the Form elements should display their "valid" or "invalid" visual styling.
         validation_behavior: Whether to use native HTML form validation to prevent form submission when a field value is missing or invalid, or mark fields as required or invalid via ARIA.
+        action: The URL to submit the form data to.
         enc_type: The enctype attribute specifies how the form-data should be encoded when submitting it to the server.
         method: The HTTP method of the form.
         target: The target attribute specifies a name or a keyword that indicates where to display the response that is received after submitting the form.
@@ -111,6 +110,9 @@ def form(
         label_position: The label's overall position relative to the element it is labeling.
         label_alignment: The label's horizontal alignment relative to the element it is labeling.
         necessity_indicator: Whether the required state should be shown as an icon or text.
+        on_submit: The function to call when the form is submitted.
+        on_reset: The function to call when the form is reset.
+        on_invalid: The function to call when the form is invalid.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -166,6 +168,7 @@ def form(
         is_read_only=is_read_only,
         validation_state=validation_state,
         validation_behavior=validation_behavior,
+        action=action,
         enc_type=enc_type,
         method=method,
         target=target,
@@ -174,6 +177,9 @@ def form(
         label_position=label_position,
         label_alignment=label_alignment,
         necessity_indicator=necessity_indicator,
+        on_submit=on_submit,
+        on_reset=on_reset,
+        on_invalid=on_invalid,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
