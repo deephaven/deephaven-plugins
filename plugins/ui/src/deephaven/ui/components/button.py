@@ -109,7 +109,7 @@ def button(
         type: The behavior of the button when used in an HTML form.
         is_disabled: Whether the button is disabled.
         auto_focus: Whether the button should automatically receive focus when the page loads.
-        href: A URL to link to if element_type="a".
+        href: A URL to link to when the button is pressed.
         target: The target window or tab to open the linked URL in.
         rel: The relationship between the current document and the linked URL.
         on_press: Function called when the button is pressed.
