@@ -14,15 +14,15 @@ btn = ui.button("Press me", on_press=lambda: print("Button clicked"))
 
 Recommendations for creating clear and effective buttons:
 
-1. Buttons text should be clear and concise. No more than 4 words or 20 characters is recommended.
-2. Use verbs for button text to indicate the action that will be taken when the button is clicked. (eg. "Save", "Delete", "Add friend" not "Ok", "Cancel"). Nouns or adjectives tend to be less clear.
+1. Button text should be clear and concise. No more than 4 words or 20 characters is recommended.
+2. Use verbs for button text to indicate the action that will be taken when the button is clicked. For example, "Save", "Delete", or "Add friend", rather than "Ok" or "Cancel". Nouns or adjectives tend to be less clear.
 3. Use sentence case for button text with more than one word. For example, "Add friend" instead of "Add Friend" or "ADD FRIEND".
 4. No punctuation is needed at the end of the button text.
 5. Use icons only when necessary, and not as a replacement for text or decoration. Icons should be used to provide additional context to the button's action.
 6. When presenting choices, use a single filled accent button to suggest to users the recommended choice, paired with outlined primary or secondary buttons for the other options. This helps to visually distinguish the primary action from the secondary actions.
 7. Use negative buttons sparingly, as they can be visually distracting. They should be used for actions that are destructive or irreversible.
 
-Consider using [`action_button`](./action_button.md) for task-based actions, or in cases where buttons aren't meant to draw attention to themselves. To represent a binary choice button, use a [`toggle_button`](./toggle_button.md) instead. If you have a collection of related buttons, you can group them using a [`button_group`](./button_group.md).
+Consider using [`action_button`](./action_button.md) for task-based actions, or in cases where buttons aren't meant to draw attention to themselves. To represent a binary choice, use a [`toggle_button`](./toggle_button.md) instead. If you have a collection of related buttons, you can group them using a [`button_group`](./button_group.md).
 
 ## Events
 
@@ -69,7 +69,7 @@ def button_variants():
 button_variants_example = button_variants()
 ```
 
-Static color buttons are available in white and black. Static colored buttons don't dynamically change in response to the users theme. They should only be used over fixed color backgrounds, and not over theme colors that may change.
+Static-color buttons are available in white and black. They don't dynamically change in response to the user's theme. They should only be used over fixed-color backgrounds, not over theme colors that may change.
 
 ```python
 from deephaven import ui
@@ -110,7 +110,7 @@ static_buttons_example = static_buttons()
 
 ## Icon buttons
 
-Buttons can have icons when necessary to provide additional context. If no visible label is provided (e.g. an icon only button), an alternative text label must be provided to identify the control for accessibility using the `aria-label` prop. See [icon](./icon.md) for a list of available icons.
+Buttons can have icons when necessary to provide additional context. If no visible label is provided (e.g., an icon-only button), an alternative text label must be provided to identify the control for accessibility using the `aria-label` prop. See [icon](./icon.md) for a list of available icons.
 
 ```python
 from deephaven import ui
@@ -129,7 +129,7 @@ icon_buttons_example = icon_buttons()
 
 ## Pending State
 
-Buttons can be have a pending state to indicate that an action is in progress (such as asynchronous server request). After a 1 second delay, an indeterminate spinner will be displayed in place of the button label and icon. You can trigger this behavior with by setting the `is_pending` prop. Button events are disabled while `is_pending` is true.
+Buttons can be in a pending state to indicate that an action is in progress (such as an asynchronous server request). After a one-second delay, an indeterminate spinner will be displayed in place of the button label and icon. You can trigger this behavior by setting the `is_pending` prop. Button events are disabled while `is_pending` is true.
 
 ```python
 from deephaven import ui
