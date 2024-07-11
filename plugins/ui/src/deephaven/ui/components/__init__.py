@@ -3,7 +3,6 @@ from .action_group import action_group
 from .action_menu import action_menu
 from .basic import (
     component_element,
-    icon_wrapper,
     form,
     switch,
     tab_list,
@@ -72,7 +71,6 @@ __all__ = [
     "grid",
     "heading",
     "icon",
-    "icon_wrapper",
     "item",
     "item_table_source",
     "illustrated_message",

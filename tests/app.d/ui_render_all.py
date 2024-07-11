@@ -63,7 +63,6 @@ def ui_components():
         ui.grid("Grid A", "Grid B"),
         ui.heading("Heading"),
         ui.icon("vsSymbolMisc"),
-        # TODO: #526 ui.icon_wrapper("TODO: fix this"),
         ui.illustrated_message(
             ui.icon("vsWarning"),
             ui.heading("Warning"),
