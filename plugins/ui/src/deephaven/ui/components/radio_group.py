@@ -22,7 +22,6 @@ from ..elements import Element
 from .._internal.utils import create_props
 
 
-# TODO: Add pydocs #514
 def radio_group(
     *children,
     is_emphasized: bool | None = None,
@@ -34,7 +33,7 @@ def radio_group(
     name: str | None = None,
     is_required: bool | None = None,
     is_invalid: bool | None = None,
-    validation_behaviour: ValidationBehavior | None = None,
+    validation_behavior: ValidationBehavior | None = None,
     # validate, # omitted because of synchronouse return
     label: Any | None = None,
     description: Any | None = None,
@@ -109,7 +108,7 @@ def radio_group(
         name: The name of the radio button, used when submitting and HTML form.
         is_required: Whether the radio button is required on the input before form submission.
         is_invalid: Whether the radio button is in an invalid state.
-        validation_behaviour: Whether to use native HTML form validation to prevent form submission when the value is missing or invalid, or mark the field as required or invalid via ARIA.
+        validation_behavior: Whether to use native HTML form validation to prevent form submission when the value is missing or invalid, or mark the field as required or invalid via ARIA.
         label: The content to display as the label.
         description: A description for the field. Provides a hint such as specific requirements for what to choose.
         error_message: An error message for the field.

@@ -1,27 +1,20 @@
 from __future__ import annotations
 from typing import Any, Callable
 from .types import (
-    # Events
     FocusEventCallable,
-    # Layout
     AlignSelf,
     CSSProperties,
     DimensionValue,
     JustifySelf,
     LayoutFlex,
     Position,
-    LabelPosition,
-    Align,
-    # Validation
-    NecessityIndicator,
-    Orientation,
     KeyboardEventCallable,
 )
 from .basic import component_element
 from ..elements import Element
 from .._internal.utils import create_props
 
-# TODO: Add pydocs #515
+
 def radio(
     *children,
     value: str | None = None,
