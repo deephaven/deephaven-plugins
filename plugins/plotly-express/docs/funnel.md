@@ -12,5 +12,5 @@ Funnel plots are useful for:
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.funnel
+.. dhautofunction:: deephaven.plot.express.funnel
 ```

@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import {
   DehydratedQuickFilter,
   IrisGrid,
-  IrisGridType,
+  type IrisGridType,
   type IrisGridContextMenuData,
   IrisGridModel,
   IrisGridModelFactory,
@@ -15,9 +15,10 @@ import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { getSettings, RootState } from '@deephaven/redux';
 import { GridMouseHandler } from '@deephaven/grid';
-import { UITableProps, wrapContextActions } from './utils/UITableUtils';
-import UITableMouseHandler from './utils/UITableMouseHandler';
-import UITableContextMenuHandler from './utils/UITableContextMenuHandler';
+import { UITableProps, wrapContextActions } from './UITableUtils';
+import UITableMouseHandler from './UITableMouseHandler';
+import JsTableProxy from './JsTableProxy';
+import UITableContextMenuHandler from './UITableContextMenuHandler';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
 
@@ -34,6 +35,11 @@ export function UITable({
   table: exportedTable,
   showSearch: showSearchBar,
   showQuickFilters,
+  frontColumns,
+  backColumns,
+  frozenColumns,
+  hiddenColumns,
+  columnGroups,
   contextMenu,
   contextHeaderMenu,
 }: UITableProps): JSX.Element | null {
@@ -43,6 +49,13 @@ export function UITable({
   const [columns, setColumns] = useState<dh.Table['columns']>();
   const utils = useMemo(() => new IrisGridUtils(dh), [dh]);
   const settings = useSelector(getSettings<RootState>);
+  const [layoutHints] = useState({
+    frontColumns,
+    backColumns,
+    frozenColumns,
+    hiddenColumns,
+    columnGroups,
+  });
 
   const hydratedSorts = useMemo(() => {
     if (sorts !== undefined && columns !== undefined) {
@@ -80,7 +93,11 @@ export function UITable({
     let isCancelled = false;
     async function loadModel() {
       const reexportedTable = await exportedTable.reexport();
-      const newTable = (await reexportedTable.fetch()) as dh.Table;
+      const table = await reexportedTable.fetch();
+      const newTable = new JsTableProxy({
+        table: table as dh.Table,
+        layoutHints,
+      });
       const newModel = await IrisGridModelFactory.makeModel(dh, newTable);
       if (!isCancelled) {
         setColumns(newTable.columns);
@@ -93,7 +110,7 @@ export function UITable({
     return () => {
       isCancelled = true;
     };
-  }, [dh, exportedTable]);
+  }, [dh, exportedTable, layoutHints]);
 
   const mouseHandlers = useMemo(
     () =>
@@ -101,6 +118,7 @@ export function UITable({
         ? ([
             new UITableMouseHandler(
               model,
+              irisGrid,
               onCellPress,
               onCellDoublePress,
               onColumnPress,

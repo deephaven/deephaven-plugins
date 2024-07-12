@@ -45,21 +45,11 @@ const { dependencies = {}, devDependencies = {} } = JSON.parse(
 const dhPackageNames = [
   ...new Set(
     [...Object.keys(dependencies), ...Object.keys(devDependencies)].filter(
-      name => name.startsWith('@deephaven')
+      // Don't include jsapi-types, that is on a different cadence, with the deephaven-core version
+      name => name !== '@deephaven/jsapi-types' && name.startsWith('@deephaven')
     )
   ),
 ];
-
-const dhPackageUpdates = new Map(
-  dhPackageNames.map(name => [
-    name,
-    // If targetVersionOverride is set, use it for all packages except for
-    // `@deephaven/jsapi-types` since it has it's own versioning cadence.
-    targetVersionOverride == null || name === '@deephaven/jsapi-types'
-      ? targetVersionDefault
-      : targetVersionOverride,
-  ])
-);
 
 if (dhPackageNames.length === 0) {
   console.log(
@@ -67,6 +57,13 @@ if (dhPackageNames.length === 0) {
   );
   process.exit(0);
 }
+
+const dhPackageUpdates = new Map(
+  dhPackageNames.map(name => [
+    name,
+    targetVersionOverride ?? targetVersionDefault,
+  ])
+);
 
 console.log('Updating packages:', dhPackageUpdates);
 

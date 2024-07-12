@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { PressEvent } from '@react-types/shared';
+import { PressEvent } from '@deephaven/components';
 import { getTargetName } from '../utils';
 
 export function serializePressEvent(event: PressEvent): SerializedPressEvent {

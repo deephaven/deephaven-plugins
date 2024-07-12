@@ -160,3 +160,5 @@ BorderRadius = Literal[
     "medium",
     "large",
 ]
+IconSize = Literal["XXS", "XS", "S", "M", "L", "XL", "XXL"]
+IconColor = Literal["negative", "notice", "positive", "informative"]

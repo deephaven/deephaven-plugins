@@ -63,7 +63,6 @@ def ui_components():
         ui.grid("Grid A", "Grid B"),
         ui.heading("Heading"),
         ui.icon("vsSymbolMisc"),
-        # TODO: #526 ui.icon_wrapper("TODO: fix this"),
         ui.illustrated_message(
             ui.icon("vsWarning"),
             ui.heading("Warning"),
@@ -134,7 +133,12 @@ ui_render_all = ui.dashboard(
     ui.stack(
         ui.panel(
             ui.table(_column_types),
-            ui.grid(_my_components, _my_html_elements, columns=["1fr", "1fr", "1fr"]),
+            ui.grid(
+                _my_components,
+                _my_html_elements,
+                columns=["1fr", "1fr", "1fr"],
+                width="100%",
+            ),
             title="Panel B",
         ),
     )

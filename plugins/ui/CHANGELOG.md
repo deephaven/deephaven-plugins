@@ -2,6 +2,48 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.17.0 - 2024-07-09
+#### Bug Fixes
+- Remove type imports from @react-types/shared (#610) - (66dc4bf) - Akshat Jawne
+- ui.table cell and row press event data can be wrong (#593) - (c4a2fe7) - Matthew Runyon
+- icons in illustrated message (#575) - (1623ff5) - ethanalvizo
+- remove Number type and replace with float/int (#590) - (d0e24f4) - Akshat Jawne
+- Don't render objects/children of panels if there's a widget error (#577) (#585) - (bd8cca9) - mofojed
+- Don't use a key for the ErrorBoundary in a Panel (#574) - (4a25715) - mofojed
+- Wrap the children of ReactPanel with an ErrorBoundary (#565) - (8cbee84) - mofojed
+#### Build system
+- Update DHC packages to ^0.85.0 (#605) - (df6786a) - bmingles
+#### Documentation
+- icon (#594) - (20fe042) - ethanalvizo
+- item (#531) - (21fe131) - ethanalvizo
+- illustrated message (#532) - (137c1ea) - ethanalvizo
+- heading (#553) - (00875f9) - ethanalvizo
+- grid (#552) - (5bf53e6) - ethanalvizo
+#### Features
+- UI table layout hints (#587) - (5e3c5e2) - Matthew Runyon
+- UI ComboBox component (#588) - (0564299) - bmingles
+- make ui.panel flex align-items start by default (#604) - (be97ad8) - Don
+- UI Tabs Improvement (#489) - (145493a) - Akshat Jawne
+- Replace shortid with nanoid (#591) - (ad8aad9) - Akshat Jawne
+- ui.table context menu items (#522) - (32d09e8) - Matthew Runyon
+#### Refactoring
+- Remove row and column indexes from table press handlers (#592) - (05fc8f0) - Matthew Runyon
+
+- - -
+
+## ui-v0.16.0 - 2024-07-09
+#### Documentation
+- view (#506) - (e4b7137) - ethanalvizo
+#### Features
+- Return callables from callables in Deephaven UI (#540) - (8322c2d) - Matthew Runyon
+- Use `useWidget` hook to load widgets (#502) - (d9d1e5e) - mofojed
+#### Refactoring
+- Cleanup js mappings for ui components + utils (#530) - (bbce797) - bmingles
+#### Revert
+- "revert: Revert some changes that are not compatible with v0.78 (#550)" (#551) - (3502f02) - mofojed
+
+- - -
+
 ## ui-v0.16.0 - 2024-06-19
 #### Documentation
 - view (#506) - (e4b7137) - ethanalvizo

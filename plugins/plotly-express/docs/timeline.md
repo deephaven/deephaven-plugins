@@ -7,5 +7,5 @@ Timeline plots in offer a means to visualize time-related data, displaying event
 
 ## API Reference
 ```{eval-rst}
-.. autofunction:: deephaven.plot.express.timeline
+.. dhautofunction:: deephaven.plot.express.timeline
 ```

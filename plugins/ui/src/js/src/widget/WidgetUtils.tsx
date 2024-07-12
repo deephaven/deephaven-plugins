@@ -20,7 +20,6 @@ import {
   Section,
   Switch,
   TabList,
-  Tabs,
   Text,
   ToggleButton,
   View,
@@ -51,6 +50,7 @@ import {
   ActionButton,
   ActionGroup,
   Button,
+  ComboBox,
   Form,
   IllustratedMessage,
   ListView,
@@ -62,6 +62,7 @@ import {
   TabPanels,
   TextField,
   UITable,
+  Tabs,
 } from '../elements';
 
 /**
@@ -97,6 +98,7 @@ export const elementComponentMap = {
   [ELEMENT_NAME.button]: Button,
   [ELEMENT_NAME.buttonGroup]: ButtonGroup,
   [ELEMENT_NAME.checkbox]: Checkbox,
+  [ELEMENT_NAME.comboBox]: ComboBox,
   [ELEMENT_NAME.content]: Content,
   [ELEMENT_NAME.contextualHelp]: ContextualHelp,
   [ELEMENT_NAME.flex]: Flex,
@@ -119,6 +121,7 @@ export const elementComponentMap = {
   [ELEMENT_NAME.switch]: Switch,
   [ELEMENT_NAME.tabList]: TabList,
   [ELEMENT_NAME.tabPanels]: TabPanels,
+  [ELEMENT_NAME.tab]: Item,
   [ELEMENT_NAME.tabs]: Tabs,
   [ELEMENT_NAME.text]: Text,
   [ELEMENT_NAME.textField]: TextField,
