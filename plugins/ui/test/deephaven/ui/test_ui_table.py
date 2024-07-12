@@ -218,3 +218,72 @@ class UITableTestCase(BaseTestCase):
         )
 
         self.assertRaises(ValueError, ui_table.sort, ["X", "Y"], ["INVALID"])
+
+    def test_front_columns(self):
+        import deephaven.ui as ui
+
+        t = ui.table(self.source, front_columns=["X"])
+
+        self.expect_render(
+            t,
+            {
+                "frontColumns": ["X"],
+            },
+        )
+
+    def test_back_columns(self):
+        import deephaven.ui as ui
+
+        t = ui.table(self.source, back_columns=["X"])
+
+        self.expect_render(
+            t,
+            {
+                "backColumns": ["X"],
+            },
+        )
+
+    def test_frozen_columns(self):
+        import deephaven.ui as ui
+
+        t = ui.table(self.source, frozen_columns=["X"])
+
+        self.expect_render(
+            t,
+            {
+                "frozenColumns": ["X"],
+            },
+        )
+
+    def test_hidden_columns(self):
+        import deephaven.ui as ui
+
+        t = ui.table(self.source, hidden_columns=["X"])
+
+        self.expect_render(
+            t,
+            {
+                "hiddenColumns": ["X"],
+            },
+        )
+
+    def test_column_groups(self):
+        import deephaven.ui as ui
+
+        t = ui.table(
+            self.source,
+            column_groups=[{"name": "Group", "children": ["X"], "color": "red"}],
+        )
+
+        self.expect_render(
+            t,
+            {
+                "columnGroups": [
+                    {
+                        "name": "Group",
+                        "children": ["X"],
+                        "color": "red",
+                    }
+                ],
+            },
+        )

@@ -12,17 +12,6 @@ def component_element(name: str, /, *children: Any, **props: Any) -> BaseElement
     return BaseElement(f"deephaven.ui.components.{name}", *children, **props)
 
 
-def icon_wrapper(*children, **props):
-    """
-    Python implementation for the Adobe React Spectrum Icon component.
-    Named icon_wrapper so as not to conflict with the Deephaven icon component.
-    TODO: This doesn't seem to work correctly. It throws an error saying `Cannot read properties of undefined (reading 'className')`.
-    https://react-spectrum.adobe.com/react-spectrum/Icon.html
-    https://github.com/deephaven/deephaven-plugins/issues/526
-    """
-    return component_element("Icon", *children, **props)
-
-
 def switch(*children, **props):
     """
     Python implementation for the Adobe React Spectrum Switch component.
