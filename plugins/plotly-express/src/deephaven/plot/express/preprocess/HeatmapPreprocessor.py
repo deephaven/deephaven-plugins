@@ -38,6 +38,12 @@ class HeatmapPreprocessor:
         self.nbinsy = args.pop("nbinsy")
         self.range_bins_x = args.pop("range_bins_x")
         self.range_bins_y = args.pop("range_bins_y")
+        self.empty_bin_default = args.pop("empty_bin_default")
+        if (
+            self.histfunc in {"count", "count_distinct"}
+            and self.empty_bin_default is None
+        ):
+            self.empty_bin_default = 0
         # create unique names for the columns to ensure no collisions
         self.names = get_unique_names(
             self.args["table"],
@@ -132,7 +138,7 @@ class HeatmapPreprocessor:
         ranged_bin_counts = bin_counts.join(range_table)
 
         bin_counts_with_midpoint = calculate_bin_locations(
-            ranged_bin_counts, self.names, histfunc_col
+            ranged_bin_counts, self.names, histfunc_col, self.empty_bin_default
         )
 
         heatmap_agg_label = f"{self.histfunc} of {z}" if z else self.histfunc

@@ -231,6 +231,7 @@ def calculate_bin_locations(
     ranged_bin_counts: Table,
     names: dict[str, str],
     histfunc_col: str,
+    empty_bin_default: float | str | None,
 ) -> Table:
     """
     Compute the center of the bins for the x and y axes
@@ -240,6 +241,7 @@ def calculate_bin_locations(
         bin_counts_ranged: A table that contains the bin counts and the range columns
         names: The names used for columns so that they don't collide
         histfunc_col: The column that contains the aggregated values
+        empty_bin_default: The default value to use for bins that have no data
 
     Returns:
         A table that contains the bin counts and the center of the bins
@@ -255,6 +257,14 @@ def calculate_bin_locations(
     x = names["x"]
     y = names["y"]
     agg_col = names["agg_col"]
+
+    # both "NaN" and None require no replacement
+    # it is assumed that default_bin_value has already been set to a number
+    # if needed, such as in the case of a histfunc of count or count_distinct
+    if empty_bin_default not in {"NaN", None}:
+        ranged_bin_counts = ranged_bin_counts.update_view(
+            f"{agg_col} = replaceIfNull({agg_col}, {empty_bin_default})"
+        )
 
     return ranged_bin_counts.update_view(
         [

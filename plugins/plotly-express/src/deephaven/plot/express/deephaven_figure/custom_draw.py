@@ -119,8 +119,8 @@ def draw_density_heatmap(
     z: str,
     labels: dict[str, str] | None = None,
     range_color: list[float] | None = None,
-    color_continuous_scale: str | None = "Viridis",
-    color_continuous_midpoint: list[float] | None = None,
+    color_continuous_scale: str | list[str] | None = "plasma",
+    color_continuous_midpoint: float | None = None,
     opacity: float = 1.0,
     title: str | None = None,
     template: str | None = None,
@@ -133,7 +133,7 @@ def draw_density_heatmap(
       y: The name of the column containing y-axis values
       z: The name of the column containing bin values
       labels: A dictionary of labels mapping columns to new labels
-      color_continuous_scale: A list of colors for a continuous scale
+      color_continuous_scale: A color scale or list of colors for a continuous scale
       range_color: A list of two numbers that form the endpoints of the color axis
       color_continuous_midpoint: A number that is the midpoint of the color axis
       opacity: Opacity to apply to all markers. 0 is completely transparent

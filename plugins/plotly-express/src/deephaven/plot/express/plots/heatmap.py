@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable
+from typing import Callable, Literal
 
 from deephaven.plot.express.shared import default_callback
 
@@ -15,7 +15,7 @@ def density_heatmap(
     y: str | None = None,
     z: str | None = None,
     labels: dict[str, str] | None = None,
-    color_continuous_scale: str | None = None,
+    color_continuous_scale: str | list[str] | None = None,
     range_color: list[float] | None = None,
     color_continuous_midpoint: float | None = None,
     opacity: float = 1.0,
@@ -28,6 +28,7 @@ def density_heatmap(
     histfunc: str = "count",
     nbinsx: int = 10,
     nbinsy: int = 10,
+    empty_bin_default: float | Literal["NaN"] | None = None,
     title: str | None = None,
     template: str | None = None,
     unsafe_update_figure: Callable = default_callback,
@@ -41,7 +42,7 @@ def density_heatmap(
       y: A column that contains y-axis values.
       z: A column that contains z-axis values. If not provided, the count of joint occurrences of x and y will be used.
       labels: A dictionary of labels mapping columns to new labels.
-      color_continuous_scale: A list of colors for a continuous scale
+      color_continuous_scale: A color scale or list of colors for a continuous scale
       range_color: A list of two numbers that form the endpoints of the color axis
       color_continuous_midpoint: A number that is the midpoint of the color axis
       opacity: Opacity to apply to all markers. 0 is completely transparent
@@ -63,6 +64,11 @@ def density_heatmap(
         'sum', or 'var'
       nbinsx: The number of bins to use for the x-axis
       nbinsy: The number of bins to use for the y-axis
+      empty_bin_default: The value to use for bins that have no data.
+        If None and histfunc is 'count' or 'count_distinct', 0 is used.
+        Otherwise, if None or 'NaN', NaN is used.
+        Note that if multiple points are required to color a bin, such as the case for a histfunc of 'std' or var,
+        the bin will still be NaN if less than the required number of points are present.
       title: The title of the chart
       template: The template for the chart.
       unsafe_update_figure: An update function that takes a plotly figure
