@@ -34,7 +34,7 @@ def radio_group(
     name: str | None = None,
     is_required: bool | None = None,
     is_invalid: bool | None = None,
-    validation_behaviour: ValidationBehavior,
+    validation_behaviour: ValidationBehavior | None = None,
     # validate, # omitted because of synchronouse return
     label: Any | None = None,
     description: Any | None = None,
