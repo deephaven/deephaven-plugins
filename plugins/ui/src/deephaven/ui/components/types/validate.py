@@ -11,3 +11,14 @@ TextFieldValidationState = Literal["valid", "invalid"]
 NecessityIndicator = Literal["icon", "label"]
 
 ContextualHelperVariant = Literal["help", "info"]
+
+EncodingType = Literal[
+    "application/x-www-form-urlencoded", "multipart/form-data", "text/plain"
+]
+
+HTTPMethods = Literal["get", "post", "dialog"]
+
+Target = Literal["_self", "_blank", "_parent", "_top"]
+
+AutoCompleteModes = Literal["on", "off"]
+AutoCapitalizeModes = Literal["off", "none", "on", "sentences", "words", "characters"]
