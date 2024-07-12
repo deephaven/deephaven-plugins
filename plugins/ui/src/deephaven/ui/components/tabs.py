@@ -23,7 +23,7 @@ def tabs(
     is_disabled: bool | None = None,
     is_quiet: bool | None = None,
     is_emphasized: bool | None = None,
-    density: TabDensity | None = "regular",
+    density: TabDensity | None = "compact",
     keyboard_activation: KeyboardActivationType | None = "automatic",
     orientation: Orientation | None = "horizontal",
     disallow_empty_selection: bool | None = None,
