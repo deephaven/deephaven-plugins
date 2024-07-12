@@ -1,11 +1,9 @@
 from __future__ import annotations
-from typing import Any, Callable, Iterable, Union
+from typing import Any
 
 from .basic import component_element
 
 from .types import (
-    KeyboardActivationType,
-    Orientation,
     AlignSelf,
     CSSProperties,
     DimensionValue,
@@ -14,25 +12,11 @@ from .types import (
     Position,
 )
 
-from ..types import Key, TabDensity
 
-
-def tabs(
+def tab_list(
     *children: Any,
-    disabled_keys: Iterable[Key] | None = None,
-    is_disabled: bool | None = None,
-    is_quiet: bool | None = None,
-    is_emphasized: bool | None = None,
-    density: TabDensity | None = "compact",
-    keyboard_activation: KeyboardActivationType | None = "automatic",
-    orientation: Orientation | None = "horizontal",
-    disallow_empty_selection: bool | None = None,
-    selected_key: Key | None = None,
-    default_selected_key: Key | None = None,
-    on_selection_change: Callable[[Key], None] | None = None,
-    on_change: Callable[[Key], None] | None = None,
     flex: LayoutFlex | None = None,
-    flex_grow: float | None = 1,
+    flex_grow: float | None = None,
     flex_shrink: float | None = None,
     flex_basis: DimensionValue | None = None,
     align_self: AlignSelf | None = None,
@@ -47,7 +31,7 @@ def tabs(
     grid_column_end: str | None = None,
     margin: DimensionValue | None = None,
     margin_top: DimensionValue | None = None,
-    margin_bottom: DimensionValue | None = None,
+    margin_bottom: DimensionValue | None = "size-100",
     margin_start: DimensionValue | None = None,
     margin_end: DimensionValue | None = None,
     margin_x: DimensionValue | None = None,
@@ -68,34 +52,15 @@ def tabs(
     z_index: int | None = None,
     is_hidden: bool | None = None,
     id: str | None = None,
-    aria_label: str | None = None,
-    aria_labelled_by: str | None = None,
-    aria_described_by: str | None = None,
-    aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
 ):
     """
-    Python implementation for the Adobe React Spectrum Tabs component.
+    Python implementation for the Adobe React Spectrum TabList component.
     https://react-spectrum.adobe.com/react-spectrum/Tabs.html
 
     Args:
-        *children: The children of the tabs component outline how the tabs will be created, they can be either:
-            ui.tab: A tab item that is a shorthand way to create a tab item.
-            ui.tab_list & ui.tab_panels: A tab list and tab panels allow for more customization when creating tabs.
-        disabled_keys: The keys of the tabs that are disabled. These tabs cannot be selected, focused, or otherwise interacted with.
-        is_disabled: Whether the Tabs are disabled.
-        is_quiet: Whether the tabs are displayed in a quiet style.
-        is_emphasized: Whether the tabs are displayed in an emphasized style.
-        density: The amount of space between the tabs.
-        keyboard_activation: Whether tabs are activated automatically on focus or manually.
-        orientation: The orientation of the tabs.
-        disallow_empty_selection: Whether the collection allows empty selection.
-        selected_key: The currently selected key in the collection (controlled).
-        default_selected_key: The initial selected key in the collection (uncontrolled).
-        on_selection_change: Callback for when the selected key changes.
-        on_change:
-            Alias of `on_selection_change`. Handler that is called when the selection changes.
+        *children: The children of the tab list component outline the list of tabs that will be created.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -127,51 +92,15 @@ def tabs(
         z_index: The stacking order for the element
         is_hidden: Hides the element.
         id: The unique identifier of the element.
-        aria_label: Defines a string value that labels the current element.
-        aria_labelled_by: Identifies the element (or elements) that labels the current element.
-        aria_described_by: Identifies the element (or elements) that describes the object.
-        aria_details: Identifies the element (or elements) that provide a detailed, extended description for the object.
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
     """
     if not children:
-        raise ValueError("Tabs must have at least one child.")
-
-    tab_children = [
-        child for child in children if child.name == "deephaven.ui.spectrum.Tab"
-    ]
-
-    tab_list_children = [
-        child for child in children if child.name == "deephaven.ui.spectrum.TabList"
-    ]
-    tab_panels_children = [
-        child for child in children if child.name == "deephaven.ui.spectrum.TabPanels"
-    ]
-
-    tab_list_keys = {list_child.key for list_child in tab_list_children}
-    tab_panels_keys = {panel_child.key for panel_child in tab_panels_children}
-
-    if tab_list_keys != tab_panels_keys:
-        raise ValueError("Mismatching keys found between tab list and tab panels.")
-
-    if tab_children and (tab_list_children and tab_panels_children):
-        raise TypeError("Tabs cannot have both Tab and TabList or TabPanels children.")
+        raise ValueError("Tab Lists must have at least one child.")
 
     return component_element(
-        "Tabs",
+        "TabList",
         *children,
-        disabled_keys=disabled_keys,
-        is_disabled=is_disabled,
-        is_quiet=is_quiet,
-        is_emphasized=is_emphasized,
-        density=density,
-        keyboard_activation=keyboard_activation,
-        orientation=orientation,
-        disallow_empty_selection=disallow_empty_selection,
-        selected_key=selected_key,
-        default_selected_key=default_selected_key,
-        on_selection_change=on_selection_change,
-        on_change=on_change,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
@@ -209,10 +138,6 @@ def tabs(
         z_index=z_index,
         is_hidden=is_hidden,
         id=id,
-        aria_label=aria_label,
-        aria_labelled_by=aria_labelled_by,
-        aria_described_by=aria_described_by,
-        aria_details=aria_details,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
     )
