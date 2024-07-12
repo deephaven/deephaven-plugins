@@ -1,7 +1,9 @@
 import { useCallback } from 'react';
-// TODO: web-client-ui#2084 Re-export @react-types/shared types
-import type { SelectionMode } from '@react-types/shared';
-import type { ItemKey, ItemSelection } from '@deephaven/components';
+import type {
+  ItemKey,
+  ItemSelection,
+  SelectionMode,
+} from '@deephaven/components';
 
 export type SerializedSelection = 'all' | ItemKey[];
 

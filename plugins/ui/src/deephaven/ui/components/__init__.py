@@ -3,7 +3,6 @@ from .action_group import action_group
 from .action_menu import action_menu
 from .basic import (
     component_element,
-    icon_wrapper,
     form,
     switch,
     tab_list,
@@ -47,7 +46,6 @@ from .tabs import tabs
 from .text_field import text_field
 from .toggle_button import toggle_button
 from .view import view
-from .types import *
 
 from . import html
 
@@ -73,7 +71,6 @@ __all__ = [
     "grid",
     "heading",
     "icon",
-    "icon_wrapper",
     "item",
     "item_table_source",
     "illustrated_message",

@@ -1,11 +1,11 @@
 import { useSelector } from 'react-redux';
 import {
-  Picker as DHPicker,
-  PickerProps as DHPickerProps,
+  ComboBox as DHComboBox,
+  ComboBoxProps as DHComboBoxProps,
 } from '@deephaven/components';
 import {
-  Picker as DHPickerJSApi,
-  PickerProps as DHPickerJSApiProps,
+  ComboBox as DHComboBoxJSApi,
+  ComboBoxProps as DHComboBoxJSApiProps,
 } from '@deephaven/jsapi-components';
 import { isElementOfType } from '@deephaven/react-hooks';
 import { getSettings, RootState } from '@deephaven/redux';
@@ -15,11 +15,11 @@ import {
   WrappedDHPickerJSApiProps,
 } from './hooks/usePickerProps';
 import ObjectView from './ObjectView';
-import useReExportedTable from './hooks/useReExportedTable';
+import { useReExportedTable } from './hooks/useReExportedTable';
 
-export function Picker(
+export function ComboBox(
   props: SerializedPickerProps<
-    DHPickerProps | WrappedDHPickerJSApiProps<DHPickerJSApiProps>
+    DHComboBoxProps | WrappedDHPickerJSApiProps<DHComboBoxJSApiProps>
   >
 ): JSX.Element | null {
   const settings = useSelector(getSettings<RootState>);
@@ -32,13 +32,13 @@ export function Picker(
     return (
       table && (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <DHPickerJSApi {...pickerProps} table={table} settings={settings} />
+        <DHComboBoxJSApi {...pickerProps} table={table} settings={settings} />
       )
     );
   }
 
   // eslint-disable-next-line react/jsx-props-no-spreading
-  return <DHPicker {...pickerProps}>{children}</DHPicker>;
+  return <DHComboBox {...pickerProps}>{children}</DHComboBox>;
 }
 
-export default Picker;
+export default ComboBox;
