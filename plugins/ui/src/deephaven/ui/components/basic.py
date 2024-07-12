@@ -12,6 +12,14 @@ def component_element(name: str, /, *children: Any, **props: Any) -> BaseElement
     return BaseElement(f"deephaven.ui.components.{name}", *children, **props)
 
 
+def form(*children, **props):
+    """
+    Python implementation for the Adobe React Spectrum Form component.
+    https://react-spectrum.adobe.com/react-spectrum/Form.html
+    """
+    return component_element("Form", *children, **props)
+
+
 def switch(*children, **props):
     """
     Python implementation for the Adobe React Spectrum Switch component.
