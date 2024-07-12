@@ -31,7 +31,7 @@ def tab_list(
     grid_column_end: str | None = None,
     margin: DimensionValue | None = None,
     margin_top: DimensionValue | None = None,
-    margin_bottom: DimensionValue | None = "8px",
+    margin_bottom: DimensionValue | None = "size-100",
     margin_start: DimensionValue | None = None,
     margin_end: DimensionValue | None = None,
     margin_x: DimensionValue | None = None,
