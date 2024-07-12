@@ -5,7 +5,6 @@ from .basic import (
     component_element,
     form,
     switch,
-    tab_panels,
     text,
 )
 from .button import button
@@ -40,6 +39,7 @@ from .section import section
 from .slider import slider
 from .stack import stack
 from .tab_list import tab_list
+from .tab_panels import tab_panels
 from .tab import tab
 from .table import table
 from .tabs import tabs
