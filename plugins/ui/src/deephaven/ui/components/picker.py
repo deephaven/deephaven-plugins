@@ -61,7 +61,7 @@ def picker(
     validation_behavior: ValidationBehavior | None = None,
     # validate # omitted because it has synchronous return
     description: Element | None = None,
-    # error_message # omitted because it has synchronous return
+    error_message: Element | None = None,
     label: Element | None = None,
     placeholder: str | None = None,
     is_loading: bool | None = None,
@@ -162,6 +162,7 @@ def picker(
         is_invalid: Whether the Picker is in an invalid state.
         validation_behavior: Whether to use native HTML form validation to prevent form submission when the value is missing or invalid, or mark the field as required or invalid via ARIA.
         description: A description for the field. Provides a hint such as specific requirements for what to choose.
+        error_message: An error message for the field.
         label: A label for the field.
         placeholder: Placeholder text for the input.
         is_loading: Whether the Picker is in a loading state.
