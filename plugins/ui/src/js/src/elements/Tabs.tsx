@@ -153,9 +153,7 @@ export function Tabs(props: TabComponentProps): JSX.Element {
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...otherTabProps}
     >
-      <TabList UNSAFE_style={{ marginBottom: '8px' }}>
-        {tabListChildren}
-      </TabList>
+      <TabList marginBottom="size-100">{tabListChildren}</TabList>
       <TabPanels>{tabPanelsChildren}</TabPanels>
     </DHCTabs>
   );
