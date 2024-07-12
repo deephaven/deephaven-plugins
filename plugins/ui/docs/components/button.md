@@ -79,7 +79,7 @@ from deephaven import ui
 def static_buttons():
     return [
         ui.view(
-            ui.flex(
+            ui.button_group(
                 ui.button("White fill", static_color="white", style="fill"),
                 ui.button(
                     "White outline",
@@ -91,7 +91,7 @@ def static_buttons():
             padding="size-300",
         ),
         ui.view(
-            ui.flex(
+            ui.button_group(
                 ui.button("Black fill", static_color="black", style="fill"),
                 ui.button(
                     "Black outline",
