@@ -15,4 +15,4 @@ except FileNotFoundError:
 
 package_js(js_dir, dest_dir)
 
-setup()
+setup(package_data={"deephaven.ui._js": ["**"]})
