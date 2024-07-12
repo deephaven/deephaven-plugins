@@ -10,7 +10,6 @@ from ..elements import BaseElement, Element
 from .._internal.utils import create_props, unpack_item_table_source
 from ..types import Key
 from .types import (
-    # Layout
     AlignSelf,
     CSSProperties,
     DimensionValue,
@@ -53,13 +52,10 @@ def picker(
     name: str | None = None,
     is_open: bool | None = None,
     default_open: bool | None = None,
-    # items
-    # disabled_keys
     is_disabled: bool | None = None,
     is_required: bool | None = None,
     is_invalid: bool | None = None,
     validation_behavior: ValidationBehavior | None = None,
-    # validate # omitted because it has synchronous return
     description: Element | None = None,
     error_message: Element | None = None,
     label: Element | None = None,
@@ -75,7 +71,6 @@ def picker(
     on_focus_change: Callable[[bool], None] | None = None,
     on_key_down: KeyboardEventCallable | None = None,
     on_key_up: KeyboardEventCallable | None = None,
-    # on_load_more # omitted because it has synchronous return
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,
