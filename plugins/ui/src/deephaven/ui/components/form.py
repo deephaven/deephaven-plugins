@@ -29,10 +29,11 @@ def form(
     is_disabled: bool | None = None,
     is_required: bool | None = None,
     is_read_only: bool | None = None,
-    validation_state: ValidationState | None = "valid",
+    validation_state: ValidationState | None = None,
     validation_behavior: ValidationBehavior | None = "aria",
     # validation_errors # omitted because synchronous return
-    action: str | None = None,
+    # TODO dig into why action prop is not working anymore #625
+    # action: str | None = None,
     enc_type: EncodingType | None = None,
     method: HTTPMethods | None = None,
     target: Target | None = None,
@@ -101,7 +102,6 @@ def form(
         is_read_only: Whether the form should be read only.
         validation_state: Whether the Form elements should display their "valid" or "invalid" visual styling.
         validation_behavior: Whether to use native HTML form validation to prevent form submission when a field value is missing or invalid, or mark fields as required or invalid via ARIA.
-        action: The URL to submit the form data to.
         enc_type: The enctype attribute specifies how the form-data should be encoded when submitting it to the server.
         method: The HTTP method of the form.
         target: The target attribute specifies a name or a keyword that indicates where to display the response that is received after submitting the form.
@@ -168,7 +168,6 @@ def form(
         is_read_only=is_read_only,
         validation_state=validation_state,
         validation_behavior=validation_behavior,
-        action=action,
         enc_type=enc_type,
         method=method,
         target=target,
