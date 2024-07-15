@@ -3,7 +3,6 @@ from .action_group import action_group
 from .action_menu import action_menu
 from .basic import (
     component_element,
-    form,
     switch,
     text,
 )
@@ -17,6 +16,7 @@ from .contextual_help import contextual_help
 from .dashboard import dashboard
 from .date_picker import date_picker
 from .flex import flex
+from .form import form
 from .fragment import fragment
 from .heading import heading
 from .grid import grid
