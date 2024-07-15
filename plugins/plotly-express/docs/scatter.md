@@ -424,20 +424,19 @@ In situations where scatter plots become impractical due to overlaping markers i
 
 For large, but managable datasets, setting an appropriate opacity can be beneficial as it helps address data overlap issuess, making the individual data points more distinguishable and enhancing overall visualization clarity.
 
-<!-- TODO: link to density heatmap -->
+[Density Heatmap](density_heatmap.md)
 
 ```python order=density_heatmap,scatter_plot_opacity
 import deephaven.plot.express as dx
 my_table = dx.data.iris() # import the example iris data set
 
-# TODO: Method doesn't exist yet
-# Consider a 2d Histograms for large data sets
-density_heatmap = dx.density_heatmap(my_table, x="sepal_width", y="sepal_length")
+# Consider a density heatmap for large data sets
+heatmap_replacement = dx.density_heatmap(my_table, x="sepal_width", y="sepal_length")
 
 scatter_plot_opacity = dx.scatter(
     my_table,
     x="sepal_width",
-    y="sepal_length"
+    y="sepal_length",
     # For data sets with a high degree of overlap between points, consider setting opacity
     opacity=0.5
 )

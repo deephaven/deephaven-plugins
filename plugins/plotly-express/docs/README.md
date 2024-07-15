@@ -39,6 +39,15 @@ This page contains a collection of links to examples demonstrating different plo
 
 </CardList>
 
+### 2D Distribution Plots
+
+<CardList>
+
+[![Density Heatmap - Displays the distribution of continuous variables using a grid](_assets/plot_icons/density_heatmap.svg)](density_heatmap.md)
+
+</CardList>
+
+
 ### Financial Plots
 
 <CardList>
