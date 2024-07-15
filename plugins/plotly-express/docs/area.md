@@ -2,11 +2,9 @@
 
 An area plot, also known as a stacked area chart, is a data visualization that uses multiple filled areas stacked on top of one another to represent the cumulative contribution of distinct categories over a continuous interval or time period. Area plots always start the y-axis at zero, because the height of each line at any point is exactly equal to its contribution to the whole, and the proportion of each category's contribution must be represented faithfully.
 
-#### When are area plots appropriate?
-
 Area plots are appropriate when the data contain a continuous response variable that directly depends on a continuous explanatory variable, such as time. Further, the response variable can be broken down into contributions from each of several independent categories, and those categories are represented by an additional categorical variable. 
 
-#### What are area plots are useful for?
+#### Use cases
 
 - **Visualizing Trends Over Time**: Area plots are great for displaying the trend of a single continuous variable. The filled areas can make it easier to see the magnitude of changes and trends compared to line plots.
 - **Displaying Cumulative Totals**: Area plots are effective in showing cumulative totals over a period. They can help in understanding the contribution of different categories to the total amount and how these contributions evolve.
