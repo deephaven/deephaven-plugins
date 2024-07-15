@@ -67,6 +67,7 @@ export type UITableProps = {
   sorts?: DehydratedSort[];
   showSearch: boolean;
   showQuickFilters: boolean;
+  reverse: boolean;
   frontColumns?: string[];
   backColumns?: string[];
   frozenColumns?: string[];
