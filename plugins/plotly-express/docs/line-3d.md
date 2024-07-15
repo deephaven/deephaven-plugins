@@ -4,13 +4,13 @@
 
 #### When are 3D line plots appropriate?
 
-3D scatter plots are appropriate when a continuous reponse variable depends on two continuous explanatory variables. If there is an additional categorical variable that the response variable depends on, shapes or colors can be used in the scatter plot to distinguish the categories. Further, line plots are preferable to scatter plots when the explanatory variables are ordered.
+3D line plots are appropriate when a continuous response variable depends on two continuous explanatory variables. If there is an additional categorical variable that the response variable depends on, shapes or colors can be used in the scatter plot to distinguish the categories. Further, line plots are preferable to scatter plots when the explanatory variables are ordered.
 
 #### What are 3D line plots useful for?
 
-- **Multidimensional Data Visualization**: They allow for the representation of data in a 3D space, providing a more comprehensive view of complex relationships.
+- **Multidimensional Data Visualization**: 3D line plots allow for the representation of data in a 3D space, providing a more comprehensive view of complex relationships.
 - **Trend Exploration**: 3D line plots are useful for exploring and understanding trends, patterns, and variations in data within a 3D space, making them valuable in scientific and engineering fields.
-- **Data Interaction**: They enable the visualization of data interactions within three-dimensional datasets, aiding in the analysis of data dependencies and correlations.
+- **Data Interaction**: They enable the visualization of data interactions within 3D datasets, aiding in the analysis of data dependencies and correlations.
 
 Alternatives to 3D line plots include:
 

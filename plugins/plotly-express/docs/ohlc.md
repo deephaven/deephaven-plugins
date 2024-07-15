@@ -14,7 +14,7 @@ In OHLC plots, each bar consists of a vertical line with small horizontal lines 
 
 ### A basic OHLC plot
 
-Visualize the key summary statics of a single continuous variable as it evolves. This plot is functionally similar to a candlestick plot, but has a different appearance.
+Visualize the key summary statistics of a single continuous variable as it evolves. This plot is functionally similar to a candlestick plot, but has a different appearance.
 
 ```python order=ohlc_plot,stocks_1min_ohlc,stocks
 import deephaven.plot.express as dx

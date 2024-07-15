@@ -10,7 +10,7 @@ Ternary line plots are appropriate when the data contain three interrelated mutu
 
 - **Compositional Data Representation**: Ternary line plots are suitable for representing compositional data where the total proportion remains constant, allowing for the visualization of how components change relative to one another.
 - **Multivariate Data Analysis**: They are useful in multivariate data analysis to visualize relationships and trends among three variables or components that are interrelated.
-- **Optimization Studies**: Ternary line plots can be applied in optimization studies to understand how adjustments in the proportions of three components impact the overall composition, aiding in informed decision-making.
+- **Optimization Studies**: They can be applied in optimization studies to understand how adjustments in the proportions of three components impact the overall composition, aiding in informed decision-making.
 
 ## Examples
 

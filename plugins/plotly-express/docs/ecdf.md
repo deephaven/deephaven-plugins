@@ -14,5 +14,5 @@ ECDF plots are appropriate when the data contain a continuous variable of intere
 #### What are ECDF plots useful for?
 
 - **Distribution Visualization**: When you want to visualize the distribution of a dataset and understand the cumulative behavior of data points.
-- **Comparison to Normality**: ECDF plots are often plotted against the ECDF of an appropriate normal distribution to give an indication of whether the data are normally distributed.
+- **Comparison to Normality**: ECDF plots are often plotted against the ECDF of an appropriate normal distribution to indicate whether the data are normally distributed.
 - **Computing Empirical Percentiles**: ECDF plots can be used to compute the empirical percentile of any given value in a dataset, yielding a quick and easy way to visualize a laborious calculation.

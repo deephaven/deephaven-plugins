@@ -14,7 +14,7 @@ Pie plots are appropriate when the data contain a categorical variable where the
 Limitations of pie plots include:
 
 - **Limited Categories**: Pie plots become less effective when dealing with a large number of categories, as it can be challenging to differentiate and interpret small slices, leading to cluttered and less informative visualizations. Consider using a bar plot instead.
-- **Comparison Complexity**: Comparing the sizes of slices in a pie plot is less precise than with other chart types, such as bar plots or stacked bar charts. This makes it less suitable for situations where accurate quantitative comparisons are crucial.
+- **Comparison Complexity**: Comparing the sizes of slices in a pie plot is less precise than with other chart types, such as bar plots or stacked bar plots. This makes it less suitable for situations where accurate quantitative comparisons are crucial.
 
 ## Examples
 

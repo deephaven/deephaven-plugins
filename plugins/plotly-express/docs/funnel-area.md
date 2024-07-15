@@ -2,7 +2,7 @@
 
 A funnel area plot is a data visualization that is typically used to represent data where values progressively decrease or "funnel" through stages or categories. It takes the form of a series of horizontally aligned trapezoids or polygons, with each stage's area proportional to the quantity it represents, making it a useful tool for visualizing the attrition or progression of data through a sequential process.
 
-Funnel area plots differ from funnel plots in that they display the percentage of data points that belong to each category, while funnel plots display the absolute count of data points in each category. Funnel area plots also count each data point as belonging to _exactly one_ category, and display the categories as mutually exclusive. On the other hand, funnel plots count each data point as belonging to _at least one_ category, so the categories are represented as subsets of eachother, rather than mutually exclusive.
+Funnel area plots differ from funnel plots in that they display the percentage of data points that belong to each category, while funnel plots display the absolute count of data points in each category. Funnel area plots also count each data point as belonging to _exactly one_ category and display the categories as mutually exclusive. On the other hand, funnel plots count each data point as belonging to _at least one_ category, so the categories are represented as subsets of each other rather than mutually exclusive.
 
 #### When are funnel area plots appropriate?
 

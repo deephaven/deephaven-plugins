@@ -122,8 +122,8 @@ The following terms define different types of variable. Variable types are impor
 
 The following terms define relationships between variables. They do not describe attributes of a variable, but describe how a variable relates to others:
 
-- **Explanatory variable**: An explanatory variable is a variable that other variables depend on in some important way. The most common example is time. If there are explanatory variables displayed in a plot, they are presented on the x-axis by convention.
-- **Response variable**: A response variable is a variable that depends directly on another variable (the explanatory variable) in some important way. A rule of thumb is that explanatory variables are used to make predictions about repsonse variables, but not conversely. If there are response variables displayed in a plot, they are presented on the y-axis by convention.
+- **Explanatory variable**: A variable that other variables depend on in some important way. The most common example is time. If explanatory variables are displayed in a plot, they are presented on the x-axis by convention.
+- **Response variable**: A variable that depends directly on another variable (the explanatory variable) in some important way. A rule of thumb is that explanatory variables are used to make predictions about repsonse variables, but not conversely. If response variables are displayed in a plot, they are presented on the y-axis by convention.
 
 ## Contributing
 
