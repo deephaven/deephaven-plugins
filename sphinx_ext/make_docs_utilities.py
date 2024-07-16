@@ -92,11 +92,7 @@ def build_documents() -> None:
 
     print("Copying assets")
     os.system(f"cp -r docs/_assets {BUILT_DOCS}/_assets")
-    try:
-        os.system(f"cp docs/sidebar.json {BUILT_DOCS}/sidebar.json")
-    except FileNotFoundError:
-        # the sidebar may not exist
-        pass
+    os.system(f"cp docs/sidebar.json {BUILT_DOCS}/sidebar.json")
 
     os.system(f"rm {BUILT_DOCS}/index.md")
 
