@@ -6,6 +6,7 @@ from typing import Callable
 from pandas import DataFrame
 import plotly.graph_objects as go
 from plotly.graph_objects import Figure
+from plotly.validators.heatmap import ColorscaleValidator
 
 
 def draw_finance(
@@ -109,3 +110,79 @@ def draw_candlestick(
     """
 
     return draw_finance(data_frame, x_finance, open, high, low, close, go.Candlestick)
+
+
+def draw_density_heatmap(
+    data_frame: DataFrame,
+    x: str,
+    y: str,
+    z: str,
+    labels: dict[str, str] | None = None,
+    range_color: list[float] | None = None,
+    color_continuous_scale: str | list[str] | None = "plasma",
+    color_continuous_midpoint: float | None = None,
+    opacity: float = 1.0,
+    title: str | None = None,
+    template: str | None = None,
+) -> Figure:
+    """Create a density heatmap
+
+    Args:
+      data_frame: The data frame to draw with
+      x: The name of the column containing x-axis values
+      y: The name of the column containing y-axis values
+      z: The name of the column containing bin values
+      labels: A dictionary of labels mapping columns to new labels
+      color_continuous_scale: A color scale or list of colors for a continuous scale
+      range_color: A list of two numbers that form the endpoints of the color axis
+      color_continuous_midpoint: A number that is the midpoint of the color axis
+      opacity: Opacity to apply to all markers. 0 is completely transparent
+        and 1 is completely opaque.
+      title: The title of the chart
+      template: The template for the chart.
+
+    Returns:
+      The plotly density heatmap
+
+    """
+
+    # currently, most plots rely on px setting several attributes such as coloraxis, opacity, etc.
+    # so we need to set some things manually
+    # this could be done with handle_custom_args in generate.py in the future if
+    # we need to provide more options, but it's much easier to just set it here
+    # and doesn't risk breaking any other plots
+
+    heatmap = go.Figure(
+        go.Heatmap(
+            x=data_frame[x],
+            y=data_frame[y],
+            z=data_frame[z],
+            coloraxis="coloraxis1",
+            opacity=opacity,
+        )
+    )
+
+    range_color_list = range_color or [None, None]
+
+    colorscale_validator = ColorscaleValidator("colorscale", "draw_density_heatmap")
+
+    coloraxis_layout = dict(
+        colorscale=colorscale_validator.validate_coerce(color_continuous_scale),
+        cmid=color_continuous_midpoint,
+        cmin=range_color_list[0],
+        cmax=range_color_list[1],
+    )
+
+    if labels:
+        x = labels.get(x, x)
+        y = labels.get(y, y)
+
+    heatmap.update_layout(
+        coloraxis1=coloraxis_layout,
+        title=title,
+        template=template,
+        xaxis_title=x,
+        yaxis_title=y,
+    )
+
+    return heatmap

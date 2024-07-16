@@ -116,6 +116,7 @@ CUSTOM_ARGS = {
     "current_partition",
     "colors",
     "unsafe_update_figure",
+    "heatmap_agg_label",
 }
 
 # these are columns that are "attached" sequentially to the traces
@@ -669,8 +670,9 @@ def handle_custom_args(
 
             elif arg == "bargap" or arg == "rangemode":
                 fig.update_layout({arg: val})
-                # x_axis_generators.append(key_val_generator("bargap", [val]))
-                # y_axis_generators.append(key_val_generator("bargap", [val]))
+
+            elif arg == "heatmap_agg_label":
+                fig.update_coloraxes(colorbar_title_text=val)
 
     trace_generator = combined_generator(trace_generators)
 
@@ -781,7 +783,6 @@ def get_hover_body(
 
 def hover_text_generator(
     hover_mapping: list[dict[str, str]],
-    # hover_data - todo, dependent on arrays supported in data mappings
     types: set[str] | None = None,
     current_partition: dict[str, str] | None = None,
 ) -> Generator[dict[str, Any], None, None]:
@@ -824,6 +825,7 @@ def hover_text_generator(
 def compute_labels(
     hover_mapping: list[dict[str, str]],
     hist_val_name: str | None,
+    heatmap_agg_label: str | None,
     # hover_data - todo, dependent on arrays supported in data mappings
     types: set[str],
     labels: dict[str, str] | None,
@@ -836,6 +838,7 @@ def compute_labels(
     Args:
       hover_mapping: The mapping of variables to columns
       hist_val_name: The histogram name for the value axis, generally histfunc
+      heatmap_agg_label: The aggregate density heatmap column title
       types: Any types of this chart that require special processing
       labels: A dictionary of old column name to new column name mappings
       current_partition: The columns that this figure is partitioned by
@@ -846,7 +849,34 @@ def compute_labels(
 
     calculate_hist_labels(hist_val_name, hover_mapping[0])
 
+    calculate_density_heatmap_labels(heatmap_agg_label, hover_mapping[0], labels)
+
     relabel_columns(labels, hover_mapping, types, current_partition)
+
+
+def calculate_density_heatmap_labels(
+    heatmap_agg_label: str | None,
+    hover_mapping: dict[str, str],
+    labels: dict[str, str] | None,
+) -> None:
+    """Calculate the labels for a density heatmap
+    The z column is renamed to the heatmap_agg_label
+
+    Args:
+      heatmap_agg_label: The name of the heatmap aggregate label
+      hover_mapping: The mapping of variables to columns
+      labels: A dictionary of labels mapping columns to new labels.
+
+    """
+    labels = labels or {}
+    if heatmap_agg_label:
+        # the last part of the label is the z column, and could be replaced by labels
+        split_label = heatmap_agg_label.split(" ")
+        split_label[-1] = labels.get(split_label[-1], split_label[-1])
+        # it's also possible that someone wants to override the whole label
+        # plotly doesn't seem to do that, but it seems reasonable to allow
+        new_label = " ".join(split_label)
+        hover_mapping["z"] = labels.get(new_label, new_label)
 
 
 def calculate_hist_labels(
@@ -871,6 +901,7 @@ def add_axis_titles(
     custom_call_args: dict[str, Any],
     hover_mapping: list[dict[str, str]],
     hist_val_name: str | None,
+    heatmap_agg_label: str | None,
 ) -> None:
     """Add axis titles. Generally, this only applies when there is a list variable
 
@@ -879,6 +910,7 @@ def add_axis_titles(
         create hover and axis titles
       hover_mapping: The mapping of variables to columns
       hist_val_name: The histogram name for the value axis, generally histfunc
+      heatmap_agg_label: The aggregate density heatmap column title
 
     """
     # Although hovertext is handled above for all plot types, plotly still
@@ -891,6 +923,9 @@ def add_axis_titles(
         # hist names are already set up in the mapping
         new_xaxis_titles = [hover_mapping[0].get("x", None)]
         new_yaxis_titles = [hover_mapping[0].get("y", None)]
+
+    if heatmap_agg_label:
+        custom_call_args["heatmap_agg_label"] = heatmap_agg_label
 
     # a specified axis title update should override this
     if new_xaxis_titles:
@@ -928,6 +963,9 @@ def create_hover_and_axis_titles(
     (such as the y-axis if the x-axis is specified). Otherwise, there is a
     legend or not depending on if there is a list of columns or not.
 
+    Density heatmaps are also an exception. If "heatmap_agg_label" is specified,
+    the z column is renamed to this label.
+
     Args:
       custom_call_args: The custom_call_args that are used to
         create hover and axis titles
@@ -941,14 +979,26 @@ def create_hover_and_axis_titles(
 
     labels = custom_call_args.get("labels", None)
     hist_val_name = custom_call_args.get("hist_val_name", None)
+    heatmap_agg_label = custom_call_args.get("heatmap_agg_label", None)
 
     current_partition = custom_call_args.get("current_partition", {})
 
-    compute_labels(hover_mapping, hist_val_name, types, labels, current_partition)
+    compute_labels(
+        hover_mapping,
+        hist_val_name,
+        heatmap_agg_label,
+        types,
+        labels,
+        current_partition,
+    )
 
     hover_text = hover_text_generator(hover_mapping, types, current_partition)
 
-    add_axis_titles(custom_call_args, hover_mapping, hist_val_name)
+    if heatmap_agg_label:
+        # it's possible that heatmap_agg_label was relabeled, so grab the new label
+        heatmap_agg_label = hover_mapping[0]["z"]
+
+    add_axis_titles(custom_call_args, hover_mapping, hist_val_name, heatmap_agg_label)
 
     return hover_text
 

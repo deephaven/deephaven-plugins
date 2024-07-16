@@ -581,6 +581,7 @@ class PartitionManager:
             "preprocess_hist" in self.groups
             or "preprocess_freq" in self.groups
             or "preprocess_time" in self.groups
+            or "preprocess_heatmap" in self.groups
         ) and self.preprocessor:
             # still need to preprocess the base table
             table, arg_update = cast(
