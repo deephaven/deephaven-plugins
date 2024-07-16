@@ -203,6 +203,46 @@ services:
       - /path/to/mydata/:/data
 ```
 
+### Using plugin_builder.py
+
+The `tools/plugin_builder.py` script is a utility script that makes common plugin development cases easier.
+The commands in this section assume the python venv and pre-commit hooks are already set up.
+
+The simplest way to use the script is to run it with no arguments. This will build and install all plugins:
+```shell
+python tools/plugin_builder.py
+```
+
+To target a specific plugin or plugins, pass the name or names of the plugins as arguments:
+```shell
+python tools/plugin_builder.py plotly-express ui
+```
+This targeting works for all commands that target the plugins directly, such as `--docs` or `--install`.
+
+To build docs, pass the `--docs` flag.
+First install the necessary dependencies:
+```shell
+pip install -r sphinx_ext/sphinx-requirements.txt
+```
+
+This example builds the docs for the `ui` plugin:
+```shell
+python tools/plugin_builder.py --docs ui
+```
+
+To run the server, pass the `--server` flag. 
+First install `deephaven-server` if it is not already installed:
+```shell
+pip install deephaven-server
+```
+
+This example reinstalls the `plotly-express` plugin, then start the server:
+```shell
+python tools/plugin_builder.py --reinstall --server plotly-express
+```
+Reinstall will force reinstall the plugins (but only the plugins, not the dependencies), which is useful if there are changes to the plugins but without a bumped version number.
+
+
 ## Release Management
 
 In order to manage changelogs, version bumps and github releases, we use [cocogitto](https://github.com/cocogitto/cocogitto), or `cog` for short. Follow the [Installation instructions](https://github.com/cocogitto/cocogitto?tab=readme-ov-file#installation) to install `cog`. For Linux and Windows, we recommend using [cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) to install. For MacOS, we recommend using [brew](https://brew.sh/).
