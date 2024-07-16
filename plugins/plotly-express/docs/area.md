@@ -6,9 +6,9 @@ Area plots are appropriate when the data contain a continuous response variable 
 
 ### What are area plots useful for?
 
-- **Visualizing Trends Over Time**: Area plots are great for displaying the trend of a single continuous variable. The filled areas can make it easier to see the magnitude of changes and trends compared to line plots.
-- **Displaying Cumulative Totals**: Area plots are effective in showing cumulative totals over a period. They can help in understanding the contribution of different categories to the total amount and how these contributions evolve.
-- **Comparing Multiple Categories**: Rather than providing a single snapshot of the composition of a total, area plots show how contributions from each category change over time. The different colored or shaded areas help distinguish each category, making it easier to see their individual contributions and to compare how those categories evolve.
+- **Visualizing trends over time**: Area plots are great for displaying the trend of a single continuous variable. The filled areas can make it easier to see the magnitude of changes and trends compared to line plots.
+- **Displaying cumulative totals**: Area plots are effective in showing cumulative totals over a period. They can help in understanding the contribution of different categories to the total amount and how these contributions evolve.
+- **Comparing multiple categories**: Rather than providing a single snapshot of the composition of a total, area plots show how contributions from each category change over time. The different colored or shaded areas help distinguish each category, making it easier to see their individual contributions and to compare how those categories evolve.
 
 ## Examples
 

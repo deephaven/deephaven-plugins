@@ -2,15 +2,13 @@
 
 In a strip plot, individual data points are displayed along a single axis, providing a clear view of the distribution of data points without the additional density estimation and summary statistics provided by a violin plot.
 
-#### When are strip plots appropriate?
-
 Strip plots are appropriate when the data contain a continuous variable of interest. If there is an additional categorical variable that the variable of interest depends on, stacked strip plots may be appropriate. The data should be relatively sparse, as strip plots can get crowded quickly with large datasets. This may make it difficult to spot multimodal distributions, heavy-tailed distributions, or outliers. In such cases, box plots or violin plots may be more appropriate.
 
-#### What are strip plots useful for?
+### What are strip plots useful for?
 
-- **Comparing Data Categories**: Comparing the distribution and spread of data across different categories or groups, making it useful for categorical data analysis.
-- **Identifying Outliers**: Facilitating the easy identification of outliers and anomalies within the data, aiding in data quality assessment.
-- **Small to Moderate Dataset Visualization**: Suitable for datasets of small to moderate sizes where individual data points can be effectively represented.
+- **Comparing data categories**: Strip plots effectively present the distribution of a dataset, and make it easy to compare the distributions of different categories of data.
+- **Identifying outliers**: Because strip plots are made up of individual points, they are well-suited for identifying potential outliers in datasets.
+- **Small to moderate dataset visualization**: Strip plots are suitable for visualizing the distribution of small to moderate-sized datasets, where individual data points can be effectively represented.
 
 ## Examples
 

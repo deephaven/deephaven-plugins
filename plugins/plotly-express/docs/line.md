@@ -2,15 +2,13 @@
 
 A line plot is a graphical representation that displays data points connected by straight lines, commonly employed in time series analysis to depict temporal trends or relationships in a dataset.
 
-#### When are line plots appropriate?
-
 Line plots are appropriate when the data contain a continuous response variable that directly depends on a continuous explanatory variable. Further, line plots are preferable to scatter plots when the explanatory variables are ordered.
 
-#### What are line plots useful for?
+### What are line plots useful for?
 
-- **Visualizing Trends:** Line plots excel at revealing trends and patterns in data, making them ideal for time series analysis and showcasing changes over a continuous range.
-- **Simplicity and Clarity:** Line plots offer a straightforward and uncluttered representation, enhancing readability and allowing developers to focus on the data's inherent structure.
-- **Comparing Multiple Series:** Line plots make it easy to compare multiple data series on the same graph, aiding in the identification of similarities and differences.
+- **Visualizing trends:** Line plots excel at revealing trends and patterns in data, making them ideal for time series analysis and showcasing changes over a continuous range.
+- **Simplicity and clarity:** Line plots offer a straightforward and uncluttered representation, enhancing readability and allowing developers to focus on the data's inherent structure.
+- **Comparing multiple series:** Line plots make it easy to compare multiple data series on the same graph, aiding in the identification of similarities and differences.
 
 ## Examples
 

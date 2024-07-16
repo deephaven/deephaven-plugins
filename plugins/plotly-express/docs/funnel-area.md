@@ -4,15 +4,13 @@ A funnel area plot is a data visualization that is typically used to represent d
 
 Funnel area plots differ from funnel plots in that they display the percentage of data points that belong to each category, while funnel plots display the absolute count of data points in each category. Funnel area plots also count each data point as belonging to _exactly one_ category and display the categories as mutually exclusive. On the other hand, funnel plots count each data point as belonging to _at least one_ category, so the categories are represented as subsets of each other rather than mutually exclusive.
 
-#### When are funnel area plots appropriate?
-
 Funnel area plots are appropriate when the data contain a categorical variable where the frequencies of each category can be computed, and the categories can be ordered. Additionally, funnel plots assume a particular relationship between levels of the categorical variable, where each category is a proper subset of the previous category. If the data contain an unordered categorical variable, or the categories are better conceptualized as parts of a whole, consider a pie plot instead of a funnel area plot.
 
-#### What are funnel area plots useful for?
+### What are funnel area plots useful for?
 
-- **Sequential Data**: When visualizing data that follows a sequential or staged progression.
-- **Progression Analysis**: For analyzing attrition, conversion rates, or transitions between stages.
-- **Efficiency Evaluation**: To assess the efficiency and effectiveness of a process or workflow.
+- **Visualizing sequential data**: Data that are staged or sequential in some way are often visualized with funnel area plots, yielding insight on the rate of change from one stage to the next.
+- **Analyzing data progression**: Funnel area plots may be used for analyzing attrition, conversion rates, or transitions between stages.
+- **Evaluating efficiency**: Assessing the efficiency and effectiveness of a process or workflow is easy with funnel area plots.
 
 ## Examples
 
