@@ -58,3 +58,19 @@ logging.getLogger("deephaven.ui.hooks").setLevel(level=logging.WARNING)
 # Log all debug messages from the render module specifically
 logging.getLogger("deephaven.ui.render").setLevel(level=logging.DEBUG)
 ```
+
+## Docs
+Docs can be built locally
+
+Install the necessary dependencies:
+```shell
+pip install -r ../../sphinx_ext/sphinx-requirements.txt
+pip install dist/deephaven_plugin_ui-*.whl
+```
+then run the docs make script:
+```shell
+python make_docs.py
+```
+
+The files will be built into `docs/build/markdown`.
+Note that these built files should not be committed to the repository.
