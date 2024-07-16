@@ -52,6 +52,7 @@
     "@deephaven/jsapi-bootstrap": "^0.85.1",
     "@deephaven/jsapi-components": "^0.85.1",
     "@deephaven/jsapi-types": "^1.0.0-dev0.35.0",
+    "@deephaven/jsapi-utils": "^0.85.2",
     "@deephaven/log": "^0.85.0",
     "@deephaven/plugin": "^0.85.1",
     "@deephaven/react-hooks": "^0.85.0",
