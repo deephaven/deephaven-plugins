@@ -195,8 +195,6 @@ class HeatmapTestCase(BaseTestCase):
             "yaxis": {"anchor": "x", "side": "left", "title": {"text": "Column Y"}},
         }
 
-        print(plotly["layout"]["coloraxis"]["colorscale"])
-
         self.assertEqual(plotly["layout"], expected_layout)
 
         expected_mappings = [

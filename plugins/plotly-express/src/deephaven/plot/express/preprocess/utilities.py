@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Generator
+from typing import Generator, Literal
 
 from deephaven import agg, empty_table
 from deephaven.plot.express.shared import get_unique_names
@@ -231,7 +231,7 @@ def calculate_bin_locations(
     ranged_bin_counts: Table,
     names: dict[str, str],
     histfunc_col: str,
-    empty_bin_default: float | str | None,
+    empty_bin_default: float | Literal["NaN"] | None,
 ) -> Table:
     """
     Compute the center of the bins for the x and y axes
@@ -261,6 +261,10 @@ def calculate_bin_locations(
     # both "NaN" and None require no replacement
     # it is assumed that default_bin_value has already been set to a number
     # if needed, such as in the case of a histfunc of count or count_distinct
+
+    if isinstance(empty_bin_default, str) and empty_bin_default != "NaN":
+        raise ValueError("empty_bin_default must be 'NaN' if it is a string")
+
     if empty_bin_default not in {"NaN", None}:
         ranged_bin_counts = ranged_bin_counts.update_view(
             f"{agg_col} = replaceIfNull({agg_col}, {empty_bin_default})"

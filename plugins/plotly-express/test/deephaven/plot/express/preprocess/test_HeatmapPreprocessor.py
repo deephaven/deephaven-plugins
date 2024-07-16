@@ -531,6 +531,31 @@ class HeatmapPreprocessorTestCase(BaseTestCase):
 
         self.tables_equal(args, expected_df)
 
+    def test_bad_empty_bin_default(self):
+        from src.deephaven.plot.express.preprocess.HeatmapPreprocessor import (
+            HeatmapPreprocessor,
+        )
+
+        args = {
+            "x": "X",
+            "y": "Y",
+            "z": None,
+            "histfunc": "count",
+            "nbinsx": 2,
+            "nbinsy": 2,
+            "range_bins_x": None,
+            "range_bins_y": None,
+            "empty_bin_default": "bad",
+            "table": self.source,
+        }
+
+        process = HeatmapPreprocessor(args)
+
+        self.assertRaises(
+            ValueError,
+            lambda: next(process.preprocess_partitioned_tables([self.source])),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

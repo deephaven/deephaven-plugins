@@ -67,6 +67,7 @@ def density_heatmap(
       empty_bin_default: The value to use for bins that have no data.
         If None and histfunc is 'count' or 'count_distinct', 0 is used.
         Otherwise, if None or 'NaN', NaN is used.
+        'NaN' forces the bin to be NaN if no data is present, even if histfunc is 'count' or 'count_distinct'.
         Note that if multiple points are required to color a bin, such as the case for a histfunc of 'std' or var,
         the bin will still be NaN if less than the required number of points are present.
       title: The title of the chart
