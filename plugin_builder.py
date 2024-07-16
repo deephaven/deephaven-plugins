@@ -5,6 +5,11 @@ import os
 import sys
 from typing import Generator
 
+# get the directory of the current file
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# use the current_dir to get to the plugins directory
+plugins_dir = os.path.join(current_dir, "plugins")
+
 
 def clean_build_dist(plugin: str) -> None:
     """
@@ -16,10 +21,10 @@ def clean_build_dist(plugin: str) -> None:
     Returns:
         None
     """
-    if os.path.exists(f"plugins/{plugin}/build"):
-        os.system(f"rm -rf plugins/{plugin}/build")
-    if os.path.exists(f"plugins/{plugin}/dist"):
-        os.system(f"rm -rf plugins/{plugin}/dist")
+    if os.path.exists(f"{plugins_dir}/{plugin}/build"):
+        os.system(f"rm -rf {plugins_dir}/{plugin}/build")
+    if os.path.exists(f"{plugins_dir}/{plugin}/dist"):
+        os.system(f"rm -rf {plugins_dir}/{plugin}/dist")
 
 
 def plugin_names(
@@ -38,7 +43,7 @@ def plugin_names(
         for plugin in plugins:
             yield plugin
     else:
-        for plugin in os.listdir("plugins"):
+        for plugin in os.listdir(plugins_dir):
             yield plugin
 
 
@@ -73,11 +78,11 @@ def build(
     """
 
     for plugin in plugin_names(plugins):
-        if os.path.exists(f"plugins/{plugin}/setup.cfg"):
+        if os.path.exists(f"{plugins_dir}/{plugin}/setup.cfg"):
             clean_build_dist(plugin)
 
             print(f"Building {plugin}")
-            run_command(f"python -m build --wheel plugins/{plugin}")
+            run_command(f"python -m build --wheel {plugins_dir}/{plugin}")
         elif error_on_missing:
             print(f"Error: setup.cfg not found in {plugin}")
             sys.exit(1)
@@ -106,10 +111,10 @@ def install(
         for plugin in plugins:
             # a plugin would have failed in the build step if it didn't have a setup.cfg
             print(f"Installing {plugin}")
-            run_command(f"{install} plugins/{plugin}/dist/*")
+            run_command(f"{install} {plugins_dir}/{plugin}/dist/*")
     else:
         print("Installing all plugins")
-        run_command(f"{install} plugins/*/dist/*")
+        run_command(f"{install} {plugins_dir}/*/dist/*")
 
 
 def docs(
@@ -127,9 +132,9 @@ def docs(
         None
     """
     for plugin in plugin_names(plugins):
-        if os.path.exists(f"plugins/{plugin}/make_docs.py"):
+        if os.path.exists(f"{plugins_dir}/{plugin}/make_docs.py"):
             print(f"Generating docs for {plugin}")
-            run_command(f"python plugins/{plugin}/make_docs.py")
+            run_command(f"python {plugins_dir}/{plugin}/make_docs.py")
         elif error_on_missing:
             print(f"Error: make_docs.py not found in {plugin}")
             sys.exit(1)
