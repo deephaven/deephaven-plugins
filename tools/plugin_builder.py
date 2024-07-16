@@ -7,8 +7,8 @@ from typing import Generator
 
 # get the directory of the current file
 current_dir = os.path.dirname(os.path.abspath(__file__))
-# use the current_dir to get to the plugins directory
-plugins_dir = os.path.join(current_dir, "plugins")
+# navigate out one directory to get to the plugins directory
+plugins_dir = os.path.join(current_dir, "../plugins")
 
 
 def clean_build_dist(plugin: str) -> None:
