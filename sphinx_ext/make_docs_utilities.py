@@ -106,13 +106,13 @@ def build_documents() -> None:
     print("Building markdown")
     run_command("make markdown")
 
-    print("Copying assets")
-    run_command(f"cp -r docs/_assets {BUILT_DOCS}/_assets")
-    run_command(f"cp docs/sidebar.json {BUILT_DOCS}/sidebar.json")
-
     run_command(f"rm {BUILT_DOCS}/index.md")
 
     remove_markdown_comments()
+
+    print("Copying assets")
+    run_command(f"cp -r docs/_assets {BUILT_DOCS}/_assets")
+    run_command(f"cp docs/sidebar.json {BUILT_DOCS}/sidebar.json")
 
 
 def remove_markdown_comments() -> None:
