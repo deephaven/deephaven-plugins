@@ -15,12 +15,12 @@
   "main": "dist/index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/deephaven/deephaven-js-plugins"
+    "url": "git+https://github.com/deephaven/deephaven-plugins"
   },
   "bugs": {
-    "url": "https://github.com/deephaven/deephaven-js-plugins/issues"
+    "url": "https://github.com/deephaven/deephaven-plugins/issues"
   },
-  "homepage": "https://github.com/deephaven/deephaven-js-plugins",
+  "homepage": "https://github.com/deephaven/deephaven-plugins",
   "scripts": {
     "start": "vite build --watch",
     "build": "vite build",

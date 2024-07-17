@@ -1,8 +1,14 @@
 {
-  "name": "deephaven-js-plugins",
+  "name": "deephaven-plugins",
+  "private": true,
+  "version": "0.1.0",
   "workspaces": [
     "./plugins/*/src/js/"
   ],
+  "engines": {
+    "node": ">=6",
+    "npm": ">=8"
+  },
   "scripts": {
     "docker": "docker compose up deephaven-plugins --build",
     "start": "run-p \"start:packages -- {@}\" serve:plugins --",
