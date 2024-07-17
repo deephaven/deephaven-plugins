@@ -208,6 +208,11 @@ services:
 The `tools/plugin_builder.py` script is a utility script that makes common plugin development cases easier.
 The commands in this section assume the python venv and pre-commit hooks are already set up.
 
+The tool uses `click` for command line argument parsing, so install it if you haven't already:
+```shell
+pip install click
+```
+
 The simplest way to use the script is to run it with no arguments. This will build and install all plugins:
 ```shell
 python tools/plugin_builder.py
@@ -236,7 +241,7 @@ First install `deephaven-server` if it is not already installed:
 pip install deephaven-server
 ```
 
-This example reinstalls the `plotly-express` plugin, then start the server:
+This example reinstalls the `plotly-express` plugin, then starts the server:
 ```shell
 python tools/plugin_builder.py --reinstall --server plotly-express
 ```

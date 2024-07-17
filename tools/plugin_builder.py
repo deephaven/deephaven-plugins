@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import argparse
+import click
 import os
 import sys
 from typing import Generator
@@ -28,7 +28,7 @@ def clean_build_dist(plugin: str) -> None:
 
 
 def plugin_names(
-    plugins: list[str],
+    plugins: tuple[str],
 ) -> Generator[str, None, None]:
     """
     Generate the plugins to use
@@ -62,8 +62,8 @@ def run_command(command: str) -> None:
         sys.exit(code)
 
 
-def build(
-    plugins: list[str],
+def run_build(
+    plugins: tuple[str],
     error_on_missing: bool,
 ) -> None:
     """
@@ -81,15 +81,15 @@ def build(
         if os.path.exists(f"{plugins_dir}/{plugin}/setup.cfg"):
             clean_build_dist(plugin)
 
-            print(f"Building {plugin}")
+            click.echo(f"Building {plugin}")
             run_command(f"python -m build --wheel {plugins_dir}/{plugin}")
         elif error_on_missing:
-            print(f"Error: setup.cfg not found in {plugin}")
+            click.echo(f"Error: setup.cfg not found in {plugin}")
             sys.exit(1)
 
 
-def install(
-    plugins: list[str],
+def run_install(
+    plugins: tuple[str],
     reinstall: bool,
 ) -> None:
     """
@@ -110,15 +110,15 @@ def install(
     if plugins:
         for plugin in plugins:
             # a plugin would have failed in the build step if it didn't have a setup.cfg
-            print(f"Installing {plugin}")
+            click.echo(f"Installing {plugin}")
             run_command(f"{install} {plugins_dir}/{plugin}/dist/*")
     else:
-        print("Installing all plugins")
+        click.echo("Installing all plugins")
         run_command(f"{install} {plugins_dir}/*/dist/*")
 
 
-def docs(
-    plugins: list[str],
+def run_docs(
+    plugins: tuple[str],
     error_on_missing: bool,
 ) -> None:
     """
@@ -133,68 +133,85 @@ def docs(
     """
     for plugin in plugin_names(plugins):
         if os.path.exists(f"{plugins_dir}/{plugin}/make_docs.py"):
-            print(f"Generating docs for {plugin}")
+            click.echo(f"Generating docs for {plugin}")
             run_command(f"python {plugins_dir}/{plugin}/make_docs.py")
         elif error_on_missing:
-            print(f"Error: make_docs.py not found in {plugin}")
+            click.echo(f"Error: make_docs.py not found in {plugin}")
             sys.exit(1)
 
 
-parser = argparse.ArgumentParser(description="Build and install plugins")
-parser.add_argument(
-    "-b", "--build", action="store_true", help="Build all plugins that have a setup.cfg"
+@click.command(
+    short_help="Build and install plugins.",
+    help="Build and install plugins. "
+    "By default, all plugins with the necessary file are used unless specified via the plugins arg.",
 )
-parser.add_argument(
-    "-i",
+@click.option(
+    "--build", "-b", is_flag=True, help="Build all plugins that have a setup.cfg"
+)
+@click.option(
     "--install",
-    action="store_true",
+    "-i",
+    is_flag=True,
     help="Install all plugins that have a setup.cfg. This is the default behavior if no flags are provided.",
 )
-parser.add_argument(
-    "-r",
+@click.option(
     "--reinstall",
-    action="store_true",
+    "-r",
+    is_flag=True,
     help="Reinstall all plugins that have a setup.cfg. "
     "This adds the --force-reinstall and --no-deps flags to pip install. "
     "Useful to reinstall a plugin that has already been installed and does not have a new version number.",
 )
-parser.add_argument(
-    "-d",
+@click.option(
     "--docs",
-    action="store_true",
+    "-d",
+    is_flag=True,
     help="Generate docs for all plugins that have a make_docs.py.",
 )
-parser.add_argument(
-    "-s",
+@click.option(
     "--server",
-    action="store_true",
+    "-s",
+    is_flag=True,
     help="Run the deephaven server after building and installing the plugins.",
 )
-parser.add_argument(
-    "plugins",
-    nargs="*",
-    default=[],
-    help="Plugins to build, install, or generate docs for. By default, all plugins with the necessary file are used.",
-)
+@click.argument("plugins", nargs=-1)
+def builder(
+    build: bool,
+    install: bool,
+    reinstall: bool,
+    docs: bool,
+    server: bool,
+    plugins: tuple[str],
+) -> None:
+    """
+    Build and install plugins.
+
+    Args:
+        build: True to build the plugins
+        install: True to install the plugins
+        reinstall: True to reinstall the plugins
+        docs: True to generate the docs
+        server: True to run the deephaven server after building and installing the plugins
+        plugins: Plugins to build and install
+    """
+
+    # default is to install
+    if not any([build, install, reinstall, docs]):
+        install = True
+
+    if build or install or reinstall:
+        run_build(plugins, len(plugins) > 0)
+
+    if install or reinstall:
+        run_install(plugins, reinstall)
+
+    if docs:
+        run_docs(plugins, len(plugins) > 0)
+
+    if server:
+        click.echo("Running deephaven server")
+        os.system("deephaven server")
 
 
-args = parser.parse_args()
-
-# default is to install
-if not any([args.build, args.install, args.reinstall, args.docs]):
-    args.install = True
-
-plugins = args.plugins
-
-if args.build or args.install or args.reinstall:
-    build(plugins, len(plugins) > 0)
-
-if args.install or args.reinstall:
-    install(plugins, args.reinstall)
-
-if args.docs:
-    docs(plugins, len(plugins) > 0)
-
-if args.server:
-    print("Running deephaven server")
-    os.system("deephaven server")
+if __name__ == "__main__":
+    builder()

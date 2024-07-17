@@ -1,10 +1,26 @@
 from __future__ import annotations
 
+import sys
 import os
 import contextlib
 from typing import IO, Generator
 
 BUILT_DOCS = "docs/build/markdown"
+
+
+def run_command(command: str) -> None:
+    """
+    Run a command and exit if it fails.
+
+    Args:
+        command: The command to run.
+
+    Returns:
+        None
+    """
+    code = os.system(command)
+    if code != 0:
+        sys.exit(code)
 
 
 @contextlib.contextmanager
@@ -85,16 +101,16 @@ def build_documents() -> None:
     """
     Make the markdown files and copy the assets in
     """
-    os.system("make clean")
+    run_command("make clean")
 
     print("Building markdown")
-    os.system("make markdown")
+    run_command("make markdown")
 
     print("Copying assets")
-    os.system(f"cp -r docs/_assets {BUILT_DOCS}/_assets")
-    os.system(f"cp docs/sidebar.json {BUILT_DOCS}/sidebar.json")
+    run_command(f"cp -r docs/_assets {BUILT_DOCS}/_assets")
+    run_command(f"cp docs/sidebar.json {BUILT_DOCS}/sidebar.json")
 
-    os.system(f"rm {BUILT_DOCS}/index.md")
+    run_command(f"rm {BUILT_DOCS}/index.md")
 
     remove_markdown_comments()
 
