@@ -8,7 +8,6 @@ export function Form(
   props: DHCFormProps & {
     onSubmit?: (data: { [key: string]: FormDataEntryValue }) => void;
     onReset?: (data: { [key: string]: FormDataEntryValue }) => void;
-    onInvalid?: (data: { [key: string]: FormDataEntryValue }) => void;
   }
 ): JSX.Element {
   const {
@@ -20,13 +19,11 @@ export function Form(
 
   const onSubmit = useFormEventCallback(propOnSubmit);
   const onReset = useFormEventCallback(propOnReset);
-  const onInvalid = useFormEventCallback(propOnInvalid);
 
   return (
     <DHCForm
       onSubmit={onSubmit}
       onReset={onReset}
-      onInvalid={onInvalid}
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...otherProps}
     />
