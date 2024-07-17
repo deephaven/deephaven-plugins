@@ -2,14 +2,14 @@
 
 ## A Python web framework for building real-time data focused apps
 
-`deephaven.ui` is a plugin for Deephaven that combines a reactive UI framework and a library of pre-built real-time data focused components for creating data apps. Write scripts entirely in Python, no front-end engineering Javascript or CSS required. It uses a React-like approach to building components and rendering them in the UI, allowing for creating reactive components that can be re-used and composed together, as well as reacting to user input from the UI.
+`deephaven.ui` is a plugin for Deephaven that combines a reactive UI framework and a library of pre-built real-time data-focused components for creating data apps. Write scripts entirely in Python -- no front-end engineering Javascript or CSS required. It uses a React-like approach to building components and rendering them in the UI, allowing for the creation of reactive components that can be re-used and composed together, as well as reacting to user input from the UI.
 
 ## Key Features
 
-- **Components**: Create user interfaces from components defined entirely with python.
+- **Components**: Create user interfaces from components defined entirely with Python.
 - **Live dataframe aware**: Components are live dataframe aware and can use Deephaven tables as a data source.
-- **Reactive**: UI components automatically update when the underlying python data changes.
-- **Declaritive**: Describe the UI as a function of the data, and let the framework handle the rest.
+- **Reactive**: UI components automatically update when the underlying Python data changes.
+- **Declarative**: Describe the UI as a function of the data and let the framework handle the rest.
 - **Composable**: Combine and re-use components to build complex interfaces.
 - **Wide range of components**: From simple text fields to complex tables and plots, the library has a wide range of components to build your app.
 
