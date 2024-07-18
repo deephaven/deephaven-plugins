@@ -18,6 +18,7 @@ import { usePortalPanelManager } from './PortalPanelManagerContext';
 import ReactPanelErrorBoundary from './ReactPanelErrorBoundary';
 import useWidgetStatus from './useWidgetStatus';
 import WidgetErrorView from '../widget/WidgetErrorView';
+import { NestedPanelError } from '../errors';
 
 const log = Log.module('@deephaven/js-plugin-ui/ReactPanel');
 
@@ -99,7 +100,7 @@ function ReactPanel({
   const parent = useParentItem();
   const contextPanelId = usePanelId();
   if (contextPanelId != null) {
-    throw new Error(
+    throw new NestedPanelError(
       'ui.panel must be a top-level component or used within a dashboard layout.'
     );
   }
