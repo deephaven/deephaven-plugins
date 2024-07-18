@@ -140,6 +140,50 @@ def run_docs(
             sys.exit(1)
 
 
+def run_build_js(plugins: tuple[str]) -> None:
+    """
+    Build the JS files for plugins that have a js directory
+
+    Args:
+        plugins: The plugins to build. If None, all plugins with a js directory are built.
+
+    Returns:
+        None
+    """
+    if plugins:
+        for plugin in plugins:
+            if os.path.exists(f"{plugins_dir}/{plugin}/src/js"):
+                click.echo(f"Building JS for {plugin}")
+                run_command(f"npm run build --prefix {plugins_dir}/{plugin}/src/js")
+            else:
+                click.echo(f"Error: src/js not found in {plugin}")
+    else:
+        click.echo(f"Building all JS plugins")
+        run_command(f"npm run build")
+
+
+def run_configure(
+    configure: str | None,
+) -> None:
+    """
+    Configure the venv for plugin development
+
+    Args:
+        configure: The configuration to use. 'min' will install the minimum requirements for development.
+            'full' will install some optional packages for development, such as sphinx and deephaven-server.
+
+    Returns:
+        None
+    """
+    if configure in ["min", "full"]:
+        run_command("pip install -r requirements.txt")
+        run_command("pre-commit install")
+        run_command("npm install")
+    if configure == "full":
+        # currently deephaven-server is installed as part of the sphinx_ext requirements
+        run_command("pip install -r sphinx_ext/sphinx-requirements.txt")
+
+
 @click.command(
     short_help="Build and install plugins.",
     help="Build and install plugins. "
@@ -174,6 +218,19 @@ def run_docs(
     is_flag=True,
     help="Run the deephaven server after building and installing the plugins.",
 )
+@click.option(
+    "--js",
+    "-j",
+    is_flag=True,
+    help="Build the JS files for the plugins.",
+)
+@click.option(
+    "--configure",
+    "-c",
+    default=None,
+    help="Configure your venv for plugin development. 'min' will install the minimum requirements for development."
+    "'full' will install some optional packages for development, such as sphinx and deephaven-server.",
+)
 @click.argument("plugins", nargs=-1)
 def builder(
     build: bool,
@@ -181,6 +238,8 @@ def builder(
     reinstall: bool,
     docs: bool,
     server: bool,
+    js: bool,
+    configure: str | None,
     plugins: tuple[str],
 ) -> None:
     """
@@ -192,12 +251,19 @@ def builder(
         reinstall: True to reinstall the plugins
         docs: True to generate the docs
         server: True to run the deephaven server after building and installing the plugins
+        js: True to build the JS files for the plugins
+        configure: The configuration to use. 'min' will install the minimum requirements for development.
+            'full' will install some optional packages for development, such as sphinx and deephaven-server.
         plugins: Plugins to build and install
     """
+    run_configure(configure)
 
-    # default is to install
-    if not any([build, install, reinstall, docs]):
+    # default is to install, but don't if just configuring
+    if not any([build, install, reinstall, docs, js, configure]):
         install = True
+
+    if js:
+        run_build_js(plugins)
 
     if build or install or reinstall:
         run_build(plugins, len(plugins) > 0)
