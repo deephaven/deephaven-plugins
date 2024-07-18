@@ -13,7 +13,7 @@ import PortalPanel from './PortalPanel';
 import { ReactPanelControl, useReactPanel } from './ReactPanelManager';
 import { ReactPanelProps } from './LayoutUtils';
 import { useParentItem } from './ParentItemContext';
-import { ReactPanelContext } from './ReactPanelContext';
+import { ReactPanelContext, usePanelId } from './ReactPanelContext';
 import { usePortalPanelManager } from './PortalPanelManagerContext';
 import ReactPanelErrorBoundary from './ReactPanelErrorBoundary';
 import useWidgetStatus from './useWidgetStatus';
@@ -97,6 +97,12 @@ function ReactPanel({
   const contentKey = useMemo(() => nanoid(), [metadata]);
 
   const parent = useParentItem();
+  const contextPanelId = usePanelId();
+  if (contextPanelId != null) {
+    throw new Error(
+      'ui.panel must be a top-level component or used within a dashboard layout.'
+    );
+  }
   const { eventHub } = layoutManager;
 
   useEffect(
