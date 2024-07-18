@@ -1,6 +1,16 @@
 name: Pre-commit for Black and Blacken-docs
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+      - 'release/**'
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+      - 'release/**'
+      - 'feature/**'
 
 jobs:
   pre-commit:
