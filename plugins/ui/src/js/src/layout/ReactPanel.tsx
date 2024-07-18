@@ -13,11 +13,12 @@ import PortalPanel from './PortalPanel';
 import { ReactPanelControl, useReactPanel } from './ReactPanelManager';
 import { ReactPanelProps } from './LayoutUtils';
 import { useParentItem } from './ParentItemContext';
-import { ReactPanelContext } from './ReactPanelContext';
+import { ReactPanelContext, usePanelId } from './ReactPanelContext';
 import { usePortalPanelManager } from './PortalPanelManagerContext';
 import ReactPanelErrorBoundary from './ReactPanelErrorBoundary';
 import useWidgetStatus from './useWidgetStatus';
 import WidgetErrorView from '../widget/WidgetErrorView';
+import { NestedPanelError } from '../errors';
 
 const log = Log.module('@deephaven/js-plugin-ui/ReactPanel');
 
@@ -97,6 +98,12 @@ function ReactPanel({
   const contentKey = useMemo(() => nanoid(), [metadata]);
 
   const parent = useParentItem();
+  const contextPanelId = usePanelId();
+  if (contextPanelId != null) {
+    throw new NestedPanelError(
+      'ui.panel must be a top-level component or used within a dashboard layout.'
+    );
+  }
   const { eventHub } = layoutManager;
 
   useEffect(
