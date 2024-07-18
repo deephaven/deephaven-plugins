@@ -3,8 +3,6 @@ from .action_group import action_group
 from .action_menu import action_menu
 from .basic import (
     component_element,
-    switch,
-    text,
 )
 from .button import button
 from .button_group import button_group
@@ -38,11 +36,13 @@ from .row import row
 from .section import section
 from .slider import slider
 from .stack import stack
+from .switch import switch
 from .tab_list import tab_list
 from .tab_panels import tab_panels
 from .tab import tab
 from .table import table
 from .tabs import tabs
+from .text import text
 from .text_field import text_field
 from .toggle_button import toggle_button
 from .view import view
