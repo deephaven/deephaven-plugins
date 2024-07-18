@@ -1,5 +1,7 @@
 {
-  "name": "deephaven-js-plugins",
+  "name": "deephaven-plugins",
+  "private": true,
+  "version": "0.1.0",
   "workspaces": [
     "./plugins/*/src/js/"
   ],

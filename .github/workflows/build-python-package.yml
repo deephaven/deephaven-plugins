@@ -8,47 +8,47 @@ on:
         type: string
 
 jobs:
-    build-python-package:
-        runs-on: ubuntu-22.04
-        steps:
-          - name: Checkout
-            uses: actions/checkout@v3
+  build-python-package:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-          - name: Check file existence
-            id: check_files
-            uses: andstor/file-existence-action@v3
-            with:
-              files: "plugins/${{ inputs.package }}/src/js/package.json"
+      - name: Check file existence
+        id: check_files
+        uses: andstor/file-existence-action@v3
+        with:
+          files: 'plugins/${{ inputs.package }}/src/js/package.json'
 
-          - name: Setup Node
-            if: steps.check_files.outputs.files_exists == 'true'
-            uses: actions/setup-node@v4
-            with:
-              node-version-file: '.nvmrc'
-              cache: 'npm'
+      - name: Setup Node
+        if: steps.check_files.outputs.files_exists == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
 
-          - name: Install npm dependencies
-            if: steps.check_files.outputs.files_exists == 'true'
-            run: npm ci
+      - name: Install npm dependencies
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: npm ci
 
-          - name: Build npm packages
-            if: steps.check_files.outputs.files_exists == 'true'
-            run: npm run build -- --scope "@deephaven/js-plugin-${{ inputs.package }}"
+      - name: Build npm packages
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: npm run build -- --scope "@deephaven/js-plugin-${{ inputs.package }}"
 
-          - name: Set up Python
-            uses: actions/setup-python@v4
-            with:
-              python-version: '3.x'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
-          - name: Install build dependencies
-            run: python -m pip install --upgrade setuptools wheel build
+      - name: Install build dependencies
+        run: python -m pip install --upgrade setuptools wheel build
 
-          - name: Build wheel
-            run: python -m build --wheel --sdist plugins/${{ inputs.package }}
+      - name: Build wheel
+        run: python -m build --wheel --sdist plugins/${{ inputs.package }}
 
-          - name: Upload dist
-            uses: actions/upload-artifact@v3
-            with:
-              name: dist-${{ inputs.package }}
-              path: plugins/${{ inputs.package }}/dist/
-              if-no-files-found: error
+      - name: Upload dist
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist-${{ inputs.package }}
+          path: plugins/${{ inputs.package }}/dist/
+          if-no-files-found: error
