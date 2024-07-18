@@ -76,14 +76,15 @@ class NodeEncoder(json.JSONEncoder):
     The next object id to use. Increment for each new object encountered.
     """
 
-    _old_objects: set[Any]
+    _old_objects: set[int]
     """
-    List of objects from the last render. Used to remove objects that are no longer in the document.
+    List of object python IDs from the last render. Used to remove objects that are no longer in the document.
     """
 
-    _object_id_dict: dict[Any, int]
+    _object_id_dict: dict[int, tuple[int, Any]]
     """
-    Dictionary from an object to the ID assigned to it. Objects are removed after the next render if they are no longer in the document.
+    Dictionary from a python ID to the ID assigned to it and the associated object.
+    Objects are removed after the next render if they are no longer in the document.
     Unlike `_callable_dict`, we cannot use a WeakKeyDictionary as we need to pass the exported object instance to the client, so we need to always keep a reference around that the client may still have a reference to.
     """
 
@@ -142,11 +143,8 @@ class NodeEncoder(json.JSONEncoder):
         encoded_node = super().encode(node)
 
         # Remove the old objects from last render from the object id dict
-        for obj in self._old_objects:
-            self._object_id_dict.pop(obj, None)
-
-        # Clear out the old objects list so they can be cleaned up by GC
-        self._old_objects = set()
+        for py_id in self._old_objects:
+            self._object_id_dict.pop(py_id, None)
 
         return {
             "encoded_node": encoded_node,
@@ -172,14 +170,19 @@ class NodeEncoder(json.JSONEncoder):
         }
 
     def _convert_object(self, obj: Any):
-        object_id = self._object_id_dict.get(obj)
-        if object_id is None:
+        # it's possible that an object is not hashable, so use the id
+        py_id = id(obj)
+
+        obj_info = self._object_id_dict.get(py_id)
+        if obj_info is None:
             object_id = self._next_object_id
             self._next_object_id += 1
-            self._object_id_dict[obj] = object_id
+            self._object_id_dict[py_id] = (object_id, obj)
             self._new_objects.append(obj)
+        else:
+            object_id, _ = obj_info
 
-        self._old_objects.discard(obj)
+        self._old_objects.discard(py_id)
         logger.debug("Converted object %s to id %s", obj, object_id)
 
         return {
