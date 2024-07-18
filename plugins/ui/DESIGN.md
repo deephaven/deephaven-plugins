@@ -120,7 +120,7 @@ st.write("Result:", res)
 ### Interactive Query
 
 Early prototype: https://github.com/mofojed/deephaven-plugin-interactive
-UI: https://github.com/mofojed/deephaven-plugins/tree/interactive
+UI: https://github.com/mofojed/deephaven-js-plugins/tree/interactive
 
 #### Basic Example
 
@@ -1020,12 +1020,11 @@ A tabs component can be used to organize content in a collection of tabs, allowi
 
 ###### Parameters
 
-| Parameter   | Type                            | Description                                                                                 |
-| ----------- | ------------------------------- | ------------------------------------------------------------------------------------------- |
-| `*children` | `Tab \| TabList \| TabPanels`   | The tab panels to render within the tabs component.                                         |
-| `on_change` | `Callable[[Key], None] \| None` | Alias of `on_selection_change`. Handler that is called when the tab selection changes.      |
-| `**props`   | `Any`                           | Any other [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html#tabs-props) prop |
-
+| Parameter               | Type                                  | Description                                                                                                                                                    |
+| ----------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `*children`             | `Tab \| TabList \| TabPanels`        | The tab panels to render within the tabs component.                                                                                                                                                                                               |
+| `on_change`             | `Callable[[Key], None] \| None` | Alias of `on_selection_change`. Handler that is called when the tab selection changes.                                                                            |
+| `**props`               | `Any`                                 | Any other [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html#tabs-props) prop 
 |
 
 |
