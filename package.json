@@ -5,10 +5,6 @@
   "workspaces": [
     "./plugins/*/src/js/"
   ],
-  "engines": {
-    "node": ">=6",
-    "npm": ">=8"
-  },
   "scripts": {
     "docker": "docker compose up deephaven-plugins --build",
     "start": "run-p \"start:packages -- {@}\" serve:plugins --",
