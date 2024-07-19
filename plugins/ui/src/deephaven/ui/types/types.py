@@ -25,6 +25,7 @@ from deephaven.dtypes import DType
 
 
 # Color values for the DH color palette exposed to end users in spectrum components
+# https://github.com/deephaven/web-client-ui/blob/main/packages/components/src/theme/colorUtils.ts
 DeephavenColor = Literal[
     "gray-50",
     "gray-75",
