@@ -260,6 +260,7 @@ def builder(
 
     # default is to install, but don't if just configuring
     if not any([build, install, reinstall, docs, js, configure]):
+        js = True
         install = True
 
     if js:
