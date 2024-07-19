@@ -1,8 +1,8 @@
 # Density Heatmap Plot
 
-A density heatmap plot is a data visualization that uses a colored grid to represent a count over two columns or more generally an aggregation over three columns. The grid is divided into cells which are colored based on the aggregated value of the data points that fall within each cell. Using two columns provides a replacement for a scatter plot when there are too many data points to be easily visualized, whereas using three columns allows for a more general aggregation to assess a specific metric of the data distribution. The number of grid bins significantly impacts the visualization. Currently, these numbers must be set manually.
-
+A density heatmap plot is a data visualization that uses a colored grid to represent a count over two columns or more (generally an aggregation over three columns). The grid is divided into cells colored based on the aggregated value of the data points that fall within each cell. Using two columns provides a replacement for a scatter plot when there are too many data points to be easily visualized, whereas using three columns allows for a more general aggregation to assess a specific metric of the data distribution. The number of grid bins significantly impacts the visualization. Currently, the grid bins default to 10 on each axis.
 #### When are density heatmap plots appropriate? 
+
 Density heatmap plots are appropriate when the data contains two or three continuous variables of interest.
 
 #### What are density heatmap plots useful for? 
@@ -15,13 +15,13 @@ Density heatmap plots are appropriate when the data contains two or three contin
 
 ### A basic density heatmap
 
-Visualize the counts of data points between two continuous variables within a grid. This is possibly a replacement for a scatter plot when there are too many data points to be easily visualized.
+Visualize the counts of data points between two continuous variables within a grid. This could possibly replace a scatter plot when there are too many data points to be easily visualized.
 
 ```python order=heatmap,iris
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
-# create a basic density heatmap by specifying columns for the `x` and `y` axes
+# Create a basic density heatmap by specifying columns for the `x` and `y` axes
 heatmap = dx.density_heatmap(iris, x="petal_length", y="petal_width")
 ```
 
@@ -31,7 +31,7 @@ Visualize the counts of data points between two continuous variables within a gr
 
 ```py order=heatmap_colorscale,iris
 import deephaven.plot.express as dx
-iris = dx.data.iris() # import a ticking version of the Iris dataset
+iris = dx.data.iris() # Import a ticking version of the Iris dataset
 
 # Color the heatmap using the "viridis" color scale with a range from 5 to 8
 heatmap_colorscale = dx.density_heatmap(
