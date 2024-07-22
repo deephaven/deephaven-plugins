@@ -17,7 +17,6 @@ from .types import (
     LabelPosition,
     Align,
     # Validation
-    TextFieldType,
     TextFieldInputMode,
     TextFieldValidationState,
     NecessityIndicator,
@@ -113,8 +112,8 @@ def text_area(
         is_disabled: Whether the input should be disabled
         is_read_only: Whether the input scan be selected but not changed by the user
         is_required: Whether the input is required before form submission
-        description: A description for the field. Provides a hint such as specific requirements for what to choose.
-        error_message: An error message to display when the field is invalid
+        description: A description for the area. Provides a hint such as specific requirements for what to choose.
+        error_message: An error message to display when the area is invalid
         auto_focus: Whether the input should be focused on page load
         value: The current value of the input
         default_value: The default value of the input

@@ -12,11 +12,11 @@ const VALUE_CHANGE_DEBOUNCE = 250;
 
 const EMPTY_FUNCTION = () => undefined;
 
-interface TextFieldProps extends DHCTextAreaProps {
+interface TextAreaProps extends DHCTextAreaProps {
   onChange?: (value: string) => Promise<void>;
 }
 
-export function TextArea(props: TextFieldProps): JSX.Element {
+export function TextArea(props: TextAreaProps): JSX.Element {
   const {
     defaultValue = '',
     value: propValue,
