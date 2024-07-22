@@ -1,15 +1,16 @@
 # Density Heatmap Plot
 
-A density heatmap plot is a data visualization that uses a colored grid to represent a count over two columns or more (generally an aggregation over three columns). The grid is divided into cells colored based on the aggregated value of the data points that fall within each cell. Using two columns provides a replacement for a scatter plot when there are too many data points to be easily visualized, whereas using three columns allows for a more general aggregation to assess a specific metric of the data distribution. The number of grid bins significantly impacts the visualization. Currently, the grid bins default to 10 on each axis.
+A density heatmap plot is a data visualization that uses a colored grid to represent a count over two columns or more (generally an aggregation over three columns). The grid is divided into cells colored based on the aggregated value of the data points that fall within each cell. Passing in one independent variable and one dependent variable provides an approximating replacement for a scatter plot when there are too many data points to be easily visualized. Providing two independent variables and a third dependent variable allows for a more general aggregation to assess a specific metric of the data distribution. The number of grid bins significantly impacts the visualization. Currently, the grid bins default to 10 on each axis.
+
 #### When are density heatmap plots appropriate? 
 
-Density heatmap plots are appropriate when the data contains two or three continuous variables of interest.
+Density heatmap plots are appropriate when the data contains two continuous variables of interest and optionally a third dependent variable.
 
 #### What are density heatmap plots useful for? 
 
 - **Scatter Plot Replacement**: When dealing with a large number of data points, density heatmaps provide a more concise, informative and performant visualization than a scatter plot.
 - **2D Density Estimation**: Density heatmaps can serve as the basis for 2D density estimation methods, helping to model and understand underlying data distributions, which is crucial in statistical analysis and machine learning.
-- **Metric Aggregation**: By aggregating data points within each cell, density heatmaps can provide insights into the distribution of a specific metric or value across different regions.
+- **Metric Assessment**: By aggregating data points within each cell, density heatmaps can provide insights into the distribution of a specific metric or value across different regions, highlighting groups for further analysis.
 
 ## Examples
 
