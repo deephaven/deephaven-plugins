@@ -171,6 +171,8 @@ def button(
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
 
+    Returns:
+        The rendered button component.
     """
     return component_element(
         "Button",

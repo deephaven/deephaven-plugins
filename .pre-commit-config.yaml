@@ -15,7 +15,7 @@ repos:
     rev: v1.1.334
     hooks:
       - id: pyright
-        files: (plugins\/.*\/src|sphinx_ext)\/.*\.py
+        files: ((plugins\/.*\/src|sphinx_ext)\/.*\.py)|plugin_builder.py
         additional_dependencies:
           [
             pandas,
@@ -25,6 +25,7 @@ repos:
             matplotlib,
             deephaven-plugin-utilities,
             sphinx,
+            click
           ]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.2.2
