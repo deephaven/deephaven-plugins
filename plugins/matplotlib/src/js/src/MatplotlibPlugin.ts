@@ -3,7 +3,7 @@ import { vsGraph } from '@deephaven/icons';
 import { MatplotlibView } from './MatplotlibView';
 
 export const MatplotlibPlugin: WidgetPlugin = {
-  name: '@deephaven/js-plugin-matplotlib',
+  name: 'MatPlotLibPanel',
   type: PluginType.WIDGET_PLUGIN,
   supportedTypes: 'matplotlib.figure.Figure',
   component: MatplotlibView,
