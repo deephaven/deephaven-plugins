@@ -11,7 +11,6 @@ on:
       - 'release/**'
     tags:
       - 'plotly-express-v*'
-      - 'plotly-v*'
       - 'matplotlib-v*'
       - 'json-v*'
       - 'ui-v*'
@@ -37,9 +36,6 @@ jobs:
               - plugins/plotly-express/**
               - .github/workflows/test-*.yml
               - sphinx_ext/*
-            plotly:
-              - plugins/plotly/**
-              - .github/workflows/test-*.yml
             matplotlib:
               - plugins/matplotlib/**
               - .github/workflows/test-*.yml
