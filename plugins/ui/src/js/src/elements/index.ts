@@ -18,5 +18,6 @@ export * from './Slider';
 export * from './Tabs';
 export * from './TabPanels';
 export * from './TextField';
+export * from './TextArea';
 export * from './UITable/UITable';
 export * from './utils';
