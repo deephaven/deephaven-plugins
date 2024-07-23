@@ -87,7 +87,7 @@ def discretized_range_view(
 
 
 def create_range_table(
-    table: Table,
+    table: Table | PartitionedTable,
     cols: str | list[str],
     range_bins: list[float | None] | None,
     nbins: int,
@@ -111,6 +111,7 @@ def create_range_table(
     Returns:
         A table that contains the range object for the given
     """
+    table = single_table(table)
 
     cols = [cols] if isinstance(cols, str) else cols
 
