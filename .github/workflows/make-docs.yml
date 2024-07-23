@@ -25,7 +25,7 @@ jobs:
           path: plugins/${{ inputs.package }}/dist/
 
       - name: Install requirements
-        run: pip install -r plugins/${{ inputs.package }}/sphinx-requirements.txt
+        run: pip install -r sphinx_ext/sphinx-requirements.txt
 
       - name: Install wheel
         run: pip install plugins/${{ inputs.package }}/dist/*.whl

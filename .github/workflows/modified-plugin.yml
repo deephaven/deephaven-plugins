@@ -45,6 +45,7 @@ jobs:
             ui:
               - plugins/ui/**
               - .github/workflows/test-*.yml
+              - sphinx_ext/*
             utilities:
               - plugins/utilities/**
               - .github/workflows/test-*.yml
