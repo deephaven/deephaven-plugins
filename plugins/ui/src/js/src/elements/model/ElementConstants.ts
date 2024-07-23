@@ -38,6 +38,7 @@ export const ELEMENT_NAME = {
   grid: uiComponentName('Grid'),
   heading: uiComponentName('Heading'),
   illustratedMessage: uiComponentName('IllustratedMessage'),
+  image: uiComponentName('Image'),
   item: uiComponentName('Item'),
   listActionGroup: uiComponentName('ListActionGroup'),
   listActionMenu: uiComponentName('ListActionMenu'),
