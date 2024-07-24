@@ -848,7 +848,7 @@ def ui_text_filter_table(source, column):
     )
 
 
-my_text_filter_table = ui_text_filter_table(stocks, "sym")
+my_text_filter_table = ui_text_filter_table(stocks, "Sym")
 ```
 
 ![Table with a text field for filtering.](_assets/text_filter_table.png)
@@ -872,7 +872,7 @@ def ui_range_table(source, column):
     )
 
 
-my_range_table = ui_range_table(stocks, "size")
+my_range_table = ui_range_table(stocks, "Size")
 ```
 
 ![Table with a slider for selecting the range.](range_table.png)
@@ -903,7 +903,7 @@ def ui_stock_widget_table(source, default_sym="", default_exchange=""):
         ui.content("Please enter 'Sym' and 'Exchange' above"),
     )
     t1 = (
-        source.where([f"sym=`{sym.upper()}`", f"exchange=`{exchange.upper()}`"])
+        source.where([f"Sym=`{sym.upper()}`", f"Exchange=`{exchange.upper()}`"])
         if sym and exchange
         else error_message
     )
@@ -937,10 +937,10 @@ def ui_stock_widget_plot(source, default_sym="", default_exchange=""):
     ti2 = ui.text_field(
         label="Exchange", label_position="side", value=exchange, on_change=set_exchange
     )
-    t1 = source.where([f"sym=`{sym.upper()}`", f"exchange=`{exchange}`"])
+    t1 = source.where([f"Sym=`{sym.upper()}`", f"Exchange=`{exchange}`"])
     p = (
         Figure()
-        .plot_xy(series_name=f"{sym}-{exchange}", t=t1, x="timestamp", y="price")
+        .plot_xy(series_name=f"{sym}-{exchange}", t=t1, x="Timestamp", y="Price")
         .show()
     )
 
@@ -992,12 +992,12 @@ from deephaven.plot import express as dx
 from deephaven.plot.figure import Figure
 
 _stocks = dx.data.stocks()
-_cat_stocks = _stocks.where("sym=`CAT`")
-_dog_stocks = _stocks.where("sym=`DOG`")
+_cat_stocks = _stocks.where("Sym=`CAT`")
+_dog_stocks = _stocks.where("Sym=`DOG`")
 _stocks_plot = (
     Figure()
-    .plot_xy("Cat", _cat_stocks, x="timestamp", y="price")
-    .plot_xy("Dog", _dog_stocks, x="timestamp", y="price")
+    .plot_xy("Cat", _cat_stocks, x="Timestamp", y="Price")
+    .plot_xy("Dog", _dog_stocks, x="Timestamp", y="Price")
     .show()
 )
 
@@ -1329,16 +1329,16 @@ def stock_table_input(source, default_sym="", default_exchange=""):
     exchange, set_exchange = ui.use_state(default_exchange)
 
     t1 = source
-    t2 = source.where([f"sym=`{sym.upper()}`", f"exchange=`{exchange}`"])
+    t2 = source.where([f"Sym=`{sym.upper()}`", f"Exchange=`{exchange}`"])
     p = (
         Figure()
-        .plot_xy(series_name=f"{sym}-{exchange}", t=t2, x="timestamp", y="price")
+        .plot_xy(series_name=f"{sym}-{exchange}", t=t2, x="Timestamp", y="Price")
         .show()
     )
 
     def handle_row_double_press(row, data):
-        set_sym(data["sym"]["value"])
-        set_exchange(data["exchange"]["value"])
+        set_sym(data["Sym"]["Value"])
+        set_exchange(data["Exchange"]["Value"])
 
     return [
         ui.panel(
@@ -1429,7 +1429,7 @@ from deephaven import ui
 import deephaven.plot.express as dx
 
 def create_context_menu(data):
-    if data["column_name"] == "sym":
+    if data["column_name"] == "Sym":
         return {
             "title": f"Print {data['value']}",
             "action": lambda d: print(d['value'])
@@ -1466,8 +1466,8 @@ def text_filter_table(source, column, default_value=""):
 @ui.component
 def double_table(source):
     return ui.flex(
-        text_filter_table(source, "sym", "FISH"),
-        text_filter_table(source, "exchange", "PETX"),
+        text_filter_table(source, "Sym", "FISH"),
+        text_filter_table(source, "Exchange", "PETX"),
         flex_grow=1,
     )
 
@@ -1493,9 +1493,9 @@ def get_by_filter(**byargs):
     """
     Gets a by filter where the arguments are all args passed in where the value is true.
     e.g.
-    get_by_filter(sym=True, exchange=False) == ["sym"]
-    get_by_filter(exchange=False) == []
-    get_by_filter(sym=True, exchange=True) == ["sym", "exchange"]
+    get_by_filter(Sym=True, Exchange=False) == ["Sym"]
+    get_by_filter(Exchange=False) == []
+    get_by_filter(Sym=True, Exchange=True) == ["Sym", "Exchange"]
 
     """
     return [k for k in byargs if byargs[k]]
@@ -1506,12 +1506,12 @@ def stock_table(source):
     is_sym, set_is_sym = ui.use_state(False)
     is_exchange, set_is_exchange = ui.use_state(False)
     highlight, set_highlight = ui.use_state("")
-    aggs, set_aggs = ui.use_state(agg.avg(cols=["size", "price", "dollars"]))
+    aggs, set_aggs = ui.use_state(agg.avg(cols=["Size", "Price", "Dollars"]))
 
     by = get_by_filter(sym=is_sym, exchange=is_exchange)
 
     formatted_table = ui.use_memo(
-        lambda: source.format_row_where(f"sym=`{highlight}`", "LEMONCHIFFON"),
+        lambda: source.format_row_where(f"Sym=`{highlight}`", "LEMONCHIFFON"),
         [source, highlight],
     )
     rolled_table = ui.use_memo(
@@ -1709,8 +1709,8 @@ def ui_tabs(source):
         ),
         ui.tab_panels(
             ui.item(source, key="Unfiltered"),
-            ui.item(source.where("sym=`CAT`"), key="CAT"),
-            ui.item(source.where("sym=`DOG`"), key="DOG"),
+            ui.item(source.where("Sym=`CAT`"), key="CAT"),
+            ui.item(source.where("Sym=`DOG`"), key="DOG"),
         ),
         flex_grow=1,
         aria_label="Tabs",  # aria_label is set for aria accessibility and is otherwise optional
@@ -1744,18 +1744,18 @@ stocks = dx.data.stocks()
 @ui.component
 def watch_lizards(source: Table):
 
-    sold_lizards = source.where(["side in `sell`", "sym in `LIZARD`"])
-    exchange_count_table = sold_lizards.view(["exchange"]).count_by(
-        "count", by=["exchange"]
+    sold_lizards = source.where(["Side in `sell`", "Sym in `LIZARD`"])
+    exchange_count_table = sold_lizards.view(["Exchange"]).count_by(
+        "Count", by=["Exchange"]
     )
     last_sell_table = sold_lizards.tail(1)
-    max_size_and_price_table = sold_lizards.agg_by([agg.max_(cols=["size", "price"])])
-    last_ten_sizes_table = sold_lizards.view("size").tail(10)
+    max_size_and_price_table = sold_lizards.agg_by([agg.max_(cols=["Size", "Price"])])
+    last_ten_sizes_table = sold_lizards.view("Size").tail(10)
     average_sell_table = (
-        sold_lizards.view(["size", "dollars"])
+        sold_lizards.view(["Size", "Dollars"])
         .tail(100)
         .sum_by()
-        .view("average = dollars/size")
+        .view("Average = Dollars/Size")
     )
 
     exchange_count = ui.use_table_data(exchange_count_table)

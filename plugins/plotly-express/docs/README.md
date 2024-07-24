@@ -103,10 +103,10 @@ import deephaven.plot.express as dx
 my_table = dx.data.stocks()
 
 # Create a line plot, and assign colors by distinct values in the `sym` column
-my_plot = dx.line(table=my_table, x="timestamp", y="price", color="sym")
+my_plot = dx.line(table=my_table, x="Timestamp", y="Price", color="Sym")
 ```
 
-In this example, we create a Deephaven table and create a line plot of `timestamp` against `price` with automatic downsampling. A trace is created for each value in the `sym` column, each of which has a unique color.
+In this example, we create a Deephaven table and create a line plot of `Timestamp` against `Price` with automatic downsampling. A trace is created for each value in the `Sym` column, each of which has a unique color.
 
 ## Contributing
 
