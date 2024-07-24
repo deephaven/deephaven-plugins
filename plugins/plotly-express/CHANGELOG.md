@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.11.1 - 2024-07-24
+#### Bug Fixes
+- Fixes PartitionedTable has no agg_by error (#662) - (685c359) - Joe
+#### Build system
+- UI docs and add plugin_builder.py (#630) - (7281eec) - Joe
+#### Documentation
+- add sidebar to UI docs and adjust readme (#633) - (e690c1b) - Don
+
+- - -
+
 ## plotly-express-v0.11.0 - 2024-07-16
 #### Bug Fixes
 - add datasets to import to actually use them (#616) - (2266958) - Alex Peters
