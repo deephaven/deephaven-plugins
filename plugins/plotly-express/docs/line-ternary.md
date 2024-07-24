@@ -16,9 +16,9 @@ Ternary line plots are appropriate when the data contain three interrelated mutu
 
 ```python order=election_line,election
 import deephaven.plot.express as dx
-election = dx.data.election() # import a ticking version of the Election dataset
+election = dx.data.election()
 
-# create a ternary line plot by specifying the columns for the three points of the triangle
+# create a ternary line plot by passing the column names for the three points of the triangle to `a`, `b`, and `c`
 election_line = dx.line_ternary(election, a="Joly", b="Coderre", c="Bergeron")
 ```
 

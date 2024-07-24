@@ -12,7 +12,7 @@ Visualize the amount of time that each category in a column met a specific crite
 
 ```python order=jobs_tracking
 import deephaven.plot.express as dx
-jobs = dx.data.jobs() # import the ticking jobs dataset
+jobs = dx.data.jobs()
 
 # create a basic timeline plot by specifying the start time column, end time column, and y-value column
 jobs_tracking = dx.timeline(jobs, x_start="StartTime", x_end="EndTime", y="Job")
@@ -24,10 +24,10 @@ Use an additional categorical variable to color the bars.
 
 ```python order=jobs_tracking
 import deephaven.plot.express as dx
-jobs = dx.data.jobs() # import the ticking jobs dataset
+jobs = dx.data.jobs()
 
 # the `by` argument is used to color the bars by another categorical variable
-jobs_resource_tracking = dx.timeline(jobs, x_start="StartTime", x_end="EndTime", y="Job")
+jobs_resource_tracking = dx.timeline(jobs, x_start="StartTime", x_end="EndTime", y="Job", by="Resource")
 ```
 
 ## API Reference

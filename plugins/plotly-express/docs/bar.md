@@ -1,6 +1,6 @@
 # Bar Plot
 
-A bar plot is a graphical representation of data that uses rectangular bars to display the values of different categories or groups, making it easy to compare and visualize the distribution of data.
+A bar plot is a graphical representation of data that uses rectangular bars to display the values of different categories or groups. Bar plots aggregate the response variable across the entire dataset for each category, so that the y-axis represents the sum of the response variable per category.
 
 Bar plots are appropriate when the data contain a continuous response variable that is directly related to a categorical explanatory variable. Additionally, if the response variable is a cumulative total of contributions from different subcategories, each bar can be broken up to demonstrate those contributions.
 
@@ -14,14 +14,24 @@ Bar plots are appropriate when the data contain a continuous response variable t
 
 ### A basic bar plot
 
-Visualize the relationship between a continuous variable and a categorical or discrete variable. By default, the y-axis shows the cumulative value for each group over the whole dataset.
+Visualize the relationship between a continuous variable and a categorical or discrete variable.
 
 ```python order=bar_plot,tips
 import deephaven.plot.express as dx
-tips = dx.data.tips() # import a ticking version of the Tips dataset
+tips = dx.data.tips()
 
 # create a basic bar plot by specifying columns for the `x` and `y` axes
 bar_plot = dx.bar(tips, x="day", y="total_bill")
+```
+
+Change the x-axis order by sorting the dataset by the categorical variable.
+
+```python order=ordered_bar_plot,tips
+import deephaven.plot.express as dx
+tips = dx.data.tips()
+
+# sort the dataset to get a specific x-axis ordering, sort() acts alphabetically
+ordered_bar_plot = dx.bar(tips.sort("day"), x="day", y="total_bill")
 ```
 
 ### Partition bars by group
@@ -32,11 +42,13 @@ Use the `by` argument to break each bar up into contributions from the given gro
 import deephaven.plot.express as dx
 tips = dx.data.tips() # import a ticking version of the Tips dataset
 
-# Ex 1. Partition bars by smoker / non-smoker
-bar_plot_smoke = dx.bar(tips, x="day", y="total_bill", by="smoker")
+sorted_tips = tips.sort("day")
 
-# Ex 2. Partition bars by male / female
-bar_plot_sex = dx.bar(tips, x="day", y="total_bill", by="sex")
+# partition bars by smoker / non-smoker
+bar_plot_smoke = dx.bar(sorted_tips, x="day", y="total_bill", by="smoker")
+
+# partition bars by male / female
+bar_plot_sex = dx.bar(sorted_tips, x="day", y="total_bill", by="sex")
 ```
 
 ## API Reference

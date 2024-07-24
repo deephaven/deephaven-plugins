@@ -19,7 +19,7 @@ Alternatives to 3D line plots include:
 
 ### A basic 3D line plot
 
-Visualize a 3D plot by specifying each of the x, y, and z components. Click and drag on the resulting chart to rotate it for new perspectives.
+Visualize the relationship between three variables by specifying each spatial component. Click and drag on the resulting chart to rotate it for new perspectives.
 
 ```python order=spiral_plot,spiral
 import deephaven.plot.express as dx
@@ -30,7 +30,7 @@ spiral = time_table("PT0.01s").update_view(
     ["X = sin(ii / 100)", "Y = cos(ii / 100)", "Z = 4 * ii / 100"]
 )
 
-# create a basic 3d line plot by specifying each spatial component
+# create a basic 3d line plot by specifying `x`, `y`, and `z`
 spiral_plot = dx.line_3d(spiral, x="X", y="Y", z="Z")
 ```
 

@@ -1,6 +1,6 @@
 # Histogram Plot
 
-A histogram plot is a data visualization technique commonly used in statistics and data analysis to visualize the distribution of a single continuous variable. It consists of a series of contiguous, non-overlapping bars that provide a visual summary of the frequency or density of data points within predefined intervals or "bins." The number of bins significantly impacts the visualization. Currently, this number currently must be set manually.
+A histogram plot is a data visualization technique commonly used in statistics and data analysis to visualize the distribution of a single continuous variable. It consists of a series of contiguous, non-overlapping bars that provide a visual summary of the frequency or density of data points within predefined intervals or "bins." The number of bins significantly impacts the visualization.
 
 Histograms are appropriate when the data contain a continuous variable of interest. If there is an additional categorical variable that the variable of interest depends on, layered histograms may be appropriate.
 
@@ -18,13 +18,32 @@ Visualize the distribution of a single continuous variable.
 
 ```python order=setosa_sep_length,setosa,iris
 import deephaven.plot.express as dx
-iris = dx.data.iris() # import a ticking version of the Iris dataset
+iris = dx.data.iris()
 
 # subset to get specific species
 setosa = iris.where("species == `setosa`")
 
-# create a basic histogram by specifying the variable of interest
+# create a basic histogram by passing the column of interest to `x`
 setosa_sep_length = dx.histogram(setosa, x="sepal_length")
+```
+
+Modify the bin size by setting `nbins` equal to the number of desired bins.
+
+```python order=setosa_sep_length,setosa,iris
+import deephaven.plot.express as dx
+iris = dx.data.iris()
+
+# subset to get specific species
+virginica = iris.where("species == `virginica`")
+
+# too many bins will produce jagged, disconnected histograms
+virginica_20_bins = dx.histogram(setosa, x="sepal_length", nbins=20)
+
+# too few bins will mask distributional information
+virginica_3_bins = dx.histogram(setosa, x="sepal_length", nbins=3)
+
+# play with the `nbins` parameter to get a good visualization
+virginica_8_bins = dx.histogram(setosa, x="sepal_length", nbins=8)
 ```
 
 ### Distributions of several groups
@@ -33,12 +52,12 @@ Histograms can also be used to compare the distributional properties of differen
 
 ```python order=sep_length_multi,sep_length_multi_overlay,iris
 import deephaven.plot.express as dx
-iris = dx.data.iris() # import a ticking version of the Iris dataset
+iris = dx.data.iris()
 
-# Ex 1. Each bin is stacked side-by-side for each group
+# each bin may be stacked side-by-side for each group
 sep_length_multi = dx.histogram(iris, x="sepal_length", by="species")
 
-# Ex 2. Each bin is overlaid with the others
+# or, each bin may be overlaid with the others
 sep_length_multi_overlay = dx.histogram(iris, x="sepal_length", by="species", barmode="overlay")
 ```
 

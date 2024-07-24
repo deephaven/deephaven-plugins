@@ -1,6 +1,6 @@
 # Funnel Plot
 
-A funnel plot is a data visualization that represents a process with various stages and allows multiple stacked categories, showing the quantitative values or counts at each stage in a funnel shape. It is a useful tool for tracking the progression or attrition of data through different stages, providing a visual overview of data distribution within the process.
+A funnel plot is a data visualization that represents a process with various stages and allows multiple stacked categories, showing the quantitative values or counts at each stage in a funnel shape. It is a useful tool for tracking the progression or attrition of data through different stages, providing a visual overview of data distribution within the process. The data must be ordered by the response variable, or the "funnel" shape will not be guaranteed.
 
 Funnel plots differ from funnel area plots in that they display the absolute count of data points in each category, while funnel area plots display the percentage of data points that belong to each category. Funnel plots also count each data point as belonging to _at least one_ category, so the categories are represented as subsets of each other. On the other hand, funnel area plots also count each data point as belonging to _exactly one_ category, and display the categories as mutually exclusive.
 
@@ -20,7 +20,7 @@ Visualize the trend in consecutive stages of a categorical variable.
 
 ```python order=marketing_trend,marketing
 import deephaven.plot.express as dx
-marketing = dx.data.marketing()  # import the ticking marketing dataset
+marketing = dx.data.marketing()
 
 # create a basic funnel plot by specifying column names for `x` and `y`
 marketing_trend = dx.funnel(marketing, x="Count", y="Stage")

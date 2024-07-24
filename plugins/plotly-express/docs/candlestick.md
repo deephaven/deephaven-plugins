@@ -8,7 +8,7 @@ In a bullish (upward, typically shown as green) candlestick, the open is typical
 
 ### What are candlestick plots useful for?
 
-- **Analyzing financial markets**: Candlestick plots are a standard tool in technical analysis for understanding price movements, identifying trends, and potential reversal points in financial markets, such as stocks, forex, and cryptocurrencies.
+- **Analyzing financial markets**: Candlestick plots are a standard tool in technical analysis for understanding price movements, identifying trends, and potential reversal points in financial instruments, such as stocks, forex, and cryptocurrencies.
 - **Short to medium-term trading**: Candlestick patterns are well-suited for short to medium-term trading strategies, where timely decisions are based on price patterns and trends over a specific time frame.
 - **Visualizing variation in price data**: Candlestick plots offer a visually intuitive way to represent variability in price data, making them valuable for traders and analysts who prefer a visual approach to data analysis.
 
@@ -16,12 +16,12 @@ In a bullish (upward, typically shown as green) candlestick, the open is typical
 
 ### A basic candlestick plot
 
-Visualize the key summary statistics of a single continuous variable as it evolves.
+Visualize the key summary statistics of a stock price as it evolves.
 
 ```python order=candlestick_plot,stocks_1min_ohlc,stocks
 import deephaven.plot.express as dx
 import deephaven.agg as agg
-stocks = dx.data.stocks()  # import the example stock market data set
+stocks = dx.data.stocks()
 
 # compute ohlc per symbol for each minute
 stocks_1min_ohlc = stocks.update_view(

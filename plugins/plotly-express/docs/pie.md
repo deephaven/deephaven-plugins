@@ -28,6 +28,7 @@ gapminder_recent_pop = (
     .sum_by(["year", "month", "continent"])
 )
 
+# specify the labels for each slice with `names`, and the value corresponding to that label with `values`
 continent_population = dx.pie(gapminder_recent_pop, names="continent", values="pop")
 ```
 

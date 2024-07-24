@@ -2,7 +2,7 @@
 
 A 3D scatter plot is a type of data visualization that displays data points in three-dimensional space. Each data point is represented as a marker or point, and its position in the plot is determined by the values of three different variables, one for each axis (x, y, and z). This plot allows for the visualization of relationships and patterns among three continuous variables simultaneously.
 
-3D scatter plots are appropriate when a continuous reponse variable depends on two continuous explanatory variables. If there is an additional categorical variable that the response variable depends on, shapes or colors can be used in the scatter plot to distinguish the categories.
+3D scatter plots are appropriate when a continuous response variable depends on two continuous explanatory variables. If there is an additional categorical variable that the response variable depends on, shapes or colors can be used in the scatter plot to distinguish the categories.
 
 ### What are 3D scatter plots useful for?
 
@@ -12,86 +12,51 @@ A 3D scatter plot is a type of data visualization that displays data points in t
 
 ## Examples
 
-### A basic scatter plot
+### A basic 3D scatter plot
 
-Visualize the relationship between three variables. Defined as an x, y and z supplied using column names.
+Visualize the relationship between three variables by specifying each spatial component. Click and drag on the resulting chart to rotate it for new perspectives.
 
-```python order=scatter_plot,mytable
+```python order=iris_3d,iris
 import deephaven.plot.express as dx
-my_table = dx.data.iris() # import the example iris data set
+iris = dx.data.iris()
 
-# Create a basic scatter plot by specifying the x and y column
-scatter_3d_plot = dx.scatter_3d(my_table, x="sepal_width", y="sepal_length", z="petal_width")
+# create a basic scatter plot by specifying the `x`, `y`, and `z` arguments
+iris_3d = dx.scatter_3d(iris, x="sepal_width", y="sepal_length", z="petal_width")
 ```
 
-### 3d bubble charts sized from a column
+### Size markers by a quantitative variable
 
-A 3d bubble chart is a type of data visualization that displays data points as spheres, where the position of each sphere corresponds to three variables, and the size of the sphere represents a fourth variable.
+Use the size of the markers in a 3D scatter plot to visualize a fourth quantitative variable. Such a plot is commonly called a bubble plot.
 
-The size column values function as the sphere size, you may consider scaling or normalizing these values before plotting the bubble chart.
-
-```python order=bubble_3d_plot
+```python order=iris_3d_bubble,iris
 import deephaven.plot.express as dx
-my_table = dx.data.iris() # import the example iris data set
+iris = dx.data.iris()
 
-# Sets size of the circle using values from a column sized in pixels
-bubble_3d_plot = dx.scatter_3d(my_table, x="sepal_width", y="sepal_length", z="petal_width", size="petal_length")
+# pass the name of the additional variable to the `size` argument 
+iris_3d_bubble = dx.scatter_3d(iris, x="sepal_width", y="sepal_length", z="petal_width", size="petal_length")
 ```
 
-### Color scatter plot by group
+### Color markers by group
 
-Plot values by group. The query engine performs a `parition_by` on the given color column to create each series.
+Denote groups of data by using the color of the markers as group indicators.
 
-```python order=scatter_plot,mytable
+```python order=iris_3d_groups,iris
 import deephaven.plot.express as dx
-my_table = dx.data.iris() # import the example iris data set
+iris = dx.data.iris()
 
-# Assign unique colors to each grouping key in a column
-scatter_3d_plot = dx.scatter_3d(my_table, x="sepal_width", y="sepal_length", z="petal_width", color="species")
+# use the `by` argument to color markers by group
+iris_3d_groups = dx.scatter_3d(iris, x="sepal_width", y="sepal_length", z="petal_width", by="species")
 ```
 
-### Color using a continuous color scale
+Customize these colors using the `color_discrete_sequence` argument. Any [CSS color name](https://www.w3schools.com/cssref/css_colors.php), hexadecimal color code, or set of RGB values will work.
 
-Colors can be set to a continuous scale, instead of by group as above. Use any of the built in color scales, or specify a custom scale.
-
-<!-- TODO: LINK TO A PAGE ON COLOR SCALES -->
-
-```python order=scatter_plot_color_by,scatter_plot_color_custom
+```python order=iris_3d_custom_1,iris_3d_custom_2,iris_3d_custom_3,iris
 import deephaven.plot.express as dx
-my_table = dx.data.iris() # import the example iris data set
+iris = dx.data.iris()
 
-# Ex 1. Use built in color scales
-scatter_3d_plot_color_by = dx.scatter_3d(
-    my_table,
-    x="sepal_width",
-    y="sepal_length",
-    z="petal_width",
-    color="petal_length",
-    # use any plotly express built in color scale names
-    color_continuous_scale="viridis"
-)
-
-# Ex 2. Use a custom color scale
-scatter_plot_color_custom = dx.scatter_3d(
-    my_table,
-    x="sepal_width",
-    y="sepal_length",
-    z="petal_width",
-    color="petal_length",
-    # custom scale colors can be any valid browser css color
-    color_continuous_scale=["lemonchiffon", "#FA8173", "rgb(201, 61, 44)"]
-)
-```
-
-### Color using custom discrete colors
-
-```python order=scatter_plot_color_sequence,scatter_plot_color_map,scatter_plot_color_column
-import deephaven.plot.express as dx
-my_table = dx.data.iris() # import the example iris data set
-
-# Ex 1. Set custom colors
-scatter_plot_color_sequence = dx.scatter_3d(
-    my_table,
+# set custom colors using color_discrete_sequence
+iris_3d_custom_1 = dx.scatter_3d(
+    iris,
     x="sepal_width",
     y="sepal_length",
     z="petal_width",
@@ -102,9 +67,9 @@ scatter_plot_color_sequence = dx.scatter_3d(
     color_discrete_sequence=["salmon", "#fffacd", "rgb(100,149,237)"]
 )
 
-# Ex 2. Set trace colors from a map of colors
-scatter_plot_color_map = dx.scatter_3d(
-    my_table,
+# use a dictionary to specify custom colors
+iris_3d_custom_2 = dx.scatter_3d(
+    iris,
     x="sepal_width",
     y="sepal_length",
     z="petal_width",
@@ -114,14 +79,13 @@ scatter_plot_color_map = dx.scatter_3d(
     color_discrete_map={"virginica":"lemonchiffon", "setosa": "cornflowerblue", "versicolor":"#FA8173"}
 )
 
-# Ex 3. Set colors using values from a column
-# Generate a column of valid CSS colors to use as an example
-table_with_column_of_colors = my_table.update(
+# or, create a new table with a column of colors, and use that column for the color values
+iris_with_custom_colors = iris.update(
     "example_colors = `rgb(` + Math.round(Math.random() * 255) + `,` + Math.round(Math.random() * 255) + `,`  + Math.round(Math.random() * 255) +`)`"
 )
 
-scatter_plot_color_column = dx.scatter_3d(
-    table_with_column_of_colors,
+iris_3d_custom_3 = dx.scatter_3d(
+    iris_with_custom_colors,
     x="sepal_width",
     y="sepal_length",
     z="petal_width",
@@ -129,6 +93,43 @@ scatter_plot_color_column = dx.scatter_3d(
     # When set to `identity`, the column data passed to the
     # color parameter will used as the actual color
     color_discrete_map="identity"
+)
+```
+
+### Color markers by a continuous variable
+
+Markers can also be colored by a continuous value. Any of plotly's [built-in color scales](https://plotly.com/python/builtin-colorscales/) may be used.
+
+```python order=iris_3d_color,iris
+import deephaven.plot.express as dx
+iris = dx.data.iris()
+
+# use the `color` argument to specify the value column, and the `color_continuous_scale` to specify the color scale
+iris_3d_color = dx.scatter_3d(
+    iris,
+    x="sepal_width",
+    y="sepal_length",
+    z="petal_width",
+    color="petal_length",
+    # use any plotly express built in color scale names
+    color_continuous_scale="viridis"
+)
+```
+
+Or, define your own custom color scale.
+
+```python order=iris_3d_color_custom,iris
+import deephaven.plot.express as dx
+iris = dx.data.iris()
+
+iris_3d_color_custom = dx.scatter_3d(
+    iris,
+    x="sepal_width",
+    y="sepal_length",
+    z="petal_width",
+    color="petal_length",
+    # custom scale colors can be any valid browser css color
+    color_continuous_scale=["lemonchiffon", "#FA8173", "rgb(201, 61, 44)"]
 )
 ```
 

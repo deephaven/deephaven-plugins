@@ -1,6 +1,6 @@
 # OHLC Plot
 
-OHLC (Open-High-Low-Close) plots, are a common data visualization tool used in finance to represent the price data of a financial instrument over a specific time frame. Similar to Candlesticks, they display four key prices: the opening price, the highest price (high), the lowest price (low), and the closing price, typically as vertical bars on a chart, providing insights into price movements and trends.
+OHLC (Open-High-Low-Close) plots are a common data visualization tool used in finance to represent the price data of a financial instrument over a specific time frame. Similar to Candlesticks, they display four key prices: the opening price (open), the highest price (high), the lowest price (low), and the closing price (close), typically as vertical bars on a chart, providing insights into price movements and trends.
 
 In OHLC plots, each bar consists of a vertical line with small horizontal lines on both ends. The top of the vertical line represents the high price, the bottom represents the low price, the horizontal line on the left indicates the opening price, and the horizontal line on the right signifies the closing price. Additionally, the color of the bar is often used to indicate whether the closing price was higher (bullish, often green) or lower (bearish, often red) than the opening price, aiding in the quick assessment of price trends and market sentiment. Analyzing the shape, color, and position of these bars helps traders and analysts assess the price movement, trends, and market sentiment within a given time frame.
 
@@ -14,12 +14,12 @@ In OHLC plots, each bar consists of a vertical line with small horizontal lines 
 
 ### A basic OHLC plot
 
-Visualize the key summary statistics of a single continuous variable as it evolves. This plot is functionally similar to a candlestick plot, but has a different appearance.
+Visualize the key summary statistics of a stock price as it evolves.
 
 ```python order=ohlc_plot,stocks_1min_ohlc,stocks
 import deephaven.plot.express as dx
 import deephaven.agg as agg
-stocks = dx.data.stocks()  # import the example stock market data set
+stocks = dx.data.stocks()
 
 # compute ohlc per symbol for each minute
 stocks_1min_ohlc = stocks.update_view(

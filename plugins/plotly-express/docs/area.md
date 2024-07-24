@@ -18,12 +18,12 @@ Visualize the relationship between two variables. In this case, an area plot is 
 
 ```python order=area_plot,usa_population
 import deephaven.plot.express as dx
-gapminder = dx.data.gapminder() # import a ticking version of the Gapminder dataset
+gapminder = dx.data.gapminder()
 
 # subset to get a specific group
 usa_population = gapminder.where("country == `United States`")
 
-# create a basic area plot by specifying columns for the `x` and `y` axes
+# create a basic area plot that tracks the trend of US population over time
 area_plot = dx.area(usa_population, x="year", y="pop")
 ```
 
@@ -33,12 +33,12 @@ Area plots are unique in that the y-axis demonstrates each groups' total contrib
 
 ```python order=area_plot_multi,large_countries_population
 import deephaven.plot.express as dx
-gapminder = dx.data.gapminder() # import a ticking version of the Gapminder dataset
+gapminder = dx.data.gapminder()
 
-# subset to get a few categories to compare
+# subset to get several countries to compare
 large_countries_population = gapminder.where("country in `United States`, `India`, `China`")
 
-# the `by` uses unique values in the supplied column to color the plot according to those column values
+# pass a grouping column to `by` to create a plot of cumulative population trend showing contribution from each country
 area_plot_multi = dx.area(large_countries_population, x="year", y="pop", by="country")
 ```
 

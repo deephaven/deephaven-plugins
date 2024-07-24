@@ -1,6 +1,6 @@
 # Strip Plot
 
-In a strip plot, individual data points are displayed along a single axis, providing a clear view of the distribution of data points without the additional density estimation and summary statistics provided by a violin plot.
+In a strip plot, individual data points are displayed along a single axis, providing a clear view of the distribution of data points without the additional density estimation and summary statistics provided by a violin plot. By default, the plotted categories are ordered by their appearance in the dataset.
 
 Strip plots are appropriate when the data contain a continuous variable of interest. If there is an additional categorical variable that the variable of interest depends on, stacked strip plots may be appropriate. The data should be relatively sparse, as strip plots can get crowded quickly with large datasets. This may make it difficult to spot multimodal distributions, heavy-tailed distributions, or outliers. In such cases, box plots or violin plots may be more appropriate.
 
@@ -18,14 +18,14 @@ Visualize the distributions of several groups of data at once. Specify the group
 
 ```python order=bill_distr,tips
 import deephaven.plot.express as dx
-tips = dx.data.tips() # import a ticking version of the Tips dataset
+tips = dx.data.tips()
 
 # create a strip plot by specifying the variable of interest
-bill_distr = dx.strip(tips, x="total_bill", by="day", color_discrete_sequence=["lightblue"])
+bill_distr = dx.strip(tips, x="total_bill", by="day", color_discrete_sequence=["lightgreen", "lightblue", "goldenrod", "lightcoral"])
 ```
 
 > [!NOTE]
-> At the moment, `color_discrete_sequence` must be specified explicitly.
+> At the moment, `color_discrete_sequence` must be specified explicitly to get the points to render.
 
 ## API Reference
 ```{eval-rst}

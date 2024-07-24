@@ -18,7 +18,7 @@ Visualize a hierarchical dataset as nested rectangles, with categories displayed
 
 ```python order=continent_population,gapminder_recent,gapminder
 import deephaven.plot.express as dx
-gapminder = dx.data.gapminder() # import a ticking version of the Gapminder dataset
+gapminder = dx.data.gapminder()
 
 # create table of only the most recent year of data, compute total population for each continent
 gapminder_recent = (

@@ -16,7 +16,7 @@ Ternary scatter plots are appropriate when the data contain three interrelated m
 
 ```python order=election_scatter,election
 import deephaven.plot.express as dx
-election = dx.data.election() # import a ticking version of the Election dataset
+election = dx.data.election()
 
 # create a ternary scatter plot by specifying the columns for the three points of the triangle
 election_scatter = dx.scatter_ternary(election, a="Joly", b="Coderre", c="Bergeron")

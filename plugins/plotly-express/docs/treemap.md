@@ -16,7 +16,7 @@ Treemap plots are appropriate when the data have a hierarchical structure. Each 
 
 ```python order=continent_population,gapminder_recent,gapminder
 import deephaven.plot.express as dx
-gapminder = dx.data.gapminder() # import a ticking version of the Gapminder dataset
+gapminder = dx.data.gapminder()
 
 # create table of only the most recent year of data, compute total population for each continent
 gapminder_recent = (
@@ -24,10 +24,10 @@ gapminder_recent = (
     .last_by("country")
     .view(["continent", "pop"])
     .sum_by("continent")
+    .update("world = `world`")
 )
-
 # create a basic treemap plot by specifying the categories, the values of interest, and a single root 'world'
-continent_population = dx.treemap(gapminder_recent.update("world = `world`"), names="continent", values="pop", parents="world")
+continent_population = dx.treemap(gapminder_recent, names="continent", values="pop", parents="world")
 ```
 
 ## API Reference

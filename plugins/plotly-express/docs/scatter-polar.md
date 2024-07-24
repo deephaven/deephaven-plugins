@@ -14,9 +14,11 @@ Polar scatter plots are appropriate when the data contain a continuous variable 
 
 ### A basic polar scatter plot
 
+Visualize a dataset in polar coordinates.
+
 ```python order=wind_scatter,wind
 import deephaven.plot.express as dx
-wind = dx.data.wind() # import a ticking version of the Wind dataset
+wind = dx.data.wind()
 
 # create a polar scatter plot by specifying r and theta. `by` is used to separate data by groups
 wind_scatter = dx.scatter_polar(wind, r="frequency", theta="direction", by="strength")

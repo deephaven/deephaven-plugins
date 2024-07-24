@@ -16,9 +16,9 @@ Polar line plots are appropriate when the data contain a continuous variable rep
 
 ```python order=wind_line,wind
 import deephaven.plot.express as dx
-wind = dx.data.wind() # import a ticking version of the Wind dataset
+wind = dx.data.wind()
 
-# create a polar line plot by specifying r and theta. `by` is used to separate data by groups
+# create a polar line plot by specifying `r` and `theta`. `by` is used to separate data by groups
 wind_line = dx.line_polar(wind, r="frequency", theta="direction", by="strength")
 ```
 
