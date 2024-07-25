@@ -245,8 +245,6 @@ DeephavenColor = Literal[
     "subdued-content-bg",
     "surface-bg",
     "fg",
-    "salmon",
-    "lemonchiffon",
 ]
 HexColor = str
 Color = Union[DeephavenColor, HexColor]
