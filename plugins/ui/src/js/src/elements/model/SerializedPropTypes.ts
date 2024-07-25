@@ -11,7 +11,6 @@ export type SerializedFocusEventProps<T> = Omit<T, 'onFocus' | 'onBlur'> & {
   onBlur?: SerializedFocusEventCallback;
 };
 
-
 export type SerializedKeyboardEventProps<T> = Omit<
   T,
   'onKeyDown' | 'onKeyUp'
