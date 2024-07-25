@@ -4,19 +4,11 @@ import {
   DatePickerProps as DHCDatePickerProps,
 } from '@deephaven/components';
 import { useDebouncedCallback } from '@deephaven/react-hooks';
-// TODO get from components
-import {
-  CalendarDate,
-  CalendarDateTime,
-  ZonedDateTime,
-} from '@internationalized/date';
+import { DateValue } from '@internationalized/date';
 import {
   SerializedDatePickerProps,
   useDatePickerProps,
 } from './hooks/useDatepickerProps';
-
-// TODO delete
-type DateValue = CalendarDate | CalendarDateTime | ZonedDateTime;
 
 const VALUE_CHANGE_DEBOUNCE = 250;
 

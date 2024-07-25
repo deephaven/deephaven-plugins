@@ -59,6 +59,7 @@
     "@deephaven/redux": "^0.85.1",
     "@deephaven/utils": "^0.85.0",
     "@fortawesome/react-fontawesome": "^0.2.0",
+    "@internationalized/date": "^3.5.5",
     "classnames": "^2.5.1",
     "json-rpc-2.0": "^1.6.0",
     "nanoid": "^5.0.7",

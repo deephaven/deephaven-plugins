@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-// TODO delete
 import {
   CalendarDate,
   CalendarDateTime,
@@ -17,10 +16,6 @@ import {
   useKeyboardEventCallback,
 } from './useKeyboardEventCallback';
 
-export type SerializedDateValue = string | null;
-
-export type SerializedDateValueCallback = (value: SerializedDateValue) => void;
-
 type MappedDateValue<T> = T extends ZonedDateTime
   ? ZonedDateTime
   : T extends CalendarDateTime
@@ -28,6 +23,11 @@ type MappedDateValue<T> = T extends ZonedDateTime
   : T extends CalendarDate
   ? CalendarDate
   : never;
+
+export type SerializedDateValue = string | null;
+
+export type SerializedDateValueCallback = (value: SerializedDateValue) => void;
+
 export type DeserializedDateValueCallback = (
   value: MappedDateValue<DateValue>
 ) => void;
