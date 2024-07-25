@@ -11,6 +11,7 @@ import {
   IrisGridUtils,
 } from '@deephaven/iris-grid';
 import { useApi } from '@deephaven/jsapi-bootstrap';
+import { TableUtils } from '@deephaven/jsapi-utils';
 import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { getSettings, RootState } from '@deephaven/redux';
@@ -35,6 +36,7 @@ export function UITable({
   table: exportedTable,
   showSearch: showSearchBar,
   showQuickFilters,
+  reverse,
   frontColumns,
   backColumns,
   frozenColumns,
@@ -165,6 +167,9 @@ export function UITable({
         sorts: hydratedSorts,
         quickFilters: hydratedQuickFilters,
         isFilterBarShown: showQuickFilters,
+        reverseType: reverse
+          ? TableUtils.REVERSE_TYPE.POST_SORT
+          : TableUtils.REVERSE_TYPE.NONE,
         settings,
         onContextMenu,
       }) satisfies Partial<IrisGridProps>,
@@ -175,6 +180,7 @@ export function UITable({
       showQuickFilters,
       hydratedSorts,
       hydratedQuickFilters,
+      reverse,
       settings,
       onContextMenu,
     ]

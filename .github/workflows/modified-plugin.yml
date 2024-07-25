@@ -11,7 +11,6 @@ on:
       - 'release/**'
     tags:
       - 'plotly-express-v*'
-      - 'plotly-v*'
       - 'matplotlib-v*'
       - 'json-v*'
       - 'ui-v*'
@@ -27,7 +26,7 @@ jobs:
       packages: ${{ steps.filter.outputs.changes }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Filter paths
         uses: dorny/paths-filter@v2
         id: filter
@@ -37,9 +36,6 @@ jobs:
               - plugins/plotly-express/**
               - .github/workflows/test-*.yml
               - sphinx_ext/*
-            plotly:
-              - plugins/plotly/**
-              - .github/workflows/test-*.yml
             matplotlib:
               - plugins/matplotlib/**
               - .github/workflows/test-*.yml
@@ -49,6 +45,7 @@ jobs:
             ui:
               - plugins/ui/**
               - .github/workflows/test-*.yml
+              - sphinx_ext/*
             utilities:
               - plugins/utilities/**
               - .github/workflows/test-*.yml

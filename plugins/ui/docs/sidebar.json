@@ -1,0 +1,28 @@
+{
+  "config": {
+    "name": "deephaven.ui Docs"
+  },
+  "nav": [
+    {
+      "label": "Main",
+      "sidebar": "main"
+    }
+  ],
+  "sidebars": {
+    "main": [
+      {
+        "label": "Introduction",
+        "path": "README.md"
+      },
+      {
+        "label": "Components",
+        "items": [
+          {
+            "label": "Button",
+            "path": "components/button.md"
+          }
+        ]
+      }
+    ]
+  }
+}

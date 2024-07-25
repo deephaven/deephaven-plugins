@@ -18,6 +18,17 @@ class TestObject:
         pass
 
 
+class UnhashableTestObject:
+    """
+    A test object that can be used to represent an exported object type that is unhashable
+    """
+
+    def __init__(self):
+        pass
+
+    __hash__ = None
+
+
 class EncoderTest(BaseTestCase):
     def expect_result(
         self,
@@ -556,6 +567,18 @@ class EncoderTest(BaseTestCase):
             "callables don't match",
         )
         self.assertListEqual(result["new_objects"], delta_objs, "objects don't match")
+
+    def test_exported_unhashable(self):
+        obj1 = UnhashableTestObject()
+
+        self.expect_result(
+            make_node("test_exported", {"children": [obj1]}),
+            {
+                "__dhElemName": "test_exported",
+                "props": {"children": [{"__dhObid": 0}]},
+            },
+            expected_objects=[obj1],
+        )
 
 
 if __name__ == "__main__":

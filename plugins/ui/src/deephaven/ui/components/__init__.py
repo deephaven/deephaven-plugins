@@ -3,12 +3,6 @@ from .action_group import action_group
 from .action_menu import action_menu
 from .basic import (
     component_element,
-    icon_wrapper,
-    form,
-    switch,
-    tab_list,
-    tab_panels,
-    text,
 )
 from .button import button
 from .button_group import button_group
@@ -20,6 +14,7 @@ from .contextual_help import contextual_help
 from .dashboard import dashboard
 from .date_picker import date_picker
 from .flex import flex
+from .form import form
 from .fragment import fragment
 from .heading import heading
 from .grid import grid
@@ -41,9 +36,13 @@ from .row import row
 from .section import section
 from .slider import slider
 from .stack import stack
+from .switch import switch
+from .tab_list import tab_list
+from .tab_panels import tab_panels
 from .tab import tab
 from .table import table
 from .tabs import tabs
+from .text import text
 from .text_field import text_field
 from .toggle_button import toggle_button
 from .view import view
@@ -72,7 +71,6 @@ __all__ = [
     "grid",
     "heading",
     "icon",
-    "icon_wrapper",
     "item",
     "item_table_source",
     "illustrated_message",

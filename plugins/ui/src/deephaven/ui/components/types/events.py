@@ -119,9 +119,7 @@ KeyboardActivationType = Literal["automatic", "manual"]
 StaticColor = Literal["white", "black"]
 ButtonType = Literal["button", "submit", "reset"]
 ButtonLabelBehavior = Literal["show", "collapse", "hide"]
-ButtonVariant = Literal[
-    "accent", "primary", "secondary", "negative", "cta", "overBackground"
-]
+ButtonVariant = Literal["accent", "primary", "secondary", "negative"]
 ButtonStyle = Literal["fill", "outline"]
 ElementTypes = Literal["div", "button", "a"]
 Orientation = Literal["horizontal", "vertical"]

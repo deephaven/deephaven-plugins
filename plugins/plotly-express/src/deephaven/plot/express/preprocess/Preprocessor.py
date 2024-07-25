@@ -9,6 +9,7 @@ from .AttachedPreprocessor import AttachedPreprocessor
 from .FreqPreprocessor import FreqPreprocessor
 from .HistPreprocessor import HistPreprocessor
 from .TimePreprocessor import TimePreprocessor
+from .HeatmapPreprocessor import HeatmapPreprocessor
 
 
 class Preprocessor:
@@ -54,6 +55,8 @@ class Preprocessor:
             AttachedPreprocessor(self.args, self.always_attached)
         elif "preprocess_time" in self.groups:
             self.preprocesser = TimePreprocessor(self.args)
+        elif "preprocess_heatmap" in self.groups:
+            self.preprocesser = HeatmapPreprocessor(self.args)
 
     def preprocess_partitioned_tables(
         self, tables: list[Table] | None, column: str | None = None

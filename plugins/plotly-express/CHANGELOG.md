@@ -2,6 +2,24 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.11.1 - 2024-07-24
+#### Bug Fixes
+- Fixes PartitionedTable has no agg_by error (#662) - (685c359) - Joe
+#### Build system
+- UI docs and add plugin_builder.py (#630) - (7281eec) - Joe
+#### Documentation
+- add sidebar to UI docs and adjust readme (#633) - (e690c1b) - Don
+
+- - -
+
+## plotly-express-v0.11.0 - 2024-07-16
+#### Bug Fixes
+- add datasets to import to actually use them (#616) - (2266958) - Alex Peters
+#### Features
+- density heatmap (#598) - (8fb924d) - Joe
+
+- - -
+
 ## plotly-express-v0.10.0 - 2024-07-09
 #### Bug Fixes
 - remove Number type and replace with float/int (#590) - (d0e24f4) - Akshat Jawne

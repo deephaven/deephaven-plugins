@@ -1,8 +1,19 @@
-# Introduction
+# deephaven.ui
 
-deephaven.ui is a plugin for Deephaven that allows for programmatic layouts and callbacks. It uses a React-like approach to building components and rendering them in the UI, allowing for creating reactive components that can be re-used and composed together, as well as reacting to user input from the UI.
+## A Python web framework for building real-time data focused apps
 
-Below are some examples to demonstrate some of the functionality you can do so far with deephaven.ui. At this point it is only showcasing the subset of the planned functionality that has been implemented, but should give an idea of what is possible. Most notably, all examples will only appear within one panel in the UI, the `ui.table` functionality (allowing interactivity and customization of displayed tables), and ability to use other plugins (such as deephaven.plot.express) is not yet implemented.
+`deephaven.ui` is a plugin for Deephaven that combines a reactive UI framework and a library of pre-built real-time data-focused components for creating data apps. Write scripts entirely in Python -- no front-end engineering Javascript or CSS required. It uses a React-like approach to building components and rendering them in the UI, allowing for the creation of reactive components that can be re-used and composed together, as well as reacting to user input from the UI.
+
+## Key Features
+
+- **Components**: Create user interfaces from components defined entirely with Python.
+- **Live dataframe aware**: Components are live dataframe aware and can use Deephaven tables as a data source.
+- **Reactive**: UI components automatically update when the underlying Python data changes.
+- **Declarative**: Describe the UI as a function of the data and let the framework handle the rest.
+- **Composable**: Combine and re-use components to build complex interfaces.
+- **Wide range of components**: From simple text fields to complex tables and plots, the library has a wide range of components to build your app.
+
+## Getting Started
 
 You can run the example Docker container with the following command:
 
@@ -407,6 +418,7 @@ my_picker_table_source = ui_picker_table_source()
 ## ComboBox (string values)
 
 The `ui.combo_box` component can be used to select from a list of items. It also provides a search field to filter available results. Note that the search behavior differs slightly for different data types.
+
 - Numeric types - only support exact match
 - Text based data types - support partial search matching
 - Date types support searching by different date parts (e.g. `2024`, `2024-01`, `2024-01-02`, `2024-01-02 00`, `2024-07-06 00:43`, `2024-07-06 00:43:14`, `2024-07-06 00:43:14.247`)
@@ -1652,6 +1664,7 @@ For more information on liveness scopes and why they are needed, see the [livene
 You can add [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html) within a panel by using the `ui.tabs` method. In this example, we create a panel with two tabs by passing in two instances of `ui.tab` as children.
 
 When specifying tabs with this format, the following must be noted:
+
 - The `title` prop has to be unique, if not, the `key` prop has to be unique
 - The `text_value` prop is an optional accessibility improvement prop
 

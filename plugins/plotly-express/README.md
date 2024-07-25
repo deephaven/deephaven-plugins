@@ -60,7 +60,7 @@ Docs can be built locally
 
 Install the necessary dependencies:
 ```shell
-pip install -r sphinx-requirements.txt
+pip install -r ../../sphinx_ext/sphinx-requirements.txt
 pip install dist/deephaven_plugin_plotly_express-*.whl
 ```
 then run the docs make script:

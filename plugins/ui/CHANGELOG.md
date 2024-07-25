@@ -2,6 +2,24 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.18.0 - 2024-07-17
+#### Bug Fixes
+- add default styling to tabs component (#611) - (2b8ea23) - Akshat Jawne
+#### Build system
+- Clean the build directory before building the wheel (#599) - (a2459bd) - mofojed
+#### Documentation
+- form (#602) - (7b8802d) - ethanalvizo
+- picker (#603) - (9942ab9) - ethanalvizo
+- radio_group and radio (#619) - (393aa17) - ethanalvizo
+- tab_panels (#624) - (e45c509) - Akshat Jawne
+- ui.button doc page (#615) - (0a3f710) - Don
+#### Features
+- Add ui.table reverse prop (#629) - (e56424c) - Matthew Runyon
+- better deephaven ui button defaults (#613) - (351f3a5) - Don
+- delete unused ui.icon_wrapper (#621) - (4b92021) - Don
+
+- - -
+
 ## ui-v0.17.0 - 2024-07-09
 #### Bug Fixes
 - Remove type imports from @react-types/shared (#610) - (66dc4bf) - Akshat Jawne

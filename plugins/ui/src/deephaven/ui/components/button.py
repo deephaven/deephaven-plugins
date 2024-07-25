@@ -13,7 +13,6 @@ from .types import (
     KeyboardEventCallable,
     PressEventCallable,
     StaticColor,
-    ElementTypes,
     # Layout
     AlignSelf,
     CSSProperties,
@@ -28,8 +27,8 @@ from ..elements import Element
 
 def button(
     *children: Any,
-    variant: ButtonVariant | None = None,
-    style: ButtonStyle | None = None,
+    variant: ButtonVariant | None = "accent",
+    style: ButtonStyle | None = "fill",
     static_color: StaticColor | None = None,
     is_pending: bool | None = None,
     type: ButtonType = "button",
@@ -38,7 +37,6 @@ def button(
     href: str | None = None,
     target: str | None = None,
     rel: str | None = None,
-    element_type: ElementTypes = "button",
     on_press: PressEventCallable | None = None,
     on_press_start: PressEventCallable | None = None,
     on_press_end: PressEventCallable | None = None,
@@ -111,7 +109,7 @@ def button(
         type: The behavior of the button when used in an HTML form.
         is_disabled: Whether the button is disabled.
         auto_focus: Whether the button should automatically receive focus when the page loads.
-        href: A URL to link to if elementType="a".
+        href: A URL to link to when the button is pressed.
         target: The target window or tab to open the linked URL in.
         rel: The relationship between the current document and the linked URL.
         on_press: Function called when the button is pressed.
@@ -173,6 +171,8 @@ def button(
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
 
+    Returns:
+        The rendered button component.
     """
     return component_element(
         "Button",
@@ -187,6 +187,9 @@ def button(
         href=href,
         target=target,
         rel=rel,
+        # intentionally not exposing element_type to the user
+        # for href links we can handle on their behalf
+        element_type=None if href is None else "a",
         on_press=on_press,
         on_press_start=on_press_start,
         on_press_end=on_press_end,

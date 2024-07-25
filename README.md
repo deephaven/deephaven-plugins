@@ -37,6 +37,8 @@ Start by setting up the python venv and pre-commit hooks.
 
 ### Pre-commit hooks/Python formatting
 
+For a more automated development experience, see the [plugin_builder.py](#using-plugin_builderpy) section for a script that can help automate some of the setup steps.
+
 Black and blacken-docs formatting, pyright type checking, and ruff linting is setup through a pre-commit hook.
 To install the pre-commit hooks, run the following commands from the root directory of this repo:
 
@@ -201,6 +203,68 @@ services:
     volumes:
       # Specifying a data volume here will override the default data folder, and you will not be able to access the default data files (such as the demo data)
       - /path/to/mydata/:/data
+```
+
+### Using plugin_builder.py
+
+The `tools/plugin_builder.py` script is a utility script that makes common plugin development cases easier.
+The tool uses `click` for command line argument parsing, so install it if you haven't already:
+Skip the venv setup if you already have one
+```shell
+python -m venv .venv
+source .venv/bin/activate
+pip install click
+```
+
+The script can then be used to help set up your venv.
+This command will setup the basic dependencies for building plugins:
+```shell
+python tools/plugin_builder.py --configure=min
+```
+
+This command will setup the basic dependencies, plus optional ones for building docs and running the server:
+```shell
+python tools/plugin_builder.py --configure=full
+```
+
+The simplest way to use the script is to run it with no arguments. This will build and install all plugins:
+```shell
+python tools/plugin_builder.py
+```
+
+To target a specific plugin or plugins, pass the name or names of the plugins as arguments:
+```shell
+python tools/plugin_builder.py plotly-express ui
+```
+This targeting works for all commands that target the plugins directly, such as `--docs` or `--install`.
+
+To build docs, pass the `--docs` flag.
+First install the necessary dependencies (if setup with `--configure=full` this is already done)
+```shell
+pip install -r sphinx_ext/sphinx-requirements.txt
+```
+
+This example builds the docs for the `ui` plugin:
+```shell
+python tools/plugin_builder.py --docs ui
+```
+
+To run the server, pass the `--server` flag. 
+First install `deephaven-server` if it is not already installed (if setup with `--configure=full` this is already done):
+```shell
+pip install deephaven-server
+```
+
+This example reinstalls the `plotly-express` plugin, then starts the server:
+```shell
+python tools/plugin_builder.py --reinstall --server plotly-express
+```
+Reinstall will force reinstall the plugins (but only the plugins, not the dependencies), which is useful if there are changes to the plugins but without a bumped version number.
+
+The js plugins can be built with the `--js` flag. This will build all js plugins or target specific ones if specified.
+This example reinstalls the `ui` plugin with js, and starts the server with shorthand flags.
+```shell
+python tools/plugin_builder.py --js -r -s ui
 ```
 
 ## Release Management

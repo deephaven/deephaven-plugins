@@ -9,19 +9,7 @@ from .UnivariatePreprocessor import UnivariatePreprocessor
 from ..shared import get_unique_names
 from deephaven.column import long_col
 from deephaven.updateby import cum_sum
-
-# Used to aggregate within histogram bins
-HISTFUNC_MAP = {
-    "avg": agg.avg,
-    "count": agg.count_,
-    "count_distinct": agg.count_distinct,
-    "max": agg.max_,
-    "median": agg.median,
-    "min": agg.min_,
-    "std": agg.std,
-    "sum": agg.sum_,
-    "var": agg.var,
-}
+from .utilities import create_range_table, HISTFUNC_AGGS
 
 
 def get_aggs(
@@ -83,41 +71,13 @@ class HistPreprocessor(UnivariatePreprocessor):
             self.args["table"],
             ["range_index", "range", "bin_min", "bin_max", self.histfunc, "total"],
         )
-        self.range_table = self.create_range_table()
-
-    def create_range_table(self) -> Table:
-        """
-        Create a table that contains the bin ranges
-
-        Returns:
-            A table containing the bin ranges
-        """
-        # partitioned tables need range calculated on all
-        table = (
-            self.table.merge()
-            if isinstance(self.table, PartitionedTable)
-            else self.table
+        self.range_table = create_range_table(
+            self.args["table"],
+            self.cols,
+            self.range_bins,
+            self.nbins,
+            self.names["range"],
         )
-
-        if self.range_bins:
-            range_min = self.range_bins[0]
-            range_max = self.range_bins[1]
-            table = empty_table(1)
-        else:
-            range_min = "RangeMin"
-            range_max = "RangeMax"
-            # need to find range across all columns
-            min_aggs, min_cols = get_aggs("RangeMin", self.cols)
-            max_aggs, max_cols = get_aggs("RangeMax", self.cols)
-            table = table.agg_by([agg.min_(min_aggs), agg.max_(max_aggs)]).update(
-                [f"RangeMin = min({min_cols})", f"RangeMax = max({max_cols})"]
-            )
-
-        return table.update(
-            f"{self.names['range']} = new io.deephaven.plot.datasets.histogram."
-            f"DiscretizedRangeEqual({range_min},{range_max}, "
-            f"{self.nbins})"
-        ).view(self.names["range"])
 
     def create_count_tables(
         self, tables: list[Table], column: str | None = None
@@ -134,7 +94,7 @@ class HistPreprocessor(UnivariatePreprocessor):
 
         """
         range_index, range_ = self.names["range_index"], self.names["range"]
-        agg_func = HISTFUNC_MAP[self.histfunc]
+        agg_func = HISTFUNC_AGGS[self.histfunc]
         if not self.range_table:
             raise ValueError("Range table not created")
         for i, table in enumerate(tables):
