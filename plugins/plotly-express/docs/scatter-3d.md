@@ -26,7 +26,9 @@ iris_3d = dx.scatter_3d(iris, x="sepal_width", y="sepal_length", z="petal_width"
 
 ### Size markers by a quantitative variable
 
-Use the size of the markers in a 3D scatter plot to visualize a fourth quantitative variable. Such a plot is commonly called a bubble plot.
+Use the size of the markers in a 3D scatter plot to visualize a fourth quantitative variable. Such a plot is commonly called a bubble plot, where the size of each bubble corresponds to the value of the additional variable.
+
+The `size` argument interprets the values in the given column as pixel size, so you may consider scaling or normalizing these values before creating the bubble chart.
 
 ```python order=iris_3d_bubble,iris
 import deephaven.plot.express as dx
