@@ -16,14 +16,14 @@ Funnel plots are appropriate when the data contain a categorical variable where 
 
 ### A basic funnel plot
 
-Visualize the trend in consecutive stages of a categorical variable.
+Visualize the trend in consecutive stages of a categorical variable by specifying the `x` and `y` arguments.
 
-```python order=marketing_trend,marketing
+```python order=funnel_plot,marketing
 import deephaven.plot.express as dx
 marketing = dx.data.marketing()
 
-# create a basic funnel plot by specifying column names for `x` and `y`
-marketing_trend = dx.funnel(marketing, x="Count", y="Stage")
+# `Count` is the frequency/value column, and `Stage` is the category column
+funnel_plot = dx.funnel(marketing, x="Count", y="Stage")
 ```
 
 ## API Reference

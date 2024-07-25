@@ -16,14 +16,14 @@ Funnel area plots are appropriate when the data contain a categorical variable w
 
 ### A basic funnel plot
 
-Visualize the trend in consecutive stages of a categorical variable.
+Visualize the trend in consecutive stages of a categorical variable by specifying the `names` and `values` arguments.
 
-```python order=marking_trend_percentage,marketing
+```python order=funnel_area_plot,marketing
 import deephaven.plot.express as dx
 marketing = dx.data.marketing()
 
-# create a basic funnel plot by specifying column names for `names` and `values`
-marketing_trend_percentage = dx.funnel_area(marketing, names="Stage", values="Count")
+# `Count` is the frequency/value column, and `Stage` is the category column
+funnel_area_plot = dx.funnel_area(marketing, names="Stage", values="Count")
 ```
 
 ## API Reference

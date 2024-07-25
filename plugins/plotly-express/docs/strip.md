@@ -14,14 +14,13 @@ Strip plots are appropriate when the data contain a continuous variable of inter
 
 ### A basic strip plot
 
-Visualize the distributions of several groups of data at once. Specify the grouping column with the `by` argument.
+Visualize the distribution of a continuous variable by specifying the `x` or `y` arguments. Specify the grouping column with the `by` argument.
 
-```python order=bill_distr,tips
+```python order=strip_plot,tips
 import deephaven.plot.express as dx
 tips = dx.data.tips()
 
-# create a strip plot by specifying the variable of interest
-bill_distr = dx.strip(tips, x="total_bill", by="day", color_discrete_sequence=["lightgreen", "lightblue", "goldenrod", "lightcoral"])
+strip_plot = dx.strip(tips, x="total_bill", by="day", color_discrete_sequence=["lightgreen", "lightblue", "goldenrod", "lightcoral"])
 ```
 
 > [!NOTE]

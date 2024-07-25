@@ -14,7 +14,9 @@ Treemap plots are appropriate when the data have a hierarchical structure. Each 
 
 ### A basic treemap plot
 
-```python order=continent_population,gapminder_recent,gapminder
+Visualize a hierarchical dataset as nested rectangles, with the size of each rectangle corresponding to a value for a particular group. Use the `names` argument to specify the labels for each group, the `values` argument to specify the value column for each group, and the `parents` column to specify the root category of the chart.
+
+```python order=treemap_plot,gapminder_recent,gapminder
 import deephaven.plot.express as dx
 gapminder = dx.data.gapminder()
 
@@ -26,8 +28,8 @@ gapminder_recent = (
     .sum_by("continent")
     .update("world = `world`")
 )
-# create a basic treemap plot by specifying the categories, the values of interest, and a single root 'world'
-continent_population = dx.treemap(gapminder_recent, names="continent", values="pop", parents="world")
+
+treemap_plot = dx.treemap(gapminder_recent, names="continent", values="pop", parents="world")
 ```
 
 ## API Reference

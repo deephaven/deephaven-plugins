@@ -14,29 +14,28 @@ Box plots are appropriate when the data have a continuous variable of interest. 
 
 ### A basic box plot
 
-Visualize the distribution of a single continuous variable using a box plot. Data points displayed as dots are candidates for being outliers.
+Visualize the distribution of a single variable by passing the column name to `x` or `y`.
 
-```python order=total_bill_plot,tips
+```python order=box_plot,tips
 import deephaven.plot.express as dx
 tips = dx.data.tips()
 
-# create a basic box plot by specifying the variable of interest with `y`
-total_bill_plot = dx.box(tips, y="total_bill")
+box_plot = dx.box(tips, y="total_bill")
 ```
 
 ### Distributions for multiple groups
 
 Box plots are useful for comparing the distributions of two or more groups of data. Use the `by` argument to specify a grouping column.
 
-```python order=total_bill_smoke,total_bill_sex,tips
+```python order=box_plot_group_1,box_plot_group_2,tips
 import deephaven.plot.express as dx
 tips = dx.data.tips()
 
 # total bill distribution by smoker / non-smoker
-total_bill_smoke = dx.box(tips, y="total_bill", by="smoker")
+box_plot_group_1 = dx.box(tips, y="total_bill", by="smoker")
 
 # total bill distribution by male / female
-total_bill_sex = dx.box(tips, y="total_bill", by="sex")
+box_plot_group_2 = dx.box(tips, y="total_bill", by="sex")
 ```
 
 ## API Reference

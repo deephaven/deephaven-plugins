@@ -14,12 +14,14 @@ Polar line plots are appropriate when the data contain a continuous variable rep
 
 ### A basic polar line plot
 
-```python order=wind_line,wind
+Visualize a dataset in polar coordinates by providing the `r` and `theta` arguments. `theta` may be passed as a string of cardinal directions, as in this case. `theta` also supports the use of numeric types that may represent radians or degrees, depending on how the `range_theta` argument is supplied.
+
+```python order=polar_line_plot,wind
 import deephaven.plot.express as dx
 wind = dx.data.wind()
 
-# create a polar line plot by specifying `r` and `theta`. `by` is used to separate data by groups
-wind_line = dx.line_polar(wind, r="frequency", theta="direction", by="strength")
+# `by` is used to separate data by groups
+polar_line_plot = dx.line_polar(wind, r="frequency", theta="direction", by="strength")
 ```
 
 ## API Reference

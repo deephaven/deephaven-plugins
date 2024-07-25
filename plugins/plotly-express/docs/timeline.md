@@ -8,26 +8,13 @@ A timeline plot is appropriate when the data contain a categorical variable whos
 
 ### A basic timeline plot
 
-Visualize the amount of time that each category in a column met a specific criteria.
+Visualize the amount of time that each category in a column met a specific criteria. Pass the start and end timestamp columns to the `x_start` and `x_end` arguments, and category column to the `y` arguments.
 
-```python order=jobs_tracking
+```python order=timeline_plot,jobs
 import deephaven.plot.express as dx
 jobs = dx.data.jobs()
 
-# create a basic timeline plot by specifying the start time column, end time column, and y-value column
-jobs_tracking = dx.timeline(jobs, x_start="StartTime", x_end="EndTime", y="Job")
-```
-
-### Color bars by a categorical variable
-
-Use an additional categorical variable to color the bars.
-
-```python order=jobs_tracking
-import deephaven.plot.express as dx
-jobs = dx.data.jobs()
-
-# the `by` argument is used to color the bars by another categorical variable
-jobs_resource_tracking = dx.timeline(jobs, x_start="StartTime", x_end="EndTime", y="Job", by="Resource")
+timeline_plot = dx.timeline(jobs, x_start="StartTime", x_end="EndTime", y="Job")
 ```
 
 ## API Reference

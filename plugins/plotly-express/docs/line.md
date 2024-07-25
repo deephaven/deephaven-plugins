@@ -14,7 +14,7 @@ Line plots are appropriate when the data contain a continuous response variable 
 
 ### A basic line plot
 
-Visualize the relationship between two variables. Column names are passed in directly as `x` and `y`.
+Visualize the relationship between two variables by passing each variable to the `x` and `y` arguments.
 
 ```python order=line_plot,my_table
 import deephaven.plot.express as dx
@@ -23,20 +23,19 @@ my_table = dx.data.stocks()
 # subset data for just DOG transactions
 dog_prices = my_table.where("sym = `DOG`")
 
-# create a basic line plot by specifying the x and y column
 line_plot = dx.line(dog_prices, x="timestamp", y="price")
 ```
 
 ### Color line plot by group
 
-Create a line with a unique color for each group in the dataset.
+Create a line with a unique color for each group in the dataset using the `by` argument.
 
 ```python order=line_plot,mytable
 import deephaven.plot.express as dx
 my_table = dx.data.stocks()
 
 # each line represents a group and has a unique color
-line_plot = dx.line(my_table, x="timestamp", y="price", color="sym")
+line_plot = dx.line(my_table, x="timestamp", y="price", by="sym")
 ```
 
 ## API Reference

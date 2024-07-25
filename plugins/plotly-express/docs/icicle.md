@@ -14,9 +14,9 @@ Icicle plots are appropriate when the data have a hierarchical structure. Each l
 
 ### A basic icicle plot
 
-Visualize a hierarchical dataset as nested rectangles, with categories displayed left-to-right, and the size of each category displayed top-to-bottom.
+Visualize a hierarchical dataset as nested rectangles, with categories displayed left-to-right, and the size of each category displayed top-to-bottom. Use the `names` argument to specify the labels for each group, the `values` argument to specify the value column for each group, and the `parents` column to specify the root category of the chart.
 
-```python order=continent_population,gapminder_recent,gapminder
+```python order=icicle_plot,gapminder_recent,gapminder
 import deephaven.plot.express as dx
 gapminder = dx.data.gapminder()
 
@@ -26,10 +26,10 @@ gapminder_recent = (
     .last_by("country")
     .view(["continent", "pop"])
     .sum_by("continent")
+    .update("world = `world`")
 )
 
-# create a basic icicle plot by specifying the categories, the values of interest, and a single root 'world'
-continent_population = dx.icicle(gapminder_recent.update("world = `world`"), names="continent", values="pop", parents="world")
+icicle_plot = dx.icicle(gapminder_recent, names="continent", values="pop", parents="world")
 ```
 
 ## API Reference

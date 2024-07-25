@@ -16,7 +16,7 @@ In a bullish (upward, typically shown as green) candlestick, the open is typical
 
 ### A basic candlestick plot
 
-Visualize the key summary statistics of a stock price as it evolves.
+Visualize the key summary statistics of a stock price as it evolves. Specify the instrument of interest with `x`, and pass the `open`, `high`, `low`, and `close` arguments the appropriate column names.
 
 ```python order=candlestick_plot,stocks_1min_ohlc,stocks
 import deephaven.plot.express as dx
@@ -36,7 +36,6 @@ stocks_1min_ohlc = stocks.update_view(
     by=["sym", "binnedTimestamp"],
 )
 
-# create a basic candlestick plot - the `open`, `high`, `low`, and `close` arguments must be specified
 candlestick_plot = dx.candlestick(
     stocks_1min_ohlc.where("sym == `DOG`"),
     x="binnedTimestamp",

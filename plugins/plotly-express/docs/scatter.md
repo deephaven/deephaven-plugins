@@ -47,7 +47,7 @@ iris = dx.data.iris()
 scatter_plot_groups = dx.scatter(iris, x="sepal_width", y="sepal_length", by="species")
 ```
 
-Customize these colors using the `color_discrete_sequence` argument. Any [CSS color name](https://www.w3schools.com/cssref/css_colors.php), hexadecimal color code, or set of RGB values will work.
+Customize these colors using the `color_discrete_sequence` or `color_discrete_map` arguments. Any [CSS color name](https://www.w3schools.com/cssref/css_colors.php), hexadecimal color code, or set of RGB values will work.
 
 ```python order=custom_colors_1,custom_colors_2,custom_colors_3,iris
 import deephaven.plot.express as dx
@@ -58,8 +58,7 @@ custom_colors_1 = dx.scatter(
     iris,
     x="sepal_width",
     y="sepal_length",
-    # group colors by a column
-    color="species",
+    by="species",
     # A list of colors to sequentially apply to one or more series
     # The colors loop if there are more series than colors
     color_discrete_sequence=["salmon", "#fffacd", "rgb(100,149,237)"]
@@ -70,8 +69,7 @@ custom_colors_2 = dx.scatter(
     iris,
     x="sepal_width",
     y="sepal_length",
-    # group colors by a column
-    color="species",
+    by="species",
     # set each series to a specific color
     color_discrete_map={"virginica":"lemonchiffon", "setosa": "cornflowerblue", "versicolor":"#FA8173"}
 )
@@ -85,7 +83,7 @@ custom_colors_3 = dx.scatter(
     iris_with_custom_colors,
     x="sepal_width",
     y="sepal_length",
-    color="example_colors",
+    by="example_colors",
     # When set to `identity`, the column data passed to the
     # color parameter will used as the actual color
     color_discrete_map="identity"
@@ -94,7 +92,7 @@ custom_colors_3 = dx.scatter(
 
 ### Color markers by a continuous variable
 
-Markers can also be colored by a continuous value using the `color` and `color_continuous_scale` arguments. Any of plotly's [built-in color scales](https://plotly.com/python/builtin-colorscales/) may be used.
+Markers can also be colored by a continuous value by specifying the `color_continuous_scale` argument. Any of plotly's [built-in color scales](https://plotly.com/python/builtin-colorscales/) may be used.
 
 ```python order=scatter_plot_conts,iris
 import deephaven.plot.express as dx
@@ -104,7 +102,7 @@ scatter_plot_conts = dx.scatter(
     iris,
     x="sepal_width",
     y="sepal_length",
-    color="petal_length",
+    by="petal_length",
     # use any plotly express built in color scale names
     color_continuous_scale="viridis"
 )
@@ -120,7 +118,7 @@ custom_colors_conts = dx.scatter_3d(
     iris,
     x="sepal_width",
     y="sepal_length",
-    color="petal_length",
+    by="petal_length",
     # custom scale colors can be any valid browser css color
     color_continuous_scale=["lemonchiffon", "#FA8173", "rgb(201, 61, 44)"]
 )
@@ -139,7 +137,7 @@ scatter_plot_symbol_1 = dx.scatter(
     iris,
     x="sepal_width",
     y="sepal_length",
-    color="species",
+    by="species",
     # Assign symbols by group, shown using default symbol_sequence
     symbol="species"
 )
@@ -158,7 +156,7 @@ scatter_plot_symbol_3 = dx.scatter(
     iris,
     x="sepal_width",
     y="sepal_length",
-    color="species",
+    by="species",
     # Using a map for symbols by value
     symbol="species",
     symbol_map={"setosa":"cross", "versicolor":"pentagon", "virginica":"star"}
@@ -285,8 +283,7 @@ scatter_stocks = dx.scatter(
     stocks_table,
     x="timestamp",
     y="price",
-    # Parition color by sym
-    color="sym",
+    by="sym",
     # Apply each trace to a different axis
     yaxis_sequence=[1, 2],
     # Label each axis, where order is by first appearence in the data
@@ -354,7 +351,7 @@ scatter_as_markers = dx.layer(
         iris,
         x="timestamp",
         y="petal_length",
-        color="species",
+        by="species",
     ),
 )
 ```

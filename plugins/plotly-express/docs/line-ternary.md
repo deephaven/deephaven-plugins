@@ -14,12 +14,13 @@ Ternary line plots are appropriate when the data contain three interrelated mutu
 
 ### A basic ternary line plot
 
-```python order=election_line,election
+Visualize a ternary dataset by passing categorical variables to each of the `a`, `b`, and `c` arguments.
+
+```python order=ternary_line_plot,election
 import deephaven.plot.express as dx
 election = dx.data.election()
 
-# create a ternary line plot by passing the column names for the three points of the triangle to `a`, `b`, and `c`
-election_line = dx.line_ternary(election, a="Joly", b="Coderre", c="Bergeron")
+ternary_line_plot = dx.line_ternary(election, a="Joly", b="Coderre", c="Bergeron")
 ```
 
 ## API Reference

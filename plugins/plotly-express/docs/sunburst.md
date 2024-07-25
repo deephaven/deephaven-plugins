@@ -14,9 +14,9 @@ Sunburst plots are appropriate when the data have a hierarchical structure. Each
 
 ### A basic sunburst plot
 
-Visualize a hierarchical dataset as concentric circles, with the size of each group decreasing in a counter-clockwise fashion.
+Visualize a hierarchical dataset as concentric circles, with the size of each group decreasing in a counter-clockwise fashion. Use the `names` argument to specify the labels for each group, the `values` argument to specify the value column for each group, and the `parents` column to specify the root category of the chart.
 
-```python order=continent_population,gapminder_recent,gapminder
+```python order=sunburst_plot,gapminder_recent,gapminder
 import deephaven.plot.express as dx
 gapminder = dx.data.gapminder()
 
@@ -29,8 +29,7 @@ gapminder_recent = (
     .update("world = `world`")
 )
 
-# create a basic sunburst plot by specifying the categories, the values of interest, and a single root 'world'
-continent_population = dx.sunburst(gapminder_recent, names="continent", values="pop", parents="world")
+sunburst_plot = dx.sunburst(gapminder_recent, names="continent", values="pop", parents="world")
 ```
 
 ## API Reference

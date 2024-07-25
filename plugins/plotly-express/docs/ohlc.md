@@ -14,7 +14,7 @@ In OHLC plots, each bar consists of a vertical line with small horizontal lines 
 
 ### A basic OHLC plot
 
-Visualize the key summary statistics of a stock price as it evolves.
+Visualize the key summary statistics of a stock price as it evolves. Specify the instrument of interest with `x`, and pass the `open`, `high`, `low`, and `close` arguments the appropriate column names.
 
 ```python order=ohlc_plot,stocks_1min_ohlc,stocks
 import deephaven.plot.express as dx

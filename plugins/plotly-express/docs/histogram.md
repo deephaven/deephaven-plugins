@@ -14,22 +14,21 @@ Histograms are appropriate when the data contain a continuous variable of intere
 
 ### A basic histogram
 
-Visualize the distribution of a single continuous variable.
+Visualize the distribution of a single variable by passing the variable's name to the `x` or `y` arguments.
 
-```python order=setosa_sep_length,setosa,iris
+```python order=hist_plot,setosa,iris
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
 # subset to get specific species
 setosa = iris.where("species == `setosa`")
 
-# create a basic histogram by passing the column of interest to `x`
-setosa_sep_length = dx.histogram(setosa, x="sepal_length")
+hist_plot = dx.histogram(setosa, x="sepal_length")
 ```
 
 Modify the bin size by setting `nbins` equal to the number of desired bins.
 
-```python order=setosa_sep_length,setosa,iris
+```python order=hist_20_bins,hist_3_bins,hist_8_bins,virginica,iris
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
@@ -37,28 +36,28 @@ iris = dx.data.iris()
 virginica = iris.where("species == `virginica`")
 
 # too many bins will produce jagged, disconnected histograms
-virginica_20_bins = dx.histogram(setosa, x="sepal_length", nbins=20)
+hist_20_bins = dx.histogram(setosa, x="sepal_length", nbins=20)
 
 # too few bins will mask distributional information
-virginica_3_bins = dx.histogram(setosa, x="sepal_length", nbins=3)
+hist_3_bins = dx.histogram(setosa, x="sepal_length", nbins=3)
 
 # play with the `nbins` parameter to get a good visualization
-virginica_8_bins = dx.histogram(setosa, x="sepal_length", nbins=8)
+hist_8_bins = dx.histogram(setosa, x="sepal_length", nbins=8)
 ```
 
 ### Distributions of several groups
 
-Histograms can also be used to compare the distributional properties of different groups of data, though they may be a little harder to read than box plots or violin plots.
+Histograms can also be used to compare the distributional properties of different groups of data, though they may be a little harder to read than box plots or violin plots. Use the `by` argument to specify a grouping column.
 
-```python order=sep_length_multi,sep_length_multi_overlay,iris
+```python order=stacked_hist,overlay_hist,iris
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
 # each bin may be stacked side-by-side for each group
-sep_length_multi = dx.histogram(iris, x="sepal_length", by="species")
+stacked_hist = dx.histogram(iris, x="sepal_length", by="species")
 
 # or, each bin may be overlaid with the others
-sep_length_multi_overlay = dx.histogram(iris, x="sepal_length", by="species", barmode="overlay")
+overlay_hist = dx.histogram(iris, x="sepal_length", by="species", barmode="overlay")
 ```
 
 ## API Reference

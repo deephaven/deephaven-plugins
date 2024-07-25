@@ -14,7 +14,7 @@ Area plots are appropriate when the data contain a continuous response variable 
 
 ### A basic area plot
 
-Visualize the relationship between two variables. In this case, an area plot is similar to a line plot.
+Visualize the relationship between two variables by passing each variable to the `x` and `y` arguments.
 
 ```python order=area_plot,usa_population
 import deephaven.plot.express as dx
@@ -23,7 +23,6 @@ gapminder = dx.data.gapminder()
 # subset to get a specific group
 usa_population = gapminder.where("country == `United States`")
 
-# create a basic area plot that tracks the trend of US population over time
 area_plot = dx.area(usa_population, x="year", y="pop")
 ```
 
@@ -31,15 +30,15 @@ area_plot = dx.area(usa_population, x="year", y="pop")
 
 Area plots are unique in that the y-axis demonstrates each groups' total contribution to the whole. Use the `by` argument to specify a grouping column.
 
-```python order=area_plot_multi,large_countries_population
+```python order=area_plot_group,large_countries_population
 import deephaven.plot.express as dx
 gapminder = dx.data.gapminder()
 
 # subset to get several countries to compare
 large_countries_population = gapminder.where("country in `United States`, `India`, `China`")
 
-# pass a grouping column to `by` to create a plot of cumulative population trend showing contribution from each country
-area_plot_multi = dx.area(large_countries_population, x="year", y="pop", by="country")
+# cumulative trend showing contribution from each group
+area_plot_group = dx.area(large_countries_population, x="year", y="pop", by="country")
 ```
 
 ## API Reference

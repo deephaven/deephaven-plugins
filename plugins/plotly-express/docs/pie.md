@@ -15,12 +15,13 @@ Pie plots do have some limitations. They become less effective when dealing with
 
 # A basic pie plot
 
-Visualize the contribution of each part to the whole, arranged clockwise from greatest to least contribution.
+Visualize the contribution of each part to the whole, arranged clockwise from greatest to least contribution. Pass the label column to the `names` argument, and the value column to the `values` argument.
 
-```python order=continent_population,gapminder_recent_pop,gapminder
+```python order=pie_plot,gapminder_recent_pop,gapminder
 import deephaven.plot.express as dx
 gapminder = dx.data.gapminder()
 
+# get table of most recent total population per continent
 gapminder_recent_pop = (
     gapminder
     .last_by("country")
@@ -28,8 +29,7 @@ gapminder_recent_pop = (
     .sum_by(["year", "month", "continent"])
 )
 
-# specify the labels for each slice with `names`, and the value corresponding to that label with `values`
-continent_population = dx.pie(gapminder_recent_pop, names="continent", values="pop")
+pie_plot = dx.pie(gapminder_recent_pop, names="continent", values="pop")
 ```
 
 ## API Reference
