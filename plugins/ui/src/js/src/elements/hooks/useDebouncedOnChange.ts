@@ -33,6 +33,7 @@ function useDebouncedOnChange<T = string>(
       }
       setPending(false);
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [propOnChange]
   );
 
