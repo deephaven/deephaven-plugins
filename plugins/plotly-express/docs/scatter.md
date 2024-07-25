@@ -2,7 +2,7 @@
 
 A scatter plot is a type of data visualization that uses Cartesian coordinates to display values for typically two variables. It represents individual data points as dots on a graph, with each dot's position indicating its corresponding values on the two variables being plotted.
 
-Scatter plots are appropriate when the data contain a continuous response variable that directly depends on a continuous explanatory variable. If there is an additional categorical variable that the response variable depends on, shapes or colors can be used in the scatter plot to distinguish the categories.
+Scatter plots are appropriate when the data contain a continuous response variable that directly depends on a continuous explanatory variable. If there is an additional categorical variable that the response variable depends on, shapes or colors can be used in the scatter plot to distinguish the categories. For large datasets (> 1 million points), consider using a density heatmap instead of a scatter plot.
 
 ### What are scatter plots useful for?
 
@@ -14,19 +14,18 @@ Scatter plots are appropriate when the data contain a continuous response variab
 
 ### A basic scatter plot
 
-Visualize the relationship between two variables. Defined as an x and y pair supplied using column names.
+Visualize the relationship between two variables by passing each variable to the `x` and `y` arguments.
 
 ```python order=scatter_plot,iris
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
-# create a basic scatter plot by specifying the `x` and `y` column
 scatter_plot = dx.scatter(iris, x="sepal_width", y="sepal_length")
 ```
 
 ### Size markers by a quantitative variable
 
-Use the size of the markers in a scatter plot to visualize a third quantitative variable. Such a plot is commonly called a bubble plot, where the size of each bubble corresponds to the value of the additional variable.
+Use the `size` argument to resize the markers by a third quantitative variable. Such a plot is commonly called a bubble plot, where the size of each bubble corresponds to the value of the additional variable.
 
 The `size` argument interprets the values in the given column as pixel size, so you may consider scaling or normalizing these values before creating the bubble chart.
 
@@ -34,19 +33,17 @@ The `size` argument interprets the values in the given column as pixel size, so 
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
-# pass the name of the additional variable to the `size` argument 
 bubble_plot = dx.scatter(iris, x="sepal_width", y="sepal_length", size="petal_length")
 ```
 
 ### Color markers by group
 
-Denote groups of data by using the color of the markers as group indicators.
+Denote groups of data by using the color of the markers as group indicators by passing the grouping column to the `by` argument.
 
 ```python order=scatter_plot_groups,iris
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
-# use the `by` argument to color markers by group
 scatter_plot_groups = dx.scatter(iris, x="sepal_width", y="sepal_length", by="species")
 ```
 
@@ -56,7 +53,7 @@ Customize these colors using the `color_discrete_sequence` argument. Any [CSS co
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
-# set custom colors using color_discrete_sequence
+# use a list
 custom_colors_1 = dx.scatter(
     iris,
     x="sepal_width",
@@ -68,7 +65,7 @@ custom_colors_1 = dx.scatter(
     color_discrete_sequence=["salmon", "#fffacd", "rgb(100,149,237)"]
 )
 
-# use a dictionary to specify custom colors
+# or a dictionary
 custom_colors_2 = dx.scatter(
     iris,
     x="sepal_width",
@@ -97,13 +94,12 @@ custom_colors_3 = dx.scatter(
 
 ### Color markers by a continuous variable
 
-Markers can also be colored by a continuous value. Any of plotly's [built-in color scales](https://plotly.com/python/builtin-colorscales/) may be used.
+Markers can also be colored by a continuous value using the `color` and `color_continuous_scale` arguments. Any of plotly's [built-in color scales](https://plotly.com/python/builtin-colorscales/) may be used.
 
 ```python order=scatter_plot_conts,iris
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
-# use the `color` argument to specify the value column, and the `color_continuous_scale` to specify the color scale
 scatter_plot_conts = dx.scatter(
     iris,
     x="sepal_width",
@@ -114,7 +110,7 @@ scatter_plot_conts = dx.scatter(
 )
 ```
 
-Or, define your own custom color scale.
+Or, supply your own custom color scale to `color_continuous_scale`.
 
 ```python order=custom_colors_conts,iris
 import deephaven.plot.express as dx
@@ -130,25 +126,16 @@ custom_colors_conts = dx.scatter_3d(
 )
 ```
 
-### Unique marker symbols by group
+### Unique symbols by group
 
+Rather than using the color of the markers to visualize groups, you can use different symbols for each group with the `symbol`, `symbol_map`, or `symbol_sequence` arguments. Any of [plotly's built-in symbols](https://plotly.com/python/marker-style/#:~:text=Custom%20Marker%20Symbols,-The%20marker_symbol%20attribute&text=The%20basic%20symbols%20are%3A%20circle,hash%20%2C%20y%20%2C%20and%20line%20.) are valid.
 
-
-```python order=scatter_plot_diamonds,scatter_plot_symbol_by,scatter_plot_symbol_map
+```python order=scatter_plot_symbol_1,scatter_plot_symbol_2,scatter_plot_symbol_3,iris
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
-# Ex 1. Assign a custom symbol
-scatter_plot_symbol = dx.scatter(
-    iris,
-    x="sepal_width",
-    y="sepal_length",
-    # See list of available symbols.
-    symbol_sequence=["diamond"]
-)
-
-# Ex 2. Use symbols to differentiate groups
-scatter_plot_symbol_by = dx.scatter(
+# assign the grouping column to the `symbol` argument, and plotly will pick a symbol for each group
+scatter_plot_symbol_1 = dx.scatter(
     iris,
     x="sepal_width",
     y="sepal_length",
@@ -157,8 +144,17 @@ scatter_plot_symbol_by = dx.scatter(
     symbol="species"
 )
 
-# Ex 3. Use a map to assign symbols to groups
-scatter_plot_symbol_map = dx.scatter(
+# or, assign a sequence of symbols to the `symbol_sequence` argument
+scatter_plot_symbol_2 = dx.scatter(
+    iris,
+    x="sepal_width",
+    y="sepal_length",
+    # See list of available symbols.
+    symbol_sequence=["diamond", "circle", "triangle"]
+)
+
+# use `symbol_map` to assign a particular symbol to each group
+scatter_plot_symbol_3 = dx.scatter(
     iris,
     x="sepal_width",
     y="sepal_length",
@@ -169,79 +165,43 @@ scatter_plot_symbol_map = dx.scatter(
 )
 ```
 
-### Error Bars
+### Rename axes
 
-Error bars can be set on x and/or y, using values from a column.
+Use the `labels` argument or the `xaxis_titles` and `yaxis_titles` arguments to change the names of the axis labels.
 
-```python order=scatter_plot_error,scatter_plot_error_minus
+```python order=scatter_plot_labels_1,scatter_plot_labels_2,iris
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
-# Ex 1. Use values from a column as positive and negative error bars
-scatter_plot_error = dx.scatter(
-    iris.update("error_sepal_width = sepal_width * 0.01"),
-    x="sepal_width",
-    y="sepal_length",
-    error_x="error_sepal_width",
-)
-
-#Ex 2. Use values from two columns for y-positive-error and y-negative-error
-scatter_plot_error_minus = dx.scatter(
-    iris.update(
-        [
-            # let's pretend these columns represent error
-            "error_sepal_length_positive = petal_width * 0.25",
-            "error_sepal_length_negative = petal_length * 0.25",
-        ]
-    ),
-    x="sepal_width",
-    y="sepal_length",
-    # will be use as positive and negative error unless _minus is set
-    error_y="error_sepal_length_positive",
-    error_y_minus="error_sepal_length_negative",
-)
-```
-
-### Labels and Hover Text
-
-<!-- TODO: labels has a bug, check it works now -->
-
-```python order=scatter_plot_title,scatter_plot_axes_titles
-import deephaven.plot.express as dx
-iris = dx.data.iris()
-
-# Ex 1. Label axes using a map
-scatter_plot_title = dx.scatter(
+# pass a dict of axis names to the `labels` argument to rename the axes
+scatter_plot_labels_1 = dx.scatter(
     iris,
     x="sepal_width",
     y="sepal_length",
-    # Adds a title label, title supports a subset of html and css
-    title="Iris <span style='color: salmon'>Scatter Plot</span>",
-    # re-label the axis
+    # relabel axes with a dict
     labels={"sepal_width": "Sepal Width", "sepal_length": "Sepal Length"},
-    # adds values from a column as bolded text to hover tooltip
-    hover_name="species"
 )
 
-# Ex 2. Label multiple axes using an array of strings
-scatter_plot_axes_titles = dx.scatter(
+# or, pass a new label to each of `xaxis_titles` and `yaxis_titles`
+scatter_plot_labels_2 = dx.scatter(
     iris,
     x="sepal_width",
     y="sepal_length",
-    xaxis_titles=["Sepal Width"],
-    yaxis_titles=["Sepal Length"],
+    # relabel axes with separate strings
+    xaxis_titles="Sepal Width",
+    yaxis_titles="Sepal Length",
 )
 ```
 
 ### Marginals
 
-Plot marginals are additional visual representations, like histograms or density plots, displayed alongside the main plot to provide insights into the individual distributions of variables being analyzed. They enhance the understanding of data patterns and trends by showing the univariate distribution of each variable in conjunction with the main plot's visualization.
+Plot marginals are additional visual representations, like histograms or density plots, displayed alongside the main plot to provide insights into the individual distributions of variables being analyzed. Use the `marginal_x` and `marginal_y` arguments to plot marginals.
 
-```python order=scatter_marginal_histogram,scatter_marginal_violin,scatter_marginal_rug,scatter_marginal_box
+```python order=scatter_marginal_histogram,scatter_marginal_violin,scatter_marginal_box,iris
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
-# Ex 1. Histogram style marginals
+# histogram style marginals
 scatter_marginal_histogram = dx.scatter(
     iris,
     x="petal_width",
@@ -250,7 +210,7 @@ scatter_marginal_histogram = dx.scatter(
     marginal_y="histogram",
 )
 
-# Ex 2. Violin style marginals
+# violin style marginals
 scatter_marginal_violin = dx.scatter(
     iris,
     x="petal_width",
@@ -259,16 +219,7 @@ scatter_marginal_violin = dx.scatter(
     marginal_y="violin",
 )
 
-# Ex 3. Rug style marginals
-scatter_marginal_rug = dx.scatter(
-    iris,
-    x="petal_width",
-    y="petal_length",
-    marginal_x="rug",
-    marginal_y="rug",
-)
-
-# Ex 4. Box style marginals
+# box style marginals
 scatter_marginal_box = dx.scatter(
     iris,
     x="petal_width",
@@ -278,34 +229,28 @@ scatter_marginal_box = dx.scatter(
 )
 ```
 
-### Log Axes
+### Change axis scale
 
-```python order=scatter_plot_log
+The scale of each axis can be modified. Use `log_x` and `log_y` for log-scale axes, or `range_x` and `range_y` to set the range values explicitly.
+
+```python order=scatter_plot_log_axes,scatter_plot_range_axes,iris
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
-scatter_plot_axes_titles = dx.scatter(
+# create log axes
+scatter_plot_log_axes = dx.scatter(
     iris,
     x="petal_width",
-    # Each y value becomes a seperate series
     y="petal_length",
     log_x=True,
     log_y=True,
 )
-```
 
-### Axes Range
-
-```python order=scatter_plot_range
-import deephaven.plot.express as dx
-iris = dx.data.iris()
-
-scatter_plot_range = dx.scatter(
+# or set the axis explicitly
+scatter_plot_range_axes = dx.scatter(
     iris,
     x="petal_width",
-    # Each y value becomes a seperate series
     y="petal_length",
-    # Set at custom range for each axes
     range_x=[0,5],
     range_y=[0,10],
 )
@@ -319,11 +264,11 @@ You can create multiple axes on a single graph in a number of different ways dep
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
-# Ex 1. Create multiple axes from mulitple columns
+# create multiple axes from mulitple columns
 scatter_plot_axes_titles = dx.scatter(
     iris,
     x="sepal_width",
-    # Each y value becomes a seperate series
+    # each y value becomes a seperate series
     y=["sepal_length", "petal_length"],
     # position each axis for each series
     yaxis_sequence=[1, 2],
@@ -333,7 +278,7 @@ scatter_plot_axes_titles = dx.scatter(
 )
 
 
-# Ex 2. Create multiple axes by values from a column
+# create multiple axes by values from a column
 stocks_table = dx.data.stocks().where("sym in `DOG`, `CAT`")
 
 scatter_stocks = dx.scatter(
@@ -348,7 +293,7 @@ scatter_stocks = dx.scatter(
     yaxis_titles=["CAT", "DOG"],
 )
 
-#Ex 3. Create multiple axes from multiple tables using layers
+# create multiple axes from multiple tables using layers
 layered_table = dx.data.iris() # import the example iris data set
 
 # split into two tables by species
@@ -378,7 +323,7 @@ layered_scatter = dx.layer(
 )
 ```
 
-### Layer as Event Markers
+### Layer event markers
 
 Combines a line plot and a scatter plot to use as event markers indicating the maximum peak in each series.
 
@@ -411,33 +356,6 @@ scatter_as_markers = dx.layer(
         y="petal_length",
         color="species",
     ),
-)
-```
-
-### Large Data Sets
-
-The default `render_mode` is webgl and can comfortably plot around 0.5 - 1 million points before performance of the browser will begin to degrade. In `render_mode=svg` that drops to around 10,000 points, but may offer more accurate rendering for some GPUs.
-
-In situations where scatter plots become impractical due to overlaping markers in large datasets, it is advisable to consider employing a Density Heatmap (2D Histogram) as an alternative visualization method. This approach allows for data binning through the query engine, enabling visualization of billions of data points, making it more suitable for handling such scenarios. Moreover, users may benefit from a clearer interpretation of the data using this method.
-
-For large, but managable datasets, setting an appropriate opacity can be beneficial as it helps address data overlap issuess, making the individual data points more distinguishable and enhancing overall visualization clarity.
-
-<!-- TODO: link to density heatmap -->
-
-```python order=density_heatmap,scatter_plot_opacity
-import deephaven.plot.express as dx
-iris = dx.data.iris()
-
-# TODO: Method doesn't exist yet
-# Consider a 2d Histograms for large data sets
-density_heatmap = dx.density_heatmap(iris, x="sepal_width", y="sepal_length")
-
-scatter_plot_opacity = dx.scatter(
-    iris,
-    x="sepal_width",
-    y="sepal_length",
-    # For data sets with a high degree of overlap between points, consider setting opacity
-    opacity=0.5
 )
 ```
 
