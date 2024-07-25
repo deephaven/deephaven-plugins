@@ -204,7 +204,9 @@ function ReactPanel({
               direction={direction}
               justifyContent={justifyContent}
               alignContent={alignContent}
-              alignItems={alignItems}
+              alignItems={
+                widgetStatus.status === 'error' ? 'center' : alignItems
+              }
               gap={gap}
               rowGap={rowGap}
               columnGap={columnGap}
