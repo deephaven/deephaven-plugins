@@ -141,7 +141,10 @@ export function useOnChangeCallback(
 ): (value: MappedDateValue<DateValue>) => void {
   return useCallback(
     (value: MappedDateValue<DateValue>) => {
-      callback?.(serializeDateValue(value));
+      if (callback == null) {
+        return;
+      }
+      callback(serializeDateValue(value));
     },
     [callback]
   );
@@ -168,7 +171,7 @@ export function useDateValueMemo(
 export function parseDateValue(
   value?: string | null
 ): DateValue | null | undefined {
-  if (value === undefined || value === null) {
+  if (value == null) {
     return value;
   }
 
