@@ -14,7 +14,7 @@ Treemap plots are appropriate when the data have a hierarchical structure. Each 
 
 ### A basic treemap plot
 
-Visualize a hierarchical dataset as nested rectangles, with the size of each rectangle corresponding to a value for a particular group. Use the `names` argument to specify the labels for each group, the `values` argument to specify the value column for each group, and the `parents` column to specify the root category of the chart.
+Visualize a hierarchical dataset as nested rectangles, with the size of each rectangle corresponding to a value for a particular group. Use the `names` argument to specify the column name for each group's labels, the `values` argument to specify the column name for each group's values, and the `parents` column to specify the root category of the chart.
 
 ```python order=treemap_plot,gapminder_recent,gapminder
 import deephaven.plot.express as dx

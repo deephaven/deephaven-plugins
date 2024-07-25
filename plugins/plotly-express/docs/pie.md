@@ -15,7 +15,7 @@ Pie plots do have some limitations. They become less effective when dealing with
 
 # A basic pie plot
 
-Visualize the contribution of each part to the whole, arranged clockwise from greatest to least contribution. Pass the label column to the `names` argument, and the value column to the `values` argument.
+Visualize the contribution of each part to the whole, arranged clockwise from greatest to least contribution. Pass the label column name to the `names` argument, and the value column name to the `values` argument.
 
 ```python order=pie_plot,gapminder_recent_pop,gapminder
 import deephaven.plot.express as dx

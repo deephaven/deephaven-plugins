@@ -14,7 +14,7 @@ Violin plots are appropriate when the data contain a continuous variable of inte
 
 ### A basic violin plot
 
-Visualize the distribution of a continuous variable. Pass the name of the variable to the `x` or `y` arguments.
+Visualize the distribution of a single variable by passing the column name to the `x` or `y` arguments.
 
 ```python order=violin_plot,versicolor
 import deephaven.plot.express as dx
@@ -28,7 +28,7 @@ violin_plot = dx.violin(versicolor, x="sepal_length")
 
 ### Distributions for multiple groups
 
-Use the `by` argument to visualize distributions for each group in a grouping column.
+Create separate violins for each group of data by passing the name of the grouping column(s) to the `by` argument.
 
 ```python order=violin_plot_group,iris
 import deephaven.plot.express as dx

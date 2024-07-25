@@ -14,7 +14,7 @@ Polar line plots are appropriate when the data contain a continuous variable rep
 
 ### A basic polar line plot
 
-Visualize a dataset in polar coordinates by providing the `r` and `theta` arguments. `theta` may be passed as a string of cardinal directions, as in this case. `theta` also supports the use of numeric types that may represent radians or degrees, depending on how the `range_theta` argument is supplied.
+Visualize a dataset in polar coordinates by passing column names to the `r` and `theta` arguments. `theta` may be a string of cardinal directions, as in this example. `theta` also supports the use of numeric types that may represent radians or degrees, depending on how the `range_theta` argument is supplied.
 
 ```python order=polar_line_plot,wind
 import deephaven.plot.express as dx

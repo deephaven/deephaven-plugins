@@ -25,7 +25,7 @@ box_plot = dx.box(tips, y="total_bill")
 
 ### Distributions for multiple groups
 
-Box plots are useful for comparing the distributions of two or more groups of data. Use the `by` argument to specify a grouping column.
+Box plots are useful for comparing the distributions of two or more groups of data. Pass the name of the grouping column(s) to the `by` argument.
 
 ```python order=box_plot_group_1,box_plot_group_2,tips
 import deephaven.plot.express as dx

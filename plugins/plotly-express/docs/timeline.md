@@ -8,7 +8,7 @@ A timeline plot is appropriate when the data contain a categorical variable whos
 
 ### A basic timeline plot
 
-Visualize the amount of time that each category in a column met a specific criteria. Pass the start and end timestamp columns to the `x_start` and `x_end` arguments, and category column to the `y` arguments.
+Visualize the amount of time that each category in a column met a specific criteria. Pass the start and end timestamp column names to the `x_start` and `x_end` arguments, and category column name to the `y` argument.
 
 ```python order=timeline_plot,jobs
 import deephaven.plot.express as dx

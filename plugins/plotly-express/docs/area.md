@@ -14,7 +14,7 @@ Area plots are appropriate when the data contain a continuous response variable 
 
 ### A basic area plot
 
-Visualize the relationship between two variables by passing each variable to the `x` and `y` arguments.
+Visualize the relationship between two variables by passing each column name to the `x` and `y` arguments.
 
 ```python order=area_plot,usa_population
 import deephaven.plot.express as dx
@@ -28,7 +28,7 @@ area_plot = dx.area(usa_population, x="year", y="pop")
 
 ### Color by group
 
-Area plots are unique in that the y-axis demonstrates each groups' total contribution to the whole. Use the `by` argument to specify a grouping column.
+Area plots are unique in that the y-axis demonstrates each groups' total contribution to the whole. Pass the name of the grouping column(s) to the `by` argument.
 
 ```python order=area_plot_group,large_countries_population
 import deephaven.plot.express as dx

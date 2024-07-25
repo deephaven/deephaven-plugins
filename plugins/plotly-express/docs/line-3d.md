@@ -19,7 +19,7 @@ Alternatives to 3D line plots include:
 
 ### A basic 3D line plot
 
-Visualize the relationship between three variables by specifying the `x`, `y`, and `z` arguments. Click and drag on the resulting chart to rotate it for new perspectives.
+Visualize the relationship between three variables by passing their column names to the `x`, `y`, and `z` arguments. Click and drag on the resulting chart to rotate it for new perspectives.
 
 ```python order=line_plot_3D,spiral
 import deephaven.plot.express as dx

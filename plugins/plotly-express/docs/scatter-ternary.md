@@ -14,7 +14,7 @@ Ternary scatter plots are appropriate when the data contain three interrelated m
 
 ### A basic ternary scatter plot
 
-Visualize a ternary dataset by passing categorical variables to each of the `a`, `b`, and `c` arguments.
+Visualize a ternary dataset by passing column names to each of the `a`, `b`, and `c` arguments.
 
 ```python order=ternary_scatter_plot,election
 import deephaven.plot.express as dx

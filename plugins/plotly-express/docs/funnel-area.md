@@ -16,7 +16,7 @@ Funnel area plots are appropriate when the data contain a categorical variable w
 
 ### A basic funnel plot
 
-Visualize the trend in consecutive stages of a categorical variable by specifying the `names` and `values` arguments.
+Visualize the trend in consecutive stages of a categorical variable by passing column names to the `names` and `values` arguments.
 
 ```python order=funnel_area_plot,marketing
 import deephaven.plot.express as dx

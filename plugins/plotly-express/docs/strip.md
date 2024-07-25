@@ -14,13 +14,27 @@ Strip plots are appropriate when the data contain a continuous variable of inter
 
 ### A basic strip plot
 
-Visualize the distribution of a continuous variable by specifying the `x` or `y` arguments. Specify the grouping column with the `by` argument.
+Visualize the distribution of a continuous variable by passing its column name to the `x` or `y` arguments.
 
-```python order=strip_plot,tips
+```python order=strip_plot,thursday_tips,tips
 import deephaven.plot.express as dx
 tips = dx.data.tips()
 
-strip_plot = dx.strip(tips, x="total_bill", by="day", color_discrete_sequence=["lightgreen", "lightblue", "goldenrod", "lightcoral"])
+# subset to get a single group
+thursday_tips = tips.where("day == `Thur`")
+
+strip_plot = dx.strip(thursday_tips, x="total_bill", color_discrete_sequence=["lightgreen"])
+```
+
+### Distributions for multiple groups
+
+Strip plots are useful for comparing the distributions of two or more groups of data. Pass the name of the grouping column(s) to the `by` argument.
+
+```python order=strip_plot_group,tips
+import deephaven.plot.express as dx
+tips = dx.data.tips()
+
+strip_plot_group = dx.strip(tips, x="total_bill", by="day", color_discrete_sequence=["lightgreen", "lightblue", "goldenrod", "lightcoral"])
 ```
 
 > [!NOTE]

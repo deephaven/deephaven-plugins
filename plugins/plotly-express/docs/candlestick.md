@@ -16,7 +16,7 @@ In a bullish (upward, typically shown as green) candlestick, the open is typical
 
 ### A basic candlestick plot
 
-Visualize the key summary statistics of a stock price as it evolves. Specify the instrument of interest with `x`, and pass the `open`, `high`, `low`, and `close` arguments the appropriate column names.
+Visualize the key summary statistics of a stock price as it evolves. Specify the column name of the instrument with `x`, and pass the `open`, `high`, `low`, and `close` arguments the appropriate column names.
 
 ```python order=candlestick_plot,stocks_1min_ohlc,stocks
 import deephaven.plot.express as dx

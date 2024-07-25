@@ -14,7 +14,7 @@ Bar plots are appropriate when the data contain a continuous response variable t
 
 ### A basic bar plot
 
-Visualize the relationship between a continuous variable and a categorical or discrete variable by passing each to the `x` and `y` arguments.
+Visualize the relationship between a continuous variable and a categorical or discrete variable by passing the column names to the `x` and `y` arguments.
 
 ```python order=bar_plot,tips
 import deephaven.plot.express as dx
@@ -35,11 +35,11 @@ ordered_bar_plot = dx.bar(tips.sort("day"), x="day", y="total_bill")
 
 ### Partition bars by group
 
-Use the `by` argument to break each bar up into contributions from the given group.
+Break bars down by group by passing the name of the grouping column(s) to the `by` argument.
 
 ```python order=bar_plot_smoke,bar_plot_sex,tips
 import deephaven.plot.express as dx
-tips = dx.data.tips() # import a ticking version of the Tips dataset
+tips = dx.data.tips()
 
 sorted_tips = tips.sort("day")
 

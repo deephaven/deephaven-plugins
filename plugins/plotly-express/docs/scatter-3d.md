@@ -14,7 +14,7 @@ A 3D scatter plot is a type of data visualization that displays data points in t
 
 ### A basic 3D scatter plot
 
-Visualize the relationship between three variables by specifying the `x`, `y`, and `z` arguments. Click and drag on the resulting chart to rotate it for new perspectives.
+Visualize the relationship between three variables by passing their column names to the `x`, `y`, and `z` arguments. Click and drag on the resulting chart to rotate it for new perspectives.
 
 ```python order=scatter_plot_3D,iris
 import deephaven.plot.express as dx
@@ -23,7 +23,7 @@ iris = dx.data.iris()
 scatter_plot_3D = dx.scatter_3d(iris, x="sepal_width", y="sepal_length", z="petal_width")
 ```
 
-### Size markers by a quantitative variable
+### Create a bubble plot
 
 Use the size of the markers in a 3D scatter plot to visualize a fourth quantitative variable. Such a plot is commonly called a bubble plot, where the size of each bubble corresponds to the value of the additional variable.
 
@@ -38,7 +38,7 @@ bubble_plot_3D = dx.scatter_3d(iris, x="sepal_width", y="sepal_length", z="petal
 
 ### Color markers by group
 
-Denote groups of data by using the color of the markers as group indicators. Pass the grouping column to the `by` argument.
+Denote groups of data by using the color of the markers as group indicators. Pass the name of the grouping column(s) to the `by` argument.
 
 ```python order=scatter_plot_3D_groups,iris
 import deephaven.plot.express as dx
@@ -95,7 +95,7 @@ scatter_3D_custom_3 = dx.scatter_3d(
 
 ### Color markers by a continuous variable
 
-Markers can also be colored by a continuous value by specifying the `color_continuous_scale` argument. Any of plotly's [built-in color scales](https://plotly.com/python/builtin-colorscales/) may be used.
+Markers can also be colored by a continuous value by specifying the `color_continuous_scale` argument.
 
 ```python order=scatter_3D_color,iris
 import deephaven.plot.express as dx
@@ -108,7 +108,7 @@ scatter_3D_color = dx.scatter_3d(
     y="sepal_length",
     z="petal_width",
     by="petal_length",
-    # use any plotly express built in color scale names
+    # use any plotly express built in color scale name
     color_continuous_scale="viridis"
 )
 ```
@@ -129,6 +129,28 @@ scatter_3D_custom_color = dx.scatter_3d(
     color_continuous_scale=["lemonchiffon", "#FA8173", "rgb(201, 61, 44)"]
 )
 ```
+
+### Large data sets
+
+Deephaven's scatter plots can comfortably render around 0.5 - 1 million points before performance of the browser will begin to degrade. For large datasets under 1 million observations, setting an appropriate marker opacity and/or marker size can provide a much clearer picture of the data. If the number of points is expected to exceed 1 million, consider employing a Density Heatmap (2D Histogram) as an alternative visualization method, which can easily summarize billions of data points in a single plot.
+
+ [Density Heatmap](density_heatmap.md)
+
+ ```python order=density_heatmap,scatter_plot_opacity
+ import deephaven.plot.express as dx
+ my_table = dx.data.iris() # import the example iris data set
+
+ # Consider a density heatmap for large data sets
+ heatmap_replacement = dx.density_heatmap(my_table, x="sepal_width", y="sepal_length")
+
+ scatter_plot_opacity = dx.scatter(
+     my_table,
+     x="sepal_width",
+     y="sepal_length",
+     # For data sets with a high degree of overlap between points, consider setting opacity
+     opacity=0.5
+ )
+ ```
 
 ## API Reference
 ```{eval-rst}

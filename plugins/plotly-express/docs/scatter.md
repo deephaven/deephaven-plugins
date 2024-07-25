@@ -14,7 +14,7 @@ Scatter plots are appropriate when the data contain a continuous response variab
 
 ### A basic scatter plot
 
-Visualize the relationship between two variables by passing each variable to the `x` and `y` arguments.
+Visualize the relationship between two variables by passing each column name to the `x` and `y` arguments.
 
 ```python order=scatter_plot,iris
 import deephaven.plot.express as dx
@@ -23,7 +23,7 @@ iris = dx.data.iris()
 scatter_plot = dx.scatter(iris, x="sepal_width", y="sepal_length")
 ```
 
-### Size markers by a quantitative variable
+### Create a bubble plot
 
 Use the `size` argument to resize the markers by a third quantitative variable. Such a plot is commonly called a bubble plot, where the size of each bubble corresponds to the value of the additional variable.
 
@@ -38,7 +38,7 @@ bubble_plot = dx.scatter(iris, x="sepal_width", y="sepal_length", size="petal_le
 
 ### Color markers by group
 
-Denote groups of data by using the color of the markers as group indicators by passing the grouping column to the `by` argument.
+Denote groups of data by using the color of the markers as group indicators by passing the grouping column name to the `by` argument.
 
 ```python order=scatter_plot_groups,iris
 import deephaven.plot.express as dx
@@ -92,7 +92,7 @@ custom_colors_3 = dx.scatter(
 
 ### Color markers by a continuous variable
 
-Markers can also be colored by a continuous value by specifying the `color_continuous_scale` argument. Any of plotly's [built-in color scales](https://plotly.com/python/builtin-colorscales/) may be used.
+Markers can also be colored by a continuous value by specifying the `color_continuous_scale` argument.
 
 ```python order=scatter_plot_conts,iris
 import deephaven.plot.express as dx
@@ -103,7 +103,7 @@ scatter_plot_conts = dx.scatter(
     x="sepal_width",
     y="sepal_length",
     by="petal_length",
-    # use any plotly express built in color scale names
+    # use any plotly express built in color scale name
     color_continuous_scale="viridis"
 )
 ```
@@ -126,7 +126,7 @@ custom_colors_conts = dx.scatter_3d(
 
 ### Unique symbols by group
 
-Rather than using the color of the markers to visualize groups, you can use different symbols for each group with the `symbol`, `symbol_map`, or `symbol_sequence` arguments. Any of [plotly's built-in symbols](https://plotly.com/python/marker-style/#:~:text=Custom%20Marker%20Symbols,-The%20marker_symbol%20attribute&text=The%20basic%20symbols%20are%3A%20circle,hash%20%2C%20y%20%2C%20and%20line%20.) are valid.
+Rather than using the color of the markers to visualize groups, you can use different symbols for each group with the `symbol`, `symbol_map`, or `symbol_sequence` arguments.
 
 ```python order=scatter_plot_symbol_1,scatter_plot_symbol_2,scatter_plot_symbol_3,iris
 import deephaven.plot.express as dx
@@ -227,11 +227,11 @@ scatter_marginal_box = dx.scatter(
 )
 ```
 
-### Change axis scale
+### Log axes
 
-The scale of each axis can be modified. Use `log_x` and `log_y` for log-scale axes, or `range_x` and `range_y` to set the range values explicitly.
+Use `log_x` or `log_y` to use log-scale axes in your plot.
 
-```python order=scatter_plot_log_axes,scatter_plot_range_axes,iris
+```python order=scatter_plot_log_axes,iris
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
@@ -243,8 +243,17 @@ scatter_plot_log_axes = dx.scatter(
     log_x=True,
     log_y=True,
 )
+```
 
-# or set the axis explicitly
+### Rescale axes
+
+Use `range_x` or `range_y` to set the range values of each axis explicitly.
+
+```python order=scatter_plot_range_axes,iris
+import deephaven.plot.express as dx
+iris = dx.data.iris()
+
+# set the axis range explicitly
 scatter_plot_range_axes = dx.scatter(
     iris,
     x="petal_width",
