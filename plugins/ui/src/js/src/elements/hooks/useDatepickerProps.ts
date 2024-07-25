@@ -1,9 +1,12 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import {
+  DateValue,
   CalendarDate,
   CalendarDateTime,
-  DateValue,
   ZonedDateTime,
+  parseDate,
+  parseDateTime,
+  parseZonedDateTime,
 } from '@internationalized/date';
 import {
   DeserializedFocusEventCallback,
@@ -32,7 +35,7 @@ export type DeserializedDateValueCallback = (
   value: MappedDateValue<DateValue>
 ) => void;
 
-export interface SerializedDatePickerEventProps {
+export interface SerializedDatePickerPropsInterface {
   /** Handler that is called when the element receives focus. */
   onFocus?: SerializedFocusEventCallback;
 
@@ -47,9 +50,24 @@ export interface SerializedDatePickerEventProps {
 
   /** Handler that is called when the value changes */
   onChange?: SerializedDateValueCallback;
+
+  /** The current value (controlled) */
+  value?: string | null;
+
+  /** The default value (uncontrolled) */
+  defaultValue?: string | null;
+
+  /** The minimum allowed date that a user may select */
+  minValue?: string;
+
+  /** The maximum allowed date that a user may select */
+  maxValue?: string;
+
+  /** A placeholder date that influences the format of the placeholder shown when no value is selected */
+  placeholderValue?: string;
 }
 
-export interface DeserializedDatePickerEventProps {
+export interface DeserializedDatePickerPropsInterface {
   /** Handler that is called when the element receives focus. */
   onFocus?: DeserializedFocusEventCallback;
 
@@ -64,16 +82,31 @@ export interface DeserializedDatePickerEventProps {
 
   /** Handler that is called when the value changes */
   onChange?: DeserializedDateValueCallback;
+
+  /** The current value (controlled) */
+  value?: DateValue | null;
+
+  /** The default value (uncontrolled) */
+  defaultValue?: DateValue | null;
+
+  /** The minimum allowed date that a user may select */
+  minValue?: DateValue | null;
+
+  /** The maximum allowed date that a user may select */
+  maxValue?: DateValue | null;
+
+  /** A placeholder date that influences the format of the placeholder shown when no value is selected */
+  placeholderValue?: DateValue | null;
 }
 
 export type SerializedDatePickerProps<TProps> = TProps &
-  SerializedDatePickerEventProps;
+  SerializedDatePickerPropsInterface;
 
 export type DeserializedDatePickerProps<TProps> = Omit<
   TProps,
-  keyof SerializedDatePickerEventProps
+  keyof SerializedDatePickerPropsInterface
 > &
-  DeserializedDatePickerEventProps;
+  DeserializedDatePickerPropsInterface;
 
 /**
  * Uses the toString representiation of the DateValue as the serialized value.
@@ -109,6 +142,66 @@ export function useOnChangeCallback(
 }
 
 /**
+ * Use memo to get a DateValue from a string.
+ *
+ * @param value the string date value
+ * @returns DateValue or null
+ */
+export function useDateValueMemo(
+  value?: string | null
+): DateValue | null | undefined {
+  return useMemo(() => parseDateValue(value), [value]);
+}
+
+/**
+ * Parses a date value string into a DateValue.
+ *
+ * @param value the string date value
+ * @returns DateValue or null
+ */
+export function parseDateValue(
+  value?: string | null
+): DateValue | null | undefined {
+  if (value === undefined || value === null) {
+    return value;
+  }
+
+  // Try to parse and ISO 8601 date string, e.g. "2021-02-03"
+  try {
+    return parseDate(value);
+  } catch (ignore) {
+    // ignore
+  }
+
+  // Try to parse an ISO 8601 date time string, e.g. "2021-03-03T04:05:06"
+  try {
+    return parseDateTime(value);
+  } catch (ignore) {
+    // ignore
+  }
+
+  // Try to parse an ISO 8601 zoned date time string, e.g. "2021-04-04T05:06:07[America/New_York]"
+  try {
+    return parseZonedDateTime(value);
+  } catch (ignore) {
+    // ignore
+  }
+
+  // Try to parse a non-ISO 8601 zoned date time string, e.g. "2021-04-04T05:06:07 America/New_York"
+  const parts = value.split(' ');
+  if (parts.length === 2) {
+    const isoString = `${parts[0]}[${parts[1]}]`;
+    try {
+      return parseZonedDateTime(isoString);
+    } catch (ignore) {
+      // ignore
+    }
+  }
+
+  throw new Error(`Invalid date value string: ${value}`);
+}
+
+/**
  * Wrap DatePicker props with the appropriate serialized event callbacks.
  * @param props Props to wrap
  * @returns Wrapped props
@@ -119,6 +212,11 @@ export function useDatePickerProps<TProps>({
   onKeyDown,
   onKeyUp,
   onChange: serializedOnChange,
+  value: serializedValue,
+  defaultValue: serializedDefaultValue,
+  minValue: serializedMinValue,
+  maxValue: serializedMaxValue,
+  placeholderValue: serializedPlaceholderValue,
   ...otherProps
 }: SerializedDatePickerProps<TProps>): DeserializedDatePickerProps<TProps> {
   const serializedOnFocus = useFocusEventCallback(onFocus);
@@ -126,6 +224,13 @@ export function useDatePickerProps<TProps>({
   const serializedOnKeyDown = useKeyboardEventCallback(onKeyDown);
   const serializedOnKeyUp = useKeyboardEventCallback(onKeyUp);
   const onChange = useOnChangeCallback(serializedOnChange);
+  const deserializedValue = useDateValueMemo(serializedValue);
+  const deserializedDefaultValue = useDateValueMemo(serializedDefaultValue);
+  const deserializedMinValue = useDateValueMemo(serializedMinValue);
+  const deserializedMaxValue = useDateValueMemo(serializedMaxValue);
+  const deserializedPlaceholderValue = useDateValueMemo(
+    serializedPlaceholderValue
+  );
 
   return {
     onFocus: serializedOnFocus,
@@ -133,6 +238,11 @@ export function useDatePickerProps<TProps>({
     onKeyDown: serializedOnKeyDown,
     onKeyUp: serializedOnKeyUp,
     onChange: serializedOnChange == null ? undefined : onChange,
+    value: deserializedValue,
+    defaultValue: deserializedDefaultValue,
+    minValue: deserializedMinValue,
+    maxValue: deserializedMaxValue,
+    placeholderValue: deserializedPlaceholderValue,
     ...otherProps,
   };
 }
