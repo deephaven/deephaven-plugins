@@ -65,6 +65,9 @@ export interface SerializedDatePickerPropsInterface {
 
   /** A placeholder date that influences the format of the placeholder shown when no value is selected */
   placeholderValue?: string;
+
+  /** Dates that are unavailable */
+  unavailableValues?: string[] | null;
 }
 
 export interface DeserializedDatePickerPropsInterface {
@@ -97,6 +100,9 @@ export interface DeserializedDatePickerPropsInterface {
 
   /** A placeholder date that influences the format of the placeholder shown when no value is selected */
   placeholderValue?: DateValue | null;
+
+  /** Callback that is called for each date of the calendar. If it returns true, then the date is unavailable */
+  isDateUnavailable?: (date: DateValue) => boolean;
 }
 
 export type SerializedDatePickerProps<TProps> = TProps &
@@ -202,6 +208,21 @@ export function parseDateValue(
 }
 
 /**
+ * Get a callback function that can be passed to the isDateUnavailable prop of a Spectrum DatePicker.
+ *
+ * @param unavailableSet Set of unavailable date strings
+ * @returns A callback to be passed into the Spectrum component that checks if the date is unavailable
+ */
+export function useIsDateUnavailableCallback(
+  unavailableSet: Set<string>
+): (date: DateValue) => boolean {
+  return useCallback(
+    (date: DateValue) => unavailableSet.has(date.toString()),
+    [unavailableSet]
+  );
+}
+
+/**
  * Wrap DatePicker props with the appropriate serialized event callbacks.
  * @param props Props to wrap
  * @returns Wrapped props
@@ -217,6 +238,7 @@ export function useDatePickerProps<TProps>({
   minValue: serializedMinValue,
   maxValue: serializedMaxValue,
   placeholderValue: serializedPlaceholderValue,
+  unavailableValues,
   ...otherProps
 }: SerializedDatePickerProps<TProps>): DeserializedDatePickerProps<TProps> {
   const serializedOnFocus = useFocusEventCallback(onFocus);
@@ -231,6 +253,13 @@ export function useDatePickerProps<TProps>({
   const deserializedPlaceholderValue = useDateValueMemo(
     serializedPlaceholderValue
   );
+  const unavailableSet = useMemo(() => {
+    if (unavailableValues == null) {
+      return new Set<string>();
+    }
+    return new Set(unavailableValues);
+  }, [unavailableValues]);
+  const isDateUnavailable = useIsDateUnavailableCallback(unavailableSet);
 
   return {
     onFocus: serializedOnFocus,
@@ -243,6 +272,7 @@ export function useDatePickerProps<TProps>({
     minValue: deserializedMinValue,
     maxValue: deserializedMaxValue,
     placeholderValue: deserializedPlaceholderValue,
+    isDateUnavailable,
     ...otherProps,
   };
 }
