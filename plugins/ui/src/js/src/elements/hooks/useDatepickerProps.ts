@@ -93,13 +93,13 @@ export interface DeserializedDatePickerPropsInterface {
   defaultValue?: DateValue | null;
 
   /** The minimum allowed date that a user may select */
-  minValue?: DateValue | null;
+  minValue?: DateValue;
 
   /** The maximum allowed date that a user may select */
-  maxValue?: DateValue | null;
+  maxValue?: DateValue;
 
   /** A placeholder date that influences the format of the placeholder shown when no value is selected */
-  placeholderValue?: DateValue | null;
+  placeholderValue?: DateValue;
 
   /** Callback that is called for each date of the calendar. If it returns true, then the date is unavailable */
   isDateUnavailable?: (date: DateValue) => boolean;
@@ -151,14 +151,34 @@ export function useOnChangeCallback(
 }
 
 /**
- * Use memo to get a DateValue from a string.
+ * Use memo to get a DateValue from a nullable string.
  *
  * @param value the string date value
  * @returns DateValue or null
  */
-export function useDateValueMemo(
+export function useNullableDateValueMemo(
   value?: string | null
 ): DateValue | null | undefined {
+  return useMemo(() => parseNullableDateValue(value), [value]);
+}
+
+export function parseNullableDateValue(
+  value?: string | null
+): DateValue | null | undefined {
+  if (value === null) {
+    return value;
+  }
+
+  return parseDateValue(value);
+}
+
+/**
+ * Use memo to get a DateValue from a string.
+ *
+ * @param value the string date value
+ * @returns DateValue
+ */
+export function useDateValueMemo(value?: string): DateValue | undefined {
   return useMemo(() => parseDateValue(value), [value]);
 }
 
@@ -166,12 +186,10 @@ export function useDateValueMemo(
  * Parses a date value string into a DateValue.
  *
  * @param value the string date value
- * @returns DateValue or null
+ * @returns DateValue
  */
-export function parseDateValue(
-  value?: string | null
-): DateValue | null | undefined {
-  if (value == null) {
+export function parseDateValue(value?: string): DateValue | undefined {
+  if (value === undefined) {
     return value;
   }
 
@@ -249,8 +267,10 @@ export function useDatePickerProps<TProps>({
   const serializedOnKeyDown = useKeyboardEventCallback(onKeyDown);
   const serializedOnKeyUp = useKeyboardEventCallback(onKeyUp);
   const onChange = useOnChangeCallback(serializedOnChange);
-  const deserializedValue = useDateValueMemo(serializedValue);
-  const deserializedDefaultValue = useDateValueMemo(serializedDefaultValue);
+  const deserializedValue = useNullableDateValueMemo(serializedValue);
+  const deserializedDefaultValue = useNullableDateValueMemo(
+    serializedDefaultValue
+  );
   const deserializedMinValue = useDateValueMemo(serializedMinValue);
   const deserializedMaxValue = useDateValueMemo(serializedMaxValue);
   const deserializedPlaceholderValue = useDateValueMemo(

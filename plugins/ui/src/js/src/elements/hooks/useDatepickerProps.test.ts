@@ -1,4 +1,4 @@
-import { parseDateValue } from './useDatepickerProps';
+import { parseDateValue, parseNullableDateValue } from './useDatepickerProps';
 
 describe('parseDateValue', () => {
   const isoDate = '2021-02-03';
@@ -8,7 +8,7 @@ describe('parseDateValue', () => {
   const invalidDate = 'invalid-date';
 
   it('should return null if the value is null', () => {
-    expect(parseDateValue(null)).toBeNull();
+    expect(parseNullableDateValue(null)).toBeNull();
   });
 
   it('should return undefined if the value is undefined', () => {
