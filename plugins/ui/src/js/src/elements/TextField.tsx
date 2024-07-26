@@ -20,8 +20,7 @@ export function TextField(props: TextFieldProps): JSX.Element {
   } = props;
 
   const [value, onChange] = useDebouncedOnChange<string>(
-    propValue,
-    defaultValue,
+    propValue ?? defaultValue,
     propOnChange
   );
 
