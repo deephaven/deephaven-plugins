@@ -1,6 +1,6 @@
 import React, { CSSProperties, useEffect, useState } from 'react';
 import { useApi } from '@deephaven/jsapi-bootstrap';
-import type { Table, ViewportData } from '@deephaven/jsapi-types';
+import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { WidgetComponentProps } from '@deephaven/plugin';
 
@@ -30,17 +30,19 @@ export const MatplotlibViewImageStyle: CSSProperties = {
 /**
  * Displays a rendered matplotlib from the server
  */
-export function MatplotlibView(props: WidgetComponentProps): JSX.Element {
+export function MatplotlibView(
+  props: WidgetComponentProps<dh.Widget>
+): JSX.Element {
   const { fetch } = props;
   const [imageSrc, setImageSrc] = useState<string>();
-  const [inputTable, setInputTable] = useState<Table>();
+  const [inputTable, setInputTable] = useState<dh.Table>();
   // Set revision to 0 until we're listening to the revision table
   const [revision, setRevision] = useState<number>(0);
   const dh = useApi();
 
   useEffect(
     function initInputTable() {
-      if (!inputTable) {
+      if (inputTable == null) {
         return;
       }
 
@@ -55,7 +57,7 @@ export function MatplotlibView(props: WidgetComponentProps): JSX.Element {
         ]);
         table.addEventListener(
           dh.Table.EVENT_UPDATED,
-          ({ detail: data }: CustomEvent<ViewportData>) => {
+          ({ detail: data }: CustomEvent<dh.ViewportData>) => {
             const newRevision = data.rows[0].get(valueColumn);
             log.debug('New revision', newRevision);
             setRevision(newRevision);
@@ -83,7 +85,7 @@ export function MatplotlibView(props: WidgetComponentProps): JSX.Element {
           log.debug('Getting new input table');
           // We haven't connected to the input table yet, do that
           const newInputTable =
-            (await widget.exportedObjects[0].fetch()) as Table;
+            (await widget.exportedObjects[0].fetch()) as dh.Table;
           setInputTable(newInputTable);
         }
       }
