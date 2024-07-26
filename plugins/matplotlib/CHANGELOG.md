@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## matplotlib-v0.5.0 - 2024-07-26
+#### Bug Fixes
+- DH-17393: Add matplotlib legacy dashboard plugin for DHE (#671) - (d51c81d) - Matthew Runyon
+#### Features
+- Replace shortid with nanoid (#591) - (ad8aad9) - Akshat Jawne
+
+- - -
+
 ## matplotlib-v0.4.1 - 2024-05-16
 #### Documentation
 - Update some information about Matplotlib (#467) - (bb9bda5) - mofojed
