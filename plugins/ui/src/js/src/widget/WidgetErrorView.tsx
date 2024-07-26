@@ -35,7 +35,7 @@ export function WidgetErrorView({
   return (
     <IllustratedMessage
       UNSAFE_className="ui-widget-error-view"
-      UNSAFE_style={{ overflow: 'hidden' }}
+      UNSAFE_style={{ overflow: 'hidden', width: '100%' }}
     >
       <Icon size="XXL" marginBottom="size-100">
         <FontAwesomeIcon icon={vsWarning} />
