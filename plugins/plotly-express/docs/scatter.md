@@ -370,23 +370,19 @@ scatter_as_markers = dx.layer(
 Deephaven's scatter plots can comfortably render around 0.5 - 1 million points before performance of the browser will begin to degrade. For large datasets under 1 million observations, setting an appropriate marker opacity and/or marker size can provide a much clearer picture of the data. If the number of points is expected to exceed 1 million, consider employing a [density heatmap](density_heatmap.md) as an alternative visualization method, which can easily summarize billions of data points in a single plot.
 
  ```python order=heatmap_replacement,scatter_plot_opacity
-import deephaven.plot.express as dx
+from deephaven.plot import express as dx
 from deephaven import empty_table
 
-# construct a large sample from a correlated multivariate normal distribution
-# x ~ N(5, 4)
-# y ~ N(10, 6)
-# cov(x, y) = 2
 large_data = empty_table(1_000_000).update([
-    "X = randomGaussian(5.0, 4.0)",
-    "Y = randomGaussian(10.0 + ((2.0 / 6.0) * (X - 5.0)), 4.0 - (4.0 / 6.0))"
+    "X = 50 + 25 * cos(i * Math.PI / 180)",
+    "Y = 50 + 25 * sin(i * Math.PI / 180)",
 ])
 
-# consider a density heatmap for large data sets
-heatmap_replacement = dx.density_heatmap(large_data, x="X", y="Y")
+# heatmap can be a good alternative to scatter plots with many points
+heatmap_replacement = dx.density_heatmap(large_data, x="X", y="Y", range_bins_x=[0,100], range_bins_y=[0,100])
 
-# alternatively, setting the opacity of a scatterplot appropriately can help
-scatter_plot_opacity = dx.scatter(large_data, x="X", y="Y", opacity=0.01)
+# alternatively, consider a scatter plot with reduced opacity
+scatter_plot_opacity = dx.scatter(large_data, x="X", y="Y", range_x=[0,100], range_y=[0,100], opacity=0.01)
  ```
 
 ## API Reference

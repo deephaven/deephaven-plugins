@@ -82,22 +82,27 @@ heatmap_aggregation = dx.density_heatmap(iris,
 Visualize the joint distribution of a large dataset (10 million rows in this example) by passing each column name to the `x` and `y` arguments. Increasing the number of bins can produce a much smoother visualization.
 
 ```python order=large_heatmap_2,large_heatmap_1,large_data
-import deephaven.plot.express as dx
+from deephaven.plot import express as dx
 from deephaven import empty_table
 
-# construct a large sample from a correlated multivariate normal distribution
-# x ~ N(5, 4)
-# y ~ N(10, 6)
-# cov(x, y) = 2
 large_data = empty_table(10_000_000).update([
-    "X = randomGaussian(5.0, 4.0)",
-    "Y = randomGaussian(10.0 + ((2.0 / 6.0) * (X - 5.0)), 4.0 - (4.0 / 6.0))"
+    "X = 50 + 25 * cos(i * Math.PI / 180)",
+    "Y = 50 + 25 * sin(i * Math.PI / 180)",
 ])
 
-large_heatmap_1 = dx.density_heatmap(large_data, x="X", y="Y")
+# specify range to see entire plot
+large_heatmap_1 = dx.density_heatmap(large_data, x="X", y="Y", range_bins_x=[0,100], range_bins_y=[0,100])
 
-# increasing the number of bins can be particularly useful for large datasets
-large_heatmap_2 = dx.density_heatmap(large_data, x="X", y="Y", nbinsx=100, nbinsy=100)
+# using bins may be useful for more precise visualizations
+large_heatmap_2 = dx.density_heatmap(
+    large_data,
+    x="X",
+    y="Y",
+    range_bins_x=[0,100],
+    range_bins_y=[0,100],
+    nbinsx=100, 
+    nbinsy=100
+)
 ```
 
 ## API Reference
