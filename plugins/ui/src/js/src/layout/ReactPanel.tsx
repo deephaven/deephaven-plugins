@@ -204,9 +204,7 @@ function ReactPanel({
               direction={direction}
               justifyContent={justifyContent}
               alignContent={alignContent}
-              alignItems={
-                 alignItems
-              }
+              alignItems={alignItems}
               gap={gap}
               rowGap={rowGap}
               columnGap={columnGap}
