@@ -14,21 +14,21 @@ tips = dx.data.tips() # import a ticking version of the Tips dataset
 
 # create 4 plots from within make_subplots
 tipping_plots = dx.make_subplots(
-    dx.scatter(tips, x="total_bill", y="tip", by="sex",
+    dx.scatter(tips, x="TotalBill", y="Tip", by="Sex",
         title="Tip amount by total bill"),
-    dx.violin(tips, y="total_bill", by="day",
+    dx.violin(tips, y="TotalBill", by="Day",
         title="Total bill distribution by day"),
     dx.pie(
         tips
-        .count_by("count", by=["sex", "smoker"])
-        .update_view("smoker_status = smoker == `No` ? `non-smoker` : `smoker`")
-        .update_view("smoker_label = sex + ` ` + smoker_status"),
-        names="smoker_label", values="count",
+        .count_by("Count", by=["Sex", "Smoker"])
+        .update_view("SmokerStatus = Smoker == `No` ? `non-smoker` : `smoker`")
+        .update_view("SmokerLabel = Sex + ` ` + SmokerStatus"),
+        names="SmokerLabel", values="Count",
         title="Total bill by sex and smoking status"),
     dx.bar(tips
-        .view(["total_bill", "tip", "day"])
-        .avg_by("day"),
-        x="day", y=["total_bill", "tip"],
+        .view(["TotalBill", "Tip", "Day"])
+        .avg_by("Day"),
+        x="Day", y=["TotalBill", "Tip"],
         title="Average tip as a fraction of total bill"),
     rows=2, cols=2, shared_xaxes=False, shared_yaxes=False
 )

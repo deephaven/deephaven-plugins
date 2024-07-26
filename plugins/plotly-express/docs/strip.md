@@ -21,9 +21,9 @@ import deephaven.plot.express as dx
 tips = dx.data.tips()
 
 # subset to get a single group
-thursday_tips = tips.where("day == `Thur`")
+thursday_tips = tips.where("Day == `Thur`")
 
-strip_plot = dx.strip(thursday_tips, x="total_bill", color_discrete_sequence=["lightgreen"])
+strip_plot = dx.strip(thursday_tips, x="TotalBill", color_discrete_sequence=["lightgreen"])
 ```
 
 ### Distributions for multiple groups
@@ -34,7 +34,7 @@ Strip plots are useful for comparing the distributions of two or more groups of 
 import deephaven.plot.express as dx
 tips = dx.data.tips()
 
-strip_plot_group = dx.strip(tips, x="total_bill", by="day", color_discrete_sequence=["lightgreen", "lightblue", "goldenrod", "lightcoral"])
+strip_plot_group = dx.strip(tips, x="TotalBill", by="Day", color_discrete_sequence=["lightgreen", "lightblue", "goldenrod", "lightcoral"])
 ```
 
 > [!NOTE]

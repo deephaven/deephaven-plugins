@@ -21,9 +21,9 @@ import deephaven.plot.express as dx
 iris = dx.data.iris()
 
 # subset to get a specific group
-versicolor = iris.where("species == `versicolor`")
+versicolor = iris.where("Species == `versicolor`")
 
-violin_plot = dx.violin(versicolor, x="sepal_length")
+violin_plot = dx.violin(versicolor, x="SepalLength")
 ```
 
 ### Distributions for multiple groups
@@ -34,7 +34,7 @@ Create separate violins for each group of data by passing the name of the groupi
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
-violin_plot_group = dx.violin(iris, x="sepal_length", by="species")
+violin_plot_group = dx.violin(iris, x="SepalLength", by="Species")
 ```
 
 ## API Reference

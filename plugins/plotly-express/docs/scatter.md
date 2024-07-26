@@ -20,7 +20,7 @@ Visualize the relationship between two variables by passing each column name to 
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
-scatter_plot = dx.scatter(iris, x="sepal_width", y="sepal_length")
+scatter_plot = dx.scatter(iris, x="SepalWidth", y="SepalLength")
 ```
 
 ### Create a bubble plot
@@ -33,7 +33,7 @@ The `size` argument interprets the values in the given column as pixel size, so 
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
-bubble_plot = dx.scatter(iris, x="sepal_width", y="sepal_length", size="petal_length")
+bubble_plot = dx.scatter(iris, x="SepalWidth", y="SepalLength", size="PetalLength")
 ```
 
 ### Color markers by group
@@ -44,7 +44,7 @@ Denote groups of data by using the color of the markers as group indicators by p
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
-scatter_plot_groups = dx.scatter(iris, x="sepal_width", y="sepal_length", by="species")
+scatter_plot_groups = dx.scatter(iris, x="SepalWidth", y="SepalLength", by="Species")
 ```
 
 Customize these colors using the `color_discrete_sequence` or `color_discrete_map` arguments. Any [CSS color name](https://www.w3schools.com/cssref/css_colors.php), hexadecimal color code, or set of RGB values will work.
@@ -56,9 +56,9 @@ iris = dx.data.iris()
 # use a list
 custom_colors_1 = dx.scatter(
     iris,
-    x="sepal_width",
-    y="sepal_length",
-    by="species",
+    x="SepalWidth",
+    y="SepalLength",
+    by="Species",
     # A list of colors to sequentially apply to one or more series
     # The colors loop if there are more series than colors
     color_discrete_sequence=["salmon", "#fffacd", "rgb(100,149,237)"]
@@ -67,9 +67,9 @@ custom_colors_1 = dx.scatter(
 # or a dictionary
 custom_colors_2 = dx.scatter(
     iris,
-    x="sepal_width",
-    y="sepal_length",
-    by="species",
+    x="SepalWidth",
+    y="SepalLength",
+    by="Species",
     # set each series to a specific color
     color_discrete_map={"virginica":"lemonchiffon", "setosa": "cornflowerblue", "versicolor":"#FA8173"}
 )
@@ -81,8 +81,8 @@ iris_with_custom_colors = iris.update(
 
 custom_colors_3 = dx.scatter(
     iris_with_custom_colors,
-    x="sepal_width",
-    y="sepal_length",
+    x="SepalWidth",
+    y="SepalLength",
     by="example_colors",
     # When set to `identity`, the column data passed to the
     # color parameter will used as the actual color
@@ -100,9 +100,9 @@ iris = dx.data.iris()
 
 scatter_plot_conts = dx.scatter(
     iris,
-    x="sepal_width",
-    y="sepal_length",
-    by="petal_length",
+    x="SepalWidth",
+    y="SepalLength",
+    by="PetalLength",
     # use any plotly express built in color scale name
     color_continuous_scale="viridis"
 )
@@ -116,9 +116,9 @@ iris = dx.data.iris()
 
 custom_colors_conts = dx.scatter_3d(
     iris,
-    x="sepal_width",
-    y="sepal_length",
-    by="petal_length",
+    x="SepalWidth",
+    y="SepalLength",
+    by="PetalLength",
     # custom scale colors can be any valid browser css color
     color_continuous_scale=["lemonchiffon", "#FA8173", "rgb(201, 61, 44)"]
 )
@@ -135,18 +135,18 @@ iris = dx.data.iris()
 # assign the grouping column to the `symbol` argument, and plotly will pick a symbol for each group
 scatter_plot_symbol_1 = dx.scatter(
     iris,
-    x="sepal_width",
-    y="sepal_length",
-    by="species",
+    x="SepalWidth",
+    y="SepalLength",
+    by="Species",
     # Assign symbols by group, shown using default symbol_sequence
-    symbol="species"
+    symbol="Species"
 )
 
 # or, assign a sequence of symbols to the `symbol_sequence` argument
 scatter_plot_symbol_2 = dx.scatter(
     iris,
-    x="sepal_width",
-    y="sepal_length",
+    x="SepalWidth",
+    y="SepalLength",
     # See list of available symbols.
     symbol_sequence=["diamond", "circle", "triangle"]
 )
@@ -154,11 +154,11 @@ scatter_plot_symbol_2 = dx.scatter(
 # use `symbol_map` to assign a particular symbol to each group
 scatter_plot_symbol_3 = dx.scatter(
     iris,
-    x="sepal_width",
-    y="sepal_length",
-    by="species",
+    x="SepalWidth",
+    y="SepalLength",
+    by="Species",
     # Using a map for symbols by value
-    symbol="species",
+    symbol="Species",
     symbol_map={"setosa":"cross", "versicolor":"pentagon", "virginica":"star"}
 )
 ```
@@ -174,17 +174,17 @@ iris = dx.data.iris()
 # pass a dict of axis names to the `labels` argument to rename the axes
 scatter_plot_labels_1 = dx.scatter(
     iris,
-    x="sepal_width",
-    y="sepal_length",
+    x="SepalWidth",
+    y="SepalLength",
     # relabel axes with a dict
-    labels={"sepal_width": "Sepal Width", "sepal_length": "Sepal Length"},
+    labels={"SepalWidth": "Sepal Width", "SepalLength": "Sepal Length"},
 )
 
 # or, pass a new label to each of `xaxis_titles` and `yaxis_titles`
 scatter_plot_labels_2 = dx.scatter(
     iris,
-    x="sepal_width",
-    y="sepal_length",
+    x="SepalWidth",
+    y="SepalLength",
     # relabel axes with separate strings
     xaxis_titles="Sepal Width",
     yaxis_titles="Sepal Length",
@@ -202,8 +202,8 @@ iris = dx.data.iris()
 # histogram style marginals
 scatter_marginal_histogram = dx.scatter(
     iris,
-    x="petal_width",
-    y="petal_length",
+    x="PetalWidth",
+    y="PetalLength",
     marginal_x="histogram",
     marginal_y="histogram",
 )
@@ -211,8 +211,8 @@ scatter_marginal_histogram = dx.scatter(
 # violin style marginals
 scatter_marginal_violin = dx.scatter(
     iris,
-    x="petal_width",
-    y="petal_length",
+    x="PetalWidth",
+    y="PetalLength",
     marginal_x="violin",
     marginal_y="violin",
 )
@@ -220,8 +220,8 @@ scatter_marginal_violin = dx.scatter(
 # box style marginals
 scatter_marginal_box = dx.scatter(
     iris,
-    x="petal_width",
-    y="petal_length",
+    x="PetalWidth",
+    y="PetalLength",
     marginal_x="box",
     marginal_y="box",
 )
@@ -238,8 +238,8 @@ iris = dx.data.iris()
 # create log axes
 scatter_plot_log_axes = dx.scatter(
     iris,
-    x="petal_width",
-    y="petal_length",
+    x="PetalWidth",
+    y="PetalLength",
     log_x=True,
     log_y=True,
 )
@@ -256,8 +256,8 @@ iris = dx.data.iris()
 # set the axis range explicitly
 scatter_plot_range_axes = dx.scatter(
     iris,
-    x="petal_width",
-    y="petal_length",
+    x="PetalWidth",
+    y="PetalLength",
     range_x=[0,5],
     range_y=[0,10],
 )
@@ -274,9 +274,9 @@ iris = dx.data.iris()
 # create multiple axes from mulitple columns
 scatter_plot_axes_titles = dx.scatter(
     iris,
-    x="sepal_width",
+    x="SepalWidth",
     # each y value becomes a seperate series
-    y=["sepal_length", "petal_length"],
+    y=["SepalLength", "PetalLength"],
     # position each axis for each series
     yaxis_sequence=[1, 2],
     # Label the axes
@@ -290,9 +290,9 @@ stocks_table = dx.data.stocks().where("sym in `DOG`, `CAT`")
 
 scatter_stocks = dx.scatter(
     stocks_table,
-    x="timestamp",
-    y="price",
-    by="sym",
+    x="Timestamp",
+    y="Price",
+    by="Sym",
     # Apply each trace to a different axis
     yaxis_sequence=[1, 2],
     # Label each axis, where order is by first appearence in the data
@@ -303,28 +303,28 @@ scatter_stocks = dx.scatter(
 layered_table = dx.data.iris() # import the example iris data set
 
 # split into two tables by species
-table_setosa = layered_table.where("species = `setosa`")
-table_versicolor = layered_table.where("species = `versicolor`")
+table_setosa = layered_table.where("Species = `setosa`")
+table_versicolor = layered_table.where("Species = `versicolor`")
 
 # layer two plots together, layout is inherited from the last table in the layer
 layered_scatter = dx.layer(
     # scatter plot from table 1
     dx.scatter(
         table_setosa,
-        x="petal_width",
-        y="petal_length",
+        x="PetalWidth",
+        y="PetalLength",
         color_discrete_sequence=["salmon"],
     ),
     # scatter from table 2
     dx.scatter(
         table_versicolor,
-        x="petal_width",
-        y="petal_length",
+        x="PetalWidth",
+        y="PetalLength",
         color_discrete_sequence=["lemonchiffon"],
         # place this trace on a secondary axis
         yaxis_sequence=[2],
         # set the titles for both axes, as layer inherits from this layout
-        yaxis_titles=["versicolor petal_length","setosa petal_length"]
+        yaxis_titles=["Versicolor Petal Length","Setosa Petal Length"]
     )
 )
 ```
@@ -338,9 +338,9 @@ import deephaven.plot.express as dx
 
 iris = dx.data.iris()  # import the example iris data set
 # find the max peaks of each series to use as our example markers
-marker_table = iris.select(["species", "petal_length", "timestamp"]).join(
-    iris.select(["species", "petal_length"]).max_by("species"),
-    on=["species", "petal_length"],
+marker_table = iris.select(["Species", "PetalLength", "Timestamp"]).join(
+    iris.select(["Species", "PetalLength"]).max_by("Species"),
+    on=["Species", "PetalLength"],
 )
 
 # layer  as scatter on a line plot
@@ -348,19 +348,19 @@ scatter_as_markers = dx.layer(
     # create a scatter plot to use as markers
     dx.scatter(
         marker_table,
-        x="timestamp",
-        y="petal_length",
+        x="Timestamp",
+        y="PetalLength",
         symbol_sequence=["x"],
         size_sequence=[15],
-        hover_name="species",
+        hover_name="Species",
         color_discrete_sequence=["#FFF"],
     ),
     # layer it with a line plot
     dx.line(
         iris,
-        x="timestamp",
-        y="petal_length",
-        by="species",
+        x="Timestamp",
+        y="PetalLength",
+        by="Species",
     ),
 )
 ```

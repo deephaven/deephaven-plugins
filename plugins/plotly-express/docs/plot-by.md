@@ -13,7 +13,7 @@ import deephaven.plot.express as dx
 iris = dx.data.iris() # import the example iris data set
 
 # specify `x` and `y` columns, as well as additional grouping variable with `by`
-pedal_size_by_species = dx.scatter(iris, x="petal_length", y="petal_width", by="species")
+pedal_size_by_species = dx.scatter(iris, x="PetalLength", y="PetalWidth", by="Species")
 ```
 
 Or, use `symbol` to differentiate groups with symbols.
@@ -23,7 +23,7 @@ import deephaven.plot.express as dx
 iris = dx.data.iris() # import the example iris data set
 
 # use different symbols to denote different groups
-pedal_size_by_species_sym = dx.scatter(iris, x="petal_length", y="petal_width", symbol="species")
+pedal_size_by_species_sym = dx.scatter(iris, x="PetalLength", y="PetalWidth", symbol="Species")
 ```
 
 ### Scatter plot by a numeric variable
@@ -35,7 +35,7 @@ import deephaven.plot.express as dx
 tips = dx.data.tips() # import a ticking version of the Tips dataset
 
 # the `size` column from tips gives the number in the party
-total_bill_tip_size = dx.scatter(tips, x="total_bill", y="tip", size="size")
+total_bill_tip_size = dx.scatter(tips, x="TotalBill", y="Tip", size="Size")
 ```
 
 If the sizes are too large or small, use the `size_map` argument to map each numeric value to a more appropriate size.
@@ -46,7 +46,7 @@ tips = dx.data.tips() # import a ticking version of the Tips dataset
 
 # the `size` column from tips gives the number in the party, map it to different sizes
 total_bill_tip_size = dx.scatter(
-    tips, x="total_bill", y="tip", size="size",
+    tips, x="TotalBill", y="Tip", size="size",
     size_map={"1": 5, "2": 7, "3": 11, "4": 13, "5": 15, "6": 17}
 )
 ```
@@ -60,7 +60,7 @@ import deephaven.plot.express as dx
 tips = dx.data.tips() # import a ticking version of the Tips dataset
 
 # passing a list to `by` gives unique colors for each combination of values in the given columns
-total_bill_sex_smoker = dx.scatter(tips, x="total_bill", y="tip", by=["sex", "smoker"])
+total_bill_sex_smoker = dx.scatter(tips, x="TotalBill", y="Tip", by=["Sex", "Smoker"])
 ```
 
 Alternatively, use other arguments such as `symbol` or `size` to differentiate groups.
@@ -70,7 +70,7 @@ import deephaven.plot.express as dx
 tips = dx.data.tips() # import a ticking version of the Tips dataset
 
 # use color to denote sex, and symbol to denote smoking status
-total_bill_sex_smoker_sym = dx.scatter(tips, x="total_bill", y="tip", by="sex", symbol="smoker")
+total_bill_sex_smoker_sym = dx.scatter(tips, x="TotalBill", y="Tip", by="Sex", symbol="Smoker")
 ```
 
 ### Line plot by a categorical variable
@@ -82,7 +82,7 @@ import deephaven.plot.express as dx
 stocks = dx.data.stocks() # import ticking Stocks dataset
 
 # use `by` argument to plot prices by stock symbol
-prices_by_sym = dx.line(stocks, x="timestamp", y="price", by="sym")
+prices_by_sym = dx.line(stocks, x="Timestamp", y="Price", by="Sym")
 ```
 
 In the case of a line plot, `line_dash` can also be used to differentiate lines for different categories.
@@ -92,7 +92,7 @@ import deephaven.plot.express as dx
 stocks = dx.data.stocks() # import ticking Stocks dataset
 
 # use `line_dash` argument to change line appearance per stock symbol
-prices_by_sym = dx.line(stocks, x="timestamp", y="price", line_dash="sym")
+prices_by_sym = dx.line(stocks, x="Timestamp", y="Price", line_dash="Sym")
 ```
 
 ### Distributional plots per category
@@ -108,13 +108,13 @@ import deephaven.plot.express as dx
 gapminder = dx.data.gapminder() # import ticking Gapminder dataset
 
 # filter by most recent instance of each country
-recent_gapminder = gapminder.last_by("country")
+recent_gapminder = gapminder.last_by("Country")
 
 # create histogram of life expectancy distribution for each continent
-life_exp_hist = dx.histogram(recent_gapminder, x="lifeExp", by="continent")
+life_exp_hist = dx.histogram(recent_gapminder, x="LifeExp", by="Continent")
 
 # overlay histograms for easier visualization
-life_exp_hist_overlaid = dx.histogram(recent_gapminder, x="lifeExp", by="continent", barmode="overlay")
+life_exp_hist_overlaid = dx.histogram(recent_gapminder, x="LifeExp", by="Continent", barmode="overlay")
 ```
 
 #### Box plot
@@ -126,10 +126,10 @@ import deephaven.plot.express as dx
 gapminder = dx.data.gapminder() # import ticking Gapminder dataset
 
 # filter by most recent instance of each country
-recent_gapminder = gapminder.last_by("country")
+recent_gapminder = gapminder.last_by("Country")
 
 # box plot gives 5-number summary and potential outliers
-life_exp_box = dx.box(recent_gapminder, x="lifeExp", by="continent")
+life_exp_box = dx.box(recent_gapminder, x="LifeExp", by="Continent")
 ```
 
 #### Violin plot
@@ -141,10 +141,10 @@ import deephaven.plot.express as dx
 gapminder = dx.data.gapminder() # import ticking Gapminder dataset
 
 # filter by most recent instance of each country
-recent_gapminder = gapminder.last_by("country")
+recent_gapminder = gapminder.last_by("Country")
 
 # the violins may be too thin to be useful
-life_exp_violin = dx.violin(recent_gapminder, x="lifeExp", by="continent")
+life_exp_violin = dx.violin(recent_gapminder, x="LifeExp", by="Continent")
 ```
 <!--- TODO: Add strip plot when https://github.com/deephaven/deephaven-plugins/issues/548 is closed -->
 
@@ -157,8 +157,8 @@ import deephaven.plot.express as dx
 gapminder = dx.data.gapminder() # import ticking Gapminder dataset
 
 # filter by most recent instance of each country
-recent_gapminder = gapminder.last_by("country")
+recent_gapminder = gapminder.last_by("Country")
 
 # set `box=True` to get a box plot inside of the violins, and `points=all` to show strip plots
-life_exp_all = dx.violin(recent_gapminder, y="lifeExp", by="continent", box=True, points="all")
+life_exp_all = dx.violin(recent_gapminder, y="LifeExp", by="Continent", box=True, points="all")
 ```

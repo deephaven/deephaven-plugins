@@ -23,13 +23,13 @@ gapminder = dx.data.gapminder()
 # create table of only the most recent year of data, compute total population for each continent
 gapminder_recent = (
     gapminder
-    .last_by("country")
-    .view(["continent", "pop"])
-    .sum_by("continent")
-    .update("world = `world`")
+    .last_by("Country")
+    .view(["Continent", "Pop"])
+    .sum_by("Continent")
+    .update("World = `World`")
 )
 
-treemap_plot = dx.treemap(gapminder_recent, names="continent", values="pop", parents="world")
+treemap_plot = dx.treemap(gapminder_recent, names="Continent", values="Pop", parents="World")
 ```
 
 ## API Reference

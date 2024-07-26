@@ -23,25 +23,25 @@ stocks = dx.data.stocks()
 
 # compute ohlc per symbol for each minute
 stocks_1min_ohlc = stocks.update_view(
-    "binnedTimestamp = lowerBin(timestamp, 'PT1m')"
+    "BinnedTimestamp = lowerBin(Timestamp, 'PT1m')"
 ).agg_by(
     [
-        agg.first("open=price"),
-        agg.max_("high=price"),
-        agg.min_("low=price"),
-        agg.last("close=price"),
+        agg.first("Open=Price"),
+        agg.max_("High=Price"),
+        agg.min_("Low=Price"),
+        agg.last("Close=Price"),
     ],
-    by=["sym", "binnedTimestamp"],
+    by=["Sym", "BinnedTimestamp"],
 )
 
 # create a basic candlestick plot - the `open`, `high`, `low`, and `close` arguments must be specified
 ohlc_plot = dx.ohlc(
-    stocks_1min_ohlc.where("sym == `DOG`"),
-    x="binnedTimestamp",
-    open="open",
-    high="high",
-    low="low",
-    close="close",
+    stocks_1min_ohlc.where("Sym == `DOG`"),
+    x="BinnedTimestamp",
+    open="Open",
+    high="High",
+    low="Low",
+    close="Close",
 )
 ```
 

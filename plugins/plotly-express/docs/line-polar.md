@@ -21,7 +21,7 @@ import deephaven.plot.express as dx
 wind = dx.data.wind()
 
 # `by` is used to separate data by groups
-polar_line_plot = dx.line_polar(wind, r="frequency", theta="direction", by="strength")
+polar_line_plot = dx.line_polar(wind, r="Frequency", theta="Direction", by="Strength")
 ```
 
 ## API Reference

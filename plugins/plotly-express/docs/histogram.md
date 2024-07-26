@@ -21,9 +21,9 @@ import deephaven.plot.express as dx
 iris = dx.data.iris()
 
 # subset to get specific species
-setosa = iris.where("species == `setosa`")
+setosa = iris.where("Species == `setosa`")
 
-hist_plot = dx.histogram(setosa, x="sepal_length")
+hist_plot = dx.histogram(setosa, x="SepalLength")
 ```
 
 Modify the bin size by setting `nbins` equal to the number of desired bins.
@@ -33,16 +33,16 @@ import deephaven.plot.express as dx
 iris = dx.data.iris()
 
 # subset to get specific species
-virginica = iris.where("species == `virginica`")
+virginica = iris.where("Species == `virginica`")
 
 # too many bins will produce jagged, disconnected histograms
-hist_20_bins = dx.histogram(setosa, x="sepal_length", nbins=20)
+hist_20_bins = dx.histogram(setosa, x="SepalLength", nbins=20)
 
 # too few bins will mask distributional information
-hist_3_bins = dx.histogram(setosa, x="sepal_length", nbins=3)
+hist_3_bins = dx.histogram(setosa, x="SepalLength", nbins=3)
 
 # play with the `nbins` parameter to get a good visualization
-hist_8_bins = dx.histogram(setosa, x="sepal_length", nbins=8)
+hist_8_bins = dx.histogram(setosa, x="SepalLength", nbins=8)
 ```
 
 ### Distributions of several groups
@@ -54,10 +54,10 @@ import deephaven.plot.express as dx
 iris = dx.data.iris()
 
 # each bin may be stacked side-by-side for each group
-stacked_hist = dx.histogram(iris, x="sepal_length", by="species")
+stacked_hist = dx.histogram(iris, x="SepalLength", by="Species")
 
 # or, each bin may be overlaid with the others
-overlay_hist = dx.histogram(iris, x="sepal_length", by="species", barmode="overlay")
+overlay_hist = dx.histogram(iris, x="SepalLength", by="Species", barmode="overlay")
 ```
 
 ## API Reference

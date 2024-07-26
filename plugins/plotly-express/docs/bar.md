@@ -20,7 +20,7 @@ Visualize the relationship between a continuous variable and a categorical or di
 import deephaven.plot.express as dx
 tips = dx.data.tips()
 
-bar_plot = dx.bar(tips, x="day", y="total_bill")
+bar_plot = dx.bar(tips, x="Day", y="TotalBill")
 ```
 
 Change the x-axis ordering by sorting the dataset by the categorical variable.
@@ -30,7 +30,7 @@ import deephaven.plot.express as dx
 tips = dx.data.tips()
 
 # sort the dataset to get a specific x-axis ordering, sort() acts alphabetically
-ordered_bar_plot = dx.bar(tips.sort("day"), x="day", y="total_bill")
+ordered_bar_plot = dx.bar(tips.sort("Day"), x="Day", y="TotalBill")
 ```
 
 ### Partition bars by group
@@ -41,13 +41,13 @@ Break bars down by group by passing the name of the grouping column(s) to the `b
 import deephaven.plot.express as dx
 tips = dx.data.tips()
 
-sorted_tips = tips.sort("day")
+sorted_tips = tips.sort("Day")
 
 # group by smoker / non-smoker
-bar_plot_smoke = dx.bar(sorted_tips, x="day", y="total_bill", by="smoker")
+bar_plot_smoke = dx.bar(sorted_tips, x="Day", y="TotalBill", by="Smoker")
 
 # group by male / female
-bar_plot_sex = dx.bar(sorted_tips, x="day", y="total_bill", by="sex")
+bar_plot_sex = dx.bar(sorted_tips, x="Day", y="TotalBill", by="Sex")
 ```
 
 ## API Reference

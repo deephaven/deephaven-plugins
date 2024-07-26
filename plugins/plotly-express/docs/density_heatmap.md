@@ -20,7 +20,7 @@ Visualize the joint distribution of two variables by passing each column name to
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
-heatmap = dx.density_heatmap(iris, x="petal_length", y="petal_width")
+heatmap = dx.density_heatmap(iris, x="PetalLength", y="PetalWidth")
 ```
 
 ### A density heatmap with a custom color scale
@@ -34,8 +34,8 @@ iris = dx.data.iris()
 # use the "viridis" color scale with a range from 5 to 8
 heatmap_colorscale = dx.density_heatmap(
     iris,
-    x="petal_length", 
-    y="petal_width", 
+    x="PetalLength", 
+    y="PetalWidth", 
     color_continuous_scale="viridis", 
     range_color=[5, 8]
 )
@@ -53,8 +53,8 @@ iris = dx.data.iris()
 # None is used to specify an upper bound of the maximum value.
 heatmap_bins = dx.density_heatmap(
     iris, 
-    x="petal_length", 
-    y="petal_width", 
+    x="PetalLength", 
+    y="PetalWidth", 
     nbinsx=20,
     nbinsy=20,
     range_bins_x=[3, None],  
@@ -72,9 +72,9 @@ iris = dx.data.iris()
 # color the map by the average of an additional continuous variable
 heatmap_aggregation = dx.density_heatmap(
     iris, 
-    x="petal_length", 
-    y="petal_width", 
-    z="sepal_length", 
+    x="PetalLength", 
+    y="PetalWidth", 
+    z="SepalLength", 
     histfunc="avg"
 )
 ```

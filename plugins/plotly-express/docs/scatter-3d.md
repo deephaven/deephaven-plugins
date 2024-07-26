@@ -20,7 +20,7 @@ Visualize the relationship between three variables by passing their column names
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
-scatter_plot_3D = dx.scatter_3d(iris, x="sepal_width", y="sepal_length", z="petal_width")
+scatter_plot_3D = dx.scatter_3d(iris, x="SepalWidth", y="SepalLength", z="PetalWidth")
 ```
 
 ### Create a bubble plot
@@ -33,7 +33,7 @@ The `size` argument interprets the values in the given column as pixel size, so 
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
-bubble_plot_3D = dx.scatter_3d(iris, x="sepal_width", y="sepal_length", z="petal_width", size="petal_length")
+bubble_plot_3D = dx.scatter_3d(iris, x="SepalWidth", y="SepalLength", z="PetalWidth", size="PetalLength")
 ```
 
 ### Color markers by group
@@ -44,7 +44,7 @@ Denote groups of data by using the color of the markers as group indicators. Pas
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
-scatter_plot_3D_groups = dx.scatter_3d(iris, x="sepal_width", y="sepal_length", z="petal_width", by="species")
+scatter_plot_3D_groups = dx.scatter_3d(iris, x="SepalWidth", y="SepalLength", z="PetalWidth", by="Species")
 ```
 
 Customize these colors using the `color_discrete_sequence` or `color_discrete_map` arguments. Any [CSS color name](https://www.w3schools.com/cssref/css_colors.php), hexadecimal color code, or set of RGB values will work.
@@ -56,10 +56,10 @@ iris = dx.data.iris()
 # set custom colors using color_discrete_sequence
 scatter_3D_custom_1 = dx.scatter_3d(
     iris,
-    x="sepal_width",
-    y="sepal_length",
-    z="petal_width",
-    by="species",
+    x="SepalWidth",
+    y="SepalLength",
+    z="PetalWidth",
+    by="Species",
     # A list of colors to sequentially apply to one or more series
     # The colors loop if there are more series than colors
     color_discrete_sequence=["salmon", "#fffacd", "rgb(100,149,237)"]
@@ -68,25 +68,25 @@ scatter_3D_custom_1 = dx.scatter_3d(
 # use a dictionary to specify custom colors
 scatter_3D_custom_2 = dx.scatter_3d(
     iris,
-    x="sepal_width",
-    y="sepal_length",
-    z="petal_width",
-    by="species",
+    x="SepalWidth",
+    y="SepalLength",
+    z="PetalWidth",
+    by="Species",
     # set each series to a specific color
     color_discrete_map={"virginica":"lemonchiffon", "setosa": "cornflowerblue", "versicolor":"#FA8173"}
 )
 
 # or, create a new table with a column of colors, and use that column for the color values
 iris_with_custom_colors = iris.update(
-    "example_colors = `rgb(` + Math.round(Math.random() * 255) + `,` + Math.round(Math.random() * 255) + `,`  + Math.round(Math.random() * 255) +`)`"
+    "ExampleColors = `rgb(` + Math.round(Math.random() * 255) + `,` + Math.round(Math.random() * 255) + `,`  + Math.round(Math.random() * 255) +`)`"
 )
 
 scatter_3D_custom_3 = dx.scatter_3d(
     iris_with_custom_colors,
-    x="sepal_width",
-    y="sepal_length",
-    z="petal_width",
-    by="example_colors",
+    x="SepalWidth",
+    y="SepalLength",
+    z="PetalWidth",
+    by="ExampleColors",
     # When set to `identity`, the column data passed to the
     # color parameter will used as the actual color
     color_discrete_map="identity"
@@ -104,10 +104,10 @@ iris = dx.data.iris()
 # use the `color` argument to specify the value column, and the `color_continuous_scale` to specify the color scale
 scatter_3D_color = dx.scatter_3d(
     iris,
-    x="sepal_width",
-    y="sepal_length",
-    z="petal_width",
-    by="petal_length",
+    x="SepalWidth",
+    y="SepalLength",
+    z="PetalWidth",
+    by="PetalLength",
     # use any plotly express built in color scale name
     color_continuous_scale="viridis"
 )
@@ -121,10 +121,10 @@ iris = dx.data.iris()
 
 scatter_3D_custom_color = dx.scatter_3d(
     iris,
-    x="sepal_width",
-    y="sepal_length",
-    z="petal_width",
-    by="petal_length",
+    x="SepalWidth",
+    y="SepalLength",
+    z="PetalWidth",
+    by="PetalLength",
     # custom scale colors can be any valid browser css color
     color_continuous_scale=["lemonchiffon", "#FA8173", "rgb(201, 61, 44)"]
 )
@@ -141,12 +141,12 @@ Deephaven's scatter plots can comfortably render around 0.5 - 1 million points b
  my_table = dx.data.iris() # import the example iris data set
 
  # Consider a density heatmap for large data sets
- heatmap_replacement = dx.density_heatmap(my_table, x="sepal_width", y="sepal_length")
+ heatmap_replacement = dx.density_heatmap(my_table, x="SepalWidth", y="SepalLength")
 
  scatter_plot_opacity = dx.scatter(
      my_table,
-     x="sepal_width",
-     y="sepal_length",
+     x="SepalWidth",
+     y="SepalLength",
      # For data sets with a high degree of overlap between points, consider setting opacity
      opacity=0.5
  )

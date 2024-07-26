@@ -20,7 +20,7 @@ Visualize the distribution of a single variable by passing the column name to `x
 import deephaven.plot.express as dx
 tips = dx.data.tips()
 
-box_plot = dx.box(tips, y="total_bill")
+box_plot = dx.box(tips, y="TotalBill")
 ```
 
 ### Distributions for multiple groups
@@ -31,11 +31,11 @@ Box plots are useful for comparing the distributions of two or more groups of da
 import deephaven.plot.express as dx
 tips = dx.data.tips()
 
-# total bill distribution by smoker / non-smoker
-box_plot_group_1 = dx.box(tips, y="total_bill", by="smoker")
+# total bill distribution by Smoker / non-Smoker
+box_plot_group_1 = dx.box(tips, y="TotalBill", by="Smoker")
 
 # total bill distribution by male / female
-box_plot_group_2 = dx.box(tips, y="total_bill", by="sex")
+box_plot_group_2 = dx.box(tips, y="TotalBill", by="Sex")
 ```
 
 ## API Reference

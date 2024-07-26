@@ -21,9 +21,9 @@ import deephaven.plot.express as dx
 my_table = dx.data.stocks()
 
 # subset data for just DOG transactions
-dog_prices = my_table.where("sym = `DOG`")
+dog_prices = my_table.where("Sym = `DOG`")
 
-line_plot = dx.line(dog_prices, x="timestamp", y="price")
+line_plot = dx.line(dog_prices, x="Timestamp", y="Price")
 ```
 
 ### Color line plot by group
@@ -35,7 +35,7 @@ import deephaven.plot.express as dx
 my_table = dx.data.stocks()
 
 # each line represents a group and has a unique color
-line_plot = dx.line(my_table, x="timestamp", y="price", by="sym")
+line_plot = dx.line(my_table, x="Timestamp", y="Price", by="Sym")
 ```
 
 ## API Reference

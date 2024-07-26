@@ -15,10 +15,10 @@ import deephaven.plot.express as dx
 gapminder = dx.data.gapminder() # import a ticking version of the Gapminder dataset
 
 # get a specific country
-brazil = gapminder.where("country == `Brazil`")
+brazil = gapminder.where("Country == `Brazil`")
 
 # specify multiple y-axis columns and order axes left to right with yaxis_sequence
-line_plot_multi = dx.line(brazil, x="year", y=["pop", "gdpPercap"], yaxis_sequence=[1, 2])
+line_plot_multi = dx.line(brazil, x="Year", y=["Pop", "GdpPerCap"], yaxis_sequence=[1, 2])
 ```
 
 ### The `by` parameter
@@ -30,10 +30,10 @@ import deephaven.plot.express as dx
 stocks = dx.data.stocks() # import the example stock market data set
 
 # subset to get two symbols
-cat_dog = stocks.where("sym in `CAT`, `DOG`")
+cat_dog = stocks.where("Sym in `CAT`, `DOG`")
 
 # use `by` to specify the grouping column and order axes left to right with yaxis_sequence
-line_plot_by = dx.line(cat_dog, x="timestamp", y="price", by="sym", yaxis_sequence=[1, 2])
+line_plot_by = dx.line(cat_dog, x="Timestamp", y="Price", by="Sym", yaxis_sequence=[1, 2])
 ```
 
 ### Layering
@@ -45,12 +45,12 @@ import deephaven.plot.express as dx
 stocks = dx.data.stocks() # import the example stock market data set
 
 # subset to get two tables with a shared x-axis
-fish = stocks.where("sym == `FISH`")
-bird = stocks.where("sym == `BIRD`")
+fish = stocks.where("Sym == `FISH`")
+bird = stocks.where("Sym == `BIRD`")
 
 # create multiple axes using dx.layer and specifying yaxis_sequence
 line_plot_layered = dx.layer(
-    dx.line(fish, x="timestamp", y="price", yaxis_sequence=1),
-    dx.line(bird, x="timestamp", y="price", yaxis_sequence=2)
+    dx.line(fish, x="Timestamp", y="Price", yaxis_sequence=1),
+    dx.line(bird, x="Timestamp", y="Price", yaxis_sequence=2)
 )
 ```

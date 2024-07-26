@@ -14,26 +14,26 @@ import deephaven.agg as agg
 stocks = dx.data.stocks()  # import the example stock market data set
 
 # select only DOG prices and compute ohlc
-dog_prices = stocks.where("sym == `DOG`")
+dog_prices = stocks.where("Sym == `DOG`")
 dog_ohlc = dog_prices.update_view(
-    "binnedTimestamp = lowerBin(timestamp, 'PT1m')"
+    "BinnedTimestamp = lowerBin(Timestamp, 'PT1m')"
 ).agg_by(
     [
-        agg.first("open=price"),
-        agg.max_("high=price"),
-        agg.min_("low=price"),
-        agg.last("close=price"),
+        agg.first("Open=Price"),
+        agg.max_("High=Price"),
+        agg.min_("Low=Price"),
+        agg.last("Close=Price"),
     ],
-    by="binnedTimestamp",
+    by="BinnedTimestamp",
 )
 
 # layer a line plot and a candlestick plot by passing both to layer()
 financial_plot = dx.layer(
     dx.line(
-        dog_prices, x="timestamp", y="price"),
+        dog_prices, x="Timestamp", y="Price"),
     dx.candlestick(
-        dog_ohlc, x="binnedTimestamp",
-        open="open", high="high", low="low", close="close")
+        dog_ohlc, x="BinnedTimestamp",
+        open="Open", high="High", low="Low", close="Close")
 )
 ```
 

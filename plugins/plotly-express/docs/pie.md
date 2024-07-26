@@ -24,12 +24,12 @@ gapminder = dx.data.gapminder()
 # get table of most recent total population per continent
 gapminder_recent_pop = (
     gapminder
-    .last_by("country")
-    .drop_columns(["country", "lifeExp", "gdpPercap"])
-    .sum_by(["year", "month", "continent"])
+    .last_by("Country")
+    .drop_columns(["Country", "LifeExp", "GdpPerCap"])
+    .sum_by(["Year", "Month", "Continent"])
 )
 
-pie_plot = dx.pie(gapminder_recent_pop, names="continent", values="pop")
+pie_plot = dx.pie(gapminder_recent_pop, names="Continent", values="Pop")
 ```
 
 ## API Reference

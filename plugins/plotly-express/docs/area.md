@@ -21,9 +21,9 @@ import deephaven.plot.express as dx
 gapminder = dx.data.gapminder()
 
 # subset to get a specific group
-usa_population = gapminder.where("country == `United States`")
+usa_population = gapminder.where("Country == `United States`")
 
-area_plot = dx.area(usa_population, x="year", y="pop")
+area_plot = dx.area(usa_population, x="Year", y="Pop")
 ```
 
 ### Color by group
@@ -35,10 +35,10 @@ import deephaven.plot.express as dx
 gapminder = dx.data.gapminder()
 
 # subset to get several countries to compare
-large_countries_population = gapminder.where("country in `United States`, `India`, `China`")
+large_countries_population = gapminder.where("Country in `United States`, `India`, `China`")
 
 # cumulative trend showing contribution from each group
-area_plot_group = dx.area(large_countries_population, x="year", y="pop", by="country")
+area_plot_group = dx.area(large_countries_population, x="Year", y="Pop", by="Country")
 ```
 
 ## API Reference
