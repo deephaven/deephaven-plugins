@@ -75,7 +75,7 @@ total_bill_sex_smoker_sym = dx.scatter(tips, x="TotalBill", y="Tip", by="Sex", s
 
 ### Line plot by a categorical variable
 
-Use a [line plot](line.md) to track the trends of a numeric variable over time, broken up by categories using `by`.
+Use a [line plot](line.md) to track the trends of a numeric variable over time, broken into categories using `by`.
 
 ```python order=prices_by_sym,stocks
 import deephaven.plot.express as dx
@@ -95,13 +95,9 @@ stocks = dx.data.stocks() # import ticking Stocks dataset
 prices_by_sym = dx.line(stocks, x="Timestamp", y="Price", line_dash="Sym")
 ```
 
-### Distribution plots per category
+### Histogram plot by a categorical variable
 
-Compare the distributions of a single variable over multiple categories using `by`. All distribution plots support `by`, and all yield different perspectives on the data.
-
-#### Histogram
-
-[Histograms](histogram.md) provide visualizations of univariate distributions, but can get clunky with several categories.
+Use `by` with [histograms](histogram.md) to visualize the distributions of multiple groups of data. Histograms can be stacked, or overlaid using `barmode="overlay"`.
 
 ```python order=life_exp_hist,life_exp_hist_overlaid,recent_gapminder,gapminder
 import deephaven.plot.express as dx
@@ -117,9 +113,9 @@ life_exp_hist = dx.histogram(recent_gapminder, x="LifeExp", by="Continent")
 life_exp_hist_overlaid = dx.histogram(recent_gapminder, x="LifeExp", by="Continent", barmode="overlay")
 ```
 
-#### Box plot
+### Box plot by a categorical variable
 
-[Box plots](box.md) are cleaner visualizations for distributions of multiple categories, and offer potential outlier detection.
+Use `by` with [box plots](box.md) to visualize the distributions of multiple groups of data. Unlike histograms, using the `by` argument with box plots stacks them vertically.
 
 ```python order=life_exp_box,recent_gapminder,gapminder
 import deephaven.plot.express as dx
@@ -132,9 +128,9 @@ recent_gapminder = gapminder.last_by("Country")
 life_exp_box = dx.box(recent_gapminder, x="LifeExp", by="Continent")
 ```
 
-#### Violin plot
+### Violin plot by a categorical variable
 
-[Violin plots](violin.md) offer clarity on multimodal data, but can lose clarity with roughly uniform distributions.
+Use `by` with [violin plots](violin.md) to visualize the distributions of multiple groups of data. The `by` argument for a violin plot behaves similarly to a box plot.
 
 ```python order=life_exp_violin,recent_gapminder,gapminder
 import deephaven.plot.express as dx
@@ -145,20 +141,4 @@ recent_gapminder = gapminder.last_by("Country")
 
 # the violins may be too thin to be useful
 life_exp_violin = dx.violin(recent_gapminder, x="LifeExp", by="Continent")
-```
-<!--- TODO: Add strip plot when https://github.com/deephaven/deephaven-plugins/issues/548 is closed -->
-
-#### Violin + Box + Strip plot
-
-Combining a violin plot, a box plot, and a [strip plot](strip.md) might yield the most insight on the distributions of each category.
-
-```python order=life_exp_all,recent_gapminder,gapminder
-import deephaven.plot.express as dx
-gapminder = dx.data.gapminder() # import ticking Gapminder dataset
-
-# filter by most recent instance of each country
-recent_gapminder = gapminder.last_by("Country")
-
-# set `box=True` to get a box plot inside of the violins, and `points=all` to show strip plots
-life_exp_all = dx.violin(recent_gapminder, y="LifeExp", by="Continent", box=True, points="all")
 ```

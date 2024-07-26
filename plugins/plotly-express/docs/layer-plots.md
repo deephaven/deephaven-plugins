@@ -1,6 +1,6 @@
 # Layer plots
 
-To "layer" or "stack" multiple plots on top of each other, use the `layer` function. This is useful if you want to combine multiple plots of different types into a single plot, such as a [scatter plot](scatter.md) and a [line plot](line.md). By default, last plot given will be used for the layout. The `which_layout` parameter can be used to specify which plot's layout should be used. The `specs` parameter can be used to specify the domains of each plot.
+To "layer" or "stack" multiple plots on top of each other, use the `layer` function. This is useful if you want to combine multiple plots of different types into a single visualization, such as a [scatter plot](scatter.md) and a [line plot](line.md). This is distinct from [sub-plots](sub-plots.md), which present multiple plots side-by-side. By default, the stacked plot will use the layout (axis labels, axis ranges, and title) from the last plot in the sequence. The `which_layout` parameter can be used to specify which plot's layout should be used.
 
 ## Examples
 
