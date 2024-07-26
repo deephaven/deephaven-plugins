@@ -26,7 +26,7 @@ from ..elements import Element
 
 
 def text_area(
-    icon: Element | None = None,
+    icon: Element | str | None = None,
     is_quiet: bool | None = None,
     is_disabled: bool | None = None,
     is_read_only: bool | None = None,
