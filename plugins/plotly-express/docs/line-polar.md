@@ -2,7 +2,7 @@
 
 Polar line plots are a type of data visualization that represents data points on a polar coordinate system. They display data as connected line segments extending from the center of a circular plot, often used to illustrate relationships, trends, or patterns within data that have angular or periodic dependencies.
 
-Polar line plots are appropriate when the data contain a continuous variable represented in polar coordinates, with a radial and an angular component instead of the typical x and y components. Further, polar line plots are preferable to polar scatter plots when the explanatory variables are ordered.
+Polar line plots are appropriate when the data contain a continuous variable represented in polar coordinates, with a radial and an angular component instead of the typical x and y components. Further, polar line plots are preferable to [polar scatter plots](scatter-polar.md) when the explanatory variables are ordered.
 
 ### What are polar line plots useful for?
 

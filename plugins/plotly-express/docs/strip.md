@@ -2,7 +2,7 @@
 
 In a strip plot, individual data points are displayed along a single axis, providing a clear view of the distribution of data points without the additional density estimation and summary statistics provided by a violin plot. By default, the plotted categories are ordered by their appearance in the dataset.
 
-Strip plots are appropriate when the data contain a continuous variable of interest. If there is an additional categorical variable that the variable of interest depends on, stacked strip plots may be appropriate. The data should be relatively sparse, as strip plots can get crowded quickly with large datasets. This may make it difficult to spot multimodal distributions, heavy-tailed distributions, or outliers. In such cases, box plots or violin plots may be more appropriate.
+Strip plots are appropriate when the data contain a continuous variable of interest. If there is an additional categorical variable that the variable of interest depends on, stacked strip plots may be appropriate. The data should be relatively sparse, as strip plots can get crowded quickly with large datasets. This may make it difficult to spot multimodal distributions, heavy-tailed distributions, or outliers. In such cases, [box plots](box.md) or [violin plots](violin.md) may be more appropriate.
 
 ### What are strip plots useful for?
 

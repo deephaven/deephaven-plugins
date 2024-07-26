@@ -6,7 +6,7 @@ To plot multiple series from a table into a single chart, use the `by` parameter
 
 ### Scatter plot by a categorical variable
 
-Create a scatter plot, where the color of each point is determined by a categorical grouping variable.
+Create a [scatter plot](scatter.md), where the color of each point is determined by a categorical grouping variable.
 
 ```python order=pedal_size_by_species,iris
 import deephaven.plot.express as dx
@@ -75,7 +75,7 @@ total_bill_sex_smoker_sym = dx.scatter(tips, x="TotalBill", y="Tip", by="Sex", s
 
 ### Line plot by a categorical variable
 
-Use a line plot to track the trends of a numeric variable over time, broken up by categories using `by`.
+Use a [line plot](line.md) to track the trends of a numeric variable over time, broken up by categories using `by`.
 
 ```python order=prices_by_sym,stocks
 import deephaven.plot.express as dx
@@ -95,13 +95,13 @@ stocks = dx.data.stocks() # import ticking Stocks dataset
 prices_by_sym = dx.line(stocks, x="Timestamp", y="Price", line_dash="Sym")
 ```
 
-### Distributional plots per category
+### Distribution plots per category
 
-Compare the distributions of a single variable over multiple categories using `by`. All distributional plots support `by`, and all yield different perspectives on the data.
+Compare the distributions of a single variable over multiple categories using `by`. All distribution plots support `by`, and all yield different perspectives on the data.
 
 #### Histogram
 
-Histograms provide visualizations of univariate distributions, but can get clunky with several categories.
+[Histograms](histogram.md) provide visualizations of univariate distributions, but can get clunky with several categories.
 
 ```python order=life_exp_hist,life_exp_hist_overlaid,recent_gapminder,gapminder
 import deephaven.plot.express as dx
@@ -119,7 +119,7 @@ life_exp_hist_overlaid = dx.histogram(recent_gapminder, x="LifeExp", by="Contine
 
 #### Box plot
 
-Box plots are cleaner visualizations for distributions of multiple categories, and offer potential outlier detection.
+[Box plots](box.md) are cleaner visualizations for distributions of multiple categories, and offer potential outlier detection.
 
 ```python order=life_exp_box,recent_gapminder,gapminder
 import deephaven.plot.express as dx
@@ -134,7 +134,7 @@ life_exp_box = dx.box(recent_gapminder, x="LifeExp", by="Continent")
 
 #### Violin plot
 
-Violin plots offer clarity on multimodal data, but can lose clarity with roughly uniform distributions.
+[Violin plots](violin.md) offer clarity on multimodal data, but can lose clarity with roughly uniform distributions.
 
 ```python order=life_exp_violin,recent_gapminder,gapminder
 import deephaven.plot.express as dx
@@ -150,7 +150,7 @@ life_exp_violin = dx.violin(recent_gapminder, x="LifeExp", by="Continent")
 
 #### Violin + Box + Strip plot
 
-Combining a violin plot, a box plot, and a strip plot might yield the most insight on the distributions of each category.
+Combining a violin plot, a box plot, and a [strip plot](strip.md) might yield the most insight on the distributions of each category.
 
 ```python order=life_exp_all,recent_gapminder,gapminder
 import deephaven.plot.express as dx

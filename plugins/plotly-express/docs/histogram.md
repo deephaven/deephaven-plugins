@@ -2,7 +2,7 @@
 
 A histogram plot is a data visualization technique commonly used in statistics and data analysis to visualize the distribution of a single continuous variable. It consists of a series of contiguous, non-overlapping bars that provide a visual summary of the frequency or density of data points within predefined intervals or "bins." The number of bins significantly impacts the visualization.
 
-Histograms are appropriate when the data contain a continuous variable of interest. If there is an additional categorical variable that the variable of interest depends on, layered histograms may be appropriate.
+Histograms are appropriate when the data contain a continuous variable of interest. If there is an additional categorical variable that the variable of interest depends on, layered histograms may be appropriate using the `by` argument.
 
 ### What are histograms useful for?
 
@@ -47,7 +47,7 @@ hist_8_bins = dx.histogram(setosa, x="SepalLength", nbins=8)
 
 ### Distributions of several groups
 
-Histograms can also be used to compare the distributional properties of different groups of data, though they may be a little harder to read than box plots or violin plots. Pass the name of the grouping column(s) to the `by` argument.
+Histograms can also be used to compare the distributional properties of different groups of data, though they may be a little harder to read than [box plots](box.md) or [violin plots](violin.md). Pass the name of the grouping column(s) to the `by` argument.
 
 ```python order=stacked_hist,overlay_hist,iris
 import deephaven.plot.express as dx

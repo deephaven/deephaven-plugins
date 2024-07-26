@@ -2,7 +2,7 @@
 
 A scatter plot is a type of data visualization that uses Cartesian coordinates to display values for typically two variables. It represents individual data points as dots on a graph, with each dot's position indicating its corresponding values on the two variables being plotted.
 
-Scatter plots are appropriate when the data contain a continuous response variable that directly depends on a continuous explanatory variable. If there is an additional categorical variable that the response variable depends on, shapes or colors can be used in the scatter plot to distinguish the categories. For large datasets (> 1 million points), consider using a density heatmap instead of a scatter plot.
+Scatter plots are appropriate when the data contain a continuous response variable that directly depends on a continuous explanatory variable. If there is an additional categorical variable that the response variable depends on, shapes or colors can be used in the scatter plot to distinguish the categories. For large datasets (> 1 million points), consider using a [density heatmap](density_heatmap.md) instead of a scatter plot.
 
 ### What are scatter plots useful for?
 
@@ -193,7 +193,7 @@ scatter_plot_labels_2 = dx.scatter(
 
 ### Marginals
 
-Plot marginals are additional visual representations, like histograms or density plots, displayed alongside the main plot to provide insights into the individual distributions of variables being analyzed. Use the `marginal_x` and `marginal_y` arguments to plot marginals.
+Plot marginals are additional visual representations, like [histograms](histogram.md) or [violin plots](violin.md), displayed alongside the main plot to provide insights into the individual distributions of variables being analyzed. Use the `marginal_x` and `marginal_y` arguments to plot marginals.
 
 ```python order=scatter_marginal_histogram,scatter_marginal_violin,scatter_marginal_box,iris
 import deephaven.plot.express as dx
@@ -364,6 +364,30 @@ scatter_as_markers = dx.layer(
     ),
 )
 ```
+
+### Large data sets
+
+Deephaven's scatter plots can comfortably render around 0.5 - 1 million points before performance of the browser will begin to degrade. For large datasets under 1 million observations, setting an appropriate marker opacity and/or marker size can provide a much clearer picture of the data. If the number of points is expected to exceed 1 million, consider employing a [density heatmap](density_heatmap.md) as an alternative visualization method, which can easily summarize billions of data points in a single plot.
+
+ ```python order=heatmap_replacement,scatter_plot_opacity
+import deephaven.plot.express as dx
+from deephaven import empty_table
+
+# construct a large sample from a correlated multivariate normal distribution
+# x ~ N(5, 4)
+# y ~ N(10, 6)
+# cov(x, y) = 2
+large_data = empty_table(1_000_000).update([
+    "X = randomGaussian(5.0, 4.0)",
+    "Y = randomGaussian(10.0 + ((2.0 / 6.0) * (X - 5.0)), 4.0 - (4.0 / 6.0))"
+])
+
+# consider a density heatmap for large data sets
+heatmap_replacement = dx.density_heatmap(large_data, x="X", y="Y")
+
+# alternatively, setting the opacity of a scatterplot appropriately can help
+scatter_plot_opacity = dx.scatter(large_data, x="X", y="Y", opacity=0.01)
+ ```
 
 ## API Reference
 ```{eval-rst}

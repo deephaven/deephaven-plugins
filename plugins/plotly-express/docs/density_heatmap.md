@@ -6,7 +6,7 @@ Density heatmaps are appropriate when the data contain two continuous variables 
 
 #### What are density heatmap plots useful for? 
 
-- **Scatter Plot Replacement**: When dealing with a large number of data points, density heatmaps provide a more concise, informative and performant visualization than a scatter plot.
+- **Scatter Plot Replacement**: When dealing with a large number of data points, density heatmaps provide a more concise, informative and performant visualization than a [scatter plot](scatter.md).
 - **2D Density Estimation**: Density heatmaps can serve as the basis for 2D density estimation methods, helping to model and understand underlying data distributions, which is crucial in statistical analysis and machine learning.
 - **Metric Assessment**: By aggregating data points within each cell, density heatmaps can provide insights into the distribution of a specific metric or value across different regions, highlighting groups for further analysis.
 
@@ -32,8 +32,7 @@ import deephaven.plot.express as dx
 iris = dx.data.iris()
 
 # use the "viridis" color scale with a range from 5 to 8
-heatmap_colorscale = dx.density_heatmap(
-    iris,
+heatmap_colorscale = dx.density_heatmap(iris,
     x="PetalLength", 
     y="PetalWidth", 
     color_continuous_scale="viridis", 
@@ -63,15 +62,14 @@ heatmap_bins = dx.density_heatmap(
 
 ### A density heatmap with a custom aggregation function
 
-Use an additional continuous variable to color the heatmap. Many tatical aggregations can be computed on this column by providing the `histfunc` argument. Possible values for the `histfunc` are `"abs_sum"`, `"avg"`, `"count"`, `"count_distinct"`, `"max"`, `"median"`, `"min"`, `"std"`, `"sum"`, and `"var"`.
+Use an additional continuous variable to color the heatmap. Many statistical aggregations can be computed on this column by providing the `histfunc` argument. Possible values for the `histfunc` are `"abs_sum"`, `"avg"`, `"count"`, `"count_distinct"`, `"max"`, `"median"`, `"min"`, `"std"`, `"sum"`, and `"var"`.
 
 ```py order=heatmap_aggregation,iris
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
 # color the map by the average of an additional continuous variable
-heatmap_aggregation = dx.density_heatmap(
-    iris, 
+heatmap_aggregation = dx.density_heatmap(iris, 
     x="PetalLength", 
     y="PetalWidth", 
     z="SepalLength", 

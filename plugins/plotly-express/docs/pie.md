@@ -9,7 +9,7 @@ Pie plots are appropriate when the data contain a categorical variable where the
 - **Proportional representation**: Pie plots effectively convey the proportional distribution of categories, making them useful when you want to highlight the relative size of discrete components within a whole.
 - **Simplicity**: Pie plots are straightforward to interpret and can be especially valuable when communicating data to non-technical audiences, as they provide an easily digestible overview of data composition.
 
-Pie plots do have some limitations. They become less effective when dealing with a large number of categories, as it can be challenging to differentiate and interpret small slices, leading to cluttered and less informative visualizations. Consider using a bar plot instead.
+Pie plots do have some limitations. They become less effective when dealing with a large number of categories, as it can be challenging to differentiate and interpret small slices, leading to cluttered and less informative visualizations. Consider using a [bar plot](bar.md) instead.
 
 ## Examples
 

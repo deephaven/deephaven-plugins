@@ -2,7 +2,7 @@
 
 A box plot, also known as a box-and-whisker plot, is a data visualization that presents a summary of a dataset's distribution. It displays key statistics such as the median, quartiles, and potential outliers, making it a useful tool for visually representing the central tendency and variability of data. To learn more about the mathematics involved in creating box plots, check out [this article](https://asq.org/quality-resources/box-whisker-plot).
 
-Box plots are appropriate when the data have a continuous variable of interest. If there is an additional categorical variable that the variable of interest depends on, side-by-side box plots may be appropriate.
+Box plots are appropriate when the data have a continuous variable of interest. If there is an additional categorical variable that the variable of interest depends on, side-by-side box plots may be appropriate using the `by` argument.
 
 ### What are box plots useful for?
 

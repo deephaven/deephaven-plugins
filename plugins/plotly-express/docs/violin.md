@@ -2,7 +2,7 @@
 
 A violin plot is a data visualization that combines a box plot with a rotated kernel density plot to provide a comprehensive representation of the data distribution. It offers a detailed view of the data's central tendency, spread and density.
 
-Violin plots are appropriate when the data contain a continuous variable of interest. If there is an additional categorical variable that the variable of interest depends on, side-by-side violin plots may be appropriate.
+Violin plots are appropriate when the data contain a continuous variable of interest. If there is an additional categorical variable that the variable of interest depends on, side-by-side violin plots may be appropriate using the `by` argument.
 
 ### What are violin plots useful for?
 

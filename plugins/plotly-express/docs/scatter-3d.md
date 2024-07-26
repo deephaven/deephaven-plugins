@@ -130,28 +130,6 @@ scatter_3D_custom_color = dx.scatter_3d(
 )
 ```
 
-### Large data sets
-
-Deephaven's scatter plots can comfortably render around 0.5 - 1 million points before performance of the browser will begin to degrade. For large datasets under 1 million observations, setting an appropriate marker opacity and/or marker size can provide a much clearer picture of the data. If the number of points is expected to exceed 1 million, consider employing a Density Heatmap (2D Histogram) as an alternative visualization method, which can easily summarize billions of data points in a single plot.
-
- [Density Heatmap](density_heatmap.md)
-
- ```python order=density_heatmap,scatter_plot_opacity
- import deephaven.plot.express as dx
- my_table = dx.data.iris() # import the example iris data set
-
- # Consider a density heatmap for large data sets
- heatmap_replacement = dx.density_heatmap(my_table, x="SepalWidth", y="SepalLength")
-
- scatter_plot_opacity = dx.scatter(
-     my_table,
-     x="SepalWidth",
-     y="SepalLength",
-     # For data sets with a high degree of overlap between points, consider setting opacity
-     opacity=0.5
- )
- ```
-
 ## API Reference
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.scatter_3d
