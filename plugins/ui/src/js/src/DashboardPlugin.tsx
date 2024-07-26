@@ -14,7 +14,6 @@ import {
   useDashboardPanel,
 } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
-import { DeferredApiBootstrap } from '@deephaven/jsapi-bootstrap';
 import { dh } from '@deephaven/jsapi-types';
 import { ErrorBoundary } from '@deephaven/components';
 import { useDebouncedCallback } from '@deephaven/react-hooks';
@@ -278,15 +277,13 @@ export function DashboardPlugin(
           key={widgetId}
           fallback={id === DEFAULT_DASHBOARD_ID ? [] : null}
         >
-          <DeferredApiBootstrap widget={wrapper.widget}>
-            <DashboardWidgetHandler
-              widgetDescriptor={wrapper.widget}
-              id={wrapper.id}
-              initialData={wrapper.data}
-              onDataChange={handleWidgetDataChange}
-              onClose={handleWidgetClose}
-            />
-          </DeferredApiBootstrap>
+          <DashboardWidgetHandler
+            widgetDescriptor={wrapper.widget}
+            id={wrapper.id}
+            data={wrapper.data}
+            onDataChange={handleWidgetDataChange}
+            onClose={handleWidgetClose}
+          />
         </ErrorBoundary>
       )),
     [handleWidgetClose, handleWidgetDataChange, widgetMap, id]

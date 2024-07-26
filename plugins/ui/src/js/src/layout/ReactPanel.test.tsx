@@ -24,6 +24,10 @@ const defaultStatus: WidgetStatus = {
   descriptor: defaultDescriptor,
 };
 
+jest.mock('@deephaven/jsapi-bootstrap', () => ({
+  DeferredApiBootstrap: jest.fn(({ children }) => children),
+}));
+
 beforeEach(() => {
   jest.clearAllMocks();
 });

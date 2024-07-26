@@ -19,6 +19,7 @@ import { useWidget } from '@deephaven/jsapi-bootstrap';
 import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { EMPTY_FUNCTION } from '@deephaven/utils';
+import shortid from 'shortid';
 import {
   CALLABLE_KEY,
   OBJECT_KEY,
@@ -39,7 +40,8 @@ import { getComponentForElement } from './WidgetUtils';
 import WidgetStatusContext, {
   WidgetStatus,
 } from '../layout/WidgetStatusContext';
-import WidgetErrorView from './WidgetErrorView';
+import ReactPanel from '../layout/ReactPanel';
+import { ReactPanelId } from '../layout/ReactPanelManager';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
@@ -48,7 +50,7 @@ export interface WidgetHandlerProps {
   widgetDescriptor: WidgetDescriptor;
 
   /** Widget data to display */
-  initialData?: ReadonlyWidgetData;
+  data?: ReadonlyWidgetData;
 
   /** Triggered when all panels opened from this widget have closed */
   onClose?: () => void;
@@ -61,15 +63,18 @@ function WidgetHandler({
   onClose,
   onDataChange = EMPTY_FUNCTION,
   widgetDescriptor,
-  initialData: initialDataProp,
+  data: dataProp,
 }: WidgetHandlerProps): JSX.Element | null {
   const { widget, error: widgetError } = useWidget(widgetDescriptor);
 
   const [document, setDocument] = useState<ReactNode>();
 
   // We want to update the initial data if the widget changes, as we'll need to re-fetch the widget and want to start with a fresh state.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const initialData = useMemo(() => initialDataProp, [widget]);
+  const initialData = useMemo(
+    () => dataProp,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [widget]
+  );
   const [internalError, setInternalError] = useState<WidgetError>();
 
   const error = useMemo(
@@ -313,48 +318,88 @@ function WidgetHandler({
     [jsonClient, initialData, sendSetState, updateExportedObjects, widget]
   );
 
-  const renderedDocument = useMemo(() => {
-    if (document != null) {
-      return document;
-    }
-    if (error != null) {
-      // If there's an error and the document hasn't rendered yet, explicitly show an error view
-      return <WidgetErrorView error={error} />;
-    }
-    return null;
-  }, [document, error]);
-
   const widgetStatus: WidgetStatus = useMemo(() => {
     if (error != null) {
       return { status: 'error', descriptor: widgetDescriptor, error };
     }
-    if (renderedDocument != null) {
+    if (document != null) {
       return { status: 'ready', descriptor: widgetDescriptor };
     }
     return { status: 'loading', descriptor: widgetDescriptor };
-  }, [error, renderedDocument, widgetDescriptor]);
+  }, [error, document, widgetDescriptor]);
+
+  const panelIds = useMemo(() => {
+    const newPanelIds = [...(dataProp?.panelIds ?? [])];
+    if (newPanelIds.length === 0) {
+      // We need to always have at least one panel, so add a randomly generated ID for the first panel
+      log.debug('No panels found, adding one');
+      newPanelIds.push(`${widgetDescriptor.id ?? shortid.generate()}-1`);
+    }
+    return newPanelIds;
+    // We only want these panelIds to update when the widgetStatus is updated, not when the dataProp changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [widgetStatus.status]);
+
+  const renderedDocument = useMemo(() => {
+    if (document != null) {
+      return document;
+    }
+
+    // We either have an error or are still loading - show the panels to match the data
+    if (panelIds != null && panelIds?.length > 0) {
+      return panelIds.map(panelId => (
+        <ReactPanel closeOnUnmount={false} key={panelId} />
+      ));
+    }
+
+    throw new Error('No panels available');
+  }, [document, panelIds]);
+
+  const handlePanelsChange = useCallback(
+    (newPanelIds: readonly ReactPanelId[]) => {
+      if (
+        newPanelIds.length === panelIds.length &&
+        newPanelIds.every((id, i) => id === panelIds[i])
+      ) {
+        log.debug2('Ignoring duplicate panels change');
+        return;
+      }
+      onDataChange({ ...initialData, panelIds: newPanelIds });
+    },
+    [initialData, onDataChange, panelIds]
+  );
+
+  // We want to re-render the full document when we actually have a document to render
+  // This will ensure the content re-appears correctly and re-uses panels correctly
+  // Once a document is rendered, then we continue to use that.
+  // Before it's rendered, we have dummy panels in place that do not trigger a close on unmount.
+  const documentKey = useMemo(
+    () => (document == null ? 'empty-document' : 'rendered-document'),
+    [document]
+  );
 
   return useMemo(
-    () =>
-      renderedDocument ? (
-        <WidgetStatusContext.Provider value={widgetStatus}>
-          <DocumentHandler
-            widget={widgetDescriptor}
-            initialData={initialData}
-            onDataChange={onDataChange}
-            onClose={onClose}
-          >
-            {renderedDocument}
-          </DocumentHandler>
-        </WidgetStatusContext.Provider>
-      ) : null,
+    () => (
+      <WidgetStatusContext.Provider value={widgetStatus}>
+        <DocumentHandler
+          key={documentKey}
+          widget={widgetDescriptor}
+          initialPanelIds={panelIds}
+          onPanelsChange={handlePanelsChange}
+          onClose={onClose}
+        >
+          {renderedDocument}
+        </DocumentHandler>
+      </WidgetStatusContext.Provider>
+    ),
     [
-      widgetDescriptor,
-      renderedDocument,
-      initialData,
-      onClose,
-      onDataChange,
       widgetStatus,
+      documentKey,
+      widgetDescriptor,
+      panelIds,
+      handlePanelsChange,
+      onClose,
+      renderedDocument,
     ]
   );
 }

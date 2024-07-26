@@ -7,7 +7,14 @@ import {
   useLayoutManager,
   useListener,
 } from '@deephaven/dashboard';
-import { View, ViewProps, Flex, FlexProps } from '@deephaven/components';
+import {
+  View,
+  ViewProps,
+  Flex,
+  FlexProps,
+  LoadingOverlay,
+} from '@deephaven/components';
+import { DeferredApiBootstrap } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
 import PortalPanel from './PortalPanel';
 import { ReactPanelControl, useReactPanel } from './ReactPanelManager';
@@ -46,7 +53,10 @@ interface Props
       | 'gap'
       | 'rowGap'
       | 'columnGap'
-    > {}
+    > {
+  // Whether to close the panel in the UI on unmount
+  closeOnUnmount?: boolean;
+}
 
 /**
  * Adds and tracks a panel to the GoldenLayout. When the child element is updated, the contents of the panel will also be updated. When unmounted, the panel will be removed.
@@ -59,6 +69,7 @@ function ReactPanel({
   // but also defined here, incase the panel
   // is being implicitly created
   children,
+  closeOnUnmount = true,
   title,
   backgroundColor,
   direction = 'column',
@@ -101,14 +112,14 @@ function ReactPanel({
 
   useEffect(
     () => () => {
-      if (isPanelOpenRef.current) {
+      if (isPanelOpenRef.current && closeOnUnmount) {
         log.debug('Closing panel', panelId);
         LayoutUtils.closeComponent(parent, { id: panelId });
         isPanelOpenRef.current = false;
         onClose();
       }
     },
-    [parent, onClose, panelId]
+    [closeOnUnmount, parent, onClose, panelId]
   );
 
   const handlePanelClosed = useCallback(
@@ -204,13 +215,18 @@ function ReactPanel({
             >
               <ReactPanelErrorBoundary>
                 {/**
-                 * Don't render the children if there's an error with the widget. If there's an error with the widget, we can assume the children won't render properly,
+                 * Don't render the children if there's an error with the widget or it's still loading.
+                 * If there's an error with the widget, we can assume the children won't render properly,
                  * but we still want the panels to appear so things don't disappear/jump around.
                  */}
-                {widgetStatus.status === 'error' ? (
+                {widgetStatus.status === 'error' && (
                   <WidgetErrorView error={widgetStatus.error} />
-                ) : (
-                  children
+                )}
+                {widgetStatus.status === 'loading' && <LoadingOverlay />}
+                {widgetStatus.status === 'ready' && (
+                  <DeferredApiBootstrap widget={widgetStatus.descriptor}>
+                    {children}
+                  </DeferredApiBootstrap>
                 )}
               </ReactPanelErrorBoundary>
             </Flex>

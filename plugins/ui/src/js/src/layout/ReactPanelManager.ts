@@ -2,6 +2,8 @@ import { PanelProps } from '@deephaven/dashboard';
 import { useContextOrThrow } from '@deephaven/react-hooks';
 import { createContext, useCallback, useMemo } from 'react';
 
+export type ReactPanelId = string;
+
 /**
  * Manager for panels within a widget. This is used to manage the lifecycle of panels within a widget.
  */
@@ -13,16 +15,24 @@ export interface ReactPanelManager {
    */
   metadata: PanelProps['metadata'];
 
-  /** Triggered when a panel is opened */
-  onOpen: (panelId: string) => void;
+  /**
+   * Triggered when a panel is opened
+   * @param panelId The panelId of the panel that was opened
+   */
+  onOpen: (panelId: ReactPanelId) => void;
 
-  /** Triggered when a panel is closed */
-  onClose: (panelId: string) => void;
+  /**
+   * Triggered when a panel is closed
+   * @param panelId The panelId of the panel that was closed
+   */
+  onClose: (panelId: ReactPanelId) => void;
 
   /**
    * Get a unique panelId from the panel manager. This should be used to identify the panel in the layout.
+   * This should be called once per panel when it is mounted
+   * @returns A unique panelId
    */
-  getPanelId: () => string;
+  getPanelId: () => ReactPanelId;
 }
 
 /** Interface for using a react panel */

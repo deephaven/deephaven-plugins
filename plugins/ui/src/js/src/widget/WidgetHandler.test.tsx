@@ -37,13 +37,13 @@ jest.mock(
 function makeWidgetHandler({
   widgetDescriptor: widget = makeWidgetDescriptor(),
   onClose = jest.fn(),
-  initialData = undefined,
+  data: initialData = undefined,
 }: Partial<WidgetHandlerProps> = {}) {
   return (
     <WidgetHandler
       widgetDescriptor={widget}
       onClose={onClose}
-      initialData={initialData}
+      data={initialData}
     />
   );
 }
@@ -75,10 +75,10 @@ it('updates the document when event is received', async () => {
   };
 
   const { unmount } = render(
-    makeWidgetHandler({ widgetDescriptor: widget, initialData })
+    makeWidgetHandler({ widgetDescriptor: widget, data: initialData })
   );
   expect(mockAddEventListener).toHaveBeenCalledTimes(1);
-  expect(mockDocumentHandler).not.toHaveBeenCalled();
+  expect(mockDocumentHandler).toHaveBeenCalledTimes(1);
 
   expect(mockSendMessage).toHaveBeenCalledWith(
     JSON.stringify({
@@ -89,6 +89,8 @@ it('updates the document when event is received', async () => {
     }),
     []
   );
+
+  mockDocumentHandler.mockClear();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const listener = (mockAddEventListener.mock.calls[0] as any)[1];
@@ -106,7 +108,7 @@ it('updates the document when event is received', async () => {
     expect.objectContaining({
       widget,
       children: initialDocument,
-      initialData,
+      initialPanelIds: ['widget-id-1'],
     })
   );
 
@@ -153,12 +155,12 @@ it('updates the initial data only when widget has changed', async () => {
   const { rerender, unmount } = render(
     makeWidgetHandler({
       widgetDescriptor: widget1,
-      initialData: data1,
+      data: data1,
       onClose,
     })
   );
   expect(addEventListener).toHaveBeenCalledTimes(1);
-  expect(mockDocumentHandler).not.toHaveBeenCalled();
+  expect(mockDocumentHandler).toHaveBeenCalledTimes(1);
   expect(sendMessage).toHaveBeenCalledWith(
     JSON.stringify({
       jsonrpc: '2.0',
@@ -168,6 +170,8 @@ it('updates the initial data only when widget has changed', async () => {
     }),
     []
   );
+
+  mockDocumentHandler.mockClear();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let listener = (addEventListener.mock.calls[0] as any)[1];
@@ -185,7 +189,7 @@ it('updates the initial data only when widget has changed', async () => {
     expect.objectContaining({
       widget: widget1,
       children: document1,
-      initialData: data1,
+      initialPanelIds: ['widget-id-1'],
     })
   );
 
@@ -199,7 +203,7 @@ it('updates the initial data only when widget has changed', async () => {
   rerender(
     makeWidgetHandler({
       widgetDescriptor: widget1,
-      initialData: data2,
+      data: data2,
       onClose,
     })
   );
@@ -221,7 +225,7 @@ it('updates the initial data only when widget has changed', async () => {
   rerender(
     makeWidgetHandler({
       widgetDescriptor: widget2,
-      initialData: data2,
+      data: data2,
       onClose,
     })
   );
@@ -232,6 +236,8 @@ it('updates the initial data only when widget has changed', async () => {
 
   // eslint-disable-next-line prefer-destructuring, @typescript-eslint/no-explicit-any
   listener = (addEventListener.mock.calls[0] as any)[1];
+
+  mockDocumentHandler.mockClear();
 
   expect(sendMessage).toHaveBeenCalledWith(
     JSON.stringify({
@@ -257,7 +263,7 @@ it('updates the initial data only when widget has changed', async () => {
     expect.objectContaining({
       widget: widget1,
       children: document2,
-      initialData: data2,
+      initialPanelIds: ['widget-id-1'],
     })
   );
 
