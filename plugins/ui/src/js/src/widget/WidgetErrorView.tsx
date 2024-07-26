@@ -19,6 +19,7 @@ import {
   getErrorShortMessage,
   getErrorStack,
 } from './WidgetUtils';
+import styles from '../styles.scss?inline';
 
 /** Component that display an error message. Will automatically show a button for more info and an action button if the error has an Action defined */
 export function WidgetErrorView({
@@ -33,10 +34,8 @@ export function WidgetErrorView({
   const action = getErrorAction(error);
 
   return (
-    <IllustratedMessage
-      UNSAFE_className="ui-widget-error-view"
-      UNSAFE_style={{ overflow: 'hidden', width: '100%' }}
-    >
+    <IllustratedMessage UNSAFE_className="ui-widget-error-view">
+      <style>{styles}</style>
       <Icon size="XXL" marginBottom="size-100">
         <FontAwesomeIcon icon={vsWarning} />
       </Icon>
