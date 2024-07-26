@@ -1,8 +1,8 @@
 # Plot By
 
-To plot multiple series from a table into a single chart, use the `by` parameter. This parameter accepts a column name or a list of column names denoting other variables of interest in the dataset. The chart will be partitioned by the values in the specified column(s), with one series for each unique value. Other parameters, such as `color` (for which `by` is an alias), `symbol`, `size`, `width`, and `line_dash` can also be used to partition the chart.
+To plot multiple series from a table into a single chart, use the `by` parameter. This parameter accepts a column name or a list of column names denoting other variables of interest in the dataset. The chart will be partitioned by the values in the specified column(s), with one series for each unique value. Other parameters, such as `color`, `symbol`, `size`, `width`, and `line_dash` can also be used to partition the chart.
 
-Under the hood, the Deephaven query engine performs a `parition_by` table operation on the given color column to create each series. This efficient implementation means that plots with multiple groups can easily scale to tens of millions or billions of rows with ease.
+Under the hood, the Deephaven query engine performs a `partition_by` table operation on the given grouping column to create each series. This efficient implementation means that plots with multiple groups can easily scale to tens of millions or billions of rows with ease.
 
 ## Examples
 

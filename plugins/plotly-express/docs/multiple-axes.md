@@ -6,7 +6,19 @@ Create plots with multiple axes by specifying `xaxis_sequence` or `yaxis_sequenc
 
 ### Multiple columns
 
-When two or more response variables appear in separate columns, pass their column names to the `x` or `y` arguments and specify their order with `xaxis_sequence` or `yaxis_sequence.`
+When two or more response variables appear in separate columns, pass their column names to the `x` or `y` arguments.  The resulting chart will have shared axes.
+```python order=line_plot_shared,brazil,gapminder
+import deephaven.plot.express as dx
+gapminder = dx.data.gapminder()
+
+# get a specific country
+brazil = gapminder.where("Country == `Brazil`")
+
+# population and per capita gdp have very different scales and units
+line_plot_shared = dx.line(brazil, x="Year", y=["Pop", "GdpPerCap"])
+```
+
+The `xaxis_sequence` or `yaxis_sequence` arguments can be used to create multiple axes.
 
 ```python order=line_plot_multi,brazil,gapminder
 import deephaven.plot.express as dx
@@ -17,19 +29,6 @@ brazil = gapminder.where("Country == `Brazil`")
 
 # specify multiple y-axis columns and split axes with yaxis_sequence
 line_plot_multi = dx.line(brazil, x="Year", y=["Pop", "GdpPerCap"], yaxis_sequence=[1, 2])
-```
-
-If `xaxis_sequence` or `yaxis_sequence` are not specified, the series will share an axis, which may or may not be useful depending on the units and scale of the data.
-
-```python order=line_plot_shared,brazil,gapminder
-import deephaven.plot.express as dx
-gapminder = dx.data.gapminder()
-
-# get a specific country
-brazil = gapminder.where("Country == `Brazil`")
-
-# population and per capita gdp have very different scales and units
-line_plot_shared = dx.line(brazil, x="Year", y=["Pop", "GdpPerCap"])
 ```
 
 ### Use `by` with multiple axes
