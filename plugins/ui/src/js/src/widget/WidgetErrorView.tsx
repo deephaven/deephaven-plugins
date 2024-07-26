@@ -18,7 +18,7 @@ import {
   getErrorName,
   getErrorShortMessage,
   getErrorStack,
-} from './WidgetUtils';
+} from './WidgetErrorUtils';
 
 /** Component that display an error message. Will automatically show a button for more info and an action button if the error has an Action defined */
 export function WidgetErrorView({

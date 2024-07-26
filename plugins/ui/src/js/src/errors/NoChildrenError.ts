@@ -1,4 +1,9 @@
 export class NoChildrenError extends Error {
+  constructor(...args: ConstructorParameters<typeof Error>) {
+    super(...args);
+    this.name = 'NoChildrenError';
+  }
+
   isNoChildrenError = true;
 }
 
