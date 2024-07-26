@@ -21,12 +21,14 @@ from .types import (
     TextFieldValidationState,
     NecessityIndicator,
 )
+
+from ..types import Icon
 from .basic import component_element
 from ..elements import Element
 
 
 def text_area(
-    icon: Element | str | None = None,
+    icon: Element | Icon | None = None,
     is_quiet: bool | None = None,
     is_disabled: bool | None = None,
     is_read_only: bool | None = None,

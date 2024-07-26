@@ -27,6 +27,8 @@ DeephavenColor = Literal["salmon", "lemonchiffon"]
 HexColor = str
 Color = Union[DeephavenColor, HexColor]
 
+Icon = str
+
 
 class CellData(TypedDict):
     """
