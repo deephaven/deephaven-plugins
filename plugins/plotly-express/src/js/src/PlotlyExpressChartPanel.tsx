@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import Plotly from 'plotly.js-dist-min';
 import { ChartPanel, ChartPanelProps } from '@deephaven/dashboard-core-plugins';
 import type { dh } from '@deephaven/jsapi-types';
@@ -12,8 +12,12 @@ export function PlotlyExpressChartPanel(
 ): JSX.Element {
   const dh = useApi();
   const { fetch, metadata = {}, ...rest } = props;
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const [model, setModel] = useState<PlotlyExpressChartModel>();
+
+  const handleContainerRef = useCallback((c: HTMLDivElement | null) => {
+    setContainer(c);
+  }, []);
 
   const makeModel = useCallback(async () => {
     const widgetData = await fetch();
@@ -22,13 +26,13 @@ export function PlotlyExpressChartPanel(
     return m;
   }, [dh, fetch]);
 
-  useHandleSceneTicks(model, containerRef.current);
+  useHandleSceneTicks(model, container);
 
   return (
     <ChartPanel
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...(rest as ChartPanelProps)}
-      containerRef={containerRef}
+      containerRef={handleContainerRef}
       makeModel={makeModel}
       Plotly={Plotly}
       metadata={metadata as ChartPanelProps['metadata']}
