@@ -85,7 +85,7 @@ custom_colors_3 = dx.scatter(
     y="SepalLength",
     by="example_colors",
     # When set to `identity`, the column data passed to the
-    # color parameter will used as the actual color
+    # grouping/color parameter will be used as the actual color
     color_discrete_map="identity"
 )
 ```

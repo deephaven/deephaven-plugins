@@ -10,13 +10,26 @@ When two or more response variables appear in separate columns, pass their colum
 
 ```python order=line_plot_multi,brazil,gapminder
 import deephaven.plot.express as dx
-gapminder = dx.data.gapminder() # import a ticking version of the Gapminder dataset
+gapminder = dx.data.gapminder()
 
 # get a specific country
 brazil = gapminder.where("Country == `Brazil`")
 
-# specify multiple y-axis columns and order axes left to right with yaxis_sequence
+# specify multiple y-axis columns and split axes with yaxis_sequence
 line_plot_multi = dx.line(brazil, x="Year", y=["Pop", "GdpPerCap"], yaxis_sequence=[1, 2])
+```
+
+If `xaxis_sequence` or `yaxis_sequence` are not specified, the series will share an axis, which may or may not be useful depending on the units and scale of the data.
+
+```python order=line_plot_shared,brazil,gapminder
+import deephaven.plot.express as dx
+gapminder = dx.data.gapminder()
+
+# get a specific country
+brazil = gapminder.where("Country == `Brazil`")
+
+# population and per capita gdp have very different scales and units
+line_plot_shared = dx.line(brazil, x="Year", y=["Pop", "GdpPerCap"])
 ```
 
 ### Use `by` with multiple axes
@@ -25,7 +38,7 @@ When a single response variable has observations from several groups of data, us
 
 ```python order=line_plot_by,cat_dog,stocks
 import deephaven.plot.express as dx
-stocks = dx.data.stocks() # import the example stock market data set
+stocks = dx.data.stocks()
 
 # subset to get two symbols
 cat_dog = stocks.where("Sym in `CAT`, `DOG`")
@@ -40,7 +53,7 @@ Finally, plots can be layered to achieve multiple axes. Use the `dx.layer` funct
 
 ```python order=line_plot_layered,fish,bird,stocks
 import deephaven.plot.express as dx
-stocks = dx.data.stocks() # import the example stock market data set
+stocks = dx.data.stocks()
 
 # subset to get two tables with a shared x-axis
 fish = stocks.where("Sym == `FISH`")

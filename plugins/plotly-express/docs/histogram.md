@@ -16,14 +16,16 @@ Histograms are appropriate when the data contain a continuous variable of intere
 
 Visualize the distribution of a single variable by passing the column name to the `x` or `y` arguments.
 
-```python order=hist_plot,setosa,iris
+```python order=hist_plot_x,hist_plot_y,setosa,iris
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
 # subset to get specific species
 setosa = iris.where("Species == `setosa`")
 
-hist_plot = dx.histogram(setosa, x="SepalLength")
+# control the plot orientation using `x` or `y`
+hist_plot_x = dx.histogram(setosa, x="SepalLength")
+hist_plot_y = dx.histogram(setosa, y="SepalLength")
 ```
 
 Modify the bin size by setting `nbins` equal to the number of desired bins.

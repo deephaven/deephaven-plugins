@@ -16,11 +16,13 @@ Box plots are appropriate when the data have a continuous variable of interest. 
 
 Visualize the distribution of a single variable by passing the column name to `x` or `y`.
 
-```python order=box_plot,tips
+```python order=box_plot_x,box_plot_y,tips
 import deephaven.plot.express as dx
 tips = dx.data.tips()
 
-box_plot = dx.box(tips, y="TotalBill")
+# control the plot orientation using `x` or `y`
+box_plot_x = dx.box(tips, x="TotalBill")
+box_plot_y = dx.box(tips, y="TotalBill")
 ```
 
 ### Distributions for multiple groups

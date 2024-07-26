@@ -26,7 +26,7 @@ usa_population = gapminder.where("Country == `United States`")
 area_plot = dx.area(usa_population, x="Year", y="Pop")
 ```
 
-### Color by group
+### Area by group
 
 Area plots are unique in that the y-axis demonstrates each groups' total contribution to the whole. Pass the name of the grouping column(s) to the `by` argument.
 

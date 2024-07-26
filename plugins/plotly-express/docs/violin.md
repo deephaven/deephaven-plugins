@@ -16,14 +16,16 @@ Violin plots are appropriate when the data contain a continuous variable of inte
 
 Visualize the distribution of a single variable by passing the column name to the `x` or `y` arguments.
 
-```python order=violin_plot,versicolor
+```python order=violin_plot_x,violin_plot_y,versicolor
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
 # subset to get a specific group
 versicolor = iris.where("Species == `versicolor`")
 
-violin_plot = dx.violin(versicolor, x="SepalLength")
+# control the plot orientation using `x` or `y`
+violin_plot_x = dx.violin(versicolor, x="SepalLength")
+violin_plot_y = dx.violin(versicolor, y="SepalLength")
 ```
 
 ### Distributions for multiple groups

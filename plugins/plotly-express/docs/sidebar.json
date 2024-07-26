@@ -133,10 +133,6 @@
           {
             "label": "Multiple axes",
             "path": "multiple-axes.md"
-          },
-          {
-            "label": "Titles and legends",
-            "path": "other.md"
           }
         ]
       }
