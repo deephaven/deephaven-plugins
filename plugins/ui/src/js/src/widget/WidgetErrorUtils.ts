@@ -23,9 +23,6 @@ export function getErrorName(error: NonNullable<unknown>): string {
  * @returns The error message
  */
 export function getErrorMessage(error: NonNullable<unknown>): string {
-  if (isWidgetError(error)) {
-    return error.message.trim();
-  }
   if (
     typeof error === 'object' &&
     'message' in error &&
