@@ -108,29 +108,31 @@ function DocumentHandler({
    * When there are changes made to panels in a render cycle, check if they've all been closed and fire an `onClose` event if they are.
    * Otherwise, fire an `onDataChange` event with the updated panelIds that are open.
    */
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(function syncOpenPanels() {
-    if (!isPanelsDirty) {
-      return;
-    }
+  useEffect(
+    function syncOpenPanels() {
+      if (!isPanelsDirty) {
+        return;
+      }
 
-    setPanelsDirty(false);
+      setPanelsDirty(false);
 
-    // Check if all the panels in this widget are closed
-    // We do it outside of the `handleClose` function in case a new panel opens up in the same render cycle
-    log.debug2(
-      'Widget',
-      widget.id,
-      'open panel count',
-      panelOpenCountRef.current
-    );
-    if (panelOpenCountRef.current === 0) {
-      log.debug('Widget', widget.id, 'closed all panels, triggering onClose');
-      onClose?.();
-    } else {
-      onDataChange({ ...widgetData, panelIds });
-    }
-  });
+      // Check if all the panels in this widget are closed
+      // We do it outside of the `handleClose` function in case a new panel opens up in the same render cycle
+      log.debug2(
+        'Widget',
+        widget.id,
+        'open panel count',
+        panelOpenCountRef.current
+      );
+      if (panelOpenCountRef.current === 0) {
+        log.debug('Widget', widget.id, 'closed all panels, triggering onClose');
+        onClose?.();
+      } else {
+        onDataChange({ ...widgetData, panelIds });
+      }
+    },
+    [isPanelsDirty, widget.id, onClose, onDataChange, widgetData, panelIds]
+  );
 
   const getPanelId = useCallback(() => {
     // On rehydration, yield known IDs first
