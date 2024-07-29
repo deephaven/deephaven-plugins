@@ -52,7 +52,6 @@ function DocumentHandler({
   onClose,
 }: DocumentHandlerProps): JSX.Element {
   log.debug('Rendering document', widget);
-  const panelOpenCountRef = useRef(0);
   const panelIdIndex = useRef(0);
 
   // Using `useState` here to initialize the data only once.
@@ -63,7 +62,7 @@ function DocumentHandler({
 
   // panelIds that are currently opened within this document. This list is tracked by the `onOpen`/`onClose` call on the `ReactPanelManager` from a child component.
   // Note that the initial widget data provided will be the `panelIds` for this document to use; this array is what is actually opened currently.
-  const [panelIds] = useState<string[]>([]);
+  const panelIds = useRef<string[]>([]);
 
   // Flag to signal the panel counts have changed in the last render
   // We may need to check if we need to close this widget if all panels are closed
@@ -71,14 +70,12 @@ function DocumentHandler({
 
   const handleOpen = useCallback(
     (panelId: string) => {
-      if (panelIds.includes(panelId)) {
+      if (panelIds.current.includes(panelId)) {
         throw new Error('Duplicate panel opens received');
       }
 
-      panelOpenCountRef.current += 1;
-      log.debug('Panel opened, open count', panelOpenCountRef.current);
-
-      panelIds.push(panelId);
+      panelIds.current.push(panelId);
+      log.debug('Panel opened, open count', panelIds.current.length);
 
       setPanelsDirty(true);
     },
@@ -87,17 +84,13 @@ function DocumentHandler({
 
   const handleClose = useCallback(
     (panelId: string) => {
-      const panelIndex = panelIds.indexOf(panelId);
+      const panelIndex = panelIds.current.indexOf(panelId);
       if (panelIndex === -1) {
         throw new Error('Panel close received for unknown panel');
       }
-      panelOpenCountRef.current -= 1;
-      if (panelOpenCountRef.current < 0) {
-        throw new Error('Panel open count is negative');
-      }
-      log.debug('Panel closed, open count', panelOpenCountRef.current);
 
-      panelIds.splice(panelIndex, 1);
+      panelIds.current.splice(panelIndex, 1);
+      log.debug('Panel closed, open count', panelIds.current.length);
 
       setPanelsDirty(true);
     },
@@ -122,16 +115,16 @@ function DocumentHandler({
         'Widget',
         widget.id,
         'open panel count',
-        panelOpenCountRef.current
+        panelIds.current.length
       );
-      if (panelOpenCountRef.current === 0) {
+      if (panelIds.current.length === 0) {
         log.debug('Widget', widget.id, 'closed all panels, triggering onClose');
         onClose?.();
       } else {
-        onDataChange({ ...widgetData, panelIds });
+        onDataChange({ ...widgetData, panelIds: panelIds.current });
       }
     },
-    [isPanelsDirty, widget.id, onClose, onDataChange, widgetData, panelIds]
+    [isPanelsDirty, widget.id, onClose, onDataChange, widgetData]
   );
 
   const getPanelId = useCallback(() => {
