@@ -21,10 +21,10 @@ counter = ui_counter()
 
 Recommendations for using state and creating state variables:
 
-1. Convention is to name the state and setter function `something, set_something`
+1. Convention is to use an unpacking assignment and name the state and setter function `something, set_something`
 2. State variables should be immutable. When using arrays or dictionaries in a state function, call the setter function with a new instance of the array/dictionary instead of mutating the existing array/dictionary.
 3. When initializing state with the result of a complex function, use an initializer function to avoid calling the complex function on every render.
-4. Try and keep state data simple. While you can store any type of object in a state variable, deephaven.ui will attempt to serialize the state data and store it with the user's data running your component. If the data is not serializable, your state will not be maintained between sessions. If possible, use a state that is serializable, and build up any complex objects using a `use_memo` hook.
+4. Try and keep state data simple. While you can store any type of object in a state variable, deephaven.ui will attempt to serialize the state data and store it with the user's data running your component. If the data is not serializable, your state will not be maintained between sessions. If possible, use a state or multiple state variables that are serializable, and build up any complex objects using a `use_memo` hook.
 
 ## Initializing state
 
