@@ -246,8 +246,8 @@ DeephavenColor = Literal[
     "surface-bg",
     "fg",
 ]
-HexColor = str
-Color = Union[DeephavenColor, HexColor]
+CSSColor = str
+Color = Union[DeephavenColor, CSSColor]
 
 
 class CellData(TypedDict):
