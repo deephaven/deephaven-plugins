@@ -26,7 +26,7 @@ import {
 } from '@deephaven/components';
 import { ValueOf } from '@deephaven/utils';
 import Log from '@deephaven/log';
-import { ReadonlyWidgetData, WidgetAction, isWidgetError } from './WidgetTypes';
+import { ReadonlyWidgetData } from './WidgetTypes';
 import {
   ElementNode,
   ELEMENT_KEY,
@@ -234,63 +234,4 @@ export function wrapCallable(
   registry.register(callable, callableId, callable);
 
   return callable;
-}
-
-/**
- * Get the name of an error type
- * @param error Name of an error
- * @returns The name of the error
- */
-export function getErrorName(error: unknown): string {
-  if (isWidgetError(error)) {
-    return error.name;
-  }
-  return 'Unknown error';
-}
-
-/**
- * Get the message of an error
- * @param error Error object
- * @returns The error message
- */
-export function getErrorMessage(error: unknown): string {
-  if (isWidgetError(error)) {
-    return error.message.trim();
-  }
-  return 'Unknown error';
-}
-
-/**
- * Get the short message of an error. Just the first line of the error message.
- * @param error Error object
- * @returns The error short message
- */
-export function getErrorShortMessage(error: unknown): string {
-  const message = getErrorMessage(error);
-  const lines = message.split('\n');
-  return lines[0].trim();
-}
-
-/**
- * Get the stack trace of an error
- * @param error Error object
- * @returns The error stack trace
- */
-export function getErrorStack(error: unknown): string {
-  if (isWidgetError(error)) {
-    return error.stack ?? '';
-  }
-  return '';
-}
-
-/**
- * Get the action from an error object if it exists
- * @param error Error object
- * @returns The action from the error, if it exists
- */
-export function getErrorAction(error: unknown): WidgetAction | null {
-  if (isWidgetError(error)) {
-    return error.action ?? null;
-  }
-  return null;
 }
