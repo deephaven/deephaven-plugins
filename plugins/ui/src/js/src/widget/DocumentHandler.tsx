@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { nanoid } from 'nanoid';
 import { WidgetDescriptor } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
@@ -59,6 +65,10 @@ function DocumentHandler({
   // Note that the initial widget data provided will be the `panelIds` for this document to use; this array is what is actually opened currently.
   const [panelIds] = useState<string[]>([]);
 
+  // Flag to signal the panel counts have changed in the last render
+  // We may need to check if we need to close this widget if all panels are closed
+  const [isPanelsDirty, setPanelsDirty] = useState(false);
+
   const handleOpen = useCallback(
     (panelId: string) => {
       if (panelIds.includes(panelId)) {
@@ -69,9 +79,10 @@ function DocumentHandler({
       log.debug('Panel opened, open count', panelOpenCountRef.current);
 
       panelIds.push(panelId);
-      onDataChange({ ...widgetData, panelIds });
+
+      setPanelsDirty(true);
     },
-    [onDataChange, panelIds, widgetData]
+    [panelIds]
   );
 
   const handleClose = useCallback(
@@ -85,16 +96,37 @@ function DocumentHandler({
         throw new Error('Panel open count is negative');
       }
       log.debug('Panel closed, open count', panelOpenCountRef.current);
-      if (panelOpenCountRef.current === 0) {
-        onClose?.();
-        return;
-      }
 
       panelIds.splice(panelIndex, 1);
-      onDataChange({ ...widgetData, panelIds });
+
+      setPanelsDirty(true);
     },
-    [onClose, onDataChange, panelIds, widgetData]
+    [panelIds]
   );
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(function checkOpenPanelCount() {
+    if (!isPanelsDirty) {
+      return;
+    }
+
+    setPanelsDirty(false);
+
+    // Check if all the panels in this widget are closed
+    // We do it outside of the `handleClose` function in case a new panel opens up in the same render cycle
+    log.debug2(
+      'Widget',
+      widget.id,
+      'open panel count',
+      panelOpenCountRef.current
+    );
+    if (panelOpenCountRef.current === 0) {
+      log.debug('Widget', widget.id, 'closed all panels, triggering onClose');
+      onClose?.();
+    } else {
+      onDataChange({ ...widgetData, panelIds });
+    }
+  });
 
   const getPanelId = useCallback(() => {
     // On rehydration, yield known IDs first
