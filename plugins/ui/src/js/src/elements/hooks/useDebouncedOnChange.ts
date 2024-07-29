@@ -6,7 +6,7 @@ const VALUE_CHANGE_DEBOUNCE = 250;
 
 function useDebouncedOnChange<T = string>(
   propValue: T,
-  propOnChange: (() => undefined) | ((newValue: T) => Promise<void>)
+  propOnChange: (() => void) | ((newValue: T) => Promise<void>)
 ): [T, (newValue: T) => void] {
   const [value, setValue] = useState<T>(propValue);
   const [pending, setPending] = useState(false);

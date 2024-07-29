@@ -4,11 +4,12 @@ import {
   TextAreaProps as DHCTextAreaProps,
   Icon,
 } from '@deephaven/components';
+import { EMPTY_FUNCTION } from '@deephaven/utils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import useDebouncedOnChange from './hooks/useDebouncedOnChange';
 import { getIcon } from './utils/IconElementUtils';
 
-const EMPTY_FUNCTION = () => undefined;
+// const EMPTY_FUNCTION = () => undefined;
 
 interface TextAreaProps extends DHCTextAreaProps {
   onChange?: (value: string) => Promise<void>;
