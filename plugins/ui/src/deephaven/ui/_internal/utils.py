@@ -5,6 +5,7 @@ from inspect import signature
 import sys
 from functools import partial
 from deephaven.time import to_j_instant, to_j_zdt, to_j_local_date
+from deephaven.dtypes import ZonedDateTime, Instant
 
 from ..types import Date, JavaDate
 
@@ -225,6 +226,15 @@ def _convert_to_java_date(
     Returns:
         The Java date type.
     """
+    # For strings, parseInstant and parseZonedDateTime both succeed for the same strings
+    # To differentiate, we try ZDT first if it does not end with a Z
+    if isinstance(date, str) and not date.endswith("Z"):
+        try:
+            return to_j_zdt(date)  # type: ignore
+        except Exception:
+            # ignore, try next
+            pass
+
     try:
         return to_j_instant(date)  # type: ignore
     except Exception:
@@ -341,7 +351,7 @@ def _prioritized_callable_converter(
 def convert_list_prop(
     key: str,
     value: list[Date] | None,
-) -> list[JavaDate] | None:
+) -> list[str] | None:
     """
     Convert a list of Dates to Java date types.
 
@@ -357,7 +367,7 @@ def convert_list_prop(
 
     if not isinstance(value, list):
         raise TypeError(f"{key} must be a list of Dates")
-    return [_convert_to_java_date(date) for date in value]
+    return [str(_convert_to_java_date(date)) for date in value]
 
 
 def convert_date_props(
@@ -387,6 +397,11 @@ def convert_date_props(
 
     # the simple props must be converted before this to simplify the callable conversion
     converter = _prioritized_callable_converter(props, priority, default_converter)
+
+    # now that the converter is set, we can convert simplre props to strings
+    for key in simple_date_props:
+        if props.get(key) is not None:
+            props[key] = str(props[key])
 
     for key in callable_date_props:
         if props.get(key) is not None:

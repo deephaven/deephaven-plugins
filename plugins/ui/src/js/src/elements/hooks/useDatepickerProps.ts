@@ -126,7 +126,15 @@ export function serializeDateValue(
     return null;
   }
 
-  return value.toString();
+  const stringValue = value.toString();
+  try {
+    // If this parses as a time, then fix it to parse as an instant
+    parseDateTime(stringValue);
+    return `${stringValue}Z`;
+  } catch (ignore) {
+    // ignore
+  }
+  return stringValue;
 }
 
 /**
@@ -220,6 +228,24 @@ export function parseDateValue(value?: string): DateValue | undefined {
     const isoString = `${parts[0]}[${parts[1]}]`;
     try {
       return parseZonedDateTime(isoString);
+    } catch (ignore) {
+      // ignore
+    }
+  }
+
+  // Try to parse an Instant "2021-04-04T05:06:07Z[UTC]"
+  if (value.endsWith('Z[UTC]')) {
+    try {
+      return parseZonedDateTime(value.replace('Z', ''));
+    } catch (ignore) {
+      // ignore
+    }
+  }
+
+  // Try to parse an Instant "2021-04-04T05:06:07Z"
+  if (value.endsWith('Z')) {
+    try {
+      return parseDateTime(value.slice(0, -1));
     } catch (ignore) {
       // ignore
     }

@@ -5,6 +5,7 @@ describe('parseDateValue', () => {
   const isoDateTime = '2021-03-03T04:05:06';
   const isoZonedDateTime = '2021-04-04T05:06:07-04:00[America/New_York]';
   const nonIsoZonedDateTime = '2021-04-04T05:06:07 America/New_York';
+  const instantString = '2021-03-03T04:05:06Z';
   const invalidDate = 'invalid-date';
 
   it('should return null if the value is null', () => {
@@ -33,6 +34,10 @@ describe('parseDateValue', () => {
     expect(parseDateValue(nonIsoZonedDateTime)?.toString()).toEqual(
       isoZonedDateTime
     );
+  });
+
+  it('should parse an instant string', () => {
+    expect(parseDateValue(instantString)?.toString()).toEqual(isoDateTime);
   });
 
   it('should throw an error if the value is invalid', () => {
