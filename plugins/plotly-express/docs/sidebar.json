@@ -34,6 +34,10 @@
             "path": "candlestick.md"
           },
           {
+            "label": "Density Heatmap",
+            "path": "density_heatmap.md"
+          },
+          {
             "label": "Funnel",
             "path": "funnel.md"
           },
@@ -44,10 +48,6 @@
           {
             "label": "Histogram",
             "path": "histogram.md"
-          },
-          {
-            "label": "Density Heatmap",
-            "path": "density_heatmap.md"
           },
           {
             "label": "Icicle",
