@@ -1,8 +1,5 @@
 export class MixedPanelsError extends Error {
-  constructor(...args: ConstructorParameters<typeof Error>) {
-    super(...args);
-    this.name = 'MixedPanelsError';
-  }
+  name = 'MixedPanelsError';
 
   isMixedPanelsError = true;
 }
