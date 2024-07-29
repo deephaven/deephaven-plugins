@@ -9,8 +9,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import useDebouncedOnChange from './hooks/useDebouncedOnChange';
 import { getIcon } from './utils/IconElementUtils';
 
-// const EMPTY_FUNCTION = () => undefined;
-
 interface TextAreaProps extends DHCTextAreaProps {
   onChange?: (value: string) => Promise<void>;
 }
