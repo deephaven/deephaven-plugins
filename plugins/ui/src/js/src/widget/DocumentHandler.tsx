@@ -104,8 +104,12 @@ function DocumentHandler({
     [panelIds]
   );
 
+  /**
+   * When there are changes made to panels in a render cycle, check if they've all been closed and fire an `onClose` event if they are.
+   * Otherwise, fire an `onDataChange` event with the updated panelIds that are open.
+   */
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(function checkOpenPanelCount() {
+  useEffect(function syncOpenPanels() {
     if (!isPanelsDirty) {
       return;
     }
