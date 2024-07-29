@@ -8,7 +8,7 @@ TextAreas are multiline text inputs, ideal for cases where users have a sizable 
 from deephaven import ui
 
 ta = ui.text_area(
-    label="Sample Label", on_change=lambda value: print(f"Text changed to {value}")
+    label="Description", on_change=lambda value: print(f"Text changed to {value}")
 )
 ```
 
@@ -16,35 +16,12 @@ ta = ui.text_area(
 
 Recommendations for creating clear and effective text areas:
 
-1. Button text should be clear and concise. No more than 4 words or 20 characters is recommended.
-2. Use verbs for button text to indicate the action that will be taken when the button is clicked. For example, "Save", "Delete", or "Add friend", rather than "Ok" or "Cancel". Nouns or adjectives tend to be less clear.
-3. Use sentence case for button text with more than one word. For example, "Add friend" instead of "Add Friend" or "ADD FRIEND".
-4. No punctuation is needed at the end of the button text.
-5. Use icons only when necessary, and not as a replacement for text or decoration. Icons should be used to provide additional context to the button's action.
-6. When presenting choices, use a single filled accent button to suggest to users the recommended choice, paired with outlined primary or secondary buttons for the other options. This helps to visually distinguish the primary action from the secondary actions.
-7. Use negative buttons sparingly, as they can be visually distracting. They should be used for actions that are destructive or irreversible.
+1. Text area labels should be clear and concise. No more than 4 words or 20 characters is recommended.
+2. Avoid using punctuation at the end of labels or placeholder text. 
+3. Placeholder text should give users a clear indication of what needs to be typed in the text area, it should not be a replacement for a label.
 
-Consider using [`action_button`](./action_button.md) for task-based actions, or in cases where buttons aren't meant to draw attention to themselves. To represent a binary choice, use a [`toggle_button`](./toggle_button.md) instead. If you have a collection of related buttons, you can group them using a [`button_group`](./button_group.md).
+Consider using [`text_field`](./text_field.md) for cases wher concise, single-line input is required. In cases where the input is numeric, consider using [`number_field`](./number_field.md) 
 
-## Events
-
-Buttons accept a value to display and can trigger actions based on events such as setting state when pressed. See the [API Reference](#api-reference) for a full list of available events.
-
-```python
-from deephaven import ui
-
-
-@ui.component
-def counter():
-    count, set_count = use_state(0)
-    return ui.button(
-        f"Pressed {count} times",
-        on_press=lambda: set_count(count + 1),
-    )
-
-
-counter_example = counter()
-```
 
 ## Variants
 
