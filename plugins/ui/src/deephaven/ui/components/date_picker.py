@@ -30,6 +30,7 @@ from .._internal.utils import (
 )
 from ..types import Date, Granularity
 from .basic import component_element
+from .make_component import make_component
 
 DatePickerElement = Element
 
@@ -71,6 +72,7 @@ def _convert_date_picker_props(
     return props
 
 
+@make_component
 def date_picker(
     placeholder_value: Date | None = None,
     value: Date | None = None,
