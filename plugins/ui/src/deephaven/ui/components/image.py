@@ -1,5 +1,7 @@
 from __future__ import annotations
-from ..elements import BaseElement, Element
+
+from .basic import component_element
+from ..elements import Element
 from typing import Any
 from .types import (
     AlignSelf,
@@ -10,7 +12,6 @@ from .types import (
     Position,
     ObjectFit,
 )
-from .._internal.utils import create_props
 
 
 def image(
@@ -34,7 +35,6 @@ def image(
     grid_column_end: str | None = None,
     grid_row_start: str | None = None,
     grid_row_end: str | None = None,
-    slot: str = "icon",
     margin: DimensionValue | None = None,
     margin_top: DimensionValue | None = None,
     margin_bottom: DimensionValue | None = None,
@@ -60,8 +60,6 @@ def image(
     id: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
-    *children,
-    **props,
 ) -> Element:
     """
     Image is used to insert and display an image within a component.
@@ -84,7 +82,6 @@ def image(
         grid_row_end: When used in a grid layout, specifies the ending row to span within the grid.
         grid_column_start: When used in a grid layout, specifies the starting column to span within the grid.
         grid_column_end: When used in a grid layout, specifies the ending column to span within the grid
-        slot: A slot to place the image in.
         margin: The margin for all four sides of the element.
         margin_top: The margin for the top side of the element.
         margin_bottom: The margin for the bottom side of the element.
@@ -111,8 +108,8 @@ def image(
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
     """
-    return BaseElement(
-        f"deephaven.ui.components.Image",
+    return component_element(
+        "Image",
         src=src,
         alt=alt,
         object_fit=object_fit,
@@ -130,7 +127,7 @@ def image(
         grid_column=grid_column,
         grid_column_start=grid_column_start,
         grid_column_end=grid_column_end,
-        slot=slot,
+        slot="image",
         margin=margin,
         margin_top=margin_top,
         margin_bottom=margin_bottom,
