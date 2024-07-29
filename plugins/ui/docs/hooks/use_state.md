@@ -1,6 +1,6 @@
 # use_state
 
-`use_state` is a hook you can use to add state to your component. Add it to the top-level of your component to get the current value of the state and a setter function for updating the state. Updating state will cause the component to re-render (running the function again).
+`use_state` is a hook that adds state to your component. Add it to the top-level of your component to get the current value of the state and a setter function for updating the state. Updating state will cause the component to re-render (running the function again).
 
 ## Example
 
@@ -28,19 +28,19 @@ Recommendations for using state and creating state variables:
 
 ## Initializing state
 
-`use_state` takes a parameter that will initialize the state to an initial value:
+`use_state` takes a parameter that intializes the state to an initial value:
 
 ```python
 answer, set_answer = ui.use_state(42)
 ```
 
-In the example above, `set_answer` will be initialized to the value `42`. If you pass a function into the initializer, it will be called on the first intialization. This is useful if you have an expensive computation you want to set as your state:
+In the example above, `set_answer` initializes to the value `42`. If you pass a function into the initializer, it will be called on the first initialization. This is useful if you have an expensive computation you want to set as your state:
 
 ```python
 complex_item, set_complex_item = ui.use_state(lambda: complex_function())
 ```
 
-Note the initializer function does not take any parameters, and should be deterministic. If you wish to store a function in your state, you'll need to return that function as a result of a function:
+Note the initializer function does not take any parameters, and should be deterministic. If you wish to store a function in your state, return that function as a result of a function:
 
 ```python
 operation, set_operation = ui.use_state(lambda: math.sin)
