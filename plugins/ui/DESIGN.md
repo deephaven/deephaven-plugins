@@ -2596,8 +2596,8 @@ def text_filter_table(source, column, initial_value=""):
 # This will render two panels, one filtering the table by Sym, and the other by Exchange
 @ui.component
 def double_text_filter_table(source):
-    tft1 = text_filter_table(source, "sym")
-    tft2 = text_filter_table(source, "exchange")
+    tft1 = text_filter_table(source, "Sym")
+    tft2 = text_filter_table(source, "Exchange")
     return ui.panel(tft1, title="Sym"), ui.panel(tft2, title="Exchange")
 
 
