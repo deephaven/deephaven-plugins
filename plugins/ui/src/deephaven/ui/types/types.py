@@ -27,7 +27,7 @@ DeephavenColor = Literal["salmon", "lemonchiffon"]
 HexColor = str
 Color = Union[DeephavenColor, HexColor]
 
-# TODO: Use list of available icons once created
+# TODO #601: Use list of available icons once created
 Icon = str
 
 

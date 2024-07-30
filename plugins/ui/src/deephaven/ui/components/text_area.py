@@ -26,6 +26,8 @@ from ..types import Icon
 from .basic import component_element
 from ..elements import Element
 
+from .icon import icon as icon_component
+
 
 def text_area(
     icon: Element | Icon | None = None,
@@ -186,7 +188,7 @@ def text_area(
 
     return component_element(
         "TextArea",
-        icon=icon,
+        icon=icon_component(icon) if type(icon) == str else icon,
         is_quiet=is_quiet,
         is_disabled=is_disabled,
         is_read_only=is_read_only,

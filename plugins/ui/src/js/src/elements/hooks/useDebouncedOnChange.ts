@@ -4,7 +4,7 @@ import { useDebouncedCallback, usePrevious } from '@deephaven/react-hooks';
 
 const VALUE_CHANGE_DEBOUNCE = 250;
 
-function useDebouncedOnChange<T = string>(
+function useDebouncedOnChange<T>(
   propValue: T,
   propOnChange: (() => void) | ((newValue: T) => Promise<void>)
 ): [T, (newValue: T) => void] {
