@@ -29,8 +29,6 @@ export function DatePicker(
     ...otherProps
   } = useDatePickerProps(props, timeZone);
 
-  // const pickerProps = useDatePickerProps(props, timeZone);
-
   const [value, setValue] = useState(propValue ?? defaultValue);
 
   const debouncedOnChange = useDebouncedCallback(
@@ -55,7 +53,6 @@ export function DatePicker(
   return (
     // eslint-disable-next-line react/jsx-props-no-spreading
     <DHCDatePicker value={value} onChange={onChange} {...otherProps} />
-    // <DHCDatePicker {...pickerProps} />
   );
 }
 
