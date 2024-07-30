@@ -23,147 +23,104 @@ Recommendations for creating clear and effective text areas:
 Consider using [`text_field`](./text_field.md) for cases wher concise, single-line input is required. In cases where the input is numeric, consider using [`number_field`](./number_field.md) 
 
 
-## Variants
+## Value
 
-Buttons can have different styles to indicate their purpose.
+A Text area's value is empty by default, but an initial, uncontrolled, value can be set using the `defaultValue` prop, or, a controlled value can be set via the `value` prop.
 
 ```python
 from deephaven import ui
 
 
 @ui.component
-def button_variants():
+def text_area_value_prop():
     return [
-        ui.button("Accent fill", variant="accent", style="fill"),
-        ui.button("Accent outline", variant="accent", style="outline"),
-        ui.button("Primary fill", variant="primary", style="fill"),
-        ui.button("Primary outline", variant="primary", style="outline"),
-        ui.button("Secondary fill", variant="secondary", style="fill"),
-        ui.button("Secondary outline", variant="secondary", style="outline"),
-        ui.button("Negative fill", variant="negative", style="fill"),
-        ui.button("Negative outline", variant="negative", style="outline"),
+        ui.text_area(label="Sample (Uncontrolled)", defaultValue="Value 1"),
+        ui.text_area(label="Sample (controlled)", value="Value 2"),
     ]
 
 
-button_variants_example = button_variants()
+text_area_value_example = text_area_value_prop()
 ```
 
-Static-color buttons are available in white and black. They don't dynamically change in response to the user's theme. They should only be used over fixed-color backgrounds, not over theme colors that may change.
+## Labeling
+
+To provide a visual label for the text area, the `label` prop should be used. In order to indicate that the text area is mandatory, use the `isRequired` prop. 
 
 ```python
 from deephaven import ui
 
 
 @ui.component
-def static_buttons():
+def text_area_is_required_prop():
     return [
-        ui.view(
-            ui.button_group(
-                ui.button("White fill", static_color="white", style="fill"),
-                ui.button(
-                    "White outline",
-                    static_color="white",
-                    style="outline",
-                ),
-            ),
-            background_color="#000066",
-            padding="size-300",
-        ),
-        ui.view(
-            ui.button_group(
-                ui.button("Black fill", static_color="black", style="fill"),
-                ui.button(
-                    "Black outline",
-                    static_color="black",
-                    style="outline",
-                ),
-            ),
-            background_color="#FFFF00",
-            padding="size-300",
-        ),
+        ui.text_area(label="Address"),
+        ui.text_area(label="Address", isRequired=True),
     ]
 
 
-static_buttons_example = static_buttons()
+text_area_is_required_example = text_area_is_required_prop()
 ```
 
-## Icon buttons
+By setting `isRequired` to True, the `necessityIndicator` is set to "icon" by default, but this can be changed. Also, the `necessityIndicator` can be used indepdendently to indicate that the text area is optional.
 
-Buttons can have icons when necessary to provide additional context. If no visible label is provided (e.g., an icon-only button), an alternative text label must be provided to identify the control for accessibility using the `aria-label` prop. See [icon](./icon.md) for a list of available icons.
+When the `necessityIndicator` prop is set to "label", a localized string will be generated for "(required)" or "(optional)" automatically.
 
 ```python
 from deephaven import ui
 
 
 @ui.component
-def icon_buttons():
+def text_area_necessity_indicator_prop():
     return [
-        ui.button(ui.icon("squirrel"), "Squirrel"),
-        ui.button(ui.icon("squirrel"), aria_label="Squirrel"),
+        ui.text_area(label="Address", isRequired=True, necessityIndicator="label"),
+        ui.text_area(label="Address", necessityIndicator="label"),
     ]
 
 
-icon_buttons_example = icon_buttons()
+text_area_necessity_indicator_example = text_area_necessity_indicator_prop()
 ```
 
-## Pending State
+## Events
 
-Buttons can be in a pending state to indicate that an action is in progress (such as an asynchronous server request). After a one-second delay, an indeterminate spinner will be displayed in place of the button label and icon. You can trigger this behavior by setting the `is_pending` prop. Button events are disabled while `is_pending` is true.
+A Text area's value is empty by default, but an initial, uncontrolled, value can be set using the `defaultValue` prop, or, a controlled value can be set via the `value` prop.
 
 ```python
 from deephaven import ui
-from threading import Timer
 
 
-@ui.component
-def pending_button():
-    [pending, set_pending] = ui.use_state(False)
-
-    def handle_on_press():
-        # start an asynchronous thing
-        timeout = Timer(3, callback_finshed)  # use a timer to wait 3 seconds
-        timeout.start()
-
-        # turn on loading spinner
-        set_pending(True)
-
-    def callback_finshed():
-        # turn of loading spinner
-        set_pending(False)
-
-    return ui.button(
-        "Pending request",
-        on_press=handle_on_press,
-        is_pending=pending,
-        variant="accent",
-    )
+def ex_on_change(new_value):
+    print(f"Text changed to {new_value}")
 
 
-pending_example = pending_button()
+text_area_on_change_example = ui.text_area(label="Your text", on_change=ex_on_change)
+```
+
+## HTML Forms
+
+Text area's can support a `name` prop for integration with HTML form, allowing for easy identification of a value on form submission.
+
+```python
+from deephaven import ui
+
+
+text_area_name_example = ui.text_area(label="Comment", name="comment")
 ```
 
 ## Disabled State
 
-Buttons can be disabled to prevent user interaction. This is useful when the button is not available for interaction, but should still be visible.
+Text area's can be disabled to prevent user interaction using the `isDisabled` prop. This is useful when the text area should be visible, but not avaialable for input.
 
 ```python
 from deephaven import ui
 
-btn = ui.button("Disabled button", is_disabled=True)
+
+text_area__is_disabled_example = ui.text_area(label="Sample", isDisabled=True)
 ```
 
-## Button links
-
-Buttons can be used as links to navigate to another page if the `href` attribute is provided.
-
-```python
-from deephaven import ui
-
-btn = ui.button("Go to deephaven.io", href="https://deephaven.io")
 ```
 
 ## API Reference
 
 ```{eval-rst}
-.. dhautofunction:: deephaven.ui.button
+.. dhautofunction:: deephaven.ui.text_area
 ```
