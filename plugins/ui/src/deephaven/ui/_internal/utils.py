@@ -19,6 +19,8 @@ _CONVERTERS = {
     "java.time.LocalDate": to_j_local_date,
 }
 
+_LOCAL_DATE = "java.time.LocalDate"
+
 
 def get_component_name(component: Any) -> str:
     """
@@ -388,6 +390,7 @@ def convert_date_props(
     simple_date_props: set[str],
     callable_date_props: set[str],
     priority: Sequence[str],
+    granularity_key: str,
     default_converter: Callable[[Date], Any] = to_j_instant,
 ) -> None:
     """
@@ -399,6 +402,7 @@ def convert_date_props(
         callable_date_props: A set of callable date keys to convert.
             The prop value should be a callable that takes a Date.
         priority: The priority of the props to check.
+        granularity_key: The key for the granularity
         default_converter: The default converter to use if none of the priority props are present.
 
     Returns:
@@ -410,6 +414,11 @@ def convert_date_props(
 
     # the simple props must be converted before this to simplify the callable conversion
     converter = _prioritized_callable_converter(props, priority, default_converter)
+
+    # based on the convert set the granularity if it is not set
+    # Local Dates will default to DAY but we need to default to SECOND for the other types
+    if props.get(granularity_key) is None and converter != to_j_local_date:
+        props[granularity_key] = "SECOND"
 
     # now that the converter is set, we can convert simplre props to strings
     for key in simple_date_props:

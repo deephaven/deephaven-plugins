@@ -44,6 +44,7 @@ _SIMPLE_DATE_PROPS = {
 }
 _LIST_DATE_PROPS = {"unavailable_values"}
 _CALLABLE_DATE_PROPS = {"on_change"}
+_GRANULARITY_KEY = "granularity"
 
 # The priority of the date props to determine the format of the date passed to the callable date props
 _DATE_PROPS_PRIORITY = ["value", "default_value", "placeholder_value"]
@@ -67,6 +68,7 @@ def _convert_date_picker_props(
         _SIMPLE_DATE_PROPS,
         _CALLABLE_DATE_PROPS,
         _DATE_PROPS_PRIORITY,
+        _GRANULARITY_KEY,
     )
 
     return props

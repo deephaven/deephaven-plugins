@@ -28,6 +28,8 @@ type MappedDateValue<T> = T extends ZonedDateTime
   ? CalendarDate
   : never;
 
+type Granularity = 'day' | 'hour' | 'minute' | 'second';
+
 export type SerializedDateValue = string | null;
 
 export type SerializedDateValueCallback = (value: SerializedDateValue) => void;
@@ -69,6 +71,9 @@ export interface SerializedDatePickerPropsInterface {
 
   /** Dates that are unavailable */
   unavailableValues?: string[] | null;
+
+  /** Determines the smallest unit that is displayed in the date picker. */
+  granularity?: Granularity;
 }
 
 export interface DeserializedDatePickerPropsInterface {
@@ -104,6 +109,9 @@ export interface DeserializedDatePickerPropsInterface {
 
   /** Callback that is called for each date of the calendar. If it returns true, then the date is unavailable */
   isDateUnavailable?: (date: DateValue) => boolean;
+
+  /** Determines the smallest unit that is displayed in the date picker. */
+  granularity?: Granularity;
 }
 
 export type SerializedDatePickerProps<TProps> = TProps &
@@ -297,6 +305,7 @@ export function useDatePickerProps<TProps>(
     maxValue: serializedMaxValue,
     placeholderValue: serializedPlaceholderValue,
     unavailableValues,
+    granularity: upperCaseGranularity,
     ...otherProps
   }: SerializedDatePickerProps<TProps>,
   timeZone: string
@@ -348,6 +357,7 @@ export function useDatePickerProps<TProps>(
     maxValue: deserializedMaxValue,
     placeholderValue: deserializedPlaceholderValue,
     isDateUnavailable,
+    granularity: upperCaseGranularity?.toLowerCase() as Granularity,
     ...otherProps,
   };
 }
