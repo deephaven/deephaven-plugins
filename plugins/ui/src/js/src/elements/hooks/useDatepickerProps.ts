@@ -208,6 +208,7 @@ export function parseDateValue(value?: string): DateValue | undefined {
     // ignore
   }
 
+  // Note that the Python API will never send a string like this. This is here for correctness.
   // Try to parse an ISO 8601 date time string, e.g. "2021-03-03T04:05:06"
   try {
     return parseDateTime(value);
@@ -233,7 +234,9 @@ export function parseDateValue(value?: string): DateValue | undefined {
     }
   }
 
-  // Try to parse an Instant "2021-04-04T05:06:07Z[UTC]"
+  // This is an edge case. The Python API will parse these to an Instant,
+  // but the user may explicitly create a ZonedDateTime with a UTC offset.
+  // Try to parse an ZonedDateTime "2021-04-04T05:06:07Z[UTC]"
   if (value.endsWith('Z[UTC]')) {
     try {
       return parseZonedDateTime(value.replace('Z', ''));
@@ -245,7 +248,7 @@ export function parseDateValue(value?: string): DateValue | undefined {
   // Try to parse an Instant "2021-04-04T05:06:07Z"
   if (value.endsWith('Z')) {
     try {
-      return parseDateTime(value.slice(0, -1));
+      return parseZonedDateTime(`${value.slice(0, -1)}[UTC]`);
     } catch (ignore) {
       // ignore
     }
