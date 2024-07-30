@@ -1,9 +1,11 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import {
   DatePicker as DHCDatePicker,
   DatePickerProps as DHCDatePickerProps,
 } from '@deephaven/components';
 import { useDebouncedCallback } from '@deephaven/react-hooks';
+import { getSettings, RootState } from '@deephaven/redux';
 import { DateValue } from '@internationalized/date';
 import {
   SerializedDatePickerProps,
@@ -17,12 +19,17 @@ const EMPTY_FUNCTION = () => undefined;
 export function DatePicker(
   props: SerializedDatePickerProps<DHCDatePickerProps<DateValue>>
 ): JSX.Element {
+  const settings = useSelector(getSettings<RootState>);
+  const { timeZone } = settings;
+
   const {
     defaultValue = null,
     value: propValue,
     onChange: propOnChange = EMPTY_FUNCTION,
     ...otherProps
-  } = useDatePickerProps(props);
+  } = useDatePickerProps(props, timeZone);
+
+  // const pickerProps = useDatePickerProps(props, timeZone);
 
   const [value, setValue] = useState(propValue ?? defaultValue);
 
@@ -39,9 +46,16 @@ export function DatePicker(
     [debouncedOnChange]
   );
 
+  // When the time zone changes, the serialized prop value will change, so we need to update the value state
+  useEffect(() => {
+    setValue(propValue ?? defaultValue);
+    debouncedOnChange(propValue);
+  }, [propValue, debouncedOnChange, defaultValue]);
+
   return (
     // eslint-disable-next-line react/jsx-props-no-spreading
     <DHCDatePicker value={value} onChange={onChange} {...otherProps} />
+    // <DHCDatePicker {...pickerProps} />
   );
 }
 

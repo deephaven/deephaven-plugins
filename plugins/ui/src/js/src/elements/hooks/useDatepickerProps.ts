@@ -7,6 +7,7 @@ import {
   parseDate,
   parseDateTime,
   parseZonedDateTime,
+  toTimeZone,
 } from '@internationalized/date';
 import {
   DeserializedFocusEventCallback,
@@ -126,15 +127,7 @@ export function serializeDateValue(
     return null;
   }
 
-  const stringValue = value.toString();
-  try {
-    // If this parses as a time, then fix it to parse as an instant
-    parseDateTime(stringValue);
-    return `${stringValue}Z`;
-  } catch (ignore) {
-    // ignore
-  }
-  return stringValue;
+  return value.toString();
 }
 
 /**
@@ -165,19 +158,24 @@ export function useOnChangeCallback(
  * @returns DateValue or null
  */
 export function useNullableDateValueMemo(
+  timeZone: string,
   value?: string | null
 ): DateValue | null | undefined {
-  return useMemo(() => parseNullableDateValue(value), [value]);
+  return useMemo(
+    () => parseNullableDateValue(timeZone, value),
+    [timeZone, value]
+  );
 }
 
 export function parseNullableDateValue(
+  timeZone: string,
   value?: string | null
 ): DateValue | null | undefined {
   if (value === null) {
     return value;
   }
 
-  return parseDateValue(value);
+  return parseDateValue(timeZone, value);
 }
 
 /**
@@ -186,8 +184,11 @@ export function parseNullableDateValue(
  * @param value the string date value
  * @returns DateValue
  */
-export function useDateValueMemo(value?: string): DateValue | undefined {
-  return useMemo(() => parseDateValue(value), [value]);
+export function useDateValueMemo(
+  timeZone: string,
+  value?: string
+): DateValue | undefined {
+  return useMemo(() => parseDateValue(timeZone, value), [timeZone, value]);
 }
 
 /**
@@ -196,7 +197,10 @@ export function useDateValueMemo(value?: string): DateValue | undefined {
  * @param value the string date value
  * @returns DateValue
  */
-export function parseDateValue(value?: string): DateValue | undefined {
+export function parseDateValue(
+  timeZone: string,
+  value?: string
+): DateValue | undefined {
   if (value === undefined) {
     return value;
   }
@@ -248,7 +252,10 @@ export function parseDateValue(value?: string): DateValue | undefined {
   // Try to parse an Instant "2021-04-04T05:06:07Z"
   if (value.endsWith('Z')) {
     try {
-      return parseZonedDateTime(`${value.slice(0, -1)}[UTC]`);
+      return toTimeZone(
+        parseZonedDateTime(`${value.slice(0, -1)}[UTC]`),
+        timeZone
+      );
     } catch (ignore) {
       // ignore
     }
@@ -277,32 +284,37 @@ export function useIsDateUnavailableCallback(
  * @param props Props to wrap
  * @returns Wrapped props
  */
-export function useDatePickerProps<TProps>({
-  onFocus,
-  onBlur,
-  onKeyDown,
-  onKeyUp,
-  onChange: serializedOnChange,
-  value: serializedValue,
-  defaultValue: serializedDefaultValue,
-  minValue: serializedMinValue,
-  maxValue: serializedMaxValue,
-  placeholderValue: serializedPlaceholderValue,
-  unavailableValues,
-  ...otherProps
-}: SerializedDatePickerProps<TProps>): DeserializedDatePickerProps<TProps> {
+export function useDatePickerProps<TProps>(
+  {
+    onFocus,
+    onBlur,
+    onKeyDown,
+    onKeyUp,
+    onChange: serializedOnChange,
+    value: serializedValue,
+    defaultValue: serializedDefaultValue,
+    minValue: serializedMinValue,
+    maxValue: serializedMaxValue,
+    placeholderValue: serializedPlaceholderValue,
+    unavailableValues,
+    ...otherProps
+  }: SerializedDatePickerProps<TProps>,
+  timeZone: string
+): DeserializedDatePickerProps<TProps> {
   const serializedOnFocus = useFocusEventCallback(onFocus);
   const serializedOnBlur = useFocusEventCallback(onBlur);
   const serializedOnKeyDown = useKeyboardEventCallback(onKeyDown);
   const serializedOnKeyUp = useKeyboardEventCallback(onKeyUp);
   const onChange = useOnChangeCallback(serializedOnChange);
-  const deserializedValue = useNullableDateValueMemo(serializedValue);
+  const deserializedValue = useNullableDateValueMemo(timeZone, serializedValue);
   const deserializedDefaultValue = useNullableDateValueMemo(
+    timeZone,
     serializedDefaultValue
   );
-  const deserializedMinValue = useDateValueMemo(serializedMinValue);
-  const deserializedMaxValue = useDateValueMemo(serializedMaxValue);
+  const deserializedMinValue = useDateValueMemo(timeZone, serializedMinValue);
+  const deserializedMaxValue = useDateValueMemo(timeZone, serializedMaxValue);
   const deserializedPlaceholderValue = useDateValueMemo(
+    timeZone,
     serializedPlaceholderValue
   );
   const unavailableSet = useMemo(() => {
