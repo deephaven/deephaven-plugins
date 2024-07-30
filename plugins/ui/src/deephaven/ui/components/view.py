@@ -1,10 +1,7 @@
 from __future__ import annotations
 from typing import Any
 from .types import (
-    # Events
     ElementTypes,
-    StaticColor,
-    # Layout
     AlignSelf,
     BorderRadius,
     BorderSize,
@@ -16,6 +13,7 @@ from .types import (
 )
 from .basic import component_element
 from ..elements import Element
+from ..types import Color
 
 
 def view(
@@ -56,7 +54,7 @@ def view(
     min_height: DimensionValue | None = None,
     max_width: DimensionValue | None = None,
     max_height: DimensionValue | None = None,
-    background_color: StaticColor | None = None,
+    background_color: Color | None = None,
     border_width: BorderSize | None = None,
     border_start_width: BorderSize | None = None,
     border_end_width: BorderSize | None = None,
@@ -64,13 +62,13 @@ def view(
     border_bottom_width: BorderSize | None = None,
     border_x_width: BorderSize | None = None,
     border_y_width: BorderSize | None = None,
-    border_color: StaticColor | None = None,
-    border_start_color: StaticColor | None = None,
-    border_end_color: StaticColor | None = None,
-    border_top_color: StaticColor | None = None,
-    border_bottom_color: StaticColor | None = None,
-    border_x_color: StaticColor | None = None,
-    border_y_color: StaticColor | None = None,
+    border_color: Color | None = None,
+    border_start_color: Color | None = None,
+    border_end_color: Color | None = None,
+    border_top_color: Color | None = None,
+    border_bottom_color: Color | None = None,
+    border_x_color: Color | None = None,
+    border_y_color: Color | None = None,
     border_radius: BorderRadius | None = None,
     border_top_start_radius: BorderRadius | None = None,
     border_top_end_radius: BorderRadius | None = None,
