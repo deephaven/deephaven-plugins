@@ -1,13 +1,6 @@
 from setuptools import setup
-import shutil
 import os
 from deephaven.plugin.packaging import package_js
-
-# remove the build directory to ensure that the package is built from the latest js files
-try:
-    shutil.rmtree("build")
-except FileNotFoundError:
-    pass
 
 # js_dir is the directory where the JavaScript source files are located
 js_dir = "src/js/"

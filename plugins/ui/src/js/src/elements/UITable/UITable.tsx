@@ -42,6 +42,7 @@ export function UITable({
   frozenColumns,
   hiddenColumns,
   columnGroups,
+  density,
   contextMenu,
   contextHeaderMenu,
 }: UITableProps): JSX.Element | null {
@@ -170,6 +171,7 @@ export function UITable({
         reverseType: reverse
           ? TableUtils.REVERSE_TYPE.POST_SORT
           : TableUtils.REVERSE_TYPE.NONE,
+        density,
         settings,
         onContextMenu,
       }) satisfies Partial<IrisGridProps>,
@@ -181,6 +183,7 @@ export function UITable({
       hydratedSorts,
       hydratedQuickFilters,
       reverse,
+      density,
       settings,
       onContextMenu,
     ]

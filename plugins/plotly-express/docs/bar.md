@@ -1,17 +1,54 @@
 # Bar Plot
 
-A bar plot is a graphical representation of data that uses rectangular bars to display the values of different categories or groups, making it easy to compare and visualize the distribution of data.
+A bar plot is a graphical representation of data that uses rectangular bars to display the values of different categories or groups. Bar plots aggregate the response variable across the entire dataset for each category, so that the y-axis represents the sum of the response variable per category.
 
-Advantages of bar plots include:
+Bar plots are appropriate when the data contain a continuous response variable that is directly related to a categorical explanatory variable. Additionally, if the response variable is a cumulative total of contributions from different subcategories, each bar can be broken up to demonstrate those contributions.
 
-1. **Comparative Clarity**: Bar plots are highly effective for comparing data across different categories or groups. They provide a clear visual representation of relative differences and make it easy to identify trends within the dataset.
-2. **Categorical Representation**: Bar plots excel at representing categorical data, such as survey responses, product sales by region, or user preferences. Each category is presented as a distinct bar, simplifying the visualization of categorical information.
-3. **Ease of Use**: Bar plots are user-friendly and quick to generate, making them a practical choice for various applications.
-4. **Data Aggregation**: Bar plots allow for easy aggregation of data within categories, simplifying the visualization of complex datasets, and aiding in summarizing and comparing information efficiently.
+### What are bar plots useful for?
 
-Bar plots have limitations and are not suitable for certain scenarios. They are not ideal for continuous data, ineffective for multi-dimensional data exceeding two dimensions, and unsuitable for time-series data trends. Additionally, they become less practical with extremely sparse datasets and are inadequate for representing complex interactions or correlations among multiple variables.
+- **Comparing categorical data**: Bar plots are ideal for comparing the quantities or frequencies of different categories. The height of each bar represents the value of each category, making it easy to compare them at a glance.
+- **Decomposing data by category**: When the data belong to several independent categories, bar plots make it easy to visualize the relative contributions of each category to the overall total. The bar segments are colored by category, making it easy to identify the contribution of each.
+- **Tracking trends**: If the categorical explanatory variable can be ordered left-to-right (like day of week), then bar plots provide a visualization of how the response variable changes as the explanatory variable evolves.
 
 ## Examples
+
+### A basic bar plot
+
+Visualize the relationship between a continuous variable and a categorical or discrete variable by passing the column names to the `x` and `y` arguments.
+
+```python order=bar_plot,tips
+import deephaven.plot.express as dx
+tips = dx.data.tips()
+
+bar_plot = dx.bar(tips, x="Day", y="TotalBill")
+```
+
+Change the x-axis ordering by sorting the dataset by the categorical variable.
+
+```python order=ordered_bar_plot,tips
+import deephaven.plot.express as dx
+tips = dx.data.tips()
+
+# sort the dataset to get a specific x-axis ordering, sort() acts alphabetically
+ordered_bar_plot = dx.bar(tips.sort("Day"), x="Day", y="TotalBill")
+```
+
+### Partition bars by group
+
+Break bars down by group by passing the name of the grouping column(s) to the `by` argument.
+
+```python order=bar_plot_smoke,bar_plot_sex,tips
+import deephaven.plot.express as dx
+tips = dx.data.tips()
+
+sorted_tips = tips.sort("Day")
+
+# group by smoker / non-smoker
+bar_plot_smoke = dx.bar(sorted_tips, x="Day", y="TotalBill", by="Smoker")
+
+# group by male / female
+bar_plot_sex = dx.bar(sorted_tips, x="Day", y="TotalBill", by="Sex")
+```
 
 ## API Reference
 ```{eval-rst}

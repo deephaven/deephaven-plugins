@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Literal
 
 from deephaven.table import Table
 from ..elements import UITable
@@ -31,6 +32,7 @@ def table(
     frozen_columns: list[ColumnName] | None = None,
     hidden_columns: list[ColumnName] | None = None,
     column_groups: list[ColumnGroup] | None = None,
+    density: Literal["compact", "regular", "spacious"] | None = None,
     context_menu: (
         ResolvableContextMenuItem | list[ResolvableContextMenuItem] | None
     ) = None,
@@ -70,6 +72,9 @@ def table(
         column_groups: Columns to group together by default. The groups will be shown in the table header.
             Group names must be unique within the column and group names.
             Groups may be nested by providing the group name as a child of another group.
+        density: The density of the data displayed in the table.
+            One of "compact", "regular", or "spacious".
+            If not provided, the app default will be used.
         context_menu: The context menu items to show when a cell is right clicked.
             May contain action items or submenu items.
             May also be a function that receives the cell data and returns the context menu items or None.
