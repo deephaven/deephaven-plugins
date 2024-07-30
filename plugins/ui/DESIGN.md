@@ -1020,11 +1020,12 @@ A tabs component can be used to organize content in a collection of tabs, allowi
 
 ###### Parameters
 
-| Parameter               | Type                                  | Description                                                                                                                                                    |
-| ----------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `*children`             | `Tab \| TabList \| TabPanels`        | The tab panels to render within the tabs component.                                                                                                                                                                                               |
-| `on_change`             | `Callable[[Key], None] \| None` | Alias of `on_selection_change`. Handler that is called when the tab selection changes.                                                                            |
-| `**props`               | `Any`                                 | Any other [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html#tabs-props) prop 
+| Parameter   | Type                            | Description                                                                                 |
+| ----------- | ------------------------------- | ------------------------------------------------------------------------------------------- |
+| `*children` | `Tab \| TabList \| TabPanels`   | The tab panels to render within the tabs component.                                         |
+| `on_change` | `Callable[[Key], None] \| None` | Alias of `on_selection_change`. Handler that is called when the tab selection changes.      |
+| `**props`   | `Any`                           | Any other [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html#tabs-props) prop |
+
 |
 
 |
@@ -1340,7 +1341,6 @@ ui.date_picker(
     default_value: Date | None = None,
     min_value: Date | None = None,
     max_value: Date | None = None,
-    unavailable_values: Sequence[Date] | None = None,
     granularity: Granularity | None = None,
     on_change: Callable[[Date], None] | None = None,
     **props: Any
@@ -1349,17 +1349,16 @@ ui.date_picker(
 
 ###### Parameters
 
-| Parameter            | Type                             | Description                                                                                                                                                                               |
-| -------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `placeholder_value`  | `Date \| None`                   | A placeholder date that influences the format of the placeholder shown when no value is selected. Defaults to today at midnight in the user's timezone.                                   |
-| `value`              | `Date \| None`                   | The current value (controlled).                                                                                                                                                           |
-| `default_value`      | `Date \| None`                   | The default value (uncontrolled).                                                                                                                                                         |
-| `min_value`          | `Date \| None`                   | The minimum allowed date that a user may select.                                                                                                                                          |
-| `max_value`          | `Date \| None`                   | The maximum allowed date that a user may select.                                                                                                                                          |
-| `unavailable_values` | `Sequence[Date] \| None`         | A list of dates that cannot be selected.                                                                                                                                                  |
-| `granularity`        | `Granularity \| None`            | Determines the smallest unit that is displayed in the date picker. By default, this is `"DAY"` for `LocalDate`, and `"SECOND"` otherwise.                                                 |
-| `on_change`          | `Callable[[Date], None] \| None` | Handler that is called when the value changes. The exact `Date` type will be the same as the type passed to `value`, `default_value` or `placeholder_value`, in that order of precedence. |
-| `**props`            | `Any`                            | Any other [DatePicker](https://react-spectrum.adobe.com/react-spectrum/DatePicker.html) prop, with the exception of `isDateUnavailable`, `validate`, and `errorMessage` (as a callback)   |
+| Parameter           | Type                             | Description                                                                                                                                                                               |
+| ------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
+| `placeholder_value` | `Date \| None`                   | A placeholder date that influences the format of the placeholder shown when no value is selected. Defaults to today at midnight in the user's timezone.                                   |
+| `value`             | `Date \| None`                   | The current value (controlled).                                                                                                                                                           |
+| `default_value`     | `Date \| None`                   | The default value (uncontrolled).                                                                                                                                                         |
+| `min_value`         | `Date \| None`                   | The minimum allowed date that a user may select.                                                                                                                                          |
+| `max_value`         | `Date \| None`                   | The maximum allowed date that a user may select.                                                                                                                                          |     |
+| `granularity`       | `Granularity \| None`            | Determines the smallest unit that is displayed in the date picker. By default, this is `"DAY"` for `LocalDate`, and `"SECOND"` otherwise.                                                 |
+| `on_change`         | `Callable[[Date], None] \| None` | Handler that is called when the value changes. The exact `Date` type will be the same as the type passed to `value`, `default_value` or `placeholder_value`, in that order of precedence. |
+| `**props`           | `Any`                            | Any other [DatePicker](https://react-spectrum.adobe.com/react-spectrum/DatePicker.html) prop, with the exception of `isDateUnavailable`, `validate`, and `errorMessage` (as a callback)   |
 
 ```py
 
