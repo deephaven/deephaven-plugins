@@ -317,12 +317,23 @@ export function useDatePickerProps<TProps>(
     timeZone,
     serializedPlaceholderValue
   );
+  // TODO currently unavailableValues is commented out in Python
+  // The problem is that the dates need to match down to the second (or millisecond)
+  // using this approach. We should restrict them to LocalDate then convert
+  // the input to this function to a CalendarDate to check for availability.
   const unavailableSet = useMemo(() => {
     if (unavailableValues == null) {
       return new Set<string>();
     }
-    return new Set(unavailableValues);
-  }, [unavailableValues]);
+    const set = new Set<string>();
+    unavailableValues.forEach(value => {
+      const valueForTZ = parseDateValue(timeZone, value)?.toString();
+      if (valueForTZ != null) {
+        set.add(valueForTZ);
+      }
+    });
+    return set;
+  }, [unavailableValues, timeZone]);
   const isDateUnavailable = useIsDateUnavailableCallback(unavailableSet);
 
   return {

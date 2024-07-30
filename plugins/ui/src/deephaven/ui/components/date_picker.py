@@ -79,7 +79,8 @@ def date_picker(
     default_value: Date | None = None,
     min_value: Date | None = None,
     max_value: Date | None = None,
-    unavailable_values: Sequence[Date] | None = None,
+    # TODO we need to implement unavailable_values
+    # unavailable_values: Sequence[Date] | None = None,
     granularity: Granularity | None = None,
     page_behavior: PageBehavior | None = None,
     hour_cycle: HourCycle | None = None,
@@ -169,7 +170,6 @@ def date_picker(
         default_value: The default value (uncontrolled).
         min_value: The minimum allowed date that a user may select.
         max_value: The maximum allowed date that a user may select.
-        unavailable_values: A list of dates that cannot be selected.
         granularity: Determines the smallest unit that is displayed in the date picker.
             By default, this is `"DAY"` for `LocalDate`, and `"SECOND"` otherwise.
         page_behavior: Controls the behavior of paging. Pagination either works by
@@ -268,9 +268,9 @@ def date_picker(
 
     _convert_date_picker_props(props)
 
-    props["unavailable_values"] = use_memo(
-        lambda: convert_list_prop("unavailable_values", props["unavailable_values"]),
-        [unavailable_values],
-    )
+    # props["unavailable_values"] = use_memo(
+    #     lambda: convert_list_prop("unavailable_values", props["unavailable_values"]),
+    #     [unavailable_values],
+    # )
 
     return component_element("DatePicker", **props)
