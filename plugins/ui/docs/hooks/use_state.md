@@ -1,6 +1,6 @@
 # use_state
 
-`use_state` is a hook that adds state to your component. Add it to the top-level of your component to get the current value of the state and a setter function for updating the state. Updating state will cause the component to re-render (running the function again).
+`use_state` is a hook used to add state to your component. Since it is a hook, it must be used at the top level of your component. It returns a tuple with exactly two items: the current value, and a setter function for updating the state. Updating state will cause the component to re-render (running the function again).
 
 ## Example
 
