@@ -420,7 +420,7 @@ def convert_date_props(
     if props.get(granularity_key) is None and converter != to_j_local_date:
         props[granularity_key] = "SECOND"
 
-    # now that the converter is set, we can convert simplre props to strings
+    # now that the converter is set, we can convert simple props to strings
     for key in simple_date_props:
         if props.get(key) is not None:
             props[key] = str(props[key])
