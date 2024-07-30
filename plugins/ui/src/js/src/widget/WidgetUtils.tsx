@@ -61,6 +61,7 @@ import {
   Slider,
   TabPanels,
   TextField,
+  TextArea,
   UITable,
   Tabs,
 } from '../elements';
@@ -124,6 +125,7 @@ export const elementComponentMap = {
   [ELEMENT_NAME.tab]: Item,
   [ELEMENT_NAME.tabs]: Tabs,
   [ELEMENT_NAME.text]: Text,
+  [ELEMENT_NAME.textArea]: TextArea,
   [ELEMENT_NAME.textField]: TextField,
   [ELEMENT_NAME.toggleButton]: ToggleButton,
   [ELEMENT_NAME.view]: View,

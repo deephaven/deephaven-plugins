@@ -1,17 +1,16 @@
 import React from 'react';
 import {
-  TextField as DHCTextField,
-  TextFieldProps as DHCTextFieldProps,
+  TextArea as DHCTextArea,
+  TextAreaProps as DHCTextAreaProps,
 } from '@deephaven/components';
+import { EMPTY_FUNCTION } from '@deephaven/utils';
 import useDebouncedOnChange from './hooks/useDebouncedOnChange';
 
-const EMPTY_FUNCTION = () => undefined;
-
-interface TextFieldProps extends DHCTextFieldProps {
+interface TextAreaProps extends DHCTextAreaProps {
   onChange?: (value: string) => Promise<void>;
 }
 
-export function TextField(props: TextFieldProps): JSX.Element {
+export function TextArea(props: TextAreaProps): JSX.Element {
   const {
     defaultValue = '',
     value: propValue,
@@ -19,13 +18,13 @@ export function TextField(props: TextFieldProps): JSX.Element {
     ...otherProps
   } = props;
 
-  const [value, onChange] = useDebouncedOnChange<string>(
+  const [value, onChange] = useDebouncedOnChange(
     propValue ?? defaultValue,
     propOnChange
   );
 
   return (
-    <DHCTextField
+    <DHCTextArea
       value={value}
       onChange={onChange}
       // eslint-disable-next-line react/jsx-props-no-spreading
@@ -34,6 +33,6 @@ export function TextField(props: TextFieldProps): JSX.Element {
   );
 }
 
-TextField.displayName = 'TextField';
+TextArea.displayName = 'TextArea';
 
-export default TextField;
+export default TextArea;

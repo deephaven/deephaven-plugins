@@ -43,6 +43,7 @@ from .tab import tab
 from .table import table
 from .tabs import tabs
 from .text import text
+from .text_area import text_area
 from .text_field import text_field
 from .toggle_button import toggle_button
 from .view import view
@@ -95,6 +96,7 @@ __all__ = [
     "tabs",
     "tab",
     "text",
+    "text_area",
     "text_field",
     "toggle_button",
     "view",
