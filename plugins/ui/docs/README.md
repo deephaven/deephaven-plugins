@@ -1336,9 +1336,9 @@ def stock_table_input(source, default_sym="", default_exchange=""):
         .show()
     )
 
-    def handle_row_double_press(row, data):
-        set_sym(data["Sym"]["Value"])
-        set_exchange(data["Exchange"]["Value"])
+    def handle_row_double_press(data):
+        set_sym(data["Sym"]["value"])
+        set_exchange(data["Exchange"]["value"])
 
     return [
         ui.panel(
