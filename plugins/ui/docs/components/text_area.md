@@ -196,7 +196,7 @@ text_area_help_text_example = text_area_help_text_props()
 
 ## Contextual Help
 
-Using the 'contextual_help' prop, a `ui.contextual_help` can be placed next to the label to provide additional information about the text area.
+Using the `contextual_help` prop, a `ui.contextual_help` can be placed next to the label to provide additional information about the text area.
 
 ```python
 from deephaven import ui
