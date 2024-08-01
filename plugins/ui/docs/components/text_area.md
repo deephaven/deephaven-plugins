@@ -21,7 +21,7 @@ Recommendations for creating clear and effective text areas:
 3. Identify the minority of text area's in a form (optional or required) and either mark fields as is_required, or use the necessity_indicator to mark as optional, based on whichever occurs less.
 4. A text area should not be made quiet if it has a fixed height, given that the field underline may be too far from the text to be considered part of the component.
 5. Use help text to provide clear and concise instructions on input format, content, and requirements; the help text should not restate the same information as the label, or prompt a user to interact with the text area.
-6. Avoid using placeholeder text given that it is redundant with help text and is inaccessible. Use help text to convey requirements or to show any formatting hints.
+6. Avoid using placeholder text given that it is redundant with help text and is inaccessible. Use help text to convey requirements or to show any formatting hints.
 7. Dynamically switch between help text and error messages based on input, ensuring both convey essential input requirements.
 8. Write actionable error messages that direct users towards resolving input errors. 
 
