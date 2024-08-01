@@ -56,7 +56,7 @@ local_date = to_j_local_date(dh_today())
 @ui.component
 def date_picker_test(value):
     date, set_date = ui.use_state(value)
-    return ui.date_picker(on_change=set_date, value=date)
+    return [ui.date_picker(on_change=set_date, value=date), ui.text(str(date))]
 
 
 zonedDatePicker = date_picker_test(zoned_date_time)
