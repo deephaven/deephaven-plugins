@@ -10,12 +10,13 @@ from .types import (
     Position,
     IconSize,
     IconColor,
+    IconTypes,
 )
 from .._internal.utils import create_props
 
 
 def icon(
-    name: str,
+    name: IconTypes,
     size: IconSize | None = None,
     color: IconColor | None = None,
     flex: LayoutFlex | None = None,
