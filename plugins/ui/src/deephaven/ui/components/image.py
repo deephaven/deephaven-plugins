@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from .basic import component_element
 from ..elements import Element
-from typing import Any
+from typing import Callable
 from .types import (
     AlignSelf,
     CSSProperties,
@@ -18,9 +18,8 @@ def image(
     src: str,
     alt: str | None = None,
     object_fit: ObjectFit = "fill",
-    # omitted the following callbacks because they do not return anything that we can serialize
-    # on_error
-    # on_load
+    on_error: Callable[[], None] | None = None,
+    on_load: Callable[[], None] | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,
@@ -68,6 +67,8 @@ def image(
         src: The URL of the image.
         alt: Text description of the image.
         object_fit: How the image should be resized to fit its container.
+        on_error: A callback function to run when the image fails to load.
+        on_load: A callback function to run when the image has loaded.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -113,6 +114,8 @@ def image(
         src=src,
         alt=alt,
         object_fit=object_fit,
+        on_error=on_error,
+        on_load=on_load,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
