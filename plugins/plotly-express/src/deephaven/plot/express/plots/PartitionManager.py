@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import sys
 from collections.abc import Generator, Callable
+from copy import copy
 from typing import Any, cast, Tuple, Dict
 
 import plotly.express as px
@@ -161,7 +161,9 @@ class PartitionManager:
         self.marg_color = None
 
         self.args = args
-        self.groups = groups if groups else set()
+        # in some cases, such as violin plots, the default groups are a static object that is shared and should
+        # be copied to not modify the original
+        self.groups = copy(groups) if groups else set()
         self.preprocessor = None
         self.set_long_mode_variables()
         self.convert_table_to_long_mode()
