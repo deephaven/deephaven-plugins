@@ -313,7 +313,15 @@ def _wrap_date_callable(
     Returns:
         The wrapped callable.
     """
-    return lambda date: wrap_callable(date_callable)(converter(date))
+    # When the user is typing a date, they may enter a value that does not parse
+    # This will skip those errors rather than printing them to the screen
+    def no_error_date_callable(date: Date) -> None:
+        try:
+            date_callable(converter(date))
+        except Exception:
+            pass
+
+    return no_error_date_callable
 
 
 def _get_first_set_key(props: dict[str, Any], sequence: Sequence[str]) -> str | None:
