@@ -4,7 +4,7 @@ import {
   DatePicker as DHCDatePicker,
   DatePickerProps as DHCDatePickerProps,
 } from '@deephaven/components';
-import { useDebouncedCallback } from '@deephaven/react-hooks';
+import { useDebouncedCallback, usePrevious } from '@deephaven/react-hooks';
 import { getSettings, RootState } from '@deephaven/redux';
 import { DateValue } from '@internationalized/date';
 import {
@@ -45,10 +45,14 @@ export function DatePicker(
   );
 
   // When the time zone changes, the serialized prop value will change, so we need to update the value state
+  const prevTimeZone = usePrevious(timeZone);
   useEffect(() => {
-    setValue(propValue ?? defaultValue);
-    debouncedOnChange(propValue);
-  }, [propValue, debouncedOnChange, defaultValue]);
+    // The timezone is intially undefined, so we don't want to trigger a change in that case
+    if (prevTimeZone !== undefined && timeZone !== prevTimeZone) {
+      setValue(propValue ?? defaultValue);
+      debouncedOnChange(propValue);
+    }
+  }, [propValue, debouncedOnChange, defaultValue, timeZone, prevTimeZone]);
 
   return (
     // eslint-disable-next-line react/jsx-props-no-spreading
