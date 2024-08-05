@@ -124,7 +124,7 @@ export type DeserializedDatePickerProps<TProps> = Omit<
   DeserializedDatePickerPropsInterface;
 
 /**
- * Uses the toString representiation of the DateValue as the serialized value.
+ * Uses the toString representation of the DateValue as the serialized value.
  * @param value DateValue to serialize
  * @returns Serialized DateValue
  */
