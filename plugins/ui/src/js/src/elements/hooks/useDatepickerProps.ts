@@ -326,7 +326,7 @@ export function useDatePickerProps<TProps>(
     timeZone,
     serializedPlaceholderValue
   );
-  // TODO currently unavailableValues is commented out in Python
+  // TODO (issue #698) currently unavailableValues is commented out in Python
   // The problem is that the dates need to match down to the second (or millisecond)
   // using this approach. We should restrict them to LocalDate then convert
   // the input to this function to a CalendarDate to check for availability.

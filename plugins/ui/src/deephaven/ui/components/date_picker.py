@@ -81,7 +81,7 @@ def date_picker(
     default_value: Date | None = None,
     min_value: Date | None = None,
     max_value: Date | None = None,
-    # TODO we need to implement unavailable_values
+    # TODO (issue # 698) we need to implement unavailable_values
     # unavailable_values: Sequence[Date] | None = None,
     granularity: Granularity | None = None,
     page_behavior: PageBehavior | None = None,
