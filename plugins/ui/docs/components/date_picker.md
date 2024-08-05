@@ -59,9 +59,9 @@ def date_picker_test(value):
     return [ui.date_picker(on_change=set_date, value=date), ui.text(str(date))]
 
 
-zonedDatePicker = date_picker_test(zoned_date_time)
-instantDatePicker = date_picker_test(instant)
-localDatePicker = date_picker_test(local_date)
+zoned_date_picker = date_picker_test(zoned_date_time)
+instant_date_picker = date_picker_test(instant)
+local_date_picker = date_picker_test(local_date)
 ```
 
 ## Variants
