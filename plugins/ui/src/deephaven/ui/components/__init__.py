@@ -20,6 +20,7 @@ from .heading import heading
 from .grid import grid
 from .icon import icon
 from .illustrated_message import illustrated_message
+from .image import image
 from .item import item
 from .item_table_source import item_table_source
 from .list_action_group import list_action_group
@@ -75,6 +76,7 @@ __all__ = [
     "item",
     "item_table_source",
     "illustrated_message",
+    "image",
     "list_view",
     "list_action_group",
     "list_action_menu",
