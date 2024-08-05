@@ -977,7 +977,7 @@ class DistributionTestCase(BaseTestCase):
         import src.deephaven.plot.express as dx
         from deephaven.constants import NULL_INT
 
-        chart = dx.violin(self.source, y="Y", by="category_str").to_dict(self.exporter)
+        chart = dx.violin(self.source, y="Y", by="category").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
 
         # pop template as we currently do not modify it
@@ -1240,7 +1240,7 @@ class DistributionTestCase(BaseTestCase):
             {
                 "alignmentgroup": "True",
                 "box": {"visible": False},
-                "hovertemplate": "category=1<br>Y=%{y}<extra></extra>",
+                "hovertemplate": "category=1<br>value=%{y}<extra></extra>",
                 "legendgroup": "1",
                 "marker": {"color": "#636EFA"},
                 "name": "1",
@@ -1259,7 +1259,7 @@ class DistributionTestCase(BaseTestCase):
             {
                 "alignmentgroup": "True",
                 "box": {"visible": False},
-                "hovertemplate": "category=2<br>Y=%{y}<extra></extra>",
+                "hovertemplate": "category=2<br>value=%{y}<extra></extra>",
                 "legendgroup": "2",
                 "marker": {"color": "#EF553B"},
                 "name": "2",
@@ -1288,15 +1288,15 @@ class DistributionTestCase(BaseTestCase):
                 "anchor": "x",
                 "domain": [0.0, 1.0],
                 "side": "left",
-                "title": {"text": "Y"},
+                "title": {"text": "value"},
             },
         }
 
         self.assertEqual(plotly["layout"], expected_layout)
 
         expected_mappings = [
-            {"data_columns": {"Y": ["/plotly/data/0/y"]}, "table": 0},
-            {"data_columns": {"Y": ["/plotly/data/1/y"]}, "table": 0},
+            {"data_columns": {"value": ["/plotly/data/0/y"]}, "table": 0},
+            {"data_columns": {"value": ["/plotly/data/1/y"]}, "table": 0},
         ]
 
         self.assertEqual(deephaven["mappings"], expected_mappings)
