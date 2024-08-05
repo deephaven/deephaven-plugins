@@ -92,6 +92,38 @@ def date_picker_variants():
 date_picker_variants_example = date_picker_variants()
 ```
 
+## Time Table Filtering
+
+Date Pickers can be used to filter tables with time columns.
+
+```python
+from deephaven.time import dh_now
+from deephaven import time_table, ui
+
+
+@ui.component
+def date_table_filter(table, start_date, end_date, time_col="Timestamp"):
+    after_date, set_after_date = ui.use_state(start_date)
+    before_date, set_before_date = ui.use_state(end_date)
+    return [
+        ui.date_picker(
+            label="Start Date Filter", value=after_date, on_change=set_after_date
+        ),
+        ui.date_picker(
+            label="End Date Filter", value=before_date, on_change=set_before_date
+        ),
+        table.where(f"{time_col} >= after_date  && {time_col} < before_date"),
+    ]
+
+
+SECONDS_IN_DAY = 86400
+today = dh_now()
+_table = time_table("PT1s").update_view(
+    ["Timestamp=today.plusSeconds(SECONDS_IN_DAY*i)", "Row=i"]
+)
+date_filter = date_table_filter(_table, today, today.plusSeconds(SECONDS_IN_DAY * 10))
+```
+
 ## API Reference
 
 ```{eval-rst}
