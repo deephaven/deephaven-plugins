@@ -26,7 +26,7 @@ Consider using [`button`](./button.md) to draw attention to important actions us
 
 ## Events
 
-Action buttons accept a value to display and can trigger actions based on events such as setting state when pressed. See the [API Reference](#api-reference) for a full list of available events.
+ActionButtons accept a value to display and can trigger actions based on events such as setting state when pressed. See the [API Reference](#api-reference) for a full list of available events.
 
 ```python
 from deephaven import ui
@@ -108,9 +108,19 @@ def static_buttons():
 static_buttons_example = static_buttons()
 ```
 
+## Quiet State
+
+ActionButtons can have no visible background until they're interacted with. This style works best when a clear layout (vertical stack, table, grid) makes it easy to parse the buttons. Too many quiet components in a small space can be hard to read.
+
+```python
+from deephaven import ui
+
+btn = ui.action_button("Quiet button", is_quiet=True)
+```
+
 ## Disabled State
 
-Buttons can be disabled to prevent user interaction. This is useful when the button is not available for interaction, but should still be visible.
+ActionButtons can be disabled to prevent user interaction. This is useful when the button is not available for interaction, but should still be visible.
 
 ```python
 from deephaven import ui
