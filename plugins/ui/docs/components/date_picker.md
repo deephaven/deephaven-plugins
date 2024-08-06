@@ -110,7 +110,7 @@ def date_table_filter(table, start_date, end_date, time_col="Timestamp"):
             label="Start Date", value=after_date, on_change=set_after_date
         ),
         ui.date_picker(
-            label="End Date Filter", value=before_date, on_change=set_before_date
+            label="End Date", value=before_date, on_change=set_before_date
         ),
         table.where(f"{time_col} >= after_date  && {time_col} < before_date"),
     ]
