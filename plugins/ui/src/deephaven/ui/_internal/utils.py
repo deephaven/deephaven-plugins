@@ -316,8 +316,9 @@ def _wrap_date_callable(
     # When the user is typing a date, they may enter a value that does not parse
     # This will skip those errors rather than printing them to the screen
     def no_error_date_callable(date: Date) -> None:
+        wrapped_date_callable = wrap_callable(date_callable)
         try:
-            date_callable(converter(date))
+            wrapped_date_callable(converter(date))
         except Exception:
             pass
 
