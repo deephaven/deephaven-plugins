@@ -92,7 +92,7 @@ def date_picker_variants():
 date_picker_variants_example = date_picker_variants()
 ```
 
-## Time Table Filtering
+## Time table filtering
 
 Date Pickers can be used to filter tables with time columns.
 
