@@ -15,10 +15,6 @@ export function PlotlyExpressChartPanel(
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const [model, setModel] = useState<PlotlyExpressChartModel>();
 
-  const handleContainerRef = useCallback((c: HTMLDivElement | null) => {
-    setContainer(c);
-  }, []);
-
   const makeModel = useCallback(async () => {
     const widgetData = await fetch();
     const m = new PlotlyExpressChartModel(dh, widgetData, fetch);
@@ -32,7 +28,7 @@ export function PlotlyExpressChartPanel(
     <ChartPanel
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...(rest as ChartPanelProps)}
-      containerRef={handleContainerRef}
+      containerRef={setContainer}
       makeModel={makeModel}
       Plotly={Plotly}
       metadata={metadata as ChartPanelProps['metadata']}
