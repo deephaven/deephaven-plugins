@@ -39,26 +39,6 @@ Recommendations for creating clear and effective buttons:
 9. Write error messages in a clear, concise, and helpful manner, guiding users to resolve the issue without ambiguity; ideally, they should be 1-2 short, complete sentences.
 
 
-## Content -- NEED TO DO
-
-Buttons accept a value to display and can trigger actions based on events such as setting state when pressed. See the [API Reference](#api-reference) for a full list of available events.
-
-```python
-from deephaven import ui
-
-
-@ui.component
-def counter():
-    count, set_count = use_state(0)
-    return ui.button(
-        f"Pressed {count} times",
-        on_press=lambda: set_count(count + 1),
-    )
-
-
-counter_example = counter()
-```
-
 ## Labeling
 
 The picker can be labeled using the `label` prop, and if no label is provided, an `aria_label` msut be provided to identify the control for accessibility purposes.
