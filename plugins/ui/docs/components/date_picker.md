@@ -14,7 +14,7 @@ dp = ui.date_picker(
 )
 ```
 
-## Date Types
+## Date types
 
 There are three types that can be passed in to the props that control the date format:
 
