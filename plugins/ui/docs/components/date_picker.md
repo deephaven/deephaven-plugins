@@ -34,7 +34,7 @@ is determined by the type of the following props in order of precedence:
 
 If none of these are provided, the `on_change` handler will be passed an `Instant`.
 
-## UI Recommendations
+## UI recommendations
 
 Recommendations for creating clear and effective date pickers:
 
