@@ -255,7 +255,7 @@ picker_validation_example = ui.form(
 
 By default, the position of a picker's label is above the picker, but it can be changed to the side using the `label_position` prop. 
 
-When positioned on the side, the `label_align` property can be set to "start", referring to the leftmost edge of the text area, or to "end, referring to the rightmost edge.
+When positioned on the side, the `label_align` property can be set to "start", referring to the leftmost edge of the picker, or to "end, referring to the rightmost edge.
 
 ```python
 from deephaven import ui
