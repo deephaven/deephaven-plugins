@@ -26,7 +26,7 @@ Consider using [`button`](./button.md) to draw attention to important actions us
 
 ## Events
 
-ActionButtons accept a value to display and can trigger actions based on events such as setting state when pressed. See the [API Reference](#api-reference) for a full list of available events.
+`action_button` accept a value to display and can trigger actions based on events such as setting state when pressed. See the [API Reference](#api-reference) for a full list of available events.
 
 ```python
 from deephaven import ui
