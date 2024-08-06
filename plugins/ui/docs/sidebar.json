@@ -28,7 +28,7 @@
         "items": [
           {
             "label": "use_state",
-            "path": "components/use_state.md"
+            "path": "hooks/use_state.md"
           }
         ]
       }
