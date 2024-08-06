@@ -1,6 +1,6 @@
 # Action Button
 
-ActionButtons allow users to perform an action. The'yre used for similar, task-based options within a workflow, and are ideal for interfaces where buttons aren't meant to draw a lot of attention
+Action Buttons allow users to perform an action. They are used for similar, task-based options within a workflow, and are ideal for interfaces where buttons aren't meant to draw a lot of attention
 
 ## Example
 
@@ -46,7 +46,7 @@ counter_example = counter()
 
 ## Variants
 
-ActionButtons have different types that change their behaviour in an HTML form: button (default), submit, reset. 
+`action_button` suports different types that change the button's behavior in an HTML form: button (default), submit, reset. 
 
 ```python
 from deephaven import ui
@@ -120,7 +120,7 @@ btn = ui.action_button("Quiet button", is_quiet=True)
 
 ## Disabled State
 
-ActionButtons can be disabled to prevent user interaction. This is useful when the button is not available for interaction, but should still be visible.
+ActionButtons can be disabled to prevent user interaction. This is useful when the button is not currently available, but the button should still be visible.
 
 ```python
 from deephaven import ui
