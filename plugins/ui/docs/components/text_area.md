@@ -14,18 +14,15 @@ ta = ui.text_area(
 
 ## UI Recommendations
 
-Recommendations for creating clear and effective text areas:
+Recommendations for creating text areas:
 
 1. Text area should include a label, or else, the text area is ambiguous and not accessible.
 2. Text area labels and placeholder text should follow sentence casing. 
-3. Identify the minority of text areas in a form (optional or required) and either mark fields as `is_required` or use the `necessity_indicator` to mark them as optional, based on whichever occurs less.
-4. A text area should not be made quiet if it has a fixed height, given that the field underline may be too far from the text to be considered part of the component.
-5. Use help text to provide clear and concise instructions on input format, content, and requirements; the help text should not restate the same information as the label, or prompt a user to interact with the text area.
-6. Avoid using placeholder text given that it is redundant with help text and is inaccessible. Use help text to convey requirements or to show any formatting hints.
-7. Dynamically switch between help text and error messages based on input, ensuring both convey essential input requirements.
-8. Write actionable error messages that direct users towards resolving input errors. 
+3. A text area should not use `is_quiet` styling if it has a fixed height, given that the field underline may be too far from the text to be considered part of the component.
+4. Use help text to provide instructions on input format, content, and requirements; the help text should not restate the same information as the label, or prompt a user to interact with the text area.
+5. Dynamically switch between help text and error messages based on input, ensuring both convey essential input requirements.
 
-Consider using [`text_field`](./text_field.md) for cases where concise, single-line input is required. In cases where the input is numeric, consider using [`number_field`](./number_field.md) 
+Consider using [`text_field`](./text_field.md) for cases where concise, single-line input is required.
 
 
 ## Value
