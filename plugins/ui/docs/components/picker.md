@@ -26,7 +26,7 @@ result = picker()
 
 ## UI Recommendations
 
-Recommendations for creating clear and effective buttons:
+Recommendations for creating clear and effective pickers:
 
 1. Every picker should have a [label](#labeling) specified. Without one, the picker is ambiguous.
 2. In the rare case that context is sufficient the label is unnecesary, you must still include an aria-label via the `aria_label` prop.
