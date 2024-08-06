@@ -1,6 +1,6 @@
 # Picker
 
-Picker enables user to pick an option from a collapsible list of options, often used when the space is limited.
+Pickers enable users to pick an option from a collapsible list of options, often used when the space is limited.
 
 ## Example
 
@@ -28,20 +28,20 @@ result = picker()
 
 Recommendations for creating clear and effective buttons:
 
-1. Every picker should have a label specified, without one, the picker is both ambiguous and not accessible.
-2. In the rare case that context is sufficient, and thus, the label is not neccessary, make sure to still include an aria-label via the `aria_label` prop.
-3. Options in the picker should be kept short and concise, multiple lines is strongly discouraged.
-4. The width of the picker should be set such that the field button should not intefere with the options being displayed in full.
+1. Every picker should have a [label](#labeling) specified. Without one, the picker is ambiguous.
+2. In the rare case that context is sufficient the label is unnecesary, you must still include an aria-label via the `aria_label` prop.
+3. Options in the picker should be kept short and concise; multiple lines are strongly discouraged.
+4. The picker's width should be set so that the field button does not prevent options being displayed in full.
 5. The label, menu items, and placeholder text should all be in sentence case.
-6. Identify the minority of picker's in a form (optional or required) and either mark fields as `is_required`, or use the `necessity_indicator` to mark as optional, based on whichever occurs less.
-7. A picker's help text should provide actionable guidance on what to select and how to select it, offering additional context without repeating the label, and should only be included if relevant to the user.
+6. Identify which pickers are required or optional, and use the `is_required` field or the `necessity_indicator` to mark them accordingly.  
+7. A picker's help text should provide actionable guidance on what to select and how to select it, offering additional context without repeating the label.
 8. When an error occurs, the help text specified in a picker is replaced by error text; thus, ensure both help and error text convey the same essential information to maintain consistent messaging and prevent loss of critical details.
 9. Write error messages in a clear, concise, and helpful manner, guiding users to resolve the issue without ambiguity; ideally, they should be 1-2 short, complete sentences.
 
 
 ## Labeling
 
-The picker can be labeled using the `label` prop, and if no label is provided, an `aria_label` msut be provided to identify the control for accessibility purposes.
+The picker can be labeled using the `label` prop, and if no label is provided, an `aria_label` must be provided to identify the control for accessibility purposes.
 
 ```python
 from deephaven import ui
@@ -72,7 +72,7 @@ def label_variants():
 label_examples = label_variants()
 ```
 
-The `is_required` prop and the `necessary_indicator` props can be used to show whether selecting an option in the picker is required or option.
+The `is_required` prop and the `necessary_indicator` props can be used to show whether selecting an option in the picker is required or optional.
 
 When the `necessity_indicator` prop is set to "label", a localized string will be generated for "(required)" or "(optional)" automatically.
 
@@ -119,7 +119,7 @@ required_examples = required_variants()
 
 ## Selection
 
-In a picker, a selected option can be set using the `default_selected_key` or `selected_key` prop.
+In a picker, the `default_selected_key` or `selected_key` props set a selected option.
 
 ```python
 from deephaven import ui
@@ -156,7 +156,7 @@ selected_keys_example = selected_key_variants()
 
 ## HTML Forms
 
-Picker's can support a `name` prop for integration with HTML form, allowing for easy identification of a value on form submission.
+Pickers can support a `name` prop for integration with HTML form, allowing for easy identification of a value on form submission.
 
 ```python
 from deephaven import ui
@@ -170,7 +170,7 @@ picker_name_example = ui.form(
 
 ## Sections
 
-Picker supports sections in order to group options. Sections can be used by wrapping groups of items in a Section element. Each Section takes a title and key prop.
+Picker supports sections to group options. Sections can be used by wrapping groups of items in a `section` element. Each section takes a `title` and `key` prop.
 
 ```python
 from deephaven import ui
@@ -196,9 +196,9 @@ picker_events_example = ui.picker(
 )
 ```
 
-## Complex Items
+## Complex items
 
-Items within a Picker can include additional content to better convey options. You can add icons, avatars, and descriptions to the children of an `ui.item`. When adding a description, set the `slot` prop to "description", in order to differentiate between the text elements.
+Items within a picker can include additional content to better convey options. You can add icons, avatars, and descriptions to the children of an `ui.item`. When adding a description, set the `slot` prop to "description" to differentiate between the text elements.
 
 ```python
 from deephaven import ui
@@ -219,7 +219,7 @@ complex_items_picker_example = ui.picker(
 
 ## Loading
 
-The picker has the `is_loading` prop that will display a progress a circle when in use, which could be used to give immediate visual feedback to users, indicating that the picker is loading or processing data. It will also prevent users from interacting with the picker while data is loading, avoiding potential bad states.
+The `is_loading` prop displays a progress circle indicating that the picker is loading or processing data, which can be used to give immediate visual feedback to users. It also prevents users from interacting with the picker while data is loading, avoiding potential bad states.
 
 ```python
 from deephaven import ui
@@ -237,7 +237,7 @@ picker_loading_example = ui.form(
 
 ## Validation
 
-The picker has the `is_required` prop in order to ensure that the user selects an option, and also has the `validation_behaviour` prop, that allows the user to specify aria or native verification.
+The `is_required` prop ensures that the user selects an option. The related `validation_behaviour` prop allows the user to specify aria or native verification.
 
 ```python
 from deephaven import ui
@@ -253,7 +253,7 @@ picker_validation_example = ui.form(
 
 ## Label alignment and position
 
-By default, the position of a picker's label is above the picker, but it can be changed to the side using the `label_position` prop. 
+By default, the position of a picker's label is above the picker, but it can be moved to the side using the `label_position` prop.
 
 When positioned on the side, the `label_align` property can be set to "start", referring to the leftmost edge of the picker, or to "end, referring to the rightmost edge.
 
