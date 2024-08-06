@@ -90,7 +90,7 @@ def my_component():
 result = my_component()
 ```
 
-## Setting state based on the previous value
+## Updating state based on the previous value
 
 You can update the state using the previous value. However, let's say you have a function to update the count by three:
 
@@ -140,9 +140,9 @@ result = multi_count_buttons()
 
 All of these setters will be batched together and the component will only re-render once after the event loop (the call to `increase_value`) returns.
 
-## Setting state with a dictionary
+## Updating state with a dictionary
 
-You can set state with a dictionary. Instead of modifying the dictionary in place, create a new dictionary with the updated values. In this example, `person` contains a dictionary of name and age. When the name or age is updated, dictionary unpacking operator to create a new dictionary with the updated values:
+You can set state with a dictionary. Instead of modifying the dictionary in place, create a new dictionary with the updated values. In this example, `person` contains a dictionary of name and age. When the name or age is updated, the dictionary unpacking operator is used to create a new dictionary with the updated values:
 
 ```python
 from deephaven import ui
@@ -153,10 +153,12 @@ def person_component():
     person, set_person = ui.use_state({"name": "Hector", "age": 42})
 
     def update_name(new_name):
-        set_person(lambda old_person: {**old_person, "name": new_name})
+        # Use the dictionary unpacking operator with the old dictionary to create a new dictionary with the updated name
+        set_person(lambda p: {**p, "name": new_name})
 
     def update_age(new_age):
-        set_person(lambda old_person: {**old_person, "age": new_age})
+        # Use the dictionary unpacking operator with the old dictionary to create a new dictionary with the updated name
+        set_person(lambda p: {**p, "age": new_age})
 
     return [
         ui.text_field(value=person["name"], on_change=update_name),
@@ -168,7 +170,7 @@ def person_component():
 result = person_component()
 ```
 
-## Setting state with a list
+## Updating state with a list
 
 You can also set state with a list of values. Instead of modifying the list in place, create a new list with the updated values. In this example, `items` contains a list of todo items. When an item is added or deleted, we use the list add operator or list comprehension to create a new list with the updated values:
 
@@ -211,9 +213,11 @@ def todo_app():
     items, set_items = ui.use_state([])
 
     def handle_add(new_item: str):
+        # Updating the items to a new list containing all the old items and the new item
         set_items(lambda old_items: old_items + [new_item])
 
     def handle_delete(delete_item: str):
+        # Updating the items to a new list containing all the old items except the deleted item
         set_items(lambda old_items: [item for item in old_items if item != delete_item])
 
     return ui.flex(
