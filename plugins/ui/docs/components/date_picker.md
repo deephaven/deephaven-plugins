@@ -107,7 +107,7 @@ def date_table_filter(table, start_date, end_date, time_col="Timestamp"):
     before_date, set_before_date = ui.use_state(end_date)
     return [
         ui.date_picker(
-            label="Start Date Filter", value=after_date, on_change=set_after_date
+            label="Start Date", value=after_date, on_change=set_after_date
         ),
         ui.date_picker(
             label="End Date Filter", value=before_date, on_change=set_before_date
