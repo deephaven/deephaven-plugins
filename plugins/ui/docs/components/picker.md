@@ -24,19 +24,45 @@ def picker():
 result = picker()
 ```
 
-## UI Recommendations
+## UI recommendations
 
-Recommendations for creating clear and effective pickers:
+Recommendations for creating pickers:
 
-1. Every picker should have a [label](#labeling) specified. Without one, the picker is ambiguous.
-2. In the rare case that context is sufficient the label is unnecesary, you must still include an aria-label via the `aria_label` prop.
-3. Options in the picker should be kept short and concise; multiple lines are strongly discouraged.
-4. The picker's width should be set so that the field button does not prevent options being displayed in full.
-5. The label, menu items, and placeholder text should all be in sentence case.
-6. Identify which pickers are required or optional, and use the `is_required` field or the `necessity_indicator` to mark them accordingly.  
-7. A picker's help text should provide actionable guidance on what to select and how to select it, offering additional context without repeating the label.
-8. When an error occurs, the help text specified in a picker is replaced by error text; thus, ensure both help and error text convey the same essential information to maintain consistent messaging and prevent loss of critical details.
-9. Write error messages in a clear, concise, and helpful manner, guiding users to resolve the issue without ambiguity; ideally, they should be 1-2 short, complete sentences.
+1. Every picker should have a [label](#labeling) specified. Without one, the picker is ambiguous. In the rare case that context is sufficient the label is unnecessary, you should still include an aria-label via the `aria_label` prop.
+2. Options in the picker should be kept short and concise; multiple lines are strongly discouraged.
+3. The picker's width should be set so that the field button does not prevent options being displayed in full.
+4. The label, menu items, and placeholder text should all be in sentence case.
+5. A picker's help text should provide actionable guidance on what to select and how to select it, offering additional context without repeating the label.
+6. When an error occurs, the help text specified in a picker should be replaced by error text.
+7. Write error messages in concise and helpful manner, guiding users to resolve the issue. Error text should be 1-2 short, complete sentences ending with a period.
+
+
+## Data sources
+
+For pickers, you can use a `ui.item_table_source` to dynamically derive the options from a table. This allows the picker to display selections based on the data within the specified table.
+
+```python
+from deephaven import ui, empty_table
+
+icon_names = ["vsAccount"]
+columns = [
+    "Id=new Integer(ii)",
+    "Display=new String(`Display `+i)",
+    "Icon=(String) icon_names[0]",
+]
+_column_types = empty_table(20).update(columns)
+
+item_table_source = ui.item_table_source(
+    _column_types,
+    key_column="Id",
+    label_column="Display",
+    icon_column="Icon",
+)
+
+picker_table_source_example = ui.picker(
+    item_table_source, aria_label="Picker", default_selected_key=15
+)
+```
 
 
 ## Labeling
@@ -287,7 +313,7 @@ def picker_label_position_alignment_props():
 picker_label_position_alignment_example = picker_label_position_alignment_props()
 ```
 
-## Quiet State
+## Quiet state
 
 The `is_quiet` prop makes a picker "quiet". This can be useful when the picker and its corresponding styling should not distract users from surrounding content.
 
@@ -301,7 +327,7 @@ picker_is_quiet_example = ui.picker(
 )
 ```
 
-## Disabled State
+## Disabled state
 
 The `is_disabled` prop disables a picker to prevent user interaction. This is useful when the picker should be visible but not available for selection.
 
@@ -345,7 +371,7 @@ def picker_help_text_props():
 picker_help_text_example = picker_help_text_props()
 ```
 
-## Contextual Help
+## Contextual help
 
 Using the `contextual_help` prop, a `ui.contextual_help` can be placed next to the label to provide additional information about the picker.
 
@@ -386,7 +412,7 @@ def picker_width_props():
 picker_width_props = picker_width_props()
 ```
 
-## Align and Direction
+## Align and direction
 
 The `align` prop sets the text alignment of the options in the picker, while the `direction` prop specifies which direction the menu will open.
 
