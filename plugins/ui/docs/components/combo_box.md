@@ -34,16 +34,14 @@ Recommendations for creating clear and effective combo boxes:
 1. The combo box's text input simplifies searching through large lists. For lists with fewer than 6 items, use radio buttons. For lists with more than 6 items, assess if the list is complex enough to need searching and filtering, and if not, use a picker instead.
 2. It's acceptable to suppress the popover when the combo box contains familiar entries. The popover can still be opened by clicking the field button with the chevron.
 3. Immediately launch the popover if users are unfamiliar with the combo box content or if the data is particularly complex.
-4. Launch the popover on input change if users can begin typing without needing to see a long list of options first.
-5. Every combo box should have a label specified, without one, the picker is both ambiguous and not accessible.
-6. Options in the combo box should be kept short and concise; multiple lines are strongly discouraged.
-7. Choose a `width` for your combo boxes that can accommodate most of the available options. When the combo box is focused and the typed input exceeds the field's width, allow the leftmost text to scroll out of view while continuing to enter text towards the chevron. When the combo box is deselected, truncate the selected entry with an ellipsis before it overlaps with the chevron button.
-8. The field labels, menu items, and placeholder text should all be in sentence case.
-9. Identify which combo boxes are required or optional, and use the `is_required` field or the `necessity_indicator` to mark them accordingly.
-10. Use help text instead of placeholder text to convey requirements or formatting examples. Having both can be redundant and distracting, especially if they communicate the same information.
-11. A combo boxes' help text should provide actionable guidance on what to select and how to select it, offering additional context without repeating the placeholder text.
-12. When an error occurs, the help text specified in a combo box is replaced by error text; thus, ensure both help and error text convey the same essential information to maintain consistent messaging and prevent loss of critical details.
-13. Write error messages in a clear, concise, and helpful manner, guiding users to resolve the issue without ambiguity; ideally, they should be 1-2 short, complete sentences.
+4. Every combo box should have a label specified, without one, the picker is both ambiguous and not accessible.
+5. Options in the combo box should be kept short and concise; multiple lines are strongly discouraged.
+6. Choose a `width` for your combo boxes that can accommodate most of the available options. When the combo box is focused and the typed input exceeds the field's width, allow the leftmost text to scroll out of view while continuing to enter text towards the chevron. When the combo box is deselected, truncate the selected entry with an ellipsis before it overlaps with the chevron button.
+7. The field labels, menu items, and placeholder text should all be in sentence case.
+8. Identify which combo boxes are required or optional, and use the `is_required` field or the `necessity_indicator` to mark them accordingly.
+9. A combo boxes' help text should provide actionable guidance on what to select and how to select it, offering additional context without repeating the placeholder text.
+10. When an error occurs, the help text specified in a combo box is replaced by error text; thus, ensure both help and error text convey the same essential information to maintain consistent messaging and prevent loss of critical details.
+11. Write error messages in a clear, concise, and helpful manner, guiding users to resolve the issue without ambiguity; ideally, they should be 1-2 short, complete sentences.
 
 
 ## Labeling
