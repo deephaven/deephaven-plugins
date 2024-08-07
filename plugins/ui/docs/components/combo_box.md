@@ -44,27 +44,134 @@ Recommendations for creating clear and effective combo boxes:
 11. Write error messages in a clear, concise, and helpful manner, guiding users to resolve the issue without ambiguity; ideally, they should be 1-2 short, complete sentences.
 
 
-## Labeling
+## Data sources
 
-The picker can be labeled using the `label` prop, and if no label is provided, an `aria_label` msut be provided to identify the control for accessibility purposes.
+For combo boxes, we can use a Deephaven table as a data source to populate the options. When using a table, it automatically uses the first column as both the key and label. If there are any duplicate keys, an error will be thrown; to avoid this, a `select_distinct` can be used on the table prior to using it as a picker data source.
+
+```python
+from deephaven import ui, empty_table
+from deephaven.plot import express as dx
+
+
+t = empty_table(10).update(
+    [
+        "Timestamp = '2024-01-01T00:00:00 ET' + 'PT1m'.multipliedBy(ii)",
+        "Group = randomInt(1, 5)",
+    ]
+)
+
+stocks = dx.data.stocks().select_distinct("Sym")
+
+combo_box_table_source_example = ui.combo_box(t, label="Sample ComboBox")
+
+combo_box_table_source_example_2 = ui.combo_box(stocks, label="Stock Symbol ComboBox")
+```
+
+
+If you wish to manually specify the keys and labels, you can use a  `ui.item_table_source` to dynamically derive the options from a table. 
+
+```python
+from deephaven import ui, empty_table
+
+icon_names = ["vsAccount"]
+columns = [
+    "Key=new Integer(i)",
+    "Label=new String(`Display `+i)",
+    "Icon=(String) icon_names[0]",
+]
+column_types = empty_table(20).update(columns)
+
+item_table_source = ui.item_table_source(
+    column_types,
+    key_column="Key",
+    label_column="Label",
+    icon_column="Icon",
+)
+
+combo_box_item_table_source_example = ui.combo_box(
+    item_table_source, label="User ComboBox"
+)
+```
+
+## Custom Value
+
+By default, when a ComboBox loses focus, it resets its input value to match the selected option's text or clears the input if no option is selected. To allow users to enter a custom value, use the `allows_custom_value` prop to override this behavior.
+
 
 ```python
 from deephaven import ui
 
 
-option, set_option = ui.use_state("Option 2")
+@ui.component
+def combo_box_custom_value_prop():
+    return [
+        ui.combo_box(
+            ui.section(ui.item("Option 1"), ui.item("Option 2")),
+            allows_custom_value=True,
+        ),
+        ui.combo_box(
+            ui.section(ui.item("Option 1"), ui.item("Option 2")),
+            allows_custom_value=False,
+        ),
+    ]
+
+
+combo_box_custom_value_example = combo_box_custom_value_prop()
+```
+
+## HTML Forms
+
+Combo boxes can support a `name` prop for integration with HTML forms, allowing for easy identification of a value on form submission. The `form_value` prop determines whether the text or key of the selected item is submitted in an HTML form; if `allows_custom_value` is true, only the text is submitted.
+
+```python
+from deephaven import ui
 
 
 @ui.component
-def label_variants():
+def combo_box_form_prop():
     return [
-        ui.picker(
+        ui.flex(
+            ui.combo_box(
+                ui.item("Chocolate"),
+                ui.item("Mint"),
+                ui.item("Vanilla"),
+                ui.item("Strawberry"),
+                label="Ice cream flavor",
+                allows_custom_value=True,
+            ),
+            ui.combo_box(
+                ui.item("Panda"),
+                ui.item("Cat"),
+                ui.item("Dog"),
+                label="Favourite Animal",
+                name="favouriteAnimalId",
+            ),
+            gap="size-200",
+        )
+    ]
+
+
+combo_box_form_example = combo_box_form_prop()
+```
+
+## Labeling
+
+The combo box can be labeled using the `label` prop, and if no label is provided, an `aria_label` msut be provided to identify the control for accessibility purposes.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def combo_box_label_prop():
+    return [
+        ui.combo_box(
             ui.item("Option 1"),
             ui.item("Option 2"),
             ui.item("Option 3"),
             label="Pick an option",
         ),
-        ui.picker(
+        ui.combo_box(
             ui.item("Option 1"),
             ui.item("Option 2"),
             ui.item("Option 3"),
@@ -74,10 +181,11 @@ def label_variants():
     ]
 
 
-label_examples = label_variants()
+combo_box_label_example = combo_box_label_prop()
 ```
 
-The `is_required` prop and the `necessary_indicator` props can be used to show whether selecting an option in the picker is required or option.
+
+The `is_required` prop and the `necessity_indicator` props can be used to show whether selecting an option in the combo box is required or optional.
 
 When the `necessity_indicator` prop is set to "label", a localized string will be generated for "(required)" or "(optional)" automatically.
 
@@ -85,65 +193,60 @@ When the `necessity_indicator` prop is set to "label", a localized string will b
 from deephaven import ui
 
 
-option, set_option = ui.use_state("Option 2")
-
-
 @ui.component
-def required_variants():
+def combo_box_required_prop():
     return [
-        ui.picker(
+        ui.combo_box(
             ui.item("Option 1"),
             ui.item("Option 2"),
             ui.item("Option 3"),
             label="Pick an option",
             is_required=True,
         ),
-        ui.picker(
+        ui.combo_box(
             ui.item("Option 1"),
             ui.item("Option 2"),
             ui.item("Option 3"),
             ui.item("Option 4"),
             label="Pick an option",
             is_required=True,
-            necessary_indicator="label",
+            necessity_indicator="label",
         ),
-        ui.picker(
+        ui.combo_box(
             ui.item("Option 1"),
             ui.item("Option 2"),
             ui.item("Option 3"),
             ui.item("Option 4"),
             label="Pick an option",
-            necessary_indicator="label",
+            necessity_indicator="label",
         ),
     ]
 
 
-required_examples = required_variants()
+combo_box_required_example = combo_box_required_prop()
 ```
 
 
 ## Selection
 
-In a picker, a selected option can be set using the `default_selected_key` or `selected_key` prop.
+In a combo box, the `default_selected_key` or `selected_key` props set a selected option.
 
 ```python
 from deephaven import ui
 
 
-option, set_option = ui.use_state("Option 2")
-
-
 @ui.component
-def selected_key_variants():
+def combo_box_selected_key_prop():
+    option, set_option = ui.use_state("Option 1")
     return [
-        ui.picker(
+        ui.combo_box(
             ui.item("Option 1"),
             ui.item("Option 2"),
             ui.item("Option 3"),
             default_selected_key="Option 2",
             label="Pick an option (uncontrolled)",
         ),
-        ui.picker(
+        ui.combo_box(
             ui.item("Option 1"),
             ui.item("Option 2"),
             ui.item("Option 3"),
@@ -155,32 +258,18 @@ def selected_key_variants():
     ]
 
 
-selected_keys_example = selected_key_variants()
-```
-
-
-## HTML Forms
-
-Picker's can support a `name` prop for integration with HTML form, allowing for easy identification of a value on form submission.
-
-```python
-from deephaven import ui
-
-
-picker_name_example = ui.form(
-    ui.flex(ui.picker(ui.item("Option 1"), ui.item("Option 2"), name="Sample Name"))
-)
+combo_box_selected_key_example = combo_box_selected_key_prop()
 ```
 
 
 ## Sections
 
-Picker supports sections in order to group options. Sections can be used by wrapping groups of items in a Section element. Each Section takes a title and key prop.
+Combo box supports sections in order to group options. Sections can be used by wrapping groups of items in a Section element. Each Section takes a title and key prop.
 
 ```python
 from deephaven import ui
 
-picker_name_example = ui.picker(
+combo_box_section_example = ui.combo_box(
     ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
     ui.section(ui.item("Option 3"), ui.item("Option 4"), title="Section 2"),
 )
