@@ -9,7 +9,7 @@ from deephaven import ui
 
 dp = ui.date_picker(
     label="Date Picker",
-    value="2024-01-02T10:30:00 America/New_York",
+    value="2024-01-02T10:30:00 UTC",
     on_change=print,
 )
 ```
@@ -44,12 +44,6 @@ is determined by the type of the following props in order of precedence:
 
 If none of these are provided, the `on_change` handler will be passed an `Instant`.
 
-## UI recommendations
-
-Recommendations for creating clear and effective date pickers:
-
-1. Using the Date Type `Instant` will be most compatible with other Deephaven components.
-
 ## Events
 
 Date Pickers accept a value to display and can trigger actions based on events such as setting state when changed. See the [API Reference](#api-reference) for a full list of available events.
@@ -58,7 +52,7 @@ Date Pickers accept a value to display and can trigger actions based on events s
 from deephaven import ui
 from deephaven.time import to_j_local_date, dh_today, to_j_instant, to_j_zdt
 
-zoned_date_time = to_j_zdt("1995-03-22T11:11:11.23142 UTC")
+zoned_date_time = to_j_zdt("1995-03-22T11:11:11.23142 America/New_York")
 instant = to_j_instant("2022-01-01T00:00:00 ET")
 local_date = to_j_local_date(dh_today())
 

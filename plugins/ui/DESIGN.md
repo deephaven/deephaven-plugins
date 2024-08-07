@@ -1375,7 +1375,7 @@ ui.date_picker(
 import deephaven.ui as ui
 from deephaven.time import to_j_local_date, dh_today, to_j_instant, to_j_zdt
 
-zoned_date_time = to_j_zdt("1995-03-22T11:11:11.23142 UTC")
+zoned_date_time = to_j_zdt("1995-03-22T11:11:11.23142 America/New_York")
 instant = to_j_instant("2022-01-01T00:00:00 ET")
 local_date = to_j_local_date(dh_today())
 
