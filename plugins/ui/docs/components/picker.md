@@ -216,12 +216,19 @@ The Picker component supports selection through mouse, keyboard, and touch input
 ```python
 from deephaven import ui
 
-value, set_value = use_state("")
 
-picker_events_example = ui.picker(
-    ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
-    on_selection_change=set_value,
-)
+@ui.component
+def picker_event_props():
+    value, set_value = ui.use_state("")
+    return ui.form(
+        ui.picker(
+            ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
+            on_selection_change=set_value,
+        )
+    )
+
+
+picker_event_example = picker_event_props()
 ```
 
 ## Complex items
