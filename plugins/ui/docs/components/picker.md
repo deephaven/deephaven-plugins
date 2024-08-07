@@ -243,11 +243,13 @@ complex_items_picker_example = ui.picker(
         ui.icon("vsGithubAlt"),
         ui.text("Github"),
         ui.text("Github Option", slot="description"),
+        text_value="Github",
     ),
     ui.item(
         ui.icon("vsAzureDevops"),
         ui.text("Azure"),
         ui.text("Azure Option", slot="description"),
+        text_value="Azure",
     ),
 )
 ```
@@ -388,7 +390,7 @@ Using the `contextual_help` prop, a `ui.contextual_help` can be placed next to t
 from deephaven import ui
 
 
-text_area_contextual_help_example = ui.picker(
+picker_contextual_help_example = ui.picker(
     ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
     label="Sample Label",
     contextual_help=ui.contextual_help(ui.heading("Content tips")),
@@ -429,9 +431,6 @@ The `align` prop sets the text alignment of the options in the picker, while the
 from deephaven import ui
 
 
-from deephaven import ui
-
-
 @ui.component
 def picker_alignment_direction_props():
     return ui.view(
@@ -451,8 +450,6 @@ def picker_alignment_direction_props():
         padding=40,
     )
 
-
-picker_alignment_direction_example = picker_alignment_direction_props()
 
 picker_alignment_direction_example = picker_alignment_direction_props()
 ```
