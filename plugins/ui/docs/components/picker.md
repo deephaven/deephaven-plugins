@@ -203,7 +203,7 @@ Picker supports sections that group options. Sections can be used by wrapping gr
 ```python
 from deephaven import ui
 
-picker_name_example = ui.picker(
+picker_section_example = ui.picker(
     ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
     ui.section(ui.item("Option 3"), ui.item("Option 4"), title="Section 2"),
 )
