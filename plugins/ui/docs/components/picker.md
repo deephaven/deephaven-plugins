@@ -28,40 +28,50 @@ result = picker()
 
 Recommendations for creating pickers:
 
-1. Every picker should have a [label](#labeling) specified. Without one, the picker is ambiguous. In the rare case that context is sufficient the label is unnecessary, you should still include an aria-label via the `aria_label` prop.
+1. Every picker should have a [label](#labeling) specified. Without one, the picker is ambiguous. In the rare case that context is sufficient, the label is unnecessary; you must still include an aria-label via the `aria_label` prop.
 2. Options in the picker should be kept short and concise; multiple lines are strongly discouraged.
 3. The picker's width should be set so that the field button does not prevent options being displayed in full.
 4. The label, menu items, and placeholder text should all be in sentence case.
 5. A picker's help text should provide actionable guidance on what to select and how to select it, offering additional context without repeating the label.
 6. When an error occurs, the help text specified in a picker should be replaced by error text.
-7. Write error messages in concise and helpful manner, guiding users to resolve the issue. Error text should be 1-2 short, complete sentences ending with a period.
+7. Write error messages in a concise and helpful manner, guiding users to resolve the issue. Error text should be 1-2 short, complete sentences ending with a period.
 
 
 ## Data sources
 
-For pickers, you can use a `ui.item_table_source` to dynamically derive the options from a table. This allows the picker to display selections based on the data within the specified table.
+For pickers, we can use a Deephaven table as a data source to populate the options. When using a table, it automatically uses the first column as both the key and label. If there are any duplicate keys, an error will be thrown; to avoid this, a `select_distinct` can be used on the table prior to using it as a picker data source.
+
+```python
+from deephaven import ui
+from deephaven.plot import express as dx
+
+stocks = dx.data.stocks().select_distinct("Sym")
+
+picker_table_source_example = ui.picker(stocks, label="Stock Symbol Picker")
+```
+
+
+If you wish to manually specify the keys and labels, you can use a  `ui.item_table_source` to dynamically derive the options from a table. 
 
 ```python
 from deephaven import ui, empty_table
 
 icon_names = ["vsAccount"]
 columns = [
-    "Id=new Integer(ii)",
-    "Display=new String(`Display `+i)",
+    "Key=new Integer(i)",
+    "Label=new String(`Display `+i)",
     "Icon=(String) icon_names[0]",
 ]
-_column_types = empty_table(20).update(columns)
+column_types = empty_table(20).update(columns)
 
 item_table_source = ui.item_table_source(
-    _column_types,
-    key_column="Id",
-    label_column="Display",
+    column_types,
+    key_column="Key",
+    label_column="Label",
     icon_column="Icon",
 )
 
-picker_table_source_example = ui.picker(
-    item_table_source, aria_label="Picker", default_selected_key=15
-)
+picker_item_table_source_example = ui.picker(item_table_source, label="User Picker")
 ```
 
 
@@ -71,9 +81,6 @@ The picker can be labeled using the `label` prop, and if no label is provided, a
 
 ```python
 from deephaven import ui
-
-
-option, set_option = ui.use_state("Option 2")
 
 
 @ui.component
@@ -98,15 +105,12 @@ def label_variants():
 label_examples = label_variants()
 ```
 
-The `is_required` prop and the `necessary_indicator` props can be used to show whether selecting an option in the picker is required or optional.
+The `is_required` prop and the `necessity_indicator` props can be used to show whether selecting an option in the picker is required or optional.
 
 When the `necessity_indicator` prop is set to "label", a localized string will be generated for "(required)" or "(optional)" automatically.
 
 ```python
 from deephaven import ui
-
-
-option, set_option = ui.use_state("Option 2")
 
 
 @ui.component
@@ -126,7 +130,7 @@ def required_variants():
             ui.item("Option 4"),
             label="Pick an option",
             is_required=True,
-            necessary_indicator="label",
+            necessity_indicator="label",
         ),
         ui.picker(
             ui.item("Option 1"),
@@ -134,7 +138,7 @@ def required_variants():
             ui.item("Option 3"),
             ui.item("Option 4"),
             label="Pick an option",
-            necessary_indicator="label",
+            necessity_indicator="label",
         ),
     ]
 
@@ -151,11 +155,9 @@ In a picker, the `default_selected_key` or `selected_key` props set a selected o
 from deephaven import ui
 
 
-option, set_option = ui.use_state("Option 2")
-
-
 @ui.component
 def selected_key_variants():
+    option, set_option = ui.use_state("Option 1")
     return [
         ui.picker(
             ui.item("Option 1"),
@@ -182,7 +184,7 @@ selected_keys_example = selected_key_variants()
 
 ## HTML Forms
 
-Pickers can support a `name` prop for integration with HTML form, allowing for easy identification of a value on form submission.
+Pickers can support a `name` prop for integration with HTML forms, allowing for easy identification of a value on form submission.
 
 ```python
 from deephaven import ui
@@ -196,7 +198,7 @@ picker_name_example = ui.form(
 
 ## Sections
 
-Picker supports sections to group options. Sections can be used by wrapping groups of items in a `section` element. Each section takes a `title` and `key` prop.
+Picker supports sections that group options. Sections can be used by wrapping groups of items in a `section` element. Each section takes a `title` and `key` prop.
 
 ```python
 from deephaven import ui
@@ -250,14 +252,19 @@ The `is_loading` prop displays a progress circle indicating that the picker is l
 ```python
 from deephaven import ui
 
-loading, set_loading = ui.use_state("loading")
 
-picker_loading_example = ui.form(
-    ui.picker(
-        ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
-    ),
-    is_loading=True if loading == "loading" else False,
-)
+@ui.component
+def picker_loading_prop():
+    loading, set_loading = ui.use_state("loading")
+    return ui.form(
+        ui.picker(
+            ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
+            is_loading=True if loading == "loading" else False,
+        )
+    )
+
+
+picker_loading_example = picker_loading_prop()
 ```
 
 
@@ -268,44 +275,41 @@ The `is_required` prop ensures that the user selects an option. The related `val
 ```python
 from deephaven import ui
 
-picker_validation_example = ui.form(
-    ui.picker(
-        ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
-        ui.section(ui.item("Option 3"), ui.item("Option 4"), title="Section 2"),
-    ),
-    validation_behaviour="aria",
-)
+
+@ui.component
+def picker_validation_behaviour():
+    return ui.form(
+        ui.picker(
+            ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
+            validation_behavior="aria",
+            is_required=True,
+        )
+    )
+
+
+picker_validation_example = picker_validation_behaviour()
 ```
 
-## Label alignment and position
+## Label position
 
 By default, the position of a picker's label is above the picker, but it can be moved to the side using the `label_position` prop.
 
-When positioned on the side, the `label_align` property can be set to "start", referring to the leftmost edge of the picker, or to "end, referring to the rightmost edge.
 
 ```python
 from deephaven import ui
 
 
 @ui.component
-def picker_label_position_alignment_props():
+def picker_label_position_props():
     return [
         ui.picker(
             ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
             label="Test Label",
-            label_position="side",
         ),
         ui.picker(
             ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
             label="Test Label",
             label_position="side",
-            label_align="start",
-        ),
-        ui.picker(
-            ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
-            label="Test Label",
-            label_position="side",
-            label_align="end",
         ),
     ]
 
@@ -343,7 +347,7 @@ picker_is_disabled_example = ui.picker(
 
 ## Help text
 
-A picker can have both a `description` and an `error_message`. The description remains visible at all times, except when the `validation_state` is set to "invalid" and an error message is present. Use the error message to offer specific guidance on how to correct the input.
+A picker can have both a `description` and an `error_message`. The description remains visible at all times, use the error message to offer specific guidance on how to correct the input.
 
 ```python
 from deephaven import ui
@@ -355,14 +359,12 @@ def picker_help_text_props():
         ui.picker(
             ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
             label="Sample Label",
-            default_value="Awesome!",
-            validation_state="valid",
             description="Enter a comment.",
         ),
         ui.picker(
             ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
             label="Sample Label",
-            validation_state="invalid",
+            is_invalid=True,
             error_message="Sample invalid error message.",
         ),
     ]
@@ -420,19 +422,30 @@ The `align` prop sets the text alignment of the options in the picker, while the
 from deephaven import ui
 
 
+from deephaven import ui
+
+
 @ui.component
 def picker_alignment_direction_props():
-    return [
-        ui.picker(
-            ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
-            align="end",
+    return ui.view(
+        ui.flex(
+            ui.picker(
+                ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
+                align="end",
+                menu_width="size-3000",
+            ),
+            ui.picker(
+                ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
+                direction="top",
+            ),
+            gap="size-150",
+            direction="column",
         ),
-        ui.picker(
-            ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
-            direction="top",
-        ),
-    ]
+        padding=40,
+    )
 
+
+picker_alignment_direction_example = picker_alignment_direction_props()
 
 picker_alignment_direction_example = picker_alignment_direction_props()
 ```
@@ -444,15 +457,14 @@ The open state of the picker menu can be controlled through the `is_open` and `d
 ```python
 from deephaven import ui
 
-open, set_open = ui.use_state(False)
-
 
 @ui.component
 def picker_open_state_props():
+    open, set_open = ui.use_state(False)
     return [
         ui.picker(
             ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
-            open=open,
+            is_open=open,
             on_open_change=set_open,
         ),
         ui.picker(

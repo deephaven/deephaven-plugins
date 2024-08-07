@@ -89,10 +89,14 @@ The `on_change` property is triggered whenever the value in the text area is edi
 ```python
 from deephaven import ui
 
-value, set_value = ui.use_state("")
+
+@ui.component
+def text_area_on_change_prop():
+    value, set_value = ui.use_state("")
+    return ui.text_area(label="Your text", on_change=set_value)
 
 
-text_area_on_change_example = ui.text_area(label="Your text", on_change=set_value)
+text_area_on_change_example = text_area_on_change_prop()
 ```
 
 ## HTML Forms
@@ -138,11 +142,9 @@ from deephaven import ui
 text_area_is_read_only_example = ui.text_area(label="Sample", is_read_only=True)
 ```
 
-## Label alignment and position
+## Label position
 
 By default, the position of a text area's label is above the text area, but it can be changed to the side using the `label_position` prop. 
-
-When positioned on the side, the `label_align` property can be set to "start", referring to the leftmost edge of the text area, or to "end, referring to the rightmost edge.
 
 While labels can be placed either on top or on the side of the text area, top labels are the default recommendation. Top labels work better with longer copy, localization, and responsive layouts. Side labels are more useful when vertical space is limited.
 
@@ -152,15 +154,14 @@ from deephaven import ui
 
 
 @ui.component
-def text_area_label_position_alignment_props():
+def text_area_label_position_props():
     return [
-        ui.text_area(label="Test Label", label_position="side"),
+        ui.text_area(label="Test Label"),
         ui.text_area(label="Test Label", label_position="side", label_align="start"),
-        ui.text_area(label="Test Label", label_position="side", label_align="end"),
     ]
 
 
-text_area_label_position_alignment_example = text_area_label_position_alignment_props()
+text_area_label_position_example = text_area_label_position_props()
 ```
 
 ## Help text
@@ -200,7 +201,7 @@ from deephaven import ui
 
 
 text_area_contextual_help_example = ui.text_area(
-    label="Comment", contextual_help=ui.contextual_help(ui.heading("Content tips"))
+    label="Comment", contextual_help=ui.contextual_help(ui.heading("Sample tips"))
 )
 ```
 
