@@ -266,6 +266,8 @@ combo_box_selected_key_example = combo_box_selected_key_prop()
 
 Combo box supports sections in order to group options. Sections can be used by wrapping groups of items in a Section element. Each Section takes a title and key prop.
 
+However, when searching for options, searching by section will not result in the respective options within that section appearing. 
+
 ```python
 from deephaven import ui
 
@@ -277,17 +279,24 @@ combo_box_section_example = ui.combo_box(
 
 ## Events
 
-The Picker component supports selection through mouse, keyboard, and touch inputs via the `on_selection_change` prop, which receives the selected key as an argument.
+The Combo Box component supports selection through mouse, keyboard, and touch inputs via the `on_selection_change` prop, which receives the selected key as an argument.
 
 ```python
 from deephaven import ui
 
-value, set_value = use_state("")
 
-picker_events_example = ui.picker(
-    ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
-    on_selection_change=set_value,
-)
+@ui.component
+def combo_box_event_props():
+    value, set_value = ui.use_state("")
+    return ui.form(
+        ui.picker(
+            ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
+            on_selection_change=set_value,
+        )
+    )
+
+
+combo_box_event_example = combo_box_event_props()
 ```
 
 ## Complex Items
