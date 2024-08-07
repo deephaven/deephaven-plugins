@@ -214,19 +214,6 @@ def create_props(args: dict[str, Any]) -> tuple[tuple[Any, ...], dict[str, Any]]
     return children, props
 
 
-def _is_instant_string(value: str) -> bool:
-    """
-    Check if a string should parse as an Instant.
-
-    Args:
-        value: The string to check.
-
-    Returns:
-        Whether the string should parse as an Instant.
-    """
-    return value.endswith("Z") or value.endswith("UTC")
-
-
 def _convert_to_java_date(
     date: Date,
 ) -> JavaDate:
@@ -242,8 +229,8 @@ def _convert_to_java_date(
         The Java date type.
     """
     # For strings, parseInstant and parseZonedDateTime both succeed for the same strings
-    # To differentiate, we check if the string looks like an Instant otherwise we default to ZonedDateTime
-    if isinstance(date, str) and not _is_instant_string(date):
+    # Try parsing as a ZonedDateTime first per the documentation
+    if isinstance(date, str):
         try:
             return to_j_zdt(date)  # type: ignore
         except Exception:
