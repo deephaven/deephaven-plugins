@@ -347,7 +347,7 @@ picker_is_disabled_example = ui.picker(
 
 ## Help text
 
-A picker can have both a `description` and an `error_message`. The description remains visible at all times, use the error message to offer specific guidance on how to correct the input.
+A picker can have both a `description` and an `error_message`. The description remains visible at all times. Use the error message to offer specific guidance on how to correct the input.
 
 ```python
 from deephaven import ui
