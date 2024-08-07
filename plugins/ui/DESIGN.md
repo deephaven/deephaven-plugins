@@ -1315,14 +1315,24 @@ list_view5 = ui.list_view(
 
 A date picker that can be used to select a date.
 
-There are three types that can be passed in to the props that control the date format:
+The date picker accepts the following date types as inputs:  
+`None`, `LocalDate`, `ZoneDateTime`, `Instant`, `int`, `str`, `datetime.datetime`, `numpy.datetime64`, `pandas.Timestamp`
+
+The input will be converted to one of three Java date types:
 
 1. `LocalDate`: A LocalDate is a date without a time zone in the ISO-8601 system, such as "2007-12-03" or "2057-01-28".
    This will create a date picker with a granularity of days.
 2. `Instant`: An Instant represents an unambiguous specific point on the timeline, such as 2021-04-12T14:13:07 UTC.
-   This will create a date picker with a granularity of seconds in UTC.
+   This will create a date picker with a granularity of seconds in UTC. The time zone will be rendered as the time zone in user settings.
 3. `ZonedDateTime`: A ZonedDateTime represents an unambiguous specific point on the timeline with an associated time zone, such as 2021-04-12T14:13:07 America/New_York.
-   This will create a date picker with a granularity of seconds in the specified time zone.
+   This will create a date picker with a granularity of seconds in the specified time zone. The time zone will be rendered as the specified time zone.
+
+The input is coverted according to the following rules:
+
+1. If the input is one of the three Java date types, use that type.
+2. A date string such as "2007-12-03" will parse to a `LocalDate`
+3. A string with a date, time, and timezone such as "2021-04-12T14:13:07 America/New_York" will parse to a `ZonedDateTime`
+4. All other types will attempt to convert in this order: `Instant`, `ZonedDateTime`, `LocalDate`
 
 The format of the date picker and the type of the value passed to the `on_change` handler
 is determined by the type of the following props in order of precedence:
@@ -1351,7 +1361,7 @@ ui.date_picker(
 
 | Parameter           | Type                             | Description                                                                                                                                                                               |
 | ------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
-| `placeholder_value` | `Date \| None`                   | A placeholder date that influences the format of the placeholder shown when no value is selected. Defaults to today at midnight in the user's timezone.                                   |
+| `placeholder_value` | `Date \| None`                   | A placeholder date that influences the format of the placeholder shown when no value is selected. Defaults to today at midnight on the local machine.                                     |
 | `value`             | `Date \| None`                   | The current value (controlled).                                                                                                                                                           |
 | `default_value`     | `Date \| None`                   | The default value (uncontrolled).                                                                                                                                                         |
 | `min_value`         | `Date \| None`                   | The minimum allowed date that a user may select.                                                                                                                                          |

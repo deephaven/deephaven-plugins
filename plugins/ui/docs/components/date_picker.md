@@ -9,21 +9,31 @@ from deephaven import ui
 
 dp = ui.date_picker(
     label="Date Picker",
-    value="2024-01-02T10:30:00 UTC",
+    value="2024-01-02T10:30:00 America/New_York",
     on_change=print,
 )
 ```
 
 ## Date types
 
-There are three types that can be passed in to the props that control the date format:
+The date picker accepts the following date types as inputs:  
+`None`, `LocalDate`, `ZoneDateTime`, `Instant`, `int`, `str`, `datetime.datetime`, `numpy.datetime64`, `pandas.Timestamp`
+
+The input will be converted to one of three Java date types:
 
 1. `LocalDate`: A LocalDate is a date without a time zone in the ISO-8601 system, such as "2007-12-03" or "2057-01-28".
-   This will create a date picker with a granularity of days. No time zone will be displayed.
-2. `Instant`: An Instant represents an unambiguous specific point on the timeline, such as "2021-04-12T14:13:07 UTC".
-   This will create a date picker with a granularity of seconds in UTC. The date picker will render the time zone from the user settings.
-3. `ZonedDateTime`: A ZonedDateTime represents an unambiguous specific point on the timeline with an associated time zone, such as "2021-04-12T14:13:07 America/New_York".
-   This will create a date picker with a granularity of seconds in the specified time zone. The date picker will render the specified time zone.
+   This will create a date picker with a granularity of days.
+2. `Instant`: An Instant represents an unambiguous specific point on the timeline, such as 2021-04-12T14:13:07 UTC.
+   This will create a date picker with a granularity of seconds in UTC. The time zone will be rendered as the time zone in user settings.
+3. `ZonedDateTime`: A ZonedDateTime represents an unambiguous specific point on the timeline with an associated time zone, such as 2021-04-12T14:13:07 America/New_York.
+   This will create a date picker with a granularity of seconds in the specified time zone. The time zone will be rendered as the specified time zone.
+
+The input is coverted according to the following rules:
+
+1. If the input is one of the three Java date types, use that type.
+2. A date string such as "2007-12-03" will parse to a `LocalDate`
+3. A string with a date, time, and timezone such as "2021-04-12T14:13:07 America/New_York" will parse to a `ZonedDateTime`
+4. All other types will attempt to convert in this order: `Instant`, `ZonedDateTime`, `LocalDate`
 
 The format of the date picker and the type of the value passed to the `on_change` handler
 is determined by the type of the following props in order of precedence:
@@ -78,7 +88,7 @@ def date_picker_variants():
         ui.date_picker(description="description"),
         ui.date_picker(error_message="error", validation_state="valid"),
         ui.date_picker(error_message="error", validation_state="invalid"),
-        ui.date_picker(min_value="2024-01-01", max_value="2024-01-5"),
+        ui.date_picker(min_value="2024-01-01", max_value="2024-01-05"),
         ui.date_picker(value="2024-07-27T16:10:10 America/New_York", hour_cycle=24),
         ui.date_picker(granularity="YEAR"),
         ui.date_picker(granularity="MONTH"),
@@ -106,12 +116,8 @@ def date_table_filter(table, start_date, end_date, time_col="Timestamp"):
     after_date, set_after_date = ui.use_state(start_date)
     before_date, set_before_date = ui.use_state(end_date)
     return [
-        ui.date_picker(
-            label="Start Date", value=after_date, on_change=set_after_date
-        ),
-        ui.date_picker(
-            label="End Date", value=before_date, on_change=set_before_date
-        ),
+        ui.date_picker(label="Start Date", value=after_date, on_change=set_after_date),
+        ui.date_picker(label="End Date", value=before_date, on_change=set_before_date),
         table.where(f"{time_col} >= after_date  && {time_col} < before_date"),
     ]
 
