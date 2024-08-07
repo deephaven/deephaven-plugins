@@ -46,7 +46,7 @@ Recommendations for creating clear and effective combo boxes:
 
 ## Data sources
 
-For combo boxes, we can use a Deephaven table as a data source to populate the options. When using a table, it automatically uses the first column as both the key and label. If there are any duplicate keys, an error will be thrown; to avoid this, a `select_distinct` can be used on the table prior to using it as a picker data source.
+For combo boxes, we can use a Deephaven table as a data source to populate the options. When using a table, it automatically uses the first column as both the key and label. If there are any duplicate keys, an error will be thrown; to avoid this, a `select_distinct` can be used on the table prior to using it as a combo box data source.
 
 ```python
 from deephaven import ui, empty_table
@@ -62,7 +62,9 @@ t = empty_table(10).update(
 
 stocks = dx.data.stocks().select_distinct("Sym")
 
+
 combo_box_table_source_example = ui.combo_box(t, label="Sample ComboBox")
+
 
 combo_box_table_source_example_2 = ui.combo_box(stocks, label="Stock Symbol ComboBox")
 ```
@@ -81,6 +83,7 @@ columns = [
 ]
 column_types = empty_table(20).update(columns)
 
+
 item_table_source = ui.item_table_source(
     column_types,
     key_column="Key",
@@ -88,10 +91,12 @@ item_table_source = ui.item_table_source(
     icon_column="Icon",
 )
 
+
 combo_box_item_table_source_example = ui.combo_box(
     item_table_source, label="User ComboBox"
 )
 ```
+
 
 ## Custom Value
 
@@ -118,6 +123,7 @@ def combo_box_custom_value_prop():
 
 combo_box_custom_value_example = combo_box_custom_value_prop()
 ```
+
 
 ## HTML Forms
 
@@ -153,6 +159,7 @@ def combo_box_form_prop():
 
 combo_box_form_example = combo_box_form_prop()
 ```
+
 
 ## Labeling
 
@@ -271,11 +278,13 @@ However, when searching for options, searching by section will not result in the
 ```python
 from deephaven import ui
 
+
 combo_box_section_example = ui.combo_box(
     ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
     ui.section(ui.item("Option 3"), ui.item("Option 4"), title="Section 2"),
 )
 ```
+
 
 ## Events
 
@@ -289,7 +298,7 @@ from deephaven import ui
 def combo_box_event_props():
     value, set_value = ui.use_state("")
     return ui.form(
-        ui.picker(
+        ui.combo_box(
             ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
             on_selection_change=set_value,
         )
@@ -299,144 +308,211 @@ def combo_box_event_props():
 combo_box_event_example = combo_box_event_props()
 ```
 
-## Complex Items
 
-Items within a Picker can include additional content to better convey options. You can add icons, avatars, and descriptions to the children of an `ui.item`. When adding a description, set the `slot` prop to "description", in order to differentiate between the text elements.
+## Control
+
+When a combo box has multiple controlled properties (e.g., `input_value`, `selected_key`), updates to one property do not automatically update the others. Each interaction triggers only its specific event handler. For instance, typing in the input field will only trigger the `on_input_change`, not the `on_selection_change`.
 
 ```python
 from deephaven import ui
 
-complex_items_picker_example = ui.picker(
+
+def handle_input_change(new_value):
+    print(f"Text changed to {new_value}")
+
+
+@ui.component
+def combo_box_control_props():
+    selection_state, set_selection_state = ui.use_state("")
+    return [
+        ui.combo_box(
+            ui.item("Option 1"),
+            ui.item("Option 2"),
+            ui.item("Option 3"),
+            ui.item("Option 4"),
+            on_input_change=handle_input_change,
+            on_selection_change=set_selection_state,
+        )
+    ]
+
+
+combo_box_control_example = combo_box_control_props()
+```
+
+
+## Complex items
+
+Items within a combo box can include additional content to better convey options. You can add icons, avatars, and descriptions to the children of an `ui.item`. When adding a description, set the `slot` prop to "description" to differentiate between the text elements.
+
+```python
+from deephaven import ui
+
+
+complex_items_combo_box_example = ui.combo_box(
     ui.item(
         ui.icon("vsGithubAlt"),
         ui.text("Github"),
         ui.text("Github Option", slot="description"),
+        text_value="Github",
     ),
     ui.item(
         ui.icon("vsAzureDevops"),
         ui.text("Azure"),
         ui.text("Azure Option", slot="description"),
+        text_value="Azure",
     ),
-)
-```
-
-## Loading
-
-The picker has the `is_loading` prop that will display a progress a circle when in use, which could be used to give immediate visual feedback to users, indicating that the picker is loading or processing data. It will also prevent users from interacting with the picker while data is loading, avoiding potential bad states.
-
-```python
-from deephaven import ui
-
-loading, set_loading = ui.use_state("loading")
-
-picker_loading_example = ui.form(
-    ui.picker(
-        ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
-    ),
-    is_loading=True if loading == "loading" else False,
 )
 ```
 
 
 ## Validation
 
-The picker has the `is_required` prop in order to ensure that the user selects an option, and also has the `validation_behaviour` prop, that allows the user to specify aria or native verification.
-
-```python
-from deephaven import ui
-
-picker_validation_example = ui.form(
-    ui.picker(
-        ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
-        ui.section(ui.item("Option 3"), ui.item("Option 4"), title="Section 2"),
-    ),
-    validation_behaviour="aria",
-)
-```
-
-## Label alignment and position
-
-By default, the position of a picker's label is above the picker, but it can be changed to the side using the `label_position` prop. 
-
-When positioned on the side, the `label_align` property can be set to "start", referring to the leftmost edge of the picker, or to "end, referring to the rightmost edge.
+The `is_required` prop ensures that the user selects an option. The related `validation_behaviour` prop allows the user to specify aria or native verification.
 
 ```python
 from deephaven import ui
 
 
 @ui.component
-def picker_label_position_alignment_props():
-    return [
-        ui.picker(
+def combo_box_validation_behaviour_prop():
+    return ui.form(
+        ui.combo_box(
             ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
-            label="Test Label",
-            label_position="side",
-        ),
-        ui.picker(
-            ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
-            label="Test Label",
-            label_position="side",
-            label_align="start",
-        ),
-        ui.picker(
-            ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
-            label="Test Label",
-            label_position="side",
-            label_align="end",
-        ),
-    ]
+            validation_behavior="aria",
+            is_required=True,
+        )
+    )
 
 
-picker_label_position_alignment_example = picker_label_position_alignment_props()
+combo_box_validation_behaviour_example = combo_box_validation_behaviour_prop()
 ```
 
-## Quiet State
 
-The `is_quiet` prop makes a picker "quiet". This can be useful when the picker and its corresponding styling should not distract users from surrounding content.
+## Trigger Options
+
+By default, the combo boxs menu opens when the user types into the input field ("input"). This behavior can be changed to open on focus ("focus") or only when the field button is clicked ("manual") using the `menu_trigger` prop,
+
 
 ```python
 from deephaven import ui
 
 
-picker_is_quiet_example = ui.picker(
+@ui.component
+def combo_box_trigger_option_prop():
+    return [
+        ui.combo_box(
+            ui.item("Option 1"),
+            ui.item("Option 2"),
+            label="Select Option",
+        ),
+        ui.combo_box(
+            ui.item("Option 1"),
+            ui.item("Option 2"),
+            label="Select Option",
+            menu_trigger="focus",
+        ),
+        ui.combo_box(
+            ui.item("Option 1"),
+            ui.item("Option 2"),
+            label="Select Option",
+            menu_trigger="manual",
+        ),
+    ]
+
+
+combo_box_trigger_option_example = combo_box_trigger_option_prop()
+```
+
+
+## Label position
+
+By default, the position of a combo boxs label is above the combo box, but it can be moved to the side using the `label_position` prop.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def combo_box_label_position_props():
+    return [
+        ui.combo_box(
+            ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
+            label="Test Label",
+        ),
+        ui.combo_box(
+            ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
+            label="Test Label",
+            label_position="side",
+        ),
+    ]
+
+
+combo_box_label_position_example = combo_box_label_position_props()
+```
+
+
+## Quiet State
+
+The `is_quiet` prop makes a combo box "quiet". This can be useful when the combo box and its corresponding styling should not distract users from surrounding content.
+
+```python
+from deephaven import ui
+
+
+combo_box_is_quiet_example = ui.combo_box(
     ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
     is_quiet=True,
 )
 ```
 
+
 ## Disabled State
 
-The `is_disabled` prop disables a picker to prevent user interaction. This is useful when the picker should be visible but not available for selection.
+The `is_disabled` prop disables a combo_box to prevent user interaction. This is useful when the combo_box should be visible but not available for selection.
 
 ```python
 from deephaven import ui
 
 
-picker_is_disabled_example = ui.picker(
+combo_box_is_disabled_example = ui.combo_box(
     ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
     is_disabled=True,
 )
 ```
 
+
+## Read-only State
+
+The `is_read_only` prop prevents user input in a combo box, but the selected option should be visible.
+
+```python
+from deephaven import ui
+
+
+combo_box_is_read_only_example = ui.combo_box(
+    ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
+    is_read_only=True,
+)
+```
+
+
 ## Help text
 
-A picker can have both a `description` and an `error_message`. The description remains visible at all times, except when the `validation_state` is set to "invalid" and an error message is present. Use the error message to offer specific guidance on how to correct the input.
+A combo box can have both a `description` and an `error_message`. The description remains visible at all times. Use the error message to offer specific guidance on how to correct the input.
 
 ```python
 from deephaven import ui
 
 
 @ui.component
-def picker_help_text_props():
+def combo_box_help_text_props():
     return [
-        ui.picker(
+        ui.combo_box(
             ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
             label="Sample Label",
-            default_value="Awesome!",
-            validation_state="valid",
             description="Enter a comment.",
         ),
-        ui.picker(
+        ui.combo_box(
             ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
             label="Sample Label",
             validation_state="invalid",
@@ -445,40 +521,42 @@ def picker_help_text_props():
     ]
 
 
-picker_help_text_example = picker_help_text_props()
+combo_box_help_text_example = combo_box_help_text_props()
 ```
+
 
 ## Contextual Help
 
-Using the `contextual_help` prop, a `ui.contextual_help` can be placed next to the label to provide additional information about the picker.
+Using the `contextual_help` prop, a `ui.contextual_help` can be placed next to the label to provide additional information about the combo box.
 
 ```python
 from deephaven import ui
 
 
-text_area_contextual_help_example = ui.picker(
+combo_box_contextual_help_example = ui.combo_box(
     ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
     label="Sample Label",
     contextual_help=ui.contextual_help(ui.heading("Content tips")),
 )
 ```
 
+
 ## Custom width
 
-The `width` prop adjusts the width of a picker, and the `max_width` prop enforces a maximum width. 
+The `width` prop adjusts the width of a combo box, and the `max_width` prop enforces a maximum width. 
 
 ```python
 from deephaven import ui
 
 
 @ui.component
-def picker_width_props():
+def combo_box_width_props():
     return [
-        ui.picker(
+        ui.combo_box(
             ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
             width="size-3600",
         ),
-        ui.picker(
+        ui.combo_box(
             ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
             width="size-3600",
             max_width="100%",
@@ -486,61 +564,69 @@ def picker_width_props():
     ]
 
 
-picker_width_props = picker_width_props()
+combo_box_width_example = combo_box_width_props()
 ```
+
 
 ## Align and Direction
 
-The `align` prop sets the text alignment of the options in the picker, while the `direction` prop specifies which direction the menu will open.
+The `align` prop sets the text alignment of the options in the combo box, while the `direction` prop specifies which direction the menu will open.
 
 ```python
 from deephaven import ui
 
 
 @ui.component
-def picker_alignment_direction_props():
-    return [
-        ui.picker(
-            ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
-            align="end",
+def combo_box_alignment_direction_props():
+    return ui.view(
+        ui.flex(
+            ui.combo_box(
+                ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
+                align="end",
+                menu_width="size-3000",
+            ),
+            ui.combo_box(
+                ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
+                direction="top",
+            ),
+            gap="size-150",
+            direction="column",
         ),
-        ui.picker(
-            ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
-            direction="top",
-        ),
-    ]
+        padding=40,
+    )
 
 
-picker_alignment_direction_example = picker_alignment_direction_props()
+combo_box_alignment_direction_example = combo_box_alignment_direction_props()
 ```
+
 
 ## Menu state
 
-The open state of the picker menu can be controlled through the `is_open` and `default_open` props.
+The open state of the combo box menu can be controlled through the `is_open` and `default_open` props.
 
 ```python
 from deephaven import ui
 
-open, set_open = ui.use_state(False)
-
 
 @ui.component
-def picker_open_state_props():
+def combo_box_open_state_props():
+    open, set_open = ui.use_state(False)
     return [
-        ui.picker(
+        ui.combo_box(
             ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
-            open=open,
+            is_open=open,
             on_open_change=set_open,
         ),
-        ui.picker(
+        ui.combo_box(
             ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
             default_open=True,
         ),
     ]
 
 
-picker_open_state_example = picker_open_state_props()
+combo_box_open_state_example = combo_box_open_state_props()
 ```
+
 
 ## API Reference
 
