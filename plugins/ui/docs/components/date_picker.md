@@ -80,7 +80,7 @@ from deephaven import ui
 
 dp = ui.date_picker(
     label="Date Picker",
-    defalult_value=dh_now(),
+    default_value=dh_now(),
     on_change=print,
 )
 ```
@@ -95,7 +95,7 @@ from deephaven import ui
 
 dp1 = ui.date_picker(
     label="Date Picker",
-    placeholder_value="2022-01-01T00:00:00 ET",
+    placeholder_value="2022-10-01T08:30:00 ET",
     on_change=print,
 )
 
