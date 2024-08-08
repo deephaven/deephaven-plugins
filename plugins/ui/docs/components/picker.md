@@ -10,7 +10,7 @@ from deephaven import ui
 
 @ui.component
 def picker():
-    option, set_option = use_state("")
+    option, set_option = ui.use_state("")
 
     return ui.picker(
         "Rarely",
