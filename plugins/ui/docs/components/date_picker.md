@@ -44,6 +44,27 @@ is determined by the type of the following props in order of precedence:
 
 If none of these are provided, the `on_change` handler will be passed an `Instant`.
 
+## Controlled mode with value
+
+Setting the `value` prop will put the date_picker in controlled mode. Selecting a new date will call the `on_change` callback.
+Then `value` must be updated programatically to render the new value. This can be done using the `use_state` hook.
+
+TODO example
+
+## Uncontrolled mode with default_value
+
+If the `value` prop is omitted, the date_picker will be in uncontrolled mode. It will store its state internally and automatically update when a new date is selected.
+In this mode, setting the `default_value` prop will determine the initial value displayed by the date_picker.
+
+TODO example
+
+## Uncontrolled mode with placeholder_value
+
+If both `value` and `default_value` are omitted, the date_picker will be in uncontrolled mode displaying no date selected. When opened, the date picker will suggest the date from the `placeholder_value` prop.
+Omitting `placeholder_value` will default it to today at midnight on the local machine time zone.
+
+TODO example
+
 ## Events
 
 Date Pickers accept a value to display and can trigger actions based on events such as setting state when changed. See the [API Reference](#api-reference) for a full list of available events.

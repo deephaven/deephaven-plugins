@@ -1361,7 +1361,7 @@ ui.date_picker(
 
 | Parameter           | Type                             | Description                                                                                                                                                                               |
 | ------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
-| `placeholder_value` | `Date \| None`                   | A placeholder date that influences the format of the placeholder shown when no value is selected. Defaults to today at midnight on the local machine.                                     |
+| `placeholder_value` | `Date \| None`                   | A placeholder date that influences the format of the placeholder shown when no value is selected. Defaults to today at midnight on the local machine time zone.                           |
 | `value`             | `Date \| None`                   | The current value (controlled).                                                                                                                                                           |
 | `default_value`     | `Date \| None`                   | The default value (uncontrolled).                                                                                                                                                         |
 | `min_value`         | `Date \| None`                   | The minimum allowed date that a user may select.                                                                                                                                          |
