@@ -10,7 +10,7 @@ from deephaven import ui
 
 @ui.component
 def combo_box():
-    option, set_option = use_state("")
+    option, set_option = ui.use_state("")
 
     return ui.combo_box(
         ui.item("red panda"),
