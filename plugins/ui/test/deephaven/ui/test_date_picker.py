@@ -79,9 +79,9 @@ class DatePickerTest(BaseTestCase):
 
         verify_is_local_date(props1["max_value"])
         verify_is_zdt(props1["min_value"])
-        verify_is_instant(props1["unavailable_dates"][0])
+        verify_is_zdt(props1["unavailable_dates"][0])
         verify_is_local_date(props1["unavailable_dates"][1])
-        verify_is_instant(props1["value"])
+        verify_is_zdt(props1["value"])
         verify_is_zdt(props1["default_value"])
         verify_is_local_date(props1["placeholder_value"])
 
