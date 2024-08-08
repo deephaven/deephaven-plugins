@@ -9,7 +9,7 @@ from deephaven import ui
 
 dp = ui.date_picker(
     label="Date Picker",
-    value="2024-01-02T10:30:00 UTC",
+    default_value="2024-01-02T10:30:00 UTC",
     on_change=print,
 )
 ```
@@ -49,26 +49,6 @@ If none of these are provided, the `on_change` handler will be passed an `Instan
 Setting the `value` prop will put the date_picker in controlled mode. Selecting a new date will call the `on_change` callback.
 Then `value` must be updated programatically to render the new value. This can be done using the `use_state` hook.
 
-TODO example
-
-## Uncontrolled mode with default_value
-
-If the `value` prop is omitted, the date_picker will be in uncontrolled mode. It will store its state internally and automatically update when a new date is selected.
-In this mode, setting the `default_value` prop will determine the initial value displayed by the date_picker.
-
-TODO example
-
-## Uncontrolled mode with placeholder_value
-
-If both `value` and `default_value` are omitted, the date_picker will be in uncontrolled mode displaying no date selected. When opened, the date picker will suggest the date from the `placeholder_value` prop.
-Omitting `placeholder_value` will default it to today at midnight on the local machine time zone.
-
-TODO example
-
-## Events
-
-Date Pickers accept a value to display and can trigger actions based on events such as setting state when changed. See the [API Reference](#api-reference) for a full list of available events.
-
 ```python
 from deephaven import ui
 from deephaven.time import to_j_local_date, dh_today, to_j_instant, to_j_zdt
@@ -88,6 +68,46 @@ zoned_date_picker = date_picker_test(zoned_date_time)
 instant_date_picker = date_picker_test(instant)
 local_date_picker = date_picker_test(local_date)
 ```
+
+## Uncontrolled mode with default_value
+
+If the `value` prop is omitted, the date_picker will be in uncontrolled mode. It will store its state internally and automatically update when a new date is selected.
+In this mode, setting the `default_value` prop will determine the initial value displayed by the date_picker.
+
+```python
+from deephaven.time import dh_now
+from deephaven import ui
+
+dp = ui.date_picker(
+    label="Date Picker",
+    defalult_value=dh_now(),
+    on_change=print,
+)
+```
+
+## Uncontrolled mode with placeholder_value
+
+If both `value` and `default_value` are omitted, the date_picker will be in uncontrolled mode displaying no date selected. When opened, the date picker will suggest the date from the `placeholder_value` prop.
+Omitting `placeholder_value` will default it to today at midnight on the local machine time zone.
+
+```python
+from deephaven import ui
+
+dp1 = ui.date_picker(
+    label="Date Picker",
+    placeholder_value="2022-01-01T00:00:00 ET",
+    on_change=print,
+)
+
+dp2 = ui.date_picker(
+    label="Date Picker",
+    on_change=print,
+)
+```
+
+## Events
+
+Date Pickers accept a value to display and can trigger actions based on events such as setting state when changed. See the [API Reference](#api-reference) for a full list of available events.
 
 ## Variants
 
