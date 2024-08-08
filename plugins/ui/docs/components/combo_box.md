@@ -9,7 +9,7 @@ from deephaven import ui
 
 
 @ui.component
-def combo_box():
+def ui_combo_box_basic():
     option, set_option = ui.use_state("")
 
     return ui.combo_box(
@@ -20,11 +20,12 @@ def combo_box():
         ui.item("kangaroo"),
         ui.item("snake"),
         label="Favourite Animal",
+        selected_key=option,
         on_selection_change=set_option,
     )
 
 
-result = combo_box()
+my_combo_box_basic = ui_combo_box_basic()
 ```
 
 ## UI Recommendations
@@ -63,10 +64,12 @@ t = empty_table(10).update(
 stocks = dx.data.stocks().select_distinct("Sym")
 
 
-combo_box_table_source_example = ui.combo_box(t, label="Sample ComboBox")
+my_combo_box_table_source_example = ui.combo_box(t, label="Sample ComboBox")
 
 
-combo_box_table_source_example_2 = ui.combo_box(stocks, label="Stock Symbol ComboBox")
+my_combo_box_table_source_example_2 = ui.combo_box(
+    stocks, label="Stock Symbol ComboBox"
+)
 ```
 
 
@@ -92,7 +95,7 @@ item_table_source = ui.item_table_source(
 )
 
 
-combo_box_item_table_source_example = ui.combo_box(
+my_combo_box_item_table_source_example = ui.combo_box(
     item_table_source, label="User ComboBox"
 )
 ```
@@ -108,7 +111,7 @@ from deephaven import ui
 
 
 @ui.component
-def combo_box_custom_value_prop():
+def ui_combo_box_custom_value_examples():
     return [
         ui.combo_box(
             ui.section(ui.item("Option 1"), ui.item("Option 2")),
@@ -121,7 +124,7 @@ def combo_box_custom_value_prop():
     ]
 
 
-combo_box_custom_value_example = combo_box_custom_value_prop()
+my_combo_box_custom_value_examples = ui_combo_box_custom_value_examples()
 ```
 
 
@@ -134,7 +137,7 @@ from deephaven import ui
 
 
 @ui.component
-def combo_box_form_prop():
+def ui_combo_box_form_examples():
     return [
         ui.flex(
             ui.combo_box(
@@ -157,7 +160,7 @@ def combo_box_form_prop():
     ]
 
 
-combo_box_form_example = combo_box_form_prop()
+my_combo_box_form_examples = ui_combo_box_form_examples()
 ```
 
 
@@ -170,7 +173,7 @@ from deephaven import ui
 
 
 @ui.component
-def combo_box_label_prop():
+def ui_combo_box_label_examples():
     return [
         ui.combo_box(
             ui.item("Option 1"),
@@ -188,7 +191,7 @@ def combo_box_label_prop():
     ]
 
 
-combo_box_label_example = combo_box_label_prop()
+my_combo_box_label_examples = ui_combo_box_label_examples()
 ```
 
 
@@ -201,7 +204,7 @@ from deephaven import ui
 
 
 @ui.component
-def combo_box_required_prop():
+def ui_combo_box_required_examples():
     return [
         ui.combo_box(
             ui.item("Option 1"),
@@ -230,7 +233,7 @@ def combo_box_required_prop():
     ]
 
 
-combo_box_required_example = combo_box_required_prop()
+my_combo_box_required_examples = ui_combo_box_required_examples()
 ```
 
 
@@ -243,7 +246,7 @@ from deephaven import ui
 
 
 @ui.component
-def combo_box_selected_key_prop():
+def ui_combo_box_selected_key_examples():
     option, set_option = ui.use_state("Option 1")
     return [
         ui.combo_box(
@@ -265,7 +268,7 @@ def combo_box_selected_key_prop():
     ]
 
 
-combo_box_selected_key_example = combo_box_selected_key_prop()
+my_combo_box_selected_key_examples = ui_combo_box_selected_key_examples()
 ```
 
 
@@ -279,7 +282,7 @@ However, when searching for options, searching by section will not result in the
 from deephaven import ui
 
 
-combo_box_section_example = ui.combo_box(
+my_combo_box_section_example = ui.combo_box(
     ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
     ui.section(ui.item("Option 3"), ui.item("Option 4"), title="Section 2"),
 )
@@ -295,7 +298,7 @@ from deephaven import ui
 
 
 @ui.component
-def combo_box_event_props():
+def ui_combo_box_event_example():
     value, set_value = ui.use_state("")
     return ui.form(
         ui.combo_box(
@@ -305,7 +308,7 @@ def combo_box_event_props():
     )
 
 
-combo_box_event_example = combo_box_event_props()
+my_combo_box_event_example = ui_combo_box_event_example()
 ```
 
 
@@ -322,7 +325,7 @@ def handle_input_change(new_value):
 
 
 @ui.component
-def combo_box_control_props():
+def ui_combo_box_control_example():
     selection_state, set_selection_state = ui.use_state("")
     return [
         ui.combo_box(
@@ -336,7 +339,7 @@ def combo_box_control_props():
     ]
 
 
-combo_box_control_example = combo_box_control_props()
+my_combo_box_control_example = ui_combo_box_control_example()
 ```
 
 
@@ -348,7 +351,7 @@ Items within a combo box can include additional content to better convey options
 from deephaven import ui
 
 
-complex_items_combo_box_example = ui.combo_box(
+my_combo_box_complex_items_example = ui.combo_box(
     ui.item(
         ui.icon("vsGithubAlt"),
         ui.text("Github"),
@@ -374,7 +377,7 @@ from deephaven import ui
 
 
 @ui.component
-def combo_box_validation_behaviour_prop():
+def ui_combo_box_validation_behaviour_example():
     return ui.form(
         ui.combo_box(
             ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
@@ -384,7 +387,7 @@ def combo_box_validation_behaviour_prop():
     )
 
 
-combo_box_validation_behaviour_example = combo_box_validation_behaviour_prop()
+my_combo_box_validation_behaviour_example = ui_combo_box_validation_behaviour_example()
 ```
 
 
@@ -398,7 +401,7 @@ from deephaven import ui
 
 
 @ui.component
-def combo_box_trigger_option_prop():
+def ui_combo_box_trigger_option_examples():
     return [
         ui.combo_box(
             ui.item("Option 1"),
@@ -420,7 +423,7 @@ def combo_box_trigger_option_prop():
     ]
 
 
-combo_box_trigger_option_example = combo_box_trigger_option_prop()
+my_combo_box_trigger_option_examples = ui_combo_box_trigger_option_examples()
 ```
 
 
@@ -433,7 +436,7 @@ from deephaven import ui
 
 
 @ui.component
-def combo_box_label_position_props():
+def ui_combo_box_label_position_examples():
     return [
         ui.combo_box(
             ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
@@ -447,7 +450,7 @@ def combo_box_label_position_props():
     ]
 
 
-combo_box_label_position_example = combo_box_label_position_props()
+my_combo_box_label_position_examples = ui_combo_box_label_position_examples()
 ```
 
 
@@ -459,7 +462,7 @@ The `is_quiet` prop makes a combo box "quiet". This can be useful when the combo
 from deephaven import ui
 
 
-combo_box_is_quiet_example = ui.combo_box(
+my_combo_box_is_quiet_example = ui.combo_box(
     ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
     is_quiet=True,
 )
@@ -474,7 +477,7 @@ The `is_disabled` prop disables a combo_box to prevent user interaction. This is
 from deephaven import ui
 
 
-combo_box_is_disabled_example = ui.combo_box(
+my_combo_box_is_disabled_example = ui.combo_box(
     ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
     is_disabled=True,
 )
@@ -489,7 +492,7 @@ The `is_read_only` prop prevents user input in a combo box, but the selected opt
 from deephaven import ui
 
 
-combo_box_is_read_only_example = ui.combo_box(
+my_combo_box_is_read_only_example = ui.combo_box(
     ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
     is_read_only=True,
 )
@@ -505,7 +508,7 @@ from deephaven import ui
 
 
 @ui.component
-def combo_box_help_text_props():
+def ui_combo_box_help_text_examples():
     return [
         ui.combo_box(
             ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
@@ -521,7 +524,7 @@ def combo_box_help_text_props():
     ]
 
 
-combo_box_help_text_example = combo_box_help_text_props()
+my_combo_box_help_text_examples = ui_combo_box_help_text_examples()
 ```
 
 
@@ -533,7 +536,7 @@ Using the `contextual_help` prop, a `ui.contextual_help` can be placed next to t
 from deephaven import ui
 
 
-combo_box_contextual_help_example = ui.combo_box(
+my_combo_box_contextual_help_example = ui.combo_box(
     ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
     label="Sample Label",
     contextual_help=ui.contextual_help(ui.heading("Content tips")),
@@ -550,7 +553,7 @@ from deephaven import ui
 
 
 @ui.component
-def combo_box_width_props():
+def ui_combo_box_width_examples():
     return [
         ui.combo_box(
             ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
@@ -564,7 +567,7 @@ def combo_box_width_props():
     ]
 
 
-combo_box_width_example = combo_box_width_props()
+my_combo_box_width_examples = ui_combo_box_width_examples()
 ```
 
 
@@ -577,7 +580,7 @@ from deephaven import ui
 
 
 @ui.component
-def combo_box_alignment_direction_props():
+def ui_combo_box_alignment_direction_examples():
     return ui.view(
         ui.flex(
             ui.combo_box(
@@ -596,7 +599,7 @@ def combo_box_alignment_direction_props():
     )
 
 
-combo_box_alignment_direction_example = combo_box_alignment_direction_props()
+my_combo_box_alignment_direction_examples = ui_combo_box_alignment_direction_examples()
 ```
 
 
@@ -609,7 +612,7 @@ from deephaven import ui
 
 
 @ui.component
-def combo_box_open_state_props():
+def ui_combo_box_open_state_examples():
     open, set_open = ui.use_state(False)
     return [
         ui.combo_box(
@@ -624,7 +627,7 @@ def combo_box_open_state_props():
     ]
 
 
-combo_box_open_state_example = combo_box_open_state_props()
+my_combo_box_open_state_examples = ui_combo_box_open_state_examples()
 ```
 
 
