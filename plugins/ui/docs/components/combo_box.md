@@ -35,12 +35,12 @@ Recommendations for creating clear and effective combo boxes:
 1. The combo box's text input simplifies searching through large lists. For lists with fewer than 6 items, use radio buttons. For lists with more than 6 items, assess if the list is complex enough to need searching and filtering, and if not, use a picker instead.
 2. It's acceptable to suppress the popover when the combo box contains familiar entries. The popover can still be opened by clicking the field button with the chevron.
 3. Immediately launch the popover if users are unfamiliar with the combo box content or if the data is particularly complex.
-4. Every combo box should have a label specified, without one, the picker is both ambiguous and not accessible.
+4. Every combo box should have a label specified. Without one, the combo box is ambiguous and not accessible.
 5. Options in the combo box should be kept short and concise; multiple lines are strongly discouraged.
 6. Choose a `width` for your combo boxes that can accommodate most of the available options. When the combo box is focused and the typed input exceeds the field's width, allow the leftmost text to scroll out of view while continuing to enter text towards the chevron. When the combo box is deselected, truncate the selected entry with an ellipsis before it overlaps with the chevron button.
 7. The field labels, menu items, and placeholder text should all be in sentence case.
 8. Identify which combo boxes are required or optional, and use the `is_required` field or the `necessity_indicator` to mark them accordingly.
-9. A combo boxes' help text should provide actionable guidance on what to select and how to select it, offering additional context without repeating the placeholder text.
+9. A combo box's help text should provide actionable guidance on what to select and how to select it, offering additional context without repeating the placeholder text.
 10. When an error occurs, the help text specified in a combo box is replaced by error text; thus, ensure both help and error text convey the same essential information to maintain consistent messaging and prevent loss of critical details.
 11. Write error messages in a clear, concise, and helpful manner, guiding users to resolve the issue without ambiguity; ideally, they should be 1-2 short, complete sentences.
 
@@ -73,7 +73,7 @@ my_combo_box_table_source_example_2 = ui.combo_box(
 ```
 
 
-If you wish to manually specify the keys and labels, you can use a  `ui.item_table_source` to dynamically derive the options from a table. 
+If you wish to manually specify the keys and labels, use a `ui.item_table_source` to dynamically derive the options from a table. 
 
 ```python
 from deephaven import ui, empty_table
@@ -103,7 +103,7 @@ my_combo_box_item_table_source_example = ui.combo_box(
 
 ## Custom Value
 
-By default, when a ComboBox loses focus, it resets its input value to match the selected option's text or clears the input if no option is selected. To allow users to enter a custom value, use the `allows_custom_value` prop to override this behavior.
+By default, when a combo box loses focus, it resets its input value to match the selected option's text or clears the input if no option is selected. To allow users to enter a custom value, use the `allows_custom_value` prop to override this behavior.
 
 
 ```python
