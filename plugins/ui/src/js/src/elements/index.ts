@@ -2,6 +2,7 @@ export * from './ActionButton';
 export * from './ActionGroup';
 export * from './Button';
 export * from './ComboBox';
+export * from './DatePicker';
 export * from './Form';
 export * from './hooks';
 export * from './HTMLElementView';
