@@ -9,7 +9,7 @@ from deephaven import ui
 
 
 @ui.component
-def picker():
+def ui_picker_basic():
     option, set_option = ui.use_state("")
 
     return ui.picker(
@@ -17,11 +17,12 @@ def picker():
         "Sometimes",
         "Always",
         label="Choose frequency",
+        selected_key=option,
         on_selection_change=set_option,
     )
 
 
-result = picker()
+my_picker_basic = ui_picker_basic()
 ```
 
 ## UI recommendations
@@ -47,7 +48,7 @@ from deephaven.plot import express as dx
 
 stocks = dx.data.stocks().select_distinct("Sym")
 
-picker_table_source_example = ui.picker(stocks, label="Stock Symbol Picker")
+my_picker_table_source_example = ui.picker(stocks, label="Stock Symbol Picker")
 ```
 
 
@@ -71,7 +72,7 @@ item_table_source = ui.item_table_source(
     icon_column="Icon",
 )
 
-picker_item_table_source_example = ui.picker(item_table_source, label="User Picker")
+my_picker_item_table_source_example = ui.picker(item_table_source, label="User Picker")
 ```
 
 
@@ -84,7 +85,7 @@ from deephaven import ui
 
 
 @ui.component
-def label_variants():
+def ui_picker_label_examples():
     return [
         ui.picker(
             ui.item("Option 1"),
@@ -102,7 +103,7 @@ def label_variants():
     ]
 
 
-label_examples = label_variants()
+my_picker_label_examples = ui_picker_label_examples()
 ```
 
 The `is_required` prop and the `necessity_indicator` props can be used to show whether selecting an option in the picker is required or optional.
@@ -114,7 +115,7 @@ from deephaven import ui
 
 
 @ui.component
-def required_variants():
+def ui_picker_required_examples():
     return [
         ui.picker(
             ui.item("Option 1"),
@@ -143,7 +144,7 @@ def required_variants():
     ]
 
 
-required_examples = required_variants()
+my_picker_required_examples = ui_picker_required_examples()
 ```
 
 
@@ -156,7 +157,7 @@ from deephaven import ui
 
 
 @ui.component
-def selected_key_variants():
+def ui_picker_selected_key_examples():
     option, set_option = ui.use_state("Option 1")
     return [
         ui.picker(
@@ -178,7 +179,7 @@ def selected_key_variants():
     ]
 
 
-selected_keys_example = selected_key_variants()
+my_picker_selected_key_examples = ui_picker_selected_key_examples()
 ```
 
 
@@ -190,7 +191,7 @@ Pickers can support a `name` prop for integration with HTML forms, allowing for 
 from deephaven import ui
 
 
-picker_name_example = ui.form(
+my_picker_name_example = ui.form(
     ui.flex(ui.picker(ui.item("Option 1"), ui.item("Option 2"), name="Sample Name"))
 )
 ```
@@ -203,7 +204,7 @@ Picker supports sections that group options. Sections can be used by wrapping gr
 ```python
 from deephaven import ui
 
-picker_section_example = ui.picker(
+my_picker_section_example = ui.picker(
     ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
     ui.section(ui.item("Option 3"), ui.item("Option 4"), title="Section 2"),
 )
@@ -218,7 +219,7 @@ from deephaven import ui
 
 
 @ui.component
-def picker_event_props():
+def ui_picker_event_example():
     value, set_value = ui.use_state("")
     return ui.form(
         ui.picker(
@@ -228,7 +229,7 @@ def picker_event_props():
     )
 
 
-picker_event_example = picker_event_props()
+my_picker_event_example = ui_picker_event_example()
 ```
 
 ## Complex items
@@ -238,7 +239,7 @@ Items within a picker can include additional content to better convey options. Y
 ```python
 from deephaven import ui
 
-complex_items_picker_example = ui.picker(
+my_picker_complex_items_example = ui.picker(
     ui.item(
         ui.icon("vsGithubAlt"),
         ui.text("Github"),
@@ -263,7 +264,7 @@ from deephaven import ui
 
 
 @ui.component
-def picker_loading_prop():
+def ui_picker_loading_example():
     loading, set_loading = ui.use_state("loading")
     return ui.form(
         ui.picker(
@@ -273,7 +274,7 @@ def picker_loading_prop():
     )
 
 
-picker_loading_example = picker_loading_prop()
+my_picker_loading_example = ui_picker_loading_example()
 ```
 
 
@@ -286,7 +287,7 @@ from deephaven import ui
 
 
 @ui.component
-def picker_validation_behaviour():
+def ui_picker_validation_behaviour_example():
     return ui.form(
         ui.picker(
             ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
@@ -296,7 +297,7 @@ def picker_validation_behaviour():
     )
 
 
-picker_validation_example = picker_validation_behaviour()
+my_picker_validation_behaviour_example = ui_picker_validation_behaviour_example()
 ```
 
 ## Label position
@@ -309,7 +310,7 @@ from deephaven import ui
 
 
 @ui.component
-def picker_label_position_props():
+def ui_picker_label_position_examples():
     return [
         ui.picker(
             ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
@@ -323,7 +324,7 @@ def picker_label_position_props():
     ]
 
 
-picker_label_position_alignment_example = picker_label_position_alignment_props()
+my_picker_label_position_examples = ui_picker_label_position_examples()
 ```
 
 ## Quiet state
@@ -334,7 +335,7 @@ The `is_quiet` prop makes a picker "quiet". This can be useful when the picker a
 from deephaven import ui
 
 
-picker_is_quiet_example = ui.picker(
+my_picker_is_quiet_example = ui.picker(
     ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
     is_quiet=True,
 )
@@ -348,7 +349,7 @@ The `is_disabled` prop disables a picker to prevent user interaction. This is us
 from deephaven import ui
 
 
-picker_is_disabled_example = ui.picker(
+my_picker_is_disabled_example = ui.picker(
     ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
     is_disabled=True,
 )
@@ -363,7 +364,7 @@ from deephaven import ui
 
 
 @ui.component
-def picker_help_text_props():
+def ui_picker_help_text_examples():
     return [
         ui.picker(
             ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
@@ -379,7 +380,7 @@ def picker_help_text_props():
     ]
 
 
-picker_help_text_example = picker_help_text_props()
+my_picker_help_text_examples = ui_picker_help_text_examples()
 ```
 
 ## Contextual help
@@ -406,7 +407,7 @@ from deephaven import ui
 
 
 @ui.component
-def picker_width_props():
+def ui_picker_width_examples():
     return [
         ui.picker(
             ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
@@ -420,7 +421,7 @@ def picker_width_props():
     ]
 
 
-picker_width_props = picker_width_props()
+my_picker_width_examples = ui_picker_width_examples()
 ```
 
 ## Align and direction
@@ -432,7 +433,7 @@ from deephaven import ui
 
 
 @ui.component
-def picker_alignment_direction_props():
+def ui_picker_alignment_direction_examples():
     return ui.view(
         ui.flex(
             ui.picker(
@@ -451,7 +452,7 @@ def picker_alignment_direction_props():
     )
 
 
-picker_alignment_direction_example = picker_alignment_direction_props()
+my_picker_alignment_direction_examples = ui_picker_alignment_direction_examples()
 ```
 
 ## Menu state
@@ -463,7 +464,7 @@ from deephaven import ui
 
 
 @ui.component
-def picker_open_state_props():
+def ui_picker_open_state_examples():
     open, set_open = ui.use_state(False)
     return [
         ui.picker(
@@ -478,7 +479,7 @@ def picker_open_state_props():
     ]
 
 
-picker_open_state_example = picker_open_state_props()
+my_picker_open_state_examples = ui_picker_open_state_examples()
 ```
 
 ## API Reference
