@@ -282,6 +282,8 @@ my_picker_loading_example = ui_picker_loading_example()
 
 The `is_required` prop ensures that the user selects an option. The related `validation_behaviour` prop allows the user to specify aria or native verification.
 
+When the prop is set to "native", the validation errors block form submission and are displayed as help text automatically.
+
 ```python
 from deephaven import ui
 
@@ -291,7 +293,7 @@ def ui_picker_validation_behaviour_example():
     return ui.form(
         ui.picker(
             ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
-            validation_behavior="aria",
+            validation_behavior="native",
             is_required=True,
         )
     )
@@ -357,7 +359,9 @@ my_picker_is_disabled_example = ui.picker(
 
 ## Help text
 
-A picker can have both a `description` and an `error_message`. The description remains visible at all times. Use the error message to offer specific guidance on how to correct the input.
+A picker can have both a `description` and an `error_message`. Use the error message to offer specific guidance on how to correct the input.
+
+The `is_invalid` prop can be used to set whether the current picker state is valid or invalid.
 
 ```python
 from deephaven import ui
@@ -370,6 +374,12 @@ def ui_picker_help_text_examples():
             ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
             label="Sample Label",
             description="Enter a comment.",
+        ),
+        ui.picker(
+            ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
+            label="Sample Label",
+            is_invalid=False,
+            error_message="Sample invalid error message.",
         ),
         ui.picker(
             ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
@@ -443,7 +453,7 @@ def ui_picker_alignment_direction_examples():
             ),
             ui.picker(
                 ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
-                direction="top",
+                direction="bottom",
             ),
             gap="size-150",
             direction="column",

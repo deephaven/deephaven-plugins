@@ -93,7 +93,7 @@ from deephaven import ui
 @ui.component
 def text_area_on_change_prop():
     value, set_value = ui.use_state("")
-    return ui.text_area(label="Your text", on_change=set_value)
+    return ui.text_area(label="Your text", value=value, on_change=set_value)
 
 
 text_area_on_change_example = text_area_on_change_prop()
