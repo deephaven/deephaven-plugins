@@ -8,19 +8,40 @@ from typing import IO, Generator
 BUILT_DOCS = "docs/build/markdown"
 
 
-def run_command(command: str) -> None:
+def run_command(command: str, exit_on_fail: bool = True) -> int:
     """
     Run a command and exit if it fails.
 
     Args:
         command: The command to run.
+        exit_on_fail: Whether to exit if the command fails. Default is True. If False, the code is returned.
 
     Returns:
         None
     """
     code = os.system(command)
-    if code != 0:
+    if code != 0 and exit_on_fail:
         sys.exit(code)
+    return code
+
+
+def run_commands(commands: list[str], exit_on_fail: bool = False) -> int:
+    """
+    Run a list of commands and exit if any fail.
+
+    Args:
+        commands: The list of commands to run.
+        exit_on_fail: Whether to exit if a command fails. Default is True. If False, the code is returned.
+
+    Returns:
+        None
+    """
+    for command in commands:
+        code = run_command(command, exit_on_fail)
+        if code != 0:
+            print(f"Failed to run command: {command}")
+            return 1
+    return 0
 
 
 @contextlib.contextmanager
@@ -97,22 +118,25 @@ def remove_paramtable_comment(
     return line
 
 
-def build_documents() -> None:
+def build_documents() -> int:
     """
     Make the markdown files and copy the assets in
     """
-    run_command("make clean")
+    commands = [
+        "make clean",
+        "make markdown",
+        f"rm {BUILT_DOCS}/index.md",
+        f"cp -r docs/_assets {BUILT_DOCS}/_assets",
+        f"cp docs/sidebar.json {BUILT_DOCS}/sidebar.json",
+    ]
 
-    print("Building markdown")
-    run_command("make markdown")
-
-    run_command(f"rm {BUILT_DOCS}/index.md")
+    code = run_commands(commands)
+    if code != 0:
+        return 1
 
     remove_markdown_comments()
 
-    print("Copying assets")
-    run_command(f"cp -r docs/_assets {BUILT_DOCS}/_assets")
-    run_command(f"cp docs/sidebar.json {BUILT_DOCS}/sidebar.json")
+    return 0
 
 
 def remove_markdown_comments() -> None:

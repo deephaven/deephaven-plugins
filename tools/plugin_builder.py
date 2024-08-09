@@ -22,9 +22,9 @@ def clean_build_dist(plugin: str) -> None:
         None
     """
     if os.path.exists(f"{plugins_dir}/{plugin}/build"):
-        os.system(f"rm -rf {plugins_dir}/{plugin}/build")
+        run_command(f"rm -rf {plugins_dir}/{plugin}/build")
     if os.path.exists(f"{plugins_dir}/{plugin}/dist"):
-        os.system(f"rm -rf {plugins_dir}/{plugin}/dist")
+        run_command(f"rm -rf {plugins_dir}/{plugin}/dist")
 
 
 def plugin_names(
@@ -134,7 +134,7 @@ def run_docs(
     for plugin in plugin_names(plugins):
         if os.path.exists(f"{plugins_dir}/{plugin}/make_docs.py"):
             click.echo(f"Generating docs for {plugin}")
-            run_command(f"python {plugins_dir}/{plugin}/make_docs.py")
+            code = run_command(f"python {plugins_dir}/{plugin}/make_docs.py")
         elif error_on_missing:
             click.echo(f"Error: make_docs.py not found in {plugin}")
             sys.exit(1)

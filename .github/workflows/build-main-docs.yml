@@ -37,3 +37,4 @@ jobs:
     with:
       package: ${{ inputs.package }}
       version: 'main'
+      event_name: ${{ inputs.event_name }}
