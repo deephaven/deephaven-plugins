@@ -36,8 +36,8 @@ Recommendations for creating clear and effective combo boxes:
 2. It's acceptable to suppress the popover when the combo box contains familiar entries. The popover can still be opened by clicking the field button with the chevron.
 3. Immediately launch the popover if users are unfamiliar with the combo box content or if the data is particularly complex.
 4. Every combo box should have a label specified. Without one, the combo box is ambiguous and not accessible.
-5. Options in the combo box should be kept short and concise; multiple lines are strongly discouraged.
-6. Choose a `width` for your combo boxes that can accommodate most of the available options. When the combo box is focused and the typed input exceeds the field's width, allow the leftmost text to scroll out of view while continuing to enter text towards the chevron. When the combo box is deselected, truncate the selected entry with an ellipsis before it overlaps with the chevron button.
+5. Options in the combo box should be kept short and concise; multiple lines are strongly discouraged. If more than one line is needed, consider using a description to add context to the option.
+6. Choose a `width` for your combo boxes that can accommodate most of the available options.
 7. The field labels, menu items, and placeholder text should all be in sentence case.
 8. Identify which combo boxes are required or optional, and use the `is_required` field or the `necessity_indicator` to mark them accordingly.
 9. A combo box's help text should provide actionable guidance on what to select and how to select it, offering additional context without repeating the placeholder text.
@@ -112,15 +112,23 @@ from deephaven import ui
 
 @ui.component
 def ui_combo_box_custom_value_examples():
+    value, set_value = ui.use_state("")
+    value_2, set_value_2 = ui.use_state("")
     return [
         ui.combo_box(
             ui.section(ui.item("Option 1"), ui.item("Option 2")),
+            on_input_change=set_value,
             allows_custom_value=True,
+            label="Allows custom value",
         ),
+        ui.text_field(value=value),
         ui.combo_box(
             ui.section(ui.item("Option 1"), ui.item("Option 2")),
+            on_input_change=set_value_2,
             allows_custom_value=False,
+            label="Does not allow custom value",
         ),
+        ui.text_field(value=value_2),
     ]
 
 
@@ -139,7 +147,7 @@ from deephaven import ui
 @ui.component
 def ui_combo_box_form_examples():
     return [
-        ui.flex(
+        ui.form(
             ui.combo_box(
                 ui.item("Chocolate"),
                 ui.item("Mint"),
@@ -155,7 +163,8 @@ def ui_combo_box_form_examples():
                 label="Favourite Animal",
                 name="favouriteAnimalId",
             ),
-            gap="size-200",
+            ui.button("Submit", type="submit"),
+            on_submit=lambda event: print(event),
         )
     ]
 
@@ -393,7 +402,7 @@ my_combo_box_validation_behaviour_example = ui_combo_box_validation_behaviour_ex
 
 ## Trigger Options
 
-By default, the combo boxs menu opens when the user types into the input field ("input"). This behavior can be changed to open on focus ("focus") or only when the field button is clicked ("manual") using the `menu_trigger` prop,
+By default, the combo box's menu opens when the user types into the input field ("input"). This behavior can be changed to open on focus ("focus") or only when the field button is clicked ("manual") using the `menu_trigger` prop.
 
 
 ```python
@@ -429,7 +438,7 @@ my_combo_box_trigger_option_examples = ui_combo_box_trigger_option_examples()
 
 ## Label position
 
-By default, the position of a combo boxs label is above the combo box, but it can be moved to the side using the `label_position` prop.
+By default, the position of a combo box's label is above the combo box, but it can be moved to the side using the `label_position` prop.
 
 ```python
 from deephaven import ui
@@ -471,7 +480,7 @@ my_combo_box_is_quiet_example = ui.combo_box(
 
 ## Disabled State
 
-The `is_disabled` prop disables a combo_box to prevent user interaction. This is useful when the combo_box should be visible but not available for selection.
+The `is_disabled` prop disables a combo box to prevent user interaction. This is useful when the combo box should be visible but unavailable for selection.
 
 ```python
 from deephaven import ui
