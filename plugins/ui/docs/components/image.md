@@ -1,6 +1,6 @@
 # Image
 
-Image is used to insert and display an image within a component.
+'image is used to insert and display an image within a component.
 
 ## Example
 
@@ -12,15 +12,22 @@ img = ui.image(src="https://i.imgur.com/Z7AzH2c.png", alt="Sky and roof")
 
 ## UI Recommendations
 
-Recommendations for creating clear and effective images:
-
 1. Provide descriptive alt text for all images to ensure accessibility for users with visual impairments. Note: If the image is considered decorative and should not be announced by screen readers, then set alt="" to suppress the warning.
-2. Alt text should convey the purpose and content of the image. For example, "Snow-capped mountains under a clear blue sky" or "Diagram illustrating the water cycle, showing evaporation, condensation, precipitation, and collection"
-3. To internationalize an Image, a localized string should be passed into the alt prop.
+2. Alt text should convey the purpose and content of the image. For example, "Snow-capped mountains under a clear blue sky" or "Diagram illustrating the water cycle, showing evaporation, condensation, precipitation, and collection".
+3. To internationalize an image, a localized string should be passed into the alt prop.
 
-## Variants
+## Visual options
 
-Images can fit to its container in different styles. The default is 'fill' which takes up the whole dimension of the container
+Different styles determine how an image fits into its container. The default value for the `object_fit` parameter is `fill` which takes up the whole dimension of the container.
+
+Other options:
+`contain` scales the image to the dimension of the container while preserving its aspect ratio. If the image's aspect ratio does not match the aspect ratio of the box, the image will be "letterboxed".
+
+`cover` scales the image to fill the entire container. If the image's aspect ratio does not match the aspect ratio of the box, the image will be clipped to fit.
+
+`none` renders the image in its original dimensions.
+
+`scale-down` sizes the image as if `none` or `contain` were specified. Whichever would result in a smaller concrete image size is selected.
 
 ```python
 def image_variants():
@@ -76,4 +83,3 @@ image_variants_example = image_variants()
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.image
 ```
-
