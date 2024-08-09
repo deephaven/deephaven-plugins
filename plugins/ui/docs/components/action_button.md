@@ -1,6 +1,6 @@
 # Action Button
 
-Action Buttons allow users to perform an action. They are used for similar, task-based options within a workflow, and are ideal for interfaces where buttons aren't meant to draw a lot of attention
+Action Buttons allow users to perform an action. They are used for similar, task-based options within a workflow, and are ideal for interfaces where buttons aren't meant to draw a lot of attention. Action buttons are the preferred button for taking actions on tables and plots that in some way alter tables, such as applying a filter.
 
 ## Example
 
@@ -18,9 +18,7 @@ Recommendations for creating clear and effective action buttons:
 2. Use verbs for button text to indicate the action that will be taken when the button is clicked. For example, "Save", "Delete", or "Add friend", rather than "Ok" or "Cancel". Nouns or adjectives tend to be less clear.
 3. Use sentence case for button text with more than one word. For example, "Add friend" instead of "Add Friend" or "ADD FRIEND".
 4. No punctuation is needed at the end of the button text.
-5. Use icons only when necessary, and not as a replacement for text or decoration. Icons should be used to provide additional context to the button's action.
-6. When presenting choices, use a single filled accent button to suggest to users the recommended choice, paired with outlined primary or secondary buttons for the other options. This helps to visually distinguish the primary action from the secondary actions.
-7. Use negative buttons sparingly, as they can be visually distracting. They should be used for actions that are destructive or irreversible.
+5. For icon only buttons, include a tooltip
 
 Consider using [`button`](./button.md) to draw attention to important actions users need to perform or for navigating to a different page. To represent a binary choice, use a [`toggle_button`](./toggle_button.md) instead. If you have a collection of related buttons, you can group them using a [`button_group`](./button_group.md).
 
@@ -44,40 +42,29 @@ def counter():
 counter_example = counter()
 ```
 
-## Variants
+## Quiet State
 
-`action_button` suports different types that change the button's behavior in an HTML form: button (default), submit, reset. 
+Action Buttons can have no visible background until they're interacted with. This style works best when a clear layout (vertical stack, table, grid) makes it easy to parse the buttons. Too many quiet components in a small space can be hard to read.
 
 ```python
 from deephaven import ui
 
-
-@ui.component
-def action_button_types():
-    count, set_count = ui.use_state(42)
-
-    def handle_submit(data):
-        print(f"Hello {data['name']}, you are {data['age']} years old")
-
-    def handle_reset(data):
-        print(f"Form reset")
-
-    return ui.form(
-        ui.text_field(default_value="Douglas", name="name"),
-        ui.number_field(default_value=42, name="age"),
-        ui.button_group(
-            ui.action_button("Reset", type="reset"),
-            ui.action_button("Submit", type="submit"),
-        ),
-        on_submit=handle_submit,
-        on_reset=handle_reset,
-    )
-
-
-action_button_types_example = action_button_types()
+btn = ui.action_button("Quiet button", is_quiet=True)
 ```
 
-Static-color buttons are available in white and black. They don't dynamically change in response to the user's theme. They should only be used over fixed-color backgrounds, not over theme colors that may change. 
+## Disabled State
+
+Action Buttons can be disabled to prevent user interaction. This is useful when the button is not currently available, but the button should still be visible.
+
+```python
+from deephaven import ui
+
+btn = ui.action_button("Disabled button", is_disabled=True)
+```
+
+## Static Colors
+
+Static-color buttons are available in white and black. They don't dynamically change in response to the user's theme. They should only be used over fixed-color backgrounds, not over theme colors that may change.
 
 ```python
 from deephaven import ui
@@ -106,26 +93,6 @@ def static_buttons():
 
 
 static_buttons_example = static_buttons()
-```
-
-## Quiet State
-
-ActionButtons can have no visible background until they're interacted with. This style works best when a clear layout (vertical stack, table, grid) makes it easy to parse the buttons. Too many quiet components in a small space can be hard to read.
-
-```python
-from deephaven import ui
-
-btn = ui.action_button("Quiet button", is_quiet=True)
-```
-
-## Disabled State
-
-ActionButtons can be disabled to prevent user interaction. This is useful when the button is not currently available, but the button should still be visible.
-
-```python
-from deephaven import ui
-
-btn = ui.action_button("Disabled button", is_disabled=True)
 ```
 
 ## API Reference
