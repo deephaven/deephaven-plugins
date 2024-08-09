@@ -7,6 +7,10 @@ on:
         description: The plugin to publish the docs for
         required: true
         type: string
+      event_name:
+        description: The event name that triggered the workflow
+        required: true
+        type: string
 
 jobs:
   check-make-docs:
