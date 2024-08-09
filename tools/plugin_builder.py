@@ -134,7 +134,7 @@ def run_docs(
     for plugin in plugin_names(plugins):
         if os.path.exists(f"{plugins_dir}/{plugin}/make_docs.py"):
             click.echo(f"Generating docs for {plugin}")
-            code = run_command(f"python {plugins_dir}/{plugin}/make_docs.py")
+            run_command(f"python {plugins_dir}/{plugin}/make_docs.py")
         elif error_on_missing:
             click.echo(f"Error: make_docs.py not found in {plugin}")
             sys.exit(1)
