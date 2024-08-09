@@ -21,10 +21,11 @@ def clean_build_dist(plugin: str) -> None:
     Returns:
         None
     """
+    # these folders may not exist, so ignore the errors
     if os.path.exists(f"{plugins_dir}/{plugin}/build"):
-        run_command(f"rm -rf {plugins_dir}/{plugin}/build")
+        os.system(f"rm -rf {plugins_dir}/{plugin}/build")
     if os.path.exists(f"{plugins_dir}/{plugin}/dist"):
-        run_command(f"rm -rf {plugins_dir}/{plugin}/dist")
+        os.system(f"rm -rf {plugins_dir}/{plugin}/dist")
 
 
 def plugin_names(
