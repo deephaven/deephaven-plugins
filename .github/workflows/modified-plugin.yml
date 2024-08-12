@@ -105,7 +105,7 @@ jobs:
   build-main-docs:
     needs: changes
     # Only build main docs for push on main branch and PRs to main
-    if: ${{ needs.changes.outputs.packages != '[]' && needs.changes.outputs.packages != '' && (github.ref == 'refs/heads/main' || github.base_ref == 'main')}}
+    if: ${{ needs.changes.outputs.packages != '[]' && needs.changes.outputs.packages != '' && (github.ref == 'refs/heads/main' || github.base_ref == 'main') && (github.event_name == 'push' || github.event_name == 'pull_request')}}
     strategy:
       matrix:
         package: ${{ fromJSON(needs.changes.outputs.packages) }}

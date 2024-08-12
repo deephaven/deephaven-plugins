@@ -60,7 +60,7 @@ def run_command(command: str) -> None:
     """
     code = os.system(command)
     if code != 0:
-        sys.exit(code)
+        sys.exit(1)
 
 
 def run_build(

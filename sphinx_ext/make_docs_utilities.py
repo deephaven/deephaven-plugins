@@ -17,30 +17,31 @@ def run_command(command: str, exit_on_fail: bool = True) -> int:
         exit_on_fail: Whether to exit if the command fails. Default is True. If False, the code is returned.
 
     Returns:
-        None
+        Returns the code if exit_on_fail is true, or 0 if success.
     """
     code = os.system(command)
     if code != 0 and exit_on_fail:
-        sys.exit(code)
+        sys.exit(1)
     return code
 
 
-def run_commands(commands: list[str], exit_on_fail: bool = False) -> int:
+def attempt_command_sequence(commands: list[str], exit_on_fail: bool = False) -> int:
     """
-    Run a list of commands and exit if any fail.
+    Run a list of commands and exit as soon as one fails.
 
     Args:
         commands: The list of commands to run.
-        exit_on_fail: Whether to exit if a command fails. Default is True. If False, the code is returned.
+        exit_on_fail: Whether to exit if a command fails. Default is True.
+            If False, the code is returned for the failing command and no subsequent commands are run.
 
     Returns:
-        None
+        Returns the code if exit_on_fail is true, or 0 if success.
     """
     for command in commands:
         code = run_command(command, exit_on_fail)
         if code != 0:
             print(f"Failed to run command: {command}")
-            return 1
+            return code
     return 0
 
 
@@ -121,6 +122,9 @@ def remove_paramtable_comment(
 def build_documents() -> int:
     """
     Make the markdown files and copy the assets in
+
+    Returns:
+        1 if the build failed, 0 if it succeeded
     """
     commands = [
         "make clean",
@@ -130,7 +134,7 @@ def build_documents() -> int:
         f"cp docs/sidebar.json {BUILT_DOCS}/sidebar.json",
     ]
 
-    code = run_commands(commands)
+    code = attempt_command_sequence(commands)
     if code != 0:
         return 1
 
