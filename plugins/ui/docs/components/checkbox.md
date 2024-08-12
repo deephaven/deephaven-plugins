@@ -20,6 +20,8 @@ Recommendations for creating checkboxes:
 4. Checkboxes should be used when selecting (ie. multiple table rows), whereas, switches should be used for activation (ie. on/off states).
 
 
+Consider using a [`checkbox`](./checkbox.md) for individual selections or when marking a single item as selected. For a set of related checkboxes, use a [`checkbox_group`](./checkbox_group.md) to manage multiple selections within a group. If you need to display a list of checkboxes driven by a Deephaven table, use a [`list_view`](./list_view.md) to dynamically generate the checkboxes.
+
 ## Content
 
 Checkbox's accept a child, which is rendered as the label of the checkbox.
