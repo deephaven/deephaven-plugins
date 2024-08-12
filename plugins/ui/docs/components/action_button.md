@@ -42,6 +42,38 @@ def counter():
 counter_example = counter()
 ```
 
+## Icon Buttons
+
+Action Buttons can have icons when necessary to provide additional context. If no visible label is provided (e.g., an icon-only button), an alternative text label must be provided to identify the control for accessibility using the `aria-label` prop. See [icon](./icon.md) for a list of available icons.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def ui_button_group():
+    iconAndLabel = ui.button_group(
+        ui.action_button("Restart", ui.icon("vsDebugRestart")),
+        ui.action_button("Record", ui.icon("vsRecord")),
+        ui.action_button("Play", ui.icon("vsDebugPause")),
+        ui.action_button("Pause", ui.icon("vsDebugStart")),
+        ui.action_button("Edit", ui.icon("vsEdit")),
+        ui.action_button("Configure", ui.icon("vsGear")),
+    )
+    iconOnly = ui.button_group(
+        ui.action_button(ui.icon("vsDebugRestart"), aria_label="Restart"),
+        ui.action_button(ui.icon("vsRecord"), aria_label="Record"),
+        ui.action_button(ui.icon("vsDebugPause"), aria_label="Play"),
+        ui.action_button(ui.icon("vsDebugStart"), aria_label="Pause"),
+        ui.action_button(ui.icon("vsEdit"), aria_label="Edit"),
+        ui.action_button(ui.icon("vsGear"), aria_label="Configure"),
+    )
+    return [iconAndLabel, iconOnly]
+
+
+my_action_buttons = ui_button_group()
+```
+
 ## Quiet State
 
 Action Buttons can have no visible background until they're interacted with. This style works best when a clear layout (vertical stack, table, grid) makes it easy to parse the buttons. Too many quiet components in a small space can be hard to read.
