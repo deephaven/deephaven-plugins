@@ -17,7 +17,8 @@ def run_command(command: str, exit_on_fail: bool = True) -> int:
         exit_on_fail: Whether to exit if the command fails. Default is True. If False, the code is returned.
 
     Returns:
-        Returns the code if exit_on_fail is true, or 0 if success.
+        If exit_on_fail is True, exits with code 1 if the command failed or returns 0 if it succeeded.
+        If exit_on_fail is False, returns 0 if the command succeeded or the error code.
     """
     code = os.system(command)
     if code != 0 and exit_on_fail:
