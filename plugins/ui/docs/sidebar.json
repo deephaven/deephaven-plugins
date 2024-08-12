@@ -15,6 +15,15 @@
         "path": "README.md"
       },
       {
+        "label": "Getting Started",
+        "items": [
+          {
+            "label": "Installation",
+            "path": "getting-started/installation.md"
+          }
+        ]
+      },
+      {
         "label": "Components",
         "items": [
           {
