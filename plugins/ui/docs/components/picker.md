@@ -40,7 +40,7 @@ Recommendations for creating pickers:
 
 ## Data sources
 
-For pickers, we can use a Deephaven table as a data source to populate the options. When using a table, it automatically uses the first column as both the key and label. If there are any duplicate keys, an error will be thrown; to avoid this, a `select_distinct` can be used on the table prior to using it as a picker data source.
+We can use a Deephaven table as a data source to populate the options for pickers. A table automatically uses the first column as both the key and label. If there are duplicate keys, an error will be thrown; to avoid this, a `select_distinct` can be used on the table before using it as a picker data source.
 
 ```python
 from deephaven import ui
@@ -52,7 +52,7 @@ my_picker_table_source_example = ui.picker(stocks, label="Stock Symbol Picker")
 ```
 
 
-If you wish to manually specify the keys and labels, you can use a  `ui.item_table_source` to dynamically derive the options from a table. 
+If you wish to specify the keys and labels manually, you can use a  `ui.item_table_source` to dynamically derive the options from a table. 
 
 ```python
 from deephaven import ui, empty_table
@@ -78,7 +78,7 @@ my_picker_item_table_source_example = ui.picker(item_table_source, label="User P
 
 ## Labeling
 
-The picker can be labeled using the `label` prop, and if no label is provided, an `aria_label` must be provided to identify the control for accessibility purposes.
+The picker can be labeled using the `label` prop. If no label is provided, an `aria_label` must be provided to identify the control for accessibility purposes.
 
 ```python
 from deephaven import ui
