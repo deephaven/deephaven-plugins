@@ -438,26 +438,26 @@ my_picker_width_examples = ui_picker_width_examples()
 
 The `align` prop sets the text alignment of the options in the picker, while the `direction` prop specifies which direction the menu will open.
 
+It is important to note that the popover will not open in the set `direction` if there is not enough room to open in that direction.
+
 ```python
 from deephaven import ui
 
 
 @ui.component
 def ui_picker_alignment_direction_examples():
-    return ui.view(
-        ui.flex(
-            ui.picker(
-                ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
-                align="end",
-                menu_width="size-3000",
-            ),
-            ui.picker(
-                ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
-                direction="bottom",
-            ),
-            gap="size-150",
-            direction="column",
+    return ui.flex(
+        ui.picker(
+            ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
+            align="end",
+            menu_width="size-3000",
         ),
+        ui.picker(
+            ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
+            direction="top",
+        ),
+        gap="size-150",
+        direction="column",
         padding=40,
     )
 
