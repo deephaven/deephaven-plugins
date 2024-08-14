@@ -4,7 +4,7 @@ View is a general purpose container with no specific semantics that can be used 
 
 View is useful when adding padding, as flex only accepts margin.
 
-Views accept theme colors such as `accent-400`. Theme colors adjust based on a users selected theme.
+Views accept theme colors such as `accent-400`. Theme colors adjust based on a user's selected theme.
 
 ## Example
 
