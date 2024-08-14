@@ -188,6 +188,13 @@ class RenderContext:
     representing the new rendered state.
     """
 
+    _collected_after_render_listeners: set[Callable[[], None]]
+    """
+    After render listeners currently owned by this RenderContext. If currently open and rendering, this will be a fresh set,
+    representing the new rendered state.
+    When the current render cycle is complete, all these listeners will be called.
+    """
+
     _collected_unmount_listeners: set[Callable[[], None]]
     """
     Unmount listeners currently owned by this RenderContext. If currently open and rendering, this will be a fresh set,
@@ -195,7 +202,7 @@ class RenderContext:
     When the context is deleted or unmounted, it will call all the listeners in this set.
     """
 
-    _collected_contexts: set[RenderContext]
+    _collected_contexts: set[ContextKey]
     """
     Child contexts currently owned by this RenderContext. If currently open and rendering, this will be a fresh set,
     representing the new rendered state.
@@ -217,6 +224,7 @@ class RenderContext:
         self._on_change = on_change
         self._on_queue_render = on_queue_render
         self._collected_scopes = set()
+        self._collected_after_render_listeners = set()
         self._collected_unmount_listeners = set()
         self._collected_contexts = set()
         self._top_level_scope = None
@@ -257,6 +265,9 @@ class RenderContext:
         self._top_level_scope = LivenessScope()
         self._collected_scopes = {self._top_level_scope}
 
+        # Reset the after render listeners. No need to retain the old ones.
+        self._collected_after_render_listeners = set()
+
         # Keep a reference to old unmount listeners, and make a collection to track our new ones
         old_unmount_listeners = self._collected_unmount_listeners
         self._collected_unmount_listeners = set()
@@ -269,6 +280,20 @@ class RenderContext:
             with self._top_level_scope.open():
                 yield self
 
+                # Call the unmount listeners for anything that was unmounted
+                old_unmount_listeners -= self._collected_unmount_listeners
+                for listener in old_unmount_listeners:
+                    listener()
+
+                # Release all child contexts that are no longer referenced
+                unmounted_contexts = old_contexts - self._collected_contexts
+                for context_key in unmounted_contexts:
+                    self._children_context[context_key].unmount()
+
+                # Call the after render listeners
+                for listener in self._collected_after_render_listeners:
+                    listener()
+
             # Following the "yield" so we don't do this if there was an error, remove all scopes we're still using.
             # Then, release all leftover scopes that are no longer referenced - we always release after creating new
             # ones, so that each reused object's refcount goes from 1 -> 2 -> 1, instead of 1 -> 0 -> 1 which would
@@ -276,20 +301,6 @@ class RenderContext:
             old_liveness_scopes -= self._collected_scopes
             for scope in old_liveness_scopes:
                 scope.release()
-
-            # Call the unmount listeners for anything that was unmounted
-            old_unmount_listeners -= self._collected_unmount_listeners
-            for listener in old_unmount_listeners:
-                listener()
-
-            # Release all child contexts that are no longer referenced
-            new_contexts = self._collected_contexts - old_contexts
-            for context in new_contexts:
-                context.mount()
-
-            old_contexts -= self._collected_contexts
-            for context in old_contexts:
-                context.unmount()
 
             # If this is the first time (and successful), record the hook count
             hook_count = self._hook_index + 1
@@ -397,6 +408,7 @@ class RenderContext:
             logger.debug("Creating new child context for key %s", key)
             child_context = RenderContext(self._on_change, self._on_queue_render)
             self._children_context[key] = child_context
+        self._collected_contexts.add(key)
         return self._children_context[key]
 
     def next_hook_index(self) -> int:
@@ -425,9 +437,19 @@ class RenderContext:
         assert self is get_context()
         self._collected_scopes.add(cast(LivenessScope, liveness_scope.j_scope))
 
-    def manage_unmount_listener(self, listener: Callable[[], None]) -> None:
+    def add_after_render_listener(self, listener: Callable[[], None]) -> None:
         """
-        Indicates that the given listener must be called when the next successful open() call is completed.
+        Add a listener for after this context is rendered.
+        This RenderContext must be open to call this method.
+        Args:
+            listener: the new listener to track
+        """
+        assert self is get_context()
+        self._collected_after_render_listeners.add(listener)
+
+    def add_unmount_listener(self, listener: Callable[[], None]) -> None:
+        """
+        Add a listener for when this context is unmounted.
         This RenderContext must be open to call this method.
         Args:
             listener: the new listener to track
@@ -496,5 +518,6 @@ class RenderContext:
             listener()
         self._collected_unmount_listeners.clear()
         for context in self._collected_contexts:
-            context.unmount()
+            self._children_context[context].unmount()
         self._collected_contexts.clear()
+        # Note we're not deleting the children context here - the component could mount again, and we want to retain the state.

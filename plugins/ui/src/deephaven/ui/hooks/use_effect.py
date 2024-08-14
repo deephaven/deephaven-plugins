@@ -29,35 +29,46 @@ def use_effect(
     deps_ref: Ref[set[Any] | Sequence[Any] | None] = use_ref(None)
     cleanup_ref: Ref[Union[Callable[[], None], None]] = use_ref(lambda: None)
     scope_ref: Ref[LivenessScope | None] = use_ref(None)
+    is_mounted_ref: Ref[bool] = use_ref(False)
 
     def cleanup():
         if cleanup_ref.current is not None:
             cleanup_ref.current()
+            cleanup_ref.current = None
 
     def run_effect():
+        # Run the previous cleanup first if it exists
+        cleanup()
+
         # Dependencies have changed, so call the effect function and store the new cleanup that's returned, wrapped
         # with a new liveness scope. We will only open this scope once to capture the operations in the function,
         # and will pass ownership to the current RenderContext, which will release it when appropriate.
         liveness_scope = LivenessScope()
 
         with liveness_scope.open():
-            cleanup_ref.current = func()
+            effect_result = func()
+            cleanup_ref.current = effect_result
 
         scope_ref.current = liveness_scope
 
         # Update the dependencies
         deps_ref.current = dependencies
 
+    def after_render():
+        if (
+            not is_mounted_ref.current
+            or dependencies is None
+            or deps_ref.current != dependencies
+        ):
+            run_effect()
+
+        is_mounted_ref.current = True
+
+        # Whether new or existing, continue to retain the liveness scope from the most recently invoked effect.
+        get_context().manage(cast(LivenessScope, scope_ref.current))
+
     handle_unmount = use_callback(cleanup, [])
 
-    # Check if the dependencies have changed
-    if deps_ref.current != dependencies or dependencies is None:
-        # Call the cleanup function from the previous effect
-        cleanup()
-        run_effect()
-
-    # Whether new or existing, continue to retain the liveness scope from the most recently invoked effect.
-    get_context().manage(cast(LivenessScope, scope_ref.current))
-
-    # We want to listen for when component is unmounted
-    get_context().manage_unmount_listener(handle_unmount)
+    # We want to listen for when the render cycle is complete or the component is unmounted
+    get_context().add_after_render_listener(after_render)
+    get_context().add_unmount_listener(handle_unmount)

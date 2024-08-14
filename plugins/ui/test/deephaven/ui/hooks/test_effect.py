@@ -7,43 +7,50 @@ from .render_utils import render_hook
 
 
 class UseEffectTestCase(BaseTestCase):
-    def reset_counter(self):
-        self.counter = itertools.count()
-
     def reset_mocks(self):
-        self.reset_counter()
+        self.called_funcs.clear()
         self.render_start.reset_mock()
         self.render_end.reset_mock()
         self.cleanup.reset_mock()
         self.effect.reset_mock()
 
-    def setUp(self) -> None:
-        self.counter = itertools.count()
+    def make_effect(
+        self, name: str = "effect", cleanup: Union[Callable[[], None], None] = None
+    ):
+        if cleanup is None:
+            cleanup = self.cleanup
 
-        self.inc_counter = lambda: next(self.counter)
-        self.render_start = Mock(side_effect=self.inc_counter)
-        self.render_end = Mock(side_effect=self.inc_counter)
-        self.cleanup = Mock(side_effect=self.inc_counter)
-        self.effect = Mock(return_value=self.cleanup, side_effect=self.inc_counter)
+        def effect():
+            self.called_funcs.append(name)
+            return cleanup
+
+        return Mock(side_effect=effect)
+
+    def setUp(self) -> None:
+        # Used to make sure functions are called in the correct order
+        self.called_funcs: list[str] = []
+
+        self.render_start = Mock(
+            side_effect=lambda: self.called_funcs.append("render_start")
+        )
+        self.render_end = Mock(
+            side_effect=lambda: self.called_funcs.append("render_end")
+        )
+        self.cleanup = Mock(side_effect=lambda: self.called_funcs.append("cleanup"))
+        self.effect = self.make_effect()
 
         return super().setUp()
-
-    def tearDown(self) -> None:
-        return super().tearDown()
-
-    # def test_use_effect(self):
 
     def _test_use_effect(
         self,
         effect: Union[Callable[[], Callable[[], None]], None] = None,
-        dependencies: Union[None, Any] = None,
+        dependencies: Any = None,
     ):
         if effect is None:
             effect = self.effect
 
         from deephaven.ui.hooks import use_effect
 
-        # from deephaven.ui.types import Dependencies
         self.render_start()
         use_effect(effect, dependencies)
         self.render_end()
@@ -59,29 +66,28 @@ class UseEffectTestCase(BaseTestCase):
         self.assertEqual(self.cleanup.call_count, 0)
         self.assertEqual(self.render_start.call_count, 1)
         self.assertEqual(self.render_end.call_count, 1)
-        self.assertEqual(self.render_start.call_args_list[0], 0)
-        self.assertEqual(self.render_end.call_args_list[0], 1)
-        self.assertEqual(self.effect.call_args_list[0], 2)
+        self.assertEqual(self.called_funcs, ["render_start", "render_end", "effect"])
 
         self.reset_mocks()
 
-        cleanup2 = Mock(side_effect=self.inc_counter)
-        effect2 = Mock(return_value=cleanup2, side_effect=self.inc_counter)
+        cleanup2 = Mock(side_effect=lambda: self.called_funcs.append("cleanup2"))
+        effect2 = self.make_effect("effect2", cleanup2)
 
         # Re-render with no dependencies still
-        rerender_result = result["rerender"](effect2)
+        rerender_result = result["rerender"](effect=effect2)
         self.assertEqual(rerender_result, None)
         self.assertEqual(self.effect.call_count, 0)
         self.assertEqual(effect2.call_count, 1)
         # Make sure the old cleanup was called before the new effect
         self.assertEqual(self.cleanup.call_count, 1)
         self.assertEqual(cleanup2.call_count, 0)
-        self.assertEqual(self.render_start.call_args_list[0], 0)
-        self.assertEqual(self.render_end.call_args_list[0], 1)
-        self.assertEqual(self.cleanup.call_args_list[0], 2)
-        self.assertEqual(effect2.call_args_list[0], 3)
+        self.assertEqual(
+            self.called_funcs, ["render_start", "render_end", "cleanup", "effect2"]
+        )
 
         self.reset_mocks()
+        cleanup2.reset_mock()
+        effect2.reset_mock()
 
         # Now unmount
         result["unmount"]()
@@ -90,7 +96,7 @@ class UseEffectTestCase(BaseTestCase):
         self.assertEqual(effect2.call_count, 0)
         self.assertEqual(self.cleanup.call_count, 0)
         self.assertEqual(cleanup2.call_count, 1)
-        self.assertEqual(self.cleanup.call_args_list[0], 0)
+        self.assertEqual(self.called_funcs, ["cleanup2"])
 
     def test_empty_dependencies(self) -> None:
         """
@@ -103,9 +109,7 @@ class UseEffectTestCase(BaseTestCase):
         self.assertEqual(self.cleanup.call_count, 0)
         self.assertEqual(self.render_start.call_count, 1)
         self.assertEqual(self.render_end.call_count, 1)
-        self.assertEqual(self.render_start.call_args_list[0], 0)
-        self.assertEqual(self.render_end.call_args_list[0], 1)
-        self.assertEqual(self.effect.call_args_list[0], 2)
+        self.assertEqual(self.called_funcs, ["render_start", "render_end", "effect"])
 
         self.reset_mocks()
 
@@ -116,8 +120,7 @@ class UseEffectTestCase(BaseTestCase):
         self.assertEqual(self.cleanup.call_count, 0)
         self.assertEqual(self.render_start.call_count, 1)
         self.assertEqual(self.render_end.call_count, 1)
-        self.assertEqual(self.render_start.call_args_list[0], 0)
-        self.assertEqual(self.render_end.call_args_list[0], 1)
+        self.assertEqual(self.called_funcs, ["render_start", "render_end"])
 
         self.reset_mocks()
 
@@ -127,7 +130,7 @@ class UseEffectTestCase(BaseTestCase):
         self.assertEqual(self.render_end.call_count, 0)
         self.assertEqual(self.effect.call_count, 0)
         self.assertEqual(self.cleanup.call_count, 1)
-        self.assertEqual(self.cleanup.call_args_list[0], 0)
+        self.assertEqual(self.called_funcs, ["cleanup"])
 
     def test_dependencies(self) -> None:
         """
@@ -143,9 +146,7 @@ class UseEffectTestCase(BaseTestCase):
         self.assertEqual(self.cleanup.call_count, 0)
         self.assertEqual(self.render_start.call_count, 1)
         self.assertEqual(self.render_end.call_count, 1)
-        self.assertEqual(self.render_start.call_args_list[0], 0)
-        self.assertEqual(self.render_end.call_args_list[0], 1)
-        self.assertEqual(self.effect.call_args_list[0], 2)
+        self.assertEqual(self.called_funcs, ["render_start", "render_end", "effect"])
 
         self.reset_mocks()
 
@@ -156,15 +157,14 @@ class UseEffectTestCase(BaseTestCase):
         self.assertEqual(self.cleanup.call_count, 0)
         self.assertEqual(self.render_start.call_count, 1)
         self.assertEqual(self.render_end.call_count, 1)
-        self.assertEqual(self.render_start.call_args_list[0], 0)
-        self.assertEqual(self.render_end.call_args_list[0], 1)
+        self.assertEqual(self.called_funcs, ["render_start", "render_end"])
 
         self.reset_mocks()
-        cleanup2 = Mock(side_effect=self.inc_counter)
-        effect2 = Mock(return_value=cleanup2, side_effect=self.inc_counter)
+        cleanup2 = Mock(side_effect=lambda: self.called_funcs.append("cleanup2"))
+        effect2 = self.make_effect("effect2", cleanup2)
 
         # Re-render with different dependencies. Should call the effect again, and cleanup the old effect
-        rerender_result = result["rerender"](effect2, [2])
+        rerender_result = result["rerender"](effect=effect2, dependencies=[2])
         self.assertEqual(rerender_result, None)
         self.assertEqual(self.effect.call_count, 0)
         self.assertEqual(effect2.call_count, 1)
@@ -172,17 +172,19 @@ class UseEffectTestCase(BaseTestCase):
         self.assertEqual(cleanup2.call_count, 0)
         self.assertEqual(self.render_start.call_count, 1)
         self.assertEqual(self.render_end.call_count, 1)
-        self.assertEqual(self.render_start.call_args_list[0], 0)
-        self.assertEqual(self.render_end.call_args_list[0], 1)
-        self.assertEqual(effect2.call_args_list[0], 2)
-        self.assertEqual(self.cleanup.call_args_list[0], 3)
+        self.assertEqual(
+            self.called_funcs, ["render_start", "render_end", "cleanup", "effect2"]
+        )
 
         self.reset_mocks()
+        cleanup2.reset_mock()
+        effect2.reset_mock()
 
         # Now unmount
         result["unmount"]()
         self.assertEqual(self.render_start.call_count, 0)
         self.assertEqual(self.render_end.call_count, 0)
+        self.assertEqual(self.cleanup.call_count, 0)
         self.assertEqual(effect2.call_count, 0)
         self.assertEqual(cleanup2.call_count, 1)
-        self.assertEqual(cleanup2.call_args_list[0], 0)
+        self.assertEqual(self.called_funcs, ["cleanup2"])
