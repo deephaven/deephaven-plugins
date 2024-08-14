@@ -327,7 +327,9 @@ my_combo_box_event_example = ui_combo_box_event_example()
 
 ## Control
 
-Each interaction done in the ComboBox will only trigger its associated event handler. For instance, typing in the input field will only trigger the `on_input_change`, not the `on_change`.
+Each interaction done in the ComboBox will trigger its associated event handler. For instance, typing in the input field will only trigger the `on_input_change`, not the `on_change`.
+
+Note, this is not the case for selections; when a selection is made, both the `on_change` and `on_input_change` are triggered.
 
 ```python
 from deephaven import ui
