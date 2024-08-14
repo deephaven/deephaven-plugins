@@ -172,7 +172,7 @@ export function UITable({
           ? TableUtils.REVERSE_TYPE.POST_SORT
           : TableUtils.REVERSE_TYPE.NONE,
         density,
-        settings,
+        settings: { ...settings, showExtraGroupColumn: true },
         onContextMenu,
       }) satisfies Partial<IrisGridProps>,
     [
