@@ -2,8 +2,7 @@ import threading
 import unittest
 from operator import itemgetter
 from queue import Queue
-from time import sleep
-from typing import Callable
+from typing import Any, Callable, TypedDict, Union
 from unittest.mock import Mock
 from .BaseTest import BaseTestCase
 
@@ -11,7 +10,19 @@ LISTENER_TIMEOUT = 2.0
 QUEUE_TIMEOUT = 1.0
 
 
-def render_hook(fn: Callable, queue=None):
+class RenderHookResult(TypedDict):
+    context: object
+    result: Any
+    rerender: Callable[..., Any]
+    unmount: Callable[[], None]
+
+
+def render_hook(
+    fn: Callable[..., Any],
+    *args: Any,
+    queue: Union[Queue[Any], None] = None,
+    **kwargs: Any,
+) -> RenderHookResult:
     """
     Render a hook function and return the context, result, and a rerender function for updating it
 
@@ -29,9 +40,7 @@ def render_hook(fn: Callable, queue=None):
 
     context = RenderContext(lambda x: queue.put(x), lambda x: queue.put(x))
 
-    return_dict = {"context": context, "result": None, "rerender": None}
-
-    def _rerender(*args, **kwargs):
+    def _rerender(*args: Any, **kwargs: Any) -> Any:
         while not queue.empty():
             item = queue.get()
             item()
@@ -40,14 +49,22 @@ def render_hook(fn: Callable, queue=None):
             return_dict["result"] = new_result
         return new_result
 
-    return_dict["rerender"] = _rerender
+    def _unmount() -> None:
+        context.unmount()
 
-    _rerender()
+    return_dict: RenderHookResult = {
+        "context": context,
+        "result": None,
+        "rerender": _rerender,
+        "unmount": _unmount,
+    }
+
+    _rerender(*args, **kwargs)
 
     return return_dict
 
 
-class NotifyQueue(Queue):
+class NotifyQueue(Queue[Any]):
     """
     A queue that notifies a function when an item is put on it
     """
@@ -56,7 +73,9 @@ class NotifyQueue(Queue):
         super().__init__()
         self._notify_fn = None
 
-    def put(self, item: object, block: bool = True, timeout: float = None) -> None:
+    def put(
+        self, item: object, block: bool = True, timeout: Union[float, None] = None
+    ) -> None:
         """
         Put an item on the queue and notify the function
 
@@ -92,7 +111,7 @@ class HooksTest(BaseTestCase):
     def test_state(self):
         from deephaven.ui.hooks import use_state
 
-        def _test_state(value1=1, value2=2):
+        def _test_state(value1: int = 1, value2: int = 2):
             value1, set_value1 = use_state(value1)
             value2, set_value2 = use_state(value2)
             return value1, set_value1, value2, set_value2
@@ -132,7 +151,7 @@ class HooksTest(BaseTestCase):
     def test_ref(self):
         from deephaven.ui.hooks import use_ref
 
-        def _test_ref(value=None):
+        def _test_ref(value: Any = None):
             ref = use_ref(value)
             return ref
 
@@ -153,7 +172,7 @@ class HooksTest(BaseTestCase):
     def test_memo(self):
         from deephaven.ui.hooks import use_memo
 
-        def _test_memo(fn=lambda: "foo", a=1, b=2):
+        def _test_memo(fn: Callable[[], Any] = lambda: "foo", a: Any = 1, b: Any = 2):
             return use_memo(fn, [a, b])
 
         # Initial render
@@ -186,7 +205,7 @@ class HooksTest(BaseTestCase):
         self.assertEqual(result, "biz")
         self.assertEqual(mock.call_count, 1)
 
-        def _test_memo_set(fn=lambda: "foo"):
+        def _test_memo_set(fn: Callable[[], Any] = lambda: "foo"):
             return use_memo(fn, {})
 
         # passing in a non-list/tuple for dependencies should raise a TypeError
@@ -369,7 +388,7 @@ class HooksTest(BaseTestCase):
 
         queue = NotifyQueue()
 
-        render_result = render_hook(_test_table_data, queue)
+        render_result = render_hook(_test_table_data, queue=queue)
 
         result, rerender = itemgetter("result", "rerender")(render_result)
 
@@ -924,6 +943,185 @@ class HooksTest(BaseTestCase):
             set_a(1)
         result = rendered["rerender"]()
         self.assertEqual(0, result)
+
+    def test_use_effect(self):
+        from deephaven.ui.hooks import use_effect
+        from deephaven.ui.types import Dependencies
+        import itertools
+
+        # Use a counter to determine what order the hooks were called in
+        counter = itertools.count()
+
+        inc_counter = lambda: next(counter)
+        render_start = Mock(side_effect=inc_counter)
+        render_end = Mock(side_effect=inc_counter)
+        cleanup = Mock(side_effect=inc_counter)
+        effect = Mock(return_value=cleanup, side_effect=inc_counter)
+
+        def reset_counter():
+            nonlocal counter
+            counter = itertools.count()
+
+        def reset_mocks():
+            reset_counter()
+            render_start.reset_mock()
+            render_end.reset_mock()
+            cleanup.reset_mock()
+            effect.reset_mock()
+
+        def _test_use_effect(
+            effect: Callable[[], Callable[[], None]] = effect,
+            dependencies: Union[None, Dependencies] = None,
+        ):
+            render_start()
+            use_effect(effect, dependencies)
+            render_end()
+
+        def test_no_dependencies() -> None:
+            """
+            Test the use_effect hook with no dependencies.
+            Should call the effect each time after the render, and the previous cleanup before that
+            """
+            reset_mocks()
+
+            result = render_hook(_test_use_effect)
+            self.assertEqual(result["result"], None)
+            self.assertEqual(effect.call_count, 1)
+            self.assertEqual(cleanup.call_count, 0)
+            self.assertEqual(render_start.call_count, 1)
+            self.assertEqual(render_end.call_count, 1)
+            self.assertEqual(render_start.call_args_list[0], 0)
+            self.assertEqual(render_end.call_args_list[0], 1)
+            self.assertEqual(effect.call_args_list[0], 2)
+
+            reset_mocks()
+            cleanup2 = Mock(side_effect=inc_counter)
+            effect2 = Mock(return_value=cleanup2, side_effect=inc_counter)
+
+            # Re-render with no dependencies still
+            rerender_result = result["rerender"](effect2)
+            self.assertEqual(rerender_result, None)
+            self.assertEqual(effect.call_count, 0)
+            self.assertEqual(effect2.call_count, 1)
+            # Make sure the old cleanup was called before the new effect
+            self.assertEqual(cleanup.call_count, 1)
+            self.assertEqual(cleanup2.call_count, 0)
+            self.assertEqual(render_start.call_args_list[0], 0)
+            self.assertEqual(render_end.call_args_list[0], 1)
+            self.assertEqual(cleanup.call_args_list[0], 2)
+            self.assertEqual(effect2.call_args_list[0], 3)
+
+            reset_mocks()
+
+            # Now unmount
+            result["unmount"]()
+            self.assertEqual(render_start.call_count, 0)
+            self.assertEqual(render_end.call_count, 0)
+            self.assertEqual(effect2.call_count, 0)
+            self.assertEqual(cleanup.call_count, 0)
+            self.assertEqual(cleanup2.call_count, 1)
+            self.assertEqual(cleanup.call_args_list[0], 0)
+
+        def test_empty_dependencies() -> None:
+            """
+            Test the use_effect hook with empty dependencies.
+            It should call the effect once on mount, and cleanup once on unmount.
+            """
+            reset_mocks()
+
+            result = render_hook(_test_use_effect, effect, [])
+            self.assertEqual(result["result"], None)
+            self.assertEqual(effect.call_count, 1)
+            self.assertEqual(cleanup.call_count, 0)
+            self.assertEqual(render_start.call_count, 1)
+            self.assertEqual(render_end.call_count, 1)
+            self.assertEqual(render_start.call_args_list[0], 0)
+            self.assertEqual(render_end.call_args_list[0], 1)
+            self.assertEqual(effect.call_args_list[0], 2)
+
+            reset_mocks()
+
+            # Re-render with empty dependencies. Should not call the effect again
+            rerender_result = result["rerender"](effect, [])
+            self.assertEqual(rerender_result, None)
+            self.assertEqual(effect.call_count, 0)
+            self.assertEqual(cleanup.call_count, 0)
+            self.assertEqual(render_start.call_count, 1)
+            self.assertEqual(render_end.call_count, 1)
+            self.assertEqual(render_start.call_args_list[0], 0)
+            self.assertEqual(render_end.call_args_list[0], 1)
+
+            reset_mocks()
+
+            # Now unmount
+            result["unmount"]()
+            self.assertEqual(render_start.call_count, 0)
+            self.assertEqual(render_end.call_count, 0)
+            self.assertEqual(effect.call_count, 0)
+            self.assertEqual(cleanup.call_count, 1)
+            self.assertEqual(cleanup.call_args_list[0], 0)
+
+        def test_dependencies() -> None:
+            """
+            Test the use_effect hook with dependencies.
+            It should call the effect only when the dependencies are changed, and when the component mounts.
+            It should call the previous cleanup when dependencies are changed, and when the component unmounts.
+            """
+            reset_mocks()
+
+            result = render_hook(_test_use_effect, effect, [1])
+            self.assertEqual(result["result"], None)
+            self.assertEqual(effect.call_count, 1)
+            self.assertEqual(cleanup.call_count, 0)
+            self.assertEqual(render_start.call_count, 1)
+            self.assertEqual(render_end.call_count, 1)
+            self.assertEqual(render_start.call_args_list[0], 0)
+            self.assertEqual(render_end.call_args_list[0], 1)
+            self.assertEqual(effect.call_args_list[0], 2)
+
+            reset_mocks()
+
+            # Re-render with the same dependencies. Should not call the effect again
+            rerender_result = result["rerender"](effect, [1])
+            self.assertEqual(rerender_result, None)
+            self.assertEqual(effect.call_count, 0)
+            self.assertEqual(cleanup.call_count, 0)
+            self.assertEqual(render_start.call_count, 1)
+            self.assertEqual(render_end.call_count, 1)
+            self.assertEqual(render_start.call_args_list[0], 0)
+            self.assertEqual(render_end.call_args_list[0], 1)
+
+            reset_mocks()
+            cleanup2 = Mock(side_effect=inc_counter)
+            effect2 = Mock(return_value=cleanup2, side_effect=inc_counter)
+
+            # Re-render with different dependencies. Should call the effect again, and cleanup the old effect
+            rerender_result = result["rerender"](effect2, [2])
+            self.assertEqual(rerender_result, None)
+            self.assertEqual(effect.call_count, 0)
+            self.assertEqual(effect2.call_count, 1)
+            self.assertEqual(cleanup.call_count, 1)
+            self.assertEqual(cleanup2.call_count, 0)
+            self.assertEqual(render_start.call_count, 1)
+            self.assertEqual(render_end.call_count, 1)
+            self.assertEqual(render_start.call_args_list[0], 0)
+            self.assertEqual(render_end.call_args_list[0], 1)
+            self.assertEqual(effect2.call_args_list[0], 2)
+            self.assertEqual(cleanup.call_args_list[0], 3)
+
+            reset_mocks()
+
+            # Now unmount
+            result["unmount"]()
+            self.assertEqual(render_start.call_count, 0)
+            self.assertEqual(render_end.call_count, 0)
+            self.assertEqual(effect2.call_count, 0)
+            self.assertEqual(cleanup2.call_count, 1)
+            self.assertEqual(cleanup2.call_args_list[0], 0)
+
+        test_no_dependencies()
+        test_empty_dependencies()
+        test_dependencies()
 
 
 if __name__ == "__main__":
