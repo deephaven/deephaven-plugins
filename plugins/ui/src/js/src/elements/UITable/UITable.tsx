@@ -20,6 +20,7 @@ import { UITableProps, wrapContextActions } from './UITableUtils';
 import UITableMouseHandler from './UITableMouseHandler';
 import JsTableProxy from './JsTableProxy';
 import UITableContextMenuHandler from './UITableContextMenuHandler';
+import UITableModel from './UITableModel';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
 
@@ -45,6 +46,7 @@ export function UITable({
   density,
   contextMenu,
   contextHeaderMenu,
+  databars,
 }: UITableProps): JSX.Element | null {
   const dh = useApi();
   const [irisGrid, setIrisGrid] = useState<IrisGridType | null>(null);
@@ -101,7 +103,15 @@ export function UITable({
         table: table as dh.Table,
         layoutHints,
       });
-      const newModel = await IrisGridModelFactory.makeModel(dh, newTable);
+      // const newModel = await IrisGridModelFactory.makeModel(dh, newTable);
+      const newModel = new UITableModel(
+        dh,
+        await IrisGridModelFactory.makeModel(dh, newTable),
+        newTable,
+        databars ?? [],
+        layoutHints
+      );
+      await newModel.init();
       if (!isCancelled) {
         setColumns(newTable.columns);
         setModel(newModel);
