@@ -230,6 +230,7 @@ class RenderContext:
         self._top_level_scope = None
 
     def __del__(self):
+        logger.debug("Deleting context")
         for scope in self._collected_scopes:
             scope.release()
         self.unmount()
@@ -514,6 +515,7 @@ class RenderContext:
         """
         Unmount this context. This will call all unmount listeners, but retains state in case it is mounted again.
         """
+        logger.debug("Unmounting context")
         for listener in self._collected_unmount_listeners:
             listener()
         self._collected_unmount_listeners.clear()

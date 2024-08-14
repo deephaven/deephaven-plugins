@@ -67,7 +67,11 @@ def use_effect(
         # Whether new or existing, continue to retain the liveness scope from the most recently invoked effect.
         get_context().manage(cast(LivenessScope, scope_ref.current))
 
-    handle_unmount = use_callback(cleanup, [])
+    def unmount():
+        is_mounted_ref.current = False
+        cleanup()
+
+    handle_unmount = use_callback(unmount, [])
 
     # We want to listen for when the render cycle is complete or the component is unmounted
     get_context().add_after_render_listener(after_render)
