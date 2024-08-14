@@ -2,6 +2,10 @@
 
 View is a general purpose container with no specific semantics that can be used for custom styling purposes. It supports Deephaven UI style props to ensure consistency with other components.
 
+A view is useful when wanting to add padding and margin, since a flex only accepts margin.
+
+Views also accepts theme colors such as `accent-400`, that adjust based on a users seletced theme.
+
 ## Example
 
 ```python
@@ -10,7 +14,8 @@ from deephaven import ui
 view = ui.view(
     ui.text_field(label="Name"),
     border_width="thin",
-    border_color="light",
+    border_color="accent-400",
+    background_color="seafoam-500",
     border_radius="medium",
     padding="size-250",
 )
