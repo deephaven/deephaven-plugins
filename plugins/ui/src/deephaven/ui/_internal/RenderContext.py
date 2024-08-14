@@ -188,6 +188,19 @@ class RenderContext:
     representing the new rendered state.
     """
 
+    _collected_unmount_listeners: set[Callable[[], None]]
+    """
+    Unmount listeners currently owned by this RenderContext. If currently open and rendering, this will be a fresh set,
+    representing the new rendered state.
+    When the context is deleted or unmounted, it will call all the listeners in this set.
+    """
+
+    _collected_contexts: set[RenderContext]
+    """
+    Child contexts currently owned by this RenderContext. If currently open and rendering, this will be a fresh set,
+    representing the new rendered state.
+    """
+
     def __init__(self, on_change: OnChangeCallable, on_queue_render: OnChangeCallable):
         """
         Create a new render context.
@@ -204,11 +217,14 @@ class RenderContext:
         self._on_change = on_change
         self._on_queue_render = on_queue_render
         self._collected_scopes = set()
+        self._collected_unmount_listeners = set()
+        self._collected_contexts = set()
         self._top_level_scope = None
 
     def __del__(self):
         for scope in self._collected_scopes:
             scope.release()
+        self.unmount()
 
     @contextmanager
     def open(self) -> Generator[RenderContext, None, None]:
@@ -240,6 +256,15 @@ class RenderContext:
         old_liveness_scopes = self._collected_scopes
         self._top_level_scope = LivenessScope()
         self._collected_scopes = {self._top_level_scope}
+
+        # Keep a reference to old unmount listeners, and make a collection to track our new ones
+        old_unmount_listeners = self._collected_unmount_listeners
+        self._collected_unmount_listeners = set()
+
+        # Keep a reference to old child contexts, and make a collection to track our new ones
+        old_contexts = self._collected_contexts
+        self._collected_contexts = set()
+
         try:
             with self._top_level_scope.open():
                 yield self
@@ -252,6 +277,20 @@ class RenderContext:
             for scope in old_liveness_scopes:
                 scope.release()
 
+            # Call the unmount listeners for anything that was unmounted
+            old_unmount_listeners -= self._collected_unmount_listeners
+            for listener in old_unmount_listeners:
+                listener()
+
+            # Release all child contexts that are no longer referenced
+            new_contexts = self._collected_contexts - old_contexts
+            for context in new_contexts:
+                context.mount()
+
+            old_contexts -= self._collected_contexts
+            for context in old_contexts:
+                context.unmount()
+
             # If this is the first time (and successful), record the hook count
             hook_count = self._hook_index + 1
             if self._hook_count < 0:
@@ -261,6 +300,8 @@ class RenderContext:
             # function were successful, so also keep around old liveness scopes, they'll be cleared after the next
             # successful render.
             self._collected_scopes |= old_liveness_scopes
+            self._collected_unmount_listeners |= old_unmount_listeners
+            self._collected_contexts |= old_contexts
 
             # re-raise the exception
             raise e
@@ -384,6 +425,16 @@ class RenderContext:
         assert self is get_context()
         self._collected_scopes.add(cast(LivenessScope, liveness_scope.j_scope))
 
+    def manage_unmount_listener(self, listener: Callable[[], None]) -> None:
+        """
+        Indicates that the given listener must be called when the next successful open() call is completed.
+        This RenderContext must be open to call this method.
+        Args:
+            listener: the new listener to track
+        """
+        assert self is get_context()
+        self._collected_unmount_listeners.add(listener)
+
     def export_state(self) -> ExportedRenderState:
         """
         Export the state of this context. This is used to serialize the state for the client.
@@ -432,3 +483,18 @@ class RenderContext:
             for key, child_state in state["children"].items():
                 self.get_child_context(key).import_state(child_state)
         logger.debug("New state is %s", self._state)
+
+    def mount(self) -> None:
+        # TODO: We need to add a listener for this, and also call it when it's mounted... but don't call the effect twice on initial mount.
+        pass
+
+    def unmount(self) -> None:
+        """
+        Unmount this context. This will call all unmount listeners, but retains state in case it is mounted again.
+        """
+        for listener in self._collected_unmount_listeners:
+            listener()
+        self._collected_unmount_listeners.clear()
+        for context in self._collected_contexts:
+            context.unmount()
+        self._collected_contexts.clear()
