@@ -2,9 +2,9 @@
 
 View is a general purpose container with no specific semantics that can be used for custom styling purposes. It supports Deephaven UI style props to ensure consistency with other components.
 
-A view is useful when wanting to add padding and margin, since a flex only accepts margin.
+View is useful when adding padding, as flex only accepts margin.
 
-Views also accepts theme colors such as `accent-400`, that adjust based on a users seletced theme.
+Views accept theme colors such as `accent-400`. Theme colors adjust based on a users selected theme.
 
 ## Example
 
