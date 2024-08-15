@@ -36,6 +36,7 @@ export function UITable({
   table: exportedTable,
   showSearch: showSearchBar,
   showQuickFilters,
+  showExtraGroupColumn,
   reverse,
   frontColumns,
   backColumns,
@@ -172,7 +173,7 @@ export function UITable({
           ? TableUtils.REVERSE_TYPE.POST_SORT
           : TableUtils.REVERSE_TYPE.NONE,
         density,
-        settings: { ...settings, showExtraGroupColumn: true },
+        settings: { ...settings, showExtraGroupColumn },
         onContextMenu,
       }) satisfies Partial<IrisGridProps>,
     [
@@ -185,6 +186,7 @@ export function UITable({
       reverse,
       density,
       settings,
+      showExtraGroupColumn,
       onContextMenu,
     ]
   );
