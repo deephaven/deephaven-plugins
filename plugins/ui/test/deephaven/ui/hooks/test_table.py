@@ -10,7 +10,7 @@ LISTENER_TIMEOUT = 2.0
 QUEUE_TIMEOUT = 1.0
 
 
-class NotifyQueue(Queue[Any]):
+class NotifyQueue(Queue):
     """
     A queue that notifies a function when an item is put on it
     """
