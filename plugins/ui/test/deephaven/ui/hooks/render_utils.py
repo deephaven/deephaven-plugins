@@ -1,3 +1,4 @@
+from __future__ import annotations
 from queue import Queue
 from typing import Any, Callable, TypedDict, Union
 
