@@ -8,8 +8,6 @@ from .{{ cookiecutter.__type_file_name }} import {{ cookiecutter.__type_name }}
 PACKAGE_NAMESPACE = "{{cookiecutter.__py_namespace}}"
 # Where the Javascript plugin is. This is set in setup.py.
 JS_NAME = "_js"
-# The JsPlugin class that will be created and registered.
-PLUGIN_CLASS = {{ cookiecutter.__py_js_plugin_obj_name }}
 
 
 class {{ cookiecutter.__registration_name }}(Registration):
@@ -22,8 +20,7 @@ class {{ cookiecutter.__registration_name }}(Registration):
         # The JavaScript plugin requires a special registration process, which is handled here
         js_plugin = create_js_plugin(
             PACKAGE_NAMESPACE,
-            JS_NAME,
-            PLUGIN_CLASS,
+            JS_NAME
         )
 
         callback.register(js_plugin)
