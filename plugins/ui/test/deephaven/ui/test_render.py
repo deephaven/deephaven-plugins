@@ -1,4 +1,6 @@
+from __future__ import annotations
 from unittest.mock import Mock
+from typing import cast
 from .BaseTest import BaseTestCase
 
 
@@ -12,8 +14,10 @@ def make_render_context(
 
 class RenderTestCase(BaseTestCase):
     def test_empty_render(self):
+        from deephaven.ui._internal.RenderContext import RenderContext
+
         on_change = Mock(side_effect=lambda x: x())
-        rc = make_render_context(on_change)
+        rc = cast(RenderContext, make_render_context(on_change))
         self.assertEqual(rc._hook_index, -2)
         self.assertEqual(rc._state, {})
         self.assertEqual(rc._children_context, {})
@@ -23,7 +27,7 @@ class RenderTestCase(BaseTestCase):
         from deephaven.ui._internal.RenderContext import RenderContext
 
         on_change = Mock(side_effect=lambda x: x())
-        rc = make_render_context(on_change)
+        rc = cast(RenderContext, make_render_context(on_change))
 
         # Set up the hooks used with initial render (3 hooks)
         with rc.open():
@@ -55,7 +59,7 @@ class RenderTestCase(BaseTestCase):
         from deephaven.ui._internal.RenderContext import RenderContext
 
         on_change = Mock(side_effect=lambda x: x())
-        rc = make_render_context(on_change)
+        rc = cast(RenderContext, make_render_context(on_change))
 
         with rc.open():
             self.assertEqual(rc.has_state(0), False)
@@ -73,7 +77,7 @@ class RenderTestCase(BaseTestCase):
         from deephaven.ui._internal.RenderContext import RenderContext
 
         on_change = Mock(side_effect=lambda x: x())
-        rc = make_render_context(on_change)
+        rc = cast(RenderContext, make_render_context(on_change))
 
         child_context0 = rc.get_child_context(0)
         child_context1 = rc.get_child_context(1)
@@ -250,3 +254,75 @@ class RenderImportTestCase(BaseTestCase):
                     self.assertEqual(child_context1.get_state(0), 4)
                     self.assertEqual(child_context1.has_state(1), True)
                     self.assertEqual(child_context1.get_state(1), 5)
+
+
+# class RenderUnmountChildrenTestCase(BaseTestCase):
+#     def test_unmount_children(self):
+#         from deephaven.ui._internal.RenderContext import RenderContext
+
+#         rc = cast(RenderContext, make_render_context())
+
+#         with rc.open():
+#             rc.init_state(0, 1)
+#             child_context0 = rc.get_child_context(0)
+#             with child_context0.open():
+#                 child_context0.init_state(0, 2)
+#                 child_context0.init_state(1, 3)
+#                 child_context1 = child_context0.get_child_context(0)
+#                 with child_context1.open():
+#                     child_context1.init_state(0, 4)
+#                     child_context1.init_state(1, 5)
+
+#         with rc.open():
+#             rc.unmount_children()
+
+#         state = rc.export_state()
+#         self.assertEqual(state, {})
+
+# def test_unmount_children_with_state(self):
+#     from deephaven.ui._internal.RenderContext import RenderContext
+
+#     rc = make_render_context()
+
+#     with rc.open():
+#         rc.init_state(0, 1)
+#         child_context0 = rc.get_child_context(0)
+#         with child_context0.open():
+#             child_context0.init_state(0, 2)
+#             child_context0.init_state(1, 3)
+#             child_context1 = child_context0.get_child_context(0)
+#             with child_context1.open():
+#                 child_context1.init_state(0, 4)
+#                 child_context1.init_state(1, 5)
+
+#     with rc.open():
+#         rc.unmount_children()
+
+#     state = rc.export_state()
+#     self.assertEqual(state, {})
+
+# def test_unmount_children_with_state(self):
+#     from deephaven.ui._internal.RenderContext import RenderContext
+
+#     rc = cast(RenderContext, make_render_context())
+
+#     with rc.open():
+#         rc.init_state(0, 1)
+#         child_context0 = rc.get_child_context(0)
+#         with child_context0.open():
+#             child_context0.init_state(0, 2)
+#             child_context0.init_state(1, 3)
+#             child_context1 = child_context0.get_child_context(0)
+#             with child_context1.open():
+#                 child_context1.init_state(0, 4)
+#                 child_context1.init_state(1, 5)
+
+#     rc.unmount()
+
+#     state = rc.export_state()
+#     self.assertEqual(state, {})
+
+# def test_unmount_children_with_state(self):
+#     from deephaven.ui._internal.RenderContext import RenderContext
+
+#     rc = make
