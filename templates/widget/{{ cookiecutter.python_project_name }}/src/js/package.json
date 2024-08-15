@@ -39,8 +39,5 @@
   },
   "files": [
     "dist/index.js"
-  ],
-  "engines": {
-    "npm": ">=8"
-  }
+  ]
 }
