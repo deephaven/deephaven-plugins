@@ -162,7 +162,9 @@ def view(
         id: The unique identifier of the element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
+
     """
+
     return component_element(
         "View",
         children=children,

@@ -115,6 +115,7 @@ def illustrated_message(
         )
 
     """
+
     return component_element(
         "IllustratedMessage",
         *children,

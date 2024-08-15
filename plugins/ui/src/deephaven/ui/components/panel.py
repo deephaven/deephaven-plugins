@@ -54,6 +54,7 @@ def panel(
         padding_end: The padding to apply after the element.
         padding_x: The padding to apply to the left and right of the element.
         padding_y: The padding to apply to the top and bottom of the element.
+
     """
 
     children, props = create_props(locals())
