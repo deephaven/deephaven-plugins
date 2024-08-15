@@ -46,10 +46,13 @@ def _render_list(
         context: The context to render the list in.
     """
     logger.debug("_render_list %s", item)
-    return [
-        _render_item(value, context.get_child_context(str(key)))
-        for key, value in enumerate(item)
-    ]
+    with context.open():
+        # TODO: We need to get a better key for these children... that incorporates the name of the element if it is an element
+        # Otherwise, use the type? Need to do the same in render_dict
+        return [
+            _render_item(value, context.get_child_context(f"{str(key)}-{type(value)}"))
+            for key, value in enumerate(item)
+        ]
 
 
 def _render_dict(item: PropsType, context: RenderContext) -> PropsType:
@@ -62,10 +65,12 @@ def _render_dict(item: PropsType, context: RenderContext) -> PropsType:
         context: The context to render the dictionary in.
     """
     logger.debug("_render_props %s", item)
-    return {
-        key: _render_item(value, context.get_child_context(key))
-        for key, value in item.items()
-    }
+
+    with context.open():
+        return {
+            key: _render_item(value, context.get_child_context(f"{key}-{type(value)}"))
+            for key, value in item.items()
+        }
 
 
 def _render_element(element: Element, context: RenderContext) -> RenderedNode:
@@ -81,10 +86,14 @@ def _render_element(element: Element, context: RenderContext) -> RenderedNode:
     """
     logger.debug("Rendering %s: ", element.name)
 
-    props = element.render(context)
+    with context.open():
+        props = element.render(context)
 
-    # We also need to render any elements that are passed in as props
-    props = _render_dict(props, context)
+        # We also need to render any elements that are passed in as props
+        props_context = context.get_child_context("__props")
+        props = _render_dict(props, props_context)
+        print(f"Done rendering props for {element.name} with context {props_context}")
+    print(f"Done rendering {element.name} with context {context}")
 
     return RenderedNode(element.name, props)
 

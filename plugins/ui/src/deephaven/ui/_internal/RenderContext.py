@@ -239,8 +239,8 @@ class RenderContext:
         logger.debug("Deleting context")
         for scope in self._collected_scopes:
             scope.release()
-        # if not self._is_unmounted:
-        #     self.unmount()
+        if not self._is_unmounted:
+            self.unmount()
 
     @contextmanager
     def open(self) -> Generator[RenderContext, None, None]:
@@ -295,9 +295,13 @@ class RenderContext:
 
                 # Release all child contexts that are no longer referenced
                 unmounted_contexts = old_contexts - self._collected_contexts
+                print(
+                    f"xxx unmounted contexts {unmounted_contexts}, old_contexts {old_contexts}, collected_contexts {self._collected_contexts}, self {self}"
+                )
                 for context_key in unmounted_contexts:
+                    print(f"xxx deleting unmounted context {context_key} from {self}")
                     self._children_context[context_key].unmount()
-                    # del self._children_context[context_key]
+                    del self._children_context[context_key]
 
                 # Call the after render listeners
                 for listener in self._collected_after_render_listeners:
@@ -392,7 +396,6 @@ class RenderContext:
             key: The key to set the state for.
             value: The value to set the state to. Can be a callable that takes the old value and returns the new value.
         """
-        print(f"xxx settings state {key} to {value}")
         if key not in self._state:
             raise KeyError(f"Key {key} not initialized")
 
@@ -403,6 +406,7 @@ class RenderContext:
                 new_value = _value_or_call(partial(value, old_value))
             else:
                 new_value = _value_or_call(value)
+            print(f"xxx setting state {key} to {value} in {self}")
             self._state[key] = new_value
 
         # This is not the initial state, queue up the state change on the render loop
@@ -412,6 +416,8 @@ class RenderContext:
         """
         Get the child context for the given key.
         """
+        print(f"xxx getting child coddntext {key} in {self}")
+
         logger.debug("Getting child context for key %s", key)
         if key not in self._children_context:
             logger.debug("Creating new child context for key %s", key)
@@ -523,22 +529,23 @@ class RenderContext:
         """
         Unmount this context. This will unmount all child contexts, call all unmount listeners, and clear the state.
         """
-        # assert not self._is_unmounted
+        print(f"xxx unmounting context {self}")
+        assert not self._is_unmounted
 
-        # self._is_unmounted = True
-        # logger.debug("Unmounting context")
-        # for context in self._children_context:
-        #     self._children_context[context].unmount()
+        self._is_unmounted = True
+        logger.debug("Unmounting context")
+        for context in self._children_context:
+            self._children_context[context].unmount()
 
-        # for listener in self._collected_unmount_listeners:
-        #     listener()
+        for listener in self._collected_unmount_listeners:
+            listener()
 
-        # # Clear all our children states so we don't hold a reference to anything.
-        # self._hook_index = _READY_TO_OPEN
-        # self._hook_count = -1
-        # self._state.clear()
-        # self._children_context.clear()
-        # self._collected_scopes.clear()
-        # self._collected_after_render_listeners.clear()
-        # self._collected_unmount_listeners.clear()
-        # self._collected_contexts.clear()
+        # Clear all our children states so we don't hold a reference to anything.
+        self._hook_index = _READY_TO_OPEN
+        self._hook_count = -1
+        self._state.clear()
+        self._children_context.clear()
+        self._collected_scopes.clear()
+        self._collected_after_render_listeners.clear()
+        self._collected_unmount_listeners.clear()
+        self._collected_contexts.clear()

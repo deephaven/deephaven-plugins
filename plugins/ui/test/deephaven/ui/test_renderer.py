@@ -102,35 +102,39 @@ class RendererTestCase(BaseTestCase):
         print(f"xxx on_change {on_change.call_args_list}")
         print(f"xxx on_queue {on_queue.call_args_list}")
 
-        new_result = renderer.render(ui_parent())
+        print("xxx re-rendering")
+        result = renderer.render(ui_parent())
+        print("xxx done re-rendering")
 
         # Check that the rendered tree is correct
-        assert new_result.props != None
-        self.assertEqual(len(new_result.props["children"]), 2)
-        count_btn = find_action_button(new_result)
+        assert result.props != None
+        self.assertEqual(len(result.props["children"]), 2)
+        count_btn = find_action_button(result)
         assert count_btn.props != None
         self.assertEqual(count_btn.props["children"], "Count is 1")
 
         # Toggle the visibility of the child component
-        toggle_btn = find_toggle_button(new_result)
+        toggle_btn = find_toggle_button(result)
         assert toggle_btn.props != None
         toggle_btn.props["onChange"](False)
 
         # Re-render
-        new_result = renderer.render(ui_parent())
+        print("xxx re-rendering2")
+        result = renderer.render(ui_parent())
+        print("xxx done re-rendering2")
 
         # Counter button should no longer be in the tree
-        self.assertRaises(ValueError, lambda: find_action_button(new_result))
+        self.assertRaises(ValueError, lambda: find_action_button(result))
 
         # Toggle the visibility of the child component
-        toggle_btn = find_toggle_button(new_result)
+        toggle_btn = find_toggle_button(result)
         assert toggle_btn.props != None
         toggle_btn.props["onChange"](True)
 
         # Re-render
-        new_result = renderer.render(ui_parent())
+        result = renderer.render(ui_parent())
 
         # Counter button should be back in the tree, and back at count 0
-        count_btn = find_action_button(new_result)
+        count_btn = find_action_button(result)
         assert count_btn.props != None
         self.assertEqual(count_btn.props["children"], "Count is 0")
