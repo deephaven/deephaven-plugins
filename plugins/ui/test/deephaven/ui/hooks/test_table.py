@@ -1,3 +1,4 @@
+from __future__ import annotations
 from operator import itemgetter
 import threading
 from queue import Queue
