@@ -8,6 +8,7 @@ from .{{ cookiecutter.__object_file_name }} import {{ cookiecutter.__object_name
 
 # Create a custom message stream to send messages to the client
 
+
 class {{ cookiecutter.__message_stream_name }}(MessageStream):
     """
     A custom MessageStream
@@ -20,10 +21,12 @@ class {{ cookiecutter.__message_stream_name }}(MessageStream):
         super().__init__()
         self._client_connection = client_connection
 
-        # Start the message stream. All we do is send a blank message to start. Client will respond with the initial state.
+        # Start the message stream.
+        # All we do is send a blank message to start.
+        # Client will respond with the initial state.
         self._client_connection.on_data(b"", [])
 
-        obj._set_connection(self)
+        obj.set_connection(self)
 
     def send_message(self, message: str) -> None:
         """
@@ -56,6 +59,7 @@ class {{ cookiecutter.__message_stream_name }}(MessageStream):
         Close the connection
         """
         pass
+
 
 # The object type that will be registered with the plugin system.
 # The object is bidirectional, meaning it can send messages to and from the client.
