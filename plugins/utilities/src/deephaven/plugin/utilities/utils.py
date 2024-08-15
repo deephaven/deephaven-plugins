@@ -119,7 +119,9 @@ def _resource_js_path(
 
 
 def create_js_plugin(
-    package_namespace: str, js_name: str, plugin_class: Type[CommonJsPlugin]
+    package_namespace: str,
+    js_name: str,
+    plugin_class: Type[CommonJsPlugin] = CommonJsPlugin,
 ) -> JsPlugin:
     """
     Create a JsPlugin from an npm package.json file.
@@ -130,7 +132,7 @@ def create_js_plugin(
         js_name:
             The resource name
         plugin_class:
-            The class to create. It must be a subclass of JsPlugin.
+            The class to create. It must be a subclass of CommonJsPlugin.
 
     Returns:
         The created JsPlugin
