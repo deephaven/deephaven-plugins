@@ -41,6 +41,6 @@
     "dist/index.js"
   ],
   "engines": {
-    "node": "20.13.1"
+    "npm": ">=8"
   }
 }
