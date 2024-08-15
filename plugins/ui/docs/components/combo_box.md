@@ -19,6 +19,7 @@ def ui_combo_box_basic():
         ui.item("aardvark"),
         ui.item("kangaroo"),
         ui.item("snake"),
+        ui.item("ant"),
         label="Favourite Animal",
         selected_key=option,
         on_change=set_option,
@@ -33,16 +34,14 @@ my_combo_box_basic = ui_combo_box_basic()
 Recommendations for creating clear and effective combo boxes:
 
 1. The combo box's text input simplifies searching through large lists. For lists with fewer than 6 items, use radio buttons. For lists with more than 6 items, assess if the list is complex enough to need searching and filtering, and if not, use a picker instead.
-2. It's acceptable to suppress the popover when the combo box contains familiar entries. The popover can still be opened by clicking the field button with the chevron.
-3. Immediately launch the popover if users are unfamiliar with the combo box content or if the data is particularly complex.
-4. Every combo box should have a label specified. Without one, the combo box is ambiguous and not accessible.
-5. Options in the combo box should be kept short and concise; multiple lines are strongly discouraged. If more than one line is needed, consider using a description to add context to the option.
-6. Choose a `width` for your combo boxes that can accommodate most of the available options.
-7. The field labels, menu items, and placeholder text should all be in sentence case.
-8. Identify which combo boxes are required or optional, and use the `is_required` field or the `necessity_indicator` to mark them accordingly.
-9. A combo box's help text should provide actionable guidance on what to select and how to select it, offering additional context without repeating the placeholder text.
-10. When an error occurs, the help text specified in a combo box is replaced by error text; thus, ensure both help and error text convey the same essential information to maintain consistent messaging and prevent loss of critical details.
-11. Write error messages in a clear, concise, and helpful manner, guiding users to resolve the issue without ambiguity; ideally, they should be 1-2 short, complete sentences.
+2. Every combo box should have a label specified. Without one, the combo box is ambiguous and not accessible.
+3. Options in the combo box should be kept short and concise; multiple lines are strongly discouraged. If more than one line is needed, consider using a description to add context to the option.
+4. Choose a `width` for your combo boxes that can accommodate most of the available options.
+5. The field labels, menu items, and placeholder text should all be in sentence case.
+6. Identify which combo boxes are required or optional, and use the `is_required` field or the `necessity_indicator` to mark them accordingly.
+7. A combo box's help text should provide actionable guidance on what to select and how to select it, offering additional context without repeating the placeholder text.
+8. When an error occurs, the help text specified in a combo box is replaced by error text; thus, ensure both help and error text convey the same essential information to maintain consistent messaging and prevent loss of critical details.
+9. Write error messages in a clear, concise, and helpful manner, guiding users to resolve the issue without ambiguity; ideally, they should be 1-2 short, complete sentences.
 
 
 ## Data sources
@@ -55,16 +54,13 @@ from deephaven.plot import express as dx
 
 
 t = empty_table(10).update(
-    [
-        "Timestamp = '2024-01-01T00:00:00 ET' + 'PT1m'.multipliedBy(ii)",
-        "Group = randomInt(1, 5)",
-    ]
+    ["Timestamp = '2024-01-01T00:00:00 ET' + 'PT1m'.multipliedBy(ii)"]
 )
 
-stocks = dx.data.stocks().select_distinct("Sym")
-
-
 my_combo_box_table_source_example = ui.combo_box(t, label="Sample ComboBox")
+
+
+stocks = dx.data.stocks().select_distinct("Sym")
 
 
 my_combo_box_table_source_example_2 = ui.combo_box(
@@ -72,6 +68,7 @@ my_combo_box_table_source_example_2 = ui.combo_box(
 )
 ```
 
+## Item table sources
 
 If you wish to manually specify the keys and labels, use a `ui.item_table_source` to dynamically derive the options from a table. 
 
@@ -108,6 +105,9 @@ By default, when a combo box loses focus, it resets its input value to match the
 
 ```python
 from deephaven import ui
+from deephaven.plot import express as dx
+
+countries = dx.data.gapminder().select_distinct("Country")
 
 
 @ui.component
@@ -116,14 +116,14 @@ def ui_combo_box_custom_value_examples():
     value_2, set_value_2 = ui.use_state("")
     return [
         ui.combo_box(
-            ui.section(ui.item("Option 1"), ui.item("Option 2")),
+            countries,
             on_input_change=set_value,
             allows_custom_value=True,
             label="Allows custom value",
         ),
         ui.text_field(value=value),
         ui.combo_box(
-            ui.section(ui.item("Option 1"), ui.item("Option 2")),
+            countries,
             on_input_change=set_value_2,
             allows_custom_value=False,
             label="Does not allow custom value",
@@ -153,6 +153,9 @@ def ui_combo_box_form_examples():
                 ui.item("Mint"),
                 ui.item("Vanilla"),
                 ui.item("Strawberry"),
+                ui.item("Cookies and Cream"),
+                ui.item("Coffee"),
+                ui.item("Mango"),
                 label="Ice cream flavor",
                 allows_custom_value=True,
             ),
@@ -160,6 +163,9 @@ def ui_combo_box_form_examples():
                 ui.item("Panda"),
                 ui.item("Cat"),
                 ui.item("Dog"),
+                ui.item("Hamster"),
+                ui.item("Rabbit"),
+                ui.item("Horse"),
                 label="Favourite Animal",
                 name="favouriteAnimalId",
             ),
@@ -188,6 +194,11 @@ def ui_combo_box_label_examples():
             ui.item("Option 1"),
             ui.item("Option 2"),
             ui.item("Option 3"),
+            ui.item("Option 4"),
+            ui.item("Option 5"),
+            ui.item("Option 6"),
+            ui.item("Option 7"),
+            ui.item("Option 8"),
             label="Pick an option",
         ),
         ui.combo_box(
@@ -195,6 +206,10 @@ def ui_combo_box_label_examples():
             ui.item("Option 2"),
             ui.item("Option 3"),
             ui.item("Option 4"),
+            ui.item("Option 5"),
+            ui.item("Option 6"),
+            ui.item("Option 7"),
+            ui.item("Option 8"),
             aria_label="Pick an option",
         ),
     ]
@@ -219,6 +234,10 @@ def ui_combo_box_required_examples():
             ui.item("Option 1"),
             ui.item("Option 2"),
             ui.item("Option 3"),
+            ui.item("Option 4"),
+            ui.item("Option 5"),
+            ui.item("Option 6"),
+            ui.item("Option 7"),
             label="Pick an option",
             is_required=True,
         ),
@@ -227,6 +246,10 @@ def ui_combo_box_required_examples():
             ui.item("Option 2"),
             ui.item("Option 3"),
             ui.item("Option 4"),
+            ui.item("Option 5"),
+            ui.item("Option 6"),
+            ui.item("Option 7"),
+            ui.item("Option 8"),
             label="Pick an option",
             is_required=True,
             necessity_indicator="label",
@@ -236,6 +259,11 @@ def ui_combo_box_required_examples():
             ui.item("Option 2"),
             ui.item("Option 3"),
             ui.item("Option 4"),
+            ui.item("Option 5"),
+            ui.item("Option 6"),
+            ui.item("Option 7"),
+            ui.item("Option 8"),
+            ui.item("Option 9"),
             label="Pick an option",
             necessity_indicator="label",
         ),
@@ -264,6 +292,12 @@ def ui_combo_box_selected_key_examples():
             ui.item("Option 1"),
             ui.item("Option 2"),
             ui.item("Option 3"),
+            ui.item("Option 4"),
+            ui.item("Option 5"),
+            ui.item("Option 6"),
+            ui.item("Option 7"),
+            ui.item("Option 8"),
+            ui.item("Option 9"),
             default_selected_key="Option 2",
             label="Pick an option (uncontrolled)",
         ),
@@ -272,6 +306,11 @@ def ui_combo_box_selected_key_examples():
             ui.item("Option 2"),
             ui.item("Option 3"),
             ui.item("Option 4"),
+            ui.item("Option 5"),
+            ui.item("Option 6"),
+            ui.item("Option 7"),
+            ui.item("Option 8"),
+            ui.item("Option 9"),
             selected_key=option,
             on_change=set_option,
             label="Pick an option (controlled)",
@@ -289,13 +328,35 @@ Combo box supports sections in order to group options. Sections can be used by w
 
 Note that, when searching for options, searching by section will not result in the respective options within that section appearing. 
 
+Also, sections can only be used directly, not from a table data source.
+
 ```python
 from deephaven import ui
 
 
 my_combo_box_section_example = ui.combo_box(
-    ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
-    ui.section(ui.item("Option 3"), ui.item("Option 4"), title="Section 2"),
+    ui.section(
+        ui.item("Option 1"),
+        ui.item("Option 2"),
+        ui.item("Option 3"),
+        ui.item("Option 4"),
+        ui.item("Option 5"),
+        ui.item("Option 6"),
+        ui.item("Option 7"),
+        ui.item("Option 8"),
+        title="Section 1",
+    ),
+    ui.section(
+        ui.item("Option 9"),
+        ui.item("Option 10"),
+        ui.item("Option 11"),
+        ui.item("Option 12"),
+        ui.item("Option 13"),
+        ui.item("Option 14"),
+        ui.item("Option 15"),
+        ui.item("Option 16"),
+        title="Section 2",
+    ),
 )
 ```
 
@@ -304,32 +365,10 @@ my_combo_box_section_example = ui.combo_box(
 
 Combo Box supports selection via mouse, keyboard, and touch. You can handle all of these via the `on_change` prop, which receives the selected key as an argument. Additionally, Combo Box accepts an `on_input_change` prop which is triggered whenever the search value is edited by the user, whether through typing or option selection.
 
-```python
-from deephaven import ui
-
-
-@ui.component
-def ui_combo_box_event_example():
-    value, set_value = ui.use_state("")
-    return ui.form(
-        ui.combo_box(
-            ui.item("Option 1"),
-            ui.item("Option 2"),
-            input_value=value,
-            on_change=set_value,
-        )
-    )
-
-
-my_combo_box_event_example = ui_combo_box_event_example()
-```
-
-
-## Control
-
 Each interaction done in the ComboBox will trigger its associated event handler. For instance, typing in the input field will only trigger the `on_input_change`, not the `on_change`.
 
 Note, this is not the case for selections; when a selection is made, both the `on_change` and `on_input_change` are triggered.
+
 
 ```python
 from deephaven import ui
@@ -356,6 +395,11 @@ def ui_combo_box_control_example():
             ui.item("Option 2"),
             ui.item("Option 3"),
             ui.item("Option 4"),
+            ui.item("Option 5"),
+            ui.item("Option 6"),
+            ui.item("Option 7"),
+            ui.item("Option 8"),
+            ui.item("Option 9"),
             input_value=input_value,
             on_input_change=handle_input_change,
             selected_key=selection_state,
@@ -433,17 +477,38 @@ def ui_combo_box_trigger_option_examples():
         ui.combo_box(
             ui.item("Option 1"),
             ui.item("Option 2"),
+            ui.item("Option 3"),
+            ui.item("Option 4"),
+            ui.item("Option 5"),
+            ui.item("Option 6"),
+            ui.item("Option 7"),
+            ui.item("Option 8"),
+            ui.item("Option 9"),
             label="Select Option",
         ),
         ui.combo_box(
             ui.item("Option 1"),
             ui.item("Option 2"),
+            ui.item("Option 3"),
+            ui.item("Option 4"),
+            ui.item("Option 5"),
+            ui.item("Option 6"),
+            ui.item("Option 7"),
+            ui.item("Option 8"),
+            ui.item("Option 9"),
             label="Select Option",
             menu_trigger="focus",
         ),
         ui.combo_box(
             ui.item("Option 1"),
             ui.item("Option 2"),
+            ui.item("Option 3"),
+            ui.item("Option 4"),
+            ui.item("Option 5"),
+            ui.item("Option 6"),
+            ui.item("Option 7"),
+            ui.item("Option 8"),
+            ui.item("Option 9"),
             label="Select Option",
             menu_trigger="manual",
         ),
@@ -468,11 +533,25 @@ def ui_combo_box_label_position_examples():
         ui.combo_box(
             ui.item("Option 1"),
             ui.item("Option 2"),
+            ui.item("Option 3"),
+            ui.item("Option 4"),
+            ui.item("Option 5"),
+            ui.item("Option 6"),
+            ui.item("Option 7"),
+            ui.item("Option 8"),
+            ui.item("Option 9"),
             label="Test Label",
         ),
         ui.combo_box(
             ui.item("Option 1"),
             ui.item("Option 2"),
+            ui.item("Option 3"),
+            ui.item("Option 4"),
+            ui.item("Option 5"),
+            ui.item("Option 6"),
+            ui.item("Option 7"),
+            ui.item("Option 8"),
+            ui.item("Option 9"),
             label="Test Label",
             label_position="side",
         ),
@@ -494,6 +573,13 @@ from deephaven import ui
 my_combo_box_is_quiet_example = ui.combo_box(
     ui.item("Option 1"),
     ui.item("Option 2"),
+    ui.item("Option 3"),
+    ui.item("Option 4"),
+    ui.item("Option 5"),
+    ui.item("Option 6"),
+    ui.item("Option 7"),
+    ui.item("Option 8"),
+    ui.item("Option 9"),
     is_quiet=True,
 )
 ```
@@ -510,6 +596,13 @@ from deephaven import ui
 my_combo_box_is_disabled_example = ui.combo_box(
     ui.item("Option 1"),
     ui.item("Option 2"),
+    ui.item("Option 3"),
+    ui.item("Option 4"),
+    ui.item("Option 5"),
+    ui.item("Option 6"),
+    ui.item("Option 7"),
+    ui.item("Option 8"),
+    ui.item("Option 9"),
     is_disabled=True,
 )
 ```
@@ -526,6 +619,12 @@ from deephaven import ui
 my_combo_box_is_read_only_example = ui.combo_box(
     ui.item("Option 1", key="Option 1"),
     ui.item("Option 2", key="Option 2"),
+    ui.item("Option 3", key="Option 3"),
+    ui.item("Option 4", key="Option 4"),
+    ui.item("Option 5", key="Option 5"),
+    ui.item("Option 6", key="Option 6"),
+    ui.item("Option 7", key="Option 7"),
+    ui.item("Option 8", key="Option 8"),
     default_selected_key="Option 1",
     is_read_only=True,
 )
@@ -544,12 +643,32 @@ from deephaven import ui
 def ui_combo_box_help_text_examples():
     return [
         ui.combo_box(
-            ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
+            ui.section(
+                ui.item("Option 1", key="Option 1"),
+                ui.item("Option 2", key="Option 2"),
+                ui.item("Option 3", key="Option 3"),
+                ui.item("Option 4", key="Option 4"),
+                ui.item("Option 5", key="Option 5"),
+                ui.item("Option 6", key="Option 6"),
+                ui.item("Option 7", key="Option 7"),
+                ui.item("Option 8", key="Option 8"),
+                title="Section 1",
+            ),
             label="Sample Label",
             description="Enter a comment.",
         ),
         ui.combo_box(
-            ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
+            ui.section(
+                ui.item("Option 1", key="Option 1"),
+                ui.item("Option 2", key="Option 2"),
+                ui.item("Option 3", key="Option 3"),
+                ui.item("Option 4", key="Option 4"),
+                ui.item("Option 5", key="Option 5"),
+                ui.item("Option 6", key="Option 6"),
+                ui.item("Option 7", key="Option 7"),
+                ui.item("Option 8", key="Option 8"),
+                title="Section 1",
+            ),
             label="Sample Label",
             validation_state="invalid",
             error_message="Sample invalid error message.",
@@ -570,7 +689,17 @@ from deephaven import ui
 
 
 my_combo_box_contextual_help_example = ui.combo_box(
-    ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
+    ui.section(
+        ui.item("Option 1"),
+        ui.item("Option 2"),
+        ui.item("Option 3"),
+        ui.item("Option 4"),
+        ui.item("Option 5"),
+        ui.item("Option 6"),
+        ui.item("Option 7"),
+        ui.item("Option 8"),
+        title="Section 1",
+    ),
     label="Sample Label",
     contextual_help=ui.contextual_help(ui.heading("Content tips")),
 )
@@ -589,11 +718,25 @@ from deephaven import ui
 def ui_combo_box_width_examples():
     return [
         ui.combo_box(
-            ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
+            ui.item("Option 1", key="Option 1"),
+            ui.item("Option 2", key="Option 2"),
+            ui.item("Option 3", key="Option 3"),
+            ui.item("Option 4", key="Option 4"),
+            ui.item("Option 5", key="Option 5"),
+            ui.item("Option 6", key="Option 6"),
+            ui.item("Option 7", key="Option 7"),
+            ui.item("Option 8", key="Option 8"),
             width="size-3600",
         ),
         ui.combo_box(
-            ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
+            ui.item("Option 1", key="Option 1"),
+            ui.item("Option 2", key="Option 2"),
+            ui.item("Option 3", key="Option 3"),
+            ui.item("Option 4", key="Option 4"),
+            ui.item("Option 5", key="Option 5"),
+            ui.item("Option 6", key="Option 6"),
+            ui.item("Option 7", key="Option 7"),
+            ui.item("Option 8", key="Option 8"),
             width="size-3600",
             max_width="100%",
         ),
@@ -617,12 +760,26 @@ def ui_combo_box_alignment_direction_examples():
     return ui.view(
         ui.flex(
             ui.combo_box(
-                ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
+                ui.item("Option 1"),
+                ui.item("Option 2"),
+                ui.item("Option 3"),
+                ui.item("Option 4"),
+                ui.item("Option 5"),
+                ui.item("Option 6"),
+                ui.item("Option 7"),
+                ui.item("Option 8"),
                 align="end",
                 menu_width="size-3000",
             ),
             ui.combo_box(
-                ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
+                ui.item("Option 1"),
+                ui.item("Option 2"),
+                ui.item("Option 3"),
+                ui.item("Option 4"),
+                ui.item("Option 5"),
+                ui.item("Option 6"),
+                ui.item("Option 7"),
+                ui.item("Option 8"),
                 direction="top",
             ),
             gap="size-150",
