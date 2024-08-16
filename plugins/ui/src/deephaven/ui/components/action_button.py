@@ -161,6 +161,9 @@ def action_button(
         aria_details: The details for the element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
+
+    Returns:
+        The rendered ActionButton element.
     """
     return component_element(
         "ActionButton",
