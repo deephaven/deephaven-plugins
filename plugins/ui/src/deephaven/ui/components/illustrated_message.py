@@ -98,7 +98,8 @@ def illustrated_message(
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
 
-
+    Returns:
+        The rendered IllustratedMessage component.
     """
 
     return component_element(
