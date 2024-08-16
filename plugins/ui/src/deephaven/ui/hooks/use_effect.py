@@ -30,16 +30,13 @@ def use_effect(
     cleanup_ref: Ref[Union[Callable[[], None], None]] = use_ref(lambda: None)
     scope_ref: Ref[LivenessScope | None] = use_ref(None)
     is_mounted_ref: Ref[bool] = use_ref(False)
-
-    def cleanup():
-        if cleanup_ref.current is not None:
-            cleanup_ref.current()
-            cleanup_ref.current = None
+    is_dirty = (
+        not is_mounted_ref.current
+        or dependencies is None
+        or deps_ref.current != dependencies
+    )
 
     def run_effect():
-        # Run the previous cleanup first if it exists
-        cleanup()
-
         # Dependencies have changed, so call the effect function and store the new cleanup that's returned, wrapped
         # with a new liveness scope. We will only open this scope once to capture the operations in the function,
         # and will pass ownership to the current RenderContext, which will release it when appropriate.
@@ -54,15 +51,16 @@ def use_effect(
         # Update the dependencies
         deps_ref.current = dependencies
 
-    def after_render():
-        if (
-            not is_mounted_ref.current
-            or dependencies is None
-            or deps_ref.current != dependencies
-        ):
-            run_effect()
+    def cleanup():
+        if is_dirty and cleanup_ref.current is not None:
+            cleanup_ref.current()
+            cleanup_ref.current = None
 
+    def effect():
         is_mounted_ref.current = True
+
+        if is_dirty:
+            run_effect()
 
         # Whether new or existing, continue to retain the liveness scope from the most recently invoked effect.
         get_context().manage(cast(LivenessScope, scope_ref.current))
@@ -74,5 +72,5 @@ def use_effect(
     handle_unmount = use_callback(unmount, [])
 
     # We want to listen for when the render cycle is complete or the component is unmounted
-    get_context().add_after_render_listener(after_render)
+    get_context().add_effect(cleanup, effect)
     get_context().add_unmount_listener(handle_unmount)

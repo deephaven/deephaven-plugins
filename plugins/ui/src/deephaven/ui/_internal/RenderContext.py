@@ -6,7 +6,9 @@ from typing import (
     Any,
     Callable,
     Dict,
+    List,
     Optional,
+    Tuple,
     TypeVar,
     Union,
     Generator,
@@ -56,6 +58,16 @@ The key for a child context.
 ChildrenContextDict = Dict[ContextKey, "RenderContext"]
 """
 The child contexts for a RenderContext.
+"""
+
+CleanupFunction = Callable[[], None]
+"""
+A function that cleans up an effect.
+"""
+
+EffectFunction = Callable[[], None]
+"""
+A function that performs an effect.
 """
 
 
@@ -188,21 +200,20 @@ class RenderContext:
     representing the new rendered state.
     """
 
-    _collected_after_render_listeners: set[Callable[[], None]]
+    _collected_effects: List[Tuple[CleanupFunction, EffectFunction]]
     """
-    After render listeners currently owned by this RenderContext. If currently open and rendering, this will be a fresh set,
-    representing the new rendered state.
-    When the current render cycle is complete, all these listeners will be called.
+    Effects currently owned by this RenderContext. Takes a tuple of a cleanup function and an effect function.
+    When the current render cycle is complete, first it will call all the cleanup functions in the set, then it will call all the effect functions.
     """
 
-    _collected_unmount_listeners: set[Callable[[], None]]
+    _collected_unmount_listeners: List[Callable[[], None]]
     """
     Unmount listeners currently owned by this RenderContext. If currently open and rendering, this will be a fresh set,
     representing the new rendered state.
     When the context is deleted or unmounted, it will call all the listeners in this set.
     """
 
-    _collected_contexts: set[ContextKey]
+    _collected_contexts: List[ContextKey]
     """
     Child contexts currently owned by this RenderContext. If currently open and rendering, this will be a fresh set,
     representing the new rendered state.
@@ -229,9 +240,9 @@ class RenderContext:
         self._on_change = on_change
         self._on_queue_render = on_queue_render
         self._collected_scopes = set()
-        self._collected_after_render_listeners = set()
-        self._collected_unmount_listeners = set()
-        self._collected_contexts = set()
+        self._collected_effects = []
+        self._collected_unmount_listeners = []
+        self._collected_contexts = []
         self._top_level_scope = None
         self._is_unmounted = False
 
@@ -274,34 +285,37 @@ class RenderContext:
         self._collected_scopes = {self._top_level_scope}
 
         # Reset the after render listeners. No need to retain the old ones.
-        self._collected_after_render_listeners = set()
+        self._collected_effects = []
 
         # Keep a reference to old unmount listeners, and make a collection to track our new ones
         old_unmount_listeners = self._collected_unmount_listeners
-        self._collected_unmount_listeners = set()
+        self._collected_unmount_listeners = []
 
         # Keep a reference to old child contexts, and make a collection to track our new ones
         old_contexts = self._collected_contexts
-        self._collected_contexts = set()
+        self._collected_contexts = []
 
         try:
             with self._top_level_scope.open():
                 yield self
 
-                # Call the unmount listeners for anything that was unmounted
-                old_unmount_listeners -= self._collected_unmount_listeners
-                for listener in old_unmount_listeners:
-                    listener()
-
                 # Release all child contexts that are no longer referenced
-                unmounted_contexts = old_contexts - self._collected_contexts
-                for context_key in unmounted_contexts:
-                    self._children_context[context_key].unmount()
-                    del self._children_context[context_key]
+                [
+                    self.delete_child_context(context_key)
+                    for context_key in old_contexts
+                    if context_key not in self._collected_contexts
+                ]
 
-                # Call the after render listeners
-                for listener in self._collected_after_render_listeners:
+                # Call the unmount listeners for anything that was unmounted
+                [
                     listener()
+                    for listener in old_unmount_listeners
+                    if listener not in self._collected_unmount_listeners
+                ]
+
+                # Call all the cleanup functions registered, then all the effect functions
+                [effect[0]() for effect in self._collected_effects]
+                [effect[1]() for effect in self._collected_effects]
 
             # Following the "yield" so we don't do this if there was an error, remove all scopes we're still using.
             # Then, release all leftover scopes that are no longer referenced - we always release after creating new
@@ -320,8 +334,6 @@ class RenderContext:
             # function were successful, so also keep around old liveness scopes, they'll be cleared after the next
             # successful render.
             self._collected_scopes |= old_liveness_scopes
-            self._collected_unmount_listeners |= old_unmount_listeners
-            self._collected_contexts |= old_contexts
 
             # re-raise the exception
             raise e
@@ -336,6 +348,9 @@ class RenderContext:
             self._hook_index = _READY_TO_OPEN
             # Clear the top level scope to ensure nothing tries to use it until opened again
             self._top_level_scope = None
+
+            # Reset the after render listeners. No need to retain the old ones.
+            self._collected_effects = []
 
         if self._hook_count != hook_count:
             # It isn't ideal to throw this anywhere - but this speaks to a malformed component, and there is no
@@ -424,8 +439,15 @@ class RenderContext:
                 self,
             )
             self._children_context[key] = child_context
-        self._collected_contexts.add(key)
+        self._collected_contexts.append(key)
         return self._children_context[key]
+
+    def delete_child_context(self, key: ContextKey) -> None:
+        """
+        Unmount and delete the child context for the given key.
+        """
+        self._children_context[key].unmount()
+        del self._children_context[key]
 
     def next_hook_index(self) -> int:
         """
@@ -453,15 +475,16 @@ class RenderContext:
         assert self is get_context()
         self._collected_scopes.add(cast(LivenessScope, liveness_scope.j_scope))
 
-    def add_after_render_listener(self, listener: Callable[[], None]) -> None:
+    def add_effect(self, cleanup: CleanupFunction, effect: EffectFunction) -> None:
         """
-        Add a listener for after this context is rendered.
+        Add an effect for after this context is rendered.
         This RenderContext must be open to call this method.
         Args:
-            listener: the new listener to track
+            cleanup: the cleanup function to run from the previous effect. All cleanups are run before any effects.
+            effect: the new effect to run.
         """
         assert self is get_context()
-        self._collected_after_render_listeners.add(listener)
+        self._collected_effects.append((cleanup, effect))
 
     def add_unmount_listener(self, listener: Callable[[], None]) -> None:
         """
@@ -471,7 +494,7 @@ class RenderContext:
             listener: the new listener to track
         """
         assert self is get_context()
-        self._collected_unmount_listeners.add(listener)
+        self._collected_unmount_listeners.append(listener)
 
     def export_state(self) -> ExportedRenderState:
         """
@@ -546,6 +569,6 @@ class RenderContext:
         self._state.clear()
         self._children_context.clear()
         self._collected_scopes.clear()
-        self._collected_after_render_listeners.clear()
+        self._collected_effects.clear()
         self._collected_unmount_listeners.clear()
         self._collected_contexts.clear()
