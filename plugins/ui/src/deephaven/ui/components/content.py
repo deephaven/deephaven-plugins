@@ -59,7 +59,7 @@ def content(
     Content represents the primary content within a Spectrum container.
 
     Args:
-        children: The content to render within the container.
+        *children: The content to render within the container.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
