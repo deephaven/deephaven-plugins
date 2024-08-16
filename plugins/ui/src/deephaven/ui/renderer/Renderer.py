@@ -1,11 +1,44 @@
 from __future__ import annotations
 import logging
-from typing import Any
+from typing import Any, Dict, List, Tuple, Union
 from .._internal import RenderContext
 from ..elements import Element, PropsType
 from .RenderedNode import RenderedNode
 
 logger = logging.getLogger(__name__)
+
+
+def _get_context_key(item: Any, index_key: str) -> Union[str, None]:
+    """
+    Get a key for an item provided at the array/dict `index_key`. This is used to uniquely identify the item in the
+    render context.
+
+    Args:
+        item: The item to get a key for.
+        index_key: The key of the item in the array/dict.
+
+    Returns:
+        The key for the item in the render context.
+        - If `item` is an `Element` generate a key based on the `index_key` and the `name` of the `Element`.
+        - If the item is another iterable, just return the `index_key`.
+        - Otherwise, return `None` as the key.
+        - TODO #731: use a `key` prop if it exists on the `Element`.
+    """
+    if isinstance(item, Element):
+        return f"{index_key}-{item.name}"
+    if isinstance(item, (Dict, List, Tuple)):
+        return index_key
+    return None
+
+
+def _render_child_item(item: Any, index_key: str, context: RenderContext) -> Any:
+    """
+    Renders a child item with a child context. If the child item does not need to be rendered, just return the item.
+    """
+    key = _get_context_key(item, index_key)
+    if key is not None:
+        return _render_item(item, context.get_child_context(key))
+    return item
 
 
 def _render_item(item: Any, context: RenderContext) -> Any:
@@ -47,10 +80,8 @@ def _render_list(
     """
     logger.debug("_render_list %s", item)
     with context.open():
-        # TODO: We need to get a better key for these children... that incorporates the name of the element if it is an element
-        # Otherwise, use the type? Need to do the same in render_dict
         return [
-            _render_item(value, context.get_child_context(f"{str(key)}-{type(value)}"))
+            _render_child_item(value, str(key), context)
             for key, value in enumerate(item)
         ]
 
@@ -64,13 +95,22 @@ def _render_dict(item: PropsType, context: RenderContext) -> PropsType:
         item: The dictionary to render.
         context: The context to render the dictionary in.
     """
-    logger.debug("_render_props %s", item)
+    logger.debug("_render_dict %s", item)
 
     with context.open():
-        return {
-            key: _render_item(value, context.get_child_context(f"{key}-{type(value)}"))
-            for key, value in item.items()
-        }
+        return _render_dict_in_open_context(item, context)
+
+
+def _render_dict_in_open_context(item: PropsType, context: RenderContext) -> PropsType:
+    """
+    Render a dictionary. You may be able to pass in an element as a prop that needs to be rendered, not just as a child.
+    For example, a `label` prop of a button can accept a string or an element.
+
+    Args:
+        item: The dictionary to render.
+        context: The context to render the dictionary in.
+    """
+    return {key: _render_child_item(value, key, context) for key, value in item.items()}
 
 
 def _render_element(element: Element, context: RenderContext) -> RenderedNode:
@@ -89,9 +129,8 @@ def _render_element(element: Element, context: RenderContext) -> RenderedNode:
     with context.open():
         props = element.render(context)
 
-        # We also need to render any elements that are passed in as props
-        props_context = context.get_child_context("__props")
-        props = _render_dict(props, props_context)
+        # We also need to render any elements that are passed in as props (including `children`)
+        props = _render_dict_in_open_context(props, context)
 
     return RenderedNode(element.name, props)
 
