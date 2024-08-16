@@ -98,21 +98,6 @@ def illustrated_message(
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
 
-    Examples:
-        no_results = ui.illustrated_message(
-            ui.heading("No Results"),
-            ui.content("Try another search"),
-        )
-        warning = ui.illustrated_message(
-            ui.icon("vsWarning"),
-            ui.heading("Invalid input"),
-            ui.content("No special characters allowed."),
-        )
-        error_message = ui.illustrated_message(
-            ui.icon("vsError"),
-            ui.heading("Access denied"),
-            ui.content("You do not have permissions to access this page."),
-        )
 
     """
 
