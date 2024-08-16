@@ -70,7 +70,6 @@ def use_table_listener(
     dependencies: Dependencies,
     description: str | None = None,
     do_replay: bool = False,
-    replay_lock: LockType = "shared",
 ) -> None:
     """
     Listen to a table and call a listener when the table updates.
@@ -85,7 +84,6 @@ def use_table_listener(
         description: An optional description for the UpdatePerformanceTracker to append to the listener’s
           entry description, default is None.
         do_replay: Whether to replay the initial snapshot of the table, default is False.
-        replay_lock: The lock type used during replay, default is ‘shared’, can also be ‘exclusive’.
     """
 
     def start_listener() -> Callable[[], None]:
@@ -103,12 +101,11 @@ def use_table_listener(
             wrap_listener(listener),
             description=description,  # type: ignore # missing Optional type
             do_replay=do_replay,
-            replay_lock=replay_lock,
         )
 
         return lambda: handle.stop()
 
     use_effect(
         start_listener,
-        [table, listener, description, do_replay, replay_lock] + list(dependencies),
+        [table, listener, description, do_replay] + list(dependencies),
     )
