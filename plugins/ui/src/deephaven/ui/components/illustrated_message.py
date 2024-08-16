@@ -56,6 +56,7 @@ def illustrated_message(
 ) -> Element:
     """
     An IllustratedMessage displays an illustration and a message, usually for an empty state or an error page.
+
     Args:
         *children: The content of the IllustratedMessage which consist of three areas: an illustration, a title, and a body.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
