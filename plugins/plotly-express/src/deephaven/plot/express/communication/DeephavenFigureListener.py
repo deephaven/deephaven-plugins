@@ -68,9 +68,11 @@ class DeephavenFigureListener:
         """
         for table, node in self._partitioned_tables.values():
             listen_func = partial(self._on_update, node)
-            handle = listen(table, listen_func)
-            self._handles.append(handle)
-            self._liveness_scope.manage(handle)
+            # if a table is not refreshing, it will never update, so no need to listen
+            if table.is_refreshing:
+                handle = listen(table, listen_func)
+                self._handles.append(handle)
+                self._liveness_scope.manage(handle)
 
     def _get_figure(self) -> DeephavenFigure | None:
         """

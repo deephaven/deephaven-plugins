@@ -34,8 +34,8 @@
             "path": "candlestick.md"
           },
           {
-            "label": "ECDF",
-            "path": "ecdf.md"
+            "label": "Density Heatmap",
+            "path": "density_heatmap.md"
           },
           {
             "label": "Funnel",
@@ -133,10 +133,6 @@
           {
             "label": "Multiple axes",
             "path": "multiple-axes.md"
-          },
-          {
-            "label": "Titles and legends",
-            "path": "other.md"
           }
         ]
       }

@@ -73,6 +73,7 @@ export type UITableProps = {
   frozenColumns?: string[];
   hiddenColumns?: string[];
   columnGroups?: dh.ColumnGroup[];
+  density?: 'compact' | 'regular' | 'spacious';
   contextMenu?: ResolvableUIContextItem | ResolvableUIContextItem[];
   contextHeaderMenu?: ResolvableUIContextItem | ResolvableUIContextItem[];
 };

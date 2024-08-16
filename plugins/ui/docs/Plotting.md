@@ -18,11 +18,11 @@ def plot_filtered_table(table, initial_value):
     text, set_text = ui.use_state("DOG")
     # the filter is memoized so that it is only recalculated when the text changes
     filtered_table = ui.use_memo(
-        lambda: table.where(f"sym = `{text.upper()}`"), [table, text]
+        lambda: table.where(f"Sym = `{text.upper()}`"), [table, text]
     )
     return [
         ui.text_field(value=text, on_change=set_text),
-        dx.line(filtered_table, x="timestamp", y="price", title=f"Filtered by: {text}"),
+        dx.line(filtered_table, x="Timestamp", y="Price", title=f"Filtered by: {text}"),
     ]
 
 
@@ -44,7 +44,7 @@ _stocks = dx.data.stocks()
 def plot_partitioned_table(table, initial_value):
     text, set_text = ui.use_state(initial_value)
     # memoize the partition by so that it only performed once
-    partitioned_table = ui.use_memo(lambda: table.partition_by(["sym"]), [table])
+    partitioned_table = ui.use_memo(lambda: table.partition_by(["Sym"]), [table])
     constituent_table = ui.use_memo(
         lambda: partitioned_table.get_constituent(text.upper()),
         [partitioned_table, text],
@@ -53,7 +53,7 @@ def plot_partitioned_table(table, initial_value):
         ui.text_field(value=text, on_change=set_text),
         # only attempt to plot valid partition keys
         dx.line(
-            constituent_table, x="timestamp", y="price", title=f"partition key: {text}"
+            constituent_table, x="Timestamp", y="Price", title=f"partition key: {text}"
         )
         if constituent_table != None
         else ui.text("Please enter a valid partition."),
@@ -87,7 +87,7 @@ def partition_then_filter(table, by, initial_value):
     )
     return [
         ui.text_field(value=text, on_change=set_text),
-        dx.line(filtered, x="timestamp", y="price", by=[f"{by[1]}"]),
+        dx.line(filtered, x="Timestamp", y="Price", by=[f"{by[1]}"]),
     ]
 
 
@@ -102,11 +102,11 @@ def where_then_partition(table, by, initial_value):
     )
     return [
         ui.text_field(value=text, on_change=set_text),
-        dx.line(filtered, x="timestamp", y="price", by=[f"{by[1]}"]),
+        dx.line(filtered, x="Timestamp", y="Price", by=[f"{by[1]}"]),
     ]
 
 
 # outputs the same thing, done two different ways depending on how you want the work done
-ptf = partition_then_filter(_stocks, ["sym", "exchange"], "DOG")
-wtp = where_then_partition(_stocks, ["sym", "exchange"], "DOG")
+ptf = partition_then_filter(_stocks, ["Sym", "Exchange"], "DOG")
+wtp = where_then_partition(_stocks, ["Sym", "Exchange"], "DOG")
 ```

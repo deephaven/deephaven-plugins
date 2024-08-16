@@ -1,4 +1,6 @@
 export class MixedPanelsError extends Error {
+  name = 'MixedPanelsError';
+
   isMixedPanelsError = true;
 }
 

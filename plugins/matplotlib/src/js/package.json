@@ -1,6 +1,6 @@
 {
   "name": "@deephaven/js-plugin-matplotlib",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Deephaven Matplotlib plugin",
   "keywords": [
     "Deephaven",
@@ -30,20 +30,23 @@
     "@vitejs/plugin-react-swc": "^3.0.0",
     "@types/react-dom": "^17.0.2",
     "react": "^17.0.2",
+    "react-dom": "^17.0.2",
     "typescript": "^4.5.4",
     "vite": "~4.1.4"
   },
   "peerDependencies": {
-    "react": "^17.0.2"
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
   },
   "dependencies": {
-    "@deephaven/components": "^0.58.0",
-    "@deephaven/dashboard": "^0.58.0",
-    "@deephaven/icons": "^0.58.0",
-    "@deephaven/jsapi-bootstrap": "^0.58.0",
-    "@deephaven/jsapi-types": "^0.58.0",
-    "@deephaven/log": "^0.58.0",
-    "@deephaven/plugin": "^0.58.0"
+    "@deephaven/components": "^0.87.0",
+    "@deephaven/dashboard": "^0.86.0",
+    "@deephaven/icons": "^0.87.0",
+    "@deephaven/jsapi-bootstrap": "^0.87.0",
+    "@deephaven/jsapi-types": "1.0.0-dev0.35.2",
+    "@deephaven/log": "^0.87.0",
+    "@deephaven/plugin": "^0.86.0",
+    "nanoid": "^5.0.7"
   },
   "publishConfig": {
     "access": "public"

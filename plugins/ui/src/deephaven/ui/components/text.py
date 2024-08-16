@@ -8,12 +8,14 @@ from .types import (
     LayoutFlex,
     Position,
 )
+from ..types import Color
 from .basic import component_element
 from ..elements import Element
 
 
 def text(
     *children: Any,
+    color: Color | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,
@@ -59,7 +61,8 @@ def text(
     Text represents text with no specific semantic meaning.
 
     Args:
-        children: Text content
+        children: Text content.
+        color: The color of the text.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -104,6 +107,7 @@ def text(
     return component_element(
         "Text",
         children=children,
+        color=color,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,

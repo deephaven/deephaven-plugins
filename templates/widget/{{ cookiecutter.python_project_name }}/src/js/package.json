@@ -23,16 +23,17 @@
     "vite": "~4.1.4"
   },
   "peerDependencies": {
-    "react": "^17.0.2"
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
   },
   "dependencies": {
-    "@deephaven/components": "^0.58.0",
-    "@deephaven/dashboard": "^0.58.0",
-    "@deephaven/icons": "^0.58.0",
-    "@deephaven/jsapi-bootstrap": "^0.58.0",
-    "@deephaven/jsapi-types": "^0.58.0",
-    "@deephaven/log": "^0.58.0",
-    "@deephaven/plugin": "^0.58.0"
+    "@deephaven/components": "^0.85.0",
+    "@deephaven/dashboard": "^0.85.0",
+    "@deephaven/icons": "^0.85.0",
+    "@deephaven/jsapi-bootstrap": "^0.85.0",
+    "@deephaven/jsapi-types": "1.0.0-dev0.35.2",
+    "@deephaven/log": "^0.85.0",
+    "@deephaven/plugin": "^0.85.0"
   },
   "publishConfig": {
     "access": "public"

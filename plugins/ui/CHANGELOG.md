@@ -2,6 +2,25 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.19.0 - 2024-07-29
+#### Bug Fixes
+- deephaven.ui panels disappearing in some cases (#682) - (c3997d1) - mofojed
+- ErrorBoundary small styling changes (#669) - (d2ec9ed) - Akshat Jawne
+- Revert clearing the build/dist directories (#680) - (b2f09bb) - Joe
+- Plotly express widgets don't work in deephaven.ui (#644) - (14555ab) - Joe
+- invalid ui.panel usage should result in clear error (#641) - (31b1f17) - Akshat Jawne
+#### Build system
+- UI docs and add plugin_builder.py (#630) - (7281eec) - Joe
+#### Documentation
+- add sidebar to UI docs and adjust readme (#633) - (e690c1b) - Don
+- switch and text (#639) - (b6ebab4) - ethanalvizo
+#### Features
+- UI.Table density prop (#634) - (ec0794b) - Matthew Runyon
+#### Refactoring
+- example dataset column names to PascalCase (#666) - (def7069) - Alex Peters
+
+- - -
+
 ## ui-v0.18.0 - 2024-07-17
 #### Bug Fixes
 - add default styling to tabs component (#611) - (2b8ea23) - Akshat Jawne

@@ -1,21 +1,16 @@
 from __future__ import annotations
 
-from functools import partial
 from typing import Callable
-
-from plotly import express as px
 
 from deephaven.table import Table
 
 from ._private_utils import (
-    validate_common_args,
     shared_violin,
     shared_box,
     shared_strip,
     shared_histogram,
 )
 from ..deephaven_figure import DeephavenFigure
-from ..preprocess import preprocess_ecdf
 
 from ..shared import (
     VIOLIN_DEFAULTS,
@@ -23,7 +18,6 @@ from ..shared import (
     STRIP_DEFAULTS,
     HISTOGRAM_DEFAULTS,
     default_callback,
-    unsafe_figure_update_wrapper,
 )
 
 
@@ -53,12 +47,12 @@ def violin(
 
     Args:
       table: A table to pull data from.
-      x: A column name or list of columns that contain x-axis values.
-        Only one of x or y can be specified. If x is specified,
-        the violins are drawn horizontally.
-      y: A column name or list of columns that contain y-axis values.
-        Only one of x or y can be specified. If y is specified, the
-        violins are drawn vertically.
+      x: A column or list of columns that contain x-axis values.
+        If both x and y are specified, one should be numerical and the other categorical.
+        If x is numerical, the violins are drawn horizontally.
+      y: A column or list of columns that contain y-axis values.
+        If both x and y are specified, one should be numerical and the other categorical.
+        If y is numerical, the violins are drawn vertically.
       by: A column or list of columns that contain values to plot the figure traces by.
         All values or combination of values map to a unique design. The variable
         by_vars specifies which design elements are used.
@@ -103,9 +97,6 @@ def violin(
       DeephavenFigure: A DeephavenFigure that contains the violin chart
 
     """
-    if x and y:
-        raise ValueError("Cannot specify both x and y")
-
     args = locals()
 
     return shared_violin(is_marginal=False, **args)
@@ -137,12 +128,12 @@ def box(
 
     Args:
       table: A table to pull data from.
-      x: A column name or list of columns that contain x-axis values.
-        Only one of x or y can be specified. If x is specified,
-        the boxes are drawn horizontally.
-      y: A column name or list of columns that contain y-axis values.
-        Only one of x or y can be specified. If y is specified, the
-        boxes are drawn vertically.
+      x: A column or list of columns that contain x-axis values.
+        If both x and y are specified, one should be numerical and the other categorical.
+        If x is numerical, the violins are drawn horizontally.
+      y: A column or list of columns that contain y-axis values.
+        If both x and y are specified, one should be numerical and the other categorical.
+        If y is numerical, the violins are drawn vertically.
       by: A column or list of columns that contain values to plot the figure traces by.
         All values or combination of values map to a unique design. The variable
         by_vars specifies which design elements are used.
@@ -187,9 +178,6 @@ def box(
       A DeephavenFigure that contains the box chart
 
     """
-    if x and y:
-        raise ValueError("Cannot specify both x and y")
-
     args = locals()
 
     return shared_box(is_marginal=False, **args)
@@ -219,12 +207,12 @@ def strip(
 
     Args:
       table: A table to pull data from.
-      x: A column name or list of columns that contain x-axis values.
-        Only one of x or y can be specified. If x is specified,
-        the strips are drawn horizontally.
-      y: A column name or list of columns that contain y-axis values.
-        Only one of x or y can be specified. If y is specified, the
-        strips are drawn vertically.
+      x: A column or list of columns that contain x-axis values.
+        If both x and y are specified, one should be numerical and the other categorical.
+        If x is numerical, the violins are drawn horizontally.
+      y: A column or list of columns that contain y-axis values.
+        If both x and y are specified, one should be numerical and the other categorical.
+        If y is numerical, the violins are drawn vertically.
       by: A column or list of columns that contain values to plot the figure traces by.
         All values or combination of values map to a unique design. The variable
         by_vars specifies which design elements are used.
@@ -265,9 +253,6 @@ def strip(
       A DeephavenFigure that contains the strip chart
 
     """
-    if x and y:
-        raise ValueError("Cannot specify both x and y")
-
     args = locals()
 
     return shared_strip(is_marginal=False, **args)

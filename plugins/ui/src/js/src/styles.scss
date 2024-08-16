@@ -39,3 +39,8 @@
   font-family: $font-family-monospace;
   white-space: pre;
 }
+
+.ui-widget-error-view {
+  overflow: hidden;
+  width: 100%;
+}

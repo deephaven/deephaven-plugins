@@ -1,4 +1,6 @@
 export class NoChildrenError extends Error {
+  name = 'NoChildrenError';
+
   isNoChildrenError = true;
 }
 

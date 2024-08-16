@@ -6,3 +6,4 @@ export * from './usePickerProps';
 export * from './usePressEventCallback';
 export * from './useReExportedTable';
 export * from './useSelectionProps';
+export * from './useDebouncedOnChange';
