@@ -1,6 +1,6 @@
 # Image
 
-'image is used to insert and display an image within a component.
+'image' is used to insert and display an image within a component.
 
 ## Example
 
