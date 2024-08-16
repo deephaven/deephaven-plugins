@@ -37,7 +37,7 @@ def panel(
     A panel is a container that can be used to group elements.
 
     Args:
-        children: Elements to render in the panel.
+        *children: Elements to render in the panel.
         title: Title of the panel.
         direction: The direction in which to layout children.
         wrap: Whether children should wrap when they exceed the panel's width.

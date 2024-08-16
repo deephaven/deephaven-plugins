@@ -29,7 +29,7 @@ def flex(
     Base Flex component for laying out children in a flexbox.
 
     Args:
-        children: Elements to render in the flexbox.
+        *children: Elements to render in the flexbox.
         flex: The flex property of the flexbox.
         direction: The direction in which to layout children.
         wrap: Whether children should wrap when they exceed the panel's width.
