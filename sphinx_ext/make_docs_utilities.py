@@ -8,19 +8,42 @@ from typing import IO, Generator
 BUILT_DOCS = "docs/build/markdown"
 
 
-def run_command(command: str) -> None:
+def run_command(command: str, exit_on_fail: bool = True) -> int:
     """
     Run a command and exit if it fails.
 
     Args:
         command: The command to run.
+        exit_on_fail: Whether to exit if the command fails. Default is True. If False, the code is returned.
 
     Returns:
-        None
+        If exit_on_fail is True, exits with code 1 if the command failed or returns 0 if it succeeded.
+        If exit_on_fail is False, returns 0 if the command succeeded or the error code.
     """
     code = os.system(command)
-    if code != 0:
-        sys.exit(code)
+    if code != 0 and exit_on_fail:
+        sys.exit(1)
+    return code
+
+
+def attempt_command_sequence(commands: list[str], exit_on_fail: bool = False) -> int:
+    """
+    Run a list of commands and exit as soon as one fails.
+
+    Args:
+        commands: The list of commands to run.
+        exit_on_fail: Whether to exit if a command fails. Default is True.
+            If False, the code is returned for the failing command and no subsequent commands are run.
+
+    Returns:
+        Returns the code if exit_on_fail is true, or 0 if success.
+    """
+    for command in commands:
+        code = run_command(command, exit_on_fail)
+        if code != 0:
+            print(f"Failed to run command: {command}")
+            return code
+    return 0
 
 
 @contextlib.contextmanager
@@ -97,22 +120,28 @@ def remove_paramtable_comment(
     return line
 
 
-def build_documents() -> None:
+def build_documents() -> int:
     """
     Make the markdown files and copy the assets in
+
+    Returns:
+        1 if the build failed, 0 if it succeeded
     """
-    run_command("make clean")
+    commands = [
+        "make clean",
+        "make markdown",
+        f"rm {BUILT_DOCS}/index.md",
+        f"cp -r docs/_assets {BUILT_DOCS}/_assets",
+        f"cp docs/sidebar.json {BUILT_DOCS}/sidebar.json",
+    ]
 
-    print("Building markdown")
-    run_command("make markdown")
-
-    run_command(f"rm {BUILT_DOCS}/index.md")
+    code = attempt_command_sequence(commands)
+    if code != 0:
+        return 1
 
     remove_markdown_comments()
 
-    print("Copying assets")
-    run_command(f"cp -r docs/_assets {BUILT_DOCS}/_assets")
-    run_command(f"cp docs/sidebar.json {BUILT_DOCS}/sidebar.json")
+    return 0
 
 
 def remove_markdown_comments() -> None:

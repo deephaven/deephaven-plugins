@@ -10,7 +10,7 @@ from deephaven import ui
 btn = ui.button("Press me", on_press=lambda: print("Button clicked"))
 ```
 
-## UI Recommendations
+## UI recommendations
 
 Recommendations for creating clear and effective buttons:
 
@@ -127,7 +127,7 @@ def icon_buttons():
 icon_buttons_example = icon_buttons()
 ```
 
-## Pending State
+## Pending state
 
 Buttons can be in a pending state to indicate that an action is in progress (such as an asynchronous server request). After a one-second delay, an indeterminate spinner will be displayed in place of the button label and icon. You can trigger this behavior by setting the `is_pending` prop. Button events are disabled while `is_pending` is true.
 
@@ -163,7 +163,7 @@ def pending_button():
 pending_example = pending_button()
 ```
 
-## Disabled State
+## Disabled state
 
 Buttons can be disabled to prevent user interaction. This is useful when the button is not available for interaction, but should still be visible.
 
@@ -183,7 +183,7 @@ from deephaven import ui
 btn = ui.button("Go to deephaven.io", href="https://deephaven.io")
 ```
 
-## API Reference
+## API reference
 
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.button
