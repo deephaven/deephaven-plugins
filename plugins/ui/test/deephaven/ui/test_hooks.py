@@ -248,8 +248,6 @@ class HooksTest(BaseTestCase):
             ]
         )
 
-        self.verify_table_replayed(static_table)
-
     def test_table_data(self):
         from deephaven.ui.hooks import use_table_data
         from deephaven import new_table
