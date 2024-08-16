@@ -17,10 +17,10 @@ my_illustrated_message_basic = ui.illustrated_message(
 
 ## UI recommendations
 
-Recommendations for creating a IllustratedMessage:
+Recommendations for creating an IllustratedMessage:
 
-1. The message should be concise and, if applicable, describe the next step that a user can take.
-2. The heading should no longer than 6 words, and should not be a replacement for the message text.
+1. The message should be concise and, if applicable, describe the next step a user can take.
+2. The heading should be no longer than 6 words and should not be a replacement for the message text.
 2. Use sentence case for the heading and message text.
 3. Use illustrations that are relevant to the message and help convey the context effectively.
 4. Reserve IllustratedMessage for situations where it adds value and clarity, rather than using it for minor notifications or messages.
