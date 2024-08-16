@@ -163,6 +163,8 @@ def view(
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
 
+    Returns:
+        The rendered view.
     """
 
     return component_element(
