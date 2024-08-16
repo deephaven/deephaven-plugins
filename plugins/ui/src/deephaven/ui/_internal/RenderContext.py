@@ -265,7 +265,7 @@ class RenderContext:
             old_context = get_context()
         except NoContextException:
             pass
-        logger.debug("old context is %s and new context is %s", old_context, self)
+        logger.debug("Opening context %s (old context is %s)", self, old_context)
         _set_context(self)
 
         # Keep a reference to old liveness scopes, and make a collection to track our new ones
@@ -295,11 +295,7 @@ class RenderContext:
 
                 # Release all child contexts that are no longer referenced
                 unmounted_contexts = old_contexts - self._collected_contexts
-                print(
-                    f"xxx unmounted contexts {unmounted_contexts}, old_contexts {old_contexts}, collected_contexts {self._collected_contexts}, self {self}"
-                )
                 for context_key in unmounted_contexts:
-                    print(f"xxx deleting unmounted context {context_key} from {self}")
                     self._children_context[context_key].unmount()
                     del self._children_context[context_key]
 
@@ -331,7 +327,9 @@ class RenderContext:
             raise e
         finally:
             # Do this even if there was an error, old context must be restored
-            logger.debug("Resetting to old context %s", old_context)
+            logger.debug(
+                "Closing context %s, resetting to old context %s", self, old_context
+            )
             _set_context(old_context)
 
             # Reset count for next use to safeguard double-opening
@@ -406,7 +404,7 @@ class RenderContext:
                 new_value = _value_or_call(partial(value, old_value))
             else:
                 new_value = _value_or_call(value)
-            print(f"xxx setting state {key} to {value} in {self}")
+            logger.debug("Setting state %s to %s in %s", key, new_value, self)
             self._state[key] = new_value
 
         # This is not the initial state, queue up the state change on the render loop
@@ -416,12 +414,15 @@ class RenderContext:
         """
         Get the child context for the given key.
         """
-        print(f"xxx getting child coddntext {key} in {self}")
-
         logger.debug("Getting child context for key %s", key)
         if key not in self._children_context:
-            logger.debug("Creating new child context for key %s", key)
             child_context = RenderContext(self._on_change, self._on_queue_render)
+            logger.debug(
+                "Created new child context %s for key %s in %s",
+                child_context,
+                key,
+                self,
+            )
             self._children_context[key] = child_context
         self._collected_contexts.add(key)
         return self._children_context[key]
@@ -529,11 +530,10 @@ class RenderContext:
         """
         Unmount this context. This will unmount all child contexts, call all unmount listeners, and clear the state.
         """
-        print(f"xxx unmounting context {self}")
         assert not self._is_unmounted
 
+        logger.debug("Unmounting context %s", self)
         self._is_unmounted = True
-        logger.debug("Unmounting context")
         for context in self._children_context:
             self._children_context[context].unmount()
 

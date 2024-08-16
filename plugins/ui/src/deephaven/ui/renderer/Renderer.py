@@ -84,7 +84,7 @@ def _render_element(element: Element, context: RenderContext) -> RenderedNode:
     Returns:
         The RenderedNode representing the element.
     """
-    logger.debug("Rendering %s: ", element.name)
+    logger.debug("Rendering element %s in context %s", element.name, context)
 
     with context.open():
         props = element.render(context)
@@ -92,8 +92,6 @@ def _render_element(element: Element, context: RenderContext) -> RenderedNode:
         # We also need to render any elements that are passed in as props
         props_context = context.get_child_context("__props")
         props = _render_dict(props, props_context)
-        print(f"Done rendering props for {element.name} with context {props_context}")
-    print(f"Done rendering {element.name} with context {context}")
 
     return RenderedNode(element.name, props)
 

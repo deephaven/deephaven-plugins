@@ -98,13 +98,8 @@ class RendererTestCase(BaseTestCase):
         # Press the counter button
         count_btn.props["onPress"](None)
 
-        print(f" called: {called_funcs}")
-        print(f"xxx on_change {on_change.call_args_list}")
-        print(f"xxx on_queue {on_queue.call_args_list}")
-
-        print("xxx re-rendering")
+        # Re-render
         result = renderer.render(ui_parent())
-        print("xxx done re-rendering")
 
         # Check that the rendered tree is correct
         assert result.props != None
@@ -119,9 +114,7 @@ class RendererTestCase(BaseTestCase):
         toggle_btn.props["onChange"](False)
 
         # Re-render
-        print("xxx re-rendering2")
         result = renderer.render(ui_parent())
-        print("xxx done re-rendering2")
 
         # Counter button should no longer be in the tree
         self.assertRaises(ValueError, lambda: find_action_button(result))
