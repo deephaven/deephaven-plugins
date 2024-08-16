@@ -93,7 +93,7 @@ def use_table_listener(
         Returns:
             A function that can be called to stop the listener by the use_effect hook.
         """
-        if table is None or (not table.is_refreshing and not do_replay):
+        if table is None or not table.is_refreshing:
             return lambda: None
 
         handle = listen(
