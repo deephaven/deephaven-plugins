@@ -10,6 +10,6 @@ def fragment(*children: Any):
     Used to group elements together without a wrapper node.
 
     Args:
-        *children: The children in the fragment.
+        children: The children in the fragment.
     """
     return component_element("Fragment", children=children)

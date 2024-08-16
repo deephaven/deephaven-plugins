@@ -37,7 +37,7 @@ def panel(
     A panel is a container that can be used to group elements.
 
     Args:
-        *children: Elements to render in the panel.
+        children: Elements to render in the panel.
         title: Title of the panel.
         direction: The direction in which to layout children.
         wrap: Whether children should wrap when they exceed the panel's width.
@@ -54,7 +54,6 @@ def panel(
         padding_end: The padding to apply after the element.
         padding_x: The padding to apply to the left and right of the element.
         padding_y: The padding to apply to the top and bottom of the element.
-
     """
 
     children, props = create_props(locals())

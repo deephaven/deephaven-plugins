@@ -91,7 +91,7 @@ def view(
     View is a general purpose container with no specific semantics that can be used for custom styling purposes. It supports Spectrum style props to ensure consistency with other Spectrum components.
 
     Args:
-        *children: The content to render within the container.
+        children: The content to render within the container.
         element_type: The type of element to render.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
@@ -162,11 +162,7 @@ def view(
         id: The unique identifier of the element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
-
-    Returns:
-        The rendered view.
     """
-
     return component_element(
         "View",
         children=children,

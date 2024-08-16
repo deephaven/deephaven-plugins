@@ -77,7 +77,7 @@ def grid(
     A layout container using CSS grid. Supports Spectrum dimensions as values to ensure consistent and adaptive sizing and spacing.
 
     Args:
-        *children: The content to render within the container.
+        children: The content to render within the container.
         areas: The named grid areas to use for the grid.
         rows: The row sizes for the grid.
         columns: The column sizes for the grid.

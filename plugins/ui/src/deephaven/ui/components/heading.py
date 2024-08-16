@@ -63,7 +63,7 @@ def heading(
     A layout container using CSS grid. Supports Spectrum dimensions as values to ensure consistent and adaptive sizing and spacing.
 
     Args:
-        *children: The content to render within the container.
+        children: The content to render within the container.
         level: Sets heading level, h1 through h6. Defaults to 3.
         color: The color of the text.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.

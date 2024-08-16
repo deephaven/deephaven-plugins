@@ -93,7 +93,7 @@ def form(
     Forms allow users to enter data that can be submitted while providing alignment and styling for form fields
 
     Args:
-        *children: The content to render within the container.
+        children: The content to render within the container.
         is_quiet: Whether the form should be quiet.
         is_emphasized: Whether the form should be emphasized.
         is_disabled: Whether the form should be disabled.
