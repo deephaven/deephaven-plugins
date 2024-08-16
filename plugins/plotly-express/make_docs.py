@@ -12,4 +12,7 @@ sys.path.append(utilities_path)
 from make_docs_utilities import build_documents, pushd
 
 with pushd(__file__):
-    build_documents()
+    code = build_documents()
+
+if code != 0:
+    sys.exit(1)

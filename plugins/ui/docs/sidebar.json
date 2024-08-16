@@ -22,6 +22,15 @@
             "path": "components/button.md"
           }
         ]
+      },
+      {
+        "label": "Hooks",
+        "items": [
+          {
+            "label": "use_state",
+            "path": "hooks/use_state.md"
+          }
+        ]
       }
     ]
   }

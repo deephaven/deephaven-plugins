@@ -1,24 +1,25 @@
 from __future__ import annotations
-from typing import Any
+
+from .basic import component_element
+from ..elements import Element
+from typing import Callable
 from .types import (
-    # Layout
     AlignSelf,
     CSSProperties,
     DimensionValue,
     JustifySelf,
     LayoutFlex,
     Position,
-    HeadingLevel,
+    ObjectFit,
 )
-from ..types import Color
-from .basic import component_element
-from ..elements import Element
 
 
-def heading(
-    *children: Any,
-    level: HeadingLevel = 3,
-    color: Color | None = None,
+def image(
+    src: str,
+    alt: str | None = None,
+    object_fit: ObjectFit = "fill",
+    on_error: Callable[[], None] | None = None,
+    on_load: Callable[[], None] | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,
@@ -28,11 +29,11 @@ def heading(
     order: int | None = None,
     grid_area: str | None = None,
     grid_row: str | None = None,
-    grid_row_start: str | None = None,
-    grid_row_end: str | None = None,
     grid_column: str | None = None,
     grid_column_start: str | None = None,
     grid_column_end: str | None = None,
+    grid_row_start: str | None = None,
+    grid_row_end: str | None = None,
     margin: DimensionValue | None = None,
     margin_top: DimensionValue | None = None,
     margin_bottom: DimensionValue | None = None,
@@ -49,10 +50,10 @@ def heading(
     position: Position | None = None,
     top: DimensionValue | None = None,
     bottom: DimensionValue | None = None,
-    start: DimensionValue | None = None,
-    end: DimensionValue | None = None,
     left: DimensionValue | None = None,
     right: DimensionValue | None = None,
+    start: DimensionValue | None = None,
+    end: DimensionValue | None = None,
     z_index: int | None = None,
     is_hidden: bool | None = None,
     id: str | None = None,
@@ -60,12 +61,14 @@ def heading(
     UNSAFE_style: CSSProperties | None = None,
 ) -> Element:
     """
-    A layout container using CSS grid. Supports Spectrum dimensions as values to ensure consistent and adaptive sizing and spacing.
+    Image is used to insert and display an image within a component.
 
     Args:
-        children: The content to render within the container.
-        level: Sets heading level, h1 through h6. Defaults to 3.
-        color: The color of the text.
+        src: The URL of the image.
+        alt: Text description of the image.
+        object_fit: How the image should be resized to fit its container.
+        on_error: A callback function to run when the image fails to load.
+        on_load: A callback function to run when the image has loaded.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -107,10 +110,12 @@ def heading(
         UNSAFE_style: A CSS style to apply to the element.
     """
     return component_element(
-        "Heading",
-        children=children,
-        level=level,
-        color=color,
+        "Image",
+        src=src,
+        alt=alt,
+        object_fit=object_fit,
+        on_error=on_error,
+        on_load=on_load,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
@@ -125,6 +130,7 @@ def heading(
         grid_column=grid_column,
         grid_column_start=grid_column_start,
         grid_column_end=grid_column_end,
+        slot="image",
         margin=margin,
         margin_top=margin_top,
         margin_bottom=margin_bottom,
