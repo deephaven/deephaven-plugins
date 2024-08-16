@@ -1,6 +1,8 @@
 # Checkbox
 
-Checkboxes enable users to select multiple items from a list or mark a single item as selected.
+Checkbox allows users to select or mark a single item as selected.
+
+If wanting to use multiple checkboxes, use `checkbox_group`.
 
 ## Example
 
