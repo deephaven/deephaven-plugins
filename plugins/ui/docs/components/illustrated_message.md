@@ -1,6 +1,6 @@
 # Illustrated Message
 
-An Illustrated Message displays an illustration along with a message, typically used for empty states or error pages.
+An illustrated message displays an illustration along with a message, typically used for empty states or error pages.
 
 
 ## Example
@@ -17,17 +17,17 @@ my_illustrated_message_basic = ui.illustrated_message(
 
 ## UI recommendations
 
-Recommendations for creating an Illustrated Message:
+Recommendations for creating an illustrated message:
 
 1. The message should be concise and, if applicable, describe the next step a user can take.
 2. The heading should be no longer than 6 words and should not be a replacement for the message text.
 2. Use sentence case for the heading and message text.
 3. Use illustrations that are relevant to the message and help convey the context effectively.
-4. Reserve Illustrated Message for situations where it adds value and clarity, rather than using it for minor notifications or messages.
+4. Reserve illustrated message for situations where it adds value and clarity, rather than using it for minor notifications or messages.
 
 ## Content
 
-An Illustrated Message is made up of three parts: an illustration, a heading, and a body. 
+An illustrated message is made up of three parts: an illustration, a heading, and a body. 
 
 You can populate these sections by providing the following components as children: an `ui.icon` for the illustration, a `ui.heading` for the heading, and `ui.content` for the body.
 
@@ -44,7 +44,7 @@ my_illustrated_message_content_example = ui.illustrated_message(
 
 ## Labeling
 
-If the heading of an Illustrated Message isn't specified, the illustration should have the `aria-label` prop set for accessibility purposes.
+If the heading of an illustrated message isn't specified, the illustration should have the `aria-label` prop set for accessibility purposes.
 
 ```python
 from deephaven import ui
@@ -57,19 +57,34 @@ my_illustrated_message_labeling_example = ui.illustrated_message(
 
 ## Placeholder
 
-Using an Illustrated Message as a placeholder for a table or list can clearly indicating the absence of data and provide context-specific guidance.
+Using an illustrated message as a placeholder for a table or list can clearly indicating the absence of data and provide context-specific guidance.
 
 ```python
 from deephaven import ui
+import deephaven.plot.express as dx
 
-my_illustrated_message = ui.illustrated_message("Please enter a filter")
+
+stocks = dx.data.stocks()
 
 
 @ui.component
 def illustrated_message_placeholder_example():
+    input, set_input = ui.use_state("")
     filter, set_filter = ui.use_state("")
-    ui.text_field(value=filter)
-    return [my_illustrated_message if filter == "" else stocks.where(f"sym=`{filter}`")]
+
+    def handle_submit(data):
+        set_filter(input)
+
+    my_form_submit = ui.form(
+        ui.text_field(value=input, on_change=set_input, default_value=""),
+        ui.button("Submit", type="submit"),
+        on_submit=handle_submit,
+    )
+    return [
+        (ui.illustrated_message("Please enter a filter"), my_form_submit)
+        if filter == ""
+        else stocks.where(f"Sym=`{filter}`")
+    ]
 
 
 my_illustrated_message_placeholder_example = illustrated_message_placeholder_example()
