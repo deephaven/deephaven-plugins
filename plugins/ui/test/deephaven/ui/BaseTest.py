@@ -6,10 +6,17 @@ from deephaven_server.server import Server
 class BaseTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        if Server.instance is None:
-            # Use port 11000 so it doesn't conflict with another server
-            s = Server(port=11000, jvm_args=["-Xmx4g"])
-            s.start()
+        try:
+            if Server.instance is None:
+                # Use port 11000 so it doesn't conflict with another server
+                # Use port 11000 so it doesn't conflict with another server
+                cls.s = Server(port=11000, jvm_args=["-Xmx4g"])
+                s = Server(port=11000, jvm_args=["-Xmx4g"])
+                cls.s.start()
+                s.start()
+        except Exception as e:
+            # server is already running
+            pass
 
         # these mocks need to be setup after the deephaven server is
         # initialized because they access the deephaven namespace
