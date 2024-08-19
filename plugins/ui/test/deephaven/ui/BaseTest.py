@@ -9,10 +9,7 @@ class BaseTestCase(unittest.TestCase):
         try:
             if Server.instance is None:
                 # Use port 11000 so it doesn't conflict with another server
-                # Use port 11000 so it doesn't conflict with another server
-                cls.s = Server(port=11000, jvm_args=["-Xmx4g"])
                 s = Server(port=11000, jvm_args=["-Xmx4g"])
-                cls.s.start()
                 s.start()
         except Exception as e:
             # server is already running

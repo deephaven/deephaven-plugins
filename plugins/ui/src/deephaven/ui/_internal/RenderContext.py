@@ -545,10 +545,6 @@ class RenderContext:
                 self.get_child_context(key).import_state(child_state)
         logger.debug("New state is %s", self._state)
 
-    def mount(self) -> None:
-        # TODO: We need to add a listener for this, and also call it when it's mounted... but don't call the effect twice on initial mount.
-        pass
-
     def unmount(self) -> None:
         """
         Unmount this context. This will unmount all child contexts, call all unmount listeners, and clear the state.
