@@ -21,13 +21,13 @@ img = ui.image(src="https://i.imgur.com/Z7AzH2c.png", alt="Sky and roof")
 Different styles determine how an image fits into its container. The default value for the `object_fit` parameter is `fill` which takes up the whole dimension of the container.
 
 Other options:
-`contain` scales the image to the dimension of the container while preserving its aspect ratio. If the image's aspect ratio does not match the aspect ratio of the box, the image will be "letterboxed".
+1. `contain` scales the image to the dimension of the container while preserving its aspect ratio. If the image's aspect ratio does not match the aspect ratio of the box, the image will be "letterboxed".
 
-`cover` scales the image to fill the entire container. If the image's aspect ratio does not match the aspect ratio of the box, the image will be clipped to fit.
+2. `cover` scales the image to fill the entire container. If the image's aspect ratio does not match the aspect ratio of the box, the image will be clipped to fit.
 
-`none` renders the image in its original dimensions.
+3. `none` renders the image in its original dimensions.
 
-`scale-down` sizes the image as if `none` or `contain` were specified. Whichever would result in a smaller concrete image size is selected.
+4. `scale-down` sizes the image as if `none` or `contain` were specified. Whichever would result in a smaller concrete image size is selected.
 
 ```python
 def image_variants():
