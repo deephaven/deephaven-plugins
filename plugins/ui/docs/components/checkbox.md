@@ -2,7 +2,7 @@
 
 Checkbox allows users to select or mark a single item as selected.
 
-If wanting to use multiple checkboxes, use `checkbox_group`.
+To use multiple checkboxes together, use the `checkbox_group` component. 
 
 ## Example
 
