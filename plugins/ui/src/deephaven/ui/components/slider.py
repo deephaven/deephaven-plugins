@@ -140,7 +140,7 @@ def slider(
         id: The unique identifier of the element.
         aria_label: The label for the element.
         aria_labelledby: The id of the element that labels the current element.
-        aria_described_by: The id of the element that describes the current element.
+        aria_describedby: The id of the element that describes the current element.
         aria_details: The id of the element that provides additional information about the current element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
