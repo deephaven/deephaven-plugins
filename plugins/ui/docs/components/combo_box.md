@@ -172,7 +172,7 @@ my_combo_box_form_examples = ui_combo_box_form_examples()
 
 ## Labeling
 
-The combo box can be labeled using the `label` prop, and if no label is provided, an `aria_label` msut be provided to identify the control for accessibility purposes.
+The combo box can be labeled using the `label` prop, and if no label is provided, an `aria_label` must be provided to identify the control for accessibility purposes.
 
 ```python
 from deephaven import ui
