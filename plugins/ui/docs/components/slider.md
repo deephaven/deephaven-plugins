@@ -84,7 +84,7 @@ from deephaven import ui
 
 
 my_picker_name_example = ui.form(
-    ui.flex(ui.slider(label="Opacity", default_value=50, name="opacity"))
+    ui.slider(label="Opacity", default_value=50, name="opacity")
 )
 ```
 
