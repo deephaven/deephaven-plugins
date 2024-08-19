@@ -1,6 +1,6 @@
 # Combo Box
 
-ComboBoxes combine a text input field with a picker menu, enabling users to filter and select from longer lists based on their query.
+Combo boxes combine a text input field with a picker menu, enabling users to filter and select from longer lists based on their query.
 
 ## Example
 
@@ -20,7 +20,7 @@ def ui_combo_box_basic():
         ui.item("kangaroo"),
         ui.item("snake"),
         ui.item("ant"),
-        label="Favourite Animal",
+        label="Favorite Animal",
         selected_key=option,
         on_change=set_option,
     )
@@ -53,19 +53,10 @@ from deephaven import ui, empty_table
 from deephaven.plot import express as dx
 
 
-t = empty_table(10).update(
-    ["Timestamp = '2024-01-01T00:00:00 ET' + 'PT1m'.multipliedBy(ii)"]
-)
-
-my_combo_box_table_source_example = ui.combo_box(t, label="Sample ComboBox")
+countries = dx.data.gapminder().select_distinct("Country")
 
 
-stocks = dx.data.stocks().select_distinct("Sym")
-
-
-my_combo_box_table_source_example_2 = ui.combo_box(
-    stocks, label="Stock Symbol ComboBox"
-)
+my_combo_box_table_source_example = ui.combo_box(countries, label="Sample Combo box")
 ```
 
 ## Item table sources
@@ -93,7 +84,7 @@ item_table_source = ui.item_table_source(
 
 
 my_combo_box_item_table_source_example = ui.combo_box(
-    item_table_source, label="User ComboBox"
+    item_table_source, label="User Combo box"
 )
 ```
 
@@ -365,7 +356,7 @@ my_combo_box_section_example = ui.combo_box(
 
 Combo Box supports selection via mouse, keyboard, and touch. You can handle all of these via the `on_change` prop, which receives the selected key as an argument. Additionally, Combo Box accepts an `on_input_change` prop which is triggered whenever the search value is edited by the user, whether through typing or option selection.
 
-Each interaction done in the ComboBox will trigger its associated event handler. For instance, typing in the input field will only trigger the `on_input_change`, not the `on_change`.
+Each interaction done in the Combo Box will trigger its associated event handler. For instance, typing in the input field will only trigger the `on_input_change`, not the `on_change`.
 
 Note, this is not the case for selections; when a selection is made, both the `on_change` and `on_input_change` are triggered.
 
