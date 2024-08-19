@@ -19,7 +19,7 @@ Recommendations for creating checkboxes:
 1. Use emphasized checkboxes for forms, settings, or to highlight selected items like cards or table rows. Use non-emphasized checkboxes in application panels with monochrome components to keep the focus on the main content.
 2. Use standalone checkboxes when the context is clear without a text label, such as when a checkbox is associated with other controls within a panel.
 3. Checkboxes and radio buttons should not be used interchangably. Use checkboxes to allow multiple selections (or none) from a list. Use radio buttons to select only one option from a list of mutually exclusive choices.
-4. Checkboxes should be used when selecting (ie. multiple table rows), whereas, switches should be used for activation (ie. on/off states).
+4. Checkboxes should be used when selecting (ie., multiple table rows), whereas switches should be used for activation (ie., on/off states).
 
 
 Consider using a [`checkbox`](./checkbox.md) for individual selections or when marking a single item as selected. For a set of related checkboxes, use a [`checkbox_group`](./checkbox_group.md) to manage multiple selections within a group. If you need to display a list of checkboxes driven by a Deephaven table, use a [`list_view`](./list_view.md) to dynamically generate the checkboxes.
@@ -60,7 +60,7 @@ my_checkbox_content_examples = ui_checkbox_content_examples()
 
 ## Indeterminate state
 
-A Checkbox can be set to an indeterminate state using the `is_indeterminate` prop, which overrides its appearance. The Checkbox remains visually indeterminate until prop is set to false, regardless of user interaction.
+A checkbox can be set to an indeterminate state using the `is_indeterminate` prop, which overrides its appearance. The Checkbox remains visually indeterminate until the prop is set to false, regardless of user interaction.
 
 
 ```python
