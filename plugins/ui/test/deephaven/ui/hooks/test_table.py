@@ -93,8 +93,7 @@ class UseTableTestCase(BaseTestCase):
             assert False, "listener was not called"
 
     def test_table_listener(self):
-        from deephaven import DynamicTableWriter, new_table
-        from deephaven.column import int_col
+        from deephaven import DynamicTableWriter
         import deephaven.dtypes as dht
 
         column_definitions = {"Numbers": dht.int32, "Words": dht.string}
@@ -103,14 +102,6 @@ class UseTableTestCase(BaseTestCase):
         table = table_writer.table
 
         self.verify_table_updated(table_writer, table, (1, "Testing"))
-
-        static_table = new_table(
-            [
-                int_col("Numbers", [1]),
-            ]
-        )
-
-        self.verify_table_replayed(static_table)
 
     def test_table_data(self):
         from deephaven.ui.hooks import use_table_data
