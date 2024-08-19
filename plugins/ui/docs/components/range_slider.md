@@ -12,6 +12,14 @@ my_range_slider_basic = ui.range_slider(
 )
 ```
 
+## UI recommendations
+
+Recommendations for creating range sliders:
+
+1. Every range slider should have a [label](#labeling) specified. Without one, the range slider is ambiguous. In the rare case that context is sufficient, the label is unnecessary; you must still include an aria-label via the `aria_label` prop.
+2. The label and contextual help text should be in sentence case.
+
+Consider using a `slider` when users should select a singular value or a `number_field` when the range is large and sliding between the upper and lower bound is no longer quick.
 
 ## Value
 
