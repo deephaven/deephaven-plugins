@@ -315,7 +315,7 @@ my_combo_box_selected_key_examples = ui_combo_box_selected_key_examples()
 
 ## Sections
 
-Combo box supports sections in order to group options. Sections can be used by wrapping groups of items in a Section element. Each Section takes a title and key prop.
+Combo boxes support sections to group options. Sections can be used by wrapping groups of items in a Section element. Each Section takes a title and key prop.
 
 Note that, when searching for options, searching by section will not result in the respective options within that section appearing. 
 
@@ -354,9 +354,9 @@ my_combo_box_section_example = ui.combo_box(
 
 ## Events
 
-Combo Box supports selection via mouse, keyboard, and touch. You can handle all of these via the `on_change` prop, which receives the selected key as an argument. Additionally, Combo Box accepts an `on_input_change` prop which is triggered whenever the search value is edited by the user, whether through typing or option selection.
+Combo boxes support selection via mouse, keyboard, and touch. You can handle all these via the `on_change` prop, which receives the selected key as an argument. Additionally, combo boxes accept an `on_input_change` prop, which is triggered whenever the search value is edited by the user, whether through typing or option selection.
 
-Each interaction done in the Combo Box will trigger its associated event handler. For instance, typing in the input field will only trigger the `on_input_change`, not the `on_change`.
+Each interaction done in the combo box will trigger its associated event handler. For instance, typing in the input field will only trigger the `on_input_change`, not the `on_change`.
 
 Note, this is not the case for selections; when a selection is made, both the `on_change` and `on_input_change` are triggered.
 
