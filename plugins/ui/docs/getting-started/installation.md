@@ -44,7 +44,7 @@ With a running Docker container named `deephaven`, run the following from the co
 docker exec deephaven pip install deephaven-plugin-ui
 ```
 
-See the [install packages in a running container documentation](https://deephaven.io/core/docs/how-to-guides/install-and-use-python-packages/#install-packages-in-a-running-docker-container-from-the-command-line) for more details.
+See the [documentation for installing packages in a running container](https://deephaven.io/core/docs/how-to-guides/install-and-use-python-packages/#install-packages-in-a-running-docker-container-from-the-command-line) for more details.
 
 ### Add to existing pip installation
 
@@ -54,7 +54,7 @@ With an existing `pip` installation of Deephaven server, just `pip install` the 
 pip install deephaven-plugin-ui
 ```
 
-See the [use Python packages in Deephaven documentation](https://deephaven.io/core/docs/how-to-guides/install-and-use-python-packages/#use-python-packages-in-deephaven) for more details.
+See the [documentation for using Python packages in Deephaven](https://deephaven.io/core/docs/how-to-guides/install-and-use-python-packages/#use-python-packages-in-deephaven) for more details.
 
 # Verifying installation
 
