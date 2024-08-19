@@ -83,7 +83,7 @@ Sliders can support a `name` prop for integration with HTML forms, allowing for 
 from deephaven import ui
 
 
-my_picker_name_example = ui.form(
+my_slider_name_example = ui.form(
     ui.slider(label="Opacity", default_value=50, name="opacity")
 )
 ```
