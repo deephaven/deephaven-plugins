@@ -6,7 +6,7 @@ import {
 } from '@deephaven/components';
 import { useDebouncedCallback, usePrevious } from '@deephaven/react-hooks';
 import { getSettings, RootState } from '@deephaven/redux';
-import { DateValue } from '@internationalized/date';
+import { DateValue, toTimeZone, ZonedDateTime } from '@internationalized/date';
 import {
   SerializedDatePickerProps,
   useDatePickerProps,
@@ -16,9 +16,27 @@ const VALUE_CHANGE_DEBOUNCE = 250;
 
 const EMPTY_FUNCTION = () => undefined;
 
+function isStringInstant(value?: string | null): boolean {
+  return value != null && value.endsWith('Z');
+}
+
+function isDatePickerInstant(
+  props: SerializedDatePickerProps<DHCDatePickerProps<DateValue>>
+): boolean {
+  const { value, defaultValue, placeholderValue } = props;
+  if (value != null) {
+    return isStringInstant(value);
+  }
+  if (defaultValue != null) {
+    return isStringInstant(defaultValue);
+  }
+  return isStringInstant(placeholderValue);
+}
+
 export function DatePicker(
   props: SerializedDatePickerProps<DHCDatePickerProps<DateValue>>
 ): JSX.Element {
+  const isDatePickerInstantValue = isDatePickerInstant(props);
   const settings = useSelector(getSettings<RootState>);
   const { timeZone } = settings;
 
@@ -48,11 +66,23 @@ export function DatePicker(
   const prevTimeZone = usePrevious(timeZone);
   useEffect(() => {
     // The timezone is intially undefined, so we don't want to trigger a change in that case
-    if (prevTimeZone !== undefined && timeZone !== prevTimeZone) {
-      setValue(propValue ?? defaultValue);
-      debouncedOnChange(propValue);
+    if (
+      isDatePickerInstantValue &&
+      prevTimeZone !== undefined &&
+      timeZone !== prevTimeZone &&
+      value instanceof ZonedDateTime
+    ) {
+      const newValue = toTimeZone(value, timeZone);
+      setValue(toTimeZone(value, timeZone));
+      debouncedOnChange(newValue);
     }
-  }, [propValue, debouncedOnChange, defaultValue, timeZone, prevTimeZone]);
+  }, [
+    isDatePickerInstantValue,
+    value,
+    debouncedOnChange,
+    timeZone,
+    prevTimeZone,
+  ]);
 
   return (
     // eslint-disable-next-line react/jsx-props-no-spreading
