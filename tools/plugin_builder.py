@@ -21,6 +21,7 @@ def clean_build_dist(plugin: str) -> None:
     Returns:
         None
     """
+    # these folders may not exist, so ignore the errors
     if os.path.exists(f"{plugins_dir}/{plugin}/build"):
         os.system(f"rm -rf {plugins_dir}/{plugin}/build")
     if os.path.exists(f"{plugins_dir}/{plugin}/dist"):
@@ -59,7 +60,7 @@ def run_command(command: str) -> None:
     """
     code = os.system(command)
     if code != 0:
-        sys.exit(code)
+        sys.exit(1)
 
 
 def run_build(
