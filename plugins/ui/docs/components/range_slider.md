@@ -2,7 +2,6 @@
 
 Range sliders allow users to quickly select a subset range within a fixed range and should be used when the upper and lower bounds of the range are constant.
 
-
 ## Example
 
 ```python
@@ -43,6 +42,7 @@ def range_slider_value_example():
 my_range_slider_value_example = range_slider_value_example()
 ```
 
+
 ## Scale
 
 Setting the `min_value` and `max_value` props configures a custom scale for the range slider.  
@@ -75,6 +75,7 @@ def range_slider_range_step_examples():
 my_range_slider_range_step_examples = range_slider_range_step_examples()
 ```
 
+
 ## HTML Forms
 
 Range sliders can support a `name` prop for integration with HTML forms, allowing for easy identification of a value on form submission.
@@ -88,4 +89,73 @@ my_range_slider_name_example = ui.form(
         label="Opacity", default_value={"start": 50, "end": 100}, name="Opacity Range"
     )
 )
+```
+
+
+## Labeling
+
+Value labels are shown above the range slider by default but can be moved to the side or hidden using the `label_position` prop.
+
+Note that if the `label` prop is set, the `show_value_label` is set to True by default.
+
+```python
+from deephaven import ui
+
+
+my_range_slider_label_example = ui.flex(
+    ui.range_slider(label="Jeans price range", default_value={"start": 75, "end": 100}),
+    ui.range_slider(
+        label="Shoes price range",
+        label_position="side",
+        default_value={"start": 50, "end": 100},
+    ),
+    ui.range_slider(
+        label="Cakes to buy",
+        show_value_label=False,
+        default_value={"start": 15, "end": 30},
+    ),
+    max_width="size-5000",
+    gap="size-300",
+)
+```
+
+
+## Contextual Help
+
+A `ui.contextual_help` can be passed into the `contextual_help` prop to provide additional information about the range slider.
+
+```python
+from deephaven import ui
+
+
+my_range_slider_contextual_help_example = ui.range_slider(
+    label="Search Radius",
+    min_value=0,
+    max_value=100,
+    default_value={"start": 15, "end": 60},
+    contextual_help=ui.contextual_help(
+        ui.heading("Ranking"),
+        ui.content("Search results are sorted by distance from city center."),
+    ),
+)
+```
+
+
+## Disabled
+
+Setting the `is_disabled` prop disables the range slider.  
+
+```python
+from deephaven import ui
+
+
+my_range_slider_disabled_example = ui.range_slider(
+    label="Price filter", default_value={"start": 25, "end": 50}, is_disabled=True
+)
+```
+
+## API Reference
+
+```{eval-rst}
+.. dhautofunction:: deephaven.ui.range_slider
 ```
