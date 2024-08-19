@@ -80,9 +80,7 @@ Checkbox's can support a `name` prop for integration with HTML forms, allowing f
 from deephaven import ui
 
 
-my_checkbox_name_example = ui.form(
-    ui.flex(ui.checkbox("Sample Label", name="Sample Name"))
-)
+my_checkbox_name_example = ui.form(ui.checkbox("Sample Label", name="Sample Name"))
 ```
 
 ## Events
