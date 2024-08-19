@@ -53,6 +53,11 @@ python -m build --wheel
 
 The built wheel file will be located in the `dist` directory.
 
+If you modify the JavaScript code, remove the `build` and `dist` directories before rebuilding the wheel:
+```sh
+rm -rf build dist
+```
+
 ## Installing the Plugin
 
 The plugin can be installed into a Deephaven instance with `pip install <wheel file>`.

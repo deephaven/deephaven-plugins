@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.11.2 - 2024-07-31
+#### Bug Fixes
+- Add hist by e2e test and fix error with static plot by (#664) - (88eeaea) - Joe
+#### Documentation
+- small changes to plotly-express readme (#681) - (8959935) - Alex Peters
+- MVP plotly-express docs (#554) - (4c556d3) - Alex Peters
+- Add initial density heatmap docs (#626) - (2dfbe0f) - Joe
+#### Refactoring
+- example dataset column names to PascalCase (#666) - (def7069) - Alex Peters
+
+- - -
+
 ## plotly-express-v0.11.1 - 2024-07-24
 #### Bug Fixes
 - Fixes PartitionedTable has no agg_by error (#662) - (685c359) - Joe
