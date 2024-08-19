@@ -144,7 +144,11 @@ def slider(
         aria_details: The id of the element that provides additional information about the current element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
+
+    Returns:
+        The rendered slider component.
     """
+
     return component_element(
         "Slider",
         is_filled=is_filled,
