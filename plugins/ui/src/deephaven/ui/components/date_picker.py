@@ -31,6 +31,7 @@ from .._internal.utils import (
 from ..types import Date, Granularity
 from .basic import component_element
 from .make_component import make_component
+from deephaven.time import dh_now
 
 DatePickerElement = Element
 
@@ -76,7 +77,7 @@ def _convert_date_picker_props(
 
 @make_component
 def date_picker(
-    placeholder_value: Date | None = None,
+    placeholder_value: Date | None = dh_now(),
     value: Date | None = None,
     default_value: Date | None = None,
     min_value: Date | None = None,

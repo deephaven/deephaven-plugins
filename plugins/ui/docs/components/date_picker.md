@@ -88,7 +88,7 @@ dp = ui.date_picker(
 ## Uncontrolled mode with placeholder_value
 
 If both `value` and `default_value` are omitted, the date_picker will be in uncontrolled mode displaying no date selected. When opened, the date picker will suggest the date from the `placeholder_value` prop.
-Omitting `placeholder_value` will default it to today at midnight on the local machine time zone.
+Omitting `placeholder_value` will default it to today at the current time on the server machine time zone.
 
 ```python
 from deephaven import ui
