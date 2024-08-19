@@ -220,6 +220,7 @@ def picker(
     Returns:
         The rendered Picker.
     """
+
     children, props = create_props(locals())
 
     children, props = unpack_item_table_source(children, props, SUPPORTED_SOURCE_ARGS)
