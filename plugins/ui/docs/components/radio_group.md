@@ -84,8 +84,6 @@ my_radio_group_name_example = ui.form(
 
 ## Labeling
 
-## Labeling
-
 The radio group can be labeled using the `label` prop, and if no label is provided, an `aria_label` must be provided to identify the control for accessibility purposes.
 
 ```python
