@@ -63,27 +63,24 @@ Using an illustrated message as a placeholder for a table or list can clearly in
 from deephaven import ui
 import deephaven.plot.express as dx
 
-
-stocks = dx.data.stocks()
+_stocks = dx.data.stocks()
 
 
 @ui.component
 def illustrated_message_placeholder_example():
-    input, set_input = ui.use_state("")
     filter, set_filter = ui.use_state("")
-
-    def handle_submit(data):
-        set_filter(input)
-
-    my_form_submit = ui.form(
-        ui.text_field(value=input, on_change=set_input, default_value=""),
-        ui.button("Submit", type="submit"),
-        on_submit=handle_submit,
-    )
     return [
-        (ui.illustrated_message("Please enter a filter"), my_form_submit)
+        ui.text_field(
+            value=filter, label="Sym Filter", is_required=True, on_change=set_filter
+        ),
+        ui.illustrated_message(
+            ui.icon("vsFilter"),
+            ui.heading("Filter required"),
+            ui.content("Enter a filter to display filtered table"),
+            width="100%",
+        )
         if filter == ""
-        else stocks.where(f"Sym=`{filter}`")
+        else _stocks.where(f"Sym=`{filter.upper()}`"),
     ]
 
 
