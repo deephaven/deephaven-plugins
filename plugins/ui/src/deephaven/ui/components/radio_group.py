@@ -98,7 +98,7 @@ def radio_group(
     compare.
 
     Args:
-        children: The Radio(s) contained within the RadioGroup.
+        *children: The Radio(s) contained within the RadioGroup.
         is_emphasized: By default, radio button are not emphasized (gray). The emphasized version provides visual prominence.
         orientation: The axis the Radio Buttons should align with.
         value: The value of the selected radio button.
