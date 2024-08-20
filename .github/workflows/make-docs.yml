@@ -9,6 +9,10 @@ on:
       version:
         required: true
         type: string
+      event_name:
+        required: false
+        type: string
+        default: 'push'
 
 jobs:
   make-docs:
@@ -34,6 +38,8 @@ jobs:
         run: python plugins/${{ inputs.package }}/make_docs.py
 
       - name: Setup rclone
+        # pull requests should run the make_docs.py script, but not sync the docs
+        if: inputs.event_name == 'push'
         run: |
           sudo apt-get update
           sudo apt-get install -y rclone
@@ -53,4 +59,5 @@ jobs:
           EOF
 
       - name: Sync docs
+        if: inputs.event_name == 'push'
         run: rclone sync plugins/${{ inputs.package }}/docs/build/markdown/ plugindocs:website/deephaven/deephaven-plugins/${{ inputs.package }}/${{ inputs.version }}/

@@ -124,6 +124,7 @@ def text_area(
         label: The label for the input
         auto_complete: Describes the type of autocomplete functionality the input should provide
         max_length: The maximum number of characters the input can accept
+        min_length: The minimum number of characters the input can accept
         input_mode: Hints at the tpye of data that might be entered by the user while editing the element or its contents
         name: The name of the input, used when submitting an HTML form
         validation_state: Whether the input should display its "valid" or "invalid" state
@@ -177,13 +178,17 @@ def text_area(
         exclude_from_tab_order: Whether the element should be excluded from the tab order.
         aria_active_descendant: Identifies the currently active element when DOM focus is on a composite widget, textbox, group, or application.
         aria_auto_complete: Indicates whether inputting text could trigger display of one or more predictions of the user's intended value for an input and specifies how predictions would be presented if they are made.
+        aria_haspopup: Indicates the availability and type of interactive popup element, such as menu or dialog, that can be triggered by an element.
         aria_label: The label for the element.
-        aria_labelled_by: The id of the element that labels the current element.
-        aria_described_by: The id of the element that describes the current element.
+        aria_labelledby: The id of the element that labels the current element.
+        aria_describedby: The id of the element that describes the current element.
         aria_details: The id of the element that provides additional information about the current element.
         aria_errormessage: The id of the element that provides an error message for the current element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
+
+    Returns:
+        The element representing the text area
     """
 
     return component_element(

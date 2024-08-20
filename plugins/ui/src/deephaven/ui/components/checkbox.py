@@ -89,7 +89,7 @@ def checkbox(
     Checkboxes allow users to select multiple items from a list of individual items, or to mark one individual item as selected.
 
     Args:
-        children: The checkbox label.
+        *children: The checkbox label.
         is_emphasized: This prop sets the emphasized style which provides visual prominence.
         is_indeterminate: Indeterminism is presentational only. The indeterminate visual representation remains regardless of user interaction.
         default_selected: Whether the element should be selected (uncontrolled).
@@ -153,6 +153,9 @@ def checkbox(
         aria_errormessage: The id of the element that provides error information for the current element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
+
+    Returns:
+        The rendered checkbox.
     """
 
     return component_element(
