@@ -1,13 +1,10 @@
 from deephaven_server.server import Server
 
-# Try and start the server if it's not already running
+# Create a Server instance to initialize the JVM
 # Otherwise we get errors whenever we try to import anything or run tests
-try:
-    if Server.instance is None:
-        # Use port 11000 so it doesn't conflict with another server
-        s = Server(port=11000, jvm_args=["-Xmx4g"])
-        s.start()
-except Exception as e:
-    #  Even if starting the server throws, we want to continue to try and run our tests
-    # We don't _really_ need a server running to run our tests, we just need the server to be running to import the deephaven namespace
-    pass
+# We don't even need to start the server, just create an instance.
+# https://github.com/deephaven/deephaven-core/blob/b5cae98c2f11b032cdd1b9c248dc5b4a0f95314a/py/embedded-server/deephaven_server/server.py#L152
+# Whenever you import anything from the deephaven namespace, it will check if the JVM is ready:
+# https://github.com/deephaven/deephaven-core/blob/b5cae98c2f11b032cdd1b9c248dc5b4a0f95314a/py/server/deephaven/__init__.py#L15
+if Server.instance is None:
+    Server(port=11000, jvm_args=["-Xmx4g"])
