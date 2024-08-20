@@ -57,7 +57,7 @@ my_illustrated_message_labeling_example = ui.illustrated_message(
 
 ## Placeholder
 
-Using an illustrated message as a placeholder for a table or list can clearly indicating the absence of data and provide context-specific guidance.
+Using an illustrated message as a placeholder for a table or list can clearly indicate the absence of data and provide context-specific guidance.
 
 ```python
 from deephaven import ui
