@@ -1406,10 +1406,10 @@ t = ui.table(
                 {
                     "title": "Nested item 1",
                     "action": lambda d: print("Nested item 1", d)
-                }
+                },
                 {
                     "title": "Nested item 2",
-                    "icon": "vsCheck"
+                    "icon": "vsCheck",
                     "action": lambda d: print("Nested item 2", d)
                 }
             ]
