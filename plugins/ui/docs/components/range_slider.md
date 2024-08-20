@@ -19,7 +19,7 @@ Recommendations for creating range sliders:
 1. Every range slider should have a [label](#labeling) specified. Without one, the range slider is ambiguous. In the rare case that context is sufficient, the label is unnecessary; you must still include an aria-label via the `aria_label` prop.
 2. The label and contextual help text should be in sentence case.
 
-Consider using a `slider` when users should select a singular value or a `number_field` when the range is large and sliding between the upper and lower bound is no longer quick.
+Consider using a `slider` instead of a `range_slider` when users should select a singular value or a `number_field` when the range is large and sliding between the upper and lower bound is no longer quick.
 
 ## Value
 
@@ -55,7 +55,7 @@ my_range_slider_value_example = range_slider_value_example()
 
 Setting the `min_value` and `max_value` props configures a custom scale for the range slider.  
 
-The `step` prop changes the increments that the range slider changes.
+The `step` prop changes the increments in which the range slider changes.
 
 ```python
 from deephaven import ui
