@@ -56,6 +56,7 @@ def illustrated_message(
 ) -> Element:
     """
     An IllustratedMessage displays an illustration and a message, usually for an empty state or an error page.
+
     Args:
         *children: The content of the IllustratedMessage which consist of three areas: an illustration, a title, and a body.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
@@ -98,23 +99,10 @@ def illustrated_message(
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
 
-    Examples:
-        no_results = ui.illustrated_message(
-            ui.heading("No Results"),
-            ui.content("Try another search"),
-        )
-        warning = ui.illustrated_message(
-            ui.icon("vsWarning"),
-            ui.heading("Invalid input"),
-            ui.content("No special characters allowed."),
-        )
-        error_message = ui.illustrated_message(
-            ui.icon("vsError"),
-            ui.heading("Access denied"),
-            ui.content("You do not have permissions to access this page."),
-        )
-
+    Returns:
+        The rendered IllustratedMessage component.
     """
+
     return component_element(
         "IllustratedMessage",
         *children,
