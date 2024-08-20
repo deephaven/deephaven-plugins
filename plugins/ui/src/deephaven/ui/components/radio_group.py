@@ -23,7 +23,7 @@ from .._internal.utils import create_props
 
 
 def radio_group(
-    *children,
+    *children: Any,
     is_emphasized: bool | None = None,
     orientation: Orientation = "vertical",
     value: str | None = None,
