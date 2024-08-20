@@ -23,7 +23,7 @@ Recommendations for creating an illustrated message:
 2. The heading should be no longer than 6 words and should not be a replacement for the message text.
 2. Use sentence case for the heading and message text.
 3. Use illustrations that are relevant to the message and help convey the context effectively.
-4. Reserve illustrated message for situations where it adds value and clarity, rather than using it for minor notifications or messages.
+4. Reserve illustrated messages for situations where they add value and clarity, rather than using them for minor notifications or messages.
 
 ## Content
 
@@ -44,7 +44,7 @@ my_illustrated_message_content_example = ui.illustrated_message(
 
 ## Labeling
 
-If the heading of an illustrated message isn't specified, the illustration should have the `aria-label` prop set for accessibility purposes.
+If the heading of an illustrated message isn't specified, set the `aria-label` prop for accessibility purposes.
 
 ```python
 from deephaven import ui
