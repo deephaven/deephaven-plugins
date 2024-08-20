@@ -19,7 +19,7 @@ my_radio_group_basic = ui.radio_group(
 
 Recommendations for creating radio groups:
 
-1. Every radio group should have a label specified. Without one, the radio group is ambiguous and not accessible.
+1. Every range slider should have a [label](#labeling) specified. Without one, the range slider is ambiguous. In the rare case that context is sufficient, the label is unnecessary; you must still include an aria-label via the `aria_label` prop.
 2. Use radio groups when the list of options are mutually exclusive.
 3. Emphasized radio buttons are ideal for forms and settings where they need to stand out, while non-emphasized radio buttons are best for monochrome application panels to keep the focus on the application.
 4. The label, options, and help text should all be in sentence case.
