@@ -1,16 +1,17 @@
 from __future__ import annotations
 from unittest.mock import Mock
-from typing import Any, Callable, cast, List, Union
+from typing import Any, Callable, List, Union
+from deephaven.ui.renderer.Renderer import Renderer
+from deephaven.ui.renderer.RenderedNode import RenderedNode
+from deephaven.ui._internal.RenderContext import RenderContext, OnChangeCallable
+from deephaven import ui
 from .BaseTest import BaseTestCase
+
+run_on_change: OnChangeCallable = lambda x: x()
 
 
 class RendererTestCase(BaseTestCase):
     def test_render_children(self):
-        from deephaven.ui.renderer.Renderer import Renderer
-        from deephaven.ui.renderer.RenderedNode import RenderedNode
-        from deephaven.ui._internal.RenderContext import RenderContext
-        from deephaven import ui
-
         def find_node(root: RenderedNode, name: str) -> RenderedNode:
             """
             Recursively find a node by name given the root node
@@ -39,9 +40,9 @@ class RendererTestCase(BaseTestCase):
             return find_node(root, "deephaven.ui.components.ActionButton")
 
         on_change: Callable[[Callable[[], None]], None] = Mock(
-            side_effect=lambda x: x()
+            side_effect=run_on_change
         )
-        on_queue: Callable[[Callable[[], None]], None] = Mock(side_effect=lambda x: x())
+        on_queue: Callable[[Callable[[], None]], None] = Mock(side_effect=run_on_change)
 
         called_funcs: List[str] = []
 

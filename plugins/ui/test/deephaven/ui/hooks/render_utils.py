@@ -20,11 +20,15 @@ def render_hook(
     Render a hook function and return the context, result, and a rerender function for updating it
 
     Args:
-      fn: Callable:
-        The function to render. Pass in a function with a hook call within it.
-        Re-render will call the same function but with the new args passed in.
-      queue: Queue:
-        The queue to put items on. If not provided, a new queue will be created.
+        fn:
+            The function to render. Pass in a function with a hook call within it.
+            Re-render will call the same function but with the new args passed in.
+        args:
+            Any extra positional arguments to pass to the function.
+        queue:
+            The queue to put items on. If not provided, a new queue will be created.
+        kwargs:
+            Any extra keyword arguments to pass to the function.
     """
     from deephaven.ui._internal.RenderContext import RenderContext
 

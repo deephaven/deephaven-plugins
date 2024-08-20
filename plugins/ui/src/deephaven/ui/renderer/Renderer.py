@@ -34,11 +34,19 @@ def _get_context_key(item: Any, index_key: str) -> Union[str, None]:
 def _render_child_item(item: Any, index_key: str, context: RenderContext) -> Any:
     """
     Renders a child item with a child context. If the child item does not need to be rendered, just return the item.
+
+    Args:
+        item: The item to render.
+        index_key: The key of the item in the array/dict.
+        context: The context to render the item in.
+
+    Returns:
+        The rendered item.
     """
     key = _get_context_key(item, index_key)
-    if key is not None:
-        return _render_item(item, context.get_child_context(key))
-    return item
+    return (
+        _render_item(item, context.get_child_context(key)) if key is not None else item
+    )
 
 
 def _render_item(item: Any, context: RenderContext) -> Any:
@@ -48,6 +56,9 @@ def _render_item(item: Any, context: RenderContext) -> Any:
     Args:
         item: The item to render.
         context: The context to render the item in.
+
+    Returns:
+        The rendered item.
     """
     logger.debug("_render_item context is %s", context)
     if isinstance(item, (list, tuple)):
@@ -77,6 +88,9 @@ def _render_list(
     Args:
         item: The list to render.
         context: The context to render the list in.
+
+    Returns:
+        The rendered list.
     """
     logger.debug("_render_list %s", item)
     with context.open():
@@ -94,6 +108,9 @@ def _render_dict(item: PropsType, context: RenderContext) -> PropsType:
     Args:
         item: The dictionary to render.
         context: The context to render the dictionary in.
+
+    Returns:
+        The rendered dictionary.
     """
     logger.debug("_render_dict %s", item)
 
@@ -109,6 +126,9 @@ def _render_dict_in_open_context(item: PropsType, context: RenderContext) -> Pro
     Args:
         item: The dictionary to render.
         context: The context to render the dictionary in.
+
+    Returns:
+        The rendered dictionary.
     """
     return {key: _render_child_item(value, key, context) for key, value in item.items()}
 
@@ -153,5 +173,11 @@ class Renderer:
     def render(self, element: Element) -> RenderedNode:
         """
         Render an element. Will update the liveness scope with the new objects from the render.
+
+        Args:
+            element: The element to render.
+
+        Returns:
+            The rendered element.
         """
         return _render_element(element, self._context)

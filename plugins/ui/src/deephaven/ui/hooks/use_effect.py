@@ -27,7 +27,7 @@ def use_effect(
         None
     """
     deps_ref: Ref[set[Any] | Sequence[Any] | None] = use_ref(None)
-    cleanup_ref: Ref[Union[Callable[[], None], None]] = use_ref(lambda: None)
+    cleanup_ref: Ref[Union[CleanupFunction, None]] = use_ref(lambda: None)
     scope_ref: Ref[LivenessScope | None] = use_ref(None)
     is_mounted_ref: Ref[bool] = use_ref(False)
     is_dirty = (

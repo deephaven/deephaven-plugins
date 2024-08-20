@@ -60,12 +60,12 @@ ChildrenContextDict = Dict[ContextKey, "RenderContext"]
 The child contexts for a RenderContext.
 """
 
-CleanupFunction = Callable[[], None]
+RenderCleanup = Callable[[], None]
 """
 A function that cleans up an effect.
 """
 
-EffectFunction = Callable[[], None]
+RenderEffect = Callable[[], None]
 """
 A function that performs an effect.
 """
@@ -200,7 +200,7 @@ class RenderContext:
     representing the new rendered state.
     """
 
-    _collected_effects: List[Tuple[CleanupFunction, EffectFunction]]
+    _collected_effects: List[Tuple[RenderCleanup, RenderEffect]]
     """
     Effects currently owned by this RenderContext. Takes a tuple of a cleanup function and an effect function.
     When the current render cycle is complete, first it will call all the cleanup functions in the set, then it will call all the effect functions.
@@ -219,9 +219,9 @@ class RenderContext:
     representing the new rendered state.
     """
 
-    _is_unmounted: bool
+    _is_mounted: bool
     """
-    Flag to indicate if this context has been unmounted. It is unusable after being unmounted.
+    Flag to indicate if this context is mounted. It is unusable after being unmounted.
     """
 
     def __init__(self, on_change: OnChangeCallable, on_queue_render: OnChangeCallable):
@@ -244,13 +244,13 @@ class RenderContext:
         self._collected_unmount_listeners = []
         self._collected_contexts = []
         self._top_level_scope = None
-        self._is_unmounted = False
+        self._is_mounted = True
 
     def __del__(self):
         logger.debug("Deleting context")
         for scope in self._collected_scopes:
             scope.release()
-        if not self._is_unmounted:
+        if self._is_mounted:
             self.unmount()
 
     @contextmanager
@@ -265,6 +265,8 @@ class RenderContext:
         Returns:
             A context manager to manage RenderContext resources.
         """
+        self._assert_mounted()
+
         if self._hook_index != _READY_TO_OPEN or self._top_level_scope is not None:
             raise RuntimeError(
                 "RenderContext.open() was already called, and is not reentrant"
@@ -300,22 +302,21 @@ class RenderContext:
                 yield self
 
                 # Release all child contexts that are no longer referenced
-                [
-                    self.delete_child_context(context_key)
-                    for context_key in old_contexts
-                    if context_key not in self._collected_contexts
-                ]
+                for context_key in old_contexts:
+                    if context_key not in self._collected_contexts:
+                        self.delete_child_context(context_key)
 
                 # Call the unmount listeners for anything that was unmounted
-                [
-                    listener()
-                    for listener in old_unmount_listeners
-                    if listener not in self._collected_unmount_listeners
-                ]
+                for listener in old_unmount_listeners:
+                    if listener not in self._collected_unmount_listeners:
+                        listener()
 
                 # Call all the cleanup functions registered, then all the effect functions
-                [effect[0]() for effect in self._collected_effects]
-                [effect[1]() for effect in self._collected_effects]
+                for cleanup, effect in self._collected_effects:
+                    cleanup()
+
+                for cleanup, effect in self._collected_effects:
+                    effect()
 
             # Following the "yield" so we don't do this if there was an error, remove all scopes we're still using.
             # Then, release all leftover scopes that are no longer referenced - we always release after creating new
@@ -362,6 +363,24 @@ class RenderContext:
                 )
             )
 
+    def _assert_active(self) -> None:
+        """
+        Verify that this context is active on this thread.
+        """
+        if self is not get_context():
+            raise RuntimeError(
+                "RenderContext method called when RenderContext not opened"
+            )
+
+    def _assert_mounted(self) -> None:
+        """
+        Verify that this context is mounted.
+        """
+        if not self._is_mounted:
+            raise RuntimeError(
+                "RenderContext method called when RenderContext is unmounted"
+            )
+
     def has_state(self, key: StateKey) -> bool:
         """
         Check if the given key is in the state.
@@ -372,6 +391,7 @@ class RenderContext:
         """
         Get the state for the given key.
         """
+        self._assert_active()
         wrapper = self._state[key]
 
         # This value (and any objects created when this value was created) must be retained by the current context,
@@ -472,10 +492,10 @@ class RenderContext:
         Args:
             liveness_scope: the new LivenessScope to track
         """
-        assert self is get_context()
+        self._assert_active()
         self._collected_scopes.add(cast(LivenessScope, liveness_scope.j_scope))
 
-    def add_effect(self, cleanup: CleanupFunction, effect: EffectFunction) -> None:
+    def add_effect(self, cleanup: RenderCleanup, effect: RenderEffect) -> None:
         """
         Add an effect for after this context is rendered.
         This RenderContext must be open to call this method.
@@ -483,7 +503,7 @@ class RenderContext:
             cleanup: the cleanup function to run from the previous effect. All cleanups are run before any effects.
             effect: the new effect to run.
         """
-        assert self is get_context()
+        self._assert_active()
         self._collected_effects.append((cleanup, effect))
 
     def add_unmount_listener(self, listener: Callable[[], None]) -> None:
@@ -493,7 +513,7 @@ class RenderContext:
         Args:
             listener: the new listener to track
         """
-        assert self is get_context()
+        self._assert_active()
         self._collected_unmount_listeners.append(listener)
 
     def export_state(self) -> ExportedRenderState:
@@ -549,12 +569,12 @@ class RenderContext:
         """
         Unmount this context. This will unmount all child contexts, call all unmount listeners, and clear the state.
         """
-        assert not self._is_unmounted
+        self._assert_mounted()
 
         logger.debug("Unmounting context %s", self)
-        self._is_unmounted = True
-        for context in self._children_context:
-            self._children_context[context].unmount()
+        self._is_mounted = False
+        for context in self._children_context.values():
+            context.unmount()
 
         for listener in self._collected_unmount_listeners:
             listener()
