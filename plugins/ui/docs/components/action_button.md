@@ -20,7 +20,7 @@ Recommendations for creating clear and effective action buttons:
 4. No punctuation is needed at the end of the button text.
 5. For icon only buttons, include a tooltip
 
-Consider using [`button`](./button.md) to draw attention to important actions users need to perform or for navigating to a different page. To represent a binary choice, use a [`toggle_button`](./toggle_button.md) instead. If you have a collection of related buttons, you can group them using a [`action_group`](./action_group.md).
+Consider using [`button`](./button.md) to draw attention to important actions users need to perform or for navigating to a different page. To represent a binary choice, use a [`toggle_button`](./toggle_button.md) instead. If you have a collection of related buttons, you can group them using an [`action_group`](./action_group.md).
 
 ## Events
 
