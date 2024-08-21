@@ -49,15 +49,14 @@ jobs:
 
           cat << EOF > $HOME/.config/rclone/rclone.conf
           [plugindocs]
-          type = s3
-          provider = Cloudflare
-          access_key_id = ${{ secrets.DOCS_CLOUDFLARE_ACCESS_KEY_ID }}
-          secret_access_key = ${{ secrets.DOCS_CLOUDFLARE_SECRET_ACCESS_KEY }}
-          endpoint = ${{ secrets.DOCS_CLOUDFLARE_ENDPOINT }}
-          no_check_bucket = true
-          acl = private
+          type = google cloud storage
+          credentials_file = $HOME/credentials.json
+          project_number = ${{ secrets.GOOGLE_CLOUD_PROJECT_NUMBER }}
+          bucket_policy_only = true
           EOF
+          
+          echo ${{ secrets.GOOGLE_CLOUD_CREDENTIALS }} | base64 -d > $HOME/credentials.json
 
       - name: Sync docs
         if: inputs.event_name == 'push'
-        run: rclone sync plugins/${{ inputs.package }}/docs/build/markdown/ plugindocs:website/deephaven/deephaven-plugins/${{ inputs.package }}/${{ inputs.version }}/
+        run: rclone sync plugins/${{ inputs.package }}/docs/build/markdown/ plugindocs:${{ secrets.GOOGLE_CLOUD_BUCKET }}/deephaven/deephaven-plugins/${{ inputs.package }}/${{ inputs.version }}/
