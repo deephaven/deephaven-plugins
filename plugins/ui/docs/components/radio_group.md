@@ -11,7 +11,11 @@ from deephaven import ui
 
 
 my_radio_group_basic = ui.radio_group(
-    ui.radio("Dogs", value="dogs"), ui.radio("Cats", value="cats")
+    ui.radio("Dogs", value="dogs"),
+    ui.radio("Cats", value="cats"),
+    ui.radio("Lizard", value="lizard"),
+    ui.radio("Fish", value="fish"),
+    label="What is the best type of pet",
 )
 ```
 
