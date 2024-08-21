@@ -9,40 +9,105 @@ import {
   IrisGridModel,
   IrisGridModelFactory,
   isIrisGridTableModelTemplate,
+  UIRow,
 } from '@deephaven/iris-grid';
+import { TableUtils } from '@deephaven/jsapi-utils';
 import { type dh as DhType } from '@deephaven/jsapi-types';
 import { ColorGradient, DatabarConfig } from './UITableUtils';
 import JsTableProxy, { UITableLayoutHints } from './JsTableProxy';
-import { TableUtils } from '@deephaven/jsapi-utils';
+
+export async function makeUiTableModel(
+  dh: typeof DhType,
+  table: DhType.Table,
+  databars: DatabarConfig[],
+  layoutHints: UITableLayoutHints
+): Promise<UITableModel> {
+  const joinColumns: string[] = [];
+  const totalsOperationMap: Record<string, string[]> = {};
+  databars.forEach(config => {
+    const { column, value_column: valueColumn = column, min, max } = config;
+
+    if (min == null && max == null) {
+      totalsOperationMap[valueColumn] = ['Min', 'Max'];
+      joinColumns.push(
+        `${valueColumn}__DATABAR_Min=${valueColumn}__Min`,
+        `${valueColumn}__DATABAR_Max=${valueColumn}__Max`
+      );
+    } else if (min == null) {
+      totalsOperationMap[valueColumn] = ['Min'];
+      joinColumns.push(`${valueColumn}__DATABAR_Min=${valueColumn}`);
+    } else if (max == null) {
+      totalsOperationMap[valueColumn] = ['Max'];
+      joinColumns.push(`${valueColumn}__DATABAR_Max=${valueColumn}`);
+    }
+  });
+
+  let baseTable = table;
+
+  if (joinColumns.length > 0) {
+    const totalsTable = await table.getTotalsTable({
+      operationMap: totalsOperationMap,
+      defaultOperation: 'Skip',
+      showGrandTotalsByDefault: false,
+      showTotalsByDefault: false,
+      groupBy: [],
+    });
+
+    baseTable = await table.naturalJoin(totalsTable, [], joinColumns);
+  }
+
+  const uiTableProxy = new JsTableProxy({
+    table: baseTable,
+    layoutHints,
+  });
+
+  const baseModel = await IrisGridModelFactory.makeModel(dh, uiTableProxy);
+
+  return new UITableModel({
+    dh,
+    model: baseModel,
+    table: uiTableProxy,
+    databars,
+  });
+}
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface UITableModel extends IrisGridModel {}
 
+type NumericValue =
+  | number
+  | DhType.LongWrapper
+  | DhType.BigIntegerWrapper
+  | DhType.BigDecimalWrapper;
+
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 class UITableModel extends IrisGridModel {
-  private model: IrisGridModel;
+  table: DhType.Table;
 
-  private table: DhType.Table;
+  private model: IrisGridModel;
 
   private databars: Map<ColumnName, DatabarConfig>;
 
-  private uiLayoutHints: UITableLayoutHints;
+  private databarColorMap: Map<string, string> = new Map();
 
-  constructor(
-    dh: typeof DhType,
-    model: IrisGridModel,
-    table: DhType.Table,
-    databars: DatabarConfig[],
-    layoutHints: UITableLayoutHints
-  ) {
+  constructor({
+    dh,
+    model,
+    table,
+    databars,
+  }: {
+    dh: typeof DhType;
+    model: IrisGridModel;
+    table: DhType.Table;
+    databars: DatabarConfig[];
+  }) {
     super(dh);
 
     this.model = model;
     this.table = table;
-    this.uiLayoutHints = layoutHints;
 
     this.databars = new Map<ColumnName, DatabarConfig>();
     databars.forEach(databar => {
@@ -92,68 +157,9 @@ class UITableModel extends IrisGridModel {
     });
   }
 
-  async init(): Promise<void> {
-    if (this.databars.size === 0) {
-      return;
-    }
-
-    const joinColumns: string[] = [];
-    const totalsOperationMap: Record<string, string[]> = {};
-    this.databars.forEach(config => {
-      const { column, value_column: valueColumn = column, min, max } = config;
-
-      if (min == null && max == null) {
-        totalsOperationMap[valueColumn] = ['Min', 'Max'];
-        joinColumns.push(
-          `${valueColumn}__DATABAR_Min=${valueColumn}__Min`,
-          `${valueColumn}__DATABAR_Max=${valueColumn}__Max`
-        );
-      } else if (min == null) {
-        totalsOperationMap[valueColumn] = ['Min'];
-        joinColumns.push(`${valueColumn}__DATABAR_Min=${valueColumn}`);
-      } else if (max == null) {
-        totalsOperationMap[valueColumn] = ['Max'];
-        joinColumns.push(`${valueColumn}__DATABAR_Max=${valueColumn}`);
-      }
-    });
-
-    if (
-      joinColumns.length === 0 ||
-      Object.keys(totalsOperationMap).length === 0
-    ) {
-      return;
-    }
-
-    const totalsTable = await this.table.getTotalsTable({
-      operationMap: totalsOperationMap,
-      defaultOperation: 'Skip',
-      showGrandTotalsByDefault: false,
-      showTotalsByDefault: false,
-      groupBy: [],
-    });
-
-    const resultTable = await this.table.naturalJoin(
-      totalsTable,
-      [],
-      joinColumns
-    );
-
-    const uiTableProxy = new JsTableProxy({
-      table: resultTable,
-      layoutHints: this.uiLayoutHints,
-    });
-
-    this.model = await IrisGridModelFactory.makeModel(this.dh, uiTableProxy);
-    this.table = uiTableProxy;
+  setDatabarColorMap(colorMap: Map<string, string>): void {
+    this.databarColorMap = colorMap;
   }
-
-  // get model(): IrisGridModel {
-  //   return this._model;
-  // }
-
-  // set model(model: IrisGridModel) {
-  //   this._model = model;
-  // }
 
   // eslint-disable-next-line class-methods-use-this
   override renderTypeForCell(
@@ -170,6 +176,41 @@ class UITableModel extends IrisGridModel {
     return this.databars.has(columnName)
       ? 'dataBar'
       : this.model.renderTypeForCell(column, row);
+  }
+
+  /**
+   * Gets the value as a number for a databar column.
+   * This will unwrap the value if it's a numeric wrapper.
+   * If the value is null, it will default to 0 as this indiates the value has not been fetched.
+   * @param row The UIRow to get the value from
+   * @param columnName The column name associated with the value
+   * @param valueType The type of value to get. This is used for error messages. E.g. 'minimum' or 'maximum'
+   * @returns Numeric value for the databar column
+   */
+  getDatabarValueFromRow(
+    row: UIRow | null,
+    columnName: ColumnName,
+    valueType: string
+  ): number {
+    if (row != null) {
+      const column = this.table.findColumn(columnName);
+      if (column == null) {
+        throw new Error(`Can't find databar ${valueType} column ${columnName}`);
+      }
+
+      if (!TableUtils.isNumberType(column.type)) {
+        throw new Error(
+          `Can't use non-numeric column as databar ${valueType}: ${columnName} is of type ${column.type}`
+        );
+      }
+
+      const valueColumnIndex = this.getColumnIndexByName(columnName);
+      const rowDataKey = valueColumnIndex ?? columnName;
+
+      const value = (row.data.get(rowDataKey)?.value ?? 0) as NumericValue;
+      return typeof value === 'number' ? value : value.asNumber();
+    }
+    return 0;
   }
 
   override dataBarOptionsForCell(
@@ -195,9 +236,9 @@ class UITableModel extends IrisGridModel {
       max = `${valueColumnName}__DATABAR_Max`,
       axis = 'proportional',
       color: userColor,
-      value_placement: valuePlacement = 'overlap',
+      value_placement: valuePlacement = 'beside',
       opacity = valuePlacement === 'overlap' ? 0.35 : 1,
-      markers = [],
+      markers: markersProp = [],
       direction = 'LTR',
     } = config;
 
@@ -207,18 +248,31 @@ class UITableModel extends IrisGridModel {
       throw new Error(`Can't find column ${valueColumnName}`);
     }
 
-    const valueColumn = this.columns[valueColumnIndex];
+    const row = this.model.row(rowIndex);
 
-    if (!TableUtils.isNumberType(valueColumn.type)) {
-      throw new Error(
-        `Can't use non-numeric column as a databar value: ${valueColumnName} is of type ${valueColumn.type}`
-      );
-    }
+    const value = this.getDatabarValueFromRow(row, valueColumnName, 'value');
 
-    let value = this.valueForCell(valueColumnIndex, rowIndex) ?? 0; // Default the value to 0 if it's null so we don't draw a bar
-    if (typeof value !== 'number') {
-      value = value.asNumber();
-    }
+    const minRowValue =
+      typeof min === 'string'
+        ? this.getDatabarValueFromRow(row, min, 'minimum')
+        : min;
+
+    const maxRowValue =
+      typeof max === 'string'
+        ? this.getDatabarValueFromRow(row, max, 'maximum')
+        : max;
+
+    const markers = markersProp.map(marker => {
+      const { value: markerValue, color: markerColor = theme.markerBarColor } =
+        marker;
+      return {
+        value:
+          typeof markerValue === 'string'
+            ? this.getDatabarValueFromRow(row, markerValue, 'marker')
+            : markerValue,
+        color: this.databarColorMap.get(markerColor) ?? markerColor,
+      };
+    });
 
     let positiveColor: string | ColorGradient = theme.positiveBarColor;
     let negativeColor: string | ColorGradient = theme.negativeBarColor;
@@ -228,70 +282,26 @@ class UITableModel extends IrisGridModel {
         positiveColor = userColor;
         negativeColor = userColor;
       } else {
-        positiveColor = userColor.positive;
-        negativeColor = userColor.negative;
+        positiveColor = userColor.positive ?? positiveColor;
+        negativeColor = userColor.negative ?? negativeColor;
       }
     }
 
-    let minRowValue = 0;
-
-    if (!isIrisGridTableModelTemplate(this.model)) {
-      throw new Error('Cannot use databars on this table type');
-    }
-
-    if (typeof min === 'string') {
-      const row = this.model.row(rowIndex);
-      if (row != null) {
-        const minColumn = this.table.findColumn(min);
-        if (minColumn == null) {
-          throw new Error(`Can't find minimum value column ${min}`);
-        }
-
-        const minValue = (row.data.get(minColumn.name)?.value ?? 0) as
-          | number
-          | DhType.LongWrapper;
-
-        if (typeof minValue !== 'number') {
-          minRowValue = minValue.asNumber();
-        } else {
-          minRowValue = minValue;
-        }
-      }
+    if (Array.isArray(positiveColor)) {
+      positiveColor = positiveColor.map(
+        color => this.databarColorMap.get(color) ?? color
+      );
     } else {
-      minRowValue = min;
+      positiveColor = this.databarColorMap.get(positiveColor) ?? positiveColor;
     }
 
-    let maxRowValue = 0;
-
-    if (typeof max === 'string') {
-      const row = this.model.row(rowIndex);
-      if (row != null) {
-        const maxColumn = this.table.findColumn(max);
-        if (maxColumn == null) {
-          throw new Error(`Can't find maximum value column ${max}`);
-        }
-
-        if (!TableUtils.isNumberType(maxColumn.type)) {
-          throw new Error(`Column ${maxColumn.name} must be numeric`);
-        }
-
-        const maxValue = (row.data.get(maxColumn.name)?.value ?? 0) as
-          | number
-          | DhType.LongWrapper
-          | DhType.BigIntegerWrapper
-          | DhType.BigDecimalWrapper;
-
-        if (typeof maxValue !== 'number') {
-          maxRowValue = maxValue.asNumber();
-        } else {
-          maxRowValue = maxValue;
-        }
-      }
+    if (Array.isArray(negativeColor)) {
+      negativeColor = negativeColor.map(
+        color => this.databarColorMap.get(color) ?? color
+      );
     } else {
-      maxRowValue = max;
+      negativeColor = this.databarColorMap.get(negativeColor) ?? negativeColor;
     }
-
-    // console.log(positiveColor);
 
     return {
       columnMin: minRowValue,

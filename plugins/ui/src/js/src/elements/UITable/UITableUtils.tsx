@@ -67,9 +67,9 @@ export type DatabarConfig = {
   color?:
     | string
     | ColorGradient
-    | { positive: string | ColorGradient; negative: string | ColorGradient };
+    | { positive?: string | ColorGradient; negative?: string | ColorGradient };
   opacity?: number;
-  marker?: unknown;
+  markers?: { value: number | string; color?: string }[];
 };
 
 export type UITableProps = {

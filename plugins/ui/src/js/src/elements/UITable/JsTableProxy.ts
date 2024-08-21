@@ -167,30 +167,35 @@ class JsTableProxy implements dh.Table {
     }
 
     const allColumns = columns.concat(this.hiddenColumns);
-    return new Proxy(
-      this.table.setViewport(firstRow, lastRow, allColumns, updateIntervalMs),
-      {
-        get: (target, prop, receiver) => {
-          if (prop === 'setViewport') {
-            return (
-              first: number,
-              last: number,
-              cols?: dh.Column[] | null,
-              interval?: number | null
-            ) => {
-              if (cols == null) {
-                return target.setViewport(first, last, cols, interval);
-              }
-
-              const proxyAllColumns = cols.concat(this.hiddenColumns);
-
-              return target.setViewport(first, last, proxyAllColumns, interval);
-            };
-          }
-          return Reflect.get(target, prop, receiver);
-        },
-      }
+    const viewportSubscription = this.table.setViewport(
+      firstRow,
+      lastRow,
+      allColumns,
+      updateIntervalMs
     );
+    return new Proxy(viewportSubscription, {
+      get: (target, prop, receiver) => {
+        // Need to proxy setViewport on the subscription in case it is changed
+        // without creating an entirely new subscription
+        if (prop === 'setViewport') {
+          return (
+            first: number,
+            last: number,
+            cols?: dh.Column[] | null,
+            interval?: number | null
+          ) => {
+            if (cols == null) {
+              return target.setViewport(first, last, cols, interval);
+            }
+
+            const proxyAllColumns = cols.concat(this.hiddenColumns);
+
+            return target.setViewport(first, last, proxyAllColumns, interval);
+          };
+        }
+        return Reflect.get(target, prop, receiver);
+      },
+    });
   }
 }
 
