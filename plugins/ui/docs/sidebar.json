@@ -15,6 +15,10 @@
         "path": "README.md"
       },
       {
+        "label": "Installation",
+        "path": "installation.md"
+      },
+      {
         "label": "Components",
         "items": [
           {
