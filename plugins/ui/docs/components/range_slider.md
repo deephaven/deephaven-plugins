@@ -122,8 +122,8 @@ my_range_slider_label_example = ui.flex(
         show_value_label=False,
         default_value={"start": 15, "end": 30},
     ),
-    max_width="size-5000",
-    gap="size-300",
+    direction="column",
+    gap="size-500",
 )
 ```
 
