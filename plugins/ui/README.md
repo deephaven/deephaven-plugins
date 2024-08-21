@@ -81,6 +81,7 @@ Available IconTypes can be generated automatically using icon TypeScript definit
 Writes to `icon_types.py`. 
 
 ```shell
+npm install
 cd plugins/ui
-python make_docs.py
+python make_icon_types.py
 ```
