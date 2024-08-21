@@ -323,7 +323,7 @@ my_radio_group_is_read_only_example = ui.radio_group(
 
 ## Emphasized
 
-The `is_emphasized` prop makes the selected radio button blue, adding a visual prominence to the selection.
+The `is_emphasized` prop makes the selected radio button the user's accent color, adding a visual prominence to the selection.
 
 
 ```python
