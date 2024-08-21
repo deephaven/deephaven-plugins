@@ -48,7 +48,7 @@ ci = { changelog_title = "", omit_from_changelog = true }
 
 [changelog]
 path = "CHANGELOG.md"
-template = "remote"
+template = "deephaven-changelog-template"
 remote = "github.com"
 repository = "deephaven-plugins"
 owner = "deephaven"
