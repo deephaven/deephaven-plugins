@@ -1,7 +1,6 @@
 from deephaven.plugin import Registration, Callback
 from deephaven.plugin.utilities import create_js_plugin, DheSafeCallbackWrapper
 
-from .js_plugin import {{ cookiecutter.__py_js_plugin_obj_name }}
 from .{{ cookiecutter.__type_file_name }} import {{ cookiecutter.__type_name }}
 
 # The namespace that the Python plugin will be registered under.
