@@ -25,7 +25,7 @@ Recommendations for creating radio groups:
 4. The label, options, and help text should all be in sentence case.
 5. Identify which radio groups are required or optional, and use the `is_required` field or the `necessity_indicator` to mark them accordingly.
 
-Consider using a [`checkbox_group`](./checkbox_group.md) to manage multiple selections or no selections within a group at once. If you need to display a list of items driven by a Deephaven table, use a [`list_view`](./list_view.md) to dynamically generate the checkboxes.
+Consider using a [`checkbox_group`](./checkbox_group.md) to manage multiple selections or no selections within a group at once. If you need to display a list of items driven by a Deephaven table, use a [`list_view`](./list_view.md) to dynamically generate the checkboxes with `selection_mode="single"` to mimic radio behaviour.
 
 ## Value
 
