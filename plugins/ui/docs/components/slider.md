@@ -103,8 +103,8 @@ my_slider_label_example = ui.flex(
     ui.slider(label="Cookies to buy", default_value=25),
     ui.slider(label="Donuts to buy", label_position="side", default_value=25),
     ui.slider(label="Cakes to buy", show_value_label=False, default_value=25),
-    max_width="size-5000",
-    gap="size-300",
+    direction="column",
+    gap="size-500"
 )
 ```
 
