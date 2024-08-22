@@ -1,6 +1,6 @@
 # Action Button
 
-Action buttons allow users to perform an action. They are used for similar, task-based options within a workflow, and are ideal for interfaces where buttons aren't meant to draw a lot of attention. Action buttons are the preferred button for taking actions on tables and plots that in some way alter tables, such as applying a filter.
+Action buttons allow users to perform an action. They are used for similar, task-based options within a workflow, and are ideal for interfaces where buttons aren't meant to draw a lot of attention. Action buttons are the preferred buttons for taking actions on tables and plots that in some way alter tables, such as applying a filter.
 
 ## Example
 
@@ -14,17 +14,17 @@ btn = ui.action_button("Press me", on_press=lambda: print("Button clicked"))
 
 Recommendations for creating clear and effective action buttons:
 
-1. Button text should be clear and concise. No more than 4 words or 20 characters is recommended.
+1. Button text should be clear and concise. A maximum of 4 words or 20 characters is recommended.
 2. Use verbs for button text to indicate the action that will be taken when the button is clicked. For example, "Save", "Delete", or "Add friend", rather than "Ok" or "Cancel". Nouns or adjectives tend to be less clear.
 3. Use sentence case for button text with more than one word. For example, "Add friend" instead of "Add Friend" or "ADD FRIEND".
 4. No punctuation is needed at the end of the button text.
-5. For icon only buttons, include a tooltip
+5. For icon-only buttons, include a tooltip
 
 Consider using [`button`](./button.md) to draw attention to important actions users need to perform or for navigating to a different page. To represent a binary choice, use a [`toggle_button`](./toggle_button.md) instead. If you have a collection of related buttons, you can group them using an [`action_group`](./action_group.md).
 
 ## Events
 
-`action_button` accept a value to display and can trigger actions based on events such as setting state when pressed. See the [API Reference](#api-reference) for a full list of available events.
+`action_button` accepts a value to display and can trigger actions based on events such as setting state when pressed. See the [API Reference](#api-reference) for a full list of available events.
 
 ```python
 from deephaven import ui
