@@ -40,8 +40,5 @@
   },
   "files": [
     "dist/index.js"
-  ],
-  "engines": {
-    "node": "18.13.0"
-  }
+  ]
 }
