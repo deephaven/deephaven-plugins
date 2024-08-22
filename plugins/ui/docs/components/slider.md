@@ -19,7 +19,7 @@ Recommendations for creating sliders:
 1. Every slider should have a [label](#labeling) specified. Without one, the slider is ambiguous. In the rare case that context is sufficient, the label is unnecessary; you must still include an aria-label via the `aria_label` prop.
 2. The label and contextual help text should be in sentence case.
 
-Consider using a `range_slider` when users should select a subset range or a `number_field` when the range is large or greater precision is required.
+Consider using a [`range_slider`](./range_slider.md) when users should select a subset range or a `number_field` when the range is large or greater precision is required.
 
 
 ## Value
