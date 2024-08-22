@@ -1,6 +1,6 @@
 # Slider
 
-Sliders allow users to quickly select a value within a fixed range and should be used when the upper and lower bounds of the range are constant.
+Sliders allow users to quickly select a value within a fixed range and should be used when the range's upper and lower bounds are constant.
 
 
 ## Example
@@ -24,7 +24,7 @@ Consider using a [`range_slider`](./range_slider.md) when users should select a 
 
 ## Value
 
-Sliders are controlled with the `value` prop and uncontrolled with the `default_value` prop. This value must fall between the slider's minimum and maximum values, which by default are 0 and 100 respectively.
+Sliders are controlled with the `value` prop and uncontrolled with the `default_value` prop. This value must fall between the slider's minimum and maximum values, which by default are 0 and 100, respectively.
 
 ```python
 from deephaven import ui
@@ -162,7 +162,7 @@ my_slider_gradient_example = ui.slider(
 
 ## Contextual Help
 
-A `ui.contextual_help` can be passed into the `contextual_help` prop to provide additional information about the slider.
+To provide additional information about the slider, a `UI.contextual_help` can be passed into the `contextual_help` prop.
 
 ```python
 from deephaven import ui
