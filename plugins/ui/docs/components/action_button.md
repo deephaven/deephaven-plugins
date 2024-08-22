@@ -1,6 +1,6 @@
 # Action Button
 
-Action Buttons allow users to perform an action. They are used for similar, task-based options within a workflow, and are ideal for interfaces where buttons aren't meant to draw a lot of attention. Action buttons are the preferred button for taking actions on tables and plots that in some way alter tables, such as applying a filter.
+Action buttons allow users to perform an action. They are used for similar, task-based options within a workflow, and are ideal for interfaces where buttons aren't meant to draw a lot of attention. Action buttons are the preferred button for taking actions on tables and plots that in some way alter tables, such as applying a filter.
 
 ## Example
 
@@ -44,7 +44,7 @@ counter_example = counter()
 
 ## Icon Buttons
 
-Action Buttons can have icons when necessary to provide additional context. If no visible label is provided (e.g., an icon-only button), an alternative text label must be provided to identify the control for accessibility using the `aria-label` prop. See [icon](./icon.md) for a list of available icons.
+Action buttons can have icons when necessary to provide additional context. If no visible label is provided (e.g., an icon-only button), an alternative text label must be provided to identify the control for accessibility using the `aria-label` prop. See [icon](./icon.md) for a list of available icons.
 
 ```python
 from deephaven import ui
@@ -76,7 +76,7 @@ my_action_buttons = ui_button_group()
 
 ## Quiet State
 
-Action Buttons can have no visible background until they're interacted with. This style works best when a clear layout (vertical stack, table, grid) makes it easy to parse the buttons. Too many quiet components in a small space can be hard to read.
+Action buttons can have no visible background until they're interacted with. This style works best when a clear layout (vertical stack, table, grid) makes it easy to parse the buttons. Too many quiet components in a small space can be hard to read.
 
 ```python
 from deephaven import ui
@@ -86,7 +86,7 @@ btn = ui.action_button("Quiet button", is_quiet=True)
 
 ## Disabled State
 
-Action Buttons can be disabled to prevent user interaction. This is useful when the button is not currently available, but the button should still be visible.
+Action buttons can be disabled to prevent user interaction. This is useful when the button is not currently available, but the button should still be visible.
 
 ```python
 from deephaven import ui
