@@ -55,7 +55,7 @@ def ui_components():
         # TODO: #201 ui.combo_box("Combo Box"),
         ui.content("Content"),
         ui.contextual_help("Contextual Help"),
-        ui.date_picker(label="Date Picker"),
+        ui.date_picker(label="Date Picker", value="2021-01-01"),
         ui.flex("Flex default child A", "Flex default child B"),
         ui.flex("Flex column child A", "Flex column child B", direction="column"),
         ui.form("Form"),
