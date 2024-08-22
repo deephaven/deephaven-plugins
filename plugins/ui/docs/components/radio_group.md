@@ -24,16 +24,16 @@ my_radio_group_basic = ui.radio_group(
 Recommendations for creating radio groups:
 
 1. Every radio group should have a [label](#labeling) specified. Without one, the radio group is ambiguous. In the rare case that context is sufficient, the label is unnecessary; you must still include an aria-label via the `aria_label` prop.
-2. Use radio groups when the list of options are mutually exclusive.
+2. Use radio groups when the options in a list are mutually exclusive.
 3. Emphasized radio buttons are ideal for forms and settings where they need to stand out, while non-emphasized radio buttons are best for monochrome application panels to keep the focus on the application.
 4. The label, options, and help text should all be in sentence case.
 5. Identify which radio groups are required or optional, and use the `is_required` field or the `necessity_indicator` to mark them accordingly.
 
-Consider using a [`checkbox_group`](./checkbox_group.md) to manage multiple selections or no selections within a group at once. If you need to display a list of items driven by a Deephaven table, use a [`list_view`](./list_view.md) to dynamically generate the checkboxes with `selection_mode="single"` to mimic radio behaviour.
+Consider using a [`checkbox_group`](./checkbox_group.md) to manage multiple selections or no selections within a group at once. If you need to display a list of items driven by a Deephaven table, use a [`list_view`](./list_view.md) to dynamically generate the checkboxes with `selection_mode="single"` to mimic radio behavior.
 
 ## Value
 
-A radio group's value is not set by default, but a single initial, uncontrolled, value can be set using the `default_value` prop, or, a controlled value can be set via the `value` prop.
+A radio group's value is not set by default, but a single initial, uncontrolled value can be set using the `default_value` prop, or a controlled value can be set via the `value` prop.
 
 ```python
 from deephaven import ui
@@ -310,7 +310,7 @@ my_radio_group_is_disabled_example = ui.radio_group(
 
 ## Read only
 
-The `is_read_only` prop makes radio groups read-only to prevent user interaction. This is different than setting the `is_disabled` prop since the radio group remains focusable, and the options of the radio group remain visible.
+The `is_read_only` prop makes radio groups read-only to prevent user interaction. This is different from setting the `is_disabled` prop since the radio group remains focusable and its options remain visible.
 
 ```python
 from deephaven import ui
