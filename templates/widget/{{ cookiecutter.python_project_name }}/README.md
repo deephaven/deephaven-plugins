@@ -97,13 +97,24 @@ The `plugins` folder contains current plugins that are developed and maintained 
 Below are some common issues and how to resolve them as you develop your plugin.  
 If there is an issue with the process while following the Installation and Usage steps on the originally generated plugin, please open an issue.  
 
-### Checking if the Plugin is Registered
+### The Panel is Not Appearing
+#### Checking if the Plugin is Registered
 If the panel is not appearing or an error is thrown that the import is not found, the plugin may not be registered correctly.
 To verify the plugin is registered, check either the console logs or the versions in the settings panel.  
-In the console logs, there should be a messaging saying `Plugins loaded:` with a map that includes this plugin.  
-To get to the settings panel, click on the gear icon in the top right corner of the Deephaven window. Towards the bottom this plugin should be listed.  
-Running `pip list` in the `.venv` environment should show the Python package installed, but this is not a guarantee that the plugin is registered properly.  
-If the plugin is not listed, attempt to rebuild and reinstall the plugin and check for errors during that process.
+- In the console logs, there should be a messaging saying `Plugins loaded:` with a map that includes this plugin.  
+![plugin map](./_assets/plugin_map.png "Plugin Map")  
+
+- To get to the settings panel, click on the gear icon in the top right corner of the Deephaven window. Towards the bottom this plugin should be listed.  
+![plugin settings](./_assets/plugin_settings.png "Plugin Settings")  
+- If the plugin is not listed, attempt to rebuild and reinstall the plugin and check for errors during that process.
+
+#### Checking if the Python Package is Installed
+- Running `pip list` in the `.venv` environment should show the Python package installed, but this is not a guarantee that the plugin is registered properly.  
+- The version can also be checked directly from the Python console with:
+```{python}
+from importlib.metadata import version
+print(version("{{ cookiecutter.python_project_name }}"))
+```
 
 ### The Panel is Appearing but with Errors or Not Functioning Correctly
 Check both the Python and JavaScript logs for errors as either side could be causing the issue.
