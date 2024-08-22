@@ -50,7 +50,7 @@ jobs:
           cat << EOF > $HOME/.config/rclone/rclone.conf
           [plugindocs]
           type = google cloud storage
-          credentials_file = $HOME/credentials.json
+          service_account_file = $HOME/credentials.json
           project_number = ${{ secrets.GOOGLE_CLOUD_PROJECT_NUMBER }}
           bucket_policy_only = true
           EOF
