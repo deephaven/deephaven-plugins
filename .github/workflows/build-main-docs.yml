@@ -9,12 +9,12 @@ on:
         type: string
       version:
         description: 'Version of the package to build docs for. This only affects where the docs are synced and not the actual docs built so in most cases this should be "main".'
-        required: false
+        required: true
         type: string
         default: 'main'
       event_name:
         description: 'Event name to determine if the docs should be synced. Keep this as "push" to sync the docs.'
-        required: false
+        required: true
         type: string
         default: 'push'
   workflow_call:
@@ -25,7 +25,7 @@ on:
         type: string
       version:
         description: The version of the plugin to publish the docs for
-        required: false
+        required: true
         type: string
         default: 'main'
       event_name:
