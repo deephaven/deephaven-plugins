@@ -2,7 +2,7 @@ import React, { CSSProperties, useEffect, useState } from 'react';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
 import { WidgetComponentProps } from '@deephaven/plugin';
-import type { Widget } from '@deephaven/jsapi-types';
+import type { dh as DhType } from '@deephaven/jsapi-types';
 import { Button, TextField } from '@deephaven/components';
 
 const log = Log.module('{{ cookiecutter.javascript_project_name }}.{{ cookiecutter.__js_plugin_view_obj }}');
@@ -24,18 +24,18 @@ export function {{ cookiecutter.__js_plugin_view_obj }}(props: WidgetComponentPr
   const { fetch } = props;
   const [text, setText] = useState<string>("Call send_message on the object and the message will appear here.");
   const [formText, setFormText] = useState('');
-  const [widget, setWidget] = useState<Widget | null>(null);
+  const [widget, setWidget] = useState<DhType.Widget | null>(null);
   const dh = useApi();
 
   useEffect(() => {
     async function init() {
        // Fetch the widget from the server
-      const fetched_widget = await fetch() as Widget;
+      const fetched_widget = await fetch() as DhType.Widget;
       setWidget(fetched_widget);
 
 
       // Add an event listener to the widget to listen for messages from the server
-      fetched_widget.addEventListener<Widget>(
+      fetched_widget.addEventListener<DhType.Widget>(
           dh.Widget.EVENT_MESSAGE,
           ({ detail }) => {
             // When a message is received, update the text in the component
@@ -60,6 +60,7 @@ export function {{ cookiecutter.__js_plugin_view_obj }}(props: WidgetComponentPr
           marginBottom='size-50'
       />
       <Button
+        kind='primary'
         onClick={() => {
           // Send the message to the server via the widget
           if (widget) {
