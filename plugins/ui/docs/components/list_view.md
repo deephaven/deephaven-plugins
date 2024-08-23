@@ -182,7 +182,7 @@ def ui_list_view():
         "Text 1",
         "Text 2",
         "Text 3",
-        aria_label="List View - Quiet",
+        aria_label="List View - Default",
         on_change=set_value,
         selected_keys=value,
     )
