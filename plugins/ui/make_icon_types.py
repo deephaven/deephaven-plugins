@@ -18,6 +18,7 @@ def update_dict(
 
 
 relative_path = "./src/js/node_modules/@deephaven/icons/dist/index.d.ts"
+icon_pattern = r"^export const (\w+): IconDefinition;$"
 
 icons = {}
 snakeCase = {}
@@ -26,7 +27,8 @@ snakeCaseNoPrefix = {}
 
 with open(relative_path, "r") as file:
     for line in file:
-        if "IconDefinition" in line:
+        match = re.match(icon_pattern, line)
+        if match:
             icon = line.split(" ")[2].strip()[:-1]
             if icon != "IconDefinition":
                 icons[icon] = icon
@@ -57,17 +59,9 @@ with open(output_file_path, "w") as output_file:
     ## IconMapping
     output_file.write("\n")
     output_file.write("IconMapping = {" + "\n")
-    for key, value in icons.items():
-        output_file.write('    "' + key + '": "' + value + '",' + "\n")
-
-    for key, value in noPrefix.items():
-        output_file.write('    "' + key + '": "' + value + '",' + "\n")
-
-    for key, value in snakeCase.items():
-        output_file.write('    "' + key + '": "' + value + '",' + "\n")
-
-    for key, value in snakeCaseNoPrefix.items():
-        output_file.write('    "' + key + '": "' + value + '",' + "\n")
+    for dict in [icons, noPrefix, snakeCase, snakeCaseNoPrefix]:
+        for key, value in dict.items():
+            output_file.write('    "' + key + '": "' + value + '",' + "\n")
     output_file.write("}" + "\n")
 
 
