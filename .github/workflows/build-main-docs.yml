@@ -1,6 +1,22 @@
 name: Build Main Docs
 
 on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Name of the package to build docs for.'
+        required: true
+        type: string
+      version:
+        description: 'Version of the package to build docs for. This only affects where the docs are synced and not the actual docs built so in most cases this should be "main".'
+        required: false
+        type: string
+        default: 'main'
+      event_name:
+        description: 'Event name to determine if the docs should be synced. Keep this as "push" to sync the docs.'
+        required: false
+        type: string
+        default: 'push'
   workflow_call:
     inputs:
       package:
@@ -40,5 +56,5 @@ jobs:
     secrets: inherit
     with:
       package: ${{ inputs.package }}
-      version: 'main'
+      version: ${{ inputs.version if inputs.version != '' else 'main' }}
       event_name: ${{ inputs.event_name }}
