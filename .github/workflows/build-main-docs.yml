@@ -23,6 +23,11 @@ on:
         description: The plugin to publish the docs for
         required: true
         type: string
+      version:
+        description: The version of the plugin to publish the docs for
+        required: false
+        type: string
+        default: 'main'
       event_name:
         description: The event name that triggered the workflow
         required: true
@@ -56,5 +61,5 @@ jobs:
     secrets: inherit
     with:
       package: ${{ inputs.package }}
-      version: ${{ inputs.version if inputs.version != '' else 'main' }}
+      version: ${{ inputs.version }}
       event_name: ${{ inputs.event_name }}
