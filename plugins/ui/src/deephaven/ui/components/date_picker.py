@@ -43,6 +43,7 @@ _SIMPLE_DATE_PROPS = {
     "min_value",
     "max_value",
 }
+_RANGE_DATE_PROPS = set()
 _LIST_DATE_PROPS = {"unavailable_values"}
 _CALLABLE_DATE_PROPS = {"on_change"}
 _GRANULARITY_KEY = "granularity"
@@ -67,6 +68,7 @@ def _convert_date_picker_props(
     convert_date_props(
         props,
         _SIMPLE_DATE_PROPS,
+        _RANGE_DATE_PROPS,
         _CALLABLE_DATE_PROPS,
         _DATE_PROPS_PRIORITY,
         _GRANULARITY_KEY,

@@ -38,11 +38,10 @@ DatePickerElement = Element
 # All the props that can be date types
 _SIMPLE_DATE_PROPS = {
     "placeholder_value",
-    "value",
-    "default_value",
     "min_value",
     "max_value",
 }
+_RANGE_DATE_PROPS = {"value", "default_value"}
 _LIST_DATE_PROPS = {"unavailable_values"}
 _CALLABLE_DATE_PROPS = {"on_change"}
 _GRANULARITY_KEY = "granularity"
@@ -67,6 +66,7 @@ def _convert_date_range_picker_props(
     convert_date_props(
         props,
         _SIMPLE_DATE_PROPS,
+        _RANGE_DATE_PROPS,
         _CALLABLE_DATE_PROPS,
         _DATE_PROPS_PRIORITY,
         _GRANULARITY_KEY,
@@ -276,9 +276,4 @@ def date_picker(
 
     _convert_date_range_picker_props(props)
 
-    # props["unavailable_values"] = use_memo(
-    #     lambda: convert_list_prop("unavailable_values", props["unavailable_values"]),
-    #     [unavailable_values],
-    # )
-
-    return component_element("DatePicker", **props)
+    return component_element("DateRangePicker", **props)
