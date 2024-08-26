@@ -1,6 +1,6 @@
 ## List View
 
-ListView displays a list of interactive items, and allows a user to navigate, select, or perform an action. They offer greater flexibility in the contents it can render and can distinguish between row selection and actions performed on a row. This makes ListView an ideal component for use cases such as file managers.
+ListView displays a list of interactive items, and allows a user to navigate, select, or perform an action. It offers greater flexibility in the contents it can render and can distinguish between row selection and actions performed on a row. This makes ListView an ideal component for use cases such as file managers.
 
 ## Example
 
@@ -108,7 +108,7 @@ def ui_list_view_action_group():
 my_list_view_action_group = ui_list_view_action_group()
 ```
 
-ListView can also accept a handler that is called when the selection is changed
+ListView can also accept a handler that is called when the selection is changed.
 
 ```python
 from deephaven import time_table, ui
@@ -193,7 +193,7 @@ lv = ui_list_view()
 ```
 
 ## Modifying Density
-To adjust the vertical padding of each row in the ListView, you can use the density prop.
+To adjust the vertical padding of each row in the ListView, use the `density` prop.
 
 
 ```python
@@ -230,7 +230,7 @@ lv = ui_list_view()
 ```
 
 ## Overflow Mode
-The default behaviour is to truncate content that overflows its row. Text can be wrapped instead by assing `wrap` to the `overflow_mode` prop.
+The default behavior is to truncate content that overflows its row. Text can be wrapped instead by adding `wrap` to the `overflow_mode` prop.
 
 ```python
 from deephaven import ui
