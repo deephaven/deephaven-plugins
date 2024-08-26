@@ -340,7 +340,7 @@ def _date_or_range(value: JavaDate | DateRange) -> Any:
     Returns:
         The Java Date.
     """
-    if isinstance(value, DateRange):
+    if isinstance(value, dict):
         return value["start"]
     return value
 
