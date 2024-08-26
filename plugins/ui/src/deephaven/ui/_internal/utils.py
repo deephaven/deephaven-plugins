@@ -5,6 +5,7 @@ from inspect import signature
 import sys
 from functools import partial
 from deephaven.time import to_j_instant, to_j_zdt, to_j_local_date
+from deephaven.dtypes import ZonedDateTime, Instant
 
 from ..types import Date, JavaDate
 
@@ -17,6 +18,8 @@ _CONVERTERS = {
     "java.time.ZonedDateTime": to_j_zdt,
     "java.time.LocalDate": to_j_local_date,
 }
+
+_LOCAL_DATE = "java.time.LocalDate"
 
 
 def get_component_name(component: Any) -> str:
@@ -225,6 +228,15 @@ def _convert_to_java_date(
     Returns:
         The Java date type.
     """
+    # For strings, parseInstant and parseZonedDateTime both succeed for the same strings
+    # Try parsing as a ZonedDateTime first per the documentation
+    if isinstance(date, str):
+        try:
+            return to_j_zdt(date)  # type: ignore
+        except Exception:
+            # ignore, try next
+            pass
+
     try:
         return to_j_instant(date)  # type: ignore
     except Exception:
@@ -288,7 +300,16 @@ def _wrap_date_callable(
     Returns:
         The wrapped callable.
     """
-    return lambda date: wrap_callable(date_callable)(converter(date))
+    # When the user is typing a date, they may enter a value that does not parse
+    # This will skip those errors rather than printing them to the screen
+    def no_error_date_callable(date: Date) -> None:
+        wrapped_date_callable = wrap_callable(date_callable)
+        try:
+            wrapped_date_callable(converter(date))
+        except Exception:
+            pass
+
+    return no_error_date_callable
 
 
 def _get_first_set_key(props: dict[str, Any], sequence: Sequence[str]) -> str | None:
@@ -341,7 +362,7 @@ def _prioritized_callable_converter(
 def convert_list_prop(
     key: str,
     value: list[Date] | None,
-) -> list[JavaDate] | None:
+) -> list[str] | None:
     """
     Convert a list of Dates to Java date types.
 
@@ -357,7 +378,7 @@ def convert_list_prop(
 
     if not isinstance(value, list):
         raise TypeError(f"{key} must be a list of Dates")
-    return [_convert_to_java_date(date) for date in value]
+    return [str(_convert_to_java_date(date)) for date in value]
 
 
 def convert_date_props(
@@ -365,6 +386,7 @@ def convert_date_props(
     simple_date_props: set[str],
     callable_date_props: set[str],
     priority: Sequence[str],
+    granularity_key: str,
     default_converter: Callable[[Date], Any] = to_j_instant,
 ) -> None:
     """
@@ -376,6 +398,7 @@ def convert_date_props(
         callable_date_props: A set of callable date keys to convert.
             The prop value should be a callable that takes a Date.
         priority: The priority of the props to check.
+        granularity_key: The key for the granularity
         default_converter: The default converter to use if none of the priority props are present.
 
     Returns:
@@ -387,6 +410,16 @@ def convert_date_props(
 
     # the simple props must be converted before this to simplify the callable conversion
     converter = _prioritized_callable_converter(props, priority, default_converter)
+
+    # based on the convert set the granularity if it is not set
+    # Local Dates will default to DAY but we need to default to SECOND for the other types
+    if props.get(granularity_key) is None and converter != to_j_local_date:
+        props[granularity_key] = "SECOND"
+
+    # now that the converter is set, we can convert simple props to strings
+    for key in simple_date_props:
+        if props.get(key) is not None:
+            props[key] = str(props[key])
 
     for key in callable_date_props:
         if props.get(key) is not None:

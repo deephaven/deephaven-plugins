@@ -50,6 +50,7 @@ export function {{ cookiecutter.__js_plugin_view_obj }}(props: WidgetComponentPr
     init();
   }, [dh, fetch]);
 
+  // Render a component with the text and a form to send a message to the server
   return (
     <div style={{ "{" }}{{ cookiecutter.__js_plugin_view_obj_style }}{{ "}" }}>
       <div>{text}</div>

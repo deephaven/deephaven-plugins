@@ -33,7 +33,6 @@ class FunctionElement(Element):
         Returns:
             The props of this element.
         """
-        with context.open():
-            children = self._render()
+        children = self._render()
 
         return {"children": children}
