@@ -1479,7 +1479,7 @@ The `start` and `end` inputs are coverted according to the following rules:
 3. A string with a date, time, and timezone such as "2021-04-12T14:13:07 America/New_York" will parse to a `ZonedDateTime`
 4. All other types will attempt to convert in this order: `Instant`, `ZonedDateTime`, `LocalDate`
 
-The format of the date picker and the type of the value passed to the `on_change` handler
+The format of the date range picker and the type of the value passed to the `on_change` handler
 is determined by the type of the following props in order of precedence:
 
 1. `value`
@@ -1520,80 +1520,70 @@ ui.date_range_picker(
 import deephaven.ui as ui
 from deephaven.time import to_j_local_date, dh_today, to_j_instant, to_j_zdt
 
-zoned_date_time = to_j_zdt("1995-03-22T11:11:11.23142 America/New_York")
-instant = to_j_instant("2022-01-01T00:00:00 ET")
-local_date = to_j_local_date(dh_today())
+zdt_start = to_j_zdt("1995-03-22T11:11:11.23142 America/New_York")
+zdt_end = to_j_zdt("1995-03-25T11:11:11.23142 America/New_York")
+instant_start = to_j_instant("2022-01-01T00:00:00 ET")
+instant_end = to_j_instant("2022-01-05T00:00:00 ET")
+local_start = to_j_local_date("2024-05-06")
+local_end = to_j_local_date("2024-05-10")
 
 # simple date picker that takes ui.items and is uncontrolled
-# this creates a date picker with a granularity of days with a default value of today
-date_picker1 = ui.date_picker(
-    default_value=local_date
+# this creates a date picker with a granularity of days
+date_range_picker1 = ui.date_range_picker(
+    default_value={"start": local_start, "end": local_end}
 )
 
 # simple date picker that takes list view items directly and is controlled
 # this creates a date picker with a granularity of seconds in UTC
-# the on_change handler is passed an instant
-date, set_date = ui.use_state(instant)
+# the on_change handler is passed a range of instants
+dates2, set_dates2 = ui.use_state({"start": instant_start, "end": instant_end})
 
-date_picker2 = ui.date_picker(
-    value=date,
-    on_change=set_date
+date_range_picker2 = ui.date_range_picker(
+    value=dates2,
+    on_change=set_dates2
 )
 
 # this creates a date picker with a granularity of seconds in the specified time zone
 # the on_change handler is passed a zoned date time
-date, set_date = ui.use_state(None)
+dates3, set_dates3 = ui.use_state(None)
 
-date_picker3 = ui.date_picker(
-    placeholder_value=zoned_date_time,
-    on_change=set_date
+date_range_picker3 = ui.date_range_picker(
+    placeholder_value=zdt_start,
+    on_change=set_dates3
 )
 
 # this creates a date picker with a granularity of seconds in UTC
 # the on_change handler is passed an instant
-date, set_date = ui.use_state(None)
+dates4, set_dates4 = ui.use_state(None)
 
-date_picker4 = ui.date_picker(
-    placeholder_value=instant,
-    on_change=set_date
+date_range_picker4 = ui.date_range_picker(
+    placeholder_value=instant_start,
+    on_change=set_dates4
 )
 
 # this creates a date picker with a granularity of days
 # the on_change handler is passed a local date
-date, set_date = ui.use_state(None)
+dates5, set_dates5 = ui.use_state(None)
 
-date_picker5 = ui.date_picker(
-    placeholder_value=local_date,
-    on_change=set_date
+date_range_picker5 = ui.date_range_picker(
+    placeholder_value=local_start,
+    on_change=set_date5
 )
 
 # this creates a date picker with a granularity of days, but the on_change handler is still passed an instant
-date, set_date = ui.use_state(None)
+dates6, set_dates6 = ui.use_state(None)
 
-date_picker6 = ui.date_picker(
-    placeholder_value=instant,
+date_range_picker6 = ui.date_range_picker(
+    placeholder_value=instant_start,
     granularity="day",
-    on_change=set_date
+    on_change=set_date6
 )
 
 # this creates a date picker with a granularity of seconds and the on_change handler is passed an instant
-date, set_date = ui.use_state(None)
+dates7, set_dates7 = ui.use_state(None)
 
-date_picker7 = ui.date_picker(
-    on_change=set_date
-)
-
-# this create a date picker with a granularity of days, a min and max value, and unavailable dates
-min_value = to_j_local_date("2022-01-01")
-max_value = to_j_local_date("2022-12-31")
-unavailable_dates = [to_j_local_date("2022-03-15"), to_j_local_date("2022-03-17")]
-date, set_date = ui.use_state(to_j_local_date("2022-03-16"))
-date_picker8 = ui.date_picker(
-    value=date,
-    min_value=min_value,
-    max_value=max_value,
-    unavailable_values=unavailable_dates,
-    on_change=set_date
+date_range_picker7 = ui.date_range_picker(
+    on_change=set_dates7
 )
 ```
 
