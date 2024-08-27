@@ -6,25 +6,39 @@ import sys
 from typing import Generator, Callable
 import time
 import subprocess
-from watchdog.events import FileSystemEvent, PatternMatchingEventHandler
+from watchdog.events import FileSystemEvent, RegexMatchingEventHandler
 from watchdog.observers import Observer
 import threading
 
+# get the directory of the current file
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# navigate out one directory to get to the plugins directory
+plugins_dir = os.path.join(current_dir, "../plugins")
+# navigate up one directory to get to the project directory
+project_path = os.path.split(current_dir)[0]
+
 # these are the patterns to watch for changes in the plugins directory
 # if in editable mode, the builder will rerun when these files change
-REBUILD_PATTERNS = [
-    "**.py",
-    "**.js",
-    "**.md",
-    "**.svg",
-    "**.ts",
-    "**.tsx",
-    "**.scss",
+REBUILD_REGEXES = [
+    ".*\.py$",
+    ".*\.js$",
+    ".*\.md$",
+    ".*\.svg$",
+    ".*\.ts$",
+    ".*\.tsx$",
+    ".*\.scss$",
 ]
 
 # ignore these patterns in particular
 # prevents infinite loops when the builder is rerun
-IGNORE_PATTERNS = ["/dist/", "/build/", "/node_modules/", "/_js/", "/."]
+# IGNORE_PATTERNS = ["/dist/", "/build/", "/node_modules/", "/_js/", "/."]
+IGNORE_REGEXES = [
+    ".*/dist/.*",
+    ".*/build/.*",
+    ".*/node_modules/.*",
+    ".*/_js/.*",
+    ".*/\..*/.*",
+]
 
 
 def start_function(
@@ -51,7 +65,7 @@ def start_function(
     return thread
 
 
-class PluginsChangedHandler(PatternMatchingEventHandler):
+class PluginsChangedHandler(RegexMatchingEventHandler):
     """
     A handler that watches for changes reruns the function when changes are detected
 
@@ -66,7 +80,7 @@ class PluginsChangedHandler(PatternMatchingEventHandler):
     """
 
     def __init__(self, func: Callable, stop_event: threading.Event) -> None:
-        super().__init__(patterns=REBUILD_PATTERNS)
+        super().__init__(regexes=REBUILD_REGEXES, ignore_regexes=IGNORE_REGEXES)
 
         self.func = func
 
@@ -84,18 +98,8 @@ class PluginsChangedHandler(PatternMatchingEventHandler):
         Args:
             event: The event that occurred
         """
-        if any(pattern in event.src_path for pattern in IGNORE_PATTERNS):
-            return
         print(f"File {event.src_path} has been changed, rerunning")
         self.thread = start_function(self.thread, self.func, self.stop_event)
-
-
-# get the directory of the current file
-current_dir = os.path.dirname(os.path.abspath(__file__))
-# navigate out one directory to get to the plugins directory
-plugins_dir = os.path.join(current_dir, "../plugins")
-# navigate up one directory to get to the project directory
-project_path = os.path.split(current_dir)[0]
 
 
 def clean_build_dist(plugin: str) -> None:
@@ -315,6 +319,10 @@ def handle_args(
         plugins: Plugins to build and install
         stop_event: The event to signal the function to stop
     """
+    # it is possible that the stop event is set before this function is called
+    if stop_event.is_set():
+        return
+
     # default is to install, but don't if just configuring
     if not any([build, install, reinstall, docs, js, configure]):
         js = True
@@ -452,20 +460,23 @@ def builder(
 
     stop_event = threading.Event()
 
-    def run_handle_args():
+    def run_handle_args() -> None:
+        """
+        Run the handle_args function with the provided arguments
+        """
         handle_args(
             build, install, reinstall, docs, server, js, configure, plugins, stop_event
         )
 
     if not watch:
         # since editable is not specified, only run the handler once
-        # we call it from a thread to allow the usage of os._exit to exit the process
+        # call it from a thread to allow the usage of os._exit to exit the process
         # rather than sys.exit because sys.exit will not exit the process when called from a thread
         # and os._exit should be called from a thread
         thread = threading.Thread(target=run_handle_args)
         thread.start()
         thread.join()
-        sys.exit(0)
+        return
 
     # editable is specified, so run the handler in a loop that watches for changes and
     # reruns the handler when changes are detected
