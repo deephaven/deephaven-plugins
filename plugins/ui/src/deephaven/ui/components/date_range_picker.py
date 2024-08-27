@@ -76,7 +76,7 @@ def _convert_date_range_picker_props(
 
 
 @make_component
-def date_picker(
+def date_range_picker(
     placeholder_value: Date | None = dh_now(),
     value: DateRange | None = None,
     default_value: DateRange | None = None,

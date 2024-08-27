@@ -1499,7 +1499,7 @@ ui.date_range_picker(
     granularity: Granularity | None = None,
     on_change: Callable[[{ "start": Date, "end": Date }], None] | None = None,
     **props: Any
-) -> DatePickerElement
+) -> DateRangePickerElement
 ```
 
 ###### Parameters
