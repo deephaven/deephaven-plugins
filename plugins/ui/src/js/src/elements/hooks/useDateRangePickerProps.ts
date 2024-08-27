@@ -76,9 +76,6 @@ export interface SerializedDateRangePickerPropsInterface {
   /** A placeholder date that influences the format of the placeholder shown when no value is selected */
   placeholderValue?: string;
 
-  /** Dates that are unavailable */
-  unavailableValues?: string[] | null;
-
   /** Determines the smallest unit that is displayed in the date picker. */
   granularity?: Granularity;
 }
@@ -113,9 +110,6 @@ export interface DeserializedDateRangePickerPropsInterface {
 
   /** A placeholder date that influences the format of the placeholder shown when no value is selected */
   placeholderValue?: DateValue;
-
-  /** Callback that is called for each date of the calendar. If it returns true, then the date is unavailable */
-  isDateUnavailable?: (date: DateValue) => boolean;
 
   /** Determines the smallest unit that is displayed in the date picker. */
   granularity?: Granularity;
@@ -290,21 +284,6 @@ export function parseDateValue(
 }
 
 /**
- * Get a callback function that can be passed to the isDateUnavailable prop of a Spectrum DateRangePicker.
- *
- * @param unavailableSet Set of unavailable date strings
- * @returns A callback to be passed into the Spectrum component that checks if the date is unavailable
- */
-export function useIsDateUnavailableCallback(
-  unavailableSet: Set<string>
-): (date: DateValue) => boolean {
-  return useCallback(
-    (date: DateValue) => unavailableSet.has(date.toString()),
-    [unavailableSet]
-  );
-}
-
-/**
  * Wrap DateRangePicker props with the appropriate serialized event callbacks.
  * @param props Props to wrap
  * @returns Wrapped props
@@ -321,7 +300,6 @@ export function useDateRangePickerProps<TProps>(
     minValue: serializedMinValue,
     maxValue: serializedMaxValue,
     placeholderValue: serializedPlaceholderValue,
-    unavailableValues,
     granularity: upperCaseGranularity,
     ...otherProps
   }: SerializedDateRangePickerProps<TProps>,
@@ -343,24 +321,6 @@ export function useDateRangePickerProps<TProps>(
     timeZone,
     serializedPlaceholderValue
   );
-  // TODO (issue #698) currently unavailableValues is commented out in Python
-  // The problem is that the dates need to match down to the second (or millisecond)
-  // using this approach. We should restrict them to LocalDate then convert
-  // the input to this function to a CalendarDate to check for availability.
-  const unavailableSet = useMemo(() => {
-    if (unavailableValues == null) {
-      return new Set<string>();
-    }
-    const set = new Set<string>();
-    unavailableValues.forEach(value => {
-      const valueForTZ = parseDateValue(timeZone, value)?.toString();
-      if (valueForTZ != null) {
-        set.add(valueForTZ);
-      }
-    });
-    return set;
-  }, [unavailableValues, timeZone]);
-  const isDateUnavailable = useIsDateUnavailableCallback(unavailableSet);
 
   return {
     onFocus: serializedOnFocus,
@@ -373,7 +333,6 @@ export function useDateRangePickerProps<TProps>(
     minValue: deserializedMinValue,
     maxValue: deserializedMaxValue,
     placeholderValue: deserializedPlaceholderValue,
-    isDateUnavailable,
     granularity: upperCaseGranularity?.toLowerCase() as Granularity,
     ...otherProps,
   };
