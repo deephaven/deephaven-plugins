@@ -208,12 +208,12 @@ services:
 ### Using plugin_builder.py
 
 The `tools/plugin_builder.py` script is a utility script that makes common plugin development cases easier.
-The tool uses `click` for command line argument parsing, so install it if you haven't already:
+The tool uses `click` for command line argument parsing and `watchdog` for file watching.  
 Skip the venv setup if you already have one
 ```shell
 python -m venv .venv
 source .venv/bin/activate
-pip install click
+pip install click watchdog
 ```
 
 The script can then be used to help set up your venv.
@@ -265,6 +265,20 @@ The js plugins can be built with the `--js` flag. This will build all js plugins
 This example reinstalls the `ui` plugin with js, and starts the server with shorthand flags.
 ```shell
 python tools/plugin_builder.py --js -r -s ui
+````
+
+Enable `watch` mode with the `--watch` flag. This will watch the project for changes and rerun the script with the same arguments.  
+This example reinstalls the `ui` plugin with js, starts the server, and watches for changes.  
+Every time a change is made to the plugin, the plugin will be rebuilt and the server will be restarted.
+Note that when using `--watch`, the script will not exit until stopped manually.
+```shell
+python tools/plugin_builder.py -jrsw ui
+```
+
+The `watch` option also works with `--docs`. 
+For example, to watch the `plotly-express` plugin for changes and rebuild the docs when changes are made:
+```shell
+python tools/plugin_builder.py --docs --watch plotly-express
 ```
 
 ## Release Management
