@@ -208,7 +208,7 @@ def ui_server(scheme: str):
     # ...
 ```
 
-If you use constant values in your effect, you can omit it from the dependency list. If the `host` was instead a constant outside of the component and not reactive, you can omit it from the dependency list:
+If you use constant values in your effect, you can omit them from the dependency list. If the `host` was instead a constant outside of the component and not reactive, you can omit it from the dependency list:
 
 ```python
 host = "localhost"
@@ -427,7 +427,7 @@ def ui_server():
     # ...
 ```
 
-To avoid this, you can declare the object inside the effect:
+To avoid this, declare the object inside the effect:
 
 ```python
 @ui.component
@@ -449,7 +449,7 @@ def ui_server():
     # ...
 ```
 
-Alternatively, you can memoize the object using `use_memo`:
+Alternatively, memoize the object using `use_memo`:
 
 ```python
 from deephaven import ui
@@ -517,7 +517,7 @@ def ui_server():
     # ...
 ```
 
-To avoid this, you can move the function inside the effect:
+To avoid this, move the function inside the effect:
 
 ```python
 @ui.component
@@ -542,7 +542,7 @@ def ui_server():
     # ...
 ```
 
-Alternatively, you can memoize the function using `use_callback`:
+Alternatively, memoize the function using `use_callback`:
 
 ```python
 from deephaven import ui
