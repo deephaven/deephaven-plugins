@@ -1,6 +1,6 @@
 # use_effect
 
-`use_effect` is a hook that allows you to perform side effects in your components, allowing you to interact with an external system. It is similar to [`useEffect` in React](https://react.dev/reference/react/useEffect).
+`use_effect` is a hook that allows you to perform side effects in your components and to interact with an external system. It is similar to [`useEffect` in React](https://react.dev/reference/react/useEffect).
 
 ## Example
 
@@ -75,7 +75,7 @@ request_login = ui_request_login()
 
 ## Multi-threaded request
 
-Put a long running request on a background thread so it doesn't block the component from updating.
+Put a long-running request on a background thread so it doesn't block the component from updating.
 
 ```python
 import requests
@@ -163,7 +163,7 @@ server_example = ui_server_example()
 
 ## Reactive dependencies
 
-An effect will run after the initial render (mount) and any subsequent render when a dependency has changed. The returned cleanup function will run before the next effect, and when the component is closed (unmount). It is important to specify all dependencies in the dependency list to ensure the effect runs when the dependencies change.
+An effect will run after the initial render (mount) and any subsequent render when a dependency has changed. The returned cleanup function will run before the next effect and when the component is closed (unmount). It is important to specify all dependencies in the dependency list to ensure the effect runs when the dependencies change.
 
 In this example below, we connect to a server when the host or scheme changes. The effect will run when the component is mounted, and when the host or scheme is changed:
 
@@ -394,7 +394,7 @@ app = ui_app()
 
 ## Removing unnecessary object dependencies
 
-If your Effect depends on an object or function that is recreated on every render, you may want to memoize it to avoid unnecessary re-renders.
+If your effect depends on an object or function that is recreated on every render, you may want to memoize it to avoid unnecessary re-renders.
 
 ```python
 class ServerDetails:
