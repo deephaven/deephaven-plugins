@@ -33,7 +33,8 @@ Recommendations for creating effects:
 
 ## Requesting from URL
 
-Using the [requests](https://pypi.org/project/requests/) library, attempt to login to httpbin.org with the entered username and password when it is changed. The correct username is `user` and the correct password is `pass`.
+Using the [requests](https://pypi.org/project/requests/) library, attempt to login to httpbin.org with the entered username and password when it is changed. You will need to [install the requests library](https://deephaven.io/core/docs/how-to-guides/install-and-use-python-packages/).
+The correct username is `user` and the correct password is `pass`.
 
 ```python
 import requests
