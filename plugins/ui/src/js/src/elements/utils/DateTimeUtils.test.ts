@@ -1,7 +1,23 @@
-import { parseDateValue, parseNullableDateValue } from './useDatepickerProps';
+import {
+  parseDateValue,
+  parseNullableDateValue,
+  isStringInstant,
+} from './DateTimeUtils';
 
 const DEFAULT_TIME_ZONE = 'UTC';
 const NY_TIME_ZONE = 'America/New_York';
+
+describe('isStringInstant', () => {
+  it('should return true for an instant string', () => {
+    expect(isStringInstant('2021-03-03T04:05:06Z')).toBeTruthy();
+  });
+  it('should return false for a non-instant string', () => {
+    expect(isStringInstant('2021-03-03T04:05:06')).toBeFalsy();
+  });
+  it('should return false for null', () => {
+    expect(isStringInstant(null)).toBeFalsy();
+  });
+});
 
 describe('parseDateValue', () => {
   const isoDate = '2021-02-03';

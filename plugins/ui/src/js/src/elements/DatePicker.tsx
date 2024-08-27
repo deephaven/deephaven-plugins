@@ -11,14 +11,11 @@ import {
   SerializedDatePickerProps,
   useDatePickerProps,
 } from './hooks/useDatepickerProps';
+import { isStringInstant } from './utils/DateTimeUtils';
 
 const VALUE_CHANGE_DEBOUNCE = 250;
 
 const EMPTY_FUNCTION = () => undefined;
-
-function isStringInstant(value?: string | null): boolean {
-  return value != null && value.endsWith('Z');
-}
 
 function isDatePickerInstant(
   props: SerializedDatePickerProps<DHCDatePickerProps<DateValue>>
