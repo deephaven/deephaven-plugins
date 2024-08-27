@@ -50,6 +50,13 @@ export function UITable({
   contextHeaderMenu,
   databars: databarsProp,
 }: UITableProps): JSX.Element | null {
+  const [error, setError] = useState<unknown>(null);
+
+  if (error != null) {
+    // Re-throw the error so that the error boundary can catch it
+    throw error;
+  }
+
   const dh = useApi();
   const theme = useTheme();
   const [irisGrid, setIrisGrid] = useState<IrisGridType | null>(null);
@@ -144,14 +151,28 @@ export function UITable({
   useEffect(() => {
     let isCancelled = false;
     async function loadModel() {
-      const reexportedTable = await exportedTable.reexport();
-      const table = (await reexportedTable.fetch()) as dh.Table;
-      const newModel = await makeUiTableModel(dh, table, databars, layoutHints);
-      if (!isCancelled) {
-        setColumns(newModel.table.columns);
-        setModel(newModel);
-      } else {
-        newModel.close();
+      try {
+        const reexportedTable = await exportedTable.reexport();
+        const table = (await reexportedTable.fetch()) as dh.Table;
+        const newModel = await makeUiTableModel(
+          dh,
+          table,
+          databars,
+          layoutHints
+        );
+        if (!isCancelled) {
+          setError(null);
+          setColumns(newModel.table.columns);
+          setModel(newModel);
+        } else {
+          newModel.close();
+        }
+      } catch (e) {
+        if (!isCancelled) {
+          // Errors thrown from an async useEffect are not caught
+          // by the component's error boundary
+          setError(e);
+        }
       }
     }
     loadModel();

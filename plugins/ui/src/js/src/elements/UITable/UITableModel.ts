@@ -27,6 +27,18 @@ export async function makeUiTableModel(
   databars.forEach(config => {
     const { column, value_column: valueColumn = column, min, max } = config;
 
+    try {
+      table.findColumn(column);
+    } catch {
+      throw new Error(`Can't find databar column ${column}`);
+    }
+
+    try {
+      table.findColumn(valueColumn);
+    } catch {
+      throw new Error(`Can't find databar value column ${valueColumn}`);
+    }
+
     if (min == null && max == null) {
       totalsOperationMap[valueColumn] = ['Min', 'Max'];
       joinColumns.push(
@@ -193,8 +205,11 @@ class UITableModel extends IrisGridModel {
     valueType: string
   ): number {
     if (row != null) {
-      const column = this.table.findColumn(columnName);
-      if (column == null) {
+      let column;
+
+      try {
+        column = this.table.findColumn(columnName);
+      } catch {
         throw new Error(`Can't find databar ${valueType} column ${columnName}`);
       }
 
