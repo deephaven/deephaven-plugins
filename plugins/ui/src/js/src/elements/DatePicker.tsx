@@ -10,7 +10,7 @@ import { DateValue, toTimeZone, ZonedDateTime } from '@internationalized/date';
 import {
   SerializedDatePickerProps,
   useDatePickerProps,
-} from './hooks/useDatepickerProps';
+} from './hooks/useDatePickerProps';
 import { isStringInstant } from './utils/DateTimeUtils';
 
 const VALUE_CHANGE_DEBOUNCE = 250;

@@ -10,6 +10,7 @@ import {
   SerializedKeyboardEventCallback,
   useKeyboardEventCallback,
 } from './useKeyboardEventCallback';
+import useDateValueMemo from './useDateValueMemo';
 import {
   MappedDateValue,
   Granularity,
@@ -132,7 +133,7 @@ export function serializeDateValue(
  * @returns A callback to be passed into the Spectrum component that transforms
  * the value and calls the provided callback
  */
-export function useOnChangeCallback(
+export function useOnChangeDateCallback(
   callback?: SerializedDateValueCallback
 ): (value: MappedDateValue<DateValue>) => void {
   return useCallback(
@@ -160,19 +161,6 @@ export function useNullableDateValueMemo(
     () => parseNullableDateValue(timeZone, value),
     [timeZone, value]
   );
-}
-
-/**
- * Use memo to get a DateValue from a string.
- *
- * @param value the string date value
- * @returns DateValue
- */
-export function useDateValueMemo(
-  timeZone: string,
-  value?: string
-): DateValue | undefined {
-  return useMemo(() => parseDateValue(timeZone, value), [timeZone, value]);
 }
 
 /**
@@ -217,7 +205,7 @@ export function useDatePickerProps<TProps>(
   const serializedOnBlur = useFocusEventCallback(onBlur);
   const serializedOnKeyDown = useKeyboardEventCallback(onKeyDown);
   const serializedOnKeyUp = useKeyboardEventCallback(onKeyUp);
-  const onChange = useOnChangeCallback(serializedOnChange);
+  const onChange = useOnChangeDateCallback(serializedOnChange);
   const deserializedValue = useNullableDateValueMemo(timeZone, serializedValue);
   const deserializedDefaultValue = useNullableDateValueMemo(
     timeZone,

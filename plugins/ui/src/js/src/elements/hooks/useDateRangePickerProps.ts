@@ -10,6 +10,7 @@ import {
   SerializedKeyboardEventCallback,
   useKeyboardEventCallback,
 } from './useKeyboardEventCallback';
+import useDateValueMemo from './useDateValueMemo';
 import {
   MappedDateValue,
   Granularity,
@@ -115,7 +116,7 @@ export type DeserializedDateRangePickerProps<TProps> = Omit<
  * @param value RangeValue Date to serialize
  * @returns Serialized RangeValue Date
  */
-export function serializeDateValue(
+export function serializeDateRangeValue(
   value: RangeValue<MappedDateValue<DateValue>>
 ): RangeValue<string> | null {
   if (value == null) {
@@ -135,7 +136,7 @@ export function serializeDateValue(
  * @returns A callback to be passed into the Spectrum component that transforms
  * the value and calls the provided callback
  */
-export function useOnChangeCallback(
+export function useOnChangeDateRangeCallback(
   callback?: SerializedDateRangeValueCallback
 ): (value: RangeValue<MappedDateValue<DateValue>>) => void {
   return useCallback(
@@ -143,7 +144,7 @@ export function useOnChangeCallback(
       if (callback == null) {
         return;
       }
-      callback(serializeDateValue(value));
+      callback(serializeDateRangeValue(value));
     },
     [callback]
   );
@@ -184,19 +185,6 @@ export function parseNullableDateRangeValue(
 }
 
 /**
- * Use memo to get a DateValue from a string.
- *
- * @param value the string date value
- * @returns DateValue
- */
-export function useDateValueMemo(
-  timeZone: string,
-  value?: string
-): DateValue | undefined {
-  return useMemo(() => parseDateValue(timeZone, value), [timeZone, value]);
-}
-
-/**
  * Wrap DateRangePicker props with the appropriate serialized event callbacks.
  * @param props Props to wrap
  * @returns Wrapped props
@@ -222,7 +210,7 @@ export function useDateRangePickerProps<TProps>(
   const serializedOnBlur = useFocusEventCallback(onBlur);
   const serializedOnKeyDown = useKeyboardEventCallback(onKeyDown);
   const serializedOnKeyUp = useKeyboardEventCallback(onKeyUp);
-  const onChange = useOnChangeCallback(serializedOnChange);
+  const onChange = useOnChangeDateRangeCallback(serializedOnChange);
   const deserializedValue = useDateRangeValueMemo(timeZone, serializedValue);
   const deserializedDefaultValue = useDateRangeValueMemo(
     timeZone,
