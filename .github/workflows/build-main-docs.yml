@@ -6,7 +6,10 @@ on:
       package:
         description: 'Name of the package to build docs for.'
         required: true
-        type: string
+        type: choice
+        options:
+          - 'plotly-express'
+          - 'ui'
       version:
         description: 'Version of the package to build docs for. This only affects where the docs are synced and not the actual docs built so in most cases this should be "main".'
         required: true
@@ -15,8 +18,11 @@ on:
       event_name:
         description: 'Event name to determine if the docs should be synced. Keep this as "push" to sync the docs.'
         required: true
-        type: string
+        type: choice
         default: 'push'
+        options:
+          - 'push'
+          - 'test'
   workflow_call:
     inputs:
       package:
