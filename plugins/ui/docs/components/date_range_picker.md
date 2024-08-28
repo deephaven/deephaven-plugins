@@ -210,7 +210,7 @@ def event_example():
 my_event_example = event_example()
 ```
 
-# Validation
+## Validation
 
 The `is_required` prop ensures that the user selects a date range. The related `validation_behaviour` prop allows the user to specify aria or native verification.
 
@@ -235,7 +235,7 @@ my_date_range_picker_validation_behaviour_example = (
 )
 ```
 
-# Minimum and maximum values
+## Minimum and maximum values
 
 The `min_value` and `max_value` props can also be used to ensure the value is within a specific range. Date range picker also validates that the end date is after the start date.
 
@@ -249,38 +249,183 @@ my_date_range_picker_basic = ui.date_range_picker(
 )
 ```
 
-## Variants
+## Label position
 
-Date Range Pickers can have different variants to indicate their purpose.
+By default, the position of a date range picker's label is above the date range picker, but it can be moved to the side using the `label_position` prop.
 
 ```python
 from deephaven import ui
 
 
 @ui.component
-def date_range_picker_variants():
+def date_range_picker_label_position_examples():
     return [
-        ui.date_range_picker(description="description"),
-        ui.date_range_picker(error_message="error", validation_state="valid"),
-        ui.date_range_picker(error_message="error", validation_state="invalid"),
-        ui.date_range_picker(min_value="2024-01-01", max_value="2024-01-05"),
         ui.date_range_picker(
-            value={
-                "start": "2024-07-20T16:10:10 America/New_York",
-                "end": "2024-07-27T16:10:10 America/New_York",
-            },
-            hour_cycle=24,
+            label="Test Label",
         ),
-        ui.date_range_picker(granularity="YEAR"),
-        ui.date_range_picker(granularity="MONTH"),
-        ui.date_range_picker(granularity="DAY"),
-        ui.date_range_picker(granularity="HOUR"),
-        ui.date_range_picker(granularity="MINUTE"),
-        ui.date_range_picker(granularity="SECOND"),
+        ui.date_range_picker(
+            label="Test Label",
+            label_position="side",
+        ),
     ]
 
 
-date_range_picker_variants_example = date_range_picker_variants()
+my_date_range_picker_label_position_examples = (
+    date_range_picker_label_position_examples()
+)
+```
+
+## Quiet state
+
+The `is_quiet` prop makes a date range picker "quiet". This can be useful when the picker and its corresponding styling should not distract users from surrounding content.
+
+```python
+from deephaven import ui
+
+
+my_date_range_picker_is_quiet_example = ui.date_range_picker(
+    is_quiet=True,
+)
+```
+
+## Disabled state
+
+The `is_disabled` prop disables a picker to prevent user interaction. This is useful when the date range picker should be visible but not available for selection.
+
+```python
+from deephaven import ui
+
+
+my_date_range_picker_is_disabled_example = ui.date_range_picker(
+    is_disabled=True,
+)
+```
+
+## Help text
+
+A date range picker can have both a `description` and an `error_message`. Use the error message to offer specific guidance on how to correct the input.
+
+The `validation_state` prop can be used to set whether the current date range picker state is `valid` or `invalid`.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def date_range_picker_help_text_examples():
+    return [
+        ui.date_range_picker(
+            label="Sample Label",
+            description="Enter a date range.",
+        ),
+        ui.date_range_picker(
+            label="Sample Label",
+            validation_state="valid",
+            error_message="Sample invalid error message.",
+        ),
+        ui.date_range_picker(
+            label="Sample Label",
+            validation_state="invalid",
+            error_message="Sample invalid error message.",
+        ),
+    ]
+
+
+my_date_range_picker_help_text_examples = date_range_picker_help_text_examples()
+```
+
+## Contextual help
+
+Using the `contextual_help` prop, a `ui.contextual_help` can be placed next to the label to provide additional information about the date range picker.
+
+```python
+from deephaven import ui
+
+
+date_range_picker_contextual_help_example = ui.date_range_picker(
+    label="Sample Label",
+    contextual_help=ui.contextual_help(ui.heading("Content tips")),
+)
+```
+
+## Custom width
+
+The `width` prop adjusts the width of a date range picker, and the `max_width` prop enforces a maximum width.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def date_range_picker_width_examples():
+    return [
+        ui.date_range_picker(
+            width="size-6000",
+        ),
+        ui.date_range_picker(
+            width="size-6000",
+            max_width="100%",
+        ),
+    ]
+
+
+my_date_range_picker_width_examples = date_range_picker_width_examples()
+```
+
+## Maximum visible months
+
+By default, the calendar popover displays a single month. The max_visible_months prop allows displaying up to 3 months at a time, if screen space permits.
+
+```python
+from deephaven import ui
+
+
+date_range_picker_months_example = ui.date_range_picker(
+    label="Date range", max_visible_months=3
+)
+```
+
+## Page behavior
+
+By default, when pressing the next or previous buttons, pagination will advance by the max_visible_months value. This behavior can be changed to page by single months instead, by setting page_behavior to single.
+
+```python
+from deephaven import ui
+
+
+date_range_picker_page_example = ui.date_range_picker(
+    label="Date range", max_visible_months=3, page_behavior="single"
+)
+```
+
+## Hide time zone
+
+The time zone can be hidden using the hide_time_zone option.
+
+```python
+from deephaven import ui
+
+my_hide_time_zone_example = ui.date_range_picker(
+    label="Date range",
+    default_value={
+        "start": "2022-11-07T00:45 America/Los_Angeles",
+        "end": "2022-11-08T11:15 America/Los_Angeles",
+    },
+    hide_time_zone=True,
+)
+```
+
+## Hour cycle
+
+By default, date range picker displays times in either `12` or `24` hour hour format depending on the user's locale. However, this can be overridden using the hour_cycle prop.
+
+```python
+from deephaven import ui
+
+
+date_range_picker_hour_cycle_example = ui.date_range_picker(
+    label="Date range", hour_cycle=24
+)
 ```
 
 ## Time table filtering
