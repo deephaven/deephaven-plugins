@@ -39,6 +39,7 @@ IGNORE_REGEXES = [
     # ignore hidden files and directories
     ".*/\..*/.*",
 ]
+# njnhnuunnhunnuu
 
 
 class PluginsChangedHandler(RegexMatchingEventHandler):
@@ -87,6 +88,14 @@ class PluginsChangedHandler(RegexMatchingEventHandler):
         Args:
             event: The event that occurred
         """
+        # if a file is .gitignored, do not rerun
+        # dump the output to /dev/null to prevent printing to the console
+        check_ignore = os.system(f"git check-ignore {event.src_path} > /dev/null")
+        if check_ignore != 256:
+            # git check-ignore returns 1 if the file is not ignored
+            # 256 is python's way of returning 1 from a system call
+            return
+
         if self.stop_event.is_set():
             # a rerun has already been scheduled on another thread
             print(f"File {event.src_path} changed, rerun has already been scheduled")
@@ -481,7 +490,9 @@ def builder(
     observer.start()
     try:
         while True:
-            time.sleep(1)
+            input()
+    except KeyboardInterrupt:
+        sys.exit(0)
     finally:
         observer.stop()
         observer.join()

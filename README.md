@@ -265,7 +265,7 @@ The js plugins can be built with the `--js` flag. This will build all js plugins
 This example reinstalls the `ui` plugin with js, and starts the server with shorthand flags.
 ```shell
 python tools/plugin_builder.py --js -r -s ui
-````
+```
 
 Enable `watch` mode with the `--watch` flag. This will watch the project for changes and rerun the script with the same arguments.  
 Note that when using `--watch`, the script will not exit until stopped manually.
