@@ -117,7 +117,7 @@ from deephaven import ui
 @ui.component
 def granularity_example():
     value, set_value = ui.use_state(
-        {"start": "2021-04-07T18:45:22Z", "end": "2021-04-08T20:00:00Z"}
+        {"start": "2021-04-07T18:45:22 UTC", "end": "2021-04-08T20:00:00 UTC"}
     )
     return ui.flex(
         ui.date_range_picker(
