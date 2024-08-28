@@ -268,17 +268,15 @@ python tools/plugin_builder.py --js -r -s ui
 ````
 
 Enable `watch` mode with the `--watch` flag. This will watch the project for changes and rerun the script with the same arguments.  
-This example reinstalls the `ui` plugin with js, starts the server, and watches for changes.  
-Every time a change is made to the plugin, the plugin will be rebuilt and the server will be restarted.
 Note that when using `--watch`, the script will not exit until stopped manually.
-```shell
-python tools/plugin_builder.py -jrsw ui
-```
-
-The `watch` option also works with `--docs`. 
 For example, to watch the `plotly-express` plugin for changes and rebuild the docs when changes are made:
 ```shell
 python tools/plugin_builder.py --docs --watch plotly-express
+```
+
+This example reinstalls the `ui` plugin with js, starts the server, and watches for changes.
+```shell
+python tools/plugin_builder.py -jrsw ui
 ```
 
 ## Release Management
