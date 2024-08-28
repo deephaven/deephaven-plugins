@@ -31,38 +31,14 @@ REBUILD_REGEXES = [
 
 # ignore these patterns in particular
 # prevents infinite loops when the builder is rerun
-# IGNORE_PATTERNS = ["/dist/", "/build/", "/node_modules/", "/_js/", "/."]
 IGNORE_REGEXES = [
     ".*/dist/.*",
     ".*/build/.*",
     ".*/node_modules/.*",
     ".*/_js/.*",
+    # ignore hidden files and directories
     ".*/\..*/.*",
 ]
-
-
-def start_function(
-    thread: threading.Thread | None, func: Callable, stop_event: threading.Event
-) -> threading.Thread:
-    """
-    Start a function in a new thread and stop the previous thread if it is still running.
-
-    Args:
-        thread: The previous thread to stop
-        func: The function to run
-        stop_event: The event to signal the function to stop
-
-    Returns:
-        The new thread
-    """
-    if thread and thread.is_alive():
-        # stop the previous thread before starting a new one
-        stop_event.set()
-        thread.join()
-    stop_event.clear()
-    thread = threading.Thread(target=func)
-    thread.start()
-    return thread
 
 
 class PluginsChangedHandler(RegexMatchingEventHandler):
@@ -76,7 +52,7 @@ class PluginsChangedHandler(RegexMatchingEventHandler):
     Attributes:
         func: The function to run when changes are detected
         stop_event: The event to signal the function to stop
-        thread: The thread that the function is running in
+        rerun_lock: A lock to prevent multiple reruns from occurring at the same time
     """
 
     def __init__(self, func: Callable, stop_event: threading.Event) -> None:
@@ -85,11 +61,24 @@ class PluginsChangedHandler(RegexMatchingEventHandler):
         self.func = func
 
         # A flag to indicate whether the function should continue running
+        # Also prevents unnecessary reruns
         self.stop_event = stop_event
 
-        self.thread = None
+        # A lock to prevent multiple reruns from occurring at the same time
+        self.rerun_lock = threading.Lock()
 
-        self.thread = start_function(self.thread, self.func, self.stop_event)
+        # always have an initial run
+        threading.Thread(target=self.attempt_rerun).start()
+
+    def attempt_rerun(self) -> None:
+        """
+        Attempt to rerun the function.
+        If the stop event is set, do not rerun because a rerun has already been scheduled.
+        """
+        self.stop_event.set()
+        with self.rerun_lock:
+            self.stop_event.clear()
+            self.func()
 
     def on_any_event(self, event: FileSystemEvent) -> None:
         """
@@ -98,8 +87,12 @@ class PluginsChangedHandler(RegexMatchingEventHandler):
         Args:
             event: The event that occurred
         """
-        print(f"File {event.src_path} has been changed, rerunning")
-        self.thread = start_function(self.thread, self.func, self.stop_event)
+        if self.stop_event.is_set():
+            # a rerun has already been scheduled on another thread
+            print(f"File {event.src_path} changed, rerun has already been scheduled")
+            return
+        print(f"File {event.src_path} changed, new rerun scheduled")
+        threading.Thread(target=self.attempt_rerun).start()
 
 
 def clean_build_dist(plugin: str) -> None:
@@ -329,7 +322,7 @@ def handle_args(
         install = True
 
     # if this thread is signaled to stop, return after the current command
-    # instead of in the middle of a command that could leave the environment in a bad state
+    # instead of in the middle of a command, which could leave the environment in a bad state
     if stop_event.is_set():
         return
 
@@ -365,8 +358,10 @@ def handle_args(
         while not stop_event.wait(1):
             poll = process.poll()
             if poll is not None:
+                # process threw an error or was killed, so exit
                 os._exit(process.returncode)
 
+        # stop event is set, so kill the process
         try:
             process.wait(timeout=1)
         except subprocess.TimeoutExpired:
