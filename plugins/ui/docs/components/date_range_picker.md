@@ -46,6 +46,29 @@ is determined by the type of the following props in order of precedence:
 
 If none of these are provided, the `on_change` handler will be passed a range of `Instant`.
 
+```python
+from deephaven import ui
+from deephaven.time import to_j_local_date, dh_today, to_j_instant, to_j_zdt
+
+
+@ui.component
+def date_range_picker_example(start, end):
+    dates, set_dates = ui.use_state({"start": start, "end": end})
+    return [ui.date_range_picker(on_change=set_dates, value=dates), ui.text(str(dates))]
+
+
+zdt_start = to_j_zdt("1995-03-22T11:11:11.23142 America/New_York")
+zdt_end = to_j_zdt("1995-03-25T11:11:11.23142 America/New_York")
+instant_start = to_j_instant("2022-01-01T00:00:00 ET")
+instant_end = to_j_instant("2022-01-05T00:00:00 ET")
+local_start = to_j_local_date("2024-05-06")
+local_end = to_j_local_date("2024-05-10")
+
+my_zoned_example = date_range_picker_example(zdt_start, zdt_end)
+my_instant_example = date_range_picker_example(instant_start, instant_end)
+my_local_example = date_range_picker_example(local_start, local_end)
+```
+
 ## Value
 
 A date range picker displays a `placeholder` by default. An initial, uncontrolled value can be provided to the date range picker using the `defaultValue` prop. Alternatively, a controlled value can be provided using the `value` prop.
@@ -137,9 +160,94 @@ def granularity_example():
 my_granularity_example = granularity_example()
 ```
 
+## HTML forms
+
+Date range pickr supports the start_name and end_name props for integration with HTML forms. The values will be submitted to the server as `ISO 8601` formatted strings according to the granularity of the value. For example, if the date range picker allows selecting only dates then strings such as "2023-02-03" will be submitted, and if it allows selecting times then strings such as "2023-02-03T08:45:00"
+
+```python
+from deephaven import ui
+
+my_date_range_picker_forms = ui.date_range_picker(
+    label="Trip dates", start_name="startDate", end_name="endDate"
+)
+```
+
+## Labeling
+
+A visual label should be provided for the date range picker using the label prop. If the DateRangePicker is required, the `is_required` and `necessity_indicator` props can be used to show a required state.
+
+```python
+from deephaven import ui
+
+my_date_range_picker_labeling = ui.flex(
+    ui.date_range_picker(label="Date range"),
+    ui.date_range_picker(
+        label="Date range", is_required=True, necessity_indicator="icon"
+    ),
+    ui.date_range_picker(
+        label="Date range", is_required=True, necessity_indicator="label"
+    ),
+    ui.date_range_picker(label="Date range", necessity_indicator="label"),
+)
+```
+
 ## Events
 
-Date Range Pickers accept a value to display and can trigger actions based on events such as setting state when changed. See the [API Reference](#api-reference) for a full list of available events.
+Date range pickers support selection through mouse, keyboard, and touch inputs via the `on_change` prop, which receives the value as an argument.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def event_example():
+    value, set_value = ui.use_state({"start": "2020-02-03", "end": "2020-02-08"})
+    return ui.date_range_picker(
+        label="Date range (controlled)", value=value, on_change=set_value
+    )
+
+
+my_event_example = event_example()
+```
+
+# Validation
+
+The `is_required` prop ensures that the user selects a date range. The related `validation_behaviour` prop allows the user to specify aria or native verification.
+
+When the prop is set to "native", the validation errors block form submission and are displayed as help text automatically.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def date_range_picker_validation_behaviour_example():
+    return ui.form(
+        ui.date_range_picker(
+            validation_behavior="native",
+            is_required=True,
+        )
+    )
+
+
+my_date_range_picker_validation_behaviour_example = (
+    date_range_picker_validation_behaviour_example()
+)
+```
+
+# Minimum and maximum values
+
+The `min_value` and `max_value` props can also be used to ensure the value is within a specific range. Date range picker also validates that the end date is after the start date.
+
+```python
+from deephaven import ui
+
+my_date_range_picker_basic = ui.date_range_picker(
+    label="Date range",
+    min_value="2024-01-01",
+    default_value={"start": "2022-02-03", "end": "2022-05-03"},
+)
+```
 
 ## Variants
 
