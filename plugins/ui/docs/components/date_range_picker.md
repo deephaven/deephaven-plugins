@@ -85,21 +85,22 @@ For `Instant` objects, the date range picker will display the time zone from the
 
 ```python
 from deephaven import ui
+from deephaven.time import to_j_instant
 
-my_zoned_date_time = (
-    ui.date_range_picker(
-        label="Date range",
-        default_value={
-            "start": "2022-11-07T00:45 America/Los_Angeles",
-            "end": "2022-11-08T11:15 America/Los_Angeles",
-        },
-    ),
+my_zoned_date_time = ui.date_range_picker(
+    label="Date range",
+    default_value={
+        "start": "2022-11-07T00:45 America/Los_Angeles",
+        "end": "2022-11-08T11:15 America/Los_Angeles",
+    },
 )
-my_instant = (
-    ui.date_range_picker(
-        label="Date range",
-        default_value={"start": "2022-11-07T00:45Z", "end": "2022-11-08T11:15Z"},
-    ),
+
+my_instant = ui.date_range_picker(
+    label="Date range",
+    default_value={
+        "start": to_j_instant("2022-11-07T00:45Z"),
+        "end": to_j_instant("2022-11-08T11:15Z"),
+    },
 )
 ```
 

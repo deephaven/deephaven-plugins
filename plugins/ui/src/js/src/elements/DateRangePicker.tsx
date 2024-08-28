@@ -1,19 +1,19 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import {
   DateRangePicker as DHCDateRangePicker,
   DateRangePickerProps as DHCDateRangePickerProps,
 } from '@deephaven/components';
-import { useDebouncedCallback, usePrevious } from '@deephaven/react-hooks';
+import { usePrevious } from '@deephaven/react-hooks';
 import { getSettings, RootState } from '@deephaven/redux';
 import { DateValue, toTimeZone, ZonedDateTime } from '@internationalized/date';
+import useDebouncedOnChange from './hooks/useDebouncedOnChange';
 import {
+  RangeValue,
   SerializedDateRangePickerProps,
   useDateRangePickerProps,
 } from './hooks/useDateRangePickerProps';
 import { isStringInstant } from './utils/DateTimeUtils';
-
-const VALUE_CHANGE_DEBOUNCE = 250;
 
 const EMPTY_FUNCTION = () => undefined;
 
@@ -44,23 +44,14 @@ export function DateRangePicker(
     ...otherProps
   } = useDateRangePickerProps(props, timeZone);
 
-  const [value, setValue] = useState(propValue ?? defaultValue);
-
-  const debouncedOnChange = useDebouncedCallback(
-    propOnChange,
-    VALUE_CHANGE_DEBOUNCE
-  );
-
-  const onChange = useCallback(
-    newValue => {
-      setValue(newValue);
-      debouncedOnChange(newValue);
-    },
-    [debouncedOnChange]
+  const [value, onChange] = useDebouncedOnChange<RangeValue<DateValue> | null>(
+    propValue ?? defaultValue,
+    propOnChange
   );
 
   // When the time zone changes, the serialized prop value will change, so we need to update the value state
   const prevTimeZone = usePrevious(timeZone);
+  // The timezone is intially undefined, so we don't want to trigger a change in that case
   useEffect(() => {
     // The timezone is intially undefined, so we don't want to trigger a change in that case
     if (
@@ -74,16 +65,9 @@ export function DateRangePicker(
       const newStart = toTimeZone(value.start, timeZone);
       const newEnd = toTimeZone(value.end, timeZone);
       const newValue = { start: newStart, end: newEnd };
-      setValue(newValue);
-      debouncedOnChange(newValue);
+      onChange(newValue);
     }
-  }, [
-    isDateRangePickerInstantValue,
-    value,
-    debouncedOnChange,
-    timeZone,
-    prevTimeZone,
-  ]);
+  }, [isDateRangePickerInstantValue, value, onChange, timeZone, prevTimeZone]);
 
   return (
     // eslint-disable-next-line react/jsx-props-no-spreading
