@@ -23,9 +23,29 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            github.rest.pulls.requestReviewers({
+            const reviewer = 'margaretkennedy';
+
+            const pendingReviewers = await github.rest.pulls.listRequestedReviewers({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: context.issue.number,
-              reviewers: ['margaretkennedy']
-            })
+              pull_number: context.issue.number
+            });
+
+            const isPending = pendingReviewers.data?.users?.some(({ login }) => login === reviewer);
+
+            const reviews = await github.rest.pulls.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            const isReviewed = reviews.data?.some(review => review.user.login === reviewer);
+
+            if (!isPending && !isReviewed) {
+              github.rest.pulls.requestReviewers({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                reviewers: [reviewer]
+              });
+            }
