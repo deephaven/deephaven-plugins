@@ -1,3 +1,6 @@
+# when adding new files here, consider adding them to tools/plugin_builder.py as well
+# if they could trigger an infinite loop
+
 node_modules
 .vscode/
 tsconfig.tsbuildinfo
