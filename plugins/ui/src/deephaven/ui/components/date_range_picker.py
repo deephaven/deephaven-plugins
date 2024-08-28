@@ -54,10 +54,10 @@ def _convert_date_range_picker_props(
     props: dict[str, Any],
 ) -> dict[str, Any]:
     """
-    Convert date picker props to Java date types.
+    Convert date range picker props to Java date types.
 
     Args:
-        props: The props passed to the date picker.
+        props: The props passed to the date range picker.
 
     Returns:
         The converted props.
@@ -164,7 +164,7 @@ def date_range_picker(
     UNSAFE_style: CSSProperties | None = None,
 ) -> DatePickerElement:
     """
-    A date picker allows the user to select a date.
+    A date range picker allows the user to select a range of dates.
 
 
     Args:
@@ -270,7 +270,7 @@ def date_range_picker(
         UNSAFE_style: A CSS style to apply to the element.
 
     Returns:
-        The date picker element.
+        The date range picker element.
     """
     _, props = create_props(locals())
 
