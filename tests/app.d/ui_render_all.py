@@ -56,6 +56,10 @@ def ui_components():
         ui.content("Content"),
         ui.contextual_help("Contextual Help"),
         ui.date_picker(label="Date Picker", value="2021-01-01"),
+        ui.date_range_picker(
+            label="Date Range Picker",
+            value={"start": "2021-01-01", "end": "2021-01-02"},
+        ),
         ui.flex("Flex default child A", "Flex default child B"),
         ui.flex("Flex column child A", "Flex column child B", direction="column"),
         ui.form("Form"),

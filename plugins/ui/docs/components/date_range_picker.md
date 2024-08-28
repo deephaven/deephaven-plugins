@@ -1,27 +1,20 @@
 # Date Range Picker
 
-Date Range Pickers allow users to select a range Dates and Times from a pop up Calendar.
+Date range pickers allow users to select a range dates and times from a pop up calendar.
 
 ## Example
 
 ```python
 from deephaven import ui
 
-dp = ui.date_range_picker(
-    label="Date Range Picker",
-    default_value={
-        "start": "2024-01-02T10:30:00 UTC",
-        "end": "2024-01-05T10:30:00 UTC",
-    },
-    on_change=print,
-)
+my_date_range_picker_basic = ui.date_range_picker(label="Date range")
 ```
 
 ## Date types
 
-A date range picker that can be used to select range of dates.
+A date range picker can be used to select `range` of dates.
 
-The range is a dictionary with a `start` date and an `end` date. e.g. `{ "start": "2024-01-02", "end": "2024-01-05" }`
+The `range` is a dictionary with a `start` date and an `end` date. e.g. `{ "start": "2024-01-02", "end": "2024-01-05" }`
 
 The date range picker accepts the following date types as inputs:  
 `None`, `LocalDate`, `ZoneDateTime`, `Instant`, `int`, `str`, `datetime.datetime`, `numpy.datetime64`, `pandas.Timestamp`
@@ -53,70 +46,94 @@ is determined by the type of the following props in order of precedence:
 
 If none of these are provided, the `on_change` handler will be passed a range of `Instant`.
 
-## Controlled mode with value
+## Value
 
-Setting the `value` prop will put the date_range_picker in controlled mode. Selecting new dateS will call the `on_change` callback.
-Then `value` must be updated programatically to render the new value. This can be done using the `use_state` hook.
+A date range picker displays a `placeholder` by default. An initial, uncontrolled value can be provided to the date range picker using the `defaultValue` prop. Alternatively, a controlled value can be provided using the `value` prop.
 
 ```python
 from deephaven import ui
-from deephaven.time import to_j_local_date, dh_today, to_j_instant, to_j_zdt
-
-zdt_start = to_j_zdt("1995-03-22T11:11:11.23142 America/New_York")
-zdt_end = to_j_zdt("1995-03-25T11:11:11.23142 America/New_York")
-instant_start = to_j_instant("2022-01-01T00:00:00 ET")
-instant_end = to_j_instant("2022-01-05T00:00:00 ET")
-local_start = to_j_local_date("2024-05-06")
-local_end = to_j_local_date("2024-05-10")
 
 
 @ui.component
-def date_range_picker_test(start, end):
-    dates, set_dates = ui.use_state({"start": start, "end": end})
-    return [ui.date_range_picker(on_change=set_dates, value=dates), ui.text(str(dates))]
+def example():
+    value, set_value = ui.use_state({"start": "2020-02-03", "end": "2020-02-08"})
+    return ui.flex(
+        ui.date_range_picker(
+            label="Date range (uncontrolled)",
+            default_value={"start": "2020-02-03", "end": "2020-02-08"},
+        ),
+        ui.date_range_picker(
+            label="Date range (controlled)", value=value, on_change=set_value
+        ),
+        gap="size-150",
+        wrap=True,
+    )
 
 
-zdt_drp = date_range_picker_test(zdt_start, zdt_end)
-instant_drp = date_range_picker_test(instant_start, instant_end)
-local_drp = date_range_picker_test(local_start, local_end)
+my_example = example()
 ```
 
-## Uncontrolled mode with default_value
+## Time zones
 
-If the `value` prop is omitted, the date_range_picker will be in uncontrolled mode. It will store its state internally and automatically update when a new date is selected.
-In this mode, setting the `default_value` prop will determine the initial value displayed by the date_range_picker.
+Date range picker is time zone aware when `ZonedDateTime` or `Instant` objects are provided as the value. In this case, the time zone abbreviation is displayed, and time zone concerns such as daylight saving time are taken into account when the value is manipulated.
 
-```python
-from deephaven.time import dh_now
-from deephaven import ui
+In most cases, your data will come from and be sent to a server as an `ISO 8601` formatted string.
 
-SECONDS_IN_DAY = 86400
-today = dh_now()
-dp = ui.date_range_picker(
-    label="Date Range Picker",
-    default_value={"start": today, "end": today.plusSeconds(SECONDS_IN_DAY * 5)},
-    on_change=print,
-)
-```
+For `ZonedDateTime` objects, the date range picker will display the specified time zone.
 
-## Uncontrolled mode with placeholder_value
-
-If both `value` and `default_value` are omitted, the date_range_picker will be in uncontrolled mode displaying no date selected. When opened, the Date Range Picker will suggest the date from the `placeholder_value` prop.
-Omitting `placeholder_value` will default it to today at the current time on the server machine time zone.
+For `Instant` objects, the date range picker will display the time zone from the user settings.
 
 ```python
 from deephaven import ui
 
-dp1 = ui.date_range_picker(
-    label="Date Range Picker",
-    placeholder_value="2022-10-01T08:30:00 ET",
-    on_change=print,
+my_zoned_date_time = (
+    ui.date_range_picker(
+        label="Date range",
+        default_value={
+            "start": "2022-11-07T00:45 America/Los_Angeles",
+            "end": "2022-11-08T11:15 America/Los_Angeles",
+        },
+    ),
 )
+my_instant = (
+    ui.date_range_picker(
+        label="Date range",
+        default_value={"start": "2022-11-07T00:45Z", "end": "2022-11-08T11:15Z"},
+    ),
+)
+```
 
-dp2 = ui.date_range_picker(
-    label="Date Range Picker",
-    on_change=print,
-)
+## Granularity
+
+The `granularity` prop allows you to control the smallest unit that is displayed by a date range picker. By default, `LocalDate` values are displayed with "DAY" granularity (year, month, and day), and `ZonedDateTime` and `Instant` values are displayed with "SECOND" granularity.
+
+In addition, when a value with a time is provided but you wish to only display the date, you can set the granularity to "DAY". This has no effect on the actual value (it still has a time component), only on what fields are displayed. In the following example, two date range pickers are synchronized with the same value, but display different granularities.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def granularity_example():
+    value, set_value = ui.use_state(
+        {"start": "2021-04-07T18:45:22Z", "end": "2021-04-08T20:00:00Z"}
+    )
+    return ui.flex(
+        ui.date_range_picker(
+            label="Date range and time range",
+            granularity="SECOND",
+            value=value,
+            on_change=set_value,
+        ),
+        ui.date_range_picker(
+            label="Date range", value=value, granularity="DAY", on_change=set_value
+        ),
+        gap="size-150",
+        wrap=True,
+    )
+
+
+my_granularity_example = granularity_example()
 ```
 
 ## Events
