@@ -483,8 +483,6 @@ def builder(
     try:
         while True:
             input()
-    except KeyboardInterrupt:
-        sys.exit(0)
     finally:
         observer.stop()
         observer.join()
