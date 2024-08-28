@@ -1,16 +1,15 @@
 name: End-to-end Tests
 
 on:
-  pull_request:
+  pull_request_target:
     paths:
       - '**/docs/**/*.md'
 
-permissions:
-  issues: write
-  pull-requests: write
-
 jobs:
   add-reviewer:
+    if: github.event.pull_request.draft == false
+    permissions:
+      pull-requests: write
     runs-on: ubuntu-22.04
 
     steps:
