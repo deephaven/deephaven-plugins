@@ -7,9 +7,12 @@ on:
 
 jobs:
   add-reviewer:
-    permissions:
-      pull-requests: write
     runs-on: ubuntu-22.04
+
+    permissions:
+      issues: write
+      pull-requests: write
+
     steps:
       - name: Add reviewers
         uses: actions/github-script@v7
