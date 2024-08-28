@@ -126,7 +126,7 @@ def granularity_example():
             on_change=set_value,
         ),
         ui.date_range_picker(
-            label="Date range", value=value, granularity="DAY", on_change=set_value
+            label="Date range", granularity="DAY", value=value, on_change=set_value
         ),
         gap="size-150",
         wrap=True,
