@@ -1,43 +1,21 @@
 name: End-to-end Tests
 
 on:
-  push:
-    branches:
-      - main
-      - 'release/**'
   pull_request:
-    branches:
-      - main
-      - 'release/**'
+    paths:
+      - '**/docs/**/*.md'
 
 jobs:
-  e2e-test:
+  add-reviewer:
     runs-on: ubuntu-22.04
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
-      cancel-in-progress: true
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Run tests
-        run: "./tools/run_docker.sh e2e-tests"
-
-      - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
-        if: always()
+      - name: Add reviewers
+        uses: actions/github-script@v7
         with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 90
-
-      - name: Dump server logs
-        if: failure()
-        run: docker logs deephaven-plugins > /tmp/server-log.txt
-  
-      - name: Upload server logs
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: server-logs
-          path: /tmp/server-log.txt
+          script: |
+            github.rest.pulls.requestReviewers({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              reviewers: ['margaretkennedy']
+            })
