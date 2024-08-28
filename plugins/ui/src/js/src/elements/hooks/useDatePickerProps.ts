@@ -22,9 +22,9 @@ export type SerializedDateValue = string | null;
 
 export type SerializedDateValueCallback = (value: SerializedDateValue) => void;
 
-export type DeserializedDateValueCallback = (
-  value: MappedDateValue<DateValue>
-) => void;
+export type DeserializedDateValueCallback =
+  | (() => void)
+  | ((value: MappedDateValue<DateValue> | null) => Promise<void>);
 
 export interface SerializedDatePickerPropsInterface {
   /** Handler that is called when the element receives focus. */
@@ -117,7 +117,7 @@ export type DeserializedDatePickerProps<TProps> = Omit<
  * @returns Serialized DateValue
  */
 export function serializeDateValue(
-  value: MappedDateValue<DateValue>
+  value?: MappedDateValue<DateValue>
 ): SerializedDateValue {
   if (value == null) {
     return null;
@@ -135,9 +135,9 @@ export function serializeDateValue(
  */
 export function useOnChangeDateCallback(
   callback?: SerializedDateValueCallback
-): (value: MappedDateValue<DateValue>) => void {
+): DeserializedDateValueCallback {
   return useCallback(
-    (value: MappedDateValue<DateValue>) => {
+    (value?: MappedDateValue<DateValue>) => {
       if (callback == null) {
         return;
       }

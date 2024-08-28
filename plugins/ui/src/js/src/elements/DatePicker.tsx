@@ -1,19 +1,18 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import {
   DatePicker as DHCDatePicker,
   DatePickerProps as DHCDatePickerProps,
 } from '@deephaven/components';
-import { useDebouncedCallback, usePrevious } from '@deephaven/react-hooks';
+import { usePrevious } from '@deephaven/react-hooks';
 import { getSettings, RootState } from '@deephaven/redux';
 import { DateValue, toTimeZone, ZonedDateTime } from '@internationalized/date';
+import useDebouncedOnChange from './hooks/useDebouncedOnChange';
 import {
   SerializedDatePickerProps,
   useDatePickerProps,
 } from './hooks/useDatePickerProps';
 import { isStringInstant } from './utils/DateTimeUtils';
-
-const VALUE_CHANGE_DEBOUNCE = 250;
 
 const EMPTY_FUNCTION = () => undefined;
 
@@ -44,19 +43,9 @@ export function DatePicker(
     ...otherProps
   } = useDatePickerProps(props, timeZone);
 
-  const [value, setValue] = useState(propValue ?? defaultValue);
-
-  const debouncedOnChange = useDebouncedCallback(
-    propOnChange,
-    VALUE_CHANGE_DEBOUNCE
-  );
-
-  const onChange = useCallback(
-    newValue => {
-      setValue(newValue);
-      debouncedOnChange(newValue);
-    },
-    [debouncedOnChange]
+  const [value, onChange] = useDebouncedOnChange<DateValue | null>(
+    propValue ?? defaultValue,
+    propOnChange
   );
 
   // When the time zone changes, the serialized prop value will change, so we need to update the value state
@@ -70,16 +59,9 @@ export function DatePicker(
       value instanceof ZonedDateTime
     ) {
       const newValue = toTimeZone(value, timeZone);
-      setValue(newValue);
-      debouncedOnChange(newValue);
+      onChange(newValue);
     }
-  }, [
-    isDatePickerInstantValue,
-    value,
-    debouncedOnChange,
-    timeZone,
-    prevTimeZone,
-  ]);
+  }, [isDatePickerInstantValue, value, onChange, timeZone, prevTimeZone]);
 
   return (
     // eslint-disable-next-line react/jsx-props-no-spreading
