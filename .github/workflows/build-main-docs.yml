@@ -31,7 +31,6 @@ on:
         type: string
       version:
         description: The version of the plugin to publish the docs for
-        required: true
         type: string
         default: 'main'
       event_name:
