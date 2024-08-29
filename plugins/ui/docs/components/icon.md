@@ -41,7 +41,7 @@ my_icons = icons()
 
 ## Coloring
 
-Icons in Spectrum support four semantic colors: negative, notice, positive, and informative. While icons within React Spectrum components are usually styled with the appropriate colors, you can use the color prop to customize the color of standalone icons.
+Icons in Spectrum support four semantic colors: negative, notice, positive, and informative. While icons within React Spectrum components are usually styled with the appropriate colors, you can use the `color` prop to customize the color of standalone icons.
 
 ```python
 from deephaven import ui
@@ -75,4 +75,11 @@ def icons():
 
 
 my_icons = icons()
+```
+
+
+## API reference
+
+```{eval-rst}
+.. dhautofunction:: deephaven.ui.button
 ```
