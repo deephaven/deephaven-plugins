@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from typing import Callable
+from typing import Any, Callable, TypeVar
 
 from .use_memo import use_memo
 from ..types import Dependencies
 
+T = TypeVar("T", bound=Callable[..., Any])
 
-def use_callback(func: Callable, dependencies: Dependencies) -> Callable:
+
+def use_callback(func: T, dependencies: Dependencies) -> T:
     """
     Memoize a callback function. The callback will only be recreated if the dependencies change.
 

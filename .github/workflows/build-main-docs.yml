@@ -1,12 +1,38 @@
-name: Build Main Docs
+name: Build Docs
 
 on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Name of the package to build docs for.'
+        required: true
+        type: choice
+        options:
+          - 'plotly-express'
+          - 'ui'
+      version:
+        description: 'Version of the package to build docs for. This only affects where the docs are synced and not the actual docs built so in most cases this should be "main".'
+        required: true
+        type: string
+        default: 'main'
+      event_name:
+        description: 'Event name to determine if the docs should be synced. Keep this as "push" to sync the docs.'
+        required: true
+        type: choice
+        default: 'push'
+        options:
+          - 'push'
+          - 'test'
   workflow_call:
     inputs:
       package:
         description: The plugin to publish the docs for
         required: true
         type: string
+      version:
+        description: The version of the plugin to publish the docs for
+        type: string
+        default: 'main'
       event_name:
         description: The event name that triggered the workflow
         required: true
@@ -40,5 +66,5 @@ jobs:
     secrets: inherit
     with:
       package: ${{ inputs.package }}
-      version: 'main'
+      version: ${{ inputs.version }}
       event_name: ${{ inputs.event_name }}

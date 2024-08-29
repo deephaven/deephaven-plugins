@@ -1,6 +1,6 @@
 # Text Area
 
-TextAreas are multiline text inputs, ideal for cases where users have a sizable amount of text to enter. TextAreas can be customized in the same ways that TextFields can.
+Text areas are multiline text inputs, ideal for cases where users have a sizable amount of text to enter. Text areas can be customized in the same ways that text fields can.
 
 ## Example
 

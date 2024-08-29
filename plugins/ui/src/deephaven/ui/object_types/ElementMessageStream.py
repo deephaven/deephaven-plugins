@@ -281,6 +281,14 @@ class ElementMessageStream(MessageStream):
         self._connection.on_data(b"", [])
 
     def on_close(self) -> None:
+        assert not self._is_closed
+
+        logger.debug("Closing ElementMessageStream")
+
+        # The connection is closed, so this component will not update anymore
+        # delete the context so the objects in the collected scope are released
+        self._context.unmount()
+        del self._context
         self._is_closed = True
 
     def on_data(self, payload: bytes, references: list[Any]) -> None:
@@ -426,6 +434,9 @@ class ElementMessageStream(MessageStream):
             root: The root node of the document to send
             state: The state of the node to preserve
         """
+        if self._is_closed:
+            logger.error("Stream is closed, cannot render document")
+            sys.exit()
 
         # TODO(#67): Send a diff of the document instead of the entire document.
         encoder_result = self._encoder.encode_node(root)
@@ -447,11 +458,6 @@ class ElementMessageStream(MessageStream):
             logger.debug("Registering callable %s", callable_id)
             callable_dict[callable_id] = wrap_callable(callable)
         self._callable_dict = callable_dict
-        if self._is_closed:
-            # The connection is closed, so this component will not update anymore
-            # delete the context so the objects in the collected scope are released
-            del self._context
-            sys.exit()
         self._connection.on_data(payload.encode(), new_objects)
 
     def _send_document_error(self, error: Exception, stack_trace: str) -> None:

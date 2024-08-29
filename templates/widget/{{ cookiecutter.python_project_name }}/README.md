@@ -2,26 +2,26 @@
 
 This is a Python plugin for Deephaven generated from a [deephaven-plugin](https://github.com/deephaven/deephaven-plugins) template.
 
-Specifically, this plugin is a bidirectional widget plugin, which can send and receive messages on both the client and server.
-The plugin works out of the box, demonstrates basic plugin structure, and can be used as a starting point for building more complex plugins.
+Specifically, this plugin is a bidirectional widget plugin, which can send and receive messages on both the client and server.  
+The plugin works out of the box, demonstrates basic plugin structure, and can be used as a starting point for building more complex plugins.  
 
 ## Plugin Structure
 
-The `src` directory contains the Python and JavaScript code for the plugin.
-Within the `src` directory, the {{ cookiecutter.python_project_name }} directory contains the Python code, and the `js` directory contains the JavaScript code.
+The `src` directory contains the Python and JavaScript code for the plugin.  
+Within the `src` directory, the {{ cookiecutter.python_project_name }} directory contains the Python code, and the `js` directory contains the JavaScript code.  
 
-The Python files have the following structure:
-`{{ cookiecutter.__object_file_name }}.py` defines a simple Python class that can send messages to the client.
-`{{ cookiecutter.__type_file_name }}.py` defines the Python type for the plugin (which is used for registration) and a simple message stream.
-`js_plugin.py` defines the Python class that will be used to setup the JavaScript side of the plugin.
-`register.py` registers the plugin with Deephaven.
+The Python files have the following structure:  
+`{{ cookiecutter.__object_file_name }}.py` defines a simple Python class that can send messages to the client. This object can be modified to have other plugin functionality or replaced with a different object entirely, depending on the plugin's needs.  
+`{{ cookiecutter.__type_file_name }}.py` defines the Python type for the plugin (which is used for registration) and a simple message stream. These can be modified to handle different objects or messages. An initial message is sent from the Python side to the client, then additional messages can be sent back and forth.  
+`js_plugin.py` defines the Python class that will be used to setup the JavaScript side of the plugin.  
+`register.py` registers the plugin with Deephaven. This file will not need to be modified for most plugins at the initial stages, but will need to be if the package is renamed or JavaScript files are moved.  
 
-The JavaScript files have the following structure:
-`{{ cookiecutter.__js_plugin_obj }}.ts` registers the plugin with Deephaven.
-`{{ cookiecutter.__js_plugin_view_obj }}.tsx` defines the plugin panel and message handling.
+The JavaScript files have the following structure:  
+`{{ cookiecutter.__js_plugin_obj }}.ts` registers the plugin with Deephaven. This contains the client equivalent of the type in `{{ cookiecutter.__type_file_name }}.py` and these should be kept in sync.  
+`{{ cookiecutter.__js_plugin_view_obj }}.tsx` defines the plugin panel and message handling. This is where messages are received when sent from the Python side of the plugin. This file is a good starting point for adding more complex plugin functionality.  
 
-Additionally, the `test` directory contains Python tests for the plugin. This demonstrates how the embedded Deephaven server can be used in tests.
-It's recommended to use `tox` to run the tests, and the `tox.ini` file is included in the project.
+Additionally, the `test` directory contains Python tests for the plugin. This demonstrates how the embedded Deephaven server can be used in tests.  
+It's recommended to use `tox` to run the tests, and the `tox.ini` file is included in the project.  
 
 ## Building the Plugin
 
@@ -89,6 +89,36 @@ obj.send_message("Hello, world!")
 
 The panel can also send messages back to the Python client by using the input field.
 
+## Debugging the Plugin
+It's recommended to run through all the steps in Installing the Plugin and Using the Plugin to ensure the plugin is working correctly.  
+Then, make changes to the plugin and rebuild it to see the changes in action.
+Checkout the [Deephaven plugins repo](https://github.com/deephaven/deephaven-plugins), which is where this template was generated from, for more examples and information.  
+The `plugins` folder contains current plugins that are developed and maintained by Deephaven.  
+Below are some common issues and how to resolve them as you develop your plugin.  
+If there is an issue with the process while following the Installation and Usage steps on the originally generated plugin, please open an issue.  
+
+### The Panel is Not Appearing
+#### Checking if the Plugin is Registered
+If the panel is not appearing or an error is thrown that the import is not found, the plugin may not be registered correctly.
+To verify the plugin is registered, check either the console logs or the versions in the settings panel.  
+- In the console logs, there should be a messaging saying `Plugins loaded:` with a map that includes this plugin.  
+![plugin map](./_assets/plugin_map.png "Plugin Map")  
+
+- To get to the settings panel, click on the gear icon in the top right corner of the Deephaven window. Towards the bottom this plugin should be listed.  
+![plugin settings](./_assets/plugin_settings.png "Plugin Settings")  
+- If the plugin is not listed, attempt to rebuild and reinstall the plugin and check for errors during that process.
+
+#### Checking if the Python Package is Installed
+- Running `pip list` in the `.venv` environment should show the Python package installed, but this is not a guarantee that the plugin is registered properly.  
+- The version can also be checked directly from the Python console with:
+```{python}
+from importlib.metadata import version
+print(version("{{ cookiecutter.python_project_name }}"))
+```
+
+### The Panel is Appearing but with Errors or Not Functioning Correctly
+Check both the Python and JavaScript logs for errors as either side could be causing the issue.
+
 ## Distributing the Plugin
 To distribute the plugin, you can upload the wheel file to a package repository, such as [PyPI](https://pypi.org/).
 The version of the plugin can be updated in the `setup.cfg` file.
@@ -124,3 +154,4 @@ pip install {{ cookiecutter.python_project_name }}
 ```
 
 See the [Python packaging documentation](https://packaging.python.org/en/latest/tutorials/packaging-projects/#uploading-the-distribution-archives) for more information.
+
