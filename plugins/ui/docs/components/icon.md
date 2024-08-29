@@ -81,5 +81,5 @@ my_icons = icons()
 ## API reference
 
 ```{eval-rst}
-.. dhautofunction:: deephaven.ui.button
+.. dhautofunction:: deephaven.ui.icon
 ```
