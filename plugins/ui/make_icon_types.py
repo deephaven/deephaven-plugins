@@ -10,10 +10,7 @@ def camel_to_snake(name: str) -> str:
 def update_dict(
     dictionary: Dict[str, str], key: str, value: str, overwrite_condition: bool
 ) -> None:
-    if key in dictionary:
-        if overwrite_condition:
-            dictionary[key] = value
-    else:
+    if overwrite_condition or not key in dictionary:
         dictionary[key] = value
 
 
@@ -54,6 +51,9 @@ with open(output_file_path, "w") as output_file:
     output_file.write("IconTypes = Literal[\n")
     for key, value in snakeCaseNoPrefix.items():
         output_file.write('    "' + key + '",' + "\n")
+    for key, value in snakeCase.items():
+        if key.startswith("dh"):
+            output_file.write('    "' + key + '",' + "\n")
     output_file.write("]" + "\n")
 
     ## IconMapping
