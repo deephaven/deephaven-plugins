@@ -39,7 +39,6 @@ IGNORE_REGEXES = [
     # ignore hidden files and directories
     ".*/\..*/.*",
 ]
-# njnhnuunnhunnuu
 
 
 class PluginsChangedHandler(RegexMatchingEventHandler):
