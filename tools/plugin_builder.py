@@ -80,7 +80,7 @@ class PluginsChangedHandler(RegexMatchingEventHandler):
             self.stop_event.clear()
             self.func()
 
-    def on_any_event(self, event: FileSystemEvent) -> None:
+    def event_handler(self, event: FileSystemEvent) -> None:
         """
         Handle any file system event
 
@@ -93,6 +93,45 @@ class PluginsChangedHandler(RegexMatchingEventHandler):
             return
         print(f"File {event.src_path} changed, new rerun scheduled")
         threading.Thread(target=self.attempt_rerun).start()
+
+    def on_created(self, event: FileSystemEvent) -> None:
+        """
+        Handle a file creation event
+
+        Args:
+            event: The event that occurred
+        """
+        self.event_handler(event)
+
+    def on_deleted(self, event: FileSystemEvent) -> None:
+        """
+        Handle a file deletion event
+
+        Args:
+            event: The event that occurred
+        """
+        self.event_handler(event)
+
+    def on_modified(self, event: FileSystemEvent) -> None:
+        """
+        Handle a file modification event
+
+        Args:
+            event: The event that occurred
+        """
+        self.event_handler(event)
+
+    def on_moved(self, event: FileSystemEvent) -> None:
+        """
+        Handle a file move event
+
+        Args:
+            event: The event that occurred
+
+        Returns:
+
+        """
+        self.event_handler(event)
 
 
 def clean_build_dist(plugin: str) -> None:
