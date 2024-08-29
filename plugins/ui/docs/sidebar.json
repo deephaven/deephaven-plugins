@@ -24,6 +24,10 @@
           {
             "label": "Button",
             "path": "components/button.md"
+          },
+          {
+            "label": "Table",
+            "path": "components/table.md"
           }
         ]
       },
