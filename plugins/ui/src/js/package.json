@@ -43,6 +43,7 @@
   "dependencies": {
     "@deephaven/chart": "^0.87.0",
     "@deephaven/components": "^0.87.0",
+    "@deephaven/console": "^0.87.0",
     "@deephaven/dashboard": "^0.86.0",
     "@deephaven/dashboard-core-plugins": "^0.86.1",
     "@deephaven/golden-layout": "^0.87.0",
