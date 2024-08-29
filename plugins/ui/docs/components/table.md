@@ -19,7 +19,9 @@ t = ui.table(_t)
 
 ## Events
 
-You can listen for different user events on a `ui.table`. There is both a `press` and `double_press` event for `row`, `cell`, and `column`. These events typically correspond to a click or double click on the table. The event payloads include table data related to the event. Note there is not a row index in event data because the row index is not a safe way to reference a row between the client and server since the user could have manipulated the table resulting in a different client order.
+You can listen for different user events on a `ui.table`. There is both a `press` and `double_press` event for `row`, `cell`, and `column`. These events typically correspond to a click or double click on the table. The event payloads include table data related to the event. For `row` and `column` events, the corresponding data within the viewport will be sent to the event handler. The viewport is typically the visible area &plusmn; a window equal to the visible area (e.g., if rows 5-10 are visible, rows 0-15 will be in the viewport).
+
+Note there is not a row index in event data because the row index is not a safe way to reference a row between the client and server since the user could have manipulated the table resulting in a different client order.
 
 A `double_press` event will be preceded by 2 `press` events with the same data.
 
@@ -115,7 +117,7 @@ from deephaven import ui
 import deephaven.plot.express as dx
 
 def create_context_menu(data):
-    if data["column_name"] == "sym":
+    if data["column_name"] == "Sym":
         return {
             "title": f"Print {data['value']}",
             "action": lambda d: print(d['value'])
@@ -142,10 +144,10 @@ import deephaven.plot.express as dx
 
 t = ui.table(
     dx.data.stocks(),
-    frozen_columns=["sym", "exchange"],
-    front_columns=["price"],
-    back_columns=["index"],
-    hidden_columns=["random"]
+    frozen_columns=["Sym", "Exchange"],
+    front_columns=["Price"],
+    back_columns=["Index"],
+    hidden_columns=["Random"]
 )
 ```
 
@@ -175,16 +177,16 @@ t = ui.table(
     dx.data.stocks(),
     column_groups=[
         {
-            "name": "sym_info",
-            "children": ["sym", "exchange"],
+            "name": "Sym_Info",
+            "children": ["Sym", "Exchange"],
         },
         {
-            "name": "price_info",
-            "children": ["size", "price", "dollars"]
+            "name": "Price_Info",
+            "children": ["Size", "Price", "Dollars"]
         },
         {
-            "name": "all_info",
-            "children": ["sym_info", "price_info"],
+            "name": "All_Info",
+            "children": ["Sym_Info", "Price_Info"],
             "color": "#3b6bda"
         }
     ]
@@ -192,6 +194,47 @@ t = ui.table(
 ```
 
 ![Example of column groups](../_assets/table_column_groups.png)
+
+## Quick Filters
+
+Quick filters are an easy way to filter the table and show the user what filters are currently applied. These filters are applied by the client, so users may change the filters without affecting other users. Unlike a `where` statement to filter a table on the server, quick filters can be easily changed by the user.
+
+Quick filters may be preferred if you have multiple servers or workers hosting your data. If, for example, the table is on another Deephaven instance, performing a `where` operation on the table may require copying all of the data from the host server into the server running Deephaven UI. With a quick filter, the filter can instead be applied directly on the server hosting the table.
+
+Quick filters can be added to the table using the `quick_filters` prop. The `quick_filters` prop takes a dictionary where the key is the column and the value is the filter to apply.
+
+The quick filter bar can be expanded by default with the `show_quick_filters` prop.
+
+```py
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(
+    dx.data.stocks(),
+    show_quick_filters=True,
+    quick_filters={
+        "Sym": "CAT",
+        "Exchange": "TPET",
+        "Price": ">=100"
+    }
+)
+```
+
+![Example of quick filters](../_assets/table_quick_filter.png)
+
+## Reverse
+
+The table can be displayed in reverse order using the `reverse` prop. The reverse will be performed on the client and indicated to the user via a bar under the column headers. Users can disable the reverse with the column header context menu or via shortcut.
+
+```py
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(
+    dx.data.stocks(),
+    reverse=True
+)
+```
 
 ## API Reference
 
