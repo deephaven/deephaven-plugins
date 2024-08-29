@@ -209,8 +209,12 @@ The quick filter bar can be expanded by default with the `show_quick_filters` pr
 from deephaven import ui
 import deephaven.plot.express as dx
 
-t = ui.table(
-    dx.data.stocks(),
+_stocks = dx.data.stocks()
+
+t = _stocks.where("Sym = `CAT`") # Applied when query is run
+
+t2 = ui.table( # Filters applied when table is opened on the client
+    _stocks,
     show_quick_filters=True,
     quick_filters={
         "Sym": "CAT",
