@@ -162,13 +162,17 @@ my_granularity_example = granularity_example()
 
 ## HTML forms
 
-Date range pickr supports the start_name and end_name props for integration with HTML forms. The values will be submitted to the server as `ISO 8601` formatted strings according to the granularity of the value. For example, if the date range picker allows selecting only dates then strings such as "2023-02-03" will be submitted, and if it allows selecting times then strings such as "2023-02-03T08:45:00"
+Date range picker supports the `start_name` and `end_name` props for integration with HTML forms. The values will be submitted to the server as `ISO 8601` formatted strings according to the granularity of the value. For example, if the date range picker allows selecting only dates then strings such as "2023-02-03" will be submitted, and if it allows selecting times then strings such as "2023-02-03T08:45:00"
 
 ```python
 from deephaven import ui
 
-my_date_range_picker_forms = ui.date_range_picker(
-    label="Trip dates", start_name="startDate", end_name="endDate"
+my_date_range_picker_forms = ui.form(
+    ui.date_range_picker(
+        label="Trip dates", start_name="startDate", end_name="endDate"
+    ),
+    ui.button("Submit", type="submit"),
+    on_submit=print,
 )
 ```
 
