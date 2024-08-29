@@ -81,6 +81,9 @@ def table(
         context_header_menu: The context menu items to show when a column header is right clicked.
             May contain action items or submenu items.
             May also be a function that receives the column header data and returns the context menu items or None.
+
+    Returns:
+        The rendered Table.
     """
     props = locals()
     del props["table"]
