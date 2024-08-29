@@ -267,3 +267,9 @@ def ui_list_view():
 lv = ui_list_view()
 ```
 
+
+## API reference
+
+```{eval-rst}
+.. dhautofunction:: deephaven.ui.list_view
+```
