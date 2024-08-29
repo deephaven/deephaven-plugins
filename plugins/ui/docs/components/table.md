@@ -197,7 +197,7 @@ t = ui.table(
 
 ## Quick Filters
 
-Quick filters are an easy way to filter the table and show the user what filters are currently applied. These filters are applied by the client, so users may change the filters without affecting other users. Unlike a `where` statement to filter a table on the server, quick filters can be easily changed by the user.
+Quick filters are an easy way to filter the table while also showing the user what filters are currently applied. These filters are applied on the server via request from the client, so users may change the filters without affecting other users. Unlike a `where` statement to filter a table on the server, quick filters can be easily changed by the user.
 
 Quick filters may be preferred if you have multiple servers or workers hosting your data. If, for example, the table is on another Deephaven instance, performing a `where` operation on the table may require copying all of the data from the host server into the server running Deephaven UI. With a quick filter, the filter can instead be applied directly on the server hosting the table.
 
@@ -224,7 +224,7 @@ t = ui.table(
 
 ## Reverse
 
-The table can be displayed in reverse order using the `reverse` prop. The reverse will be performed on the client and indicated to the user via a bar under the column headers. Users can disable the reverse with the column header context menu or via shortcut.
+The table can be displayed in reverse order using the `reverse` prop. Using the reverse prop visually indicates to the user that the table is reversed via a colored bar under the column headers. Users can disable the reverse with the column header context menu or via shortcut. The reverse is applied on the server via request from the client.
 
 ```py
 from deephaven import ui
