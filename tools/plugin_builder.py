@@ -89,9 +89,11 @@ class PluginsChangedHandler(RegexMatchingEventHandler):
         """
         if self.stop_event.is_set():
             # a rerun has already been scheduled on another thread
-            print(f"File {event.src_path} changed, rerun has already been scheduled")
+            print(
+                f"File {event.src_path} {event.event_type}, rerun has already been scheduled"
+            )
             return
-        print(f"File {event.src_path} changed, new rerun scheduled")
+        print(f"File {event.src_path} {event.event_type}, new rerun scheduled")
         threading.Thread(target=self.attempt_rerun).start()
 
     def on_created(self, event: FileSystemEvent) -> None:
