@@ -43,7 +43,7 @@ _item_table_source_with_action_menu = ui.item_table_source(
 
 
 @ui.component
-def ui_components():
+def ui_components1():
     return (
         ui.action_button("Action Button"),
         ui.action_group("Aaa", "Bbb", "Ccc"),
@@ -66,6 +66,12 @@ def ui_components():
         ui.fragment("Fragment"),
         ui.grid("Grid A", "Grid B"),
         ui.heading("Heading"),
+    )
+
+
+@ui.component
+def ui_components2():
+    return (
         ui.icon("vsSymbolMisc"),
         ui.illustrated_message(
             ui.icon("vsWarning"),
@@ -130,20 +136,35 @@ def ui_html_elements():
     ui.html.div("div"),
 
 
-_my_components = ui_components()
+_my_components1 = ui_components1()
+_my_components2 = ui_components2()
 _my_html_elements = ui_html_elements()
 
-ui_render_all = ui.dashboard(
+ui_render_all1 = ui.dashboard(
     ui.stack(
         ui.panel(
             ui.table(_column_types),
             ui.grid(
-                _my_components,
+                _my_components1,
                 _my_html_elements,
                 columns=["1fr", "1fr", "1fr"],
                 width="100%",
             ),
             title="Panel B",
+        ),
+    )
+)
+
+ui_render_all2 = ui.dashboard(
+    ui.stack(
+        ui.panel(
+            ui.table(_column_types),
+            ui.grid(
+                _my_components2,
+                columns=["1fr", "1fr", "1fr"],
+                width="100%",
+            ),
+            title="Panel C",
         ),
     )
 )
