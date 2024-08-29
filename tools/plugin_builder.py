@@ -435,7 +435,9 @@ def handle_args(
     "--docs",
     "-d",
     is_flag=True,
-    help="Generate docs for all plugins that have a make_docs.py.",
+    help="Generate docs for all plugins that have a make_docs.py. "
+    "There must be an installed version of the plugin to generate the docs."
+    "Consider using the --reinstall or --install flags to update the plugin before generating the docs.",
 )
 @click.option(
     "--server",

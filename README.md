@@ -238,8 +238,8 @@ python tools/plugin_builder.py plotly-express ui
 ```
 This targeting works for all commands that target the plugins directly, such as `--docs` or `--install`.
 
-To build docs, pass the `--docs` flag.
-First install the necessary dependencies (if setup with `--configure=full` this is already done)
+To build docs, pass the `--docs` flag.  
+First install the necessary dependencies (if setup with `--configure=full` this is already done)  
 ```shell
 pip install -r sphinx_ext/sphinx-requirements.txt
 ```
@@ -249,13 +249,22 @@ This example builds the docs for the `ui` plugin:
 python tools/plugin_builder.py --docs ui
 ```
 
-To run the server, pass the `--server` flag. 
-First install `deephaven-server` if it is not already installed (if setup with `--configure=full` this is already done):
+It is necessary to install the latest version of the plugin you're building docs for before building the docs themselves.  
+Run with `--install` or `--reinstall` to install the plugin (depending on if you're installing a new version or not) 
+before building the docs.
+```shell
+python tools/plugin_builder.py --docs --install ui
+```
+After the first time install, you can drop the `--install` flag and just run the script with `--docs` unless you have plugin changes.
+
+
+To run the server, pass the `--server` flag.  
+First install `deephaven-server` if it is not already installed (if setup with `--configure=full` this is already done):  
 ```shell
 pip install deephaven-server
 ```
 
-This example reinstalls the `plotly-express` plugin, then starts the server:
+This example reinstalls the `plotly-express` plugin, then starts the server:  
 ```shell
 python tools/plugin_builder.py --reinstall --server plotly-express
 ```
