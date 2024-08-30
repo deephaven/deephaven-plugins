@@ -391,7 +391,7 @@ date_range_picker_months_example = ui.date_range_picker(
 
 ## Page behavior
 
-By default, when pressing the next or previous buttons, pagination will advance by the max_visible_months value. This behavior can be changed to page by single months instead, by setting page_behavior to single.
+By default, when pressing the next or previous buttons, pagination advances by the `max_visible_months` value. This behavior can be changed to page by single months by setting `page_behavior` to single.
 
 ```python
 from deephaven import ui
