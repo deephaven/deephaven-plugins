@@ -158,7 +158,6 @@ ui_render_all1 = ui.dashboard(
 ui_render_all2 = ui.dashboard(
     ui.stack(
         ui.panel(
-            ui.table(_column_types),
             ui.grid(
                 _my_components2,
                 columns=["1fr", "1fr", "1fr"],
