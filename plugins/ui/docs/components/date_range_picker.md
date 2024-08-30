@@ -434,7 +434,7 @@ date_range_picker_hour_cycle_example = ui.date_range_picker(
 
 ## Time table filtering
 
-Date Range Pickers can be used to filter tables with time columns.
+Date range pickers can be used to filter tables with time columns.
 
 ```python
 from deephaven.time import dh_now
