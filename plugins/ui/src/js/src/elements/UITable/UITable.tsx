@@ -5,11 +5,14 @@ import {
   IrisGrid,
   type IrisGridType,
   type IrisGridContextMenuData,
-  IrisGridModel,
-  IrisGridModelFactory,
   IrisGridProps,
   IrisGridUtils,
 } from '@deephaven/iris-grid';
+import {
+  colorValueStyle,
+  resolveCssVariablesInRecord,
+  useTheme,
+} from '@deephaven/components';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import { TableUtils } from '@deephaven/jsapi-utils';
 import type { dh } from '@deephaven/jsapi-types';
@@ -18,8 +21,8 @@ import { getSettings, RootState } from '@deephaven/redux';
 import { GridMouseHandler } from '@deephaven/grid';
 import { UITableProps, wrapContextActions } from './UITableUtils';
 import UITableMouseHandler from './UITableMouseHandler';
-import JsTableProxy from './JsTableProxy';
 import UITableContextMenuHandler from './UITableContextMenuHandler';
+import UITableModel, { makeUiTableModel } from './UITableModel';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
 
@@ -45,10 +48,19 @@ export function UITable({
   density,
   contextMenu,
   contextHeaderMenu,
+  databars: databarsProp,
 }: UITableProps): JSX.Element | null {
+  const [error, setError] = useState<unknown>(null);
+
+  if (error != null) {
+    // Re-throw the error so that the error boundary can catch it
+    throw error;
+  }
+
   const dh = useApi();
+  const theme = useTheme();
   const [irisGrid, setIrisGrid] = useState<IrisGridType | null>(null);
-  const [model, setModel] = useState<IrisGridModel>();
+  const [model, setModel] = useState<UITableModel>();
   const [columns, setColumns] = useState<dh.Table['columns']>();
   const utils = useMemo(() => new IrisGridUtils(dh), [dh]);
   const settings = useSelector(getSettings<RootState>);
@@ -59,6 +71,50 @@ export function UITable({
     hiddenColumns,
     columnGroups,
   });
+  const [databars] = useState(databarsProp ?? []);
+
+  const databarColorMap = useMemo(() => {
+    log.debug('Theme changed, updating databar color map', theme);
+    const colorSet = new Set<string>();
+    databars?.forEach(databar => {
+      const { color, markers } = databar;
+      if (color != null) {
+        if (typeof color === 'string' || Array.isArray(color)) {
+          [color].flat().forEach(c => colorSet.add(c));
+        } else {
+          if (color.positive != null) {
+            [color.positive].flat().forEach(c => colorSet.add(c));
+          }
+
+          if (color.negative != null) {
+            [color.negative].flat().forEach(c => colorSet.add(c));
+          }
+        }
+      }
+
+      markers?.forEach(marker => {
+        if (marker.color != null) {
+          colorSet.add(marker.color);
+        }
+      });
+    });
+
+    const colorRecord: Record<string, string> = {};
+    colorSet.forEach(c => {
+      colorRecord[c] = colorValueStyle(c);
+    });
+
+    const resolvedColors = resolveCssVariablesInRecord(colorRecord);
+    const colorMap = new Map<string, string>();
+    Object.entries(resolvedColors).forEach(([key, value]) => {
+      colorMap.set(key, value);
+    });
+    return colorMap;
+  }, [databars, theme]);
+
+  if (model) {
+    model.setDatabarColorMap(databarColorMap);
+  }
 
   const hydratedSorts = useMemo(() => {
     if (sorts !== undefined && columns !== undefined) {
@@ -95,25 +151,35 @@ export function UITable({
   useEffect(() => {
     let isCancelled = false;
     async function loadModel() {
-      const reexportedTable = await exportedTable.reexport();
-      const table = await reexportedTable.fetch();
-      const newTable = new JsTableProxy({
-        table: table as dh.Table,
-        layoutHints,
-      });
-      const newModel = await IrisGridModelFactory.makeModel(dh, newTable);
-      if (!isCancelled) {
-        setColumns(newTable.columns);
-        setModel(newModel);
-      } else {
-        newModel.close();
+      try {
+        const reexportedTable = await exportedTable.reexport();
+        const table = (await reexportedTable.fetch()) as dh.Table;
+        const newModel = await makeUiTableModel(
+          dh,
+          table,
+          databars,
+          layoutHints
+        );
+        if (!isCancelled) {
+          setError(null);
+          setColumns(newModel.table.columns);
+          setModel(newModel);
+        } else {
+          newModel.close();
+        }
+      } catch (e) {
+        if (!isCancelled) {
+          // Errors thrown from an async useEffect are not caught
+          // by the component's error boundary
+          setError(e);
+        }
       }
     }
     loadModel();
     return () => {
       isCancelled = true;
     };
-  }, [dh, exportedTable, layoutHints]);
+  }, [databars, dh, exportedTable, layoutHints]);
 
   const mouseHandlers = useMemo(
     () =>
