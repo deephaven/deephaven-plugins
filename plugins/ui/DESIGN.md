@@ -1456,7 +1456,7 @@ date_picker8 = ui.date_picker(
 
 A date range picker that can be used to select range of dates.
 
-The range is a dictionary with a `start` date and an `end` date. e.g. `{ "start": "2024-01-02", "end": "2024-01-05" }`
+The range is a dictionary with a `start` date and an `end` date; e.g., `{ "start": "2024-01-02", "end": "2024-01-05" }`
 
 The date range picker accepts the following date types as inputs:  
 `None`, `LocalDate`, `ZoneDateTime`, `Instant`, `int`, `str`, `datetime.datetime`, `numpy.datetime64`, `pandas.Timestamp`
