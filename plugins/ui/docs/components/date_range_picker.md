@@ -378,7 +378,7 @@ my_date_range_picker_width_examples = date_range_picker_width_examples()
 
 ## Maximum visible months
 
-By default, the calendar popover displays a single month. The max_visible_months prop allows displaying up to 3 months at a time, if screen space permits.
+By default, the calendar popover displays a single month. The `max_visible_months` prop allows displaying up to 3 months at a time, if screen space permits.
 
 ```python
 from deephaven import ui
