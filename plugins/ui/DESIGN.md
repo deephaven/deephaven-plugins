@@ -1472,7 +1472,7 @@ The input will be converted to one of three Java date types:
 3. `ZonedDateTime`: A ZonedDateTime represents an unambiguous specific point on the timeline with an associated time zone, such as 2021-04-12T14:13:07 America/New_York.
    This will create a date range picker with a granularity of seconds in the specified time zone. The time zone will be rendered as the specified time zone.
 
-The `start` and `end` inputs are coverted according to the following rules:
+The `start` and `end` inputs are converted according to the following rules:
 
 1. If the input is one of the three Java date types, use that type.
 2. A date string such as "2007-12-03" will parse to a `LocalDate`
