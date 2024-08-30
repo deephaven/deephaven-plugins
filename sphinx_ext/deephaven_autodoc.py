@@ -124,7 +124,10 @@ def extract_list_items(node: docutils.nodes.bullet_list) -> Params:
     return list(map(extract_list_item, node.children))
 
 
-def extract_field_body(node: docutils.nodes.field_body) -> SignatureValue:
+def extract_field_body(
+    node: docutils.nodes.field_body,
+    is_parameter: bool,
+) -> SignatureValue:
     """
     Extract the body of a field node
     If a list, extract the list items
@@ -132,13 +135,18 @@ def extract_field_body(node: docutils.nodes.field_body) -> SignatureValue:
 
     Args:
         node: The node to extract the body from
+        is_parameter: Whether this is a parameter field
 
     Returns:
         The extracted body
     """
     # There should only be one child, a paragraph or a list
     child = node.children[0]
-    if isinstance(child, docutils.nodes.paragraph):
+    is_paragraph = isinstance(child, docutils.nodes.paragraph)
+    if is_paragraph and is_parameter:
+        # this is still a parameter, likely the only one in its signature
+        return [extract_list_item(child)]
+    elif is_paragraph:
         return node.astext().replace("\n", " ")
     elif isinstance(child, docutils.nodes.bullet_list):
         return extract_list_items(child)
@@ -161,7 +169,7 @@ def extract_field(node: docutils.nodes.field) -> dict[str, SignatureValue]:
         if isinstance(node, docutils.nodes.field_name):
             name = node.astext()
         elif isinstance(node, docutils.nodes.field_body):
-            body = extract_field_body(node)
+            body = extract_field_body(node, name == "Parameters")
     if name is None or body is None:
         raise ValueError(f"Could not extract field data from {node}")
     return {name: body}
