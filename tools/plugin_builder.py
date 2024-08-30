@@ -403,10 +403,12 @@ def handle_args(
                 os._exit(process.returncode)
 
         # stop event is set, so kill the process
+        process.terminate()
         try:
             process.wait(timeout=1)
         except subprocess.TimeoutExpired:
             process.kill()
+            process.wait()
 
 
 @click.command(
