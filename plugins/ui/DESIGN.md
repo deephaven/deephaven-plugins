@@ -1513,7 +1513,7 @@ ui.date_range_picker(
 | `max_value`         | `Date \| None`                                             | The maximum allowed date that a user may select.                                                                                                                                                  |     |
 | `granularity`       | `Granularity \| None`                                      | Determines the smallest unit that is displayed in the date picker. By default, this is `"DAY"` for `LocalDate`, and `"SECOND"` otherwise.                                                         |
 | `on_change`         | `Callable[[{ "start": Date, "end": Date }], None] \| None` | Handler that is called when the value changes. The exact `Date` type will be the same as the type passed to `value`, `default_value` or `placeholder_value`, in that order of precedence.         |
-| `**props`           | `Any`                                                      | Any other [DateRangePicker](https://react-spectrum.adobe.com/react-spectrum/DateRangePicker.html) prop, with the exception of `isDateUnavailable`, `validate`, and `errorMessage` (as a callback) |
+| `**props`           | `Any`                                                      | Any other [DateRangePicker](https://react-spectrum.adobe.com/react-spectrum/DateRangePicker.html) prop, except `isDateUnavailable`, `validate`, and `errorMessage` (as a callback). |
 
 ```py
 
