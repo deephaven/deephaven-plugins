@@ -404,7 +404,7 @@ date_range_picker_page_example = ui.date_range_picker(
 
 ## Hide time zone
 
-The time zone can be hidden using the hide_time_zone option.
+The time zone can be hidden using the `hide_time_zone` option.
 
 ```python
 from deephaven import ui
