@@ -1454,7 +1454,7 @@ date_picker8 = ui.date_picker(
 
 ###### ui.date_range_picker
 
-A date range picker that can be used to select range of dates.
+A date range picker can be used to select a range of dates.
 
 The range is a dictionary with a `start` date and an `end` date; e.g., `{ "start": "2024-01-02", "end": "2024-01-05" }`
 
