@@ -1486,7 +1486,7 @@ is determined by the type of the following props in order of precedence:
 2. `default_value`
 3. `placeholder_value`
 
-If none of these are provided, the `on_change` handler will be passed a range of `Instant`.
+If none of these are provided, the `on_change` handler passes a range of `Instant`.
 
 ```py
 import deephaven.ui as ui
