@@ -393,7 +393,7 @@ def handle_args(
 
     if server:
         click.echo("Running deephaven server")
-        process = subprocess.Popen("deephaven server", shell=True)
+        process = subprocess.Popen(["deephaven", "server"])
 
         # waiting on either the process to finish or the stop event to be set
         while not stop_event.wait(1):
