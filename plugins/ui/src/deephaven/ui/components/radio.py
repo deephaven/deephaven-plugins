@@ -16,7 +16,7 @@ from .._internal.utils import create_props
 
 
 def radio(
-    *children,
+    *children: Any,
     value: str | None = None,
     is_disabled: bool | None = None,
     auto_focus: bool | None = None,

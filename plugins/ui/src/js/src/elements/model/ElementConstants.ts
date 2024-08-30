@@ -33,6 +33,7 @@ export const ELEMENT_NAME = {
   content: uiComponentName('Content'),
   contextualHelp: uiComponentName('ContextualHelp'),
   datePicker: uiComponentName('DatePicker'),
+  editor: uiComponentName('Editor'),
   flex: uiComponentName('Flex'),
   form: uiComponentName('Form'),
   fragment: uiComponentName('Fragment'),

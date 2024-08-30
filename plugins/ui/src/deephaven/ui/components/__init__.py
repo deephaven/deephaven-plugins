@@ -13,6 +13,7 @@ from .content import content
 from .contextual_help import contextual_help
 from .dashboard import dashboard
 from .date_picker import date_picker
+from .editor import editor
 from .flex import flex
 from .form import form
 from .fragment import fragment
@@ -67,6 +68,7 @@ __all__ = [
     "contextual_help",
     "dashboard",
     "date_picker",
+    "editor",
     "flex",
     "form",
     "fragment",
