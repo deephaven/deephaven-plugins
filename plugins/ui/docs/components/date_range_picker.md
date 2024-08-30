@@ -421,7 +421,7 @@ my_hide_time_zone_example = ui.date_range_picker(
 
 ## Hour cycle
 
-By default, date range picker displays times in either `12` or `24` hour hour format depending on the user's locale. However, this can be overridden using the hour_cycle prop.
+By default, date range picker displays times in either a `12` or `24` hour format depending on the user's locale. However, this can be overridden using the `hour_cycle` prop.
 
 ```python
 from deephaven import ui
