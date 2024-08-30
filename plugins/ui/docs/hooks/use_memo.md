@@ -1,6 +1,6 @@
 # use_memo
 
-`use_memo` is a hook to memoize a value. This is useful when you have a value that is expensive to compute, and you want to avoid re-computing it on every render. The value is computed once, and then stored in the memoized value. The memoized value is returned on subsequent renders until the dependencies change.
+`use_memo` is a hook to memoize a value. This is useful when you have a value that is expensive to compute and you want to avoid re-computing it on every render. The value is computed once and then stored in the memoized value. The memoized value is returned on subsequent renders until the dependencies change.
 
 ## Example
 
@@ -23,7 +23,7 @@ def ui_todo_list(todos: list[str], filter: str):
 result = ui_todo_list(["Buy milk", "Walk the dog", "Do laundry"], "laundry")
 ```
 
-In the example above, the `filtered_todos` value is computed once, and then stored in the memoized value. The memoized value is returned on subsequent renders until the `todos` or `filter` dependencies change.
+In the example above, the `filtered_todos` value is computed once and then stored in the memoized value. The memoized value is returned on subsequent renders until the `todos` or `filter` dependencies change.
 
 ## Recommendations
 
@@ -80,7 +80,7 @@ def ui_todo_app(todos: list[str]):
 todo_app = ui_todo_app(["Buy milk", "Walk the dog", "Do laundry"])
 ```
 
-We are computing the filtered todos on every render, which is slow. We even call it when `theme` is changed, even though that value is not used in the computation. We can optimize this by using `use_memo` to memoize the filtered todos, and only recompute them when one of the dependent values (`todos` and `search`) is updated:
+We are computing the filtered todos on every render, which is slow. We even call it when `theme` is changed, even though that value is not used in the computation. We can optimize this by using `use_memo` to memoize the filtered todos and only recompute them when one of the dependent values (`todos` and `search`) is updated:
 
 ```python
 from deephaven import ui
@@ -124,11 +124,11 @@ def ui_todo_app(todos: list[str]):
 todo_app = ui_todo_app(["Buy milk", "Walk the dog", "Do laundry"])
 ```
 
-Now switching the theme will always be snappy, and the filtered todos will only be recomputed when the `todos` or `search` dependencies change.
+Now, switching the theme will always be snappy, and the filtered todos will only be recomputed when the `todos` or `search` dependencies change.
 
 ## Memoize each item in a list
 
-`use_memo` is a hook, and like any other hook, can only be called at the top level of a component. Suppose you are listing a number of items, and you want them to be memoized individually. However, you can't use `use_memo` inside a loop:
+`use_memo` is a hook, and like any other hook, can only be called at the top level of a component. Suppose you are listing several items, and you want them to be memoized individually. However, you can't use `use_memo` inside a loop:
 
 ```python
 from deephaven import ui
@@ -171,7 +171,7 @@ def ui_fibonacci_app():
 fibonacci_app = ui_fibonacci_app()
 ```
 
-Instead, extract each item into it's own component, and memoize the value there:
+Instead, extract each item into its own component and memoize the value there:
 
 ```python
 from deephaven import ui
