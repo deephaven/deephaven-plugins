@@ -23,7 +23,7 @@ from .._internal.utils import create_props
 
 
 def radio_group(
-    *children,
+    *children: Any,
     is_emphasized: bool | None = None,
     orientation: Orientation = "vertical",
     value: str | None = None,
@@ -98,7 +98,7 @@ def radio_group(
     compare.
 
     Args:
-        children: The Radio(s) contained within the RadioGroup.
+        *children: The Radio(s) contained within the RadioGroup.
         is_emphasized: By default, radio button are not emphasized (gray). The emphasized version provides visual prominence.
         orientation: The axis the Radio Buttons should align with.
         value: The value of the selected radio button.
@@ -158,14 +158,16 @@ def radio_group(
         z_index: The stack order of the element.
         is_hidden: Whether the element is hidden.
         id: The unique identifier of the element.
-        aria-label: Defines a string value that labels the current element.
-        aria-labelledby: Identifies the element (or elements) that labels the current element.
-        aria-describedby: Identifies the element (or elements) that describes the object.
-        aria-details: Identifies the element (or elements) that provide a detailed, extended description for the object.
+        aria_label: Defines a string value that labels the current element.
+        aria_labelledby: Identifies the element (or elements) that labels the current element.
+        aria_describedby: Identifies the element (or elements) that describes the object.
+        aria_details: Identifies the element (or elements) that provide a detailed, extended description for the object.
         aria_errormessage: Identifies the element that provides an error message for the object.
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
 
+    Returns:
+        The rendered radio group component.
     """
 
     children, props = create_props(locals())

@@ -18,8 +18,22 @@ interface JsTableProxy extends dh.Table {}
  * Any methods implemented in this class will be utilized over the underlying JsTable methods.
  * Any methods not implemented in this class will be proxied to the table.
  */
-class JsTableProxy {
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+class JsTableProxy implements dh.Table {
+  static HIDDEN_COLUMN_SUFFIXES = ['__DATABAR_Min', '__DATABAR_Max'];
+
   private table: dh.Table;
+
+  /**
+   * Keep a stable reference to all, visible, and hidden columns.
+   * Only update when needed.
+   */
+  private stableColumns: {
+    allColumns: dh.Column[];
+    visibleColumns: dh.Column[];
+    hiddenColumns: dh.Column[];
+  };
 
   layoutHints: dh.LayoutHints | null = null;
 
@@ -31,6 +45,12 @@ class JsTableProxy {
     layoutHints: UITableLayoutHints;
   }) {
     this.table = table;
+
+    this.stableColumns = {
+      allColumns: [],
+      visibleColumns: [],
+      hiddenColumns: [],
+    };
 
     const {
       frontColumns = null,
@@ -87,11 +107,93 @@ class JsTableProxy {
           Object.getOwnPropertyDescriptor(Object.getPrototypeOf(target), prop)
             ?.set != null;
 
-        if (proxyHasSetter) {
+        const proxyHasProp = Object.prototype.hasOwnProperty.call(target, prop);
+
+        if (proxyHasSetter || proxyHasProp) {
           return Reflect.set(target, prop, value, target);
         }
 
         return Reflect.set(target.table, prop, value, target.table);
+      },
+    });
+  }
+
+  /**
+   * Update the stable columns object if needed.
+   * This lets us keep a stable array for columns unless the underlying table changes.
+   */
+  private updateDisplayedColumns(): void {
+    if (this.stableColumns.allColumns !== this.table.columns) {
+      this.stableColumns.allColumns = this.table.columns;
+
+      this.stableColumns.visibleColumns = this.table.columns.filter(
+        column =>
+          !JsTableProxy.HIDDEN_COLUMN_SUFFIXES.some(suffix =>
+            column.name.endsWith(suffix)
+          )
+      );
+
+      this.stableColumns.hiddenColumns = this.table.columns.filter(column =>
+        JsTableProxy.HIDDEN_COLUMN_SUFFIXES.some(suffix =>
+          column.name.endsWith(suffix)
+        )
+      );
+    }
+  }
+
+  get columns(): dh.Column[] {
+    this.updateDisplayedColumns();
+    return this.stableColumns.visibleColumns;
+  }
+
+  get hiddenColumns(): dh.Column[] {
+    this.updateDisplayedColumns();
+    return this.stableColumns.hiddenColumns;
+  }
+
+  setViewport(
+    firstRow: number,
+    lastRow: number,
+    columns?: Array<dh.Column> | undefined | null,
+    updateIntervalMs?: number | undefined | null
+  ): dh.TableViewportSubscription {
+    if (columns == null) {
+      return this.table.setViewport(
+        firstRow,
+        lastRow,
+        columns,
+        updateIntervalMs
+      );
+    }
+
+    const allColumns = columns.concat(this.hiddenColumns);
+    const viewportSubscription = this.table.setViewport(
+      firstRow,
+      lastRow,
+      allColumns,
+      updateIntervalMs
+    );
+    return new Proxy(viewportSubscription, {
+      get: (target, prop, receiver) => {
+        // Need to proxy setViewport on the subscription in case it is changed
+        // without creating an entirely new subscription
+        if (prop === 'setViewport') {
+          return (
+            first: number,
+            last: number,
+            cols?: dh.Column[] | null,
+            interval?: number | null
+          ) => {
+            if (cols == null) {
+              return target.setViewport(first, last, cols, interval);
+            }
+
+            const proxyAllColumns = cols.concat(this.hiddenColumns);
+
+            return target.setViewport(first, last, proxyAllColumns, interval);
+          };
+        }
+        return Reflect.get(target, prop, receiver);
       },
     });
   }

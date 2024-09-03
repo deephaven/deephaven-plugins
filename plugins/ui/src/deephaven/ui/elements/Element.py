@@ -28,6 +28,9 @@ class Element(ABC):
         Renders this element, and returns the result as a dictionary of props for the element.
         If you just want to render children, pass back a dict with children only, e.g. { "children": ... }
 
+        Args:
+            context: Deprecated. The context to render the element in. Should already be opened before calling this method.
+
         Returns:
             The props of this element.
         """

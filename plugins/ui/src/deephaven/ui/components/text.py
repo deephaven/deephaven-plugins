@@ -61,7 +61,7 @@ def text(
     Text represents text with no specific semantic meaning.
 
     Args:
-        children: Text content.
+        *children: Text content.
         color: The color of the text.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.

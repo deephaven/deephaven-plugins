@@ -20,7 +20,8 @@ def use_memo(func: Callable[[], T], dependencies: Dependencies) -> T:
     Returns:
         The memoized result of the function call.
     """
-    if not isinstance(dependencies, (list, tuple)):
+    # Add a safety net in case someone passes in an incorrect value, ignoring the type specifications
+    if not isinstance(dependencies, (list, tuple)):  # type: ignore
         raise TypeError(
             f"dependencies must be a list or tuple, got {type(dependencies)}"
         )

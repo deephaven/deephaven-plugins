@@ -767,20 +767,34 @@ my_form = ui_form()
 You can also create a form on which the user can click **Submit** and react to that on a specified callback. In this example, we create a [Form](https://react-spectrum.adobe.com/react-spectrum/forms.html) that takes a name and age, and when the user clicks **Submit**, the values entered in the form are sent to the user on the form's `on_submit` callback.
 
 ```python
-@ui.component
-def ui_form_submit():
-    def handle_submit(data):
-        print(f"Hello {data['name']}, you are {data['age']} years old")
+from deephaven import ui
+import deephaven.plot.express as dx
 
-    return ui.form(
-        ui.text_field(default_value="Douglas", name="name"),
-        ui.number_field(default_value=42, name="age"),
+
+stocks = dx.data.stocks()
+
+
+@ui.component
+def illustrated_message_placeholder_example():
+    input, set_input = ui.use_state("")
+    filter, set_filter = ui.use_state("")
+
+    def handle_submit(data):
+        set_filter(input)
+
+    my_form_submit = ui.form(
+        ui.text_field(value=input, on_change=set_input, default_value=""),
         ui.button("Submit", type="submit"),
         on_submit=handle_submit,
     )
+    return [
+        (ui.illustrated_message("Please enter a filter"), my_form_submit)
+        if filter == ""
+        else stocks.where(f"Sym=`{filter}`")
+    ]
 
 
-my_form_submit = ui_form_submit()
+my_illustrated_message_placeholder_example = illustrated_message_placeholder_example()
 ```
 
 ![Submitting a form and printing out the data.](_assets/form_submit.png)
@@ -1406,10 +1420,10 @@ t = ui.table(
                 {
                     "title": "Nested item 1",
                     "action": lambda d: print("Nested item 1", d)
-                }
+                },
                 {
                     "title": "Nested item 2",
-                    "icon": "vsCheck"
+                    "icon": "vsCheck",
                     "action": lambda d: print("Nested item 2", d)
                 }
             ]

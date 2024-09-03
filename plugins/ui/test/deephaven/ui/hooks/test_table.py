@@ -1,50 +1,13 @@
-import threading
-import unittest
+from __future__ import annotations
 from operator import itemgetter
+import threading
 from queue import Queue
-from time import sleep
-from typing import Callable
-from unittest.mock import Mock
-from .BaseTest import BaseTestCase
+from typing import Any, Callable, Union
+from ..BaseTest import BaseTestCase
+from .render_utils import render_hook
 
 LISTENER_TIMEOUT = 2.0
 QUEUE_TIMEOUT = 1.0
-
-
-def render_hook(fn: Callable, queue=None):
-    """
-    Render a hook function and return the context, result, and a rerender function for updating it
-
-    Args:
-      fn: Callable:
-        The function to render. Pass in a function with a hook call within it.
-        Re-render will call the same function but with the new args passed in.
-      queue: Queue:
-        The queue to put items on. If not provided, a new queue will be created.
-    """
-    from deephaven.ui._internal.RenderContext import RenderContext
-
-    if queue is None:
-        queue = Queue()
-
-    context = RenderContext(lambda x: queue.put(x), lambda x: queue.put(x))
-
-    return_dict = {"context": context, "result": None, "rerender": None}
-
-    def _rerender(*args, **kwargs):
-        while not queue.empty():
-            item = queue.get()
-            item()
-        with context.open():
-            new_result = fn(*args, **kwargs)
-            return_dict["result"] = new_result
-        return new_result
-
-    return_dict["rerender"] = _rerender
-
-    _rerender()
-
-    return return_dict
 
 
 class NotifyQueue(Queue):
@@ -56,7 +19,9 @@ class NotifyQueue(Queue):
         super().__init__()
         self._notify_fn = None
 
-    def put(self, item: object, block: bool = True, timeout: float = None) -> None:
+    def put(
+        self, item: object, block: bool = True, timeout: Union[float, None] = None
+    ) -> None:
         """
         Put an item on the queue and notify the function
 
@@ -88,110 +53,7 @@ class NotifyQueue(Queue):
         self._notify_fn = None
 
 
-class HooksTest(BaseTestCase):
-    def test_state(self):
-        from deephaven.ui.hooks import use_state
-
-        def _test_state(value1=1, value2=2):
-            value1, set_value1 = use_state(value1)
-            value2, set_value2 = use_state(value2)
-            return value1, set_value1, value2, set_value2
-
-        # Initial render
-        render_result = render_hook(_test_state)
-
-        result, rerender = itemgetter("result", "rerender")(render_result)
-        val1, set_val1, val2, set_val2 = result
-
-        self.assertEqual(val1, 1)
-        self.assertEqual(val2, 2)
-
-        # Rerender with new values, but should retain existing state
-        rerender(value1=3, value2=4)
-        result = itemgetter("result")(render_result)
-        val1, set_val1, val2, set_val2 = result
-        self.assertEqual(val1, 1)
-        self.assertEqual(val2, 2)
-
-        # Set to a new value
-        set_val1(3)
-        rerender()
-        result = itemgetter("result")(render_result)
-        val1, set_val1, val2, set_val2 = result
-        self.assertEqual(val1, 3)
-        self.assertEqual(val2, 2)
-
-        # Set other state to a new value
-        set_val2(4)
-        rerender()
-        result = itemgetter("result")(render_result)
-        val1, set_val1, val2, set_val2 = result
-        self.assertEqual(val1, 3)
-        self.assertEqual(val2, 4)
-
-    def test_ref(self):
-        from deephaven.ui.hooks import use_ref
-
-        def _test_ref(value=None):
-            ref = use_ref(value)
-            return ref
-
-        # Initial render doesn't set anything
-        render_result = render_hook(_test_ref)
-        result, rerender = itemgetter("result", "rerender")(render_result)
-        self.assertEqual(result.current, None)
-
-        # Doesn't update the value on second call to use_ref
-        result = rerender(1)
-        self.assertEqual(result.current, None)
-
-        # Set the current value, and it should be returned
-        result.current = 2
-        result = rerender(3)
-        self.assertEqual(result.current, 2)
-
-    def test_memo(self):
-        from deephaven.ui.hooks import use_memo
-
-        def _test_memo(fn=lambda: "foo", a=1, b=2):
-            return use_memo(fn, [a, b])
-
-        # Initial render
-        render_result = render_hook(_test_memo)
-        result, rerender = itemgetter("result", "rerender")(render_result)
-        self.assertEqual(result, "foo")
-
-        # Rerender with new function but same deps
-        # Should not re-run the function
-        mock = Mock(return_value="bar")
-        result = rerender(mock)
-        self.assertEqual(result, "foo")
-        self.assertEqual(mock.call_count, 0)
-
-        # Rerender with new deps
-        # Should re-run the function
-        result = rerender(mock, 3, 4)
-        self.assertEqual(result, "bar")
-        self.assertEqual(mock.call_count, 1)
-
-        # Rerender with the same new deps
-        # Should not re-run the function
-        result = rerender(mock, 3, 4)
-        self.assertEqual(result, "bar")
-        self.assertEqual(mock.call_count, 1)
-
-        # Rerender with new deps and new function
-        mock = Mock(return_value="biz")
-        result = rerender(mock, b=4)
-        self.assertEqual(result, "biz")
-        self.assertEqual(mock.call_count, 1)
-
-        def _test_memo_set(fn=lambda: "foo"):
-            return use_memo(fn, {})
-
-        # passing in a non-list/tuple for dependencies should raise a TypeError
-        self.assertRaises(TypeError, render_hook, _test_memo_set)
-
+class UseTableTestCase(BaseTestCase):
     def verify_table_updated(self, table_writer, table, update):
         from deephaven.ui.hooks import use_table_listener
         from deephaven.table_listener import TableUpdate
@@ -231,8 +93,7 @@ class HooksTest(BaseTestCase):
             assert False, "listener was not called"
 
     def test_table_listener(self):
-        from deephaven import DynamicTableWriter, new_table
-        from deephaven.column import int_col
+        from deephaven import DynamicTableWriter
         import deephaven.dtypes as dht
 
         column_definitions = {"Numbers": dht.int32, "Words": dht.string}
@@ -241,14 +102,6 @@ class HooksTest(BaseTestCase):
         table = table_writer.table
 
         self.verify_table_updated(table_writer, table, (1, "Testing"))
-
-        static_table = new_table(
-            [
-                int_col("Numbers", [1]),
-            ]
-        )
-
-        self.verify_table_replayed(static_table)
 
     def test_table_data(self):
         from deephaven.ui.hooks import use_table_data
@@ -378,7 +231,7 @@ class HooksTest(BaseTestCase):
 
         queue = NotifyQueue()
 
-        render_result = render_hook(_test_table_data, queue)
+        render_result = render_hook(_test_table_data, queue=queue)
 
         result, rerender = itemgetter("result", "rerender")(render_result)
 
@@ -763,177 +616,3 @@ class HooksTest(BaseTestCase):
         result, rerender = itemgetter("result", "rerender")(render_result)
 
         self.assertEqual(result, None)
-
-    def test_execution_context(self):
-        from deephaven.ui.hooks import use_execution_context, use_state, use_memo
-        from deephaven import empty_table
-
-        def _test_execution_context():
-            with_exec_ctx = use_execution_context()
-
-            def table_func():
-                # This would fail if not using an execution context
-                empty_table(0).update("X=1")
-
-            def thread_func():
-                with_exec_ctx(table_func)
-
-            def start_thread():
-                thread = threading.Thread(target=thread_func)
-                thread.start()
-                thread.join()
-
-            use_memo(start_thread, [])
-
-        render_hook(_test_execution_context)
-
-    def test_execution_context_custom(self):
-        from deephaven.ui.hooks import use_execution_context, use_memo
-        from deephaven import empty_table
-        from deephaven.execution_context import make_user_exec_ctx
-
-        def _test_execution_context():
-            with_exec_ctx = use_execution_context(make_user_exec_ctx())
-
-            def table_func():
-                # This would fail if not using an execution context
-                empty_table(0).update("X=1")
-
-            def thread_func():
-                with_exec_ctx(table_func)
-
-            def start_thread():
-                thread = threading.Thread(target=thread_func)
-                thread.start()
-
-            use_memo(start_thread, [])
-
-        render_hook(_test_execution_context)
-
-    def test_liveness_use_state_interactions(self):
-        from deephaven.ui.hooks import use_state, use_liveness_scope
-        from deephaven import new_table, dtypes as dht
-        from deephaven.table import Table
-        from deephaven.column import int_col
-        from deephaven.stream import blink_to_append_only
-        from deephaven.stream.table_publisher import table_publisher
-        from deephaven.update_graph import exclusive_lock
-        from deephaven.liveness_scope import liveness_scope
-
-        # create a table publisher to mutate data outside the component
-        cols = {"X": dht.int32}
-        table, publisher = table_publisher(name="test table", col_defs=cols)
-        table = blink_to_append_only(table).update("Timestamp=now()")
-
-        # tracking for use_state setters to mutate component state, to let us lock and confirm
-        replace_a: Callable = lambda: None
-        a: Table = None
-
-        def _test_reused_tables():
-            """
-            Doesn't re-render size
-            """
-            nonlocal a, replace_a
-            a, set_a = use_state(lambda: table.where("X=1"))
-
-            # When "a" changes, recompute table - don't return or otherwise track this table w.r.t. liveness
-            replace_a = use_liveness_scope(lambda: set_a(table.where("X=2")), [])
-
-            return a.size
-
-        # initial render, verify value is zero
-        rendered = render_hook(_test_reused_tables)
-        self.assertEqual(0, rendered["result"])
-
-        # render again, so that we drop the old liveness scope
-        result = rendered["rerender"]()
-        self.assertEqual(0, result)
-
-        # append a row while we have the same table
-        publisher.add(new_table(cols=[int_col("X", [1])]))
-        # wait for the row to appear
-        with exclusive_lock(a):
-            table.await_update(2_000)
-
-        # assert count correctly increased
-        result = rendered["rerender"]()
-        self.assertEqual(1, result)
-
-        # replace the table with a new instance that must now be retained instead, back to zero
-        with liveness_scope():
-            replace_a()
-        result = rendered["rerender"]()
-        self.assertEqual(0, result)
-
-        # add a row to that new table, ensure we see it
-        publisher.add(new_table(cols=[int_col("X", [2])]))
-        # wait for the row to appear
-        with exclusive_lock(a):
-            table.await_update(2_000)
-
-        # assert count correctly increased
-        result = rendered["rerender"]()
-        self.assertEqual(1, result)
-
-    def test_liveness_use_memo_interactions(self):
-        from deephaven.ui.hooks import use_memo, use_state
-        from deephaven import new_table, dtypes as dht
-        from deephaven.column import int_col
-        from deephaven.stream.table_publisher import table_publisher
-        from deephaven.update_graph import exclusive_lock
-        from deephaven.time import dh_now
-        from deephaven.liveness_scope import liveness_scope
-
-        # create a table publisher to mutate data outside the component
-        cols = {"X": dht.int32}
-        table, publisher = table_publisher(name="test table", col_defs=cols)
-        table = table.update("Timestamp=now()").with_attributes({"BlinkTable": True})
-
-        # tracking for use_state setters to mutate component state, to let us lock and confirm
-        set_a: Callable = lambda v: None
-        local_rows = None
-
-        def _test_reused_tables():
-            """
-            Doesn't re-render size
-            """
-            nonlocal set_a
-            a, set_a = use_state(0)
-            # When "a" changes, recompute table - don't return or otherwise track this table w.r.t. liveness
-            nonlocal local_rows
-
-            def helper():
-                now = dh_now()
-                return table.where("Timestamp > now").last_by(by=["X"])
-
-            local_rows = use_memo(helper, [a])
-
-            return local_rows.size
-
-        # initial render, verify value is zero
-        rendered = render_hook(_test_reused_tables)
-        self.assertEqual(0, rendered["result"])
-
-        # render again, so that we drop the old liveness scope
-        result = rendered["rerender"]()
-        self.assertEqual(0, result)
-
-        # append a row, "a" stayed the same
-        publisher.add(new_table(cols=[int_col("X", [1])]))
-        # wait for the row to appear
-        with exclusive_lock(local_rows):
-            table.await_update(2_000)
-
-        # assert count correctly increased
-        result = rendered["rerender"]()
-        self.assertEqual(1, result)
-
-        # poke "a", verify the memoized table was replaced, no more rows
-        with liveness_scope():
-            set_a(1)
-        result = rendered["rerender"]()
-        self.assertEqual(0, result)
-
-
-if __name__ == "__main__":
-    unittest.main()
