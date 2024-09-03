@@ -208,7 +208,7 @@ memo_table_app = ui_memo_table_app()
 
 ## Memoize each item in a list
 
-`use_memo` is a hook, and like any other hook, can only be called at the top level of a component. Suppose you are listing several items, and you want them to be memoized individually. However, you can't use `use_memo` inside a loop:
+`use_memo` is a hook, and like any other hook, can only be called at the top level of a component. Suppose you are listing several items, and you want them to be memoized individually. However, you can't use `use_memo` , as an error is thrown if the count of hooks changes between renders:
 
 ```python
 from deephaven import ui
