@@ -54,8 +54,7 @@ def is_enterprise_environment() -> bool:
 
 
 def _create_from_npm_package_json(
-    path_provider: Callable[[], ContextManager[pathlib.Path]],
-    plugin_class: Type[CommonJsPlugin],
+    path_provider: Callable[[], ContextManager[pathlib.Path]]
 ) -> JsPlugin:
     """
     Create a JsPlugin from an npm package.json file.
@@ -74,7 +73,7 @@ def _create_from_npm_package_json(
         )
     with (js_path / "package.json").open("rb") as f:
         package_json = json.load(f)
-    return plugin_class(
+    return CommonJsPlugin(
         package_json["name"],
         package_json["version"],
         package_json["main"],
@@ -138,4 +137,4 @@ def create_js_plugin(
         The created JsPlugin
     """
     js_path = _resource_js_path_provider(package_namespace, js_name)
-    return _create_from_npm_package_json(js_path, plugin_class)
+    return _create_from_npm_package_json(js_path)
