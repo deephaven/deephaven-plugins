@@ -54,6 +54,24 @@ type ResolvableUIContextItem =
       params: UIContextItemParams
     ) => Promise<UIContextItem | UIContextItem[] | null>);
 
+export type ColorGradient = string[];
+
+export type DatabarConfig = {
+  column: ColumnName;
+  value_column?: ColumnName;
+  min?: number | ColumnName;
+  max?: number | ColumnName;
+  axis?: 'proportional' | 'middle' | 'directional';
+  direction?: 'LTR' | 'RTL';
+  value_placement?: 'beside' | 'overlap' | 'hide';
+  color?:
+    | string
+    | ColorGradient
+    | { positive?: string | ColorGradient; negative?: string | ColorGradient };
+  opacity?: number;
+  markers?: { value: number | string; color?: string }[];
+};
+
 export type UITableProps = {
   table: dh.WidgetExportedObject;
   onCellPress?: (data: CellData) => void;
@@ -76,6 +94,7 @@ export type UITableProps = {
   density?: 'compact' | 'regular' | 'spacious';
   contextMenu?: ResolvableUIContextItem | ResolvableUIContextItem[];
   contextHeaderMenu?: ResolvableUIContextItem | ResolvableUIContextItem[];
+  databars?: DatabarConfig[];
 };
 
 export type UITableNode = Required<

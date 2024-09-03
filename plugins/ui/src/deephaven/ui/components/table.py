@@ -8,6 +8,7 @@ from ..types import (
     ColumnGroup,
     ColumnName,
     ColumnPressCallback,
+    DatabarConfig,
     QuickFilterExpression,
     RowPressCallback,
     ResolvableContextMenuItem,
@@ -39,6 +40,7 @@ def table(
     context_header_menu: (
         ResolvableContextMenuItem | list[ResolvableContextMenuItem] | None
     ) = None,
+    databars: list[DatabarConfig] | None = None,
 ) -> UITable:
     """
     Customization to how a table is displayed, how it behaves, and listen to UI events.
