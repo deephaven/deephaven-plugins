@@ -7,13 +7,6 @@ def camel_to_snake(name: str) -> str:
     return re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
 
 
-def update_dict(
-    dictionary: Dict[str, str], key: str, value: str, overwrite_condition: bool
-) -> None:
-    if overwrite_condition or not key in dictionary:
-        dictionary[key] = value
-
-
 relative_path = "./src/js/node_modules/@deephaven/icons/dist/index.d.ts"
 icon_pattern = r"^export const (\w+): IconDefinition;$"
 
@@ -33,10 +26,12 @@ with open(relative_path, "r") as file:
 
                 isVsIcon = icon.startswith("vs")
                 noPrefixIcon = icon[2:]
-                update_dict(noPrefix, noPrefixIcon, icon, isVsIcon)
-
                 snakeCaseNoPrefixIcon = camel_to_snake(noPrefixIcon)
-                update_dict(snakeCaseNoPrefix, snakeCaseNoPrefixIcon, icon, isVsIcon)
+
+                ## DH Icons are always prefixed with "dh"
+                if isVsIcon:
+                    noPrefix[noPrefixIcon] = icon
+                    snakeCaseNoPrefix[camel_to_snake(noPrefixIcon)] = icon
 
 output_file_path = "./src/deephaven/ui/components/types/icon_types.py"
 
