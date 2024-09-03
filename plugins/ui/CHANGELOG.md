@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.21.0 - 2024-09-03
+#### Bug Fixes
+- Remove server startup from python tests (#768) - (c6c2dd2) - Joe
+#### Documentation
+- fix unclosed html tag in markdown (#791) - (fb7bd78) - Don
+- Add missing components to sidebar (#782) - (ae34f96) - mofojed
+- action button (#702) - (39d5c39) - ethanalvizo
+- image (#703) - (bc84ecb) - ethanalvizo
+#### Features
+- Allow validation_errors to be passed into ui.form (#789) - (371a825) - mofojed
+- UI Table databars (#736) - (ada20a3) - Matthew Runyon
+
+- - -
+
 ## ui-v0.20.0 - 2024-08-23
 #### Bug Fixes
 - use_effect behaviour (#734) - (c091dac) - mofojed
