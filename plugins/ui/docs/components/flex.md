@@ -24,10 +24,10 @@ my_flex = flex()
 The `direction` prop determines the direction in which the flex items are laid out.
 
 Options:
-- `row` (default): the flex items are arranged horizontally from left to right
-- `column`: the flex items are arranged vertically from top to bottom
-- `row-reverse`: the flex items are arranged horizontally from right to left
-- `column-reverse`: the flex items are arranged vertically from bottom to top
+- `row` (default): the flex items are arranged horizontally from left to right.
+- `column`: the flex items are arranged vertically from top to bottom.
+- `row-reverse`: the flex items are arranged horizontally from right to left.
+- `column-reverse`: the flex items are arranged vertically from bottom to top.
 
 ```python
 from deephaven import ui
@@ -67,7 +67,7 @@ my_flex = flex()
 
 ## Nesting
 
-Flexboxes can be nested to create more complicated layouts. By using the `flex` prop on the children, it can expand to fill the remaining space.
+Flexboxes can be nested to create more complicated layouts. By using the `flex` prop on the children, the flexbox can expand to fill the remaining space.
 
 ```python
 from deephaven import ui
@@ -119,7 +119,7 @@ my_flex = flex()
 
 ## Alignment
 
-The `alignItems` prop can be utilized to align items along the cross axis. When the direction is set to "column", it controls horizontal alignment, and when the direction is set to "row", it controls vertical alignment.
+The `alignItems` prop can align items along the cross-axis. When the direction is set to "column", it controls horizontal alignment, and when it is set to "row", it controls vertical alignment.
 
 Options:
 - `stretch` (default): the flex items are stretched to fill the container along the cross axis
