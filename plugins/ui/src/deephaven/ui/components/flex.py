@@ -39,6 +39,9 @@ def flex(
         gap: The space to display between both rows and columns of children.
         column_gap: The space to display between columns of children.
         row_gap: The space to display between rows of children.
+
+    Returns:
+        The rendered flex box.
     """
     return component_element(
         "Flex",
