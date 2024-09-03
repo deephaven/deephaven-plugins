@@ -22,8 +22,56 @@
         "label": "Components",
         "items": [
           {
+            "label": "Action Button",
+            "path": "components/action_button.md"
+          },
+          {
             "label": "Button",
             "path": "components/button.md"
+          },
+          {
+            "label": "Checkbox",
+            "path": "components/checkbox.md"
+          },
+          {
+            "label": "Combo Box",
+            "path": "components/combo_box.md"
+          },
+          {
+            "label": "Date Picker",
+            "path": "components/date_picker.md"
+          },
+          {
+            "label": "Illustrated Message",
+            "path": "components/illustrated_message.md"
+          },
+          {
+            "label": "Image",
+            "path": "components/image.md"
+          },
+          {
+            "label": "Picker",
+            "path": "components/picker.md"
+          },
+          {
+            "label": "Radio Group",
+            "path": "components/radio_group.md"
+          },
+          {
+            "label": "Range Slider",
+            "path": "components/range_slider.md"
+          },
+          {
+            "label": "Slider",
+            "path": "components/slider.md"
+          },
+          {
+            "label": "Text Area",
+            "path": "components/text_area.md"
+          },
+          {
+            "label": "View",
+            "path": "components/view.md"
           }
         ]
       },
