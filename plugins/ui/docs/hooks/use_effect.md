@@ -1,6 +1,10 @@
 # use_effect
 
-`use_effect` is a hook that allows you to perform side effects in your components and to interact with an external system. It is similar to [`useEffect` in React](https://react.dev/reference/react/useEffect).
+`use_effect` is a hook that lets you synchronize a component with an external system. It is similar to [`useEffect` in React](https://react.dev/reference/react/useEffect). An effect has 3 key parts:
+
+1. **Effect function**: The function that runs when the component is mounted, and when the dependencies change.
+2. **Dependency list**: A list of reactive values that the effect depends on. The effect will run when the component is mounted, and when any of the dependencies change. If a dependencies list is not provided, the effect will run after every render.
+3. **Cleanup function**: A function to cleanup the previous effect before the next effect function runs, or when the component is closed (unmounted). The cleanup function is optionally returned from the effect function.
 
 ## Example
 
@@ -16,6 +20,7 @@ def ui_effect_example():
         # prints "Unmounted" when component is closed
         return lambda: print("Unmounted")
 
+    # Passing in an empty list for dependencies will run the effect only once when the component is mounted, and cleanup when the component is unmounted
     ui.use_effect(handle_mount, [])
 
     return ui.text("Effect Example")
