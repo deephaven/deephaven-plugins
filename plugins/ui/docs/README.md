@@ -889,7 +889,7 @@ def ui_range_table(source, column):
 my_range_table = ui_range_table(stocks, "Size")
 ```
 
-![Table with a slider for selecting the range.](range_table.png)
+![Table with a slider for selecting the range.](./_assets/range_table.png)
 
 ## Table with required filters
 
@@ -1388,7 +1388,7 @@ te = ui.table(
 )
 ```
 
-![Table events](table_events.png)
+![Table events](./_assets/table_events.png)
 
 ### ui.table Context Menu
 

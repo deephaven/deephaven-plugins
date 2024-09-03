@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Any
 from .basic import component_element
+from ..elements import Element
 from .types import (
     LayoutFlex,
     Direction,
@@ -23,10 +24,10 @@ def flex(
     gap: DimensionValue | None = "size-100",
     column_gap: DimensionValue | None = None,
     row_gap: DimensionValue | None = None,
-    **props: Any,
-):
+) -> Element:
     """
     Base Flex component for laying out children in a flexbox.
+
     Args:
         *children: Elements to render in the flexbox.
         flex: The flex property of the flexbox.
@@ -38,7 +39,7 @@ def flex(
         gap: The space to display between both rows and columns of children.
         column_gap: The space to display between columns of children.
         row_gap: The space to display between rows of children.
-        **props: Additional properties to pass to the flex box.
+
 
     Returns:
         The rendered flex box.
@@ -55,5 +56,4 @@ def flex(
         gap=gap,
         column_gap=column_gap,
         row_gap=row_gap,
-        **props,
     )
