@@ -131,6 +131,7 @@ my_switch_is_read_only_example = ui.switch(
 )
 ```
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.switch
 ```
