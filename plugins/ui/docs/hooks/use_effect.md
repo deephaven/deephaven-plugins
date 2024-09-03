@@ -11,7 +11,9 @@ from deephaven import ui
 @ui.component
 def ui_effect_example():
     def handle_mount():
+        # prints "Mounted" once when component is first rendered
         print("Mounted")
+        # prints "Unmounted" when component is closed
         return lambda: print("Unmounted")
 
     ui.use_effect(handle_mount, [])
@@ -26,7 +28,7 @@ effect_example = ui_effect_example()
 
 Recommendations for creating effects:
 
-1. Use effects to interact with an external system, such as connecting to a server.
+1. Use effects to interact with an external system, such as connecting to an external server.
 2. Return a cleanup function from effects to cleanup any resources, such as disconnecting from a server.
 3. Put long-running effects on another thread to avoid blocking the render thread.
 4. Specify a dependency list to ensure the effect only runs when the dependencies change.
