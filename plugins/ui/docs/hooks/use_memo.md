@@ -15,12 +15,12 @@ def ui_todo_list(todos: list[str], filter: str):
     )
 
     return [
-        ui.text(f"Showing {len(filtered_todos)} todos"),
+        ui.text(f"Showing {len(filtered_todos)} of {len(todos)} todos"),
         *[ui.checkbox(todo) for todo in filtered_todos],
     ]
 
 
-result = ui_todo_list(["Buy milk", "Walk the dog", "Do laundry"], "laundry")
+result = ui_todo_list(["Do grocery shopping", "Walk the dog", "Do laundry"], "Do")
 ```
 
 In the example above, the `filtered_todos` value is computed once and then stored in the memoized value. The memoized value is returned on subsequent renders until the `todos` or `filter` dependencies change.
@@ -41,7 +41,8 @@ In the example below, we have a list of todos, a filter string, and a "theme" th
 from deephaven import ui
 
 
-theme_options = ["accent", "positive", "negative"]
+# theme colors
+theme_options = ["accent-200", "red-200", "green-200"]
 
 
 @ui.component
@@ -49,8 +50,8 @@ def ui_todo_list(todos: list[str], search: str, theme: str):
     def filter_todos():
         import time
 
-        # Simulate delay based on filter length
-        time.sleep(min(len(search) + 1, 3))
+        # Simulate delay
+        time.sleep(2)
         return [todo for todo in todos if search in todo]
 
     filtered_todos = filter_todos()
@@ -61,6 +62,7 @@ def ui_todo_list(todos: list[str], search: str, theme: str):
             *[ui.checkbox(todo) for todo in filtered_todos],
             direction="column",
         ),
+        padding="size-200",
         background_color=theme,
     )
 
@@ -71,8 +73,8 @@ def ui_todo_app(todos: list[str]):
     theme, set_theme = ui.use_state(theme_options[0])
 
     return [
-        ui.text_field(value=search, on_change=set_search),
-        ui.picker(*theme_options, selected_key=theme, on_change=set_theme),
+        ui.text_field(value=search, label="Search", on_change=set_search),
+        ui.picker(*theme_options, label="Theme", selected_key=theme, on_change=set_theme),
         ui_todo_list(todos, search, theme),
     ]
 
