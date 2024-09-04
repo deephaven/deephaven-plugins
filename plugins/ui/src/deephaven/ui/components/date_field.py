@@ -64,7 +64,7 @@ def _convert_date_field_props(
     convert_date_props(
         props,
         _SIMPLE_DATE_PROPS,
-        # _RANGE_DATE_PROPS, TODO uncomment for merge
+        _RANGE_DATE_PROPS,
         _CALLABLE_DATE_PROPS,
         _DATE_PROPS_PRIORITY,
         _GRANULARITY_KEY,

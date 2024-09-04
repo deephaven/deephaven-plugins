@@ -32,6 +32,7 @@ export const ELEMENT_NAME = {
   comboBox: uiComponentName('ComboBox'),
   content: uiComponentName('Content'),
   contextualHelp: uiComponentName('ContextualHelp'),
+  dateField: uiComponentName('DateField'),
   datePicker: uiComponentName('DatePicker'),
   dateRangePicker: uiComponentName('DateRangePicker'),
   flex: uiComponentName('Flex'),
