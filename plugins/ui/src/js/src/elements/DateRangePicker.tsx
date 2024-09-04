@@ -1,38 +1,39 @@
 import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import {
-  DatePicker as DHCDatePicker,
-  DatePickerProps as DHCDatePickerProps,
+  DateRangePicker as DHCDateRangePicker,
+  DateRangePickerProps as DHCDateRangePickerProps,
 } from '@deephaven/components';
 import { usePrevious } from '@deephaven/react-hooks';
 import { getSettings, RootState } from '@deephaven/redux';
 import { DateValue, toTimeZone, ZonedDateTime } from '@internationalized/date';
 import useDebouncedOnChange from './hooks/useDebouncedOnChange';
 import {
-  SerializedDatePickerProps,
-  useDatePickerProps,
-} from './hooks/useDatePickerProps';
+  RangeValue,
+  SerializedDateRangePickerProps,
+  useDateRangePickerProps,
+} from './hooks/useDateRangePickerProps';
 import { isStringInstant } from './utils/DateTimeUtils';
 
 const EMPTY_FUNCTION = () => undefined;
 
-function isDatePickerInstant(
-  props: SerializedDatePickerProps<DHCDatePickerProps<DateValue>>
+function isDateRangePickerInstant(
+  props: SerializedDateRangePickerProps<DHCDateRangePickerProps<DateValue>>
 ): boolean {
   const { value, defaultValue, placeholderValue } = props;
   if (value != null) {
-    return isStringInstant(value);
+    return isStringInstant(value.start);
   }
   if (defaultValue != null) {
-    return isStringInstant(defaultValue);
+    return isStringInstant(defaultValue.start);
   }
   return isStringInstant(placeholderValue);
 }
 
-export function DatePicker(
-  props: SerializedDatePickerProps<DHCDatePickerProps<DateValue>>
+export function DateRangePicker(
+  props: SerializedDateRangePickerProps<DHCDateRangePickerProps<DateValue>>
 ): JSX.Element {
-  const isDatePickerInstantValue = isDatePickerInstant(props);
+  const isDateRangePickerInstantValue = isDateRangePickerInstant(props);
   const settings = useSelector(getSettings<RootState>);
   const { timeZone } = settings;
 
@@ -41,34 +42,39 @@ export function DatePicker(
     value: propValue,
     onChange: propOnChange = EMPTY_FUNCTION,
     ...otherProps
-  } = useDatePickerProps(props, timeZone);
+  } = useDateRangePickerProps(props, timeZone);
 
-  const [value, onChange] = useDebouncedOnChange<DateValue | null>(
+  const [value, onChange] = useDebouncedOnChange<RangeValue<DateValue> | null>(
     propValue ?? defaultValue,
     propOnChange
   );
 
   // When the time zone changes, the serialized prop value will change, so we need to update the value state
   const prevTimeZone = usePrevious(timeZone);
+  // The timezone is intially undefined, so we don't want to trigger a change in that case
   useEffect(() => {
     // The timezone is intially undefined, so we don't want to trigger a change in that case
     if (
-      isDatePickerInstantValue &&
+      isDateRangePickerInstantValue &&
       prevTimeZone !== undefined &&
       timeZone !== prevTimeZone &&
-      value instanceof ZonedDateTime
+      value != null &&
+      value.start instanceof ZonedDateTime &&
+      value.end instanceof ZonedDateTime
     ) {
-      const newValue = toTimeZone(value, timeZone);
+      const newStart = toTimeZone(value.start, timeZone);
+      const newEnd = toTimeZone(value.end, timeZone);
+      const newValue = { start: newStart, end: newEnd };
       onChange(newValue);
     }
-  }, [isDatePickerInstantValue, value, onChange, timeZone, prevTimeZone]);
+  }, [isDateRangePickerInstantValue, value, onChange, timeZone, prevTimeZone]);
 
   return (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <DHCDatePicker value={value} onChange={onChange} {...otherProps} />
+    <DHCDateRangePicker value={value} onChange={onChange} {...otherProps} />
   );
 }
 
-DatePicker.displayName = 'DatePicker';
+DateRangePicker.displayName = 'DateRangePicker';
 
-export default DatePicker;
+export default DateRangePicker;

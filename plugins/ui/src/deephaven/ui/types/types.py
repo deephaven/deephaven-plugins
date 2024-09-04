@@ -507,6 +507,23 @@ TabDensity = Literal["compact", "regular"]
 Dependencies = Union[Tuple[Any], List[Any]]
 Selection = Sequence[Key]
 
+
+class DateRange(TypedDict):
+    """
+    Range of date values for a date range picker.
+    """
+
+    start: Date
+    """
+    Start value for the date range.
+    """
+
+    end: Date
+    """
+    End value for the date range.
+    """
+
+
 DataBarAxis = Literal["PROPORTIONAL", "MIDDLE", "DIRECTIONAL"]
 DataBarDirection = Literal["LTR", "RTL"]
 DataBarValuePlacement = Literal["BESIDE", "OVERLAP", "HIDE"]
