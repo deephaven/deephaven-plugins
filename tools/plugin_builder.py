@@ -327,12 +327,30 @@ def run_configure(
         run_main_command("pip install -r sphinx_ext/sphinx-requirements.txt")
 
 
+def build_server_args(server_arg: tuple[str]) -> list[str]:
+    """
+    Build the server arguments to pass to the deephaven server
+    By default, the --no-browser flag is added to the server arguments unless the --browser flag is present
+
+    Args:
+        server_arg: The arguments to pass to the server
+    """
+    server_args = ["--no-browser"]
+    if server_arg:
+        if "--no-browser" in server_arg or "--browser" in server_arg:
+            server_args = list(server_arg)
+        else:
+            server_args = server_args + list(server_arg)
+    return server_args
+
+
 def handle_args(
     build: bool,
     install: bool,
     reinstall: bool,
     docs: bool,
     server: bool,
+    server_arg: tuple[str],
     js: bool,
     configure: str | None,
     plugins: tuple[str],
@@ -347,6 +365,7 @@ def handle_args(
         reinstall: True to reinstall the plugins
         docs: True to generate the docs
         server: True to run the deephaven server after building and installing the plugins
+        server_arg: The arguments to pass to the server
         js: True to build the JS files for the plugins
         configure: The configuration to use. 'min' will install the minimum requirements for development.
             'full' will install some optional packages for development, such as sphinx and deephaven-server.
@@ -391,9 +410,11 @@ def handle_args(
     if stop_event.is_set():
         return
 
-    if server:
-        click.echo("Running deephaven server")
-        process = subprocess.Popen(["deephaven", "server", "--no-browser"])
+    if server or server_arg:
+        server_args = build_server_args(server_arg)
+
+        click.echo(f"Running deephaven server with args: {server_args}")
+        process = subprocess.Popen(["deephaven", "server"] + server_args)
 
         # waiting on either the process to finish or the stop event to be set
         while not stop_event.wait(1):
@@ -448,6 +469,13 @@ def handle_args(
     help="Run the deephaven server after building and installing the plugins.",
 )
 @click.option(
+    "--server-arg",
+    "-sa",
+    default=tuple(),
+    multiple=True,
+    help="Run the deephaven server after building and installing the plugins with the provided argument.",
+)
+@click.option(
     "--js",
     "-j",
     is_flag=True,
@@ -475,6 +503,7 @@ def builder(
     reinstall: bool,
     docs: bool,
     server: bool,
+    server_arg: tuple[str],
     js: bool,
     configure: str | None,
     watch: bool,
@@ -489,6 +518,7 @@ def builder(
         reinstall: True to reinstall the plugins
         docs: True to generate the docs
         server: True to run the deephaven server after building and installing the plugins
+        server_arg: The arguments to pass to the server
         js: True to build the JS files for the plugins
         configure: The configuration to use. 'min' will install the minimum requirements for development.
             'full' will install some optional packages for development, such as sphinx and deephaven-server.
@@ -505,7 +535,16 @@ def builder(
         Run the handle_args function with the provided arguments
         """
         handle_args(
-            build, install, reinstall, docs, server, js, configure, plugins, stop_event
+            build,
+            install,
+            reinstall,
+            docs,
+            server,
+            server_arg,
+            js,
+            configure,
+            plugins,
+            stop_event,
         )
 
     if not watch:

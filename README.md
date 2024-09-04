@@ -270,6 +270,18 @@ python tools/plugin_builder.py --reinstall --server plotly-express
 ```
 Reinstall will force reinstall the plugins (but only the plugins, not the dependencies), which is useful if there are changes to the plugins but without a bumped version number.
 
+To run the server with specific args, pass the `--server-arg` flag.  
+By default, the server is passed the `--no-browser` flag, which will prevent the server from opening a browser window.  
+This example will override that default and open the browser:
+```shell
+python tools/plugin_builder.py --server-arg --browser
+```
+Similar to other arguments, this argument can be shortened to `-sa`.  
+This example changes the port and psk and reinstalls the `ui` plugin before starting the server:  
+```shell
+python tools/plugin_builder.py -r -sa --port=9999 -sa --jvm-args="-Dauthentication.psk=mypsk" ui  
+```
+
 The js plugins can be built with the `--js` flag. This will build all js plugins or target specific ones if specified.
 This example reinstalls the `ui` plugin with js, and starts the server with shorthand flags.
 ```shell
