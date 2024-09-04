@@ -38,47 +38,67 @@ Recommendations for creating effects:
 3. Put long-running effects on another thread to avoid blocking the render thread.
 4. Specify a dependency list to ensure the effect only runs when the dependencies change.
 
-## Requesting from URL
+## Connecting to an external server
 
-Using the [requests](https://pypi.org/project/requests/) library, attempt to login to httpbin.org with the entered username and password when it is changed. You will need to [install the requests library](https://deephaven.io/core/docs/how-to-guides/install-and-use-python-packages/).
-The correct username is `user` and the correct password is `pass`.
+Create a chat room component that connects to a server when the server URL or room ID changes. The connection is cleaned up when the component is closed. This example simply prints to the console when connecting/disconnecting from a room, rather than opening an actual connection.
 
 ```python
-import requests
 from deephaven import ui
 
 
+class ChatConnection:
+    server_url: str
+    room_id: str
+
+    def __init__(self, server_url: str, room_id: str):
+        self.server_url = server_url
+        self.room_id = room_id
+
+    def connect(self):
+        print(f"Connecting to {self.server_url}/{self.room_id}")
+
+    def disconnect(self):
+        print(f"Disconnected from {self.server_url}/{self.room_id}")
+
+
 @ui.component
-def ui_request_login():
-    user, set_user = ui.use_state("")
-    password, set_password = ui.use_state("")
-    message, set_message = ui.use_state("")
+def ui_chat_room(server_url: str):
+    room_id, set_room_id = ui.use_state("general")
+    connection = ChatConnection(server_url, room_id)
 
-    def login():
-        if not user or not password:
-            set_message("Enter user/pass to login")
-            return
+    def create_connection():
+        connection = ChatConnection(server_url, room_id)
+        connection.connect()
+        return lambda: connection.disconnect()
 
-        response = requests.get(
-            "https://httpbin.org/basic-auth/user/pass", auth=(user, password)
-        )
-        if response.status_code == 200:
-            set_message(f"Login successful: ({response.text})")
-        else:
-            set_message(f"Login failed for {user}: ({response.status_code})")
-
-    ui.use_effect(login, [user, password])
+    ui.use_effect(create_connection, [server_url, room_id])
 
     return [
-        ui.text_field(label="User", value=user, on_change=set_user),
-        ui.text_field(
-            label="Password", value=password, on_change=set_password, type="password"
+        ui.picker(
+            "general",
+            "random",
+            "private",
+            label="Choose the chat room:",
+            selected_key=room_id,
+            on_change=set_room_id,
         ),
-        ui.text(message),
+        ui.text(f"Connected to {room_id} on {server_url}"),
     ]
 
 
-request_login = ui_request_login()
+@ui.component
+def ui_chat_app():
+    server_url, set_server_url = ui.use_state("https://chat.example.com")
+    show, set_show = ui.use_state(False)
+
+    return [
+        ui.text_field(label="Server URL", value=server_url, on_change=set_server_url),
+        ui.toggle_button("Show chat room", is_selected=show, on_change=set_show),
+        ui_chat_room(server_url) if show else None,
+    ]
+
+
+chat_app = ui_chat_app()
 ```
 
 ## Multi-threaded request
@@ -86,8 +106,8 @@ request_login = ui_request_login()
 Put a long-running request on a background thread so it doesn't block the component from updating.
 
 ```python
-import requests
 import threading
+import time
 from deephaven import ui
 
 
@@ -101,16 +121,15 @@ def ui_request_delay():
         is_cancelled = False
 
         def do_request():
-            response = requests.get(f"https://httpbin.org/delay/{delay}")
+            # Simulate a long-running request
+            time.sleep(delay)
+
             if is_cancelled:
                 return
 
-            if response.status_code == 200:
-                set_message(f"Request {delay} successful: ({response.text})")
-            else:
-                set_message(f"Request {delay} failed: ({response.status_code})")
+            set_message(f"Operation with {delay}s delay completed")
 
-        set_message(f"Sending request with delay {delay}")
+        set_message(f"Starting operation with {delay}s delay")
 
         # Cancel the request if the delay inputted has changed
         threading.Thread(target=do_request).start()
@@ -300,8 +319,8 @@ def ui_app():
     scheme, set_scheme = ui.use_state("https")
 
     return [
-        ui.text_field(label="Scheme", value=port, on_change=set_scheme),
-        ui_server(port),
+        ui.text_field(label="Scheme", value=scheme, on_change=set_scheme),
+        ui_server(scheme),
     ]
 
 
@@ -392,8 +411,8 @@ def ui_app():
     scheme, set_scheme = ui.use_state("https")
 
     return [
-        ui.text_field(label="Scheme", value=port, on_change=set_scheme),
-        ui_server(port),
+        ui.text_field(label="Scheme", value=scheme, on_change=set_scheme),
+        ui_server(scheme),
     ]
 
 
@@ -413,12 +432,15 @@ class ServerDetails:
         self.scheme = scheme
         self.host = host
 
+    def __str__(self):
+        return f"{self.scheme}://{self.host}"
+
 
 @ui.component
 def ui_server():
     message, set_message = ui.use_state("")
 
-    # 🚩 this object is a new object on every re-render
+    # 🚩 this creates a new object on every re-render
     details = ServerDetails("https", "localhost")
 
     def disconnect():
@@ -456,7 +478,7 @@ def ui_server():
     # ...
 ```
 
-Alternatively, memoize the object using `use_memo`:
+Alternatively, memoize the object using [`use_memo`](./use_memo.md):
 
 ```python
 from deephaven import ui
@@ -469,6 +491,9 @@ class ServerDetails:
     def __init__(self, scheme: str, host: str):
         self.scheme = scheme
         self.host = host
+
+    def __str__(self):
+        return f"{self.scheme}://{self.host}"
 
 
 @ui.component
@@ -549,7 +574,7 @@ def ui_server():
     # ...
 ```
 
-Alternatively, memoize the function using `use_callback`:
+Alternatively, memoize the function using [`use_callback`](./use_callback.md):
 
 ```python
 from deephaven import ui
@@ -562,6 +587,9 @@ class ServerDetails:
     def __init__(self, scheme: str, host: str):
         self.scheme = scheme
         self.host = host
+
+    def __str__(self):
+        return f"{self.scheme}://{self.host}"
 
 
 @ui.component
