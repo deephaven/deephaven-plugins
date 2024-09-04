@@ -22,55 +22,59 @@
         "label": "Components",
         "items": [
           {
-            "label": "Action Button",
+            "label": "action_button",
             "path": "components/action_button.md"
           },
           {
-            "label": "Button",
+            "label": "button",
             "path": "components/button.md"
           },
           {
-            "label": "Checkbox",
+            "label": "checkbox",
             "path": "components/checkbox.md"
           },
           {
-            "label": "Combo Box",
+            "label": "combo_box",
             "path": "components/combo_box.md"
           },
           {
-            "label": "Date Picker",
+            "label": "date_picker",
             "path": "components/date_picker.md"
           },
           {
-            "label": "Illustrated Message",
+            "label": "date_range_picker",
+            "path": "components/date_range_picker.md"
+          },
+          {
+            "label": "illustrated_message",
             "path": "components/illustrated_message.md"
           },
           {
-            "label": "Image",
+            "label": "image",
             "path": "components/image.md"
           },
           {
-            "label": "Picker",
+            "label": "picker",
             "path": "components/picker.md"
           },
           {
-            "label": "Radio Group",
+            "label": "radio_group",
             "path": "components/radio_group.md"
           },
           {
-            "label": "Range Slider",
+            "label": "range_slider",
             "path": "components/range_slider.md"
           },
           {
-            "label": "Slider",
+            "label": "slider",
             "path": "components/slider.md"
           },
           {
-            "label": "Text Area",
+            "label": "text_area",
             "path": "components/text_area.md"
           },
           {
-            "label": "View",
+            "label": "view",
             "path": "components/view.md"
           }
         ]
