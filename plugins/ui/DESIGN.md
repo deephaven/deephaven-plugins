@@ -1458,8 +1458,17 @@ A date range picker can be used to select a range of dates.
 
 The range is a dictionary with a `start` date and an `end` date; e.g., `{ "start": "2024-01-02", "end": "2024-01-05" }`
 
-The date range picker accepts the following date types as inputs:  
-`None`, `LocalDate`, `ZoneDateTime`, `Instant`, `int`, `str`, `datetime.datetime`, `numpy.datetime64`, `pandas.Timestamp`
+The date range picker accepts the following date types as inputs:
+
+- `None`
+- `LocalDate`
+- `ZoneDateTime`
+- `Instant`
+- `int`
+- `str`
+- `datetime.datetime`
+- `numpy.datetime64`
+- `pandas.Timestamp`
 
 The `start` and `end` dates should be input using the same type.
 
@@ -1504,16 +1513,16 @@ ui.date_range_picker(
 
 ###### Parameters
 
-| Parameter           | Type                                                       | Description                                                                                                                                                                                       |
-| ------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
-| `placeholder_value` | `Date \| None`                                             | A placeholder date that influences the format of the placeholder shown when no value is selected. Defaults to today at the current time on the server machine time zone.                          |
-| `value`             | `{ "start": Date, "end": Date } \| None`                   | The current value (controlled).                                                                                                                                                                   |
-| `default_value`     | `{ "start": Date, "end": Date } \| None`                   | The default value (uncontrolled).                                                                                                                                                                 |
-| `min_value`         | `Date \| None`                                             | The minimum allowed date that a user may select.                                                                                                                                                  |
-| `max_value`         | `Date \| None`                                             | The maximum allowed date that a user may select.                                                                                                                                                  |     |
-| `granularity`       | `Granularity \| None`                                      | Determines the smallest unit that is displayed in the date picker. By default, this is `"DAY"` for `LocalDate`, and `"SECOND"` otherwise.                                                         |
-| `on_change`         | `Callable[[{ "start": Date, "end": Date }], None] \| None` | Handler that is called when the value changes. The exact `Date` type will be the same as the type passed to `value`, `default_value` or `placeholder_value`, in that order of precedence.         |
-| `**props`           | `Any`                                                      | Any other [DateRangePicker](https://react-spectrum.adobe.com/react-spectrum/DateRangePicker.html) prop, except `isDateUnavailable`, `validate`, and `errorMessage` (as a callback). |
+| Parameter           | Type                                                       | Description                                                                                                                                                                               |
+| ------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
+| `placeholder_value` | `Date \| None`                                             | A placeholder date that influences the format of the placeholder shown when no value is selected. Defaults to today at the current time on the server machine time zone.                  |
+| `value`             | `{ "start": Date, "end": Date } \| None`                   | The current value (controlled).                                                                                                                                                           |
+| `default_value`     | `{ "start": Date, "end": Date } \| None`                   | The default value (uncontrolled).                                                                                                                                                         |
+| `min_value`         | `Date \| None`                                             | The minimum allowed date that a user may select.                                                                                                                                          |
+| `max_value`         | `Date \| None`                                             | The maximum allowed date that a user may select.                                                                                                                                          |     |
+| `granularity`       | `Granularity \| None`                                      | Determines the smallest unit that is displayed in the date picker. By default, this is `"DAY"` for `LocalDate`, and `"SECOND"` otherwise.                                                 |
+| `on_change`         | `Callable[[{ "start": Date, "end": Date }], None] \| None` | Handler that is called when the value changes. The exact `Date` type will be the same as the type passed to `value`, `default_value` or `placeholder_value`, in that order of precedence. |
+| `**props`           | `Any`                                                      | Any other [DateRangePicker](https://react-spectrum.adobe.com/react-spectrum/DateRangePicker.html) prop, except `isDateUnavailable`, `validate`, and `errorMessage` (as a callback).       |
 
 ```py
 
