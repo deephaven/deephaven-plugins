@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Callable
+from typing import Any, Callable, Dict, List, Union
 from .types import (
     AlignSelf,
     CSSProperties,
@@ -31,7 +31,7 @@ def form(
     is_read_only: bool | None = None,
     validation_state: ValidationState | None = None,
     validation_behavior: ValidationBehavior | None = "aria",
-    # validation_errors # omitted because synchronous return
+    validation_errors: Dict[str, str | List[str]] | None = None,
     action: str | None = None,
     enc_type: EncodingType | None = None,
     method: HTTPMethods | None = None,
@@ -101,6 +101,7 @@ def form(
         is_read_only: Whether the form should be read only.
         validation_state: Whether the Form elements should display their "valid" or "invalid" visual styling.
         validation_behavior: Whether to use native HTML form validation to prevent form submission when a field value is missing or invalid, or mark fields as required or invalid via ARIA.
+        validation_errors: The validation errors for the form.
         action: The URL to submit the form data to.
         enc_type: The enctype attribute specifies how the form-data should be encoded when submitting it to the server.
         method: The HTTP method of the form.
@@ -168,6 +169,7 @@ def form(
         is_read_only=is_read_only,
         validation_state=validation_state,
         validation_behavior=validation_behavior,
+        validation_errors=validation_errors,
         action=action,
         enc_type=enc_type,
         method=method,
