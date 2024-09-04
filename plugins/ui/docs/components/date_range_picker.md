@@ -47,7 +47,7 @@ The `start` and `end` inputs are converted according to the following rules:
 4. All other types will attempt to convert in this order: `Instant`, `ZonedDateTime`, `LocalDate`
 
 The format of the date range picker and the type of the value passed to the `on_change` handler
-is determined by the type of the following props in order of precedence:
+are determined by the type of the following props in order of precedence:
 
 1. `value`
 2. `default_value`
