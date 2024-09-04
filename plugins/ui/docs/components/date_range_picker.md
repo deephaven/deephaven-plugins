@@ -12,29 +12,29 @@ my_date_range_picker_basic = ui.date_range_picker(label="Date range")
 
 ## Date types
 
-A date range picker can be used to select `range` of dates.
+A date range picker can be used to select a `range` of dates.
 
 The `range` is a dictionary with a `start` date and an `end` date. e.g. `{ "start": "2024-01-02", "end": "2024-01-05" }`
 
 The date range picker accepts the following date types as inputs:  
 `None`, `LocalDate`, `ZoneDateTime`, `Instant`, `int`, `str`, `datetime.datetime`, `numpy.datetime64`, `pandas.Timestamp`
 
-The `start` and `end` dates should be input using the same type.
+The `start` and `end` dates should be the same type.
 
 The input will be converted to one of three Java date types:
 
-1. `LocalDate`: A LocalDate is a date without a time zone in the ISO-8601 system, such as "2007-12-03" or "2057-01-28".
+1. `LocalDate`: in the ISO-8601 system, a LocalDate is a date without a time zone, such as "2007-12-03" or "2057-01-28".
    This will create a date range picker with a granularity of days.
 2. `Instant`: An Instant represents an unambiguous specific point on the timeline, such as 2021-04-12T14:13:07 UTC.
    This will create a date range picker with a granularity of seconds in UTC. The time zone will be rendered as the time zone in user settings.
 3. `ZonedDateTime`: A ZonedDateTime represents an unambiguous specific point on the timeline with an associated time zone, such as 2021-04-12T14:13:07 America/New_York.
    This will create a date range picker with a granularity of seconds in the specified time zone. The time zone will be rendered as the specified time zone.
 
-The `start` and `end` inputs are coverted according to the following rules:
+The `start` and `end` inputs are converted according to the following rules:
 
 1. If the input is one of the three Java date types, use that type.
-2. A date string such as "2007-12-03" will parse to a `LocalDate`
-3. A string with a date, time, and timezone such as "2021-04-12T14:13:07 America/New_York" will parse to a `ZonedDateTime`
+2. A date string such as "2007-12-03" will parse to a `LocalDate`.
+3. A string with a date, time, and time zone such as "2021-04-12T14:13:07 America/New_York" will parse to a `ZonedDateTime`
 4. All other types will attempt to convert in this order: `Instant`, `ZonedDateTime`, `LocalDate`
 
 The format of the date range picker and the type of the value passed to the `on_change` handler
@@ -131,7 +131,7 @@ my_instant = ui.date_range_picker(
 
 The `granularity` prop allows you to control the smallest unit that is displayed by a date range picker. By default, `LocalDate` values are displayed with "DAY" granularity (year, month, and day), and `ZonedDateTime` and `Instant` values are displayed with "SECOND" granularity.
 
-In addition, when a value with a time is provided but you wish to only display the date, you can set the granularity to "DAY". This has no effect on the actual value (it still has a time component), only on what fields are displayed. In the following example, two date range pickers are synchronized with the same value, but display different granularities.
+In addition, when a value with a time is provided but you wish to display only the date, you can set the granularity to "DAY". This has no effect on the actual value (it still has a time component), only on what fields are displayed. In the following example, two date range pickers are synchronized with the same value but display different granularities.
 
 ```python
 from deephaven import ui
@@ -162,7 +162,7 @@ my_granularity_example = granularity_example()
 
 ## HTML forms
 
-Date range picker supports the `start_name` and `end_name` props for integration with HTML forms. The values will be submitted to the server as `ISO 8601` formatted strings according to the granularity of the value. For example, if the date range picker allows selecting only dates then strings such as "2023-02-03" will be submitted, and if it allows selecting times then strings such as "2023-02-03T08:45:00"
+Date range picker supports the `start_name` and `end_name` props for integration with HTML forms. The values will be submitted to the server as `ISO 8601` formatted strings according to the granularity of the value. For example, if the date range picker allows selecting only dates, then strings such as "2023-02-03" will be submitted, and if it allows selecting times, then strings such as "2023-02-03T08:45:00"
 
 ```python
 from deephaven import ui
@@ -178,7 +178,7 @@ my_date_range_picker_forms = ui.form(
 
 ## Labeling
 
-A visual label should be provided for the date range picker using the label prop. If the DateRangePicker is required, the `is_required` and `necessity_indicator` props can be used to show a required state.
+A visual label should be provided for the date range picker using the `label` prop. If the date range picker is required, the `is_required` and `necessity_indicator` props can be used to show a required state.
 
 ```python
 from deephaven import ui
