@@ -83,6 +83,10 @@
         "label": "Hooks",
         "items": [
           {
+            "label": "use_effect",
+            "path": "hooks/use_effect.md"
+          },
+          {
             "label": "use_state",
             "path": "hooks/use_state.md"
           }
