@@ -12,6 +12,7 @@ from .combo_box import combo_box
 from .content import content
 from .contextual_help import contextual_help
 from .dashboard import dashboard
+from .date_field import date_field
 from .date_picker import date_picker
 from .date_range_picker import date_range_picker
 from .flex import flex
@@ -67,6 +68,7 @@ __all__ = [
     "content",
     "contextual_help",
     "dashboard",
+    "date_field",
     "date_picker",
     "date_range_picker",
     "flex",
