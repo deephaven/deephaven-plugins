@@ -19,7 +19,7 @@ Recommendations for creating text fields:
 
 1. Every text field should have a [label](#labeling) specified. Without one, the text field is ambiguous. In the rare case that context is sufficient, the label is unnecessary; you must still include an aria-label via the `aria_label` prop.
 2. Text field labels and help text should follow sentence casing.
-3. A text field should not use `is_quiet` styling if it has a fixed height, given that the field underline may be too far from the text to be considered part of the component.
+3. A text field should not use `is_quiet` styling if it has a fixed height, given that the line underneath the field may be too far from the text to be considered part of the component.
 4. Use help text to provide instructions on input format, content, and requirements; the help text should not restate the same information as the label, or prompt a user to interact with the text field.
 5. Dynamically switch between help text and error messages based on input, ensuring both convey essential input requirements.
 
@@ -28,7 +28,7 @@ Consider using [`text_area`](./text_area.md) for cases where multiline input is 
 
 ## Value
 
-A text field's value is empty by default, but an initial, uncontrolled, value can be set using the `default_value` prop, or, a controlled value can be set via the `value` prop.
+A text field's value is empty by default, but the `default_value` prop can set an initial, uncontrolled value, or a controlled value can be set via the `value` prop.
 
 ```python
 from deephaven import ui
@@ -80,7 +80,7 @@ def ui_text_field_is_required_examples():
 my_text_field_is_required_example = ui_text_field_is_required_examples()
 ```
 
-By setting `is_required` to True, the `necessity_indicator` is set to "icon" by default, but this can be changed. Also, the `necessity_indicator` can be used indepdendently to indicate that the text field is optional.
+By setting `is_required` to True, the `necessity_indicator` is set to "icon" by default, but this can be changed. The `necessity_indicator` can also be used independently to indicate that the text field is optional.
 
 When the `necessity_indicator` prop is set to "label", a localized string will be generated for "(required)" or "(optional)" automatically.
 

@@ -186,6 +186,9 @@ def text_field(
         aria_errormessage: The id of the element that provides an error message for the current element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
+
+    Returns:
+        The rendered text field element.
     """
 
     return component_element(
