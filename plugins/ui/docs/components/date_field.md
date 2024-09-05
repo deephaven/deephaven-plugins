@@ -156,7 +156,7 @@ my_granularity_example = granularity_example()
 
 ## HTML forms
 
-Date field supports the `name` prop for integration with HTML forms. The values will be submitted to the server as `ISO 8601` formatted strings according to the granularity of the value. For example, if the date field allows selecting only dates, then strings such as "2023-02-03" will be submitted, and if it allows selecting times, then strings such as "2023-02-03T08:45:00"
+Date field supports the `name` prop for integration with HTML forms. The values will be submitted to the server as `ISO 8601` formatted strings according to the granularity of the value. For example, if the date field allows selecting only dates, then strings such as "2023-02-03" will be submitted, and if it allows selecting times, then strings such as "2023-02-03T08:45:00".
 
 ```python
 from deephaven import ui
