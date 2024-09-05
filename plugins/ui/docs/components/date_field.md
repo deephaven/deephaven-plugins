@@ -7,7 +7,7 @@ Date fields allow users to input a date using a text field.
 ```python
 from deephaven import ui
 
-my_date_field_basic = ui.date_field_(label="Date field")
+my_date_field_basic = ui.date_field(label="Date field")
 ```
 
 ## Date types
@@ -83,11 +83,11 @@ from deephaven import ui
 def example():
     value, set_value = ui.use_state("2020-02-03")
     return ui.flex(
-        ui.date_field_(
+        ui.date_field(
             label="Date field (uncontrolled)",
             default_value="2020-02-03",
         ),
-        ui.date_field_(
+        ui.date_field(
             label="Date field (controlled)", value=value, on_change=set_value
         ),
         gap="size-150",
@@ -112,12 +112,12 @@ For `Instant` objects, the date field will display the time zone from the user s
 from deephaven import ui
 from deephaven.time import to_j_instant
 
-my_zoned_date_time = ui.date_field_(
+my_zoned_date_time = ui.date_field(
     label="Date field",
     default_value="2022-11-07T00:45 America/Los_Angeles",
 )
 
-my_instant = ui.date_field_(
+my_instant = ui.date_field(
     label="Date field",
     default_value=to_j_instant("2022-11-07T00:45Z"),
 )
@@ -137,13 +137,13 @@ from deephaven import ui
 def granularity_example():
     value, set_value = ui.use_state("2021-04-07T18:45:22 UTC")
     return ui.flex(
-        ui.date_field_(
+        ui.date_field(
             label="Date field and time field",
             granularity="SECOND",
             value=value,
             on_change=set_value,
         ),
-        ui.date_field_(
+        ui.date_field(
             label="Date field", granularity="DAY", value=value, on_change=set_value
         ),
         gap="size-150",
@@ -162,7 +162,7 @@ Date field supports the `name` prop for integration with HTML forms. The values 
 from deephaven import ui
 
 my_date_field_forms = ui.form(
-    ui.date_field_(label="Birth date", name="birthday"),
+    ui.date_field(label="Birth date", name="birthday"),
     ui.button("Submit", type="submit"),
     on_submit=print,
 )
@@ -176,10 +176,10 @@ A visual label should be provided for the date field using the `label` prop. If 
 from deephaven import ui
 
 my_date_field_labeling = ui.flex(
-    ui.date_field_(label="Date field"),
-    ui.date_field_(label="Date field", is_required=True, necessity_indicator="icon"),
-    ui.date_field_(label="Date field", is_required=True, necessity_indicator="label"),
-    ui.date_field_(label="Date field", necessity_indicator="label"),
+    ui.date_field(label="Date field"),
+    ui.date_field(label="Date field", is_required=True, necessity_indicator="icon"),
+    ui.date_field(label="Date field", is_required=True, necessity_indicator="label"),
+    ui.date_field(label="Date field", necessity_indicator="label"),
 )
 ```
 
@@ -194,7 +194,7 @@ from deephaven import ui
 @ui.component
 def event_example():
     value, set_value = ui.use_state("2020-02-03")
-    return ui.date_field_(
+    return ui.date_field(
         label="Date field (controlled)", value=value, on_change=set_value
     )
 
@@ -215,7 +215,7 @@ from deephaven import ui
 @ui.component
 def date_field_validation_behaviour_example():
     return ui.form(
-        ui.date_field_(
+        ui.date_field(
             validation_behavior="native",
             is_required=True,
         )
@@ -232,7 +232,7 @@ The `min_value` and `max_value` props can also be used to ensure the value is wi
 ```python
 from deephaven import ui
 
-my_date_field_basic = ui.date_field_(
+my_date_field_basic = ui.date_field(
     label="Date field",
     min_value="2024-01-01",
     default_value="2022-02-03",
@@ -250,10 +250,10 @@ from deephaven import ui
 @ui.component
 def date_field_label_position_examples():
     return [
-        ui.date_field_(
+        ui.date_field(
             label="Test Label",
         ),
-        ui.date_field_(
+        ui.date_field(
             label="Test Label",
             label_position="side",
         ),
@@ -271,7 +271,7 @@ The `is_quiet` prop makes a date field "quiet". This can be useful when the and 
 from deephaven import ui
 
 
-my_date_field_is_quiet_example = ui.date_field_(
+my_date_field_is_quiet_example = ui.date_field(
     is_quiet=True,
 )
 ```
@@ -284,7 +284,7 @@ The `is_disabled` prop disables a to prevent user interaction. This is useful wh
 from deephaven import ui
 
 
-my_date_field_is_disabled_example = ui.date_field_(
+my_date_field_is_disabled_example = ui.date_field(
     is_disabled=True,
 )
 ```
@@ -297,7 +297,7 @@ The `is_read_only` prop makes the date field's value immutable. Unlike `is_disab
 from deephaven import ui
 
 
-my_date_field_is_read_only_example = ui.date_field_(
+my_date_field_is_read_only_example = ui.date_field(
     is_read_only=True,
 )
 ```
@@ -315,16 +315,16 @@ from deephaven import ui
 @ui.component
 def date_field_help_text_examples():
     return [
-        ui.date_field_(
+        ui.date_field(
             label="Sample Label",
             description="Enter a date field.",
         ),
-        ui.date_field_(
+        ui.date_field(
             label="Sample Label",
             validation_state="valid",
             error_message="Sample invalid error message.",
         ),
-        ui.date_field_(
+        ui.date_field(
             label="Sample Label",
             validation_state="invalid",
             error_message="Sample invalid error message.",
@@ -343,7 +343,7 @@ Using the `contextual_help` prop, a `ui.contextual_help` can be placed next to t
 from deephaven import ui
 
 
-date_field_contextual_help_example = ui.date_field_(
+date_field_contextual_help_example = ui.date_field(
     label="Sample Label",
     contextual_help=ui.contextual_help(ui.heading("Content tips")),
 )
@@ -360,10 +360,10 @@ from deephaven import ui
 @ui.component
 def date_field_width_examples():
     return [
-        ui.date_field_(
+        ui.date_field(
             width="size-3600",
         ),
-        ui.date_field_(
+        ui.date_field(
             width="size-3600",
             max_width="100%",
         ),
@@ -380,7 +380,7 @@ The time zone can be hidden using the `hide_time_zone` option.
 ```python
 from deephaven import ui
 
-my_hide_time_zone_example = ui.date_field_(
+my_hide_time_zone_example = ui.date_field(
     label="Date field",
     default_value="2022-11-07T00:45 America/Los_Angeles",
     hide_time_zone=True,
@@ -395,7 +395,7 @@ By default, date field displays times in either a `12` or `24` hour format depen
 from deephaven import ui
 
 
-date_field_hour_cycle_example = ui.date_field_(label="Date field", hour_cycle=24)
+date_field_hour_cycle_example = ui.date_field(label="Date field", hour_cycle=24)
 ```
 
 ## Time table filtering
