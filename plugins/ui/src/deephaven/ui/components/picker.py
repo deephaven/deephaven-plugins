@@ -62,7 +62,7 @@ def picker(
     placeholder: str | None = None,
     is_loading: bool | None = None,
     label_position: LabelPosition = "top",
-    label_alignment: Alignment = "start",
+    label_align: Alignment = "start",
     necessity_indicator: NecessityIndicator = "icon",
     contextual_help: Element | None = None,
     on_open_change: Callable[[bool], None] | None = None,
@@ -162,7 +162,7 @@ def picker(
         placeholder: Placeholder text for the input.
         is_loading: Whether the Picker is in a loading state.
         label_position: The label's overall position relative to the element it is labeling.
-        label_alignment: The label's horizontal alignment relative to the element it is labeling.
+        label_align: The label's horizontal alignment relative to the element it is labeling.
         necessity_indicator: Whether the required state should be shown as an icon or text.
         contextual_help: A ContextualHelp element to place next to the label.
         on_open_change: Handler that is called when the open state changes.
