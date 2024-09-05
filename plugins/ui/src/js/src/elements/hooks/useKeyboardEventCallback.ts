@@ -26,7 +26,9 @@ export type SerializedKeyboardEventCallback = (
   event: SerializedKeyboardEvent
 ) => void;
 
-export type DeserializedKeyboardEventCallback = (e: KeyboardEvent) => void;
+export type DeserializedKeyboardEventCallback =
+  | ((e: KeyboardEvent) => void)
+  | undefined;
 
 /**
  * Get a callback function to be passed into spectrum components
@@ -36,10 +38,11 @@ export type DeserializedKeyboardEventCallback = (e: KeyboardEvent) => void;
 export function useKeyboardEventCallback(
   callback?: SerializedKeyboardEventCallback
 ): DeserializedKeyboardEventCallback {
-  return useCallback(
+  const keyboardCallback = useCallback(
     (e: KeyboardEvent) => {
       callback?.(serializeKeyboardEvent(e));
     },
     [callback]
   );
+  return callback != null ? keyboardCallback : undefined;
 }

@@ -36,11 +36,12 @@ export type SerializedPressEventCallback = (
  */
 export function usePressEventCallback(
   callback?: SerializedPressEventCallback
-): (e: PressEvent) => void {
-  return useCallback(
+): ((e: PressEvent) => void) | undefined {
+  const pressCallback = useCallback(
     (e: PressEvent) => {
       callback?.(serializePressEvent(e));
     },
     [callback]
   );
+  return callback != null ? pressCallback : undefined;
 }
