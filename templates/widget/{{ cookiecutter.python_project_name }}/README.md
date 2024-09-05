@@ -23,7 +23,61 @@ The JavaScript files have the following structure:
 Additionally, the `test` directory contains Python tests for the plugin. This demonstrates how the embedded Deephaven server can be used in tests.  
 It's recommended to use `tox` to run the tests, and the `tox.ini` file is included in the project.  
 
-## Building the Plugin
+## Using plugin_builder.py
+The `plugin_builder.py` is the recommended way to build the plugin.
+See [Building the Plugin](#building-the-plugin) for more information if you want to build the plugin manually instead.
+
+To use plugin_builder.py, first set up your Python environment and install the required packages.  
+To build the plugin, you will need `npm` and `python` installed, as well as the `build` package for Python.
+`nvm` is also strongly recommended, and an `.nvmrc` file is included in the project.
+The script uses watchdog and deephaven-server for `--watch` mode and `--server` mode, respectively.
+```sh
+cd {{ cookiecutter.python_project_name }}
+python -m venv .venv
+source .venv/bin/activate
+cd src/js
+nvm install
+npm install
+cd ../..
+pip install --upgrade -r requirements.txt
+pip install deephaven-server watchdog
+```
+
+First, run an initial install of the plugin:
+This builds and installs the full plugin, including the JavaScript code.
+```sh
+python plugin_builder.py --install --js
+```
+
+After this, more advanced options can be used.
+For example, if only iterating on the plugins with no version bumps, use the `--reinstall` flag for faster builds.
+This adds `--force-reinstall --no-deps` to the `pip install` command.
+```sh
+python plugin_builder.py --reinstall --js
+```
+
+If only the Python code has changed, the `--js` flag can be omitted.
+```sh
+python plugin_builder.py --reinstall
+```
+
+Additional especially useful flags are `--watch` and `--server`.
+`--watch` will watch the Python and JavaScript files for changes and rebuild the plugin when they are modified.
+`--server` will start the Deephaven server with the plugin installed.
+Taken in combination with `--reinstall` and `--js`, this command will  rebuild and restart the server when changes are made to the plugin.
+```sh
+python plugin_builder.py --reinstall --js --watch --server
+```
+
+If interested in passing args to the server, the `--server-arg` flag can be used as well
+Check `deephaven server --help` for more information on the available arguments.
+```sh
+python plugin_builder.py --reinstall --js --watch --server --server-arg --port=9999
+```
+
+See [Using the Plugin](#using-the-plugin) for more information on how to use the plugin.
+
+## Manually Building the Plugin
 
 To build the plugin, you will need `npm` and `python` installed, as well as the `build` package for Python.
 `nvm` is also strongly recommended, and an `.nvmrc` file is included in the project.
@@ -90,7 +144,7 @@ obj.send_message("Hello, world!")
 The panel can also send messages back to the Python client by using the input field.
 
 ## Debugging the Plugin
-It's recommended to run through all the steps in Installing the Plugin and Using the Plugin to ensure the plugin is working correctly.  
+It's recommended to run through all the steps in Using plugin_builder.py and Using the Plugin to ensure the plugin is working correctly.  
 Then, make changes to the plugin and rebuild it to see the changes in action.
 Checkout the [Deephaven plugins repo](https://github.com/deephaven/deephaven-plugins), which is where this template was generated from, for more examples and information.  
 The `plugins` folder contains current plugins that are developed and maintained by Deephaven.  

@@ -11,15 +11,14 @@ from watchdog.observers import Observer
 import threading
 
 # get the directory of the current file
+# this is used to watch for changes in this directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
-# these are the patterns to watch for changes in the plugins directory
+# these are the patterns to watch for changes in this directory
 # if in editable mode, the builder will rerun when these files change
 REBUILD_REGEXES = [
     ".*\.py$",
     ".*\.js$",
-    ".*\.md$",
-    ".*\.svg$",
     ".*\.ts$",
     ".*\.tsx$",
     ".*\.scss$",
@@ -36,10 +35,17 @@ IGNORE_REGEXES = [
     ".*/\..*/.*",
 ]
 
+# the path where the python files are located relative to this script
+# modify this if the python files are moved
+PYTHON_DIR = "."
+# the path where the JS files are located relative to this script
+# modify this if the JS files are moved
+JS_DIR = "./src/js"
+
 
 class PluginsChangedHandler(RegexMatchingEventHandler):
     """
-    A handler that watches for changes reruns the function when changes are detected
+    A handler that watches for changes and reruns the function when changes are detected
 
     Args:
         func: The function to run when changes are detected
@@ -137,10 +143,10 @@ def clean_build_dist() -> None:
     Remove the build and dist directories.
     """
     # these folders may not exist, so ignore the errors
-    if os.path.exists(f"./build"):
-        os.system(f"rm -rf ./build")
-    if os.path.exists(f"./dist"):
-        os.system(f"rm -rf ./dist")
+    if os.path.exists(f"{PYTHON_DIR}/build"):
+        os.system(f"rm -rf {PYTHON_DIR}/build")
+    if os.path.exists(f"{PYTHON_DIR}/dist"):
+        os.system(f"rm -rf {PYTHON_DIR}/dist")
 
 
 def run_command(command: str) -> None:
@@ -167,7 +173,7 @@ def run_build() -> None:
     clean_build_dist()
 
     click.echo(f"Building plugin")
-    run_command(f"python -m build --wheel")
+    run_command(f"python -m build --wheel {PYTHON_DIR}")
 
 
 def run_install(
@@ -188,29 +194,15 @@ def run_install(
         install += " --force-reinstall --no-deps"
 
     click.echo("Installing plugin")
-    run_command(f"{install} ./dist")
+    run_command(f"{install} {PYTHON_DIR}/dist/*.whl")
 
 
-def run_build_js(plugins: tuple[str]) -> None:
+def run_build_js() -> None:
     """
-    Build the JS files for plugins that have a js directory
-
-    Args:
-        plugins: The plugins to build. If None, all plugins with a js directory are built.
-
-    Returns:
-        None
+    Build the JS files for the plugin
     """
-    if plugins:
-        for plugin in plugins:
-            if os.path.exists(f"{plugins_dir}/{plugin}/src/js"):
-                click.echo(f"Building JS for {plugin}")
-                run_command(f"npm run build --prefix {plugins_dir}/{plugin}/src/js")
-            else:
-                click.echo(f"Error: src/js not found in {plugin}")
-    else:
-        click.echo(f"Building all JS plugins")
-        run_command(f"npm run build")
+    click.echo(f"Building the JS plugin")
+    run_command(f"npm run build --prefix {JS_DIR}")
 
 
 def build_server_args(server_arg: tuple[str]) -> list[str]:
@@ -367,12 +359,12 @@ def builder(
     Build and install plugins.
 
     Args:
-        build: True to build the plugins
-        install: True to install the plugins
-        reinstall: True to reinstall the plugins
-        server: True to run the deephaven server after building and installing the plugins
+        build: True to build the plugin
+        install: True to install the plugin
+        reinstall: True to reinstall the plugin
+        server: True to run the deephaven server after building and installing the plugin
         server_arg: The arguments to pass to the server
-        js: True to build the JS files for the plugins
+        js: True to build the JS files for the plugin
         watch: True to rerun the other commands when files are changed
     """
     stop_event = threading.Event()
