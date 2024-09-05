@@ -185,7 +185,7 @@ my_date_field_labeling = ui.flex(
 
 ## Events
 
-Date field s support selection through mouse, keyboard, and touch inputs via the `on_change` prop, which receives the value as an argument.
+Date fields support selection through mouse, keyboard, and touch inputs via the `on_change` prop, which receives the value as an argument.
 
 ```python
 from deephaven import ui
@@ -265,7 +265,7 @@ my_date_field_label_position_examples = date_field_label_position_examples()
 
 ## Quiet state
 
-The `is_quiet` prop makes a date field "quiet". This can be useful when the and its corresponding styling should not distract users from surrounding content.
+The `is_quiet` prop makes a date field "quiet". This can be useful when its corresponding styling should not distract users from surrounding content.
 
 ```python
 from deephaven import ui
@@ -278,7 +278,7 @@ my_date_field_is_quiet_example = ui.date_field(
 
 ## Disabled state
 
-The `is_disabled` prop disables a to prevent user interaction. This is useful when the date field should be visible but not available for selection.
+The `is_disabled` prop disables the date field to prevent user interaction. This is useful when the date field should be visible but not available for selection.
 
 ```python
 from deephaven import ui
@@ -337,7 +337,7 @@ my_date_field_help_text_examples = date_field_help_text_examples()
 
 ## Contextual help
 
-Using the `contextual_help` prop, a `ui.contextual_help` can be placed next to the label to provide additional information about the date field .
+Using the `contextual_help` prop, a `ui.contextual_help` can be placed next to the label to provide additional information about the date field.
 
 ```python
 from deephaven import ui
@@ -351,7 +351,7 @@ date_field_contextual_help_example = ui.date_field(
 
 ## Custom width
 
-The `width` prop adjusts the width of a date field , and the `max_width` prop enforces a maximum width.
+The `width` prop adjusts the width of a date field, and the `max_width` prop enforces a maximum width.
 
 ```python
 from deephaven import ui
@@ -400,7 +400,7 @@ date_field_hour_cycle_example = ui.date_field(label="Date field", hour_cycle=24)
 
 ## Time table filtering
 
-Date field s can be used to filter tables with time columns.
+Date fields can be used to filter tables with time columns.
 
 ```python
 from deephaven.time import dh_now
