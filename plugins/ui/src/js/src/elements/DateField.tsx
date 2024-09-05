@@ -9,15 +9,15 @@ import { getSettings, RootState } from '@deephaven/redux';
 import { DateValue, toTimeZone, ZonedDateTime } from '@internationalized/date';
 import useDebouncedOnChange from './hooks/useDebouncedOnChange';
 import {
-  SerializedDatePickerProps,
-  useDatePickerProps,
-} from './hooks/useDatePickerProps'; // TODO refactor
+  SerializedDateComponentProps,
+  useDateComponentProps,
+} from './hooks/useDateComponentProps';
 import { isStringInstant } from './utils/DateTimeUtils';
 
 const EMPTY_FUNCTION = () => undefined;
 
 function isDateFieldInstant(
-  props: SerializedDatePickerProps<DHCDateFieldProps<DateValue>>
+  props: SerializedDateComponentProps<DHCDateFieldProps<DateValue>>
 ): boolean {
   const { value, defaultValue, placeholderValue } = props;
   if (value != null) {
@@ -30,7 +30,7 @@ function isDateFieldInstant(
 }
 
 export function DateField(
-  props: SerializedDatePickerProps<DHCDateFieldProps<DateValue>>
+  props: SerializedDateComponentProps<DHCDateFieldProps<DateValue>>
 ): JSX.Element {
   const isDateFieldInstantValue = isDateFieldInstant(props);
   const settings = useSelector(getSettings<RootState>);
@@ -41,7 +41,7 @@ export function DateField(
     value: propValue,
     onChange: propOnChange = EMPTY_FUNCTION,
     ...otherProps
-  } = useDatePickerProps(props, timeZone);
+  } = useDateComponentProps(props, timeZone);
 
   const [value, onChange] = useDebouncedOnChange<DateValue | null>(
     propValue ?? defaultValue,

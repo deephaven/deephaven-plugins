@@ -26,7 +26,7 @@ export type DeserializedDateValueCallback =
   | (() => void)
   | ((value: MappedDateValue<DateValue> | null) => Promise<void>);
 
-export interface SerializedDatePickerPropsInterface {
+export interface SerializedDateComponentPropsInterface {
   /** Handler that is called when the element receives focus. */
   onFocus?: SerializedFocusEventCallback;
 
@@ -60,11 +60,11 @@ export interface SerializedDatePickerPropsInterface {
   /** Dates that are unavailable */
   unavailableValues?: string[] | null;
 
-  /** Determines the smallest unit that is displayed in the date picker. */
+  /** Determines the smallest unit that is displayed in the date component. */
   granularity?: Granularity;
 }
 
-export interface DeserializedDatePickerPropsInterface {
+export interface DeserializedDateComponentPropsInterface {
   /** Handler that is called when the element receives focus. */
   onFocus?: DeserializedFocusEventCallback;
 
@@ -98,18 +98,18 @@ export interface DeserializedDatePickerPropsInterface {
   /** Callback that is called for each date of the calendar. If it returns true, then the date is unavailable */
   isDateUnavailable?: (date: DateValue) => boolean;
 
-  /** Determines the smallest unit that is displayed in the date picker. */
+  /** Determines the smallest unit that is displayed in the date component. */
   granularity?: Granularity;
 }
 
-export type SerializedDatePickerProps<TProps> = TProps &
-  SerializedDatePickerPropsInterface;
+export type SerializedDateComponentProps<TProps> = TProps &
+  SerializedDateComponentPropsInterface;
 
-export type DeserializedDatePickerProps<TProps> = Omit<
+export type DeserializedDateComponentProps<TProps> = Omit<
   TProps,
-  keyof SerializedDatePickerPropsInterface
+  keyof SerializedDateComponentPropsInterface
 > &
-  DeserializedDatePickerPropsInterface;
+  DeserializedDateComponentPropsInterface;
 
 /**
  * Uses the toString representation of the DateValue as the serialized value.
@@ -128,7 +128,7 @@ export function serializeDateValue(
 
 /**
  * Get a callback function that can be passed to the onChange event handler
- * props of a Spectrum DatePicker.
+ * props of a Spectrum Date component.
  * @param callback Callback to be called with the serialized value
  * @returns A callback to be passed into the Spectrum component that transforms
  * the value and calls the provided callback
@@ -164,7 +164,7 @@ export function useNullableDateValueMemo(
 }
 
 /**
- * Get a callback function that can be passed to the isDateUnavailable prop of a Spectrum DatePicker.
+ * Get a callback function that can be passed to the isDateUnavailable prop of a Spectrum Date component.
  *
  * @param unavailableSet Set of unavailable date strings
  * @returns A callback to be passed into the Spectrum component that checks if the date is unavailable
@@ -179,11 +179,11 @@ export function useIsDateUnavailableCallback(
 }
 
 /**
- * Wrap DatePicker props with the appropriate serialized event callbacks.
+ * Wrap Date component props with the appropriate serialized event callbacks.
  * @param props Props to wrap
  * @returns Wrapped props
  */
-export function useDatePickerProps<TProps>(
+export function useDateComponentProps<TProps>(
   {
     onFocus,
     onBlur,
@@ -198,9 +198,9 @@ export function useDatePickerProps<TProps>(
     unavailableValues,
     granularity: upperCaseGranularity,
     ...otherProps
-  }: SerializedDatePickerProps<TProps>,
+  }: SerializedDateComponentProps<TProps>,
   timeZone: string
-): DeserializedDatePickerProps<TProps> {
+): DeserializedDateComponentProps<TProps> {
   const serializedOnFocus = useFocusEventCallback(onFocus);
   const serializedOnBlur = useFocusEventCallback(onBlur);
   const serializedOnKeyDown = useKeyboardEventCallback(onKeyDown);
