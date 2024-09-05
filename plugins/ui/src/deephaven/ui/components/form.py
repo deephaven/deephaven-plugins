@@ -39,7 +39,7 @@ def form(
     auto_complete: AutoCompleteModes | None = None,
     auto_capitalize: AutoCapitalizeModes | None = None,
     label_position: LabelPosition = "top",
-    label_alignment: Alignment = "start",
+    label_align: Alignment = "start",
     necessity_indicator: NecessityIndicator = "icon",
     on_submit: Callable[[dict[str, str]], None] | None = None,
     on_reset: Callable[[dict[str, str]], None] | None = None,
@@ -109,7 +109,7 @@ def form(
         auto_complete: Indicates whether input elements can by default have their values automatically completed by the browser.
         auto_capitalize: Controls whether inputted text is automatically capitalized and, if so, in what manner.
         label_position: The label's overall position relative to the element it is labeling.
-        label_alignment: The label's horizontal alignment relative to the element it is labeling.
+        label_align: The label's horizontal alignment relative to the element it is labeling.
         necessity_indicator: Whether the required state should be shown as an icon or text.
         on_submit: The function to call when the form is submitted.
         on_reset: The function to call when the form is reset.
@@ -177,7 +177,7 @@ def form(
         auto_complete=auto_complete,
         auto_capitalize=auto_capitalize,
         label_position=label_position,
-        label_alignment=label_alignment,
+        label_align=label_align,
         necessity_indicator=necessity_indicator,
         on_submit=on_submit,
         on_reset=on_reset,
