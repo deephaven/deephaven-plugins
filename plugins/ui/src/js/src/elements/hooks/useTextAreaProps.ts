@@ -5,7 +5,7 @@ import { SerializedTextAreaEventProps } from '../model/SerializedPropTypes';
 import { wrapTextChildren } from '../utils';
 import useDebouncedOnChange from './useDebouncedOnChange';
 
-// returns SpectrumButtonProps
+// returns SpectrumTextAreaProps
 export function useTextAreaProps<T>(props: SerializedTextAreaEventProps<T>): T {
   const {
     defaultValue = '',
