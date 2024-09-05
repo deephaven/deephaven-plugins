@@ -256,9 +256,3 @@ my_text_field_width_examples = ui_text_field_width_examples()
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.text_field
 ```
-
-
-
-
-
-
