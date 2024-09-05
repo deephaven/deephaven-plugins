@@ -101,7 +101,7 @@ def extract_list_item(node: docutils.nodes.list_item) -> ParamData:
     Returns:
         The param data
     """
-    field = node.astext().replace("\n", " ")
+    field = node.astext()
     try:
         match = re.match(r"(.+) \((.*)\) -- (.+)", field)
         if match is None:
@@ -154,7 +154,7 @@ def extract_field_body(
         # this is still a parameter, likely the only one in its signature
         return [extract_list_item(child)]
     elif is_paragraph:
-        return node.astext().replace("\n", " ")
+        return node.astext()
     elif isinstance(child, docutils.nodes.bullet_list):
         return extract_list_items(child)
     raise ValueError(
@@ -225,7 +225,7 @@ def extract_content_data(
         if isinstance(child_node, docutils.nodes.field_list):
             result.update(extract_field_list(child_node))
         elif isinstance(child_node, docutils.nodes.paragraph):
-            result["description"] = child_node.astext().replace("\n", " ")
+            result["description"] = child_node.astext()
 
     return result
 
