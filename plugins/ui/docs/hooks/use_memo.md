@@ -1,6 +1,6 @@
 # use_memo
 
-`use_memo` is a hook to cache the result of a calculation. This is useful when you have a value that is expensive to compute and you want to avoid re-computing it on every render. The value is computed once and then stored in the memoized value. The memoized value is returned on subsequent renders until the dependencies change.
+`use_memo` is a hook to cache the result of a calculation, function, or operation. This is useful when you have a value that is expensive to compute and you want to avoid re-computing it on every render. The value is computed once and then stored in the memoized value. The memoized value is returned on subsequent renders until the dependencies change.
 
 ## Example
 
