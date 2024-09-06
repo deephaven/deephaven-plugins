@@ -1,46 +1,47 @@
 from __future__ import annotations
-from typing import Any, Callable, Iterable
+from typing import Any, Callable
 
 
 from .types import (
-    # Events
-    ButtonLabelBehavior,
     Orientation,
-    StaticColor,
-    # Layout
     AlignSelf,
     CSSProperties,
     DimensionValue,
     JustifySelf,
     LayoutFlex,
-    OverflowMode,
     Position,
+    ValidationBehavior,
+    FocusEventCallable,
 )
 from .basic import component_element
 from ..elements import Element
-from ..types import ActionGroupDensity, SelectedKeys, SelectionMode, Key, Selection
+from ..types import Key, Selection
 
 
-def action_group(
+def checkbox_group(
     *children: Any,
+    orientation: Orientation = "vertical",
     is_emphasized: bool | None = None,
-    density: ActionGroupDensity | None = "regular",
-    is_justified: bool | None = None,
-    is_quiet: bool | None = None,
-    static_color: StaticColor | None = None,
-    overflow_mode: OverflowMode | None = "wrap",
-    button_label_behavior: ButtonLabelBehavior | None = "show",
-    summary_icon: Element | None = None,
-    orientation: Orientation | None = "horizontal",
-    disabled_keys: Iterable[str] | None = None,
+    value: Selection | None = None,
+    default_value: Selection | None = None,
     is_disabled: bool | None = None,
-    selection_mode: SelectionMode | None = None,
-    disallow_empty_selection: bool | None = None,
-    selected_keys: SelectedKeys | Iterable[str] | None = None,
-    default_selected_keys: SelectedKeys | Iterable[str] | None = None,
-    on_action: Callable[[str], None] | None = None,
+    is_read_only: bool | None = None,
+    name: str | None = None,
+    label: Any | None = None,
+    description: Any | None = None,
+    error_message: Any | None = None,
+    is_required: bool | None = None,
+    is_invalid: bool | None = None,
+    validation_behavior: ValidationBehavior | None = "aria",
+    label_position: str | None = None,
+    label_align: str | None = None,
+    necessity_indicator: str | None = None,
+    contextual_help: Any | None = None,
+    show_error_icon: bool | None = None,
     on_change: Callable[[Key], None] | None = None,
-    on_selection_change: Callable[[Selection], None] | None = None,
+    on_focus: FocusEventCallable | None = None,
+    on_blur: FocusEventCallable | None = None,
+    on_focus_change: Callable[[bool], None] | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,
@@ -82,33 +83,38 @@ def action_group(
     aria_labelledby: str | None = None,
     aria_describedby: str | None = None,
     aria_details: str | None = None,
+    aria_errormessage: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
 ) -> Element:
     """
-    An action grouping of action items that are related to each other.
+    An grouping of checkbox's that are related to each other.
     Args:
-        *children: The children of the action group.
-        is_emphasized: Whether the action buttons should be displayed with emphasized style.
-        density: Sets the amount of space between buttons.
-        is_justified: Whether the ActionButtons should be justified in their container.
-        is_quiet: Whether ActionButtons should use the quiet style.
-        static_color: The static color style to apply. Useful when the ActionGroup appears over a color background.
-        overflow_mode: The behavior of the ActionGroup when the buttons do not fit in the available space.
-        button_label_behaviour: Defines when the text within the buttons should be hidden and only the icon should be shown.
-        summary_icon: The icon displayed in the dropdown menu button when a selectable ActionGroup is collapsed.
-        orientation: The axis the ActionGroup should align with.
-        disabled_keys: A list of keys to disable.
-        is_disabled: Whether the ActionGroup is disabled. Shows that a selection exists, but is not available in that circumstance.
-        selection_mode: The type of selection that is allowed in the collection.
-        disallow_empty_selection: Whether the collection allows empty selection.
-        selected_keys: The currently selected keys in the collection (controlled).
-        default_selected_keys: The initial selected keys in the collection (uncontrolled).
-        on_action: Invoked when an action is taken on a child. Especially useful when selectionMode is none. The sole argument key is the key for the item.
-        on_change: Alias of on_selection_change.
-            Handler that is called when the selection changes.
-            The first argument is the selection, the second argument is the key of the list_view item.
-        on_selection_change: Handler that is called when the selection changes.
+        *children: The children of the checkbox group.
+        orientation: The axis the CheckboxGroup should align with.
+        is_emphasized: Whether the checkbox's should be displayed with emphasized style.
+        value: The selected checkbox within the checkbox group (controlled).
+        default_value: The default selected checkbox within the checkbox group (uncontrolled).
+        is_disabled: Whether the checkbox group is disabled.
+        is_read_only: Whether the checkbox group is read only.
+        name: The name of the input element, used when submitting an HTML form.
+        label: The label of the checkbox group.
+        description: A description for the checkbox group. Provides a hint such as specific requirements for what to choose.
+        error_message: An error message to be displayed when the checkbox group is an errored state.
+        is-required: Whether user input is required on the input before form submission.
+        is_invalid: Whether the checkbox group is in an invalid state.
+        validation_behavior: Whether to use native HTML form validation to prevent form
+            submission when the value is missing or invalid,
+            or mark the field as required or invalid via ARIA.
+        label_position: The label's overall position relative to the element it is labeling.
+        label_align: The label's horizontal alignment relative to the element it is labeling.
+        necessity_indicator: Whether the required state should be shown as an icon or text.
+        contextual_help: A ContextualHelp element to place next to the label.
+        show_error_icon: Whether an error icon is rendered.
+        on_change: Handler that is called when the selection changes.
+        on_focus: Handler that is called when the element receives focus.
+        on_blur: Handler that is called when the element loses focus.
+        on_focus_change: Handler that is called when the element's focus status changes.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -150,30 +156,39 @@ def action_group(
         aria-labelledby: Identifies the element (or elements) that labels the current element.
         aria-describedby: Identifies the element (or elements) that describes the object.
         aria-details: Identifies the element (or elements) that provide a detailed, extended description for the object.
+        aria-errormessage: Identifies the element that provides an error message for the object.
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
+
+    Returns:
+        The rendered checkbox group element.
+
     """
     return component_element(
-        "ActionGroup",
-        *children,
-        is_emphasized=is_emphasized,
-        density=density,
-        is_justified=is_justified,
-        is_quiet=is_quiet,
-        static_color=static_color,
-        overflow_mode=overflow_mode,
-        button_label_behavior=button_label_behavior,
-        summary_icon=summary_icon,
+        "CheckboxGroup",
+        children=children,
         orientation=orientation,
-        disabled_keys=disabled_keys,
+        is_emphasized=is_emphasized,
+        value=value,
+        default_value=default_value,
         is_disabled=is_disabled,
-        selection_mode=selection_mode,
-        disallow_empty_selection=disallow_empty_selection,
-        selected_keys=selected_keys,
-        default_selected_keys=default_selected_keys,
-        on_action=on_action,
+        is_read_only=is_read_only,
+        name=name,
+        label=label,
+        description=description,
+        error_message=error_message,
+        is_required=is_required,
+        is_invalid=is_invalid,
+        validation_behavior=validation_behavior,
+        label_position=label_position,
+        label_align=label_align,
+        necessity_indicator=necessity_indicator,
+        contextual_help=contextual_help,
+        show_error_icon=show_error_icon,
         on_change=on_change,
-        on_selection_change=on_selection_change,
+        on_focus=on_focus,
+        on_blur=on_blur,
+        on_focus_change=on_focus_change,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
@@ -215,6 +230,7 @@ def action_group(
         aria_labelledby=aria_labelledby,
         aria_describedby=aria_describedby,
         aria_details=aria_details,
+        aria_errormessage=aria_errormessage,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
     )

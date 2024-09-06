@@ -7,6 +7,7 @@ from .basic import (
 from .button import button
 from .button_group import button_group
 from .checkbox import checkbox
+from .checkbox_group import checkbox_group
 from .column import column
 from .combo_box import combo_box
 from .content import content
@@ -61,6 +62,7 @@ __all__ = [
     "button",
     "button_group",
     "checkbox",
+    "checkbox_group",
     "column",
     "combo_box",
     "component",
