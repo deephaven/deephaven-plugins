@@ -1,3 +1,4 @@
+export * from './DateTimeUtils';
 export * from './ElementUtils';
 export * from './EventUtils';
 export * from './HTMLElementUtils';

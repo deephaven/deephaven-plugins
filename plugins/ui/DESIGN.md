@@ -1311,6 +1311,156 @@ list_view5 = ui.list_view(
 
 ```
 
+###### ui.date_field
+
+A date field that can be used to select a date.
+
+The date field accepts the following date types as inputs:
+
+- `None`
+- `LocalDate`
+- `ZoneDateTime`
+- `Instant`
+- `int`
+- `str`
+- `datetime.datetime`
+- `numpy.datetime64`
+- `pandas.Timestamp`
+
+The input will be converted to one of three Java date types:
+
+1. `LocalDate`: A LocalDate is a date without a time zone in the ISO-8601 system, such as "2007-12-03" or "2057-01-28".
+   This will create a date range picker with a granularity of days.
+2. `Instant`: An Instant represents an unambiguous specific point on the timeline, such as 2021-04-12T14:13:07 UTC.
+   This will create a date range picker with a granularity of seconds in UTC. The time zone will be rendered as the time zone in user settings.
+3. `ZonedDateTime`: A ZonedDateTime represents an unambiguous specific point on the timeline with an associated time zone, such as 2021-04-12T14:13:07 America/New_York.
+   This will create a date range picker with a granularity of seconds in the specified time zone. The time zone will be rendered as the specified time zone.
+
+The `start` and `end` inputs are converted according to the following rules:
+
+1. If the input is one of the three Java date types, use that type.
+2. A date string such as "2007-12-03" will parse to a `LocalDate`
+3. A string with a date, time, and timezone such as "2021-04-12T14:13:07 America/New_York" will parse to a `ZonedDateTime`
+4. All other types will attempt to convert in this order: `Instant`, `ZonedDateTime`, `LocalDate`
+
+The format of the date range picker and the type of the value passed to the `on_change` handler
+is determined by the type of the following props in order of precedence:
+
+1. `value`
+2. `default_value`
+3. `placeholder_value`
+
+If none of these are provided, the `on_change` handler passes a range of `Instant`.
+
+```py
+import deephaven.ui as ui
+ui.date_field(
+    placeholder_value: Date | None = None,
+    value: Date | None = None,
+    default_value: Date | None = None,
+    min_value: Date | None = None,
+    max_value: Date | None = None,
+    granularity: Granularity | None = None,
+    on_change: Callable[[Date], None] | None = None,
+    **props: Any
+) -> DateFieldElement
+```
+
+###### Parameters
+
+| Parameter           | Type                             | Description                                                                                                                                                                               |
+| ------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
+| `placeholder_value` | `Date \| None`                   | A placeholder date that influences the format of the placeholder shown when no value is selected. Defaults to today at the current time on the server machine time zone.                  |
+| `value`             | `Date \| None`                   | The current value (controlled).                                                                                                                                                           |
+| `default_value`     | `Date \| None`                   | The default value (uncontrolled).                                                                                                                                                         |
+| `min_value`         | `Date \| None`                   | The minimum allowed date that a user may select.                                                                                                                                          |
+| `max_value`         | `Date \| None`                   | The maximum allowed date that a user may select.                                                                                                                                          |     |
+| `granularity`       | `Granularity \| None`            | Determines the smallest unit that is displayed in the date field. By default, this is `"DAY"` for `LocalDate`, and `"SECOND"` otherwise.                                                  |
+| `on_change`         | `Callable[[Date], None] \| None` | Handler that is called when the value changes. The exact `Date` type will be the same as the type passed to `value`, `default_value` or `placeholder_value`, in that order of precedence. |
+| `**props`           | `Any`                            | Any other [DateField](https://react-spectrum.adobe.com/react-spectrum/DateField.html) prop, with the exception of `isDateUnavailable`, `validate`, and `errorMessage` (as a callback)     |
+
+```py
+
+import deephaven.ui as ui
+from deephaven.time import to_j_local_date, dh_today, to_j_instant, to_j_zdt
+
+zoned_date_time = to_j_zdt("1995-03-22T11:11:11.23142 America/New_York")
+instant = to_j_instant("2022-01-01T00:00:00 ET")
+local_date = to_j_local_date(dh_today())
+
+# simple date field that takes ui.items and is uncontrolled
+# this creates a date field with a granularity of days with a default value of today
+date_field1 = ui.date_field(
+    default_value=local_date
+)
+
+# simple date field that takes list view items directly and is controlled
+# this creates a date field with a granularity of seconds in UTC
+# the on_change handler is passed an instant
+date, set_date = ui.use_state(instant)
+
+date_field2 = ui.date_field(
+    value=date,
+    on_change=set_date
+)
+
+# this creates a date field with a granularity of seconds in the specified time zone
+# the on_change handler is passed a zoned date time
+date, set_date = ui.use_state(None)
+
+date_field3 = ui.date_field(
+    placeholder_value=zoned_date_time,
+    on_change=set_date
+)
+
+# this creates a date field with a granularity of seconds in UTC
+# the on_change handler is passed an instant
+date, set_date = ui.use_state(None)
+
+date_field4 = ui.date_field(
+    placeholder_value=instant,
+    on_change=set_date
+)
+
+# this creates a date field with a granularity of days
+# the on_change handler is passed a local date
+date, set_date = ui.use_state(None)
+
+date_field5 = ui.date_field(
+    placeholder_value=local_date,
+    on_change=set_date
+)
+
+# this creates a date field with a granularity of days, but the on_change handler is still passed an instant
+date, set_date = ui.use_state(None)
+
+date_field6 = ui.date_field(
+    placeholder_value=instant,
+    granularity="day",
+    on_change=set_date
+)
+
+# this creates a date field with a granularity of seconds and the on_change handler is passed an instant
+date, set_date = ui.use_state(None)
+
+date_field7 = ui.date_field(
+    on_change=set_date
+)
+
+# this create a date field with a granularity of days, a min and max value, and unavailable dates
+min_value = to_j_local_date("2022-01-01")
+max_value = to_j_local_date("2022-12-31")
+unavailable_dates = [to_j_local_date("2022-03-15"), to_j_local_date("2022-03-17")]
+date, set_date = ui.use_state(to_j_local_date("2022-03-16"))
+date_field8 = ui.date_field(
+    value=date,
+    min_value=min_value,
+    max_value=max_value,
+    unavailable_values=unavailable_dates,
+    on_change=set_date
+)
+```
+
 ###### ui.date_picker
 
 A date picker that can be used to select a date.
@@ -1449,6 +1599,150 @@ date_picker8 = ui.date_picker(
     max_value=max_value,
     unavailable_values=unavailable_dates,
     on_change=set_date
+)
+```
+
+###### ui.date_range_picker
+
+A date range picker can be used to select a range of dates.
+
+The range is a dictionary with a `start` date and an `end` date; e.g., `{ "start": "2024-01-02", "end": "2024-01-05" }`
+
+The date range picker accepts the following date types as inputs:
+
+- `None`
+- `LocalDate`
+- `ZoneDateTime`
+- `Instant`
+- `int`
+- `str`
+- `datetime.datetime`
+- `numpy.datetime64`
+- `pandas.Timestamp`
+
+The `start` and `end` dates should be input using the same type.
+
+The input will be converted to one of three Java date types:
+
+1. `LocalDate`: A LocalDate is a date without a time zone in the ISO-8601 system, such as "2007-12-03" or "2057-01-28".
+   This will create a date range picker with a granularity of days.
+2. `Instant`: An Instant represents an unambiguous specific point on the timeline, such as 2021-04-12T14:13:07 UTC.
+   This will create a date range picker with a granularity of seconds in UTC. The time zone will be rendered as the time zone in user settings.
+3. `ZonedDateTime`: A ZonedDateTime represents an unambiguous specific point on the timeline with an associated time zone, such as 2021-04-12T14:13:07 America/New_York.
+   This will create a date range picker with a granularity of seconds in the specified time zone. The time zone will be rendered as the specified time zone.
+
+The `start` and `end` inputs are converted according to the following rules:
+
+1. If the input is one of the three Java date types, use that type.
+2. A date string such as "2007-12-03" will parse to a `LocalDate`
+3. A string with a date, time, and timezone such as "2021-04-12T14:13:07 America/New_York" will parse to a `ZonedDateTime`
+4. All other types will attempt to convert in this order: `Instant`, `ZonedDateTime`, `LocalDate`
+
+The format of the date range picker and the type of the value passed to the `on_change` handler
+is determined by the type of the following props in order of precedence:
+
+1. `value`
+2. `default_value`
+3. `placeholder_value`
+
+If none of these are provided, the `on_change` handler passes a range of `Instant`.
+
+```py
+import deephaven.ui as ui
+ui.date_range_picker(
+    placeholder_value: Date | None = None,
+    value: { "start": Date, "end": Date } | None = None,
+    default_value: { "start": Date, "end": Date } | None = None,
+    min_value: Date | None = None,
+    max_value: Date | None = None,
+    granularity: Granularity | None = None,
+    on_change: Callable[[{ "start": Date, "end": Date }], None] | None = None,
+    **props: Any
+) -> DateRangePickerElement
+```
+
+###### Parameters
+
+| Parameter           | Type                                                       | Description                                                                                                                                                                               |
+| ------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
+| `placeholder_value` | `Date \| None`                                             | A placeholder date that influences the format of the placeholder shown when no value is selected. Defaults to today at the current time on the server machine time zone.                  |
+| `value`             | `{ "start": Date, "end": Date } \| None`                   | The current value (controlled).                                                                                                                                                           |
+| `default_value`     | `{ "start": Date, "end": Date } \| None`                   | The default value (uncontrolled).                                                                                                                                                         |
+| `min_value`         | `Date \| None`                                             | The minimum allowed date that a user may select.                                                                                                                                          |
+| `max_value`         | `Date \| None`                                             | The maximum allowed date that a user may select.                                                                                                                                          |     |
+| `granularity`       | `Granularity \| None`                                      | Determines the smallest unit that is displayed in the date picker. By default, this is `"DAY"` for `LocalDate`, and `"SECOND"` otherwise.                                                 |
+| `on_change`         | `Callable[[{ "start": Date, "end": Date }], None] \| None` | Handler that is called when the value changes. The exact `Date` type will be the same as the type passed to `value`, `default_value` or `placeholder_value`, in that order of precedence. |
+| `**props`           | `Any`                                                      | Any other [DateRangePicker](https://react-spectrum.adobe.com/react-spectrum/DateRangePicker.html) prop, except `isDateUnavailable`, `validate`, and `errorMessage` (as a callback).       |
+
+```py
+
+import deephaven.ui as ui
+from deephaven.time import to_j_local_date, dh_today, to_j_instant, to_j_zdt
+
+zdt_start = to_j_zdt("1995-03-22T11:11:11.23142 America/New_York")
+zdt_end = to_j_zdt("1995-03-25T11:11:11.23142 America/New_York")
+instant_start = to_j_instant("2022-01-01T00:00:00 ET")
+instant_end = to_j_instant("2022-01-05T00:00:00 ET")
+local_start = to_j_local_date("2024-05-06")
+local_end = to_j_local_date("2024-05-10")
+
+# simple date picker that takes ui.items and is uncontrolled
+# this creates a date picker with a granularity of days
+date_range_picker1 = ui.date_range_picker(
+    default_value={"start": local_start, "end": local_end}
+)
+
+# simple date picker that takes list view items directly and is controlled
+# this creates a date picker with a granularity of seconds in UTC
+# the on_change handler is passed a range of instants
+dates2, set_dates2 = ui.use_state({"start": instant_start, "end": instant_end})
+
+date_range_picker2 = ui.date_range_picker(
+    value=dates2,
+    on_change=set_dates2
+)
+
+# this creates a date picker with a granularity of seconds in the specified time zone
+# the on_change handler is passed a zoned date time
+dates3, set_dates3 = ui.use_state(None)
+
+date_range_picker3 = ui.date_range_picker(
+    placeholder_value=zdt_start,
+    on_change=set_dates3
+)
+
+# this creates a date picker with a granularity of seconds in UTC
+# the on_change handler is passed an instant
+dates4, set_dates4 = ui.use_state(None)
+
+date_range_picker4 = ui.date_range_picker(
+    placeholder_value=instant_start,
+    on_change=set_dates4
+)
+
+# this creates a date picker with a granularity of days
+# the on_change handler is passed a local date
+dates5, set_dates5 = ui.use_state(None)
+
+date_range_picker5 = ui.date_range_picker(
+    placeholder_value=local_start,
+    on_change=set_date5
+)
+
+# this creates a date picker with a granularity of days, but the on_change handler is still passed an instant
+dates6, set_dates6 = ui.use_state(None)
+
+date_range_picker6 = ui.date_range_picker(
+    placeholder_value=instant_start,
+    granularity="day",
+    on_change=set_date6
+)
+
+# this creates a date picker with a granularity of seconds and the on_change handler is passed an instant
+dates7, set_dates7 = ui.use_state(None)
+
+date_range_picker7 = ui.date_range_picker(
+    on_change=set_dates7
 )
 ```
 
