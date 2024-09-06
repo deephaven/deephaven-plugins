@@ -179,6 +179,7 @@ def text_field(
         exclude_from_tab_order: Whether the element should be excluded from the tab order.
         aria_active_descendant: Identifies the currently active element when DOM focus is on a composite widget, textbox, group, or application.
         aria_auto_complete: Indicates whether inputting text could trigger display of one or more predictions of the user's intended value for an input and specifies how predictions would be presented if they are made.
+        aria_haspopup: Indicates whether the element, or another grouping element it controls, is currently expanded or collapsed.
         aria_label: The label for the element.
         aria_labelledby: The id of the element that labels the current element.
         aria_describedby: The id of the element that describes the current element.
