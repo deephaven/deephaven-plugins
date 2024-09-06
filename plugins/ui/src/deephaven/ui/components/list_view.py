@@ -136,7 +136,7 @@ def list_view(
         align_self: Overrides the alignItems property of a flex or grid container.
         justify_self: Species how the element is justified inside a flex or grid container.
         order: The layout order for the element within a flex or grid container.
-        grid_area: When used in a grid layout specifies, specifies the named grid area that the element should be placed in within the grid.
+        grid_area: When used in a grid layout, specifies the named grid area that the element should be placed in within the grid.
         grid_row: When used in a grid layout, specifies the row the element should be placed in within the grid.
         grid_column: When used in a grid layout, specifies the column the element should be placed in within the grid.
         grid_row_start: When used in a grid layout, specifies the starting row to span within the grid.
@@ -156,7 +156,7 @@ def list_view(
         min_height: The minimum height of the element.
         max_width: The maximum width of the element.
         max_height: The maximum height of the element.
-        position: Specifies how the element is position.
+        position: Specifies how the element is positioned.
         top: The top position of the element.
         bottom: The bottom position of the element.
         left: The left position of the element.

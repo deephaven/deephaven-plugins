@@ -25,9 +25,9 @@ _column_types = time_table(
 def ui_list_view_action_menu():
     value, set_value = ui.use_state(["key-2", "key-4", "key-5"])
 
-    action_item_keys, set_action_item_idx = ui.use_state(["", ""])
+    action_item_keys, set_action_item_keys = ui.use_state(["", ""])
     on_action = ui.use_callback(
-        lambda action_key, item_key: set_action_item_idx([action_key, str(item_key)]),
+        lambda action_key, item_key: set_action_item_keys([action_key, str(item_key)]),
         [],
     )
 
@@ -79,9 +79,9 @@ _column_types = time_table(
 def ui_list_view_action_group():
     value, set_value = ui.use_state(["key-2", "key-4", "key-5"])
 
-    action_item_keys, set_action_item_idx = ui.use_state(["", ""])
+    action_item_keys, set_action_item_keys = ui.use_state(["", ""])
     on_action = ui.use_callback(
-        lambda action_key, item_key: set_action_item_idx([action_key, str(item_key)]),
+        lambda action_key, item_key: set_action_item_keys([action_key, str(item_key)]),
         [],
     )
 
@@ -131,9 +131,9 @@ _column_types = time_table(
 def ui_list_view_action_menu():
     value, set_value = ui.use_state(["key-2", "key-4", "key-5"])
 
-    action_item_keys, set_action_item_idx = ui.use_state(["", ""])
+    action_item_keys, set_action_item_keys = ui.use_state(["", ""])
     on_action = ui.use_callback(
-        lambda action_key, item_key: set_action_item_idx([action_key, str(item_key)]),
+        lambda action_key, item_key: set_action_item_keys([action_key, str(item_key)]),
         [],
     )
 
@@ -157,6 +157,60 @@ def ui_list_view_action_menu():
 my_list_view_action_menu = ui_list_view_action_menu()
 ```
 
+## Disabled Options
+
+To disable certain rows in the ListView component, use the `disabled_keys` prop. By setting this prop with an array of keys, you can prevent interaction with those rows, providing greater control and customization options for the ListView behavior.
+
+```python
+from deephaven import time_table, ui
+import datetime
+
+# Ticking table with initial row count of 200 that adds a row every second
+initial_row_count = 200
+_column_types = time_table(
+    "PT1S",
+    start_time=datetime.datetime.now() - datetime.timedelta(seconds=initial_row_count),
+).update(
+    [
+        "Id=new String(`key-`+i)",
+        "Display=new String(`Display `+i)",
+    ]
+)
+
+# `ui.list_view`` with `ui.list_action_menu` actions
+@ui.component
+def ui_list_view_disabled():
+    value, set_value = ui.use_state(["key-2", "key-4", "key-5"])
+
+    action_item_keys, set_action_item_keys = ui.use_state(["", ""])
+    on_action = ui.use_callback(
+        lambda action_key, item_key: set_action_item_keys([action_key, str(item_key)]),
+        [],
+    )
+
+    lv = ui.list_view(
+        _column_types,
+        key_column="Id",
+        label_column="Display",
+        aria_label="List View",
+        on_change=set_value,
+        selected_keys=value,
+        actions=ui.list_action_menu(
+            "Edit",
+            "Delete",
+            on_action=on_action,
+        ),
+        disabled_keys=["key-0", "key-1"],
+    )
+
+    text_selection = ui.text("Selection: " + ", ".join(map(str, value)))
+    text_action = ui.text("Action: " + " ".join(map(str, action_item_keys)))
+
+    return lv, text_selection, text_action
+
+
+my_list_view_disabled = ui_list_view_disabled()
+```
 
 ## Quiet State
 
@@ -165,7 +219,7 @@ from deephaven import ui
 
 
 @ui.component
-def ui_list_view():
+def ui_list_view_quiet():
     value, set_value = ui.use_state(["Text 2"])
 
     quiet_list = ui.list_view(
@@ -189,19 +243,19 @@ def ui_list_view():
     return default_list, quiet_list
 
 
-lv = ui_list_view()
+my_list_view_quiet = ui_list_view_quiet()
 ```
 
 ## Modifying Density
-To adjust the vertical padding of each row in the ListView, use the `density` prop.
 
+To adjust the vertical padding of each row in the ListView, use the `density` prop.
 
 ```python
 from deephaven import ui
 
 
 @ui.component
-def ui_list_view():
+def ui_list_view_density():
     value, set_value = ui.use_state(["Text 2"])
 
     compact_list = ui.list_view(
@@ -226,7 +280,7 @@ def ui_list_view():
     return compact_list, spacious_list
 
 
-lv = ui_list_view()
+my_list_view_density = ui_list_view_density()
 ```
 
 ## Overflow Mode
@@ -237,7 +291,7 @@ from deephaven import ui
 
 
 @ui.component
-def ui_list_view():
+def ui_list_view_overflow():
     value, set_value = ui.use_state(["Text 2"])
 
     truncated_list = ui.list_view(
@@ -264,7 +318,7 @@ def ui_list_view():
     return truncated_list, wrapped_list
 
 
-lv = ui_list_view()
+my_list_view_overflow = ui_list_view_overflow()
 ```
 
 
