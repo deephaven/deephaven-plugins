@@ -185,6 +185,9 @@ class UITable(Element):
         )  # Turn missing or explicit None into empty dict
         return UITable(**{**self._props, key: {**existing, **value}})  # type: ignore
 
+    def generate_key(self, index_key: str) -> str:
+        return f"{index_key}-{self.name}"
+
     def render(self, context: RenderContext) -> dict[str, Any]:
         logger.debug("Returning props %s", self._props)
         return dict_to_camel_case({**self._props})
