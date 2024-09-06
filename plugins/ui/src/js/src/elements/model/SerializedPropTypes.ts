@@ -44,6 +44,24 @@ export type SerializedPressEventProps<T> = Omit<
   onPressUp?: SerializedPressEventCallback;
 };
 
+export type SerializedInputElementProps<T> = Omit<
+  T,
+  'defaultValue' | 'value' | 'onChange'
+> & {
+  /** The default value of the input */
+  defaultValue?: string;
+
+  /** The value of the input */
+  value?: string;
+
+  /** Handler that is called when the input value changes */
+  onChange?: (value: string) => Promise<void>;
+};
+
 export type SerializedButtonEventProps<T> = SerializedFocusEventProps<
   SerializedKeyboardEventProps<SerializedPressEventProps<T>>
+> & { children: React.ReactNode };
+
+export type SerializedTextAreaEventProps<T> = SerializedFocusEventProps<
+  SerializedKeyboardEventProps<SerializedInputElementProps<T>>
 > & { children: React.ReactNode };
