@@ -18,6 +18,49 @@ def icons():
 my_icons = icons()
 ```
 
+## Available Icons
+
+In the example provided, you can find a showcase of all available icons. Additionally, you have the ability to search for specific icons.
+
+```python
+from deephaven.ui.components.types import IconTypes
+from deephaven import ui
+from typing import get_args
+
+
+@ui.component
+def icon_search_example():
+    available_icons = [*get_args(IconTypes)]
+    filtered_icons, set_filtered_icons = ui.use_state(available_icons)
+
+    def filter_icons(search):
+        new_icons = []
+        for icon in available_icons:
+            if search in icon:
+                new_icons.append(icon)
+        set_filtered_icons(new_icons)
+
+    def render_icons():
+        entries = []
+
+        for icon in filtered_icons:
+            entries.append(
+                ui.flex(
+                    ui.icon(name=icon),
+                    ui.text(icon),
+                    direction="column",
+                    align_items="center",
+                )
+            )
+
+        return ui.flex(entries, wrap="wrap")
+
+    return [ui.text_field(ui.icon("search"), on_change=filter_icons), render_icons()]
+
+
+my_icon_search_example = icon_search_example()
+```
+
 
 ## Sizing
 
