@@ -24,13 +24,13 @@ Additionally, the `test` directory contains Python tests for the plugin. This de
 It's recommended to use `tox` to run the tests, and the `tox.ini` file is included in the project.  
 
 ## Using plugin_builder.py
-The `plugin_builder.py` is the recommended way to build the plugin.
+The `plugin_builder.py` script is the recommended way to build the plugin.
 See [Building the Plugin](#building-the-plugin) for more information if you want to build the plugin manually instead.
 
-To use plugin_builder.py, first set up your Python environment and install the required packages.  
+To use `plugin_builder.py`, first set up your Python environment and install the required packages.  
 To build the plugin, you will need `npm` and `python` installed, as well as the `build` package for Python.
 `nvm` is also strongly recommended, and an `.nvmrc` file is included in the project.
-The script uses watchdog and deephaven-server for `--watch` mode and `--server` mode, respectively.
+The script uses `watchdog` and `deephaven-server` for `--watch` mode and `--server` mode, respectively.
 ```sh
 cd {{ cookiecutter.python_project_name }}
 python -m venv .venv
@@ -144,7 +144,7 @@ obj.send_message("Hello, world!")
 The panel can also send messages back to the Python client by using the input field.
 
 ## Debugging the Plugin
-It's recommended to run through all the steps in Using plugin_builder.py and Using the Plugin to ensure the plugin is working correctly.  
+It's recommended to run through all the steps in [Using plugin_builder.py](#Using-plugin_builder.py) and [Using the Plugin](#Using-the-plugin) to ensure the plugin is working correctly.  
 Then, make changes to the plugin and rebuild it to see the changes in action.
 Checkout the [Deephaven plugins repo](https://github.com/deephaven/deephaven-plugins), which is where this template was generated from, for more examples and information.  
 The `plugins` folder contains current plugins that are developed and maintained by Deephaven.  
