@@ -1,5 +1,5 @@
 # Flex
-A flexbox-based layout container that utilizes Spectrum dimension values and supports the gap property for consistent spacing between items.
+A [flexbox](https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Flexbox)-based layout container that utilizes dimension values and supports the gap property for consistent spacing between items.
 
 ## Example
 
@@ -119,20 +119,20 @@ my_flex = flex()
 
 ## Alignment
 
-The `alignItems` prop can align items along the cross-axis. When the direction is set to "column", it controls horizontal alignment, and when it is set to "row", it controls vertical alignment.
+The `align_items` prop aligns items along the cross-axis. When the direction is set to "column", it controls horizontal alignment, and when it is set to "row", it controls vertical alignment.
 
 Options:
-- `stretch` (default): the flex items are stretched to fill the container along the cross axis
-- `start`: the flex items are aligned at the start of the cross axis
-- `end`: the flex items are aligned at the end of the cross axis
-- `center`: the flex items are centered along the cross axis
-- `self-start`: the flex items are aligned at the start of their container
-- `self-end`: the flex items are aligned at the end of their container
-- `baseline`: the flex items are aligned based on their baselines
-- `first baseline`: the flex items are aligned based on the first baseline of the container
-- `last baseline`: the flex items are aligned based on the last baseline of the container
-- `safe center`: the flex items are centered along the cross axis, ensuring they remain within the safe area
-- `unsafe center`: the flex items are centered along the cross axis, without considering the safe area
+- `stretch` (default): the flex items are stretched to fill the container along the cross-axis.
+- `start`: the flex items are aligned at the start of the cross-axis.
+- `end`: the flex items are aligned at the end of the cross-axis.
+- `center`: the flex items are centered along the cross-axis.
+- `self-start`: the flex items are aligned at the start of their container.
+- `self-end`: the flex items are aligned at the end of their container.
+- `baseline`: the flex items are aligned based on their baselines.
+- `first baseline`: the flex items are aligned based on the first baseline of the container.
+- `last baseline`: the flex items are aligned based on the last baseline of the container.
+- `safe center`: the flex items are centered along the cross-axis, ensuring they remain within the safe area.
+- `unsafe center`: the flex items are centered along the cross-axis, without considering the safe area.
 
 ```python
 from deephaven import ui
@@ -194,23 +194,23 @@ my_flex = flex()
 
 ## Justification
 
-The `justifyContent` prop aligns items along the main axis. For a "column" direction, it controls vertical alignment, and for a "row" direction, it controls horizontal alignment.
+The `justify_content` prop is used to align items along the main axis. When the direction is set to "column", it controls the vertical alignment, and when the direction is set to "row", it controls the horizontal alignment.
 
 Options:
-- `stretch` (default): the flex items are stretched to fill the container along the cross axis
-- `start`: the flex items are aligned at the start of the cross axis
-- `end`: the flex items are aligned at the end of the cross axis
-- `center`: the flex items are centered along the cross axis
-- `left`: the flex items are packed toward the left edge of the container
-- `right`: the flex items are packed toward the right edge of the container
-- `space-between`: the flex items are evenly distributed with the first item at the start and the last item at the end
-- `space-around`: the flex items are evenly distributed with equal space around them
-- `space-evenly`: the flex items are evenly distributed with equal space between them
-- `baseline`: the flex items are aligned based on their baselines
-- `first baseline`: the flex items are aligned based on the first baseline of the container
-- `last baseline`: the flex items are aligned based on the last baseline of the container
-- `safe center`: the flex items are centered along the cross axis, ensuring they remain within the safe area
-- `unsafe center`: the flex items are centered along the cross axis, without considering the safe area
+- `stretch` (default): the flex items are stretched to fill the container along the cross-axis.
+- `start`: the flex items are aligned at the start of the cross-axis.
+- `end`: the flex items are aligned at the end of the cross-axis.
+- `center`: the flex items are centered along the cross-axis.
+- `left`: the flex items are packed toward the left edge of the container.
+- `right`: the flex items are packed toward the right edge of the container.
+- `space-between`: the flex items are evenly distributed with the first item at the start and the last item at the end.
+- `space-around`: the flex items are evenly distributed with equal space around them.
+- `space-evenly`: the flex items are evenly distributed with equal space between them.
+- `baseline`: the flex items are aligned based on their baselines.
+- `first baseline`: the flex items are aligned based on the first baseline of the container.
+- `last baseline`: the flex items are aligned based on the last baseline of the container.
+- `safe center`: the flex items are centered along the cross-axis, ensuring they remain within the safe area.
+- `unsafe center`: the flex items are centered along the cross-axis, without considering the safe area.
 
 ```python
 from deephaven import ui
