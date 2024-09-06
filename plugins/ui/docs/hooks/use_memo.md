@@ -161,6 +161,7 @@ def ui_memo_table_app():
             height="100%",
         ),
         background_color=theme,
+        align_self="stretch",
         flex_grow=1,
     )
 
@@ -199,6 +200,7 @@ def ui_memo_table_app():
             height="100%",
         ),
         background_color=theme,
+        align_self="stretch",
         flex_grow=1,
     )
 
