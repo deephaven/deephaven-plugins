@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Any
+from functools import wraps
 from .basic import component_element
 from .types import (
     LayoutFlex,
@@ -12,6 +13,15 @@ from .types import (
 )
 
 
+def add_key_prop(f: Any) -> Any:
+    @wraps(f)
+    def wrapper(*args, key: str | None = None, **kwargs):
+        return f(*args, key=key, **kwargs)
+
+    return wrapper
+
+
+@add_key_prop
 def flex(
     *children: Any,
     flex: LayoutFlex | None = "auto",
