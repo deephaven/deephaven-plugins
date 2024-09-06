@@ -8,7 +8,9 @@ logger = logging.getLogger(__name__)
 
 
 class FunctionElement(Element):
-    def __init__(self, name: str, render: Callable[[], list[Element]]):
+    def __init__(
+        self, name: str, render: Callable[[], list[Element]], key: str | None = None
+    ):
         """
         Create an element that takes a function to render.
 
@@ -18,10 +20,20 @@ class FunctionElement(Element):
         """
         self._name = name
         self._render = render
+        self._keyProp = key
 
     @property
     def name(self):
         return self._name
+
+    @property
+    def key_prop(self) -> str | None:
+        return self._keyProp
+
+    def generate_key(self, index_key: str) -> str:
+        if self._keyProp is not None:
+            return self._keyProp
+        return f"{index_key}-{self._name}"
 
     def render(self, context: RenderContext) -> PropsType:
         """

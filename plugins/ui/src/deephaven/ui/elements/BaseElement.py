@@ -11,22 +11,35 @@ class BaseElement(Element):
     Must provide a name for the element.
     """
 
-    def __init__(self, name: str, /, *children: Any, **props: Any):
+    def __init__(
+        self, name: str, /, *children: Any, key: str | None = None, **props: Any
+    ):
         self._name = name
+        self._keyProp = key
+
         if len(children) > 0 and props.get("children") is not None:
             raise ValueError("Cannot provide both children and props.children")
-
         if len(children) > 1:
             props["children"] = list(children)
         if len(children) == 1:
             # If there's only one child, we pass it as a single child, not a list
             # There are many React elements that expect only a single child, and will fail if they get a list (even if it only has one element)
             props["children"] = children[0]
+
         self._props = dict_to_camel_case(props)
 
     @property
     def name(self) -> str:
         return self._name
+
+    @property
+    def key_prop(self) -> str | None:
+        return self._keyProp
+
+    def generate_key(self, index_key: str) -> str:
+        if self._keyProp is not None:
+            return self._keyProp
+        return f"{index_key}-{self._name}"
 
     def render(self, context: RenderContext) -> dict[str, Any]:
         return self._props
