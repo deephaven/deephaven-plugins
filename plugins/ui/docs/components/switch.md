@@ -17,7 +17,7 @@ Recommendations for creating switches:
 1. Emphasized switches are ideal for forms and settings where the switch being noticed is crucial, while non-emphasized switches suit monochrome application panels to maintain focus on the content.
 2. Use a standalone switch when the context is clear without a text label, such as next to a panel's title to enable or disable panel options.
 3. Use switches for activation and checkboxes for selection; switches cannot have an error state, unlike checkboxes.
-4. When a switch represents multiple differing values, it should initially appear unselected; clicking it will select and unify all values, while a subsequent click will deselect and reset them.
+4. When a switch represents multiple values from other switches, it should initially appear unselected; clicking it will select and unify all values, while a subsequent click will deselect and reset them.
 5. Switches can only be on or off; for partial states, use a checkbox as indeterminate switches are not accessible.
 
 Consider using a [`checkbox`](./checkbox.md) for individual selections or when marking a single item as selected. For a set of related options, use a [`checkbox_group`](./checkbox_group.md) to manage multiple selections within a group. For when users need to provide specific information that cannot be communicated by a switch, consider using the `text` component.
