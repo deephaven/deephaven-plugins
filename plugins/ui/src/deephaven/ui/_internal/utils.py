@@ -7,7 +7,7 @@ from functools import partial
 from deephaven.time import to_j_instant, to_j_zdt, to_j_local_date
 from deephaven.dtypes import ZonedDateTime, Instant
 
-from ..types import Date, JavaDate
+from ..types import Date, JavaDate, DateRange
 
 _UNSAFE_PREFIX = "UNSAFE_"
 _ARIA_PREFIX = "aria_"
@@ -330,6 +330,21 @@ def _get_first_set_key(props: dict[str, Any], sequence: Sequence[str]) -> str | 
     return None
 
 
+def _date_or_range(value: JavaDate | DateRange) -> Any:
+    """
+    Gets the Java Date from a Java Date or DateRange.
+
+    Args:
+        value: the Java Date or DateRange
+
+    Returns:
+        The Java Date.
+    """
+    if isinstance(value, dict):
+        return value["start"]
+    return value
+
+
 def _prioritized_callable_converter(
     props: dict[str, Any],
     priority: Sequence[str],
@@ -353,7 +368,7 @@ def _prioritized_callable_converter(
 
     first_set_key = _get_first_set_key(props, priority)
     return (
-        _jclass_converter(props[first_set_key])
+        _jclass_converter(_date_or_range(props[first_set_key]))
         if first_set_key is not None
         else default_converter
     )
@@ -381,9 +396,57 @@ def convert_list_prop(
     return [str(_convert_to_java_date(date)) for date in value]
 
 
+def convert_date_range(
+    date_range: DateRange,
+    converter: Callable[[Date], Any],
+) -> DateRange:
+    """
+    Convert a DateRange to Java date types.
+
+    Args:
+        date_range: The DateRange to convert to Java date types.
+        converter: The date converter to use.
+
+    Returns:
+        The Java date types.
+    """
+    return DateRange(
+        start=converter(date_range["start"]),
+        end=converter(date_range["end"]),
+    )
+
+
+def _wrap_date_range_callable(
+    date_callable: Callable[[DateRange], None],
+    converter: Callable[[Date], Any],
+) -> Callable[[DateRange], None]:
+    """
+    Wrap a callable to convert the Date argument to a Java date type.
+    This maintains the original callable signature so that the Date argument can be dropped.
+
+    Args:
+        date_callable: The callable to wrap.
+        converter: The date converter to use.
+
+    Returns:
+        The wrapped callable.
+    """
+    # When the user is typing a date, they may enter a value that does not parse
+    # This will skip those errors rather than printing them to the screen
+    def no_error_date_callable(date_range: DateRange) -> None:
+        wrapped_date_callable = wrap_callable(date_callable)
+        try:
+            wrapped_date_callable(convert_date_range(date_range, converter))
+        except Exception:
+            pass
+
+    return no_error_date_callable
+
+
 def convert_date_props(
     props: dict[str, Any],
     simple_date_props: set[str],
+    date_range_props: set[str],
     callable_date_props: set[str],
     priority: Sequence[str],
     granularity_key: str,
@@ -395,6 +458,7 @@ def convert_date_props(
     Args:
         props: The props passed to the component.
         simple_date_props: A set of simple date keys to convert. The prop value should be a single Date.
+        date_range_props: A set of date range keys to convert.
         callable_date_props: A set of callable date keys to convert.
             The prop value should be a callable that takes a Date.
         priority: The priority of the props to check.
@@ -407,6 +471,10 @@ def convert_date_props(
     for key in simple_date_props:
         if props.get(key) is not None:
             props[key] = _convert_to_java_date(props[key])
+
+    for key in date_range_props:
+        if props.get(key) is not None:
+            props[key] = convert_date_range(props[key], _convert_to_java_date)
 
     # the simple props must be converted before this to simplify the callable conversion
     converter = _prioritized_callable_converter(props, priority, default_converter)
@@ -421,11 +489,21 @@ def convert_date_props(
         if props.get(key) is not None:
             props[key] = str(props[key])
 
+    # and convert the date range props to strings
+    for key in date_range_props:
+        if props.get(key) is not None:
+            props[key] = convert_date_range(props[key], str)
+
+    # wrap the date callable with the convert
+    # if there are date range props, we need to convert as a date range
     for key in callable_date_props:
         if props.get(key) is not None:
             if not callable(props[key]):
                 raise TypeError(f"{key} must be a callable")
-            props[key] = _wrap_date_callable(props[key], converter)
+            if len(date_range_props) > 0:
+                props[key] = _wrap_date_range_callable(props[key], converter)
+            else:
+                props[key] = _wrap_date_callable(props[key], converter)
 
 
 def unpack_item_table_source(

@@ -74,3 +74,14 @@ python make_docs.py
 
 The files will be built into `docs/build/markdown`.
 Note that these built files should not be committed to the repository.
+
+## Update Icon Types
+Available IconTypes can be generated automatically using icon TypeScript definitions in node_modules.
+
+Writes to `icon_types.py`. 
+
+```shell
+npm install
+cd plugins/ui
+python make_icon_types.py
+```

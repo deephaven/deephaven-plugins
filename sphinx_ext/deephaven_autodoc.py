@@ -71,6 +71,7 @@ def extract_signature_data(
 ) -> tuple[FunctionMetadata, ParamDefaults]:
     """
     Extract the signature data from the signature node
+    The default values for the parameters are extracted from the signature
 
     Args:
         node: The node to extract the signature data from
@@ -104,10 +105,16 @@ def extract_list_item(node: docutils.nodes.list_item) -> ParamData:
     try:
         match = re.match(r"(.+) \((.*)\) -- (.+)", field)
         if match is None:
-            raise ValueError(f"Could not match {field} to extract param data")
+            raise ValueError(
+                f"Could not match {field} to extract param data. "
+                f"Verify this parameter is documented correctly within 'Args:' with type and description."
+            )
         matched = match.groups()
     except AttributeError:
-        raise ValueError(f"Could not match {field}")
+        raise ValueError(
+            f"Could not match {field}."
+            "Verify this parameter is documented correctly with type and description."
+        )
     return ParamData(name=matched[0], type=matched[1], description=matched[2])
 
 
@@ -124,7 +131,10 @@ def extract_list_items(node: docutils.nodes.bullet_list) -> Params:
     return list(map(extract_list_item, node.children))
 
 
-def extract_field_body(node: docutils.nodes.field_body) -> SignatureValue:
+def extract_field_body(
+    node: docutils.nodes.field_body,
+    is_parameter: bool,
+) -> SignatureValue:
     """
     Extract the body of a field node
     If a list, extract the list items
@@ -132,17 +142,25 @@ def extract_field_body(node: docutils.nodes.field_body) -> SignatureValue:
 
     Args:
         node: The node to extract the body from
+        is_parameter: Whether this is a parameter field
 
     Returns:
         The extracted body
     """
     # There should only be one child, a paragraph or a list
     child = node.children[0]
-    if isinstance(child, docutils.nodes.paragraph):
+    is_paragraph = isinstance(child, docutils.nodes.paragraph)
+    if is_paragraph and is_parameter:
+        # this is still a parameter, likely the only one in its signature
+        return [extract_list_item(child)]
+    elif is_paragraph:
         return node.astext().replace("\n", " ")
     elif isinstance(child, docutils.nodes.bullet_list):
         return extract_list_items(child)
-    raise ValueError(f"Could not extract field body from {node}")
+    raise ValueError(
+        f"Could not extract field body from {node}. "
+        f"Verify that the parameters are formatted correctly."
+    )
 
 
 def extract_field(node: docutils.nodes.field) -> dict[str, SignatureValue]:
@@ -161,9 +179,12 @@ def extract_field(node: docutils.nodes.field) -> dict[str, SignatureValue]:
         if isinstance(node, docutils.nodes.field_name):
             name = node.astext()
         elif isinstance(node, docutils.nodes.field_body):
-            body = extract_field_body(node)
+            body = extract_field_body(node, name == "Parameters")
     if name is None or body is None:
-        raise ValueError(f"Could not extract field data from {node}")
+        raise ValueError(
+            f"Could not extract field data from {node}. "
+            f"Verify that the parameters are formatted correctly."
+        )
     return {name: body}
 
 
@@ -242,9 +263,28 @@ def extract_desc_data(node: sphinx.addnodes.desc) -> SignatureData:
         elif isinstance(child_node, sphinx.addnodes.desc_content):
             result.update(extract_content_data(child_node))
     # map all to lowercase for consistency
-    result["parameters"] = result.pop("Parameters")
-    result["return_description"] = result.pop("Returns")
-    result["return_type"] = result.pop("Return type")
+    function = f"{result['module_name']}{result['name']}"
+    try:
+        result["parameters"] = result.pop("Parameters")
+    except KeyError:
+        raise ValueError(
+            "Parameters missing from description. "
+            f"Verify the function description for {function} is formatted correctly."
+        )
+    try:
+        result["return_description"] = result.pop("Returns")
+    except KeyError:
+        raise ValueError(
+            "Returns missing in description. "
+            f"Verify that there is a 'Returns:' section in the description for {function}."
+        )
+    try:
+        result["return_type"] = result.pop("Return type")
+    except KeyError:
+        raise ValueError(
+            "Return type missing from signature. "
+            f"Verify that the function signature for {function} has a return type."
+        )
 
     attach_parameter_defaults(result["parameters"], param_defaults)
 

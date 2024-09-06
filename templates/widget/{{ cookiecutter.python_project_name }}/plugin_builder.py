@@ -11,19 +11,14 @@ from watchdog.observers import Observer
 import threading
 
 # get the directory of the current file
+# this is used to watch for changes in this directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
-# navigate out one directory to get to the plugins directory
-plugins_dir = os.path.join(current_dir, "../plugins")
-# navigate up one directory to get to the project directory
-project_path = os.path.split(current_dir)[0]
 
-# these are the patterns to watch for changes in the plugins directory
+# these are the patterns to watch for changes in this directory
 # if in editable mode, the builder will rerun when these files change
 REBUILD_REGEXES = [
     ".*\.py$",
     ".*\.js$",
-    ".*\.md$",
-    ".*\.svg$",
     ".*\.ts$",
     ".*\.tsx$",
     ".*\.scss$",
@@ -40,10 +35,17 @@ IGNORE_REGEXES = [
     ".*/\..*/.*",
 ]
 
+# the path where the python files are located relative to this script
+# modify this if the python files are moved
+PYTHON_DIR = "."
+# the path where the JS files are located relative to this script
+# modify this if the JS files are moved
+JS_DIR = "./src/js"
+
 
 class PluginsChangedHandler(RegexMatchingEventHandler):
     """
-    A handler that watches for changes reruns the function when changes are detected
+    A handler that watches for changes and reruns the function when changes are detected
 
     Args:
         func: The function to run when changes are detected
@@ -136,41 +138,15 @@ class PluginsChangedHandler(RegexMatchingEventHandler):
         self.event_handler(event)
 
 
-def clean_build_dist(plugin: str) -> None:
+def clean_build_dist() -> None:
     """
-    Remove the build and dist directories for a plugin.
-
-    Args:
-        plugin: The plugin to clean.
-
-    Returns:
-        None
+    Remove the build and dist directories.
     """
     # these folders may not exist, so ignore the errors
-    if os.path.exists(f"{plugins_dir}/{plugin}/build"):
-        os.system(f"rm -rf {plugins_dir}/{plugin}/build")
-    if os.path.exists(f"{plugins_dir}/{plugin}/dist"):
-        os.system(f"rm -rf {plugins_dir}/{plugin}/dist")
-
-
-def plugin_names(
-    plugins: tuple[str],
-) -> Generator[str, None, None]:
-    """
-    Generate the plugins to use
-
-    Args:
-        plugins: The plugins to generate. If None, all plugins are yielded
-
-    Returns:
-        A generator of plugins
-    """
-    if plugins:
-        for plugin in plugins:
-            yield plugin
-    else:
-        for plugin in os.listdir(plugins_dir):
-            yield plugin
+    if os.path.exists(f"{PYTHON_DIR}/build"):
+        os.system(f"rm -rf {PYTHON_DIR}/build")
+    if os.path.exists(f"{PYTHON_DIR}/dist"):
+        os.system(f"rm -rf {PYTHON_DIR}/dist")
 
 
 def run_command(command: str) -> None:
@@ -189,57 +165,24 @@ def run_command(command: str) -> None:
         os._exit(1)
 
 
-def run_main_command(command: str) -> None:
+def run_build() -> None:
     """
-    Run a command and exit if it fails.
-    This should only be used in the main thread.
-
-    Args:
-        command: The command to run.
-
-    Returns:
-        None
-    """
-    code = os.system(command)
-    if code != 0:
-        sys.exit(1)
-
-
-def run_build(
-    plugins: tuple[str],
-    error_on_missing: bool,
-) -> None:
-    """
-    Build plugins that have a setup.cfg.
-
-    Args:
-        plugins: The plugins to build. If None, all plugins with a setup.cfg are built.
-        error_on_missing: Whether to error if a plugin does not have a setup.cfg
-
-    Returns:
-        None
+    Build the plugin
     """
 
-    for plugin in plugin_names(plugins):
-        if os.path.exists(f"{plugins_dir}/{plugin}/setup.cfg"):
-            clean_build_dist(plugin)
+    clean_build_dist()
 
-            click.echo(f"Building {plugin}")
-            run_command(f"python -m build --wheel {plugins_dir}/{plugin}")
-        elif error_on_missing:
-            click.echo(f"Error: setup.cfg not found in {plugin}")
-            os._exit(1)
+    click.echo(f"Building plugin")
+    run_command(f"python -m build --wheel {PYTHON_DIR}")
 
 
 def run_install(
-    plugins: tuple[str],
     reinstall: bool,
 ) -> None:
     """
     Install plugins that have been built
 
     Args:
-        plugins: The plugins to install. If None, all plugins with a setup.cfg are installed.
         reinstall: Whether to reinstall the plugins.
             If True, the --force-reinstall and --no-deps flags are added to pip install.
 
@@ -250,81 +193,16 @@ def run_install(
     if reinstall:
         install += " --force-reinstall --no-deps"
 
-    if plugins:
-        for plugin in plugins:
-            # a plugin would have failed in the build step if it didn't have a setup.cfg
-            click.echo(f"Installing {plugin}")
-            run_command(f"{install} {plugins_dir}/{plugin}/dist/*")
-    else:
-        click.echo("Installing all plugins")
-        run_command(f"{install} {plugins_dir}/*/dist/*")
+    click.echo("Installing plugin")
+    run_command(f"{install} {PYTHON_DIR}/dist/*.whl")
 
 
-def run_docs(
-    plugins: tuple[str],
-    error_on_missing: bool,
-) -> None:
+def run_build_js() -> None:
     """
-    Generate docs for plugins that have a make_docs.py
-
-    Args:
-        plugins: The plugins to generate docs for. If None, all plugins with a make_docs.py are built.
-        error_on_missing: Whether to error if a plugin does not have a make_docs.py
-
-    Returns:
-        None
+    Build the JS files for the plugin
     """
-    for plugin in plugin_names(plugins):
-        if os.path.exists(f"{plugins_dir}/{plugin}/make_docs.py"):
-            click.echo(f"Generating docs for {plugin}")
-            run_command(f"python {plugins_dir}/{plugin}/make_docs.py")
-        elif error_on_missing:
-            click.echo(f"Error: make_docs.py not found in {plugin}")
-            os._exit(1)
-
-
-def run_build_js(plugins: tuple[str]) -> None:
-    """
-    Build the JS files for plugins that have a js directory
-
-    Args:
-        plugins: The plugins to build. If None, all plugins with a js directory are built.
-
-    Returns:
-        None
-    """
-    if plugins:
-        for plugin in plugins:
-            if os.path.exists(f"{plugins_dir}/{plugin}/src/js"):
-                click.echo(f"Building JS for {plugin}")
-                run_command(f"npm run build --prefix {plugins_dir}/{plugin}/src/js")
-            else:
-                click.echo(f"Error: src/js not found in {plugin}")
-    else:
-        click.echo(f"Building all JS plugins")
-        run_command(f"npm run build")
-
-
-def run_configure(
-    configure: str | None,
-) -> None:
-    """
-    Configure the venv for plugin development
-
-    Args:
-        configure: The configuration to use. 'min' will install the minimum requirements for development.
-            'full' will install some optional packages for development, such as sphinx and deephaven-server.
-
-    Returns:
-        None
-    """
-    if configure in ["min", "full"]:
-        run_main_command("pip install -r requirements.txt")
-        run_main_command("pre-commit install")
-        run_main_command("npm install")
-    if configure == "full":
-        # currently deephaven-server is installed as part of the sphinx_ext requirements
-        run_main_command("pip install -r sphinx_ext/sphinx-requirements.txt")
+    click.echo(f"Building the JS plugin")
+    run_command(f"npm run build --prefix {JS_DIR}")
 
 
 def build_server_args(server_arg: tuple[str]) -> list[str]:
@@ -348,12 +226,9 @@ def handle_args(
     build: bool,
     install: bool,
     reinstall: bool,
-    docs: bool,
     server: bool,
     server_arg: tuple[str],
     js: bool,
-    configure: str | None,
-    plugins: tuple[str],
     stop_event: threading.Event,
 ) -> None:
     """
@@ -363,13 +238,9 @@ def handle_args(
         build: True to build the plugins
         install: True to install the plugins
         reinstall: True to reinstall the plugins
-        docs: True to generate the docs
         server: True to run the deephaven server after building and installing the plugins
         server_arg: The arguments to pass to the server
         js: True to build the JS files for the plugins
-        configure: The configuration to use. 'min' will install the minimum requirements for development.
-            'full' will install some optional packages for development, such as sphinx and deephaven-server.
-        plugins: Plugins to build and install
         stop_event: The event to signal the function to stop
     """
     # it is possible that the stop event is set before this function is called
@@ -377,7 +248,7 @@ def handle_args(
         return
 
     # default is to install, but don't if just configuring
-    if not any([build, install, reinstall, docs, js, configure]):
+    if not any([build, install, reinstall, js]):
         js = True
         install = True
 
@@ -387,25 +258,19 @@ def handle_args(
         return
 
     if js:
-        run_build_js(plugins)
+        run_build_js()
 
     if stop_event.is_set():
         return
 
     if build or install or reinstall:
-        run_build(plugins, len(plugins) > 0)
+        run_build()
 
     if stop_event.is_set():
         return
 
     if install or reinstall:
-        run_install(plugins, reinstall)
-
-    if stop_event.is_set():
-        return
-
-    if docs:
-        run_docs(plugins, len(plugins) > 0)
+        run_install(reinstall)
 
     if stop_event.is_set():
         return
@@ -433,60 +298,45 @@ def handle_args(
 
 
 @click.command(
-    short_help="Build and install plugins.",
+    short_help="Build and install plugin.",
     help="Build and install plugins. "
     "By default, all plugins with the necessary file are used unless specified via the plugins arg.",
 )
 @click.option(
-    "--build", "-b", is_flag=True, help="Build all plugins that have a setup.cfg"
+    "--build", "-b", is_flag=True, help="Build the plugin."
 )
 @click.option(
     "--install",
     "-i",
     is_flag=True,
-    help="Install all plugins that have a setup.cfg. This is the default behavior if no flags are provided.",
+    help="Install the plugin. This is the default behavior if no flags are provided.",
 )
 @click.option(
     "--reinstall",
     "-r",
     is_flag=True,
-    help="Reinstall all plugins that have a setup.cfg. "
+    help="Reinstall the plugin. "
     "This adds the --force-reinstall and --no-deps flags to pip install. "
-    "Useful to reinstall a plugin that has already been installed and does not have a new version number.",
-)
-@click.option(
-    "--docs",
-    "-d",
-    is_flag=True,
-    help="Generate docs for all plugins that have a make_docs.py. "
-    "There must be an installed version of the plugin to generate the docs."
-    "Consider using the --reinstall or --install flags to update the plugin before generating the docs.",
+    "Useful if the plugin has already been installed and does not have a new version number.",
 )
 @click.option(
     "--server",
     "-s",
     is_flag=True,
-    help="Run the deephaven server after building and installing the plugins.",
+    help="Run the deephaven server after building and installing the plugin.",
 )
 @click.option(
     "--server-arg",
     "-sa",
     default=tuple(),
     multiple=True,
-    help="Run the deephaven server after building and installing the plugins with the provided argument.",
+    help="Run the deephaven server after building and installing the plugin with the provided argument.",
 )
 @click.option(
     "--js",
     "-j",
     is_flag=True,
-    help="Build the JS files for the plugins.",
-)
-@click.option(
-    "--configure",
-    "-c",
-    default=None,
-    help="Configure your venv for plugin development. 'min' will install the minimum requirements for development. "
-    "'full' will install some optional packages for development, such as sphinx and deephaven-server.",
+    help="Build the JS files for the plugin.",
 )
 @click.option(
     "--watch",
@@ -496,38 +346,27 @@ def handle_args(
     "This will rerun all other commands (except configure) when files are changed. "
     "The top level directory of this project is watched.",
 )
-@click.argument("plugins", nargs=-1)
 def builder(
     build: bool,
     install: bool,
     reinstall: bool,
-    docs: bool,
     server: bool,
     server_arg: tuple[str],
     js: bool,
-    configure: str | None,
     watch: bool,
-    plugins: tuple[str],
 ) -> None:
     """
     Build and install plugins.
 
     Args:
-        build: True to build the plugins
-        install: True to install the plugins
-        reinstall: True to reinstall the plugins
-        docs: True to generate the docs
-        server: True to run the deephaven server after building and installing the plugins
+        build: True to build the plugin
+        install: True to install the plugin
+        reinstall: True to reinstall the plugin
+        server: True to run the deephaven server after building and installing the plugin
         server_arg: The arguments to pass to the server
-        js: True to build the JS files for the plugins
-        configure: The configuration to use. 'min' will install the minimum requirements for development.
-            'full' will install some optional packages for development, such as sphinx and deephaven-server.
+        js: True to build the JS files for the plugin
         watch: True to rerun the other commands when files are changed
-        plugins: Plugins to build and install
     """
-    # no matter what, only run the configure command once
-    run_configure(configure)
-
     stop_event = threading.Event()
 
     def run_handle_args() -> None:
@@ -538,12 +377,9 @@ def builder(
             build,
             install,
             reinstall,
-            docs,
             server,
             server_arg,
             js,
-            configure,
-            plugins,
             stop_event,
         )
 
@@ -561,7 +397,7 @@ def builder(
     # reruns the handler when changes are detected
     event_handler = PluginsChangedHandler(run_handle_args, stop_event)
     observer = Observer()
-    observer.schedule(event_handler, project_path, recursive=True)
+    observer.schedule(event_handler, current_dir, recursive=True)
     observer.start()
     try:
         while True:
