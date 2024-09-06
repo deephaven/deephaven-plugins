@@ -26,9 +26,7 @@ export type SerializedFocusEventCallback = (
   event: SerializedFocusEvent
 ) => void;
 
-export type DeserializedFocusEventCallback =
-  | ((e: FocusEvent) => void)
-  | undefined;
+export type DeserializedFocusEventCallback = (e: FocusEvent) => void;
 
 /**
  * Get a callback function to be passed into spectrum components
@@ -37,7 +35,7 @@ export type DeserializedFocusEventCallback =
  */
 export function useFocusEventCallback(
   callback?: SerializedFocusEventCallback
-): DeserializedFocusEventCallback {
+): DeserializedFocusEventCallback | undefined {
   const focusCallBack = useCallback(
     (e: FocusEvent) => {
       callback?.(serializeFocusEvent(e));
