@@ -1,4 +1,3 @@
-import { EMPTY_FUNCTION } from '@deephaven/utils';
 import { useFocusEventCallback } from './useFocusEventCallback';
 import { useKeyboardEventCallback } from './useKeyboardEventCallback';
 import { SerializedTextAreaEventProps } from '../model/SerializedPropTypes';
@@ -10,7 +9,7 @@ export function useTextAreaProps<T>(props: SerializedTextAreaEventProps<T>): T {
   const {
     defaultValue = '',
     value: propValue,
-    onChange: propOnChange = EMPTY_FUNCTION,
+    onChange: propOnChange,
     onFocus: propOnFocus,
     onBlur: propOnBlur,
     onKeyDown: propOnKeyDown,
