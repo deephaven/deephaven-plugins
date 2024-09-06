@@ -19,11 +19,11 @@ Recommendations for creating text fields:
 
 1. Every text field should have a [label](#labeling) specified. Without one, the text field is ambiguous. In the rare case that context is sufficient, the label is unnecessary; you must still include an aria-label via the `aria_label` prop.
 2. Text field labels and help text should follow sentence casing.
-3. A text field should not use `is_quiet` styling if it has a fixed height, given that the line underneath the field may be too far from the text to be considered part of the component.
-4. Use help text to provide instructions on input format, content, and requirements; the help text should not restate the same information as the label, or prompt a user to interact with the text field.
-5. Dynamically switch between help text and error messages based on input, ensuring both convey essential input requirements.
+3. Use help text to provide instructions on input format, content, and requirements; the help text should not restate the same information as the label, or prompt a user to interact with the text field.
+4. Dynamically switch between help text and error messages based on input, ensuring both convey essential input requirements.
 
-Consider using [`text_area`](./text_area.md) for cases where multiline input is required.
+
+Use [`text_area`](./text_area.md) for cases where multiline input is required.
 
 
 ## Value
@@ -36,12 +36,12 @@ from deephaven import ui
 
 @ui.component
 def ui_text_field_value_examples():
-    value, set_value = ui.use_state("sample_account@email.com")
+    value, set_value = ui.use_state("Aardvark")
     return [
+        ui.text_field(label="Favorite animal (Uncontrolled)", default_value="Aardvark"),
         ui.text_field(
-            label="Email (Uncontrolled)", default_value="sample_account@email.com"
+            label="Favorite animal (controlled)", value=value, on_change=set_value
         ),
-        ui.text_field(label="Email (controlled)", value=value, on_change=set_value),
     ]
 
 
@@ -63,7 +63,7 @@ my_text_field_name_example = ui.form(
 
 ## Labeling
 
-To provide a visual label for the text field, use the `label` prop. To indicate that the text area is mandatory, use the `is_required` prop.
+To provide a visual label for the text field, use the `label` prop. To indicate that the text field is mandatory, use the `is_required` prop.
 
 ```python
 from deephaven import ui
@@ -131,7 +131,7 @@ The `is_quiet` prop makes text fields "quiet". This can be useful when the text 
 from deephaven import ui
 
 
-my_text_field_is_quiet_example = ui.text_field(label="Email", is_quiet=True)
+my_text_field_is_quiet_example = ui.text_field(label="Favorite animal", is_quiet=True)
 ```
 
 
@@ -143,7 +143,9 @@ The `is_disabled` prop disables text fields to prevent user interaction. This is
 from deephaven import ui
 
 
-my_text_field_is_disabled_example = ui.text_field(label="Email", is_disabled=True)
+my_text_field_is_disabled_example = ui.text_field(
+    label="Favorite animal", is_disabled=True
+)
 ```
 
 
@@ -156,7 +158,7 @@ from deephaven import ui
 
 
 my_text_field_is_read_only_example = ui.text_field(
-    label="Email", default_value="sample@email.com", is_read_only=True
+    label="Favorite animal", default_value="Panda", is_read_only=True
 )
 ```
 
@@ -221,11 +223,11 @@ from deephaven import ui
 
 
 my_text_field_contextual_help_example = ui.text_field(
-    label="Email",
+    label="Favorite animal",
     contextual_help=ui.contextual_help(
-        ui.heading("Information about emails"),
+        ui.heading("Information about animals"),
         ui.content(
-            "Electronic mail, commonly shortened to 'email', is a method that uses electronic devices to deliver messages across networks"
+            "Animals are classified into two main categories – the vertebrates and the invertebrates."
         ),
     ),
 )
@@ -243,8 +245,8 @@ from deephaven import ui
 @ui.component
 def ui_text_field_width_examples():
     return [
-        ui.text_field(label="Email", width="size-3600"),
-        ui.text_field(label="Email", width="size-3600", max_width="100%"),
+        ui.text_field(label="Favorite animal", width="size-3600"),
+        ui.text_field(label="Favorite animal", width="size-3600", max_width="100%"),
     ]
 
 
