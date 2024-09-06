@@ -20,7 +20,7 @@ Recommendations for creating switches:
 4. When a switch represents multiple values from other switches, it should initially appear unselected; clicking it will select and unify all values, while a subsequent click will deselect and reset them.
 5. Switches can only be on or off; for partial states, use a checkbox as indeterminate switches are not accessible.
 
-Consider using a [`checkbox`](./checkbox.md) for individual selections or when marking a single item as selected. For a set of related options, use a [`checkbox_group`](./checkbox_group.md) to manage multiple selections within a group. For when users need to provide specific information that cannot be communicated by a switch, consider using the `text` component.
+Consider using a [`checkbox`](./checkbox.md) for individual selections or when marking a single item as selected.
 
 ## Value
 
