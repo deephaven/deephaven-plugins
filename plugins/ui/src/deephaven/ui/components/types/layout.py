@@ -126,7 +126,6 @@ JustifyItems = Literal[
 ]
 
 OverflowMode = Literal["wrap", "collapse"]
-
 Alignment = Literal["start", "end"]
 
 LayoutFlex = Union[str, float, bool]
