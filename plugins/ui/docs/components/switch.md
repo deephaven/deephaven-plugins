@@ -14,7 +14,7 @@ my_switch_basic = ui.switch("Low power mode")
 
 Recommendations for creating switches:
 
-1. Emphasized switches are ideal for forms and settings where the switch being noticed is crucial, while non-emphasized switches suit monochrome application panels to maintain focus on the canvas.
+1. Emphasized switches are ideal for forms and settings where the switch being noticed is crucial, while non-emphasized switches suit monochrome application panels to maintain focus on the content.
 2. Use a standalone switch when the context is clear without a text label, such as next to a panel's title to enable or disable panel options.
 3. Use switches for activation and checkboxes for selection; switches cannot have an error state, unlike checkboxes.
 4. When a switch represents multiple differing values, it should initially appear unselected; clicking it will select and unify all values, while a subsequent click will deselect and reset them.
