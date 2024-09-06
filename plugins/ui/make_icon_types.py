@@ -31,7 +31,7 @@ with open(relative_path, "r") as file:
                 ## DH Icons are always prefixed with "dh"
                 if isVsIcon:
                     noPrefix[noPrefixIcon] = icon
-                    snakeCaseNoPrefix[camel_to_snake(noPrefixIcon)] = icon
+                    snakeCaseNoPrefix[snakeCaseNoPrefixIcon] = icon
 
 output_file_path = "./src/deephaven/ui/components/types/icon_types.py"
 
