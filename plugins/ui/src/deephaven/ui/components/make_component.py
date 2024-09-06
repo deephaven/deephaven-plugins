@@ -1,6 +1,6 @@
 import functools
 import logging
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 from .._internal import get_component_qualname
 from ..elements import FunctionElement
 
@@ -17,7 +17,7 @@ def make_component(func: Callable[..., Any]):
     """
 
     @functools.wraps(func)
-    def make_component_node(*args: Any, key: str | None = None, **kwargs: Any):
+    def make_component_node(*args: Any, key: Optional[str] = None, **kwargs: Any):
         component_type = get_component_qualname(func)
         return FunctionElement(component_type, lambda: func(*args, **kwargs), key=key)
 
