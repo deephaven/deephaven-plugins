@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Any
+from inspect import signature, Parameter
 from functools import wraps
 from .basic import component_element
 from .types import (
@@ -13,14 +14,36 @@ from .types import (
 )
 
 
-def add_key_prop(f: Any) -> Any:
-    @wraps(f)
-    def wrapper(*args, key: str | None = None, **kwargs):
-        return f(*args, key=key, **kwargs)
+def wrap_prop(f: Any, wrapper: Any, desc: str) -> Any:
+    sig = signature(f)
+    params = list(sig.parameters.values())
+    wrapper_params = list(signature(wrapper).parameters.values())[1:-1]
+
+    for wrapper_param in wrapper_params:
+        params.insert(1, wrapper_param)
+
+    wrapper = wraps(f)(wrapper)
+    wrapper.__signature__ = sig.replace(parameters=params)
+    wrapper.__doc__ += f"        {desc}\n"
 
     return wrapper
 
 
+def add_key_prop(f: Any) -> Any:
+    def wrapper(*args, key: str | None = None, **kwargs):
+        return f(*args, key=key, **kwargs)
+
+    return wrap_prop(f, wrapper, "key: A unique key for the component.")
+
+
+def add_qwerty_prop(f: Any) -> Any:
+    def wrapper(*args, qwerty: int | None = None, **kwargs):
+        return f(*args, qwerty=qwerty, **kwargs)
+
+    return wrap_prop(f, wrapper, "qwerty: qwerty.")
+
+
+@add_qwerty_prop
 @add_key_prop
 def flex(
     *children: Any,
