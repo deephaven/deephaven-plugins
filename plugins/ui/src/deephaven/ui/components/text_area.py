@@ -22,7 +22,6 @@ from .types import (
     NecessityIndicator,
 )
 
-from ..types import Icon
 from .types import IconTypes
 from .basic import component_element
 from ..elements import Element

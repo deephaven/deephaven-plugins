@@ -11,6 +11,7 @@ from .types import (
     IconSize,
     IconColor,
     IconTypes,
+    IconMapping,
 )
 from .._internal.utils import create_props
 
@@ -123,4 +124,5 @@ def icon(
     """
 
     children, props = create_props(locals())
-    return BaseElement(f"deephaven.ui.icons.{name}", *children, **props)
+    normalized_name = IconMapping[name]
+    return BaseElement(f"deephaven.ui.icons.{normalized_name}", *children, **props)

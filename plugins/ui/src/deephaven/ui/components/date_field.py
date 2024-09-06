@@ -1,76 +1,116 @@
 from __future__ import annotations
 
-from typing import Callable, Any
+from typing import Any, Sequence, Callable
 
-from deephaven.table import Table, PartitionedTable
-from .basic import component_element
-from .section import SectionElement, Item
-from .item_table_source import ItemTableSource
-from ..elements import BaseElement, Element
-from .._internal.utils import create_props, unpack_item_table_source
-from ..types import Key
 from .types import (
-    AlignSelf,
-    CSSProperties,
-    DimensionValue,
-    JustifySelf,
-    LayoutFlex,
-    Position,
-    ValidationBehavior,
-    LabelPosition,
-    Alignment,
-    NecessityIndicator,
-    MenuDirection,
     FocusEventCallable,
     KeyboardEventCallable,
+    LayoutFlex,
+    DimensionValue,
+    AlignSelf,
+    JustifySelf,
+    Position,
+    AriaPressed,
+    CSSProperties,
+    LabelPosition,
+    ValidationBehavior,
+    NecessityIndicator,
+    ValidationState,
+    HourCycle,
+    Alignment,
 )
 
-PickerElement = BaseElement
+from ..elements import Element
+from .._internal.utils import (
+    create_props,
+    convert_date_props,
+)
+from ..types import Date, Granularity
+from .basic import component_element
+from .make_component import make_component
+from deephaven.time import dh_now
 
-SUPPORTED_SOURCE_ARGS = {
-    "key_column",
-    "label_column",
-    "description_column",
-    "icon_column",
-    "title_column",
+DateFieldElement = Element
+
+# All the props that can be date types
+_SIMPLE_DATE_PROPS = {
+    "placeholder_value",
+    "value",
+    "default_value",
+    "min_value",
+    "max_value",
 }
+_RANGE_DATE_PROPS = set()
+_CALLABLE_DATE_PROPS = {"on_change"}
+_GRANULARITY_KEY = "granularity"
+
+# The priority of the date props to determine the format of the date passed to the callable date props
+_DATE_PROPS_PRIORITY = ["value", "default_value", "placeholder_value"]
 
 
-def picker(
-    *children: Item | SectionElement | Table | PartitionedTable | ItemTableSource,
-    default_selected_key: Key | None = None,
-    selected_key: Key | None = None,
-    on_selection_change: Callable[[Key], None] | None = None,
-    on_change: Callable[[Key], None] | None = None,
-    is_quiet: bool | None = None,
-    align: Alignment = "start",
-    direction: MenuDirection = "bottom",
-    should_flip: bool = True,
-    menu_width: DimensionValue | None = None,
-    auto_focus: bool | None = None,
-    auto_complete: str | None = None,
-    name: str | None = None,
-    is_open: bool | None = None,
-    default_open: bool | None = None,
+def _convert_date_field_props(
+    props: dict[str, Any],
+) -> dict[str, Any]:
+    """
+    Convert date field props to Java date types.
+
+    Args:
+        props: The props passed to the date field.
+
+    Returns:
+        The converted props.
+    """
+
+    convert_date_props(
+        props,
+        _SIMPLE_DATE_PROPS,
+        _RANGE_DATE_PROPS,
+        _CALLABLE_DATE_PROPS,
+        _DATE_PROPS_PRIORITY,
+        _GRANULARITY_KEY,
+    )
+
+    return props
+
+
+@make_component
+def date_field(
+    placeholder_value: Date | None = dh_now(),
+    value: Date | None = None,
+    default_value: Date | None = None,
+    min_value: Date | None = None,
+    max_value: Date | None = None,
+    # TODO (issue # 698) we need to implement unavailable_values
+    # unavailable_values: Sequence[Date] | None = None,
+    granularity: Granularity | None = None,
+    hour_cycle: HourCycle | None = None,
+    hide_time_zone: bool = False,
+    should_force_leading_zeros: bool | None = None,
     is_disabled: bool | None = None,
+    is_read_only: bool | None = None,
     is_required: bool | None = None,
-    is_invalid: bool | None = None,
     validation_behavior: ValidationBehavior | None = None,
+    auto_focus: bool | None = None,
+    label: Element | None = None,
     description: Element | None = None,
     error_message: Element | None = None,
-    label: Element | None = None,
-    placeholder: str | None = None,
-    is_loading: bool | None = None,
-    label_position: LabelPosition = "top",
-    label_align: Alignment = "start",
-    necessity_indicator: NecessityIndicator = "icon",
+    is_open: bool | None = None,
+    default_open: bool | None = None,
+    name: str | None = None,
+    is_quiet: bool | None = None,
+    show_format_help_text: bool | None = None,
+    label_position: LabelPosition | None = None,
+    label_align: Alignment | None = None,
+    necessity_indicator: NecessityIndicator | None = None,
     contextual_help: Element | None = None,
-    on_open_change: Callable[[bool], None] | None = None,
+    validation_state: ValidationState | None = None,
     on_focus: FocusEventCallable | None = None,
     on_blur: FocusEventCallable | None = None,
     on_focus_change: Callable[[bool], None] | None = None,
     on_key_down: KeyboardEventCallable | None = None,
     on_key_up: KeyboardEventCallable | None = None,
+    on_open_change: Callable[[bool], None] | None = None,
+    on_change: Callable[[Date], None] | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,
@@ -108,69 +148,65 @@ def picker(
     z_index: int | None = None,
     is_hidden: bool | None = None,
     id: str | None = None,
-    exclude_from_tab_order: bool | None = None,
     aria_label: str | None = None,
     aria_labelledby: str | None = None,
     aria_describedby: str | None = None,
+    aria_pressed: AriaPressed | None = None,
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
-) -> PickerElement:
+) -> DateFieldElement:
     """
-    A picker that can be used to select from a list. Children should be one of five types:
-    1. If children are of type `Item`, they are the dropdown options.
-    2. If children are of type `SectionElement`, they are the dropdown sections.
-    3. If children are of type `Table`, the values in the table are the dropdown options.
-        There can only be one child, the `Table`.
-        The first column is used as the key and label by default.
-    4. If children are of type `PartitionedTable`, the values in the table are the dropdown options
-        and the partitions create multiple sections. There can only be one child, the `PartitionedTable`.
-        The first column is used as the key and label by default.
-    5. If children are of type `ItemTableSource`, complex items are created from the source.
-        There can only be one child, the `ItemTableSource`.
-        Supported ItemTableSource arguments are `key_column`, `label_column`, `description_column`,
-        `icon_column`, and `title_column`.
+    A date field allows the user to select a date.
+
 
     Args:
-        *children: The options to render within the picker.
-        default_selected_key:
-            The initial selected key in the collection (uncontrolled).
-        selected_key:
-            The currently selected key in the collection (controlled).
-        on_selection_change:
-            Handler that is called when the selection changes.
-        on_change:
-            Alias of `on_selection_change`. Handler that is called when the selection changes.
-
-        is_quiet: Whether the TextField should be displayed with a quiet style
-        align: Alignment of the menu relative to the input target.
-        direction: Direction in which the menu should open relative to the Picker.
-        should_flip: Whether the menu should flip when it reaches the viewport boundaries.
-        menu_width: Width of the menu. By default, matches width of the trigger. Note that the minimum width of the dropdown is always equal to the trigger's width.
-        auto_focus: Whether the input should be focused on render.
-        auto_complete: Describes the type of autocomplete functionality the input should provide if any.
-        name: Name of the input, used when submitting an HTML form.
-        is_open: Sets the open state of the menu.
-        default_open: Sets the default open state of the menu.
-        is_disabled: Whether the Picker is disabled.
-        is_required: Whether user input on the Picker is required before form submission.
-        is_invalid: Whether the Picker is in an invalid state.
-        validation_behavior: Whether to use native HTML form validation to prevent form submission when the value is missing or invalid, or mark the field as required or invalid via ARIA.
-        description: A description for the field. Provides a hint such as specific requirements for what to choose.
+        placeholder_value: A placeholder date that influences the format of the
+            placeholder shown when no value is selected.
+            Defaults to today at midnight in the user's timezone.
+        value: The current value (controlled).
+        default_value: The default value (uncontrolled).
+        min_value: The minimum allowed date that a user may select.
+        max_value: The maximum allowed date that a user may select.
+        granularity: Determines the smallest unit that is displayed in the date field.
+            By default, this is `"DAY"` for `LocalDate`, and `"SECOND"` otherwise.
+        hour_cycle: Whether to display the time in 12 or 24 hour format.
+            By default, this is determined by the user's locale.
+        hide_time_zone: Whether to hide the time zone abbreviation.
+        should_force_leading_zeros: Whether to always show leading zeros in the
+            month, day, and hour fields.
+            By default, this is determined by the user's locale.
+        is_disabled: Whether the input is disabled.
+        is_read_only: Whether the input can be selected but not changed by the user.
+        is_required: Whether user input is required on the input before form submission.
+        validation_behavior: Whether to use native HTML form validation to prevent form
+            submission when the value is missing or invalid,
+            or mark the field as required or invalid via ARIA.
+        auto_focus: Whether the element should receive focus on render.
+        label: The content to display as the label.
+        description: A description for the field.
+            Provides a hint such as specific requirements for what to choose.
         error_message: An error message for the field.
-        label: A label for the field.
-        placeholder: Placeholder text for the input.
-        is_loading: Whether the Picker is in a loading state.
+        is_open: Whether the overlay is open by default (controlled).
+        default_open: Whether the overlay is open by default (uncontrolled).
+        name: The name of the input element, used when submitting an HTML form.
+        is_quiet: Whether the date field should be displayed with a quiet style.
+        show_format_help_text: Whether to show the localized date format as help
+            text below the field.
         label_position: The label's overall position relative to the element it is labeling.
         label_align: The label's horizontal alignment relative to the element it is labeling.
         necessity_indicator: Whether the required state should be shown as an icon or text.
         contextual_help: A ContextualHelp element to place next to the label.
-        on_open_change: Handler that is called when the open state changes.
-        on_focus: Handler that is called when the input is focused.
-        on_blur: Handler that is called when the input loses focus.
-        on_focus_change: Handler that is called when the input is focused or blurred.
-        on_key_down: Handler that is called when a key is pressed down.
-        on_key_up: Handler that is called when a key is released.
+        validation_state: Whether the input should display its "valid" or "invalid" visual styling.
+        on_focus: Function called when the button receives focus.
+        on_blur: Function called when the button loses focus.
+        on_focus_change: Function called when the focus state changes.
+        on_key_down: Function called when a key is pressed.
+        on_key_up: Function called when a key is released.
+        on_open_change: Handler that is called when the overlay's open state changes.
+        on_change: Handler that is called when the value changes.
+            The exact `Date` type will be the same as the type passed to
+            `value`, `default_value` or `placeholder_value`, in that order of precedence.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how much the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how much the element will shrink to fit the space available.
@@ -208,21 +244,19 @@ def picker(
         z_index: The stack order of the element.
         is_hidden: Whether the element is hidden.
         id: A unique identifier for the element.
-        exclude_from_tab_order: Whether the element should be excluded from the tab order.
         aria_label: The label for the element.
         aria_labelledby: The id of the element that labels the element.
         aria_describedby: The id of the element that describes the element.
+        aria_pressed: Whether the element is pressed.
         aria_details: The details for the element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
 
-
     Returns:
-        The rendered Picker.
+        The date field element.
     """
+    _, props = create_props(locals())
 
-    children, props = create_props(locals())
+    _convert_date_field_props(props)
 
-    children, props = unpack_item_table_source(children, props, SUPPORTED_SOURCE_ARGS)
-
-    return component_element("Picker", *children, **props)
+    return component_element("DateField", **props)
