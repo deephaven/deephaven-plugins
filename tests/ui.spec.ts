@@ -48,8 +48,14 @@ test('boom counter component shows error overlay after clicking the button twice
   await expect(panelLocator.getByText('BOOM! Value too big.')).toBeVisible();
 });
 
-test('UI all components render', async ({ page }) => {
+test('UI all components render 1', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_render_all', selector.REACT_PANEL_VISIBLE);
+  await openPanel(page, 'ui_render_all1', selector.REACT_PANEL_VISIBLE);
+  await expect(page.locator(selector.REACT_PANEL_VISIBLE)).toHaveScreenshot();
+});
+
+test('UI all components render 2', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(page, 'ui_render_all2', selector.REACT_PANEL_VISIBLE);
   await expect(page.locator(selector.REACT_PANEL_VISIBLE)).toHaveScreenshot();
 });

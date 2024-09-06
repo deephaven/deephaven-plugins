@@ -28,7 +28,7 @@ from .._internal.utils import (
     convert_date_props,
     convert_list_prop,
 )
-from ..types import Date, Granularity
+from ..types import Date, Granularity, DateRange
 from .basic import component_element
 from .make_component import make_component
 from deephaven.time import dh_now
@@ -38,12 +38,10 @@ DatePickerElement = Element
 # All the props that can be date types
 _SIMPLE_DATE_PROPS = {
     "placeholder_value",
-    "value",
-    "default_value",
     "min_value",
     "max_value",
 }
-_RANGE_DATE_PROPS = set()
+_RANGE_DATE_PROPS = {"value", "default_value"}
 _LIST_DATE_PROPS = {"unavailable_values"}
 _CALLABLE_DATE_PROPS = {"on_change"}
 _GRANULARITY_KEY = "granularity"
@@ -52,14 +50,14 @@ _GRANULARITY_KEY = "granularity"
 _DATE_PROPS_PRIORITY = ["value", "default_value", "placeholder_value"]
 
 
-def _convert_date_picker_props(
+def _convert_date_range_picker_props(
     props: dict[str, Any],
 ) -> dict[str, Any]:
     """
-    Convert date picker props to Java date types.
+    Convert date range picker props to Java date types.
 
     Args:
-        props: The props passed to the date picker.
+        props: The props passed to the date range picker.
 
     Returns:
         The converted props.
@@ -78,10 +76,10 @@ def _convert_date_picker_props(
 
 
 @make_component
-def date_picker(
+def date_range_picker(
     placeholder_value: Date | None = dh_now(),
-    value: Date | None = None,
-    default_value: Date | None = None,
+    value: DateRange | None = None,
+    default_value: DateRange | None = None,
     min_value: Date | None = None,
     max_value: Date | None = None,
     # TODO (issue # 698) we need to implement unavailable_values
@@ -101,7 +99,9 @@ def date_picker(
     error_message: Element | None = None,
     is_open: bool | None = None,
     default_open: bool | None = None,
-    name: str | None = None,
+    allows_non_contiguous_ranges: bool | None = None,
+    start_name: str | None = None,
+    end_name: str | None = None,
     max_visible_months: int | None = None,
     should_flip: bool | None = None,
     is_quiet: bool | None = None,
@@ -117,7 +117,7 @@ def date_picker(
     on_key_down: KeyboardEventCallable | None = None,
     on_key_up: KeyboardEventCallable | None = None,
     on_open_change: Callable[[bool], None] | None = None,
-    on_change: Callable[[Date], None] | None = None,
+    on_change: Callable[[DateRange], None] | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,
@@ -164,7 +164,7 @@ def date_picker(
     UNSAFE_style: CSSProperties | None = None,
 ) -> DatePickerElement:
     """
-    A date picker allows the user to select a date.
+    A date range picker allows the user to select a range of dates.
 
 
     Args:
@@ -199,7 +199,10 @@ def date_picker(
         error_message: An error message for the field.
         is_open: Whether the overlay is open by default (controlled).
         default_open: Whether the overlay is open by default (uncontrolled).
-        name: The name of the input element, used when submitting an HTML form.
+        allows_non_contiguous_ranges: When combined with unavailable_values, determines
+            whether non-contiguous ranges, i.e. ranges containing unavailable dates, may be selected.
+        start_name: The name of the start date input element, used when submitting an HTML form.
+        end_name: The name of the end date input element, used when submitting an HTML form.
         max_visible_months: The maximum number of months to display at
             once in the calendar popover, if screen space permits.
         should_flip: Whether the calendar popover should automatically flip direction
@@ -267,15 +270,10 @@ def date_picker(
         UNSAFE_style: A CSS style to apply to the element.
 
     Returns:
-        The date picker element.
+        The date range picker element.
     """
     _, props = create_props(locals())
 
-    _convert_date_picker_props(props)
+    _convert_date_range_picker_props(props)
 
-    # props["unavailable_values"] = use_memo(
-    #     lambda: convert_list_prop("unavailable_values", props["unavailable_values"]),
-    #     [unavailable_values],
-    # )
-
-    return component_element("DatePicker", **props)
+    return component_element("DateRangePicker", **props)
