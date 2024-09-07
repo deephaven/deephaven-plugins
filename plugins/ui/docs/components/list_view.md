@@ -1,4 +1,4 @@
-## List View
+# List View
 
 ListView displays a list of interactive items, and allows a user to navigate, select, or perform an action. It offers greater flexibility in the contents it can render and can distinguish between row selection and actions performed on a row. This makes ListView an ideal component for use cases such as file managers.
 
