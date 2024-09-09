@@ -15,10 +15,10 @@ my_switch_basic = ui.switch("Low power mode")
 Recommendations for creating switches:
 
 1. Emphasized switches are ideal for forms and settings where the switch being noticed is crucial, while non-emphasized switches suit monochrome application panels to maintain focus on the content.
-2. Use a standalone switch when the context is clear without a text label, such as next to a panel's title to enable or disable panel options.
-3. Use switches for activation and checkboxes for selection; switches cannot have an error state, unlike checkboxes.
+2. Use a standalone switch when the context is clear without a text label, such as next to a panel's title, to enable or disable panel options.
+3. Use switches for activation and checkboxes for selection; unlike checkboxes, switches cannot have an error state.
 4. When a switch represents multiple values from other switches, it should initially appear unselected; clicking it will select and unify all values, while a subsequent click will deselect and reset them.
-5. Switches can only be on or off; for partial states, use a checkbox as indeterminate switches are not accessible.
+5. Switches can only be on or off; for partial states, use a checkbox, as indeterminate switches are not accessible.
 
 Consider using a [`checkbox`](./checkbox.md) for individual selections or when marking a single item as selected.
 
@@ -58,7 +58,7 @@ my_switch_name_example = ui.form(ui.switch("Low Power Mode", name="power", value
 
 ## Labeling
 
-The switch can be labeled by passing in a a child. If no label is provided, an `aria_label` must be provided to identify the control for accessibility purposes.
+The switch can be labeled by passing in a child. If no label is provided, an `aria_label` must be provided to identify the control for accessibility purposes.
 
 ```python
 from deephaven import ui
@@ -111,7 +111,7 @@ my_switch_is_disabled_example = ui.switch("Switch Label", is_disabled=True)
 
 ## Emphasized
 
-The `is_emphasized` prop makes the fill of the switch be the user's accent color, adding a visual prominence to the selection.
+The `is_emphasized` prop makes the switch's fill color the user's accent color, adding visual prominence to the selection.
 
 ```python
 from deephaven import ui
@@ -123,7 +123,7 @@ my_switch_is_emphasized_example = ui.switch("Switch Label", is_emphasized=True)
 
 ## Read only
 
-The `is_read_only` prop makes the switch read-only to prevent user interaction. This is different from setting the `is_disabled` prop since the switch remains focusable.
+The `is_read_only` prop makes the switch read-only to prevent user interaction. This differs from setting the `is_disabled` prop since the switch remains focusable.
 
 ```python
 from deephaven import ui
