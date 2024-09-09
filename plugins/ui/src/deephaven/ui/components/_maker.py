@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Dict
 from inspect import signature
 from functools import wraps
 from ..elements import BaseElement
@@ -17,7 +17,7 @@ params = {
 
 def make_element(
     description: str,
-    override_params: dict[str, str] = {},
+    override_params: Dict[str, str] = {},
     return_string: str | None = None,
 ):
     def decorator(f: Any):
