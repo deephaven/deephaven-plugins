@@ -74,4 +74,4 @@ jobs:
       - name: Set gsutil markdown mime type
         if: inputs.event_name == 'push'
         # some markdown files get set to octet-stream by default, so fix them
-        run: gsutil -m setmeta -h "Content-Type:text/markdown; charset=utf-8" -r "gs://${{ secrets.DOCS_GOOGLE_CLOUD_BUCKET }}/deephaven/deephaven-plugins/${{ inputs.package }}/${{ inputs.version }}/**.md"
+        run: gsutil -m setmeta -h "Content-Type:text/markdown; charset=utf-8" -r "gs://${{ secrets.DOCS_GOOGLE_CLOUD_BUCKET }}/deephaven/deephaven-plugins/${{ inputs.package }}/${{ inputs.version }}/**/*.md"
