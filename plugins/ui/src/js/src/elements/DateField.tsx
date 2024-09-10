@@ -59,7 +59,7 @@ export function DateField(
       value instanceof ZonedDateTime
     ) {
       const newValue = toTimeZone(value, timeZone);
-      onChange(newValue);
+      onChange?.(newValue);
     }
   }, [isDateFieldInstantValue, value, onChange, timeZone, prevTimeZone]);
 
