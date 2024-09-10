@@ -1,7 +1,9 @@
 from typing import Any, Dict, Optional
 from inspect import signature
 from functools import wraps
+
 from ..elements import BaseElement
+from .._internal.utils import create_props
 
 params = {
     "wrap": "Whether children should wrap when they exceed the panel's width.",
@@ -22,24 +24,26 @@ def make_element(
 ):
     def decorator(f: Any):
         nonlocal return_string
+        # Get name here so it's run once
+        name = "".join(word.capitalize() for word in f.__name__.split("_"))
 
         @wraps(f)
         def wrapper(*args, **kwargs):
-            props = f(*args, **kwargs)
-            return BaseElement(f"deephaven.ui.components.{f.__name__}", **props)
+            children, props = create_props(f(*args, **kwargs))
+            return BaseElement(f"deephaven.ui.components.{name}", *children, **props)
 
         sig = signature(f)
         if return_string is None:
-            return_string = f"The rendered {f.__name__.replace('_', ' ')} component."
+            return_string = f"The rendered {name} component."
 
         wrapper.__doc__ = f"{description}\n\nArgs:\n"
-        for name in (param.name for param in sig.parameters.values()):
-            if name in override_params:
-                wrapper.__doc__ += f"    {name}: {override_params[name]}\n"
-            elif name in params:
-                wrapper.__doc__ += f"    {name}: {params[name]}\n"
+        for param_name in (param.name for param in sig.parameters.values()):
+            if param_name in override_params:
+                wrapper.__doc__ += f"    {param_name}: {override_params[param_name]}\n"
+            elif param_name in params:
+                wrapper.__doc__ += f"    {param_name}: {params[param_name]}\n"
             else:
-                raise ValueError(f'Docs of parameter "{name}" not specified.')
+                raise ValueError(f'Docs of parameter "{param_name}" not specified.')
         wrapper.__doc__ += f"\nReturns:\n    {return_string}\n"
 
         return wrapper
