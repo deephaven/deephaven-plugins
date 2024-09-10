@@ -3,6 +3,7 @@ import {
   CalendarDate,
   CalendarDateTime,
   ZonedDateTime,
+  Time,
   parseDate,
   parseDateTime,
   parseZonedDateTime,
@@ -18,6 +19,8 @@ export type MappedDateValue<T> = T extends ZonedDateTime
   : never;
 
 export type Granularity = 'day' | 'hour' | 'minute' | 'second';
+
+export type TimeValue = Time | CalendarDateTime | ZonedDateTime;
 
 /**
  * Checks if a string is an Instant.
