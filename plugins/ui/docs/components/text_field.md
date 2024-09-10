@@ -123,6 +123,31 @@ my_text_field_on_change_example = ui_text_field_on_change_example()
 ```
 
 
+## Input Types
+
+The `type` prop can be used to change the type of text field to render to suit different input requirements. 
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def ui_text_field_input_types_examples():
+    return ui.form(
+        ui.text_field(label="Name", type="text", is_required=True),
+        ui.text_field(label="Personal Website", type="url", is_required=True),
+        ui.text_field(label="Phone", type="tel", is_required=True),
+        ui.text_field(label="Email", type="email", is_required=True),
+        ui.text_field(label="Password", type="password", is_required=True),
+        ui.text_field(label="Search Bar", type="search"),
+        validation_behavior="native",
+    )
+
+
+my_text_field_input_types_examples = ui_text_field_input_types_examples()
+```
+
+
 ## Quiet State
 
 The `is_quiet` prop makes text fields "quiet". This can be useful when the text area and its corresponding styling should not distract users from surrounding content.
