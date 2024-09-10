@@ -75,7 +75,7 @@ def time_field(
     default_value: Time | None = None,
     min_value: Time | None = None,
     max_value: Time | None = None,
-    granularity: TimeGranularity | None = None,
+    granularity: TimeGranularity | None = "SECOND",
     hour_cycle: HourCycle | None = None,
     hide_time_zone: bool = False,
     should_force_leading_zeros: bool | None = None,
@@ -151,7 +151,9 @@ def time_field(
 
 
     Args:
-        placeholder_value: A placeholder time that influences the format of the placeholder shown when no value is selected. Defaults to 12:00 AM or 00:00 depending on the hour cycle.
+        placeholder_value: A placeholder time that influences the format of the
+            placeholder shown when no value is selected. Defaults to 12:00 AM or
+            00:00 depending on the hour cycle.
         value: The current value (controlled).
         default_value: The default value (uncontrolled).
         min_value: The minimum allowed time that a user may select.

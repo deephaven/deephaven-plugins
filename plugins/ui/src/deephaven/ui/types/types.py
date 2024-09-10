@@ -507,6 +507,7 @@ TabDensity = Literal["compact", "regular"]
 Dependencies = Union[Tuple[Any], List[Any]]
 Selection = Sequence[Key]
 LocalTime = DType
+JavaTime = Union[LocalTime, Instant, ZonedDateTime]
 LocalTimeConvertible = Union[
     None,
     LocalTime,
