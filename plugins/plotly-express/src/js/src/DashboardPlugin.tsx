@@ -1,4 +1,4 @@
-import { useCallback, DragEvent, useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { nanoid } from 'nanoid';
 import {
   DashboardPluginComponentProps,
@@ -23,7 +23,7 @@ export function DashboardPlugin(
       panelId = nanoid(),
       widget,
     }: {
-      dragEvent?: DragEvent;
+      dragEvent?: MouseEvent;
       fetch: () => Promise<PlotlyChartWidget>;
       metadata?: Record<string, unknown>;
       panelId?: string;

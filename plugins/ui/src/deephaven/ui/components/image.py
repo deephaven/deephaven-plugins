@@ -108,7 +108,11 @@ def image(
         id: The unique identifier of the element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
+
+    Returns:
+        The rendered Image element.
     """
+
     return component_element(
         "Image",
         src=src,

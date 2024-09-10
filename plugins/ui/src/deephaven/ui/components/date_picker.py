@@ -30,6 +30,8 @@ from .._internal.utils import (
 )
 from ..types import Date, Granularity
 from .basic import component_element
+from .make_component import make_component
+from deephaven.time import dh_now
 
 DatePickerElement = Element
 
@@ -41,8 +43,10 @@ _SIMPLE_DATE_PROPS = {
     "min_value",
     "max_value",
 }
+_RANGE_DATE_PROPS = set()
 _LIST_DATE_PROPS = {"unavailable_values"}
 _CALLABLE_DATE_PROPS = {"on_change"}
+_GRANULARITY_KEY = "granularity"
 
 # The priority of the date props to determine the format of the date passed to the callable date props
 _DATE_PROPS_PRIORITY = ["value", "default_value", "placeholder_value"]
@@ -64,20 +68,24 @@ def _convert_date_picker_props(
     convert_date_props(
         props,
         _SIMPLE_DATE_PROPS,
+        _RANGE_DATE_PROPS,
         _CALLABLE_DATE_PROPS,
         _DATE_PROPS_PRIORITY,
+        _GRANULARITY_KEY,
     )
 
     return props
 
 
+@make_component
 def date_picker(
-    placeholder_value: Date | None = None,
+    placeholder_value: Date | None = dh_now(),
     value: Date | None = None,
     default_value: Date | None = None,
     min_value: Date | None = None,
     max_value: Date | None = None,
-    unavailable_values: Sequence[Date] | None = None,
+    # TODO (issue # 698) we need to implement unavailable_values
+    # unavailable_values: Sequence[Date] | None = None,
     granularity: Granularity | None = None,
     page_behavior: PageBehavior | None = None,
     hour_cycle: HourCycle | None = None,
@@ -167,7 +175,6 @@ def date_picker(
         default_value: The default value (uncontrolled).
         min_value: The minimum allowed date that a user may select.
         max_value: The maximum allowed date that a user may select.
-        unavailable_values: A list of dates that cannot be selected.
         granularity: Determines the smallest unit that is displayed in the date picker.
             By default, this is `"DAY"` for `LocalDate`, and `"SECOND"` otherwise.
         page_behavior: Controls the behavior of paging. Pagination either works by
@@ -266,9 +273,9 @@ def date_picker(
 
     _convert_date_picker_props(props)
 
-    props["unavailable_values"] = use_memo(
-        lambda: convert_list_prop("unavailable_values", props["unavailable_values"]),
-        [unavailable_values],
-    )
+    # props["unavailable_values"] = use_memo(
+    #     lambda: convert_list_prop("unavailable_values", props["unavailable_values"]),
+    #     [unavailable_values],
+    # )
 
     return component_element("DatePicker", **props)

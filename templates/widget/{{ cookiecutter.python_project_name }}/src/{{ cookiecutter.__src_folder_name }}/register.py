@@ -12,6 +12,7 @@ JS_NAME = "_js"
 class {{ cookiecutter.__registration_name }}(Registration):
     @classmethod
     def register_into(cls, callback: Callback) -> None:
+        callback = DheSafeCallbackWrapper(callback)
 
         # Register the Python plugin
         callback.register({{ cookiecutter.__type_name }})

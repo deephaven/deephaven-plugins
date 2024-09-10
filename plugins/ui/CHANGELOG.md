@@ -2,6 +2,49 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.21.0 - 2024-09-03
+#### Bug Fixes
+- Remove server startup from python tests (#768) - (c6c2dd2) - Joe
+#### Documentation
+- fix unclosed html tag in markdown (#791) - (fb7bd78) - Don
+- Add missing components to sidebar (#782) - (ae34f96) - mofojed
+- action button (#702) - (39d5c39) - ethanalvizo
+- image (#703) - (bc84ecb) - ethanalvizo
+#### Features
+- Allow validation_errors to be passed into ui.form (#789) - (371a825) - mofojed
+- UI Table databars (#736) - (ada20a3) - Matthew Runyon
+
+- - -
+
+## ui-v0.20.0 - 2024-08-23
+#### Bug Fixes
+- use_effect behaviour (#734) - (c091dac) - mofojed
+- autodoc failures hotfix (#748) - (dbcfef3) - Akshat Jawne
+- Remove `replay_lock` in `use_table_listener` (#749) - (acf35ec) - Joe
+- Prevent pushing broken docs to main (#719) - (86fb7aa) - Joe
+- color type (#647) - (0e4f193) - ethanalvizo
+#### Documentation
+- ui.slider (#753) - (35b3068) - Akshat Jawne
+- ui.radio_group (#758) - (c9b682a) - Akshat Jawne
+- ui.range_slider (#755) - (ddf6597) - Akshat Jawne
+- Add docs for deephaven.ui installation (#725) - (753eb38) - mofojed
+- ui.illustrated_message (#739) - (04f0a9b) - Akshat Jawne
+- Fix context menu example (#743) - (efae3f3) - Matthew Runyon
+- ui.checkbox (#722) - (0cb525e) - Akshat Jawne
+- ui.combo_box (#718) - (563504c) - Akshat Jawne
+- ui.picker (#705) - (8d95ec7) - Akshat Jawne
+- ui.view (#723) - (55aa6cc) - Akshat Jawne
+- ui.text_area (#683) - (4df5ba3) - Akshat Jawne
+- fix use_state sidebar docs links (#712) - (32bd311) - Don
+- Add docs for use_state hook (#675) - (101af33) - mofojed
+- Fix casing in the ui.table examples (#691) - (8771122) - mofojed
+#### Features
+- Javascript DatePicker Implementation (#667) - (ff48512) - dgodinez-dh
+- ui.image (#670) - (874ba97) - ethanalvizo
+- ui.text_area (#652) - (5fb24bc) - Akshat Jawne
+
+- - -
+
 ## ui-v0.19.0 - 2024-07-29
 #### Bug Fixes
 - deephaven.ui panels disappearing in some cases (#682) - (c3997d1) - mofojed

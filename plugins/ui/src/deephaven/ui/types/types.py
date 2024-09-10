@@ -455,9 +455,6 @@ AggregationOperation = Literal[
 ]
 ContextMenuModeOption = Literal["CELL", "ROW_HEADER", "COLUMN_HEADER"]
 ContextMenuMode = Union[ContextMenuModeOption, List[ContextMenuModeOption], None]
-DataBarAxis = Literal["PROPORTIONAL", "MIDDLE", "DIRECTIONAL"]
-DataBarDirection = Literal["LTR", "RTL"]
-DataBarValuePlacement = Literal["BESIDE", "OVERLAP", "HIDE"]
 # TODO: Fill in the list of Deephaven Colors we allow
 LockType = Literal["shared", "exclusive"]
 QuickFilterExpression = str
@@ -509,3 +506,87 @@ ActionGroupDensity = Literal["compact", "regular"]
 TabDensity = Literal["compact", "regular"]
 Dependencies = Union[Tuple[Any], List[Any]]
 Selection = Sequence[Key]
+
+
+class DateRange(TypedDict):
+    """
+    Range of date values for a date range picker.
+    """
+
+    start: Date
+    """
+    Start value for the date range.
+    """
+
+    end: Date
+    """
+    End value for the date range.
+    """
+
+
+DataBarAxis = Literal["PROPORTIONAL", "MIDDLE", "DIRECTIONAL"]
+DataBarDirection = Literal["LTR", "RTL"]
+DataBarValuePlacement = Literal["BESIDE", "OVERLAP", "HIDE"]
+
+
+class DatabarConfig(TypedDict):
+    """
+    Configuration for displaying a databar.
+    """
+
+    column: ColumnName
+    """
+    Name of the column to display as a databar.
+    """
+
+    value_column: NotRequired[ColumnName]
+    """
+    Name of the column to use as the value for the databar.
+    If not provided, the databar will use the column value.
+
+    This can be useful if you want to display a databar with
+    a log scale, but display the actual value in the cell.
+    In this case, the value_column would be the log of the actual value.
+    """
+
+    min: NotRequired[Union[ColumnName, float]]
+    """
+    Minimum value for the databar. Defaults to the minimum value in the column.
+
+    If a column name is provided, the minimum value will be the value in that column.
+    If a constant is providded, the minimum value will be that constant.
+    """
+
+    max: NotRequired[Union[ColumnName, float]]
+    """
+    Maximum value for the databar. Defaults to the maximum value in the column.
+
+    If a column name is provided, the maximum value will be the value in that column.
+    If a constant is providded, the maximum value will be that constant.
+    """
+
+    axis: NotRequired[DataBarAxis]
+    """
+    Whether the databar 0 value should be proportional to the min and max values,
+    in the middle of the cell, or on one side of the databar based on direction.
+    """
+
+    direction: NotRequired[DataBarDirection]
+    """
+    Direction of the databar.
+    """
+
+    value_placement: NotRequired[DataBarValuePlacement]
+    """
+    Placement of the value relative to the databar.
+    """
+
+    color: NotRequired[Color]
+    """
+    Color of the databar.
+    """
+
+    opacity: NotRequired[float]
+    """
+    Opacity of the databar fill.
+    """
