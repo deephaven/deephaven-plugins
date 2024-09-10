@@ -1,7 +1,10 @@
 @import '@deephaven/components/scss/custom.scss';
 
 .ui-portal-panel {
-  display: contents;
+  height: 100%;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
 }
 
 .ui-object-container {

@@ -125,6 +125,9 @@ JustifyItems = Literal[
     "legacy center",
 ]
 
+
+Overflow = Union[Literal["visible", "hidden", "clip", "scroll", "auto"], str]
+
 OverflowMode = Literal["wrap", "collapse"]
 
 Alignment = Literal["start", "end"]

@@ -10,6 +10,7 @@ from .types import (
     AlignContent,
     AlignItems,
     DimensionValue,
+    Overflow,
 )
 
 
@@ -24,6 +25,7 @@ def panel(
     gap: DimensionValue | None = "size-100",
     column_gap: DimensionValue | None = None,
     row_gap: DimensionValue | None = None,
+    overflow: Overflow | None = "auto",
     padding: DimensionValue | None = "size-100",
     padding_top: DimensionValue | None = None,
     padding_bottom: DimensionValue | None = None,

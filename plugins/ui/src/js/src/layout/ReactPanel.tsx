@@ -34,6 +34,7 @@ interface Props
       | 'paddingEnd'
       | 'paddingX'
       | 'paddingY'
+      | 'overflow'
       | 'UNSAFE_style'
       | 'UNSAFE_className'
     >,
@@ -64,6 +65,7 @@ function ReactPanel({
   backgroundColor,
   direction = 'column',
   wrap,
+  overflow = 'auto',
   justifyContent,
   alignContent,
   alignItems = 'start',
@@ -190,6 +192,7 @@ function ReactPanel({
             paddingEnd={paddingEnd}
             paddingX={paddingX}
             paddingY={paddingY}
+            overflow={overflow}
             UNSAFE_style={UNSAFE_style}
             UNSAFE_className={
               UNSAFE_className == null
