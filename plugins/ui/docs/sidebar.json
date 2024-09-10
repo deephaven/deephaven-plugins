@@ -70,6 +70,10 @@
             "path": "components/slider.md"
           },
           {
+            "label": "Table",
+            "path": "components/table.md"
+          },
+          {
             "label": "text_area",
             "path": "components/text_area.md"
           },
@@ -82,6 +86,10 @@
       {
         "label": "Hooks",
         "items": [
+          {
+            "label": "use_effect",
+            "path": "hooks/use_effect.md"
+          },
           {
             "label": "use_state",
             "path": "hooks/use_state.md"

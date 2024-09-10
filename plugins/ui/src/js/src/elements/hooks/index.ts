@@ -1,5 +1,5 @@
 export * from './useButtonProps';
-export * from './useDatePickerProps';
+export * from './useDateComponentProps';
 export * from './useDateRangePickerProps';
 export * from './useDateValueMemo';
 export * from './useFocusEventCallback';

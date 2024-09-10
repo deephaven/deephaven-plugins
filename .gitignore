@@ -1,3 +1,7 @@
+# When adding new files here, consider adding them to `tools/plugin_builder.py` as well.
+# particularly for large build directories with lots of files or directories that may cause infinite loops
+# because they are built by the plugin builder.
+
 node_modules
 .vscode/
 tsconfig.tsbuildinfo
