@@ -88,7 +88,7 @@ def checkbox_group(
     UNSAFE_style: CSSProperties | None = None,
 ) -> Element:
     """
-    An grouping of checkbox's that are related to each other.
+    A grouping of checkbox's that are related to each other.
     Args:
         *children: The children of the checkbox group.
         orientation: The axis the CheckboxGroup should align with.
