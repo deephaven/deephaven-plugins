@@ -22,14 +22,74 @@
         "label": "Components",
         "items": [
           {
-            "label": "Button",
+            "label": "action_button",
+            "path": "components/action_button.md"
+          },
+          {
+            "label": "button",
             "path": "components/button.md"
+          },
+          {
+            "label": "checkbox",
+            "path": "components/checkbox.md"
+          },
+          {
+            "label": "combo_box",
+            "path": "components/combo_box.md"
+          },
+          {
+            "label": "date_picker",
+            "path": "components/date_picker.md"
+          },
+          {
+            "label": "date_range_picker",
+            "path": "components/date_range_picker.md"
+          },
+          {
+            "label": "illustrated_message",
+            "path": "components/illustrated_message.md"
+          },
+          {
+            "label": "image",
+            "path": "components/image.md"
+          },
+          {
+            "label": "picker",
+            "path": "components/picker.md"
+          },
+          {
+            "label": "radio_group",
+            "path": "components/radio_group.md"
+          },
+          {
+            "label": "range_slider",
+            "path": "components/range_slider.md"
+          },
+          {
+            "label": "slider",
+            "path": "components/slider.md"
+          },
+          {
+            "label": "Table",
+            "path": "components/table.md"
+          },
+          {
+            "label": "text_area",
+            "path": "components/text_area.md"
+          },
+          {
+            "label": "view",
+            "path": "components/view.md"
           }
         ]
       },
       {
         "label": "Hooks",
         "items": [
+          {
+            "label": "use_effect",
+            "path": "hooks/use_effect.md"
+          },
           {
             "label": "use_memo",
             "path": "hooks/use_memo.md"

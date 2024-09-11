@@ -142,6 +142,9 @@ def switch(
         aria_details: The details for the element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
+
+    Returns:
+        The rendered switch element.
     """
 
     return component_element(

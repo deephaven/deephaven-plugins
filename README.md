@@ -208,12 +208,12 @@ services:
 ### Using plugin_builder.py
 
 The `tools/plugin_builder.py` script is a utility script that makes common plugin development cases easier.
-The tool uses `click` for command line argument parsing, so install it if you haven't already:
+The tool uses `click` for command line argument parsing and `watchdog` for file watching.  
 Skip the venv setup if you already have one
 ```shell
 python -m venv .venv
 source .venv/bin/activate
-pip install click
+pip install click watchdog
 ```
 
 The script can then be used to help set up your venv.
@@ -238,8 +238,8 @@ python tools/plugin_builder.py plotly-express ui
 ```
 This targeting works for all commands that target the plugins directly, such as `--docs` or `--install`.
 
-To build docs, pass the `--docs` flag.
-First install the necessary dependencies (if setup with `--configure=full` this is already done)
+To build docs, pass the `--docs` flag.  
+First install the necessary dependencies (if setup with `--configure=full` this is already done)  
 ```shell
 pip install -r sphinx_ext/sphinx-requirements.txt
 ```
@@ -249,22 +249,55 @@ This example builds the docs for the `ui` plugin:
 python tools/plugin_builder.py --docs ui
 ```
 
-To run the server, pass the `--server` flag. 
-First install `deephaven-server` if it is not already installed (if setup with `--configure=full` this is already done):
+It is necessary to install the latest version of the plugin you're building docs for before building the docs themselves.  
+Run with `--install` or `--reinstall` to install the plugin (depending on if you're installing a new version or not) 
+before building the docs.
+```shell
+python tools/plugin_builder.py --docs --install ui
+```
+After the first time install, you can drop the `--install` flag and just run the script with `--docs` unless you have plugin changes.
+
+
+To run the server, pass the `--server` flag.  
+First install `deephaven-server` if it is not already installed (if setup with `--configure=full` this is already done):  
 ```shell
 pip install deephaven-server
 ```
 
-This example reinstalls the `plotly-express` plugin, then starts the server:
+This example reinstalls the `plotly-express` plugin, then starts the server:  
 ```shell
 python tools/plugin_builder.py --reinstall --server plotly-express
 ```
 Reinstall will force reinstall the plugins (but only the plugins, not the dependencies), which is useful if there are changes to the plugins but without a bumped version number.
 
+To run the server with specific args, pass the `--server-arg` flag.  
+By default, the server is passed the `--no-browser` flag, which will prevent the server from opening a browser window.  
+This example will override that default and open the browser:
+```shell
+python tools/plugin_builder.py --server-arg --browser
+```
+Similar to other arguments, this argument can be shortened to `-sa`.  
+This example changes the port and psk and reinstalls the `ui` plugin before starting the server:  
+```shell
+python tools/plugin_builder.py -r -sa --port=9999 -sa --jvm-args="-Dauthentication.psk=mypsk" ui  
+```
+
 The js plugins can be built with the `--js` flag. This will build all js plugins or target specific ones if specified.
 This example reinstalls the `ui` plugin with js, and starts the server with shorthand flags.
 ```shell
 python tools/plugin_builder.py --js -r -s ui
+```
+
+Enable `watch` mode with the `--watch` flag. This will watch the project for changes and rerun the script with the same arguments.  
+Note that when using `--watch`, the script will not exit until stopped manually.
+For example, to watch the `plotly-express` plugin for changes and rebuild the docs when changes are made:
+```shell
+python tools/plugin_builder.py --docs --watch plotly-express
+```
+
+This example reinstalls the `ui` plugin with js, starts the server, and watches for changes.
+```shell
+python tools/plugin_builder.py -jrsw ui
 ```
 
 ## Release Management

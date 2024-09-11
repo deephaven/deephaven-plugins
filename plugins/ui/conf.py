@@ -41,5 +41,5 @@ always_use_bars_union = True
 
 from deephaven_server import Server
 
-s = Server(port=10075)
-s.start()
+# need a server instance to pull types from the autodocs
+Server(port=10075)
