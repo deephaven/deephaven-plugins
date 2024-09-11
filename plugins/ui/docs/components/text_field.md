@@ -1,6 +1,6 @@
 # Text Field
 
-Text fields are single-line text inputs, ideal for cases where users have a smaller amount of text to enter.
+Text fields are single-line text inputs, ideal for cases where users have a small amount of text to enter.
 
 ## Example
 
