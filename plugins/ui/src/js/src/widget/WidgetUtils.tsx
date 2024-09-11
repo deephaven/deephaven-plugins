@@ -78,6 +78,7 @@ const shouldWrapTextChildren = new Set<string>([
   ELEMENT_NAME.flex,
   ELEMENT_NAME.grid,
   ELEMENT_NAME.view,
+  ELEMENT_NAME.toggleButton,
 ]);
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetUtils');
