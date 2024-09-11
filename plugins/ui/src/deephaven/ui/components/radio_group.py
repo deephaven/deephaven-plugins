@@ -11,7 +11,7 @@ from .types import (
     LayoutFlex,
     Position,
     LabelPosition,
-    Align,
+    Alignment,
     # Validation
     NecessityIndicator,
     Orientation,
@@ -39,7 +39,7 @@ def radio_group(
     description: Any | None = None,
     error_message: Any | None = None,
     label_position: LabelPosition = "top",
-    label_align: Align = "start",
+    label_align: Alignment | None = None,
     necessity_indicator: NecessityIndicator = "icon",
     contextual_help: Any | None = None,
     show_error_icon: bool | None = None,
