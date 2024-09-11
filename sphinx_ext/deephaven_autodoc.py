@@ -33,7 +33,8 @@ class FunctionMetadata(TypedDict):
     name: str
 
 
-class SignatureData(TypedDict):
+# total is False to allow for popping some keys
+class SignatureData(TypedDict, total=False):
     parameters: Params
     return_description: str
     return_type: str
@@ -43,6 +44,8 @@ class SignatureData(TypedDict):
 
 
 SignatureValue = Union[str, Params]
+
+AUTOFUNCTION_COMMENT_PREFIX = "AutofunctionCommentPrefix:"
 
 
 def extract_parameter_defaults(
@@ -101,8 +104,7 @@ def extract_list_item(node: docutils.nodes.list_item) -> ParamData:
     Returns:
         The param data
     """
-    field = node.astext()
-    print(field)
+    field = node.astext().replace("\n", "<br />")
     try:
         match = re.match(r"(.+?) \((.*?)\) -- (.+)", field, re.DOTALL)
         if match is None:
@@ -155,7 +157,7 @@ def extract_field_body(
         # this is still a parameter, likely the only one in its signature
         return [extract_list_item(child)]
     elif is_paragraph:
-        return node.astext()
+        return node.astext().replace("\n", "<br />")
     elif isinstance(child, docutils.nodes.bullet_list):
         return extract_list_items(child)
     raise ValueError(
@@ -226,7 +228,7 @@ def extract_content_data(
         if isinstance(child_node, docutils.nodes.field_list):
             result.update(extract_field_list(child_node))
         elif isinstance(child_node, docutils.nodes.paragraph):
-            result["description"] = child_node.astext()
+            result["description"] = child_node.astext().replace("\n", "<br />")
 
     return result
 
@@ -306,11 +308,19 @@ def to_mdx(node: sphinx.addnodes.desc) -> docutils.nodes.comment:
 
     dat = json.dumps(result)
 
-    param_table = f"<ParamTable param={{{dat}}} />"
+    return_description = result.pop("return_description")
+    return_type = result.pop("return_type")
+
+    autofunction_markdown = (
+        f"{AUTOFUNCTION_COMMENT_PREFIX}"
+        rf"{return_description}<br /><br />"
+        rf"**Returns:** {return_type}<br /><br />"
+        rf"<ParamTable param={{{dat}}} />"
+    )
 
     # This is a little hacky, but this way the markdown renderer will not escape the special characters
     # such as * and \. The comment markers will be removed by make_docs.py.
-    return docutils.nodes.comment("", "", docutils.nodes.raw("", param_table))
+    return docutils.nodes.comment("", "", docutils.nodes.raw("", autofunction_markdown))
 
 
 class DeephavenAutodoc(AutodocDirective):
