@@ -4,7 +4,7 @@ from inspect import signature
 from functools import wraps
 
 from ..elements import BaseElement
-from .._internal.utils import create_props, to_camel_case
+from .._internal.utils import create_props, to_title_case
 
 param_descs = {
     "UNSAFE_class_name": "default",
@@ -290,7 +290,7 @@ def make_element(
 
         # Run here so it's run once
         if override_name is None:
-            override_name = to_camel_case(f.__name__)
+            override_name = to_title_case(f.__name__)
         if override_return is None:
             override_return = f"The rendered {override_name} component."
 
