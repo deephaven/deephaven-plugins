@@ -125,7 +125,7 @@ my_text_field_on_change_example = ui_text_field_on_change_example()
 
 ## Input Types
 
-The `type` prop can be used to change the type of text field to render to suit different input requirements. 
+The `type` prop changes the type of text field that is rendered to suit different input requirements. 
 
 ```python
 from deephaven import ui
