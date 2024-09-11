@@ -22,11 +22,10 @@ _override_params = {
 
 @make_element(
     "Base Flex component for laying out children in a flexbox.",
-    override_params=_override_params,
+    override_param_descs=_override_params,
 )
 def flex(
     *children: Any,
-    key: str | None = None,
     flex: LayoutFlex | None = "auto",
     direction: Direction | None = None,
     wrap: Wrap | None = None,
