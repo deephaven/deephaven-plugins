@@ -2423,7 +2423,7 @@ The time field accepts the following time types as inputs:
 
 - `None`
 - `LocaTime`
-- `ZoneDateTime`
+- `ZonedDateTime`
 - `Instant`
 - `int`
 - `str`
@@ -2441,9 +2441,9 @@ The input will be converted to one of three Java time types:
    This will create a time field with a granularity of seconds in the specified time zone. The time zone will be rendered as the specified time zone.
 
 4. If the input is one of the three Java time types, use that type.
-5. A time string such as "10:30:45" will parse to a `LocalDate`
+5. A time string such as "10:30:45" will parse to a `LocaTime`
 6. A string with a date, time, and timezone such as "2021-04-12T14:13:07 America/New_York" will parse to a `ZonedDateTime`
-7. All other types will attempt to convert in this order: `LocalDate`, `Instant`, `ZonedDateTime`
+7. All other types will attempt to convert in this order: `LocaTime`, `Instant`, `ZonedDateTime`
 
 The format of the time field and the type of the value passed to the `on_change` handler
 is determined by the type of the following props in order of precedence:
@@ -2452,7 +2452,7 @@ is determined by the type of the following props in order of precedence:
 2. `default_value`
 3. `placeholder_value`
 
-If none of these are provided, the `on_change` handler passes a range of `LocalDate`.
+If none of these are provided, the `on_change` handler passes a range of `LocaTime`.
 
 ```py
 import deephaven.ui as ui
