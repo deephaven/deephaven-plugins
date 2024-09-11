@@ -60,8 +60,8 @@ local_time = to_j_local_time("12:30:45")
 
 @ui.component
 def time_field_test(value):
-    date, set_date = ui.use_state(value)
-    return ui.time_field(on_change=set_date, value=date)
+    time, set_time = ui.use_state(value)
+    return ui.time_field(on_change=set_time, value=time)
 
 
 zoned_time_field = time_field_test(zoned_date_time)
