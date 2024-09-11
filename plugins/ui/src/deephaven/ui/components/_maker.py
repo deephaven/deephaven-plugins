@@ -1,5 +1,6 @@
-from typing import Any, Dict, Optional
-from inspect import signature, Parameter
+from __future__ import annotations
+from typing import Any
+from inspect import signature
 from functools import wraps
 
 from ..elements import BaseElement
@@ -19,9 +20,9 @@ param_descs = {
 
 def make_element(
     description: str,
-    override_name: Optional[str] = None,
-    override_param_descs: Dict[str, str] = {},
-    override_return: Optional[str] = None,
+    override_name: str | None = None,
+    override_param_descs: dict[str, str] = {},
+    override_return: str | None = None,
 ):
     """
     A decorator creator thats turns a function (that returns `global() of its props`) into a component.
