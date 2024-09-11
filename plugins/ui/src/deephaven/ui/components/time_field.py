@@ -70,7 +70,7 @@ def _convert_time_field_props(
 
 @make_component
 def time_field(
-    placeholder_value: Time | None,
+    placeholder_value: Time | None = None,
     value: Time | None = None,
     default_value: Time | None = None,
     min_value: Time | None = None,
