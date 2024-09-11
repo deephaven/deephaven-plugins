@@ -50,7 +50,7 @@ my_text_field_value_examples = ui_text_field_value_examples()
 
 ## HTML Forms
 
-Text field's can support a `name` prop for integration with HTML forms, allowing for easy identification of a value on form submission.
+Text fields can support a `name` prop for integration with HTML forms, allowing for easy identification of a value on form submission.
 
 ```python
 from deephaven import ui
