@@ -161,7 +161,7 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
     const Component = getComponentTypeForElement(newElement);
 
     if (Component != null) {
-      const { props } = newElement;
+      const props = { ...newElement.props };
       if (
         shouldWrapTextChildren.has(newElement[ELEMENT_KEY]) &&
         props?.children != null
