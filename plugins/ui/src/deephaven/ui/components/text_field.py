@@ -179,13 +179,17 @@ def text_field(
         exclude_from_tab_order: Whether the element should be excluded from the tab order.
         aria_active_descendant: Identifies the currently active element when DOM focus is on a composite widget, textbox, group, or application.
         aria_auto_complete: Indicates whether inputting text could trigger display of one or more predictions of the user's intended value for an input and specifies how predictions would be presented if they are made.
+        aria_haspopup: Indicates whether the element, or another grouping element it controls, is currently expanded or collapsed.
         aria_label: The label for the element.
-        aria_labelled_by: The id of the element that labels the current element.
-        aria_described_by: The id of the element that describes the current element.
+        aria_labelledby: The id of the element that labels the current element.
+        aria_describedby: The id of the element that describes the current element.
         aria_details: The id of the element that provides additional information about the current element.
         aria_errormessage: The id of the element that provides an error message for the current element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
+
+    Returns:
+        The rendered text field element.
     """
 
     return component_element(
