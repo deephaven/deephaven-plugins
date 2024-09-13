@@ -21,7 +21,6 @@ import {
   Switch,
   TabList,
   Text,
-  ToggleButton,
   View,
 } from '@deephaven/components';
 import { ValueOf } from '@deephaven/utils';
@@ -67,6 +66,7 @@ import {
   TabPanels,
   TextField,
   TextArea,
+  ToggleButton,
   UITable,
   Tabs,
 } from '../elements';
