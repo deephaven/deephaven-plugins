@@ -43,6 +43,8 @@ export function useListViewProps({
   selectionMode: selectionModeMaybeUppercase,
   onChange: serializedOnChange,
   onSelectionChange: serializedOnSelectionChange,
+  children,
+  renderEmptyState,
   ...otherProps
 }: SerializedListViewProps): DHListViewProps | WrappedDHListViewJSApiProps {
   const densityLc = densityMaybeUppercase?.toLowerCase() as Density | undefined;
@@ -58,6 +60,13 @@ export function useListViewProps({
     selectionMode,
     onChange,
     onSelectionChange,
+    children: (children == null ? [] : children) as ReactElement<
+      ObjectViewProps,
+      typeof ObjectView
+    >,
+    renderEmptyState:
+      renderEmptyState &&
+      ((() => renderEmptyState) as unknown as () => JSX.Element),
     // The @deephaven/components `ListView` has its own normalization logic that
     // handles primitive children types (string, number, boolean). It also
     // handles nested children inside of `Item` and `Section` components, so
