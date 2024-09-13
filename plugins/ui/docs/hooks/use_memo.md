@@ -31,8 +31,8 @@ Recommendations for memoizing values:
 
 1. **Use memoization for expensive computations**: If you have a value that is expensive to compute, use `use_memo` to memoize the value between renders.
 2. **Use dependencies**: Pass in only the dependencies that the memoized value relies on. If any of the dependencies change, the memoized value is re-computed. If another prop or state value changes, the computation is not re-run.
-3. **Do not use for cheap computations**: There is small overhead to memoizing values, so only use `use_memo` for expensive computations. If the value is cheap to compute, it is not worth memoizing.
-4. **Memoize table/plot operations**: If you are working with a table, memoize the table or plot operation storing the result in a memoized value. This will prevent the table or plot from being re-computed on every render.
+3. **Do not use for cheap computations**: There is a small overhead to memoizing values, so only use `use_memo` for expensive computations. If the value is cheap to compute, it is not worth memoizing.
+4. **Memoize table/plot operations**: If you are working with a table, memoize the table or plot operation, storing the result in a memoized value. This will prevent the table or plot from being re-computed on every render.
 
 ## Optimizing performance
 
@@ -210,7 +210,7 @@ memo_table_app = ui_memo_table_app()
 
 ## Memoize each item in a list
 
-`use_memo` is a hook, and like any other hook, can only be called at the top level of a component. Suppose you are listing several items, and you want them to be memoized individually. However, you can't use `use_memo` , as an error is thrown if the count of hooks changes between renders:
+`use_memo` is a hook, and like any other hook, can only be called at the top level of a component. Suppose you are listing several items, and you want them to be memoized individually. However, you can't use `use_memo`, as an error is thrown if the count of hooks changes between renders:
 
 ```python
 from deephaven import ui
