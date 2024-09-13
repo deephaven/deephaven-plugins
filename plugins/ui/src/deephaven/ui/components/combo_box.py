@@ -71,7 +71,7 @@ def combo_box(
     name: str | None = None,
     validation_state: ValidationState | None = None,
     label_position: LabelPosition = "top",
-    label_align: Alignment = "start",
+    label_align: Alignment | None = None,
     necessity_indicator: NecessityIndicator | None = "icon",
     contextual_help: Element | None = None,
     on_open_change: Callable[[bool, MenuTriggerAction], None] | None = None,

@@ -15,7 +15,7 @@ from .types import (
     LayoutFlex,
     Position,
     LabelPosition,
-    Align,
+    Alignment,
 )
 from .basic import component_element
 from ..elements import Element
@@ -45,7 +45,7 @@ def number_field(
     validation_state: TextFieldValidationState | None = None,
     name: str | None = None,
     label_position: LabelPosition = "top",
-    label_align: Align = "start",
+    label_align: Alignment | None = None,
     necessity_indicator: NecessityIndicator = "icon",
     contextual_help: Any | None = None,
     on_focus: FocusEventCallable | None = None,
