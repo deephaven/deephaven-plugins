@@ -163,6 +163,7 @@ def time_field(
         hour_cycle: Whether to display the time in 12 or 24 hour format.
             By default, this is determined by the user's locale.
         hide_time_zone: Whether to hide the time zone abbreviation.
+        should_force_leading_zeros: Whether to force leading zeros in the time field.
         is_disabled: Whether the input is disabled.
         is_read_only: Whether the input can be selected but not changed by the user.
         is_required: Whether user input is required on the input before form submission.
