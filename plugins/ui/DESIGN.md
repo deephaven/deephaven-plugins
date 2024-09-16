@@ -2415,6 +2415,73 @@ ui_table.sort(
 | `by`        | `str \| Sequence[str]`                                       | The column(s) to sort by. May be a single column name, or a list of column names.                           |
 | `direction` | `TableSortDirection \| Sequence[TableSortDirection] \| None` | The sort direction(s) to use. If provided, that must match up with the columns provided. Defaults to "ASC". |
 
+##### ui.table Formatting Rules
+
+Tables can be formatted via the `column_formatting` and `row_formatting` props and a variety of Dataclasses representing different formatting options. We choose to use Dataclasses as effectively a more strict dictionary. This allows for better type checking and easier to understand code.
+
+Formatting can be a variety of different options including background color, font, font color, font size, text alignment, cell rendering mode (data bars, button, etc.), and number formatting. It can be thought of as any visual manipulation of the base table display and should be flexible enough to allow for any kind of formatting that the user desires (assuming the rule is supported).
+
+The formatting rules should have 2 main properties:
+
+1. The formatting to apply.
+2. An optional conditional expression that will determine if the formatting should be applied.
+
+Outside of these 2 properties, it is up to the Dataclass to identify what kind of formatting it is and up to the web to apply that formatting. We should likely use a field like `__format_type` that is part of each Dataclass as a key for identifying formatting rules.
+
+On the client, formatting rules should be applied in the order they are defined in the list. This means that if a rule is defined later in the list, it will take precedence over a rule defined earlier in the list. There should be a `stop_if_true` or equivalent property which would not apply any further formatting rules of the same type (e.g. background color) once a matching rule has been applied. This should make it possible to still apply different formatting types even if `stop_if_true` is `True`.
+
+An example of how rules might be applied is below.
+
+```py
+from deephaven import ui, time_table
+
+_t = time_table("PT1S").update("X=i % 10", "Y=i % 10", "Z=i % 100")
+
+t = ui.table(
+        t,
+        column_formatting=[
+            ui.table_formatting.COLOR("X", "RED"),
+            ui.table_formatting.COLOR("Y", "BLUE", where="Y % 2 == 0"),
+            ui.table_formatting.NUMBER_FORMAT("Y", format="0.00"),
+            ui.table_formatting.DATABAR("Z", value_col="Z", min=0, max=100, positive_color="GREEN", negative_color="RED")
+        ],
+        row_formatting=[
+            ui.table_formatting.COLOR(where="X > 5", color="GREEN")
+        ]
+    )
+```
+
+##### ui.table Formatting Rule Types
+
+There are 3 main types of formatting rules: those which affect basic visual aspects (color, font, etc.), those which affect the display value (number formatting, etc.), and those which affect the cell rendering mode (data bars, buttons, etc.). Multiple different visual rules can be applied at the same time, but only one display value rule and one cell rendering mode rule can be applied at a time. It doesn't make sense to have a cell that is both a data bar and a button, for example. If a rule is applied conditionally, multiple display or cell rendering rules should be allowed to be applied in a column.
+
+Some examples of potential rules that fall into each category:
+
+1. Visual
+   - Background Color
+   - Font
+   - Font Color
+   - Font Size
+   - Text Alignment
+2. Display Value (not applicable to rows)
+   - Number Formatting
+   - Date Formatting
+   - DateTime Formatting
+   - String Formatting
+3. Cell Rendering Mode (not applicable to rows)
+   - Data Bars
+   - Buttons
+   - Checkboxes
+   - Icons
+
+##### ui.table Column Formatting Rules
+
+Column formatting rules apply to specific columns. All column formatting rules should have a `column` field which is the column the rule applies to. We could optionally support `columns` (or just a `columns` prop which handles both cases) which would allow for a list of columns that the rule applies to.
+
+##### ui.table Row Formatting Rules
+
+Row formatting rules apply to entire rows. Only visual rules can be applied to rows. Row formatting rules should have an `where` field which is a conditional expression that determines if the rule should be applied. This expression will be applied as a custom column (which is applied with `update_view`) to the table and may reference columns or use the query language if needed. The conditional is required for row formatting rules because otherwise they would apply to every row in the table.
+
 #### ui.fragment
 
 A fragment maps to a [React.Fragment](https://react.dev/reference/react/Fragment). This lets you group elements without using a wrapper node. It only takes children, and does not take any additional props.
