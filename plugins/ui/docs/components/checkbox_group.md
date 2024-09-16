@@ -31,7 +31,7 @@ Consider using [`checkbox_group`](./checkbox_group.md) to select or mark a singl
 
 ## Content
 
-Checkbox group's accept checkboxes and primitive types as children. Checkbox's accept a child, which is rendered as the label of the checkbox.
+Checkbox groups accept checkboxes and primitive types as children. Checkboxes accept a child, which is rendered as the label of the checkbox.
 
 ```python
 from deephaven import ui
