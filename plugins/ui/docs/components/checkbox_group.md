@@ -81,7 +81,7 @@ my_checkbox_group_value_examples = ui_checkbox_group_value_examples()
 
 ## HTML Forms
 
-Checkbox group's can support a `name` prop for integration with HTML forms, allowing for easy identification of a value on form submission.
+Checkbox groups can support a `name` prop for integration with HTML forms, allowing for easy identification of a value on form submission.
 
 ```python
 from deephaven import ui
