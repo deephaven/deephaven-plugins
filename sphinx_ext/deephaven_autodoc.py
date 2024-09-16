@@ -34,7 +34,7 @@ class FunctionMetadata(TypedDict):
 
 
 # total is False to allow for popping some keys
-class SignatureData(TypedDict, total=False):
+class SignatureData(TypedDict):
     parameters: Params
     return_description: str
     return_type: str
@@ -308,8 +308,8 @@ def to_mdx(node: sphinx.addnodes.desc) -> docutils.nodes.comment:
 
     dat = json.dumps(result)
 
-    return_description = result.pop("return_description")
-    return_type = result.pop("return_type")
+    return_description = result["return_description"]
+    return_type = result["return_type"]
 
     autofunction_markdown = (
         f"{AUTOFUNCTION_COMMENT_PREFIX}"
