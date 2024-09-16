@@ -47,7 +47,7 @@ my_checkbox_group_content_example = ui.checkbox_group(
 
 ## Value
 
-Checkbox group's allows selecting zero or more items, with initial values set via `default_value` or controlled values via `value`.
+Checkbox groups allow selecting zero or more items, with initial values set via `default_value` or controlled values via `value`.
 
 ```python
 from deephaven import ui
