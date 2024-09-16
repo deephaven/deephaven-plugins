@@ -203,7 +203,7 @@ my_checkbox_group_individual_validation_example = ui.form(
 
 ## Orientation
 
-While aligned vertically by default, the axis the checkbox's align with can be changed via the `orientation` prop.
+While aligned vertically by default, the axis with which the checkboxes align can be changed via the `orientation` prop.
 
 ```python
 from deephaven import ui
