@@ -31,7 +31,7 @@ Consider using [`checkbox_group`](./checkbox_group.md) to select or mark a singl
 
 ## Content
 
-Checkbox group's accept checkboxes and primitive types as children. Checkbox's accept a child, which is rendered as the label of the checkbox.
+Checkbox groups accept checkboxes and primitive types as children. Checkboxes accept a child, which is rendered as the label of the checkbox.
 
 ```python
 from deephaven import ui
@@ -47,7 +47,7 @@ my_checkbox_group_content_example = ui.checkbox_group(
 
 ## Value
 
-Checkbox group's allows selecting zero or more items, with initial values set via `default_value` or controlled values via `value`.
+Checkbox groups allow selecting zero or more items, with initial values set via `default_value` or controlled values via `value`.
 
 ```python
 from deephaven import ui
@@ -81,7 +81,7 @@ my_checkbox_group_value_examples = ui_checkbox_group_value_examples()
 
 ## HTML Forms
 
-Checkbox group's can support a `name` prop for integration with HTML forms, allowing for easy identification of a value on form submission.
+Checkbox groups can support a `name` prop for integration with HTML forms, allowing for easy identification of a value on form submission.
 
 ```python
 from deephaven import ui
@@ -159,7 +159,7 @@ my_checkbox_group_required_examples = ui_checkbox_group_required_examples()
 
 ## Events
 
-Checkbox group's accept an `on_change` prop, which is triggered whenever a checkbox within the group is clicked
+Checkbox groups accept an `on_change` prop, which is triggered whenever a checkbox within the group is clicked
 
 ```python
 from deephaven import ui
@@ -203,7 +203,7 @@ my_checkbox_group_individual_validation_example = ui.form(
 
 ## Orientation
 
-While aligned vertically by default, the axis the checkbox's align with can be changed via the `orientation` prop.
+While aligned vertically by default, the axis with which the checkboxes align can be changed via the `orientation` prop.
 
 ```python
 from deephaven import ui
