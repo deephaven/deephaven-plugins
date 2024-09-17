@@ -68,19 +68,6 @@ def to_camel_case(snake_case_text: str) -> str:
     return components[0] + "".join((x[0].upper() + x[1:]) for x in components[1:])
 
 
-def to_title_case(snake_case_text: str) -> str:
-    """
-    Convert a snake_case string to TitleCase.
-
-    Args:
-        snake_case_text: The snake_case string to convert.
-
-    Returns:
-        The TitleCase string.
-    """
-    return "".join(n.capitalize() for n in snake_case_text.split("_"))
-
-
 def to_react_prop_case(snake_case_text: str) -> str:
     """
     Convert a snake_case string to camelCase, with exceptions for special props like `UNSAFE_` or `aria_` props.
