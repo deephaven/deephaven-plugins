@@ -59,6 +59,7 @@ import {
   Image,
   ListView,
   Picker,
+  ProgressCircle,
   Radio,
   RadioGroup,
   RangeSlider,
@@ -69,6 +70,7 @@ import {
   ToggleButton,
   UITable,
   Tabs,
+  ProgressBar,
 } from '../elements';
 
 /**
@@ -123,6 +125,8 @@ export const elementComponentMap = {
   [ELEMENT_NAME.listView]: ListView,
   [ELEMENT_NAME.numberField]: NumberField,
   [ELEMENT_NAME.picker]: Picker,
+  [ELEMENT_NAME.progressBar]: ProgressBar,
+  [ELEMENT_NAME.progressCircle]: ProgressCircle,
   [ELEMENT_NAME.radio]: Radio,
   [ELEMENT_NAME.radioGroup]: RadioGroup,
   [ELEMENT_NAME.rangeSlider]: RangeSlider,
