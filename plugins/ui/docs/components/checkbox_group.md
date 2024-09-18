@@ -159,7 +159,7 @@ my_checkbox_group_required_examples = ui_checkbox_group_required_examples()
 
 ## Events
 
-Checkbox groups accept an `on_change` prop, which is triggered whenever a checkbox within the group is clicked
+Checkbox groups accept an `on_change` prop, triggered whenever a checkbox within the group is clicked.
 
 ```python
 from deephaven import ui
