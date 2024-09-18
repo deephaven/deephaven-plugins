@@ -31,7 +31,7 @@ Consider using [`checkbox_group`](./checkbox_group.md) to select or mark a singl
 
 ## Content
 
-Checkbox groups accept checkboxes and primitive types as children. Checkboxes accept a child, which is rendered as the label of the checkbox.
+Checkbox groups accept checkboxes and primitive types as children. Checkboxes accept a child, which is rendered as the checkbox's label.
 
 ```python
 from deephaven import ui
@@ -185,7 +185,7 @@ def ui_checkbox_group_event_example():
 my_checkbox_group_event_example = ui_checkbox_group_event_example()
 ```
 
-To require specific checkboxes to be checked, set the `is_required` prop at the Checkbox level, not the CheckboxGroup. 
+To require specific checkboxes to be checked, set the `is_required` prop at the Checkbox level, not the Checkbox Group. 
 
 ```python
 from deephaven import ui
