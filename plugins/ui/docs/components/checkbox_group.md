@@ -121,7 +121,7 @@ my_checkbox_group_label_examples = ui_checkbox_group_label_examples()
 ```
 
 
-The `is_required` prop and the `necessity_indicator` props can be used to show whether selecting an option in the checked group group is required or optional.
+The `is_required` prop and the `necessity_indicator` props can be used to show whether selecting an option in the checked group is required or optional.
 
 When the `necessity_indicator` prop is set to "label", a localized string will be generated for "(required)" or "(optional)" automatically.
 
