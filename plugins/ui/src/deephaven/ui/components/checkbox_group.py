@@ -103,7 +103,7 @@ def checkbox_group(
         label: The label of the checkbox group.
         description: A description for the checkbox group. Provides a hint such as specific requirements for what to choose.
         error_message: An error message to be displayed when the checkbox group is an errored state.
-        is-required: Whether user input is required on the input before form submission.
+        is_required: Whether user input is required on the input before form submission.
         is_invalid: Whether the checkbox group is in an invalid state.
         validation_behavior: Whether to use native HTML form validation to prevent form
             submission when the value is missing or invalid,
