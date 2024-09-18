@@ -61,9 +61,7 @@ def _render_item(item: Any, context: RenderContext) -> Any:
         The rendered item.
     """
     logger.debug("_render_item context is %s", context)
-    if isinstance(item, map):
-        return _render_map(item, context)
-    if isinstance(item, (list, tuple)):
+    if isinstance(item, (list, map, tuple)):
         # I couldn't figure out how to map a `list[Unknown]` to a `list[Any]`, or to accept a `list[Unknown]` as a parameter
         return _render_list(item, context)  # type: ignore
     if isinstance(item, dict):
@@ -78,32 +76,6 @@ def _render_item(item: Any, context: RenderContext) -> Any:
     else:
         logger.debug("render_item returning child (%s): %s", type(item), item)
         return item
-
-
-def _render_map(item: map, context: RenderContext) -> list[Any]:
-    """
-    Renders a map object. Checks if each child has a unique key and then the map as a list
-
-    Args:
-        item: The map to render.
-        context: The context to render the map in.
-
-    Returns:
-        The rendered map.
-    """
-    has_sent_error = False  # Only throw the error once
-    logger.debug("_render_map %s", item)
-    with context.open():
-        result = []
-        used_keys = set()
-        for key, value in enumerate(item):
-            if isinstance(value, Element):
-                if value.key_prop in used_keys and not has_sent_error:
-                    logger.error('Each child in a map should have a unique "key" prop.')
-                    has_sent_error = True
-                used_keys.add(value.key_prop)
-            result.append(_render_child_item(value, str(key), context))
-        return result
 
 
 def _render_list(
