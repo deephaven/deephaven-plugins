@@ -1,6 +1,6 @@
 # Checkbox Group
 
-Checkbox groups areas allow the selection of one or more items from a list of choices, represented by checkboxes.
+Checkbox group areas allow the selection of one or more items from a list of choices, represented by checkboxes.
 
 ## Example
 
