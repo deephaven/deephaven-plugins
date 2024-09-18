@@ -38,9 +38,9 @@ export function Radio({
       onBlur={onBlur}
       onKeyDown={onKeyDown}
       onKeyUp={onKeyUp}
-    >
-      {children}
-    </DHRadio>
+      // eslint-disable-next-line react/no-children-prop
+      children={children}
+    />
   );
 }
 
