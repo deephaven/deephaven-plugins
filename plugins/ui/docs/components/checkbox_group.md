@@ -236,7 +236,7 @@ my_checkbox_group_label_position_example = ui.checkbox_group(
 
 ## Help text
 
-A checkbox group can have both a `description` and an `error_message`. Use the error message to offer specific guidance on how to correct the input.
+A checkbox group can have both a `description` and an `error_message`. The error message should offer specific guidance on how to correct the input.
 
 The `is_invalid` prop can be used to set whether the current checkbox group state is valid or invalid.
 
