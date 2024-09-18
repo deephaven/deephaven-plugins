@@ -185,7 +185,7 @@ def ui_checkbox_group_event_example():
 my_checkbox_group_event_example = ui_checkbox_group_event_example()
 ```
 
-To require specific checkboxes to be checked, set the `is_required` prop at the Checkbox level, not the CheckboxGroup. 
+To require specific checkboxes to be checked, set the `is_required` prop at the Checkbox level, not the Checkbox Group. 
 
 ```python
 from deephaven import ui
