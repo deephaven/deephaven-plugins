@@ -22,7 +22,7 @@ Recommendations for creating checkbox groups:
 
 1. Every checkbox group should have a [label](#labeling) specified. Without one, the checkbox group is ambiguous. In the rare case that context is sufficient, the label is unnecessary; you must still include an aria-label via the `aria_label` prop.
 2. While labels can be placed either on top or on the side of the checkbox groups, top labels are the default recommendation. Top labels work better with longer copy, localization, and responsive layouts. Side labels are more useful when vertical space is limited.
-3. Checkbox groups can be either horizontal or vertical. Checkbox groups are vertical by default; the orientation should only be horizontal if vertical space is limited.
+3. Checkbox groups can be either horizontal or vertical. By default, they are vertical; the orientation should only be horizontal if vertical space is limited.
 4. Checkbox groups can be marked as optional or required, with required groups indicated by either a “(required)” label or an asterisk icon, which should be accompanied by help text.
 5. Checkbox groups should use help text for error messaging and descriptions, providing context for why a selection is required or clarifying the options.
 
