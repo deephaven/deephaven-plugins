@@ -89,7 +89,9 @@ def checkbox_group(
 ) -> Element:
     """
     A grouping of checkbox's that are related to each other.
+
     Args:
+
         *children: The children of the checkbox group.
         orientation: The axis the CheckboxGroup should align with.
         is_emphasized: Whether the checkbox's should be displayed with emphasized style.
