@@ -1,6 +1,6 @@
 # Checkbox Group
 
-Checkbox groups areas allow the selection of one or more items from a list of choices, represented by checkboxes.
+Checkbox group areas allow the selection of one or more items from a list of choices, represented by checkboxes.
 
 ## Example
 
@@ -22,7 +22,7 @@ Recommendations for creating checkbox groups:
 
 1. Every checkbox group should have a [label](#labeling) specified. Without one, the checkbox group is ambiguous. In the rare case that context is sufficient, the label is unnecessary; you must still include an aria-label via the `aria_label` prop.
 2. While labels can be placed either on top or on the side of the checkbox groups, top labels are the default recommendation. Top labels work better with longer copy, localization, and responsive layouts. Side labels are more useful when vertical space is limited.
-3. Checkbox groups can be either horizontal or vertical. Checkbox groups are vertical by default; the orientation should only be horizontal if vertical space is limited.
+3. Checkbox groups can be either horizontal or vertical. By default, they are vertical; the orientation should only be horizontal if vertical space is limited.
 4. Checkbox groups can be marked as optional or required, with required groups indicated by either a “(required)” label or an asterisk icon, which should be accompanied by help text.
 5. Checkbox groups should use help text for error messaging and descriptions, providing context for why a selection is required or clarifying the options.
 
@@ -121,7 +121,7 @@ my_checkbox_group_label_examples = ui_checkbox_group_label_examples()
 ```
 
 
-The `is_required` prop and the `necessity_indicator` props can be used to show whether selecting an option in the checked group group is required or optional.
+The `is_required` prop and the `necessity_indicator` props can be used to show whether selecting an option in the checked group is required or optional.
 
 When the `necessity_indicator` prop is set to "label", a localized string will be generated for "(required)" or "(optional)" automatically.
 
@@ -159,7 +159,7 @@ my_checkbox_group_required_examples = ui_checkbox_group_required_examples()
 
 ## Events
 
-Checkbox groups accept an `on_change` prop, which is triggered whenever a checkbox within the group is clicked
+Checkbox groups accept an `on_change` prop, triggered whenever a checkbox within the group is clicked.
 
 ```python
 from deephaven import ui
@@ -236,7 +236,7 @@ my_checkbox_group_label_position_example = ui.checkbox_group(
 
 ## Help text
 
-A checkbox group can have both a `description` and an `error_message`. Use the error message to offer specific guidance on how to correct the input.
+A checkbox group can have both a `description` and an `error_message`. The error message should offer specific guidance on how to correct the input.
 
 The `is_invalid` prop can be used to set whether the current checkbox group state is valid or invalid.
 
