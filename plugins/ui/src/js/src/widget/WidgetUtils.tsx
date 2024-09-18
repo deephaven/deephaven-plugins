@@ -59,6 +59,7 @@ import {
   Image,
   ListView,
   Picker,
+  ProgressBar,
   ProgressCircle,
   Radio,
   RadioGroup,
@@ -70,7 +71,6 @@ import {
   ToggleButton,
   UITable,
   Tabs,
-  ProgressBar,
 } from '../elements';
 
 /**
