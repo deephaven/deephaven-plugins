@@ -38,7 +38,9 @@ export function Radio({
       onBlur={onBlur}
       onKeyDown={onKeyDown}
       onKeyUp={onKeyUp}
-    />
+    >
+      {children}
+    </DHRadio>
   );
 }
 
