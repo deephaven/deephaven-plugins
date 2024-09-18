@@ -33,14 +33,14 @@ export function Radio({
     <DHRadio
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}
-      value={value as string}
+      value={value}
       onFocus={onFocus}
       onBlur={onBlur}
       onKeyDown={onKeyDown}
       onKeyUp={onKeyUp}
-      // eslint-disable-next-line react/no-children-prop
-      children={children}
-    />
+    >
+      {children}
+    </DHRadio>
   );
 }
 
