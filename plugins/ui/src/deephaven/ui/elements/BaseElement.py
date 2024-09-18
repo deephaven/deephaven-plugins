@@ -16,6 +16,7 @@ class BaseElement(Element):
     ):
         self._name = name
         self._keyProp = key
+        props["key"] = key
 
         if len(children) > 0 and props.get("children") is not None:
             raise ValueError("Cannot provide both children and props.children")
