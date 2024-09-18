@@ -11,7 +11,7 @@ SectionElement = Element
 
 
 def section(
-    *children: Item, title: str | None = None, key: str | None = None, **props: Any
+    *children: Item, title: str | None = None, key: str | None = None
 ) -> SectionElement:
     """
     A section that can be added to a menu, such as a picker. Children are the dropdown options.
@@ -20,7 +20,6 @@ def section(
         *children: The options to render within the section.
         title: The title of the section.
         key: A unique identifier used by React to render elements in a list.
-        **props: Any other Section prop.
 
     Returns:
         The rendered Section.
@@ -28,4 +27,4 @@ def section(
 
     children, props = create_props(locals())
 
-    return component_element("Section", *children, **props)
+    return component_element("Section", *children)
