@@ -166,6 +166,7 @@ def radio_group(
         aria_errormessage: Identifies the element that provides an error message for the object.
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
+        key: A unique identifier used by React to render elements in a list.
 
     Returns:
         The rendered radio group component.
