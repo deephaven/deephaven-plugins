@@ -85,6 +85,7 @@ def action_menu(
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
 ) -> Element:
     """
     ActionMenu combines an ActionButton with a Menu for simple "more actions" use cases.
@@ -207,4 +208,5 @@ def action_menu(
         aria_details=aria_details,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
+        key=key,
     )

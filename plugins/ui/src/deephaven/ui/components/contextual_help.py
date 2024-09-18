@@ -70,6 +70,7 @@ def contextual_help(
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
 ) -> Element:
     """
     A contextual help is a quiet action button that triggers an informational popover.
@@ -183,4 +184,5 @@ def contextual_help(
         aria_details=aria_details,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
+        key=key,
     )

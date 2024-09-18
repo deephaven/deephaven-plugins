@@ -4,7 +4,7 @@ from typing import Any
 from .basic import component_element
 
 
-def fragment(*children: Any):
+def fragment(*children: Any, key: str | None = None):
     """
     A React.Fragment: https://react.dev/reference/react/Fragment.
     Used to group elements together without a wrapper node.
@@ -12,4 +12,4 @@ def fragment(*children: Any):
     Args:
         *children: The children in the fragment.
     """
-    return component_element("Fragment", children=children)
+    return component_element("Fragment", children=children, key=key)

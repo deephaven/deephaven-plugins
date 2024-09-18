@@ -53,6 +53,7 @@ def illustrated_message(
     id: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
 ) -> Element:
     """
     An IllustratedMessage displays an illustration and a message, usually for an empty state or an error page.
@@ -145,4 +146,5 @@ def illustrated_message(
         id=id,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
+        key=key,
     )

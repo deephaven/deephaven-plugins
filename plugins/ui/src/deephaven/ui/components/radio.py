@@ -68,6 +68,7 @@ def radio(
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
 ) -> Element:
     """
     Radio buttons allow users to select a single option from a list of mutually

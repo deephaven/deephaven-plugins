@@ -93,6 +93,7 @@ def list_action_group(
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
 ) -> ListActionGroupElement:
     """
     A group of action buttons that can be used to create a list of actions.
@@ -230,4 +231,5 @@ def list_action_group(
         aria_details=aria_details,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
+        key=key,
     )

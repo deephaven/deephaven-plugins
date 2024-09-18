@@ -54,6 +54,7 @@ def tab_list(
     id: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
 ):
     """
     Python implementation for the Adobe React Spectrum TabList component.
@@ -140,4 +141,5 @@ def tab_list(
         id=id,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
+        key=key,
     )

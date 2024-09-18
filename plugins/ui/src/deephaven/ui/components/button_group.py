@@ -59,6 +59,7 @@ def button_group(
     id: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
 ) -> Element:
     """
     A button group is a grouping of button whose actions are related to each other.
@@ -147,4 +148,5 @@ def button_group(
         id=id,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
+        key=key,
     )

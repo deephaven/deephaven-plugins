@@ -10,13 +10,16 @@ from .item import Item
 SectionElement = Element
 
 
-def section(*children: Item, title: str | None = None, **props: Any) -> SectionElement:
+def section(
+    *children: Item, title: str | None = None, key: str | None = None, **props: Any
+) -> SectionElement:
     """
     A section that can be added to a menu, such as a picker. Children are the dropdown options.
 
     Args:
         *children: The options to render within the section.
         title: The title of the section.
+        key: A unique identifier used by React to render elements in a list.
         **props: Any other Section prop.
 
     Returns:
