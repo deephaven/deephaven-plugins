@@ -11,5 +11,6 @@ def fragment(*children: Any, key: str | None = None):
 
     Args:
         *children: The children in the fragment.
+        key: A unique identifier used by React to render elements in a list.
     """
     return component_element("Fragment", children=children, key=key)
