@@ -17,6 +17,10 @@ export function ListView(props: SerializedListViewProps): JSX.Element | null {
   const isObjectView = isElementOfType(children, ObjectView);
   const table = useReExportedTable(children);
 
+  if (children == null) {
+    throw new Error('Children must be defined for list_view.');
+  }
+
   if (isObjectView) {
     return (
       table && (
