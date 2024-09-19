@@ -184,6 +184,7 @@ function ReactPanel({
         <ReactPanelContext.Provider value={panelId}>
           <View
             height="100%"
+            width="100%"
             backgroundColor={backgroundColor}
             padding={padding}
             paddingTop={paddingTop}
@@ -202,7 +203,6 @@ function ReactPanel({
           >
             <Flex
               UNSAFE_className="dh-inner-react-panel"
-              height="100%"
               wrap={wrap}
               direction={direction}
               justifyContent={justifyContent}

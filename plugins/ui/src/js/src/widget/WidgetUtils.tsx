@@ -80,6 +80,11 @@ const shouldWrapTextChildren = new Set<string>([
   ELEMENT_NAME.view,
 ]);
 
+const shouldAddClassName = new Set<string>([
+  ELEMENT_NAME.flex,
+  ELEMENT_NAME.grid,
+]);
+
 const log = Log.module('@deephaven/js-plugin-ui/WidgetUtils');
 
 /*
@@ -160,14 +165,22 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
     const Component = getComponentTypeForElement(newElement);
 
     if (Component != null) {
-      const props =
+      const props = newElement.props ?? {};
+
+      if (
         shouldWrapTextChildren.has(newElement[ELEMENT_KEY]) &&
         newElement.props?.children != null
-          ? {
-              ...newElement.props,
-              children: wrapTextChildren(newElement.props.children),
-            }
-          : newElement.props;
+      ) {
+        props.children = wrapTextChildren(newElement.props.children);
+      }
+
+      // classes can be used for deephaven ui specific css
+      // "deephaven.ui.components.Grid" -> "dh-grid"
+      if (shouldAddClassName.has(newElement[ELEMENT_KEY])) {
+        props.UNSAFE_className = `${props.UNSAFE_className ?? ''} ${`dh-${
+          newElement[ELEMENT_KEY].split('.').pop()?.toLowerCase() ?? ''
+        }`}`.trim();
+      }
 
       return <Component {...props} />;
     }
