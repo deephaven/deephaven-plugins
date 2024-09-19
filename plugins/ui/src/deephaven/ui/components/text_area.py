@@ -15,14 +15,14 @@ from .types import (
     LayoutFlex,
     Position,
     LabelPosition,
-    Align,
+    Alignment,
     # Validation
     TextFieldInputMode,
     TextFieldValidationState,
     NecessityIndicator,
 )
 
-from ..types import Icon
+from .types import IconTypes
 from .basic import component_element
 from ..elements import Element
 
@@ -30,7 +30,7 @@ from .icon import icon as icon_component
 
 
 def text_area(
-    icon: Element | Icon | None = None,
+    icon: Element | IconTypes | None = None,
     is_quiet: bool | None = None,
     is_disabled: bool | None = None,
     is_read_only: bool | None = None,
@@ -48,7 +48,7 @@ def text_area(
     name: str | None = None,
     validation_state: TextFieldValidationState | None = None,
     label_position: LabelPosition = "top",
-    label_align: Align = "start",
+    label_align: Alignment | None = None,
     necessity_indicator: NecessityIndicator = "icon",
     contextual_help: Any | None = None,
     on_focus: FocusEventCallable | None = None,
@@ -193,7 +193,7 @@ def text_area(
 
     return component_element(
         "TextArea",
-        icon=icon_component(icon) if type(icon) == str else icon,
+        icon=icon_component(name=icon) if type(icon) == str else icon,
         is_quiet=is_quiet,
         is_disabled=is_disabled,
         is_read_only=is_read_only,

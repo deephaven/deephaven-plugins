@@ -21,7 +21,6 @@ import {
   Switch,
   TabList,
   Text,
-  ToggleButton,
   View,
 } from '@deephaven/components';
 import { ValueOf } from '@deephaven/utils';
@@ -35,6 +34,7 @@ import {
   isCallableNode,
   CALLABLE_KEY,
   wrapTextChildren,
+  isPrimitive,
 } from '../elements/utils/ElementUtils';
 import HTMLElementView from '../elements/HTMLElementView';
 import { isHTMLElementNode } from '../elements/utils/HTMLElementUtils';
@@ -51,6 +51,7 @@ import {
   ActionGroup,
   Button,
   ComboBox,
+  DateField,
   DatePicker,
   DateRangePicker,
   Form,
@@ -65,6 +66,7 @@ import {
   TabPanels,
   TextField,
   TextArea,
+  ToggleButton,
   UITable,
   Tabs,
 } from '../elements';
@@ -105,6 +107,7 @@ export const elementComponentMap = {
   [ELEMENT_NAME.comboBox]: ComboBox,
   [ELEMENT_NAME.content]: Content,
   [ELEMENT_NAME.contextualHelp]: ContextualHelp,
+  [ELEMENT_NAME.dateField]: DateField,
   [ELEMENT_NAME.datePicker]: DatePicker,
   [ELEMENT_NAME.dateRangePicker]: DateRangePicker,
   [ELEMENT_NAME.flex]: Flex,
@@ -158,14 +161,20 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
     const Component = getComponentTypeForElement(newElement);
 
     if (Component != null) {
-      const props =
+      const props = { ...newElement.props };
+      if (
         shouldWrapTextChildren.has(newElement[ELEMENT_KEY]) &&
-        newElement.props?.children != null
-          ? {
-              ...newElement.props,
-              children: wrapTextChildren(newElement.props.children),
-            }
-          : newElement.props;
+        props?.children != null
+      ) {
+        props.children = wrapTextChildren(props.children);
+      }
+      if (props?.contextualHelp != null && isPrimitive(props.contextualHelp)) {
+        props.contextualHelp = (
+          <ContextualHelp>
+            <Content>{props.contextualHelp}</Content>
+          </ContextualHelp>
+        );
+      }
 
       return <Component {...props} />;
     }
