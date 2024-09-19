@@ -39,7 +39,7 @@ def form(
     auto_complete: AutoCompleteModes | None = None,
     auto_capitalize: AutoCapitalizeModes | None = None,
     label_position: LabelPosition = "top",
-    label_align: Alignment = "start",
+    label_align: Alignment | None = None,
     necessity_indicator: NecessityIndicator = "icon",
     on_submit: Callable[[dict[str, str]], None] | None = None,
     on_reset: Callable[[dict[str, str]], None] | None = None,

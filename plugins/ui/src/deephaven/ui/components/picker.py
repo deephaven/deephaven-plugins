@@ -62,7 +62,7 @@ def picker(
     placeholder: str | None = None,
     is_loading: bool | None = None,
     label_position: LabelPosition = "top",
-    label_align: Alignment = "start",
+    label_align: Alignment | None = None,
     necessity_indicator: NecessityIndicator = "icon",
     contextual_help: Element | None = None,
     on_open_change: Callable[[bool], None] | None = None,
