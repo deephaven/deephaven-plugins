@@ -1,6 +1,7 @@
 from __future__ import annotations
+from dataclasses import asdict as dataclass_asdict, is_dataclass
 import logging
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any
 from .._internal import RenderContext
 from ..elements import Element, PropsType
 from .RenderedNode import RenderedNode
@@ -8,7 +9,7 @@ from .RenderedNode import RenderedNode
 logger = logging.getLogger(__name__)
 
 
-def _get_context_key(item: Any, index_key: str) -> Union[str, None]:
+def _get_context_key(item: Any, index_key: str) -> str:
     """
     Get a key for an item provided at the array/dict `index_key`. This is used to uniquely identify the item in the
     render context.
@@ -20,15 +21,12 @@ def _get_context_key(item: Any, index_key: str) -> Union[str, None]:
     Returns:
         The key for the item in the render context.
         - If `item` is an `Element` generate a key based on the `index_key` and the `name` of the `Element`.
-        - If the item is another iterable, just return the `index_key`.
-        - Otherwise, return `None` as the key.
+        - Otherwise, return `index_key` as the key.
         - TODO #731: use a `key` prop if it exists on the `Element`.
     """
     if isinstance(item, Element):
         return f"{index_key}-{item.name}"
-    if isinstance(item, (Dict, List, Tuple)):
-        return index_key
-    return None
+    return index_key
 
 
 def _render_child_item(item: Any, index_key: str, context: RenderContext) -> Any:
@@ -44,9 +42,7 @@ def _render_child_item(item: Any, index_key: str, context: RenderContext) -> Any
         The rendered item.
     """
     key = _get_context_key(item, index_key)
-    return (
-        _render_item(item, context.get_child_context(key)) if key is not None else item
-    )
+    return _render_item(item, context.get_child_context(key))
 
 
 def _render_item(item: Any, context: RenderContext) -> Any:
@@ -73,6 +69,9 @@ def _render_item(item: Any, context: RenderContext) -> Any:
             item,
         )
         return _render_element(item, context)
+    # If the item is an instance of a dataclass
+    if is_dataclass(item) and not isinstance(item, type):
+        return _render_dict(dataclass_asdict(item), context)  # type: ignore
     else:
         logger.debug("render_item returning child (%s): %s", type(item), item)
         return item
