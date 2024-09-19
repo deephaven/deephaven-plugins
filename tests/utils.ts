@@ -57,6 +57,9 @@ export async function openPanel(
     expect(targetPanel).toBeEnabled();
     await targetPanel.click();
 
+    // reset mouse position to not cause unintended hover effects
+    await page.mouse.move(0, 0);
+
     // check for panel to be loaded
     await expect(page.locator(panelLocator)).toHaveCount(panelCount + 1);
     await expect(page.locator('.loading-spinner')).toHaveCount(0);
