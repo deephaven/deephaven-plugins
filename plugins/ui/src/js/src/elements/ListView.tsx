@@ -3,6 +3,7 @@ import { isElementOfType } from '@deephaven/react-hooks';
 import { getSettings, RootState } from '@deephaven/redux';
 import { ListView as DHListView } from '@deephaven/components';
 import { ListView as DHListViewJSApi } from '@deephaven/jsapi-components';
+import { assertNotNull } from '@deephaven/utils';
 import {
   SerializedListViewProps,
   useListViewProps,
@@ -17,9 +18,7 @@ export function ListView(props: SerializedListViewProps): JSX.Element | null {
   const isObjectView = isElementOfType(children, ObjectView);
   const table = useReExportedTable(children);
 
-  if (children == null) {
-    throw new Error('Children must be defined for list_view.');
-  }
+  assertNotNull(children, 'Children must be defined for list_view.');
 
   if (isObjectView) {
     return (
