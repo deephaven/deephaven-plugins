@@ -15,7 +15,7 @@ from .types import (
     LayoutFlex,
     Position,
     LabelPosition,
-    Align,
+    Alignment,
     # Validation
     TextFieldInputMode,
     TextFieldValidationState,
@@ -48,7 +48,7 @@ def text_area(
     name: str | None = None,
     validation_state: TextFieldValidationState | None = None,
     label_position: LabelPosition = "top",
-    label_align: Align = "start",
+    label_align: Alignment | None = None,
     necessity_indicator: NecessityIndicator = "icon",
     contextual_help: Any | None = None,
     on_focus: FocusEventCallable | None = None,

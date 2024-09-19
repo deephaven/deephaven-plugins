@@ -152,7 +152,6 @@ CSSProperties = Dict[str, Any]
 A dictionary of CSS properties.
 """
 LabelPosition = Literal["top", "side"]
-Align = Literal["start", "end"]
 
 GridFlow = Literal["row", "column", "row dense", "column dense"]
 BorderSize = Literal["none", "thin", "thick", "thicker", "thickest"]
