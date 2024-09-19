@@ -22,10 +22,10 @@ def _get_context_key(item: Any, index_key: str) -> Union[str, None]:
         - If `item` is an `Element` generate a key based on the `index_key` and the `name` of the `Element`.
         - If the item is another iterable, just return the `index_key`.
         - Otherwise, return `None` as the key.
-        - TODO #731: use a `key` prop if it exists on the `Element`.
     """
     if isinstance(item, Element):
-        return item.generate_key(index_key)
+        key = item.key
+        return key if key is not None else f"{index_key}-{item.name}"
     if isinstance(item, (Dict, List, Tuple, map)):
         return index_key
     return None

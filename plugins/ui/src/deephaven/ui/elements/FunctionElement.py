@@ -20,20 +20,15 @@ class FunctionElement(Element):
         """
         self._name = name
         self._render = render
-        self._keyProp = key
+        self._key = key
 
     @property
     def name(self):
         return self._name
 
     @property
-    def key_prop(self) -> str | None:
-        return self._keyProp
-
-    def generate_key(self, index_key: str) -> str:
-        if self._keyProp is not None:
-            return self._keyProp
-        return f"{index_key}-{self._name}"
+    def key(self) -> str | None:
+        return self._key
 
     def render(self, context: RenderContext) -> PropsType:
         """

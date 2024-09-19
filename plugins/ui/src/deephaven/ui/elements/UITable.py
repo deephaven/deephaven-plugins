@@ -124,10 +124,15 @@ class UITable(Element):
 
         # Store all the props that were passed in
         self._props = UITableProps(**props, table=table)
+        self._key = props.get("key")
 
     @property
     def name(self):
         return "deephaven.ui.elements.UITable"
+
+    @property
+    def key(self) -> str | None:
+        return self._key
 
     def _with_prop(self, key: str, value: Any) -> "UITable":
         """
@@ -184,9 +189,6 @@ class UITable(Element):
             self._props.get(key) or {}
         )  # Turn missing or explicit None into empty dict
         return UITable(**{**self._props, key: {**existing, **value}})  # type: ignore
-
-    def generate_key(self, index_key: str) -> str:
-        return f"{index_key}-{self.name}"
 
     def render(self, context: RenderContext) -> dict[str, Any]:
         logger.debug("Returning props %s", self._props)

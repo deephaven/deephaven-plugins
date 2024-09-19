@@ -15,7 +15,7 @@ class BaseElement(Element):
         self, name: str, /, *children: Any, key: str | None = None, **props: Any
     ):
         self._name = name
-        self._keyProp = key
+        self._key = key
         props["key"] = key
 
         if len(children) > 0 and props.get("children") is not None:
@@ -34,13 +34,8 @@ class BaseElement(Element):
         return self._name
 
     @property
-    def key_prop(self) -> str | None:
-        return self._keyProp
-
-    def generate_key(self, index_key: str) -> str:
-        if self._keyProp is not None:
-            return self._keyProp
-        return f"{index_key}-{self._name}"
+    def key(self) -> str | None:
+        return self._key
 
     def render(self, context: RenderContext) -> dict[str, Any]:
         return self._props
