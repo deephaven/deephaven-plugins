@@ -13,8 +13,7 @@ Within the `src` directory, the {{ cookiecutter.python_project_name }} directory
 The Python files have the following structure:  
 `{{ cookiecutter.__object_file_name }}.py` defines a simple Python class that can send messages to the client. This object can be modified to have other plugin functionality or replaced with a different object entirely, depending on the plugin's needs.  
 `{{ cookiecutter.__type_file_name }}.py` defines the Python type for the plugin (which is used for registration) and a simple message stream. These can be modified to handle different objects or messages. An initial message is sent from the Python side to the client, then additional messages can be sent back and forth.  
-`js_plugin.py` defines the Python class that will be used to setup the JavaScript side of the plugin.  
-`register.py` registers the plugin with Deephaven. This file will not need to be modified for most plugins at the initial stages, but will need to be if the package is renamed or JavaScript files are moved.  
+`register.py` registers the plugin with Deephaven. This file will not need to be modified for most plugins at the initial stages, but will need to be if the package is renamed or JavaScript files are moved.
 
 The JavaScript files have the following structure:  
 `{{ cookiecutter.__js_plugin_obj }}.ts` registers the plugin with Deephaven. This contains the client equivalent of the type in `{{ cookiecutter.__type_file_name }}.py` and these should be kept in sync.  
