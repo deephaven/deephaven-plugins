@@ -78,6 +78,7 @@ def progress_circle(
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
 ) -> ProgressCircleElement:
     """
     ProgressCircles show the progression of a system operation such as downloading, uploading, or processing, in a visual way. They can represent determinate or indeterminate progress.
@@ -137,6 +138,7 @@ def progress_circle(
         aria_details: The details for the element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
+        key: A unique identifier used by React to render elements in a list.
 
     Returns:
         The rendered ProgressCircle element.
@@ -197,4 +199,5 @@ def progress_circle(
         aria_details=aria_details,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
+        key=key,
     )
