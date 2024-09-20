@@ -22,6 +22,16 @@ class Element(ABC):
         """
         return "deephaven.ui.Element"
 
+    @property
+    def key(self) -> str | None:
+        """
+        Get the key prop of this element. Useful to check if a key prop was provided.
+
+        Returns:
+            The unique key prop of this element.
+        """
+        return None
+
     @abstractmethod
     def render(self, context: RenderContext) -> PropsType:
         """

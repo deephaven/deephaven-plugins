@@ -1,4 +1,5 @@
 from deephaven import ui
+from itertools import count
 
 
 @ui.component
@@ -31,6 +32,44 @@ def ui_boom_counter_component():
     return ui.button(f"Count is {value}", on_press=lambda _: set_value(value + 1))
 
 
+@ui.component
+def ui_cell(label: str = "Cell"):
+    text, set_text = ui.use_state("")
+
+    return ui.text_field(label=label, value=text, on_change=set_text)
+
+
+@ui.component
+def ui_cells():
+    id_iter, _ = ui.use_state(lambda: count())
+    cells, set_cells = ui.use_state(lambda: [next(id_iter)])
+
+    def add_cell():
+        set_cells(lambda old_cells: old_cells + [next(id_iter)])
+
+    def delete_cell(delete_id: int):
+        set_cells(lambda old_cells: [c for c in old_cells if c != delete_id])
+
+    return ui.view(
+        map(
+            lambda i: ui.flex(
+                ui_cell(label=f"Cell {i}"),
+                ui.action_button(
+                    ui.icon("vsTrash"),
+                    aria_label="Delete cell",
+                    on_press=lambda: delete_cell(i),
+                ),
+                align_items="end",
+                key=str(i),
+            ),
+            cells,
+        ),
+        ui.action_button(ui.icon("vsAdd"), "Add cell", on_press=add_cell),
+        overflow="auto",
+    )
+
+
 ui_component = ui_basic_component()
 ui_boom = ui_boom_component()
 ui_boom_counter = ui_boom_counter_component()
+ui_cells = ui_cells()
