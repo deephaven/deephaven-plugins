@@ -18,13 +18,13 @@ progress_circle = ui_progress_circle()
 
 ## UI Recommendations
 
-1. Use the appropriate size based on parent's size
-2. Use `static_color="white"` or `static_color="white"` if necessary to make sure the progress circle has enough contrast with the background
-3. If the value of the progress is unknown, use `is_indeterminate=True`
+1. Use the appropriate size based on the parent's size.
+2. Use `static_color="white"` or `static_color="black"` if necessary to make sure the progress circle has enough contrast with the background.
+3. If the value of the progress is unknown, use `is_indeterminate=True`.
 
 ## Visual Options
 
-Progress Circle comes in 3 different sizes by the `size` prop: `"S"`, `"M"`, and `"L"`. Furthermore, the `static_color` prop can be used to control the color of the progress circle.
+Progress Circle comes in three different sizes determined by the `size` prop: `"S"`, `"M"`, and `"L"`. Furthermore, the `static_color` prop can be used to control the color of the progress circle.
 
 ```python
 def progress_circle_variants():
