@@ -84,6 +84,7 @@ def checkbox(
     aria_errormessage: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
 ) -> Element:
     """
     Checkboxes allow users to select multiple items from a list of individual items, or to mark one individual item as selected.
@@ -153,6 +154,7 @@ def checkbox(
         aria_errormessage: The id of the element that provides error information for the current element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
+        key: A unique identifier used by React to render elements in a list.
 
     Returns:
         The rendered checkbox.
@@ -226,4 +228,5 @@ def checkbox(
         aria_errormessage=aria_errormessage,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
+        key=key,
     )

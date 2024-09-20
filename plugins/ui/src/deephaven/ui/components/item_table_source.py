@@ -32,6 +32,7 @@ def item_table_source(
     icon_column: ColumnName | None = None,
     title_column: ColumnName | None = None,
     actions: ListActionGroupElement | ListActionMenuElement | None = None,
+    key: str | None = None,
 ) -> ItemTableSource:
     """
     An item table source wraps a Table or PartitionedTable to provide additional information for
@@ -58,6 +59,8 @@ def item_table_source(
             If not specified, the section titles will be created from the key_columns of the PartitionedTable.
         actions:
             The action group or menus to render for all elements within the component, if supported.
+        key:
+            A unique identifier used by React to render elements in a list.
 
     Returns:
         The item table source to pass as a child to a component that supports it.
