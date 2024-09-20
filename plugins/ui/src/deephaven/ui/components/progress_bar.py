@@ -18,7 +18,7 @@ from .types import (
 from .basic import component_element
 from ..elements import Element
 
-ProgressBarButton = Element
+ProgressBarElement = Element
 
 
 def progress_bar(
@@ -81,7 +81,7 @@ def progress_bar(
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
-):
+) -> ProgressBarElement:
     """
     ProgressBars show the progression of a system operation: downloading, uploading, processing, etc., in a visual way. They can represent either determinate or indeterminate progress.
 

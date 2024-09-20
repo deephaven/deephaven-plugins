@@ -20,7 +20,7 @@ from .types import (
 from .basic import component_element
 from ..elements import Element
 
-ProgressCircleButton = Element
+ProgressCircleElement = Element
 
 
 def progress_circle(
@@ -78,7 +78,7 @@ def progress_circle(
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
-):
+) -> ProgressCircleElement:
     """
     ProgressCircles show the progression of a system operation such as downloading, uploading, or processing, in a visual way. They can represent determinate or indeterminate progress.
 
