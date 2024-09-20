@@ -61,6 +61,7 @@ export const ELEMENT_NAME = {
   text: uiComponentName('Text'),
   textArea: uiComponentName('TextArea'),
   textField: uiComponentName('TextField'),
+  timeField: uiComponentName('TimeField'),
   toggleButton: uiComponentName('ToggleButton'),
   view: uiComponentName('View'),
 } as const;
