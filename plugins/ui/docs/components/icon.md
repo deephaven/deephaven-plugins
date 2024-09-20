@@ -10,7 +10,7 @@ from deephaven import ui
 
 @ui.component
 def icons():
-    icon = ui.icon(name="dhTruck")
+    icon = ui.icon(name="filter")
 
     return icon
 
@@ -53,9 +53,14 @@ def icon_search_example():
                 )
             )
 
-        return ui.flex(entries, wrap="wrap")
+        return ui.grid(entries, columns=[200, 200, 200, 200], auto_rows="size-800")
 
-    return [ui.text_field(ui.icon("search"), on_change=filter_icons), render_icons()]
+    return [
+        ui.text_field(
+            ui.icon("search"), on_change=filter_icons, width=800, margin_bottom=20
+        ),
+        render_icons(),
+    ]
 
 
 my_icon_search_example = icon_search_example()
@@ -72,9 +77,9 @@ from deephaven import ui
 
 @ui.component
 def icons():
-    small = ui.icon(name="dhTruck", size="S")
-    default = ui.icon(name="dhTruck")
-    large = ui.icon(name="dhTruck", size="L")
+    small = ui.icon(name="bell", size="S")
+    default = ui.icon(name="bell")
+    large = ui.icon(name="bell", size="L")
 
     return [small, default, large]
 
@@ -92,9 +97,9 @@ from deephaven import ui
 
 @ui.component
 def icons():
-    negative = ui.icon(name="dhTruck", color="negative")
-    informative = ui.icon(name="dhTruck", color="informative")
-    positive = ui.icon(name="dhTruck", color="positive")
+    negative = ui.icon(name="bell", color="negative")
+    informative = ui.icon(name="bell", color="informative")
+    positive = ui.icon(name="bell", color="positive")
 
     return [negative, informative, positive]
 
@@ -112,7 +117,7 @@ from deephaven import ui
 
 @ui.component
 def icons():
-    icon_button = ui.button(ui.icon(name="dhTruck"), aria_label="truck")
+    icon_button = ui.button(ui.icon(name="squirrel"), aria_label="squirrel")
 
     return icon_button
 
