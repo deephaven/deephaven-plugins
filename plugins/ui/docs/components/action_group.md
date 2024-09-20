@@ -24,7 +24,7 @@ Recommendations for creating action groups:
 3. The label and options should all be in sentence case.
 
 
-Consider using a [`radio_group`](./radio_group.md) when users should select one option from a set of mutually exclusive choices. If wanting to manage multiple selections or no selections within a group at once, consider using a [`checkbox_group`](./checkbox_group.md) If wanting to align multiple buttons that do not neccesarily correspond to action , considering using a [`button_group`]
+Consider using a [`radio_group`](./radio_group.md) when users should select one option from a set of mutually exclusive choices. If you want to manage multiple selections or no selections within a group at once, consider using a [`checkbox_group`](./checkbox_group.md). If you want to align multiple buttons that do not necessarily correspond to action, consider using a [`button_group`]
 
 
 ## Icons
