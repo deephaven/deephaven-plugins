@@ -31,6 +31,7 @@ def list_view(
     render_empty_state: Element | None = None,
     on_selection_change: Callable[[Selection], None] | None = None,
     on_change: Callable[[Selection], None] | None = None,
+    key: str | None = None,
     **props: Any,
 ) -> ListViewElement:
     """
@@ -61,6 +62,8 @@ def list_view(
             Handler that is called when the selection changes.
         on_change:
             Alias of `on_selection_change`. Handler that is called when the selection changes.
+        key:
+            A unique identifier used by React to render elements in a list.
         **props:
             Any other ListView prop, except items, dragAndDropHooks, and onLoadMore.
 

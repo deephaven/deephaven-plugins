@@ -23,7 +23,7 @@ def flex(
     gap: DimensionValue | None = "size-100",
     column_gap: DimensionValue | None = None,
     row_gap: DimensionValue | None = None,
-    **props: Any,
+    key: str | None = None,
 ):
     """
     Base Flex component for laying out children in a flexbox.
@@ -39,6 +39,7 @@ def flex(
         gap: The space to display between both rows and columns of children.
         column_gap: The space to display between columns of children.
         row_gap: The space to display between rows of children.
+        key: A unique identifier used by React to render elements in a list
     """
     return component_element(
         "Flex",
@@ -52,5 +53,5 @@ def flex(
         gap=gap,
         column_gap=column_gap,
         row_gap=row_gap,
-        **props,
+        key=key,
     )

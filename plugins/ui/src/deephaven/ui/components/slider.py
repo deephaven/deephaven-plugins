@@ -79,6 +79,7 @@ def slider(
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
 ) -> Element:
     """
     Sliders allow users to quickly select a value within a range. They should be used when the upper and lower bounds to the range are invariable.
@@ -144,6 +145,7 @@ def slider(
         aria_details: The id of the element that provides additional information about the current element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
+        key: A unique identifier used by React to render elements in a list.
 
     Returns:
         The rendered slider component.
@@ -211,4 +213,5 @@ def slider(
         aria_details=aria_details,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
+        key=key,
     )
