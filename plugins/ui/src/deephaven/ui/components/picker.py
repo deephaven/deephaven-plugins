@@ -115,6 +115,7 @@ def picker(
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
 ) -> PickerElement:
     """
     A picker that can be used to select from a list. Children should be one of five types:
@@ -215,6 +216,7 @@ def picker(
         aria_details: The details for the element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
+        key: A unique identifier used by React to render elements in a list.
 
 
     Returns:
