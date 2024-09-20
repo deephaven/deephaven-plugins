@@ -1,6 +1,6 @@
 # Action Group
 
-A action group is a UI component that groups multiple actions together. 
+An action group is a UI component that groups multiple actions together. 
 
 ## Example
 
