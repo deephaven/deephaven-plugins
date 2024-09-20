@@ -16,20 +16,28 @@ type WrappedDHListViewJSApiProps = Omit<DHListViewJSApiProps, 'table'> & {
   children: ReactElement<ObjectViewProps, typeof ObjectView>;
 };
 
-type WrappedDHListViewProps = Omit<
+type SerializedDHListViewProps = Omit<
   DHListViewProps,
-  'density' | 'selectionMode'
+  'density' | 'renderEmptyState' | 'selectionMode'
 > & {
   // The dh UI spec specifies that density and selectionMode should be uppercase,
   // but the Spectrum props are lowercase. We'll accept either to keep things
   // more flexible.
   density?: Density | Uppercase<Density>;
+  renderEmptyState?: JSX.Element;
   selectionMode?: SelectionMode | Uppercase<SelectionMode>;
 };
 
+type SerializedDHListViewJSApiProps = Omit<
+  WrappedDHListViewJSApiProps,
+  'renderEmptyState'
+> & {
+  renderEmptyState?: JSX.Element;
+};
+
 export type SerializedListViewProps = (
-  | WrappedDHListViewProps
-  | WrappedDHListViewJSApiProps
+  | SerializedDHListViewProps
+  | SerializedDHListViewJSApiProps
 ) &
   SerializedSelectionProps;
 
@@ -43,6 +51,7 @@ export function useListViewProps({
   selectionMode: selectionModeMaybeUppercase,
   onChange: serializedOnChange,
   onSelectionChange: serializedOnSelectionChange,
+  renderEmptyState,
   ...otherProps
 }: SerializedListViewProps): DHListViewProps | WrappedDHListViewJSApiProps {
   const densityLc = densityMaybeUppercase?.toLowerCase() as Density | undefined;
@@ -58,6 +67,7 @@ export function useListViewProps({
     selectionMode,
     onChange,
     onSelectionChange,
+    renderEmptyState: renderEmptyState && (() => renderEmptyState),
     // The @deephaven/components `ListView` has its own normalization logic that
     // handles primitive children types (string, number, boolean). It also
     // handles nested children inside of `Item` and `Section` components, so
