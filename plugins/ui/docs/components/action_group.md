@@ -65,7 +65,7 @@ my_action_group_button_label_behavior_example = ui.flex(
 
 ## Selection
 
-Action group supports multiple selection modes, configurable via the `selection_mode` prop. 
+Action groups support multiple selection modes, configurable via the `selection_mode` prop. 
 
 The `default_selected_keys` can be used for uncontrolled default selections.
 
