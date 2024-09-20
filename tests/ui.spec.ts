@@ -60,11 +60,11 @@ test('Using keys for lists works', async ({ page }) => {
   await page.getByRole('textbox', { name: 'Cell 2' }).fill('c');
   await page.getByRole('button', { name: 'Delete cell' }).nth(1).click();
 
-  expect(page.getByRole('textbox', { name: 'Cell 0' })).toBeVisible();
-  expect(page.getByRole('textbox', { name: 'Cell 0' })).toHaveValue('a');
-  expect(page.getByRole('textbox', { name: 'Cell 1' })).not.toBeVisible();
-  expect(page.getByRole('textbox', { name: 'Cell 2' })).toBeVisible();
-  expect(page.getByRole('textbox', { name: 'Cell 2' })).toHaveValue('c');
+  await expect(page.getByRole('textbox', { name: 'Cell 0' })).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Cell 0' })).toHaveValue('a');
+  await expect(page.getByRole('textbox', { name: 'Cell 1' })).not.toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Cell 2' })).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Cell 2' })).toHaveValue('c');
 });
 
 test('UI all components render 1', async ({ page }) => {
