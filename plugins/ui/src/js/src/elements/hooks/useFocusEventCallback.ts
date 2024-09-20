@@ -35,11 +35,12 @@ export type DeserializedFocusEventCallback = (e: FocusEvent) => void;
  */
 export function useFocusEventCallback(
   callback?: SerializedFocusEventCallback
-): DeserializedFocusEventCallback {
-  return useCallback(
+): DeserializedFocusEventCallback | undefined {
+  const focusCallBack = useCallback(
     (e: FocusEvent) => {
       callback?.(serializeFocusEvent(e));
     },
     [callback]
   );
+  return callback != null ? focusCallBack : undefined;
 }

@@ -13,6 +13,10 @@ on:
         required: false
         type: string
         default: 'push'
+      fix_mime_types:
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   make-docs:
@@ -60,3 +64,18 @@ jobs:
       - name: Sync docs
         if: inputs.event_name == 'push'
         run: rclone sync plugins/${{ inputs.package }}/docs/build/markdown/ plugindocs:${{ secrets.DOCS_GOOGLE_CLOUD_BUCKET }}/deephaven/deephaven-plugins/${{ inputs.package }}/${{ inputs.version }}/
+
+      - name: Setup gsutil auth
+        if: inputs.fix_mime_types == true
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.DOCS_GOOGLE_CLOUD_CREDENTIALS }}'
+
+      - name: Setup gsutil CLI
+        if: inputs.fix_mime_types == true
+        uses: 'google-github-actions/setup-gcloud@v2'
+
+      - name: Set gsutil markdown mime type
+        if: inputs.fix_mime_types == true
+        # some markdown files get set to octet-stream by default, so fix them
+        run: gsutil -m setmeta -h "Content-Type:text/markdown; charset=utf-8" -r "gs://${{ secrets.DOCS_GOOGLE_CLOUD_BUCKET }}/deephaven/deephaven-plugins/${{ inputs.package }}/${{ inputs.version }}/**/*.md"

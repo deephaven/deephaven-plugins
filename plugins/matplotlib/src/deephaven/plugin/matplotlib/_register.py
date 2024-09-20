@@ -2,11 +2,9 @@ from importlib import resources
 import matplotlib.pyplot as plt
 from deephaven.plugin import Registration, Callback
 from deephaven.plugin.utilities import create_js_plugin, DheSafeCallbackWrapper
-from ._js_plugin import MatplotlibJsPlugin
 
 PACKAGE_NAMESPACE = "deephaven.plugin.matplotlib"
 JS_NAME = "_js"
-PLUGIN_CLASS = MatplotlibJsPlugin
 
 
 def _init_theme():
@@ -30,10 +28,6 @@ class MatplotlibRegistration(Registration):
 
         callback.register(figure_type.FigureType)
 
-        js_plugin = create_js_plugin(
-            PACKAGE_NAMESPACE,
-            JS_NAME,
-            PLUGIN_CLASS,
-        )
+        js_plugin = create_js_plugin(PACKAGE_NAMESPACE, JS_NAME)
 
         callback.register(js_plugin)

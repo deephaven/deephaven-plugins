@@ -26,6 +26,7 @@ def table(
     on_column_double_press: ColumnPressCallback | None = None,
     quick_filters: dict[ColumnName, QuickFilterExpression] | None = None,
     show_quick_filters: bool = False,
+    show_grouping_column: bool = True,
     show_search: bool = False,
     reverse: bool = False,
     front_columns: list[ColumnName] | None = None,
@@ -41,6 +42,7 @@ def table(
         ResolvableContextMenuItem | list[ResolvableContextMenuItem] | None
     ) = None,
     databars: list[DatabarConfig] | None = None,
+    key: str | None = None,
 ) -> UITable:
     """
     Customization to how a table is displayed, how it behaves, and listen to UI events.
@@ -63,6 +65,7 @@ def table(
             The callback is invoked with the column name.
         quick_filters: The quick filters to apply to the table. Dictionary of column name to filter value.
         show_quick_filters: Whether to show the quick filter bar by default.
+        show_grouping_column: Whether to show the grouping column by default for rollup tables.
         show_search: Whether to show the search bar by default.
         reverse: Whether to reverse the table rows. Applied after any sorts.
         front_columns: The columns to pin to the front of the table. These will not be movable by the user.
@@ -83,6 +86,11 @@ def table(
         context_header_menu: The context menu items to show when a column header is right clicked.
             May contain action items or submenu items.
             May also be a function that receives the column header data and returns the context menu items or None.
+        databars: Databars are experimental and will be moved to column_formatting in the future.
+        key: A unique identifier used by React to render elements in a list.
+
+    Returns:
+        The rendered Table.
     """
     props = locals()
     del props["table"]

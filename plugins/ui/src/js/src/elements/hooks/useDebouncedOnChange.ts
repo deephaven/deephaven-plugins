@@ -6,8 +6,8 @@ const VALUE_CHANGE_DEBOUNCE = 250;
 
 function useDebouncedOnChange<T>(
   propValue: T,
-  propOnChange: (() => void) | ((newValue: T) => Promise<void>)
-): [T, (newValue: T) => void] {
+  propOnChange: (() => void) | ((newValue: T) => Promise<void>) | undefined
+): [T, ((newValue: T) => void) | undefined] {
   const [value, setValue] = useState<T>(propValue);
   const [pending, setPending] = useState(false);
   const prevPropValue = usePrevious(propValue);
@@ -26,7 +26,7 @@ function useDebouncedOnChange<T>(
   const propDebouncedOnChange = useCallback(
     async (newValue: T) => {
       try {
-        await propOnChange(newValue);
+        await propOnChange?.(newValue);
       } catch (e) {
         log.warn('Error returned from onChange', e);
       }
@@ -50,7 +50,7 @@ function useDebouncedOnChange<T>(
     [debouncedOnChange]
   );
 
-  return [value, onChange] as const;
+  return [value, propOnChange != null ? onChange : undefined] as const;
 }
 
 export default useDebouncedOnChange;
