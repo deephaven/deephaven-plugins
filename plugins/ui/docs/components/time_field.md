@@ -36,9 +36,9 @@ The input will be converted to one of three Java time types:
    This will create a time field with a granularity of seconds in the specified time zone. The time zone will be rendered as the specified time zone.
 
 4. If the input is one of the three Java time types, use that type.
-5. A time string such as "10:30:45" will parse to a `LocaTime`
-6. A string with a date, time, and timezone such as "2021-04-12T14:13:07 America/New_York" will parse to a `ZonedDateTime`
-7. All other types will attempt to convert in this order: `LocaTime`, `Instant`, `ZonedDateTime`
+5. A time string such as "10:30:45" will parse to a `LocaTime`.
+6. A string with a date, time, and timezone such as "2021-04-12T14:13:07 America/New_York" will parse to a `ZonedDateTime`.
+7. All other types will attempt to convert in this order: `LocaTime`, `Instant`, `ZonedDateTime`.
 
 The format of the time field and the type of the value passed to the `on_change` handler
 is determined by the type of the following props in order of precedence:
@@ -47,7 +47,7 @@ is determined by the type of the following props in order of precedence:
 2. `default_value`
 3. `placeholder_value`
 
-If none of these are provided, the `on_change` handler passes a range of `LocaTime`.
+If none of these are provided, the `on_change` handler passes a range of `LocalTime`.
 
 ```python
 from deephaven import ui
@@ -102,9 +102,8 @@ Time field is time zone aware when `ZonedTimeTime` or `Instant` objects are prov
 
 In most cases, your data will come from and be sent to a server as an `ISO 8601` formatted string.
 
-For `ZonedTimeTime` objects, the time field will display the specified time zone.
-
-For `Instant` objects, the time field will display the time zone from the user settings.
+- For `ZonedTimeTime` objects, the time field displays the specified time zone.
+- For `Instant` objects, the time field displays the time zone from the user settings.
 
 ```python
 from deephaven import ui
@@ -123,7 +122,7 @@ my_instant = ui.time_field(
 
 ## Granularity
 
-The `granularity` prop allows you to control the smallest unit that is displayed by a time field . By default, values are displayed with "SECOND" granularity.
+The `granularity` prop allows you to control the smallest unit displayed by a time field. By default, values are displayed with "SECOND" granularity.
 
 In addition, when a value with a time is provided but you wish to display only the time, you can set the granularity to "DAY". This has no effect on the actual value (it still has a time component), only on what fields are displayed. In the following example, two time fields are synchronized with the same value but display different granularities.
 
@@ -154,7 +153,7 @@ my_granularity_example = granularity_example()
 
 ## HTML forms
 
-Time field supports the `name` prop for integration with HTML forms. The value will be submitted to the server as `ISO 8601` formatted string, e.g. "08:45:00".
+The time field supports the `name` prop for integration with HTML forms. The value will be submitted to the server as an `ISO 8601` formatted string, e.g., "08:45:00."
 
 ```python
 from deephaven import ui
@@ -239,7 +238,7 @@ my_time_field_basic = ui.time_field(
 
 ## Label position
 
-By default, the position of a time field's label is above the time field , but it can be moved to the side using the `label_position` prop.
+By default, the position of a time field's label is above the time field, but it can be moved to the side using the `label_position` prop.
 
 ```python
 from deephaven import ui
@@ -289,7 +288,7 @@ my_time_field_is_disabled_example = ui.time_field(
 
 ## Read only
 
-The `is_read_only` prop makes the time field's value immutable. Unlike `is_disabled`, the time field remains focusable.
+The `is_read_only` prop makes the time field's value immutable. The time field remains focusable, unlike when `is_disabled` is used.
 
 ```python
 from deephaven import ui
