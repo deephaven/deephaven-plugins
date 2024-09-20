@@ -122,6 +122,7 @@ def ui_components2():
         ui.text_field(
             ui.icon("vsSymbolMisc"), default_value="Text Field", label="Text Field"
         ),
+        ui.time_field(default_value="12:30:00", hour_cycle=24),
         ui.toggle_button(
             ui.icon("vsBell"),
             "By Exchange",

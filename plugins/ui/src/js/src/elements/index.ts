@@ -25,6 +25,7 @@ export * from './Tabs';
 export * from './TabPanels';
 export * from './TextField';
 export * from './TextArea';
+export * from './TimeField';
 export * from './ToggleButton';
 export * from './UITable/UITable';
 export * from './utils';
