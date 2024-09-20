@@ -154,7 +154,7 @@ my_action_group_overflow_example = ui.action_group(
 )
 ```
 
-When selection is enabled, action group collapses all items into a menu when space is limited, with a highlighted menu button indicating a selection
+When selection is enabled, the action group collapses all items into a menu when space is limited, with a highlighted menu button indicating a selection.
 
 ```python
 from deephaven import ui
