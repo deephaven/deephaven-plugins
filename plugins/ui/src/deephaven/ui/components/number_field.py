@@ -1,13 +1,10 @@
 from __future__ import annotations
 from typing import Any, Callable
 from .types import (
-    # Events
     FocusEventCallable,
     KeyboardEventCallable,
-    # Validation
     TextFieldValidationState,
     NecessityIndicator,
-    # Layout
     AlignSelf,
     CSSProperties,
     DimensionValue,
@@ -16,6 +13,7 @@ from .types import (
     Position,
     LabelPosition,
     Align,
+    NumberFieldFormatOptions,
 )
 from .basic import component_element
 from ..elements import Element
@@ -27,7 +25,7 @@ def number_field(
     decrement_aria_label: str | None = None,
     increment_aria_label: str | None = None,
     is_wheel_disabled: bool | None = None,
-    format_options: str | None = None,
+    format_options: NumberFieldFormatOptions | None = None,
     is_disabled: bool | None = None,
     is_read_only: bool | None = None,
     is_required: bool | None = None,
