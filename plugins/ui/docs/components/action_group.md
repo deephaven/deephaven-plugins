@@ -82,7 +82,7 @@ my_action_group_default_selected_keys_example = ui.action_group(
 )
 ```
 
-The `selected_keys` prop for can be used for controlled selections.
+The `selected_keys` prop can be used for controlled selections.
 
 ```python
 from deephaven import ui
