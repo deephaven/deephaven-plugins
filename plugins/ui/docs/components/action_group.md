@@ -17,7 +17,7 @@ my_action_group_basic = ui.action_group(
 
 ## UI recommendations
 
-Consider using a [`button_group`] if you want to align multiple buttons that do not necessarily correspond to action.
+Consider using a [`button_group`] to align multiple buttons that do not necessarily correspond to an action.
 
 
 ## Icons
@@ -52,7 +52,7 @@ my_action_group_button_label_behavior_example = ui.action_group(
 
 ## Selection
 
-Action groups support multiple selection modes, configurable via the `selection_mode` prop. 
+Action groups support multiple selection modes, which are configurable via the `selection_mode` prop. 
 
 The `default_selected_keys` can be used for uncontrolled default selections.
 
@@ -97,7 +97,7 @@ my_action_group_selected_keys_example = ui_action_group_selected_keys_example()
 
 ## Events
 
-The `on_selection_change` property is triggered whenever the value in the action group selection is changed.
+The `on_selection_change` property is triggered whenever the value in the action group selection changes.
 
 ```python
 from deephaven import ui
@@ -236,7 +236,7 @@ my_action_group_is_disabled_example = ui.action_group(
 
 ## Orientation
 
-While aligned horizontally by default, the axis the action items align with can be changed via the `orientation` prop.
+While aligned horizontally by default, the axis with which the action items align can be changed via the `orientation` prop.
 
 ```python
 from deephaven import ui
