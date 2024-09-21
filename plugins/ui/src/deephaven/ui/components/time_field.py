@@ -16,78 +16,66 @@ from .types import (
     ValidationBehavior,
     NecessityIndicator,
     ValidationState,
-    PageBehavior,
     HourCycle,
     Alignment,
 )
 
-from ..hooks import use_memo
 from ..elements import Element
 from .._internal.utils import (
     create_props,
-    convert_date_props,
-    convert_list_prop,
+    convert_time_props,
 )
-from ..types import Date, Granularity
+from ..types import Time, TimeGranularity
 from .basic import component_element
 from .make_component import make_component
-from deephaven.time import dh_now
 
-DatePickerElement = Element
+TimeFieldElement = Element
 
-# All the props that can be date types
-_SIMPLE_DATE_PROPS = {
+# All the props that can be time types
+_SIMPLE_TIME_PROPS = {
     "placeholder_value",
     "value",
     "default_value",
     "min_value",
     "max_value",
 }
-_RANGE_DATE_PROPS = set()
-_LIST_DATE_PROPS = {"unavailable_values"}
-_CALLABLE_DATE_PROPS = {"on_change"}
-_GRANULARITY_KEY = "granularity"
+_CALLABLE_TIME_PROPS = {"on_change"}
 
-# The priority of the date props to determine the format of the date passed to the callable date props
-_DATE_PROPS_PRIORITY = ["value", "default_value", "placeholder_value"]
+# The priority of the time props to determine the format of the time passed to the callable time props
+_TIME_PROPS_PRIORITY = ["value", "default_value", "placeholder_value"]
 
 
-def _convert_date_picker_props(
+def _convert_time_field_props(
     props: dict[str, Any],
 ) -> dict[str, Any]:
     """
-    Convert date picker props to Java date types.
+    Convert time field props to Java time types.
 
     Args:
-        props: The props passed to the date picker.
+        props: The props passed to the time field.
 
     Returns:
         The converted props.
     """
 
-    convert_date_props(
+    convert_time_props(
         props,
-        _SIMPLE_DATE_PROPS,
-        _RANGE_DATE_PROPS,
-        _CALLABLE_DATE_PROPS,
-        _DATE_PROPS_PRIORITY,
-        _GRANULARITY_KEY,
+        _SIMPLE_TIME_PROPS,
+        _CALLABLE_TIME_PROPS,
+        _TIME_PROPS_PRIORITY,
     )
 
     return props
 
 
 @make_component
-def date_picker(
-    placeholder_value: Date | None = dh_now(),
-    value: Date | None = None,
-    default_value: Date | None = None,
-    min_value: Date | None = None,
-    max_value: Date | None = None,
-    # TODO (issue # 698) we need to implement unavailable_values
-    # unavailable_values: Sequence[Date] | None = None,
-    granularity: Granularity | None = None,
-    page_behavior: PageBehavior | None = None,
+def time_field(
+    placeholder_value: Time | None = None,
+    value: Time | None = None,
+    default_value: Time | None = None,
+    min_value: Time | None = None,
+    max_value: Time | None = None,
+    granularity: TimeGranularity | None = "SECOND",
     hour_cycle: HourCycle | None = None,
     hide_time_zone: bool = False,
     should_force_leading_zeros: bool | None = None,
@@ -99,13 +87,8 @@ def date_picker(
     label: Element | None = None,
     description: Element | None = None,
     error_message: Element | None = None,
-    is_open: bool | None = None,
-    default_open: bool | None = None,
     name: str | None = None,
-    max_visible_months: int | None = None,
-    should_flip: bool | None = None,
     is_quiet: bool | None = None,
-    show_format_help_text: bool | None = None,
     label_position: LabelPosition | None = None,
     label_align: Alignment | None = None,
     necessity_indicator: NecessityIndicator | None = None,
@@ -117,7 +100,7 @@ def date_picker(
     on_key_down: KeyboardEventCallable | None = None,
     on_key_up: KeyboardEventCallable | None = None,
     on_open_change: Callable[[bool], None] | None = None,
-    on_change: Callable[[Date], None] | None = None,
+    on_change: Callable[[Time], None] | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,
@@ -163,30 +146,25 @@ def date_picker(
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
     key: str | None = None,
-) -> DatePickerElement:
+) -> TimeFieldElement:
     """
-    A date picker allows the user to select a date.
+    A time field allows the user to select a time.
 
 
     Args:
-        placeholder_value: A placeholder date that influences the format of the
-            placeholder shown when no value is selected.
-            Defaults to today at midnight in the user's timezone.
+        placeholder_value: A placeholder time that influences the format of the
+            placeholder shown when no value is selected. Defaults to 12:00 AM or
+            00:00 depending on the hour cycle.
         value: The current value (controlled).
         default_value: The default value (uncontrolled).
-        min_value: The minimum allowed date that a user may select.
-        max_value: The maximum allowed date that a user may select.
-        granularity: Determines the smallest unit that is displayed in the date picker.
-            By default, this is `"DAY"` for `LocalDate`, and `"SECOND"` otherwise.
-        page_behavior: Controls the behavior of paging. Pagination either works by
-            advancing the visible page by visibleDuration (default)
-            or one unit of visibleDuration.
+        min_value: The minimum allowed time that a user may select.
+        max_value: The maximum allowed time that a user may select.
+        granularity: Determines the smallest unit that is displayed in the time field.
+            By default, this is `"SECOND"`.
         hour_cycle: Whether to display the time in 12 or 24 hour format.
             By default, this is determined by the user's locale.
         hide_time_zone: Whether to hide the time zone abbreviation.
-        should_force_leading_zeros: Whether to always show leading zeros in the
-            month, day, and hour fields.
-            By default, this is determined by the user's locale.
+        should_force_leading_zeros: Whether to force leading zeros in the time field.
         is_disabled: Whether the input is disabled.
         is_read_only: Whether the input can be selected but not changed by the user.
         is_required: Whether user input is required on the input before form submission.
@@ -198,16 +176,8 @@ def date_picker(
         description: A description for the field.
             Provides a hint such as specific requirements for what to choose.
         error_message: An error message for the field.
-        is_open: Whether the overlay is open by default (controlled).
-        default_open: Whether the overlay is open by default (uncontrolled).
         name: The name of the input element, used when submitting an HTML form.
-        max_visible_months: The maximum number of months to display at
-            once in the calendar popover, if screen space permits.
-        should_flip: Whether the calendar popover should automatically flip direction
-            when space is limited.
-        is_quiet: Whether the date picker should be displayed with a quiet style.
-        show_format_help_text: Whether to show the localized date format as help
-            text below the field.
+        is_quiet: Whether the time field should be displayed with a quiet style.
         label_position: The label's overall position relative to the element it is labeling.
         label_align: The label's horizontal alignment relative to the element it is labeling.
         necessity_indicator: Whether the required state should be shown as an icon or text.
@@ -220,7 +190,7 @@ def date_picker(
         on_key_up: Function called when a key is released.
         on_open_change: Handler that is called when the overlay's open state changes.
         on_change: Handler that is called when the value changes.
-            The exact `Date` type will be the same as the type passed to
+            The exact `Time` type will be the same as the type passed to
             `value`, `default_value` or `placeholder_value`, in that order of precedence.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how much the element will grow to fit the space available.
@@ -269,15 +239,10 @@ def date_picker(
         key: A unique identifier used by React to render elements in a list.
 
     Returns:
-        The date picker element.
+        The time field element.
     """
     _, props = create_props(locals())
 
-    _convert_date_picker_props(props)
+    _convert_time_field_props(props)
 
-    # props["unavailable_values"] = use_memo(
-    #     lambda: convert_list_prop("unavailable_values", props["unavailable_values"]),
-    #     [unavailable_values],
-    # )
-
-    return component_element("DatePicker", **props)
+    return component_element("TimeField", **props)

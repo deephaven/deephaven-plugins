@@ -54,6 +54,7 @@ def tab_panels(
     id: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
 ):
     """
     Python implementation for the Adobe React Spectrum TabPanels component.
@@ -94,6 +95,7 @@ def tab_panels(
         id: The unique identifier of the element.
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
+        key: A unique identifier used by React to render elements in a list.
     """
     if not children:
         raise ValueError("Tab Panels must have at least one child.")
@@ -140,4 +142,5 @@ def tab_panels(
         id=id,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
+        key=key,
     )
