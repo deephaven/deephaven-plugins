@@ -17,7 +17,7 @@ my_action_group_basic = ui.action_group(
 
 ## UI recommendations
 
-Consider using a [`button_group`], if you want to align multiple buttons that do not necessarily correspond to actio
+Consider using a [`button_group`] if you want to align multiple buttons that do not necessarily correspond to action.
 
 
 ## Icons
