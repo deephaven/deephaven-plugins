@@ -22,7 +22,7 @@ Consider using a [`button_group`] if you want to align multiple buttons that do 
 
 ## Icons
 
-Icons can be added to action group items by wrapping the label in a `ui.text` element, and adding a `ui.icon` as a sibling component.
+Icons can be added to action group items by wrapping the label in a `ui.text` element and adding a `ui.icon` as a sibling component.
 
 ```python
 from deephaven import ui
