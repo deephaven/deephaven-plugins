@@ -253,7 +253,7 @@ my_action_group_orientation_example = ui.action_group(
 
 ## Density
 
-Using the `density` prop can inrease or reduce margins between action buttons. If the action group has the `is_quiet` prop set to true, it reduces the margin size.
+The `density` prop can increase or reduce margins between action buttons. When the `is_quiet` prop is set to true, margin size is reduced.
 
 ```python
 from deephaven import ui
