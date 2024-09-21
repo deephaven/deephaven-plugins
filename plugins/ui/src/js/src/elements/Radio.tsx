@@ -18,6 +18,8 @@ export function Radio({
   onBlur: serializedOnBlur,
   onKeyDown: serializedOnKeyDown,
   onKeyUp: serializedOnKeyUp,
+  value: valueProp,
+  children,
   ...props
 }: SerializedRadioProps): JSX.Element {
   const onFocus = useFocusEventCallback(serializedOnFocus);
@@ -25,15 +27,20 @@ export function Radio({
   const onKeyDown = useKeyboardEventCallback(serializedOnKeyDown);
   const onKeyUp = useKeyboardEventCallback(serializedOnKeyUp);
 
+  const value = valueProp ?? (typeof children === 'string' ? children : '');
+
   return (
     <DHRadio
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}
+      value={value}
       onFocus={onFocus}
       onBlur={onBlur}
       onKeyDown={onKeyDown}
       onKeyUp={onKeyUp}
-    />
+    >
+      {children}
+    </DHRadio>
   );
 }
 
