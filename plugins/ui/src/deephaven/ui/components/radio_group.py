@@ -11,7 +11,7 @@ from .types import (
     LayoutFlex,
     Position,
     LabelPosition,
-    Align,
+    Alignment,
     # Validation
     NecessityIndicator,
     Orientation,
@@ -39,7 +39,7 @@ def radio_group(
     description: Any | None = None,
     error_message: Any | None = None,
     label_position: LabelPosition = "top",
-    label_align: Align = "start",
+    label_align: Alignment | None = None,
     necessity_indicator: NecessityIndicator = "icon",
     contextual_help: Any | None = None,
     show_error_icon: bool | None = None,
@@ -91,6 +91,7 @@ def radio_group(
     aria_errormessage: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
 ) -> Element:
     """
     Radio buttons allow users to select a single option from a list of mutually
@@ -165,6 +166,7 @@ def radio_group(
         aria_errormessage: Identifies the element that provides an error message for the object.
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
+        key: A unique identifier used by React to render elements in a list.
 
     Returns:
         The rendered radio group component.

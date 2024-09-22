@@ -81,6 +81,7 @@ def list_action_menu(
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
 ) -> ListActionMenuElement:
     """
     A menu of action buttons that can be used to create a list of actions.
@@ -146,6 +147,7 @@ def list_action_menu(
         aria-details: Identifies the element (or elements) that provide a detailed, extended description for the object.
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
+        key: A unique identifier used by React to render elements in a list.
     Returns:
         A ListActionMenu that can be used within the actions prop of a `ui.list_view` component.
     """
@@ -209,4 +211,5 @@ def list_action_menu(
         aria_details=aria_details,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
+        key=key,
     )

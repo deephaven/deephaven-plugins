@@ -71,7 +71,7 @@ def combo_box(
     name: str | None = None,
     validation_state: ValidationState | None = None,
     label_position: LabelPosition = "top",
-    label_align: Alignment = "start",
+    label_align: Alignment | None = None,
     necessity_indicator: NecessityIndicator | None = "icon",
     contextual_help: Element | None = None,
     on_open_change: Callable[[bool, MenuTriggerAction], None] | None = None,
@@ -126,6 +126,7 @@ def combo_box(
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
 ) -> ComboBoxElement:
     """
     A combo box that can be used to search or select from a list. Children should be one of five types:
@@ -231,6 +232,7 @@ def combo_box(
         aria_details: The details for the element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
+        key: A unique identifier used by React to render elements in a list.
 
     Returns:
         The rendered ComboBox.

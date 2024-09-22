@@ -23,6 +23,11 @@ on:
         options:
           - 'push'
           - 'test'
+      fix_mime_types:
+        description: 'Whether to fix the mime types of the markdown files in the docs bucket. Generally this should be false.'
+        required: false
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       package:
@@ -37,6 +42,11 @@ on:
         description: The event name that triggered the workflow
         required: true
         type: string
+      fix_mime_types:
+        description: 'Whether to fix the mime types of the markdown files in the docs bucket. Generally this should be false.'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   check-make-docs:
@@ -68,3 +78,5 @@ jobs:
       package: ${{ inputs.package }}
       version: ${{ inputs.version }}
       event_name: ${{ inputs.event_name }}
+      fix_mime_types: ${{ inputs.fix_mime_types }}
+

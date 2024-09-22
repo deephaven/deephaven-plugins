@@ -1,3 +1,4 @@
+from __future__ import annotations
 import functools
 import logging
 from typing import Any, Callable
@@ -17,9 +18,8 @@ def make_component(func: Callable[..., Any]):
     """
 
     @functools.wraps(func)
-    def make_component_node(*args: Any, **kwargs: Any):
+    def make_component_node(*args: Any, key: str | None = None, **kwargs: Any):
         component_type = get_component_qualname(func)
-
-        return FunctionElement(component_type, lambda: func(*args, **kwargs))
+        return FunctionElement(component_type, lambda: func(*args, **kwargs), key=key)
 
     return make_component_node
