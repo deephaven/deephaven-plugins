@@ -35,6 +35,11 @@
       align-self: stretch;
     }
 
+    .dh-tabs {
+      flex: auto;
+      height: 100%;
+    }
+
     .iris-grid {
       // we don't want the grid to ever collapse to 0 height, so we set a min-height
       // let's users know that the grid is there

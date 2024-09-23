@@ -68,3 +68,18 @@ flex_18 = ui.panel(
 flex_19 = ui.panel(
     ui.grid(ui.button("test"), _t_flex, _p_flex, rows="min-content 1fr 1fr")
 )
+flex_20 = ui.panel(
+    ui.tabs(
+        ui.tab(_p_flex, title="Tab A"),
+        ui.tab(_t_flex, title="Tab B"),
+    )
+)
+flex_21 = ui.panel(
+    ui.button("Test"),
+    ui.tabs(
+        ui.tab(_p_flex, title="Tab A"),
+        ui.tab(_t_flex, title="Tab B"),
+    ),
+    ui.button("Test"),
+    _t_flex,
+)

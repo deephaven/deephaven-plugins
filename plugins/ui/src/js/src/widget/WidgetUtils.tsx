@@ -10,8 +10,6 @@ import {
   SpectrumCheckbox as Checkbox,
   Content,
   ContextualHelp,
-  Flex,
-  Grid,
   Heading,
   Item,
   ListActionGroup,
@@ -54,7 +52,9 @@ import {
   DateField,
   DatePicker,
   DateRangePicker,
+  Flex,
   Form,
+  Grid,
   IllustratedMessage,
   Image,
   ListView,
@@ -80,11 +80,6 @@ const shouldWrapTextChildren = new Set<string>([
   ELEMENT_NAME.flex,
   ELEMENT_NAME.grid,
   ELEMENT_NAME.view,
-]);
-
-const shouldAddClassName = new Set<string>([
-  ELEMENT_NAME.flex,
-  ELEMENT_NAME.grid,
 ]);
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetUtils');
@@ -182,14 +177,6 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
           </ContextualHelp>
         );
       }
-      // classes can be used for deephaven ui specific css
-      // "deephaven.ui.components.Grid" -> "dh-grid"
-      if (shouldAddClassName.has(newElement[ELEMENT_KEY])) {
-        props.UNSAFE_className = `${props.UNSAFE_className ?? ''} ${`dh-${
-          newElement[ELEMENT_KEY].split('.').pop()?.toLowerCase() ?? ''
-        }`}`.trim();
-      }
-
       return <Component {...props} />;
     }
   }
