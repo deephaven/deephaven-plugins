@@ -84,6 +84,7 @@ function ReactPanel({
   const { metadata, onClose, onOpen, panelId } = useReactPanel();
   const portalManager = usePortalPanelManager();
   const portal = portalManager.get(panelId);
+  const panelTitle = title ?? metadata?.name ?? '';
 
   // Tracks whether the panel is open and that we have emitted the onOpen event
   const isPanelOpenRef = useRef(false);
@@ -92,6 +93,8 @@ function ReactPanel({
   const openedMetadataRef = useRef<ReactPanelControl['metadata']>(
     portal == null ? undefined : metadata
   );
+  // Used to check if panelTitle was updated
+  const prevPanelTitleRef = useRef<string>(panelTitle);
 
   // We want to regenerate the key every time the metadata changes, so that the portal is re-rendered
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -145,7 +148,6 @@ function ReactPanel({
       const itemConfig = { id: panelId };
       const existingStack = LayoutUtils.getStackForConfig(parent, itemConfig);
       if (existingStack == null) {
-        const panelTitle = title ?? metadata?.name ?? '';
         const config = {
           type: 'react-component' as const,
           component: PortalPanel.displayName,
@@ -172,8 +174,13 @@ function ReactPanel({
         isPanelOpenRef.current = true;
         onOpen();
       }
+
+      if (prevPanelTitleRef.current !== panelTitle) {
+        prevPanelTitleRef.current = panelTitle;
+        LayoutUtils.renameComponent(parent, itemConfig, panelTitle);
+      }
     },
-    [parent, metadata, onOpen, panelId, title]
+    [parent, metadata, onOpen, panelId, panelTitle]
   );
   const widgetStatus = useWidgetStatus();
 
