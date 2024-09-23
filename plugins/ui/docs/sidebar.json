@@ -58,6 +58,14 @@
             "path": "components/picker.md"
           },
           {
+            "label": "progress_bar",
+            "path": "components/progress_bar.md"
+          },
+          {
+            "label": "progress_circle",
+            "path": "components/progress_circle.md"
+          },
+          {
             "label": "radio_group",
             "path": "components/radio_group.md"
           },

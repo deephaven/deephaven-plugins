@@ -22,46 +22,78 @@ progress_bar = ui_progress_bar()
 2. Use `static_color="white"` or `static_color="black"` if necessary to ensure the progress circle has enough contrast with the background.
 3. If the value of the progress is unknown, use `is_indeterminate=True`.
 
-## Visual Options
+## Value
 
-Progress Bar comes in two different sizes determined by the `size` prop: `"S"` and `"L"`. Furthermore, the `static_color` prop can be used to control the color of the progress circle.
+The progress is controlled by the `value`, `min_value`, and `max_value` props. The default values of `min_value` and `max_value` are `0` and `100`, respectively. 
 
 ```python
-def progress_bar_variants():
-    return ui.view(
-        ui.flex(
-            ui.progress_bar(size="S", value=30, margin="10px"),
-            ui.progress_bar(size="L", value=60, margin="10px"),
-            ui.progress_bar(size="L", is_indeterminate=True, margin="10px"),
-            direction="column",
-        ),
-        ui.flex(
-            ui.progress_bar(size="S", value=30, margin="10px", static_color="white"),
-            ui.progress_bar(size="L", value=60, margin="10px", static_color="white"),
-            ui.progress_bar(
-                size="L", is_indeterminate=True, margin="10px", static_color="white"
-            ),
-            direction="column",
-        ),
-        ui.view(
-            ui.flex(
-                ui.progress_bar(
-                    size="S", value=30, margin="10px", static_color="black"
-                ),
-                ui.progress_bar(
-                    size="L", value=60, margin="10px", static_color="black"
-                ),
-                ui.progress_bar(
-                    size="L", is_indeterminate=True, margin="10px", static_color="black"
-                ),
-                direction="column",
-            ),
-            background_color="white",
-        ),
+def value_variants():
+    return ui.flex(
+        ui.progress_bar(value=50),
+        ui.progress_bar(value=50, min_value=25, max_value=125),
+        align_items="start",
+        direction="column",
+        row_gap="20px",
     )
 
 
-progress_bar_variants_example = progress_bar_variants()
+progress_bar_value_examples = value_variants()
+```
+
+## Indeterminate
+
+Use `is_indeterminate=True` if the progress can not be determined.
+
+```python
+def indeterminate_variants():
+    return ui.flex(
+        ui.progress_bar(value=70),
+        ui.progress_bar(is_indeterminate=True),
+        align_items="start",
+        direction="column",
+        row_gap="20px",
+    )
+
+
+progress_bar_indeterminate_examples = indeterminate_variants()
+```
+
+## Size
+
+Progress Bar comes in two different sizes determined by the `size` prop: `"S"` and `"L"`. By default, the size is `"L"`.
+
+```python
+def size_variants():
+    return ui.flex(
+        ui.progress_bar(value=70, size="S"),
+        ui.progress_bar(value=70),
+        align_items="start",
+        direction="column",
+        row_gap="20px",
+    )
+
+
+progress_bar_size_examples = size_variants()
+```
+
+## Static Color
+
+The `static_color` prop can be used to control the color of the progress bar between the default color, `"black"`, and `"white"`.
+
+```python
+def color_variants():
+    return ui.flex(
+        ui.view(ui.progress_bar(value=70, margin="10px")),
+        ui.view(ui.progress_bar(value=70, static_color="white", margin="10px")),
+        ui.view(
+            ui.progress_bar(value=70, static_color="black", margin="10px"),
+            background_color="white",
+        ),
+        direction="column",
+    )
+
+
+progress_bar_color_examples = color_variants()
 ```
 
 ## API Reference

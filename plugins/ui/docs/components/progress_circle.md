@@ -22,37 +22,74 @@ progress_circle = ui_progress_circle()
 2. Use `static_color="white"` or `static_color="black"` if necessary to make sure the progress circle has enough contrast with the background.
 3. If the value of the progress is unknown, use `is_indeterminate=True`.
 
-## Visual Options
+## Value 
 
-Progress Circle comes in three different sizes determined by the `size` prop: `"S"`, `"M"`, and `"L"`. Furthermore, the `static_color` prop can be used to control the color of the progress circle.
+The progress is controlled by the `value`, `min_value`, and `max_value` props. The default values of `min_value` and `max_value` are `0` and `100`, respectively. 
 
 ```python
-def progress_circle_variants():
-    return ui.view(
-        ui.view(
-            ui.progress_circle(size="S", value=30, margin="5px"),
-            ui.progress_circle(size="M", value=60, margin="5px"),
-            ui.progress_circle(size="L", is_indeterminate=True, margin="5px"),
-        ),
-        ui.view(
-            ui.progress_circle(size="S", value=30, margin="5px", static_color="white"),
-            ui.progress_circle(size="M", value=60, margin="5px", static_color="white"),
-            ui.progress_circle(
-                size="L", is_indeterminate=True, margin="5px", static_color="white"
-            ),
-        ),
-        ui.view(
-            ui.progress_circle(size="S", value=30, margin="5px", static_color="black"),
-            ui.progress_circle(size="M", value=60, margin="5px", static_color="black"),
-            ui.progress_circle(
-                size="L", is_indeterminate=True, margin="5px", static_color="black"
-            ),
-            background_color="white",
-        ),
+def value_variants():
+    return ui.flex(
+        ui.progress_circle(value=50),
+        ui.progress_circle(value=50, min_value=25, max_value=125),
+        column_gap="20px",
     )
 
 
-progress_circle_variants_example = progress_circle_variants()
+progress_circle_value_examples = value_variants()
+```
+
+## Indeterminate
+
+Use `is_indeterminate=True` if the progress can not be determined.
+
+```python
+def indeterminate_variants():
+    return ui.flex(
+        ui.progress_circle(value=70),
+        ui.progress_circle(is_indeterminate=True),
+        column_gap="20px",
+    )
+
+
+progress_circle_indeterminate_examples = indeterminate_variants()
+```
+
+## Size
+
+Progress Circle comes in three different sizes determined by the `size` prop: `"S"`, `"M"`, and `"L"`. By default, the size is `"M"`.
+
+```python
+def size_variants():
+    return ui.flex(
+        ui.progress_circle(value=70, size="S"),
+        ui.progress_circle(value=70),
+        ui.progress_circle(value=70, size="L"),
+        column_gap="20px",
+    )
+
+
+progress_circle_size_examples = size_variants()
+```
+
+## Static Color
+
+The `static_color` prop can be used to control the color of the progress circle between the default color, `"black"`, and `"white"`.
+
+```python
+def color_variants():
+    return ui.view(
+        ui.flex(
+            ui.view(ui.progress_circle(value=70, margin="10px")),
+            ui.view(ui.progress_circle(value=70, static_color="white", margin="10px")),
+            ui.view(
+                ui.progress_circle(value=70, static_color="black", margin="10px"),
+                background_color="white",
+            ),
+        )
+    )
+
+
+progress_circle_color_examples = color_variants()
 ```
 
 ## API Reference
