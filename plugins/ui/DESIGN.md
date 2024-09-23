@@ -115,6 +115,32 @@ st.write("Result:", res)
 - Re-running everything can be costly, need to be conscious with caching/memoization
 - Does not achieve composability
 
+### Markdown Component
+
+The markdown component should take a string and render it with Markdown formatting. The component should also support LaTeX with MathJax, and use all the props in the Layout, Spacing, Sizing, Positioning, Accessibility, and Advanced categories from Spectrum.
+
+```python
+from deephaven import ui
+
+md_example = ui.markdown(
+    """
+    # Heading 1
+
+    ## Heading 2
+
+    Text **bold**
+
+    $$
+    \eqalign{
+    (a+b)^2 &= (a+b)(a+b) \\
+    &= a^2 + ab + ba + b^2 \\
+    &= a^2 + 2ab + b^2
+    }
+    $$
+    """
+)
+```
+
 ## Proposed Syntaxes
 
 ### Interactive Query
