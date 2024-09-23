@@ -2478,6 +2478,8 @@ Some examples of potential rules that fall into each category:
 
 Column formatting rules apply to specific columns. All column formatting rules should have a `column` field which is the column the rule applies to. We could optionally support `columns` (or just a `columns` prop which handles both cases) which would allow for a list of columns that the rule applies to.
 
+Column formatting rules have an optional `where` field which is a conditional expression that determines if the rule should be applied. This expression will be applied as a custom column (which is applied with `update_view`) to the table and may reference columns or use the query language if needed.
+
 ##### ui.table Row Formatting Rules
 
 Row formatting rules apply to entire rows. Only visual rules can be applied to rows. Row formatting rules should have an `where` field which is a conditional expression that determines if the rule should be applied. This expression will be applied as a custom column (which is applied with `update_view`) to the table and may reference columns or use the query language if needed. The conditional is required for row formatting rules because otherwise they would apply to every row in the table.
