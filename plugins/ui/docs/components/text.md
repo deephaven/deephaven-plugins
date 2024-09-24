@@ -12,7 +12,7 @@ my_text_basic = ui.text("Paste")
 
 ## UI Recommendations
 
-Consider using [`text_field`](./text_field.md) for cases where single-line input is required. If multi-line input is required, use [`text_area`](./text_area.md).
+If single-line input is required, consider using [`text_field`](./text_field.md). If multi-line input is required, use [`text_area`](./text_area.md).
 
 
 ## Content
