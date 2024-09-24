@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import asdict as dataclass_asdict, is_dataclass
 import logging
-from typing import Any
+from typing import Any, Dict, List, Tuple, Union
 from .._internal import RenderContext
 from ..elements import Element, PropsType
 from .RenderedNode import RenderedNode
@@ -9,7 +9,7 @@ from .RenderedNode import RenderedNode
 logger = logging.getLogger(__name__)
 
 
-def _get_context_key(item: Any, index_key: str) -> str:
+def _get_context_key(item: Any, index_key: str) -> Union[str, None]:
     """
     Get a key for an item provided at the array/dict `index_key`. This is used to uniquely identify the item in the
     render context.
@@ -21,12 +21,17 @@ def _get_context_key(item: Any, index_key: str) -> str:
     Returns:
         The key for the item in the render context.
         - If `item` is an `Element` generate a key based on the `index_key` and the `name` of the `Element`.
-        - Otherwise, return `index_key` as the key.
-        - TODO #731: use a `key` prop if it exists on the `Element`.
+        - If the item is another iterable, just return the `index_key`.
+        - Otherwise, return `None` as the key.
     """
     if isinstance(item, Element):
-        return f"{index_key}-{item.name}"
-    return index_key
+        key = item.key
+        return key if key is not None else f"{index_key}-{item.name}"
+    if isinstance(item, (Dict, List, Tuple, map)) or (
+        is_dataclass(item) and not isinstance(item, type)
+    ):
+        return index_key
+    return None
 
 
 def _render_child_item(item: Any, index_key: str, context: RenderContext) -> Any:
@@ -42,7 +47,9 @@ def _render_child_item(item: Any, index_key: str, context: RenderContext) -> Any
         The rendered item.
     """
     key = _get_context_key(item, index_key)
-    return _render_item(item, context.get_child_context(key))
+    return (
+        _render_item(item, context.get_child_context(key)) if key is not None else item
+    )
 
 
 def _render_item(item: Any, context: RenderContext) -> Any:
@@ -57,7 +64,7 @@ def _render_item(item: Any, context: RenderContext) -> Any:
         The rendered item.
     """
     logger.debug("_render_item context is %s", context)
-    if isinstance(item, (list, tuple)):
+    if isinstance(item, (list, map, tuple)):
         # I couldn't figure out how to map a `list[Unknown]` to a `list[Any]`, or to accept a `list[Unknown]` as a parameter
         return _render_list(item, context)  # type: ignore
     if isinstance(item, dict):
