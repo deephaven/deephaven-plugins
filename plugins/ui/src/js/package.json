@@ -61,7 +61,10 @@
     "classnames": "^2.5.1",
     "json-rpc-2.0": "^1.6.0",
     "nanoid": "^5.0.7",
-    "react-redux": "^7.x"
+    "react-markdown": "^8.0.7",
+    "react-redux": "^7.x",
+    "rehype-mathjax": "^3.1.0",
+    "remark-math": "^5.1.1"
   },
   "publishConfig": {
     "access": "public"
