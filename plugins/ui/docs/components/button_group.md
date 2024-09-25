@@ -36,11 +36,13 @@ Button group is used used to handle button overflow, and thus, expects buttons a
 ```python
 from deephaven import ui
 
+
 my_button_group_content_with_space_example = ui.button_group(
     ui.button("No, thanks", variant="secondary"),
     ui.button("Remind me later", variant="secondary"),
     ui.button("Rate Now", variant="primary"),
 )
+
 
 my_button_group_content_with_less_space_example = ui.button_group(
     ui.button("No, thanks", variant="secondary"),
