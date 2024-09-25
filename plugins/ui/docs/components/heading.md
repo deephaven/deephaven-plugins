@@ -2,14 +2,14 @@
 
 The Heading component is used to create different levels of headings.
 
-By default, it creates a level 3 (<h3>) heading.
+By default, it creates a level 3 (`<h3>`) heading.
 
 ## Example
 
 ```python
 from deephaven import ui
 
-my_heading_basic = ui.heading("Unsubscribe")
+my_heading_basic = ui.heading("Hello world")
 ```
 
 ## UI recommendations
@@ -42,6 +42,24 @@ def ui_heading_content_examples():
 
 
 my_heading_content_examples = ui_heading_content_examples()
+```
+
+
+## Color
+
+The color prop sets the text color for the heading component.
+
+```python
+from deephaven import ui
+
+
+my_heading_faded_example = ui.heading("Faded heading", color="gray-500")
+my_heading_negative_example = ui.heading("Negative heading", color="negative")
+my_heading_postive_example = ui.heading("Positive heading", color="positive")
+my_heading_hex_example = ui.heading("Hex color", color="#FA8072")
+my_heading_colored_sentence_example = h1 = ui.heading(
+    "Hello ", ui.text("world", color="accent"), "!"
+)
 ```
 
 ## API Reference
