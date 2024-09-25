@@ -187,9 +187,10 @@ from deephaven import ui
 
 
 my_action_group_is_emphasized_example = ui.action_group(
-    ui.item("Add"),
-    ui.item("Edit"),
-    ui.item("Delete"),
+    ui.item("Dogs"),
+    ui.item("Cats"),
+    ui.item("Fish"),
+    selected_keys["Dogs"],
     selection_mode="single",
     is_emphasized=True,
 )
