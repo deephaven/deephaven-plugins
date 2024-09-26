@@ -26,12 +26,12 @@ Recommendations for creating button groups:
 3. Button priority should match text alignment: for left-aligned text, the most critical button is on the left; for right- or center-aligned text, the most critical button is on the right.
 4. Icons should be used for higher priority actions if used in the button group. If the most critical action does not have an icon, avoid using icons for the other lower priority actions.
 
-Consider using a [`action_group`](./action_group.md) to allow the user to select from a list of actions. 
+Consider using an [`action_group`](./action_group.md) to allow the user to select from a list of actions. 
 
 
 ## Content
 
-Button group is used used to handle button overflow, and thus, expects buttons as children. It switches to a vertical layout when horizontal space is limited.
+A button group is used to handle button overflow and, thus, expects buttons as children. It switches to a vertical layout when horizontal space is limited.
 
 ```python
 from deephaven import ui
