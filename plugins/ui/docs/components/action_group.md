@@ -17,12 +17,12 @@ my_action_group_basic = ui.action_group(
 
 ## UI recommendations
 
-Consider using a [`button_group`], if you want to align multiple buttons that do not necessarily correspond to actio
+Consider using a [`button_group`] to align multiple buttons that do not necessarily correspond to an action.
 
 
 ## Icons
 
-Icons can be added to action group items by wrapping the label in a `ui.text` element, and adding a `ui.icon` as a sibling component.
+Icons can be added to action group items by wrapping the label in a `ui.text` element and adding a `ui.icon` as a sibling component.
 
 ```python
 from deephaven import ui
@@ -52,7 +52,7 @@ my_action_group_button_label_behavior_example = ui.action_group(
 
 ## Selection
 
-Action groups support multiple selection modes, configurable via the `selection_mode` prop. 
+Action groups support multiple selection modes, which are configurable via the `selection_mode` prop. 
 
 The `default_selected_keys` can be used for uncontrolled default selections.
 
@@ -97,7 +97,7 @@ my_action_group_selected_keys_example = ui_action_group_selected_keys_example()
 
 ## Events
 
-The `on_selection_change` property is triggered whenever the value in the action group selection is changed.
+The `on_selection_change` property is triggered whenever the value in the action group selection changes.
 
 ```python
 from deephaven import ui
@@ -187,9 +187,10 @@ from deephaven import ui
 
 
 my_action_group_is_emphasized_example = ui.action_group(
-    ui.item("Add"),
-    ui.item("Edit"),
-    ui.item("Delete"),
+    ui.item("Dogs"),
+    ui.item("Cats"),
+    ui.item("Fish"),
+    selected_keys["Dogs"],
     selection_mode="single",
     is_emphasized=True,
 )
@@ -236,7 +237,7 @@ my_action_group_is_disabled_example = ui.action_group(
 
 ## Orientation
 
-While aligned horizontally by default, the axis the action items align with can be changed via the `orientation` prop.
+While aligned horizontally by default, the axis with which the action items align can be changed via the `orientation` prop.
 
 ```python
 from deephaven import ui
@@ -253,7 +254,7 @@ my_action_group_orientation_example = ui.action_group(
 
 ## Density
 
-Using the `density` prop can inrease or reduce margins between action buttons. If the action group has the `is_quiet` prop set to true, it reduces the margin size.
+The `density` prop can increase or reduce margins between action buttons. When the `is_quiet` prop is set to true, margin size is reduced.
 
 ```python
 from deephaven import ui
