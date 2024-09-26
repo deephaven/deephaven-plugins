@@ -9,31 +9,30 @@ from .RenderedNode import RenderedNode
 logger = logging.getLogger(__name__)
 
 
-def _render_child_item(item: Any, parentContext: RenderContext, index_key: str) -> Any:
+def _render_child_item(item: Any, parent_context: RenderContext, index_key: str) -> Any:
     """
     Render a child item. If the item may have its own children, they will be rendered as well.
 
     Args:
         item: The item to render.
-        parentContext: The context of the parent to render the item in.
+        parent_context: The context of the parent to render the item in.
         index_key: The key of the item in the parent context if it is a list or tuple.
 
     Returns:
         The rendered item.
     """
-    logger.debug("_render_child_item parentContext is %s", parentContext)
+    logger.debug("_render_child_item parent_context is %s", parent_context)
 
-    key = index_key
     if isinstance(item, (list, map, tuple)):
-        return _render_list(item, parentContext.get_child_context(key))
+        return _render_list(item, parent_context.get_child_context(index_key))
 
     if isinstance(item, dict):
-        return _render_dict(item, parentContext.get_child_context(key))
+        return _render_dict(item, parent_context.get_child_context(index_key))
 
     # If the item is an instance of a dataclass
     if is_dataclass(item) and not isinstance(item, type):
         return _render_dict(
-            dataclass_asdict(item), parentContext.get_child_context(key)
+            dataclass_asdict(item), parent_context.get_child_context(index_key)
         )
 
     if isinstance(item, Element):
@@ -43,7 +42,7 @@ def _render_child_item(item: Any, parentContext: RenderContext, index_key: str) 
             item,
         )
         key = item.key or f"{index_key}-{item.name}"
-        return _render_element(item, parentContext.get_child_context(key))
+        return _render_element(item, parent_context.get_child_context(key))
 
     logger.debug("render_item returning child (%s): %s", type(item), item)
     return item
