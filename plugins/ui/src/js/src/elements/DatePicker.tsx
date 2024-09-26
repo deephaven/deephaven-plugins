@@ -9,15 +9,15 @@ import { getSettings, RootState } from '@deephaven/redux';
 import { DateValue, toTimeZone, ZonedDateTime } from '@internationalized/date';
 import useDebouncedOnChange from './hooks/useDebouncedOnChange';
 import {
-  SerializedDatePickerProps,
-  useDatePickerProps,
-} from './hooks/useDatePickerProps';
+  SerializedDateComponentProps,
+  useDateComponentProps,
+} from './hooks/useDateComponentProps';
 import { isStringInstant } from './utils/DateTimeUtils';
 
 const EMPTY_FUNCTION = () => undefined;
 
 function isDatePickerInstant(
-  props: SerializedDatePickerProps<DHCDatePickerProps<DateValue>>
+  props: SerializedDateComponentProps<DHCDatePickerProps<DateValue>>
 ): boolean {
   const { value, defaultValue, placeholderValue } = props;
   if (value != null) {
@@ -30,7 +30,7 @@ function isDatePickerInstant(
 }
 
 export function DatePicker(
-  props: SerializedDatePickerProps<DHCDatePickerProps<DateValue>>
+  props: SerializedDateComponentProps<DHCDatePickerProps<DateValue>>
 ): JSX.Element {
   const isDatePickerInstantValue = isDatePickerInstant(props);
   const settings = useSelector(getSettings<RootState>);
@@ -41,7 +41,7 @@ export function DatePicker(
     value: propValue,
     onChange: propOnChange = EMPTY_FUNCTION,
     ...otherProps
-  } = useDatePickerProps(props, timeZone);
+  } = useDateComponentProps(props, timeZone);
 
   const [value, onChange] = useDebouncedOnChange<DateValue | null>(
     propValue ?? defaultValue,
@@ -59,7 +59,7 @@ export function DatePicker(
       value instanceof ZonedDateTime
     ) {
       const newValue = toTimeZone(value, timeZone);
-      onChange(newValue);
+      onChange?.(newValue);
     }
   }, [isDatePickerInstantValue, value, onChange, timeZone, prevTimeZone]);
 

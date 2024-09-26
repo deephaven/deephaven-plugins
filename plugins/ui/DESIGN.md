@@ -1311,6 +1311,156 @@ list_view5 = ui.list_view(
 
 ```
 
+###### ui.date_field
+
+A date field that can be used to select a date.
+
+The date field accepts the following date types as inputs:
+
+- `None`
+- `LocalDate`
+- `ZoneDateTime`
+- `Instant`
+- `int`
+- `str`
+- `datetime.datetime`
+- `numpy.datetime64`
+- `pandas.Timestamp`
+
+The input will be converted to one of three Java date types:
+
+1. `LocalDate`: A LocalDate is a date without a time zone in the ISO-8601 system, such as "2007-12-03" or "2057-01-28".
+   This will create a date range picker with a granularity of days.
+2. `Instant`: An Instant represents an unambiguous specific point on the timeline, such as 2021-04-12T14:13:07 UTC.
+   This will create a date range picker with a granularity of seconds in UTC. The time zone will be rendered as the time zone in user settings.
+3. `ZonedDateTime`: A ZonedDateTime represents an unambiguous specific point on the timeline with an associated time zone, such as 2021-04-12T14:13:07 America/New_York.
+   This will create a date range picker with a granularity of seconds in the specified time zone. The time zone will be rendered as the specified time zone.
+
+The `start` and `end` inputs are converted according to the following rules:
+
+1. If the input is one of the three Java date types, use that type.
+2. A date string such as "2007-12-03" will parse to a `LocalDate`
+3. A string with a date, time, and timezone such as "2021-04-12T14:13:07 America/New_York" will parse to a `ZonedDateTime`
+4. All other types will attempt to convert in this order: `Instant`, `ZonedDateTime`, `LocalDate`
+
+The format of the date range picker and the type of the value passed to the `on_change` handler
+is determined by the type of the following props in order of precedence:
+
+1. `value`
+2. `default_value`
+3. `placeholder_value`
+
+If none of these are provided, the `on_change` handler passes a range of `Instant`.
+
+```py
+import deephaven.ui as ui
+ui.date_field(
+    placeholder_value: Date | None = None,
+    value: Date | None = None,
+    default_value: Date | None = None,
+    min_value: Date | None = None,
+    max_value: Date | None = None,
+    granularity: Granularity | None = None,
+    on_change: Callable[[Date], None] | None = None,
+    **props: Any
+) -> DateFieldElement
+```
+
+###### Parameters
+
+| Parameter           | Type                             | Description                                                                                                                                                                               |
+| ------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
+| `placeholder_value` | `Date \| None`                   | A placeholder date that influences the format of the placeholder shown when no value is selected. Defaults to today at the current time on the server machine time zone.                  |
+| `value`             | `Date \| None`                   | The current value (controlled).                                                                                                                                                           |
+| `default_value`     | `Date \| None`                   | The default value (uncontrolled).                                                                                                                                                         |
+| `min_value`         | `Date \| None`                   | The minimum allowed date that a user may select.                                                                                                                                          |
+| `max_value`         | `Date \| None`                   | The maximum allowed date that a user may select.                                                                                                                                          |     |
+| `granularity`       | `Granularity \| None`            | Determines the smallest unit that is displayed in the date field. By default, this is `"DAY"` for `LocalDate`, and `"SECOND"` otherwise.                                                  |
+| `on_change`         | `Callable[[Date], None] \| None` | Handler that is called when the value changes. The exact `Date` type will be the same as the type passed to `value`, `default_value` or `placeholder_value`, in that order of precedence. |
+| `**props`           | `Any`                            | Any other [DateField](https://react-spectrum.adobe.com/react-spectrum/DateField.html) prop, with the exception of `isDateUnavailable`, `validate`, and `errorMessage` (as a callback)     |
+
+```py
+
+import deephaven.ui as ui
+from deephaven.time import to_j_local_date, dh_today, to_j_instant, to_j_zdt
+
+zoned_date_time = to_j_zdt("1995-03-22T11:11:11.23142 America/New_York")
+instant = to_j_instant("2022-01-01T00:00:00 ET")
+local_date = to_j_local_date(dh_today())
+
+# simple date field that takes ui.items and is uncontrolled
+# this creates a date field with a granularity of days with a default value of today
+date_field1 = ui.date_field(
+    default_value=local_date
+)
+
+# simple date field that takes list view items directly and is controlled
+# this creates a date field with a granularity of seconds in UTC
+# the on_change handler is passed an instant
+date, set_date = ui.use_state(instant)
+
+date_field2 = ui.date_field(
+    value=date,
+    on_change=set_date
+)
+
+# this creates a date field with a granularity of seconds in the specified time zone
+# the on_change handler is passed a zoned date time
+date, set_date = ui.use_state(None)
+
+date_field3 = ui.date_field(
+    placeholder_value=zoned_date_time,
+    on_change=set_date
+)
+
+# this creates a date field with a granularity of seconds in UTC
+# the on_change handler is passed an instant
+date, set_date = ui.use_state(None)
+
+date_field4 = ui.date_field(
+    placeholder_value=instant,
+    on_change=set_date
+)
+
+# this creates a date field with a granularity of days
+# the on_change handler is passed a local date
+date, set_date = ui.use_state(None)
+
+date_field5 = ui.date_field(
+    placeholder_value=local_date,
+    on_change=set_date
+)
+
+# this creates a date field with a granularity of days, but the on_change handler is still passed an instant
+date, set_date = ui.use_state(None)
+
+date_field6 = ui.date_field(
+    placeholder_value=instant,
+    granularity="day",
+    on_change=set_date
+)
+
+# this creates a date field with a granularity of seconds and the on_change handler is passed an instant
+date, set_date = ui.use_state(None)
+
+date_field7 = ui.date_field(
+    on_change=set_date
+)
+
+# this create a date field with a granularity of days, a min and max value, and unavailable dates
+min_value = to_j_local_date("2022-01-01")
+max_value = to_j_local_date("2022-12-31")
+unavailable_dates = [to_j_local_date("2022-03-15"), to_j_local_date("2022-03-17")]
+date, set_date = ui.use_state(to_j_local_date("2022-03-16"))
+date_field8 = ui.date_field(
+    value=date,
+    min_value=min_value,
+    max_value=max_value,
+    unavailable_values=unavailable_dates,
+    on_change=set_date
+)
+```
+
 ###### ui.date_picker
 
 A date picker that can be used to select a date.
@@ -2264,6 +2414,141 @@ ui_table.sort(
 | ----------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
 | `by`        | `str \| Sequence[str]`                                       | The column(s) to sort by. May be a single column name, or a list of column names.                           |
 | `direction` | `TableSortDirection \| Sequence[TableSortDirection] \| None` | The sort direction(s) to use. If provided, that must match up with the columns provided. Defaults to "ASC". |
+
+###### ui.time_field
+
+A time field that can be used to select a time.
+
+The time field accepts the following time types as inputs:
+
+- `None`
+- `LocaTime`
+- `ZonedDateTime`
+- `Instant`
+- `int`
+- `str`
+- `datetime.datetime`
+- `numpy.datetime64`
+- `pandas.Timestamp`
+
+The input will be converted to one of three Java time types:
+
+1. `LocalTime`: A LocalTime is a time without a time zone in the ISO-8601 system, such as "10:30:45" or "16:10:00".
+   This will create a time field with a granularity of seconds.
+2. `Instant`: An Instant represents an unambiguous specific point on the timeline, such as 2021-04-12T14:13:07 UTC.
+   This will create a time field with a granularity of seconds in UTC. The time zone will be rendered as the time zone in user settings.
+3. `ZonedDateTime`: A ZonedDateTime represents an unambiguous specific point on the timeline with an associated time zone, such as 2021-04-12T14:13:07 America/New_York.
+   This will create a time field with a granularity of seconds in the specified time zone. The time zone will be rendered as the specified time zone.
+
+4. If the input is one of the three Java time types, use that type.
+5. A time string such as "10:30:45" will parse to a `LocaTime`
+6. A string with a date, time, and timezone such as "2021-04-12T14:13:07 America/New_York" will parse to a `ZonedDateTime`
+7. All other types will attempt to convert in this order: `LocaTime`, `Instant`, `ZonedDateTime`
+
+The format of the time field and the type of the value passed to the `on_change` handler
+is determined by the type of the following props in order of precedence:
+
+1. `value`
+2. `default_value`
+3. `placeholder_value`
+
+If none of these are provided, the `on_change` handler passes a range of `LocaTime`.
+
+```py
+import deephaven.ui as ui
+ui.time_field(
+    placeholder_value: Time | None = None,
+    value: Time | None = None,
+    default_value: Time | None = None,
+    min_value: Time | None = None,
+    max_value: Time | None = None,
+    granularity: Granularity | None = None,
+    on_change: Callable[[Time], None] | None = None,
+    **props: Any
+) -> TimeFieldElement
+```
+
+###### Parameters
+
+| Parameter           | Type                             | Description                                                                                                                                                                               |
+| ------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `placeholder_value` | `Time \| None`                   | A placeholder time that influences the format of the placeholder shown when no value is selected. Defaults to 12:00 AM or 00:00 depending on the hour cycle                               |
+| `value`             | `Time \| None`                   | The current value (controlled).                                                                                                                                                           |
+| `default_value`     | `Time \| None`                   | The default value (uncontrolled).                                                                                                                                                         |
+| `min_value`         | `Time \| None`                   | The minimum allowed time that a user may select.                                                                                                                                          |
+| `max_value`         | `Time \| None`                   | The maximum allowed time that a user may select.                                                                                                                                          |
+| `granularity`       | `Granularity \| None`            | Determines the smallest unit that is displayed in the time field. By default, this is `"SECOND".                                                                                          |
+| `on_change`         | `Callable[[Time], None] \| None` | Handler that is called when the value changes. The exact `Time` type will be the same as the type passed to `value`, `default_value` or `placeholder_value`, in that order of precedence. |
+| `**props`           | `Any`                            | Any other [TimeField](https://react-spectrum.adobe.com/react-spectrum/TimeField.html) prop, with the exception of `validate`, and `errorMessage` (as a callback)                          |
+
+```py
+
+import deephaven.ui as ui
+from deephaven.time import to_j_local_time, to_j_instant, to_j_zdt
+
+zoned_date_time = to_j_zdt("1995-03-22T11:11:11.23142 America/New_York")
+instant = to_j_instant("2022-01-01T00:00:00 ET")
+local_time = to_j_local_time("12:30:45")
+
+# simple time field that takes ui.items and is uncontrolled
+time_field1 = ui.time_field(
+    default_value=local_time
+)
+
+# simple time field that takes list view items directly and is controlled
+# this creates a time field with a granularity of seconds in UTC
+# the on_change handler is passed an instant
+time, set_time = ui.use_state(instant)
+
+time_field2 = ui.time_field(
+    value=time,
+    on_change=set_time
+)
+
+# this creates a time field with a granularity of seconds in the specified time zone
+# the on_change handler is passed a zoned date time
+time, set_time = ui.use_state(None)
+
+time_field3 = ui.time_field(
+    placeholder_value=zoned_date_time,
+    on_change=set_time
+)
+
+# this creates a time field with a granularity of seconds in UTC
+# the on_change handler is passed an instant
+time, set_time = ui.use_state(None)
+
+time_field4 = ui.time_field(
+    placeholder_value=instant,
+    on_change=set_time
+)
+
+# this creates a time field with a granularity of seconds
+# the on_change handler is passed a local time
+time, set_time = ui.use_state(None)
+
+time_field5 = ui.time_field(
+    placeholder_value=local_time,
+    on_change=set_time
+)
+
+# this creates a time field with a granularity of hours, but the on_change handler is still passed an instant
+time, set_time = ui.use_state(None)
+
+time_field6 = ui.time_field(
+    placeholder_value=instant,
+    granularity="hour",
+    on_change=set_time
+)
+
+# this creates a time field with a granularity of seconds and the on_change handler is passed an instant
+time, set_time = ui.use_state(None)
+
+time_field7 = ui.time_field(
+    on_change=set_time
+)
+
+```
 
 #### ui.fragment
 

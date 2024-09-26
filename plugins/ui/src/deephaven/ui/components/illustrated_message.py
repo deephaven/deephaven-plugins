@@ -53,6 +53,7 @@ def illustrated_message(
     id: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
 ) -> Element:
     """
     An IllustratedMessage displays an illustration and a message, usually for an empty state or an error page.
@@ -98,6 +99,7 @@ def illustrated_message(
         id: The unique identifier of the element.
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
+        key: A unique identifier used by React to render elements in a list.
 
     Returns:
         The rendered IllustratedMessage component.
@@ -145,4 +147,5 @@ def illustrated_message(
         id=id,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
+        key=key,
     )

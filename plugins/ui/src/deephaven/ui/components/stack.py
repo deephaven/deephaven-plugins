@@ -9,6 +9,7 @@ def stack(
     height: float | None = None,
     width: float | None = None,
     activeItemIndex: int | None = None,
+    key: str | None = None,
     **kwargs: Any,
 ):
     """
@@ -19,6 +20,7 @@ def stack(
         *children: Elements to render in the row.
         height: The percent height of the stack relative to other children of its parent. If not provided, the stack will be sized automatically.
         width: The percent width of the stack relative to other children of its parent. If not provided, the stack will be sized automatically.
+        key: A unique identifier used by React to render elements in a list.
     """
     return component_element(
         "Stack",
@@ -26,5 +28,6 @@ def stack(
         height=height,
         width=width,
         activeItemIndex=activeItemIndex,
+        key=key,
         **kwargs,
     )

@@ -1,7 +1,7 @@
 import abc
 import logging
 from functools import partial
-from typing import Callable, ContextManager
+from typing import Callable, ContextManager, Type
 import importlib.resources
 import json
 import pathlib
@@ -11,6 +11,35 @@ from deephaven.plugin.js import JsPlugin
 logger = logging.getLogger(__name__)
 
 __all__ = ["is_enterprise_environment", "create_js_plugin"]
+
+
+class CommonJsPlugin(JsPlugin):
+    def __init__(
+        self,
+        name: str,
+        version: str,
+        main: str,
+        path: pathlib.Path,
+    ) -> None:
+        self._name = name
+        self._version = version
+        self._main = main
+        self._path = path
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def version(self) -> str:
+        return self._version
+
+    @property
+    def main(self) -> str:
+        return self._main
+
+    def path(self) -> pathlib.Path:
+        return self._path
 
 
 def is_enterprise_environment() -> bool:
@@ -25,7 +54,7 @@ def is_enterprise_environment() -> bool:
 
 
 def _create_from_npm_package_json(
-    path_provider: Callable[[], ContextManager[pathlib.Path]], plugin_class: abc.ABCMeta
+    path_provider: Callable[[], ContextManager[pathlib.Path]]
 ) -> JsPlugin:
     """
     Create a JsPlugin from an npm package.json file.
@@ -44,7 +73,7 @@ def _create_from_npm_package_json(
         )
     with (js_path / "package.json").open("rb") as f:
         package_json = json.load(f)
-    return plugin_class(
+    return CommonJsPlugin(
         package_json["name"],
         package_json["version"],
         package_json["main"],
@@ -89,7 +118,9 @@ def _resource_js_path(
 
 
 def create_js_plugin(
-    package_namespace: str, js_name: str, plugin_class: abc.ABCMeta
+    package_namespace: str,
+    js_name: str,
+    plugin_class: Type[CommonJsPlugin] = CommonJsPlugin,
 ) -> JsPlugin:
     """
     Create a JsPlugin from an npm package.json file.
@@ -100,10 +131,10 @@ def create_js_plugin(
         js_name:
             The resource name
         plugin_class:
-            The class to create. It must be a subclass of JsPlugin.
+            The class to create. It must be a subclass of CommonJsPlugin.
 
     Returns:
         The created JsPlugin
     """
     js_path = _resource_js_path_provider(package_namespace, js_name)
-    return _create_from_npm_package_json(js_path, plugin_class)
+    return _create_from_npm_package_json(js_path)

@@ -59,6 +59,7 @@ def image(
     id: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
 ) -> Element:
     """
     Image is used to insert and display an image within a component.
@@ -108,6 +109,7 @@ def image(
         id: The unique identifier of the element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
+        key: A unique identifier used by React to render elements in a list.
 
     Returns:
         The rendered Image element.
@@ -160,4 +162,5 @@ def image(
         id=id,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
+        key=key,
     )

@@ -1,5 +1,5 @@
 export * from './useButtonProps';
-export * from './useDatePickerProps';
+export * from './useDateComponentProps';
 export * from './useDateRangePickerProps';
 export * from './useDateValueMemo';
 export * from './useFocusEventCallback';
@@ -9,4 +9,6 @@ export * from './usePickerProps';
 export * from './usePressEventCallback';
 export * from './useReExportedTable';
 export * from './useSelectionProps';
+export * from './useTimeComponentProps';
+export * from './useTimeValueMemo';
 export * from './useDebouncedOnChange';

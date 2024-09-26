@@ -33,6 +33,7 @@ export const ELEMENT_NAME = {
   comboBox: uiComponentName('ComboBox'),
   content: uiComponentName('Content'),
   contextualHelp: uiComponentName('ContextualHelp'),
+  dateField: uiComponentName('DateField'),
   datePicker: uiComponentName('DatePicker'),
   dateRangePicker: uiComponentName('DateRangePicker'),
   flex: uiComponentName('Flex'),
@@ -61,6 +62,7 @@ export const ELEMENT_NAME = {
   text: uiComponentName('Text'),
   textArea: uiComponentName('TextArea'),
   textField: uiComponentName('TextField'),
+  timeField: uiComponentName('TimeField'),
   toggleButton: uiComponentName('ToggleButton'),
   view: uiComponentName('View'),
 } as const;
