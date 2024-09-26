@@ -34,6 +34,7 @@ interface Props
       | 'paddingEnd'
       | 'paddingX'
       | 'paddingY'
+      | 'overflow'
       | 'UNSAFE_style'
       | 'UNSAFE_className'
     >,
@@ -64,6 +65,7 @@ function ReactPanel({
   backgroundColor,
   direction = 'column',
   wrap,
+  overflow = 'auto',
   justifyContent,
   alignContent,
   alignItems = 'start',
@@ -189,6 +191,7 @@ function ReactPanel({
         <ReactPanelContext.Provider value={panelId}>
           <View
             height="100%"
+            width="100%"
             backgroundColor={backgroundColor}
             padding={padding}
             paddingTop={paddingTop}
@@ -197,6 +200,7 @@ function ReactPanel({
             paddingEnd={paddingEnd}
             paddingX={paddingX}
             paddingY={paddingY}
+            overflow={overflow}
             UNSAFE_style={UNSAFE_style}
             UNSAFE_className={
               UNSAFE_className == null
@@ -206,7 +210,6 @@ function ReactPanel({
           >
             <Flex
               UNSAFE_className="dh-inner-react-panel"
-              height="100%"
               wrap={wrap}
               direction={direction}
               justifyContent={justifyContent}
