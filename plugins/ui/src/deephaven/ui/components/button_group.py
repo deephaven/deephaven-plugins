@@ -90,6 +90,12 @@ def button_group(
         margin_end: The margin for the logical end side of the element, depending on layout direction.
         margin_x: The margin for the left and right sides of the element.
         margin_y: The margin for the top and bottom sides of the element.
+        width: The width of the element.
+        height: The height of the element.
+        min_width: The minimum width of the element.
+        min_height: The minimum height of the element.
+        max_width: The maximum width of the element.
+        max_height: The maximum height of the element.
         position: Specifies how the element is position.
         top: The top position of the element.
         bottom: The bottom position of the element.
