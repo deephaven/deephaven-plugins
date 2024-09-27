@@ -1,57 +1,50 @@
 # List View
 
-ListView displays a list of interactive items, and allows a user to navigate, select, or perform an action. It offers greater flexibility in the contents it can render and can distinguish between row selection and actions performed on a row. This makes ListView an ideal component for use cases such as file managers.
+List view displays a list of interactive items, and allows a user to navigate, select, or perform an action. It offers greater flexibility in the contents it can render and can distinguish between row selection and actions performed on a row. This makes list view an ideal component for turning table columns into interactive lists.
 
 ## Example
 
 ```python
-from deephaven import time_table, ui
-import datetime
+from deephaven import ui
 
-# Ticking table with initial row count of 200 that adds a row every second
-initial_row_count = 200
-_column_types = time_table(
-    "PT1S",
-    start_time=datetime.datetime.now() - datetime.timedelta(seconds=initial_row_count),
-).update(
+
+@ui.component
+def ui_list_view():
+    return ui.list_view(
+        ui.item("Option 1"),
+        ui.item("Option 2"),
+        ui.item("Option 3"),
+        ui.item("Option 4"),
+        default_selected_keys=["Option 2", "Option 3"],
+    )
+
+
+my_list_view = ui_list_view()
+```
+
+## Table Source Example
+
+List view items can also be generated from a table.
+
+```python
+from deephaven import ui, new_table
+from deephaven.column import string_col
+
+_table = new_table(
     [
-        "Id=new String(`key-`+i)",
-        "Display=new String(`Display `+i)",
+        string_col("Keys", ["key-0", "key-1", "key-2"]),
+        string_col("Labels", ["Option 0", "Option 1", "Option 2"]),
     ]
 )
 
-# `ui.list_view`` with `ui.list_action_menu` actions
+
 @ui.component
-def ui_list_view_action_menu():
-    value, set_value = ui.use_state(["key-2", "key-4", "key-5"])
-
-    action_item_keys, set_action_item_keys = ui.use_state(["", ""])
-    on_action = ui.use_callback(
-        lambda action_key, item_key: set_action_item_keys([action_key, str(item_key)]),
-        [],
-    )
-
-    lv = ui.list_view(
-        _column_types,
-        key_column="Id",
-        label_column="Display",
-        aria_label="List View",
-        on_change=set_value,
-        selected_keys=value,
-        actions=ui.list_action_menu(
-            "Edit",
-            "Delete",
-            on_action=on_action,
-        ),
-    )
-
-    text_selection = ui.text("Selection: " + ", ".join(map(str, value)))
-    text_action = ui.text("Action: " + " ".join(map(str, action_item_keys)))
-
-    return lv, text_selection, text_action
+def ui_list_view_table():
+    source = ui.item_table_source(_table, key_column="Keys", label_column="Labels")
+    return ui.list_view(source)
 
 
-my_list_view_action_menu = ui_list_view_action_menu()
+my_list_view_table = ui_list_view_table()
 ```
 
 ## Events
@@ -59,102 +52,79 @@ my_list_view_action_menu = ui_list_view_action_menu()
 ListView accepts an action that can be triggered when a user performs an action on an item.
 
 ```python
-from deephaven import time_table, ui
-import datetime
+from deephaven import ui, new_table
+from deephaven.column import string_col
 
-# Ticking table with initial row count of 200 that adds a row every second
-initial_row_count = 200
-_column_types = time_table(
-    "PT1S",
-    start_time=datetime.datetime.now() - datetime.timedelta(seconds=initial_row_count),
-).update(
+_table = new_table(
     [
-        "Id=new String(`key-`+i)",
-        "Display=new String(`Display `+i)",
+        string_col("Keys", ["key-0", "key-1", "key-2"]),
+        string_col("Labels", ["Option 0", "Option 1", "Option 2"]),
     ]
 )
 
-# `ui.list_view`` with `ui.list_action_group` actions
-@ui.component
-def ui_list_view_action_group():
-    value, set_value = ui.use_state(["key-2", "key-4", "key-5"])
 
+@ui.component
+def ui_list_view_actions():
     action_item_keys, set_action_item_keys = ui.use_state(["", ""])
     on_action = ui.use_callback(
         lambda action_key, item_key: set_action_item_keys([action_key, str(item_key)]),
         [],
     )
 
-    lv = ui.list_view(
-        _column_types,
-        key_column="Id",
-        label_column="Display",
-        aria_label="List View",
-        on_change=set_value,
-        selected_keys=value,
+    source = ui.item_table_source(
+        _table,
+        key_column="Keys",
+        label_column="Labels",
         actions=ui.list_action_group(
             "Edit",
             "Delete",
             on_action=on_action,
         ),
     )
+    lv = ui.list_view(source)
 
-    text_selection = ui.text("Selection: " + ", ".join(map(str, value)))
     text_action = ui.text("Action: " + " ".join(map(str, action_item_keys)))
 
-    return lv, text_selection, text_action
+    return lv, text_action
 
 
-my_list_view_action_group = ui_list_view_action_group()
+my_list_view_actions = ui_list_view_actions()
 ```
 
 ListView can also accept a handler that is called when the selection is changed.
 
 ```python
-from deephaven import time_table, ui
-import datetime
+from deephaven import ui, new_table
+from deephaven.column import string_col
 
-# Ticking table with initial row count of 200 that adds a row every second
-initial_row_count = 200
-_column_types = time_table(
-    "PT1S",
-    start_time=datetime.datetime.now() - datetime.timedelta(seconds=initial_row_count),
-).update(
+_table = new_table(
     [
-        "Id=new String(`key-`+i)",
-        "Display=new String(`Display `+i)",
+        string_col("Keys", ["key-0", "key-1", "key-2"]),
+        string_col("Labels", ["Option 0", "Option 1", "Option 2"]),
     ]
 )
 
-# `ui.list_view`` with `ui.list_action_menu` actions
+
 @ui.component
-def ui_list_view_action_menu():
-    value, set_value = ui.use_state(["key-2", "key-4", "key-5"])
+def ui_list_view_selection():
+    value, set_value = ui.use_state(["key-2"])
 
-    action_item_keys, set_action_item_keys = ui.use_state(["", ""])
-    on_action = ui.use_callback(
-        lambda action_key, item_key: set_action_item_keys([action_key, str(item_key)]),
-        [],
+    source = ui.item_table_source(
+        _table,
+        key_column="Keys",
+        label_column="Labels",
     )
-
     lv = ui.list_view(
-        _column_types,
-        key_column="Id",
-        label_column="Display",
-        aria_label="List View",
-        on_change=set_value,
-        selected_keys=value,
-        actions=ui.list_action_menu(
-            "Edit",
-            "Delete",
-            on_action=on_action,
-        ),
+        source,
         on_selection_change=print("Selection: " + ", ".join(map(str, value))),
+        selected_keys=value,
+        on_change=set_value,
     )
+
     return lv
 
 
-my_list_view_action_menu = ui_list_view_action_menu()
+my_list_view_selection = ui_list_view_selection()
 ```
 
 ## Disabled Options
@@ -162,51 +132,31 @@ my_list_view_action_menu = ui_list_view_action_menu()
 To disable certain rows in the ListView component, use the `disabled_keys` prop. By setting this prop with an array of keys, you can prevent interaction with those rows, providing greater control and customization options for the ListView behavior.
 
 ```python
-from deephaven import time_table, ui
-import datetime
+from deephaven import ui, new_table
+from deephaven.column import string_col
 
-# Ticking table with initial row count of 200 that adds a row every second
-initial_row_count = 200
-_column_types = time_table(
-    "PT1S",
-    start_time=datetime.datetime.now() - datetime.timedelta(seconds=initial_row_count),
-).update(
+_table = new_table(
     [
-        "Id=new String(`key-`+i)",
-        "Display=new String(`Display `+i)",
+        string_col("Keys", ["key-0", "key-1", "key-2"]),
+        string_col("Labels", ["Option 0", "Option 1", "Option 2"]),
     ]
 )
 
-# `ui.list_view`` with `ui.list_action_menu` actions
+
 @ui.component
 def ui_list_view_disabled():
-    value, set_value = ui.use_state(["key-2", "key-4", "key-5"])
+    value, set_value = ui.use_state(["key-2"])
 
-    action_item_keys, set_action_item_keys = ui.use_state(["", ""])
-    on_action = ui.use_callback(
-        lambda action_key, item_key: set_action_item_keys([action_key, str(item_key)]),
-        [],
+    source = ui.item_table_source(
+        _table,
+        key_column="Keys",
+        label_column="Labels",
     )
-
     lv = ui.list_view(
-        _column_types,
-        key_column="Id",
-        label_column="Display",
-        aria_label="List View",
-        on_change=set_value,
-        selected_keys=value,
-        actions=ui.list_action_menu(
-            "Edit",
-            "Delete",
-            on_action=on_action,
-        ),
-        disabled_keys=["key-0", "key-1"],
+        source, selected_keys=value, on_change=set_value, disabled_keys=["key-0"]
     )
 
-    text_selection = ui.text("Selection: " + ", ".join(map(str, value)))
-    text_action = ui.text("Action: " + " ".join(map(str, action_item_keys)))
-
-    return lv, text_selection, text_action
+    return lv
 
 
 my_list_view_disabled = ui_list_view_disabled()
