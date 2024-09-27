@@ -3,19 +3,50 @@
 Dashboards allow you to layout a collection of ui components as panels as individuals pages.
 
 ## Rules
+
 1. Dashboards must be a child of the root script and not nested inside a `@ui.component`. Otherwise the application is unable to correctly determine the type of the component
 2. Dashboards must have one and only one child, typically a row or column.
 3. Height and width of panels are summed to 100%
 
 ## Key Components
-There are 3 main children that make up dashboard: row, column, and stack.
+
+There are 4 main children that make up dashboard: row, column, stack, dashboard.
 
 - **Row**: A container used to group elements horizontally. Each element is placed to the right of the previous one.
 - **Column**: A container used to group elements vertically. Each element is placed below the previous one.
 - **Stack**: A container used to group elements into tabs. Each element gets its own tab, with only one element visible at a time.
+- **Panel**: A container used to group elements
+
+## Layout Hierarchy
+
+### Top-Level
+
+Rows and columns are the "top" the layout tree. Columns should go inside rows and rows should go inside columns
+
+Note: nesting rows within rows or columns within columns is allowed but it may result in layouts being more complicated than necessary. Consider using stacks or panels instead.
+
+### Bottom-Level
+
+Stacks and panels are considered the "bottom" of the layout tree. Once added, the layout in that section is considered complete.
+
+## Automatic Wrapping
+
+Children are implicitly wrapped when necessary so the entire layout does not need to be explicitly defined.
+
+The rules for how it is applied:
+
+1. Dashboard - wrap in row/column if no single node is the default (e.g `[col, col]` as the child to dashboard would become `row(col, col)`)
+2. Row/Column
+   - if there are children that are rows/columns, wrap the non-wrapped children with the same element (e.g `row(col(t1), t2)` becomes `row(col(t1), col(t2))`)
+   - if none of the children are wrapped by rows/columns, they are wrapped in stacks
+3. Stacks - wrap non-panel children in panels
+
+End to end example: `dashboard([t1, t2])` would become `dashboard(column(stack(panel(t1)), stack(panel(t2))))`
 
 ## Layout Examples
+
 ### Row split (2x1)
+
 ```python
 from deephaven import ui
 
@@ -23,6 +54,7 @@ my_dash = ui.dashboard(ui.row(ui.panel("A"), ui.panel("B")))
 ```
 
 ### Column split (1x2)
+
 ```python
 from deephaven import ui
 
@@ -30,6 +62,7 @@ my_dash = ui.dashboard(ui.column(ui.panel("A"), ui.panel("B")))
 ```
 
 ### 2x2
+
 ```python
 from deephaven import ui
 
@@ -41,6 +74,7 @@ my_dash = ui.dashboard(
 ```
 
 ### 3x1
+
 ```python
 from deephaven import ui
 
@@ -48,6 +82,7 @@ my_dash = ui.dashboard(ui.row(ui.panel("A"), ui.panel("B"), ui.panel("C")))
 ```
 
 ### Basic stack
+
 ```python
 from deephaven import ui
 
@@ -55,6 +90,7 @@ my_dash = ui.dashboard(ui.stack(ui.panel("A"), ui.panel("B"), ui.panel("C")))
 ```
 
 ### Stack in a layout
+
 ```python
 from deephaven import ui
 
@@ -68,6 +104,7 @@ my_dash = ui.dashboard(
 ```
 
 ### Varying widths
+
 ```python
 from deephaven import ui
 
@@ -75,6 +112,7 @@ my_dash = ui.dashboard(ui.row(ui.stack(ui.panel("A"), width=70), ui.panel("B")))
 ```
 
 ### Varying height
+
 ```python
 from deephaven import ui
 
@@ -82,6 +120,7 @@ my_dash = ui.dashboard(ui.column(ui.stack(ui.panel("A"), height=70), ui.panel("B
 ```
 
 ### Holy Grail
+
 ```python
 from deephaven import ui
 
@@ -99,7 +138,9 @@ my_dash = ui.dashboard(
 ```
 
 ## Stateful Example
+
 ### Simple
+
 ```python
 from deephaven import ui
 
@@ -118,6 +159,7 @@ my_dash = ui.dashboard(layout())
 ```
 
 ### Complex
+
 ```python
 from deephaven import ui, time_table
 from deephaven.ui import use_memo, use_state
