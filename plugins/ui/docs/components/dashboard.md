@@ -38,8 +38,8 @@ The rules for how it is applied:
 1. Dashboard - wrap in row/column if no single node is the default (e.g `[col, col]` as the child to dashboard would become `row(col, col)`)
 2. Row/Column
    - if there are children that are rows/columns, wrap the non-wrapped children with the same element (e.g `row(col(t1), t2)` becomes `row(col(t1), col(t2))`)
-   - if none of the children are wrapped by rows/columns, they are wrapped in stacks
-3. Stacks - wrap non-panel children in panels
+   - if none of the children are wrapped by rows/columns, they are wrapped in stacks (e.g `row(col(t1), col(t2))` from above becomes `row(col(stack(t1)), col(stack(t2)))`)
+3. Stacks - wrap non-panel children in panels (e.g `row(col(stack(t1)), col(stack(t2)))` becomes `row(col(stack(panel(t1))), col(stack(panel(t2))))`)
 
 End to end example: `dashboard([t1, t2])` would become `dashboard(column(stack(panel(t1)), stack(panel(t2))))`
 
