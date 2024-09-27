@@ -508,6 +508,27 @@ ActionGroupDensity = Literal["compact", "regular"]
 TabDensity = Literal["compact", "regular"]
 Dependencies = Union[Tuple[Any], List[Any]]
 Selection = Sequence[Key]
+LocalTime = DType
+JavaTime = Union[LocalTime, Instant, ZonedDateTime]
+LocalTimeConvertible = Union[
+    None,
+    LocalTime,
+    int,
+    str,
+    datetime.time,
+    datetime.datetime,
+    numpy.datetime64,
+    pandas.Timestamp,
+]
+Time = Union[
+    LocalTime,
+    Instant,
+    ZonedDateTime,
+    LocalTimeConvertible,
+    InstantConvertible,
+    ZonedDateTimeConvertible,
+]
+TimeGranularity = Literal["HOUR", "MINUTE", "SECOND"]
 
 
 class DateRange(TypedDict):

@@ -15,7 +15,7 @@ from .types import (
     LayoutFlex,
     Position,
     LabelPosition,
-    Align,
+    Alignment,
     # Validation
     TextFieldInputMode,
     TextFieldValidationState,
@@ -48,7 +48,7 @@ def text_area(
     name: str | None = None,
     validation_state: TextFieldValidationState | None = None,
     label_position: LabelPosition = "top",
-    label_align: Align = "start",
+    label_align: Alignment | None = None,
     necessity_indicator: NecessityIndicator = "icon",
     contextual_help: Any | None = None,
     on_focus: FocusEventCallable | None = None,
@@ -105,6 +105,7 @@ def text_area(
     aria_errormessage: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
     # missing properties that are clipboard or composition events
 ) -> Element:
     """
@@ -186,6 +187,7 @@ def text_area(
         aria_errormessage: The id of the element that provides an error message for the current element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
+        key: A unique identifier used by React to render elements in a list.
 
     Returns:
         The element representing the text area
@@ -268,4 +270,5 @@ def text_area(
         aria_errormessage=aria_errormessage,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
+        key=key,
     )

@@ -35,11 +35,12 @@ export type DeserializedKeyboardEventCallback = (e: KeyboardEvent) => void;
  */
 export function useKeyboardEventCallback(
   callback?: SerializedKeyboardEventCallback
-): DeserializedKeyboardEventCallback {
-  return useCallback(
+): DeserializedKeyboardEventCallback | undefined {
+  const keyboardCallback = useCallback(
     (e: KeyboardEvent) => {
       callback?.(serializeKeyboardEvent(e));
     },
     [callback]
   );
+  return callback != null ? keyboardCallback : undefined;
 }

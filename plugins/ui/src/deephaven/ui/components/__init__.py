@@ -48,6 +48,7 @@ from .tabs import tabs
 from .text import text
 from .text_area import text_area
 from .text_field import text_field
+from .time_field import time_field
 from .toggle_button import toggle_button
 from .view import view
 
@@ -104,6 +105,7 @@ __all__ = [
     "text",
     "text_area",
     "text_field",
+    "time_field",
     "toggle_button",
     "view",
 ]

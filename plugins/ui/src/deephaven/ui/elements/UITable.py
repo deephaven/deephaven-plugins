@@ -124,10 +124,15 @@ class UITable(Element):
 
         # Store all the props that were passed in
         self._props = UITableProps(**props, table=table)
+        self._key = props.get("key")
 
     @property
     def name(self):
         return "deephaven.ui.elements.UITable"
+
+    @property
+    def key(self) -> str | None:
+        return self._key
 
     def _with_prop(self, key: str, value: Any) -> "UITable":
         """

@@ -59,7 +59,7 @@ export function DatePicker(
       value instanceof ZonedDateTime
     ) {
       const newValue = toTimeZone(value, timeZone);
-      onChange(newValue);
+      onChange?.(newValue);
     }
   }, [isDatePickerInstantValue, value, onChange, timeZone, prevTimeZone]);
 

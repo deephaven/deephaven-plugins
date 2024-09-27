@@ -65,7 +65,7 @@ export function DateRangePicker(
       const newStart = toTimeZone(value.start, timeZone);
       const newEnd = toTimeZone(value.end, timeZone);
       const newValue = { start: newStart, end: newEnd };
-      onChange(newValue);
+      onChange?.(newValue);
     }
   }, [isDateRangePickerInstantValue, value, onChange, timeZone, prevTimeZone]);
 

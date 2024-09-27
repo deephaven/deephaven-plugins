@@ -42,6 +42,7 @@ def table(
         ResolvableContextMenuItem | list[ResolvableContextMenuItem] | None
     ) = None,
     databars: list[DatabarConfig] | None = None,
+    key: str | None = None,
 ) -> UITable:
     """
     Customization to how a table is displayed, how it behaves, and listen to UI events.
@@ -85,6 +86,11 @@ def table(
         context_header_menu: The context menu items to show when a column header is right clicked.
             May contain action items or submenu items.
             May also be a function that receives the column header data and returns the context menu items or None.
+        databars: Databars are experimental and will be moved to column_formatting in the future.
+        key: A unique identifier used by React to render elements in a list.
+
+    Returns:
+        The rendered Table.
     """
     props = locals()
     del props["table"]

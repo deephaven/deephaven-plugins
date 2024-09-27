@@ -99,6 +99,7 @@ def list_view(
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
     **props: Any,
 ) -> ListViewElement:
     """
@@ -172,6 +173,7 @@ def list_view(
         aria_details: Identifies the element (or elements) that provide a detailed, extended description for the object.
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
+        key: A unique identifier used by React to render elements in a list.
         **props: Any other ListView prop, except items, dragAndDropHooks, and onLoadMore.
 
     Returns:
