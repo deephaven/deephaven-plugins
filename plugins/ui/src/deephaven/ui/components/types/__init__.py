@@ -5,4 +5,4 @@ from .events import *
 from .layout import *
 from .validate import *
 from .icon_types import *
-from .number_field import *
+from .Intl.number_field import *
