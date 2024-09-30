@@ -10,21 +10,12 @@ from .types import (
     Position,
     AriaPressed,
     CSSProperties,
-    LabelPosition,
-    ValidationBehavior,
-    NecessityIndicator,
-    ValidationState,
     PageBehavior,
-    Alignment,
 )
 
-from ..hooks import use_memo
 from ..elements import Element
-from .._internal.utils import (
-    create_props,
-    convert_date_props,
-)
-from ..types import Date
+from .._internal.utils import create_props, convert_date_props, wrap_local_date_callable
+from ..types import Date, LocalDateConvertible
 from .basic import component_element
 from .make_component import make_component
 from deephaven.time import dh_now
@@ -41,7 +32,8 @@ _SIMPLE_DATE_PROPS = {
     "max_value",
 }
 _RANGE_DATE_PROPS = set()
-_CALLABLE_DATE_PROPS = {"on_change", "on_focus_change"}
+_CALLABLE_DATE_PROPS = {"on_change"}
+_ON_FOCUS_CHANGE_KEY = "on_focus_change"
 
 # The priority of the date props to determine the format of the date passed to the callable date props
 _DATE_PROPS_PRIORITY = [
@@ -73,6 +65,11 @@ def _convert_calendar_props(
         _DATE_PROPS_PRIORITY,
     )
 
+    if props.get(_ON_FOCUS_CHANGE_KEY) is not None:
+        props[_ON_FOCUS_CHANGE_KEY] = wrap_local_date_callable(
+            props[_ON_FOCUS_CHANGE_KEY]
+        )
+
     return props
 
 
@@ -91,7 +88,7 @@ def calendar(
     auto_focus: bool | None = None,
     error_message: Element | None = None,
     visible_months: int | None = None,
-    on_focus_change: Callable[[Date], None] | None = None,
+    on_focus_change: Callable[[LocalDateConvertible], None] | None = None,
     on_change: Callable[[Date], None] | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,

@@ -7,7 +7,15 @@ from functools import partial
 from deephaven.time import to_j_instant, to_j_zdt, to_j_local_date, to_j_local_time
 from deephaven.dtypes import ZonedDateTime, Instant
 
-from ..types import Date, JavaDate, DateRange, Time, JavaTime
+from ..types import (
+    Date,
+    JavaDate,
+    DateRange,
+    Time,
+    JavaTime,
+    LocalDateConvertible,
+    LocalDate,
+)
 
 _UNSAFE_PREFIX = "UNSAFE_"
 _ARIA_PREFIX = "aria_"
@@ -368,6 +376,32 @@ def _wrap_date_callable(
         wrapped_date_callable = wrap_callable(date_callable)
         try:
             wrapped_date_callable(converter(date))
+        except Exception:
+            pass
+
+    return no_error_date_callable
+
+
+def wrap_local_date_callable(
+    date_callable: Callable[[LocalDateConvertible], None],
+) -> Callable[[LocalDate], None]:
+    """
+    Wrap a callable to convert the Date argument to a Java date type.
+    This maintains the original callable signature so that the Date argument can be dropped.
+
+    Args:
+        date_callable: The callable to wrap.
+        converter: The date converter to use.
+
+    Returns:
+        The wrapped callable.
+    """
+    # When the user is typing a date, they may enter a value that does not parse
+    # This will skip those errors rather than printing them to the screen
+    def no_error_date_callable(date: LocalDateConvertible) -> None:
+        wrapped_date_callable = wrap_callable(date_callable)
+        try:
+            wrapped_date_callable(to_j_local_date(date))
         except Exception:
             pass
 
