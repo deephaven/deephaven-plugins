@@ -2,7 +2,7 @@ import React from 'react';
 import { act, render } from '@testing-library/react';
 import { useWidget } from '@deephaven/jsapi-bootstrap';
 import { dh } from '@deephaven/jsapi-types';
-import { TestUtils } from '@deephaven/utils';
+import { TestUtils } from '@deephaven/test-utils';
 import WidgetHandler, { WidgetHandlerProps } from './WidgetHandler';
 import { DocumentHandlerProps } from './DocumentHandler';
 import {
