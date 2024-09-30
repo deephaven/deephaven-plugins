@@ -15,6 +15,9 @@ import {
 const mockApi = { Widget: { EVENT_MESSAGE: 'message' } };
 const defaultWidgetWrapper: ReturnType<typeof useWidget> = {
   widget: TestUtils.createMockProxy<dh.Widget>({
+    addEventListener: jest
+      .fn(() => jest.fn().mockName('cleanup'))
+      .mockName('addEventListener'),
     getDataAsString: jest.fn(() => ''),
     exportedObjects: [],
   }),
