@@ -1,12 +1,14 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { CalendarDate, DateValue } from '@internationalized/date';
-import useDateValueMemo from './useDateValueMemo';
 import {
   SerializedDateValueCallback,
   DeserializedDateValueCallback,
   useOnChangeDateCallback,
-  useNullableDateValueMemo,
 } from './useDateComponentProps';
+import {
+  parseCalendarValue,
+  parseNullableCalendarValue,
+} from '../utils/DateTimeUtils';
 
 export type DeserializedCalendarCallback =
   | (() => void)
@@ -95,39 +97,55 @@ export function useOnFocusedChangeCallback(
 }
 
 /**
+ * Use memo to get a Calendar DateValue from a string.
+ *
+ * @param value the string date value
+ * @returns DateValue
+ */
+export default function useCalendarValueMemo(
+  value?: string
+): DateValue | undefined {
+  return useMemo(() => parseCalendarValue(value), [value]);
+}
+
+/**
+ * Use memo to get a Calendar DateValue from a nullable string.
+ *
+ * @param value the string date value
+ * @returns DateValue or null
+ */
+export function useNullableCalendarValueMemo(
+  value?: string | null
+): DateValue | null | undefined {
+  return useMemo(() => parseNullableCalendarValue(value), [value]);
+}
+
+/**
  * Wrap Date component props with the appropriate serialized event callbacks.
  * @param props Props to wrap
  * @returns Wrapped props
  */
-export function useCalendarProps<TProps>(
-  {
-    onChange: serializedOnChange,
-    onFocusChange: serializedOnFocusChange,
-    value: serializedValue,
-    defaultValue: serializedDefaultValue,
-    minValue: serializedMinValue,
-    maxValue: serializedMaxValue,
-    focusedValue: serializedFocusedValue,
-    defaultFocusedValue: serializedDefaultFocusedValue,
-    ...otherProps
-  }: SerializedCalendarProps<TProps>,
-  timeZone: string
-): DeserializedCalendarProps<TProps> {
+export function useCalendarProps<TProps>({
+  onChange: serializedOnChange,
+  onFocusChange: serializedOnFocusChange,
+  value: serializedValue,
+  defaultValue: serializedDefaultValue,
+  minValue: serializedMinValue,
+  maxValue: serializedMaxValue,
+  focusedValue: serializedFocusedValue,
+  defaultFocusedValue: serializedDefaultFocusedValue,
+  ...otherProps
+}: SerializedCalendarProps<TProps>): DeserializedCalendarProps<TProps> {
   const onChange = useOnChangeDateCallback(serializedOnChange);
   const onFocusChange = useOnFocusedChangeCallback(serializedOnFocusChange);
-  const deserializedValue = useNullableDateValueMemo(timeZone, serializedValue);
-  const deserializedDefaultValue = useNullableDateValueMemo(
-    timeZone,
+  const deserializedValue = useNullableCalendarValueMemo(serializedValue);
+  const deserializedDefaultValue = useNullableCalendarValueMemo(
     serializedDefaultValue
   );
-  const deserializedMinValue = useDateValueMemo(timeZone, serializedMinValue);
-  const deserializedMaxValue = useDateValueMemo(timeZone, serializedMaxValue);
-  const deserializedFocusedValue = useDateValueMemo(
-    timeZone,
-    serializedFocusedValue
-  );
-  const deserializedDefaultFocusedValue = useDateValueMemo(
-    timeZone,
+  const deserializedMinValue = useCalendarValueMemo(serializedMinValue);
+  const deserializedMaxValue = useCalendarValueMemo(serializedMaxValue);
+  const deserializedFocusedValue = useCalendarValueMemo(serializedFocusedValue);
+  const deserializedDefaultFocusedValue = useCalendarValueMemo(
     serializedDefaultFocusedValue
   );
 
