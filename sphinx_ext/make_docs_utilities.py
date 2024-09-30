@@ -120,6 +120,7 @@ def remove_paramtable_comment(
         # by the markdown renderer
         line = line.replace(f"<!-- {AUTOFUNCTION_COMMENT_PREFIX}", "")
         line = line.replace(" -->", "")
+        line = line.replace("<br />", "\n")
     return line
 
 
