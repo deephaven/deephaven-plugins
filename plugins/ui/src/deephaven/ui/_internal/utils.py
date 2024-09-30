@@ -567,7 +567,7 @@ def convert_date_props(
     date_range_props: set[str],
     callable_date_props: set[str],
     priority: Sequence[str],
-    granularity_key: str,
+    granularity_key: str | None = None,
     default_converter: Callable[[Date], Any] = to_j_instant,
 ) -> None:
     """
@@ -599,7 +599,11 @@ def convert_date_props(
 
     # based on the convert set the granularity if it is not set
     # Local Dates will default to DAY but we need to default to SECOND for the other types
-    if props.get(granularity_key) is None and converter != to_j_local_date:
+    if (
+        granularity_key is not None
+        and props.get(granularity_key) is None
+        and converter != to_j_local_date
+    ):
         props[granularity_key] = "SECOND"
 
     # now that the converter is set, we can convert simple props to strings
