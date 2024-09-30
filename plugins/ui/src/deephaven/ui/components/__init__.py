@@ -6,6 +6,7 @@ from .basic import (
 )
 from .button import button
 from .button_group import button_group
+from .calendar import calendar
 from .checkbox import checkbox
 from .column import column
 from .combo_box import combo_box
@@ -62,6 +63,7 @@ __all__ = [
     "component_element",
     "button",
     "button_group",
+    "calendar",
     "checkbox",
     "column",
     "combo_box",
