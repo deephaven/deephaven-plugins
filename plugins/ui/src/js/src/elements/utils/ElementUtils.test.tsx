@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text } from '@deephaven/components';
 import type { dh } from '@deephaven/jsapi-types';
-import { TestUtils } from '@deephaven/utils';
+import { TestUtils } from '@deephaven/test-utils';
 import {
   ELEMENT_KEY,
   fetchReexportedTable,
