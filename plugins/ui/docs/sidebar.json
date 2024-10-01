@@ -46,6 +46,10 @@
             "path": "components/date_range_picker.md"
           },
           {
+            "label": "heading",
+            "path": "components/heading.md"
+          },
+          {
             "label": "illustrated_message",
             "path": "components/illustrated_message.md"
           },
