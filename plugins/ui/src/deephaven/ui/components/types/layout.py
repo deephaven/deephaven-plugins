@@ -132,6 +132,8 @@ OverflowMode = Literal["wrap", "collapse"]
 
 Alignment = Literal["start", "end"]
 
+ButtonGroupAlignment = Literal["start", "center", "end"]
+
 LayoutFlex = Union[str, float, bool]
 """
 The flex CSS shorthand property sets how a flex item will grow or shrink to fit the space available in its flex container.
