@@ -1311,6 +1311,135 @@ list_view5 = ui.list_view(
 
 ```
 
+###### ui.calendar
+
+A calendar that can be used to select a date.
+
+The calendar accepts the following date types as inputs:
+
+- `None`
+- `LocalDate`
+- `ZoneDateTime`
+- `Instant`
+- `int`
+- `str`
+- `datetime.datetime`
+- `numpy.datetime64`
+- `pandas.Timestamp`
+
+The input will be converted to one of three Java date types:
+
+1. `LocalDate`: A LocalDate is a date without a time zone in the ISO-8601 system, such as "2007-12-03" or "2057-01-28".
+2. `Instant`: An Instant represents an unambiguous specific point on the timeline, such as 2021-04-12T14:13:07 UTC.
+3. `ZonedDateTime`: A ZonedDateTime represents an unambiguous specific point on the timeline with an associated time zone, such as 2021-04-12T14:13:07 America/New_York.
+
+The format of the calendar and the type of the value passed to the `on_change` handler
+is determined by the type of the following props in order of precedence:
+
+1. `value`
+2. `default_value`
+3. `focused_value`
+4. `default_focused_value`
+
+If none of these are provided, the `on_change` handler passes a range of `Instant`.
+
+```py
+import deephaven.ui as ui
+ui.calendar(
+    value: Date | None = None,
+    default_value: Date | None = None,
+    focused_value: Date | None = None,
+    default_focused_value: Date | None = None,
+    min_value: Date | None = None,
+    max_value: Date | None = None,
+    on_change: Callable[[Date], None] | None = None,
+    **props: Any
+) -> CalendarElement
+```
+
+###### Parameters
+
+| Parameter               | Type                             | Description                                                                              |
+| ----------------------- | -------------------------------- | ---------------------------------------------------------------------------------------- |
+| `value`                 | `Date \| None`                   | The current value (controlled).                                                          |
+| `default_value`         | `Date \| None`                   | The default value (uncontrolled).                                                        |
+| `focused_value`         | `Date \| None`                   | The focused value (controlled).                                                          |
+| `default_focused_value` | `Date \| None`                   | The default focused value (uncontrolled).                                                |
+| `min_value`             | `Date \| None`                   | The minimum allowed date that a user may select.                                         |
+| `max_value`             | `Date \| None`                   | The maximum allowed date that a user may select.                                         |
+| `on_change`             | `Callable[[Date], None] \| None` | Handler that is called when the value changes.                                           |
+| `**props`               | `Any`                            | Any other [Calendar](https://react-spectrum.adobe.com/react-spectrum/Calendar.html) prop |
+
+```py
+
+import deephaven.ui as ui
+from deephaven.time import to_j_local_date, dh_today, to_j_instant, to_j_zdt
+
+zoned_date_time = to_j_zdt("1995-03-22T11:11:11.23142 America/New_York")
+instant = to_j_instant("2022-01-01T00:00:00 ET")
+local_date = to_j_local_date(dh_today())
+
+# simple calendar that takes ui.items and is uncontrolled
+calendar1 = ui.calendar(
+    default_value=local_date
+)
+
+# simple calendar that takes list view items directly and is controlled
+# the on_change handler is passed an instant
+date, set_date = ui.use_state(instant)
+
+calendar2 = ui.calendar(
+    value=date,
+    on_change=set_date
+)
+
+# this creates a calendar in the specified time zone
+# the on_change handler is passed a zoned date time
+date, set_date = ui.use_state(None)
+
+calendar3 = ui.calendar(
+    placeholder_value=zoned_date_time,
+    on_change=set_date
+)
+
+# this creates a calendar in UTC
+# the on_change handler is passed an instant
+date, set_date = ui.use_state(None)
+
+calendar4 = ui.calendar(
+    placeholder_value=instant,
+    on_change=set_date
+)
+
+# this creates a calendar
+# the on_change handler is passed a local date
+date, set_date = ui.use_state(None)
+
+calendar5 = ui.calendar(
+    placeholder_value=local_date,
+    on_change=set_date
+)
+
+# this creates a calendar the on_change handler is passed an instant
+date, set_date = ui.use_state(None)
+
+calendar7 = ui.calendar(
+    on_change=set_date
+)
+
+# this create a calendar, a min and max value
+min_value = to_j_local_date("2022-01-01")
+max_value = to_j_local_date("2022-12-31")
+unavailable_dates = [to_j_local_date("2022-03-15"), to_j_local_date("2022-03-17")]
+date, set_date = ui.use_state(to_j_local_date("2022-03-16"))
+calendar8 = ui.calendar(
+    value=date,
+    min_value=min_value,
+    max_value=max_value,
+    on_change=set_date
+)
+```
+
 ###### ui.date_field
 
 A date field that can be used to select a date.
