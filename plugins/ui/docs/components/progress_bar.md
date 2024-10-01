@@ -67,13 +67,10 @@ from deephaven import ui
 
 @ui.component
 def size_variants():
-    return ui.flex(
+    return [
         ui.progress_bar(value=70, size="S"),
         ui.progress_bar(value=70),
-        align_items="start",
-        direction="column",
-        row_gap="20px",
-    )
+    ]
 
 
 progress_bar_size_examples = size_variants()
