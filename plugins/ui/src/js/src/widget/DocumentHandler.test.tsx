@@ -1,6 +1,6 @@
 import React from 'react';
 import { WidgetDescriptor } from '@deephaven/dashboard';
-import { TestUtils } from '@deephaven/utils';
+import { TestUtils } from '@deephaven/test-utils';
 import { render } from '@testing-library/react';
 import DocumentHandler, { DocumentHandlerProps } from './DocumentHandler';
 import { ReactPanelProps } from '../layout/LayoutUtils';
