@@ -31,7 +31,6 @@ class CalendarTest(BaseTestCase):
         def empty_on_change():
             pass
 
-        # TODO remove placeholder and add focued_value
         props1 = {
             "focused_value": "2021-01-01",
             "value": "2021-01-01 UTC",
