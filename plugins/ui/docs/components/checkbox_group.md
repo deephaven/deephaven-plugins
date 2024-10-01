@@ -168,7 +168,7 @@ from deephaven import ui
 @ui.component
 def ui_checkbox_group_event_example():
     selected, set_selected = ui.use_state(["Soccer"])
-    return ui.flex(
+    return [
         ui.checkbox_group(
             "Soccer",
             "Basketball",
@@ -177,9 +177,8 @@ def ui_checkbox_group_event_example():
             value=selected,
             on_change=set_selected,
         ),
-        ui.text(value=f"You have selected: {selected}!"),
-        direction="column",
-    )
+        f"You have selected: {selected}!",
+    ]
 
 
 my_checkbox_group_event_example = ui_checkbox_group_event_example()
@@ -193,9 +192,16 @@ from deephaven import ui
 
 my_checkbox_group_individual_validation_example = ui.form(
     ui.checkbox_group(
-        ui.checkbox("Terms and conditions", is_required=True),
-        ui.checkbox("Privacy policy", is_required=True),
+        ui.checkbox("Terms and conditions", value="terms", is_required=True),
+        ui.checkbox("Privacy policy", value="privacy", is_required=True),
+        label="Agree to the following",
+        is_required=True,
     ),
+    ui.button_group(
+        ui.button("Submit", type="submit", variant="primary"),
+        ui.button("Reset", type="reset", variant="secondary"),
+    ),
+    on_submit=lambda: print("Form submitted!"),
     validation_behavior="native",
 )
 ```
