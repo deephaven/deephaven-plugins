@@ -74,6 +74,10 @@
             "path": "components/table.md"
           },
           {
+            "label": "text",
+            "path": "components/text.md"
+          },
+          {
             "label": "text_area",
             "path": "components/text_area.md"
           },
