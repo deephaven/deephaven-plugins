@@ -62,6 +62,6 @@ export type SerializedButtonEventProps<T> = SerializedFocusEventProps<
   SerializedKeyboardEventProps<SerializedPressEventProps<T>>
 > & { children: React.ReactNode };
 
-export type SerializedTextAreaEventProps<T> = SerializedFocusEventProps<
+export type SerializedTextInputEventProps<T> = SerializedFocusEventProps<
   SerializedKeyboardEventProps<SerializedInputElementProps<T>>
-> & { children: React.ReactNode };
+>;

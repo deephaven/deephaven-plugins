@@ -10,6 +10,7 @@ import {
 } from '@deephaven/components';
 import { isElementOfType } from '@deephaven/react-hooks';
 import { ensureArray } from '@deephaven/utils';
+import classNames from 'classnames';
 import { TabPanels } from './TabPanels';
 
 type TabProps = {
@@ -81,6 +82,7 @@ export function Tabs(props: TabComponentProps): JSX.Element {
     children,
     onSelectionChange: onSelectionChangeProp,
     onChange,
+    UNSAFE_className,
     ...otherTabProps
   } = props;
   const childrenArray = useMemo(() => ensureArray(children), [children]);
@@ -137,6 +139,7 @@ export function Tabs(props: TabComponentProps): JSX.Element {
     return (
       <DHCTabs
         onSelectionChange={onSelectionChange}
+        UNSAFE_className={classNames('dh-tabs', UNSAFE_className)}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...otherTabProps}
       >
@@ -148,6 +151,7 @@ export function Tabs(props: TabComponentProps): JSX.Element {
   return (
     <DHCTabs
       onSelectionChange={onSelectionChange}
+      UNSAFE_className={classNames('dh-tabs', UNSAFE_className)}
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...otherTabProps}
     >

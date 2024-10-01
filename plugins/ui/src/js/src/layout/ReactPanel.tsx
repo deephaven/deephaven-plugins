@@ -34,6 +34,7 @@ interface Props
       | 'paddingEnd'
       | 'paddingX'
       | 'paddingY'
+      | 'overflow'
       | 'UNSAFE_style'
       | 'UNSAFE_className'
     >,
@@ -64,6 +65,7 @@ function ReactPanel({
   backgroundColor,
   direction = 'column',
   wrap,
+  overflow = 'auto',
   justifyContent,
   alignContent,
   alignItems = 'start',
@@ -84,6 +86,7 @@ function ReactPanel({
   const { metadata, onClose, onOpen, panelId } = useReactPanel();
   const portalManager = usePortalPanelManager();
   const portal = portalManager.get(panelId);
+  const panelTitle = title ?? metadata?.name ?? '';
 
   // Tracks whether the panel is open and that we have emitted the onOpen event
   const isPanelOpenRef = useRef(false);
@@ -92,6 +95,8 @@ function ReactPanel({
   const openedMetadataRef = useRef<ReactPanelControl['metadata']>(
     portal == null ? undefined : metadata
   );
+  // Used to check if panelTitle was updated
+  const prevPanelTitleRef = useRef<string>(panelTitle);
 
   // We want to regenerate the key every time the metadata changes, so that the portal is re-rendered
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -145,7 +150,6 @@ function ReactPanel({
       const itemConfig = { id: panelId };
       const existingStack = LayoutUtils.getStackForConfig(parent, itemConfig);
       if (existingStack == null) {
-        const panelTitle = title ?? metadata?.name ?? '';
         const config = {
           type: 'react-component' as const,
           component: PortalPanel.displayName,
@@ -172,8 +176,13 @@ function ReactPanel({
         isPanelOpenRef.current = true;
         onOpen();
       }
+
+      if (prevPanelTitleRef.current !== panelTitle) {
+        prevPanelTitleRef.current = panelTitle;
+        LayoutUtils.renameComponent(parent, itemConfig, panelTitle);
+      }
     },
-    [parent, metadata, onOpen, panelId, title]
+    [parent, metadata, onOpen, panelId, panelTitle]
   );
   const widgetStatus = useWidgetStatus();
 
@@ -182,6 +191,7 @@ function ReactPanel({
         <ReactPanelContext.Provider value={panelId}>
           <View
             height="100%"
+            width="100%"
             backgroundColor={backgroundColor}
             padding={padding}
             paddingTop={paddingTop}
@@ -190,6 +200,7 @@ function ReactPanel({
             paddingEnd={paddingEnd}
             paddingX={paddingX}
             paddingY={paddingY}
+            overflow={overflow}
             UNSAFE_style={UNSAFE_style}
             UNSAFE_className={
               UNSAFE_className == null
@@ -199,7 +210,6 @@ function ReactPanel({
           >
             <Flex
               UNSAFE_className="dh-inner-react-panel"
-              height="100%"
               wrap={wrap}
               direction={direction}
               justifyContent={justifyContent}
