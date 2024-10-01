@@ -1,12 +1,14 @@
-import React from 'react';
-import { TextArea as DHCTextArea, TextAreaProps } from '@deephaven/components';
-import useTextAreaProps from './hooks/useTextAreaProps';
-import { SerializedTextAreaEventProps } from './model';
+import {
+  TextArea as DHCTextArea,
+  TextAreaProps as DHCTextAreaProps,
+} from '@deephaven/components';
+import useTextInputProps from './hooks/useTextInputProps';
+import { SerializedTextInputEventProps } from './model';
 
 export function TextArea(
-  props: SerializedTextAreaEventProps<TextAreaProps>
+  props: SerializedTextInputEventProps<DHCTextAreaProps>
 ): JSX.Element {
-  const textAreaProps = useTextAreaProps(props);
+  const textAreaProps = useTextInputProps(props);
 
   // eslint-disable-next-line react/jsx-props-no-spreading
   return <DHCTextArea {...textAreaProps} />;

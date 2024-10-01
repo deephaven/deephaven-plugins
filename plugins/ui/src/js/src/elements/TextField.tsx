@@ -1,37 +1,17 @@
-import React from 'react';
 import {
   TextField as DHCTextField,
   TextFieldProps as DHCTextFieldProps,
 } from '@deephaven/components';
-import useDebouncedOnChange from './hooks/useDebouncedOnChange';
+import useTextInputProps from './hooks/useTextInputProps';
+import { SerializedTextInputEventProps } from './model';
 
-const EMPTY_FUNCTION = () => undefined;
+export function TextField(
+  props: SerializedTextInputEventProps<DHCTextFieldProps>
+): JSX.Element {
+  const textFieldProps = useTextInputProps(props);
 
-interface TextFieldProps extends DHCTextFieldProps {
-  onChange?: (value: string) => Promise<void>;
-}
-
-export function TextField(props: TextFieldProps): JSX.Element {
-  const {
-    defaultValue = '',
-    value: propValue,
-    onChange: propOnChange = EMPTY_FUNCTION,
-    ...otherProps
-  } = props;
-
-  const [value, onChange] = useDebouncedOnChange<string>(
-    propValue ?? defaultValue,
-    propOnChange
-  );
-
-  return (
-    <DHCTextField
-      value={value}
-      onChange={onChange}
-      // eslint-disable-next-line react/jsx-props-no-spreading
-      {...otherProps}
-    />
-  );
+  // eslint-disable-next-line react/jsx-props-no-spreading
+  return <DHCTextField {...textFieldProps} />;
 }
 
 TextField.displayName = 'TextField';
