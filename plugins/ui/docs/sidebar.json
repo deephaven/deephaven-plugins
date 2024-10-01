@@ -30,6 +30,10 @@
             "path": "components/button.md"
           },
           {
+            "label": "button_group",
+            "path": "components/button_group.md"
+          },
+          {
             "label": "checkbox",
             "path": "components/checkbox.md"
           },
