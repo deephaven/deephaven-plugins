@@ -29,9 +29,9 @@ from deephaven import ui
 
 
 my_action_group_icon_example = ui.action_group(
-    ui.item(ui.icon("vsEdit"), ui.text("Edit")),
-    ui.item(ui.icon("vsCopy"), ui.text("Copy")),
-    ui.item(ui.icon("vsTrash"), ui.text("Delete")),
+    ui.item(ui.icon("edit"), ui.text("Edit")),
+    ui.item(ui.icon("copy"), ui.text("Copy")),
+    ui.item(ui.icon("trash"), ui.text("Delete")),
 )
 ```
 
@@ -42,9 +42,9 @@ from deephaven import ui
 
 
 my_action_group_button_label_behavior_example = ui.action_group(
-    ui.item(ui.icon("vsEdit"), ui.text("Edit")),
-    ui.item(ui.icon("vsCopy"), ui.text("Copy")),
-    ui.item(ui.icon("vsTrash"), ui.text("Delete")),
+    ui.item(ui.icon("edit"), ui.text("Edit")),
+    ui.item(ui.icon("copy"), ui.text("Copy")),
+    ui.item(ui.icon("trash"), ui.text("Delete")),
     button_label_behavior="hide",
 )
 ```
@@ -131,11 +131,11 @@ from deephaven import ui
 
 
 my_action_group_overflow_example = ui.action_group(
-    ui.item(ui.icon("vsEdit"), ui.text("Edit")),
-    ui.item(ui.icon("vsCopy"), ui.text("Copy")),
-    ui.item(ui.icon("vsTrash"), ui.text("Delete")),
-    ui.item(ui.icon("vsMove"), ui.text("Move")),
-    ui.item(ui.icon("vsDiffMultiple"), ui.text("Duplicate")),
+    ui.item(ui.icon("edit"), ui.text("Edit")),
+    ui.item(ui.icon("copy"), ui.text("Copy")),
+    ui.item(ui.icon("trash"), ui.text("Delete")),
+    ui.item(ui.icon("move"), ui.text("Move")),
+    ui.item(ui.icon("diff_multiple"), ui.text("Duplicate")),
     overflow_mode="collapse",
     max_width=250,
 )
@@ -147,9 +147,9 @@ When selection is enabled, the action group collapses all items into a menu when
 from deephaven import ui
 
 my_action_group_selection_collapsing_example = ui.action_group(
-    ui.item(ui.icon("vsEdit"), ui.text("Edit")),
-    ui.item(ui.icon("vsCopy"), ui.text("Copy")),
-    ui.item(ui.icon("vsTrash"), ui.text("Delete")),
+    ui.item(ui.icon("edit"), ui.text("Edit")),
+    ui.item(ui.icon("copy"), ui.text("Copy")),
+    ui.item(ui.icon("trash"), ui.text("Delete")),
     static_color="white",
     summary_icon=ui.icon("vsSearch"),
     overflow_mode="collapse",
@@ -190,7 +190,7 @@ my_action_group_is_emphasized_example = ui.action_group(
     ui.item("Dogs"),
     ui.item("Cats"),
     ui.item("Fish"),
-    selected_keys["Dogs"],
+    selected_keys=["Dogs"],
     selection_mode="single",
     is_emphasized=True,
 )
@@ -207,9 +207,9 @@ from deephaven import ui
 
 my_action_group_static_color_example = ui.view(
     ui.action_group(
-        ui.item(ui.icon("vsEdit"), ui.text("Edit")),
-        ui.item(ui.icon("vsCopy"), ui.text("Copy")),
-        ui.item(ui.icon("vsTrash"), ui.text("Delete")),
+        ui.item(ui.icon("edit"), ui.text("Edit")),
+        ui.item(ui.icon("copy"), ui.text("Copy")),
+        ui.item(ui.icon("trash"), ui.text("Delete")),
         static_color="white",
     ),
     background_color="blue-700",
@@ -264,22 +264,22 @@ from deephaven import ui
 def ui_action_group_density_examples():
     return [
         ui.action_group(
-            ui.item(ui.icon("vsEdit")),
-            ui.item(ui.icon("vsCopy")),
-            ui.item(ui.icon("vsTrash")),
+            ui.item(ui.icon("edit")),
+            ui.item(ui.icon("copy")),
+            ui.item(ui.icon("trash")),
             density="compact",
         ),
         ui.action_group(
-            ui.item(ui.icon("vsEdit")),
-            ui.item(ui.icon("vsCopy")),
-            ui.item(ui.icon("vsTrash")),
+            ui.item(ui.icon("edit")),
+            ui.item(ui.icon("copy")),
+            ui.item(ui.icon("trash")),
             is_quiet=True,
             density="compact",
         ),
         ui.action_group(
-            ui.item(ui.icon("vsEdit")),
-            ui.item(ui.icon("vsCopy")),
-            ui.item(ui.icon("vsTrash")),
+            ui.item(ui.icon("edit")),
+            ui.item(ui.icon("copy")),
+            ui.item(ui.icon("trash")),
             density="spacious",
         ),
     ]
@@ -299,9 +299,9 @@ from deephaven import ui
 
 my_action_group_is_justified_example = ui.flex(
     ui.action_group(
-        ui.item(ui.icon("vsEdit")),
-        ui.item(ui.icon("vsCopy")),
-        ui.item(ui.icon("vsTrash")),
+        ui.item(ui.icon("edit")),
+        ui.item(ui.icon("copy")),
+        ui.item(ui.icon("trash")),
         is_justified=True,
         density="compact",
     ),
