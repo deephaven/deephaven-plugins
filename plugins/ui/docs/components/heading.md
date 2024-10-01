@@ -53,12 +53,13 @@ The color prop sets the text color for the heading component.
 from deephaven import ui
 
 
-my_heading_faded_example = ui.heading("Faded heading", color="gray-500")
-my_heading_negative_example = ui.heading("Negative heading", color="negative")
-my_heading_postive_example = ui.heading("Positive heading", color="positive")
-my_heading_hex_example = ui.heading("Hex color", color="#FA8072")
-my_heading_colored_sentence_example = h1 = ui.heading(
-    "Hello ", ui.text("world", color="accent"), "!"
+my_heading_color_example = ui.flex(
+    ui.heading("Faded heading", color="gray-500"),
+    ui.heading("Negative heading", color="negative"),
+    ui.heading("Positive heading", color="positive"),
+    ui.heading("Hex color", color="#FA8072"),
+    ui.heading("Nested ", ui.text("example", color="green"), "!"),
+    direction="column",
 )
 ```
 
