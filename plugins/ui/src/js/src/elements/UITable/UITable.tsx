@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
+import classNames from 'classnames';
 import {
   DehydratedQuickFilter,
   IrisGrid,
@@ -11,6 +12,7 @@ import {
 import {
   colorValueStyle,
   resolveCssVariablesInRecord,
+  useStyleProps,
   useTheme,
 } from '@deephaven/components';
 import { useApi } from '@deephaven/jsapi-bootstrap';
@@ -50,8 +52,10 @@ export function UITable({
   contextMenu,
   contextHeaderMenu,
   databars: databarsProp,
+  ...userStyleProps
 }: UITableProps): JSX.Element | null {
   const [error, setError] = useState<unknown>(null);
+  const { styleProps } = useStyleProps(userStyleProps);
 
   if (error != null) {
     // Re-throw the error so that the error boundary can catch it
@@ -261,7 +265,11 @@ export function UITable({
   useEffect(() => () => model?.close(), [model]);
 
   return model ? (
-    <div className="ui-object-container">
+    <div
+      // eslint-disable-next-line react/jsx-props-no-spreading
+      {...styleProps}
+      className={classNames('ui-table-container', styleProps.className)}
+    >
       <IrisGrid
         ref={ref => setIrisGrid(ref)}
         model={model}

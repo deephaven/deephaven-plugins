@@ -7,8 +7,11 @@
   overflow: hidden;
 }
 
-.ui-object-container {
-  display: contents;
+.ui-table-container {
+  height: -webkit-fill-available;
+  height: -moz-available;
+  width: -webkit-fill-available;
+  width: -moz-available;
   position: relative;
 }
 
@@ -58,7 +61,7 @@
   &:has(.dh-inner-react-panel > .iris-grid:only-child),
   &:has(
       .dh-inner-react-panel
-        > .ui-object-container:only-child
+        > .ui-table-container:only-child
         > .iris-grid:only-child
     ),
   &:has(.dh-inner-react-panel > .chart-wrapper:only-child) {
