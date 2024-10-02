@@ -1,7 +1,9 @@
 from __future__ import annotations
 from unittest.mock import Mock
 from typing import Any, Callable, List, Union
-from deephaven.ui.renderer.Renderer import Renderer
+from dataclasses import dataclass
+from deephaven.ui import Element
+from deephaven.ui.renderer.Renderer import Renderer, _render_child_item
 from deephaven.ui.renderer.RenderedNode import RenderedNode
 from deephaven.ui._internal.RenderContext import RenderContext, OnChangeCallable
 from deephaven import ui
@@ -208,3 +210,36 @@ class RendererTestCase(BaseTestCase):
                 "parent_with_deps_cleanup",
             ],
         )
+
+    def test_render_child_item(self):
+        rc = RenderContext(Mock(), Mock())
+
+        self.assertEqual(
+            _render_child_item({"key": "value"}, rc, "key"),
+            {"key": "value"},
+        )
+
+        self.assertEqual(
+            _render_child_item([0, 1, 2], rc, "key"),
+            [0, 1, 2],
+        )
+
+        @ui.component
+        def my_comp():
+            return "Hello"
+
+        @dataclass
+        class MyDataclass:
+            a: str
+            b: Element
+
+        nested_dataclass = _render_child_item(
+            [MyDataclass("test", my_comp())], rc, "key"
+        )[0]
+
+        self.assertEqual(
+            nested_dataclass["a"],
+            "test",
+        )
+
+        self.assertIsInstance(nested_dataclass["b"], RenderedNode)
