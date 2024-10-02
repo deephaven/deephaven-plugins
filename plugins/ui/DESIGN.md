@@ -2483,12 +2483,12 @@ t2 = ui.table(
 t3 = ui.table(
     t,
     format=[
-        ui.table_formatting.COLUMN_FORMAT(cols="X", color="RED"),
-        ui.table_formatting.COLUMN_FORMAT(cols="Y", color="BLUE", where="Y % 2 == 0"),
-        ui.table_formatting.COLUMN_FORMAT(cols="Y", format="0.00"),
-        ui.table_formatting.COLUMN_FORMAT(cols=["A", "B"], color="PURPLE", format="0.00%", where="A > 5"),
-        ui.table_formatting.COLUMN_FORMAT(cols="Z", format=ui.table_formatting.DATABAR(value_col="Z", min=0, max=100, positive_color="GREEN", negative_color="RED"),
-        ui.table_formatting.ROW_FORMAT(where="X > 5", color="GREEN")
+        ui.table_formatting.FORMAT(cols="X", color="RED"),
+        ui.table_formatting.FORMAT(cols="Y", color="BLUE", where="Y % 2 == 0"),
+        ui.table_formatting.FORMAT(cols="Y", format="0.00"),
+        ui.table_formatting.FORMAT(cols=["A", "B"], color="PURPLE", format="0.00%", where="A > 5"),
+        ui.table_formatting.FORMAT(cols="Z", format=ui.table_formatting.DATABAR(value_col="Z", min=0, max=100, positive_color="GREEN", negative_color="RED"),
+        ui.table_formatting.FORMAT(where="X > 5", color="GREEN")
     ]
 )
 ```
