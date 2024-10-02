@@ -3,9 +3,11 @@ import {
   CalendarDate,
   CalendarDateTime,
   ZonedDateTime,
+  Time,
   parseDate,
   parseDateTime,
   parseZonedDateTime,
+  parseTime,
   toTimeZone,
 } from '@internationalized/date';
 
@@ -18,6 +20,20 @@ export type MappedDateValue<T> = T extends ZonedDateTime
   : never;
 
 export type Granularity = 'day' | 'hour' | 'minute' | 'second';
+
+export type TimeValue = Time | CalendarDateTime | ZonedDateTime;
+
+export type TimeGranularity = 'hour' | 'minute' | 'second';
+
+export type MappedTimeValue<T> = T extends ZonedDateTime
+  ? ZonedDateTime
+  : T extends CalendarDateTime
+  ? CalendarDateTime
+  : T extends Time
+  ? Time
+  : never;
+
+type DateTimeValue = CalendarDateTime | ZonedDateTime;
 
 /**
  * Checks if a string is an Instant.
@@ -51,6 +67,43 @@ export function parseDateValue(
     // ignore
   }
 
+  const dateTime = parseDateTimeInternal(timeZone, value);
+  if (dateTime != null) {
+    return dateTime;
+  }
+
+  throw new Error(`Invalid date value string: ${value}`);
+}
+
+/**
+ * Parses a date value string into a DateValue. Allows null.
+ *
+ * @param timeZone the time zone to use
+ * @param value the string date value
+ * @returns DateValue or null
+ */
+export function parseNullableDateValue(
+  timeZone: string,
+  value?: string | null
+): DateValue | null | undefined {
+  if (value === null) {
+    return value;
+  }
+
+  return parseDateValue(timeZone, value);
+}
+
+/**
+ * Common parsing used for both DateTimes and Times.
+ *
+ * @param timeZone the time zone to use
+ * @param value the string date value
+ * @returns a DateTimeValue or null
+ */
+function parseDateTimeInternal(
+  timeZone: string,
+  value: string
+): DateTimeValue | null {
   // Note that the Python API will never send a string like this. This is here for correctness.
   // Try to parse an ISO 8601 date time string, e.g. "2021-03-03T04:05:06"
   try {
@@ -100,23 +153,53 @@ export function parseDateValue(
     }
   }
 
-  throw new Error(`Invalid date value string: ${value}`);
+  return null;
 }
 
 /**
- * Parses a date value string into a DateValue. Allows null.
+ * Parses a time value string into a TimeValue.
  *
  * @param timeZone the time zone to use
  * @param value the string date value
- * @returns DateValue or null
+ * @returns TimeValue
  */
-export function parseNullableDateValue(
+export function parseTimeValue(
+  timeZone: string,
+  value?: string
+): TimeValue | undefined {
+  if (value === undefined) {
+    return value;
+  }
+
+  // Try to parse and ISO 8601 time string, e.g. "04:05:06"
+  try {
+    return parseTime(value);
+  } catch (ignore) {
+    // ignore
+  }
+
+  const dateTime = parseDateTimeInternal(timeZone, value);
+  if (dateTime != null) {
+    return dateTime;
+  }
+
+  throw new Error(`Invalid time value string: ${value}`);
+}
+
+/**
+ * Parses a time value string into a TimeValue. Allows null.
+ *
+ * @param timeZone the time zone to use
+ * @param value the string time value
+ * @returns TimeValue or null
+ */
+export function parseNullableTimeValue(
   timeZone: string,
   value?: string | null
-): DateValue | null | undefined {
+): TimeValue | null | undefined {
   if (value === null) {
     return value;
   }
 
-  return parseDateValue(timeZone, value);
+  return parseTimeValue(timeZone, value);
 }

@@ -10,8 +10,6 @@ import {
   SpectrumCheckbox as Checkbox,
   Content,
   ContextualHelp,
-  Flex,
-  Grid,
   Heading,
   Item,
   ListActionGroup,
@@ -54,7 +52,9 @@ import {
   DateField,
   DatePicker,
   DateRangePicker,
+  Flex,
   Form,
+  Grid,
   IllustratedMessage,
   Image,
   ListView,
@@ -66,6 +66,7 @@ import {
   TabPanels,
   TextField,
   TextArea,
+  TimeField,
   ToggleButton,
   UITable,
   Tabs,
@@ -136,6 +137,7 @@ export const elementComponentMap = {
   [ELEMENT_NAME.text]: Text,
   [ELEMENT_NAME.textArea]: TextArea,
   [ELEMENT_NAME.textField]: TextField,
+  [ELEMENT_NAME.timeField]: TimeField,
   [ELEMENT_NAME.toggleButton]: ToggleButton,
   [ELEMENT_NAME.view]: View,
 } as const satisfies Record<ValueOf<ElementName>, unknown>;
@@ -175,7 +177,6 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
           </ContextualHelp>
         );
       }
-
       return <Component {...props} />;
     }
   }
