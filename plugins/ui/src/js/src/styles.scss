@@ -8,10 +8,17 @@
 }
 
 .ui-table-container {
-  height: -webkit-fill-available;
-  height: -moz-available;
-  width: -webkit-fill-available;
-  width: -moz-available;
+  // If all browsers properly supported 'stretch' for height and width
+  // we could swap to that, but right now only Chrome properly implements it.
+  // Stretch is prefixed as -webkit-fill-available for Chrome and Webkit
+  // and -moz-available for Firefox.
+  // Firefox and Webkit only seem to apply properly stretch to width, not height.
+  // The benefit to swapping width/height to stretch is that a user
+  // specifying margin on a table would basically be treated as padding.
+  // This would create a better experience so tables with margin don't overflow the panel
+  // like they do with 100% width/height.
+  height: 100%;
+  width: 100%;
   position: relative;
 }
 
