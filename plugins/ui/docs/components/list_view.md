@@ -24,7 +24,34 @@ my_list_view = ui_list_view()
 
 ## Table Source Example
 
-List view items can also be generated from a table.
+List view items can also be generated from a table directly or using item_table_source.
+
+### Passing Table Directly
+
+Ideal to quickly display a static dataset. The first column is used as the key and label by default.
+
+```python
+from deephaven import ui, new_table
+from deephaven.column import string_col
+
+_colors = new_table(
+    [
+        string_col("Colors", ["Red", "Blue", "Green"]),
+    ]
+)
+
+
+@ui.component
+def ui_list_view_table():
+    return ui.list_view(_colors)
+
+
+my_list_view_table = ui_list_view_table()
+```
+
+### Using item_table_source
+
+Used for creating complex items from a table (ie. defining which columns are the keys/labels of the data)
 
 ```python
 from deephaven import ui, new_table
@@ -39,17 +66,17 @@ _table = new_table(
 
 
 @ui.component
-def ui_list_view_table():
+def ui_list_view_table_source():
     source = ui.item_table_source(_table, key_column="Keys", label_column="Labels")
     return ui.list_view(source)
 
 
-my_list_view_table = ui_list_view_table()
+my_list_view_table_source = ui_list_view_table_source()
 ```
 
 ## Events
 
-ListView accepts an action that can be triggered when a user performs an action on an item.
+List view accepts an action that can be triggered when a user performs an action on an item.
 
 ```python
 from deephaven import ui, new_table
@@ -91,7 +118,7 @@ def ui_list_view_actions():
 my_list_view_actions = ui_list_view_actions()
 ```
 
-ListView can also accept a handler that is called when the selection is changed.
+List view can also accept a handler that is called when the selection is changed.
 
 ```python
 from deephaven import ui, new_table
@@ -235,6 +262,8 @@ my_list_view_density = ui_list_view_density()
 
 ## Overflow Mode
 The default behavior is to truncate content that overflows its row. Text can be wrapped instead by adding `wrap` to the `overflow_mode` prop.
+
+Note: Currently not supported if a table source is used.
 
 ```python
 from deephaven import ui
