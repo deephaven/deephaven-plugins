@@ -2,6 +2,49 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.22.0 - 2024-10-01
+#### Bug Fixes
+- text_field events throw error (#913) - (94206d8) - Steven Wu
+- dynamically update panel title (#906) - (894dbc0) - Steven Wu
+- ui.radio value defaulting (#818) - (5581ae4) - Akshat Jawne
+- empty list view (#828) - (ef82561) - Steven Wu
+- allows keys to be set in props (#810) - (ca06eea) - Steven Wu
+- Correct type for generated JsPlugin (#741) - (7da0ecc) - Joe
+#### Build system
+- Upgrade to Vite 5 (#899) - (e94b990) - Matthew Runyon
+#### Documentation
+- flex pydocs (#912) - (5fb0ed5) - ethanalvizo
+#### Features
+- Dataclass serialization support for deephaven UI (#897) - (42315cf) - Matthew Runyon
+- allow overflow by default on ui.panel (#896) - (df5b17c) - Don
+- Time Field UI Component (#825) - (d76503b) - dgodinez-dh
+
+- - -
+
+## utilities-v0.0.2 - 2024-10-01
+#### Bug Fixes
+- add wrapper to toggle_button (#821) - (fff1d6c) - Steven Wu
+- set label_align default to None (#820) - (0dcfe3a) - Steven Wu
+- text_area on_key_down throws errors (#798) - (86f4b3e) - Steven Wu
+- icon type auto-generation and normalization (#696) - (ef4bb29) - ethanalvizo
+#### Documentation
+- use_memo docs (#779) - (abf4b72) - mofojed
+- ui.text_field (#802) - (473e3e8) - Akshat Jawne
+- ui.switch (#793) - (c735682) - Akshat Jawne
+- ui.table (#776) - (cb089be) - Matthew Runyon
+- fix image links in readme (#800) - (ce48410) - Don
+- Add use_effect docs (#772) - (c077219) - mofojed
+- update sidebar component casing (#797) - (2558551) - Don
+#### Features
+- wrap contextual help if primitive (#817) - (7e51073) - Steven Wu
+- expose rollup group behaviour as dh.ui option for UI Table (#738) - (1807862) - Akshat Jawne
+- Date Field Implementation (#804) - (9a72d2d) - dgodinez-dh
+- DateRangePicker Implementation (#780) - (088d623) - dgodinez-dh
+#### Refactoring
+- rename label_alignment to label_align (#799) - (e31ac51) - Steven Wu
+
+- - -
+
 ## ui-v0.21.0 - 2024-09-03
 #### Bug Fixes
 - Remove server startup from python tests (#768) - (c6c2dd2) - Joe

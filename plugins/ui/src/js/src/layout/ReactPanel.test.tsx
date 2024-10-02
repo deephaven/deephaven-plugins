@@ -5,7 +5,7 @@ import {
   WidgetDescriptor,
   useListener,
 } from '@deephaven/dashboard';
-import { TestUtils } from '@deephaven/utils';
+import { TestUtils } from '@deephaven/test-utils';
 import ReactPanel from './ReactPanel';
 import {
   ReactPanelManager,

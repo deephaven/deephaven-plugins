@@ -10,8 +10,6 @@ import {
   SpectrumCheckbox as Checkbox,
   Content,
   ContextualHelp,
-  Flex,
-  Grid,
   Heading,
   Item,
   ListActionGroup,
@@ -54,7 +52,9 @@ import {
   DateField,
   DatePicker,
   DateRangePicker,
+  Flex,
   Form,
+  Grid,
   IllustratedMessage,
   Image,
   ListView,
@@ -179,7 +179,6 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
           </ContextualHelp>
         );
       }
-
       return <Component {...props} />;
     }
   }
