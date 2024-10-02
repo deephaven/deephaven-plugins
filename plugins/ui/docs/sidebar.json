@@ -26,6 +26,10 @@
             "path": "components/action_button.md"
           },
           {
+            "label": "action_group",
+            "path": "components/action_group.md"
+          },
+          {
             "label": "button",
             "path": "components/button.md"
           },
