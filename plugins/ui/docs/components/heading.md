@@ -14,7 +14,7 @@ my_heading_basic = ui.heading("Hello world")
 
 ## UI recommendations
 
-Consider using a `text` component if the content does not require a specific heading level or semantic importance, such as for paragraphs or inline text.
+Consider using a [`text`](./text.md) component if the content does not require a specific heading level or semantic importance, such as for paragraphs or inline text.
 
 
 ## Content
