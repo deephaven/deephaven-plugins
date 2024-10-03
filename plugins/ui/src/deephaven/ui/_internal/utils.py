@@ -407,21 +407,13 @@ def wrap_local_date_callable(
 
     Args:
         date_callable: The callable to wrap.
-        converter: The date converter to use.
 
     Returns:
         The wrapped callable.
     """
     # When the user is typing a date, they may enter a value that does not parse
     # This will skip those errors rather than printing them to the screen
-    def no_error_date_callable(date: LocalDateConvertible) -> None:
-        wrapped_date_callable = wrap_callable(date_callable)
-        try:
-            wrapped_date_callable(to_j_local_date(date))
-        except Exception:
-            pass
-
-    return no_error_date_callable
+    return lambda date: _no_error_wrapped_callable(date_callable)(to_j_local_date(date))
 
 
 def _wrap_time_callable(
@@ -441,14 +433,7 @@ def _wrap_time_callable(
     """
     # When the user is typing a time, they may enter a value that does not parse
     # This will skip those errors rather than printing them to the screen
-    def no_error_time_callable(time: Time) -> None:
-        wrapped_time_callable = wrap_callable(time_callable)
-        try:
-            wrapped_time_callable(converter(time))
-        except Exception:
-            pass
-
-    return no_error_time_callable
+    return lambda time: _no_error_wrapped_callable(time_callable)(converter(time))
 
 
 def _get_first_set_key(props: dict[str, Any], sequence: Sequence[str]) -> str | None:
@@ -601,14 +586,9 @@ def _wrap_date_range_callable(
     """
     # When the user is typing a date, they may enter a value that does not parse
     # This will skip those errors rather than printing them to the screen
-    def no_error_date_callable(date_range: DateRange) -> None:
-        wrapped_date_callable = wrap_callable(date_callable)
-        try:
-            wrapped_date_callable(convert_date_range(date_range, converter))
-        except Exception:
-            pass
-
-    return no_error_date_callable
+    return lambda date_range: _no_error_wrapped_callable(date_callable)(
+        convert_date_range(date_range, converter)
+    )
 
 
 def convert_date_props(
