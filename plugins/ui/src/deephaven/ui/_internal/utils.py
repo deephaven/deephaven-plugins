@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Set, cast, Sequence
+from typing import Any, Callable, Set, cast, Sequence, TypeVar
 from inspect import signature
 import sys
 from functools import partial
@@ -16,6 +16,8 @@ from ..types import (
     LocalDateConvertible,
     LocalDate,
 )
+
+T = TypeVar("T")
 
 _UNSAFE_PREFIX = "UNSAFE_"
 _ARIA_PREFIX = "aria_"
@@ -355,6 +357,27 @@ def _jclass_time_converter(
     return _TIME_CONVERTERS[get_jclass_name(value)]
 
 
+def _no_error_wrapped_callable(func: Callable[[T], None]) -> Callable[[T], None]:
+    """
+    Wrap the function so that it does not raise an error when called.
+
+    Args:
+        func: The callable to wrap
+
+    Returns:
+        The wrapped callable
+    """
+
+    def no_error_func(arg: T) -> None:
+        wrapped_callable = wrap_callable(func)
+        try:
+            return wrapped_callable(arg)
+        except Exception:
+            pass
+
+    return no_error_func
+
+
 def _wrap_date_callable(
     date_callable: Callable[[Date], None],
     converter: Callable[[Date], Any],
@@ -372,14 +395,7 @@ def _wrap_date_callable(
     """
     # When the user is typing a date, they may enter a value that does not parse
     # This will skip those errors rather than printing them to the screen
-    def no_error_date_callable(date: Date) -> None:
-        wrapped_date_callable = wrap_callable(date_callable)
-        try:
-            wrapped_date_callable(converter(date))
-        except Exception:
-            pass
-
-    return no_error_date_callable
+    return lambda date: _no_error_wrapped_callable(date_callable)(converter(date))
 
 
 def wrap_local_date_callable(
