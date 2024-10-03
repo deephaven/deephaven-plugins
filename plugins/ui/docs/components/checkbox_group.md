@@ -259,7 +259,6 @@ def ui_checkbox_group_help_text_examples():
             "Baseball",
             label="Favourite sports",
             description="Select an avatar from the two options.",
-            on_change=set_selected,
         ),
         ui.checkbox_group(
             "Soccer",
