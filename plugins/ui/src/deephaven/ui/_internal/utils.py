@@ -357,7 +357,10 @@ def _jclass_time_converter(
     return _TIME_CONVERTERS[get_jclass_name(value)]
 
 
-def _no_error_wrapped_callable(func: Callable[[T], None]) -> Callable[[T], None]:
+def _no_error_wrapped_callable(
+    func: Callable[[T], None],
+    converter: Callable[[T], Any],
+) -> Callable[[T], None]:
     """
     Wrap the function so that it does not raise an error when called.
 
@@ -371,7 +374,7 @@ def _no_error_wrapped_callable(func: Callable[[T], None]) -> Callable[[T], None]
     def no_error_func(arg: T) -> None:
         wrapped_callable = wrap_callable(func)
         try:
-            return wrapped_callable(arg)
+            return wrapped_callable(converter(arg))
         except Exception:
             pass
 
@@ -395,7 +398,7 @@ def _wrap_date_callable(
     """
     # When the user is typing a date, they may enter a value that does not parse
     # This will skip those errors rather than printing them to the screen
-    return lambda date: _no_error_wrapped_callable(date_callable)(converter(date))
+    return _no_error_wrapped_callable(date_callable, converter)
 
 
 def wrap_local_date_callable(
@@ -413,7 +416,7 @@ def wrap_local_date_callable(
     """
     # When the user is typing a date, they may enter a value that does not parse
     # This will skip those errors rather than printing them to the screen
-    return lambda date: _no_error_wrapped_callable(date_callable)(to_j_local_date(date))
+    return _no_error_wrapped_callable(date_callable, to_j_local_date)
 
 
 def _wrap_time_callable(
@@ -433,7 +436,7 @@ def _wrap_time_callable(
     """
     # When the user is typing a time, they may enter a value that does not parse
     # This will skip those errors rather than printing them to the screen
-    return lambda time: _no_error_wrapped_callable(time_callable)(converter(time))
+    return _no_error_wrapped_callable(time_callable, converter)
 
 
 def _get_first_set_key(props: dict[str, Any], sequence: Sequence[str]) -> str | None:
@@ -586,9 +589,14 @@ def _wrap_date_range_callable(
     """
     # When the user is typing a date, they may enter a value that does not parse
     # This will skip those errors rather than printing them to the screen
-    return lambda date_range: _no_error_wrapped_callable(date_callable)(
-        convert_date_range(date_range, converter)
-    )
+    def no_error_date_callable(date_range: DateRange) -> None:
+        wrapped_date_callable = wrap_callable(date_callable)
+        try:
+            wrapped_date_callable(convert_date_range(date_range, converter))
+        except Exception:
+            pass
+
+    return no_error_date_callable
 
 
 def convert_date_props(
