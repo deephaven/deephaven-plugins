@@ -149,6 +149,12 @@ describe('parseTimeValue', () => {
   });
 });
 
+describe('parseNullableDateValue', () => {
+  it('should return null if the value is null', () => {
+    expect(parseNullableCalendarValue(null)).toBeNull();
+  });
+});
+
 describe('parseCalendarValue', () => {
   const isoDate = '2021-02-03';
   const isoDateTime = '2021-03-03T04:05:06';
@@ -159,10 +165,6 @@ describe('parseCalendarValue', () => {
   const instantStringNoTimeZone = '2021-03-03T04:05:06';
   const utcOutput = '2021-03-03T04:05:06+00:00[UTC]';
   const invalidDate = 'invalid-date';
-
-  it('should return null if the value is null', () => {
-    expect(parseNullableCalendarValue(null)).toBeNull();
-  });
 
   it('should return undefined if the value is undefined', () => {
     expect(parseCalendarValue(undefined)).toBeUndefined();
