@@ -88,13 +88,13 @@ class DateRangePickerTest(BaseTestCase):
         verify_is_zdt(props1["default_value"]["end"])
         verify_is_local_date(props1["placeholder_value"])
 
-        props2["on_change"]("2021-01-01")
-        props3["on_change"]("2021-01-01 UTC")
-        props4["on_change"]("2021-01-01 ET")
-        props5["on_change"]("2021-01-01 UTC")
+        props2["on_change"]({"start": "2021-01-01", "end": "2021-01-02"})
+        props3["on_change"]({"start": "2021-01-01 UTC", "end": "2021-01-02 UTC"})
+        props4["on_change"]({"start": "2021-01-01 ET", "end": "2021-01-02 ET"})
+        props5["on_change"]({"start": "2021-01-01 UTC", "end": "2021-01-02 UTC"})
 
         # pass an Instant but it should be dropped with no error
-        props6["on_change"]("2021-01-01 UTC")
+        props6["on_change"]({"start": "2021-01-01 UTC", "end": "2021-01-02 UTC"})
 
 
 if __name__ == "__main__":

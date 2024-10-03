@@ -28,6 +28,7 @@ export const ELEMENT_NAME = {
   actionMenu: uiComponentName('ActionMenu'),
   button: uiComponentName('Button'),
   buttonGroup: uiComponentName('ButtonGroup'),
+  calendar: uiComponentName('Calendar'),
   checkbox: uiComponentName('Checkbox'),
   comboBox: uiComponentName('ComboBox'),
   content: uiComponentName('Content'),

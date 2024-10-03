@@ -4,6 +4,8 @@ import {
   isStringInstant,
   parseTimeValue,
   parseNullableTimeValue,
+  parseCalendarValue,
+  parseNullableCalendarValue,
 } from './DateTimeUtils';
 
 const DEFAULT_TIME_ZONE = 'UTC';
@@ -144,5 +146,58 @@ describe('parseTimeValue', () => {
     expect(parseTimeValue(NY_TIME_ZONE, instantString)?.toString()).toEqual(
       nyOutput
     );
+  });
+});
+
+describe('parseNullableDateValue', () => {
+  it('should return null if the value is null', () => {
+    expect(parseNullableCalendarValue(null)).toBeNull();
+  });
+});
+
+describe('parseCalendarValue', () => {
+  const isoDate = '2021-02-03';
+  const isoDateTime = '2021-03-03T04:05:06';
+  const isoZonedDateTime = '2021-04-04T05:06:07-04:00[America/New_York]';
+  const nonIsoZonedDateTime = '2021-04-04T05:06:07 America/New_York';
+  const instantString = '2021-03-03T04:05:06Z';
+  const instantStringUTC = '2021-03-03T04:05:06Z[UTC]';
+  const instantStringNoTimeZone = '2021-03-03T04:05:06';
+  const utcOutput = '2021-03-03T04:05:06+00:00[UTC]';
+  const invalidDate = 'invalid-date';
+
+  it('should return undefined if the value is undefined', () => {
+    expect(parseCalendarValue(undefined)).toBeUndefined();
+  });
+
+  it('should parse an ISO 8601 date string', () => {
+    expect(parseCalendarValue(isoDate)?.toString()).toEqual(isoDate);
+  });
+
+  it('should parse an ISO 8601 date time string', () => {
+    expect(parseCalendarValue(isoDateTime)?.toString()).toEqual(isoDateTime);
+  });
+
+  it('should parse an ISO 8601 zoned date time string', () => {
+    expect(parseCalendarValue(isoZonedDateTime)?.toString()).toEqual(
+      isoZonedDateTime
+    );
+  });
+
+  it('should parse a non-ISO 8601 zoned date time string', () => {
+    expect(parseCalendarValue(nonIsoZonedDateTime)?.toString()).toEqual(
+      isoZonedDateTime
+    );
+  });
+
+  it('should parse an instant string', () => {
+    expect(parseCalendarValue(instantString)?.toString()).toEqual(
+      instantStringNoTimeZone
+    );
+    expect(parseCalendarValue(instantStringUTC)?.toString()).toEqual(utcOutput);
+  });
+
+  it('should throw an error if the value is invalid', () => {
+    expect(() => parseCalendarValue(invalidDate)).toThrow();
   });
 });

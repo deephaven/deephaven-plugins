@@ -57,7 +57,7 @@ class TimeFieldTest(BaseTestCase):
             "on_change": verify_is_zdt,
         }
 
-        props5 = {"on_change": verify_is_instant}
+        props5 = {"on_change": verify_is_local_time}
 
         props6 = {"on_change": empty_on_change}
 
@@ -75,10 +75,10 @@ class TimeFieldTest(BaseTestCase):
         props2["on_change"]("10:30:45")
         props3["on_change"]("2021-01-01T10:30:45 UTC")
         props4["on_change"]("2021-01-01T10:30:45 ET")
-        props5["on_change"]("2021-01-01T10:30:45 UTC")
+        props5["on_change"]("10:30:45")
 
-        # pass an Instant but it should be dropped with no error
-        props6["on_change"]("2021-01-01T10:30:45 UTC")
+        # pass an Local Time but it should be dropped with no error
+        props6["on_change"]("10:30:45")
 
 
 if __name__ == "__main__":
