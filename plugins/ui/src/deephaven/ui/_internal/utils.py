@@ -366,6 +366,7 @@ def _no_error_wrapped_callable(
 
     Args:
         func: The callable to wrap
+        converter: The converter to use
 
     Returns:
         The wrapped callable
