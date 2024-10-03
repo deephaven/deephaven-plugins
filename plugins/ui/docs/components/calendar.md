@@ -197,7 +197,7 @@ my_calendar_visible_months_example = ui.calendar(
 
 ## Page Behavior
 
-By default, when pressing the next or previous buttons, pagination will advance by the `visibl_months` value. This behavior can be changed to page by single months instead, by setting `page_behavior` to `single`.
+By default, when pressing the next or previous buttons, pagination will advance by the `visible_months` value. This behavior can be changed to page by single months instead, by setting `page_behavior` to `single`.
 
 ```python
 from deephaven import ui

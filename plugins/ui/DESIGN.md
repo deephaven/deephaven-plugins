@@ -1398,7 +1398,7 @@ calendar2 = ui.calendar(
 date, set_date = ui.use_state(None)
 
 calendar3 = ui.calendar(
-    placeholder_value=zoned_date_time,
+    default_value=zoned_date_time,
     on_change=set_date
 )
 
@@ -1407,7 +1407,7 @@ calendar3 = ui.calendar(
 date, set_date = ui.use_state(None)
 
 calendar4 = ui.calendar(
-    placeholder_value=instant,
+    default_value=instant,
     on_change=set_date
 )
 
@@ -1416,7 +1416,7 @@ calendar4 = ui.calendar(
 date, set_date = ui.use_state(None)
 
 calendar5 = ui.calendar(
-    placeholder_value=local_date,
+    default_value=local_date,
     on_change=set_date
 )
 
