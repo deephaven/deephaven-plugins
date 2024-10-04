@@ -95,7 +95,7 @@ def progress_bar(
         value_label: The content to display as the value's label.
         value: The current value (controlled).
         min_value: The smallest value allowed for the input.
-        max_value: 	The largest value allowed for the input.
+        max_value: The largest value allowed for the input.
         is_indeterminate: Indeterminism is presentational only. The indeterminate visual representation remains regardless of user interaction.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how much the element will grow to fit the space available.

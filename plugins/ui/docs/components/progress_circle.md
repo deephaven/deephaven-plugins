@@ -50,11 +50,11 @@ from deephaven import ui
 
 
 @ui.component
-def indeterminate_variants():
+def indeterminate_variant():
     return ui.progress_circle(is_indeterminate=True)
 
 
-progress_circle_indeterminate_examples = indeterminate_variants()
+progress_circle_indeterminate_example = indeterminate_variant()
 ```
 
 ## Size
