@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 from .basic import component_element
+from ..elements import Element
 
 
-def row(*children: Any, height: float | None = None, key: str | None = None):
+def row(*children: Any, height: float | None = None, key: str | None = None) -> Element:
     """
     A row is a container that can be used to group elements.
     Each element will be placed to the right of its prior sibling.

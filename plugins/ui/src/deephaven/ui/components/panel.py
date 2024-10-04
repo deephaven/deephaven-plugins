@@ -11,6 +11,7 @@ from .types import (
     AlignItems,
     DimensionValue,
 )
+from ..elements import Element
 
 
 def panel(
@@ -33,7 +34,7 @@ def panel(
     padding_y: DimensionValue | None = None,
     key: str | None = None,
     **props: Any,
-):
+) -> Element:
     """
     A panel is a container that can be used to group elements.
 
