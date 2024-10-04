@@ -67,6 +67,44 @@ my_button_group_orientation_example = ui.button_group(
 ```
 
 
+## Alignment
+
+By default, button groups are start-aligned to be in accordance with content, but they can be set to have a different alignment using the `alignment` prop.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def ui_button_group_alignment_examples():
+    return [
+        ui.button_group(
+            ui.button("No, thanks", variant="secondary"),
+            ui.button("Remind me later", variant="secondary"),
+            ui.button("Rate Now", variant="primary"),
+            orientation="vertical",
+        ),
+        ui.button_group(
+            ui.button("No, thanks", variant="secondary"),
+            ui.button("Remind me later", variant="secondary"),
+            ui.button("Rate Now", variant="primary"),
+            orientation="vertical",
+            alignment="center",
+        ),
+        ui.button_group(
+            ui.button("No, thanks", variant="secondary"),
+            ui.button("Remind me later", variant="secondary"),
+            ui.button("Rate Now", variant="primary"),
+            orientation="vertical",
+            alignment="end",
+        ),
+    ]
+
+
+my_button_group_alignment_examples = ui_button_group_alignment_examples()
+```
+
+
 ## Disabled state
 
 The `is_disabled` prop disables the button group to prevent user interaction. This is useful when the button group should be visible but not available for selection.
