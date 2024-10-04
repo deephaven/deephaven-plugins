@@ -2,6 +2,8 @@
 
 The markdown components renders a string in the CommonMark standard. The component also supports LaTeX (through MathJax), with `remark-math` and `rehype-mathjax`. Other plugins and markdown components are not supported. The markdown is wrapped in a `View`, which all props are passed to except for `children`.
 
+For individual lines of text, consider using `ui.text` and `ui.heading` instead.
+
 ## Example
 
 ```python
