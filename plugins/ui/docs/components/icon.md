@@ -1,6 +1,6 @@
 # Icon
 
-Custom icons can be used by wrapping them in an Icon component.
+Icons can be displayed as a standalone element, or as part of other components that accept icons such as [text_field](./text_field.md) or [action_button](./action_button.md). Icons can be selected from the built in icon set. See the available icons example below for a listing of all icons.
 
 ## Example
 
@@ -10,7 +10,7 @@ from deephaven import ui
 
 @ui.component
 def icons():
-    icon = ui.icon(name="filter")
+    icon = ui.icon("filter")
 
     return icon
 
@@ -42,25 +42,36 @@ def icon_search_example():
 
     def render_icons():
         entries = []
-
         for icon in filtered_icons:
             entries.append(
                 ui.flex(
-                    ui.icon(name=icon),
-                    ui.text(icon),
+                    ui.icon(icon),
+                    ui.text(icon, color="gray-700"),
                     direction="column",
                     align_items="center",
                 )
             )
+        return ui.grid(entries, columns="repeat(auto-fit, minmax(250px, 1fr))")
 
-        return ui.grid(entries, columns=[200, 200, 200, 200], auto_rows="size-800")
-
-    return [
-        ui.text_field(
-            ui.icon("search"), on_change=filter_icons, width=800, margin_bottom=20
+    return ui.panel(
+        ui.view(
+            ui.text_field(
+                ui.icon("search"),
+                label="Search icons",
+                width="100%",
+                on_change=filter_icons,
+            ),
+            position="sticky",
+            top="0px",
+            padding="size-100",
+            background_color="surface-bg",
+            border_bottom_width="thin",
+            border_bottom_color="bg",
+            width="100%",
         ),
         render_icons(),
-    ]
+        padding=0,
+    )
 
 
 my_icon_search_example = icon_search_example()
@@ -77,9 +88,9 @@ from deephaven import ui
 
 @ui.component
 def icons():
-    small = ui.icon(name="bell", size="S")
-    default = ui.icon(name="bell")
-    large = ui.icon(name="bell", size="L")
+    small = ui.icon("bell", size="S")
+    default = ui.icon("bell")
+    large = ui.icon("bell", size="L")
 
     return [small, default, large]
 
@@ -89,7 +100,7 @@ my_icons = icons()
 
 ## Coloring
 
-Icons in Spectrum support four semantic colors: negative, notice, positive, and informative. While icons within React Spectrum components are usually styled with the appropriate colors, you can use the `color` prop to customize the color of standalone icons.
+Icons support four semantic colors: negative, notice, positive, and informative. While icons within components are usually styled with the appropriate colors, you can use the `color` prop to customize the color of standalone icons.
 
 ```python
 from deephaven import ui
@@ -97,9 +108,9 @@ from deephaven import ui
 
 @ui.component
 def icons():
-    negative = ui.icon(name="bell", color="negative")
-    informative = ui.icon(name="bell", color="informative")
-    positive = ui.icon(name="bell", color="positive")
+    negative = ui.icon("bell", color="negative")
+    informative = ui.icon("bell", color="informative")
+    positive = ui.icon("bell", color="positive")
 
     return [negative, informative, positive]
 
@@ -117,7 +128,7 @@ from deephaven import ui
 
 @ui.component
 def icons():
-    icon_button = ui.button(ui.icon(name="squirrel"), aria_label="squirrel")
+    icon_button = ui.action_button(ui.icon("squirrel"), aria_label="squirrel")
 
     return icon_button
 
