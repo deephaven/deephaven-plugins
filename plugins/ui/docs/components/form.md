@@ -61,23 +61,6 @@ def ui_form_validation_behavior():
 my_form_validation_behavior = ui_form_validation_behavior()
 ```
 
-## Label Position & Alignment
-
-```python
-from deephaven import ui
-
-
-@ui.component
-def ui_form_label():
-    return ui.form(
-        ui.text_field(name="name", label="Name"),
-        label_align="start",
-        label_position="side",
-    )
-
-
-my_form_label = ui_form_label()
-```
 
 ## Quiet
 
