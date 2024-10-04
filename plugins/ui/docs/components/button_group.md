@@ -1,6 +1,6 @@
 # Button Group
 
-A button group is a UI component that groups buttons with related actions together and will automatically handle layout overflow nicely. Only buttons can be used within button group.
+A button group is a UI component that groups buttons with related actions together and will automatically handle layout overflow nicely. Only buttons can be used within button groups.
 
 ## Example
 
