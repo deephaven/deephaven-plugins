@@ -306,3 +306,9 @@ my_list_view_overflow = ui_list_view_overflow()
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.list_view
 ```
+
+## Item Table Source API reference
+
+```{eval-rst}
+.. dhautofunction:: deephaven.ui.item_table_source
+```
