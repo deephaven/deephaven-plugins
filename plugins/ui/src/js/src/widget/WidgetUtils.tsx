@@ -10,8 +10,6 @@ import {
   SpectrumCheckbox as Checkbox,
   Content,
   ContextualHelp,
-  Flex,
-  Grid,
   Heading,
   Item,
   ListActionGroup,
@@ -50,15 +48,20 @@ import {
   ActionButton,
   ActionGroup,
   Button,
+  Calendar,
   ComboBox,
   DateField,
   DatePicker,
   DateRangePicker,
+  Flex,
   Form,
+  Grid,
   IllustratedMessage,
   Image,
   ListView,
   Picker,
+  ProgressBar,
+  ProgressCircle,
   Radio,
   RadioGroup,
   RangeSlider,
@@ -104,6 +107,7 @@ export const elementComponentMap = {
   [ELEMENT_NAME.actionMenu]: ActionMenu,
   [ELEMENT_NAME.button]: Button,
   [ELEMENT_NAME.buttonGroup]: ButtonGroup,
+  [ELEMENT_NAME.calendar]: Calendar,
   [ELEMENT_NAME.checkbox]: Checkbox,
   [ELEMENT_NAME.comboBox]: ComboBox,
   [ELEMENT_NAME.content]: Content,
@@ -124,6 +128,8 @@ export const elementComponentMap = {
   [ELEMENT_NAME.listView]: ListView,
   [ELEMENT_NAME.numberField]: NumberField,
   [ELEMENT_NAME.picker]: Picker,
+  [ELEMENT_NAME.progressBar]: ProgressBar,
+  [ELEMENT_NAME.progressCircle]: ProgressCircle,
   [ELEMENT_NAME.radio]: Radio,
   [ELEMENT_NAME.radioGroup]: RadioGroup,
   [ELEMENT_NAME.rangeSlider]: RangeSlider,
@@ -177,7 +183,6 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
           </ContextualHelp>
         );
       }
-
       return <Component {...props} />;
     }
   }

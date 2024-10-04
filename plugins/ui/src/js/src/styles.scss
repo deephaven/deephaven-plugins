@@ -1,7 +1,10 @@
 @import '@deephaven/components/scss/custom.scss';
 
 .ui-portal-panel {
-  display: contents;
+  height: 100%;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
 }
 
 .ui-object-container {
@@ -10,9 +13,42 @@
 }
 
 .dh-react-panel {
-  .dh-inner-react-panel .iris-grid {
-    border: 1px solid var(--dh-color-bg);
-    border-radius: $border-radius;
+  // using grid to allow the panel to grow to fill the container
+  // without having to set the width/height explicitly
+  // so that overflow will include it's padding
+  display: grid;
+
+  .dh-inner-react-panel {
+    // forces the panel to have an intrinsic size
+    // 100% width items shrink to fit the container
+    min-width: 0;
+
+    // inner-panel is flex with align-start
+    // so that things like buttons don't stretch
+    // but we still want child flex/grid items to stretch
+    > .dh-flex,
+    > .dh-grid {
+      align-self: stretch;
+    }
+
+    .dh-tabs {
+      flex: auto;
+      height: 100%;
+    }
+
+    .iris-grid {
+      // we don't want the grid to ever collapse to 0 height, so we set a min-height
+      // let's users know that the grid is there
+      min-height: 70px;
+      border: 1px solid var(--dh-color-bg);
+      border-radius: $border-radius;
+
+      canvas {
+        // setting canvas t0 position absolute
+        // removes the canvas from the normal flow
+        position: absolute;
+      }
+    }
   }
 
   &:has(.dh-inner-react-panel > .iris-grid:only-child),

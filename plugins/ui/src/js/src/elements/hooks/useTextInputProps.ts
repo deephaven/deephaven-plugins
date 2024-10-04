@@ -1,11 +1,12 @@
 import { useFocusEventCallback } from './useFocusEventCallback';
 import { useKeyboardEventCallback } from './useKeyboardEventCallback';
-import { SerializedTextAreaEventProps } from '../model/SerializedPropTypes';
-import { wrapTextChildren } from '../utils';
+import { SerializedTextInputEventProps } from '../model/SerializedPropTypes';
 import useDebouncedOnChange from './useDebouncedOnChange';
 
 // returns SpectrumTextAreaProps
-export function useTextAreaProps<T>(props: SerializedTextAreaEventProps<T>): T {
+export function useTextInputProps<T>(
+  props: SerializedTextInputEventProps<T>
+): T {
   const {
     defaultValue = '',
     value: propValue,
@@ -14,7 +15,6 @@ export function useTextAreaProps<T>(props: SerializedTextAreaEventProps<T>): T {
     onBlur: propOnBlur,
     onKeyDown: propOnKeyDown,
     onKeyUp: propOnKeyUp,
-    children,
     ...otherProps
   } = props;
   const onFocus = useFocusEventCallback(propOnFocus);
@@ -34,9 +34,8 @@ export function useTextAreaProps<T>(props: SerializedTextAreaEventProps<T>): T {
     onBlur,
     onKeyDown,
     onKeyUp,
-    children: wrapTextChildren(children),
     ...otherProps,
   } as T;
 }
 
-export default useTextAreaProps;
+export default useTextInputProps;

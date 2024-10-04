@@ -1,13 +1,23 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Set, cast, Sequence
+from typing import Any, Callable, Set, cast, Sequence, TypeVar
 from inspect import signature
 import sys
 from functools import partial
 from deephaven.time import to_j_instant, to_j_zdt, to_j_local_date, to_j_local_time
 from deephaven.dtypes import ZonedDateTime, Instant
 
-from ..types import Date, JavaDate, DateRange, Time, JavaTime
+from ..types import (
+    Date,
+    JavaDate,
+    DateRange,
+    Time,
+    JavaTime,
+    LocalDateConvertible,
+    LocalDate,
+)
+
+T = TypeVar("T")
 
 _UNSAFE_PREFIX = "UNSAFE_"
 _ARIA_PREFIX = "aria_"
@@ -347,6 +357,31 @@ def _jclass_time_converter(
     return _TIME_CONVERTERS[get_jclass_name(value)]
 
 
+def _no_error_wrapped_callable(
+    func: Callable[[T], None],
+    converter: Callable[[T], Any],
+) -> Callable[[T], None]:
+    """
+    Wrap the function so that it does not raise an error when called.
+
+    Args:
+        func: The callable to wrap
+        converter: The converter to use
+
+    Returns:
+        The wrapped callable
+    """
+
+    def no_error_func(arg: T) -> None:
+        wrapped_callable = wrap_callable(func)
+        try:
+            return wrapped_callable(converter(arg))
+        except Exception:
+            pass
+
+    return no_error_func
+
+
 def _wrap_date_callable(
     date_callable: Callable[[Date], None],
     converter: Callable[[Date], Any],
@@ -364,14 +399,25 @@ def _wrap_date_callable(
     """
     # When the user is typing a date, they may enter a value that does not parse
     # This will skip those errors rather than printing them to the screen
-    def no_error_date_callable(date: Date) -> None:
-        wrapped_date_callable = wrap_callable(date_callable)
-        try:
-            wrapped_date_callable(converter(date))
-        except Exception:
-            pass
+    return _no_error_wrapped_callable(date_callable, converter)
 
-    return no_error_date_callable
+
+def wrap_local_date_callable(
+    date_callable: Callable[[LocalDateConvertible], None],
+) -> Callable[[LocalDate], None]:
+    """
+    Wrap a callable to convert the Date argument to a Java date type.
+    This maintains the original callable signature so that the Date argument can be dropped.
+
+    Args:
+        date_callable: The callable to wrap.
+
+    Returns:
+        The wrapped callable.
+    """
+    # When the user is typing a date, they may enter a value that does not parse
+    # This will skip those errors rather than printing them to the screen
+    return _no_error_wrapped_callable(date_callable, to_j_local_date)
 
 
 def _wrap_time_callable(
@@ -391,14 +437,7 @@ def _wrap_time_callable(
     """
     # When the user is typing a time, they may enter a value that does not parse
     # This will skip those errors rather than printing them to the screen
-    def no_error_time_callable(time: Time) -> None:
-        wrapped_time_callable = wrap_callable(time_callable)
-        try:
-            wrapped_time_callable(converter(time))
-        except Exception:
-            pass
-
-    return no_error_time_callable
+    return _no_error_wrapped_callable(time_callable, converter)
 
 
 def _get_first_set_key(props: dict[str, Any], sequence: Sequence[str]) -> str | None:
@@ -551,14 +590,26 @@ def _wrap_date_range_callable(
     """
     # When the user is typing a date, they may enter a value that does not parse
     # This will skip those errors rather than printing them to the screen
-    def no_error_date_callable(date_range: DateRange) -> None:
-        wrapped_date_callable = wrap_callable(date_callable)
-        try:
-            wrapped_date_callable(convert_date_range(date_range, converter))
-        except Exception:
-            pass
+    return _no_error_wrapped_callable(date_callable, _date_range_converter(converter))
 
-    return no_error_date_callable
+
+def _date_range_converter(
+    converter: Callable[[Date], Any]
+) -> Callable[[DateRange], DateRange]:
+    """
+    Get a converter for a DateRange.
+
+    Args:
+        converter: The converter to use for the start and end dates.
+
+    Returns:
+        The converter for the DateRange.
+    """
+
+    def date_range_converter(date_range: DateRange) -> DateRange:
+        return convert_date_range(date_range, converter)
+
+    return date_range_converter
 
 
 def convert_date_props(
@@ -567,7 +618,7 @@ def convert_date_props(
     date_range_props: set[str],
     callable_date_props: set[str],
     priority: Sequence[str],
-    granularity_key: str,
+    granularity_key: str | None = None,
     default_converter: Callable[[Date], Any] = to_j_instant,
 ) -> None:
     """
@@ -599,7 +650,11 @@ def convert_date_props(
 
     # based on the convert set the granularity if it is not set
     # Local Dates will default to DAY but we need to default to SECOND for the other types
-    if props.get(granularity_key) is None and converter != to_j_local_date:
+    if (
+        granularity_key is not None
+        and props.get(granularity_key) is None
+        and converter != to_j_local_date
+    ):
         props[granularity_key] = "SECOND"
 
     # now that the converter is set, we can convert simple props to strings
