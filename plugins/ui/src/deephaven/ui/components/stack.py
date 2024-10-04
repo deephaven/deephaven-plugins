@@ -21,6 +21,9 @@ def stack(
         height: The percent height of the stack relative to other children of its parent. If not provided, the stack will be sized automatically.
         width: The percent width of the stack relative to other children of its parent. If not provided, the stack will be sized automatically.
         key: A unique identifier used by React to render elements in a list.
+
+    Returns:
+        The rendered stack element.
     """
     return component_element(
         "Stack",

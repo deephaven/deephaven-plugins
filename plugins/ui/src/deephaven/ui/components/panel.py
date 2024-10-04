@@ -57,6 +57,8 @@ def panel(
         padding_y: The padding to apply to the top and bottom of the element.
         key: A unique identifier used by React to render elements in a list.
 
+    Returns:
+        The rendered panel element.
     """
 
     children, props = create_props(locals())
