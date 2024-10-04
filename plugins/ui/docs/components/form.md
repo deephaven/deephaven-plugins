@@ -12,6 +12,7 @@ from deephaven import ui
 def ui_form():
     return ui.form(
         ui.text_field(name="name", label="Enter name"),
+        ui.button("Submit", type="submit"),
     )
 
 
