@@ -89,14 +89,14 @@ def ui_button_group_alignment_examples():
             ui.button("Remind me later", variant="secondary"),
             ui.button("Rate Now", variant="primary"),
             orientation="vertical",
-            alignment="center",
+            align="center",
         ),
         ui.button_group(
             ui.button("No, thanks", variant="secondary"),
             ui.button("Remind me later", variant="secondary"),
             ui.button("Rate Now", variant="primary"),
             orientation="vertical",
-            alignment="end",
+            align="end",
         ),
     ]
 
