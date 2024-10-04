@@ -5,6 +5,7 @@ from .types import (
     Orientation,
     # Layout
     AlignSelf,
+    ButtonGroupAlignment,
     CSSProperties,
     DimensionValue,
     JustifySelf,
@@ -19,7 +20,7 @@ def button_group(
     *children: Any,
     is_disabled: bool | None = None,
     orientation: Orientation = "horizontal",
-    alignment: AlignSelf = "start",
+    align: ButtonGroupAlignment = "start",
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,
@@ -68,7 +69,7 @@ def button_group(
         *children: The children of the button group.
         is_disabled: Whether the button group is disabled.
         orientation: The axis the ButtonGroup should align with. Setting this to 'vertical' will prevent any switching behaviours between 'vertical' and horizontal'.
-        alignment: The alignment of the buttons within the ButtonGroup.
+        align: The alignment of the buttons within the ButtonGroup.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -109,7 +110,7 @@ def button_group(
         *children,
         is_disabled=is_disabled,
         orientation=orientation,
-        alignment=alignment,
+        align=align,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
