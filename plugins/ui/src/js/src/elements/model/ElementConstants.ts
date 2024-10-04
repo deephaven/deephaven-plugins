@@ -49,6 +49,8 @@ export const ELEMENT_NAME = {
   listView: uiComponentName('ListView'),
   numberField: uiComponentName('NumberField'),
   picker: uiComponentName('Picker'),
+  progressBar: uiComponentName('ProgressBar'),
+  progressCircle: uiComponentName('ProgressCircle'),
   radio: uiComponentName('Radio'),
   radioGroup: uiComponentName('RadioGroup'),
   rangeSlider: uiComponentName('RangeSlider'),

@@ -33,6 +33,8 @@ from .make_component import make_component as component
 from .number_field import number_field
 from .panel import panel
 from .picker import picker
+from .progress_bar import progress_bar
+from .progress_circle import progress_circle
 from .radio import radio
 from .radio_group import radio_group
 from .range_slider import range_slider
@@ -91,6 +93,8 @@ __all__ = [
     "number_field",
     "panel",
     "picker",
+    "progress_bar",
+    "progress_circle",
     "radio",
     "radio_group",
     "range_slider",

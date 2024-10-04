@@ -18,6 +18,8 @@ export * from './ListView';
 export * from './model';
 export * from './ObjectView';
 export * from './Picker';
+export * from './ProgressBar';
+export * from './ProgressCircle';
 export * from './Radio';
 export * from './RadioGroup';
 export * from './RangeSlider';
