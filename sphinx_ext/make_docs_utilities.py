@@ -4,6 +4,7 @@ import sys
 import os
 import contextlib
 from typing import IO, Generator
+from deephaven_autodoc import AUTOFUNCTION_COMMENT_PREFIX
 
 BUILT_DOCS = "docs/build/markdown"
 
@@ -111,12 +112,15 @@ def remove_paramtable_comment(
     Returns:
         str: The line with the comment markers removed
     """
-    if line.startswith("<!-- <ParamTable param={{") and line.endswith("}} /> -->\n"):
+    if line.startswith(f"<!-- {AUTOFUNCTION_COMMENT_PREFIX}") and line.endswith(
+        "}} /> -->\n"
+    ):
         # remove the comment markers
         # these are added in deephaven_autodoc.py to prevent special characters from being escaped
         # by the markdown renderer
-        line = line.replace("<!-- ", "")
+        line = line.replace(f"<!-- {AUTOFUNCTION_COMMENT_PREFIX}", "")
         line = line.replace(" -->", "")
+        line = line.replace("<br />", "\n")
     return line
 
 
