@@ -281,3 +281,23 @@ dash_complex_state = ui.dashboard(multiwave())
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.dashboard
 ```
+
+### Row API Reference
+
+```{eval-rst}
+.. dhautofunction:: deephaven.ui.row
+```
+
+
+### Column API Reference
+
+```{eval-rst}
+.. dhautofunction:: deephaven.ui.col
+```
+
+
+### Stack API Reference
+
+```{eval-rst}
+.. dhautofunction:: deephaven.ui.stack
+```
