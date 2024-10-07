@@ -79,23 +79,15 @@ from deephaven import ui
 def ui_button_group_alignment_examples():
     return [
         ui.button_group(
-            ui.button("No, thanks", variant="secondary"),
-            ui.button("Remind me later", variant="secondary"),
-            ui.button("Rate Now", variant="primary"),
-            orientation="vertical",
-        ),
-        ui.button_group(
-            ui.button("No, thanks", variant="secondary"),
-            ui.button("Remind me later", variant="secondary"),
-            ui.button("Rate Now", variant="primary"),
-            orientation="vertical",
+            ui.button("No, thanks", variant="primary", style="outline"),
+            ui.button("Remind me later", variant="primary", style="outline"),
+            ui.button("Rate Now", variant="accent"),
             align="center",
         ),
         ui.button_group(
-            ui.button("No, thanks", variant="secondary"),
-            ui.button("Remind me later", variant="secondary"),
-            ui.button("Rate Now", variant="primary"),
-            orientation="vertical",
+            ui.button("No, thanks", variant="primary", style="outline"),
+            ui.button("Remind me later", variant="primary", style="outline"),
+            ui.button("Rate Now", variant="accent"),
             align="end",
         ),
     ]
