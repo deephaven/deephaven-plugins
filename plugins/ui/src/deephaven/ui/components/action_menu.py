@@ -149,6 +149,10 @@ def action_menu(
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
         key: A unique identifier used by React to render elements in a list.
+
+    Returns:
+        The rendered action menu element.
+
     """
     return component_element(
         f"ActionMenu",
