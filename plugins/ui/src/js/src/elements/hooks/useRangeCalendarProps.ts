@@ -1,19 +1,13 @@
 import { useCallback, useMemo } from 'react';
 import { CalendarDate, DateValue } from '@internationalized/date';
-import {
-  SerializedDateValueCallback,
-  DeserializedDateValueCallback, // TODO does onChange take range?
-  useOnChangeDateCallback,
-} from './useDateComponentProps';
-import {
-  parseCalendarValue,
-  parseNullableCalendarValue,
-} from '../utils/DateTimeUtils';
+import { SerializedDateValueCallback } from './useDateComponentProps';
+import { parseCalendarValue } from '../utils/DateTimeUtils';
 import { DeserializedCalendarCallback } from './useCalendarProps';
 import {
   RangeValue,
   SerializedDateRangeValueCallback,
   DeserializedDateRangeValueCallback,
+  useOnChangeDateRangeCallback,
 } from './useDateRangePickerProps';
 
 export interface SerializedRangeCalendarPropsInterface {
@@ -111,15 +105,32 @@ export default function useCalendarValueMemo(
 }
 
 /**
- * Use memo to get a Calendar DateValue from a nullable string.
+ * Use memo to get a Range of Calendar DateValue from a nullable string.
  *
  * @param value the string date value
- * @returns DateValue or null
+ * @returns Range of DateValue or null
  */
-export function useNullableCalendarValueMemo(
-  value?: string | null
-): DateValue | null | undefined {
-  return useMemo(() => parseNullableCalendarValue(value), [value]);
+export function useNullableRangeCalendarValueMemo(
+  value?: RangeValue<string> | null
+): RangeValue<DateValue> | null | undefined {
+  return useMemo(() => parseNullableRangeCalendarValue(value), [value]);
+}
+
+export function parseNullableRangeCalendarValue(
+  value?: RangeValue<string> | null
+): RangeValue<DateValue> | null | undefined {
+  if (value == null) {
+    return value;
+  }
+
+  const start = parseCalendarValue(value.start);
+  const end = parseCalendarValue(value.end);
+
+  if (start === undefined || end === undefined) {
+    return undefined;
+  }
+
+  return { start, end };
 }
 
 /**
@@ -138,10 +149,10 @@ export function useRangeCalendarProps<TProps>({
   defaultFocusedValue: serializedDefaultFocusedValue,
   ...otherProps
 }: SerializedRangeCalendarProps<TProps>): DeserializedRangeCalendarProps<TProps> {
-  const onChange = useOnChangeDateCallback(serializedOnChange);
+  const onChange = useOnChangeDateRangeCallback(serializedOnChange);
   const onFocusChange = useOnFocusedChangeCallback(serializedOnFocusChange);
-  const deserializedValue = useNullableCalendarValueMemo(serializedValue);
-  const deserializedDefaultValue = useNullableCalendarValueMemo(
+  const deserializedValue = useNullableRangeCalendarValueMemo(serializedValue);
+  const deserializedDefaultValue = useNullableRangeCalendarValueMemo(
     serializedDefaultValue
   );
   const deserializedMinValue = useCalendarValueMemo(serializedMinValue);
