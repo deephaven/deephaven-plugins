@@ -211,18 +211,18 @@ describe('parseCalendarValue', () => {
 describe('dateValuetoIsoString', () => {
   it('handles a CalendarDate', () => {
     const date = new CalendarDate(2021, 3, 4);
-    expect(dateValuetoIsoString(date)).toEqual('2021-04-04');
+    expect(dateValuetoIsoString(date)).toEqual('2021-03-04');
   });
 
   it('handles a CalendarDateTime', () => {
     const date = new CalendarDateTime(2021, 3, 4, 5, 6, 7);
-    expect(dateValuetoIsoString(date)).toEqual('2021-04-04T05:06:07Z');
+    expect(dateValuetoIsoString(date)).toEqual('2021-03-04T05:06:07Z');
   });
 
   it('handles a ZonedDateTime', () => {
     const date = new ZonedDateTime(2021, 3, 4, 'America/New_York', 5, 6, 7);
     expect(dateValuetoIsoString(date)).toEqual(
-      '2021-04-04T05:06:07-04:00[America/New_York]'
+      '2021-03-04T05:06:07-04:00[America/New_York]'
     );
   });
 });
