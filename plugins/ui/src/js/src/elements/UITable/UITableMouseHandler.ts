@@ -3,22 +3,14 @@ import {
   GridMouseHandler,
   GridPoint,
   isExpandableGridModel,
+  type ModelIndex,
 } from '@deephaven/grid';
-import {
-  IrisGridModel,
-  type IrisGridType,
-  RowIndex,
-} from '@deephaven/iris-grid';
-import {
-  CellData,
-  ColumnIndex,
-  RowDataMap,
-  UITableProps,
-} from './UITableUtils';
+import { IrisGridModel, type IrisGridType } from '@deephaven/iris-grid';
+import { CellData, RowDataMap, UITableProps } from './UITableUtils';
 
 function getCellData(
-  columnIndex: ColumnIndex,
-  rowIndex: RowIndex,
+  columnIndex: ModelIndex,
+  rowIndex: ModelIndex,
   model: IrisGridModel
 ): CellData {
   const column = model.columns[columnIndex];
@@ -37,7 +29,10 @@ function getCellData(
  * @param rowIndex Row to get the data map for
  * @returns Data map for the row
  */
-function getRowDataMap(rowIndex: RowIndex, model: IrisGridModel): RowDataMap {
+export function getRowDataMap(
+  rowIndex: ModelIndex,
+  model: IrisGridModel
+): RowDataMap {
   const { columns, groupedColumns } = model;
   const dataMap: RowDataMap = {};
   for (let i = 0; i < columns.length; i += 1) {

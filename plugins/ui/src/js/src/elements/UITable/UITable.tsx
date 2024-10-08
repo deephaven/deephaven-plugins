@@ -19,9 +19,12 @@ import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { getSettings, RootState } from '@deephaven/redux';
 import { GridMouseHandler } from '@deephaven/grid';
-import { UITableProps, wrapContextActions } from './UITableUtils';
+import { EMPTY_ARRAY, ensureArray } from '@deephaven/utils';
+import { UITableProps } from './UITableUtils';
 import UITableMouseHandler from './UITableMouseHandler';
-import UITableContextMenuHandler from './UITableContextMenuHandler';
+import UITableContextMenuHandler, {
+  wrapContextActions,
+} from './UITableContextMenuHandler';
 import UITableModel, { makeUiTableModel } from './UITableModel';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
@@ -35,7 +38,7 @@ export function UITable({
   onRowDoublePress,
   quickFilters,
   sorts,
-  alwaysFetchColumns,
+  alwaysFetchColumns: alwaysFetchColumnsProp,
   table: exportedTable,
   showSearch: showSearchBar,
   showQuickFilters,
@@ -182,6 +185,21 @@ export function UITable({
     };
   }, [databars, dh, exportedTable, layoutHints]);
 
+  const modelColumns = model?.columns ?? EMPTY_ARRAY;
+
+  const alwaysFetchColumns = useMemo(() => {
+    if (alwaysFetchColumnsProp === true) {
+      return modelColumns.map(column => column.name);
+    }
+    if (Array.isArray(alwaysFetchColumnsProp)) {
+      return alwaysFetchColumnsProp;
+    }
+    if (typeof alwaysFetchColumnsProp === 'string') {
+      return [alwaysFetchColumnsProp];
+    }
+    return [];
+  }, [...ensureArray(alwaysFetchColumnsProp), modelColumns]);
+
   const mouseHandlers = useMemo(
     () =>
       model && irisGrid
@@ -201,7 +219,8 @@ export function UITable({
               irisGrid,
               model,
               contextMenu,
-              contextHeaderMenu
+              contextHeaderMenu,
+              alwaysFetchColumns
             ),
           ] as readonly GridMouseHandler[])
         : undefined,
@@ -217,13 +236,14 @@ export function UITable({
       onRowDoublePress,
       contextMenu,
       contextHeaderMenu,
+      alwaysFetchColumns,
     ]
   );
 
   const onContextMenu = useCallback(
     (data: IrisGridContextMenuData) =>
-      wrapContextActions(contextMenu ?? [], data),
-    [contextMenu]
+      wrapContextActions(contextMenu ?? [], data, alwaysFetchColumns),
+    [contextMenu, alwaysFetchColumns]
   );
 
   const irisGridProps = useMemo(
