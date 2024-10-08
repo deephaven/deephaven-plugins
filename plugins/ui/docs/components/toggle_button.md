@@ -12,12 +12,12 @@ my_toggle_button_basic = ui.toggle_button("Pin")
 
 ## UI Recommendations
 
-Consider using an [`checkbox`](./checkbox.md) if wanting to represent a binary choice for the user.
+If you want to represent a binary choice for the user, consider using a [`checkbox`](./checkbox.md).
 
 
 ## Content
 
-A toggle button accepts a label, an icon, or both as children
+A toggle button accepts a label, an icon, or both as children.
 
 ```python
 from deephaven import ui
@@ -43,7 +43,7 @@ my_toggle_button_accessibility_example = ui.toggle_button(
 
 ## Value
 
-A toggle button is  not selected by default. Use the `default_selected` prop to set the initial state (uncontrolled) or the `is_selected` prop to control the selected state.
+A toggle button is not selected by default. Use the `default_selected` prop to set the initial state (uncontrolled) or the `is_selected` prop to control the selected state.
 
 ```python
 from deephaven import ui
