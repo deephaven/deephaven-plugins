@@ -53,6 +53,7 @@ export const ELEMENT_NAME = {
   progressCircle: uiComponentName('ProgressCircle'),
   radio: uiComponentName('Radio'),
   radioGroup: uiComponentName('RadioGroup'),
+  rangeCalendar: uiComponentName('RangeCalendar'),
   rangeSlider: uiComponentName('RangeSlider'),
   section: uiComponentName('Section'),
   slider: uiComponentName('Slider'),
