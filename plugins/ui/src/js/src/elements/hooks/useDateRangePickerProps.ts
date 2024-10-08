@@ -15,6 +15,7 @@ import {
   MappedDateValue,
   Granularity,
   parseDateValue,
+  dateValuetoIsoString,
 } from '../utils/DateTimeUtils';
 
 export interface RangeValue<T> {
@@ -123,8 +124,8 @@ export function serializeDateRangeValue(
     return null;
   }
 
-  const start = value.start.toString();
-  const end = value.end.toString();
+  const start = dateValuetoIsoString(value.start);
+  const end = dateValuetoIsoString(value.end);
 
   return { start, end };
 }
