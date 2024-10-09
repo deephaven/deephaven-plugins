@@ -31,7 +31,9 @@ export type SerializedDateRangeValueCallback = (
 
 export type DeserializedDateRangeValueCallback =
   | (() => void)
-  | ((value: RangeValue<MappedDateValue<DateValue>> | null) => Promise<void>);
+  | ((
+      value: RangeValue<MappedDateValue<DateValue>> | null | undefined
+    ) => Promise<void>);
 
 export interface SerializedDateRangePickerPropsInterface {
   /** Handler that is called when the element receives focus. */

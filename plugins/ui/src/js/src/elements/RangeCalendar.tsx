@@ -16,17 +16,16 @@ const EMPTY_FUNCTION = () => undefined;
 export function RangeCalendar(
   props: SerializedRangeCalendarProps<DHCRangeCalendarProps<DateValue>>
 ): JSX.Element {
+  const rangeCalendarProps = useRangeCalendarProps(props);
   const {
-    defaultValue = null,
     value: propValue,
     onChange: propOnChange = EMPTY_FUNCTION,
     ...otherProps
-  } = useRangeCalendarProps(props);
+  } = rangeCalendarProps;
 
-  const [value, onChange] = useDebouncedOnChange<RangeValue<DateValue> | null>(
-    propValue ?? defaultValue,
-    propOnChange
-  );
+  const [value, onChange] = useDebouncedOnChange<
+    RangeValue<DateValue> | undefined | null
+  >(propValue, propOnChange);
 
   // eslint-disable-next-line react/jsx-props-no-spreading
   return <DHCRangeCalendar value={value} onChange={onChange} {...otherProps} />;
