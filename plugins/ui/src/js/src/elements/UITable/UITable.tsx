@@ -29,6 +29,18 @@ import UITableModel, { makeUiTableModel } from './UITableModel';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
 
+/**
+ * Returns a stable array if none of the elements have changed.
+ * Mostly put this here to avoid ignoring the exhaustive-deps rule where there are more deps in the component.
+ * @param array The array to make stable
+ * @returns A stable array if none of the elements have changed
+ */
+function useStableArray<T>(array: T[]): T[] {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const stableArray = useMemo(() => array, [...array]);
+  return stableArray;
+}
+
 export function UITable({
   onCellPress,
   onCellDoublePress,
@@ -187,18 +199,19 @@ export function UITable({
 
   const modelColumns = model?.columns ?? EMPTY_ARRAY;
 
+  const alwaysFetchColumnsArray = useStableArray(
+    ensureArray(alwaysFetchColumnsProp)
+  );
+
   const alwaysFetchColumns = useMemo(() => {
-    if (alwaysFetchColumnsProp === true) {
+    if (alwaysFetchColumnsArray[0] === true) {
       return modelColumns.map(column => column.name);
     }
-    if (Array.isArray(alwaysFetchColumnsProp)) {
-      return alwaysFetchColumnsProp;
+    if (alwaysFetchColumnsArray[0] === false) {
+      return [];
     }
-    if (typeof alwaysFetchColumnsProp === 'string') {
-      return [alwaysFetchColumnsProp];
-    }
-    return [];
-  }, [...ensureArray(alwaysFetchColumnsProp), modelColumns]);
+    return alwaysFetchColumnsArray.filter(v => typeof v === 'string');
+  }, [alwaysFetchColumnsArray, modelColumns]);
 
   const mouseHandlers = useMemo(
     () =>
