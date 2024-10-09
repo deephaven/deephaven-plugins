@@ -12,7 +12,7 @@ my_range_calendar_basic = ui.range_calendar(aria_label="Trip Dates")
 
 ## Date types
 
-The range is a dictionary with a `start` date and an `end` date; e.g., `{ "start": "2024-01-02", "end": "2024-01-05" }`
+The range is a dictionary with a `start` date and an `end` date; e.g., `{ "start": "2024-01-02", "end": "2024-01-05" }`.
 
 The range calendar accepts the following date types as inputs:
 
@@ -192,7 +192,7 @@ my_range_calendar_is_read_only_example = ui.range_calendar(
 
 ## Visible Months
 
-By default, the range calendar displays a single month. The `visible_Months` prop allows displaying up to 3 months at a time.
+By default, the range calendar displays a single month. The `visible_months` prop allows displaying up to 3 months at a time.
 
 ```python
 from deephaven import ui
