@@ -78,8 +78,12 @@
             "path": "components/radio_group.md"
           },
           {
-            "label": "range_slider",
+            "label": "range_calendar",
             "path": "components/range_slider.md"
+          },
+          {
+            "label": "range_slider",
+            "path": "components/range_calendar.md"
           },
           {
             "label": "slider",
