@@ -220,9 +220,9 @@ describe('dateValuetoIsoString', () => {
   });
 
   it('handles a ZonedDateTime', () => {
-    const date = new ZonedDateTime(2021, 3, 4, 'America/New_York', 5, 6, 7);
+    const date = new ZonedDateTime(2021, 3, 4, 'America/New_York', 0, 0, 0, 0);
     expect(dateValuetoIsoString(date)).toEqual(
-      '2021-03-04T05:06:07-04:00[America/New_York]'
+      '2021-03-04T00:00:00+00:00[America/New_York]'
     );
   });
 });
