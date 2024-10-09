@@ -79,11 +79,11 @@
           },
           {
             "label": "range_calendar",
-            "path": "components/range_slider.md"
+            "path": "components/range_calendar.md"
           },
           {
             "label": "range_slider",
-            "path": "components/range_calendar.md"
+            "path": "components/range_slider.md"
           },
           {
             "label": "slider",

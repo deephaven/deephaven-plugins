@@ -2106,29 +2106,29 @@ If none of these are provided, the `on_change` handler passes a range of `Instan
 ```py
 import deephaven.ui as ui
 ui.range_calendar(
-    value: { "start": Date, "end": Date } | None = None,
-    default_value: { "start": Date, "end": Date } | None = None,
+    value: DateRange | None = None,
+    default_value: DateRange | None = None,
     focused_value: Date | None = None,
     default_focused_value: Date | None = None,
     min_value: Date | None = None,
     max_value: Date | None = None,
-    on_change: Callable[[{ "start": Date, "end": Date }], None] | None = None,
+    on_change: Callable[[DateRange], None] | None = None,
     **props: Any
 ) -> RangeCalendarElement
 ```
 
 ###### Parameters
 
-| Parameter               | Type                                                       | Description                                                                                        |
-| ----------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `value`                 | `{ "start": Date, "end": Date } \| None`                   | The current value (controlled).                                                                    |
-| `default_value`         | `{ "start": Date, "end": Date } \| None`                   | The default value (uncontrolled).                                                                  |
-| `focused_value`         | `Date \| None`                                             | The focused value (controlled).                                                                    |
-| `default_focused_value` | `Date \| None`                                             | The default focused value (uncontrolled).                                                          |
-| `min_value`             | `Date \| None`                                             | The minimum allowed date that a user may select.                                                   |
-| `max_value`             | `Date \| None`                                             | The maximum allowed date that a user may select.                                                   |
-| `on_change`             | `Callable[[{ "start": Date, "end": Date }], None] \| None` | Handler that is called when the value changes.                                                     |
-| `**props`               | `Any`                                                      | Any other [RangeCalendar](https://react-spectrum.adobe.com/react-spectrum/RangeCalendar.html) prop |
+| Parameter               | Type                                  | Description                                                                                        |
+| ----------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `value`                 | `DateRange \| None`                   | The current value (controlled).                                                                    |
+| `default_value`         | `DateRange \| None`                   | The default value (uncontrolled).                                                                  |
+| `focused_value`         | `Date \| None`                        | The focused value (controlled).                                                                    |
+| `default_focused_value` | `Date \| None`                        | The default focused value (uncontrolled).                                                          |
+| `min_value`             | `Date \| None`                        | The minimum allowed date that a user may select.                                                   |
+| `max_value`             | `Date \| None`                        | The maximum allowed date that a user may select.                                                   |
+| `on_change`             | `Callable[[DateRange], None] \| None` | Handler that is called when the value changes.                                                     |
+| `**props`               | `Any`                                 | Any other [RangeCalendar](https://react-spectrum.adobe.com/react-spectrum/RangeCalendar.html) prop |
 
 ```py
 
@@ -2147,7 +2147,7 @@ range_calendar1 = ui.range_calendar(
     default_value={"start": local_start, "end": local_end}
 )
 
-# simple range calendar that takes list view items directly and is controlled
+# simple range calendar that takes a range directly and is controlled
 # the on_change handler is passed a range of instants
 dates, set_dates = ui.use_state({"start": instant_start, "end": instant_end})
 
