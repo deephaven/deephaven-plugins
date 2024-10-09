@@ -7,7 +7,7 @@ Range calendars display a grid of days in one or more months and allow users to 
 ```python
 from deephaven import ui
 
-my_calendar_basic = ui.range_calendar(aria_label="Trip Dates")
+my_range_calendar_basic = ui.range_calendar(aria_label="Trip Dates")
 ```
 
 ## Date types
