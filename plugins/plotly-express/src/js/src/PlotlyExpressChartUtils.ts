@@ -1,5 +1,23 @@
-import type { Data, LayoutAxis, PlotlyDataLayoutConfig } from 'plotly.js';
+import type { Data, LayoutAxis, PlotlyDataLayoutConfig, PlotType } from 'plotly.js';
 import type { dh as DhType } from '@deephaven/jsapi-types';
+
+/**
+ * Traces that are at least partially powered by WebGL and have no SVG equivalent.
+ * These traces will not be able to render if WebGL is disabled and the setting is not editable.
+ * They will prompt the user to allow WebGL for this specific trace if the setting is editable.
+ */
+const UNREPLACEABLE_WEBGL_TRACE_TYPES = new Set([
+  'splom',
+  'parcoords',
+  'scatter3d',
+  'surface',
+  'mesh3d',
+  'cone',
+  'streamtube',
+  'scattermapbox',
+  'choroplethmapbox',
+  'densitymapbox',
+]);
 
 export interface PlotlyChartWidget {
   getDataAsBase64: () => string;
@@ -214,4 +232,45 @@ export function downsample(
         : dh.LongWrapper.ofString(val)
     )
   );
+}
+
+export function getWebGlTraceIndexes(data: Data[]): Set<number> {
+  const webGlTraceIndexes = new Set<number>();
+  data.forEach((trace, index) => {
+    if (trace.type && trace.type.endsWith('gl')) {
+      webGlTraceIndexes.add(index);
+    }
+  });
+  return webGlTraceIndexes;
+}
+
+export function hasUnreplaceableWebGLTraces(data: Data[]): boolean {
+  return data.some(
+    trace => trace.type && UNREPLACEABLE_WEBGL_TRACE_TYPES.has(trace.type)
+  );
+}
+
+/**
+ * Removes all possible WebGL from the plotly figure
+ * Drops 'gl' from any traces that have it, which will force them to use SVG
+ * Additionally, if traces are detected that use WebGL and have no SVG equivalent,
+ * that is also detected.
+ * @param data The plotly figure data to remove WebGL from
+ * @returns Object with a boolean indicating if unreplaceable WebGL traces are present and indexes of the replaced traces
+ */
+export function setDataWebGl(
+  data: Data[],
+  webgl: boolean,
+  webGlTraceIndexes: Set<number>
+): void {
+  webGlTraceIndexes.forEach(index => {
+    const trace = data[index];
+    if (webgl && trace.type && !trace.type.endsWith('gl')) {
+      // If WebGL is enabled and the trace is not already a WebGL trace, make it one
+      trace.type = `${trace.type}gl` as PlotType;
+    } else if (!webgl && trace.type && trace.type.endsWith('gl')) {
+      // If WebGL is disabled and the trace is a WebGL trace, remove the 'gl'
+      trace.type = trace.type.substring(0, trace.type.length - 2) as PlotType;
+    }
+  });
 }

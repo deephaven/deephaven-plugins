@@ -2,6 +2,7 @@ import type { Layout, Data, PlotData, LayoutAxis } from 'plotly.js';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { ChartModel, ChartUtils } from '@deephaven/chart';
 import Log from '@deephaven/log';
+import { RenderOptions } from '@deephaven/chart/dist/ChartModel';
 import {
   DownsampleInfo,
   PlotlyChartWidgetData,
@@ -9,11 +10,13 @@ import {
   downsample,
   getDataMappings,
   getPathParts,
+  getWebGlTraceIndexes,
   getWidgetData,
   isAutoAxis,
   isLineSeries,
   isLinearAxis,
   removeColorsFromData,
+  setDataWebGl,
 } from './PlotlyExpressChartUtils';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
@@ -116,6 +119,14 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   isDownsamplingDisabled = false;
 
+  /**
+   * True if the user has allowed a WebGL chart to render that could not render without it.
+   * Maintains state even if WebGL is disabled and re-enabled to prevent the prompt from showing again.
+   */
+  webglAllowed = false;
+
+  webGlTraceIndexes: Set<number> = new Set();
+
   override getData(): Partial<Data>[] {
     const hydratedData = [...this.plotlyData];
 
@@ -207,6 +218,17 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.widget = undefined;
   }
 
+  override setRenderOptions(renderOptions: RenderOptions): void {
+    super.setRenderOptions(renderOptions);
+    if (renderOptions.webgl != null) {
+      setDataWebGl(
+        this.plotlyData,
+        renderOptions.webgl,
+        this.webGlTraceIndexes
+      );
+    }
+  }
+
   updateLayout(data: PlotlyChartWidgetData): void {
     const { figure } = data;
     const { plotly } = figure;
@@ -243,6 +265,17 @@ export class PlotlyExpressChartModel extends ChartModel {
       removeColorsFromData(
         plotlyLayout?.template?.layout?.colorway ?? [],
         this.plotlyData
+      );
+    }
+
+    // Retrieve the indexes of traces that require WebGL to flip on demand
+    this.webGlTraceIndexes = getWebGlTraceIndexes(this.plotlyData);
+
+    if (this.renderOptions?.webgl != null) {
+      setDataWebGl(
+        this.plotlyData,
+        this.renderOptions.webgl,
+        this.webGlTraceIndexes
       );
     }
 
