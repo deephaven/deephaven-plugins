@@ -16,7 +16,7 @@ import {
   isLineSeries,
   isLinearAxis,
   removeColorsFromData,
-  setDataWebGl,
+  setWebglTraceType,
 } from './PlotlyExpressChartUtils';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
@@ -125,7 +125,11 @@ export class PlotlyExpressChartModel extends ChartModel {
    */
   webglAllowed = false;
 
-  webGlTraceIndexes: Set<number> = new Set();
+  /**
+   * Set of traces that are originall WebGL.
+   * These need to be replaced if WebGL is disabled and re-enabled if WebGL is enabled again.
+   */
+  webGlTraceIndices: Set<number> = new Set();
 
   override getData(): Partial<Data>[] {
     const hydratedData = [...this.plotlyData];
@@ -221,10 +225,10 @@ export class PlotlyExpressChartModel extends ChartModel {
   override setRenderOptions(renderOptions: RenderOptions): void {
     super.setRenderOptions(renderOptions);
     if (renderOptions.webgl != null) {
-      setDataWebGl(
+      setWebglTraceType(
         this.plotlyData,
         renderOptions.webgl,
-        this.webGlTraceIndexes
+        this.webGlTraceIndices
       );
     }
   }
@@ -269,13 +273,13 @@ export class PlotlyExpressChartModel extends ChartModel {
     }
 
     // Retrieve the indexes of traces that require WebGL to flip on demand
-    this.webGlTraceIndexes = getWebGlTraceIndexes(this.plotlyData);
+    this.webGlTraceIndices = getWebGlTraceIndexes(this.plotlyData);
 
     if (this.renderOptions?.webgl != null) {
-      setDataWebGl(
+      setWebglTraceType(
         this.plotlyData,
         this.renderOptions.webgl,
-        this.webGlTraceIndexes
+        this.webGlTraceIndices
       );
     }
 

@@ -258,7 +258,7 @@ export function hasUnreplaceableWebGLTraces(data: Data[]): boolean {
  * @param data The plotly figure data to remove WebGL from
  * @returns Object with a boolean indicating if unreplaceable WebGL traces are present and indexes of the replaced traces
  */
-export function setDataWebGl(
+export function setWebglTraceType(
   data: Data[],
   webgl: boolean,
   webGlTraceIndexes: Set<number>
