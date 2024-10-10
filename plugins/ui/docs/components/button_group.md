@@ -69,7 +69,7 @@ my_button_group_orientation_example = ui.button_group(
 
 ## Alignment
 
-By default, button groups are start-aligned to be in accordance with content, but they can be set to have a different alignment using the `alignment` prop.
+By default, button groups are start-aligned to accord with content, but they can be set to have a different alignment using the `alignment` prop.
 
 ```python
 from deephaven import ui
