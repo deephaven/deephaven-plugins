@@ -105,6 +105,9 @@ def ui_components2():
             label="Radio Group",
             orientation="HORIZONTAL",
         ),
+        ui.range_calendar(
+            default_value={"start": "2021-01-01", "end": "2021-01-02"},
+        ),
         ui.range_slider(default_value={"start": 10, "end": 99}, label="Range Slider"),
         ui.row("Row child A", "Row child B"),
         ui.slider(
