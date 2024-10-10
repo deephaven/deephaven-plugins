@@ -121,13 +121,7 @@ export class PlotlyExpressChartModel extends ChartModel {
   isDownsamplingDisabled = false;
 
   /**
-   * True if the user has allowed a WebGL chart to render that could not render without it.
-   * Maintains state even if WebGL is disabled and re-enabled to prevent the prompt from showing again.
-   */
-  webglAllowed = false;
-
-  /**
-   * Set of traces that are originall WebGL.
+   * Set of traces that are originally WebGL and can be replaced with non-WebGL traces.
    * These need to be replaced if WebGL is disabled and re-enabled if WebGL is enabled again.
    */
   webGlTraceIndices: Set<number> = new Set();
@@ -232,13 +226,13 @@ export class PlotlyExpressChartModel extends ChartModel {
     if (webgl != null) {
       setWebGlTraceType(this.plotlyData, webgl, this.webGlTraceIndices);
 
-      if (hasUnreplaceableWebGlTraces(this.plotlyData)) {
-        this.fireDownsampleNeeded(
-          'This chart requires WebGL to render which is currently disabled. Continue?'
-        );
+      if (hasUnreplaceableWebGlTraces(this.plotlyData) && !webgl) {
+        this.fireError([
+          'This chart is using WebGL, which is disabled, but this chart cannot render without it.',
+        ]);
+      } else {
+        this.fireError([]);
       }
-    } else {
-      this.fireDownsampleFinish(null);
     }
   }
 
