@@ -142,10 +142,10 @@ def action_menu(
         z_index: The stacking order for the element
         is_hidden: Hides the element.
         id: The unique identifier of the element.
-        aria-label: Defines a string value that labels the current element.
-        aria-labelledby: Identifies the element (or elements) that labels the current element.
-        aria-describedby: Identifies the element (or elements) that describes the object.
-        aria-details: Identifies the element (or elements) that provide a detailed, extended description for the object.
+        aria_label: Defines a string value that labels the current element.
+        aria_labelledby: Identifies the element (or elements) that labels the current element.
+        aria_describedby: Identifies the element (or elements) that describes the object.
+        aria_details: Identifies the element (or elements) that provide a detailed, extended description for the object.
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
         key: A unique identifier used by React to render elements in a list.
