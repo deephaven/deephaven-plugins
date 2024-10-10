@@ -70,6 +70,9 @@ export function UITable({
 
   if (error != null) {
     // Re-throw the error so that the error boundary can catch it
+    if (typeof error === 'string') {
+      throw new Error(error);
+    }
     throw error;
   }
 
@@ -205,6 +208,14 @@ export function UITable({
 
   const alwaysFetchColumns = useMemo(() => {
     if (alwaysFetchColumnsArray[0] === true) {
+      if (modelColumns.length > 500) {
+        setError(
+          `Table has ${modelColumns.length} columns, which is too many to always fetch. ` +
+            'If you want to always fetch more than 500 columns, pass the full array of column names you want to fetch. ' +
+            'This will likely be slow and use a lot of memory. ' +
+            'table.column_names contains all columns in a Deephaven table.'
+        );
+      }
       return modelColumns.map(column => column.name);
     }
     if (alwaysFetchColumnsArray[0] === false) {
