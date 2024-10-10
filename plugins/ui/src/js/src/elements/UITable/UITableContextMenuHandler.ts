@@ -26,10 +26,10 @@ interface UIContextItemParams {
   always_fetch_columns: RowDataMap;
 }
 
-type UIContextItem = Omit<ContextAction, 'action' | 'actions'> & {
+type UIContextItem = Omit<ContextAction, 'action' | 'actions' | 'icon'> & {
   action?: (params: UIContextItemParams) => void;
-
   actions?: ResolvableUIContextItem[];
+  icon?: string;
 };
 
 export type ResolvableUIContextItem =
@@ -46,9 +46,10 @@ function wrapUIContextItem(
   return {
     group: 999999, // Default to the end of the menu
     ...item,
-    icon: item.icon
-      ? getIcon(`${ELEMENT_PREFIX.icon}${item.icon}` as ElementPrefix['icon'])
-      : undefined,
+    icon:
+      item.icon != null && item.icon !== ''
+        ? getIcon(`${ELEMENT_PREFIX.icon}${item.icon}` as ElementPrefix['icon'])
+        : undefined,
     action: item.action
       ? () => {
           item.action?.({
