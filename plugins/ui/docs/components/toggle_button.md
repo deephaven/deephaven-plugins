@@ -52,15 +52,14 @@ from deephaven import ui
 @ui.component
 def ui_toggle_button_value_examples():
     selected, set_selected = ui.use_state(False)
-    return ui.flex(
-        ui.heading("Toggle Button (uncontrolled)"),
+    return [
+        ui.text("Toggle Button (uncontrolled)"),
         ui.toggle_button("Pin", default_selected=True, width="90px"),
-        ui.heading("Toggle Button (controlled)"),
+        ui.text("Toggle Button (controlled)"),
         ui.toggle_button(
             "Pin", is_selected=selected, on_change=set_selected, width="90px"
         ),
-        direction="column",
-    )
+    ]
 
 
 my_toggle_button_value_examples = ui_toggle_button_value_examples()
@@ -141,7 +140,7 @@ my_toggle_button_is_emphasized_example = ui.toggle_button(
 
 ## Static Color
 
-The `static_color` prop can be used when the toggle button is placed over a color background.
+The `static_color` prop can be used when the toggle button is placed over a colored background.
 
 ```python
 from deephaven import ui
