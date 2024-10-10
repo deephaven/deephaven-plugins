@@ -22,7 +22,7 @@ Recommendations for creating button groups:
 1. The most critical action in a button group should use an accent, or negative button style, while other actions should be primary outline buttons.
 2. Button groups should be left-aligned to follow content such as blocks of text, center-aligned in empty states, and right-aligned in container components like dialogs, popovers, or cards.
 3. Button priority should match text alignment: for left-aligned text, the most critical button is on the left; for right- or center-aligned text, the most critical button is on the right.
-4. Icons should be used for higher priority actions if used in the button group. If the most critical action does not have an icon, avoid using icons for the other lower priority actions.
+4. Icons should be used for higher-priority actions if used in the button group. If the most critical action does not have an icon, avoid using icons for the other lower-priority actions.
 
 Consider using an [`action_group`](./action_group.md) to allow the user to select from a list of actions. 
 
