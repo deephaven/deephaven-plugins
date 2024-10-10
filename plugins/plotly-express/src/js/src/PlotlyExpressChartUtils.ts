@@ -244,7 +244,7 @@ export function getWebGlTraceIndexes(data: Data[]): Set<number> {
   return webGlTraceIndexes;
 }
 
-export function hasUnreplaceableWebGLTraces(data: Data[]): boolean {
+export function hasUnreplaceableWebGlTraces(data: Data[]): boolean {
   return data.some(
     trace => trace.type && UNREPLACEABLE_WEBGL_TRACE_TYPES.has(trace.type)
   );
@@ -258,12 +258,12 @@ export function hasUnreplaceableWebGLTraces(data: Data[]): boolean {
  * @param data The plotly figure data to remove WebGL from
  * @returns Object with a boolean indicating if unreplaceable WebGL traces are present and indexes of the replaced traces
  */
-export function setWebglTraceType(
+export function setWebGlTraceType(
   data: Data[],
   webgl: boolean,
-  webGlTraceIndexes: Set<number>
+  webGlTraceIndices: Set<number>
 ): void {
-  webGlTraceIndexes.forEach(index => {
+  webGlTraceIndices.forEach(index => {
     const trace = data[index];
     if (webgl && trace.type && !trace.type.endsWith('gl')) {
       // If WebGL is enabled and the trace is not already a WebGL trace, make it one

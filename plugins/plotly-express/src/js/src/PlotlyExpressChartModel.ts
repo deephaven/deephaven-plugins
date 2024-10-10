@@ -16,7 +16,8 @@ import {
   isLineSeries,
   isLinearAxis,
   removeColorsFromData,
-  setWebglTraceType,
+  setWebGlTraceType,
+  hasUnreplaceableWebGlTraces
 } from './PlotlyExpressChartUtils';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
@@ -224,12 +225,20 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   override setRenderOptions(renderOptions: RenderOptions): void {
     super.setRenderOptions(renderOptions);
-    if (renderOptions.webgl != null) {
-      setWebglTraceType(
-        this.plotlyData,
-        renderOptions.webgl,
-        this.webGlTraceIndices
-      );
+    this.handleWebGlAllowed(renderOptions.webgl);
+  }
+
+  handleWebGlAllowed(webgl: boolean | undefined): void {
+    if (webgl != null) {
+      setWebGlTraceType(this.plotlyData, webgl, this.webGlTraceIndices);
+
+      if (hasUnreplaceableWebGlTraces(this.plotlyData)) {
+        this.fireDownsampleNeeded(
+          'This chart requires WebGL to render which is currently disabled. Continue?'
+        );
+      }
+    } else {
+      this.fireDownsampleFinish(null);
     }
   }
 
@@ -275,13 +284,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     // Retrieve the indexes of traces that require WebGL to flip on demand
     this.webGlTraceIndices = getWebGlTraceIndexes(this.plotlyData);
 
-    if (this.renderOptions?.webgl != null) {
-      setWebglTraceType(
-        this.plotlyData,
-        this.renderOptions.webgl,
-        this.webGlTraceIndices
-      );
-    }
+    this.handleWebGlAllowed(this.renderOptions?.webgl);
 
     newReferences.forEach(async (id, i) => {
       this.tableDataMap.set(id, {}); // Plot may render while tables are being fetched. Set this to avoid a render error
