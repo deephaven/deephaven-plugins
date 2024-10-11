@@ -100,7 +100,6 @@ def list_view(
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
     key: str | None = None,
-    **props: Any,
 ) -> ListViewElement:
     """
     A list view that can be used to create a list of items. Children should be one of three types:
