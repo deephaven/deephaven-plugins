@@ -13,7 +13,7 @@ my_action_menu_basic = ui.action_menu("Cut", "Copy", "Paste")
 
 ## UI recommendations
 
-Consider using an [`action_group`] to groups multiple action buttons together. 
+Consider using an [`action_group`] to group multiple action buttons together. 
 
 
 ## Events
@@ -98,7 +98,7 @@ my_action_menu_basic = ui.action_menu("Cut", "Copy", "Paste", is_quiet=True)
 
 ## Disabled State
 
-An action menu can be disabled to prevent user interaction through the `is_disabled`. This is useful when the an action menu is not currently available, but the button should still be visible.
+An action menu can be disabled to prevent user interaction through the `is_disabled` prop. This is useful when the action menu is not currently available, but the button should still be visible.
 
 
 ```python
@@ -111,7 +111,7 @@ my_action_menu_basic = ui.action_menu("Cut", "Copy", "Paste", is_disabled=True)
 
 ## Flip
 
-By default, the ActionMenu automatically flips direction when space is limited. To disable this behavior, set the `should_flip` prop to false
+By default, the action menu automatically flips direction when space is limited. To disable this behavior, set the `should_flip` prop to `false`.
 
 ```python
 from deephaven import ui
@@ -172,7 +172,7 @@ my_action_menu_align_direction_examples = ui_action_menu_align_direction_example
 
 ## Open
 
-The `is_open` and `default_open` props on the action menu control whether the menu is open by default. They apply controlled and uncontrolled behavior on the Menu respectively.
+The `is_open` and `default_open` props on the action menu control whether the menu is open by default. They apply controlled and uncontrolled behavior on the menu respectively.
 
 
 ```python
