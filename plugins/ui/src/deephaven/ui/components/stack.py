@@ -23,6 +23,7 @@ def stack(
         width: The percent width of the stack relative to other children of its parent. If not provided, the stack will be sized automatically.
         active_item_index: The index of the active item in the stack.
         key: A unique identifier used by React to render elements in a list.
+        kwargs: Additional properties to pass to the stack.
 
     Returns:
         The rendered stack element.
