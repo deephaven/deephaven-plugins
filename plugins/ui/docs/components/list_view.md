@@ -262,7 +262,7 @@ my_list_view_density = ui_list_view_density()
 ## Overflow Mode
 The default behavior is to truncate content that overflows its row. Text can be wrapped instead by adding `wrap` to the `overflow_mode` prop.
 
-Note: Currently not supported if a table source is used and items have varying heights.
+Note: Currently not supported if a table source is used.
 
 ```python
 from deephaven import ui
