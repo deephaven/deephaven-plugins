@@ -15,7 +15,6 @@ export * from './IllustratedMessage';
 export * from './Image';
 export * from './ListView';
 export * from './model';
-export * from './NumberField';
 export * from './ObjectView';
 export * from './Picker';
 export * from './Radio';
