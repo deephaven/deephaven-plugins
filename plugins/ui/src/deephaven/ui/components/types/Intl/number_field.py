@@ -6,32 +6,6 @@ if sys.version_info < (3, 11):
 else:
     from typing import TypedDict, NotRequired
 
-language_tag = Literal[
-    "en-US",
-    "fr-FR",
-    "es-ES",
-    "de-DE",
-    "zh-CN",
-    "ja-JP",
-    "ko-KR",
-    "ru-RU",
-    "pt-BR",
-    "it-IT",
-    "nl-NL",
-    "sv-SE",
-    "no-NO",
-    "da-DK",
-    "fi-FI",
-    "pl-PL",
-    "tr-TR",
-    "cs-CZ",
-    "hu-HU",
-    "he-IL",
-    "ar-SA",
-    "hi-IN",
-    "th-TH",
-    "vi-VN",
-]
 
 number_systems = Literal[
     "adlm",
@@ -510,10 +484,16 @@ class NumberFieldFormatOptions(TypedDict):
     This also affects the characters allowed in the input.
     """
 
-    locales: NotRequired[Union[language_tag, list[language_tag]]]
-    """
-  A string with a BCP 47 language tag or an array of such locale identifiers.
-  For the full list of supported locales, see the Intl.NumberFormat page on MDN.
-  """
+    numbering_system: NotRequired[str]
 
-    options: NotRequired[Options]
+    compact_display: NotRequired[Literal["short", "long"]]
+
+    notation: NotRequired[Literal["standard", "scientific", "engineering", "compact"]]
+
+    sign_display: NotRequired[Literal["auto", "never", "always", "exceptZero"]]
+
+    unit: NotRequired[str]
+
+    unit_display: NotRequired[Literal["long", "short", "narrow"]]
+
+    currency_sign: NotRequired[Literal["standard", "accounting"]]
