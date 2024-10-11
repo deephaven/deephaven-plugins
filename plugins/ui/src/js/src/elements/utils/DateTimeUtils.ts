@@ -76,6 +76,32 @@ export function parseDateValue(
 }
 
 /**
+ * Parses a date value string into a DateValue for a Calendar.
+ *
+ * @param value the string date value
+ * @returns DateValue
+ */
+export function parseCalendarValue(value?: string): DateValue | undefined {
+  if (value === undefined) {
+    return value;
+  }
+
+  // Try to parse and ISO 8601 date string, e.g. "2021-02-03"
+  try {
+    return parseDate(value);
+  } catch (ignore) {
+    // ignore
+  }
+
+  const dateTime = parseDateTimeInternal(null, value);
+  if (dateTime != null) {
+    return dateTime;
+  }
+
+  throw new Error(`Invalid date value string: ${value}`);
+}
+
+/**
  * Parses a date value string into a DateValue. Allows null.
  *
  * @param timeZone the time zone to use
@@ -94,14 +120,31 @@ export function parseNullableDateValue(
 }
 
 /**
- * Common parsing used for both DateTimes and Times.
+ * Parses a date value string into a DateValue for a Calendar. Allows null.
  *
- * @param timeZone the time zone to use
+ * @param value the string date value
+ * @returns DateValue or null
+ */
+export function parseNullableCalendarValue(
+  value?: string | null
+): DateValue | null | undefined {
+  if (value === null) {
+    return value;
+  }
+
+  return parseCalendarValue(value);
+}
+
+/**
+ * Common parsing used for both DateTimes, Times and Calendars.
+ * For Calendars, the time zone should be null to parse Instant without time zone.
+ *
+ * @param timeZone the time zone to use, null for Calendars
  * @param value the string date value
  * @returns a DateTimeValue or null
  */
 function parseDateTimeInternal(
-  timeZone: string,
+  timeZone: string | null,
   value: string
 ): DateTimeValue | null {
   // Note that the Python API will never send a string like this. This is here for correctness.
@@ -143,13 +186,21 @@ function parseDateTimeInternal(
 
   // Try to parse an Instant "2021-04-04T05:06:07Z"
   if (value.endsWith('Z')) {
-    try {
-      return toTimeZone(
-        parseZonedDateTime(`${value.slice(0, -1)}[UTC]`),
-        timeZone
-      );
-    } catch (ignore) {
-      // ignore
+    const instantValue = value.slice(0, -1);
+    if (timeZone != null) {
+      // DateTime and Time components that display the time zone will want to parse Instant to a ZonedDateTime to display the time zone.
+      try {
+        return toTimeZone(parseZonedDateTime(`${instantValue}[UTC]`), timeZone);
+      } catch (ignore) {
+        // ignore
+      }
+    } else {
+      // Calendars which do not display a time zone will want to parse Instant to a CalendarDateTime.
+      try {
+        return parseDateTime(instantValue);
+      } catch (ignore) {
+        // ignore
+      }
     }
   }
 

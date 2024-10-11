@@ -26,6 +26,10 @@
             "path": "components/action_button.md"
           },
           {
+            "label": "action_group",
+            "path": "components/action_group.md"
+          },
+          {
             "label": "button",
             "path": "components/button.md"
           },
@@ -46,6 +50,10 @@
             "path": "components/date_range_picker.md"
           },
           {
+            "label": "heading",
+            "path": "components/heading.md"
+          },
+          {
             "label": "illustrated_message",
             "path": "components/illustrated_message.md"
           },
@@ -56,6 +64,14 @@
           {
             "label": "picker",
             "path": "components/picker.md"
+          },
+          {
+            "label": "progress_bar",
+            "path": "components/progress_bar.md"
+          },
+          {
+            "label": "progress_circle",
+            "path": "components/progress_circle.md"
           },
           {
             "label": "radio_group",
@@ -72,6 +88,10 @@
           {
             "label": "Table",
             "path": "components/table.md"
+          },
+          {
+            "label": "text",
+            "path": "components/text.md"
           },
           {
             "label": "text_area",

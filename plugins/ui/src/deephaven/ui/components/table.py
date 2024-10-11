@@ -24,6 +24,7 @@ def table(
     on_cell_double_press: CellPressCallback | None = None,
     on_column_press: ColumnPressCallback | None = None,
     on_column_double_press: ColumnPressCallback | None = None,
+    always_fetch_columns: ColumnName | list[ColumnName] | bool | None = None,
     quick_filters: dict[ColumnName, QuickFilterExpression] | None = None,
     show_quick_filters: bool = False,
     show_grouping_column: bool = True,
@@ -63,6 +64,8 @@ def table(
             The callback is invoked with the column name.
         on_column_double_press: The callback function to run when a column is double clicked.
             The callback is invoked with the column name.
+        always_fetch_columns: The columns to always fetch from the server regardless of if they are in the viewport.
+            If True, all columns will always be fetched. This may make tables with many columns slow.
         quick_filters: The quick filters to apply to the table. Dictionary of column name to filter value.
         show_quick_filters: Whether to show the quick filter bar by default.
         show_grouping_column: Whether to show the grouping column by default for rollup tables.

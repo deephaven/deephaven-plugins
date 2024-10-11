@@ -1,6 +1,7 @@
 from __future__ import annotations
+from dataclasses import asdict as dataclass_asdict, is_dataclass
 import logging
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Union
 from .._internal import RenderContext
 from ..elements import Element, PropsType
 from .RenderedNode import RenderedNode
@@ -8,78 +9,47 @@ from .RenderedNode import RenderedNode
 logger = logging.getLogger(__name__)
 
 
-def _get_context_key(item: Any, index_key: str) -> Union[str, None]:
+def _render_child_item(item: Any, parent_context: RenderContext, index_key: str) -> Any:
     """
-    Get a key for an item provided at the array/dict `index_key`. This is used to uniquely identify the item in the
-    render context.
-
-    Args:
-        item: The item to get a key for.
-        index_key: The key of the item in the array/dict.
-
-    Returns:
-        The key for the item in the render context.
-        - If `item` is an `Element` generate a key based on the `index_key` and the `name` of the `Element`.
-        - If the item is another iterable, just return the `index_key`.
-        - Otherwise, return `None` as the key.
-    """
-    if isinstance(item, Element):
-        key = item.key
-        return key if key is not None else f"{index_key}-{item.name}"
-    if isinstance(item, (Dict, List, Tuple, map)):
-        return index_key
-    return None
-
-
-def _render_child_item(item: Any, index_key: str, context: RenderContext) -> Any:
-    """
-    Renders a child item with a child context. If the child item does not need to be rendered, just return the item.
+    Render a child item. If the item may have its own children, they will be rendered as well.
 
     Args:
         item: The item to render.
-        index_key: The key of the item in the array/dict.
-        context: The context to render the item in.
+        parent_context: The context of the parent to render the item in.
+        index_key: The key of the item in the parent context if it is a list or tuple.
 
     Returns:
         The rendered item.
     """
-    key = _get_context_key(item, index_key)
-    return (
-        _render_item(item, context.get_child_context(key)) if key is not None else item
-    )
+    logger.debug("_render_child_item parent_context is %s", parent_context)
 
-
-def _render_item(item: Any, context: RenderContext) -> Any:
-    """
-    Render an item. If the item is a list or tuple, render each item in the list.
-
-    Args:
-        item: The item to render.
-        context: The context to render the item in.
-
-    Returns:
-        The rendered item.
-    """
-    logger.debug("_render_item context is %s", context)
     if isinstance(item, (list, map, tuple)):
-        # I couldn't figure out how to map a `list[Unknown]` to a `list[Any]`, or to accept a `list[Unknown]` as a parameter
-        return _render_list(item, context)  # type: ignore
+        return _render_list(item, parent_context.get_child_context(index_key))
+
     if isinstance(item, dict):
-        return _render_dict(item, context)  # type: ignore
+        return _render_dict(item, parent_context.get_child_context(index_key))
+
+    # If the item is an instance of a dataclass
+    if is_dataclass(item) and not isinstance(item, type):
+        return _render_dict(
+            dataclass_asdict(item), parent_context.get_child_context(index_key)
+        )
+
     if isinstance(item, Element):
         logger.debug(
             "render_child element %s: %s",
             type(item),
             item,
         )
-        return _render_element(item, context)
-    else:
-        logger.debug("render_item returning child (%s): %s", type(item), item)
-        return item
+        key = item.key or f"{index_key}-{item.name}"
+        return _render_element(item, parent_context.get_child_context(key))
+
+    logger.debug("render_item returning child (%s): %s", type(item), item)
+    return item
 
 
 def _render_list(
-    item: list[Any] | tuple[Any, ...], context: RenderContext
+    item: Union[list[Any], map[Any], tuple[Any, ...]], context: RenderContext
 ) -> list[Any]:
     """
     Render a list. You may be able to pass in an element as a prop that needs to be rendered, not just as a child.
@@ -95,7 +65,7 @@ def _render_list(
     logger.debug("_render_list %s", item)
     with context.open():
         return [
-            _render_child_item(value, str(key), context)
+            _render_child_item(value, context, str(key))
             for key, value in enumerate(item)
         ]
 
@@ -130,7 +100,7 @@ def _render_dict_in_open_context(item: PropsType, context: RenderContext) -> Pro
     Returns:
         The rendered dictionary.
     """
-    return {key: _render_child_item(value, key, context) for key, value in item.items()}
+    return {key: _render_child_item(value, context, key) for key, value in item.items()}
 
 
 def _render_element(element: Element, context: RenderContext) -> RenderedNode:

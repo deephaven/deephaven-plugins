@@ -50,6 +50,7 @@ def ui_components1():
         ui.action_menu("Aaa", "Bbb", "Ccc"),
         ui.button_group(ui.button("One"), ui.button("Two")),
         ui.button("Button"),
+        ui.calendar(value="2021-01-01"),
         ui.checkbox("Checkbox"),
         ui.column("Column child A", "Column child B", "Column child C"),
         # TODO: #201 ui.combo_box("Combo Box"),

@@ -1,6 +1,7 @@
 export * from './ActionButton';
 export * from './ActionGroup';
 export * from './Button';
+export * from './Calendar';
 export * from './ComboBox';
 export * from './DateField';
 export * from './DatePicker';
@@ -17,6 +18,8 @@ export * from './ListView';
 export * from './model';
 export * from './ObjectView';
 export * from './Picker';
+export * from './ProgressBar';
+export * from './ProgressCircle';
 export * from './Radio';
 export * from './RadioGroup';
 export * from './RangeSlider';
