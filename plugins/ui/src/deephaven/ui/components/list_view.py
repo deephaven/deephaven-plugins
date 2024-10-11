@@ -128,8 +128,8 @@ def list_view(
         default_selected_keys: The initial selected keys in the collection (uncontrolled).
         selection_style: How the selection should be displayed.
         on_action: Handler that is called when the user performs an action on an item. The user event depends on the collection's selection_style and interaction modality.
-        on_selection_change: Handler that is called when the selection changes.
-        on_change: Alias of `on_selection_change`. Handler that is called when the selection changes.
+        on_change: Handler that is called when the selection changes.
+        on_selection_change: Deprecated. Use on_change instead.Handler that is called when the selection changes.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -174,7 +174,6 @@ def list_view(
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
         key: A unique identifier used by React to render elements in a list.
-        **props: Any other ListView prop, except items, dragAndDropHooks, and onLoadMore.
 
     Returns:
         The rendered ListView.

@@ -136,17 +136,16 @@ _table = new_table(
 def ui_list_view_selection():
     value, set_value = ui.use_state(["key-2"])
 
+    def handle_change(e):
+        set_value(e)
+        print("Selection: " + ", ".join(map(str, e)))
+
     source = ui.item_table_source(
         _table,
         key_column="Keys",
         label_column="Labels",
     )
-    lv = ui.list_view(
-        source,
-        on_selection_change=print("Selection: " + ", ".join(map(str, value))),
-        selected_keys=value,
-        on_change=set_value,
-    )
+    lv = ui.list_view(source, on_change=handle_change)
 
     return lv
 
@@ -217,7 +216,7 @@ def ui_list_view_quiet():
         on_change=set_value,
         selected_keys=value,
     )
-    return default_list, quiet_list
+    return quiet_list, default_list
 
 
 my_list_view_quiet = ui_list_view_quiet()
@@ -263,7 +262,7 @@ my_list_view_density = ui_list_view_density()
 ## Overflow Mode
 The default behavior is to truncate content that overflows its row. Text can be wrapped instead by adding `wrap` to the `overflow_mode` prop.
 
-Note: Currently not supported if a table source is used.
+Note: Currently not supported if a table source is used and items have varying heights.
 
 ```python
 from deephaven import ui
