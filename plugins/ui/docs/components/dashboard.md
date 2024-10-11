@@ -292,7 +292,7 @@ dash_complex_state = ui.dashboard(multiwave())
 ### Column API Reference
 
 ```{eval-rst}
-.. dhautofunction:: deephaven.ui.col
+.. dhautofunction:: deephaven.ui.column
 ```
 
 
