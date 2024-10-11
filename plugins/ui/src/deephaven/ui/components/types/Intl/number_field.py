@@ -7,7 +7,7 @@ else:
     from typing import TypedDict, NotRequired
 
 
-number_systems = Literal[
+NumberSystems = Literal[
     "adlm",
     "ahom",
     "arab",
@@ -96,7 +96,7 @@ number_systems = Literal[
     "wcho",
 ]
 
-currency_codes = Literal[
+CurrencyCodes = Literal[
     "AED",
     "AFN",
     "ALL",
@@ -260,7 +260,7 @@ currency_codes = Literal[
     "ZWL",
 ]
 
-units = Literal[
+Units = Literal[
     "acre",
     "bit",
     "byte",
@@ -321,11 +321,13 @@ class Options(TypedDict):
     The default is "best fit".
     """
 
-    numbering_matching: NotRequired[number_systems]
+    numbering_matching: NotRequired[NumberSystems]
     """
     The numbering system to use.
     Possible values are the numbering systems specified in the Unicode CLDR, such as "arab" for Arabic-Indic digits or "latn" for Latin digits.
     For more information see the supported numbering systems in the getNumberingSystems page on MDN.
+
+    https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/getNumberingSystems
     """
 
     # Style Options
@@ -335,7 +337,7 @@ class Options(TypedDict):
     Possible values are "decimal" for plain number formatting, "percent" for percent formatting, "currency" for currency formatting, or "unit" for unit formatting.
     """
 
-    currency: NotRequired[currency_codes]
+    currency: NotRequired[CurrencyCodes]
     """
     The currency to use in currency formatting. 
     Possible values are the ISO 4217 currency codes, such as "USD" for the US dollar, "EUR" for the euro, or "CNY" for the Chinese yuan. 
@@ -355,7 +357,7 @@ class Options(TypedDict):
     Possible values are "standard" and "accounting". The default is "standard".
     """
 
-    unit: NotRequired[units]
+    unit: NotRequired[Units]
     """
     The unit to use in unit formatting.
     Possible values are the units specified in the Unicode CLDR. Only a subset of units was selected from the full list such as "meter" for meters or "mile" for miles.
