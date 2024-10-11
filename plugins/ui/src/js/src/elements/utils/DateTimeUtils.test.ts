@@ -1,4 +1,9 @@
 import {
+  CalendarDate,
+  CalendarDateTime,
+  ZonedDateTime,
+} from '@internationalized/date';
+import {
   parseDateValue,
   parseNullableDateValue,
   isStringInstant,
@@ -6,6 +11,7 @@ import {
   parseNullableTimeValue,
   parseCalendarValue,
   parseNullableCalendarValue,
+  dateValuetoIsoString,
 } from './DateTimeUtils';
 
 const DEFAULT_TIME_ZONE = 'UTC';
@@ -199,5 +205,24 @@ describe('parseCalendarValue', () => {
 
   it('should throw an error if the value is invalid', () => {
     expect(() => parseCalendarValue(invalidDate)).toThrow();
+  });
+});
+
+describe('dateValuetoIsoString', () => {
+  it('handles a CalendarDate', () => {
+    const date = new CalendarDate(2021, 3, 4);
+    expect(dateValuetoIsoString(date)).toEqual('2021-03-04');
+  });
+
+  it('handles a CalendarDateTime', () => {
+    const date = new CalendarDateTime(2021, 3, 4, 5, 6, 7);
+    expect(dateValuetoIsoString(date)).toEqual('2021-03-04T05:06:07Z');
+  });
+
+  it('handles a ZonedDateTime', () => {
+    const date = new ZonedDateTime(2021, 3, 4, 'America/New_York', 0, 0, 0, 0);
+    expect(dateValuetoIsoString(date)).toEqual(
+      '2021-03-04T00:00:00+00:00[America/New_York]'
+    );
   });
 });

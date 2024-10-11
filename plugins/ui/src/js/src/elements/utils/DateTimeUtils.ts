@@ -254,3 +254,12 @@ export function parseNullableTimeValue(
 
   return parseTimeValue(timeZone, value);
 }
+
+export function dateValuetoIsoString(value: DateValue): string {
+  if (value instanceof CalendarDateTime) {
+    // Use Instance for CalendarDateTime
+    return `${value.toString()}Z`;
+  }
+
+  return value.toString();
+}

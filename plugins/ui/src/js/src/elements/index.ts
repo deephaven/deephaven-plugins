@@ -22,6 +22,7 @@ export * from './ProgressBar';
 export * from './ProgressCircle';
 export * from './Radio';
 export * from './RadioGroup';
+export * from './RangeCalendar';
 export * from './RangeSlider';
 export * from './Slider';
 export * from './Tabs';

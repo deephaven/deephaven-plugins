@@ -37,6 +37,7 @@ from .progress_bar import progress_bar
 from .progress_circle import progress_circle
 from .radio import radio
 from .radio_group import radio_group
+from .range_calendar import range_calendar
 from .range_slider import range_slider
 from .row import row
 from .section import section
@@ -97,6 +98,7 @@ __all__ = [
     "progress_circle",
     "radio",
     "radio_group",
+    "range_calendar",
     "range_slider",
     "row",
     "section",

@@ -1825,7 +1825,6 @@ date_range_picker1 = ui.date_range_picker(
 # this creates a date picker with a granularity of seconds in UTC
 # the on_change handler is passed a range of instants
 dates2, set_dates2 = ui.use_state({"start": instant_start, "end": instant_end})
-
 date_range_picker2 = ui.date_range_picker(
     value=dates2,
     on_change=set_dates2
@@ -2068,6 +2067,139 @@ ui.picker(
     on_change: Callable[[Key], None] | None = None,
     **props: Any
 ) -> PickerElement
+```
+
+###### ui.range_calendar
+
+A calendar that can be used to select a range of dates.
+
+The range is a dictionary with a `start` date and an `end` date; e.g., `{ "start": "2024-01-02", "end": "2024-01-05" }`
+
+The range calendar accepts the following date types as inputs:
+
+- `None`
+- `LocalDate`
+- `ZoneDateTime`
+- `Instant`
+- `int`
+- `str`
+- `datetime.datetime`
+- `numpy.datetime64`
+- `pandas.Timestamp`
+
+The input will be converted to one of three Java date types:
+
+1. `LocalDate`: A LocalDate is a date without a time zone in the ISO-8601 system, such as "2007-12-03" or "2057-01-28".
+2. `Instant`: An Instant represents an unambiguous specific point on the timeline, such as 2021-04-12T14:13:07 UTC.
+3. `ZonedDateTime`: A ZonedDateTime represents an unambiguous specific point on the timeline with an associated time zone, such as 2021-04-12T14:13:07 America/New_York.
+
+The format of the range calendar and the type of the value passed to the `on_change` handler
+is determined by the type of the following props in order of precedence:
+
+1. `value`
+2. `default_value`
+3. `focused_value`
+4. `default_focused_value`
+
+If none of these are provided, the `on_change` handler passes a range of `Instant`.
+
+```py
+import deephaven.ui as ui
+ui.range_calendar(
+    value: DateRange | None = None,
+    default_value: DateRange | None = None,
+    focused_value: Date | None = None,
+    default_focused_value: Date | None = None,
+    min_value: Date | None = None,
+    max_value: Date | None = None,
+    on_change: Callable[[DateRange], None] | None = None,
+    **props: Any
+) -> RangeCalendarElement
+```
+
+###### Parameters
+
+| Parameter               | Type                                  | Description                                                                                        |
+| ----------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `value`                 | `DateRange \| None`                   | The current value (controlled).                                                                    |
+| `default_value`         | `DateRange \| None`                   | The default value (uncontrolled).                                                                  |
+| `focused_value`         | `Date \| None`                        | The focused value (controlled).                                                                    |
+| `default_focused_value` | `Date \| None`                        | The default focused value (uncontrolled).                                                          |
+| `min_value`             | `Date \| None`                        | The minimum allowed date that a user may select.                                                   |
+| `max_value`             | `Date \| None`                        | The maximum allowed date that a user may select.                                                   |
+| `on_change`             | `Callable[[DateRange], None] \| None` | Handler that is called when the value changes.                                                     |
+| `**props`               | `Any`                                 | Any other [RangeCalendar](https://react-spectrum.adobe.com/react-spectrum/RangeCalendar.html) prop |
+
+```py
+
+import deephaven.ui as ui
+from deephaven.time import to_j_local_date, dh_today, to_j_instant, to_j_zdt
+
+zdt_start = to_j_zdt("1995-03-22T11:11:11.23142 America/New_York")
+zdt_end = to_j_zdt("1995-03-25T11:11:11.23142 America/New_York")
+instant_start = to_j_instant("2022-01-01T00:00:00 ET")
+instant_end = to_j_instant("2022-01-05T00:00:00 ET")
+local_start = to_j_local_date("2024-05-06")
+local_end = to_j_local_date("2024-05-10")
+
+# simple range calendar that takes a range and is uncontrolled
+range_calendar1 = ui.range_calendar(
+    default_value={"start": local_start, "end": local_end}
+)
+
+# simple range calendar that takes a range directly and is controlled
+# the on_change handler is passed a range of instants
+dates, set_dates = ui.use_state({"start": instant_start, "end": instant_end})
+
+range_calendar2 = ui.range_calendar(
+    value=dates,
+    on_change=set_dates
+)
+
+# this creates a range calendar in the specified time zone
+# the on_change handler is passed a zoned date time
+dates, set_dates = ui.use_state(None)
+
+range_calendar3 = ui.range_calendar(
+    default_value=zdt_start,
+    on_change=set_dates
+)
+
+# this creates a range calendar in UTC
+# the on_change handler is passed an instant
+dates, set_dates = ui.use_state(None)
+
+range_calendar4 = ui.range_calendar(
+    default_value=instant_start,
+    on_change=set_dates
+)
+
+# this creates a range calendar
+# the on_change handler is passed a local date
+dates, set_dates = ui.use_state(None)
+
+range_calendar5 = ui.range_calendar(
+    default_value=local_start,
+    on_change=set_dates
+)
+
+# this creates a range calendar the on_change handler is passed an instant
+dates, set_dates = ui.use_state(None)
+
+range_calendar7 = ui.range_calendar(
+    on_change=set_dates
+)
+
+# this create a calendar, a min and max value
+min_value = to_j_local_date("2022-01-01")
+max_value = to_j_local_date("2022-12-31")
+dates, set_dates = ui.use_state({"start": local_start, "end": local_end})
+range_calendar8 = ui.range_calendar(
+    value=dates,
+    min_value=min_value,
+    max_value=max_value,
+    on_change=set_dates
+)
 ```
 
 ###### Parameters
