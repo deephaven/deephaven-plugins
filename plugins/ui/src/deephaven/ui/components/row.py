@@ -4,7 +4,7 @@ from typing import Any
 from .basic import component_element
 
 
-def row(*children: Any, height: float | None = None, **kwargs: Any):
+def row(*children: Any, height: float | None = None, key: str | None = None):
     """
     A row is a container that can be used to group elements.
     Each element will be placed to the right of its prior sibling.
@@ -12,5 +12,6 @@ def row(*children: Any, height: float | None = None, **kwargs: Any):
     Args:
         *children: Elements to render in the row.
         height: The percent height of the row relative to other children of its parent. If not provided, the row will be sized automatically.
+        key: A unique identifier used by React to render elements in a list.
     """
-    return component_element("Row", *children, height=height, **kwargs)
+    return component_element("Row", *children, height=height, key=key)

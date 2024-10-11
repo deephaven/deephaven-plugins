@@ -86,6 +86,7 @@ def view(
     id: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
 ) -> Element:
     """
     View is a general purpose container with no specific semantics that can be used for custom styling purposes. It supports Spectrum style props to ensure consistency with other Spectrum components.
@@ -162,6 +163,7 @@ def view(
         id: The unique identifier of the element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
+        key: A unique identifier used by React to render elements in a list.
 
     Returns:
         The rendered view.
@@ -238,4 +240,5 @@ def view(
         id=id,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
+        key=key,
     )

@@ -45,10 +45,20 @@ export async function openPanel(
     await expect(appPanels).toBeEnabled();
     await appPanels.click();
 
+    // search for the panel in list
+    const search = page.getByRole('searchbox', {
+      name: 'Find Table, Plot or Widget',
+      exact: true,
+    });
+    await search.fill(name);
+
     // open panel
     const targetPanel = page.getByRole('button', { name, exact: true });
     expect(targetPanel).toBeEnabled();
     await targetPanel.click();
+
+    // reset mouse position to not cause unintended hover effects
+    await page.mouse.move(0, 0);
 
     // check for panel to be loaded
     await expect(page.locator(panelLocator)).toHaveCount(panelCount + 1);

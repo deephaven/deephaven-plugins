@@ -65,6 +65,7 @@ def icon(
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
 ) -> Element:
     """
     Get a Deephaven icon by name.
@@ -113,6 +114,7 @@ def icon(
         id: The unique identifier of the element.
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
+        key: A unique identifier used by React to render elements in a list.
     """
 
     children, props = create_props(locals())

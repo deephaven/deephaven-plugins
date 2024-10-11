@@ -76,6 +76,7 @@ def switch(
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
 ) -> Element:
     """
     Switches allow users to turn an individual option on or off. They are usually used to activate or deactivate a specific setting.
@@ -142,6 +143,10 @@ def switch(
         aria_details: The details for the element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
+        key: A unique identifier used by React to render elements in a list.
+
+    Returns:
+        The rendered switch element.
     """
 
     return component_element(
@@ -207,4 +212,5 @@ def switch(
         aria_details=aria_details,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
+        key=key,
     )
