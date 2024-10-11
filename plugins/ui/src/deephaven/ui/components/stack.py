@@ -9,7 +9,7 @@ def stack(
     *children: Any,
     height: float | None = None,
     width: float | None = None,
-    activeItemIndex: int | None = None,
+    active_item_index: int | None = None,
     key: str | None = None,
     **kwargs: Any,
 ) -> Element:
@@ -21,6 +21,7 @@ def stack(
         *children: Elements to render in the row.
         height: The percent height of the stack relative to other children of its parent. If not provided, the stack will be sized automatically.
         width: The percent width of the stack relative to other children of its parent. If not provided, the stack will be sized automatically.
+        active_item_index: The index of the active item in the stack.
         key: A unique identifier used by React to render elements in a list.
 
     Returns:
@@ -31,7 +32,7 @@ def stack(
         *children,
         height=height,
         width=width,
-        activeItemIndex=activeItemIndex,
+        active_item_index=active_item_index,
         key=key,
         **kwargs,
     )

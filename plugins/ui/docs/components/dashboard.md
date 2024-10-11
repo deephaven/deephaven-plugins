@@ -261,7 +261,7 @@ def multiwave():
             ui.stack(
                 ui.panel(wave_input, title="Wave Input"),
                 ui.panel(t, title="Wave Table"),
-                activeItemIndex=0,
+                active_item_index=0,
             ),
             height=25,
         ),
