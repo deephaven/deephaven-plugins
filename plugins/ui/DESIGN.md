@@ -2678,7 +2678,7 @@ ui_table.sort(
 
 ##### ui.table Formatting Rules
 
-Tables can be formatted via the `format` prop and a variety of Dataclasses representing different formatting options. We choose to use Dataclasses as effectively a more strict dictionary. This allows for better type checking and easier to understand code.
+Tables can be formatted via the `formatting` prop and a Dataclass that contains the different formatting options. We choose to use Dataclass as effectively a more strict dictionary. This allows for better type checking and easier to understand code.
 
 Formatting can be a variety of different options including background color, font, font color, font size, text alignment, cell rendering mode (data bars, button, etc.), and number formatting. It can be thought of as any visual manipulation of the base table display and should be flexible enough to allow for any kind of formatting that the user desires (assuming the rule is supported).
 
@@ -2686,70 +2686,34 @@ The formatting rules should have 3 main properties:
 
 1. The formatting to apply.
 2. Where to apply the formatting.
-3. An optional conditional expression that will determine if the formatting should be applied.
+3. An optional conditional expression that will determine if the formatting should be applied (the `where` arg).
 
-Outside of these 3 properties, it is up to the Dataclass to identify what kind of formatting it is and up to the web to apply that formatting. We should likely use a field like `__format_type` that is part of each Dataclass as a key for identifying formatting rules.
+Outside of these 3 properties, it is up to the Dataclass to identify what kind of formatting it is and up to the web to apply that formatting.
 
 On the client, formatting rules should be applied in the order they are defined in the list and stop as soon as a rule is applied. This should only prevent later rules from being applied if they are the same type of rule. For example, if a color rule is applied to a cell, a number formatting rule should still be applied to that cell if it is defined later in the list, but another color rule should not be applied.
 
-Three potential options are shown below. They are:
+We will use a single dataclass that encompasses both row and column formatting. If `cols` is provided, it is a column rule, else it is a row rule. This dataclass will support the different formatting types as a keyword argument. This allows for multiple different formatting rules to be applied to a column or row with the same condition without repeating.
 
-1. Individual rules for each type of formatting. If `cols` is provided, it is a column rule, else it is a row rule. This option could be more verbose if you want to apply multiple rules to a column or row with the same condition.
-2. Two main dataclasses for column and row formatting. Each of these dataclasses supports the different formatting types as a keyword argument. This allows for multiple different formatting rules to be applied to a column or row with the same condition without repeating.
-3. A single main dataclass for column and row formatting. If `cols` is provided, it is a column rule, else it is a row rule. This dataclass supports the different formatting types as a keyword argument. This allows for multiple different formatting rules to be applied to a column or row with the same condition without repeating.
+In the future we may implement column and row formatting dataclasses which would extend the main formatting class and require or prohibit `cols`.
 
-Option 1 ends up being more verbose (and causes code duplication) if you have multiple rules with the same condition. It also ends up with more potential imports for multiple rules if we recommend users import the dataclasses like `from deephaven.ui.table_formatting import COLOR, NUMBER_FORMAT, DATABAR`
+We should support some method of applying value formatting to all columns that support it. This would be useful for number formatting, date formatting, etc. We could support `cols="*"` or if there is no `cols` (indicating a row rule), we could apply the value formatting to all columns that are supported in the matching rows (or all rows if no `where`).
 
-Option 2 is more concise and allows for multiple rules with the same condition without repeating. Two dataclasses is easier for a user to distinguish between the 2 rule types. Only 1 or 2 imports needed.
-
-Option 3 is more concise and allows for multiple rules with the same condition without repeating. One dataclass is easier for a user to understand that the rules are the same type. Only 1 import needed.
-
-With any of the options we could support some method of applying value formatting to all columns that support it. We could have an argument such as `all_columns=True` that would apply the rule to all columns that support it. This would be useful for number formatting, date formatting, etc.
-
-We could also support regex (or just wildcards) in the `cols` field to apply the rule to multiple columns at once. This could be useful if a user wanted to format all columns that end in percent as a percentage. Something like `FORMAT(cols=".*Percent", format="0.00%")`
+We could also support regex (or just wildcards) in the `cols` field to apply the rule to multiple columns at once. This could be useful if a user wanted to format all columns that end in percent as a percentage. Something like `FORMAT(cols="*Percent", format="0.00%")`. We could require regex strings be surrounded by `/` to differentiate them from normal strings with wildcards.
 
 ```py
 from deephaven import ui, time_table
 
 _t = time_table("PT1S").update("X=i % 10", "Y=i % 10", "Z=i % 100")
 
-# Option 1
 t = ui.table(
     t,
-    format=[
-        ui.table_formatting.COLOR(cols="X", "RED"),
-        ui.table_formatting.COLOR(cols="Y", "BLUE", where="Y % 2 == 0"),
-        ui.table_formatting.NUMBER_FORMAT(cols="Y", format="0.00"),
-        ui.table_formatting.COLOR(cols=["A", "B"], color="PURPLE", where="A > 5"),
-        ui.table_formatting.NUMBER_FORMAT(cols=["A", "B"], format="0.00%", where="A > 5"),
-        ui.table_formatting.DATABAR(cols="Z", value_col="Z", min=0, max=100, positive_color="GREEN", negative_color="RED"),
-        ui.table_formatting.COLOR(where="X > 5", color="GREEN")
-    ]
-)
-
-# Option 2
-t2 = ui.table(
-    t,
-    format=[
-        ui.table_formatting.COLUMN_FORMAT(cols="X", color="RED"),
-        ui.table_formatting.COLUMN_FORMAT(cols="Y", color="BLUE", where="Y % 2 == 0"),
-        ui.table_formatting.COLUMN_FORMAT(cols="Y", format="0.00"),
-        ui.table_formatting.COLUMN_FORMAT(cols=["A", "B"], color="PURPLE", format="0.00%", where="A > 5"),
-        ui.table_formatting.COLUMN_FORMAT(cols="Z", format=ui.table_formatting.DATABAR(value_col="Z", min=0, max=100, positive_color="GREEN", negative_color="RED"),
-        ui.table_formatting.ROW_FORMAT(where="X > 5", color="GREEN")
-    ]
-)
-
-# Option 3
-t3 = ui.table(
-    t,
-    format=[
-        ui.table_formatting.FORMAT(cols="X", color="RED"),
-        ui.table_formatting.FORMAT(cols="Y", color="BLUE", where="Y % 2 == 0"),
-        ui.table_formatting.FORMAT(cols="Y", format="0.00"),
-        ui.table_formatting.FORMAT(cols=["A", "B"], color="PURPLE", format="0.00%", where="A > 5"),
-        ui.table_formatting.FORMAT(cols="Z", format=ui.table_formatting.DATABAR(value_col="Z", min=0, max=100, positive_color="GREEN", negative_color="RED"),
-        ui.table_formatting.FORMAT(where="X > 5", color="GREEN")
+    formatting=[
+        ui.table.FORMAT(cols="X", color="RED"),
+        ui.table.FORMAT(cols="Y", color="BLUE", where="Y % 2 == 0"),
+        ui.table.FORMAT(cols="Y", value="0.00"),
+        ui.table.FORMAT(cols=["A", "B"], color="PURPLE", value="0.00%", where="A > 5"),
+        ui.table.FORMAT(cols="Z", mode=ui.table.DATABAR(value_col="Z", min=0, max=100, positive_color="GREEN", negative_color="RED"),
+        ui.table.FORMAT(where="X > 5", color="GREEN")
     ]
 )
 ```
@@ -2760,32 +2724,22 @@ There are 3 main types of formatting rules: those which affect basic visual aspe
 
 Some examples of potential rules that fall into each category:
 
-1. Visual
+1. Visual (each should have a keyword arg in the dataclass)
    - Background Color
    - Font
    - Font Color
    - Font Size
    - Text Alignment
-2. Display Value (not applicable to rows)
+2. Display Value (one keyword arg such as `display` in the dataclass)
    - Number Formatting
    - Date Formatting
    - DateTime Formatting
    - String Formatting
-3. Cell Rendering Mode (not applicable to rows)
+3. Cell Rendering Mode (one keyword arg such as `mode` in the dataclass)
    - Data Bars
    - Buttons
    - Checkboxes
    - Icons
-
-##### ui.table Column Formatting Rules
-
-Column formatting rules apply to specific columns. All column formatting rules should have a `column` field which is the column the rule applies to. We could optionally support `columns` (or just a `columns` prop which handles both cases) which would allow for a list of columns that the rule applies to.
-
-Column formatting rules have an optional `where` field which is a conditional expression that determines if the rule should be applied. This expression will be applied as a custom column (which is applied with `update_view`) to the table and may reference columns or use the query language if needed.
-
-##### ui.table Row Formatting Rules
-
-Row formatting rules apply to entire rows. Only visual rules can be applied to rows. Row formatting rules should have an `where` field which is a conditional expression that determines if the rule should be applied. This expression will be applied as a custom column (which is applied with `update_view`) to the table and may reference columns or use the query language if needed. The conditional is required for row formatting rules because otherwise they would apply to every row in the table.
 
 ###### ui.time_field
 
