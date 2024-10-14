@@ -22,3 +22,8 @@ Target = Literal["_self", "_blank", "_parent", "_top"]
 
 AutoCompleteModes = Literal["on", "off"]
 AutoCapitalizeModes = Literal["off", "none", "on", "sentences", "words", "characters"]
+
+DialogTriggerTypes = Literal[
+    "modal", "popover", "tray", "fullscreen", "fullscreenTakeover"
+]
+DialogTriggerMobileTypes = Literal["modal", "fullscreen", "fullscreenTakeover"]
