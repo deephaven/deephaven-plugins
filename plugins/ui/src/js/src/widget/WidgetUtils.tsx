@@ -10,8 +10,6 @@ import {
   SpectrumCheckbox as Checkbox,
   Content,
   ContextualHelp,
-  Flex,
-  Grid,
   Heading,
   Item,
   ListActionGroup,
@@ -21,7 +19,6 @@ import {
   Switch,
   TabList,
   Text,
-  ToggleButton,
   View,
 } from '@deephaven/components';
 import { ValueOf } from '@deephaven/utils';
@@ -35,6 +32,7 @@ import {
   isCallableNode,
   CALLABLE_KEY,
   wrapTextChildren,
+  isPrimitive,
 } from '../elements/utils/ElementUtils';
 import HTMLElementView from '../elements/HTMLElementView';
 import { isHTMLElementNode } from '../elements/utils/HTMLElementUtils';
@@ -50,22 +48,30 @@ import {
   ActionButton,
   ActionGroup,
   Button,
+  Calendar,
   ComboBox,
   DateField,
   DatePicker,
   DateRangePicker,
+  Flex,
   Form,
+  Grid,
   IllustratedMessage,
   Image,
   ListView,
   Picker,
+  ProgressBar,
+  ProgressCircle,
   Radio,
   RadioGroup,
+  RangeCalendar,
   RangeSlider,
   Slider,
   TabPanels,
   TextField,
   TextArea,
+  TimeField,
+  ToggleButton,
   UITable,
   Tabs,
 } from '../elements';
@@ -102,6 +108,7 @@ export const elementComponentMap = {
   [ELEMENT_NAME.actionMenu]: ActionMenu,
   [ELEMENT_NAME.button]: Button,
   [ELEMENT_NAME.buttonGroup]: ButtonGroup,
+  [ELEMENT_NAME.calendar]: Calendar,
   [ELEMENT_NAME.checkbox]: Checkbox,
   [ELEMENT_NAME.comboBox]: ComboBox,
   [ELEMENT_NAME.content]: Content,
@@ -122,8 +129,11 @@ export const elementComponentMap = {
   [ELEMENT_NAME.listView]: ListView,
   [ELEMENT_NAME.numberField]: NumberField,
   [ELEMENT_NAME.picker]: Picker,
+  [ELEMENT_NAME.progressBar]: ProgressBar,
+  [ELEMENT_NAME.progressCircle]: ProgressCircle,
   [ELEMENT_NAME.radio]: Radio,
   [ELEMENT_NAME.radioGroup]: RadioGroup,
+  [ELEMENT_NAME.rangeCalendar]: RangeCalendar,
   [ELEMENT_NAME.rangeSlider]: RangeSlider,
   [ELEMENT_NAME.section]: Section,
   [ELEMENT_NAME.slider]: Slider,
@@ -135,6 +145,7 @@ export const elementComponentMap = {
   [ELEMENT_NAME.text]: Text,
   [ELEMENT_NAME.textArea]: TextArea,
   [ELEMENT_NAME.textField]: TextField,
+  [ELEMENT_NAME.timeField]: TimeField,
   [ELEMENT_NAME.toggleButton]: ToggleButton,
   [ELEMENT_NAME.view]: View,
 } as const satisfies Record<ValueOf<ElementName>, unknown>;
@@ -160,15 +171,20 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
     const Component = getComponentTypeForElement(newElement);
 
     if (Component != null) {
-      const props =
+      const props = { ...newElement.props };
+      if (
         shouldWrapTextChildren.has(newElement[ELEMENT_KEY]) &&
-        newElement.props?.children != null
-          ? {
-              ...newElement.props,
-              children: wrapTextChildren(newElement.props.children),
-            }
-          : newElement.props;
-
+        props?.children != null
+      ) {
+        props.children = wrapTextChildren(props.children);
+      }
+      if (props?.contextualHelp != null && isPrimitive(props.contextualHelp)) {
+        props.contextualHelp = (
+          <ContextualHelp>
+            <Content>{props.contextualHelp}</Content>
+          </ContextualHelp>
+        );
+      }
       return <Component {...props} />;
     }
   }

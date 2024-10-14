@@ -50,6 +50,7 @@ def ui_components1():
         ui.action_menu("Aaa", "Bbb", "Ccc"),
         ui.button_group(ui.button("One"), ui.button("Two")),
         ui.button("Button"),
+        ui.calendar(value="2021-01-01"),
         ui.checkbox("Checkbox"),
         ui.column("Column child A", "Column child B", "Column child C"),
         # TODO: #201 ui.combo_box("Combo Box"),
@@ -104,6 +105,9 @@ def ui_components2():
             label="Radio Group",
             orientation="HORIZONTAL",
         ),
+        ui.range_calendar(
+            default_value={"start": "2021-01-01", "end": "2021-01-02"},
+        ),
         ui.range_slider(default_value={"start": 10, "end": 99}, label="Range Slider"),
         ui.row("Row child A", "Row child B"),
         ui.slider(
@@ -122,6 +126,7 @@ def ui_components2():
         ui.text_field(
             ui.icon("vsSymbolMisc"), default_value="Text Field", label="Text Field"
         ),
+        ui.time_field(default_value="12:30:00", hour_cycle=24),
         ui.toggle_button(
             ui.icon("vsBell"),
             "By Exchange",

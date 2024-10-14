@@ -6,6 +6,7 @@ from .basic import (
 )
 from .button import button
 from .button_group import button_group
+from .calendar import calendar
 from .checkbox import checkbox
 from .column import column
 from .combo_box import combo_box
@@ -32,8 +33,11 @@ from .make_component import make_component as component
 from .number_field import number_field
 from .panel import panel
 from .picker import picker
+from .progress_bar import progress_bar
+from .progress_circle import progress_circle
 from .radio import radio
 from .radio_group import radio_group
+from .range_calendar import range_calendar
 from .range_slider import range_slider
 from .row import row
 from .section import section
@@ -48,6 +52,7 @@ from .tabs import tabs
 from .text import text
 from .text_area import text_area
 from .text_field import text_field
+from .time_field import time_field
 from .toggle_button import toggle_button
 from .view import view
 
@@ -61,6 +66,7 @@ __all__ = [
     "component_element",
     "button",
     "button_group",
+    "calendar",
     "checkbox",
     "column",
     "combo_box",
@@ -88,8 +94,11 @@ __all__ = [
     "number_field",
     "panel",
     "picker",
+    "progress_bar",
+    "progress_circle",
     "radio",
     "radio_group",
+    "range_calendar",
     "range_slider",
     "row",
     "section",
@@ -104,6 +113,7 @@ __all__ = [
     "text",
     "text_area",
     "text_field",
+    "time_field",
     "toggle_button",
     "view",
 ]

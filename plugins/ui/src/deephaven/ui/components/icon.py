@@ -65,6 +65,7 @@ def icon(
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
 ) -> Element:
     """
     Get a Deephaven icon by name.
@@ -111,8 +112,17 @@ def icon(
         z_index: The stacking order for the element
         is_hidden: Hides the element.
         id: The unique identifier of the element.
+        aria_label: The label for the element.
+        aria_hidden: Whether the element is hidden from the accessibility tree.
+        aria_labelledby: The id of the element that labels the element.
+        aria_describedby: The id of the element that describes the element.
+        aria_details: The details for the element.
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
+        key: A unique identifier used by React to render elements in a list.
+
+    Returns:
+        The rendered icon element.
     """
 
     children, props = create_props(locals())

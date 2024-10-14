@@ -1311,6 +1311,135 @@ list_view5 = ui.list_view(
 
 ```
 
+###### ui.calendar
+
+A calendar that can be used to select a date.
+
+The calendar accepts the following date types as inputs:
+
+- `None`
+- `LocalDate`
+- `ZoneDateTime`
+- `Instant`
+- `int`
+- `str`
+- `datetime.datetime`
+- `numpy.datetime64`
+- `pandas.Timestamp`
+
+The input will be converted to one of three Java date types:
+
+1. `LocalDate`: A LocalDate is a date without a time zone in the ISO-8601 system, such as "2007-12-03" or "2057-01-28".
+2. `Instant`: An Instant represents an unambiguous specific point on the timeline, such as 2021-04-12T14:13:07 UTC.
+3. `ZonedDateTime`: A ZonedDateTime represents an unambiguous specific point on the timeline with an associated time zone, such as 2021-04-12T14:13:07 America/New_York.
+
+The format of the calendar and the type of the value passed to the `on_change` handler
+is determined by the type of the following props in order of precedence:
+
+1. `value`
+2. `default_value`
+3. `focused_value`
+4. `default_focused_value`
+
+If none of these are provided, the `on_change` handler passes a range of `Instant`.
+
+```py
+import deephaven.ui as ui
+ui.calendar(
+    value: Date | None = None,
+    default_value: Date | None = None,
+    focused_value: Date | None = None,
+    default_focused_value: Date | None = None,
+    min_value: Date | None = None,
+    max_value: Date | None = None,
+    on_change: Callable[[Date], None] | None = None,
+    **props: Any
+) -> CalendarElement
+```
+
+###### Parameters
+
+| Parameter               | Type                             | Description                                                                              |
+| ----------------------- | -------------------------------- | ---------------------------------------------------------------------------------------- |
+| `value`                 | `Date \| None`                   | The current value (controlled).                                                          |
+| `default_value`         | `Date \| None`                   | The default value (uncontrolled).                                                        |
+| `focused_value`         | `Date \| None`                   | The focused value (controlled).                                                          |
+| `default_focused_value` | `Date \| None`                   | The default focused value (uncontrolled).                                                |
+| `min_value`             | `Date \| None`                   | The minimum allowed date that a user may select.                                         |
+| `max_value`             | `Date \| None`                   | The maximum allowed date that a user may select.                                         |
+| `on_change`             | `Callable[[Date], None] \| None` | Handler that is called when the value changes.                                           |
+| `**props`               | `Any`                            | Any other [Calendar](https://react-spectrum.adobe.com/react-spectrum/Calendar.html) prop |
+
+```py
+
+import deephaven.ui as ui
+from deephaven.time import to_j_local_date, dh_today, to_j_instant, to_j_zdt
+
+zoned_date_time = to_j_zdt("1995-03-22T11:11:11.23142 America/New_York")
+instant = to_j_instant("2022-01-01T00:00:00 ET")
+local_date = to_j_local_date(dh_today())
+
+# simple calendar that takes ui.items and is uncontrolled
+calendar1 = ui.calendar(
+    default_value=local_date
+)
+
+# simple calendar that takes list view items directly and is controlled
+# the on_change handler is passed an instant
+date, set_date = ui.use_state(instant)
+
+calendar2 = ui.calendar(
+    value=date,
+    on_change=set_date
+)
+
+# this creates a calendar in the specified time zone
+# the on_change handler is passed a zoned date time
+date, set_date = ui.use_state(None)
+
+calendar3 = ui.calendar(
+    default_value=zoned_date_time,
+    on_change=set_date
+)
+
+# this creates a calendar in UTC
+# the on_change handler is passed an instant
+date, set_date = ui.use_state(None)
+
+calendar4 = ui.calendar(
+    default_value=instant,
+    on_change=set_date
+)
+
+# this creates a calendar
+# the on_change handler is passed a local date
+date, set_date = ui.use_state(None)
+
+calendar5 = ui.calendar(
+    default_value=local_date,
+    on_change=set_date
+)
+
+# this creates a calendar the on_change handler is passed an instant
+date, set_date = ui.use_state(None)
+
+calendar7 = ui.calendar(
+    on_change=set_date
+)
+
+# this create a calendar, a min and max value
+min_value = to_j_local_date("2022-01-01")
+max_value = to_j_local_date("2022-12-31")
+unavailable_dates = [to_j_local_date("2022-03-15"), to_j_local_date("2022-03-17")]
+date, set_date = ui.use_state(to_j_local_date("2022-03-16"))
+calendar8 = ui.calendar(
+    value=date,
+    min_value=min_value,
+    max_value=max_value,
+    on_change=set_date
+)
+```
+
 ###### ui.date_field
 
 A date field that can be used to select a date.
@@ -1696,7 +1825,6 @@ date_range_picker1 = ui.date_range_picker(
 # this creates a date picker with a granularity of seconds in UTC
 # the on_change handler is passed a range of instants
 dates2, set_dates2 = ui.use_state({"start": instant_start, "end": instant_end})
-
 date_range_picker2 = ui.date_range_picker(
     value=dates2,
     on_change=set_dates2
@@ -1939,6 +2067,139 @@ ui.picker(
     on_change: Callable[[Key], None] | None = None,
     **props: Any
 ) -> PickerElement
+```
+
+###### ui.range_calendar
+
+A calendar that can be used to select a range of dates.
+
+The range is a dictionary with a `start` date and an `end` date; e.g., `{ "start": "2024-01-02", "end": "2024-01-05" }`
+
+The range calendar accepts the following date types as inputs:
+
+- `None`
+- `LocalDate`
+- `ZoneDateTime`
+- `Instant`
+- `int`
+- `str`
+- `datetime.datetime`
+- `numpy.datetime64`
+- `pandas.Timestamp`
+
+The input will be converted to one of three Java date types:
+
+1. `LocalDate`: A LocalDate is a date without a time zone in the ISO-8601 system, such as "2007-12-03" or "2057-01-28".
+2. `Instant`: An Instant represents an unambiguous specific point on the timeline, such as 2021-04-12T14:13:07 UTC.
+3. `ZonedDateTime`: A ZonedDateTime represents an unambiguous specific point on the timeline with an associated time zone, such as 2021-04-12T14:13:07 America/New_York.
+
+The format of the range calendar and the type of the value passed to the `on_change` handler
+is determined by the type of the following props in order of precedence:
+
+1. `value`
+2. `default_value`
+3. `focused_value`
+4. `default_focused_value`
+
+If none of these are provided, the `on_change` handler passes a range of `Instant`.
+
+```py
+import deephaven.ui as ui
+ui.range_calendar(
+    value: DateRange | None = None,
+    default_value: DateRange | None = None,
+    focused_value: Date | None = None,
+    default_focused_value: Date | None = None,
+    min_value: Date | None = None,
+    max_value: Date | None = None,
+    on_change: Callable[[DateRange], None] | None = None,
+    **props: Any
+) -> RangeCalendarElement
+```
+
+###### Parameters
+
+| Parameter               | Type                                  | Description                                                                                        |
+| ----------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `value`                 | `DateRange \| None`                   | The current value (controlled).                                                                    |
+| `default_value`         | `DateRange \| None`                   | The default value (uncontrolled).                                                                  |
+| `focused_value`         | `Date \| None`                        | The focused value (controlled).                                                                    |
+| `default_focused_value` | `Date \| None`                        | The default focused value (uncontrolled).                                                          |
+| `min_value`             | `Date \| None`                        | The minimum allowed date that a user may select.                                                   |
+| `max_value`             | `Date \| None`                        | The maximum allowed date that a user may select.                                                   |
+| `on_change`             | `Callable[[DateRange], None] \| None` | Handler that is called when the value changes.                                                     |
+| `**props`               | `Any`                                 | Any other [RangeCalendar](https://react-spectrum.adobe.com/react-spectrum/RangeCalendar.html) prop |
+
+```py
+
+import deephaven.ui as ui
+from deephaven.time import to_j_local_date, dh_today, to_j_instant, to_j_zdt
+
+zdt_start = to_j_zdt("1995-03-22T11:11:11.23142 America/New_York")
+zdt_end = to_j_zdt("1995-03-25T11:11:11.23142 America/New_York")
+instant_start = to_j_instant("2022-01-01T00:00:00 ET")
+instant_end = to_j_instant("2022-01-05T00:00:00 ET")
+local_start = to_j_local_date("2024-05-06")
+local_end = to_j_local_date("2024-05-10")
+
+# simple range calendar that takes a range and is uncontrolled
+range_calendar1 = ui.range_calendar(
+    default_value={"start": local_start, "end": local_end}
+)
+
+# simple range calendar that takes a range directly and is controlled
+# the on_change handler is passed a range of instants
+dates, set_dates = ui.use_state({"start": instant_start, "end": instant_end})
+
+range_calendar2 = ui.range_calendar(
+    value=dates,
+    on_change=set_dates
+)
+
+# this creates a range calendar in the specified time zone
+# the on_change handler is passed a zoned date time
+dates, set_dates = ui.use_state(None)
+
+range_calendar3 = ui.range_calendar(
+    default_value=zdt_start,
+    on_change=set_dates
+)
+
+# this creates a range calendar in UTC
+# the on_change handler is passed an instant
+dates, set_dates = ui.use_state(None)
+
+range_calendar4 = ui.range_calendar(
+    default_value=instant_start,
+    on_change=set_dates
+)
+
+# this creates a range calendar
+# the on_change handler is passed a local date
+dates, set_dates = ui.use_state(None)
+
+range_calendar5 = ui.range_calendar(
+    default_value=local_start,
+    on_change=set_dates
+)
+
+# this creates a range calendar the on_change handler is passed an instant
+dates, set_dates = ui.use_state(None)
+
+range_calendar7 = ui.range_calendar(
+    on_change=set_dates
+)
+
+# this create a calendar, a min and max value
+min_value = to_j_local_date("2022-01-01")
+max_value = to_j_local_date("2022-12-31")
+dates, set_dates = ui.use_state({"start": local_start, "end": local_end})
+range_calendar8 = ui.range_calendar(
+    value=dates,
+    min_value=min_value,
+    max_value=max_value,
+    on_change=set_dates
+)
 ```
 
 ###### Parameters
@@ -2525,6 +2786,141 @@ Column formatting rules have an optional `where` field which is a conditional ex
 ##### ui.table Row Formatting Rules
 
 Row formatting rules apply to entire rows. Only visual rules can be applied to rows. Row formatting rules should have an `where` field which is a conditional expression that determines if the rule should be applied. This expression will be applied as a custom column (which is applied with `update_view`) to the table and may reference columns or use the query language if needed. The conditional is required for row formatting rules because otherwise they would apply to every row in the table.
+
+###### ui.time_field
+
+A time field that can be used to select a time.
+
+The time field accepts the following time types as inputs:
+
+- `None`
+- `LocaTime`
+- `ZonedDateTime`
+- `Instant`
+- `int`
+- `str`
+- `datetime.datetime`
+- `numpy.datetime64`
+- `pandas.Timestamp`
+
+The input will be converted to one of three Java time types:
+
+1. `LocalTime`: A LocalTime is a time without a time zone in the ISO-8601 system, such as "10:30:45" or "16:10:00".
+   This will create a time field with a granularity of seconds.
+2. `Instant`: An Instant represents an unambiguous specific point on the timeline, such as 2021-04-12T14:13:07 UTC.
+   This will create a time field with a granularity of seconds in UTC. The time zone will be rendered as the time zone in user settings.
+3. `ZonedDateTime`: A ZonedDateTime represents an unambiguous specific point on the timeline with an associated time zone, such as 2021-04-12T14:13:07 America/New_York.
+   This will create a time field with a granularity of seconds in the specified time zone. The time zone will be rendered as the specified time zone.
+
+4. If the input is one of the three Java time types, use that type.
+5. A time string such as "10:30:45" will parse to a `LocaTime`
+6. A string with a date, time, and timezone such as "2021-04-12T14:13:07 America/New_York" will parse to a `ZonedDateTime`
+7. All other types will attempt to convert in this order: `LocaTime`, `Instant`, `ZonedDateTime`
+
+The format of the time field and the type of the value passed to the `on_change` handler
+is determined by the type of the following props in order of precedence:
+
+1. `value`
+2. `default_value`
+3. `placeholder_value`
+
+If none of these are provided, the `on_change` handler passes a range of `LocaTime`.
+
+```py
+import deephaven.ui as ui
+ui.time_field(
+    placeholder_value: Time | None = None,
+    value: Time | None = None,
+    default_value: Time | None = None,
+    min_value: Time | None = None,
+    max_value: Time | None = None,
+    granularity: Granularity | None = None,
+    on_change: Callable[[Time], None] | None = None,
+    **props: Any
+) -> TimeFieldElement
+```
+
+###### Parameters
+
+| Parameter           | Type                             | Description                                                                                                                                                                               |
+| ------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `placeholder_value` | `Time \| None`                   | A placeholder time that influences the format of the placeholder shown when no value is selected. Defaults to 12:00 AM or 00:00 depending on the hour cycle                               |
+| `value`             | `Time \| None`                   | The current value (controlled).                                                                                                                                                           |
+| `default_value`     | `Time \| None`                   | The default value (uncontrolled).                                                                                                                                                         |
+| `min_value`         | `Time \| None`                   | The minimum allowed time that a user may select.                                                                                                                                          |
+| `max_value`         | `Time \| None`                   | The maximum allowed time that a user may select.                                                                                                                                          |
+| `granularity`       | `Granularity \| None`            | Determines the smallest unit that is displayed in the time field. By default, this is `"SECOND".                                                                                          |
+| `on_change`         | `Callable[[Time], None] \| None` | Handler that is called when the value changes. The exact `Time` type will be the same as the type passed to `value`, `default_value` or `placeholder_value`, in that order of precedence. |
+| `**props`           | `Any`                            | Any other [TimeField](https://react-spectrum.adobe.com/react-spectrum/TimeField.html) prop, with the exception of `validate`, and `errorMessage` (as a callback)                          |
+
+```py
+
+import deephaven.ui as ui
+from deephaven.time import to_j_local_time, to_j_instant, to_j_zdt
+
+zoned_date_time = to_j_zdt("1995-03-22T11:11:11.23142 America/New_York")
+instant = to_j_instant("2022-01-01T00:00:00 ET")
+local_time = to_j_local_time("12:30:45")
+
+# simple time field that takes ui.items and is uncontrolled
+time_field1 = ui.time_field(
+    default_value=local_time
+)
+
+# simple time field that takes list view items directly and is controlled
+# this creates a time field with a granularity of seconds in UTC
+# the on_change handler is passed an instant
+time, set_time = ui.use_state(instant)
+
+time_field2 = ui.time_field(
+    value=time,
+    on_change=set_time
+)
+
+# this creates a time field with a granularity of seconds in the specified time zone
+# the on_change handler is passed a zoned date time
+time, set_time = ui.use_state(None)
+
+time_field3 = ui.time_field(
+    placeholder_value=zoned_date_time,
+    on_change=set_time
+)
+
+# this creates a time field with a granularity of seconds in UTC
+# the on_change handler is passed an instant
+time, set_time = ui.use_state(None)
+
+time_field4 = ui.time_field(
+    placeholder_value=instant,
+    on_change=set_time
+)
+
+# this creates a time field with a granularity of seconds
+# the on_change handler is passed a local time
+time, set_time = ui.use_state(None)
+
+time_field5 = ui.time_field(
+    placeholder_value=local_time,
+    on_change=set_time
+)
+
+# this creates a time field with a granularity of hours, but the on_change handler is still passed an instant
+time, set_time = ui.use_state(None)
+
+time_field6 = ui.time_field(
+    placeholder_value=instant,
+    granularity="hour",
+    on_change=set_time
+)
+
+# this creates a time field with a granularity of seconds and the on_change handler is passed an instant
+time, set_time = ui.use_state(None)
+
+time_field7 = ui.time_field(
+    on_change=set_time
+)
+
+```
 
 #### ui.fragment
 

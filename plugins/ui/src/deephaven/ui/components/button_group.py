@@ -5,6 +5,7 @@ from .types import (
     Orientation,
     # Layout
     AlignSelf,
+    ButtonGroupAlignment,
     CSSProperties,
     DimensionValue,
     JustifySelf,
@@ -19,7 +20,7 @@ def button_group(
     *children: Any,
     is_disabled: bool | None = None,
     orientation: Orientation = "horizontal",
-    alignment: AlignSelf = "start",
+    align: ButtonGroupAlignment = "start",
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,
@@ -59,6 +60,7 @@ def button_group(
     id: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
 ) -> Element:
     """
     A button group is a grouping of button whose actions are related to each other.
@@ -67,7 +69,7 @@ def button_group(
         *children: The children of the button group.
         is_disabled: Whether the button group is disabled.
         orientation: The axis the ButtonGroup should align with. Setting this to 'vertical' will prevent any switching behaviours between 'vertical' and horizontal'.
-        alignment: The alignment of the buttons within the ButtonGroup.
+        align: The alignment of the buttons within the ButtonGroup.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -89,6 +91,12 @@ def button_group(
         margin_end: The margin for the logical end side of the element, depending on layout direction.
         margin_x: The margin for the left and right sides of the element.
         margin_y: The margin for the top and bottom sides of the element.
+        width: The width of the element.
+        height: The height of the element.
+        min_width: The minimum width of the element.
+        min_height: The minimum height of the element.
+        max_width: The maximum width of the element.
+        max_height: The maximum height of the element.
         position: Specifies how the element is position.
         top: The top position of the element.
         bottom: The bottom position of the element.
@@ -101,13 +109,18 @@ def button_group(
         id: The unique identifier of the element.
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
+        key: A unique identifier used by React to render elements in a list.
+
+    Returns:
+        The rendered button group element.
+
     """
     return component_element(
         "ButtonGroup",
         *children,
         is_disabled=is_disabled,
         orientation=orientation,
-        alignment=alignment,
+        align=align,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
@@ -147,4 +160,5 @@ def button_group(
         id=id,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
+        key=key,
     )

@@ -11,8 +11,13 @@ class BaseElement(Element):
     Must provide a name for the element.
     """
 
-    def __init__(self, name: str, /, *children: Any, **props: Any):
+    def __init__(
+        self, name: str, /, *children: Any, key: str | None = None, **props: Any
+    ):
         self._name = name
+        self._key = key
+        props["key"] = key
+
         if len(children) > 0 and props.get("children") is not None:
             raise ValueError("Cannot provide both children and props.children")
 
@@ -27,6 +32,10 @@ class BaseElement(Element):
     @property
     def name(self) -> str:
         return self._name
+
+    @property
+    def key(self) -> str | None:
+        return self._key
 
     def render(self, context: RenderContext) -> dict[str, Any]:
         return self._props

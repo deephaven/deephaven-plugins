@@ -17,22 +17,22 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 # these are the patterns to watch for changes in this directory
 # if in editable mode, the builder will rerun when these files change
 REBUILD_REGEXES = [
-    ".*\.py$",
-    ".*\.js$",
-    ".*\.ts$",
-    ".*\.tsx$",
-    ".*\.scss$",
+    r".*\.py$",
+    r".*\.js$",
+    r".*\.ts$",
+    r".*\.tsx$",
+    r".*\.scss$",
 ]
 
 # ignore these patterns in particular
 # prevents infinite loops when the builder is rerun
 IGNORE_REGEXES = [
-    ".*/dist/.*",
-    ".*/build/.*",
-    ".*/node_modules/.*",
-    ".*/_js/.*",
+    r".*/dist/.*",
+    r".*/build/.*",
+    r".*/node_modules/.*",
+    r".*/_js/.*",
     # ignore hidden files and directories
-    ".*/\..*/.*",
+    r".*/\..*/.*",
 ]
 
 # the path where the python files are located relative to this script

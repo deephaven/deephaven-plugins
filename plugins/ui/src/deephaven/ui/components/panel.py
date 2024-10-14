@@ -10,6 +10,7 @@ from .types import (
     AlignContent,
     AlignItems,
     DimensionValue,
+    Overflow,
 )
 
 
@@ -24,6 +25,7 @@ def panel(
     gap: DimensionValue | None = "size-100",
     column_gap: DimensionValue | None = None,
     row_gap: DimensionValue | None = None,
+    overflow: Overflow | None = "auto",
     padding: DimensionValue | None = "size-100",
     padding_top: DimensionValue | None = None,
     padding_bottom: DimensionValue | None = None,
@@ -31,6 +33,7 @@ def panel(
     padding_end: DimensionValue | None = None,
     padding_x: DimensionValue | None = None,
     padding_y: DimensionValue | None = None,
+    key: str | None = None,
     **props: Any,
 ):
     """
@@ -54,6 +57,7 @@ def panel(
         padding_end: The padding to apply after the element.
         padding_x: The padding to apply to the left and right of the element.
         padding_y: The padding to apply to the top and bottom of the element.
+        key: A unique identifier used by React to render elements in a list.
 
     """
 

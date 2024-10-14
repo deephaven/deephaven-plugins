@@ -1,25 +1,39 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Set, cast, Sequence
+from typing import Any, Callable, Set, cast, Sequence, TypeVar
 from inspect import signature
 import sys
 from functools import partial
-from deephaven.time import to_j_instant, to_j_zdt, to_j_local_date
+from deephaven.time import to_j_instant, to_j_zdt, to_j_local_date, to_j_local_time
 from deephaven.dtypes import ZonedDateTime, Instant
 
-from ..types import Date, JavaDate, DateRange
+from ..types import (
+    Date,
+    JavaDate,
+    DateRange,
+    Time,
+    JavaTime,
+    LocalDateConvertible,
+    LocalDate,
+)
+
+T = TypeVar("T")
 
 _UNSAFE_PREFIX = "UNSAFE_"
 _ARIA_PREFIX = "aria_"
 _ARIA_PREFIX_REPLACEMENT = "aria-"
 
-_CONVERTERS = {
+_DATE_CONVERTERS = {
     "java.time.Instant": to_j_instant,
     "java.time.ZonedDateTime": to_j_zdt,
     "java.time.LocalDate": to_j_local_date,
 }
 
-_LOCAL_DATE = "java.time.LocalDate"
+_TIME_CONVERTERS = {
+    "java.time.ZonedDateTime": to_j_zdt,
+    "java.time.Instant": to_j_instant,
+    "java.time.LocalTime": to_j_local_time,
+}
 
 
 def get_component_name(component: Any) -> str:
@@ -257,6 +271,49 @@ def _convert_to_java_date(
         )
 
 
+def _convert_to_java_time(
+    time: Time,
+) -> JavaTime:
+    """
+    Convert a Time to a Java time type.
+    In order of preference, tries to convert to LocalTime, Instant, ZonedDateTime.
+    If none of these work, raises a TypeError.
+
+    Args:
+        time: The time to convert to a Java time type.
+
+    Returns:
+        The Java time type.
+    """
+    try:
+        return to_j_local_time(time)  # type: ignore
+    except Exception:
+        # ignore, try next
+        pass
+
+    # For strings, parseInstant and parseZonedDateTime both succeed for the same strings
+    # Try parsing as a ZonedDateTime first per the documentation
+    if isinstance(time, str):
+        try:
+            return to_j_zdt(time)  # type: ignore
+        except Exception:
+            # ignore, try next
+            pass
+
+    try:
+        return to_j_instant(time)  # type: ignore
+    except Exception:
+        # ignore, try next
+        pass
+
+    try:
+        return to_j_zdt(time)  # type: ignore
+    except Exception:
+        raise TypeError(
+            f"Could not convert {time} to one of LocalTime, Instant, or ZonedDateTime."
+        )
+
+
 def get_jclass_name(value: Any) -> str:
     """
     Get the name of the Java class of the value.
@@ -270,7 +327,7 @@ def get_jclass_name(value: Any) -> str:
     return str(value.jclass)[6:]
 
 
-def _jclass_converter(
+def _jclass_date_converter(
     value: JavaDate,
 ) -> Callable[[Date], Any]:
     """
@@ -282,7 +339,47 @@ def _jclass_converter(
     Returns:
         The converter for the Java date type.
     """
-    return _CONVERTERS[get_jclass_name(value)]
+    return _DATE_CONVERTERS[get_jclass_name(value)]
+
+
+def _jclass_time_converter(
+    value: JavaTime,
+) -> Callable[[Time], Any]:
+    """
+    Get the converter for the Java time type.
+
+    Args:
+        value: The Java time type to get the converter for.
+
+    Returns:
+        The converter for the Java time type.
+    """
+    return _TIME_CONVERTERS[get_jclass_name(value)]
+
+
+def _no_error_wrapped_callable(
+    func: Callable[[T], None],
+    converter: Callable[[T], Any],
+) -> Callable[[T], None]:
+    """
+    Wrap the function so that it does not raise an error when called.
+
+    Args:
+        func: The callable to wrap
+        converter: The converter to use
+
+    Returns:
+        The wrapped callable
+    """
+
+    def no_error_func(arg: T) -> None:
+        wrapped_callable = wrap_callable(func)
+        try:
+            return wrapped_callable(converter(arg))
+        except Exception:
+            pass
+
+    return no_error_func
 
 
 def _wrap_date_callable(
@@ -302,14 +399,45 @@ def _wrap_date_callable(
     """
     # When the user is typing a date, they may enter a value that does not parse
     # This will skip those errors rather than printing them to the screen
-    def no_error_date_callable(date: Date) -> None:
-        wrapped_date_callable = wrap_callable(date_callable)
-        try:
-            wrapped_date_callable(converter(date))
-        except Exception:
-            pass
+    return _no_error_wrapped_callable(date_callable, converter)
 
-    return no_error_date_callable
+
+def wrap_local_date_callable(
+    date_callable: Callable[[LocalDateConvertible], None],
+) -> Callable[[LocalDate], None]:
+    """
+    Wrap a callable to convert the Date argument to a Java date type.
+    This maintains the original callable signature so that the Date argument can be dropped.
+
+    Args:
+        date_callable: The callable to wrap.
+
+    Returns:
+        The wrapped callable.
+    """
+    # When the user is typing a date, they may enter a value that does not parse
+    # This will skip those errors rather than printing them to the screen
+    return _no_error_wrapped_callable(date_callable, to_j_local_date)
+
+
+def _wrap_time_callable(
+    time_callable: Callable[[Time], None],
+    converter: Callable[[Time], Any],
+) -> Callable[[Time], None]:
+    """
+    Wrap a callable to convert the Time argument to a Java time type.
+    This maintains the original callable signature so that the Time argument can be dropped.
+
+    Args:
+        time_callable: The callable to wrap.
+        converter: The time converter to use.
+
+    Returns:
+        The wrapped callable.
+    """
+    # When the user is typing a time, they may enter a value that does not parse
+    # This will skip those errors rather than printing them to the screen
+    return _no_error_wrapped_callable(time_callable, converter)
 
 
 def _get_first_set_key(props: dict[str, Any], sequence: Sequence[str]) -> str | None:
@@ -345,7 +473,7 @@ def _date_or_range(value: JavaDate | DateRange) -> Any:
     return value
 
 
-def _prioritized_callable_converter(
+def _prioritized_date_callable_converter(
     props: dict[str, Any],
     priority: Sequence[str],
     default_converter: Callable[[Date], Any],
@@ -368,7 +496,36 @@ def _prioritized_callable_converter(
 
     first_set_key = _get_first_set_key(props, priority)
     return (
-        _jclass_converter(_date_or_range(props[first_set_key]))
+        _jclass_date_converter(_date_or_range(props[first_set_key]))
+        if first_set_key is not None
+        else default_converter
+    )
+
+
+def _prioritized_time_callable_converter(
+    props: dict[str, Any],
+    priority: Sequence[str],
+    default_converter: Callable[[Time], Any],
+) -> Callable[[Time], Any]:
+    """
+    Get a callable time converter based on the type of the first non-None prop set.
+    Checks the props in the order provided by the `priority` sequence.
+    All the props in `priority` should be Java time types already.
+    We do this so conversion so that the type returned on callbacks matches the type passed in by the user.
+    If none of the props in `priority` are present, returns the default converter.
+
+    Args:
+        props: The props passed to the component.
+        priority: The priority of the props to check.
+        default_converter: The default converter to use if none of the priority props are present.
+
+    Returns:
+        The callable time converter.
+    """
+
+    first_set_key = _get_first_set_key(props, priority)
+    return (
+        _jclass_time_converter(props[first_set_key])
         if first_set_key is not None
         else default_converter
     )
@@ -433,14 +590,26 @@ def _wrap_date_range_callable(
     """
     # When the user is typing a date, they may enter a value that does not parse
     # This will skip those errors rather than printing them to the screen
-    def no_error_date_callable(date_range: DateRange) -> None:
-        wrapped_date_callable = wrap_callable(date_callable)
-        try:
-            wrapped_date_callable(convert_date_range(date_range, converter))
-        except Exception:
-            pass
+    return _no_error_wrapped_callable(date_callable, _date_range_converter(converter))
 
-    return no_error_date_callable
+
+def _date_range_converter(
+    converter: Callable[[Date], Any]
+) -> Callable[[DateRange], DateRange]:
+    """
+    Get a converter for a DateRange.
+
+    Args:
+        converter: The converter to use for the start and end dates.
+
+    Returns:
+        The converter for the DateRange.
+    """
+
+    def date_range_converter(date_range: DateRange) -> DateRange:
+        return convert_date_range(date_range, converter)
+
+    return date_range_converter
 
 
 def convert_date_props(
@@ -449,7 +618,7 @@ def convert_date_props(
     date_range_props: set[str],
     callable_date_props: set[str],
     priority: Sequence[str],
-    granularity_key: str,
+    granularity_key: str | None = None,
     default_converter: Callable[[Date], Any] = to_j_instant,
 ) -> None:
     """
@@ -477,11 +646,15 @@ def convert_date_props(
             props[key] = convert_date_range(props[key], _convert_to_java_date)
 
     # the simple props must be converted before this to simplify the callable conversion
-    converter = _prioritized_callable_converter(props, priority, default_converter)
+    converter = _prioritized_date_callable_converter(props, priority, default_converter)
 
     # based on the convert set the granularity if it is not set
     # Local Dates will default to DAY but we need to default to SECOND for the other types
-    if props.get(granularity_key) is None and converter != to_j_local_date:
+    if (
+        granularity_key is not None
+        and props.get(granularity_key) is None
+        and converter != to_j_local_date
+    ):
         props[granularity_key] = "SECOND"
 
     # now that the converter is set, we can convert simple props to strings
@@ -504,6 +677,48 @@ def convert_date_props(
                 props[key] = _wrap_date_range_callable(props[key], converter)
             else:
                 props[key] = _wrap_date_callable(props[key], converter)
+
+
+def convert_time_props(
+    props: dict[str, Any],
+    simple_time_props: set[str],
+    callable_time_props: set[str],
+    priority: Sequence[str],
+    default_converter: Callable[[Time], Any] = to_j_local_time,
+) -> None:
+    """
+    Convert time props to Java time types in place.
+
+    Args:
+        props: The props passed to the component.
+        simple_time_props: A set of simple time keys to convert. The prop value should be a single Time.
+        callable_time_props: A set of callable time keys to convert.
+            The prop value should be a callable that takes a Time.
+        priority: The priority of the props to check.
+        granularity_key: The key for the granularity
+        default_converter: The default converter to use if none of the priority props are present.
+
+    Returns:
+        The converted props.
+    """
+    for key in simple_time_props:
+        if props.get(key) is not None:
+            props[key] = _convert_to_java_time(props[key])
+
+    # the simple props must be converted before this to simplify the callable conversion
+    converter = _prioritized_time_callable_converter(props, priority, default_converter)
+
+    # now that the converter is set, we can convert simple props to strings
+    for key in simple_time_props:
+        if props.get(key) is not None:
+            props[key] = str(props[key])
+
+    # wrap the date callable with the convert
+    for key in callable_time_props:
+        if props.get(key) is not None:
+            if not callable(props[key]):
+                raise TypeError(f"{key} must be a callable")
+            props[key] = _wrap_time_callable(props[key], converter)
 
 
 def unpack_item_table_source(

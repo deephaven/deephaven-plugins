@@ -30,10 +30,10 @@ def grid(
     justify_content: JustifyContent = "stretch",
     align_content: AlignContent = "start",
     align_items: AlignItems = "stretch",
-    gap: DimensionValue | None = None,
+    gap: DimensionValue | None = "size-100",
     column_gap: DimensionValue | None = None,
     row_gap: DimensionValue | None = None,
-    flex: LayoutFlex | None = None,
+    flex: LayoutFlex | None = "auto",
     flex_grow: float | None = None,
     flex_shrink: float | None = None,
     flex_basis: DimensionValue | None = None,
@@ -72,6 +72,7 @@ def grid(
     id: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
+    key: str | None = None,
 ) -> Element:
     """
     A layout container using CSS grid. Supports Spectrum dimensions as values to ensure consistent and adaptive sizing and spacing.
@@ -130,6 +131,7 @@ def grid(
         id: The unique identifier of the element.
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
+        key: A unique identifier used by React to render elements in a list.
     """
     return component_element(
         "Grid",
@@ -186,4 +188,5 @@ def grid(
         id=id,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
+        key=key,
     )

@@ -19,12 +19,27 @@ import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { getSettings, RootState } from '@deephaven/redux';
 import { GridMouseHandler } from '@deephaven/grid';
-import { UITableProps, wrapContextActions } from './UITableUtils';
+import { EMPTY_ARRAY, ensureArray } from '@deephaven/utils';
+import { UITableProps } from './UITableUtils';
 import UITableMouseHandler from './UITableMouseHandler';
-import UITableContextMenuHandler from './UITableContextMenuHandler';
+import UITableContextMenuHandler, {
+  wrapContextActions,
+} from './UITableContextMenuHandler';
 import UITableModel, { makeUiTableModel } from './UITableModel';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
+
+/**
+ * Returns a stable array if none of the elements have changed.
+ * Mostly put this here to avoid ignoring the exhaustive-deps rule where there are more deps in the component.
+ * @param array The array to make stable
+ * @returns A stable array if none of the elements have changed
+ */
+function useStableArray<T>(array: T[]): T[] {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const stableArray = useMemo(() => array, [...array]);
+  return stableArray;
+}
 
 export function UITable({
   onCellPress,
@@ -35,7 +50,7 @@ export function UITable({
   onRowDoublePress,
   quickFilters,
   sorts,
-  alwaysFetchColumns,
+  alwaysFetchColumns: alwaysFetchColumnsProp,
   table: exportedTable,
   showSearch: showSearchBar,
   showQuickFilters,
@@ -55,6 +70,9 @@ export function UITable({
 
   if (error != null) {
     // Re-throw the error so that the error boundary can catch it
+    if (typeof error === 'string') {
+      throw new Error(error);
+    }
     throw error;
   }
 
@@ -182,6 +200,30 @@ export function UITable({
     };
   }, [databars, dh, exportedTable, layoutHints]);
 
+  const modelColumns = model?.columns ?? EMPTY_ARRAY;
+
+  const alwaysFetchColumnsArray = useStableArray(
+    ensureArray(alwaysFetchColumnsProp)
+  );
+
+  const alwaysFetchColumns = useMemo(() => {
+    if (alwaysFetchColumnsArray[0] === true) {
+      if (modelColumns.length > 500) {
+        setError(
+          `Table has ${modelColumns.length} columns, which is too many to always fetch. ` +
+            'If you want to always fetch more than 500 columns, pass the full array of column names you want to fetch. ' +
+            'This will likely be slow and use a lot of memory. ' +
+            'table.column_names contains all columns in a Deephaven table.'
+        );
+      }
+      return modelColumns.map(column => column.name);
+    }
+    if (alwaysFetchColumnsArray[0] === false) {
+      return [];
+    }
+    return alwaysFetchColumnsArray.filter(v => typeof v === 'string');
+  }, [alwaysFetchColumnsArray, modelColumns]);
+
   const mouseHandlers = useMemo(
     () =>
       model && irisGrid
@@ -201,7 +243,8 @@ export function UITable({
               irisGrid,
               model,
               contextMenu,
-              contextHeaderMenu
+              contextHeaderMenu,
+              alwaysFetchColumns
             ),
           ] as readonly GridMouseHandler[])
         : undefined,
@@ -217,13 +260,14 @@ export function UITable({
       onRowDoublePress,
       contextMenu,
       contextHeaderMenu,
+      alwaysFetchColumns,
     ]
   );
 
   const onContextMenu = useCallback(
     (data: IrisGridContextMenuData) =>
-      wrapContextActions(contextMenu ?? [], data),
-    [contextMenu]
+      wrapContextActions(contextMenu ?? [], data, alwaysFetchColumns),
+    [contextMenu, alwaysFetchColumns]
   );
 
   const irisGridProps = useMemo(
