@@ -10,14 +10,14 @@ import {
   downsample,
   getDataMappings,
   getPathParts,
-  getWebGlTraceIndexes,
+  getReplaceableWebGlTraceIndexes,
   getWidgetData,
   isAutoAxis,
   isLineSeries,
   isLinearAxis,
   removeColorsFromData,
   setWebGlTraceType,
-  hasUnreplaceableWebGlTraces
+  hasUnreplaceableWebGlTraces,
 } from './PlotlyExpressChartUtils';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
@@ -126,6 +126,11 @@ export class PlotlyExpressChartModel extends ChartModel {
    */
   webGlTraceIndices: Set<number> = new Set();
 
+  /**
+   * The WebGl warning is only shown once per chart. When the user acknowledges the warning, it will not be shown again.
+   */
+  hasAcknowledgedWebGlWarning = false;
+
   override getData(): Partial<Data>[] {
     const hydratedData = [...this.plotlyData];
 
@@ -218,22 +223,45 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   override setRenderOptions(renderOptions: RenderOptions): void {
+    this.handleWebGlAllowed(renderOptions.webgl, this.renderOptions?.webgl);
     super.setRenderOptions(renderOptions);
-    this.handleWebGlAllowed(renderOptions.webgl);
   }
 
-  handleWebGlAllowed(webgl: boolean | undefined): void {
+  /**
+   * Handle the WebGL option being set in the render options.
+   * If WebGL is enabled, traces have their original types as given.
+   * If WebGL is disabled, replace traces that require WebGL with non-WebGL traces if possible.
+   * Also, show a dismissible warning per-chart if there are WebGL traces that cannot be replaced.
+   * @param webgl The new WebGL value. True if WebGL is enabled.
+   * @param prevWebgl The previous WebGL value
+   */
+  handleWebGlAllowed(
+    webgl: boolean | undefined,
+    prevWebgl: boolean | undefined
+  ): void {
     if (webgl != null) {
       setWebGlTraceType(this.plotlyData, webgl, this.webGlTraceIndices);
 
-      if (hasUnreplaceableWebGlTraces(this.plotlyData) && !webgl) {
-        this.fireError([
-          'This chart is using WebGL, which is disabled, but this chart cannot render without it.',
+      // If WebGL is disabled and there are traces that require WebGL, show a warning that is dismissible on a per-chart basis
+      if (
+        hasUnreplaceableWebGlTraces(this.plotlyData) &&
+        !webgl &&
+        !this.hasAcknowledgedWebGlWarning
+      ) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        this.fireBlocker([
+          'WebGL is disabled but this chart cannot render without it. Check the Advanced section in the settings to enable WebGL or click below to render with WebGL for this chart.',
         ]);
-      } else {
-        this.fireError([]);
+      } else if (webgl === true && prevWebgl === false) {
+        // clear the blocker but not the acknowledged flag in case WebGL is disabled again
+        super.fireBlockerClear();
       }
     }
+  }
+
+  override fireBlockerClear(): void {
+    super.fireBlockerClear();
+    this.hasAcknowledgedWebGlWarning = true;
   }
 
   updateLayout(data: PlotlyChartWidgetData): void {
@@ -275,8 +303,8 @@ export class PlotlyExpressChartModel extends ChartModel {
       );
     }
 
-    // Retrieve the indexes of traces that require WebGL to flip on demand
-    this.webGlTraceIndices = getWebGlTraceIndexes(this.plotlyData);
+    // Retrieve the indexes of traces that require WebGL so they can be replaced if WebGL is disabled
+    this.webGlTraceIndices = getReplaceableWebGlTraceIndexes(this.plotlyData);
 
     this.handleWebGlAllowed(this.renderOptions?.webgl);
 

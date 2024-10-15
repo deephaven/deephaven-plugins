@@ -3,8 +3,6 @@ import type { dh as DhType } from '@deephaven/jsapi-types';
 
 /**
  * Traces that are at least partially powered by WebGL and have no SVG equivalent.
- * These traces will not be able to render if WebGL is disabled and the setting is not editable.
- * They will prompt the user to allow WebGL for this specific trace if the setting is editable.
  */
 const UNREPLACEABLE_WEBGL_TRACE_TYPES = new Set([
   'splom',
@@ -234,7 +232,13 @@ export function downsample(
   );
 }
 
-export function getWebGlTraceIndexes(data: Data[]): Set<number> {
+/**
+ * Get the indexes of the replaceable WebGL traces in the data
+ * A replaceable WebGL has a type that ends with 'gl' which indicates it has a SVG equivalent
+ * @param data The data to check
+ * @returns The indexes of the WebGL traces
+ */
+export function getReplaceableWebGlTraceIndexes(data: Data[]): Set<number> {
   const webGlTraceIndexes = new Set<number>();
   data.forEach((trace, index) => {
     if (trace.type && trace.type.endsWith('gl')) {
@@ -244,6 +248,11 @@ export function getWebGlTraceIndexes(data: Data[]): Set<number> {
   return webGlTraceIndexes;
 }
 
+/**
+ * Check if the data contains any traces that are at least partially powered by WebGL and have no SVG equivalent.
+ * @param data The data to check for WebGL traces
+ * @returns True if the data contains any unreplaceable WebGL traces
+ */
 export function hasUnreplaceableWebGlTraces(data: Data[]): boolean {
   return data.some(
     trace => trace.type && UNREPLACEABLE_WEBGL_TRACE_TYPES.has(trace.type)
@@ -251,12 +260,11 @@ export function hasUnreplaceableWebGlTraces(data: Data[]): boolean {
 }
 
 /**
- * Removes all possible WebGL from the plotly figure
- * Drops 'gl' from any traces that have it, which will force them to use SVG
- * Additionally, if traces are detected that use WebGL and have no SVG equivalent,
- * that is also detected.
- * @param data The plotly figure data to remove WebGL from
- * @returns Object with a boolean indicating if unreplaceable WebGL traces are present and indexes of the replaced traces
+ * Set traces to use WebGL if WebGL is enabled and the trace was originally WebGL
+ * or swap out WebGL for SVG if WebGL is disabled and the trace was originally WebGL
+ * @param data The plotly figure data to update
+ * @param webgl True if WebGL is enabled
+ * @param webGlTraceIndices The indexes of the traces that are originally WebGL traces
  */
 export function setWebGlTraceType(
   data: Data[],
