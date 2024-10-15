@@ -1,13 +1,10 @@
 from __future__ import annotations
 from typing import Any, Callable
 from .types import (
-    # Events
     FocusEventCallable,
     KeyboardEventCallable,
-    # Validation
     TextFieldValidationState,
     NecessityIndicator,
-    # Layout
     AlignSelf,
     CSSProperties,
     DimensionValue,
@@ -15,6 +12,7 @@ from .types import (
     LayoutFlex,
     Position,
     LabelPosition,
+    NumberFieldFormatOptions,
     Alignment,
 )
 from .basic import component_element
@@ -27,7 +25,7 @@ def number_field(
     decrement_aria_label: str | None = None,
     increment_aria_label: str | None = None,
     is_wheel_disabled: bool | None = None,
-    # format_options, # omitted because need to connect it to Deephaven formatting options as well
+    format_options: NumberFieldFormatOptions | None = None,
     is_disabled: bool | None = None,
     is_read_only: bool | None = None,
     is_required: bool | None = None,
@@ -186,6 +184,7 @@ def number_field(
         decrement_aria_label=decrement_aria_label,
         increment_aria_label=increment_aria_label,
         is_wheel_disabled=is_wheel_disabled,
+        format_options=format_options,
         is_disabled=is_disabled,
         is_read_only=is_read_only,
         is_required=is_required,
