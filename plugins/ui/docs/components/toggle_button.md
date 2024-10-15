@@ -29,7 +29,7 @@ my_toggle_button = ui.toggle_button(ui.icon("pin"), ui.text("Pin content"))
 
 ## Accessibility
 
-If there is no text that is passed into the toggle button, and hence, it has no visible label, the `aria_label` prop should be set for accessibility.
+If no text is passed into the toggle button, and hence, it has no visible label, the `aria_label` prop should be set for accessibility.
 
 ```python
 from deephaven import ui
