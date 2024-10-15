@@ -1,6 +1,6 @@
 # Number Field
 
-NumberFields allow users to enter a number, and increment or decrement the value using stepper buttons.
+Number fields allow users to enter a number, and increment or decrement the value using stepper buttons.
 
 ## Example
 
@@ -17,7 +17,7 @@ my_number_field = ui.number_field(
 
 ## Value
 
-A number field's value is empty by default, but the `default_value` prop can set an initial, uncontrolled value, or a controlled value can be set via the `value` prop.
+A number field's value is empty by default. The `default_value` prop can set an initial, uncontrolled value, or the `value` prop can set a controlled value.
 
 ```python
 from deephaven import ui
