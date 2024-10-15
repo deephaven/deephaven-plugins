@@ -14,6 +14,7 @@ import {
   resolveCssVariablesInRecord,
   useStyleProps,
   useTheme,
+  viewStyleProps,
 } from '@deephaven/components';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import { TableUtils } from '@deephaven/jsapi-utils';
@@ -55,12 +56,32 @@ export function UITable({
   ...userStyleProps
 }: UITableProps): JSX.Element | null {
   const [error, setError] = useState<unknown>(null);
-  const { styleProps } = useStyleProps(userStyleProps);
 
   if (error != null) {
     // Re-throw the error so that the error boundary can catch it
     throw error;
   }
+
+  // Margin looks wrong with ui.table, so we want to map margin to padding instead
+  const {
+    margin,
+    marginTop,
+    marginLeft,
+    marginRight,
+    marginBottom,
+    ...restStyleProps
+  } = userStyleProps ?? {};
+  const { styleProps } = useStyleProps(
+    {
+      padding: margin,
+      paddingTop: marginTop,
+      paddingLeft: marginLeft,
+      paddingRight: marginRight,
+      paddingBottom: marginBottom,
+      ...restStyleProps,
+    },
+    viewStyleProps // Needed so spectrum applies styles from view instead of base which doesn't have padding
+  );
 
   const dh = useApi();
   const theme = useTheme();
@@ -263,6 +284,29 @@ export function UITable({
 
   // We want to clean up the model when we unmount or get a new model
   useEffect(() => () => model?.close(), [model]);
+
+  // const {
+  //   margin,
+  //   marginTop,
+  //   marginLeft,
+  //   marginRight,
+  //   marginBottom,
+  //   ...remainingStyle
+  // } = styleProps.style ?? {};
+  // const style = {
+  //   ...remainingStyle,
+  // };
+
+  // if (margin !== undefined) {
+  //   style.padding = margin;
+  // } else {
+  //   style.marginTop = marginTop;
+  //   style.marginLeft = marginLeft;
+  //   style.marginRight = marginRight;
+  //   style.marginBottom = marginBottom;
+  // }
+
+  // console.log(style);
 
   return model ? (
     <div
