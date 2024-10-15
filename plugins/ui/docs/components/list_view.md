@@ -24,11 +24,11 @@ my_list_view = ui_list_view()
 
 ## Table Source Example
 
-List view items can also be generated from a table directly or using item_table_source.
+List view items can also be generated from a table directly or using `item_table_source`.
 
 ### Passing Table Directly
 
-Ideal to quickly display a static dataset. The first column is used as the key and label by default.
+This method is ideal for quickly displaying a static dataset. By default, the first column is used as the key and label.
 
 ```python
 from deephaven import ui, new_table
@@ -51,7 +51,7 @@ my_list_view_table = ui_list_view_table()
 
 ### Using item_table_source
 
-Used for creating complex items from a table (ie. defining which columns are the keys/labels of the data)
+`item_table_source` is used to create complex items from a table (ie., defining which columns are the keys/labels of the data).
 
 ```python
 from deephaven import ui, new_table
@@ -155,7 +155,7 @@ my_list_view_selection = ui_list_view_selection()
 
 ## Disabled Options
 
-To disable certain rows in the ListView component, use the `disabled_keys` prop. By setting this prop with an array of keys, you can prevent interaction with those rows, providing greater control and customization options for the ListView behavior.
+To disable certain rows in the `ListView` component, use the `disabled_keys` prop. By setting this prop with an array of keys, you can prevent interaction with those rows, providing greater control and customization options for the `ListView` behavior.
 
 ```python
 from deephaven import ui, new_table
@@ -224,7 +224,7 @@ my_list_view_quiet = ui_list_view_quiet()
 
 ## Modifying Density
 
-To adjust the vertical padding of each row in the ListView, use the `density` prop.
+To adjust the vertical padding of each row in the list view, use the `density` prop.
 
 ```python
 from deephaven import ui
