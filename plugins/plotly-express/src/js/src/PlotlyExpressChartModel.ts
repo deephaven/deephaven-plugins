@@ -237,7 +237,7 @@ export class PlotlyExpressChartModel extends ChartModel {
    */
   handleWebGlAllowed(
     webgl: boolean | undefined,
-    prevWebgl: boolean | undefined
+    prevWebgl: boolean | undefined = undefined
   ): void {
     if (webgl != null) {
       setWebGlTraceType(this.plotlyData, webgl, this.webGlTraceIndices);
