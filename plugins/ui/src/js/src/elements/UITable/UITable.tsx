@@ -66,18 +66,22 @@ export function UITable({
   const {
     margin,
     marginTop,
-    marginLeft,
-    marginRight,
     marginBottom,
+    marginStart,
+    marginEnd,
+    marginX,
+    marginY,
     ...restStyleProps
   } = userStyleProps ?? {};
   const { styleProps } = useStyleProps(
     {
       padding: margin,
       paddingTop: marginTop,
-      paddingLeft: marginLeft,
-      paddingRight: marginRight,
       paddingBottom: marginBottom,
+      paddingStart: marginStart,
+      paddingEnd: marginEnd,
+      paddingX: marginX,
+      paddingY: marginY,
       ...restStyleProps,
     },
     viewStyleProps // Needed so spectrum applies styles from view instead of base which doesn't have padding
@@ -284,29 +288,6 @@ export function UITable({
 
   // We want to clean up the model when we unmount or get a new model
   useEffect(() => () => model?.close(), [model]);
-
-  // const {
-  //   margin,
-  //   marginTop,
-  //   marginLeft,
-  //   marginRight,
-  //   marginBottom,
-  //   ...remainingStyle
-  // } = styleProps.style ?? {};
-  // const style = {
-  //   ...remainingStyle,
-  // };
-
-  // if (margin !== undefined) {
-  //   style.padding = margin;
-  // } else {
-  //   style.marginTop = marginTop;
-  //   style.marginLeft = marginLeft;
-  //   style.marginRight = marginRight;
-  //   style.marginBottom = marginBottom;
-  // }
-
-  // console.log(style);
 
   return model ? (
     <div
