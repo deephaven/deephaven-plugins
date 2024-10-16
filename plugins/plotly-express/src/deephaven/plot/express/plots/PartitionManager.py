@@ -666,6 +666,16 @@ class PartitionManager:
 
             figs.append(fig)
 
+        if "strip" in self.groups:
+            # Normally, strip plots are created by creating a box plot then hiding the boxes
+            # with a rgba line color with alpha set to 0.
+            # This conflicts with our theming since we remove the point color,
+            # which then inherits the transparent line color instead of the layout colorway
+            # color where our theme colors are set.
+            # Instead, we remove the line color and hide the box with a line width of 0.
+            for fig in figs:
+                fig.get_plotly_fig().update_traces(line_color=None, line_width=0)
+
         try:
             layered_fig = atomic_layer(*figs, which_layout=0)
         except ValueError:
