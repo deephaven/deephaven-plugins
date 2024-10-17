@@ -104,7 +104,7 @@ def extract_list_item(node: docutils.nodes.list_item) -> ParamData:
     Returns:
         The param data
     """
-    field = node.astext().replace("\n", "<br />")
+    field = node.astext().replace("\n", " ")
     try:
         match = re.match(r"(.+?) \((.*?)\) -- (.+)", field, re.DOTALL)
         if match is None:
