@@ -98,6 +98,10 @@
             "path": "components/table.md"
           },
           {
+            "label": "tabs",
+            "path": "components/tabs.md"
+          },
+          {
             "label": "text",
             "path": "components/text.md"
           },
