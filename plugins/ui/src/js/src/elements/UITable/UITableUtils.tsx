@@ -37,8 +37,19 @@ export type DatabarConfig = {
   markers?: { value: number | string; color?: string }[];
 };
 
+export type FormattingRule = {
+  cols?: ColumnName | ColumnName[];
+  where?: string;
+  color?: string;
+  background_color?: string;
+  alignment?: 'left' | 'center' | 'right';
+  value?: string;
+  mode?: DatabarConfig;
+};
+
 export type UITableProps = {
   table: dh.WidgetExportedObject;
+  formatting?: FormattingRule[];
   onCellPress?: (data: CellData) => void;
   onCellDoublePress?: (data: CellData) => void;
   onRowPress?: (rowData: RowDataMap) => void;

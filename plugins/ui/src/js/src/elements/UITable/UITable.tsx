@@ -42,6 +42,7 @@ function useStableArray<T>(array: T[]): T[] {
 }
 
 export function UITable({
+  formatting,
   onCellPress,
   onCellDoublePress,
   onColumnPress,
@@ -90,6 +91,8 @@ export function UITable({
     hiddenColumns,
     columnGroups,
   });
+
+  const [format] = useState(formatting ?? []);
   const [databars] = useState(databarsProp ?? []);
 
   const databarColorMap = useMemo(() => {
@@ -177,7 +180,8 @@ export function UITable({
           dh,
           table,
           databars,
-          layoutHints
+          layoutHints,
+          format
         );
         if (!isCancelled) {
           setError(null);
@@ -198,7 +202,7 @@ export function UITable({
     return () => {
       isCancelled = true;
     };
-  }, [databars, dh, exportedTable, layoutHints]);
+  }, [databars, dh, exportedTable, layoutHints, format]);
 
   const modelColumns = model?.columns ?? EMPTY_ARRAY;
 

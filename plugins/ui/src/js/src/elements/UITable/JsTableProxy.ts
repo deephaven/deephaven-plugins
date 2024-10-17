@@ -21,7 +21,11 @@ interface JsTableProxy extends dh.Table {}
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 class JsTableProxy implements dh.Table {
-  static HIDDEN_COLUMN_SUFFIXES = ['__DATABAR_Min', '__DATABAR_Max'];
+  static HIDDEN_COLUMN_SUFFIXES = [
+    '__DATABAR_Min',
+    '__DATABAR_Max',
+    '__FORMAT',
+  ];
 
   private table: dh.Table;
 

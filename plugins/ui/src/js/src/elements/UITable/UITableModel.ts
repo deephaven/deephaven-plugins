@@ -3,24 +3,28 @@ import {
   DataBarOptions,
   CellRenderType,
   ModelIndex,
+  GridColor,
+  NullableGridColor,
 } from '@deephaven/grid';
 import {
   ColumnName,
   IrisGridModel,
   IrisGridModelFactory,
+  type IrisGridThemeType,
   isIrisGridTableModelTemplate,
   UIRow,
 } from '@deephaven/iris-grid';
 import { TableUtils } from '@deephaven/jsapi-utils';
 import { type dh as DhType } from '@deephaven/jsapi-types';
-import { ColorGradient, DatabarConfig } from './UITableUtils';
+import { ColorGradient, DatabarConfig, FormattingRule } from './UITableUtils';
 import JsTableProxy, { UITableLayoutHints } from './JsTableProxy';
 
 export async function makeUiTableModel(
   dh: typeof DhType,
   table: DhType.Table,
   databars: DatabarConfig[],
-  layoutHints: UITableLayoutHints
+  layoutHints: UITableLayoutHints,
+  format: FormattingRule[]
 ): Promise<UITableModel> {
   const joinColumns: string[] = [];
   const totalsOperationMap: Record<string, string[]> = {};
@@ -56,6 +60,16 @@ export async function makeUiTableModel(
 
   let baseTable = table;
 
+  const customColumns: string[] = [];
+  format.forEach((rule, i) => {
+    const { where } = rule;
+    if (where != null) {
+      customColumns.push(`_${i}__FORMAT=${where}`);
+    }
+  });
+
+  baseTable.applyCustomColumns(customColumns);
+
   if (joinColumns.length > 0) {
     const totalsTable = await table.getTotalsTable({
       operationMap: totalsOperationMap,
@@ -80,6 +94,7 @@ export async function makeUiTableModel(
     model: baseModel,
     table: uiTableProxy,
     databars,
+    format,
   });
 }
 
@@ -105,16 +120,20 @@ class UITableModel extends IrisGridModel {
 
   private databarColorMap: Map<string, string> = new Map();
 
+  private format: FormattingRule[];
+
   constructor({
     dh,
     model,
     table,
     databars,
+    format,
   }: {
     dh: typeof DhType;
     model: IrisGridModel;
     table: DhType.Table;
     databars: DatabarConfig[];
+    format: FormattingRule[];
   }) {
     super(dh);
 
@@ -125,6 +144,8 @@ class UITableModel extends IrisGridModel {
     databars.forEach(databar => {
       this.databars.set(databar.column, databar);
     });
+
+    this.format = format;
 
     // eslint-disable-next-line no-constructor-return
     return new Proxy(this, {
@@ -329,6 +350,105 @@ class UITableModel extends IrisGridModel {
       direction,
       value,
     };
+  }
+
+  override colorForCell(
+    column: ModelIndex,
+    row: ModelIndex,
+    theme: IrisGridThemeType
+  ): GridColor {
+    if (!isIrisGridTableModelTemplate(this.model)) {
+      return this.model.colorForCell(column, row, theme);
+    }
+    const columnName = this.columns[column].name;
+    for (let i = 0; i < this.format.length; i += 1) {
+      const rule = this.format[i];
+      const { cols, where, color } = rule;
+      if (color == null) {
+        continue;
+      }
+      if (cols == null || cols.includes(columnName)) {
+        if (where == null) {
+          return color;
+        }
+        const rowValues = this.model.row(row)?.data;
+        if (rowValues == null) {
+          return this.model.colorForCell(column, row, theme);
+        }
+        const whereValue = rowValues.get(`_${i}__FORMAT`)?.value;
+        if (whereValue === true) {
+          return color;
+        }
+      }
+    }
+    return this.model.colorForCell(column, row, theme);
+  }
+
+  override textAlignForCell(
+    column: ModelIndex,
+    row: ModelIndex
+  ): CanvasTextAlign {
+    if (!isIrisGridTableModelTemplate(this.model)) {
+      return this.model.textAlignForCell(column, row);
+    }
+    const columnName = this.columns[column].name;
+    for (let i = 0; i < this.format.length; i += 1) {
+      const rule = this.format[i];
+      const { cols, where, alignment } = rule;
+      if (alignment == null) {
+        continue;
+      }
+      if (cols == null || cols.includes(columnName)) {
+        if (where == null) {
+          return alignment;
+        }
+        const rowValues = this.model.row(row)?.data;
+        if (rowValues == null) {
+          return this.model.textAlignForCell(column);
+        }
+        const whereValue = rowValues.get(`_${i}__FORMAT`)?.value;
+        if (whereValue === true) {
+          return alignment;
+        }
+      }
+    }
+    return this.model.textAlignForCell(column);
+  }
+
+  override backgroundColorForCell(
+    column: ModelIndex,
+    row: ModelIndex,
+    theme: IrisGridThemeType
+  ): NullableGridColor {
+    if (!isIrisGridTableModelTemplate(this.model)) {
+      return this.model.backgroundColorForCell(column, row, theme);
+    }
+    const columnName = this.columns[column].name;
+    for (let i = 0; i < this.format.length; i += 1) {
+      const rule = this.format[i];
+      const { cols, where, background_color: backgroundColor } = rule;
+      if (backgroundColor == null) {
+        continue;
+      }
+      if (cols == null || cols.includes(columnName)) {
+        if (where == null) {
+          return backgroundColor;
+        }
+        const rowValues = this.model.row(row)?.data;
+        if (rowValues == null) {
+          return this.model.backgroundColorForCell(column, row, theme);
+        }
+        const whereValue = rowValues.get(`_${i}__FORMAT`)?.value;
+        if (whereValue === true) {
+          return backgroundColor;
+        }
+      }
+    }
+    return this.model.backgroundColorForCell(column, row, theme);
+  }
+
+  override textForCell(column: ModelIndex, row: ModelIndex): string {
+    return this.model.textForCell(column, row);
   }
 }
 
