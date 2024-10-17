@@ -248,11 +248,10 @@ export class PlotlyExpressChartModel extends ChartModel {
         !webgl &&
         !this.hasAcknowledgedWebGlWarning
       ) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         this.fireBlocker([
           'WebGL is disabled but this chart cannot render without it. Check the Advanced section in the settings to enable WebGL or click below to render with WebGL for this chart.',
         ]);
-      } else if (webgl === true && prevWebgl === false) {
+      } else if (webgl === true && (prevWebgl === false || prevWebgl == null)) {
         // clear the blocker but not the acknowledged flag in case WebGL is disabled again
         super.fireBlockerClear();
       }
