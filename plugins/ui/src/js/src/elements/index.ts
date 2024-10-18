@@ -3,6 +3,7 @@ export * from './ActionGroup';
 export * from './Button';
 export * from './Calendar';
 export * from './ComboBox';
+export * from './ContextualHelp';
 export * from './DateField';
 export * from './DatePicker';
 export * from './DateRangePicker';
