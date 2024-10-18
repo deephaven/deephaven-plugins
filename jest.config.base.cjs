@@ -1,11 +1,48 @@
 const path = require('path');
 
+// List of node_modules that need to be transformed from ESM to CJS for jest to work
+const nodeModulesToTransform = [
+  '@deephaven',
+  'nanoid',
+  // monaco
+  'monaco-editor',
+  // plotly.js dependencies
+  'd3-interpolate',
+  'd3-color',
+  // react-markdown and its dependencies
+  'react-markdown',
+  'vfile',
+  'vfile-message',
+  'unist-util.*',
+  'unified',
+  'bail',
+  'is-plain-obj',
+  'trough',
+  'remark.*',
+  'mdast-util.*',
+  'micromark.*',
+  'decode-named-character-reference',
+  'trim-lines',
+  'property-information',
+  'hast-util.*',
+  '.*separated-tokens',
+  'ccount',
+  'devlop',
+  'escape-string-regexp',
+  'markdown-table',
+  'zwitch',
+  'longest-streak',
+  'rehype.*',
+  'web-namespaces',
+  'hastscript',
+];
+
 module.exports = {
   transform: {
     '^.+\\.(ts|tsx|js|jsx)$': ['babel-jest', { rootMode: 'upward' }],
   },
   transformIgnorePatterns: [
-    '/node_modules/(?!(@deephaven|monaco-editor|d3-interpolate|d3-color|nanoid)/)',
+    `node_modules/(?!(${nodeModulesToTransform.join('|')})/)`,
   ],
   moduleNameMapper: {
     'theme-([^/]+?)\\.css(\\?(?:inline|raw))?$': path.join(
