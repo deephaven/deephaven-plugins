@@ -107,6 +107,7 @@ def number_field(
         decrement_aria_label: The aria label for the decrement stepper button. If not provided, the default is "Decrement"
         increment_aria_label: The aria label for the increment stepper button. If not provided, the default is "Increment"
         is_wheel_disabled: Whether the input should change with scroll
+        format_options: Options for formatting the displayed value, which also restricts input characters.
         is_disabled: Whether the input should be disabled
         is_read_only: Whether the input scan be selected but not changed by the user
         is_required: Whether the input is required before form submission
