@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { DateValue, CalendarDateTime } from '@internationalized/date';
+import { DateValue } from '@internationalized/date';
 import {
   DeserializedFocusEventCallback,
   SerializedFocusEventCallback,
@@ -16,6 +16,7 @@ import {
   Granularity,
   parseDateValue,
   parseNullableDateValue,
+  dateValuetoIsoString,
 } from '../utils/DateTimeUtils';
 
 export type SerializedDateValue = string | null;
@@ -123,12 +124,7 @@ export function serializeDateValue(
     return null;
   }
 
-  if (value instanceof CalendarDateTime) {
-    // Use Instance for CalendarDateTime
-    return `${value.toString()}Z`;
-  }
-
-  return value.toString();
+  return dateValuetoIsoString(value);
 }
 
 /**

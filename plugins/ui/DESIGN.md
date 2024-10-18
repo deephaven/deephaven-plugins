@@ -1825,7 +1825,6 @@ date_range_picker1 = ui.date_range_picker(
 # this creates a date picker with a granularity of seconds in UTC
 # the on_change handler is passed a range of instants
 dates2, set_dates2 = ui.use_state({"start": instant_start, "end": instant_end})
-
 date_range_picker2 = ui.date_range_picker(
     value=dates2,
     on_change=set_dates2
@@ -2068,6 +2067,139 @@ ui.picker(
     on_change: Callable[[Key], None] | None = None,
     **props: Any
 ) -> PickerElement
+```
+
+###### ui.range_calendar
+
+A calendar that can be used to select a range of dates.
+
+The range is a dictionary with a `start` date and an `end` date; e.g., `{ "start": "2024-01-02", "end": "2024-01-05" }`
+
+The range calendar accepts the following date types as inputs:
+
+- `None`
+- `LocalDate`
+- `ZoneDateTime`
+- `Instant`
+- `int`
+- `str`
+- `datetime.datetime`
+- `numpy.datetime64`
+- `pandas.Timestamp`
+
+The input will be converted to one of three Java date types:
+
+1. `LocalDate`: A LocalDate is a date without a time zone in the ISO-8601 system, such as "2007-12-03" or "2057-01-28".
+2. `Instant`: An Instant represents an unambiguous specific point on the timeline, such as 2021-04-12T14:13:07 UTC.
+3. `ZonedDateTime`: A ZonedDateTime represents an unambiguous specific point on the timeline with an associated time zone, such as 2021-04-12T14:13:07 America/New_York.
+
+The format of the range calendar and the type of the value passed to the `on_change` handler
+is determined by the type of the following props in order of precedence:
+
+1. `value`
+2. `default_value`
+3. `focused_value`
+4. `default_focused_value`
+
+If none of these are provided, the `on_change` handler passes a range of `Instant`.
+
+```py
+import deephaven.ui as ui
+ui.range_calendar(
+    value: DateRange | None = None,
+    default_value: DateRange | None = None,
+    focused_value: Date | None = None,
+    default_focused_value: Date | None = None,
+    min_value: Date | None = None,
+    max_value: Date | None = None,
+    on_change: Callable[[DateRange], None] | None = None,
+    **props: Any
+) -> RangeCalendarElement
+```
+
+###### Parameters
+
+| Parameter               | Type                                  | Description                                                                                        |
+| ----------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `value`                 | `DateRange \| None`                   | The current value (controlled).                                                                    |
+| `default_value`         | `DateRange \| None`                   | The default value (uncontrolled).                                                                  |
+| `focused_value`         | `Date \| None`                        | The focused value (controlled).                                                                    |
+| `default_focused_value` | `Date \| None`                        | The default focused value (uncontrolled).                                                          |
+| `min_value`             | `Date \| None`                        | The minimum allowed date that a user may select.                                                   |
+| `max_value`             | `Date \| None`                        | The maximum allowed date that a user may select.                                                   |
+| `on_change`             | `Callable[[DateRange], None] \| None` | Handler that is called when the value changes.                                                     |
+| `**props`               | `Any`                                 | Any other [RangeCalendar](https://react-spectrum.adobe.com/react-spectrum/RangeCalendar.html) prop |
+
+```py
+
+import deephaven.ui as ui
+from deephaven.time import to_j_local_date, dh_today, to_j_instant, to_j_zdt
+
+zdt_start = to_j_zdt("1995-03-22T11:11:11.23142 America/New_York")
+zdt_end = to_j_zdt("1995-03-25T11:11:11.23142 America/New_York")
+instant_start = to_j_instant("2022-01-01T00:00:00 ET")
+instant_end = to_j_instant("2022-01-05T00:00:00 ET")
+local_start = to_j_local_date("2024-05-06")
+local_end = to_j_local_date("2024-05-10")
+
+# simple range calendar that takes a range and is uncontrolled
+range_calendar1 = ui.range_calendar(
+    default_value={"start": local_start, "end": local_end}
+)
+
+# simple range calendar that takes a range directly and is controlled
+# the on_change handler is passed a range of instants
+dates, set_dates = ui.use_state({"start": instant_start, "end": instant_end})
+
+range_calendar2 = ui.range_calendar(
+    value=dates,
+    on_change=set_dates
+)
+
+# this creates a range calendar in the specified time zone
+# the on_change handler is passed a zoned date time
+dates, set_dates = ui.use_state(None)
+
+range_calendar3 = ui.range_calendar(
+    default_value=zdt_start,
+    on_change=set_dates
+)
+
+# this creates a range calendar in UTC
+# the on_change handler is passed an instant
+dates, set_dates = ui.use_state(None)
+
+range_calendar4 = ui.range_calendar(
+    default_value=instant_start,
+    on_change=set_dates
+)
+
+# this creates a range calendar
+# the on_change handler is passed a local date
+dates, set_dates = ui.use_state(None)
+
+range_calendar5 = ui.range_calendar(
+    default_value=local_start,
+    on_change=set_dates
+)
+
+# this creates a range calendar the on_change handler is passed an instant
+dates, set_dates = ui.use_state(None)
+
+range_calendar7 = ui.range_calendar(
+    on_change=set_dates
+)
+
+# this create a calendar, a min and max value
+min_value = to_j_local_date("2022-01-01")
+max_value = to_j_local_date("2022-12-31")
+dates, set_dates = ui.use_state({"start": local_start, "end": local_end})
+range_calendar8 = ui.range_calendar(
+    value=dates,
+    min_value=min_value,
+    max_value=max_value,
+    on_change=set_dates
+)
 ```
 
 ###### Parameters
@@ -2543,6 +2675,71 @@ ui_table.sort(
 | ----------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
 | `by`        | `str \| Sequence[str]`                                       | The column(s) to sort by. May be a single column name, or a list of column names.                           |
 | `direction` | `TableSortDirection \| Sequence[TableSortDirection] \| None` | The sort direction(s) to use. If provided, that must match up with the columns provided. Defaults to "ASC". |
+
+##### ui.table Formatting Rules
+
+Tables can be formatted via the `formatting` prop and a Dataclass that contains the different formatting options. We choose to use Dataclass as effectively a more strict dictionary. This allows for better type checking and easier to understand code.
+
+Formatting can be a variety of different options including background color, font, font color, font size, text alignment, cell rendering mode (data bars, button, etc.), and number formatting. It can be thought of as any visual manipulation of the base table display and should be flexible enough to allow for any kind of formatting that the user desires (assuming the rule is supported).
+
+The formatting rules should have 3 main properties:
+
+1. The formatting to apply.
+2. Where to apply the formatting.
+3. An optional conditional expression that will determine if the formatting should be applied (the `where` arg).
+
+Outside of these 3 properties, it is up to the Dataclass to identify what kind of formatting it is and up to the web to apply that formatting.
+
+On the client, formatting rules should be applied in the order they are defined in the list and stop as soon as a rule is applied. This should only prevent later rules from being applied if they are the same type of rule. For example, if a color rule is applied to a cell, a number formatting rule should still be applied to that cell if it is defined later in the list, but another color rule should not be applied.
+
+We will use a single dataclass that encompasses both row and column formatting. If `cols` is provided, it is a column rule, else it is a row rule. This dataclass will support the different formatting types as a keyword argument. This allows for multiple different formatting rules to be applied to a column or row with the same condition without repeating.
+
+In the future we may implement column and row formatting dataclasses which would extend the main formatting class and require or prohibit `cols`.
+
+We should support some method of applying value formatting to all columns that support it. This would be useful for number formatting, date formatting, etc. We could support `cols="*"` or if there is no `cols` (indicating a row rule), we could apply the value formatting to all columns that are supported in the matching rows (or all rows if no `where`).
+
+We could also support regex (or just wildcards) in the `cols` field to apply the rule to multiple columns at once. This could be useful if a user wanted to format all columns that end in percent as a percentage. Something like `FORMAT(cols="*Percent", format="0.00%")`. We could require regex strings be surrounded by `/` to differentiate them from normal strings with wildcards.
+
+```py
+from deephaven import ui, time_table
+
+_t = time_table("PT1S").update("X=i % 10", "Y=i % 10", "Z=i % 100")
+
+t = ui.table(
+    t,
+    formatting=[
+        ui.table.FORMAT(cols="X", color="RED"),
+        ui.table.FORMAT(cols="Y", color="BLUE", where="Y % 2 == 0"),
+        ui.table.FORMAT(cols="Y", value="0.00"),
+        ui.table.FORMAT(cols=["A", "B"], color="PURPLE", value="0.00%", where="A > 5"),
+        ui.table.FORMAT(cols="Z", mode=ui.table.DATABAR(value_col="Z", min=0, max=100, positive_color="GREEN", negative_color="RED"),
+        ui.table.FORMAT(where="X > 5", color="GREEN")
+    ]
+)
+```
+
+##### ui.table Formatting Rule Types
+
+There are 3 main types of formatting rules: those which affect basic visual aspects (color, font, etc.), those which affect the display value (number formatting, etc.), and those which affect the cell rendering mode (data bars, buttons, etc.). Multiple different visual rules can be applied at the same time, but only one display value rule and one cell rendering mode rule can be applied at a time. It doesn't make sense to have a cell that is both a data bar and a button, for example. If a rule is applied conditionally, multiple display or cell rendering rules should be allowed to be applied in a column.
+
+Some examples of potential rules that fall into each category:
+
+1. Visual (each should have a keyword arg in the dataclass)
+   - Background Color
+   - Font
+   - Font Color
+   - Font Size
+   - Text Alignment
+2. Display Value (one keyword arg such as `display` in the dataclass)
+   - Number Formatting
+   - Date Formatting
+   - DateTime Formatting
+   - String Formatting
+3. Cell Rendering Mode (one keyword arg such as `mode` in the dataclass)
+   - Data Bars
+   - Buttons
+   - Checkboxes
+   - Icons
 
 ###### ui.time_field
 

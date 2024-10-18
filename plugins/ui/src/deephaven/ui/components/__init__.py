@@ -8,6 +8,7 @@ from .button import button
 from .button_group import button_group
 from .calendar import calendar
 from .checkbox import checkbox
+from .checkbox_group import checkbox_group
 from .column import column
 from .combo_box import combo_box
 from .content import content
@@ -37,6 +38,7 @@ from .progress_bar import progress_bar
 from .progress_circle import progress_circle
 from .radio import radio
 from .radio_group import radio_group
+from .range_calendar import range_calendar
 from .range_slider import range_slider
 from .row import row
 from .section import section
@@ -67,6 +69,7 @@ __all__ = [
     "button_group",
     "calendar",
     "checkbox",
+    "checkbox_group",
     "column",
     "combo_box",
     "component",
@@ -97,6 +100,7 @@ __all__ = [
     "progress_circle",
     "radio",
     "radio_group",
+    "range_calendar",
     "range_slider",
     "row",
     "section",

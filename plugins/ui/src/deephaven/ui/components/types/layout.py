@@ -129,7 +129,6 @@ JustifyItems = Literal[
 Overflow = Union[Literal["visible", "hidden", "clip", "scroll", "auto"], str]
 
 OverflowMode = Literal["wrap", "collapse"]
-
 Alignment = Literal["start", "end"]
 
 ButtonGroupAlignment = Literal["start", "center", "end"]
