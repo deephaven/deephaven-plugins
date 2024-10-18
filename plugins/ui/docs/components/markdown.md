@@ -1,6 +1,6 @@
 # Markdown
 
-The markdown components renders a string in the CommonMark standard. The component also supports LaTeX (through MathJax), with `remark-math` and `rehype-mathjax`. Other plugins and markdown components are not supported. The markdown is wrapped in a `View`, which all props are passed to except for `children`.
+The markdown component renders a string in the CommonMark standard. It also supports LaTeX (through MathJax), with `remark-math` and `rehype-mathjax`. Other plugins and markdown components are not supported. The markdown is wrapped in a `View`, which all props are passed to except for `children`.
 
 For individual lines of text, consider using `ui.text` and `ui.heading` instead.
 
@@ -37,7 +37,7 @@ ui_markdown_example = ui_markdown()
 
 ## LaTeX
 
-When writing LaTeX, be careful on how Python handles backslashes with escape characters. It is recommended to use raw strings to minimize this issue.
+When writing LaTeX, be careful how Python handles backslashes with escape characters. To minimize this issue, it is recommended to use raw strings.
 
 ```python
 from deephaven import ui
