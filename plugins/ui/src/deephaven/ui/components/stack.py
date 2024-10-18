@@ -11,7 +11,6 @@ def stack(
     width: float | None = None,
     active_item_index: int | None = None,
     key: str | None = None,
-    **kwargs: Any,
 ) -> Element:
     """
     A stack is a container that can be used to group elements which creates a set of tabs.
