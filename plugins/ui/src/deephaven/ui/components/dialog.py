@@ -129,6 +129,5 @@ def dialog(
     Returns:
         The dialog element.
     """
-    _, props = create_props(locals())
-
-    return component_element("Dialog", **props)
+    children, props = create_props(locals())
+    return component_element("Dialog", *children, **props)
