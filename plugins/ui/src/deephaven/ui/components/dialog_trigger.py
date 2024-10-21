@@ -32,7 +32,7 @@ def dialog_trigger(
     """
     A contextual help is a quiet action button that triggers an informational popover.
     Args:
-        *children: The children of the contextual help popover.
+        *children: The Dialog and its trigger element.
         type: The type of Dialog that should be rendered.
         mobile_type: 	The type of Dialog that should be rendered when on a mobile device.
         placement: The placement of the popover relative to the action button.
@@ -48,6 +48,9 @@ def dialog_trigger(
         is_keyboard_dismiss_disabled: Whether pressing the escape key to close the dialog should be disabled.
         on_open_change: Handler that is called when the overlay's open state changes.
         key: A unique identifier used by React to render elements in a list.
+
+    Returns:
+        The dialog trigger element.
     """
     children, props = create_props(locals())
     return component_element("DialogTrigger", *children, **props)

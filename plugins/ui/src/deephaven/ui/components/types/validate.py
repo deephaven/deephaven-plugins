@@ -29,3 +29,5 @@ DialogTriggerTypes = Literal[
     "modal", "popover", "tray", "fullscreen", "fullscreenTakeover"
 ]
 DialogTriggerMobileTypes = Literal["modal", "fullscreen", "fullscreenTakeover"]
+
+DialogSize = Literal["S", "M", "L"]
