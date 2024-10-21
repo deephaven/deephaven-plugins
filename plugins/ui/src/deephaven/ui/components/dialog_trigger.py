@@ -14,7 +14,7 @@ from ..hooks.use_ref import Ref
 def dialog_trigger(
     *children: Any,
     type: DialogTriggerTypes | None = "modal",
-    mobile_type: DialogTriggerMobileTypes | None,
+    mobile_type: DialogTriggerMobileTypes | None = None,
     placement: Placement | None = "bottom",
     is_open: bool | None = None,
     default_open: bool | None = None,
