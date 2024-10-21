@@ -5,6 +5,8 @@ import {
   ModelIndex,
   GridColor,
   NullableGridColor,
+  memoizeClear,
+  GridRenderer,
 } from '@deephaven/grid';
 import {
   ColumnName,
@@ -352,35 +354,83 @@ class UITableModel extends IrisGridModel {
     };
   }
 
+  getFormatOptionForCell<K extends keyof FormattingRule>(
+    column: ModelIndex,
+    row: ModelIndex,
+    formatKey: K
+  ): FormattingRule[K] | undefined {
+    if (!isIrisGridTableModelTemplate(this.model)) {
+      return undefined;
+    }
+    const columnName = this.columns[column].name;
+    for (let i = 0; i < this.format.length; i += 1) {
+      const rule = this.format[i];
+      const { cols, where, [formatKey]: formatValue } = rule;
+      if (formatValue == null) {
+        // eslint-disable-next-line no-continue
+        continue;
+      }
+      if (cols == null || cols.includes(columnName)) {
+        if (where == null) {
+          return formatValue;
+        }
+        const rowValues = this.model.row(row)?.data;
+        if (rowValues == null) {
+          return undefined;
+        }
+        const whereValue = rowValues.get(`_${i}__FORMAT`)?.value;
+        if (whereValue === true) {
+          return formatValue;
+        }
+      }
+    }
+    return undefined;
+  }
+
+  getCachedFormatForCell = memoizeClear(
+    (
+      format: DhType.Format | undefined,
+      formatString: string | null | undefined
+    ): DhType.Format | undefined => ({
+      ...format,
+      formatString,
+    }),
+    { max: 10000 }
+  );
+
+  override formatForCell(
+    column: ModelIndex,
+    row: ModelIndex
+  ): DhType.Format | undefined {
+    const format = this.model.formatForCell(column, row);
+    return this.getCachedFormatForCell(
+      format,
+      this.getFormatOptionForCell(column, row, 'value') ?? format?.formatString
+    );
+  }
+
   override colorForCell(
     column: ModelIndex,
     row: ModelIndex,
     theme: IrisGridThemeType
   ): GridColor {
-    if (!isIrisGridTableModelTemplate(this.model)) {
-      return this.model.colorForCell(column, row, theme);
+    const color = this.getFormatOptionForCell(column, row, 'color');
+    if (color != null) {
+      return color;
     }
-    const columnName = this.columns[column].name;
-    for (let i = 0; i < this.format.length; i += 1) {
-      const rule = this.format[i];
-      const { cols, where, color } = rule;
-      if (color == null) {
-        continue;
-      }
-      if (cols == null || cols.includes(columnName)) {
-        if (where == null) {
-          return color;
-        }
-        const rowValues = this.model.row(row)?.data;
-        if (rowValues == null) {
-          return this.model.colorForCell(column, row, theme);
-        }
-        const whereValue = rowValues.get(`_${i}__FORMAT`)?.value;
-        if (whereValue === true) {
-          return color;
-        }
-      }
+
+    const backgroundColor = this.getFormatOptionForCell(
+      column,
+      row,
+      'background_color'
+    );
+
+    if (backgroundColor != null) {
+      const isDarkBackground =
+        GridRenderer.getCachedColorIsDark(backgroundColor);
+      return isDarkBackground ? theme.white : theme.black;
     }
+
     return this.model.colorForCell(column, row, theme);
   }
 
@@ -388,31 +438,10 @@ class UITableModel extends IrisGridModel {
     column: ModelIndex,
     row: ModelIndex
   ): CanvasTextAlign {
-    if (!isIrisGridTableModelTemplate(this.model)) {
-      return this.model.textAlignForCell(column, row);
-    }
-    const columnName = this.columns[column].name;
-    for (let i = 0; i < this.format.length; i += 1) {
-      const rule = this.format[i];
-      const { cols, where, alignment } = rule;
-      if (alignment == null) {
-        continue;
-      }
-      if (cols == null || cols.includes(columnName)) {
-        if (where == null) {
-          return alignment;
-        }
-        const rowValues = this.model.row(row)?.data;
-        if (rowValues == null) {
-          return this.model.textAlignForCell(column);
-        }
-        const whereValue = rowValues.get(`_${i}__FORMAT`)?.value;
-        if (whereValue === true) {
-          return alignment;
-        }
-      }
-    }
-    return this.model.textAlignForCell(column);
+    return (
+      this.getFormatOptionForCell(column, row, 'alignment') ??
+      this.model.textAlignForCell(column, row)
+    );
   }
 
   override backgroundColorForCell(
@@ -420,35 +449,10 @@ class UITableModel extends IrisGridModel {
     row: ModelIndex,
     theme: IrisGridThemeType
   ): NullableGridColor {
-    if (!isIrisGridTableModelTemplate(this.model)) {
-      return this.model.backgroundColorForCell(column, row, theme);
-    }
-    const columnName = this.columns[column].name;
-    for (let i = 0; i < this.format.length; i += 1) {
-      const rule = this.format[i];
-      const { cols, where, background_color: backgroundColor } = rule;
-      if (backgroundColor == null) {
-        continue;
-      }
-      if (cols == null || cols.includes(columnName)) {
-        if (where == null) {
-          return backgroundColor;
-        }
-        const rowValues = this.model.row(row)?.data;
-        if (rowValues == null) {
-          return this.model.backgroundColorForCell(column, row, theme);
-        }
-        const whereValue = rowValues.get(`_${i}__FORMAT`)?.value;
-        if (whereValue === true) {
-          return backgroundColor;
-        }
-      }
-    }
-    return this.model.backgroundColorForCell(column, row, theme);
-  }
-
-  override textForCell(column: ModelIndex, row: ModelIndex): string {
-    return this.model.textForCell(column, row);
+    return (
+      this.getFormatOptionForCell(column, row, 'background_color') ??
+      this.model.backgroundColorForCell(column, row, theme)
+    );
   }
 }
 
