@@ -17,7 +17,10 @@ from ..elements import Element
 
 
 def contextual_help(
-    *children: Any,
+    heading: Any,
+    content: Any,
+    footer: Any = None,
+    *,
     variant: ContextualHelperVariant | None = "help",
     placement: Placement | None = "bottom start",
     is_open: bool | None = None,
@@ -75,7 +78,9 @@ def contextual_help(
     """
     A contextual help is a quiet action button that triggers an informational popover.
     Args:
-        *children: The children of the contextual help popover.
+        heading: The heading of the popover.
+        content: The content of the popover.
+        footer: The footer of the popover.
         variant: Indicates whether contents are informative or provides helpful guidance.
         placement: The placement of the popover relative to the action button.
         is_open: Whether the popover is open by default (controlled).
@@ -132,7 +137,9 @@ def contextual_help(
     """
     return component_element(
         "ContextualHelp",
-        *children,
+        heading=heading,
+        content=content,
+        footer=footer,
         variant=variant,
         placement=placement,
         is_open=is_open,
