@@ -89,7 +89,7 @@ def action_group(
     """
     An action grouping of action items that are related to each other.
     Args:
-        *children: The children of the contextual help popover.
+        *children: The children of the action group.
         is_emphasized: Whether the action buttons should be displayed with emphasized style.
         density: Sets the amount of space between buttons.
         is_justified: Whether the ActionButtons should be justified in their container.
