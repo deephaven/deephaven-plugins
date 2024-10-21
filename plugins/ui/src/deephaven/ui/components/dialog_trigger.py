@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Callable
+from typing import Callable, Union
 from .types import (
     DialogTriggerTypes,
     DialogTriggerMobileTypes,
@@ -12,7 +12,7 @@ from ..hooks.use_ref import Ref
 
 
 def dialog_trigger(
-    *children: Any,
+    *children: Element,
     type: DialogTriggerTypes | None = "modal",
     mobile_type: DialogTriggerMobileTypes | None = None,
     placement: Placement | None = "bottom",
