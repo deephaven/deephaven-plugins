@@ -8,7 +8,6 @@ from .types import (
 from .basic import component_element
 from ..elements import Element
 from .._internal.utils import create_props
-from ..hooks.use_ref import Ref
 
 
 def dialog_trigger(
@@ -23,7 +22,6 @@ def dialog_trigger(
     cross_offset: float | None = None,
     should_flip: bool | None = None,
     hide_arrow: bool | None = None,
-    target_ref: Ref[Element | None] | None = None,
     is_dismissable: bool | None = None,
     is_keyboard_dismiss_disabled: bool | None = None,
     on_open_change: Callable[[bool], None] | None = None,
@@ -43,7 +41,6 @@ def dialog_trigger(
         cross_offset: The additional offset applied along the cross axis between the element and its anchor element.
         should_flip: Whether the element should flip its orientation when there is insufficient room for it to render completely.
         hide_arrow: Whether a popover type Dialog's arrow should be hidden.
-        target_ref: The ref of the element the Dialog should visually attach itself to. Defaults to the trigger button if not defined.
         is_dismissable: Whether a modal type Dialog should be dismissable.
         is_keyboard_dismiss_disabled: Whether pressing the escape key to close the dialog should be disabled.
         on_open_change: Handler that is called when the overlay's open state changes.
