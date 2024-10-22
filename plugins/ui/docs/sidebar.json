@@ -123,6 +123,10 @@
             "path": "hooks/use_effect.md"
           },
           {
+            "label": "use_flag",
+            "path": "hooks/use_flag.md"
+          },
+          {
             "label": "use_memo",
             "path": "hooks/use_memo.md"
           },
