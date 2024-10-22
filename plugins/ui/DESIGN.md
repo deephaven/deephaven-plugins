@@ -1874,6 +1874,75 @@ date_range_picker7 = ui.date_range_picker(
 )
 ```
 
+###### ui.dialog
+
+Dialogs are windows containing contextual information, tasks, or workflows that appear over the user interface. Depending on the kind of Dialog, further interactions may be blocked until the Dialog is acknowledged.
+
+```py
+import deephaven.ui as ui
+ui.calendar(
+    *children: Any,
+    size: DialogSize | None = None,
+    is_dismissable: bool | None = None,
+    on_dismiss: Callable[[], None] | None = None,
+    **props: Any
+) -> DialogElement
+```
+
+###### Content
+
+The content can be populated by providing the following components to your `dialog` as children:
+
+- `header` (optional)
+- `heading` (title, required)
+- `divider` (optional)
+- `content` (body, required)
+- `button_group` (optional)
+- `footer` (optional)
+
+###### Parameters
+
+| Parameter        | Type                         | Description                                                                          |
+| ---------------- | ---------------------------- | ------------------------------------------------------------------------------------ |
+| `*children*`     | `Any`                        | The contents of the Dialog.                                                          |
+| `size`           | `DialogSize \| None`         | The size of the Dialog. Only applies to "modal" type Dialogs. `S`, `M`, `L`          |
+| `is_dismissable` | `bool \| None`               | Whether the Dialog is dismissable.                                                   |
+| `on_dismiss`     | `Callable[[], None] \| None` | Handler that is called when the 'x' button of a dismissable Dialog is clicked.       |
+| `**props`        | `Any`                        | Any other [Dialog](https://react-spectrum.adobe.com/react-spectrum/Dialog.html) prop |
+
+```py
+from deephaven import ui
+
+# Open and cloased using flag (controlled)
+@ui.component
+def open_close_example():
+    is_open, set_open, set_closed = ui.use_flag()
+    return ui.dialog_trigger(
+        ui.action_button("Open dialog", on_press=set_open),
+        ui.dialog(ui.heading("Dialog"), ui.content("Close using the button."), ui.button_group(ui.button("close", on_press=set_closed))),
+        is_open=is_open
+    )
+
+my_open_close_example = open_close_example()
+
+# Dismissable (uncontrolled)
+my_dismissable = ui.dialog_trigger(
+        ui.action_button("Open dialog",),
+        ui.dialog(
+            ui.heading("Dialog"),
+            ui.content("Dismiss usin the X button."),
+            is_dismissable=True,
+            on_dismiss=lambda: print("dismissed")
+            ),
+    )
+
+# A small dialog
+my_small = ui.dialog_trigger(
+        ui.action_button("Open dialog",),
+        ui.dialog(ui.heading("Dialog"), ui.content("Dismiss usin the X button."), is_dismissable=True, size="S"),
+    )
+```
+
 ##### ui.combo_box
 
 A combo_box that can be used to search or select from a list. Children should be one of five types:
