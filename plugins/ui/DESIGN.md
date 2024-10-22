@@ -2037,6 +2037,46 @@ my_dismissable = ui.dialog_trigger(
             ),
         is_dismissable=True,
     )
+
+# popover
+my_popover = ui.dialog_trigger(
+        ui.action_button("Open dialog",),
+        ui.dialog(
+            ui.heading("Dialog"),
+            ui.content("Popover."),
+            ),
+        type="popover"
+    )
+
+# tray
+my_tray = ui.dialog_trigger(
+        ui.action_button("Open dialog",),
+        ui.dialog(
+            ui.heading("Dialog"),
+            ui.content("Tray."),
+            ),
+        type="tray"
+    )
+
+# fullscreen
+my_fullscreen = ui.dialog_trigger(
+        ui.action_button("Open dialog",),
+        ui.dialog(
+            ui.heading("Dialog"),
+            ui.content("Fullscreen."),
+            ),
+        type="fullscreen"
+    )
+
+# takeover
+my_takeover = ui.dialog_trigger(
+        ui.action_button("Open dialog",),
+        ui.dialog(
+            ui.heading("Dialog"),
+            ui.content("Fullscreen takeover."),
+            ),
+        type="fullscreenTakeover"
+    )
 ```
 
 ##### ui.combo_box
