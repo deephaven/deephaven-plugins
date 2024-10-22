@@ -1,8 +1,8 @@
 from __future__ import annotations
 from typing import Callable, Union
 from .types import (
-    DialogTriggerTypes,
-    DialogTriggerMobileTypes,
+    DialogTriggerType,
+    DialogTriggerMobileType,
     Placement,
 )
 from .basic import component_element
@@ -12,8 +12,8 @@ from .._internal.utils import create_props
 
 def dialog_trigger(
     *children: Element,
-    type: DialogTriggerTypes | None = "modal",
-    mobile_type: DialogTriggerMobileTypes | None = None,
+    type: DialogTriggerType | None = "modal",
+    mobile_type: DialogTriggerMobileType | None = None,
     placement: Placement | None = "bottom",
     is_open: bool | None = None,
     default_open: bool | None = None,

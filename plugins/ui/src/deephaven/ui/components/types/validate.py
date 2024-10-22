@@ -25,9 +25,9 @@ AutoCapitalizeModes = Literal["off", "none", "on", "sentences", "words", "charac
 
 DisabledBehavior = Literal["selection", "all"]
 
-DialogTriggerTypes = Literal[
+DialogTriggerType = Literal[
     "modal", "popover", "tray", "fullscreen", "fullscreenTakeover"
 ]
-DialogTriggerMobileTypes = Literal["modal", "fullscreen", "fullscreenTakeover"]
+DialogTriggerMobileType = Literal["modal", "fullscreen", "fullscreenTakeover"]
 
 DialogSize = Literal["S", "M", "L"]
