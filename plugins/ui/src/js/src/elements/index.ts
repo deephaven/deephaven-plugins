@@ -16,6 +16,7 @@ export * from './IconElementView';
 export * from './IllustratedMessage';
 export * from './Image';
 export * from './ListView';
+export * from './Markdown';
 export * from './model';
 export * from './ObjectView';
 export * from './Picker';
