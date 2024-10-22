@@ -355,31 +355,9 @@ class UITableModel extends IrisGridModel {
     };
   }
 
-  /**
-   * Escape a string and convert it to a case-insensitive regex.
-   * Memoizes the regex compilation for performance.
-   * @param pattern The regex pattern
-   * @returns The regex
-   */
-  asRegex = memoizeClear(
-    (pattern: string): RegExp => new RegExp(pattern, 'i'),
-    {
-      max: 10000,
-    }
-  );
-
   formatColumnMatch = memoizeClear(
     (columns: string[], column: string): boolean =>
-      columns.some(c => {
-        if (c.startsWith('/') && c.endsWith('/')) {
-          const regex = this.asRegex(c.slice(1, -1));
-          return regex.test(column);
-        }
-
-        // Replace wildcard with regex to match 1+ characters
-        // Pad with ^ and $ to match the whole string
-        return this.asRegex(`^${c.replace('*', '.+')}$`).test(column);
-      }),
+      columns.some(c => c === column),
     { primitive: true, max: 10000 }
   );
 
