@@ -1932,7 +1932,6 @@ my_dismissable = ui.dialog_trigger(
             ui.heading("Dialog"),
             ui.content("Dismiss usin the X button."),
             is_dismissable=True,
-            on_dismiss=lambda: print("dismissed")
             ),
     )
 
@@ -1941,6 +1940,24 @@ my_small = ui.dialog_trigger(
         ui.action_button("Open dialog",),
         ui.dialog(ui.heading("Dialog"), ui.content("Dismiss usin the X button."), is_dismissable=True, size="S"),
     )
+
+from deephaven import ui
+
+# Dismissable callback (controlled)
+@ui.component
+def dismissable_callback():
+    is_open, set_open, set_closed = ui.use_flag()
+    return ui.dialog_trigger(
+        ui.action_button("Open dialog", on_press=set_open),
+        ui.dialog(ui.heading("Dialog"),
+            ui.content("Dismiss usin the X button."),
+            is_dismissable=True,
+            on_dismiss=set_closed
+            ),
+        is_open=is_open
+    )
+
+my_dismissable_callback = dismissable_callback()
 ```
 
 ##### ui.combo_box
