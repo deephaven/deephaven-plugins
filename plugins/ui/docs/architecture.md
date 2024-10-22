@@ -77,7 +77,7 @@ sequenceDiagram
 
 ### Threads and rendering
 
-When a component is rendered, the render task is [submitted to the Deephaven server as a "concurrent" task](https://deephaven.io/core/pydoc/code/deephaven.server.executors.html#deephaven.server.executors.submit_task). This ensures that rendering one component cannot block another component from rendering. A lock is then held on that component instance to ensure it can only be rendered by one thread at a time, a root [render context](#render-context) is set in the thread-local data, and the component is rendered.
+When a component is rendered, the render task is [submitted to the Deephaven server as a "concurrent" task](https://deephaven.io/core/pydoc/code/deephaven.server.executors.html#deephaven.server.executors.submit_task). This ensures that rendering one component does not block another component from rendering. A lock is then held on that component instance to ensure it can only be rendered by one thread at a time, a root [render context](#render-context) is set in the thread-local data, and the component is rendered.
 
 ### Render context
 
