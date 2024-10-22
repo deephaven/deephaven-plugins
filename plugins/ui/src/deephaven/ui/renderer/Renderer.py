@@ -3,7 +3,7 @@ from dataclasses import asdict as dataclass_asdict, is_dataclass
 import logging
 from typing import Any, Union
 
-from .._internal import RenderContext, dict_to_camel_case
+from .._internal import RenderContext
 from ..elements import Element, PropsType
 from .RenderedNode import RenderedNode
 
