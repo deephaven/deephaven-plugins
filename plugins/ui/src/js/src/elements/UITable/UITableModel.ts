@@ -16,6 +16,7 @@ import {
   isIrisGridTableModelTemplate,
   UIRow,
 } from '@deephaven/iris-grid';
+import { ensureArray } from '@deephaven/utils';
 import { TableUtils } from '@deephaven/jsapi-utils';
 import { type dh as DhType } from '@deephaven/jsapi-types';
 import { ColorGradient, DatabarConfig, FormattingRule } from './UITableUtils';
@@ -120,7 +121,7 @@ class UITableModel extends IrisGridModel {
 
   private databars: Map<ColumnName, DatabarConfig>;
 
-  private databarColorMap: Map<string, string> = new Map();
+  private colorMap: Map<string, string> = new Map();
 
   private format: FormattingRule[];
 
@@ -192,8 +193,8 @@ class UITableModel extends IrisGridModel {
     });
   }
 
-  setDatabarColorMap(colorMap: Map<string, string>): void {
-    this.databarColorMap = colorMap;
+  setColorMap(colorMap: Map<string, string>): void {
+    this.colorMap = colorMap;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -308,7 +309,7 @@ class UITableModel extends IrisGridModel {
           typeof markerValue === 'string'
             ? this.getDatabarValueFromRow(row, markerValue, 'marker')
             : markerValue,
-        color: this.databarColorMap.get(markerColor) ?? markerColor,
+        color: this.colorMap.get(markerColor) ?? markerColor,
       };
     });
 
@@ -327,18 +328,18 @@ class UITableModel extends IrisGridModel {
 
     if (Array.isArray(positiveColor)) {
       positiveColor = positiveColor.map(
-        color => this.databarColorMap.get(color) ?? color
+        color => this.colorMap.get(color) ?? color
       );
     } else {
-      positiveColor = this.databarColorMap.get(positiveColor) ?? positiveColor;
+      positiveColor = this.colorMap.get(positiveColor) ?? positiveColor;
     }
 
     if (Array.isArray(negativeColor)) {
       negativeColor = negativeColor.map(
-        color => this.databarColorMap.get(color) ?? color
+        color => this.colorMap.get(color) ?? color
       );
     } else {
-      negativeColor = this.databarColorMap.get(negativeColor) ?? negativeColor;
+      negativeColor = this.colorMap.get(negativeColor) ?? negativeColor;
     }
 
     return {
@@ -353,6 +354,34 @@ class UITableModel extends IrisGridModel {
       value,
     };
   }
+
+  /**
+   * Escape a string and convert it to a case-insensitive regex.
+   * Memoizes the regex compilation for performance.
+   * @param pattern The regex pattern
+   * @returns The regex
+   */
+  asRegex = memoizeClear(
+    (pattern: string): RegExp => new RegExp(pattern, 'i'),
+    {
+      max: 10000,
+    }
+  );
+
+  formatColumnMatch = memoizeClear(
+    (columns: string[], column: string): boolean =>
+      columns.some(c => {
+        if (c.startsWith('/') && c.endsWith('/')) {
+          const regex = this.asRegex(c.slice(1, -1));
+          return regex.test(column);
+        }
+
+        // Replace wildcard with regex to match 1+ characters
+        // Pad with ^ and $ to match the whole string
+        return this.asRegex(`^${c.replace('*', '.+')}$`).test(column);
+      }),
+    { primitive: true, max: 10000 }
+  );
 
   getFormatOptionForCell<K extends keyof FormattingRule>(
     column: ModelIndex,
@@ -370,7 +399,10 @@ class UITableModel extends IrisGridModel {
         // eslint-disable-next-line no-continue
         continue;
       }
-      if (cols == null || cols.includes(columnName)) {
+      if (
+        cols == null ||
+        this.formatColumnMatch(ensureArray(cols), columnName)
+      ) {
         if (where == null) {
           return formatValue;
         }
@@ -415,8 +447,9 @@ class UITableModel extends IrisGridModel {
     theme: IrisGridThemeType
   ): GridColor {
     const color = this.getFormatOptionForCell(column, row, 'color');
+    const { colorMap } = this;
     if (color != null) {
-      return color;
+      return colorMap.get(color) ?? color;
     }
 
     const backgroundColor = this.getFormatOptionForCell(
@@ -426,8 +459,9 @@ class UITableModel extends IrisGridModel {
     );
 
     if (backgroundColor != null) {
-      const isDarkBackground =
-        GridRenderer.getCachedColorIsDark(backgroundColor);
+      const isDarkBackground = GridRenderer.getCachedColorIsDark(
+        colorMap.get(backgroundColor) ?? backgroundColor
+      );
       return isDarkBackground ? theme.white : theme.black;
     }
 
@@ -449,10 +483,15 @@ class UITableModel extends IrisGridModel {
     row: ModelIndex,
     theme: IrisGridThemeType
   ): NullableGridColor {
-    return (
-      this.getFormatOptionForCell(column, row, 'background_color') ??
-      this.model.backgroundColorForCell(column, row, theme)
+    const backgroundColor = this.getFormatOptionForCell(
+      column,
+      row,
+      'background_color'
     );
+    if (backgroundColor != null) {
+      return this.colorMap.get(backgroundColor) ?? backgroundColor;
+    }
+    return this.model.backgroundColorForCell(column, row, theme);
   }
 }
 

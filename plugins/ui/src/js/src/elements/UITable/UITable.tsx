@@ -95,7 +95,7 @@ export function UITable({
   const [format] = useState(formatting ?? []);
   const [databars] = useState(databarsProp ?? []);
 
-  const databarColorMap = useMemo(() => {
+  const colorMap = useMemo(() => {
     log.debug('Theme changed, updating databar color map', theme);
     const colorSet = new Set<string>();
     databars?.forEach(databar => {
@@ -121,21 +121,31 @@ export function UITable({
       });
     });
 
+    format.forEach(rule => {
+      const { color, background_color: backgroundColor } = rule;
+      if (color != null) {
+        colorSet.add(color);
+      }
+      if (backgroundColor != null) {
+        colorSet.add(backgroundColor);
+      }
+    });
+
     const colorRecord: Record<string, string> = {};
     colorSet.forEach(c => {
       colorRecord[c] = colorValueStyle(c);
     });
 
     const resolvedColors = resolveCssVariablesInRecord(colorRecord);
-    const colorMap = new Map<string, string>();
+    const newColorMap = new Map<string, string>();
     Object.entries(resolvedColors).forEach(([key, value]) => {
-      colorMap.set(key, value);
+      newColorMap.set(key, value);
     });
-    return colorMap;
-  }, [databars, theme]);
+    return newColorMap;
+  }, [databars, format, theme]);
 
   if (model) {
-    model.setDatabarColorMap(databarColorMap);
+    model.setColorMap(colorMap);
   }
 
   const hydratedSorts = useMemo(() => {
