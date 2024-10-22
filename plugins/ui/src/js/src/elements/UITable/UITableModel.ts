@@ -121,6 +121,9 @@ class UITableModel extends IrisGridModel {
 
   private databars: Map<ColumnName, DatabarConfig>;
 
+  /**
+   * Map of theme color keys to hex color values
+   */
   private colorMap: Map<string, string> = new Map();
 
   private format: FormattingRule[];
@@ -361,6 +364,17 @@ class UITableModel extends IrisGridModel {
     { primitive: true, max: 10000 }
   );
 
+  /**
+   * Gets the first matching format option for a cell.
+   * Checks if there is a column match and if there is a where clause match if needed.
+   * If there is no value for the key that matches in any rule, returns undefined.
+   * Stops on first match.
+   *
+   * @param column The model column index
+   * @param row The model row index
+   * @param formatKey The key to get the format option for
+   * @returns The format option if set or undefined
+   */
   getFormatOptionForCell<K extends keyof FormattingRule>(
     column: ModelIndex,
     row: ModelIndex,
@@ -426,10 +440,13 @@ class UITableModel extends IrisGridModel {
   ): GridColor {
     const color = this.getFormatOptionForCell(column, row, 'color');
     const { colorMap } = this;
+
+    // If a color is explicitly set, use it
     if (color != null) {
       return colorMap.get(color) ?? color;
     }
 
+    // If there is a background color, use white or black depending on the background color
     const backgroundColor = this.getFormatOptionForCell(
       column,
       row,
