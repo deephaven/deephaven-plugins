@@ -63,7 +63,7 @@ def picker(
     is_loading: bool | None = None,
     label_position: LabelPosition = "top",
     label_align: Alignment | None = None,
-    necessity_indicator: NecessityIndicator = "icon",
+    necessity_indicator: NecessityIndicator | None = None,
     contextual_help: Element | None = None,
     on_open_change: Callable[[bool], None] | None = None,
     on_focus: FocusEventCallable | None = None,
