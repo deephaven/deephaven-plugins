@@ -299,7 +299,7 @@ describe('setWebGlTraceType', () => {
     ];
     const webGlTraceIndices = new Set([1]);
     setWebGlTraceType(data, true, webGlTraceIndices);
-    expect(data[0].type).toBe('scattergl');
+    expect(data[0].type).toBe('scatter');
     expect(data[1].type).toBe('scattergl');
   });
 
