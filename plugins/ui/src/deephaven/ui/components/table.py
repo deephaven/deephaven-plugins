@@ -85,6 +85,55 @@ class TableDatabar:
 
 
 class table(Element):
+    """
+    Customization to how a table is displayed, how it behaves, and listen to UI events.
+
+    Args:
+        table: The table to wrap
+        formatting: A list of formatting rules for the table.
+        on_row_press: The callback function to run when a row is clicked.
+            The callback is invoked with the visible row data provided in a dictionary where the
+            column names are the keys.
+        on_row_double_press: The callback function to run when a row is double clicked.
+            The callback is invoked with the visible row data provided in a dictionary where the
+            column names are the keys.
+        on_cell_press: The callback function to run when a cell is clicked.
+            The callback is invoked with the cell data.
+        on_cell_double_press: The callback function to run when a cell is double clicked.
+            The callback is invoked with the cell data.
+        on_column_press: The callback function to run when a column is clicked.
+            The callback is invoked with the column name.
+        on_column_double_press: The callback function to run when a column is double clicked.
+            The callback is invoked with the column name.
+        always_fetch_columns: The columns to always fetch from the server regardless of if they are in the viewport.
+            If True, all columns will always be fetched. This may make tables with many columns slow.
+        quick_filters: The quick filters to apply to the table. Dictionary of column name to filter value.
+        show_quick_filters: Whether to show the quick filter bar by default.
+        show_grouping_column: Whether to show the grouping column by default for rollup tables.
+        show_search: Whether to show the search bar by default.
+        reverse: Whether to reverse the table rows. Applied after any sorts.
+        front_columns: The columns to pin to the front of the table. These will not be movable by the user.
+        back_columns: The columns to pin to the back of the table. These will not be movable by the user.
+        frozen_columns: The columns to freeze by default at the front of the table.
+            These will always be visible regardless of horizontal scrolling.
+            The user may unfreeze columns or freeze additional columns.
+        hidden_columns: The columns to hide by default. Users may show the columns by expanding them.
+        column_groups: Columns to group together by default. The groups will be shown in the table header.
+            Group names must be unique within the column and group names.
+            Groups may be nested by providing the group name as a child of another group.
+        density: The density of the data displayed in the table.
+            One of "compact", "regular", or "spacious".
+            If not provided, the app default will be used.
+        context_menu: The context menu items to show when a cell is right clicked.
+            May contain action items or submenu items.
+            May also be a function that receives the cell data and returns the context menu items or None.
+        context_header_menu: The context menu items to show when a column header is right clicked.
+            May contain action items or submenu items.
+            May also be a function that receives the column header data and returns the context menu items or None.
+        databars: Databars are experimental and will be moved to column_formatting in the future.
+        key: A unique identifier used by React to render elements in a list.
+    """
+
     _props: dict[str, Any]
     """
     The props that are passed to the frontend
@@ -122,57 +171,6 @@ class table(Element):
         databars: list[TableDatabar] | None = None,
         key: str | None = None,
     ):
-        """
-        Customization to how a table is displayed, how it behaves, and listen to UI events.
-
-        Args:
-            table: The table to wrap
-            on_row_press: The callback function to run when a row is clicked.
-                The callback is invoked with the visible row data provided in a dictionary where the
-                column names are the keys.
-            on_row_double_press: The callback function to run when a row is double clicked.
-                The callback is invoked with the visible row data provided in a dictionary where the
-                column names are the keys.
-            on_cell_press: The callback function to run when a cell is clicked.
-                The callback is invoked with the cell data.
-            on_cell_double_press: The callback function to run when a cell is double clicked.
-                The callback is invoked with the cell data.
-            on_column_press: The callback function to run when a column is clicked.
-                The callback is invoked with the column name.
-            on_column_double_press: The callback function to run when a column is double clicked.
-                The callback is invoked with the column name.
-            always_fetch_columns: The columns to always fetch from the server regardless of if they are in the viewport.
-                If True, all columns will always be fetched. This may make tables with many columns slow.
-            quick_filters: The quick filters to apply to the table. Dictionary of column name to filter value.
-            show_quick_filters: Whether to show the quick filter bar by default.
-            show_grouping_column: Whether to show the grouping column by default for rollup tables.
-            show_search: Whether to show the search bar by default.
-            reverse: Whether to reverse the table rows. Applied after any sorts.
-            front_columns: The columns to pin to the front of the table. These will not be movable by the user.
-            back_columns: The columns to pin to the back of the table. These will not be movable by the user.
-            frozen_columns: The columns to freeze by default at the front of the table.
-                These will always be visible regardless of horizontal scrolling.
-                The user may unfreeze columns or freeze additional columns.
-            hidden_columns: The columns to hide by default. Users may show the columns by expanding them.
-            column_groups: Columns to group together by default. The groups will be shown in the table header.
-                Group names must be unique within the column and group names.
-                Groups may be nested by providing the group name as a child of another group.
-            density: The density of the data displayed in the table.
-                One of "compact", "regular", or "spacious".
-                If not provided, the app default will be used.
-            context_menu: The context menu items to show when a cell is right clicked.
-                May contain action items or submenu items.
-                May also be a function that receives the cell data and returns the context menu items or None.
-            context_header_menu: The context menu items to show when a column header is right clicked.
-                May contain action items or submenu items.
-                May also be a function that receives the column header data and returns the context menu items or None.
-            databars: Databars are experimental and will be moved to column_formatting in the future.
-            key: A unique identifier used by React to render elements in a list.
-
-        Returns:
-            The rendered Table.
-        """
-
         props = locals()
         del props["self"]
         self._props = props
