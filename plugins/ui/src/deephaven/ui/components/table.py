@@ -18,7 +18,7 @@ from .._internal import dict_to_camel_case, RenderContext
 logger = logging.getLogger(__name__)
 
 
-@dataclass(kw_only=True)
+@dataclass()
 class TableFormat:
     """
     A formatting rule for a table.
@@ -44,7 +44,7 @@ class TableFormat:
     mode: TableDatabar | None = None
 
 
-@dataclass(kw_only=True)
+@dataclass()
 class TableDatabar:
     """
     A databar configuration for a table.
