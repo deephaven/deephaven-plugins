@@ -66,10 +66,6 @@
             "path": "components/image.md"
           },
           {
-            "label": "markdown",
-            "path": "components/markdown.md"
-          },
-          {
             "label": "picker",
             "path": "components/picker.md"
           },

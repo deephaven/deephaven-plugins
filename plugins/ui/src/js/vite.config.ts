@@ -19,7 +19,6 @@ export default defineConfig(({ mode }) => ({
         'react-redux',
         '@deephaven/chart',
         '@deephaven/components',
-        '@deephaven/console',
         '@deephaven/dashboard',
         '@deephaven/icons',
         '@deephaven/iris-grid',
