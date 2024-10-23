@@ -58,6 +58,10 @@
             "path": "components/dialog.md"
           },
           {
+            "label": "dialog_trigger",
+            "path": "components/dialog_trigger.md"
+          },
+          {
             "label": "heading",
             "path": "components/heading.md"
           },
