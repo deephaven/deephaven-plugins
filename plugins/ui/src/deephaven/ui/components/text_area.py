@@ -49,7 +49,7 @@ def text_area(
     validation_state: TextFieldValidationState | None = None,
     label_position: LabelPosition = "top",
     label_align: Alignment | None = None,
-    necessity_indicator: NecessityIndicator = "icon",
+    necessity_indicator: NecessityIndicator | None = None,
     contextual_help: Any | None = None,
     on_focus: FocusEventCallable | None = None,
     on_blur: FocusEventCallable | None = None,
