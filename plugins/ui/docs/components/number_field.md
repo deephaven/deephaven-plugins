@@ -1,6 +1,6 @@
 # Number Field
 
-Number fields allow users to enter a number, and increment or decrement the value using stepper buttons.
+Number fields allow users to enter a number and increase or decrease the value using stepper buttons.
 
 ## Example
 
@@ -144,7 +144,7 @@ my_number_field_percentage_example = ui_number_field_percentage_example()
 
 ### Currency
 
-When style is set to `currency` a specific currency must be defined through the `currency` prop. Possible values follow the [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217#List_of_ISO_4217_currency_codes) currency codes. Examples include "USD" for the US dollar or "EUR" for the euro.
+When the style is set to `currency`, a specific currency must be defined through the `currency` prop. Possible values follow the [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217#List_of_ISO_4217_currency_codes) currency codes. Examples include "USD" for the US dollar or "EUR" for the euro.
 
 ```python
 from deephaven import ui
@@ -166,7 +166,7 @@ my_number_field_currency_example = ui_number_field_currency_example()
 ```
 
 ### Units
-When style is set to `unit` a specific unit must be defined through the `unit` prop. Possible values are defined in [UTS #35, Part 2 Section 6](https://unicode.org/reports/tr35/tr35-general.html#Unit_Elements). Examples include "degree", "inch" or "cup"
+When the style is set to `unit`, a specific unit must be defined through the `unit` prop. Possible values are defined in [UTS #35, Part 2 Section 6](https://unicode.org/reports/tr35/tr35-general.html#Unit_Elements). Examples include "degree", "inch", or "cup".
 
 ```python
 from deephaven import ui
