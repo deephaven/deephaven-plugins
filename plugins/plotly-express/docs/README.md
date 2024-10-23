@@ -97,10 +97,10 @@ This page contains a collection of links to examples demonstrating different plo
 
 ## Quickstart
 
-1. Install with Docker, use a Docker image with it already installed (`server-ui`), or pip install with:
+1. Install with Docker, use a Docker image with it already installed, or pip install with:
 
 ```bash
- pip install deephaven-plugin-plotly-express
+pip install deephaven-plugin-plotly-express
 ```
 
 2. To create a real-time plot using Deephaven Plotly Express, run the following example within Deephaven:
