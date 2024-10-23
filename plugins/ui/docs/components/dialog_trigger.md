@@ -208,6 +208,159 @@ Popover dialogs support a variety of placement options since they do not take ov
 
 ### Placement
 
+The popover's placement can be adjusted using the `placement` prop. The full list of placements is:
+
+- `bottom`
+- `bottom left`
+- `bottom right`
+- `bottom start`
+- `bottom end`
+- `top`
+- `top left`
+- `top right`
+- `top start`
+- `top end`
+- `left`
+- `left top`
+- `left bottom`
+- `start`
+- `start top`
+- `start bottom`
+- `right`
+- `right top`
+- `right bottom`
+- `end`
+- `end top`
+- `end bottom`
+
+```python
+from deephaven import ui
+
+my_placement = ui.dialog_trigger(
+    ui.action_button("Trigger"),
+    ui.dialog(
+        ui.heading("The Heading"),
+        ui.content(
+            "This is a popover placed to the right of its\
+          trigger and offset so the arrow is at the top of the dialog."
+        ),
+    ),
+    type="popover",
+    placement="right top",
+)
+```
+
+### Offset and cross offset
+
+The popover dialog's offset can be adjusted using the `offset` and `cross_offset` props. The `offset` prop controls the spacing applied along the main axis between the element and its anchor element whereas the `cross_offset` prop handles the spacing applied along the cross axis.
+
+Below is a popover offset by an additional 50px above the trigger.
+
+```python
+from deephaven import ui
+
+my_offset = ui.dialog_trigger(
+    ui.action_button("Trigger"),
+    ui.dialog(
+        ui.heading("Offset"),
+        ui.content("Offset by an additional 50px."),
+    ),
+    type="popover",
+    offset=50,
+)
+```
+
+Below is a popover cross offset by an additional 100px to the right of the trigger.
+
+```python
+from deephaven import ui
+
+my_cross_offset = ui.dialog_trigger(
+    ui.action_button("Trigger"),
+    ui.dialog(
+        ui.heading("Cross offset"),
+        ui.content("Cross offset by an additional 100px."),
+    ),
+    type="popover",
+    cross_offset=100,
+)
+```
+
+### Flipping
+
+By default, `dialog_trigger` attempts to flip popovers on the main axis in situations where the original placement would cause it to render out of view. This can be overridden by setting `should_flip` to `False`.
+
+```python
+from deephaven import ui
+
+my_should_flip_example = ui.dialog_trigger(
+    ui.action_button("Trigger"),
+    ui.dialog(
+        ui.heading("The Heading"),
+        ui.content(
+            "This is a popover that won't flip if it can't fully render below the button."
+        ),
+    ),
+    type="popover",
+    placement="bottom",
+    should_flip=False,
+)
+```
+
+### Container padding
+
+You can control the minimum padding required between the popover dialog and the surrounding container via the `container_padding` prop. This affects the positioning breakpoints that determine when the dialog will attempt to flip.
+
+The example below will flip the dialog from above the trigger button to below the trigger button if the Dialog cannot render fully while maintaining 50px of padding between itself and the top of the browser.
+
+```python
+from deephaven import ui
+
+my_should_flip_example = ui.dialog_trigger(
+    ui.action_button("Trigger"),
+    ui.dialog(
+        ui.heading("The Heading"),
+        ui.content("This is a popover."),
+    ),
+    type="popover",
+    placement="top",
+    container_padding=50,
+)
+```
+
+## Events
+
+Dialog trigger accepts an `on_open_change` handler which is triggered whenever the Dialog is opened or closed.
+
+The example below uses `on_open_change` to update a separate element with the current open state of the Dialog.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def event_example():
+    state, set_state = ui.use_state(False)
+    return ui.flex(
+        ui.dialog_trigger(
+            ui.action_button("Whispers"),
+            ui.dialog(
+                ui.heading("Whispers and DMs"),
+                ui.content("You have 0 new messages."),
+            ),
+            type="popover",
+            placement="top",
+            on_open_change=lambda is_open: set_state(is_open),
+        ),
+        ui.text(f"Current open state: {state}"),
+        align_items="center",
+        gap="size-100",
+    )
+
+
+my_event_example = event_example()
+```
+
 ## API Reference
 
 ```{eval-rst}
