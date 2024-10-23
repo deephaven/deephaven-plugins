@@ -51,6 +51,60 @@ The rules for how automatic wrapping is applied:
 
 End to end example: `dashboard([t1, t2])` would become `dashboard(column(stack(panel(t1)), stack(panel(t2))))`
 
+## Varying dimensions
+
+Rows can have a specified height, while columns can have a specified width.
+
+Stacks directly within a column can have a height or a width if they are within a row. Setting the other dimension will be ignored.
+
+### Varying row heights
+
+```python
+from deephaven import ui
+
+dash_row_heights = ui.dashboard(
+    [
+        ui.row(ui.stack(ui.panel("A", title="A")), ui.panel("B", title="B"), height=70),
+        ui.row(ui.stack(ui.panel("C", title="C")), ui.panel("D", title="D")),
+    ]
+)
+```
+
+### Varying column widths
+
+```python
+from deephaven import ui
+
+dash_column_widths = ui.dashboard(
+    [
+        ui.column(
+            ui.stack(ui.panel("A", title="A")), ui.panel("C", title="C"), width=70
+        ),
+        ui.column(ui.stack(ui.panel("B", title="B")), ui.panel("D", title="D")),
+    ]
+)
+```
+
+### Varying stack widths
+
+```python
+from deephaven import ui
+
+dash_stack_widths = ui.dashboard(
+    ui.row(ui.stack(ui.panel("A", title="A"), width=70), ui.panel("B", title="B"))
+)
+```
+
+### Varying stack heights
+
+```python
+from deephaven import ui
+
+dash_stack_heights = ui.dashboard(
+    ui.column(ui.stack(ui.panel("A", title="A"), height=70), ui.panel("B", title="B"))
+)
+```
+
 ## Layout Examples
 
 ### Row split (2x1)
@@ -117,26 +171,6 @@ dash_layout_stack = ui.dashboard(
         ui.panel("D", title="D"),
         ui.panel("E", title="E"),
     )
-)
-```
-
-### Varying widths
-
-```python
-from deephaven import ui
-
-dash_widths = ui.dashboard(
-    ui.row(ui.stack(ui.panel("A", title="A"), width=70), ui.panel("B", title="B"))
-)
-```
-
-### Varying height
-
-```python
-from deephaven import ui
-
-dash_heights = ui.dashboard(
-    ui.column(ui.stack(ui.panel("A", title="A"), height=70), ui.panel("B", title="B"))
 )
 ```
 
@@ -288,13 +322,11 @@ dash_complex_state = ui.dashboard(multiwave())
 .. dhautofunction:: deephaven.ui.row
 ```
 
-
 ### Column API Reference
 
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.column
 ```
-
 
 ### Stack API Reference
 
