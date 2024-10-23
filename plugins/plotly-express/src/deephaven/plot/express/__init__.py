@@ -12,7 +12,6 @@ from .deephaven_figure import DeephavenFigure
 from .plots import (
     area,
     bar,
-    frequency_bar,
     timeline,
     histogram,
     box,
