@@ -33,14 +33,13 @@ class FunctionMetadata(TypedDict):
     name: str
 
 
-# total is False to allow for popping some keys
 class SignatureData(TypedDict):
     parameters: Params
-    return_description: str
-    return_type: str
+    return_description: NotRequired[str]
+    return_type: NotRequired[str]
     module_name: str
     name: str
-    description: str
+    description: NotRequired[str]
 
 
 SignatureValue = Union[str, Params]
@@ -306,15 +305,17 @@ def to_mdx(node: sphinx.addnodes.desc) -> docutils.nodes.comment:
     """
     result = extract_desc_data(node)
 
-    dat = json.dumps(result)
+    # these need to be popped in case they have newlines which will break ParamTable rendering
+    return_description = result.pop("return_description")
+    return_type = result.pop("return_type")
+    description = result.pop("description")
 
-    return_description = result["return_description"]
-    return_type = result["return_type"]
+    dat = json.dumps(result)
 
     autofunction_markdown = (
         f"{AUTOFUNCTION_COMMENT_PREFIX}"
-        rf"{return_description}<br /><br />"
-        rf"**Returns:** {return_type}<br /><br />"
+        rf"{description}<br /><br />"
+        rf"**Returns:** `{return_type}` {return_description}<br /><br />"
         rf"<ParamTable param={{{dat}}} />"
     )
 
