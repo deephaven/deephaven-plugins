@@ -334,6 +334,7 @@ def frequency_bar(
     unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """Returns a bar chart that contains the counts of the specified columns
+
     Args:
       table: A table to pull data from.
       x: A column or list of columns that contain x-axis values.
@@ -388,8 +389,10 @@ def frequency_bar(
         Note that the existing data traces should not be removed. This may lead
         to unexpected behavior if traces are modified in a way that break data
         mappings.
+
     Returns:
       DeephavenFigure: A DeephavenFigure that contains the bar chart
+
     """
     warnings.warn(
         "This function is deprecated and will be removed in a future release. "
