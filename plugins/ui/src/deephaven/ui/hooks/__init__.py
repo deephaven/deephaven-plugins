@@ -12,6 +12,7 @@ from .use_row_list import use_row_list
 from .use_cell_data import use_cell_data
 from .use_execution_context import use_execution_context
 from .use_liveness_scope import use_liveness_scope
+from .use_flag import use_flag
 
 
 __all__ = [
@@ -29,4 +30,5 @@ __all__ = [
     "use_cell_data",
     "use_execution_context",
     "use_liveness_scope",
+    "use_flag",
 ]

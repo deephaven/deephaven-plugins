@@ -24,3 +24,10 @@ AutoCompleteModes = Literal["on", "off"]
 AutoCapitalizeModes = Literal["off", "none", "on", "sentences", "words", "characters"]
 
 DisabledBehavior = Literal["selection", "all"]
+
+DialogTriggerType = Literal[
+    "modal", "popover", "tray", "fullscreen", "fullscreenTakeover"
+]
+DialogTriggerMobileType = Literal["modal", "fullscreen", "fullscreenTakeover"]
+
+DialogSize = Literal["S", "M", "L"]

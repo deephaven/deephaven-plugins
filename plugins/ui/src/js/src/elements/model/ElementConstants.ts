@@ -37,6 +37,8 @@ export const ELEMENT_NAME = {
   dateField: uiComponentName('DateField'),
   datePicker: uiComponentName('DatePicker'),
   dateRangePicker: uiComponentName('DateRangePicker'),
+  dialog: uiComponentName('Dialog'),
+  dialogTrigger: uiComponentName('DialogTrigger'),
   flex: uiComponentName('Flex'),
   form: uiComponentName('Form'),
   fragment: uiComponentName('Fragment'),
