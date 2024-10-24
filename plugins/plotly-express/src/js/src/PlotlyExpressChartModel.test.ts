@@ -1,6 +1,6 @@
 import type { Layout } from 'plotly.js';
 import { dh as DhType } from '@deephaven/jsapi-types';
-import { TestUtils } from '@deephaven/utils';
+import { TestUtils } from '@deephaven/test-utils';
 import { ChartModel } from '@deephaven/chart';
 import { PlotlyExpressChartModel } from './PlotlyExpressChartModel';
 import { PlotlyChartWidgetData } from './PlotlyExpressChartUtils';
