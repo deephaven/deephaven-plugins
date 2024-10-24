@@ -1,35 +1,26 @@
-import React, { useCallback, useState } from 'react';
 import {
   Slider as DHCSlider,
   SliderProps as DHCSliderProps,
 } from '@deephaven/components';
-import { useDebouncedCallback } from '@deephaven/react-hooks';
+import useDebouncedOnChange from './hooks/useDebouncedOnChange';
+import { SerializedInputElementProps } from './model';
 
-const VALUE_CHANGE_DEBOUNCE = 250;
+export type SerializedSliderProps = SerializedInputElementProps<
+  DHCSliderProps,
+  number
+>;
 
-const EMPTY_FUNCTION = () => undefined;
-
-export function Slider(props: DHCSliderProps): JSX.Element {
+export function Slider(props: SerializedSliderProps): JSX.Element {
   const {
     defaultValue = 0,
     value: propValue,
-    onChange: propOnChange = EMPTY_FUNCTION,
+    onChange: propOnChange,
     ...otherProps
   } = props;
 
-  const [value, setValue] = useState(propValue ?? defaultValue);
-
-  const debouncedOnChange = useDebouncedCallback(
-    propOnChange,
-    VALUE_CHANGE_DEBOUNCE
-  );
-
-  const onChange = useCallback(
-    newValue => {
-      setValue(newValue);
-      debouncedOnChange(newValue);
-    },
-    [debouncedOnChange]
+  const [value, onChange] = useDebouncedOnChange(
+    propValue ?? defaultValue,
+    propOnChange
   );
 
   return (

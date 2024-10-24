@@ -5,7 +5,7 @@ import useDebouncedOnChange from './useDebouncedOnChange';
 
 // returns SpectrumTextAreaProps
 export function useTextInputProps<T>(
-  props: SerializedTextInputEventProps<T>
+  props: SerializedTextInputEventProps<T, string>
 ): T {
   const {
     defaultValue = '',
