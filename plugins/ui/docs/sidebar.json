@@ -106,6 +106,10 @@
             "path": "components/text_area.md"
           },
           {
+            "label": "toggle_button",
+            "path": "components/toggle_button.md"
+          },
+          {
             "label": "view",
             "path": "components/view.md"
           }

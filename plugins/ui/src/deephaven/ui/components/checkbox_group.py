@@ -1,52 +1,47 @@
 from __future__ import annotations
 from typing import Any, Callable
+
+
 from .types import (
-    # Events
-    FocusEventCallable,
-    # Layout
+    Orientation,
     AlignSelf,
     CSSProperties,
     DimensionValue,
     JustifySelf,
     LayoutFlex,
     Position,
-    LabelPosition,
-    Alignment,
-    # Validation
-    NecessityIndicator,
-    Orientation,
     ValidationBehavior,
+    FocusEventCallable,
 )
 from .basic import component_element
 from ..elements import Element
-from .._internal.utils import create_props
+from ..types import Key, Selection
 
 
-def radio_group(
+def checkbox_group(
     *children: Any,
-    is_emphasized: bool | None = None,
     orientation: Orientation = "vertical",
-    value: str | None = None,
-    default_value: str | None = None,
+    is_emphasized: bool | None = None,
+    value: Selection | None = None,
+    default_value: Selection | None = None,
     is_disabled: bool | None = None,
     is_read_only: bool | None = None,
     name: str | None = None,
-    is_required: bool | None = None,
-    is_invalid: bool | None = None,
-    validation_behavior: ValidationBehavior | None = None,
-    # validate, # omitted because of synchronouse return
     label: Any | None = None,
     description: Any | None = None,
     error_message: Any | None = None,
-    label_position: LabelPosition = "top",
-    label_align: Alignment | None = None,
-    necessity_indicator: NecessityIndicator | None = None,
+    is_required: bool | None = None,
+    is_invalid: bool | None = None,
+    validation_behavior: ValidationBehavior | None = "aria",
+    label_position: str | None = None,
+    label_align: str | None = None,
+    necessity_indicator: str | None = None,
     contextual_help: Any | None = None,
     show_error_icon: bool | None = None,
+    on_change: Callable[[Key], None] | None = None,
     on_focus: FocusEventCallable | None = None,
     on_blur: FocusEventCallable | None = None,
     on_focus_change: Callable[[bool], None] | None = None,
-    on_change: Callable[[str], None] | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,
@@ -56,11 +51,11 @@ def radio_group(
     order: int | None = None,
     grid_area: str | None = None,
     grid_row: str | None = None,
-    grid_row_start: str | None = None,
-    grid_row_end: str | None = None,
     grid_column: str | None = None,
     grid_column_start: str | None = None,
     grid_column_end: str | None = None,
+    grid_row_start: str | None = None,
+    grid_row_end: str | None = None,
     margin: DimensionValue | None = None,
     margin_top: DimensionValue | None = None,
     margin_bottom: DimensionValue | None = None,
@@ -77,10 +72,10 @@ def radio_group(
     position: Position | None = None,
     top: DimensionValue | None = None,
     bottom: DimensionValue | None = None,
-    start: DimensionValue | None = None,
-    end: DimensionValue | None = None,
     left: DimensionValue | None = None,
     right: DimensionValue | None = None,
+    start: DimensionValue | None = None,
+    end: DimensionValue | None = None,
     z_index: int | None = None,
     is_hidden: bool | None = None,
     id: str | None = None,
@@ -91,37 +86,37 @@ def radio_group(
     aria_errormessage: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
-    key: str | None = None,
 ) -> Element:
     """
-    Radio buttons allow users to select a single option from a list of mutually
-    exclusive options. All possible options are exposed up front for users to
-    compare.
+    A grouping of checkbox's that are related to each other.
 
     Args:
-        *children: The Radio(s) contained within the RadioGroup.
-        is_emphasized: By default, radio button are not emphasized (gray). The emphasized version provides visual prominence.
-        orientation: The axis the Radio Buttons should align with.
-        value: The value of the selected radio button.
-        default_value: The default value of the radio button.
-        is_disabled: Whether the radio button is disabled.
-        is_read_only: Whether the radio button can be selected but not changed by the user.
-        name: The name of the radio button, used when submitting and HTML form.
-        is_required: Whether the radio button is required on the input before form submission.
-        is_invalid: Whether the radio button is in an invalid state.
-        validation_behavior: Whether to use native HTML form validation to prevent form submission when the value is missing or invalid, or mark the field as required or invalid via ARIA.
-        label: The content to display as the label.
-        description: A description for the field. Provides a hint such as specific requirements for what to choose.
-        error_message: An error message for the field.
-        label_position: The position of the label relative to the radio button.
-        label_align: The horizontal alignment of the label relative to the radio button.
+
+        *children: The children of the checkbox group.
+        orientation: The axis the CheckboxGroup should align with.
+        is_emphasized: Whether the checkbox's should be displayed with emphasized style.
+        value: The selected checkbox within the checkbox group (controlled).
+        default_value: The default selected checkbox within the checkbox group (uncontrolled).
+        is_disabled: Whether the checkbox group is disabled.
+        is_read_only: Whether the checkbox group is read only.
+        name: The name of the input element, used when submitting an HTML form.
+        label: The label of the checkbox group.
+        description: A description for the checkbox group. Provides a hint such as specific requirements for what to choose.
+        error_message: An error message to be displayed when the checkbox group is an errored state.
+        is_required: Whether user input is required on the input before form submission.
+        is_invalid: Whether the checkbox group is in an invalid state.
+        validation_behavior: Whether to use native HTML form validation to prevent form
+            submission when the value is missing or invalid,
+            or mark the field as required or invalid via ARIA.
+        label_position: The label's overall position relative to the element it is labeling.
+        label_align: The label's horizontal alignment relative to the element it is labeling.
         necessity_indicator: Whether the required state should be shown as an icon or text.
         contextual_help: A ContextualHelp element to place next to the label.
         show_error_icon: Whether an error icon is rendered.
-        on_change: Handler that is called when the radio button value changes.
-        on_focus: Handler that is called when the radio button is focused.
-        on_blur: Handler that is called when the radio button loses focus.
-        on_focus_change: Handler that is called when the radio button gains or loses focus.
+        on_change: Handler that is called when the selection changes.
+        on_focus: Handler that is called when the element receives focus.
+        on_blur: Handler that is called when the element loses focus.
+        on_focus_change: Handler that is called when the element's focus status changes.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -144,20 +139,20 @@ def radio_group(
         margin_x: The margin for the left and right sides of the element.
         margin_y: The margin for the top and bottom sides of the element.
         width: The width of the element.
-        min_width: The minimum width of the element.
-        max_width: The maximum width of the element.
         height: The height of the element.
+        min_width: The minimum width of the element.
         min_height: The minimum height of the element.
+        max_width: The maximum width of the element.
         max_height: The maximum height of the element.
-        position: The position of the element.
-        top: The distance from the top of the containing element.
-        bottom: The distance from the bottom of the containing element.
-        left: The distance from the left of the containing element.
-        right: The distance from the right of the containing element.
-        start: The distance from the start of the containing element, depending on layout direction.
-        end: The distance from the end of the containing element, depending on layout direction.
-        z_index: The stack order of the element.
-        is_hidden: Whether the element is hidden.
+        position: Specifies how the element is position.
+        top: The top position of the element.
+        bottom: The bottom position of the element.
+        left: The left position of the element.
+        right: The right position of the element.
+        start: The logical start position of the element, depending on layout direction.
+        end: The logical end position of the element, depending on layout direction.
+        z_index: The stacking order for the element
+        is_hidden: Hides the element.
         id: The unique identifier of the element.
         aria_label: Defines a string value that labels the current element.
         aria_labelledby: Identifies the element (or elements) that labels the current element.
@@ -166,12 +161,78 @@ def radio_group(
         aria_errormessage: Identifies the element that provides an error message for the object.
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
-        key: A unique identifier used by React to render elements in a list.
 
     Returns:
-        The rendered radio group component.
+        The rendered checkbox group element.
+
     """
-
-    children, props = create_props(locals())
-
-    return component_element(f"RadioGroup", *children, **props)
+    return component_element(
+        "CheckboxGroup",
+        children=children,
+        orientation=orientation,
+        is_emphasized=is_emphasized,
+        value=value,
+        default_value=default_value,
+        is_disabled=is_disabled,
+        is_read_only=is_read_only,
+        name=name,
+        label=label,
+        description=description,
+        error_message=error_message,
+        is_required=is_required,
+        is_invalid=is_invalid,
+        validation_behavior=validation_behavior,
+        label_position=label_position,
+        label_align=label_align,
+        necessity_indicator=necessity_indicator,
+        contextual_help=contextual_help,
+        show_error_icon=show_error_icon,
+        on_change=on_change,
+        on_focus=on_focus,
+        on_blur=on_blur,
+        on_focus_change=on_focus_change,
+        flex=flex,
+        flex_grow=flex_grow,
+        flex_shrink=flex_shrink,
+        flex_basis=flex_basis,
+        align_self=align_self,
+        justify_self=justify_self,
+        order=order,
+        grid_area=grid_area,
+        grid_row=grid_row,
+        grid_column=grid_column,
+        grid_column_start=grid_column_start,
+        grid_column_end=grid_column_end,
+        grid_row_start=grid_row_start,
+        grid_row_end=grid_row_end,
+        margin=margin,
+        margin_top=margin_top,
+        margin_bottom=margin_bottom,
+        margin_start=margin_start,
+        margin_end=margin_end,
+        margin_x=margin_x,
+        margin_y=margin_y,
+        width=width,
+        height=height,
+        min_width=min_width,
+        min_height=min_height,
+        max_width=max_width,
+        max_height=max_height,
+        position=position,
+        top=top,
+        bottom=bottom,
+        left=left,
+        right=right,
+        start=start,
+        end=end,
+        z_index=z_index,
+        is_hidden=is_hidden,
+        id=id,
+        aria_label=aria_label,
+        aria_labelledby=aria_labelledby,
+        aria_describedby=aria_describedby,
+        aria_details=aria_details,
+        aria_errormessage=aria_errormessage,
+        UNSAFE_class_name=UNSAFE_class_name,
+        UNSAFE_style=UNSAFE_style,
+    )

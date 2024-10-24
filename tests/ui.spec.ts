@@ -104,6 +104,9 @@ test.describe('UI flex components', () => {
     { name: 'flex_19', traces: 1 },
     { name: 'flex_20', traces: 1 },
     { name: 'flex_21', traces: 1 },
+    { name: 'flex_22', traces: 0 },
+    { name: 'flex_23', traces: 0 },
+    { name: 'flex_24', traces: 0 },
   ].forEach(i => {
     test(i.name, async ({ page }) => {
       await gotoPage(page, '');

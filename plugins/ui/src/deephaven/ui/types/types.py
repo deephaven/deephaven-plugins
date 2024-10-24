@@ -463,6 +463,7 @@ ColumnData = List[Any]
 TableData = Dict[ColumnName, ColumnData]
 SelectionArea = Literal["CELL", "ROW", "COLUMN"]
 SelectionMode = Literal["SINGLE", "MULTIPLE"]
+SelectionStyle = Literal["checkbox", "highlight"]
 Sentinel = Any
 TransformedData = Any
 ActionMenuDirection = Literal["bottom", "top", "left", "right", "start", "end"]
@@ -502,6 +503,7 @@ Date = Union[
 ]
 Granularity = Literal["DAY", "HOUR", "MINUTE", "SECOND"]
 ListViewDensity = Literal["COMPACT", "NORMAL", "SPACIOUS"]
+ListViewOverflowMode = Literal["truncate", "wrap"]
 ActionGroupDensity = Literal["compact", "regular"]
 TabDensity = Literal["compact", "regular"]
 Dependencies = Union[Tuple[Any], List[Any]]

@@ -8,8 +8,8 @@ import {
   ActionMenu,
   ButtonGroup,
   SpectrumCheckbox as Checkbox,
+  CheckboxGroup,
   Content,
-  ContextualHelp,
   Heading,
   Item,
   ListActionGroup,
@@ -50,6 +50,7 @@ import {
   Button,
   Calendar,
   ComboBox,
+  ContextualHelp,
   DateField,
   DatePicker,
   DateRangePicker,
@@ -110,6 +111,7 @@ export const elementComponentMap = {
   [ELEMENT_NAME.buttonGroup]: ButtonGroup,
   [ELEMENT_NAME.calendar]: Calendar,
   [ELEMENT_NAME.checkbox]: Checkbox,
+  [ELEMENT_NAME.checkboxGroup]: CheckboxGroup,
   [ELEMENT_NAME.comboBox]: ComboBox,
   [ELEMENT_NAME.content]: Content,
   [ELEMENT_NAME.contextualHelp]: ContextualHelp,
@@ -180,9 +182,7 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
       }
       if (props?.contextualHelp != null && isPrimitive(props.contextualHelp)) {
         props.contextualHelp = (
-          <ContextualHelp>
-            <Content>{props.contextualHelp}</Content>
-          </ContextualHelp>
+          <ContextualHelp heading={null} content={props.contextualHelp} />
         );
       }
       return <Component {...props} />;

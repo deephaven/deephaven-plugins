@@ -6,3 +6,4 @@ from .layout import *
 from .progress import *
 from .validate import *
 from .icon_types import *
+from .Intl.number_field import *

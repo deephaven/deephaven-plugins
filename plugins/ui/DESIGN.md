@@ -2676,6 +2676,71 @@ ui_table.sort(
 | `by`        | `str \| Sequence[str]`                                       | The column(s) to sort by. May be a single column name, or a list of column names.                           |
 | `direction` | `TableSortDirection \| Sequence[TableSortDirection] \| None` | The sort direction(s) to use. If provided, that must match up with the columns provided. Defaults to "ASC". |
 
+##### ui.table Formatting Rules
+
+Tables can be formatted via the `formatting` prop and a Dataclass that contains the different formatting options. We choose to use Dataclass as effectively a more strict dictionary. This allows for better type checking and easier to understand code.
+
+Formatting can be a variety of different options including background color, font, font color, font size, text alignment, cell rendering mode (data bars, button, etc.), and number formatting. It can be thought of as any visual manipulation of the base table display and should be flexible enough to allow for any kind of formatting that the user desires (assuming the rule is supported).
+
+The formatting rules should have 3 main properties:
+
+1. The formatting to apply.
+2. Where to apply the formatting.
+3. An optional conditional expression that will determine if the formatting should be applied (the `where` arg).
+
+Outside of these 3 properties, it is up to the Dataclass to identify what kind of formatting it is and up to the web to apply that formatting.
+
+On the client, formatting rules should be applied in the order they are defined in the list and stop as soon as a rule is applied. This should only prevent later rules from being applied if they are the same type of rule. For example, if a color rule is applied to a cell, a number formatting rule should still be applied to that cell if it is defined later in the list, but another color rule should not be applied.
+
+We will use a single dataclass that encompasses both row and column formatting. If `cols` is provided, it is a column rule, else it is a row rule. This dataclass will support the different formatting types as a keyword argument. This allows for multiple different formatting rules to be applied to a column or row with the same condition without repeating.
+
+In the future we may implement column and row formatting dataclasses which would extend the main formatting class and require or prohibit `cols`.
+
+We should support some method of applying value formatting to all columns that support it. This would be useful for number formatting, date formatting, etc. We could support `cols="*"` or if there is no `cols` (indicating a row rule), we could apply the value formatting to all columns that are supported in the matching rows (or all rows if no `where`).
+
+We could also support regex (or just wildcards) in the `cols` field to apply the rule to multiple columns at once. This could be useful if a user wanted to format all columns that end in percent as a percentage. Something like `FORMAT(cols="*Percent", format="0.00%")`. We could require regex strings be surrounded by `/` to differentiate them from normal strings with wildcards.
+
+```py
+from deephaven import ui, time_table
+
+_t = time_table("PT1S").update("X=i % 10", "Y=i % 10", "Z=i % 100")
+
+t = ui.table(
+    t,
+    formatting=[
+        ui.table.FORMAT(cols="X", color="RED"),
+        ui.table.FORMAT(cols="Y", color="BLUE", where="Y % 2 == 0"),
+        ui.table.FORMAT(cols="Y", value="0.00"),
+        ui.table.FORMAT(cols=["A", "B"], color="PURPLE", value="0.00%", where="A > 5"),
+        ui.table.FORMAT(cols="Z", mode=ui.table.DATABAR(value_col="Z", min=0, max=100, positive_color="GREEN", negative_color="RED"),
+        ui.table.FORMAT(where="X > 5", color="GREEN")
+    ]
+)
+```
+
+##### ui.table Formatting Rule Types
+
+There are 3 main types of formatting rules: those which affect basic visual aspects (color, font, etc.), those which affect the display value (number formatting, etc.), and those which affect the cell rendering mode (data bars, buttons, etc.). Multiple different visual rules can be applied at the same time, but only one display value rule and one cell rendering mode rule can be applied at a time. It doesn't make sense to have a cell that is both a data bar and a button, for example. If a rule is applied conditionally, multiple display or cell rendering rules should be allowed to be applied in a column.
+
+Some examples of potential rules that fall into each category:
+
+1. Visual (each should have a keyword arg in the dataclass)
+   - Background Color
+   - Font
+   - Font Color
+   - Font Size
+   - Text Alignment
+2. Display Value (one keyword arg such as `display` in the dataclass)
+   - Number Formatting
+   - Date Formatting
+   - DateTime Formatting
+   - String Formatting
+3. Cell Rendering Mode (one keyword arg such as `mode` in the dataclass)
+   - Data Bars
+   - Buttons
+   - Checkboxes
+   - Icons
+
 ###### ui.time_field
 
 A time field that can be used to select a time.
