@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Callable
+import warnings
 
 from plotly import express as px
 
@@ -306,3 +307,101 @@ def timeline(
     args = locals()
 
     return process_args(args, {"bar", "preprocess_time"}, px_func=px.timeline)
+
+
+def frequency_bar(
+    table: Table | None = None,
+    x: str | list[str] | None = None,
+    y: str | list[str] | None = None,
+    by: str | list[str] | None = None,
+    by_vars: str | list[str] = "color",
+    labels: dict[str, str] | None = None,
+    color: str | list[str] | None = None,
+    pattern_shape: str | list[str] | None = None,
+    color_discrete_sequence: list[str] | None = None,
+    color_discrete_map: dict[str | tuple[str], str] | None = None,
+    pattern_shape_sequence: list[str] | None = None,
+    pattern_shape_map: dict[str | tuple[str], str] | None = None,
+    opacity: float | None = None,
+    barmode: str = "relative",
+    log_x: bool = False,
+    log_y: bool = False,
+    range_x: list[int] | None = None,
+    range_y: list[int] | None = None,
+    text_auto: bool | str = False,
+    title: str | None = None,
+    template: str | None = None,
+    unsafe_update_figure: Callable = default_callback,
+) -> DeephavenFigure:
+    """Returns a bar chart that contains the counts of the specified columns
+    Args:
+      table: A table to pull data from.
+      x: A column or list of columns that contain x-axis values.
+        Only one of x or y can be specified. If x is specified, the bars
+        are drawn vertically.
+      y: A column or list of columns that contain y-axis values.
+        Only one of x or y can be specified. If y is specified, the bars
+        are drawn horizontally.
+      by: A column or list of columns that contain values to plot the figure traces by.
+        All values or combination of values map to a unique design. The variable
+        by_vars specifies which design elements are used.
+        This is overriden if any specialized design variables such as color are specified
+      by_vars: A string or list of string that contain design elements to plot by.
+        Can contain color and pattern_shape.
+        If associated maps or sequences are specified, they are used to map by column values
+        to designs. Otherwise, default values are used.
+      color: A column or list of columns that contain color values.
+        The value is used for a plot by on color.
+        See color_discrete_map for additional behaviors.
+      pattern_shape: A column or list of columns that contain pattern shape values.
+        The value is used for a plot by on pattern shape.
+        See pattern_shape_map for additional behaviors.
+      labels: A dictionary of labels mapping columns to new labels.
+      color_discrete_sequence: A list of colors to sequentially apply to
+        the series. The colors loop, so if there are more series than colors,
+        colors will be reused.
+      color_discrete_map: If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to colors.
+      pattern_shape_sequence: A list of patterns to sequentially apply
+        to the series. The patterns loop, so if there are more series than
+        patterns, patterns will be reused.
+      pattern_shape_map: If dict, the keys should be strings of the column values (or a tuple
+        of combinations of column values) which map to patterns.
+      opacity: Opacity to apply to all markers. 0 is completely transparent
+        and 1 is completely opaque.
+      barmode: If 'relative', bars are stacked. If 'overlay', bars are drawn on top
+        of each other. If 'group', bars are drawn next to each other.
+      log_x: A boolean that specifies if the corresponding axis is a log
+        axis or not.
+      log_y: A boolean that specifies if the corresponding axis is a log
+        axis or not.
+      range_x: A list of two numbers that specify the range of the x-axis.
+      range_y: A list of two numbers that specify the range of the y-axis.
+      text_auto: If True, display the value at each bar.
+        If a string, specifies a plotly texttemplate.
+      title: The title of the chart
+      template: The template for the chart.
+      unsafe_update_figure: An update function that takes a plotly figure
+        as an argument and optionally returns a plotly figure. If a figure is
+        not returned, the plotly figure passed will be assumed to be the return
+        value. Used to add any custom changes to the underlying plotly figure.
+        Note that the existing data traces should not be removed. This may lead
+        to unexpected behavior if traces are modified in a way that break data
+        mappings.
+    Returns:
+      DeephavenFigure: A DeephavenFigure that contains the bar chart
+    """
+    warnings.warn(
+        "This function is deprecated and will be removed in a future release. "
+        "Use bar with only one of x or y specified instead for identical behavior.",
+        FutureWarning,
+    )
+
+    if x and y:
+        raise ValueError("Cannot specify both x and y")
+
+    args = locals()
+
+    return process_args(
+        args, {"bar", "preprocess_freq", "supports_lists"}, px_func=px.bar
+    )
