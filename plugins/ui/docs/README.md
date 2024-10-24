@@ -15,10 +15,14 @@
 
 ## Getting Started
 
-You can run the example Docker container with the following command:
+You can run the example Docker container with either of the following commands, depending on your Deephaven version:
 
-```
-docker run --rm --name deephaven-ui -p 10000:10000 --pull=always ghcr.io/deephaven/server-ui:edge
+```bash
+# For Deephaven < 0.37.0
+docker run --rm --name deephaven-ui -p 10000:10000 --pull=always ghcr.io/deephaven/server-ui:latest
+
+# For Deephaven >= 0.37.0
+docker run --rm --name deephaven-ui -p 10000:10000 --pull=always ghcr.io/deephaven/server:latest
 ```
 
 You'll need to find the link to open the UI in the Docker logs:
