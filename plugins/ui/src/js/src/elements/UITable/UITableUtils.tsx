@@ -1,3 +1,4 @@
+import { type StyleProps } from '@react-types/shared';
 import type { dh } from '@deephaven/jsapi-types';
 import { ColumnName, DehydratedSort } from '@deephaven/iris-grid';
 import { ELEMENT_KEY, ElementNode, isElementNode } from '../utils/ElementUtils';
@@ -37,7 +38,7 @@ export type DatabarConfig = {
   markers?: { value: number | string; color?: string }[];
 };
 
-export type UITableProps = {
+export type UITableProps = StyleProps & {
   table: dh.WidgetExportedObject;
   onCellPress?: (data: CellData) => void;
   onCellDoublePress?: (data: CellData) => void;
@@ -61,6 +62,7 @@ export type UITableProps = {
   contextMenu?: ResolvableUIContextItem | ResolvableUIContextItem[];
   contextHeaderMenu?: ResolvableUIContextItem | ResolvableUIContextItem[];
   databars?: DatabarConfig[];
+  [key: string]: unknown; // Needed because StyleProps is an interface which removes the implicit index signature of the type
 };
 
 export type UITableNode = Required<

@@ -83,3 +83,10 @@ flex_21 = ui.panel(
     ui.button("Test"),
     _t_flex,
 )
+flex_22 = ui.panel(
+    ui.flex(ui.table(_t_flex, margin="20px"), _t_flex, direction="column")
+)
+flex_23 = ui.panel(ui.flex(ui.table(_t_flex, margin="20px"), _t_flex, direction="row"))
+flex_24 = ui.panel(
+    ui.flex(ui.table(_t_flex, height="200px"), _t_flex, direction="column")
+)
