@@ -644,7 +644,7 @@ class ScatterTestCase(BaseTestCase):
                 "hovertemplate": "X=%{x}<extra></extra>",
                 "jitter": 0,
                 "legendgroup": "",
-                "line": {"color": "rgba(255,255,255,0)"},
+                "line": {"width": 0},
                 "marker": {"color": "#636efa", "symbol": "line-ns-open"},
                 "name": "",
                 "offsetgroup": "",

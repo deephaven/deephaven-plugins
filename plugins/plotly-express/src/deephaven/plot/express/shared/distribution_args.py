@@ -40,3 +40,5 @@ HISTOGRAM_DEFAULTS = {
 }
 
 SPREAD_GROUPS = {"marker", "preprocess_spread", "supports_lists"}
+
+STRIP_GROUPS = SPREAD_GROUPS | {"strip"}
