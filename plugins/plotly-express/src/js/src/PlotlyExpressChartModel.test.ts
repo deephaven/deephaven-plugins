@@ -263,7 +263,7 @@ describe('PlotlyExpressChartModel', () => {
     );
   });
 
-  it('should swap replaceable WebGL traces without blocker events if WebGL is disabled or reenabled', async () => { 
+  it('should swap replaceable WebGL traces without blocker events if WebGL is disabled or reenabled', async () => {
     const mockWidget = createMockWidget([SMALL_TABLE], 'scattergl');
     const chartModel = new PlotlyExpressChartModel(
       mockDh,
@@ -273,11 +273,15 @@ describe('PlotlyExpressChartModel', () => {
 
     const mockSubscribe = jest.fn();
     await chartModel.subscribe(mockSubscribe);
+    await new Promise(process.nextTick); // Subscribe is async
     chartModel.renderOptions = { webgl: true };
+    await new Promise(process.nextTick); // Subscribe is async
     expect(chartModel.plotlyData[0].type).toBe('scattergl');
     chartModel.renderOptions = { webgl: false };
+    await new Promise(process.nextTick); // Subscribe is async
     expect(chartModel.plotlyData[0].type).toBe('scatter');
     chartModel.renderOptions = { webgl: true };
+    await new Promise(process.nextTick); // Subscribe is async
     expect(chartModel.plotlyData[0].type).toBe('scattergl');
     await new Promise(process.nextTick); // Subscribe is async
 

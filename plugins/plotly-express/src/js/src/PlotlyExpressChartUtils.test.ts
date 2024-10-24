@@ -223,10 +223,10 @@ describe('getReplaceableWebGlTraceIndexes', () => {
           type: 'scattergl',
         },
       ])
-    ).toEqual([0, 3]);
+    ).toEqual(new Set([0, 3]));
   });
 
-  it('should return an empty array if there are no traces with gl', () => {
+  it('should return an empty set if there are no traces with gl', () => {
     expect(
       getReplaceableWebGlTraceIndexes([
         {
@@ -236,7 +236,7 @@ describe('getReplaceableWebGlTraceIndexes', () => {
           type: 'scatter3d',
         },
       ])
-    ).toEqual([]);
+    ).toEqual(new Set());
   });
 });
 
