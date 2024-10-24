@@ -1,4 +1,9 @@
-import type { Data, LayoutAxis, PlotlyDataLayoutConfig, PlotType } from 'plotly.js';
+import type {
+  Data,
+  LayoutAxis,
+  PlotlyDataLayoutConfig,
+  PlotType,
+} from 'plotly.js';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 
 /**
