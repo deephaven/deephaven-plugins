@@ -397,7 +397,8 @@ def frequency_bar(
     warnings.warn(
         "This function is deprecated and will be removed in a future release. "
         "Use bar with only one of x or y specified instead for identical behavior.",
-        FutureWarning,
+        DeprecationWarning,
+        stacklevel=2,
     )
 
     if x and y:
