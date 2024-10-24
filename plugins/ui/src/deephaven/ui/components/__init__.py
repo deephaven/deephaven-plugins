@@ -48,7 +48,7 @@ from .switch import switch
 from .tab_list import tab_list
 from .tab_panels import tab_panels
 from .tab import tab
-from .table import table
+from .table import table, TableDatabar, TableFormat
 from .tabs import tabs
 from .text import text
 from .text_area import text_area
@@ -108,6 +108,8 @@ __all__ = [
     "stack",
     "switch",
     "table",
+    "TableDatabar",
+    "TableFormat",
     "tab_list",
     "tab_panels",
     "tabs",

@@ -17,6 +17,55 @@ t = ui.table(_t)
 2. Use a UI table to show properties like filters as if the user had created them in the UI. Users can change the default values provided by the UI table, such as filters.
 3. UI tables handle ticking tables automatically, so you can pass any Deephaven table to a UI table.
 
+## Formatting
+
+You can format the table using the `formatting` prop. This prop takes a list of `ui.TableFormat` objects. `ui.TableFormat` is a dataclass that encapsulates the formatting options for a table. The full list of formatting options can be found in the [API Reference](#tableformat).
+
+### Formatting Rows and Columns
+
+Every formatting rule may optionally specify `cols` and `where` properties. The `cols` property is a column name or list of column names to apply the formatting rule to. If `cols` is omitted, then the rule will be applied to the entire row. The `where` property is a Deephaven filter expression to apply the formatting rule to. The `where` property _must_ evaluate to a boolean. If `where` is omitted, then the rule will be applied to every row. These may be combined to apply formatting to specific columns only when a condition is met.
+
+> [!NOTE]
+> The `where` property is a Deephaven query expression evaluated in the engine. You can think of it like adding a new boolean column using [`update_view`](https://deephaven.io/core/docs/reference/table-operations/select/update-view/)
+
+The following example shows how to format the `Sym` and `Exchange` columns with a red background and white text when the `Sym` is `DOG`.
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(
+    dx.data.stocks(),
+    formatting=[
+        ui.TableFormat(
+            cols=["Sym", "Exchange"],
+            where="Sym = `DOG`",
+            background_color="red",
+            color="white",
+        )
+    ],
+)
+```
+
+### Formatting Rule Priority
+
+Formatting rules are applied in order and stop when a rule is matched for a certain property. This means the highest priority rules should be first in the list with lower priority rules at the end.
+
+In the following example, the `Sym` column will have a red background with white text, and the rest of the table will have a blue background with white text.
+
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(
+    dx.data.stocks(),
+    formatting=[
+        ui.TableFormat(cols="Sym", background_color="red"),
+        ui.TableFormat(background_color="blue", color="white"),
+    ],
+)
+```
+
 ## Events
 
 You can listen for different user events on a `ui.table`. There is both a `press` and `double_press` event for `row`, `cell`, and `column`. These events typically correspond to a click or double click on the table. The event payloads include table data related to the event. For `row` and `column` events, the corresponding data within the viewport will be sent to the event handler. The viewport is typically the visible area &plusmn; a window equal to the visible area (e.g., if rows 5-10 are visible, rows 0-15 will be in the viewport).
@@ -265,6 +314,14 @@ t = ui.table(
 
 ## API Reference
 
+### Table
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.table
+```
+
+### TableFormat
+
+```{eval-rst}
+.. dhautofunction:: deephaven.ui.TableFormat
 ```

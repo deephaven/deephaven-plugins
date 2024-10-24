@@ -158,67 +158,6 @@ class UITableTestCase(BaseTestCase):
             },
         )
 
-    def test_sort(self):
-        import deephaven.ui as ui
-        from deephaven import SortDirection
-
-        ui_table = ui.table(self.source)
-
-        t = ui_table.sort("X")
-        self.expect_render(
-            t,
-            {
-                "sorts": [{"column": "X", "direction": "ASC", "is_abs": False}],
-            },
-        )
-
-        t = ui_table.sort("X", SortDirection.DESCENDING)
-        self.expect_render(
-            t,
-            {
-                "sorts": [{"column": "X", "direction": "DESC", "is_abs": False}],
-            },
-        )
-
-        self.assertRaises(
-            ValueError, ui_table.sort, ["X", "Y"], [SortDirection.ASCENDING]
-        )
-
-        self.assertRaises(
-            ValueError,
-            ui_table.sort,
-            ["X"],
-            [SortDirection.ASCENDING, SortDirection.DESCENDING],
-        )
-
-        t = ui_table.sort(
-            ["X", "Y"], [SortDirection.ASCENDING, SortDirection.DESCENDING]
-        )
-
-        self.expect_render(
-            t,
-            {
-                "sorts": [
-                    {"column": "X", "direction": "ASC", "is_abs": False},
-                    {"column": "Y", "direction": "DESC", "is_abs": False},
-                ],
-            },
-        )
-
-        t = ui_table.sort(["X", "Y"], ["DESC", "ASC"])
-
-        self.expect_render(
-            t,
-            {
-                "sorts": [
-                    {"column": "X", "direction": "DESC", "is_abs": False},
-                    {"column": "Y", "direction": "ASC", "is_abs": False},
-                ],
-            },
-        )
-
-        self.assertRaises(ValueError, ui_table.sort, ["X", "Y"], ["INVALID"])
-
     def test_front_columns(self):
         import deephaven.ui as ui
 
