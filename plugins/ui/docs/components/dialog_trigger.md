@@ -14,7 +14,7 @@ my_dialog_trigger_example = ui.dialog_trigger(
     ),
     ui.dialog(
         ui.heading("C://"),
-        ui.content("50% disk space remainging"),
+        ui.content("50% disk space remaining"),
     ),
     type="popover",
 )
@@ -190,7 +190,7 @@ my_fullscreen_takeover_example = fullscreen_takeover_example()
 
 ### Dismissable
 
-If your modal fialog doesn't require the user to make a confirmation, you can set `is_dismissable` on the `dialog_trigger`. This adds a close button that the user can press to dismiss the `dialog`.
+If your modal dialog doesn't require the user to make a confirmation, you can set `is_dismissable` on the `dialog_trigger`. This adds a close button that the user can press to dismiss the `dialog`.
 
 ```python
 from deephaven import ui

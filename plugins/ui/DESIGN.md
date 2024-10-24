@@ -1939,7 +1939,7 @@ The content can be populated by providing the following components to your `dial
 ```py
 from deephaven import ui
 
-# Open and cloased using flag (controlled)
+# Open and closed using flag (controlled)
 @ui.component
 def open_close_example():
     is_open, set_open, set_closed = ui.use_flag()
@@ -1956,7 +1956,7 @@ my_dismissable = ui.dialog_trigger(
         ui.action_button("Open dialog",),
         ui.dialog(
             ui.heading("Dialog"),
-            ui.content("Dismiss usin the X button."),
+            ui.content("Dismiss using the X button."),
             is_dismissable=True,
             ),
     )
@@ -1964,7 +1964,7 @@ my_dismissable = ui.dialog_trigger(
 # A small dialog
 my_small = ui.dialog_trigger(
         ui.action_button("Open dialog",),
-        ui.dialog(ui.heading("Dialog"), ui.content("Dismiss usin the X button."), is_dismissable=True, size="S"),
+        ui.dialog(ui.heading("Dialog"), ui.content("Dismiss using the X button."), is_dismissable=True, size="S"),
     )
 
 from deephaven import ui
@@ -1976,7 +1976,7 @@ def dismissable_callback():
     return ui.dialog_trigger(
         ui.action_button("Open dialog", on_press=set_open),
         ui.dialog(ui.heading("Dialog"),
-            ui.content("Dismiss usin the X button."),
+            ui.content("Dismiss using the X button."),
             is_dismissable=True,
             on_dismiss=set_closed
             ),
@@ -2042,7 +2042,7 @@ By providing a `type` prop, you can specify the type of `dialog` that is rendere
 ```py
 from deephaven import ui
 
-# Open and cloased using flag (controlled)
+# Open and closed using flag (controlled)
 @ui.component
 def open_close_example():
     is_open, set_open, set_closed = ui.use_flag()
@@ -2059,7 +2059,7 @@ my_dismissable = ui.dialog_trigger(
         ui.action_button("Open dialog",),
         ui.dialog(
             ui.heading("Dialog"),
-            ui.content("Dismiss usin the X button."),
+            ui.content("Dismiss using the X button."),
             ),
         is_dismissable=True,
     )
