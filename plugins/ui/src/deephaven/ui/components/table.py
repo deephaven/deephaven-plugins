@@ -34,6 +34,8 @@ class TableFormat:
             E.g. "0.00%" to format as a percentage with two decimal places.
         mode: The cell rendering mode.
             Currently only databar is supported as an alternate rendering mode.
+    Returns:
+        The TableFormat.
     """
 
     cols: ColumnName | list[ColumnName] | None = None
@@ -243,7 +245,7 @@ class table(Element):
         left: DimensionValue | None = None,
         right: DimensionValue | None = None,
         z_index: int | None = None,
-    ):
+    ) -> None:
         props = locals()
         del props["self"]
         self._props = props
