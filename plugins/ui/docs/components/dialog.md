@@ -197,7 +197,7 @@ my_dismissable_callback = dismissable_callback()
 
 ### Dialog types
 
-Dialogs can be rendered as modals, popovers, or trays. See the `dialog_trigger` docs for more information.
+Dialogs can be rendered as modals, popovers, or trays. See the [`dialog_trigger`](dialog_trigger.md) docs for more information.
 
 ```python
 from deephaven import ui
