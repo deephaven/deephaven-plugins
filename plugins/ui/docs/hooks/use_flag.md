@@ -1,6 +1,6 @@
 # use_flag
 
-`use_flag` is a hook used to add a boolean flag to your component. Since it is a hook, it must be used at the top level of your component. It returns a tuple with exactly three items: the current flag value, a function to set the flag to `True`, and a function to set the flag to `False` . Updating state will cause the component to re-render (running the function again). This is a convenience hook for when you only need functions to set a flag to `True` or `False`. For more complex state management, use `use_state`.
+`use_flag` is a hook that adds a boolean flag to your component. Since it is a hook, it must be used at the top level of your component. It returns a tuple with exactly three items: the current flag value, a function to set the flag to `True`, and a function to set the flag to `False` . Updating state will cause the component to re-render (running the function again). This is a convenience hook for when you only need functions to set a flag to `True` or `False`. For more complex state management, use `use_state`.
 
 ## Example
 

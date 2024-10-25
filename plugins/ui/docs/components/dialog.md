@@ -164,7 +164,7 @@ my_print_example = print_example()
 
 ### Dismissable dialogs
 
-Dismissable dialogs support an optional `on_dismiss` prop which is triggered whenever the dialog's close button is clicked. Similar to non-dismissable dialogs, you must chain the close function with whatever callback you provide as onDismiss. If this event callback is not needed, the dismissiable dialog will behave as normal without passing this callback through.
+Dismissable dialogs support an optional `on_dismiss` prop that is triggered whenever the dialog's close button is clicked. Like non-dismissable dialogs, you must chain the close function with whatever callback you provide as `onDismiss`. If this event callback is not needed, the dismissable dialog will behave normally without passing this callback through.
 
 ```python
 from deephaven import ui

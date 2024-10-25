@@ -24,7 +24,7 @@ my_dialog_trigger_example = ui.dialog_trigger(
 
 The `dialog_trigger` accepts exactly two children: the element which triggers opening of the `dialog` and the `dialog` itself. The trigger must be the first child passed into the `dialog_trigger` and should be an element that supports press events.
 
-If your `dialog` has buttons within it that should close the Dialog when pressed, you must use controlled mode in order to propagate the close function to the dialog's children. Dialogs that do not contain such interactive elements can simply provide the `dialog` component as is to the `dialog_trigger` as its second child.
+If your `dialog` has buttons within it that should close the dialog when pressed, you must use controlled mode to propagate the close function to the dialog's children. Dialogs that do not contain such interactive elements can provide the `dialog` component as is to the `dialog_trigger` as its second child.
 
 The example below demonstrates how to pass the close function to the dialog's buttons.
 
@@ -58,7 +58,7 @@ By providing a `type` prop, you can specify the type of `dialog` that is rendere
 
 ### Modal
 
-Modal dialogs create an underlay that blocks access to the underlying user interface until the dialog is closed. Sizing options can be found on the `dialog` page. Focus is trapped inside the Modal as per the accessibility guidelines laid out by W3C.
+Modal dialogs create an underlay that blocks access to the underlying user interface until the dialog is closed. Sizing options can be found on the `dialog` page. Focus is trapped inside the modal as per the accessibility guidelines laid out by W3C.
 
 ```python
 from deephaven import ui
@@ -252,7 +252,7 @@ my_placement = ui.dialog_trigger(
 
 ### Offset and cross offset
 
-The popover dialog's offset can be adjusted using the `offset` and `cross_offset` props. The `offset` prop controls the spacing applied along the main axis between the element and its anchor element whereas the `cross_offset` prop handles the spacing applied along the cross axis.
+The popover dialog's offset can be adjusted using the `offset` and `cross_offset` props. The `offset` prop controls the spacing applied along the main axis between the element and its anchor element, whereas the `cross_offset` prop handles the spacing applied along the cross axis.
 
 Below is a popover offset by an additional 50px above the trigger.
 
@@ -311,7 +311,7 @@ my_should_flip_example = ui.dialog_trigger(
 
 You can control the minimum padding required between the popover dialog and the surrounding container via the `container_padding` prop. This affects the positioning breakpoints that determine when the dialog will attempt to flip.
 
-The example below will flip the dialog from above the trigger button to below the trigger button if the Dialog cannot render fully while maintaining 50px of padding between itself and the top of the browser.
+The example below will flip the dialog from above the trigger button to below the trigger button if the dialog cannot render fully while maintaining 50px of padding between itself and the top of the browser.
 
 ```python
 from deephaven import ui
@@ -330,9 +330,9 @@ my_should_flip_example = ui.dialog_trigger(
 
 ## Events
 
-Dialog trigger accepts an `on_open_change` handler which is triggered whenever the Dialog is opened or closed.
+Dialog triggers accept an `on_open_change` handler that is triggered whenever the dialog is opened or closed. The example below updates a separate element with the dialog's current open state.
 
-The example below uses `on_open_change` to update a separate element with the current open state of the Dialog.
+
 
 ```python
 from deephaven import ui
