@@ -30,3 +30,9 @@ def ui_fragment_list():
 
 my_fragment = ui_fragment_list()
 ```
+
+## API Reference
+
+```{eval-rst}
+.. dhautofunction:: deephaven.ui.fragment
+```
