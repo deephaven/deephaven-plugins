@@ -1,6 +1,6 @@
 # Dashboard
 
-Dashboards allow you to layout a page containing a collection of components. Panels within the dashboard are moveable and resizable by the user.
+Dashboards allow you to create a page layout containing a collection of components. The user can move and resize panels within the dashboard.
 
 ## Example
 
@@ -12,44 +12,44 @@ my_dash = ui.dashboard(ui.row(ui.panel("A")))
 
 ## Rules
 
-1. Dashboards must be a child of the root script and not nested inside a `@ui.component`. Otherwise the application is unable to correctly determine the type of the component
+1. Dashboards must be a child of the root script and not nested inside a `@ui.component`. Otherwise, the application cannot correctly determine the type of the component.
 2. Dashboards must have one and only one child, typically a row or column.
 3. Height and width of panels are summed to 100% within a row or column.
 
 ## Key Components
 
-There are 4 main children that make up dashboard: row, column, stack, and panels.
+Four main children make up a dashboard: row, column, stack, and panels.
 
 - **Row**: A container used to group elements horizontally. Each element is placed to the right of the previous one.
 - **Column**: A container used to group elements vertically. Each element is placed below the previous one.
 - **Stack**: A container used to group elements into a stack of tabs. Each element gets its own tab, with only one element visible at a time.
-- **Panel**: A container used to group and label elements
+- **Panel**: A container used to group and label elements.
 
 ## Layout Hierarchy
 
 ### Top-Level
 
-Rows and columns are the "top" the layout tree. Columns should go inside rows and rows should go inside columns
+Your dashboard must start with a row or column, which is the "top" of the layout tree. Columns should go inside rows and rows should go inside columns
 
-Note: Your dashboard must start with a row or column, and is the "top" the layout tree. Columns should go inside rows and rows should go inside columns. Nesting rows within rows or columns within columns will sub-divide the row or column.
+Note: Nesting rows within rows or columns within columns will sub-divide the row or column.
 
 ### Bottom-Level
 
-Stacks and panels are considered the "bottom" of the layout tree. Once added, the layout in that section is considered complete. You can't further nest stacks within panels. For layout within a panel see [`tabs`](./tabs.md), [`flex`](./flex.md), [`grid`](./grid.md).
+Stacks and panels are considered the "bottom" of the layout tree. Once added, the layout in that section is considered complete. You can't further nest stacks within panels. For layouts within a panel, see [`tabs`](./tabs.md), [`flex`](./flex.md), and [`grid`](./grid.md).
 
 ## Automatic Wrapping
 
-Children are implicitly wrapped when necessary so the entire layout does not need to be explicitly defined.
+Children are implicitly wrapped when necessary, so the entire layout does not need to be explicitly defined.
 
-The rules for how automatic wrapping is applied:
+End to end example: `dashboard([t1, t2])` would become `dashboard(column(stack(panel(t1)), stack(panel(t2))))`.
 
-1. Dashboard - wrap in row/column if no single node is the default (e.g `[t1, t2]` as the child to dashboard would become `row(t1, t2)`)
-2. Row/Column
-   - if there are children that are rows/columns, wrap the non-wrapped children with the same element (e.g `row(col(t1), t2)` becomes `row(col(t1), col(t2))`)
-   - if none of the children are wrapped by rows/columns, they are wrapped in stacks (e.g `row(col(t1), col(t2))` from above becomes `row(col(stack(t1)), col(stack(t2)))`)
-3. Stacks - wrap non-panel children in panels (e.g `row(col(stack(t1)), col(stack(t2)))` becomes `row(col(stack(panel(t1))), col(stack(panel(t2))))`)
+Automatic wrapping is applied by the following rules:
 
-End to end example: `dashboard([t1, t2])` would become `dashboard(column(stack(panel(t1)), stack(panel(t2))))`
+1. Dashboard: wrap in row/column if no single node is the default (e.g., `[t1, t2]` as the child to the dashboard would become `row(t1, t2)`).
+2. Row/Column:
+   - If there are children that are rows/columns, wrap the non-wrapped children with the same element (e.g., `row(col(t1), t2)` becomes `row(col(t1), col(t2))`).
+   - If none of the children are wrapped by rows/columns, they are wrapped in stacks (e.g., `row(col(t1), col(t2))` from above becomes `row(col(stack(t1)), col(stack(t2)))`).
+3. Stacks: wrap non-panel children in panels (e.g., `row(col(stack(t1)), col(stack(t2)))` becomes `row(col(stack(panel(t1))), col(stack(panel(t2))))`).
 
 ## Varying dimensions
 
