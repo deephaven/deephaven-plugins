@@ -28,7 +28,7 @@ def dialog_trigger(
     key: str | None = None,
 ) -> Element:
     """
-    A contextual help is a quiet action button that triggers an informational popover.
+    A dialog_trigger serves as a wrapper around a dialog and its associated trigger.
     Args:
         *children: The Dialog and its trigger element.
         type: The type of Dialog that should be rendered.

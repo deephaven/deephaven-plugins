@@ -72,8 +72,7 @@ def dialog(
     key: str | None = None,
 ) -> DialogElement:
     """
-    A dialog allows the user to select a date.
-
+    A dialog is a window containing contextual information, tasks, or workflows that appear over the user interface.
 
     Args:
         *children: The contents of the Dialog.
