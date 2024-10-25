@@ -32,7 +32,7 @@ def dialog_trigger(
     Args:
         *children: The Dialog and its trigger element.
         type: The type of Dialog that should be rendered.
-        mobile_type: 	The type of Dialog that should be rendered when on a mobile device.
+        mobile_type: The type of Dialog that should be rendered when on a mobile device.
         placement: The placement of the popover relative to the action button.
         is_open: Whether the popover is open by default (controlled).
         default_open: Whether the popover is open by default (uncontrolled).

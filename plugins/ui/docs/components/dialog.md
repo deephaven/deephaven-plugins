@@ -107,7 +107,7 @@ def dialog_example3():
                     ui.text_field(label="Street Address"),
                     ui.text_field(label="City"),
                     ui.checkbox(
-                        "I want to receive udpates for exclusive offers in my area."
+                        "I want to receive updates for exclusive offers in my area."
                     ),
                 )
             ),
