@@ -8,6 +8,7 @@ import type { dh as DhType } from '@deephaven/jsapi-types';
 
 /**
  * Traces that are at least partially powered by WebGL and have no SVG equivalent.
+ * https://plotly.com/python/webgl-vs-svg/
  */
 const UNREPLACEABLE_WEBGL_TRACE_TYPES = new Set([
   'splom',
