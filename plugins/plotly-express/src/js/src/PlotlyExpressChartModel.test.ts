@@ -274,16 +274,12 @@ describe('PlotlyExpressChartModel', () => {
     const mockSubscribe = jest.fn();
     await chartModel.subscribe(mockSubscribe);
     await new Promise(process.nextTick); // Subscribe is async
-    chartModel.renderOptions = { webgl: true };
-    await new Promise(process.nextTick); // Subscribe is async
+    chartModel.setRenderOptions({ webgl: true });
     expect(chartModel.plotlyData[0].type).toBe('scattergl');
-    chartModel.renderOptions = { webgl: false };
-    await new Promise(process.nextTick); // Subscribe is async
+    chartModel.setRenderOptions({ webgl: false });
     expect(chartModel.plotlyData[0].type).toBe('scatter');
-    chartModel.renderOptions = { webgl: true };
-    await new Promise(process.nextTick); // Subscribe is async
+    chartModel.setRenderOptions({ webgl: true });
     expect(chartModel.plotlyData[0].type).toBe('scattergl');
-    await new Promise(process.nextTick); // Subscribe is async
 
     // No events should be emitted since the trace is replaceable
     expect(mockSubscribe).toHaveBeenCalledTimes(0);
@@ -299,29 +295,30 @@ describe('PlotlyExpressChartModel', () => {
 
     const mockSubscribe = jest.fn();
     await chartModel.subscribe(mockSubscribe);
-    chartModel.renderOptions = { webgl: true };
     await new Promise(process.nextTick); // Subscribe is async
-    // no calls yet because WebGL is enabled
-    expect(mockSubscribe).toHaveBeenCalledTimes(0);
-    chartModel.renderOptions = { webgl: false };
-    await new Promise(process.nextTick);
-    // blocking event should be emitted
+    chartModel.setRenderOptions({ webgl: true });
+    // one call because the chart needs a blocker and switched from undefined to true, which triggers a clear
     expect(mockSubscribe).toHaveBeenCalledTimes(1);
-    expect(mockSubscribe).toHaveBeenLastCalledWith(
-      new CustomEvent(ChartModel.EVENT_BLOCKER)
-    );
-    chartModel.renderOptions = { webgl: true };
-    await new Promise(process.nextTick);
-    // blocking clear event should be emitted
-    expect(mockSubscribe).toHaveBeenCalledTimes(2);
     expect(mockSubscribe).toHaveBeenLastCalledWith(
       new CustomEvent(ChartModel.EVENT_BLOCKER_CLEAR)
     );
-    // if user had accepted the rendering, no EVENT_BLOCKER event should be emitted again
-    chartModel.fireBlockerClear();
-    chartModel.renderOptions = { webgl: false };
-    await new Promise(process.nextTick);
+    chartModel.setRenderOptions({ webgl: false });
+    // blocking event should be emitted
+    expect(mockSubscribe).toHaveBeenCalledTimes(2);
+    expect(mockSubscribe).toHaveBeenLastCalledWith(
+      new CustomEvent(ChartModel.EVENT_BLOCKER)
+    );
+    chartModel.setRenderOptions({ webgl: true });
+    // blocking clear event should be emitted, but this doesn't count as an acknowledge
     expect(mockSubscribe).toHaveBeenCalledTimes(3);
+    expect(mockSubscribe).toHaveBeenLastCalledWith(
+      new CustomEvent(ChartModel.EVENT_BLOCKER_CLEAR)
+    );
+    expect(chartModel.hasAcknowledgedWebGlWarning).toBe(false);
+    // if user had accepted the rendering (simulated by fireBlockerClear), no EVENT_BLOCKER event should be emitted again
+    chartModel.fireBlockerClear();
+    chartModel.setRenderOptions({ webgl: false });
+    expect(mockSubscribe).toHaveBeenCalledTimes(4);
     expect(mockSubscribe).toHaveBeenLastCalledWith(
       new CustomEvent(ChartModel.EVENT_BLOCKER_CLEAR)
     );

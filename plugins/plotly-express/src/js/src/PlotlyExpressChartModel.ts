@@ -242,16 +242,18 @@ export class PlotlyExpressChartModel extends ChartModel {
     if (webgl != null) {
       setWebGlTraceType(this.plotlyData, webgl, this.webGlTraceIndices);
 
+      const needsBlocker = hasUnreplaceableWebGlTraces(this.plotlyData);
+
       // If WebGL is disabled and there are traces that require WebGL, show a warning that is dismissible on a per-chart basis
-      if (
-        hasUnreplaceableWebGlTraces(this.plotlyData) &&
-        !webgl &&
-        !this.hasAcknowledgedWebGlWarning
-      ) {
+      if (needsBlocker && !webgl && !this.hasAcknowledgedWebGlWarning) {
         this.fireBlocker([
           'WebGL is disabled but this chart cannot render without it. Check the Advanced section in the settings to enable WebGL or click below to render with WebGL for this chart.',
         ]);
-      } else if (webgl === true && (prevWebgl === false || prevWebgl == null)) {
+      } else if (
+        webgl === true &&
+        (prevWebgl === false || prevWebgl == null) &&
+        needsBlocker
+      ) {
         // clear the blocker but not the acknowledged flag in case WebGL is disabled again
         super.fireBlockerClear();
       }
