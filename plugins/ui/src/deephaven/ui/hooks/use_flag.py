@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import Callable, overload
 from .._internal import InitializerFunction
 from .use_state import use_state
+from .use_callback import use_callback
 
 
 @overload
@@ -36,10 +37,7 @@ def use_flag(
     """
     flag, set_flag = use_state(initial_flag)
 
-    def set_true():
-        set_flag(True)
-
-    def set_false():
-        set_flag(False)
+    set_true = use_callback(lambda: set_flag(True), [set_flag])
+    set_false = use_callback(lambda: set_flag(False), [set_flag])
 
     return flag, set_true, set_false
