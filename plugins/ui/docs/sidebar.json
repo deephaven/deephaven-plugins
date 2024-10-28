@@ -127,12 +127,12 @@
         "label": "Hooks",
         "items": [
           {
-            "label": "use_effect",
-            "path": "hooks/use_effect.md"
+            "label": "use_boolean",
+            "path": "hooks/use_boolean.md"
           },
           {
-            "label": "use_flag",
-            "path": "hooks/use_flag.md"
+            "label": "use_effect",
+            "path": "hooks/use_effect.md"
           },
           {
             "label": "use_memo",
