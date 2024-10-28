@@ -12,6 +12,7 @@ from .types import (
     DimensionValue,
     Overflow,
 )
+from ..elements import Element
 
 
 def panel(
@@ -34,8 +35,7 @@ def panel(
     padding_x: DimensionValue | None = None,
     padding_y: DimensionValue | None = None,
     key: str | None = None,
-    **props: Any,
-):
+) -> Element:
     """
     A panel is a container that can be used to group elements.
 
@@ -58,6 +58,9 @@ def panel(
         padding_x: The padding to apply to the left and right of the element.
         padding_y: The padding to apply to the top and bottom of the element.
         key: A unique identifier used by React to render elements in a list.
+
+    Returns:
+        The rendered panel element.
 
     """
 
