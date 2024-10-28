@@ -10,15 +10,15 @@ from deephaven import ui
 
 @ui.component
 def dialog_example():
-    is_open, set_open, set_closed = ui.use_flag()
+    is_open, set_open = ui.use_boolean()
     return ui.dialog_trigger(
-        ui.action_button("Check connectivity", on_press=set_open),
+        ui.action_button("Check connectivity", on_press=set_open.on),
         ui.dialog(
             ui.heading("Internet Speed Test"),
             ui.content("Start speed test?"),
             ui.button_group(
-                ui.button("Cancel", variant="secondary", on_press=set_closed),
-                ui.button("Confirm", variant="accent", on_press=set_closed),
+                ui.button("Cancel", variant="secondary", on_press=set_open.off),
+                ui.button("Confirm", variant="accent", on_press=set_open.off),
             ),
         ),
         is_open=is_open,
@@ -49,16 +49,16 @@ from deephaven import ui
 
 @ui.component
 def dialog_example1():
-    is_open, set_open, set_closed = ui.use_flag()
+    is_open, set_open = ui.use_boolean()
     return ui.dialog_trigger(
-        ui.action_button("Publish", on_press=set_open),
+        ui.action_button("Publish", on_press=set_open.on),
         ui.dialog(
             ui.heading("Publish 3 pages"),
             ui.content("Confirm publish?"),
             ui.button_group(
-                ui.button("Cancel", variant="secondary", on_press=set_closed),
+                ui.button("Cancel", variant="secondary", on_press=set_open.off),
                 ui.button(
-                    "Confirm", variant="accent", on_press=set_closed, auto_focus=True
+                    "Confirm", variant="accent", on_press=set_open.off, auto_focus=True
                 ),
             ),
         ),
@@ -89,9 +89,9 @@ from deephaven import ui
 
 @ui.component
 def dialog_example3():
-    is_open, set_open, set_closed = ui.use_flag()
+    is_open, set_open = ui.use_boolean()
     return ui.dialog_trigger(
-        ui.action_button("Register", on_press=set_open),
+        ui.action_button("Register", on_press=set_open.on),
         ui.dialog(
             ui.heading(
                 ui.flex(
@@ -112,8 +112,8 @@ def dialog_example3():
                 )
             ),
             ui.button_group(
-                ui.button("Cancel", variant="secondary", on_press=set_closed),
-                ui.button("Register", variant="accent", on_press=set_closed),
+                ui.button("Cancel", variant="secondary", on_press=set_open.off),
+                ui.button("Register", variant="accent", on_press=set_open.off),
             ),
         ),
         is_open=is_open,
@@ -133,18 +133,18 @@ from deephaven import ui
 
 @ui.component
 def print_example():
-    is_open, set_open, set_closed = ui.use_flag()
+    is_open, set_open = ui.use_boolean()
 
     def print_save():
-        set_closed()
+        set_open.off()
         print("Profile saved!")
 
     def print_cancel():
-        set_closed()
+        set_open.off()
         print("Provfile not saved!")
 
     return ui.dialog_trigger(
-        ui.action_button("Set Profile", on_press=set_open),
+        ui.action_button("Set Profile", on_press=set_open.on),
         ui.dialog(
             ui.heading("Profile"),
             ui.content(
@@ -172,14 +172,14 @@ from deephaven import ui
 
 @ui.component
 def dismissable_callback():
-    is_open, set_open, set_closed = ui.use_flag()
+    is_open, set_open = ui.use_boolean()
 
     def print_dismiss():
-        set_closed()
+        set_open.off()
         print("Dialog dismissed.")
 
     return ui.dialog_trigger(
-        ui.action_button("Info", on_press=set_open),
+        ui.action_button("Info", on_press=set_open.on),
         ui.dialog(
             ui.heading("Version Info"),
             ui.content("Version 1.0.0, Copyright 2020"),
@@ -248,17 +248,17 @@ from deephaven import ui
 
 @ui.component
 def small_example():
-    is_open, set_open, set_closed = ui.use_flag()
+    is_open, set_open = ui.use_boolean()
     return ui.dialog_trigger(
-        ui.action_button("Small", on_press=set_open),
+        ui.action_button("Small", on_press=set_open.on),
         ui.dialog(
             ui.heading("Profile"),
             ui.content(
                 ui.form(ui.text_field(label="Name"), ui.checkbox("Make private"))
             ),
             ui.button_group(
-                ui.button("Cancel", variant="secondary", on_press=set_closed),
-                ui.button("Confirm", variant="accent", on_press=set_closed),
+                ui.button("Cancel", variant="secondary", on_press=set_open.off),
+                ui.button("Confirm", variant="accent", on_press=set_open.off),
             ),
             size="S",
         ),
@@ -271,17 +271,17 @@ my_small_example = small_example()
 
 @ui.component
 def medium_example():
-    is_open, set_open, set_closed = ui.use_flag()
+    is_open, set_open = ui.use_boolean()
     return ui.dialog_trigger(
-        ui.action_button("Medium", on_press=set_open),
+        ui.action_button("Medium", on_press=set_open.on),
         ui.dialog(
             ui.heading("Profile"),
             ui.content(
                 ui.form(ui.text_field(label="Name"), ui.checkbox("Make private"))
             ),
             ui.button_group(
-                ui.button("Cancel", variant="secondary", on_press=set_closed),
-                ui.button("Confirm", variant="accent", on_press=set_closed),
+                ui.button("Cancel", variant="secondary", on_press=set_open.off),
+                ui.button("Confirm", variant="accent", on_press=set_open.off),
             ),
             size="M",
         ),
@@ -294,17 +294,17 @@ my_medium_example = medium_example()
 
 @ui.component
 def large_example():
-    is_open, set_open, set_closed = ui.use_flag()
+    is_open, set_open = ui.use_boolean()
     return ui.dialog_trigger(
-        ui.action_button("Large", on_press=set_open),
+        ui.action_button("Large", on_press=set_open.on),
         ui.dialog(
             ui.heading("Profile"),
             ui.content(
                 ui.form(ui.text_field(label="Name"), ui.checkbox("Make private"))
             ),
             ui.button_group(
-                ui.button("Cancel", variant="secondary", on_press=set_closed),
-                ui.button("Confirm", variant="accent", on_press=set_closed),
+                ui.button("Cancel", variant="secondary", on_press=set_open.off),
+                ui.button("Confirm", variant="accent", on_press=set_open.off),
             ),
             size="L",
         ),

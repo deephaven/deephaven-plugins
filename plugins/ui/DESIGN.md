@@ -1902,13 +1902,13 @@ The content can be populated by providing the following components to your `dial
 
 ###### Parameters
 
-| Parameter        | Type                         | Description                                                                          |
-| ---------------- | ---------------------------- | ------------------------------------------------------------------------------------ |
-| `*children`     | `Any`                        | The contents of the Dialog.                                                          |
-| `size`           | `DialogSize \| None`         | The size of the Dialog. Either `S`, `M`, or `L` . Only applies to "modal" type Dialogs.         |
-| `is_dismissable` | `bool \| None`               | Whether the Dialog is dismissable.                                                   |
-| `on_dismiss`     | `Callable[[], None] \| None` | Handler that is called when the 'x' button of a dismissable Dialog is clicked.       |
-| `**props`        | `Any`                        | Any other [Dialog](https://react-spectrum.adobe.com/react-spectrum/Dialog.html) prop |
+| Parameter        | Type                         | Description                                                                             |
+| ---------------- | ---------------------------- | --------------------------------------------------------------------------------------- |
+| `*children`      | `Any`                        | The contents of the Dialog.                                                             |
+| `size`           | `DialogSize \| None`         | The size of the Dialog. Either `S`, `M`, or `L` . Only applies to "modal" type Dialogs. |
+| `is_dismissable` | `bool \| None`               | Whether the Dialog is dismissable.                                                      |
+| `on_dismiss`     | `Callable[[], None] \| None` | Handler that is called when the 'x' button of a dismissable Dialog is clicked.          |
+| `**props`        | `Any`                        | Any other [Dialog](https://react-spectrum.adobe.com/react-spectrum/Dialog.html) prop    |
 
 ```py
 from deephaven import ui
@@ -1916,10 +1916,10 @@ from deephaven import ui
 # Open and closed using flag (controlled)
 @ui.component
 def open_close_example():
-    is_open, set_open, set_closed = ui.use_flag()
+    is_open, set_open = ui.use_boolean()
     return ui.dialog_trigger(
-        ui.action_button("Open dialog", on_press=set_open),
-        ui.dialog(ui.heading("Dialog"), ui.content("Close using the button."), ui.button_group(ui.button("close", on_press=set_closed))),
+        ui.action_button("Open dialog", on_press=set_open.on),
+        ui.dialog(ui.heading("Dialog"), ui.content("Close using the button."), ui.button_group(ui.button("close", on_press=set_open.off))),
         is_open=is_open
     )
 
@@ -1946,13 +1946,13 @@ from deephaven import ui
 # Dismissable callback (controlled)
 @ui.component
 def dismissable_callback():
-    is_open, set_open, set_closed = ui.use_flag()
+    is_open, set_open = ui.use_boolean()
     return ui.dialog_trigger(
-        ui.action_button("Open dialog", on_press=set_open),
+        ui.action_button("Open dialog", on_press=set_open.on),
         ui.dialog(ui.heading("Dialog"),
             ui.content("Dismiss using the X button."),
             is_dismissable=True,
-            on_dismiss=set_closed
+            on_dismiss=set_open.off
             ),
         is_open=is_open
     )
@@ -1998,14 +1998,14 @@ By providing a `type` prop, you can specify the type of `dialog` that is rendere
 
 | Parameter                      | Type                             | Description                                                                                                  |
 | ------------------------------ | -------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `*children`                   | `Element`                        | The Dialog and its trigger element.                                                                          |
+| `*children`                    | `Element`                        | The Dialog and its trigger element.                                                                          |
 | `type`                         | `DialogTriggerType \| None`      | The type of Dialog that should be rendered.                                                                  |
 | `placement`                    | `Placement \| None`              | The placement of the popover relative to the action button.                                                  |
 | `is_open`                      | `bool \| None`                   | Whether the popover is open by default (controlled).                                                         |
 | `default_open`                 | `bool \| None`                   | Whether the popover is open by default (uncontrolled).                                                       |
 | `container_padding`            | `float \| None`                  | The placement padding that should be applied between the element and its surrounding container.              |
 | `offset`                       | `float \| None`                  | The additional offset applied along the main axis between the element and its anchor element.                |
-| `cross_offset`                 | `float \| None`                  | The additional offset applied along the cross axis between the element and its anchor element.                |
+| `cross_offset`                 | `float \| None`                  | The additional offset applied along the cross axis between the element and its anchor element.               |
 | `should_flip`                  | `bool \| None`                   | Whether the element should flip its orientation when there is insufficient room for it to render completely. |
 | `hide_arrow`                   | `bool \| None`                   | Whether a popover type Dialog's arrow should be hidden.                                                      |
 | `is_dismissable`               | `bool \| None`                   | Whether a modal type Dialog should be dismissable.                                                           |
@@ -2019,10 +2019,10 @@ from deephaven import ui
 # Open and closed using flag (controlled)
 @ui.component
 def open_close_example():
-    is_open, set_open, set_closed = ui.use_flag()
+    is_open, set_open = ui.use_boolean()
     return ui.dialog_trigger(
-        ui.action_button("Open dialog", on_press=set_open),
-        ui.dialog(ui.heading("Dialog"), ui.content("Close using the button."), ui.button_group(ui.button("close", on_press=set_closed))),
+        ui.action_button("Open dialog", on_press=set_open.on),
+        ui.dialog(ui.heading("Dialog"), ui.content("Close using the button."), ui.button_group(ui.button("close", on_press=set_open.off))),
         is_open=is_open
     )
 

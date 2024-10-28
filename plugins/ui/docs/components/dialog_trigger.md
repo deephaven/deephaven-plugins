@@ -34,15 +34,15 @@ from deephaven import ui
 
 @ui.component
 def close_example():
-    is_open, set_open, set_closed = ui.use_flag()
+    is_open, set_open = ui.use_boolean()
     return ui.dialog_trigger(
-        ui.action_button("Check connectivity", on_press=set_open),
+        ui.action_button("Check connectivity", on_press=set_open.on),
         ui.dialog(
             ui.heading("Internet Speed Test"),
             ui.content("Start speed test?"),
             ui.button_group(
-                ui.button("Cancel", variant="secondary", on_press=set_closed),
-                ui.button("Confirm", variant="accent", on_press=set_closed),
+                ui.button("Cancel", variant="secondary", on_press=set_open.off),
+                ui.button("Confirm", variant="accent", on_press=set_open.off),
             ),
         ),
         is_open=is_open,
@@ -125,9 +125,9 @@ from deephaven import ui
 
 @ui.component
 def fullscreen_example():
-    is_open, set_open, set_closed = ui.use_flag()
+    is_open, set_open = ui.use_boolean()
     return ui.dialog_trigger(
-        ui.action_button("Trigger Fullscreen", on_press=set_open),
+        ui.action_button("Trigger Fullscreen", on_press=set_open.on),
         ui.dialog(
             ui.heading("Fullscreen"),
             ui.content(
@@ -140,7 +140,7 @@ def fullscreen_example():
                 pellentesque lectus commodo ornare."
             ),
             ui.button_group(
-                ui.button("Close", variant="accent", on_press=set_closed),
+                ui.button("Close", variant="accent", on_press=set_open.off),
             ),
         ),
         is_open=is_open,
@@ -161,9 +161,9 @@ from deephaven import ui
 
 @ui.component
 def fullscreen_takeover_example():
-    is_open, set_open, set_closed = ui.use_flag()
+    is_open, set_open = ui.use_boolean()
     return ui.dialog_trigger(
-        ui.action_button("Trigger Fullscreen", on_press=set_open),
+        ui.action_button("Trigger Fullscreen", on_press=set_open.on),
         ui.dialog(
             ui.heading("Fullscreen"),
             ui.content(
@@ -174,9 +174,9 @@ def fullscreen_takeover_example():
                 )
             ),
             ui.button_group(
-                ui.button("Cancel", variant="secondary", on_press=set_closed),
+                ui.button("Cancel", variant="secondary", on_press=set_open.off),
                 ui.button(
-                    "Confirm", variant="accent", on_press=set_closed, auto_focus=True
+                    "Confirm", variant="accent", on_press=set_open.off, auto_focus=True
                 ),
             ),
         ),
@@ -331,8 +331,6 @@ my_should_flip_example = ui.dialog_trigger(
 ## Events
 
 Dialog triggers accept an `on_open_change` handler that is triggered whenever the dialog is opened or closed. The example below updates a separate element with the dialog's current open state.
-
-
 
 ```python
 from deephaven import ui
