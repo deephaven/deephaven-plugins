@@ -67,7 +67,7 @@ export async function makeUiTableModel(
   format.forEach((rule, i) => {
     const { where } = rule;
     if (where != null) {
-      customColumns.push(`_${i}__FORMAT=${where}`);
+      customColumns.push(`${getFormatCustomColumnName(i)}=${where}`);
     }
   });
 
@@ -99,6 +99,15 @@ export async function makeUiTableModel(
     databars,
     format,
   });
+}
+
+/**
+ * Gets the name of the custom column that stores the where clause for a formatting rule
+ * @param i The index of the formatting rule
+ * @returns The name of the custom column that stores the where clause for the formatting rule
+ */
+function getFormatCustomColumnName(i: number): string {
+  return `_${i}__FORMAT`;
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -384,7 +393,9 @@ class UITableModel extends IrisGridModel {
       return undefined;
     }
     const columnName = this.columns[column].name;
-    for (let i = 0; i < this.format.length; i += 1) {
+
+    // Iterate in reverse so that the last rule that matches is used
+    for (let i = this.format.length - 1; i >= 0; i -= 1) {
       const rule = this.format[i];
       const { cols, where, [formatKey]: formatValue } = rule;
       if (formatValue == null) {
@@ -402,7 +413,7 @@ class UITableModel extends IrisGridModel {
         if (rowValues == null) {
           return undefined;
         }
-        const whereValue = rowValues.get(`_${i}__FORMAT`)?.value;
+        const whereValue = rowValues.get(getFormatCustomColumnName(i))?.value;
         if (whereValue === true) {
           return formatValue;
         }
