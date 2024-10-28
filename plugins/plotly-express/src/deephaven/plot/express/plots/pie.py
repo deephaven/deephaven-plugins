@@ -4,15 +4,14 @@ from typing import Callable
 
 from plotly import express as px
 
-from deephaven.table import Table
-
 from ._private_utils import process_args
 from ..shared import default_callback
 from ..deephaven_figure import DeephavenFigure
+from ..types import TableData
 
 
 def pie(
-    table: Table | None = None,
+    table: TableData,
     names: str | None = None,
     values: str | None = None,
     color: str | list[str] | None = None,

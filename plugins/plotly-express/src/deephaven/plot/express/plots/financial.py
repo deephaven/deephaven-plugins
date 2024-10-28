@@ -2,15 +2,14 @@ from __future__ import annotations
 
 from typing import Callable
 
-from deephaven.table import Table
-
 from ._private_utils import process_args
 from ..shared import default_callback
 from ..deephaven_figure import draw_ohlc, draw_candlestick, DeephavenFigure
+from ..types import TableData
 
 
 def ohlc(
-    table: Table | None = None,
+    table: TableData,
     x: str | None = None,
     open: str | list[str] | None = None,
     high: str | list[str] | None = None,
@@ -75,7 +74,7 @@ def ohlc(
 
 
 def candlestick(
-    table: Table | None = None,
+    table: TableData,
     x: str | None = None,
     open: str | list[str] | None = None,
     high: str | list[str] | None = None,

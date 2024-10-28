@@ -4,15 +4,14 @@ from typing import Callable
 
 from plotly import express as px
 
-from deephaven.table import Table
-
 from ._private_utils import process_args
 from ..shared import default_callback
 from ..deephaven_figure import DeephavenFigure
+from ..types import TableDataBy
 
 
 def line(
-    table: Table | None = None,
+    table: TableDataBy,
     x: str | list[str] | None = None,
     y: str | list[str] | None = None,
     error_x: str | None = None,
@@ -192,7 +191,7 @@ def line(
 
 
 def line_3d(
-    table: Table | None = None,
+    table: TableDataBy,
     x: str | None = None,
     y: str | None = None,
     z: str | None = None,
@@ -352,7 +351,7 @@ def line_3d(
 
 
 def line_polar(
-    table: Table | None = None,
+    table: TableDataBy,
     r: str | None = None,
     theta: str | None = None,
     by: str | list[str] | None = None,
@@ -490,7 +489,7 @@ def line_polar(
 
 
 def line_ternary(
-    table: Table | None = None,
+    table: TableDataBy,
     a: str | None = None,
     b: str | None = None,
     c: str | None = None,
