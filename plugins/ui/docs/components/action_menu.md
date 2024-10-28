@@ -68,13 +68,13 @@ from deephaven import ui
 
 my_action_menu_complex_items_example = ui.action_menu(
     ui.item(
-        ui.icon("vsGithubAlt"),
+        ui.icon("github_alt"),
         ui.text("Github"),
         ui.text("Github Option", slot="description"),
         text_value="Github",
     ),
     ui.item(
-        ui.icon("vsAzureDevops"),
+        ui.icon("azure_devops"),
         ui.text("Azure"),
         ui.text("Azure Option", slot="description"),
         text_value="Azure",
@@ -180,17 +180,26 @@ from deephaven import ui
 
 
 @ui.component
-def ui_action_menu_open_example():
-    is_open, set_is_open = ui.use_state("")
-    return ui.action_menu(
-        "Cut",
-        "Copy",
-        "Paste",
-        on_open_change=set_is_open,
-    )
+def ui_action_menu_open_examples():
+    is_open, set_is_open = ui.use_state(False)
+    return [
+        ui.action_menu(
+            "Cut",
+            "Copy",
+            "Paste",
+            is_open=is_open,
+            on_open_change=set_is_open,
+        ),
+        ui.action_menu(
+            "Cut",
+            "Copy",
+            "Paste",
+            default_open=True,
+        ),
+    ]
 
 
-my_action_menu_open_example = ui_action_menu_open_example()
+my_action_menu_open_examples = ui_action_menu_open_examples()
 ```
 
 
