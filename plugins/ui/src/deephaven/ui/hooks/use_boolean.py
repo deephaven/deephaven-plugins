@@ -1,5 +1,6 @@
+from __future__ import annotations
 from .._internal import InitializerFunction, UpdaterFunction
-from typing import Callable, cast, Protocol, Tuple, overload, Union
+from typing import Callable, cast, Protocol, Tuple, overload
 
 from .use_state import use_state
 from .use_callback import use_callback
@@ -22,13 +23,13 @@ def use_boolean() -> Tuple[bool, BooleanCallable]:
 
 @overload
 def use_boolean(
-    initial_value: Union[bool, InitializerFunction[bool]],
+    initial_value: bool | InitializerFunction[bool],
 ) -> Tuple[bool, BooleanCallable]:
     ...
 
 
 def use_boolean(
-    initial_value: Union[bool, InitializerFunction[bool]] = False,
+    initial_value: bool | InitializerFunction[bool] = False,
 ) -> Tuple[bool, BooleanCallable]:
     """
     Hook to add a boolean variable to your component. The variable will persist across renders.
