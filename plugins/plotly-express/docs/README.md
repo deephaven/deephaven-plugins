@@ -1,10 +1,10 @@
-# Deephaven Plotly Express
+# Deephaven Express
 
-[Deephaven Plotly Express](https://github.com/deephaven/deephaven-plugins) is a powerful plotting library built on top of [Plotly Express](https://plotly.com/python/plotly-express/) that enhances its capabilities by adding support for real-time Deephaven tables, automatic downsampling, and server-side data grouping and aggregation using the Deephaven query engine. This library seamlessly integrates real-time data from Deephaven with the interactive and expressive visualizations of Plotly Express, allowing you to easily plot or aggregate millions of data points.
+[Deephaven Express](https://github.com/deephaven/deephaven-plugins) is a powerful plotting library built on top of [Plotly Express](https://plotly.com/python/plotly-express/) that enhances its capabilities by adding support for real-time Deephaven tables, automatic downsampling, and server-side data grouping and aggregation using the Deephaven query engine. This library seamlessly integrates real-time data from Deephaven with the interactive and expressive visualizations of Plotly Express, allowing you to easily plot or aggregate millions of data points.
 
 ## Key Features
 
-- **Live Dataframe Support**: Direct integration with real-time Deephaven tables, allowing you to visualize and analyze data as it updates in real time.
+- **Live Dataframe Support**: Direct integration with real-time Deephaven tables, allowing you to visualize and analyze data as it updates in real time, in addition to Pandas DataFrames.
 - **Automatic Downsampling**: Pixel accurate automatic downsampling that reduces the number of data points displayed, ensuring smooth and responsive visualizations even with large datasets.
 - **Server-Side Data Grouping and Aggregation**: Uses server-side processing capabilities to perform data grouping and aggregation directly within Deephaven query engine, enabling efficient analysis of huge datasets without requiring data transfer.
 - **Plotly Express Compatibility**: Built on top of Plotly Express, the library inherits its comprehensive set of features, enabling you to create stunning and interactive visualizations effortlessly. In most cases you can directly swap `px` for `dx` for instant compatibility.
@@ -103,12 +103,12 @@ This page contains a collection of links to examples demonstrating different plo
 pip install deephaven-plugin-plotly-express
 ```
 
-2. To create a real-time plot using Deephaven Plotly Express, run the following example within Deephaven:
+2. To create a real-time plot using Deephaven Express, run the following example within Deephaven:
 
 ```python order=my_plot,my_table
 import deephaven.plot.express as dx
 
-# Deephaven plotly express includes a number of generated data sets for examples
+# Deephaven express includes a number of generated data sets for examples
 my_table = dx.data.stocks()
 
 # Create a line plot, and assign colors by distinct values in the `sym` column
@@ -136,12 +136,12 @@ The following terms define relationships between variables. They do not describe
 
 ## Contributing
 
-We welcome contributions to Deephaven Plotly Express! If you encounter any issues, have ideas for improvements, or would like to add new features, please open an issue or submit a pull request on the [GitHub repository](https://github.com/deephaven/deephaven-plugins).
+We welcome contributions to Deephaven Express! If you encounter any issues, have ideas for improvements, or would like to add new features, please open an issue or submit a pull request on the [GitHub repository](https://github.com/deephaven/deephaven-plugins).
 
 ## License
 
-Deephaven's Plotly Express plugin is licensed under the [Apache License 2.0](https://github.com/deephaven/deephaven-plugins/blob/main/plugins/plotly-express/LICENSE). You are free to use, modify, and distribute this library in compliance with the terms of the license.
+Deephaven's Express plugin is licensed under the [Apache License 2.0](https://github.com/deephaven/deephaven-plugins/blob/main/plugins/plotly-express/LICENSE). You are free to use, modify, and distribute this library in compliance with the terms of the license.
 
 ## Acknowledgments
 
-We would like to express our gratitude to the Plotly and the Plotly Express team for creating a remarkable plotting library and making it open-source. Their work forms the foundation of the Deephaven Plotly Express plugin.
+We would like to express our gratitude to the Plotly and the Plotly Express team for creating a remarkable plotting library and making it open-source. Their work forms the foundation of the Deephaven Express plugin.
