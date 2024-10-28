@@ -10,7 +10,7 @@ import {
   downsample,
   getDataMappings,
   getPathParts,
-  getReplaceableWebGlTraceIndexes,
+  getReplaceableWebGlTraceIndices,
   getWidgetData,
   isAutoAxis,
   isLineSeries,
@@ -236,10 +236,9 @@ export class PlotlyExpressChartModel extends ChartModel {
    * @param prevWebgl The previous WebGL value
    */
   handleWebGlAllowed(
-    webgl: boolean | undefined,
+    webgl: boolean | undefined = true,
     prevWebgl: boolean | undefined = undefined
   ): void {
-    if (webgl != null) {
       setWebGlTraceType(this.plotlyData, webgl, this.webGlTraceIndices);
 
       const needsBlocker = hasUnreplaceableWebGlTraces(this.plotlyData);
@@ -305,7 +304,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     }
 
     // Retrieve the indexes of traces that require WebGL so they can be replaced if WebGL is disabled
-    this.webGlTraceIndices = getReplaceableWebGlTraceIndexes(this.plotlyData);
+    this.webGlTraceIndices = getReplaceableWebGlTraceIndices(this.plotlyData);
 
     this.handleWebGlAllowed(this.renderOptions?.webgl);
 

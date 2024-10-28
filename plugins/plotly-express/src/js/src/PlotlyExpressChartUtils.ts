@@ -244,7 +244,7 @@ export function downsample(
  * @param data The data to check
  * @returns The indexes of the WebGL traces
  */
-export function getReplaceableWebGlTraceIndexes(data: Data[]): Set<number> {
+export function getReplaceableWebGlTraceIndices(data: Data[]): Set<number> {
   const webGlTraceIndexes = new Set<number>();
   data.forEach((trace, index) => {
     if (trace.type && trace.type.endsWith('gl')) {
