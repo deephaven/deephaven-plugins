@@ -28,11 +28,11 @@ my_tabs_basic = ui.tabs(
 
 ## Content
 
-Tabs can be created using `ui.tab` or `ui.tab_list` and `ui.tab_panels`, but not both combined. 
+Tabs can be created using `ui.tab`, or usiing `ui.tab_list` and `ui.tab_panels`, but not the two options combined. 
 
-If wanting a default tab layout with minimal customization for tab apperance, tabs should be created by passing in `ui.tab` to `ui.tabs`.
+If you want a default tab layout with minimal customization for tab appearance, tabs should be created by passing in `ui.tab` to `ui.tabs`.
 
-Note that both the `ui.tab` component can only be used within `ui.tabs`.
+Note that the `ui.tab` component can only be used within `ui.tabs`.
 
 ```python
 from deephaven import ui
@@ -45,11 +45,11 @@ my_tabs_tab_content_example = ui.tabs(
 )
 ```
 
-For more control over the layout, types, and styling of the tabs, they should be created `ui.tab_list` and `ui.tab_panels` with `ui.tabs`. 
+For more control over the layout, types, and styling of the tabs, create them with `ui.tab_list` and `ui.tab_panels` with `ui.tabs`. 
 
 The `ui.tab_list` specifies the titles of the tabs, while the `ui.tab_panels` specify the content within each of the tab panels.
 
-When specifying tabs using the `ui.tab_list` and `ui.tab_panels`, keys must be provided and match for each of the respective tabs.
+When specifying tabs using `ui.tab_list` and `ui.tab_panels`, keys must be provided that match each of the respective tabs.
 
 ```python
 from deephaven import ui
@@ -238,7 +238,7 @@ my_tabs_density_examples = ui_tabs_density_examples()
 
 ## Quiet State
 
-The `is_quiet` prop makes tabs "quiet", by removing the line seperating the tab titles' and panel contents. This can be useful when the tabs  should not distract users from surrounding content.
+The `is_quiet` prop makes tabs "quiet" by removing the line separating the tab titles' and panel contents. This can be useful when the tabs should not distract users from surrounding content.
 
 ```python
 from deephaven import ui
