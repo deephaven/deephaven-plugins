@@ -1,5 +1,5 @@
 from .._internal import InitializerFunction, UpdaterFunction
-from typing import Callable, cast, Protocol, Tuple
+from typing import Callable, cast, Protocol, Tuple, overload
 
 from .use_state import use_state
 from .use_callback import use_callback
@@ -13,6 +13,18 @@ class BooleanCallable(Protocol):
 
     def __call__(self, new_value: UpdaterFunction[bool]) -> None:
         ...
+
+
+@overload
+def use_boolean() -> Tuple[bool, BooleanCallable]:
+    ...
+
+
+@overload
+def use_boolean(
+    initial_value: bool | InitializerFunction[bool],
+) -> Tuple[bool, BooleanCallable]:
+    ...
 
 
 def use_boolean(
