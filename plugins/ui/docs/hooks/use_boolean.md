@@ -9,9 +9,12 @@ The boolean callable can be used to set the value of the boolean directly. It al
 ## Example
 
 ```python
+from deephaven import ui
+
+
 @ui.component
 def ui_boolean_example():
-    value, set_value = use_boolean()
+    value, set_value = ui.use_boolean()
 
     return [
         ui.text(f"{value}"),
