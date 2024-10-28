@@ -1,1 +1,1 @@
-from plots import TableDataBy, TableData
+from .plots import TableDataBy, TableData

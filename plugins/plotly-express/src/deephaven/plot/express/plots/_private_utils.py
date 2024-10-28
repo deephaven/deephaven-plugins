@@ -23,7 +23,7 @@ from ..shared.distribution_args import (
     HISTOGRAM_DEFAULTS,
     SPREAD_GROUPS,
 )
-from ..types.plots import TableDataBy
+from ..types import TableDataBy
 
 
 def validate_common_args(args: dict) -> None:
