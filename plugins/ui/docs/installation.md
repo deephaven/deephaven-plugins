@@ -8,10 +8,14 @@ If you don't already have Deephaven installed, you can install via Docker or pip
 
 ### Install and run with Docker
 
-deephaven.ui can be run from a pre-built Docker image. Simply run the following to get the latest image:
+`deephaven.ui` can be run from pre-built Docker images. The image you use will depend on your version of Deephaven:
 
-```sh
+```bash
+# For Deephaven < 0.37.0
 docker run --name deephaven -p 10000:10000 ghcr.io/deephaven/server-ui:latest
+
+# For Deephaven >= 0.37.0
+docker run --name deephaven -p 10000:10000 ghcr.io/deephaven/server:latest
 ```
 
 See the [Deephaven Docker install documentation](https://deephaven.io/core/docs/getting-started/docker-install/) for more information.
