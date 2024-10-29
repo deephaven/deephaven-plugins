@@ -10,10 +10,11 @@ from deephaven.table import Table
 from ._private_utils import validate_common_args, process_args
 from ..shared import default_callback
 from ..deephaven_figure import generate_figure, DeephavenFigure
+from ..types import PartitionableTableLike
 
 
 def bar(
-    table: Table | None = None,
+    table: PartitionableTableLike,
     x: str | list[str] | None = None,
     y: str | list[str] | None = None,
     by: str | list[str] | None = None,
@@ -206,7 +207,7 @@ def _bar_polar(
 
 
 def timeline(
-    table: Table | None = None,
+    table: PartitionableTableLike,
     x_start: str | None = None,
     x_end: str | None = None,
     y: str | None = None,

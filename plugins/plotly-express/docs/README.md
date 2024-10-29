@@ -4,7 +4,7 @@
 
 ## Key Features
 
-- **Live Dataframe Support**: Direct integration with real-time Deephaven tables, allowing you to visualize and analyze data as it updates in real time.
+- **Live Dataframe Support**: Direct integration with real-time Deephaven tables, allowing you to visualize and analyze data as it updates in real time, in addition to Pandas DataFrames.
 - **Automatic Downsampling**: Pixel accurate automatic downsampling that reduces the number of data points displayed, ensuring smooth and responsive visualizations even with large datasets.
 - **Server-Side Data Grouping and Aggregation**: Uses server-side processing capabilities to perform data grouping and aggregation directly within Deephaven query engine, enabling efficient analysis of huge datasets without requiring data transfer.
 - **Plotly Express Compatibility**: Built on top of Plotly Express, the library inherits its comprehensive set of features, enabling you to create stunning and interactive visualizations effortlessly. In most cases you can directly swap `px` for `dx` for instant compatibility.

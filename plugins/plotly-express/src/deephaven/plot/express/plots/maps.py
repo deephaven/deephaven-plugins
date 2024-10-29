@@ -4,15 +4,14 @@ from typing import Callable
 
 from plotly import express as px
 
-from deephaven.table import Table
-
 from ._private_utils import process_args
 from ..shared import default_callback
 from ..deephaven_figure import DeephavenFigure
+from ..types import PartitionableTableLike, TableLike
 
 
 def scatter_geo(
-    table: Table | None = None,
+    table: PartitionableTableLike,
     lat: str | None = None,
     lon: str | None = None,
     locations: str | None = None,
@@ -150,7 +149,7 @@ def scatter_geo(
 
 
 def scatter_mapbox(
-    table: Table | None = None,
+    table: PartitionableTableLike,
     lat: str | None = None,
     lon: str | None = None,
     by: str | list[str] | None = None,
@@ -264,7 +263,7 @@ def scatter_mapbox(
 
 
 def line_geo(
-    table: Table | None = None,
+    table: PartitionableTableLike,
     lat: str | None = None,
     lon: str | None = None,
     locations: str | None = None,
@@ -410,7 +409,7 @@ def line_geo(
 
 
 def line_mapbox(
-    table: Table | None = None,
+    table: PartitionableTableLike,
     lat: str | None = None,
     lon: str | None = None,
     by: str | list[str] | None = None,
@@ -530,7 +529,7 @@ def line_mapbox(
 
 
 def density_mapbox(
-    table: Table | None = None,
+    table: TableLike,
     lat: str | None = None,
     lon: str | None = None,
     z: str | None = None,
