@@ -4,7 +4,7 @@
 
 ## Key Features
 
-- **Live Dataframe Support**: Direct integration with real-time Deephaven tables, allowing you to visualize and analyze data as it updates in real time.
+- **Live Dataframe Support**: Direct integration with real-time Deephaven tables, allowing you to visualize and analyze data as it updates in real time, in addition to Pandas DataFrames.
 - **Automatic Downsampling**: Pixel accurate automatic downsampling that reduces the number of data points displayed, ensuring smooth and responsive visualizations even with large datasets.
 - **Server-Side Data Grouping and Aggregation**: Uses server-side processing capabilities to perform data grouping and aggregation directly within Deephaven query engine, enabling efficient analysis of huge datasets without requiring data transfer.
 - **Plotly Express Compatibility**: Built on top of Plotly Express, the library inherits its comprehensive set of features, enabling you to create stunning and interactive visualizations effortlessly. In most cases you can directly swap `px` for `dx` for instant compatibility.
@@ -97,10 +97,10 @@ This page contains a collection of links to examples demonstrating different plo
 
 ## Quickstart
 
-1. Install with Docker, use a Docker image with it already installed (`server-ui`), or pip install with:
+1. Install with Docker, use a Docker image with it already installed, or pip install with:
 
 ```bash
- pip install deephaven-plugin-plotly-express
+pip install deephaven-plugin-plotly-express
 ```
 
 2. To create a real-time plot using Deephaven Plotly Express, run the following example within Deephaven:

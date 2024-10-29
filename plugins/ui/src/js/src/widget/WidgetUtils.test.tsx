@@ -1,7 +1,7 @@
 import React from 'react';
 import type { JSONRPCServerAndClient } from 'json-rpc-2.0';
 import { Text } from '@deephaven/components';
-import { TestUtils } from '@deephaven/utils';
+import { TestUtils } from '@deephaven/test-utils';
 import {
   ELEMENT_NAME,
   ELEMENT_PREFIX,

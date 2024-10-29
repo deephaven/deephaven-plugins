@@ -26,8 +26,16 @@
             "path": "components/action_button.md"
           },
           {
+            "label": "action_group",
+            "path": "components/action_group.md"
+          },
+          {
             "label": "button",
             "path": "components/button.md"
+          },
+          {
+            "label": "button_group",
+            "path": "components/button_group.md"
           },
           {
             "label": "checkbox",
@@ -46,6 +54,10 @@
             "path": "components/date_range_picker.md"
           },
           {
+            "label": "heading",
+            "path": "components/heading.md"
+          },
+          {
             "label": "illustrated_message",
             "path": "components/illustrated_message.md"
           },
@@ -58,8 +70,20 @@
             "path": "components/picker.md"
           },
           {
+            "label": "progress_bar",
+            "path": "components/progress_bar.md"
+          },
+          {
+            "label": "progress_circle",
+            "path": "components/progress_circle.md"
+          },
+          {
             "label": "radio_group",
             "path": "components/radio_group.md"
+          },
+          {
+            "label": "range_calendar",
+            "path": "components/range_calendar.md"
           },
           {
             "label": "range_slider",
@@ -74,8 +98,16 @@
             "path": "components/table.md"
           },
           {
+            "label": "text",
+            "path": "components/text.md"
+          },
+          {
             "label": "text_area",
             "path": "components/text_area.md"
+          },
+          {
+            "label": "toggle_button",
+            "path": "components/toggle_button.md"
           },
           {
             "label": "view",

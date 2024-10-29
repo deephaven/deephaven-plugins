@@ -22,3 +22,5 @@ Target = Literal["_self", "_blank", "_parent", "_top"]
 
 AutoCompleteModes = Literal["on", "off"]
 AutoCapitalizeModes = Literal["off", "none", "on", "sentences", "words", "characters"]
+
+DisabledBehavior = Literal["selection", "all"]

@@ -1,5 +1,5 @@
 import { WidgetDescriptor } from '@deephaven/dashboard';
-import { TestUtils } from '@deephaven/utils';
+import { TestUtils } from '@deephaven/test-utils';
 import type { dh } from '@deephaven/jsapi-types';
 import { WidgetMessageEvent } from './WidgetTypes';
 

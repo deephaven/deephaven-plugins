@@ -40,7 +40,7 @@ def form(
     auto_capitalize: AutoCapitalizeModes | None = None,
     label_position: LabelPosition = "top",
     label_align: Alignment | None = None,
-    necessity_indicator: NecessityIndicator = "icon",
+    necessity_indicator: NecessityIndicator | None = None,
     on_submit: Callable[[dict[str, str]], None] | None = None,
     on_reset: Callable[[dict[str, str]], None] | None = None,
     on_invalid: Callable[[dict[str, str]], None] | None = None,

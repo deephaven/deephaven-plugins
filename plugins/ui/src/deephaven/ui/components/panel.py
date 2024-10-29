@@ -10,7 +10,9 @@ from .types import (
     AlignContent,
     AlignItems,
     DimensionValue,
+    Overflow,
 )
+from ..elements import Element
 
 
 def panel(
@@ -24,6 +26,7 @@ def panel(
     gap: DimensionValue | None = "size-100",
     column_gap: DimensionValue | None = None,
     row_gap: DimensionValue | None = None,
+    overflow: Overflow | None = "auto",
     padding: DimensionValue | None = "size-100",
     padding_top: DimensionValue | None = None,
     padding_bottom: DimensionValue | None = None,
@@ -33,7 +36,7 @@ def panel(
     padding_y: DimensionValue | None = None,
     key: str | None = None,
     **props: Any,
-):
+) -> Element:
     """
     A panel is a container that can be used to group elements.
 
@@ -57,6 +60,8 @@ def panel(
         padding_y: The padding to apply to the top and bottom of the element.
         key: A unique identifier used by React to render elements in a list.
 
+    Returns:
+        The rendered panel element.
     """
 
     children, props = create_props(locals())
