@@ -46,6 +46,10 @@
             "path": "components/combo_box.md"
           },
           {
+            "label": "contextual_help",
+            "path": "components/contextual_help.md"
+          },
+          {
             "label": "date_picker",
             "path": "components/date_picker.md"
           },
