@@ -213,8 +213,8 @@ class AreaTestCase(BaseTestCase):
     def test_area_table_pandas_same(self):
         import src.deephaven.plot.express as dx
 
-        chart_pandas = dx.area(self.pandas_source, x="X", y="Y").to_dict(self.exporter)
-        chart_table = dx.area(self.source, x="X", y="Y").to_dict(self.exporter)
+        chart_pandas = dx.area(self.pandas_source, x="X", y="Y")
+        chart_table = dx.area(self.source, x="X", y="Y")
 
         self.assert_chart_equals(chart_pandas, chart_table)
 

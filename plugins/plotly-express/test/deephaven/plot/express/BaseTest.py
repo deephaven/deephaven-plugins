@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import unittest
 from unittest.mock import patch
 
@@ -40,8 +42,8 @@ class BaseTestCase(unittest.TestCase):
 
     def assert_chart_equals(
         self,
-        chart: DeephavenFigure,
-        matching_chart: DeephavenFigure = None,
+        chart: DeephavenFigure | dict,
+        matching_chart: DeephavenFigure | dict = None,
         expected_data: List[dict] = None,
         expected_layout: dict = None,
         expected_mappings: List[dict] = None,
@@ -66,9 +68,15 @@ class BaseTestCase(unittest.TestCase):
             pop_template: Whether to pop the template from the chart.
                 Pops from both the chart and the expected values, if provided.
         """
+        chart = chart.to_dict(self.exporter) if not isinstance(chart, dict) else chart
         plotly, deephaven = chart["plotly"], chart["deephaven"]
 
         if matching_chart:
+            matching_chart = (
+                matching_chart.to_dict(self.exporter)
+                if not isinstance(matching_chart, dict)
+                else matching_chart
+            )
             matching_plotly, matching_deephaven = (
                 matching_chart["plotly"],
                 matching_chart["deephaven"],
@@ -89,20 +97,30 @@ class BaseTestCase(unittest.TestCase):
 
         if pop_template:
             plotly["layout"].pop("template", None)
-            expected_layout.pop("template", None)
+            if expected_layout:
+                expected_layout.pop("template", None)
 
+        asserted = False
         if expected_data:
             self.assertEqual(plotly["data"], expected_data)
+            asserted = True
         if expected_layout:
             self.assertEqual(plotly["layout"], expected_layout)
+            asserted = True
         if expected_mappings:
             self.assertEqual(deephaven["mappings"], expected_mappings)
+            asserted = True
         if expected_is_user_set_template is not None:
             self.assertEqual(
                 deephaven["is_user_set_template"], expected_is_user_set_template
             )
+            asserted = True
         if expected_is_user_set_color is not None:
             self.assertEqual(deephaven["is_user_set_color"], expected_is_user_set_color)
+            asserted = True
+
+        if not asserted:
+            raise ValueError("No comparisons were made in assert_chart_equals")
 
 
 if __name__ == "__main__":

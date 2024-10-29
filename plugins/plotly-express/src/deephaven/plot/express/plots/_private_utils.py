@@ -23,7 +23,7 @@ from ..shared.distribution_args import (
     HISTOGRAM_DEFAULTS,
     SPREAD_GROUPS,
 )
-from ..types import TableDataBy
+from ..types import PartitionableTableLike
 
 
 def validate_common_args(args: dict) -> None:
@@ -255,7 +255,7 @@ def create_deephaven_figure(
     )
 
 
-def convert_to_table(table: TableDataBy) -> Table | PartitionedTable:
+def convert_to_table(table: PartitionableTableLike) -> Table | PartitionedTable:
     """
     Convert a Dataframe to a Table if it is one
 

@@ -5,11 +5,11 @@ from typing import Callable
 from ._private_utils import process_args
 from ..shared import default_callback
 from ..deephaven_figure import draw_ohlc, draw_candlestick, DeephavenFigure
-from ..types import TableData
+from ..types import TableLike
 
 
 def ohlc(
-    table: TableData,
+    table: TableLike,
     x: str | None = None,
     open: str | list[str] | None = None,
     high: str | list[str] | None = None,
@@ -74,7 +74,7 @@ def ohlc(
 
 
 def candlestick(
-    table: TableData,
+    table: TableLike,
     x: str | None = None,
     open: str | list[str] | None = None,
     high: str | list[str] | None = None,

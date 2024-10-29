@@ -18,11 +18,11 @@ from ..shared import (
     HISTOGRAM_DEFAULTS,
     default_callback,
 )
-from ..types import TableDataBy
+from ..types import PartitionableTableLike
 
 
 def violin(
-    table: TableDataBy,
+    table: PartitionableTableLike,
     x: str | list[str] | None = None,
     y: str | list[str] | None = None,
     by: str | list[str] | None = None,
@@ -103,7 +103,7 @@ def violin(
 
 
 def box(
-    table: TableDataBy,
+    table: PartitionableTableLike,
     x: str | list[str] | None = None,
     y: str | list[str] | None = None,
     by: str | list[str] | None = None,
@@ -184,7 +184,7 @@ def box(
 
 
 def strip(
-    table: TableDataBy,
+    table: PartitionableTableLike,
     x: str | list[str] | None = None,
     y: str | list[str] | None = None,
     by: str | list[str] | None = None,
@@ -307,7 +307,7 @@ def _ecdf(
 
 
 def histogram(
-    table: TableDataBy,
+    table: PartitionableTableLike,
     x: str | list[str] | None = None,
     y: str | list[str] | None = None,
     by: str | list[str] | None = None,

@@ -7,11 +7,11 @@ from plotly import express as px
 from ._private_utils import process_args
 from ..shared import default_callback
 from ..deephaven_figure import DeephavenFigure
-from ..types import TableDataBy, TableData
+from ..types import PartitionableTableLike, TableLike
 
 
 def scatter_geo(
-    table: TableDataBy,
+    table: PartitionableTableLike,
     lat: str | None = None,
     lon: str | None = None,
     locations: str | None = None,
@@ -149,7 +149,7 @@ def scatter_geo(
 
 
 def scatter_mapbox(
-    table: TableDataBy,
+    table: PartitionableTableLike,
     lat: str | None = None,
     lon: str | None = None,
     by: str | list[str] | None = None,
@@ -263,7 +263,7 @@ def scatter_mapbox(
 
 
 def line_geo(
-    table: TableDataBy,
+    table: PartitionableTableLike,
     lat: str | None = None,
     lon: str | None = None,
     locations: str | None = None,
@@ -409,7 +409,7 @@ def line_geo(
 
 
 def line_mapbox(
-    table: TableDataBy,
+    table: PartitionableTableLike,
     lat: str | None = None,
     lon: str | None = None,
     by: str | list[str] | None = None,
@@ -529,7 +529,7 @@ def line_mapbox(
 
 
 def density_mapbox(
-    table: TableData,
+    table: TableLike,
     lat: str | None = None,
     lon: str | None = None,
     z: str | None = None,

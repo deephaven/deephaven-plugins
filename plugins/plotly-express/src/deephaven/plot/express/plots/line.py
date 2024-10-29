@@ -7,11 +7,11 @@ from plotly import express as px
 from ._private_utils import process_args
 from ..shared import default_callback
 from ..deephaven_figure import DeephavenFigure
-from ..types import TableDataBy
+from ..types import PartitionableTableLike
 
 
 def line(
-    table: TableDataBy,
+    table: PartitionableTableLike,
     x: str | list[str] | None = None,
     y: str | list[str] | None = None,
     error_x: str | None = None,
@@ -191,7 +191,7 @@ def line(
 
 
 def line_3d(
-    table: TableDataBy,
+    table: PartitionableTableLike,
     x: str | None = None,
     y: str | None = None,
     z: str | None = None,
@@ -351,7 +351,7 @@ def line_3d(
 
 
 def line_polar(
-    table: TableDataBy,
+    table: PartitionableTableLike,
     r: str | None = None,
     theta: str | None = None,
     by: str | list[str] | None = None,
@@ -489,7 +489,7 @@ def line_polar(
 
 
 def line_ternary(
-    table: TableDataBy,
+    table: PartitionableTableLike,
     a: str | None = None,
     b: str | None = None,
     c: str | None = None,

@@ -7,11 +7,11 @@ from plotly import express as px
 from ._private_utils import process_args
 from ..shared import default_callback
 from ..deephaven_figure import DeephavenFigure
-from ..types import TableData
+from ..types import TableLike
 
 
 def pie(
-    table: TableData,
+    table: TableLike,
     names: str | None = None,
     values: str | None = None,
     color: str | list[str] | None = None,

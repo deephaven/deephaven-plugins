@@ -6,11 +6,11 @@ from deephaven.plot.express.shared import default_callback
 
 from ._private_utils import process_args
 from ..deephaven_figure import DeephavenFigure, draw_density_heatmap
-from ..types import TableData
+from ..types import TableLike
 
 
 def density_heatmap(
-    table: TableData,
+    table: TableLike,
     x: str | None = None,
     y: str | None = None,
     z: str | None = None,
