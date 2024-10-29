@@ -15,6 +15,7 @@ from .utils import (
     get_component_qualname,
     to_camel_case,
     dict_to_camel_case,
+    dict_to_react_props,
     remove_empty_keys,
     wrap_callable,
 )
