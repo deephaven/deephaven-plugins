@@ -260,7 +260,7 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   override fireBlockerClear(isAcknowledged = true): void {
     super.fireBlockerClear();
-    this.hasAcknowledgedWebGlWarning = isAcknowledged;
+    this.hasAcknowledgedWebGlWarning = isAcknowledged || this.hasAcknowledgedWebGlWarning;
   }
 
   updateLayout(data: PlotlyChartWidgetData): void {
