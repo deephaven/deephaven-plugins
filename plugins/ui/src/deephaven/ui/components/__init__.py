@@ -4,6 +4,7 @@ from .action_menu import action_menu
 from .basic import (
     component_element,
 )
+from .badge import badge
 from .button import button
 from .button_group import button_group
 from .calendar import calendar
@@ -65,6 +66,7 @@ __all__ = [
     "action_group",
     "action_menu",
     "component_element",
+    "badge",
     "button",
     "button_group",
     "calendar",
