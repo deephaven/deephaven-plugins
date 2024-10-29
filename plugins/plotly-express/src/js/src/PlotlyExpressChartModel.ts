@@ -239,29 +239,28 @@ export class PlotlyExpressChartModel extends ChartModel {
     webgl: boolean | undefined = true,
     prevWebgl: boolean | undefined = undefined
   ): void {
-      setWebGlTraceType(this.plotlyData, webgl, this.webGlTraceIndices);
+    setWebGlTraceType(this.plotlyData, webgl, this.webGlTraceIndices);
 
-      const needsBlocker = hasUnreplaceableWebGlTraces(this.plotlyData);
+    const needsBlocker = hasUnreplaceableWebGlTraces(this.plotlyData);
 
-      // If WebGL is disabled and there are traces that require WebGL, show a warning that is dismissible on a per-chart basis
-      if (needsBlocker && !webgl && !this.hasAcknowledgedWebGlWarning) {
-        this.fireBlocker([
-          'WebGL is disabled but this chart cannot render without it. Check the Advanced section in the settings to enable WebGL or click below to render with WebGL for this chart.',
-        ]);
-      } else if (
-        webgl === true &&
-        (prevWebgl === false || prevWebgl == null) &&
-        needsBlocker
-      ) {
-        // clear the blocker but not the acknowledged flag in case WebGL is disabled again
-        super.fireBlockerClear();
-      }
+    // If WebGL is disabled and there are traces that require WebGL, show a warning that is dismissible on a per-chart basis
+    if (needsBlocker && !webgl && !this.hasAcknowledgedWebGlWarning) {
+      this.fireBlocker([
+        'WebGL is disabled but this chart cannot render without it. Check the Advanced section in the settings to enable WebGL or click below to render with WebGL for this chart.',
+      ]);
+    } else if (
+      webgl === true &&
+      (prevWebgl === false || prevWebgl == null) &&
+      needsBlocker
+    ) {
+      // clear the blocker but not the acknowledged flag in case WebGL is disabled again
+      this.fireBlockerClear(false);
     }
   }
 
-  override fireBlockerClear(): void {
+  override fireBlockerClear(isAcknowledged = true): void {
     super.fireBlockerClear();
-    this.hasAcknowledgedWebGlWarning = true;
+    this.hasAcknowledgedWebGlWarning = isAcknowledged;
   }
 
   updateLayout(data: PlotlyChartWidgetData): void {
