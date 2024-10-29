@@ -48,6 +48,17 @@ class UtilsTest(BaseTestCase):
         self.assertEqual(to_react_prop_case("aria_expanded"), "aria-expanded")
         self.assertEqual(to_react_prop_case("aria_labelledby"), "aria-labelledby")
 
+    def test_convert_dict_keys(self):
+        from deephaven.ui._internal.utils import convert_dict_keys
+
+        # Test with a function reversing the keys
+        self.assertDictEqual(
+            convert_dict_keys(
+                {"foo": "fiz", "bar": "biz"}, convert_key=lambda x: x[::-1]
+            ),
+            {"oof": "fiz", "rab": "biz"},
+        )
+
     def test_dict_to_camel_case(self):
         from deephaven.ui._internal.utils import dict_to_camel_case
 
@@ -66,13 +77,6 @@ class UtilsTest(BaseTestCase):
         self.assertDictEqual(
             dict_to_camel_case({"bar": "biz", "UNSAFE_class_name": "harry"}),
             {"bar": "biz", "UNSAFEClassName": "harry"},
-        )
-        # Test with a function reversing the keys
-        self.assertDictEqual(
-            dict_to_camel_case(
-                {"foo": "fiz", "bar": "biz"}, convert_key=lambda x: x[::-1]
-            ),
-            {"oof": "fiz", "rab": "biz"},
         )
 
     def test_dict_to_react_props(self):
