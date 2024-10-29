@@ -27,5 +27,5 @@ jobs:
         working-directory: 'plugins/${{ inputs.package }}'
 
       - name: Run tox
-        run: tox -e py
+        run: tox -e py${{ matrix.python }}
         working-directory: 'plugins/${{ inputs.package }}'
