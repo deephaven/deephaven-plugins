@@ -30,6 +30,10 @@
             "path": "components/action_group.md"
           },
           {
+            "label": "badge",
+            "path": "components/badge.md"
+          },
+          {
             "label": "button",
             "path": "components/button.md"
           },
