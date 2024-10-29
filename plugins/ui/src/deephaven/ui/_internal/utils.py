@@ -103,15 +103,13 @@ def to_react_prop_case(snake_case_text: str) -> str:
 
 def dict_to_camel_case(
     snake_case_dict: dict[str, Any],
-    omit_none: bool = True,
-    convert_key: Callable[[str], str] = to_react_prop_case,
+    convert_key: Callable[[str], str] = to_camel_case,
 ) -> dict[str, Any]:
     """
     Convert a dict with snake_case keys to a dict with camelCase keys.
 
     Args:
         snake_case_dict: The snake_case dict to convert.
-        omit_none: Whether to omit keys with a value of None.
         convert_key: The function to convert the keys. Can be used to customize the conversion behaviour
 
     Returns:
@@ -119,10 +117,23 @@ def dict_to_camel_case(
     """
     camel_case_dict: dict[str, Any] = {}
     for key, value in snake_case_dict.items():
-        if omit_none and value is None:
-            continue
         camel_case_dict[convert_key(key)] = value
     return camel_case_dict
+
+
+def dict_to_react_props(dict: dict[str, Any]) -> dict[str, Any]:
+    """
+    Convert a dict to React-style prop names ready for the web.
+    Converts snake_case to camelCase with the exception of special props like `UNSAFE_` or `aria_` props.
+    Removes empty keys.
+
+    Args:
+        dict: The dict to convert.
+
+    Returns:
+        The React props dict.
+    """
+    return dict_to_camel_case(remove_empty_keys(dict), to_react_prop_case)
 
 
 def remove_empty_keys(dict: dict[str, Any]) -> dict[str, Any]:

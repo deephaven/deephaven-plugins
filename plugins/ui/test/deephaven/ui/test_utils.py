@@ -60,16 +60,12 @@ class UtilsTest(BaseTestCase):
             {"alreadyCamelCase": "foo", "alignItems": "bar"},
         )
         self.assertDictEqual(
-            dict_to_camel_case({"foo": None, "bar": "biz"}),
-            {"bar": "biz"},
-        )
-        self.assertDictEqual(
-            dict_to_camel_case({"foo": None, "bar": "biz"}, omit_none=False),
-            {"foo": None, "bar": "biz"},
+            dict_to_camel_case({"foo": "bar"}),
+            {"foo": "bar"},
         )
         self.assertDictEqual(
             dict_to_camel_case({"bar": "biz", "UNSAFE_class_name": "harry"}),
-            {"bar": "biz", "UNSAFE_className": "harry"},
+            {"bar": "biz", "UNSAFEClassName": "harry"},
         )
         # Test with a function reversing the keys
         self.assertDictEqual(
@@ -77,6 +73,28 @@ class UtilsTest(BaseTestCase):
                 {"foo": "fiz", "bar": "biz"}, convert_key=lambda x: x[::-1]
             ),
             {"oof": "fiz", "rab": "biz"},
+        )
+
+    def test_dict_to_react_props(self):
+        from deephaven.ui._internal.utils import dict_to_react_props
+
+        self.assertDictEqual(
+            dict_to_react_props({"test_string": "foo", "test_string_2": "bar_biz"}),
+            {"testString": "foo", "testString2": "bar_biz"},
+        )
+        self.assertDictEqual(
+            dict_to_react_props({"alreadyCamelCase": "foo", "align_items": "bar"}),
+            {"alreadyCamelCase": "foo", "alignItems": "bar"},
+        )
+        self.assertDictEqual(
+            dict_to_react_props({"foo": None, "bar": "biz"}),
+            {"bar": "biz"},
+        )
+        self.assertDictEqual(
+            dict_to_react_props(
+                {"bar": "biz", "UNSAFE_class_name": "harry", "aria_label": "ron"}
+            ),
+            {"bar": "biz", "UNSAFE_className": "harry", "aria-label": "ron"},
         )
 
     def test_remove_empty_keys(self):
