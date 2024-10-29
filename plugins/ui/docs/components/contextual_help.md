@@ -80,11 +80,10 @@ def ui_contextual_help_events_example():
                     "Your admin must grant you permission before you can create a segment."
                 ),
                 variant="info",
-                on_open_change={set_is_open(open)},
+                on_open_change={set_is_open},
             ),
             align_items="center",
-        ),
-        f"Current open state: {is_open}",
+        )
     ]
 
 
