@@ -118,6 +118,12 @@ def tabs(
         margin_end: The margin for the logical end side of the element, depending on layout direction.
         margin_x: The margin for the left and right sides of the element.
         margin_y: The margin for the top and bottom sides of the element.
+        width: The width of the element.
+        minWidth: The minimum width of the element.
+        maxWidth: The maximum width of the element.
+        height:	The height of the element.
+        minHeight: The minimum height of the element.
+        maxHeight: The maximum height of the element.
         position: Specifies how the element is position.
         top: The top position of the element.
         bottom: The bottom position of the element.
