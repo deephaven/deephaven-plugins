@@ -75,11 +75,20 @@ It is highly recommended to use `npm run e2e:docker` (instead of `npm run e2e`) 
 ### Running Python tests
 
 The above steps will also set up `tox` to run tests for the python plugins that support it.
+Note that `tox` sets up an isolated environment for running tests.  
+Be default, `tox` will run against Python 3.8, which will need to be installed on your system before running tests.  
 You can run tests with the following command from the `plugins/<plugin>` directory:
-
 ```shell
 tox -e py
 ```
+
+You can also run tests against a specific version of python by appending the version to `py`  
+This assumes that the version of python you're targeting is installed on your system.  
+For example, to run tests against Python 3.12, run:  
+```shell
+tox -e py3.12
+```
+
 
 ### Running plugin against deephaven-core
 
