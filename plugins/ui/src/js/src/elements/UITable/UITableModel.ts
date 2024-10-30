@@ -65,9 +65,9 @@ export async function makeUiTableModel(
 
   const customColumns: string[] = [];
   format.forEach((rule, i) => {
-    const { where } = rule;
-    if (where != null) {
-      customColumns.push(`${getFormatCustomColumnName(i)}=${where}`);
+    const { condition } = rule;
+    if (condition != null) {
+      customColumns.push(`${getFormatCustomColumnName(i)}=${condition}`);
     }
   });
 
@@ -397,7 +397,7 @@ class UITableModel extends IrisGridModel {
     // Iterate in reverse so that the last rule that matches is used
     for (let i = this.format.length - 1; i >= 0; i -= 1) {
       const rule = this.format[i];
-      const { cols, where, [formatKey]: formatValue } = rule;
+      const { cols, condition, [formatKey]: formatValue } = rule;
       if (formatValue == null) {
         // eslint-disable-next-line no-continue
         continue;
@@ -406,7 +406,7 @@ class UITableModel extends IrisGridModel {
         cols == null ||
         this.formatColumnMatch(ensureArray(cols), columnName)
       ) {
-        if (where == null) {
+        if (condition == null) {
           return formatValue;
         }
         const rowValues = this.model.row(row)?.data;

@@ -23,10 +23,10 @@ You can format the table using the `formatting` prop. This prop takes a list of 
 
 ### Formatting Rows and Columns
 
-Every formatting rule may optionally specify `cols` and `where` properties. The `cols` property is a column name or list of column names to apply the formatting rule to. If `cols` is omitted, then the rule will be applied to the entire row. The `where` property is a Deephaven formula to apply the formatting rule to. The `where` property _must_ evaluate to a boolean. If `where` is omitted, then the rule will be applied to every row. These may be combined to apply formatting to specific columns only when a condition is met.
+Every formatting rule may optionally specify `cols` and `condition` properties. The `cols` property is a column name or list of column names to apply the formatting rule to. If `cols` is omitted, then the rule will be applied to the entire row. The `condition` property is a Deephaven formula to apply the formatting rule to. The `condition` property _must_ evaluate to a boolean. If `condition` is omitted, then the rule will be applied to every row. These may be combined to apply formatting to specific columns only when a condition is met.
 
 > [!NOTE]
-> The `where` property is a Deephaven formula evaluated in the engine. You can think of it like adding a new boolean column using [`update_view`](https://deephaven.io/core/docs/reference/table-operations/select/update-view/)
+> The `condition` property is a Deephaven formula evaluated in the engine. You can think of it like adding a new boolean column using [`update_view`](https://deephaven.io/core/docs/reference/table-operations/select/update-view/)
 
 The following example shows how to format the `Sym` and `Exchange` columns with a red background and white text when the `Sym` is `DOG`.
 
@@ -39,7 +39,7 @@ t = ui.table(
     formatting=[
         ui.TableFormat(
             cols=["Sym", "Exchange"],
-            where="Sym = `DOG`",
+            condition="Sym = `DOG`",
             background_color="red",
             color="white",
         )

@@ -26,7 +26,7 @@ class TableFormat:
 
     Args:
         cols: The columns to format. If None, the format will apply to the entire row.
-        where: Query string to filter which rows should be formatted.
+        condition: Deephaven expression to filter which rows should be formatted. Must resolve to a boolean.
         color: The font color.
         background_color: The cell background color.
         alignment: The cell text alignment.
@@ -39,7 +39,7 @@ class TableFormat:
     """
 
     cols: ColumnName | list[ColumnName] | None = None
-    where: str | None = None
+    condition: str | None = None
     color: str | None = None
     background_color: str | None = None
     alignment: Literal["left", "center", "right"] | None = None

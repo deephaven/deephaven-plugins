@@ -40,7 +40,7 @@ export type DatabarConfig = {
 
 export type FormattingRule = {
   cols?: ColumnName | ColumnName[];
-  where?: string;
+  condition?: string;
   color?: string;
   background_color?: string;
   alignment?: 'left' | 'center' | 'right';
