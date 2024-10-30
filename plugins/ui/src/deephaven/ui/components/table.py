@@ -7,6 +7,7 @@ from ..elements import Element
 from .types import AlignSelf, DimensionValue, JustifySelf, LayoutFlex, Position
 from ..types import (
     CellPressCallback,
+    Color,
     ColumnGroup,
     ColumnName,
     ColumnPressCallback,
@@ -26,7 +27,7 @@ class TableFormat:
 
     Args:
         cols: The columns to format. If None, the format will apply to the entire row.
-        condition: Deephaven expression to filter which rows should be formatted. Must resolve to a boolean.
+        if_: Deephaven expression to filter which rows should be formatted. Must resolve to a boolean.
         color: The font color.
         background_color: The cell background color.
         alignment: The cell text alignment.
@@ -39,9 +40,9 @@ class TableFormat:
     """
 
     cols: ColumnName | list[ColumnName] | None = None
-    condition: str | None = None
-    color: str | None = None
-    background_color: str | None = None
+    if_: str | None = None
+    color: Color | None = None
+    background_color: Color | None = None
     alignment: Literal["left", "center", "right"] | None = None
     value: str | None = None
     mode: TableDatabar | None = None
@@ -83,7 +84,7 @@ class TableDatabar:
     axis: Literal["proportional", "middle", "directional"] | None = None
     direction: Literal["LTR", "RTL"] | None = None
     value_placement: Literal["beside", "overlap", "hide"] | None = None
-    color: str | None = None
+    color: Color | None = None
     opacity: float | None = None
 
 
@@ -93,7 +94,7 @@ class table(Element):
 
     Args:
         table: The table to wrap
-        format: A list of formatting rules for the table.
+        format_: A list of formatting rules for the table.
         on_row_press: The callback function to run when a row is clicked.
             The callback is invoked with the visible row data provided in a dictionary where the
             column names are the keys.
@@ -183,7 +184,7 @@ class table(Element):
         self,
         table: Table,
         *,
-        format: list[TableFormat] | None = None,
+        format_: list[TableFormat] | None = None,
         on_row_press: RowPressCallback | None = None,
         on_row_double_press: RowPressCallback | None = None,
         on_cell_press: CellPressCallback | None = None,

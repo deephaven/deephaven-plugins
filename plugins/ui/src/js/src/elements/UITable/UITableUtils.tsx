@@ -40,7 +40,7 @@ export type DatabarConfig = {
 
 export type FormattingRule = {
   cols?: ColumnName | ColumnName[];
-  condition?: string;
+  if_?: string;
   color?: string;
   background_color?: string;
   alignment?: 'left' | 'center' | 'right';
@@ -50,7 +50,7 @@ export type FormattingRule = {
 
 export type UITableProps = StyleProps & {
   table: dh.WidgetExportedObject;
-  formatting?: FormattingRule[];
+  format_?: FormattingRule[];
   onCellPress?: (data: CellData) => void;
   onCellDoublePress?: (data: CellData) => void;
   onRowPress?: (rowData: RowDataMap) => void;

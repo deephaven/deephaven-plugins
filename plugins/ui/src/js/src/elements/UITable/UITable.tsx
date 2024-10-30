@@ -45,7 +45,7 @@ function useStableArray<T>(array: T[]): T[] {
 }
 
 export function UITable({
-  formatting,
+  format_: formatProp,
   onCellPress,
   onCellDoublePress,
   onColumnPress,
@@ -129,7 +129,7 @@ export function UITable({
     columnGroups,
   });
 
-  const [format] = useState(formatting ?? []);
+  const [format] = useState(formatProp ?? []);
   const [databars] = useState(databarsProp ?? []);
 
   const colorMap = useMemo(() => {

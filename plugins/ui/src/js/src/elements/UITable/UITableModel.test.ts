@@ -68,8 +68,8 @@ describe('Formatting', () => {
         table: MOCK_TABLE,
         databars: [],
         format: [
-          { color: 'red', condition: 'even' },
-          { cols: 'column1', color: 'blue', condition: 'even' },
+          { color: 'red', if_: 'even' },
+          { cols: 'column1', color: 'blue', if_: 'even' },
         ],
       });
       expect(model.getFormatOptionForCell(0, 0, 'color')).toBe('red');
@@ -103,7 +103,7 @@ describe('Formatting', () => {
         model: MOCK_BASE_MODEL,
         table: MOCK_TABLE,
         databars: [],
-        format: [{ color: 'red', condition: 'even' }],
+        format: [{ color: 'red', if_: 'even' }],
       });
       expect(model.getFormatOptionForCell(0, 0, 'color')).toBeUndefined();
       expect(model.getFormatOptionForCell(0, 1, 'color')).toBeUndefined();
