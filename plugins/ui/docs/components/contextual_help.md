@@ -1,6 +1,6 @@
 # Contextual Help
 
-Contextual help to show extra information about the state of a component, or a total view.
+The contextual help feature shows extra information about the state of a component, or a total view.
 
 ## Example
 
