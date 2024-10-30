@@ -50,16 +50,16 @@ class UITableTestCase(BaseTestCase):
 
         ui_table = ui.table(self.source)
 
-        t = ui_table.always_fetch_columns("X")
+        t = ui.table(self.source, always_fetch_columns="X")
 
         self.expect_render(
             t,
             {
-                "alwaysFetchColumns": ["X"],
+                "alwaysFetchColumns": "X",
             },
         )
 
-        t = ui.table(self.source).always_fetch_columns(["X", "Y"])
+        t = ui.table(self.source, always_fetch_columns=["X", "Y"])
 
         self.expect_render(
             t,
@@ -68,12 +68,12 @@ class UITableTestCase(BaseTestCase):
             },
         )
 
-        t = ui.table(self.source).always_fetch_columns("X").always_fetch_columns("Y")
+        t = ui.table(self.source, always_fetch_columns=True)
 
         self.expect_render(
             t,
             {
-                "alwaysFetchColumns": ["X", "Y"],
+                "alwaysFetchColumns": True,
             },
         )
 

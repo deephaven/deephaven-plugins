@@ -16,6 +16,7 @@ import {
   Granularity,
   parseDateValue,
   parseNullableDateValue,
+  dateValuetoIsoString,
 } from '../utils/DateTimeUtils';
 
 export type SerializedDateValue = string | null;
@@ -123,7 +124,7 @@ export function serializeDateValue(
     return null;
   }
 
-  return value.toString();
+  return dateValuetoIsoString(value);
 }
 
 /**

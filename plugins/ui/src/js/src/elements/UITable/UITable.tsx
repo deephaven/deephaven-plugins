@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
+import classNames from 'classnames';
 import {
   DehydratedQuickFilter,
   IrisGrid,
@@ -11,7 +12,9 @@ import {
 import {
   colorValueStyle,
   resolveCssVariablesInRecord,
+  useStyleProps,
   useTheme,
+  viewStyleProps,
 } from '@deephaven/components';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import { TableUtils } from '@deephaven/jsapi-utils';
@@ -19,12 +22,27 @@ import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { getSettings, RootState } from '@deephaven/redux';
 import { GridMouseHandler } from '@deephaven/grid';
-import { UITableProps, wrapContextActions } from './UITableUtils';
+import { EMPTY_ARRAY, ensureArray } from '@deephaven/utils';
+import { UITableProps } from './UITableUtils';
 import UITableMouseHandler from './UITableMouseHandler';
-import UITableContextMenuHandler from './UITableContextMenuHandler';
+import UITableContextMenuHandler, {
+  wrapContextActions,
+} from './UITableContextMenuHandler';
 import UITableModel, { makeUiTableModel } from './UITableModel';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
+
+/**
+ * Returns a stable array if none of the elements have changed.
+ * Mostly put this here to avoid ignoring the exhaustive-deps rule where there are more deps in the component.
+ * @param array The array to make stable
+ * @returns A stable array if none of the elements have changed
+ */
+function useStableArray<T>(array: T[]): T[] {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const stableArray = useMemo(() => array, [...array]);
+  return stableArray;
+}
 
 export function UITable({
   onCellPress,
@@ -35,7 +53,7 @@ export function UITable({
   onRowDoublePress,
   quickFilters,
   sorts,
-  alwaysFetchColumns,
+  alwaysFetchColumns: alwaysFetchColumnsProp,
   table: exportedTable,
   showSearch: showSearchBar,
   showQuickFilters,
@@ -50,13 +68,50 @@ export function UITable({
   contextMenu,
   contextHeaderMenu,
   databars: databarsProp,
+  ...userStyleProps
 }: UITableProps): JSX.Element | null {
   const [error, setError] = useState<unknown>(null);
 
   if (error != null) {
     // Re-throw the error so that the error boundary can catch it
+    if (typeof error === 'string') {
+      throw new Error(error);
+    }
     throw error;
   }
+
+  // Margin looks wrong with ui.table, so we want to map margin to padding instead
+  const {
+    margin,
+    marginTop,
+    marginBottom,
+    marginStart,
+    marginEnd,
+    marginX,
+    marginY,
+    ...restStyleProps
+  } = userStyleProps ?? {};
+  const { styleProps } = useStyleProps(
+    {
+      padding: margin,
+      paddingTop: marginTop,
+      paddingBottom: marginBottom,
+      paddingStart: marginStart,
+      paddingEnd: marginEnd,
+      paddingX: marginX,
+      paddingY: marginY,
+      ...restStyleProps,
+      // Add min and max height if the user set height or width explicitly
+      // This fixes issues in flex boxes where one table is auto sized and the other explicit
+      // The explicit table will never reach its size because the auto sized table has width/height 100%
+      // We don't want to set flex-shrink because it could be the cross-axis value that is explicitly set
+      minHeight: restStyleProps.minHeight ?? restStyleProps.height,
+      maxHeight: restStyleProps.maxHeight ?? restStyleProps.height,
+      minWidth: restStyleProps.minWidth ?? restStyleProps.width,
+      maxWidth: restStyleProps.maxWidth ?? restStyleProps.width,
+    },
+    viewStyleProps // Needed so spectrum applies styles from view instead of base which doesn't have padding
+  );
 
   const dh = useApi();
   const theme = useTheme();
@@ -182,6 +237,30 @@ export function UITable({
     };
   }, [databars, dh, exportedTable, layoutHints]);
 
+  const modelColumns = model?.columns ?? EMPTY_ARRAY;
+
+  const alwaysFetchColumnsArray = useStableArray(
+    ensureArray(alwaysFetchColumnsProp)
+  );
+
+  const alwaysFetchColumns = useMemo(() => {
+    if (alwaysFetchColumnsArray[0] === true) {
+      if (modelColumns.length > 500) {
+        setError(
+          `Table has ${modelColumns.length} columns, which is too many to always fetch. ` +
+            'If you want to always fetch more than 500 columns, pass the full array of column names you want to fetch. ' +
+            'This will likely be slow and use a lot of memory. ' +
+            'table.column_names contains all columns in a Deephaven table.'
+        );
+      }
+      return modelColumns.map(column => column.name);
+    }
+    if (alwaysFetchColumnsArray[0] === false) {
+      return [];
+    }
+    return alwaysFetchColumnsArray.filter(v => typeof v === 'string');
+  }, [alwaysFetchColumnsArray, modelColumns]);
+
   const mouseHandlers = useMemo(
     () =>
       model && irisGrid
@@ -201,7 +280,8 @@ export function UITable({
               irisGrid,
               model,
               contextMenu,
-              contextHeaderMenu
+              contextHeaderMenu,
+              alwaysFetchColumns
             ),
           ] as readonly GridMouseHandler[])
         : undefined,
@@ -217,13 +297,14 @@ export function UITable({
       onRowDoublePress,
       contextMenu,
       contextHeaderMenu,
+      alwaysFetchColumns,
     ]
   );
 
   const onContextMenu = useCallback(
     (data: IrisGridContextMenuData) =>
-      wrapContextActions(contextMenu ?? [], data),
-    [contextMenu]
+      wrapContextActions(contextMenu ?? [], data, alwaysFetchColumns),
+    [contextMenu, alwaysFetchColumns]
   );
 
   const irisGridProps = useMemo(
@@ -261,7 +342,11 @@ export function UITable({
   useEffect(() => () => model?.close(), [model]);
 
   return model ? (
-    <div className="ui-object-container">
+    <div
+      // eslint-disable-next-line react/jsx-props-no-spreading
+      {...styleProps}
+      className={classNames('ui-table-container', styleProps.className)}
+    >
       <IrisGrid
         ref={ref => setIrisGrid(ref)}
         model={model}

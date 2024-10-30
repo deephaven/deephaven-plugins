@@ -1,23 +1,9 @@
+import { type StyleProps } from '@react-types/shared';
 import type { dh } from '@deephaven/jsapi-types';
-import {
-  ColumnName,
-  DehydratedSort,
-  IrisGridContextMenuData,
-} from '@deephaven/iris-grid';
-import type {
-  ContextAction,
-  ResolvableContextAction,
-} from '@deephaven/components';
-import { ensureArray } from '@deephaven/utils';
+import { ColumnName, DehydratedSort } from '@deephaven/iris-grid';
 import { ELEMENT_KEY, ElementNode, isElementNode } from '../utils/ElementUtils';
-
-import { getIcon } from '../utils/IconElementUtils';
-import {
-  ELEMENT_NAME,
-  ELEMENT_PREFIX,
-  ElementName,
-  ElementPrefix,
-} from '../model/ElementConstants';
+import { ELEMENT_NAME, ElementName } from '../model/ElementConstants';
+import { type ResolvableUIContextItem } from './UITableContextMenuHandler';
 
 export type CellData = {
   type: string;
@@ -33,26 +19,6 @@ export type RowDataValue = CellData & {
 export type ColumnIndex = number;
 
 export type RowDataMap = Record<ColumnName, RowDataValue>;
-
-export interface UIContextItemParams {
-  value: unknown;
-  text_value: string | null;
-  column_name: string;
-  is_column_header: boolean;
-  is_row_header: boolean;
-}
-
-export type UIContextItem = Omit<ContextAction, 'action' | 'actions'> & {
-  action?: (params: UIContextItemParams) => void;
-
-  actions?: ResolvableUIContextItem[];
-};
-
-type ResolvableUIContextItem =
-  | UIContextItem
-  | ((
-      params: UIContextItemParams
-    ) => Promise<UIContextItem | UIContextItem[] | null>);
 
 export type ColorGradient = string[];
 
@@ -72,7 +38,7 @@ export type DatabarConfig = {
   markers?: { value: number | string; color?: string }[];
 };
 
-export type UITableProps = {
+export type UITableProps = StyleProps & {
   table: dh.WidgetExportedObject;
   onCellPress?: (data: CellData) => void;
   onCellDoublePress?: (data: CellData) => void;
@@ -80,7 +46,7 @@ export type UITableProps = {
   onRowDoublePress?: (rowData: RowDataMap) => void;
   onColumnPress?: (columnName: ColumnName) => void;
   onColumnDoublePress?: (columnName: ColumnName) => void;
-  alwaysFetchColumns?: string[];
+  alwaysFetchColumns?: string | string[] | boolean;
   quickFilters?: Record<string, string>;
   sorts?: DehydratedSort[];
   showSearch: boolean;
@@ -96,6 +62,7 @@ export type UITableProps = {
   contextMenu?: ResolvableUIContextItem | ResolvableUIContextItem[];
   contextHeaderMenu?: ResolvableUIContextItem | ResolvableUIContextItem[];
   databars?: DatabarConfig[];
+  [key: string]: unknown; // Needed because StyleProps is an interface which removes the implicit index signature of the type
 };
 
 export type UITableNode = Required<
@@ -107,65 +74,4 @@ export function isUITable(obj: unknown): obj is UITableNode {
     isElementNode(obj) &&
     (obj as UITableNode)[ELEMENT_KEY] === ELEMENT_NAME.uiTable
   );
-}
-
-function wrapUIContextItem(
-  item: UIContextItem,
-  data: Omit<IrisGridContextMenuData, 'model' | 'modelRow' | 'modelColumn'>
-): ContextAction {
-  return {
-    group: 999999, // Default to the end of the menu
-    ...item,
-    icon: item.icon
-      ? getIcon(`${ELEMENT_PREFIX.icon}${item.icon}` as ElementPrefix['icon'])
-      : undefined,
-    action: item.action
-      ? () => {
-          item.action?.({
-            value: data.value,
-            text_value: data.valueText,
-            column_name: data.column.name,
-            is_column_header: data.rowIndex == null,
-            is_row_header: data.columnIndex == null,
-          });
-        }
-      : undefined,
-    actions: item.actions ? wrapContextActions(item.actions, data) : undefined,
-  } satisfies ContextAction;
-}
-
-function wrapUIContextItems(
-  items: UIContextItem | UIContextItem[],
-  data: Omit<IrisGridContextMenuData, 'model' | 'modelRow' | 'modelColumn'>
-): ContextAction[] {
-  return ensureArray(items).map(item => wrapUIContextItem(item, data));
-}
-
-/**
- * Wraps context item actions from the server so they are called with the cell info.
- * @param items The context items from the server
- * @param data The context menu data to use for the context items
- * @returns Context items with the UI actions wrapped so they receive the cell info
- */
-export function wrapContextActions(
-  items: ResolvableUIContextItem | ResolvableUIContextItem[],
-  data: Omit<IrisGridContextMenuData, 'model' | 'modelRow' | 'modelColumn'>
-): ResolvableContextAction[] {
-  return ensureArray(items).map(item => {
-    if (typeof item === 'function') {
-      return async () =>
-        wrapUIContextItems(
-          (await item({
-            value: data.value,
-            text_value: data.valueText,
-            column_name: data.column.name,
-            is_column_header: data.rowIndex == null,
-            is_row_header: data.columnIndex == null,
-          })) ?? [],
-          data
-        );
-    }
-
-    return wrapUIContextItem(item, data);
-  });
 }

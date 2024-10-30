@@ -50,11 +50,12 @@ def ui_components1():
         ui.action_menu("Aaa", "Bbb", "Ccc"),
         ui.button_group(ui.button("One"), ui.button("Two")),
         ui.button("Button"),
+        ui.calendar(value="2021-01-01"),
         ui.checkbox("Checkbox"),
         ui.column("Column child A", "Column child B", "Column child C"),
         # TODO: #201 ui.combo_box("Combo Box"),
         ui.content("Content"),
-        ui.contextual_help("Contextual Help"),
+        ui.contextual_help("Contextual Help", "Content"),
         ui.date_picker(label="Date Picker", value="2021-01-01"),
         ui.date_range_picker(
             label="Date Range Picker",
@@ -103,6 +104,9 @@ def ui_components2():
             ui.radio("Two", value="two"),
             label="Radio Group",
             orientation="HORIZONTAL",
+        ),
+        ui.range_calendar(
+            default_value={"start": "2021-01-01", "end": "2021-01-02"},
         ),
         ui.range_slider(default_value={"start": 10, "end": 99}, label="Range Slider"),
         ui.row("Row child A", "Row child B"),

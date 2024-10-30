@@ -8,8 +8,8 @@ import {
   ActionMenu,
   ButtonGroup,
   SpectrumCheckbox as Checkbox,
+  CheckboxGroup,
   Content,
-  ContextualHelp,
   Heading,
   Item,
   ListActionGroup,
@@ -48,7 +48,9 @@ import {
   ActionButton,
   ActionGroup,
   Button,
+  Calendar,
   ComboBox,
+  ContextualHelp,
   DateField,
   DatePicker,
   DateRangePicker,
@@ -60,8 +62,11 @@ import {
   ListView,
   Markdown,
   Picker,
+  ProgressBar,
+  ProgressCircle,
   Radio,
   RadioGroup,
+  RangeCalendar,
   RangeSlider,
   Slider,
   TabPanels,
@@ -105,7 +110,9 @@ export const elementComponentMap = {
   [ELEMENT_NAME.actionMenu]: ActionMenu,
   [ELEMENT_NAME.button]: Button,
   [ELEMENT_NAME.buttonGroup]: ButtonGroup,
+  [ELEMENT_NAME.calendar]: Calendar,
   [ELEMENT_NAME.checkbox]: Checkbox,
+  [ELEMENT_NAME.checkboxGroup]: CheckboxGroup,
   [ELEMENT_NAME.comboBox]: ComboBox,
   [ELEMENT_NAME.content]: Content,
   [ELEMENT_NAME.contextualHelp]: ContextualHelp,
@@ -126,8 +133,11 @@ export const elementComponentMap = {
   [ELEMENT_NAME.markdown]: Markdown,
   [ELEMENT_NAME.numberField]: NumberField,
   [ELEMENT_NAME.picker]: Picker,
+  [ELEMENT_NAME.progressBar]: ProgressBar,
+  [ELEMENT_NAME.progressCircle]: ProgressCircle,
   [ELEMENT_NAME.radio]: Radio,
   [ELEMENT_NAME.radioGroup]: RadioGroup,
+  [ELEMENT_NAME.rangeCalendar]: RangeCalendar,
   [ELEMENT_NAME.rangeSlider]: RangeSlider,
   [ELEMENT_NAME.section]: Section,
   [ELEMENT_NAME.slider]: Slider,
@@ -174,9 +184,7 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
       }
       if (props?.contextualHelp != null && isPrimitive(props.contextualHelp)) {
         props.contextualHelp = (
-          <ContextualHelp>
-            <Content>{props.contextualHelp}</Content>
-          </ContextualHelp>
+          <ContextualHelp heading={null} content={props.contextualHelp} />
         );
       }
       return <Component {...props} />;

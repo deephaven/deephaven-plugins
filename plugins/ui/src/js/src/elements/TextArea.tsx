@@ -6,7 +6,7 @@ import useTextInputProps from './hooks/useTextInputProps';
 import { SerializedTextInputEventProps } from './model';
 
 export function TextArea(
-  props: SerializedTextInputEventProps<DHCTextAreaProps>
+  props: SerializedTextInputEventProps<DHCTextAreaProps, string>
 ): JSX.Element {
   const textAreaProps = useTextInputProps(props);
 
