@@ -77,6 +77,7 @@ def contextual_help(
 ) -> Element:
     """
     A contextual help is a quiet action button that triggers an informational popover.
+
     Args:
         heading: The heading of the popover.
         content: The content of the popover.
