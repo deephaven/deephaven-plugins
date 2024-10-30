@@ -15,6 +15,9 @@ from .types import (
 )
 
 from ..types import Key, TabDensity
+from ..elements import BaseElement
+
+TabElement = BaseElement
 
 
 def tabs(
@@ -75,7 +78,7 @@ def tabs(
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
     key: str | None = None,
-):
+) -> TabElement:
     """
     Python implementation for the Adobe React Spectrum Tabs component.
     https://react-spectrum.adobe.com/react-spectrum/Tabs.html
