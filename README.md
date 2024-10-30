@@ -83,7 +83,7 @@ tox -e py
 ```
 
 You can also run tests against a specific version of python by appending the version to `py`  
-This assumes that the version of python you're targeting is installed on your system.  
+This assumes that the version of Python you're targeting is installed on your system.  
 For example, to run tests against Python 3.12, run:  
 ```shell
 tox -e py3.12
