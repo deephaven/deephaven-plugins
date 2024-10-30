@@ -3,7 +3,6 @@ from typing import Any
 from .types import (
     # Layout
     AlignSelf,
-    ButtonGroupAlignment,
     CSSProperties,
     DimensionValue,
     JustifySelf,
@@ -18,7 +17,6 @@ from ..types import BadgeVariant
 def badge(
     *children: Any,
     variant: BadgeVariant | None = None,
-    align: ButtonGroupAlignment = "start",
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,
@@ -123,7 +121,6 @@ def badge(
         "Badge",
         *children,
         variant=variant,
-        align=align,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
