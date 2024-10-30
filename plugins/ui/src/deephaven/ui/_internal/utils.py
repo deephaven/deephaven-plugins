@@ -71,6 +71,7 @@ def get_component_qualname(component: Any) -> str:
 def to_camel_case(snake_case_text: str) -> str:
     """
     Convert a snake_case string to camelCase.
+    Preserves any leading or trailing underscores.
 
     Args:
         snake_case_text: The snake_case string to convert.
@@ -78,8 +79,13 @@ def to_camel_case(snake_case_text: str) -> str:
     Returns:
         The camelCase string.
     """
-    components = snake_case_text.split("_")
-    return components[0] + "".join((x[0].upper() + x[1:]) for x in components[1:])
+    leading_underscores = len(snake_case_text) - len(snake_case_text.lstrip("_"))
+    trailing_underscores = len(snake_case_text) - len(snake_case_text.rstrip("_"))
+    components = snake_case_text.strip("_").split("_")
+    camel_case_text = components[0] + "".join(
+        (x[0].upper() + x[1:]) for x in components[1:]
+    )
+    return "_" * leading_underscores + camel_case_text + "_" * trailing_underscores
 
 
 def to_react_prop_case(snake_case_text: str) -> str:
