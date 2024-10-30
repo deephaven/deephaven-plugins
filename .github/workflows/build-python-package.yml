@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Check file existence
         id: check_files
@@ -47,7 +47,7 @@ jobs:
         run: python -m build --wheel --sdist plugins/${{ inputs.package }}
 
       - name: Upload dist
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist-${{ inputs.package }}
           path: plugins/${{ inputs.package }}/dist/
