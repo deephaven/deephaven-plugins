@@ -93,7 +93,7 @@ class table(Element):
 
     Args:
         table: The table to wrap
-        formatting: A list of formatting rules for the table.
+        format: A list of formatting rules for the table.
         on_row_press: The callback function to run when a row is clicked.
             The callback is invoked with the visible row data provided in a dictionary where the
             column names are the keys.
@@ -183,7 +183,7 @@ class table(Element):
         self,
         table: Table,
         *,
-        formatting: list[TableFormat] | None = None,
+        format: list[TableFormat] | None = None,
         on_row_press: RowPressCallback | None = None,
         on_row_double_press: RowPressCallback | None = None,
         on_cell_press: CellPressCallback | None = None,

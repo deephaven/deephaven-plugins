@@ -3,7 +3,7 @@ from dataclasses import asdict as dataclass_asdict, is_dataclass
 import logging
 from typing import Any, Union
 
-from .._internal import RenderContext
+from .._internal import RenderContext, remove_empty_keys
 from ..elements import Element, PropsType
 from .RenderedNode import RenderedNode
 
@@ -33,10 +33,7 @@ def _render_child_item(item: Any, parent_context: RenderContext, index_key: str)
     # If the item is an instance of a dataclass
     if is_dataclass(item) and not isinstance(item, type):
         return _render_dict(
-            # Convert dataclass to dict and remove None values
-            dataclass_asdict(
-                item, dict_factory=lambda x: {k: v for (k, v) in x if v is not None}
-            ),
+            remove_empty_keys(dataclass_asdict(item)),
             parent_context.get_child_context(index_key),
         )
 
