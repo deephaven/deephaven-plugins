@@ -19,14 +19,14 @@ t = ui.table(_t)
 
 ## Formatting
 
-You can format the table using the `formatting` prop. This prop takes a list of `ui.TableFormat` objects. `ui.TableFormat` is a dataclass that encapsulates the formatting options for a table. The full list of formatting options can be found in the [API Reference](#tableformat).
+You can format the table using the `format_` prop. This prop takes a list of `ui.TableFormat` objects. `ui.TableFormat` is a dataclass that encapsulates the formatting options for a table. The full list of formatting options can be found in the [API Reference](#tableformat).
 
 ### Formatting Rows and Columns
 
-Every formatting rule may optionally specify `cols` and `condition` properties. The `cols` property is a column name or list of column names to apply the formatting rule to. If `cols` is omitted, then the rule will be applied to the entire row. The `condition` property is a Deephaven formula to apply the formatting rule to. The `condition` property _must_ evaluate to a boolean. If `condition` is omitted, then the rule will be applied to every row. These may be combined to apply formatting to specific columns only when a condition is met.
+Every formatting rule may optionally specify `cols` and `if_` properties. The `cols` property is a column name or list of column names to apply the formatting rule to. If `cols` is omitted, then the rule will be applied to the entire row. The `if_` property is a Deephaven formula to apply the formatting rule to. The `if_` property _must_ evaluate to a boolean. If `if_` is omitted, then the rule will be applied to every row. These may be combined to apply formatting to specific columns only when a condition is met.
 
 > [!NOTE]
-> The `condition` property is a Deephaven formula evaluated in the engine. You can think of it like adding a new boolean column using [`update_view`](https://deephaven.io/core/docs/reference/table-operations/select/update-view/)
+> The `if_` property is a Deephaven formula evaluated in the engine. You can think of it like adding a new boolean column using [`update_view`](https://deephaven.io/core/docs/reference/table-operations/select/update-view/)
 
 The following example shows how to format the `Sym` and `Exchange` columns with a red background and white text when the `Sym` is `DOG`.
 
@@ -36,10 +36,10 @@ import deephaven.plot.express as dx
 
 t = ui.table(
     dx.data.stocks(),
-    formatting=[
+    format_=[
         ui.TableFormat(
             cols=["Sym", "Exchange"],
-            condition="Sym = `DOG`",
+            if_="Sym = `DOG`",
             background_color="red",
             color="white",
         )
@@ -59,9 +59,91 @@ import deephaven.plot.express as dx
 
 t = ui.table(
     dx.data.stocks(),
-    formatting=[
+    format_=[
         ui.TableFormat(background_color="blue", color="white"),
         ui.TableFormat(cols="Sym", background_color="red"),
+    ],
+)
+```
+
+### Formatting Color
+
+Formatting rules for colors support Deephaven theme colors, hex colors, or any valid CSS color (e.g., `red`, `#ff0000`, `rgb(255, 0, 0)`). It is **recommended to use Deephaven theme colors** when possible to maintain a consistent look and feel across the UI. Theme colors will also automatically update if the user changes the theme.
+
+#### Formatting Text Color
+
+The `color` property sets the text color of the cell. If a cell has a `background_color`, but no `color` set, the text color will be set to black or white depending on which contrasts better with the background color. Setting the `color` property will override this behavior.
+
+The following example will make all text the foreground color except the `Sym` column, which will be white. In dark mode the foreground color is white, and in light mode the foreground color is black. In light mode, the `Sym` column will be nearly invisible because it is not a theme color
+
+```py
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(
+    dx.data.stocks(),
+    format_=[
+        ui.TableFormat(color="fg"),
+        ui.TableFormat(cols="Sym", color="white"),
+    ],
+)
+```
+
+#### Formatting Background Color
+
+The `background_color` property sets the background color of the cell. Setting the `background_color` without setting `color` will result in the text color automatically being set to black or white based on the contrast with the `background_color`.
+
+The following example will make all the background color what is usually the foreground color. This means the table will have a white background with black text in dark theme and a black background with white text in light theme. The `Sym` column text will be the accent color in both themes.
+
+```py
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(
+    dx.data.stocks(),
+    format_=[
+        ui.TableFormat(background_color="fg"),
+        ui.TableFormat(cols="Sym", color="accent"),
+    ],
+)
+```
+
+### Formatting Numeric Values
+
+> [!WARNING]
+> Datetime values are considered numeric. If you provide a default format for numeric values, it will also apply to datetime values. It is recommended to specify `cols` when applying value formats.
+
+Numeric values can be formatted using the `value` property. The `value` property is a string that follows [the GWT Java NumberFormat syntax](https://www.gwtproject.org/javadoc/latest/com/google/gwt/i18n/client/NumberFormat.html). If a numeric format is applied to a non-numeric column, it will be ignored.
+
+This example will format the `Price` and `Dollars` columns with the dollar sign, a comma separator for every 3 digits, 2 decimal places, and a minimum of 1 digit to the left of the decimal point. The `Random` column will be formatted with 3 decimal places and will drop the leading zero if the absolute value is less than 1.
+
+```py
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(
+    dx.data.stocks(),
+    format_=[
+        ui.TableFormat(cols=["Price", "Dollars"], value="$#,##0.00"),
+        ui.TableFormat(cols="Random", value="#.000")
+    ],
+)
+```
+
+### Formatting Datetime Values
+
+Datetime values can be formatted using the `value` property. The `value` property is a string that follows [the GWT Java DateTimeFormat syntax](https://www.gwtproject.org/javadoc/latest/com/google/gwt/i18n/client/DateTimeFormat.html) with additional support for nanoseconds. You may provide up to 9 `S` characters after the decimal to represent partial seconds down to nanoseconds.
+
+The following example formats the `Timestamp` column to show the short date of the week, day of the month, short month name, full year, hours, minutes, seconds, and microseconds with the user selected timezone.
+
+```py
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(
+    dx.data.stocks(),
+    format_=[
+        ui.TableFormat(cols="Timestamp", value="E, dd MMM yyyy HH:mm:ss.SSSSSS z"),
     ],
 )
 ```

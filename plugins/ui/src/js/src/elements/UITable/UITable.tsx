@@ -129,7 +129,9 @@ export function UITable({
     columnGroups,
   });
 
+  // TODO: #982 respond to prop changes here
   const [format] = useState(formatProp ?? []);
+  // TODO: #981 move databars to format and rewire for databar support
   const [databars] = useState(databarsProp ?? []);
 
   const colorMap = useMemo(() => {
