@@ -90,6 +90,16 @@ def link(
         href: A URL to link to.
         target: The target window for the link.
         rel: The relationship between the linked resource and the current page.
+        on_press: Function called when the link is pressed.
+        on_press_start: Function called when the link is pressed and held.
+        on_press_end: Function called when the link is released after being pressed.
+        on_press_up: Function called when the link is released.
+        on_press_change: Function called when the pressed state changes.
+        on_focus: Function called when the link receives focus.
+        on_blur: Function called when the link loses focus.
+        on_focus_change: Function called when the focus state changes.
+        on_key_down: Function called when a key is pressed down.
+        on_key_up: Function called when a key is released.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
