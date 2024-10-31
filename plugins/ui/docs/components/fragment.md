@@ -19,16 +19,23 @@ from deephaven import ui
 
 
 @ui.component
-def ui_fragment_list():
-    children = []
+def ui_post_list(items):
+    posts = (
+        ui.fragment(ui.heading(p["title"]), ui.text(p["body"]), key=p["id"])
+        for p in items
+    )
+    return ui.flex(
+        *posts,
+        direction="column",
+    )
 
-    for i in range(1, 4):
-        children.append(ui.fragment(ui.text(f"Child {i}"), key=i))
 
-    return ui.column(*children)
-
-
-my_fragment = ui_fragment_list()
+my_post_list = ui_post_list(
+    [
+        {"id": 1, "title": "About me", "body": "I am a developer"},
+        {"id": 2, "title": "Contact", "body": "I want to hear from you!"},
+    ]
+)
 ```
 
 ## API Reference
