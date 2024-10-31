@@ -71,7 +71,22 @@ export async function makeUiTableModel(
     }
   });
 
-  baseTable.applyCustomColumns(customColumns);
+  if (customColumns.length > 0) {
+    await new TableUtils(dh).applyCustomColumns(baseTable, customColumns);
+    format.forEach((rule, i) => {
+      const { if_ } = rule;
+      if (if_ != null) {
+        const columnType = baseTable.findColumn(
+          getFormatCustomColumnName(i)
+        ).type;
+        if (!TableUtils.isBooleanType(columnType)) {
+          throw new Error(
+            `ui.TableFormat if_ must be a boolean column. "${if_}" is a ${columnType} column`
+          );
+        }
+      }
+    });
+  }
 
   if (joinColumns.length > 0) {
     const totalsTable = await table.getTotalsTable({
