@@ -55,6 +55,12 @@ jobs:
         if: steps.restore-node-modules.outputs.cache-hit != 'true'
         run: npm ci --no-audit
 
+      # Run all tests for all the packages
+      # Caching with the absolute path b/c Jest will make a folder in each project
+      # Then there's caches in all plugin folders
+      - name: Run Tests
+        run: npm run test:ci
+
       - name: Always cache node modules
         id: cache-node-modules
         if: always() && steps.restore-node-modules.outputs.cache-hit != 'true'
@@ -64,9 +70,3 @@ jobs:
           path: |
             node_modules
             plugins/**/node_modules
-
-      # Run all tests for all the packages
-      # Caching with the absolute path b/c Jest will make a folder in each project
-      # Then there's caches in all plugin folders
-      - name: Run Tests
-        run: npm run test:ci
