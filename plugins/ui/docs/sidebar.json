@@ -54,6 +54,10 @@
             "path": "components/date_range_picker.md"
           },
           {
+            "label": "fragment",
+            "path": "components/fragment.md"
+          }
+          {
             "label": "heading",
             "path": "components/heading.md"
           },
