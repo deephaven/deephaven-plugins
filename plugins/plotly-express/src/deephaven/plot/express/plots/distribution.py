@@ -11,7 +11,6 @@ from ._private_utils import (
     shared_histogram,
 )
 from ..deephaven_figure import DeephavenFigure
-
 from ..shared import (
     VIOLIN_DEFAULTS,
     BOX_DEFAULTS,
@@ -19,10 +18,11 @@ from ..shared import (
     HISTOGRAM_DEFAULTS,
     default_callback,
 )
+from ..types import PartitionableTableLike
 
 
 def violin(
-    table: Table | None = None,
+    table: PartitionableTableLike,
     x: str | list[str] | None = None,
     y: str | list[str] | None = None,
     by: str | list[str] | None = None,
@@ -103,7 +103,7 @@ def violin(
 
 
 def box(
-    table: Table | None = None,
+    table: PartitionableTableLike,
     x: str | list[str] | None = None,
     y: str | list[str] | None = None,
     by: str | list[str] | None = None,
@@ -184,7 +184,7 @@ def box(
 
 
 def strip(
-    table: Table | None = None,
+    table: PartitionableTableLike,
     x: str | list[str] | None = None,
     y: str | list[str] | None = None,
     by: str | list[str] | None = None,
@@ -307,7 +307,7 @@ def _ecdf(
 
 
 def histogram(
-    table: Table | None = None,
+    table: PartitionableTableLike,
     x: str | list[str] | None = None,
     y: str | list[str] | None = None,
     by: str | list[str] | None = None,

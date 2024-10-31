@@ -3,11 +3,13 @@ from __future__ import annotations
 from functools import partial
 from collections.abc import Callable
 from typing import Any
+from pandas import DataFrame
 
 import plotly.express as px
 
 from deephaven.table import Table, PartitionedTable
 from deephaven.execution_context import make_user_exec_ctx
+import deephaven.pandas as dhpd
 
 from ._layer import atomic_layer
 from .PartitionManager import PartitionManager
@@ -21,6 +23,7 @@ from ..shared.distribution_args import (
     HISTOGRAM_DEFAULTS,
     SPREAD_GROUPS,
 )
+from ..types import PartitionableTableLike
 
 
 def validate_common_args(args: dict) -> None:
@@ -252,6 +255,21 @@ def create_deephaven_figure(
     )
 
 
+def convert_to_table(table: PartitionableTableLike) -> Table | PartitionedTable:
+    """
+    Convert a Dataframe to a Table if it is one
+
+    Args:
+      table: The PartitionableTableData to convert
+
+    Returns:
+        The Table or PartitionedTable
+    """
+    if isinstance(table, DataFrame):
+        return dhpd.to_table(table)
+    return table
+
+
 def process_args(
     args: dict[str, Any],
     groups: set[str] | None = None,
@@ -278,11 +296,13 @@ def process_args(
         DeephavenFigure: The new figure
 
     """
-    use_args = locals()
-    orig_process_args = args_copy(use_args)
+    render_args = locals()
+    render_args["args"]["table"] = convert_to_table(render_args["args"]["table"])
+
+    orig_process_args = args_copy(render_args)
     orig_process_func = lambda **local_args: create_deephaven_figure(**local_args)[0]
 
-    new_fig, table, key_column_table, update = create_deephaven_figure(**use_args)
+    new_fig, table, key_column_table, update = create_deephaven_figure(**render_args)
 
     orig_process_args["args"].update(update)
 

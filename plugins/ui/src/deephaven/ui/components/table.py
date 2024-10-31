@@ -15,7 +15,7 @@ from ..types import (
     RowPressCallback,
     ResolvableContextMenuItem,
 )
-from .._internal import dict_to_camel_case, RenderContext
+from .._internal import dict_to_react_props, RenderContext
 
 logger = logging.getLogger(__name__)
 
@@ -262,4 +262,4 @@ class table(Element):
 
     def render(self, context: RenderContext) -> dict[str, Any]:
         logger.debug("Returning props %s", self._props)
-        return dict_to_camel_case(self._props)
+        return dict_to_react_props(self._props)

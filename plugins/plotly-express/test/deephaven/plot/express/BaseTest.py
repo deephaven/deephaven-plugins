@@ -1,8 +1,12 @@
+from __future__ import annotations
+
 import unittest
 from unittest.mock import patch
 
 import pandas as pd
+from deephaven.plot.express import DeephavenFigure
 from deephaven_server import Server
+from typing import List
 
 
 def remap_types(
@@ -35,6 +39,88 @@ class BaseTestCase(unittest.TestCase):
 
         cls.reference.id = 0
         cls.exporter.reference.return_value = MockReference()
+
+    def assert_chart_equals(
+        self,
+        chart: DeephavenFigure | dict,
+        matching_chart: DeephavenFigure | dict = None,
+        expected_data: List[dict] = None,
+        expected_layout: dict = None,
+        expected_mappings: List[dict] = None,
+        expected_is_user_set_template: bool = None,
+        expected_is_user_set_color: bool = None,
+        pop_template: bool = True,
+    ) -> None:
+        """
+        Verify that the chart is as expected
+        If matching_chart is provided, the different charts are compared
+        The "expected" parameters take precedence over the values extracted from matching_chart
+        All "expected" parameters are optional to only match part of the chart if desired
+
+        Args:
+            chart: The chart to verify
+            matching_chart: A second chart to verify against
+            expected_data: The expected data
+            expected_layout: The expected layout
+            expected_mappings: The expected mappings
+            expected_is_user_set_template: The expected is_user_set_template
+            expected_is_user_set_color: The expected is_user_set_color
+            pop_template: Whether to pop the template from the chart.
+                Pops from both the chart and the expected values, if provided.
+        """
+        chart = chart.to_dict(self.exporter) if not isinstance(chart, dict) else chart
+        plotly, deephaven = chart["plotly"], chart["deephaven"]
+
+        if matching_chart:
+            matching_chart = (
+                matching_chart.to_dict(self.exporter)
+                if not isinstance(matching_chart, dict)
+                else matching_chart
+            )
+            matching_plotly, matching_deephaven = (
+                matching_chart["plotly"],
+                matching_chart["deephaven"],
+            )
+            expected_data = expected_data or matching_plotly["data"]
+            expected_layout = expected_layout or matching_plotly["layout"]
+            expected_mappings = expected_mappings or matching_deephaven["mappings"]
+            expected_is_user_set_template = (
+                expected_is_user_set_template
+                if expected_is_user_set_template is not None
+                else matching_deephaven["is_user_set_template"]
+            )
+            expected_is_user_set_color = (
+                expected_is_user_set_color
+                if expected_is_user_set_color is not None
+                else matching_deephaven["is_user_set_color"]
+            )
+
+        if pop_template:
+            plotly["layout"].pop("template", None)
+            if expected_layout:
+                expected_layout.pop("template", None)
+
+        asserted = False
+        if expected_data:
+            self.assertEqual(plotly["data"], expected_data)
+            asserted = True
+        if expected_layout:
+            self.assertEqual(plotly["layout"], expected_layout)
+            asserted = True
+        if expected_mappings:
+            self.assertEqual(deephaven["mappings"], expected_mappings)
+            asserted = True
+        if expected_is_user_set_template is not None:
+            self.assertEqual(
+                deephaven["is_user_set_template"], expected_is_user_set_template
+            )
+            asserted = True
+        if expected_is_user_set_color is not None:
+            self.assertEqual(deephaven["is_user_set_color"], expected_is_user_set_color)
+            asserted = True
+
+        if not asserted:
+            raise ValueError("No comparisons were made in assert_chart_equals")
 
 
 if __name__ == "__main__":

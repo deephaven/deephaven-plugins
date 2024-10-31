@@ -3,11 +3,10 @@ import unittest
 from ..BaseTest import BaseTestCase
 
 
-class AreaTestCase(BaseTestCase):
+class BarTestCase(BaseTestCase):
     def setUp(self) -> None:
         from deephaven import new_table
         from deephaven.column import int_col
-        import deephaven.pandas as dhpd
 
         self.source = new_table(
             [
@@ -18,16 +17,15 @@ class AreaTestCase(BaseTestCase):
                 int_col("size", [1, 2, 2, 3, 3, 3, 4, 4, 5]),
                 int_col("text", [1, 2, 2, 3, 3, 3, 4, 4, 5]),
                 int_col("hover_name", [1, 2, 2, 3, 3, 3, 4, 4, 5]),
+                int_col("category", [1, 2, 1, 2, 1, 2, 1, 2, 1]),
             ]
         )
 
-        self.pandas_source = dhpd.to_pandas(self.source)
-
-    def test_basic_area(self):
+    def test_basic_bar_x(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
+        from deephaven.constants import NULL_LONG, NULL_INT
 
-        chart = dx.area(self.source, x="X", y="Y").to_dict(self.exporter)
+        chart = dx.bar(self.source, x="X").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
 
         # pop template as we currently do not modify it
@@ -35,49 +33,52 @@ class AreaTestCase(BaseTestCase):
 
         expected_data = [
             {
-                "fillpattern": {"shape": ""},
-                "hovertemplate": "X=%{x}<br>Y=%{y}<extra></extra>",
+                "alignmentgroup": "True",
+                "hovertemplate": "X=%{x}<br>count=%{y}<extra></extra>",
                 "legendgroup": "",
-                "line": {"color": "#636efa", "shape": "linear"},
-                "marker": {"symbol": "circle"},
-                "mode": "lines",
+                "marker": {"color": "#636efa", "pattern": {"shape": ""}},
                 "name": "",
+                "offsetgroup": "",
                 "orientation": "v",
                 "showlegend": False,
-                "stackgroup": "1",
+                "textposition": "auto",
+                "type": "bar",
                 "x": [NULL_INT],
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": [NULL_LONG],
                 "yaxis": "y",
-                "type": "scatter",
             }
         ]
 
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
+            "barmode": "relative",
+            "legend": {"tracegroupgap": 0},
+            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
-                "title": {"text": "X"},
                 "side": "bottom",
+                "title": {"text": "X"},
             },
             "yaxis": {
                 "anchor": "x",
                 "domain": [0.0, 1.0],
-                "title": {"text": "Y"},
                 "side": "left",
+                "title": {"text": "count"},
             },
-            "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
         }
 
         self.assertEqual(plotly["layout"], expected_layout)
 
         expected_mappings = [
             {
+                "data_columns": {
+                    "X": ["/plotly/data/0/x"],
+                    "count": ["/plotly/data/0/y"],
+                },
                 "table": 0,
-                "data_columns": {"X": ["/plotly/data/0/x"], "Y": ["/plotly/data/0/y"]},
             }
         ]
 
@@ -86,13 +87,11 @@ class AreaTestCase(BaseTestCase):
         self.assertEqual(deephaven["is_user_set_template"], False)
         self.assertEqual(deephaven["is_user_set_color"], False)
 
-    def test_area_step(self):
+    def test_basic_bar_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
+        from deephaven.constants import NULL_LONG, NULL_INT
 
-        chart = dx.area(self.source, x="X", y="Y", line_shape="hvh").to_dict(
-            self.exporter
-        )
+        chart = dx.bar(self.source, y="Y").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
 
         # pop template as we currently do not modify it
@@ -100,49 +99,52 @@ class AreaTestCase(BaseTestCase):
 
         expected_data = [
             {
-                "fillpattern": {"shape": ""},
-                "hovertemplate": "X=%{x}<br>Y=%{y}<extra></extra>",
+                "alignmentgroup": "True",
+                "hovertemplate": "count=%{x}<br>Y=%{y}<extra></extra>",
                 "legendgroup": "",
-                "line": {"color": "#636efa", "shape": "hvh"},
-                "marker": {"symbol": "circle"},
-                "mode": "lines",
+                "marker": {"color": "#636efa", "pattern": {"shape": ""}},
                 "name": "",
-                "orientation": "v",
+                "offsetgroup": "",
+                "orientation": "h",
                 "showlegend": False,
-                "stackgroup": "1",
-                "x": [NULL_INT],
+                "textposition": "auto",
+                "type": "bar",
+                "x": [NULL_LONG],
                 "xaxis": "x",
                 "y": [NULL_INT],
                 "yaxis": "y",
-                "type": "scatter",
             }
         ]
 
         self.assertEqual(plotly["data"], expected_data)
 
         expected_layout = {
+            "barmode": "relative",
+            "legend": {"tracegroupgap": 0},
+            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
-                "title": {"text": "X"},
                 "side": "bottom",
+                "title": {"text": "count"},
             },
             "yaxis": {
                 "anchor": "x",
                 "domain": [0.0, 1.0],
-                "title": {"text": "Y"},
                 "side": "left",
+                "title": {"text": "Y"},
             },
-            "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
         }
 
         self.assertEqual(plotly["layout"], expected_layout)
 
         expected_mappings = [
             {
+                "data_columns": {
+                    "Y": ["/plotly/data/0/y"],
+                    "count": ["/plotly/data/0/x"],
+                },
                 "table": 0,
-                "data_columns": {"X": ["/plotly/data/0/x"], "Y": ["/plotly/data/0/y"]},
             }
         ]
 
@@ -151,73 +153,65 @@ class AreaTestCase(BaseTestCase):
         self.assertEqual(deephaven["is_user_set_template"], False)
         self.assertEqual(deephaven["is_user_set_color"], False)
 
-    def test_area_pandas(self):
+    def test_basic_bar_x_y(self):
         import src.deephaven.plot.express as dx
         from deephaven.constants import NULL_INT
 
-        chart = dx.area(self.pandas_source, x="X", y="Y").to_dict(self.exporter)
+        chart = dx.bar(self.source, x="X", y="Y").to_dict(self.exporter)
+        plotly, deephaven = chart["plotly"], chart["deephaven"]
+
+        # pop template as we currently do not modify it
+        plotly["layout"].pop("template")
 
         expected_data = [
             {
-                "fillpattern": {"shape": ""},
+                "alignmentgroup": "True",
                 "hovertemplate": "X=%{x}<br>Y=%{y}<extra></extra>",
                 "legendgroup": "",
-                "line": {"color": "#636efa", "shape": "linear"},
-                "marker": {"symbol": "circle"},
-                "mode": "lines",
+                "marker": {"color": "#636efa", "pattern": {"shape": ""}},
                 "name": "",
+                "offsetgroup": "",
                 "orientation": "v",
                 "showlegend": False,
-                "stackgroup": "1",
+                "textposition": "auto",
+                "type": "bar",
                 "x": [NULL_INT],
                 "xaxis": "x",
                 "y": [NULL_INT],
                 "yaxis": "y",
-                "type": "scatter",
             }
         ]
 
+        self.assertEqual(plotly["data"], expected_data)
+
         expected_layout = {
+            "barmode": "relative",
+            "legend": {"tracegroupgap": 0},
+            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
-                "title": {"text": "X"},
                 "side": "bottom",
+                "title": {"text": "X"},
             },
             "yaxis": {
                 "anchor": "x",
                 "domain": [0.0, 1.0],
-                "title": {"text": "Y"},
                 "side": "left",
+                "title": {"text": "Y"},
             },
-            "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
         }
+
+        self.assertEqual(plotly["layout"], expected_layout)
 
         expected_mappings = [
             {
-                "table": 0,
                 "data_columns": {"X": ["/plotly/data/0/x"], "Y": ["/plotly/data/0/y"]},
+                "table": 0,
             }
         ]
 
-        self.assert_chart_equals(
-            chart,
-            expected_data=expected_data,
-            expected_layout=expected_layout,
-            expected_mappings=expected_mappings,
-            expected_is_user_set_template=False,
-            expected_is_user_set_color=False,
-        )
+        self.assertEqual(deephaven["mappings"], expected_mappings)
 
-    def test_area_table_pandas_same(self):
-        import src.deephaven.plot.express as dx
-
-        chart_pandas = dx.area(self.pandas_source, x="X", y="Y")
-        chart_table = dx.area(self.source, x="X", y="Y")
-
-        self.assert_chart_equals(chart_pandas, chart_table)
-
-
-if __name__ == "__main__":
-    unittest.main()
+        self.assertEqual(deephaven["is_user_set_template"], False)
+        self.assertEqual(deephaven["is_user_set_color"], False)
