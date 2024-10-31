@@ -4,15 +4,14 @@ from typing import Callable
 
 from plotly import express as px
 
-from deephaven.table import Table
-
 from ._private_utils import process_args
 from ..shared import default_callback
 from ..deephaven_figure import DeephavenFigure
+from ..types import TableLike
 
 
 def treemap(
-    table: Table | None = None,
+    table: TableLike,
     names: str | None = None,
     values: str | None = None,
     parents: str | None = None,
@@ -80,7 +79,7 @@ def treemap(
 
 
 def sunburst(
-    table: Table | None = None,
+    table: TableLike,
     names: str | None = None,
     values: str | None = None,
     parents: str | None = None,
@@ -148,7 +147,7 @@ def sunburst(
 
 
 def icicle(
-    table: Table | None = None,
+    table: TableLike,
     names: str | None = None,
     values: str | None = None,
     parents: str | None = None,
@@ -216,7 +215,7 @@ def icicle(
 
 
 def funnel(
-    table: Table | None = None,
+    table: TableLike,
     x: str | list[str] | None = None,
     y: str | list[str] | None = None,
     by: str | list[str] | None = None,
@@ -293,7 +292,7 @@ def funnel(
 
 
 def funnel_area(
-    table: Table | None = None,
+    table: TableLike,
     names: str | None = None,
     values: str | None = None,
     color: str | list[str] | None = None,
