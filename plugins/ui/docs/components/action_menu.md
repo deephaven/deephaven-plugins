@@ -183,6 +183,7 @@ from deephaven import ui
 def ui_action_menu_open_examples():
     is_open, set_is_open = ui.use_state(False)
     return [
+        ui.text(f"Controlled menu open state: {is_open}"),
         ui.action_menu(
             "Cut",
             "Copy",
