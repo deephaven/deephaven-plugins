@@ -53,10 +53,10 @@ def use_boolean(
     toggle = use_callback(lambda: set(lambda old_value: not old_value), [set])
 
     def init_callable():
+        set.on = on
+        set.off = off
+        set.toggle = toggle
         boolean_callable = cast(BooleanCallable, set)
-        boolean_callable.on = on
-        boolean_callable.off = off
-        boolean_callable.toggle = toggle
         return boolean_callable
 
     boolean_callable = use_memo(init_callable, [set, on, off, toggle])
