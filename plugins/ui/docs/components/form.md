@@ -19,6 +19,77 @@ def ui_form():
 my_form = ui_form()
 ```
 
+## Events
+
+Forms can handle three events:
+
+1. **Submit**: Triggered when the form is submitted. Users can define a callback function to handle the form data upon submission.
+2. **Reset**: Triggered when the form is reset. This event can be used to clear the form fields or reset them to their initial values.
+3. **Invalid**: Triggered when the form validation fails. This event allows users to handle validation errors and provide feedback.
+
+
+### Submit
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def ui_form_submit():
+    return ui.form(
+        ui.text_field(name="name", label="Enter name"),
+        ui.button("Submit", type="submit"),
+        on_submit=lambda e: print(f"Form submitted: {e}"),
+    )
+
+
+my_form_submit = ui_form_submit()
+```
+
+### Reset
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def ui_form_submit():
+    return ui.form(
+        ui.text_field(name="name", label="Enter name"),
+        ui.button("Reset", type="reset"),
+        on_reset=lambda e: print(f"Form reset"),
+    )
+
+
+my_form_submit = ui_form_submit()
+```
+
+### Invalid
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def ui_form_invalid():
+    value, set_value = ui.use_state("")
+    return ui.form(
+        ui.text_field(
+            name="name",
+            label="Enter name",
+            value=value,
+            on_change=set_value,
+            is_required=True,
+        ),
+        ui.button("Submit", type="submit"),
+        on_invalid=lambda e: print(f"Form invalid"),
+        validation_behavior="native",
+    )
+
+
+my_form_invalid = ui_form_invalid()
+```
+
 ## Action
 
 The `action` prop enables forms to be sent to a URL. The example below communicates with a 3rd party server and displays the content received from the form.
