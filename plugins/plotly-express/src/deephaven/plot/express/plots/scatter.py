@@ -4,15 +4,14 @@ from typing import Callable
 
 from plotly import express as px
 
-from deephaven.table import Table
-
 from ._private_utils import process_args
 from ..shared import default_callback
 from ..deephaven_figure import DeephavenFigure
+from ..types import PartitionableTableLike
 
 
 def scatter(
-    table: Table | None = None,
+    table: PartitionableTableLike,
     x: str | list[str] | None = None,
     y: str | list[str] | None = None,
     error_x: str | None = None,
@@ -186,7 +185,7 @@ def scatter(
 
 
 def scatter_3d(
-    table: Table | None = None,
+    table: PartitionableTableLike,
     x: str | None = None,
     y: str | None = None,
     z: str | None = None,
@@ -339,7 +338,7 @@ def scatter_3d(
 
 
 def scatter_polar(
-    table: Table | None = None,
+    table: PartitionableTableLike,
     r: str | None = None,
     theta: str | None = None,
     by: str | list[str] | None = None,
@@ -464,7 +463,7 @@ def scatter_polar(
 
 
 def scatter_ternary(
-    table: Table | None = None,
+    table: PartitionableTableLike,
     a: str | None = None,
     b: str | None = None,
     c: str | None = None,

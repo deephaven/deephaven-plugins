@@ -61,7 +61,6 @@ def panel(
 
     Returns:
         The rendered panel element.
-
     """
 
     children, props = create_props(locals())

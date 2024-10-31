@@ -10,7 +10,6 @@ import {
   SpectrumCheckbox as Checkbox,
   CheckboxGroup,
   Content,
-  ContextualHelp,
   Heading,
   Item,
   ListActionGroup,
@@ -51,6 +50,7 @@ import {
   Button,
   Calendar,
   ComboBox,
+  ContextualHelp,
   DateField,
   DatePicker,
   DateRangePicker,
@@ -182,9 +182,7 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
       }
       if (props?.contextualHelp != null && isPrimitive(props.contextualHelp)) {
         props.contextualHelp = (
-          <ContextualHelp>
-            <Content>{props.contextualHelp}</Content>
-          </ContextualHelp>
+          <ContextualHelp heading={null} content={props.contextualHelp} />
         );
       }
       return <Component {...props} />;
