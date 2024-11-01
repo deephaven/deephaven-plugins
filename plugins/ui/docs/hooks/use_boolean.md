@@ -1,10 +1,10 @@
 # use_boolean
 
-`use_boolean` is a hook that adds a boolean variable to your component. Since it is a hook, it must be used at the top level of your component. It returns a tuple with tow items: the current boolean value, and a callable to set the variable. Updating state will cause the component to re-render (running the function again). This is a convenience hook for when you only need functions to set a boolean variable. For more complex state management, use `use_state`.
+`use_boolean` is a hook that adds a boolean variable to your component. Since it is a hook, it must be used at the top level of your component. It returns a tuple with two items: the current boolean value and a callable to set the variable. Updating state will cause the component to re-render (running the function again). This is a convenience hook for when you only need functions to set a boolean variable. For more complex state management, use `use_state`.
 
 ## Boolean callable
 
-The boolean callable can be used to set the value of the boolean directly. It also includes convience methos `on` to set the variable to `True`, `off` to set the variable to `False`, and `toggle` to to set the variable to the opposite of its current state.
+The boolean callable can be used to set the boolean value directly. It also includes the convenience methods `on` to set the variable to `True,` `off` to set the variable to `False,` and `toggle` to set the variable to the opposite of its current state.
 
 ## Example
 
