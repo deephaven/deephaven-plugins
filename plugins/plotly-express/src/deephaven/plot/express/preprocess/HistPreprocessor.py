@@ -51,8 +51,14 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
         cumulative: If True, the bins are cumulative
     """
 
-    def __init__(self, args: dict[str, Any], pivot_vars: dict[str, str]):
+    def __init__(
+        self,
+        args: dict[str, Any],
+        pivot_vars: dict[str, str],
+        list_var: str | None = None,
+    ):
         super().__init__(args, pivot_vars)
+        self.list_var = list_var
         self.range_table = None
         self.names = {}
         self.nbins = args.pop("nbins", 10)
@@ -80,14 +86,15 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
         )
 
     def create_count_tables(
-        self, tables: list[Table], column: str | None = None
+        self, tables: list[Table], axis_col: str, bar_col: str
     ) -> Generator[tuple[Table, str], None, None]:
         """
         Create count tables that aggregate up values.
 
         Args:
             tables: List of tables to create counts for
-            column: the column used
+            axis_col: The column to compute indices for
+            bar_col: The column to compute an aggregation over
 
         Yields:
             A tuple containing the table and a temporary column
@@ -100,28 +107,28 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
         for i, table in enumerate(tables):
             # the column needs to be temporarily renamed to avoid collisions
             tmp_axis_col_base = f"tmpaxis{i}"
-            tmp_value_col_base = f"tmpvalue{i}"
+            tmp_bar_col_base = f"tmpbar{i}"
             tmp_col_names = get_unique_names(
-                table, [tmp_axis_col_base, tmp_value_col_base]
+                table, [tmp_axis_col_base, tmp_bar_col_base]
             )
-            tmp_axis_col, tmp_value_col = (
+            tmp_axis_col, tmp_bar_col = (
                 tmp_col_names[tmp_axis_col_base],
-                tmp_col_names[tmp_value_col_base],
+                tmp_col_names[tmp_bar_col_base],
             )
             count_table = (
                 table.view(
                     [
-                        f"{tmp_value_col} = {column}",
-                        f"{tmp_axis_col} = {self.axis_cols[0]}",
+                        f"{tmp_bar_col} = {bar_col}",
+                        f"{tmp_axis_col} = {axis_col}",
                     ]
                 )
                 .join(self.range_table)
                 .update_view(f"{range_index} = {range_}.index({tmp_axis_col})")
                 .where(f"!isNull({range_index})")
                 .drop_columns(range_)
-                .agg_by([agg_func(tmp_value_col)], range_index)
+                .agg_by([agg_func(tmp_bar_col)], range_index)
             )
-            yield count_table, tmp_value_col
+            yield count_table, tmp_bar_col
 
     def preprocess_partitioned_tables(
         self, tables: list[Table], column: str | None = None
@@ -137,8 +144,18 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
             A tuple containing the table and a mapping of metadata
 
         """
+
+        axis_col = self.axis_col
+        bar_col = self.bar_col
+
         # column will only be set if there's a pivot var, which means the table has been restructured
-        column = self.value_col if not column else column
+        # the column passed will be associated with whatever the list_var was, so the list_var needs to
+        # be matched to the axis_var or bar_var, which determines how the aggregations are calculated
+        if self.list_var:
+            if self.list_var == self.axis_var:
+                axis_col = column if column else self.axis_col
+            elif self.list_var == self.bar_var:
+                bar_col = column if column else self.bar_col
 
         range_index, range_, bin_min, bin_max, total = (
             self.names["range_index"],
@@ -153,7 +170,9 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
         )
 
         count_cols = []
-        for count_table, count_col in self.create_count_tables(tables, column):
+        for count_table, count_col in self.create_count_tables(
+            tables, axis_col, bar_col
+        ):
             bin_counts = bin_counts.natural_join(
                 count_table, on=[range_index], joins=[count_col]
             )
@@ -220,7 +239,7 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
 
         var_axis_displayed = var_axis_name
 
-        if self.axis_cols[0] != column:
+        if self.axis_col != column:
             # if a different column is aggregated on, the axis name should reflect that
             # todo: plumb this through the args
             var_axis_displayed = f"{var_axis_name} of {column}"
@@ -229,5 +248,5 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
             # todo: better way to handle this rather that flipping axis_var and value_var later????
             yield bin_counts.view([var_axis_name, f"{column} = {count_col}"]), {
                 self.axis_var: var_axis_name,
-                self.value_var: column,
+                self.bar_var: column,
             }

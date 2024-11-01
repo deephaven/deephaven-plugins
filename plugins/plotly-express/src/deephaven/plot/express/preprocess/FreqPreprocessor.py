@@ -33,14 +33,14 @@ class FreqPreprocessor(UnivariateAwarePreprocessor):
           A tuple containing (the new table, an update to make to the args)
 
         """
-        column = self.value_col if not column else column
+        column = self.bar_col if not column else column
 
         names = get_unique_names(self.table, ["count"])
 
-        self.args[self.value_var] = names["count"]
+        self.args[self.bar_var] = names["count"]
 
         for table in tables:
             yield table.view([column]).count_by(names["count"], by=column), {
                 self.axis_var: column,
-                self.value_var: names["count"],
+                self.bar_var: names["count"],
             }

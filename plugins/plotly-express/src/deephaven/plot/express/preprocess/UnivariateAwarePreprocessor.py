@@ -17,7 +17,7 @@ class UnivariateAwarePreprocessor:
         args: dict[str, str]: Figure creation args
         table: Table: The table to use
         axis_var: str: The main var. The list of vars was passed to this arg.
-        value_var: The other var.
+        bar_var: The other var.
         col_val: str: The value column, which is the value in pivot_var if
           there is a list, otherwise the arg passed to var
         cols: list[str]: The columns that are being used
@@ -29,7 +29,7 @@ class UnivariateAwarePreprocessor:
         self.orientation = self.calculate_orientation()
         self.args["orientation"] = self.orientation
         self.axis_var = "x" if args.get("x") else "y"
-        self.value_var = "y" if self.axis_var == "x" else "x"
+        self.bar_var = "y" if self.axis_var == "x" else "x"
         self.axis_col: str = (
             pivot_vars["variable"] if pivot_vars else args[self.axis_var]
         )
@@ -39,16 +39,17 @@ class UnivariateAwarePreprocessor:
 
         # if value_var is not set, the value column is the same as the axis column because both the axis bins and value
         # are computed from the same inputs
-        if self.args.get(self.value_var):
-            self.value_col: str = (
-                pivot_vars["value"] if pivot_vars else args[self.value_var]
+        if self.args.get(self.bar_var):
+            self.bar_col: str = (
+                pivot_vars["value"] if pivot_vars else args[self.bar_var]
             )
-            self.value_cols = (
-                self.value_col if isinstance(self.value_col, list) else [self.value_col]
+            self.bar_cols = (
+                self.bar_col if isinstance(self.bar_col, list) else [self.bar_col]
             )
         else:
-            self.value_col = self.axis_col
-            self.value_cols = self.axis_cols
+            self.bar_col = self.axis_col
+            self.bar_cols = self.axis_cols
+        print(self.axis_col, self.axis_cols, self.bar_col, self.bar_cols, self.table)
 
     def calculate_orientation(self):
         """
