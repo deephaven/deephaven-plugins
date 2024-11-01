@@ -15,6 +15,8 @@ from ..types import (
     JavaTime,
     LocalDateConvertible,
     LocalDate,
+    Undefined,
+    UNDEFINED,
 )
 
 T = TypeVar("T")
@@ -34,6 +36,17 @@ _TIME_CONVERTERS = {
     "java.time.Instant": to_j_instant,
     "java.time.LocalTime": to_j_local_time,
 }
+
+
+def is_nullish(value: Any) -> bool:
+    """
+    Check if a value is None or Undefined.
+    Args:
+        value: The value to check.
+    Returns:
+        Whether the value is nullish.
+    """
+    return value is None or value is UNDEFINED
 
 
 def get_component_name(component: Any) -> str:
@@ -163,7 +176,7 @@ def remove_empty_keys(dict: dict[str, Any]) -> dict[str, Any]:
     Returns:
         The dict with keys removed.
     """
-    return {k: v for k, v in dict.items() if v is not None}
+    return {k: v for k, v in dict.items() if v is not UNDEFINED}
 
 
 def _wrapped_callable(
@@ -481,7 +494,7 @@ def _get_first_set_key(props: dict[str, Any], sequence: Sequence[str]) -> str | 
         The first non-None prop, or None if all props are None.
     """
     for key in sequence:
-        if props.get(key) is not None:
+        if not is_nullish(props.get(key)):
             return key
     return None
 
@@ -666,11 +679,11 @@ def convert_date_props(
         The converted props.
     """
     for key in simple_date_props:
-        if props.get(key) is not None:
+        if not is_nullish(props.get(key)):
             props[key] = _convert_to_java_date(props[key])
 
     for key in date_range_props:
-        if props.get(key) is not None:
+        if not is_nullish(props.get(key)):
             props[key] = convert_date_range(props[key], _convert_to_java_date)
 
     # the simple props must be converted before this to simplify the callable conversion
@@ -680,25 +693,25 @@ def convert_date_props(
     # Local Dates will default to DAY but we need to default to SECOND for the other types
     if (
         granularity_key is not None
-        and props.get(granularity_key) is None
+        and is_nullish(props.get(granularity_key))
         and converter != to_j_local_date
     ):
         props[granularity_key] = "SECOND"
 
     # now that the converter is set, we can convert simple props to strings
     for key in simple_date_props:
-        if props.get(key) is not None:
+        if not is_nullish(props.get(key)):
             props[key] = str(props[key])
 
     # and convert the date range props to strings
     for key in date_range_props:
-        if props.get(key) is not None:
+        if not is_nullish(props.get(key)):
             props[key] = convert_date_range(props[key], str)
 
     # wrap the date callable with the convert
     # if there are date range props, we need to convert as a date range
     for key in callable_date_props:
-        if props.get(key) is not None:
+        if not is_nullish(props.get(key)):
             if not callable(props[key]):
                 raise TypeError(f"{key} must be a callable")
             if len(date_range_props) > 0:
@@ -730,7 +743,7 @@ def convert_time_props(
         The converted props.
     """
     for key in simple_time_props:
-        if props.get(key) is not None:
+        if not is_nullish(props.get(key)):
             props[key] = _convert_to_java_time(props[key])
 
     # the simple props must be converted before this to simplify the callable conversion
@@ -738,12 +751,12 @@ def convert_time_props(
 
     # now that the converter is set, we can convert simple props to strings
     for key in simple_time_props:
-        if props.get(key) is not None:
+        if not is_nullish(props.get(key)):
             props[key] = str(props[key])
 
     # wrap the date callable with the convert
     for key in callable_time_props:
-        if props.get(key) is not None:
+        if not is_nullish(props.get(key)):
             if not callable(props[key]):
                 raise TypeError(f"{key} must be a callable")
             props[key] = _wrap_time_callable(props[key], converter)

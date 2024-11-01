@@ -3,10 +3,13 @@ from __future__ import annotations
 from typing import Any
 from .basic import component_element
 from ..elements import Element
+from ..types import Undefined, UNDEFINED
 
 
 def column(
-    *children: Any, width: float | None = None, key: str | None = None
+    *children: Any,
+    width: float | Undefined = UNDEFINED,
+    key: str | Undefined = UNDEFINED,
 ) -> Element:
     """
     A column is a container that can be used to group elements.

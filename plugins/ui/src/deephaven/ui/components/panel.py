@@ -13,28 +13,29 @@ from .types import (
     Overflow,
 )
 from ..elements import Element
+from ..types import Undefined, UNDEFINED
 
 
 def panel(
     *children: Any,
-    title: str | None = None,
-    direction: Direction | None = "column",
-    wrap: Wrap | None = None,
-    justify_content: JustifyContent | None = None,
-    align_content: AlignContent | None = None,
-    align_items: AlignItems | None = "start",
-    gap: DimensionValue | None = "size-100",
-    column_gap: DimensionValue | None = None,
-    row_gap: DimensionValue | None = None,
-    overflow: Overflow | None = "auto",
-    padding: DimensionValue | None = "size-100",
-    padding_top: DimensionValue | None = None,
-    padding_bottom: DimensionValue | None = None,
-    padding_start: DimensionValue | None = None,
-    padding_end: DimensionValue | None = None,
-    padding_x: DimensionValue | None = None,
-    padding_y: DimensionValue | None = None,
-    key: str | None = None,
+    title: str | Undefined = UNDEFINED,
+    direction: Direction | Undefined = "column",
+    wrap: Wrap | Undefined = UNDEFINED,
+    justify_content: JustifyContent | Undefined = UNDEFINED,
+    align_content: AlignContent | Undefined = UNDEFINED,
+    align_items: AlignItems | Undefined = "start",
+    gap: DimensionValue | Undefined = "size-100",
+    column_gap: DimensionValue | Undefined = UNDEFINED,
+    row_gap: DimensionValue | Undefined = UNDEFINED,
+    overflow: Overflow | Undefined = "auto",
+    padding: DimensionValue | Undefined = "size-100",
+    padding_top: DimensionValue | Undefined = UNDEFINED,
+    padding_bottom: DimensionValue | Undefined = UNDEFINED,
+    padding_start: DimensionValue | Undefined = UNDEFINED,
+    padding_end: DimensionValue | Undefined = UNDEFINED,
+    padding_x: DimensionValue | Undefined = UNDEFINED,
+    padding_y: DimensionValue | Undefined = UNDEFINED,
+    key: str | Undefined = UNDEFINED,
     **props: Any,
 ) -> Element:
     """

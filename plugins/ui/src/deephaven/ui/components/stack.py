@@ -3,14 +3,15 @@ from __future__ import annotations
 from typing import Any
 from .basic import component_element
 from ..elements import Element
+from ..types import Undefined, UNDEFINED
 
 
 def stack(
     *children: Any,
-    height: float | None = None,
-    width: float | None = None,
-    active_item_index: int | None = None,
-    key: str | None = None,
+    height: float | Undefined = UNDEFINED,
+    width: float | Undefined = UNDEFINED,
+    active_item_index: int | Undefined = UNDEFINED,
+    key: str | Undefined = UNDEFINED,
 ) -> Element:
     """
     A stack is a container that can be used to group elements which creates a set of tabs.

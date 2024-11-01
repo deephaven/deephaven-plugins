@@ -4,6 +4,7 @@ import logging
 from typing import Any, Union
 from .._internal import RenderContext
 from ..elements import Element, PropsType
+from ..types import UNDEFINED
 from .RenderedNode import RenderedNode
 
 logger = logging.getLogger(__name__)
@@ -41,7 +42,9 @@ def _render_child_item(item: Any, parent_context: RenderContext, index_key: str)
             type(item),
             item,
         )
-        key = item.key or f"{index_key}-{item.name}"
+        key: str = (  # type: ignore
+            f"{index_key}-{item.name}" if item.key is UNDEFINED else item.key
+        )
         return _render_element(item, parent_context.get_child_context(key))
 
     logger.debug("render_item returning child (%s): %s", type(item), item)

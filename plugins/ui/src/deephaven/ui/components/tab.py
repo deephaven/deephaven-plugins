@@ -2,18 +2,16 @@ from __future__ import annotations
 from typing import Any
 
 from .basic import component_element
-
 from ..elements import Element
-
-from ..types import Key
+from ..types import Key, Undefined, UNDEFINED
 
 
 def tab(
     *children: Any,
-    title: Any | None = None,
-    key: Key | None = None,
-    icon: Element | None = None,
-    text_value: str | None = None,
+    title: Any | Undefined = UNDEFINED,
+    key: Key | Undefined = UNDEFINED,
+    icon: Element | Undefined = UNDEFINED,
+    text_value: str | Undefined = UNDEFINED,
 ):
     """
     Tab item implementation for tabs component.

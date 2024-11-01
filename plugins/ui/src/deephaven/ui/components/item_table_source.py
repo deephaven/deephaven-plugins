@@ -8,7 +8,7 @@ from .item import ItemElement
 from .list_action_group import ListActionGroupElement
 from .list_action_menu import ListActionMenuElement
 from ..elements import Element
-from ..types import ColumnName, Stringable
+from ..types import ColumnName, Stringable, Undefined, UNDEFINED
 
 ListViewItem = Union[Stringable, ItemElement]
 ListViewElement = Element
@@ -16,23 +16,23 @@ ListViewElement = Element
 
 class ItemTableSource(TypedDict):
     table: Table | PartitionedTable
-    key_column: ColumnName | None
-    label_column: ColumnName | None
-    description_column: ColumnName | None
-    icon_column: ColumnName | None
-    title_column: ColumnName | None
-    actions: ListActionGroupElement | ListActionMenuElement | None
+    key_column: ColumnName | Undefined
+    label_column: ColumnName | Undefined
+    description_column: ColumnName | Undefined
+    icon_column: ColumnName | Undefined
+    title_column: ColumnName | Undefined
+    actions: ListActionGroupElement | ListActionMenuElement | Undefined
 
 
 def item_table_source(
     table: Table | PartitionedTable,
-    key_column: ColumnName | None = None,
-    label_column: ColumnName | None = None,
-    description_column: ColumnName | None = None,
-    icon_column: ColumnName | None = None,
-    title_column: ColumnName | None = None,
-    actions: ListActionGroupElement | ListActionMenuElement | None = None,
-    key: str | None = None,
+    key_column: ColumnName | Undefined = UNDEFINED,
+    label_column: ColumnName | Undefined = UNDEFINED,
+    description_column: ColumnName | Undefined = UNDEFINED,
+    icon_column: ColumnName | Undefined = UNDEFINED,
+    title_column: ColumnName | Undefined = UNDEFINED,
+    actions: ListActionGroupElement | ListActionMenuElement | Undefined = UNDEFINED,
+    key: str | Undefined = UNDEFINED,
 ) -> ItemTableSource:
     """
     An item table source wraps a Table or PartitionedTable to provide additional information for

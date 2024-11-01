@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from typing import Any, Dict
+from ..types import Undefined, UNDEFINED
 from .._internal import RenderContext
 
 PropsType = Dict[str, Any]
@@ -23,14 +24,14 @@ class Element(ABC):
         return "deephaven.ui.Element"
 
     @property
-    def key(self) -> str | None:
+    def key(self) -> str | Undefined:
         """
         Get the key prop of this element. Useful to check if a key prop was provided.
 
         Returns:
             The unique key prop of this element.
         """
-        return None
+        return UNDEFINED
 
     @abstractmethod
     def render(self, context: RenderContext) -> PropsType:

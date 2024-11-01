@@ -613,3 +613,15 @@ class DatabarConfig(TypedDict):
     """
     Opacity of the databar fill.
     """
+
+
+class Undefined:
+    """
+    A class representing the type of an undefined value. To use the value itself, use `UNDEFINED` instead.
+    """
+
+    def __str__(self):
+        return "Undefined"
+
+
+UNDEFINED = Undefined()

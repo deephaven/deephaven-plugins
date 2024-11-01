@@ -88,6 +88,7 @@ class UtilsTest(BaseTestCase):
 
     def test_dict_to_react_props(self):
         from deephaven.ui._internal.utils import dict_to_react_props
+        from deephaven.ui.types import UNDEFINED
 
         self.assertDictEqual(
             dict_to_react_props({"test_string": "foo", "test_string_2": "bar_biz"}),
@@ -99,6 +100,10 @@ class UtilsTest(BaseTestCase):
         )
         self.assertDictEqual(
             dict_to_react_props({"foo": None, "bar": "biz"}),
+            {"foo": None, "bar": "biz"},
+        )
+        self.assertDictEqual(
+            dict_to_react_props({"foo": UNDEFINED, "bar": "biz"}),
             {"bar": "biz"},
         )
         self.assertDictEqual(
@@ -117,9 +122,14 @@ class UtilsTest(BaseTestCase):
 
     def test_remove_empty_keys(self):
         from deephaven.ui._internal.utils import remove_empty_keys
+        from deephaven.ui.types import UNDEFINED
 
         self.assertDictEqual(
             remove_empty_keys({"foo": "bar", "biz": None, "baz": 0}),
+            {"foo": "bar", "biz": None, "baz": 0},
+        )
+        self.assertDictEqual(
+            remove_empty_keys({"foo": "bar", "biz": UNDEFINED, "baz": 0}),
             {"foo": "bar", "baz": 0},
         )
 

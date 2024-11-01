@@ -3,9 +3,14 @@ from __future__ import annotations
 from typing import Any
 from .basic import component_element
 from ..elements import Element
+from ..types import Undefined, UNDEFINED
 
 
-def row(*children: Any, height: float | None = None, key: str | None = None) -> Element:
+def row(
+    *children: Any,
+    height: float | Undefined = UNDEFINED,
+    key: str | Undefined = UNDEFINED,
+) -> Element:
     """
     A row is a container that can be used to group elements.
     Each element will be placed to the right of its prior sibling.

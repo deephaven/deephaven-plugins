@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 from .basic import component_element
+from ..types import Undefined, UNDEFINED
 
 
-def fragment(*children: Any, key: str | None = None):
+def fragment(*children: Any, key: str | Undefined = UNDEFINED):
     """
     A React.Fragment: https://react.dev/reference/react/Fragment.
     Used to group elements together without a wrapper node.
