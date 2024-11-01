@@ -5,7 +5,7 @@ from typing import Any, Generator
 from deephaven import agg, empty_table, new_table
 from deephaven.table import PartitionedTable, Table
 
-from .UnivariatePreprocessor import UnivariatePreprocessor
+from .UnivariateAwarePreprocessor import UnivariateAwarePreprocessor
 from ..shared import get_unique_names
 from deephaven.column import long_col
 from deephaven.updateby import cum_sum
@@ -36,7 +36,7 @@ def get_aggs(
     )
 
 
-class HistPreprocessor(UnivariatePreprocessor):
+class HistPreprocessor(UnivariateAwarePreprocessor):
     """
     Preprocessor for histograms.
 
@@ -73,7 +73,7 @@ class HistPreprocessor(UnivariatePreprocessor):
         )
         self.range_table = create_range_table(
             self.args["table"],
-            self.cols,
+            self.axis_cols,
             self.range_bins,
             self.nbins,
             self.names["range"],
@@ -99,17 +99,29 @@ class HistPreprocessor(UnivariatePreprocessor):
             raise ValueError("Range table not created")
         for i, table in enumerate(tables):
             # the column needs to be temporarily renamed to avoid collisions
-            tmp_name = f"tmp{i}"
-            tmp_col = get_unique_names(table, [tmp_name])[tmp_name]
+            tmp_axis_col_base = f"tmpaxis{i}"
+            tmp_value_col_base = f"tmpvalue{i}"
+            tmp_col_names = get_unique_names(
+                table, [tmp_axis_col_base, tmp_value_col_base]
+            )
+            tmp_axis_col, tmp_value_col = (
+                tmp_col_names[tmp_axis_col_base],
+                tmp_col_names[tmp_value_col_base],
+            )
             count_table = (
-                table.view(f"{tmp_col} = {column}")
+                table.view(
+                    [
+                        f"{tmp_value_col} = {column}",
+                        f"{tmp_axis_col} = {self.axis_cols[0]}",
+                    ]
+                )
                 .join(self.range_table)
-                .update_view(f"{range_index} = {range_}.index({tmp_col})")
+                .update_view(f"{range_index} = {range_}.index({tmp_axis_col})")
                 .where(f"!isNull({range_index})")
                 .drop_columns(range_)
-                .agg_by([agg_func(tmp_col)], range_index)
+                .agg_by([agg_func(tmp_value_col)], range_index)
             )
-            yield count_table, tmp_col
+            yield count_table, tmp_value_col
 
     def preprocess_partitioned_tables(
         self, tables: list[Table], column: str | None = None
@@ -126,7 +138,7 @@ class HistPreprocessor(UnivariatePreprocessor):
 
         """
         # column will only be set if there's a pivot var, which means the table has been restructured
-        column = self.col_val if not column else column
+        column = self.value_col if not column else column
 
         range_index, range_, bin_min, bin_max, total = (
             self.names["range_index"],
@@ -206,8 +218,16 @@ class HistPreprocessor(UnivariatePreprocessor):
                 + [f"{col}={col} * {mult_factor} / {total}" for col in count_cols]
             )
 
+        var_axis_displayed = var_axis_name
+
+        if self.axis_cols[0] != column:
+            # if a different column is aggregated on, the axis name should reflect that
+            # todo: plumb this through the args
+            var_axis_displayed = f"{var_axis_name} of {column}"
+
         for count_col in count_cols:
+            # todo: better way to handle this rather that flipping axis_var and value_var later????
             yield bin_counts.view([var_axis_name, f"{column} = {count_col}"]), {
-                self.var: var_axis_name,
-                self.other_var: column,
+                self.axis_var: var_axis_name,
+                self.value_var: column,
             }
