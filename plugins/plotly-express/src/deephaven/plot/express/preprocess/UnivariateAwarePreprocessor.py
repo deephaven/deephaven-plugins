@@ -23,7 +23,12 @@ class UnivariateAwarePreprocessor:
         cols: list[str]: The columns that are being used
     """
 
-    def __init__(self, args: dict[str, Any], pivot_vars: dict[str, str] | None = None):
+    def __init__(
+        self,
+        args: dict[str, Any],
+        pivot_vars: dict[str, str] | None = None,
+        list_var: str | None = None,
+    ):
         self.args = args
         self.table = args["table"]
         self.orientation = self.calculate_orientation()
@@ -31,7 +36,9 @@ class UnivariateAwarePreprocessor:
         self.axis_var = "x" if args.get("x") else "y"
         self.bar_var = "y" if self.axis_var == "x" else "x"
         self.axis_col: str = (
-            pivot_vars["variable"] if pivot_vars else args[self.axis_var]
+            pivot_vars["value"]
+            if pivot_vars and list_var and list_var == self.axis_var
+            else args[self.axis_var]
         )
         self.axis_cols = (
             self.axis_col if isinstance(self.axis_col, list) else [self.axis_col]
@@ -41,7 +48,9 @@ class UnivariateAwarePreprocessor:
         # are computed from the same inputs
         if self.args.get(self.bar_var):
             self.bar_col: str = (
-                pivot_vars["value"] if pivot_vars else args[self.bar_var]
+                pivot_vars["value"]
+                if pivot_vars and list_var and list_var == self.bar_var
+                else args[self.bar_var]
             )
             self.bar_cols = (
                 self.bar_col if isinstance(self.bar_col, list) else [self.bar_col]
@@ -49,7 +58,6 @@ class UnivariateAwarePreprocessor:
         else:
             self.bar_col = self.axis_col
             self.bar_cols = self.axis_cols
-        print(self.axis_col, self.axis_cols, self.bar_col, self.bar_cols, self.table)
 
     def calculate_orientation(self):
         """
