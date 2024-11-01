@@ -63,7 +63,9 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
         self.names = {}
         self.nbins = args.pop("nbins", 10)
         self.range_bins = args.pop("range_bins", None)
-        self.histfunc = args.pop("histfunc", "count")
+        self.histfunc = args.pop(
+            "histfunc", "count"
+        )  # should be sum if both x and y are set
         self.barnorm = args.pop("barnorm", None)
         self.histnorm = args.pop("histnorm", None)
         self.cumulative = args.pop("cumulative", False)
@@ -254,6 +256,7 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
 
         for count_col in count_cols:
             # todo: better way to handle this rather that flipping axis_var and value_var later????
+            # todo: this seems to be flipped the wrong way too
             yield bin_counts.view([var_axis_name, f"{bar_col} = {count_col}"]), {
                 self.axis_var: var_axis_name,
                 self.bar_var: self.bar_col,
