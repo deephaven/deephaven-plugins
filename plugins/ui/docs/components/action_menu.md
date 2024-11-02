@@ -98,7 +98,7 @@ my_action_menu_basic = ui.action_menu("Cut", "Copy", "Paste", is_quiet=True)
 
 ## Disabled State
 
-An action menu can be disabled to prevent user interaction through the `is_disabled` prop. This is useful when the action menu is not currently available, but the button should still be visible.
+Through the ' is_disabled ' prop, an action menu can be disabled to prevent user interaction. This is useful when the action menu is currently unavailable, but the button should still be visible.
 
 
 ```python
