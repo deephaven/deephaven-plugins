@@ -1,6 +1,6 @@
 # Tabs
 
-Tabs organize related content into sections, allowing users to navigate between them.
+Tabs organize related content into sections within panels, allowing users to navigate between them.
 
 ## Example
 
@@ -12,7 +12,7 @@ my_tabs_basic = ui.tabs(
     ui.tab(
         ui.flex(
             "Hello World with table!",
-            ui.flex(empty_table(10).update("I=i")),
+            empty_table(10).update("I=i"),
         ),
         title="Tab 2",
     ),
@@ -23,7 +23,7 @@ my_tabs_basic = ui.tabs(
 
 1. Use tabs to organize sections of equal importance. Avoid using tabs for content with varying levels of importance.
 2. Use a vertical tabs layout when displaying shortcuts to sections of content on a single page.
-3. Avoid nesting tabs more than three levels deep, as it can become overly complicated.
+3. Avoid nesting tabs more than two levels deep, as it can become overly complicated.
 
 
 ## Content
@@ -115,7 +115,7 @@ def ui_tabs_selected_key_examples():
             ),
             default_selected_key="Tab 2",
         ),
-        "Pick a tab (controlled)",
+        f"Pick a tab (controlled), selected tab: {selected_tab}",
         ui.tabs(
             ui.tab(
                 "There is no prior chat history with John Doe.",
@@ -154,25 +154,39 @@ from deephaven import ui
 @ui.component
 def ui_tabs_on_change_example():
     selected_tab, set_selected_tab = ui.use_state("Tab 1")
+
+    def get_background_color(tab):
+        if tab == "Tab 1":
+            return "celery-500"
+        elif tab == "Tab 2":
+            return "fuchsia-500"
+        elif tab == "Tab 3":
+            return "blue-500"
+        else:
+            return "gray-200"
+
     return [
-        ui.tabs(
-            ui.tab(
-                "There is no prior chat history with John Doe.",
-                title="John Doe",
-                key="Tab 1",
+        ui.view(
+            ui.tabs(
+                ui.tab(
+                    "There is no prior chat history with John Doe.",
+                    title="John Doe",
+                    key="Tab 1",
+                ),
+                ui.tab(
+                    "There is no prior chat history with Jane Doe.",
+                    title="Jane Doe",
+                    key="Tab 2",
+                ),
+                ui.tab(
+                    "There is no prior chat history with Joe Bloggs.",
+                    title="Joe Bloggs",
+                    key="Tab 3",
+                ),
+                selected_key=selected_tab,
+                on_selection_change=set_selected_tab,
             ),
-            ui.tab(
-                "There is no prior chat history with Jane Doe.",
-                title="Jane Doe",
-                key="Tab 2",
-            ),
-            ui.tab(
-                "There is no prior chat history with Joe Bloggs.",
-                title="Joe Bloggs",
-                key="Tab 3",
-            ),
-            selected_key=selected_tab,
-            on_selection_change=set_selected_tab,
+            background_color=get_background_color(selected_tab),
         ),
         ui.text(f"You have selected: {selected_tab}"),
     ]
@@ -205,8 +219,6 @@ my_tabs_keyboard_activation_example = ui.tabs(
 
 By default, the density of the tab list is "compact". To change this, the `density` prop can be set to "regular".
 
-The difference in the spacing can be observed in the following example.
-
 ```python
 from deephaven import ui
 
@@ -221,13 +233,6 @@ def ui_tabs_density_examples():
                 "There is no prior chat history with Joe Bloggs.", title="Joe Bloggs"
             ),
             density="regular",
-        ),
-        ui.tabs(
-            ui.tab("There is no prior chat history with John Doe.", title="John Doe"),
-            ui.tab("There is no prior chat history with Jane Doe.", title="Jane Doe"),
-            ui.tab(
-                "There is no prior chat history with Joe Bloggs.", title="Joe Bloggs"
-            ),
         ),
     ]
 
