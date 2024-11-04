@@ -130,7 +130,7 @@ export function UITable({
   });
 
   // TODO: #982 respond to prop changes here
-  const [format] = useState(formatProp ?? []);
+  const [format] = useState(formatProp != null ? ensureArray(formatProp) : []);
   // TODO: #981 move databars to format and rewire for databar support
   const [databars] = useState(databarsProp ?? []);
 

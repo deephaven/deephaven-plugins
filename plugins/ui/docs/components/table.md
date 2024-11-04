@@ -19,7 +19,7 @@ t = ui.table(_t)
 
 ## Formatting
 
-You can format the table using the `format_` prop. This prop takes a list of `ui.TableFormat` objects. `ui.TableFormat` is a dataclass that encapsulates the formatting options for a table. The full list of formatting options can be found in the [API Reference](#tableformat).
+You can format the table using the `format_` prop. This prop takes a `ui.TableFormmat` object or list of `ui.TableFormat` objects. `ui.TableFormat` is a dataclass that encapsulates the formatting options for a table. The full list of formatting options can be found in the [API Reference](#tableformat).
 
 ### Formatting rows and columns
 
