@@ -77,7 +77,7 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
         """
         self.names = get_unique_names(
             self.args["table"],
-            ["range_index", "range", "bin_min", "bin_max", self.histfunc, "total"],
+            ["range_index", "range", "bin_min", "bin_max", "bin_mid", "total"],
         )
         print(self.axis_cols)
         self.range_table = create_range_table(
@@ -151,15 +151,6 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
         axis_col = self.axis_col
         bar_col = self.bar_col
 
-        # column will only be set if there's a pivot var, which means the table has been restructured
-        # the column passed will be associated with whatever the list_var was, so the list_var needs to
-        # be matched to the axis_var or bar_var, which determines how the aggregations are calculated
-        """if self.list_var:
-            if self.list_var == self.axis_var:
-                axis_col = column if column else self.axis_col
-            elif self.list_var == self.bar_var:
-                bar_col = column if column else self.bar_col
-        """
         range_index, range_, bin_min, bin_max, total = (
             self.names["range_index"],
             self.names["range"],
@@ -172,16 +163,18 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
             [long_col(self.names["range_index"], [i for i in range(self.nbins)])]
         )
 
-        count_cols = []
+        agg_cols = []
         for count_table, count_col in self.create_count_tables(
             tables, axis_col, bar_col
         ):
             bin_counts = bin_counts.natural_join(
                 count_table, on=[range_index], joins=[count_col]
             )
-            count_cols.append(count_col)
+            agg_cols.append(count_col)
 
-        bar_var_name = self.names[self.histfunc]
+        print(agg_cols)
+
+        bin_mid = self.names["bin_mid"]
 
         if not self.range_table:
             raise ValueError("Range table not created")
@@ -190,18 +183,16 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
             [
                 f"{bin_min} = {range_}.binMin({range_index})",
                 f"{bin_max} = {range_}.binMax({range_index})",
-                f"{bar_var_name}=0.5*({bin_min}+{bin_max})",
+                f"{bin_mid}=0.5*({bin_min}+{bin_max})",
             ]
         )
 
         if self.histnorm in {"percent", "probability", "probability density"}:
             mult_factor = 100 if self.histnorm == "percent" else 1
 
-            sums = [f"{col}_sum = {col}" for col in count_cols]
+            sums = [f"{col}_sum = {col}" for col in agg_cols]
 
-            normed = [
-                f"{col} = {col} * {mult_factor} / {col}_sum" for col in count_cols
-            ]
+            normed = [f"{col} = {col} * {mult_factor} / {col}_sum" for col in agg_cols]
 
             # range_ and bin cols need to be kept for probability density
             # bar_var_name needs to be kept for plotting
@@ -209,9 +200,7 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
                 bin_counts.agg_by(
                     [
                         agg.sum_(sums),
-                        agg.group(
-                            count_cols + [bar_var_name, range_, bin_min, bin_max]
-                        ),
+                        agg.group(agg_cols + [bin_mid, range_, bin_min, bin_max]),
                     ]
                 )
                 .update_view(normed)
@@ -219,7 +208,7 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
             )
 
         if self.cumulative:
-            bin_counts = bin_counts.update_by(cum_sum(count_cols))
+            bin_counts = bin_counts.update_by(cum_sum(agg_cols))
 
             # with plotly express, cumulative=True will ignore density (including
             # the density part of probability density, but not the probability
@@ -229,34 +218,28 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
 
         if self.histnorm in {"density", "probability density"}:
             bin_counts = bin_counts.update_view(
-                [f"{col} = {col} / ({bin_max} - {bin_min})" for col in count_cols]
+                [f"{col} = {col} / ({bin_max} - {bin_min})" for col in agg_cols]
             )
 
         if self.barnorm:
             mult_factor = 100 if self.barnorm == "percent" else 1
-            sum_form = f"sum({','.join(count_cols)})"
+            sum_form = f"sum({','.join(agg_cols)})"
             bin_counts = bin_counts.update_view(
                 [f"{total}={sum_form}"]
-                + [f"{col}={col} * {mult_factor} / {total}" for col in count_cols]
+                + [f"{col}={col} * {mult_factor} / {total}" for col in agg_cols]
             )
 
-        bar_var_displayed = bar_var_name
+        # bar_var_displayed = bar_var_name
 
         if self.axis_col != column:
             # if a different column is aggregated on, the axis name should reflect that
             # todo: plumb this through the args
-            bar_var_displayed = f"{bar_var_name} of {column}"
+            # bar_var_displayed = f"{bar_var_name} of {column}"
+            pass
 
-        print(
-            {
-                self.axis_var: bar_var_name,
-                self.bar_var: column,
-            }
-        )
-
-        for count_col in count_cols:
-            # todo: better way to handle this rather that flipping axis_var and value_var later????
-            yield bin_counts.view([bar_var_name, f"{bar_col} = {count_col}"]), {
-                self.bar_var: bar_var_name,
-                self.axis_var: self.bar_col,
+        for agg_col in agg_cols:
+            yield bin_counts.view([f"{axis_col} = {bin_mid}", agg_col]), {
+                self.bar_var: agg_col,
+                self.axis_var: axis_col,
+                f"bar_col_displayed_{self.orientation}": "test",
             }

@@ -111,7 +111,8 @@ CUSTOM_ARGS = {
     "current_col",
     "current_var",
     "labels",
-    "hist_val_name",
+    "bar_col_displayed_h",
+    "bar_col_displayed_v",
     "pivot_vars",
     "current_partition",
     "colors",
@@ -824,7 +825,8 @@ def hover_text_generator(
 
 def compute_labels(
     hover_mapping: list[dict[str, str]],
-    hist_val_name: str | None,
+    bar_col_displayed_h: str | None,
+    bar_col_displayed_v: str | None,
     heatmap_agg_label: str | None,
     # hover_data - todo, dependent on arrays supported in data mappings
     types: set[str],
@@ -847,7 +849,9 @@ def compute_labels(
         the renamed current_col
     """
 
-    calculate_hist_labels(hist_val_name, hover_mapping[0])
+    calculate_hist_labels(
+        bar_col_displayed_h, bar_col_displayed_v, hover_mapping[0], labels
+    )
 
     calculate_density_heatmap_labels(heatmap_agg_label, hover_mapping[0], labels)
 
@@ -880,7 +884,10 @@ def calculate_density_heatmap_labels(
 
 
 def calculate_hist_labels(
-    hist_val_name: str | None, current_mapping: dict[str, str]
+    bar_col_displayed_h: str | None,
+    bar_col_displayed_v: str | None,
+    hover_mapping: dict[str, str],
+    labels: dict[str, str] | None,
 ) -> None:
     """Calculate the histogram labels
 
@@ -889,18 +896,19 @@ def calculate_hist_labels(
       current_mapping: The mapping of variables to columns
 
     """
-    if hist_val_name:
-        # swap the names
-        current_mapping["x"], current_mapping["y"] = (
-            current_mapping["y"],
-            current_mapping["x"],
-        )
+    # only one should be set
+    if bar_col_displayed_h:
+        # a bar chart oriented horizontally has the histfunc on the x-axis
+        hover_mapping["x"] = bar_col_displayed_h
+    elif bar_col_displayed_v:
+        hover_mapping["y"] = bar_col_displayed_v
 
 
 def add_axis_titles(
     custom_call_args: dict[str, Any],
     hover_mapping: list[dict[str, str]],
-    hist_val_name: str | None,
+    bar_col_displayed_h: str | None,
+    bar_col_displayed_v: str | None,
     heatmap_agg_label: str | None,
 ) -> None:
     """Add axis titles. Generally, this only applies when there is a list variable
@@ -919,7 +927,7 @@ def add_axis_titles(
     new_xaxis_titles = None
     new_yaxis_titles = None
 
-    if hist_val_name:
+    if bar_col_displayed_h or bar_col_displayed_v:
         # hist names are already set up in the mapping
         new_xaxis_titles = [hover_mapping[0].get("x", None)]
         new_yaxis_titles = [hover_mapping[0].get("y", None)]
@@ -978,14 +986,16 @@ def create_hover_and_axis_titles(
     types = get_list_var_info(data_cols)
 
     labels = custom_call_args.get("labels", None)
-    hist_val_name = custom_call_args.get("hist_val_name", None)
+    bar_col_displayed_h = custom_call_args.get("bar_col_displayed_h", None)
+    bar_col_displayed_v = custom_call_args.get("bar_col_displayed_v", None)
     heatmap_agg_label = custom_call_args.get("heatmap_agg_label", None)
 
     current_partition = custom_call_args.get("current_partition", {})
 
     compute_labels(
         hover_mapping,
-        hist_val_name,
+        bar_col_displayed_h,
+        bar_col_displayed_v,
         heatmap_agg_label,
         types,
         labels,
@@ -998,7 +1008,13 @@ def create_hover_and_axis_titles(
         # it's possible that heatmap_agg_label was relabeled, so grab the new label
         heatmap_agg_label = hover_mapping[0]["z"]
 
-    add_axis_titles(custom_call_args, hover_mapping, hist_val_name, heatmap_agg_label)
+    add_axis_titles(
+        custom_call_args,
+        hover_mapping,
+        bar_col_displayed_h,
+        bar_col_displayed_v,
+        heatmap_agg_label,
+    )
 
     return hover_text
 

@@ -286,7 +286,9 @@ def calculate_bin_locations(
     )
 
 
-def has_all_numeric_columns(table: Table, columns: list[str]) -> bool:
+def has_all_numeric_columns(
+    table: Table | PartitionedTable, columns: list[str]
+) -> bool:
     """
     Check if the columns are numeric in the table
 
@@ -297,7 +299,11 @@ def has_all_numeric_columns(table: Table, columns: list[str]) -> bool:
     Returns:
         True if all columns are numeric, False otherwise
     """
-    for col in table.columns:
+    if isinstance(table, PartitionedTable):
+        cols = table.constituent_table_columns
+    else:
+        cols = table.columns
+    for col in cols:
         if col.name in columns and col.data_type.j_name not in NUMERIC_TYPES:
             return False
     return True

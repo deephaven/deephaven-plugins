@@ -85,6 +85,6 @@ class UnivariateAwarePreprocessor:
         elif x:
             return "v"
         elif y:
-            return "y"
+            return "h"
 
         raise ValueError("Could not determine orientation")

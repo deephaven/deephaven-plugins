@@ -491,7 +491,6 @@ def shared_histogram(is_marginal: bool = True, **args: Any) -> DeephavenFigure:
     set_all(args, HISTOGRAM_DEFAULTS)
 
     args["bargap"] = 0
-    args["hist_val_name"] = args.get("histfunc", "count")
 
     func = px.bar
     groups = {"bar", "preprocess_hist", "supports_lists"}
