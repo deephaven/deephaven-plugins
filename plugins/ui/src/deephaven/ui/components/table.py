@@ -20,7 +20,7 @@ from .._internal import dict_to_react_props, RenderContext
 logger = logging.getLogger(__name__)
 
 
-@dataclass()
+@dataclass
 class TableFormat:
     """
     A formatting rule for a table.
@@ -48,7 +48,7 @@ class TableFormat:
     mode: TableDatabar | None = None
 
 
-@dataclass()
+@dataclass
 class TableDatabar:
     """
     A databar configuration for a table.
