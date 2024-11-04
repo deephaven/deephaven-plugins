@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download dist
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: dist-${{ inputs.package }}
           path: plugins/${{ inputs.package }}/dist/

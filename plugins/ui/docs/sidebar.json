@@ -30,6 +30,10 @@
             "path": "components/action_group.md"
           },
           {
+            "label": "action_menu",
+            "path": "components/action_menu.md"
+          },
+          {
             "label": "badge",
             "path": "components/badge.md"
           },
@@ -56,6 +60,14 @@
           {
             "label": "date_range_picker",
             "path": "components/date_range_picker.md"
+          },
+          {
+            "label": "dialog",
+            "path": "components/dialog.md"
+          },
+          {
+            "label": "dialog_trigger",
+            "path": "components/dialog_trigger.md"
           },
           {
             "label": "heading",
@@ -122,6 +134,10 @@
       {
         "label": "Hooks",
         "items": [
+          {
+            "label": "use_boolean",
+            "path": "hooks/use_boolean.md"
+          },
           {
             "label": "use_effect",
             "path": "hooks/use_effect.md"

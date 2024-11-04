@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Callable
+import warnings
 
 from plotly import express as px
 
@@ -9,10 +10,11 @@ from deephaven.table import Table
 from ._private_utils import validate_common_args, process_args
 from ..shared import default_callback
 from ..deephaven_figure import generate_figure, DeephavenFigure
+from ..types import PartitionableTableLike
 
 
 def bar(
-    table: Table | None = None,
+    table: PartitionableTableLike,
     x: str | list[str] | None = None,
     y: str | list[str] | None = None,
     by: str | list[str] | None = None,
@@ -55,7 +57,9 @@ def bar(
     Args:
       table: A table to pull data from.
       x: A column or list of columns that contain x-axis values.
+        If only x is specified, the y-axis values are the count of each unique x value.
       y: A column or list of columns that contain y-axis values.
+        If only y is specified, the x-axis values are the count of each unique y value.
       by: A column or list of columns that contain values to plot the figure traces by.
         All values or combination of values map to a unique design. The variable
         by_vars specifies which design elements are used.
@@ -144,7 +148,12 @@ def bar(
     """
     args = locals()
 
-    return process_args(args, {"bar", "supports_lists"}, px_func=px.bar)
+    groups = {"bar", "supports_lists"}
+
+    if not x or not y:
+        groups.add("preprocess_freq")
+
+    return process_args(args, groups, px_func=px.bar)
 
 
 def _bar_polar(
@@ -198,7 +207,7 @@ def _bar_polar(
 
 
 def timeline(
-    table: Table | None = None,
+    table: PartitionableTableLike,
     x_start: str | None = None,
     x_end: str | None = None,
     y: str | None = None,
@@ -386,6 +395,12 @@ def frequency_bar(
       DeephavenFigure: A DeephavenFigure that contains the bar chart
 
     """
+    warnings.warn(
+        "This function is deprecated and will be removed in a future release. "
+        "Use bar with only one of x or y specified instead for identical behavior.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
     if x and y:
         raise ValueError("Cannot specify both x and y")

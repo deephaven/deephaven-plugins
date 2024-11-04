@@ -1,6 +1,6 @@
 # deephaven.ui
 
-## A Python web framework for building real-time data focused apps
+## A Python web framework for building real-time data-focused apps
 
 `deephaven.ui` is a plugin for Deephaven that combines a reactive UI framework and a library of pre-built real-time data-focused components for creating data apps. Write scripts entirely in Python -- no front-end engineering Javascript or CSS required. It uses a React-like approach to building components and rendering them in the UI, allowing for the creation of reactive components that can be re-used and composed together, as well as reacting to user input from the UI.
 
@@ -15,10 +15,14 @@
 
 ## Getting Started
 
-You can run the example Docker container with the following command:
+You can run the example Docker container with either of the following commands, depending on your Deephaven version:
 
-```
-docker run --rm --name deephaven-ui -p 10000:10000 --pull=always ghcr.io/deephaven/server-ui:edge
+```bash
+# For Deephaven < 0.37.0
+docker run --rm --name deephaven-ui -p 10000:10000 --pull=always ghcr.io/deephaven/server-ui:latest
+
+# For Deephaven >= 0.37.0
+docker run --rm --name deephaven-ui -p 10000:10000 --pull=always ghcr.io/deephaven/server:latest
 ```
 
 You'll need to find the link to open the UI in the Docker logs:
@@ -112,7 +116,7 @@ c2 = ui_counter()
 ![Each counter has its own state.](_assets/counter.png)
 
 > [!NOTE]
-> Functions are prefixed with `use_` are called _hooks_. `use_state` is built-in to deephaven.ui, and there are other hooks built-in shown below. You can also create your own hooks.
+> Functions prefixed with `use_` are called _hooks_. `use_state` is built-in to deephaven.ui, and there are other hooks built-in shown below. You can also create your own hooks.
 > Hooks are special functions. They must only be used at the _top_ of a `@ui.component` or another hook. If you want to use one in a conditional or a loop, extract that logic to a new component and put it there.
 
 ## Sharing state
@@ -420,7 +424,7 @@ my_picker_table_source = ui_picker_table_source()
 The `ui.combo_box` component can be used to select from a list of items. It also provides a search field to filter available results. Note that the search behavior differs slightly for different data types.
 
 - Numeric types - only support exact match
-- Text based data types - support partial search matching
+- Text-based data types - support partial search matching
 - Date types support searching by different date parts (e.g. `2024`, `2024-01`, `2024-01-02`, `2024-01-02 00`, `2024-07-06 00:43`, `2024-07-06 00:43:14`, `2024-07-06 00:43:14.247`)
 
 Here's a basic example for selecting from a list of string values and displaying the selected key in a text field.
@@ -533,7 +537,7 @@ lv = ui_list_view()
 
 ## ListView (table)
 
-A ListView can also take a Table. It will use the first column as the key and label by default.
+A ListView can also take a Table. By default, it uses the first column as the key and label.
 
 ```python
 from deephaven import time_table, ui
@@ -968,7 +972,7 @@ my_stock_widget_plot = ui_stock_widget_plot(stocks, "CAT", "TPET")
 
 # Dashboard Examples
 
-In addition to creating components, you can also create dashboards that displays many components laid out how you prefer.
+In addition to creating components, you can also create dashboards that display many components laid out how you prefer.
 
 ## Dashboard Layout Elements
 
@@ -1571,7 +1575,7 @@ my_tabs = ui_tabs()
 
 You can add [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html) within a panel by using the `ui.tabs` method. In this example, we create a tabbed panel with multiple tabs by passing in the `ui.tab_panels` and `ui.tab_list` as children:
 
-`tab_list` is the container of tab headers. It expects children of `ui.item` which have a unique key. `text_value` may be added for accessibility, but by default the `key` will be used for accessibility.
+`tab_list` is the container of tab headers. It expects children of `ui.item` that have a unique key. `text_value` may be added for accessibility, but by default the `key` will be used for accessibility.
 
 `tab_panels` is the content of the tabs. It expects children of `ui.item` which have a matching key with an item in the `tab_list`.
 
