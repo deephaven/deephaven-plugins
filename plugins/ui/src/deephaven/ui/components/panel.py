@@ -52,6 +52,7 @@ def panel(
         gap: The space to display between both rows and columns of children.
         column_gap: The space to display between columns of children.
         row_gap: The space to display between rows of children.
+        overflow: Specifies what to do when the elment's content is too long to fit its size.
         padding: The padding to apply around the element.
         padding_top: The padding to apply above the element.
         padding_bottom: The padding to apply below the element.
