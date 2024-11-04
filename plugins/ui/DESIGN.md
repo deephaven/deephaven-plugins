@@ -1874,6 +1874,211 @@ date_range_picker7 = ui.date_range_picker(
 )
 ```
 
+###### ui.dialog
+
+Dialogs are windows containing contextual information, tasks, or workflows that appear over the user interface. Depending on the kind of Dialog, further interactions may be blocked until the Dialog is acknowledged.
+
+```py
+import deephaven.ui as ui
+ui.dialog(
+    *children: Any,
+    size: DialogSize | None = None,
+    is_dismissable: bool | None = None,
+    on_dismiss: Callable[[], None] | None = None,
+    **props: Any
+) -> DialogElement
+```
+
+###### Content
+
+The content can be populated by providing the following components to your `dialog` as children:
+
+- `header` (optional)
+- `heading` (title, required)
+- `divider` (optional)
+- `content` (body, required)
+- `button_group` (optional)
+- `footer` (optional)
+
+###### Parameters
+
+| Parameter        | Type                         | Description                                                                             |
+| ---------------- | ---------------------------- | --------------------------------------------------------------------------------------- |
+| `*children`      | `Any`                        | The contents of the Dialog.                                                             |
+| `size`           | `DialogSize \| None`         | The size of the Dialog. Either `S`, `M`, or `L` . Only applies to "modal" type Dialogs. |
+| `is_dismissable` | `bool \| None`               | Whether the Dialog is dismissable.                                                      |
+| `on_dismiss`     | `Callable[[], None] \| None` | Handler that is called when the 'x' button of a dismissable Dialog is clicked.          |
+| `**props`        | `Any`                        | Any other [Dialog](https://react-spectrum.adobe.com/react-spectrum/Dialog.html) prop    |
+
+```py
+from deephaven import ui
+
+# Open and closed using flag (controlled)
+@ui.component
+def open_close_example():
+    is_open, set_open = ui.use_boolean()
+    return ui.dialog_trigger(
+        ui.action_button("Open dialog", on_press=set_open.on),
+        ui.dialog(ui.heading("Dialog"), ui.content("Close using the button."), ui.button_group(ui.button("close", on_press=set_open.off))),
+        is_open=is_open
+    )
+
+my_open_close_example = open_close_example()
+
+# Dismissable (uncontrolled)
+my_dismissable = ui.dialog_trigger(
+        ui.action_button("Open dialog",),
+        ui.dialog(
+            ui.heading("Dialog"),
+            ui.content("Dismiss using the X button."),
+            is_dismissable=True,
+            ),
+    )
+
+# A small dialog
+my_small = ui.dialog_trigger(
+        ui.action_button("Open dialog",),
+        ui.dialog(ui.heading("Dialog"), ui.content("Dismiss using the X button."), is_dismissable=True, size="S"),
+    )
+
+from deephaven import ui
+
+# Dismissable callback (controlled)
+@ui.component
+def dismissable_callback():
+    is_open, set_open = ui.use_boolean()
+    return ui.dialog_trigger(
+        ui.action_button("Open dialog", on_press=set_open.on),
+        ui.dialog(ui.heading("Dialog"),
+            ui.content("Dismiss using the X button."),
+            is_dismissable=True,
+            on_dismiss=set_open.off
+            ),
+        is_open=is_open
+    )
+
+my_dismissable_callback = dismissable_callback()
+```
+
+###### ui.dialog_trigger
+
+`dialog_trigger` serves as a wrapper around a `dialog` and its associated trigger, linking the `dialog's` open state with the trigger's press state. Additionally, it allows you to customize the type and positioning of the `dialog`.
+
+```py
+import deephaven.ui as ui
+ui.dialog_trigger(
+    *children: Element,
+    type: DialogTriggerType | None = "modal",
+    placement: Placement | None = "bottom",
+    is_open: bool | None = None,
+    default_open: bool | None = None,
+    container_padding: float | None = None,
+    offset: float | None = None,
+    cross_offset: float | None = None,
+    should_flip: bool | None = None,
+    hide_arrow: bool | None = None,
+    is_dismissable: bool | None = None,
+    is_keyboard_dismiss_disabled: bool | None = None,
+    on_open_change: Callable[[bool], None] | None = None,
+    **props: Any
+) -> DialogTriggerElement
+```
+
+###### Dialog types
+
+By providing a `type` prop, you can specify the type of `dialog` that is rendered by your `dialog_trigger`.
+
+- `modal`
+- `popover`
+- `tray`
+- `fullscreen`
+- `fullscreenTakeover`
+
+###### Parameters
+
+| Parameter                      | Type                             | Description                                                                                                  |
+| ------------------------------ | -------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `*children`                    | `Element`                        | The Dialog and its trigger element.                                                                          |
+| `type`                         | `DialogTriggerType \| None`      | The type of Dialog that should be rendered.                                                                  |
+| `placement`                    | `Placement \| None`              | The placement of the popover relative to the action button.                                                  |
+| `is_open`                      | `bool \| None`                   | Whether the popover is open by default (controlled).                                                         |
+| `default_open`                 | `bool \| None`                   | Whether the popover is open by default (uncontrolled).                                                       |
+| `container_padding`            | `float \| None`                  | The placement padding that should be applied between the element and its surrounding container.              |
+| `offset`                       | `float \| None`                  | The additional offset applied along the main axis between the element and its anchor element.                |
+| `cross_offset`                 | `float \| None`                  | The additional offset applied along the cross axis between the element and its anchor element.               |
+| `should_flip`                  | `bool \| None`                   | Whether the element should flip its orientation when there is insufficient room for it to render completely. |
+| `hide_arrow`                   | `bool \| None`                   | Whether a popover type Dialog's arrow should be hidden.                                                      |
+| `is_dismissable`               | `bool \| None`                   | Whether a modal type Dialog should be dismissable.                                                           |
+| `is_keyboard_dismiss_disabled` | `bool \| None`                   | Whether pressing the escape key to close the dialog should be disabled.                                      |
+| `on_open_change`               | `Callable[[bool], None] \| None` | Handler that is called when the overlay's open state changes.                                                |
+| `**props`                      | `Any`                            | Any other [Dialog](https://react-spectrum.adobe.com/react-spectrum/Dialog.html) prop                         |
+
+```py
+from deephaven import ui
+
+# Open and closed using flag (controlled)
+@ui.component
+def open_close_example():
+    is_open, set_open = ui.use_boolean()
+    return ui.dialog_trigger(
+        ui.action_button("Open dialog", on_press=set_open.on),
+        ui.dialog(ui.heading("Dialog"), ui.content("Close using the button."), ui.button_group(ui.button("close", on_press=set_open.off))),
+        is_open=is_open
+    )
+
+my_open_close_example = open_close_example()
+
+# Dismissable (uncontrolled)
+my_dismissable = ui.dialog_trigger(
+        ui.action_button("Open dialog",),
+        ui.dialog(
+            ui.heading("Dialog"),
+            ui.content("Dismiss using the X button."),
+            ),
+        is_dismissable=True,
+    )
+
+# popover
+my_popover = ui.dialog_trigger(
+        ui.action_button("Open dialog",),
+        ui.dialog(
+            ui.heading("Dialog"),
+            ui.content("Popover."),
+            ),
+        type="popover"
+    )
+
+# tray
+my_tray = ui.dialog_trigger(
+        ui.action_button("Open dialog",),
+        ui.dialog(
+            ui.heading("Dialog"),
+            ui.content("Tray."),
+            ),
+        type="tray"
+    )
+
+# fullscreen
+my_fullscreen = ui.dialog_trigger(
+        ui.action_button("Open dialog",),
+        ui.dialog(
+            ui.heading("Dialog"),
+            ui.content("Fullscreen."),
+            ),
+        type="fullscreen"
+    )
+
+# takeover
+my_takeover = ui.dialog_trigger(
+        ui.action_button("Open dialog",),
+        ui.dialog(
+            ui.heading("Dialog"),
+            ui.content("Fullscreen takeover."),
+            ),
+        type="fullscreenTakeover"
+    )
+```
+
 ##### ui.combo_box
 
 A combo_box that can be used to search or select from a list. Children should be one of five types:

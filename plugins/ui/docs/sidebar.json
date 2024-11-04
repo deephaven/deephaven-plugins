@@ -54,6 +54,14 @@
             "path": "components/date_range_picker.md"
           },
           {
+            "label": "dialog",
+            "path": "components/dialog.md"
+          },
+          {
+            "label": "dialog_trigger",
+            "path": "components/dialog_trigger.md"
+          },
+          {
             "label": "heading",
             "path": "components/heading.md"
           },
@@ -118,6 +126,10 @@
       {
         "label": "Hooks",
         "items": [
+          {
+            "label": "use_boolean",
+            "path": "hooks/use_boolean.md"
+          },
           {
             "label": "use_effect",
             "path": "hooks/use_effect.md"
