@@ -18,7 +18,7 @@ from ..shared import (
     HISTOGRAM_DEFAULTS,
     default_callback,
 )
-from ..types import PartitionableTableLike
+from ..types import PartitionableTableLike, Orientation
 
 
 def violin(
@@ -321,6 +321,7 @@ def histogram(
     pattern_shape_map: dict[str | tuple[str], str] | None = None,
     marginal: str | None = None,
     opacity: float | None = None,
+    orientation: Orientation | None = None,
     barmode: str = HISTOGRAM_DEFAULTS["barmode"],
     barnorm: str = HISTOGRAM_DEFAULTS["barnorm"],
     histnorm: str = HISTOGRAM_DEFAULTS["histnorm"],
@@ -375,6 +376,12 @@ def histogram(
       marginal: The type of marginal; histogram, violin, rug, box
       opacity: Opacity to apply to all markers. 0 is completely transparent
         and 1 is completely opaque.
+      orientation: The orientation of the bars.
+        If 'v', the bars are vertical.
+        If 'h', the bars are horizontal.
+        Defaults to 'v' if only `x` is specified.
+        Defaults to 'h' if only `y` is specified.
+        Defaults to 'v' if both `x` and `y` are specified unless `x` is passed only numeric columns and `y` is not.
       barmode: If 'relative', bars are stacked. If
         'overlay', bars are drawn on top of each other. If 'group', bars are
         drawn next to each other.

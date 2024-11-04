@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+from .utilities import has_all_numeric_columns
 
 
 class UnivariateAwarePreprocessor:
@@ -31,7 +32,7 @@ class UnivariateAwarePreprocessor:
     ):
         self.args = args
         self.table = args["table"]
-        self.orientation = self.calculate_orientation()
+        self.orientation = self.calculate_bar_orientation()
         self.args["orientation"] = self.orientation
         self.axis_var = "x" if args.get("x") else "y"
         self.bar_var = "y" if self.axis_var == "x" else "x"
@@ -59,17 +60,27 @@ class UnivariateAwarePreprocessor:
             self.bar_col = self.axis_col
             self.bar_cols = self.axis_cols
 
-    def calculate_orientation(self):
+    def calculate_bar_orientation(self):
         """
         Calculate the orientation of the plot
         """
         orientation = self.args.get("orientation")
         x = self.args.get("x")
         y = self.args.get("y")
+
         if orientation:
             return orientation
         elif x and y:
-            # TODO: more sophisticated orientation calculation like plotly express, which calculates based on data types
+            numeric_x = has_all_numeric_columns(
+                self.table, x if isinstance(x, list) else [x]
+            )
+            numeric_y = has_all_numeric_columns(
+                self.table, y if isinstance(y, list) else [y]
+            )
+            if numeric_x and not numeric_y:
+                # if both x and y are specified, the only case plotly sets orientation to 'h' by default is when x is
+                # numeric and y is not
+                return "h"
             return "v"
         elif x:
             return "v"

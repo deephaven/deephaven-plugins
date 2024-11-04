@@ -20,6 +20,8 @@ HISTFUNC_AGGS = {
     "var": agg.var,
 }
 
+NUMERIC_TYPES = {"short", "int", "long", "float", "double"}
+
 
 def get_aggs(
     base: str,
@@ -282,3 +284,20 @@ def calculate_bin_locations(
             f"{histfunc_col} = {agg_col}",
         ]
     )
+
+
+def has_all_numeric_columns(table: Table, columns: list[str]) -> bool:
+    """
+    Check if the columns are numeric in the table
+
+    Args:
+        table: The table to check
+        columns: The columns to check
+
+    Returns:
+        True if all columns are numeric, False otherwise
+    """
+    for col in table.columns:
+        if col.name in columns and col.data_type.j_name not in NUMERIC_TYPES:
+            return False
+    return True

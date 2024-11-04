@@ -25,6 +25,8 @@ from ..shared.distribution_args import (
 )
 from ..types import PartitionableTableLike
 
+NUMERIC_TYPES = {"short", "int", "long", "float", "double"}
+
 
 def validate_common_args(args: dict) -> None:
     """Validate common args amongst plots

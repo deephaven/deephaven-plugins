@@ -1,1 +1,1 @@
-from .plots import PartitionableTableLike, TableLike
+from .plots import PartitionableTableLike, TableLike, Orientation
