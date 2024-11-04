@@ -48,6 +48,17 @@ class UtilsTest(BaseTestCase):
         self.assertEqual(to_react_prop_case("aria_expanded"), "aria-expanded")
         self.assertEqual(to_react_prop_case("aria_labelledby"), "aria-labelledby")
 
+    def test_convert_dict_keys(self):
+        from deephaven.ui._internal.utils import convert_dict_keys
+
+        # Test with a function reversing the keys
+        self.assertDictEqual(
+            convert_dict_keys(
+                {"foo": "fiz", "bar": "biz"}, convert_key=lambda x: x[::-1]
+            ),
+            {"oof": "fiz", "rab": "biz"},
+        )
+
     def test_dict_to_camel_case(self):
         from deephaven.ui._internal.utils import dict_to_camel_case
 
@@ -60,23 +71,48 @@ class UtilsTest(BaseTestCase):
             {"alreadyCamelCase": "foo", "alignItems": "bar"},
         )
         self.assertDictEqual(
-            dict_to_camel_case({"foo": None, "bar": "biz"}),
-            {"bar": "biz"},
-        )
-        self.assertDictEqual(
-            dict_to_camel_case({"foo": None, "bar": "biz"}, omit_none=False),
-            {"foo": None, "bar": "biz"},
+            dict_to_camel_case({"foo": "bar"}),
+            {"foo": "bar"},
         )
         self.assertDictEqual(
             dict_to_camel_case({"bar": "biz", "UNSAFE_class_name": "harry"}),
-            {"bar": "biz", "UNSAFE_className": "harry"},
+            {"bar": "biz", "UNSAFEClassName": "harry"},
         )
-        # Test with a function reversing the keys
+        # Test leading/trailing underscore
         self.assertDictEqual(
             dict_to_camel_case(
-                {"foo": "fiz", "bar": "biz"}, convert_key=lambda x: x[::-1]
+                {"foo_": "bar", "_baz": "biz", "__youre_a_wizard__": "Harry"}
             ),
-            {"oof": "fiz", "rab": "biz"},
+            {"foo_": "bar", "_baz": "biz", "__youreAWizard__": "Harry"},
+        )
+
+    def test_dict_to_react_props(self):
+        from deephaven.ui._internal.utils import dict_to_react_props
+
+        self.assertDictEqual(
+            dict_to_react_props({"test_string": "foo", "test_string_2": "bar_biz"}),
+            {"testString": "foo", "testString2": "bar_biz"},
+        )
+        self.assertDictEqual(
+            dict_to_react_props({"alreadyCamelCase": "foo", "align_items": "bar"}),
+            {"alreadyCamelCase": "foo", "alignItems": "bar"},
+        )
+        self.assertDictEqual(
+            dict_to_react_props({"foo": None, "bar": "biz"}),
+            {"bar": "biz"},
+        )
+        self.assertDictEqual(
+            dict_to_react_props(
+                {"bar": "biz", "UNSAFE_class_name": "harry", "aria_label": "ron"}
+            ),
+            {"bar": "biz", "UNSAFE_className": "harry", "aria-label": "ron"},
+        )
+        # Test trailing underscore
+        self.assertDictEqual(
+            dict_to_react_props(
+                {"foo_": "bar", "_baz": "biz", "__youre_a_wizard__": "Harry"}
+            ),
+            {"foo_": "bar", "_baz": "biz", "__youreAWizard__": "Harry"},
         )
 
     def test_remove_empty_keys(self):

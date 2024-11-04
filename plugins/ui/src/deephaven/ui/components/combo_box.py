@@ -72,7 +72,7 @@ def combo_box(
     validation_state: ValidationState | None = None,
     label_position: LabelPosition = "top",
     label_align: Alignment | None = None,
-    necessity_indicator: NecessityIndicator | None = "icon",
+    necessity_indicator: NecessityIndicator | None = None,
     contextual_help: Element | None = None,
     on_open_change: Callable[[bool, MenuTriggerAction], None] | None = None,
     on_selection_change: Callable[[Key], None] | None = None,

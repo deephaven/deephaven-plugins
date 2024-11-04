@@ -10,7 +10,7 @@ import {
   SpectrumCheckbox as Checkbox,
   CheckboxGroup,
   Content,
-  ContextualHelp,
+  DialogTrigger,
   Heading,
   Item,
   ListActionGroup,
@@ -51,9 +51,11 @@ import {
   Button,
   Calendar,
   ComboBox,
+  ContextualHelp,
   DateField,
   DatePicker,
   DateRangePicker,
+  Dialog,
   Flex,
   Form,
   Grid,
@@ -118,6 +120,8 @@ export const elementComponentMap = {
   [ELEMENT_NAME.dateField]: DateField,
   [ELEMENT_NAME.datePicker]: DatePicker,
   [ELEMENT_NAME.dateRangePicker]: DateRangePicker,
+  [ELEMENT_NAME.dialog]: Dialog,
+  [ELEMENT_NAME.dialogTrigger]: DialogTrigger,
   [ELEMENT_NAME.flex]: Flex,
   [ELEMENT_NAME.form]: Form,
   [ELEMENT_NAME.fragment]: React.Fragment,
@@ -182,9 +186,7 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
       }
       if (props?.contextualHelp != null && isPrimitive(props.contextualHelp)) {
         props.contextualHelp = (
-          <ContextualHelp>
-            <Content>{props.contextualHelp}</Content>
-          </ContextualHelp>
+          <ContextualHelp heading={null} content={props.contextualHelp} />
         );
       }
       return <Component {...props} />;

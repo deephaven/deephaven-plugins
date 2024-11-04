@@ -50,6 +50,21 @@ bar_plot_smoke = dx.bar(sorted_tips, x="Day", y="TotalBill", by="Smoker")
 bar_plot_sex = dx.bar(sorted_tips, x="Day", y="TotalBill", by="Sex")
 ```
 
+### Frequency of categories
+
+Visualize the frequency of categories in a column by passing to either the `x` or `y` argument.
+
+```python 
+import deephaven.plot.express as dx
+tips = dx.data.tips()
+
+# count the number of occurrences of each day with a vertical bar plot
+bar_plot_vertical = dx.bar(tips, x="Day")
+
+# count the number of occurrences of each day with a horizontal bar plot
+bar_plot_horizontal = dx.bar(tips, y="Day")
+```
+
 ## API Reference
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.bar
