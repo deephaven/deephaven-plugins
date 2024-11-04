@@ -13,6 +13,7 @@ from .types import (
     Overflow,
 )
 from ..elements import Element
+from ..types import Color
 
 
 def panel(
@@ -34,6 +35,7 @@ def panel(
     padding_end: DimensionValue | None = None,
     padding_x: DimensionValue | None = None,
     padding_y: DimensionValue | None = None,
+    background_color: Color | None = None,
     key: str | None = None,
 ) -> Element:
     """
@@ -57,6 +59,7 @@ def panel(
         padding_end: The padding to apply after the element.
         padding_x: The padding to apply to the left and right of the element.
         padding_y: The padding to apply to the top and bottom of the element.
+        background_color: The background color of the element.
         key: A unique identifier used by React to render elements in a list.
 
     Returns:
