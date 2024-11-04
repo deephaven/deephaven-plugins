@@ -2,6 +2,29 @@
 
 deephaven.ui is a flexible and extensible [React-like](https://react.dev/learn/thinking-in-react) UI framework that can create complex UIs in Python. You can create UIs using only the components provided by deephaven.ui, or you can create your own components using the `@ui.component` decorator.
 
+## Components
+
+Components are re-usable pieces of UI that can be composed together to create complex UIs. Each component defines it's own logic and appearance. Components can be simple, like a button, or complex, like a table with controls for filtering and sorting. Components can also be composed of other components, allowing for complex UIs to be built up from simpler pieces.
+
+Components are created using the `@ui.component` decorator. This decorator takes a function that returns a list of components, and returns a new function that can be called to render the component. The function returned by the decorator is called a "component function".
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def my_button():
+    return ui.button("Click me!")
+```
+
+Once you have declared a component, you can nest it into another component.
+
+```python
+@ui.component
+def my_app():
+    return ui.flex(ui.text("Hello, world!"), my_button(), direction="column")
+```
+
 ## Rendering
 
 When you call a function decorated by `@ui.component`, it will return an `Element` object that references the function it is decorated by; that is to say, the function does _not_ run immediately. The function runs when the `Element` is rendered by the client, and the result is sent back to the client. This allows the `@ui.component` decorator to execute the function with the appropriate rendering context. The client must also set the initial state before rendering, allowing the client to persist the state and re-render in the future.
@@ -77,7 +100,7 @@ sequenceDiagram
 
 ### Threads and rendering
 
-When a component is rendered, the render task is [submitted to the Deephaven server as a "concurrent" task](https://deephaven.io/core/pydoc/code/deephaven.server.executors.html#deephaven.server.executors.submit_task). This ensures that rendering one component does not block another component from rendering. A lock is then held on that component instance to ensure it can only be rendered by one thread at a time, a root [render context](#render-context) is set in the thread-local data, and the component is rendered.
+When a component is rendered, the render task is [submitted to the Deephaven server as a "concurrent" task](https://deephaven.io/core/pydoc/code/deephaven.server.executors.html#deephaven.server.executors.submit_task). This ensures that rendering one component does not block another component from rendering. A lock is then held on that component instance to ensure it can only be rendered by one thread at a time. After the lock is acquired, a root [render context](#render-context) is set in the thread-local data, and the component is rendered.
 
 ### Render context
 
