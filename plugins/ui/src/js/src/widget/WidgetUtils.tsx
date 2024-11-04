@@ -6,7 +6,6 @@ import type { JSONRPCServerAndClient } from 'json-rpc-2.0';
 // wrapped due to how Spectrum collection components consume them.
 import {
   ActionMenu,
-  Badge,
   ButtonGroup,
   SpectrumCheckbox as Checkbox,
   CheckboxGroup,
@@ -49,6 +48,7 @@ import Dashboard from '../layout/Dashboard';
 import {
   ActionButton,
   ActionGroup,
+  Badge,
   Button,
   Calendar,
   ComboBox,
