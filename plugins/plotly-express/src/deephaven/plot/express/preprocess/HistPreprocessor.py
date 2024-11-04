@@ -181,7 +181,7 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
             )
             count_cols.append(count_col)
 
-        var_axis_name = self.names[self.histfunc]
+        bar_var_name = self.names[self.histfunc]
 
         if not self.range_table:
             raise ValueError("Range table not created")
@@ -190,7 +190,7 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
             [
                 f"{bin_min} = {range_}.binMin({range_index})",
                 f"{bin_max} = {range_}.binMax({range_index})",
-                f"{var_axis_name}=0.5*({bin_min}+{bin_max})",
+                f"{bar_var_name}=0.5*({bin_min}+{bin_max})",
             ]
         )
 
@@ -204,13 +204,13 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
             ]
 
             # range_ and bin cols need to be kept for probability density
-            # var_axis_name needs to be kept for plotting
+            # bar_var_name needs to be kept for plotting
             bin_counts = (
                 bin_counts.agg_by(
                     [
                         agg.sum_(sums),
                         agg.group(
-                            count_cols + [var_axis_name, range_, bin_min, bin_max]
+                            count_cols + [bar_var_name, range_, bin_min, bin_max]
                         ),
                     ]
                 )
@@ -240,24 +240,23 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
                 + [f"{col}={col} * {mult_factor} / {total}" for col in count_cols]
             )
 
-        var_axis_displayed = var_axis_name
+        bar_var_displayed = bar_var_name
 
         if self.axis_col != column:
             # if a different column is aggregated on, the axis name should reflect that
             # todo: plumb this through the args
-            var_axis_displayed = f"{var_axis_name} of {column}"
+            bar_var_displayed = f"{bar_var_name} of {column}"
 
         print(
             {
-                self.axis_var: var_axis_name,
+                self.axis_var: bar_var_name,
                 self.bar_var: column,
             }
         )
 
         for count_col in count_cols:
             # todo: better way to handle this rather that flipping axis_var and value_var later????
-            # todo: this seems to be flipped the wrong way too
-            yield bin_counts.view([var_axis_name, f"{bar_col} = {count_col}"]), {
-                self.axis_var: var_axis_name,
-                self.bar_var: self.bar_col,
+            yield bin_counts.view([bar_var_name, f"{bar_col} = {count_col}"]), {
+                self.bar_var: bar_var_name,
+                self.axis_var: self.bar_col,
             }
