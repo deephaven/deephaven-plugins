@@ -38,6 +38,7 @@ from deephaven import ui
 def ui_form_submit():
     return ui.form(
         ui.text_field(name="name", label="Enter name"),
+        ui.number_field(name="age", label="Enter age"),
         ui.button("Submit", type="submit"),
         on_submit=lambda e: print(f"Form submitted: {e}"),
     )
@@ -56,6 +57,7 @@ from deephaven import ui
 def ui_form_submit():
     return ui.form(
         ui.text_field(name="name", label="Enter name"),
+        ui.number_field(name="age", label="Enter age"),
         ui.button("Reset", type="reset"),
         on_reset=lambda e: print(f"Form reset"),
     )
@@ -81,6 +83,7 @@ def ui_form_invalid():
             on_change=set_value,
             is_required=True,
         ),
+        ui.number_field(name="age", label="Enter age"),
         ui.button("Submit", type="submit"),
         on_invalid=lambda e: print(f"Form invalid"),
         validation_behavior="native",
@@ -167,6 +170,13 @@ def ui_form_emphasized():
 
     return ui.form(
         ui.text_field(name="name", label="Enter name"),
+        ui.radio_group(
+            ui.radio("Video games", value="games"),
+            ui.radio("Reading", value="reading"),
+            ui.radio("Sports", value="sports"),
+            label="Favorite hobby",
+            default_value="games",
+        ),
         is_emphasized=True,
     )
 
