@@ -79,8 +79,9 @@ sequenceDiagram
   C-->>W: VariableChanges(added=[t, tft])
 
   W->>UIP: Open tft
-  UIP->>C: Export tft
-  C-->>UIP: tft (Element)
+  activate UIP
+  UIP->>C: Fetch tft
+  C-->>UIP: Export tft (Element)
 
   Note over UIP: UI knows about object tft<br/>double_text_filter_table not executed yet
 
@@ -89,13 +90,16 @@ sequenceDiagram
   Note over SP: double_text_filter_table executes, running text_filter_table twice
   SP-->>UIP: Result (document=[panel(tft1), pane(tft2)], exported_objects=[tft1, tft2])
   UIP-->>W: Display Result
+  deactivate UIP
 
   U->>UIP: Change text input 1
+  activate UIP
   UIP->>SP: Change state
   SP->>SP: Run double_text_filter_table
   Note over SP: double_text_filter_table executes, text_filter_table only <br/>runs once for the one changed input<br/>only exports the new table, as client already has previous tables
-  SP-->>UIP: Result (document=[panel(tft1'), panel(tft2)], state={}, exported_objects=[tft1'])
+  SP-->>UIP: Result (document=[panel(tft1'), panel(tft2)], <br/>state={}, exported_objects=[tft1'])
   UIP-->>W: Display Result
+  deactivate UIP
 ```
 
 ### Threads and rendering
@@ -104,7 +108,7 @@ When a component is rendered, the render task is [submitted to the Deephaven ser
 
 ### Render context
 
-While rendering components, "hooks" are used to manage state and other side effects. The magic part of hooks is they work based on the order they are called within a component. When a component is rendered, a new context is set, replacing the existing context. When the component is done rendering, the context is reset to the previous context. This allows for nested components to have their own state and side effects, and for the parent component to manage the state of the child components, re-using the same context when re-rendering a child component.
+Each component render in its own render context, which helps keep track of state and side effects. While rendering components, "hooks" are used to manage state and other side effects. The magic part of hooks is they work based on the order they are called within a component. When a component is rendered, a new context is set, replacing the existing context. When the component is done rendering, the context is reset to the previous context. This allows for nested components to have their own state and side effects, and for the parent component to manage the state of the child components, re-using the same context when re-rendering a child component.
 
 ## Communication/Callbacks
 
@@ -122,7 +126,9 @@ sequenceDiagram
   loop Callback
     UIP->>SP: foo(params)
     SP-->>UIP: foo result
+    opt Update sent if callback modified state
     SP->>UIP: documentUpdated(Document, State)
+    end
       Note over UIP: Client can store State to restore the same state later
   end
 ```
@@ -134,5 +140,5 @@ A component that is created on the server side runs through a few steps before i
 1. [Element](https://github.com/deephaven/deephaven-plugins/blob/main/plugins/ui/src/deephaven/ui/elements/Element.py) - The basis for all UI components. Generally, a [FunctionElement](https://github.com/deephaven/deephaven-plugins/blob/main/plugins/ui/src/deephaven/ui/elements/FunctionElement.py) created by a script using the [@ui.component](https://github.com/deephaven/deephaven-plugins/blob/main/plugins/ui/src/deephaven/ui/components/make_component.py) decorator that does not run the function until it is rendered. The result can change depending on the context that it is rendered in (e.g., what "state" is set).
 2. [ElementMessageStream](https://github.com/deephaven/deephaven-plugins/blob/main/plugins/ui/src/deephaven/ui/object_types/ElementMessageStream.py) - The `ElementMessageStream` is responsible for rendering one instance of an element in a specific rendering context and handling the server-client communication. The element is rendered to create a [RenderedNode](https://github.com/deephaven/deephaven-plugins/blob/main/plugins/ui/src/deephaven/ui/renderer/RenderedNode.py), which is an immutable representation of a rendered document. The `RenderedNode` is then encoded into JSON using [NodeEncoder](https://github.com/deephaven/deephaven-plugins/blob/main/plugins/ui/src/deephaven/ui/renderer/NodeEncoder.py), which pulls out all the non-serializable objects (such as Tables) and maps them to exported objects, and all the callables to be mapped to commands that JSON-RPC can accept. This is the final representation of the document sent to the client and ultimately handled by the `WidgetHandler`.
 3. [DashboardPlugin](https://github.com/deephaven/deephaven-plugins/blob/main/plugins/ui/src/js/src/DashboardPlugin.tsx) - Client-side `DashboardPlugin` that listens for when a widget of type `Element` is opened and manages the `WidgetHandler` instances that are created for each widget.
-4. [WidgetHandler](https://github.com/deephaven/deephaven-plugins/blob/main/plugins/ui/src/js/src/WidgetHandler.tsx) - Uses JSON-RPC communication with an `ElementMessageStream` instance to load the initial rendered document and associated exported objects. Listens for any changes and updates the document accordingly.
+4. [WidgetHandler](https://github.com/deephaven/deephaven-plugins/blob/main/plugins/ui/src/js/src/WidgetHandler.tsx) - Uses JSON-RPC communication with an `ElementMessageStream` instance to set the initial state, then load the initial rendered document and associated exported objects. Listens for any changes and updates the document accordingly.
 5. [DocumentHandler](https://github.com/deephaven/deephaven-plugins/blob/main/plugins/ui/src/js/src/DocumentHandler.tsx) - Handles the root of a rendered document, laying out the appropriate panels or dashboard specified.
