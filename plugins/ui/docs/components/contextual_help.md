@@ -1,6 +1,6 @@
 # Contextual Help
 
-Contextual help to show extra information about the state of a component.
+Contextual help can be used to show extra information about the state of a component.
 
 ## Example
 
