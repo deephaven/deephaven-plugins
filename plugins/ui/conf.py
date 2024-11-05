@@ -39,6 +39,8 @@ exclude_patterns = ["build", "Thumbs.db", ".DS_Store"]
 # options for sphinx_autodoc_typehints
 always_use_bars_union = True
 
+strip_signature_backslash = True
+
 from deephaven_server import Server
 
 # need a server instance to pull types from the autodocs
