@@ -10,6 +10,7 @@ export function Flex({
   UNSAFE_className,
   ...restProps
 }: DHCFlexProps): JSX.Element {
+  const test: string = 123;
   return (
     <DHCFlex
       UNSAFE_className={classNames('dh-flex', UNSAFE_className)}
