@@ -27,7 +27,8 @@ def main():
             continue
 
         file, line, col, msg = match.groups()
-        print(f"::error file={file},line={line},col={col}::{msg.replace('\n', '%0A')}")
+        msg = msg.replace("\n", "%0A")
+        print(f"::error file={file},line={line},col={col}::{msg}")
 
     raise Exception("TypeScript type checking failed")
 
