@@ -66,6 +66,10 @@
             "path": "components/dialog_trigger.md"
           },
           {
+            "label": "fragment",
+            "path": "components/fragment.md"
+          },
+          {
             "label": "heading",
             "path": "components/heading.md"
           },
