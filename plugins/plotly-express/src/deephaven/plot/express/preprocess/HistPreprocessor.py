@@ -63,8 +63,9 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
         self.names = {}
         self.nbins = args.pop("nbins", 10)
         self.range_bins = args.pop("range_bins", None)
+        # plotly express defaults to sum if both x and y are set, count if only one is set
         self.histfunc = args.pop(
-            "histfunc", "count"
+            "histfunc", "count" if self.bar_col == self.axis_col else "sum"
         )  # should be sum if both x and y are set
         self.barnorm = args.pop("barnorm", None)
         self.histnorm = args.pop("histnorm", None)
@@ -79,7 +80,6 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
             self.args["table"],
             ["range_index", "range", "bin_min", "bin_max", "bin_mid", "total"],
         )
-        print(self.axis_cols)
         self.range_table = create_range_table(
             self.args["table"],
             self.axis_cols,
@@ -133,6 +133,46 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
             )
             yield count_table, tmp_bar_col
 
+    def create_bar_col_displayed(self) -> str:
+        """
+        Create the bar column name displayed.
+        This mirrors the logic in plotly express.
+
+        Returns:
+            The bar column name displayed
+        """
+        # in the case where only one column is aggregated on, the axis name should reflect the histfunc used
+        bar_col_displayed = self.histfunc
+
+        if self.histfunc != "count" and self.axis_col != self.bar_col:
+            # if a different column is aggregated on, the axis name should reflect that
+            # plotly express will not do this in case of count because the value of count is the same
+            # whether aggregating on the same column or a different one
+            # note that plotly express also does not allow histfunc to be anything other than count
+            # if only one column is aggregated on but we do, hence our extra check for column names
+            bar_col_displayed = f"{self.histfunc} of {self.bar_col}"
+
+        if self.histnorm:
+            if self.histfunc == "sum":
+                if self.histnorm == "probability":
+                    bar_col_displayed = f"fraction of {bar_col_displayed}"
+                elif self.histnorm == "percent":
+                    bar_col_displayed = f"percent of {bar_col_displayed}"
+                else:
+                    # in this case, plotly express uses the original column name
+                    bar_col_displayed = f"{self.histnorm} weighted by {self.bar_col}"
+            elif self.histnorm == "probability":
+                bar_col_displayed = f"fraction of sum of {bar_col_displayed}"
+            elif self.histnorm == "percent":
+                bar_col_displayed = f"percent of sum of {bar_col_displayed}"
+            else:
+                bar_col_displayed = f"{self.histnorm} of {bar_col_displayed}"
+
+        if self.barnorm:
+            bar_col_displayed = f"{bar_col_displayed} (normalized as {self.barnorm})"
+
+        return bar_col_displayed
+
     def preprocess_partitioned_tables(
         self, tables: list[Table], column: str | None = None
     ) -> Generator[tuple[Table, dict[str, str | None]], None, None]:
@@ -172,9 +212,33 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
             )
             agg_cols.append(count_col)
 
-        print(agg_cols)
-
         bin_mid = self.names["bin_mid"]
+
+        # in the case where only one column is aggregated on, the axis name should reflect the histfunc used
+        bar_col_displayed = self.histfunc
+
+        if axis_col != bar_col:
+            # if a different column is aggregated on, the axis name should reflect that
+            bar_col_displayed = f"{self.histfunc} of {bar_col}"
+
+        if self.histnorm:
+            if self.histfunc == "sum":
+                if self.histnorm == "probability":
+                    bar_col_displayed = f"fraction of {bar_col_displayed}"
+                elif self.histnorm == "percent":
+                    bar_col_displayed = f"percent of {bar_col_displayed}"
+                else:
+                    # in this case, plotly express uses the original column name
+                    bar_col_displayed = f"{self.histnorm} weighted by {bar_col}"
+            elif self.histnorm == "probability":
+                bar_col_displayed = f"fraction of sum of {bar_col_displayed}"
+            elif self.histnorm == "percent":
+                bar_col_displayed = f"percent of sum of {bar_col_displayed}"
+            else:
+                bar_col_displayed = f"{self.histnorm} of {bar_col_displayed}"
+
+        if self.barnorm:
+            bar_col_displayed = f"{bar_col_displayed} (normalizes as {self.barnorm})"
 
         if not self.range_table:
             raise ValueError("Range table not created")
@@ -231,15 +295,9 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
 
         # bar_var_displayed = bar_var_name
 
-        if self.axis_col != column:
-            # if a different column is aggregated on, the axis name should reflect that
-            # todo: plumb this through the args
-            # bar_var_displayed = f"{bar_var_name} of {column}"
-            pass
-
         for agg_col in agg_cols:
             yield bin_counts.view([f"{axis_col} = {bin_mid}", agg_col]), {
                 self.bar_var: agg_col,
                 self.axis_var: axis_col,
-                f"bar_col_displayed_{self.orientation}": "test",
+                f"bar_col_displayed_{self.orientation}": bar_col_displayed,
             }

@@ -403,6 +403,7 @@ def histogram(
       histfunc: The function to use when aggregating within bins. One of
         'abs_sum', 'avg', 'count', 'count_distinct', 'max', 'median', 'min', 'std',
         'sum', or 'var'
+        Defaults to 'count' if only one of x or y is specified and 'sum' if both are.
       cumulative: If True, values are cumulative.
       nbins: The number of bins to use.
       text_auto: If True, display the value at each bar.
