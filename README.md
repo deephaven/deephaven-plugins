@@ -81,13 +81,13 @@ You can run tests with the following command from the `plugins/<plugin>` directo
 tox -e py
 ```
 
-Linux, and possibly other setups such as MacOS depending on method, 
-may require additional packages to be installed to run Python 3.8.
-```shell
-sudo apt install python3.8 python3.8-distutils libpython3.8
-# or just full install although it will include more packages than necessary
-sudo apt install python3.8-full
-```
+> [!IMPORTANT]
+> Linux, and possibly other setups such as MacOS depending on method, may require additional packages to be installed to run Python 3.8.
+> ```shell
+> sudo apt install python3.8 python3.8-distutils libpython3.8
+> # or just full install although it will include more packages than necessary
+> sudo apt install python3.8-full
+> ```
 
 You can also run tests against a specific version of python by appending the version to `py`  
 This assumes that the version of Python you're targeting is installed on your system.  
