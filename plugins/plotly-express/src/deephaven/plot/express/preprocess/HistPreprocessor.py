@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any, Generator
 
-from deephaven import agg, empty_table, new_table
-from deephaven.table import PartitionedTable, Table
+from deephaven import agg, new_table
+from deephaven.table import Table
 
 from .UnivariateAwarePreprocessor import UnivariateAwarePreprocessor
 from ..shared import get_unique_names
@@ -82,7 +82,7 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
         )
         self.range_table = create_range_table(
             self.args["table"],
-            self.axis_cols,
+            self.axis_col,
             self.range_bins,
             self.nbins,
             self.names["range"],

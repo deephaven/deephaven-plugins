@@ -60,6 +60,8 @@ class HistPreprocessorTestCase(BaseTestCase):
 
         self.tables_equal(args, expected_df)
 
+    # TODO add more tests
+
     def test_partitioned_hist(self):
         args = {
             "x": "X",
