@@ -1,5 +1,6 @@
-from subprocess import run
 from re import fullmatch
+from subprocess import run
+from sys import exit
 
 
 def main():
@@ -10,7 +11,7 @@ def main():
     )
 
     if res.returncode == 0:
-        return
+        return 0
 
     errors = []
     for line in res.stdout.decode("utf-8").splitlines():
@@ -30,8 +31,8 @@ def main():
         msg = msg.replace("\n", "%0A")
         print(f"::error file={file},line={line},col={col}::{msg}")
 
-    raise Exception("TypeScript type checking failed")
+    return res.returncode
 
 
 if __name__ == "__main__":
-    main()
+    exit(main())
