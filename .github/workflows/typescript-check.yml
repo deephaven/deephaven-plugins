@@ -1,0 +1,25 @@
+name: Pre-commit for code style and formatting checks
+
+on:
+  push:
+    branches:
+      - main
+      - 'release/**'
+      - 'feature/**'
+      - 618-typescript-ci
+  pull_request:
+    branches:
+      - main
+      - 'release/**'
+      - 'feature/**'
+
+jobs:
+  typescript-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: npm ci
+      - name: Check TypeScript types
+        run: npx tsc -p . --emitDeclarationOnly false --noEmit
+        
