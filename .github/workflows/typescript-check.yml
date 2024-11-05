@@ -1,4 +1,4 @@
-name: Pre-commit for code style and formatting checks
+name: Check TypeScript types
 
 on:
   push:
