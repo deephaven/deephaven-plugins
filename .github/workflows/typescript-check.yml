@@ -6,7 +6,6 @@ on:
       - main
       - 'release/**'
       - 'feature/**'
-      - 618-typescript-ci
   pull_request:
     branches:
       - main
@@ -16,6 +15,9 @@ on:
 jobs:
   typescript-check:
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
