@@ -11,6 +11,7 @@ from .types import (
     AlignItems,
     DimensionValue,
     Overflow,
+    CSSProperties,
 )
 from ..elements import Element
 from ..types import Color
@@ -36,6 +37,8 @@ def panel(
     padding_x: DimensionValue | None = None,
     padding_y: DimensionValue | None = None,
     background_color: Color | None = None,
+    UNSAFE_class_name: str | None = None,
+    UNSAFE_style: CSSProperties | None = None,
     key: str | None = None,
 ) -> Element:
     """
@@ -61,6 +64,8 @@ def panel(
         padding_x: The padding to apply to the left and right of the element.
         padding_y: The padding to apply to the top and bottom of the element.
         background_color: The background color of the element.
+        UNSAFE_class_name: A CSS class to apply to the element.
+        UNSAFE_style: A CSS style to apply to the element.
         key: A unique identifier used by React to render elements in a list.
 
     Returns:
