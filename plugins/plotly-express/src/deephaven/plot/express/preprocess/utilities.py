@@ -19,7 +19,7 @@ HISTFUNC_AGGS = {
     "sum": agg.sum_,
     "var": agg.var,
 }
-
+# todo: more types here?
 NUMERIC_TYPES = {"short", "int", "long", "float", "double"}
 
 
@@ -284,26 +284,3 @@ def calculate_bin_locations(
             f"{histfunc_col} = {agg_col}",
         ]
     )
-
-
-def has_all_numeric_columns(
-    table: Table | PartitionedTable, columns: list[str]
-) -> bool:
-    """
-    Check if the columns are numeric in the table
-
-    Args:
-        table: The table to check
-        columns: The columns to check
-
-    Returns:
-        True if all columns are numeric, False otherwise
-    """
-    if isinstance(table, PartitionedTable):
-        cols = table.constituent_table_columns
-    else:
-        cols = table.columns
-    for col in cols:
-        if col.name in columns and col.data_type.j_name not in NUMERIC_TYPES:
-            return False
-    return True

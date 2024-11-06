@@ -25,6 +25,24 @@ class DistributionTestCase(BaseTestCase):
             ]
         )
 
+    def assert_bar_col_displayed_equal(self, chart, x, y):
+        """
+        Assert that the x and y titles are set correctly
+
+        Args:
+            chart: The chart to check
+            x: The x title
+            y: The y title
+        """
+
+        plotly = chart.to_dict(self.exporter)["plotly"]
+        self.assertEqual(
+            plotly["data"][0]["hovertemplate"],
+            f"{x}=%{{x}}<br>{y}=%{{y}}<extra></extra>",
+        )
+        self.assertEqual(plotly["layout"]["xaxis"]["title"]["text"], x)
+        self.assertEqual(plotly["layout"]["yaxis"]["title"]["text"], y)
+
     def test_basic_histogram_x(self):
         import src.deephaven.plot.express as dx
         from deephaven.constants import NULL_LONG, NULL_DOUBLE
@@ -82,8 +100,8 @@ class DistributionTestCase(BaseTestCase):
             {
                 "table": 0,
                 "data_columns": {
-                    "count": ["/plotly/data/0/x"],
-                    "X": ["/plotly/data/0/y"],
+                    "X": ["/plotly/data/0/x"],
+                    "tmpbar0": ["/plotly/data/0/y"],
                 },
             }
         ]
@@ -97,7 +115,7 @@ class DistributionTestCase(BaseTestCase):
         import src.deephaven.plot.express as dx
         from deephaven.constants import NULL_LONG, NULL_DOUBLE
 
-        chart = dx.histogram(self.source, y="X").to_dict(self.exporter)
+        chart = dx.histogram(self.source, y="Y").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
 
         # pop template as we currently do not modify it
@@ -106,7 +124,7 @@ class DistributionTestCase(BaseTestCase):
         expected_data = [
             {
                 "alignmentgroup": "True",
-                "hovertemplate": "count=%{x}<br>X=%{y}<extra></extra>",
+                "hovertemplate": "count=%{x}<br>Y=%{y}<extra></extra>",
                 "legendgroup": "",
                 "marker": {"color": "#636efa", "pattern": {"shape": ""}},
                 "name": "",
@@ -140,7 +158,7 @@ class DistributionTestCase(BaseTestCase):
                 "anchor": "x",
                 "domain": [0.0, 1.0],
                 "side": "left",
-                "title": {"text": "X"},
+                "title": {"text": "Y"},
             },
         }
 
@@ -150,8 +168,8 @@ class DistributionTestCase(BaseTestCase):
             {
                 "table": 0,
                 "data_columns": {
-                    "X": ["/plotly/data/0/x"],
-                    "count": ["/plotly/data/0/y"],
+                    "tmpbar0": ["/plotly/data/0/x"],
+                    "Y": ["/plotly/data/0/y"],
                 },
             }
         ]
@@ -256,8 +274,8 @@ class DistributionTestCase(BaseTestCase):
             {
                 "table": 0,
                 "data_columns": {
-                    "count": ["/plotly/data/0/x"],
-                    "X": ["/plotly/data/0/y"],
+                    "X": ["/plotly/data/0/x"],
+                    "tmpbar0": ["/plotly/data/0/y"],
                 },
             },
             {"table": 0, "data_columns": {"X": ["/plotly/data/1/x"]}},
@@ -360,8 +378,8 @@ class DistributionTestCase(BaseTestCase):
             {
                 "table": 0,
                 "data_columns": {
-                    "count": ["/plotly/data/0/x"],
-                    "X": ["/plotly/data/0/y"],
+                    "X": ["/plotly/data/0/x"],
+                    "tmpbar0": ["/plotly/data/0/y"],
                 },
             },
             {"table": 0, "data_columns": {"X": ["/plotly/data/1/x"]}},
@@ -385,7 +403,7 @@ class DistributionTestCase(BaseTestCase):
         expected_data = [
             {
                 "alignmentgroup": "True",
-                "hovertemplate": "X=%{x}<br>count=%{y}<extra></extra>",
+                "hovertemplate": "X=%{x}<br>sum of Y=%{y}<extra></extra>",
                 "legendgroup": "",
                 "marker": {"color": "#636efa", "pattern": {"shape": ""}},
                 "name": "",
@@ -419,7 +437,7 @@ class DistributionTestCase(BaseTestCase):
                 "anchor": "x",
                 "domain": [0.0, 1.0],
                 "side": "left",
-                "title": {"text": "count"},
+                "title": {"text": "sum of Y"},
             },
         }
 
@@ -429,8 +447,8 @@ class DistributionTestCase(BaseTestCase):
             {
                 "table": 0,
                 "data_columns": {
-                    "count": ["/plotly/data/0/x"],
-                    "X": ["/plotly/data/0/y"],
+                    "X": ["/plotly/data/0/x"],
+                    "tmpbar0": ["/plotly/data/0/y"],
                 },
             }
         ]
@@ -455,12 +473,12 @@ class DistributionTestCase(BaseTestCase):
         expected_data = [
             {
                 "alignmentgroup": "True",
-                "hovertemplate": "X=%{x}<br>count=%{y}<extra></extra>",
+                "hovertemplate": "X=%{x}<br>sum of Y=%{y}<extra></extra>",
                 "legendgroup": "",
                 "marker": {"color": "#636efa", "pattern": {"shape": ""}},
                 "name": "",
                 "offsetgroup": "",
-                "orientation": "v",
+                "orientation": "h",
                 "showlegend": False,
                 "textposition": "auto",
                 "x": [NULL_DOUBLE],
@@ -489,7 +507,7 @@ class DistributionTestCase(BaseTestCase):
                 "anchor": "x",
                 "domain": [0.0, 1.0],
                 "side": "left",
-                "title": {"text": "count"},
+                "title": {"text": "sum of Y"},
             },
         }
 
@@ -499,7 +517,7 @@ class DistributionTestCase(BaseTestCase):
             {
                 "table": 0,
                 "data_columns": {
-                    "count": ["/plotly/data/0/x"],
+                    "tmpbar0": ["/plotly/data/0/x"],
                     "X": ["/plotly/data/0/y"],
                 },
             }
@@ -510,216 +528,92 @@ class DistributionTestCase(BaseTestCase):
         self.assertEqual(deephaven["is_user_set_template"], False)
         self.assertEqual(deephaven["is_user_set_color"], False)
 
-    def test_basic_histogram_x_cat_y(self):
+    def test_basic_histogram_bar_col_displayed(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_LONG, NULL_DOUBLE
 
-        # since y is a category, the orientation should be set to h
-        chart = dx.histogram(self.source, x="X", y="color").to_dict(self.exporter)
-        plotly, deephaven = chart["plotly"], chart["deephaven"]
+        chart = dx.histogram(self.source, x="X")
+        self.assert_bar_col_displayed_equal(chart, "X", "count")
 
-        # pop template as we currently do not modify it
-        plotly["layout"].pop("template")
+        chart = dx.histogram(self.source, y="Y")
+        self.assert_bar_col_displayed_equal(chart, "count", "Y")
 
-        expected_data = [
-            {
-                "alignmentgroup": "True",
-                "hovertemplate": "X=%{x}<br>count=%{y}<extra></extra>",
-                "legendgroup": "",
-                "marker": {"color": "#636efa", "pattern": {"shape": ""}},
-                "name": "",
-                "offsetgroup": "",
-                "orientation": "v",
-                "showlegend": False,
-                "textposition": "auto",
-                "x": [NULL_DOUBLE],
-                "xaxis": "x",
-                "y": [NULL_LONG],
-                "yaxis": "y",
-                "type": "bar",
-            }
-        ]
+        # default histfunc is sum when both x and y are provided
+        chart = dx.histogram(self.source, x="X", y="Y", histfunc="count")
+        self.assert_bar_col_displayed_equal(chart, "X", "count")
 
-        self.assertEqual(plotly["data"], expected_data)
+        chart = dx.histogram(self.source, x="X", histfunc="sum")
+        self.assert_bar_col_displayed_equal(chart, "X", "sum")
 
-        expected_layout = {
-            "bargap": 0,
-            "barmode": "group",
-            "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
-            "showlegend": False,
-            "xaxis": {
-                "anchor": "y",
-                "domain": [0.0, 1.0],
-                "side": "bottom",
-                "title": {"text": "X"},
-            },
-            "yaxis": {
-                "anchor": "x",
-                "domain": [0.0, 1.0],
-                "side": "left",
-                "title": {"text": "count"},
-            },
-        }
+        chart = dx.histogram(self.source, y="Y", histfunc="sum")
+        self.assert_bar_col_displayed_equal(chart, "sum", "Y")
 
-        self.assertEqual(plotly["layout"], expected_layout)
+        chart = dx.histogram(self.source, x="X", y="Y")
+        self.assert_bar_col_displayed_equal(chart, "X", "sum of Y")
 
-        expected_mappings = [
-            {
-                "table": 0,
-                "data_columns": {
-                    "count": ["/plotly/data/0/x"],
-                    "X": ["/plotly/data/0/y"],
-                },
-            }
-        ]
+        chart = dx.histogram(self.source, x="X", histfunc="abs_sum")
+        self.assert_bar_col_displayed_equal(chart, "X", "abs_sum")
 
-        self.assertEqual(deephaven["mappings"], expected_mappings)
+        chart = dx.histogram(self.source, x="X", histfunc="avg")
+        self.assert_bar_col_displayed_equal(chart, "X", "avg")
 
-        self.assertEqual(deephaven["is_user_set_template"], False)
-        self.assertEqual(deephaven["is_user_set_color"], False)
+        chart = dx.histogram(self.source, x="X", histfunc="count_distinct")
+        self.assert_bar_col_displayed_equal(chart, "X", "count_distinct")
 
-    def test_basic_histogram_cat_x_cat_y(self):
-        import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_LONG, NULL_DOUBLE
+        chart = dx.histogram(self.source, x="X", histfunc="max")
+        self.assert_bar_col_displayed_equal(chart, "X", "max")
 
-        # since both x and y are categories, the orientation should be set to v
-        chart = dx.histogram(self.source, x="size", y="color").to_dict(self.exporter)
-        plotly, deephaven = chart["plotly"], chart["deephaven"]
+        chart = dx.histogram(self.source, x="X", histfunc="median")
+        self.assert_bar_col_displayed_equal(chart, "X", "median")
 
-        # pop template as we currently do not modify it
-        plotly["layout"].pop("template")
+        chart = dx.histogram(self.source, x="X", histfunc="min")
+        self.assert_bar_col_displayed_equal(chart, "X", "min")
 
-        expected_data = [
-            {
-                "alignmentgroup": "True",
-                "hovertemplate": "X=%{x}<br>count=%{y}<extra></extra>",
-                "legendgroup": "",
-                "marker": {"color": "#636efa", "pattern": {"shape": ""}},
-                "name": "",
-                "offsetgroup": "",
-                "orientation": "v",
-                "showlegend": False,
-                "textposition": "auto",
-                "x": [NULL_DOUBLE],
-                "xaxis": "x",
-                "y": [NULL_LONG],
-                "yaxis": "y",
-                "type": "bar",
-            }
-        ]
+        chart = dx.histogram(self.source, x="X", histfunc="std")
+        self.assert_bar_col_displayed_equal(chart, "X", "std")
 
-        self.assertEqual(plotly["data"], expected_data)
+        chart = dx.histogram(self.source, x="X", histfunc="var")
+        self.assert_bar_col_displayed_equal(chart, "X", "var")
 
-        expected_layout = {
-            "bargap": 0,
-            "barmode": "group",
-            "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
-            "showlegend": False,
-            "xaxis": {
-                "anchor": "y",
-                "domain": [0.0, 1.0],
-                "side": "bottom",
-                "title": {"text": "X"},
-            },
-            "yaxis": {
-                "anchor": "x",
-                "domain": [0.0, 1.0],
-                "side": "left",
-                "title": {"text": "count"},
-            },
-        }
+        chart = dx.histogram(self.source, x="X", histnorm="probability")
+        self.assert_bar_col_displayed_equal(chart, "X", "fraction of sum of count")
 
-        self.assertEqual(plotly["layout"], expected_layout)
+        chart = dx.histogram(self.source, x="X", histnorm="percent")
+        self.assert_bar_col_displayed_equal(chart, "X", "percent of sum of count")
 
-        expected_mappings = [
-            {
-                "table": 0,
-                "data_columns": {
-                    "count": ["/plotly/data/0/x"],
-                    "X": ["/plotly/data/0/y"],
-                },
-            }
-        ]
+        chart = dx.histogram(self.source, x="X", histnorm="density")
+        self.assert_bar_col_displayed_equal(chart, "X", "density of count")
 
-        self.assertEqual(deephaven["mappings"], expected_mappings)
+        chart = dx.histogram(self.source, x="X", histnorm="probability density")
+        self.assert_bar_col_displayed_equal(chart, "X", "probability density of count")
 
-        self.assertEqual(deephaven["is_user_set_template"], False)
-        self.assertEqual(deephaven["is_user_set_color"], False)
+        chart = dx.histogram(self.source, x="X", y="Y", histnorm="probability")
+        self.assert_bar_col_displayed_equal(chart, "X", "fraction of sum of Y")
 
-    def test_basic_histogram_x_cat_y_v(self):
-        import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_LONG, NULL_DOUBLE
+        chart = dx.histogram(self.source, x="X", y="Y", histnorm="percent")
+        self.assert_bar_col_displayed_equal(chart, "X", "percent of sum of Y")
 
-        # setting a specific orientation overrides any other logic
-        chart = dx.histogram(self.source, x="X", y="color", orientation="v").to_dict(
-            self.exporter
+        chart = dx.histogram(self.source, x="X", y="Y", histnorm="density")
+        self.assert_bar_col_displayed_equal(chart, "X", "density weighted by Y")
+
+        chart = dx.histogram(self.source, x="X", barnorm="fraction")
+        self.assert_bar_col_displayed_equal(
+            chart, "X", "count (normalized as fraction)"
         )
-        plotly, deephaven = chart["plotly"], chart["deephaven"]
 
-        # pop template as we currently do not modify it
-        plotly["layout"].pop("template")
+        chart = dx.histogram(self.source, x="X", barnorm="percent")
+        self.assert_bar_col_displayed_equal(chart, "X", "count (normalized as percent)")
 
-        expected_data = [
-            {
-                "alignmentgroup": "True",
-                "hovertemplate": "X=%{x}<br>count=%{y}<extra></extra>",
-                "legendgroup": "",
-                "marker": {"color": "#636efa", "pattern": {"shape": ""}},
-                "name": "",
-                "offsetgroup": "",
-                "orientation": "v",
-                "showlegend": False,
-                "textposition": "auto",
-                "x": [NULL_DOUBLE],
-                "xaxis": "x",
-                "y": [NULL_LONG],
-                "yaxis": "y",
-                "type": "bar",
-            }
-        ]
-
-        self.assertEqual(plotly["data"], expected_data)
-
-        expected_layout = {
-            "bargap": 0,
-            "barmode": "group",
-            "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
-            "showlegend": False,
-            "xaxis": {
-                "anchor": "y",
-                "domain": [0.0, 1.0],
-                "side": "bottom",
-                "title": {"text": "X"},
-            },
-            "yaxis": {
-                "anchor": "x",
-                "domain": [0.0, 1.0],
-                "side": "left",
-                "title": {"text": "count"},
-            },
-        }
-
-        self.assertEqual(plotly["layout"], expected_layout)
-
-        expected_mappings = [
-            {
-                "table": 0,
-                "data_columns": {
-                    "count": ["/plotly/data/0/x"],
-                    "X": ["/plotly/data/0/y"],
-                },
-            }
-        ]
-
-        self.assertEqual(deephaven["mappings"], expected_mappings)
-
-        self.assertEqual(deephaven["is_user_set_template"], False)
-        self.assertEqual(deephaven["is_user_set_color"], False)
-
-    # histnorm, barnorm, histfunc
+        chart = dx.histogram(
+            self.source,
+            x="X",
+            y="Y",
+            histfunc="avg",
+            barnorm="percent",
+            histnorm="density",
+        )
+        self.assert_bar_col_displayed_equal(
+            chart, "X", "density of avg of Y (normalized as percent)"
+        )
 
     def test_basic_violin_x(self):
         import src.deephaven.plot.express as dx

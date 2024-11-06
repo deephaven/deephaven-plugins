@@ -55,12 +55,10 @@ class HistPreprocessorTestCase(BaseTestCase):
             "nbins": 2,
         }
 
-        expected_df = pd.DataFrame({"count": [1.0, 3.0], "X": [2, 2]})
+        expected_df = pd.DataFrame({"X": [1.0, 3.0], "tmpbar0": [2, 2]})
         remap_types(expected_df)
 
         self.tables_equal(args, expected_df)
-
-    # TODO add more tests
 
     def test_partitioned_hist(self):
         args = {
@@ -69,12 +67,12 @@ class HistPreprocessorTestCase(BaseTestCase):
             "nbins": 2,
         }
 
-        expected_df = pd.DataFrame({"count": [1.0, 3.0], "X": [1, 1]})
+        expected_df = pd.DataFrame({"X": [1.0, 3.0], "tmpbar0": [1, 1]})
         remap_types(expected_df)
 
         self.tables_equal(args, expected_df, t=self.partitioned.constituent_tables[0])
 
-        expected_df = pd.DataFrame({"count": [1.0, 3.0], "X": [1, 1]})
+        expected_df = pd.DataFrame({"X": [1.0, 3.0], "tmpbar0": [1, 1]})
         remap_types(expected_df)
 
         self.tables_equal(args, expected_df, t=self.partitioned.constituent_tables[1])

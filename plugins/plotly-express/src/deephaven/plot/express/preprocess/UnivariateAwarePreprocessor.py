@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import Any
-from .utilities import has_all_numeric_columns
 
 
 class UnivariateAwarePreprocessor:
@@ -70,19 +69,11 @@ class UnivariateAwarePreprocessor:
 
         if orientation:
             return orientation
-        elif x and y:
-            numeric_x = has_all_numeric_columns(
-                self.table, x if isinstance(x, list) else [x]
-            )
-            numeric_y = has_all_numeric_columns(
-                self.table, y if isinstance(y, list) else [y]
-            )
-            if numeric_x and not numeric_y:
-                # if both x and y are specified, the only case plotly sets orientation to 'h' by default is when x is
-                # numeric and y is not
-                return "h"
-            return "v"
         elif x:
+            # Note that this will also be the default if both are specified
+            # plotly express does some more sophisticated checking for data types
+            # when both are specified but categorical data will fail due to the
+            # engine preprocessing in our implementation so just assume vertical
             return "v"
         elif y:
             return "h"

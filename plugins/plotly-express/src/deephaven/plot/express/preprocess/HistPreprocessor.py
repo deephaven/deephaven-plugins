@@ -64,13 +64,27 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
         self.nbins = args.pop("nbins", 10)
         self.range_bins = args.pop("range_bins", None)
         # plotly express defaults to sum if both x and y are set, count if only one is set
-        self.histfunc = args.pop(
-            "histfunc", "count" if self.bar_col == self.axis_col else "sum"
-        )  # should be sum if both x and y are set
+        self.histfunc = self.determine_histfunc()
         self.barnorm = args.pop("barnorm", None)
         self.histnorm = args.pop("histnorm", None)
         self.cumulative = args.pop("cumulative", False)
         self.prepare_preprocess()
+
+    def determine_histfunc(self) -> str:
+        """
+        Determine the histfunc to use based on the arguments passed in
+
+        Returns:
+            The histfunc to use
+        """
+        histfunc = self.args.pop("histfunc", None)
+        if histfunc is None:
+            histfunc = (
+                "count"
+                if self.args.get("x") is None or self.args.get("y") is None
+                else "sum"
+            )
+        return histfunc
 
     def prepare_preprocess(self) -> None:
         """
@@ -215,30 +229,7 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
         bin_mid = self.names["bin_mid"]
 
         # in the case where only one column is aggregated on, the axis name should reflect the histfunc used
-        bar_col_displayed = self.histfunc
-
-        if axis_col != bar_col:
-            # if a different column is aggregated on, the axis name should reflect that
-            bar_col_displayed = f"{self.histfunc} of {bar_col}"
-
-        if self.histnorm:
-            if self.histfunc == "sum":
-                if self.histnorm == "probability":
-                    bar_col_displayed = f"fraction of {bar_col_displayed}"
-                elif self.histnorm == "percent":
-                    bar_col_displayed = f"percent of {bar_col_displayed}"
-                else:
-                    # in this case, plotly express uses the original column name
-                    bar_col_displayed = f"{self.histnorm} weighted by {bar_col}"
-            elif self.histnorm == "probability":
-                bar_col_displayed = f"fraction of sum of {bar_col_displayed}"
-            elif self.histnorm == "percent":
-                bar_col_displayed = f"percent of sum of {bar_col_displayed}"
-            else:
-                bar_col_displayed = f"{self.histnorm} of {bar_col_displayed}"
-
-        if self.barnorm:
-            bar_col_displayed = f"{bar_col_displayed} (normalizes as {self.barnorm})"
+        bar_col_displayed = self.create_bar_col_displayed()
 
         if not self.range_table:
             raise ValueError("Range table not created")
@@ -299,5 +290,6 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
             yield bin_counts.view([f"{axis_col} = {bin_mid}", agg_col]), {
                 self.bar_var: agg_col,
                 self.axis_var: axis_col,
+                # hist col
                 f"bar_col_displayed_{self.orientation}": bar_col_displayed,
             }
