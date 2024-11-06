@@ -92,17 +92,28 @@ Toasts may be programmatically dismissed if they become irrelevant before the us
 ```python
 from deephaven import ui
 
-
+# TODO
 @ui.component
-def counter():
-    count, set_count = use_state(0)
+def close_example():
+    close, set_close = use_state(None)
+
+    def handle_press():
+        if close is None:
+            toast_close = ui.toast_queue.positive(
+                "Unable to save", on_close=lambda: set_close(None)
+            )
+            set_close(lambda: toast_close())
+        else:
+            close()
+
     return ui.button(
-        f"Pressed {count} times",
-        on_press=lambda: set_count(count + 1),
+        "Toggle toast",
+        on_press=handle_press,
+        variant="primary",
     )
 
 
-counter_example = counter()
+my_close_example = close_example()
 ```
 
 ## API Reference
