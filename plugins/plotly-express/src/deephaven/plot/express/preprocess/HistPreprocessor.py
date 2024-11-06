@@ -290,6 +290,6 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
             yield bin_counts.view([f"{axis_col} = {bin_mid}", agg_col]), {
                 self.bar_var: agg_col,
                 self.axis_var: axis_col,
-                # hist col
+                # todo: rename to hist col
                 f"bar_col_displayed_{self.orientation}": bar_col_displayed,
             }

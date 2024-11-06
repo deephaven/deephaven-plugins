@@ -33,7 +33,7 @@ class UnivariateAwarePreprocessor:
         self.table = args["table"]
         self.orientation = self.calculate_bar_orientation()
         self.args["orientation"] = self.orientation
-        self.axis_var = "x" if args.get("x") else "y"
+        self.axis_var = "x" if self.orientation == "v" else "y"
         self.bar_var = "y" if self.axis_var == "x" else "x"
         self.axis_col: str = (
             pivot_vars["value"]

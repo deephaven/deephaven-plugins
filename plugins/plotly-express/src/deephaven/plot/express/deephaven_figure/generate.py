@@ -897,6 +897,7 @@ def calculate_hist_labels(
 
     """
     # only one should be set
+    # TODO: USE labels
     if bar_col_displayed_h:
         # a bar chart oriented horizontally has the histfunc on the x-axis
         hover_mapping["x"] = bar_col_displayed_h

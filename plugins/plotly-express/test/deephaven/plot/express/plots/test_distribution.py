@@ -473,7 +473,7 @@ class DistributionTestCase(BaseTestCase):
         expected_data = [
             {
                 "alignmentgroup": "True",
-                "hovertemplate": "X=%{x}<br>sum of Y=%{y}<extra></extra>",
+                "hovertemplate": "sum of X=%{x}<br>Y=%{y}<extra></extra>",
                 "legendgroup": "",
                 "marker": {"color": "#636efa", "pattern": {"shape": ""}},
                 "name": "",
@@ -481,9 +481,9 @@ class DistributionTestCase(BaseTestCase):
                 "orientation": "h",
                 "showlegend": False,
                 "textposition": "auto",
-                "x": [NULL_DOUBLE],
+                "x": [NULL_LONG],
                 "xaxis": "x",
-                "y": [NULL_LONG],
+                "y": [NULL_DOUBLE],
                 "yaxis": "y",
                 "type": "bar",
             }
@@ -501,13 +501,13 @@ class DistributionTestCase(BaseTestCase):
                 "anchor": "y",
                 "domain": [0.0, 1.0],
                 "side": "bottom",
-                "title": {"text": "X"},
+                "title": {"text": "sum of X"},
             },
             "yaxis": {
                 "anchor": "x",
                 "domain": [0.0, 1.0],
                 "side": "left",
-                "title": {"text": "sum of Y"},
+                "title": {"text": "Y"},
             },
         }
 
@@ -518,7 +518,7 @@ class DistributionTestCase(BaseTestCase):
                 "table": 0,
                 "data_columns": {
                     "tmpbar0": ["/plotly/data/0/x"],
-                    "X": ["/plotly/data/0/y"],
+                    "Y": ["/plotly/data/0/y"],
                 },
             }
         ]
