@@ -93,8 +93,9 @@ def link(
         href: A URL to link to.
         target: The target window for the link.
         rel: The relationship between the linked resource and the current page.
-        download: Causes the browser to download the linked URL.
         ping: A space-separated list of URLs to ping when the link is followed.
+        download: Causes the browser to download the linked URL.
+        href_lang: Hints at the human language of the linked URL.
         referrer_policy: How much of the referrer to send when following the link.
         on_press: Function called when the link is pressed.
         on_press_start: Function called when the link is pressed and held.
