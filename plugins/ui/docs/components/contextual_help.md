@@ -55,7 +55,7 @@ my_contextual_help_placement_examples = ui_contextual_help_placement_examples()
 
 ## Events
 
-The contextual help componenthas an `on_open_change` prop, triggered when the the popover opens or closes.
+The `on_open_change` prop is triggered when the popover opens or closes.
 
 ```python
 from deephaven import ui
