@@ -22,7 +22,7 @@ from deephaven import ui
 @ui.component
 def ui_link_content_examples():
     return [
-        ui.link(ui.icon("github_alt"), href="https://github.com/deephaven"),
+        ui.link(ui.icon("github"), href="https://github.com/deephaven"),
         ui.link("Deephaven Website", href="https://deephaven.io/"),
     ]
 
@@ -45,7 +45,7 @@ def ui_link_variant_examples():
         ui.link("Deephaven", href="https://deephaven.io/", variant="primary"),
         ui.link(
             "Contact the team",
-            href="https://deephaven.io/landing-page/one-on-one/",
+            href="https://deephaven.io/contact",
             variant="secondary",
         ),
     ]
@@ -66,7 +66,7 @@ my_link_over_background_example = ui.view(
     ui.link(
         "Learn more about pandas here!",
         href="https://en.wikipedia.org/wiki/Giant_panda",
-        variant="over_background",
+        variant="overBackground",
     ),
     background_color="green-500",
     padding="size-300",
@@ -81,15 +81,8 @@ The `is_quiet` prop makes the link  "quiet". This can be useful when the link an
 from deephaven import ui
 
 
-my_link_is_quiet_example = ui.view(
-    ui.action_group(
-        ui.item("Add"),
-        ui.item("Edit"),
-        ui.item("Delete"),
-        is_quiet=True,
-    ),
-    ui.text("Confused about these options? "),
-    ui.link("Learn more here", is_quiet=True),
+my_link_is_quiet_example = ui.text(
+    "You can ", ui.link("use quiet", is_quiet=True), " links inline."
 )
 ```
 
