@@ -187,6 +187,8 @@ def ui_tabs_on_change_example():
                 on_selection_change=set_selected_tab,
             ),
             background_color=get_background_color(selected_tab),
+            flex="auto",
+            width="100%",
         ),
         ui.text(f"You have selected: {selected_tab}"),
     ]
