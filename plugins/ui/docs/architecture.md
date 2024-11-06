@@ -108,7 +108,7 @@ When a component is rendered, the render task is [submitted to the Deephaven ser
 
 ### Render context
 
-Each component render in its own render context, which helps keep track of state and side effects. While rendering components, "hooks" are used to manage state and other side effects. The magic part of hooks is they work based on the order they are called within a component. When a component is rendered, a new context is set, replacing the existing context. When the component is done rendering, the context is reset to the previous context. This allows for nested components to have their own state and side effects, and for the parent component to manage the state of the child components, re-using the same context when re-rendering a child component.
+Each component renders in its own render context, which helps keep track of state and side effects. While rendering components, "hooks" are used to manage state and other side effects. The magic part of hooks is they work based on the order they are called within a component. When a component is rendered, a new context is set, replacing the existing context. When the component is done rendering, the context is reset to the previous context. This allows for nested components to have their own state and side effects, and for the parent component to manage the state of the child components, re-using the same context when re-rendering a child component.
 
 ## Communication/Callbacks
 
