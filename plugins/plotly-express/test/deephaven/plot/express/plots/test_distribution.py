@@ -911,16 +911,16 @@ class DistributionTestCase(BaseTestCase):
         self.assert_hist_agg_label_equal(chart, "X", "var")
 
         chart = dx.histogram(self.source, x="X", histnorm="probability")
-        self.assert_hist_agg_label_equal(chart, "X", "fraction of sum of count")
+        self.assert_hist_agg_label_equal(chart, "X", "probability")
 
         chart = dx.histogram(self.source, x="X", histnorm="percent")
-        self.assert_hist_agg_label_equal(chart, "X", "percent of sum of count")
+        self.assert_hist_agg_label_equal(chart, "X", "percent")
 
         chart = dx.histogram(self.source, x="X", histnorm="density")
-        self.assert_hist_agg_label_equal(chart, "X", "density of count")
+        self.assert_hist_agg_label_equal(chart, "X", "density")
 
         chart = dx.histogram(self.source, x="X", histnorm="probability density")
-        self.assert_hist_agg_label_equal(chart, "X", "probability density of count")
+        self.assert_hist_agg_label_equal(chart, "X", "probability density")
 
         chart = dx.histogram(self.source, x="X", y="Y", histnorm="probability")
         self.assert_hist_agg_label_equal(chart, "X", "fraction of sum of Y")
@@ -930,6 +930,26 @@ class DistributionTestCase(BaseTestCase):
 
         chart = dx.histogram(self.source, x="X", y="Y", histnorm="density")
         self.assert_hist_agg_label_equal(chart, "X", "density weighted by Y")
+
+        chart = dx.histogram(
+            self.source, x="X", y="Y", histnorm="probability", histfunc="avg"
+        )
+        self.assert_hist_agg_label_equal(chart, "X", "fraction of sum of avg of Y")
+
+        chart = dx.histogram(
+            self.source, x="X", y="Y", histnorm="percent", histfunc="avg"
+        )
+        self.assert_hist_agg_label_equal(chart, "X", "percent of sum of avg of Y")
+
+        chart = dx.histogram(
+            self.source, x="X", y="Y", histnorm="density", histfunc="avg"
+        )
+        self.assert_hist_agg_label_equal(chart, "X", "density of avg of Y")
+
+        chart = dx.histogram(
+            self.source, x="X", y="Y", histnorm="probability density", histfunc="avg"
+        )
+        self.assert_hist_agg_label_equal(chart, "X", "probability density of avg of Y")
 
         chart = dx.histogram(self.source, x="X", barnorm="fraction")
         self.assert_hist_agg_label_equal(chart, "X", "count (normalized as fraction)")

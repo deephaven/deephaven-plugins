@@ -172,7 +172,9 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
             hist_agg_label = f"{self.histfunc} of {relabeled_agg_col}"
 
         if self.histnorm:
-            if self.histfunc == "sum":
+            if self.histfunc == "count":
+                hist_agg_label = self.histnorm
+            elif self.histfunc == "sum":
                 if self.histnorm == "probability":
                     hist_agg_label = f"fraction of {hist_agg_label}"
                 elif self.histnorm == "percent":
