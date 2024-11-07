@@ -1,6 +1,6 @@
 # Form
 
-Forms allow users to enter data that can be submitted while providing alignment and styling for form fields
+Forms allow users to enter data that can be submitted while providing alignment and styling for form fields.
 
 ## Example
 
@@ -118,7 +118,7 @@ my_form_action = ui_form_action()
 
 ## Validation Behavior
 
-By default, validation errors will be displayed in real-time as the fields is edited but form submission is not blocked. To enable this and native HTML form validation, set `validation_behavior` to "native"
+By default, validation errors will be displayed in real-time as the fields are edited, but form submission is not blocked. To enable this and native HTML form validation, set `validation_behavior` to "native".
 
 ```python
 from deephaven import ui
@@ -205,7 +205,7 @@ my_form_disabled = ui_form_disabled()
 
 ## Necessity Indicator
 
-The `necessity_indicator` prop dictates whether form labels will use an icon or a label to outline which form fields are required. The default is "icon"
+The `necessity_indicator` prop dictates whether form labels will use an icon or a label to outline which form fields are required. The default is "icon".
 
 ```python
 from deephaven import ui
