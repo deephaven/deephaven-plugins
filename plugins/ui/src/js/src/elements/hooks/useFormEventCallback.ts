@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import React from 'react';
+import useConditionalCallback from './useConditionalCallback';
 
 export type SerializedFormEvent = {
   [key: string]: FormDataEntryValue;
@@ -9,7 +10,8 @@ export type SerializedFormEventCallback = (event: SerializedFormEvent) => void;
 export function useFormEventCallback(
   callback?: SerializedFormEventCallback
 ): ((e: React.FormEvent<HTMLFormElement>) => void) | undefined {
-  const formCallback = useCallback(
+  return useConditionalCallback(
+    callback != null,
     (e: React.FormEvent<HTMLFormElement>) => {
       // We never want the page to refresh, prevent submitting the form
       e.preventDefault();
@@ -20,6 +22,4 @@ export function useFormEventCallback(
     },
     [callback]
   );
-
-  return callback ? formCallback : undefined;
 }
