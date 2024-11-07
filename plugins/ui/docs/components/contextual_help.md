@@ -20,7 +20,7 @@ my_contextual_help_basic = ui.contextual_help(
 
 ## Placement
 
-The contextual help component supports different placement options for when the positioning of the popover needs to be customized.
+The contextual help component supports different placement options for when the popover's positioning needs to be customized.
 
 ```python
 from deephaven import ui
