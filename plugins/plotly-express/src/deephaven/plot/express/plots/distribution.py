@@ -343,11 +343,11 @@ def histogram(
     Args:
       table: A table to pull data from.
       x: A column name or list of columns that contain x-axis values.
-        Only one of x or y can be specified. If x is specified,
-        the bars are drawn horizontally.
+        Column values must be numeric. If x is specified,
+        the bars are drawn vertically by default.
       y: A column name or list of columns that contain y-axis values.
-        Only one of x or y can be specified. If y is specified, the
-        bars are drawn vertically.
+        Column values must be numeric. If only y is specified,
+        the bars are drawn horizontally by default.
       by: A column or list of columns that contain values to plot the figure traces by.
         All values or combination of values map to a unique design. The variable
         by_vars specifies which design elements are used.
@@ -379,9 +379,8 @@ def histogram(
       orientation: The orientation of the bars.
         If 'v', the bars are vertical.
         If 'h', the bars are horizontal.
-        Defaults to 'v' if only `x` is specified.
+        Defaults to 'v' if `x` is specified.
         Defaults to 'h' if only `y` is specified.
-        Defaults to 'v' if both `x` and `y` are specified unless `x` is passed only numeric columns and `y` is not.
       barmode: If 'relative', bars are stacked. If
         'overlay', bars are drawn on top of each other. If 'group', bars are
         drawn next to each other.

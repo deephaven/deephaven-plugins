@@ -6,7 +6,7 @@ from ..BaseTest import BaseTestCase
 class DistributionTestCase(BaseTestCase):
     def setUp(self) -> None:
         from deephaven import new_table
-        from deephaven.column import int_col, string_col
+        from deephaven.column import int_col
 
         self.source = new_table(
             [
@@ -14,14 +14,10 @@ class DistributionTestCase(BaseTestCase):
                 int_col("X2", [1, 2, 2, 3, 3, 3, 4, 4, 5]),
                 int_col("Y", [1, 2, 2, 3, 3, 3, 4, 4, 5]),
                 int_col("Y2", [1, 2, 2, 3, 3, 3, 4, 4, 5]),
+                int_col("size", [1, 2, 2, 3, 3, 3, 4, 4, 5]),
                 int_col("text", [1, 2, 2, 3, 3, 3, 4, 4, 5]),
                 int_col("hover_name", [1, 2, 2, 3, 3, 3, 4, 4, 5]),
                 int_col("category", [1, 2, 1, 2, 1, 2, 1, 2, 1]),
-                string_col(
-                    "color",
-                    ["red", "blue", "red", "blue", "red", "blue", "red", "blue", "red"],
-                ),
-                string_col("size", ["1", "2", "1", "2", "1", "2", "1", "2", "1"]),
             ]
         )
 
