@@ -90,6 +90,10 @@
             "path": "components/image.md"
           },
           {
+            "label": "link",
+            "path": "components/link.md"
+          },
+          {
             "label": "picker",
             "path": "components/picker.md"
           },
