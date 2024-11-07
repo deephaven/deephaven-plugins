@@ -13,7 +13,7 @@ my_link_basic = ui.link("Learn more about Deephaven", href="https://deephaven.io
 
 ## Content
 
-The link component accept other components, such as `text` and `icon`, as children.
+The link component accepts other components, such as `text` and `icon`, as children.
 
 ```python
 from deephaven import ui
