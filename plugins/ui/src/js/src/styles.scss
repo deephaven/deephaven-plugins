@@ -95,6 +95,6 @@
   section[class*='spectrum-ContextualHelp-dialog'] {
     // Our error messages can be quite large. The default size of the contextual help is only 250px and is too small.
     // Just set a size automatically based on the content.
-    width: auto;
+    width: fit-content;
   }
 }
