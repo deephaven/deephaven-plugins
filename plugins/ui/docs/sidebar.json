@@ -19,6 +19,10 @@
         "path": "installation.md"
       },
       {
+        "label": "Architecture",
+        "path": "architecture.md"
+      },
+      {
         "label": "Components",
         "items": [
           {
