@@ -93,6 +93,3 @@ my_link_is_quiet_example = ui.text(
 .. dhautofunction:: deephaven.ui.link
 ```
 
-
-
-
