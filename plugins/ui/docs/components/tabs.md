@@ -28,7 +28,7 @@ my_tabs_basic = ui.tabs(
 
 ## Content
 
-Tabs can be created using `ui.tab`, or usiing `ui.tab_list` and `ui.tab_panels`, but not the two options combined. 
+Tabs can be created using `ui.tab`, or using `ui.tab_list` and `ui.tab_panels`, but not the two options combined. 
 
 If you want a default tab layout with minimal customization for tab appearance, tabs should be created by passing in `ui.tab` to `ui.tabs`.
 
@@ -245,7 +245,7 @@ my_tabs_density_examples = ui_tabs_density_examples()
 
 ## Quiet State
 
-The `is_quiet` prop makes tabs "quiet" by removing the line separating the tab titles' and panel contents. This can be useful when the tabs should not distract users from surrounding content.
+The `is_quiet` prop makes tabs "quiet" by removing the line separating the tab titles and panel contents. This can be useful when the tabs should not distract users from surrounding content.
 
 ```python
 from deephaven import ui
@@ -278,7 +278,7 @@ my_tabs_is_disabled_example = ui.tabs(
 
 ## Orientation
 
-By default, tabs are horizontally oriented. To have tabs be vertically orientated, the `orientation` prop can be set to "vertical".
+By default, tabs are horizontally oriented. To change the tabs' orientation, set the `orientation` prop to "vertical".
 
 ```python
 from deephaven import ui
@@ -313,7 +313,7 @@ my_tabs_orientation_examples = ui_tabs_orientation_examples()
 
 If there isn't enough horizontal space to render all tabs on a single line, the component will automatically collapse all tabs into a Picker. 
 
-Note this only occurs when tabs have a horizontal orientation; for vertical orientation of tabs, the list continues to extend downwards.
+Note that this only occurs when tabs are horizontally oriented; when tabs are vertically oriented, the list continues to extend downwards.
 
 ```python
 from deephaven import ui
