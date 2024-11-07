@@ -4,7 +4,7 @@ deephaven.ui is a flexible and extensible [React-like](https://react.dev/learn/t
 
 ## Components
 
-Components are re-usable pieces of UI that can be composed together to create complex UIs. Each component defines it's own logic and appearance. Components can be simple, like a button, or complex, like a table with controls for filtering and sorting. Components can also be composed of other components, allowing for complex UIs to be built up from simpler pieces.
+Components are reusable pieces of UI that can be combined to create complex UIs. Each component defines its own logic and appearance. Components can be simple, like a button, or complex, like a table with controls for filtering and sorting. Components can also be composed of other components, allowing for complex UIs to be built up from simpler pieces.
 
 Components are created using the `@ui.component` decorator. This decorator takes a function that returns a list of components, and returns a new function that can be called to render the component. The function returned by the decorator is called a "component function". Calling the function and assigning it to a variable will create an "element" that can be rendered by the client.
 
