@@ -19,8 +19,6 @@ HISTFUNC_AGGS = {
     "sum": agg.sum_,
     "var": agg.var,
 }
-# todo: more types here?
-NUMERIC_TYPES = {"short", "int", "long", "float", "double"}
 
 
 def get_aggs(

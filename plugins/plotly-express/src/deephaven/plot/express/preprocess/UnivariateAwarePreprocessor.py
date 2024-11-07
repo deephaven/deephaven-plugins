@@ -11,16 +11,21 @@ class UnivariateAwarePreprocessor:
 
     Args:
         args: Figure creation args
-        pivot_vars: Pivot vars that have the new column names
+        pivot_vars: The vars with new column names if a list was passed in
+        list_var: The var that was passed in as a list
 
     Attributes:
         args: dict[str, str]: Figure creation args
         table: Table: The table to use
-        axis_var: str: The main var. The list of vars was passed to this arg.
-        bar_var: The other var.
-        col_val: str: The value column, which is the value in pivot_var if
-          there is a list, otherwise the arg passed to var
-        cols: list[str]: The columns that are being used
+        bin_var: str: The arg that the bins are calculated on. Should be x or y.
+        agg_var: str: The arg that the values are aggregated on. Should be y or x.
+        bin_col: str: The column that the bins are calculated on.
+            Generally will be whatever column is specified by bin_var,
+            but can be different if a list was passed in.
+        agg_col: str: The column that the values are aggregated on.
+            Generally will be whatever column is specified by agg_var,
+            but can be different if a list was passed in.
+        orientation: str: The orientation of the plot. Should be 'v' or 'h'.
     """
 
     def __init__(
@@ -33,35 +38,28 @@ class UnivariateAwarePreprocessor:
         self.table = args["table"]
         self.orientation = self.calculate_bar_orientation()
         self.args["orientation"] = self.orientation
-        self.axis_var = "x" if self.orientation == "v" else "y"
-        self.bar_var = "y" if self.axis_var == "x" else "x"
-        self.axis_col: str = (
+        self.bin_var = "x" if self.orientation == "v" else "y"
+        self.agg_var = "y" if self.bin_var == "x" else "x"
+        self.bin_col: str = (
             pivot_vars["value"]
-            if pivot_vars and list_var and list_var == self.axis_var
-            else args[self.axis_var]
-        )
-        self.axis_cols = (
-            self.axis_col if isinstance(self.axis_col, list) else [self.axis_col]
+            if pivot_vars and list_var and list_var == self.bin_var
+            else args[self.bin_var]
         )
 
-        # if value_var is not set, the value column is the same as the axis column because both the axis bins and value
-        # are computed from the same inputs
-        if self.args.get(self.bar_var):
-            self.bar_col: str = (
+        if self.args.get(self.agg_var):
+            self.agg_col: str = (
                 pivot_vars["value"]
-                if pivot_vars and list_var and list_var == self.bar_var
-                else args[self.bar_var]
-            )
-            self.bar_cols = (
-                self.bar_col if isinstance(self.bar_col, list) else [self.bar_col]
+                if pivot_vars and list_var and list_var == self.agg_var
+                else args[self.agg_var]
             )
         else:
-            self.bar_col = self.axis_col
-            self.bar_cols = self.axis_cols
+            # if bar_var is not set, the value column is the same as the axis column
+            # because both the axis bins and value are computed from the same inputs
+            self.agg_col = self.bin_col
 
     def calculate_bar_orientation(self):
         """
-        Calculate the orientation of the plot
+        Calculate the orientation of the plot.
         """
         orientation = self.args.get("orientation")
         x = self.args.get("x")
