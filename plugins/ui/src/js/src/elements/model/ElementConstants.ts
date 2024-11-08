@@ -59,6 +59,7 @@ export const ELEMENT_NAME = {
   radioGroup: uiComponentName('RadioGroup'),
   rangeCalendar: uiComponentName('RangeCalendar'),
   rangeSlider: uiComponentName('RangeSlider'),
+  searchField: uiComponentName('SearchField'),
   section: uiComponentName('Section'),
   slider: uiComponentName('Slider'),
   switch: uiComponentName('Switch'),
