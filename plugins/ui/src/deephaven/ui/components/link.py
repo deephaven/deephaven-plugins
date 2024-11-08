@@ -1,35 +1,44 @@
 from __future__ import annotations
 from typing import Any, Callable
 from .types import (
-    # Validation
-    ContextualHelperVariant,
-    # Layout
+    Target,
+    FocusEventCallable,
+    KeyboardEventCallable,
+    PressEventCallable,
     AlignSelf,
     CSSProperties,
     DimensionValue,
     JustifySelf,
     LayoutFlex,
-    Placement,
     Position,
 )
 from .basic import component_element
 from ..elements import Element
+from ..types import LinkVariant
 
 
-def contextual_help(
-    heading: Any,
-    content: Any,
-    footer: Any = None,
-    *,
-    variant: ContextualHelperVariant | None = "help",
-    placement: Placement | None = "bottom start",
-    is_open: bool | None = None,
-    default_open: bool | None = None,
-    container_padding: float | None = None,
-    offset: float | None = None,
-    cross_offset: float | None = None,
-    should_flip: bool | None = None,
-    on_open_change: Callable[[bool], None] | None = None,
+def link(
+    *children: Any,
+    variant: LinkVariant | None = "primary",
+    is_quiet: bool | None = None,
+    auto_focus: bool | None = None,
+    href: str | None = None,
+    target: Target | None = None,
+    rel: str | None = None,
+    ping: str | None = None,
+    download: str | None = None,
+    href_lang: str | None = None,
+    referrer_policy: str | None = None,
+    on_press: PressEventCallable | None = None,
+    on_press_start: PressEventCallable | None = None,
+    on_press_end: PressEventCallable | None = None,
+    on_press_up: PressEventCallable | None = None,
+    on_press_change: Callable[[bool], None] | None = None,
+    on_focus: FocusEventCallable | None = None,
+    on_blur: FocusEventCallable | None = None,
+    on_focus_change: Callable[[bool], None] | None = None,
+    on_key_down: KeyboardEventCallable | None = None,
+    on_key_up: KeyboardEventCallable | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,
@@ -40,10 +49,10 @@ def contextual_help(
     grid_area: str | None = None,
     grid_row: str | None = None,
     grid_column: str | None = None,
-    grid_column_start: str | None = None,
-    grid_column_end: str | None = None,
     grid_row_start: str | None = None,
     grid_row_end: str | None = None,
+    grid_column_start: str | None = None,
+    grid_column_end: str | None = None,
     margin: DimensionValue | None = None,
     margin_top: DimensionValue | None = None,
     margin_bottom: DimensionValue | None = None,
@@ -66,31 +75,38 @@ def contextual_help(
     end: DimensionValue | None = None,
     z_index: int | None = None,
     is_hidden: bool | None = None,
-    id: str | None = None,
     aria_label: str | None = None,
     aria_labelledby: str | None = None,
     aria_describedby: str | None = None,
     aria_details: str | None = None,
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
-    key: str | None = None,
 ) -> Element:
     """
-    A contextual help is a quiet action button that triggers an informational popover.
+    A link is used for navigating between locations.
 
     Args:
-        heading: The heading of the popover.
-        content: The content of the popover.
-        footer: The footer of the popover.
-        variant: Indicates whether contents are informative or provides helpful guidance.
-        placement: The placement of the popover relative to the action button.
-        is_open: Whether the popover is open by default (controlled).
-        default_open: Whether the popover is open by default (uncontrolled).
-        container_padding: The placement padding that should be applied between the element and its surrounding container.
-        offset: The additional offset applied along the main axis between the element and its anchor element.
-        cross_offset: The additional offset applied along the cross axis between the element and its anchor element.
-        should_flip: Whether the element should flip its orientation when there is insufficient room for it to render completely.
-        on_open_change: Handler that is called when the overlay's open state changes.
+        *children: The content to display in the link.
+        variant: The background color of the link.
+        is_quiet: Whether the link should be displayed with a quiet style.
+        auto_focus: Whether the element should receive focus on render.
+        href: A URL to link to.
+        target: The target window for the link.
+        rel: The relationship between the linked resource and the current page.
+        ping: A space-separated list of URLs to ping when the link is followed.
+        download: Causes the browser to download the linked URL.
+        href_lang: Hints at the human language of the linked URL.
+        referrer_policy: How much of the referrer to send when following the link.
+        on_press: Function called when the link is pressed.
+        on_press_start: Function called when the link is pressed and held.
+        on_press_end: Function called when the link is released after being pressed.
+        on_press_up: Function called when the link is released.
+        on_press_change: Function called when the pressed state changes.
+        on_focus: Function called when the link receives focus.
+        on_blur: Function called when the link loses focus.
+        on_focus_change: Function called when the focus state changes.
+        on_key_down: Function called when a key is pressed down.
+        on_key_up: Function called when a key is released.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -127,33 +143,40 @@ def contextual_help(
         end: The logical end position of the element, depending on layout direction.
         z_index: The stacking order for the element
         is_hidden: Hides the element.
-        id: The unique identifier of the element.
         aria_label: Defines a string value that labels the current element.
         aria_labelledby: Identifies the element (or elements) that labels the current element.
         aria_describedby: Identifies the element (or elements) that describes the object.
         aria_details: Identifies the element (or elements) that provide a detailed, extended description for the object.
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
-        key: A unique identifier used by React to render elements in a list.
 
     Returns:
-        The rendered contextual help component.
+        The rendered link element.
 
     """
     return component_element(
-        "ContextualHelp",
-        heading=heading,
-        content=content,
-        footer=footer,
+        "Link",
+        *children,
         variant=variant,
-        placement=placement,
-        is_open=is_open,
-        default_open=default_open,
-        container_padding=container_padding,
-        offset=offset,
-        cross_offset=cross_offset,
-        should_flip=should_flip,
-        on_open_change=on_open_change,
+        is_quiet=is_quiet,
+        auto_focus=auto_focus,
+        href=href,
+        target=target,
+        rel=rel,
+        ping=ping,
+        download=download,
+        href_lang=href_lang,
+        referrer_policy=referrer_policy,
+        on_press=on_press,
+        on_press_start=on_press_start,
+        on_press_end=on_press_end,
+        on_press_up=on_press_up,
+        on_press_change=on_press_change,
+        on_focus=on_focus,
+        on_blur=on_blur,
+        on_focus_change=on_focus_change,
+        on_key_down=on_key_down,
+        on_key_up=on_key_up,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
@@ -164,10 +187,10 @@ def contextual_help(
         grid_area=grid_area,
         grid_row=grid_row,
         grid_column=grid_column,
-        grid_column_start=grid_column_start,
-        grid_column_end=grid_column_end,
         grid_row_start=grid_row_start,
         grid_row_end=grid_row_end,
+        grid_column_start=grid_column_start,
+        grid_column_end=grid_column_end,
         margin=margin,
         margin_top=margin_top,
         margin_bottom=margin_bottom,
@@ -190,12 +213,10 @@ def contextual_help(
         end=end,
         z_index=z_index,
         is_hidden=is_hidden,
-        id=id,
         aria_label=aria_label,
         aria_labelledby=aria_labelledby,
         aria_describedby=aria_describedby,
         aria_details=aria_details,
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
-        key=key,
     )

@@ -506,6 +506,7 @@ ListViewDensity = Literal["COMPACT", "NORMAL", "SPACIOUS"]
 ListViewOverflowMode = Literal["truncate", "wrap"]
 ActionGroupDensity = Literal["compact", "regular"]
 TabDensity = Literal["compact", "regular"]
+LinkVariant = Literal["primary", "secondary", "over_background"]
 Dependencies = Union[Tuple[Any], List[Any]]
 Selection = Sequence[Key]
 LocalTime = DType
