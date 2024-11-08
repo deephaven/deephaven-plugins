@@ -92,7 +92,7 @@ Toasts may be programmatically dismissed if they become irrelevant before the us
 ```python
 from deephaven import ui
 
-# TODO
+
 @ui.component
 def close_example():
     close, set_close = use_state(None)
