@@ -49,6 +49,7 @@ import Dashboard from '../layout/Dashboard';
 import {
   ActionButton,
   ActionGroup,
+  Badge,
   Button,
   Calendar,
   ComboBox,
@@ -110,6 +111,7 @@ export const elementComponentMap = {
   [ELEMENT_NAME.actionButton]: ActionButton,
   [ELEMENT_NAME.actionGroup]: ActionGroup,
   [ELEMENT_NAME.actionMenu]: ActionMenu,
+  [ELEMENT_NAME.badge]: Badge,
   [ELEMENT_NAME.button]: Button,
   [ELEMENT_NAME.buttonGroup]: ButtonGroup,
   [ELEMENT_NAME.calendar]: Calendar,

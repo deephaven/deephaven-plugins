@@ -26,6 +26,7 @@ export const ELEMENT_NAME = {
   actionButton: uiComponentName('ActionButton'),
   actionGroup: uiComponentName('ActionGroup'),
   actionMenu: uiComponentName('ActionMenu'),
+  badge: uiComponentName('Badge'),
   button: uiComponentName('Button'),
   buttonGroup: uiComponentName('ButtonGroup'),
   calendar: uiComponentName('Calendar'),
