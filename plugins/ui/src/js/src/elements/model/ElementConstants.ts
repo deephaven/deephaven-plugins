@@ -50,6 +50,7 @@ export const ELEMENT_NAME = {
   item: uiComponentName('Item'),
   listActionGroup: uiComponentName('ListActionGroup'),
   listActionMenu: uiComponentName('ListActionMenu'),
+  link: uiComponentName('Link'),
   listView: uiComponentName('ListView'),
   numberField: uiComponentName('NumberField'),
   picker: uiComponentName('Picker'),
