@@ -284,7 +284,7 @@ t = ui.table(
 
 ![Example of column order and visibility](../_assets/table_column_order.png)
 
-## Column Display Names
+## Column display names
 
 You can set custom display names for columns using the `column_display_names` prop. The `column_display_names` prop takes a dictionary where the key is the column name and the value is the display name. The display name can be any string, so this can be used to show a user-friendly name that does not adhere to column naming rules.
 
