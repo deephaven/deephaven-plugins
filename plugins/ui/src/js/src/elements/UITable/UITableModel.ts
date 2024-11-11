@@ -27,7 +27,8 @@ export async function makeUiTableModel(
   table: DhType.Table,
   databars: DatabarConfig[],
   layoutHints: UITableLayoutHints,
-  format: FormattingRule[]
+  format: FormattingRule[],
+  displayNameMap: Record<string, string>
 ): Promise<UITableModel> {
   const joinColumns: string[] = [];
   const totalsOperationMap: Record<string, string[]> = {};
@@ -113,6 +114,7 @@ export async function makeUiTableModel(
     table: uiTableProxy,
     databars,
     format,
+    displayNameMap,
   });
 }
 
@@ -150,6 +152,8 @@ class UITableModel extends IrisGridModel {
    */
   private colorMap: Map<string, string> = new Map();
 
+  private displayNameMap: Record<string, string>;
+
   private format: FormattingRule[];
 
   constructor({
@@ -158,17 +162,20 @@ class UITableModel extends IrisGridModel {
     table,
     databars,
     format,
+    displayNameMap,
   }: {
     dh: typeof DhType;
     model: IrisGridModel;
     table: DhType.Table;
     databars: DatabarConfig[];
     format: FormattingRule[];
+    displayNameMap: Record<string, string>;
   }) {
     super(dh);
 
     this.model = model;
     this.table = table;
+    this.displayNameMap = displayNameMap;
 
     this.databars = new Map<ColumnName, DatabarConfig>();
     databars.forEach(databar => {
@@ -218,6 +225,21 @@ class UITableModel extends IrisGridModel {
         return Reflect.set(target.model, prop, value, target.model);
       },
     });
+  }
+
+  override textForColumnHeader(
+    column: ModelIndex,
+    depth?: number
+  ): string | undefined {
+    const originalText = this.model.textForColumnHeader(column, depth);
+    if (originalText == null) {
+      return originalText;
+    }
+
+    if (originalText in this.displayNameMap) {
+      return this.displayNameMap[originalText];
+    }
+    return originalText;
   }
 
   setColorMap(colorMap: Map<string, string>): void {
