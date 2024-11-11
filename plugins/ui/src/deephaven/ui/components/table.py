@@ -49,6 +49,7 @@ class TableFormat:
     value: str | Undefined = UNDEFINED
     mode: TableDatabar | Undefined = UNDEFINED
 
+
 @dataclass
 class TableDatabar:
     """
