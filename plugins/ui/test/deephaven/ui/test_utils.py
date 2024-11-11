@@ -78,6 +78,13 @@ class UtilsTest(BaseTestCase):
             dict_to_camel_case({"bar": "biz", "UNSAFE_class_name": "harry"}),
             {"bar": "biz", "UNSAFEClassName": "harry"},
         )
+        # Test leading/trailing underscore
+        self.assertDictEqual(
+            dict_to_camel_case(
+                {"foo_": "bar", "_baz": "biz", "__youre_a_wizard__": "Harry"}
+            ),
+            {"foo_": "bar", "_baz": "biz", "__youreAWizard__": "Harry"},
+        )
 
     def test_dict_to_react_props(self):
         from deephaven.ui._internal.utils import dict_to_react_props
@@ -99,6 +106,13 @@ class UtilsTest(BaseTestCase):
                 {"bar": "biz", "UNSAFE_class_name": "harry", "aria_label": "ron"}
             ),
             {"bar": "biz", "UNSAFE_className": "harry", "aria-label": "ron"},
+        )
+        # Test trailing underscore
+        self.assertDictEqual(
+            dict_to_react_props(
+                {"foo_": "bar", "_baz": "biz", "__youre_a_wizard__": "Harry"}
+            ),
+            {"foo_": "bar", "_baz": "biz", "__youreAWizard__": "Harry"},
         )
 
     def test_remove_empty_keys(self):

@@ -73,13 +73,29 @@ You should be able to pass arguments to these commands as if you were running Pl
 It is highly recommended to use `npm run e2e:docker` (instead of `npm run e2e`) as CI also uses the same environment. You can also use `npm run e2e:update-snapshots` to regenerate snapshots in said environment. Run Playwright in [UI Mode](https://playwright.dev/docs/test-ui-mode) with `npm run e2e:ui` when creating new tests or debugging, as this will allow you to run each test individually, see the browser as it runs it, inspect the console, evaluate locators, etc.
 
 ### Running Python tests
-
-The above steps will also set up `tox` to run tests for the python plugins that support it.
+The [venv setup](#pre-commit-hookspython-formatting) steps will also set up `tox` to run tests for the python plugins that support it.
+Note that `tox` sets up an isolated environment for running tests.  
+Be default, `tox` will run against Python 3.8, which will need to be installed on your system before running tests.
 You can run tests with the following command from the `plugins/<plugin>` directory:
-
 ```shell
 tox -e py
 ```
+
+> [!IMPORTANT]
+> Linux, and possibly other setups such as MacOS depending on method, may require additional packages to be installed to run Python 3.8.
+> ```shell
+> sudo apt install python3.8 python3.8-distutils libpython3.8
+> # or just full install although it will include more packages than necessary
+> sudo apt install python3.8-full
+> ```
+
+You can also run tests against a specific version of python by appending the version to `py`  
+This assumes that the version of Python you're targeting is installed on your system.  
+For example, to run tests against Python 3.12, run:  
+```shell
+tox -e py3.12
+```
+
 
 ### Running plugin against deephaven-core
 

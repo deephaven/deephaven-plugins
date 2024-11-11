@@ -1900,6 +1900,211 @@ date_range_picker7 = ui.date_range_picker(
 )
 ```
 
+###### ui.dialog
+
+Dialogs are windows containing contextual information, tasks, or workflows that appear over the user interface. Depending on the kind of Dialog, further interactions may be blocked until the Dialog is acknowledged.
+
+```py
+import deephaven.ui as ui
+ui.dialog(
+    *children: Any,
+    size: DialogSize | None = None,
+    is_dismissable: bool | None = None,
+    on_dismiss: Callable[[], None] | None = None,
+    **props: Any
+) -> DialogElement
+```
+
+###### Content
+
+The content can be populated by providing the following components to your `dialog` as children:
+
+- `header` (optional)
+- `heading` (title, required)
+- `divider` (optional)
+- `content` (body, required)
+- `button_group` (optional)
+- `footer` (optional)
+
+###### Parameters
+
+| Parameter        | Type                         | Description                                                                             |
+| ---------------- | ---------------------------- | --------------------------------------------------------------------------------------- |
+| `*children`      | `Any`                        | The contents of the Dialog.                                                             |
+| `size`           | `DialogSize \| None`         | The size of the Dialog. Either `S`, `M`, or `L` . Only applies to "modal" type Dialogs. |
+| `is_dismissable` | `bool \| None`               | Whether the Dialog is dismissable.                                                      |
+| `on_dismiss`     | `Callable[[], None] \| None` | Handler that is called when the 'x' button of a dismissable Dialog is clicked.          |
+| `**props`        | `Any`                        | Any other [Dialog](https://react-spectrum.adobe.com/react-spectrum/Dialog.html) prop    |
+
+```py
+from deephaven import ui
+
+# Open and closed using flag (controlled)
+@ui.component
+def open_close_example():
+    is_open, set_open = ui.use_boolean()
+    return ui.dialog_trigger(
+        ui.action_button("Open dialog", on_press=set_open.on),
+        ui.dialog(ui.heading("Dialog"), ui.content("Close using the button."), ui.button_group(ui.button("close", on_press=set_open.off))),
+        is_open=is_open
+    )
+
+my_open_close_example = open_close_example()
+
+# Dismissable (uncontrolled)
+my_dismissable = ui.dialog_trigger(
+        ui.action_button("Open dialog",),
+        ui.dialog(
+            ui.heading("Dialog"),
+            ui.content("Dismiss using the X button."),
+            is_dismissable=True,
+            ),
+    )
+
+# A small dialog
+my_small = ui.dialog_trigger(
+        ui.action_button("Open dialog",),
+        ui.dialog(ui.heading("Dialog"), ui.content("Dismiss using the X button."), is_dismissable=True, size="S"),
+    )
+
+from deephaven import ui
+
+# Dismissable callback (controlled)
+@ui.component
+def dismissable_callback():
+    is_open, set_open = ui.use_boolean()
+    return ui.dialog_trigger(
+        ui.action_button("Open dialog", on_press=set_open.on),
+        ui.dialog(ui.heading("Dialog"),
+            ui.content("Dismiss using the X button."),
+            is_dismissable=True,
+            on_dismiss=set_open.off
+            ),
+        is_open=is_open
+    )
+
+my_dismissable_callback = dismissable_callback()
+```
+
+###### ui.dialog_trigger
+
+`dialog_trigger` serves as a wrapper around a `dialog` and its associated trigger, linking the `dialog's` open state with the trigger's press state. Additionally, it allows you to customize the type and positioning of the `dialog`.
+
+```py
+import deephaven.ui as ui
+ui.dialog_trigger(
+    *children: Element,
+    type: DialogTriggerType | None = "modal",
+    placement: Placement | None = "bottom",
+    is_open: bool | None = None,
+    default_open: bool | None = None,
+    container_padding: float | None = None,
+    offset: float | None = None,
+    cross_offset: float | None = None,
+    should_flip: bool | None = None,
+    hide_arrow: bool | None = None,
+    is_dismissable: bool | None = None,
+    is_keyboard_dismiss_disabled: bool | None = None,
+    on_open_change: Callable[[bool], None] | None = None,
+    **props: Any
+) -> DialogTriggerElement
+```
+
+###### Dialog types
+
+By providing a `type` prop, you can specify the type of `dialog` that is rendered by your `dialog_trigger`.
+
+- `modal`
+- `popover`
+- `tray`
+- `fullscreen`
+- `fullscreenTakeover`
+
+###### Parameters
+
+| Parameter                      | Type                             | Description                                                                                                  |
+| ------------------------------ | -------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `*children`                    | `Element`                        | The Dialog and its trigger element.                                                                          |
+| `type`                         | `DialogTriggerType \| None`      | The type of Dialog that should be rendered.                                                                  |
+| `placement`                    | `Placement \| None`              | The placement of the popover relative to the action button.                                                  |
+| `is_open`                      | `bool \| None`                   | Whether the popover is open by default (controlled).                                                         |
+| `default_open`                 | `bool \| None`                   | Whether the popover is open by default (uncontrolled).                                                       |
+| `container_padding`            | `float \| None`                  | The placement padding that should be applied between the element and its surrounding container.              |
+| `offset`                       | `float \| None`                  | The additional offset applied along the main axis between the element and its anchor element.                |
+| `cross_offset`                 | `float \| None`                  | The additional offset applied along the cross axis between the element and its anchor element.               |
+| `should_flip`                  | `bool \| None`                   | Whether the element should flip its orientation when there is insufficient room for it to render completely. |
+| `hide_arrow`                   | `bool \| None`                   | Whether a popover type Dialog's arrow should be hidden.                                                      |
+| `is_dismissable`               | `bool \| None`                   | Whether a modal type Dialog should be dismissable.                                                           |
+| `is_keyboard_dismiss_disabled` | `bool \| None`                   | Whether pressing the escape key to close the dialog should be disabled.                                      |
+| `on_open_change`               | `Callable[[bool], None] \| None` | Handler that is called when the overlay's open state changes.                                                |
+| `**props`                      | `Any`                            | Any other [Dialog](https://react-spectrum.adobe.com/react-spectrum/Dialog.html) prop                         |
+
+```py
+from deephaven import ui
+
+# Open and closed using flag (controlled)
+@ui.component
+def open_close_example():
+    is_open, set_open = ui.use_boolean()
+    return ui.dialog_trigger(
+        ui.action_button("Open dialog", on_press=set_open.on),
+        ui.dialog(ui.heading("Dialog"), ui.content("Close using the button."), ui.button_group(ui.button("close", on_press=set_open.off))),
+        is_open=is_open
+    )
+
+my_open_close_example = open_close_example()
+
+# Dismissable (uncontrolled)
+my_dismissable = ui.dialog_trigger(
+        ui.action_button("Open dialog",),
+        ui.dialog(
+            ui.heading("Dialog"),
+            ui.content("Dismiss using the X button."),
+            ),
+        is_dismissable=True,
+    )
+
+# popover
+my_popover = ui.dialog_trigger(
+        ui.action_button("Open dialog",),
+        ui.dialog(
+            ui.heading("Dialog"),
+            ui.content("Popover."),
+            ),
+        type="popover"
+    )
+
+# tray
+my_tray = ui.dialog_trigger(
+        ui.action_button("Open dialog",),
+        ui.dialog(
+            ui.heading("Dialog"),
+            ui.content("Tray."),
+            ),
+        type="tray"
+    )
+
+# fullscreen
+my_fullscreen = ui.dialog_trigger(
+        ui.action_button("Open dialog",),
+        ui.dialog(
+            ui.heading("Dialog"),
+            ui.content("Fullscreen."),
+            ),
+        type="fullscreen"
+    )
+
+# takeover
+my_takeover = ui.dialog_trigger(
+        ui.action_button("Open dialog",),
+        ui.dialog(
+            ui.heading("Dialog"),
+            ui.content("Fullscreen takeover."),
+            ),
+        type="fullscreenTakeover"
+    )
+```
+
 ##### ui.combo_box
 
 A combo_box that can be used to search or select from a list. Children should be one of five types:
@@ -3362,112 +3567,6 @@ With callbacks, there will be a delay between when the user makes changes in the
 ##### Language Compatibility
 
 The above examples are all in Python, and particularly take some advantage of language constructs in python (such as positional arguments and kwargs). We should consider how it would work in Groovy/Java as well, and how we can build one on top of the other.
-
-#### Architecture
-
-##### Rendering
-
-When you call a function decorated by `@ui.component`, it will return an `Element` object that has a reference to the function it is decorated; that is to say, the function does _not_ get run immediately. The function is only run when the `Element` is rendered by the client, and the result is sent back to the client. This allows the `@ui.component` decorator to execute the function with the appropriate rendering context. The client must also set the initial state before rendering, allowing the client to persist the state and re-render in the future.
-
-Let's say we execute the following, where a table is filtered based on the value of a text input:
-
-```python
-from deephaven import ui
-
-
-@ui.component
-def text_filter_table(source, column, initial_value=""):
-    value, set_value = ui.use_state(initial_value)
-    ti = ui.text_field(value=value, on_change=set_value)
-    tt = source.where(f"{column}=`{value}`")
-    return [ti, tt]
-
-
-# This will render two panels, one filtering the table by Sym, and the other by Exchange
-@ui.component
-def double_text_filter_table(source):
-    tft1 = text_filter_table(source, "Sym")
-    tft2 = text_filter_table(source, "Exchange")
-    return ui.panel(tft1, title="Sym"), ui.panel(tft2, title="Exchange")
-
-
-import deephaven.plot.express as dx
-
-_stocks = dx.data.stocks()
-
-tft = double_text_filter_table(_stocks)
-```
-
-Which should result in a UI like this:
-
-![Double Text Filter Tables](docs/_assets/double-tft.png)
-
-How does that look when the notebook is executed? When does each code block execute?
-
-```mermaid
-sequenceDiagram
-  participant U as User
-  participant W as Web UI
-  participant UIP as UI Plugin
-  participant C as Core
-  participant SP as Server Plugin
-
-  U->>W: Run notebook
-  W->>C: Execute code
-  C->>SP: is_type(object)
-  SP-->>C: Matching plugin
-  C-->>W: VariableChanges(added=[t, tft])
-
-  W->>UIP: Open tft
-  UIP->>C: Export tft
-  C-->>UIP: tft (Element)
-
-  Note over UIP: UI knows about object tft<br/>double_text_filter_table not executed yet
-
-  UIP->>SP: Render tft (initialState)
-  SP->>SP: Run double_text_filter_table
-  Note over SP: double_text_filter_table executes, running text_filter_table twice
-  SP-->>UIP: Result (document=[panel(tft1), pane(tft2)], exported_objects=[tft1, tft2])
-  UIP-->>W: Display Result
-
-  U->>UIP: Change text input 1
-  UIP->>SP: Change state
-  SP->>SP: Run double_text_filter_table
-  Note over SP: double_text_filter_table executes, text_filter_table only <br/>runs once for the one changed input<br/>only exports the new table, as client already has previous tables
-  SP-->>UIP: Result (document=[panel(tft1'), panel(tft2)], state={}, exported_objects=[tft1'])
-  UIP-->>W: Display Result
-```
-
-##### Communication/Callbacks
-
-When the document is first rendered, it will pass the entire document to the client. When the client makes a callback, it needs to send a message to the server indicating which callback it wants to trigger, and with which parameters. For this, we use [JSON-RPC](https://www.jsonrpc.org/specification). When the client opens the message stream to the server, the communication looks like:
-
-```mermaid
-sequenceDiagram
-  participant UIP as UI Plugin
-  participant SP as Server Plugin
-
-    Note over UIP, SP: Uses JSON-RPC
-  UIP->>SP: setState(initialState)
-  SP-->>UIP: documentUpdated(Document, State)
-
-  loop Callback
-    UIP->>SP: foo(params)
-    SP-->>UIP: foo result
-    SP->>UIP: documentUpdated(Document, State)
-      Note over UIP: Client can store State to restore the same state later
-  end
-```
-
-##### Communication Layers
-
-A component that is created on the server side runs through a few steps before it is rendered on the client side:
-
-1. [Element](./src/deephaven/ui/elements/Element.py) - The basis for all UI components. Generally a [FunctionElement](./src/deephaven/ui/elements/FunctionElement.py) created by a script using the [@ui.component](./src/deephaven/ui/components/make_component.py) decorator, and does not run the function until it is rendered. The result can change depending on the context that it is rendered in (e.g. what "state" is set).
-2. [ElementMessageStream](./src/deephaven/ui/object_types/ElementMessageStream.py) - The `ElementMessageStream` is responsible for rendering one instance of an element in a specific rendering context and handling the server-client communication. The element is rendered to create a [RenderedNode](./src/deephaven/ui/renderer/RenderedNode.py), which is an immutable representation of a rendered document. The `RenderedNode` is then encoded into JSON using [NodeEncoder](./src/deephaven/ui/renderer/NodeEncoder.py), which pulls out all the non-serializable objects (such as Tables) and maps them to exported objects, and all the callables to be mapped to commands that can be accepted by JSON-RPC. This is the final representation of the document that is sent to the client, and ultimately handled by the `WidgetHandler`.
-3. [DashboardPlugin](./src/js/src/DashboardPlugin.tsx) - Client side `DashboardPlugin` that listens for when a widget of type `Element` is opened, and manage the `WidgetHandler` instances that are created for each widget.
-4. [WidgetHandler](./src/js/src/WidgetHandler.tsx) - Uses JSON-RPC communication with an `ElementMessageStream` instance to load the initial rendered document and associated exported objects. Listens for any changes and updates the document accordingly.
-5. [DocumentHandler](./src/js/src/DocumentHandler.tsx) - Handles the root of a rendered document, laying out the appropriate panels or dashboard specified.
 
 #### Other Decisions
 

@@ -1,5 +1,6 @@
 export * from './ActionButton';
 export * from './ActionGroup';
+export * from './Badge';
 export * from './Button';
 export * from './Calendar';
 export * from './ComboBox';
@@ -7,6 +8,7 @@ export * from './ContextualHelp';
 export * from './DateField';
 export * from './DatePicker';
 export * from './DateRangePicker';
+export * from './Dialog';
 export * from './Flex';
 export * from './Form';
 export * from './Grid';

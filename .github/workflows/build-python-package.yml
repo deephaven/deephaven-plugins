@@ -36,7 +36,7 @@ jobs:
         run: npm run build -- --scope "@deephaven/js-plugin-${{ inputs.package }}"
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
@@ -47,7 +47,7 @@ jobs:
         run: python -m build --wheel --sdist plugins/${{ inputs.package }}
 
       - name: Upload dist
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist-${{ inputs.package }}
           path: plugins/${{ inputs.package }}/dist/
