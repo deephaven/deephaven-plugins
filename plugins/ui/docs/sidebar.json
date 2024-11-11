@@ -90,6 +90,10 @@
             "path": "components/image.md"
           },
           {
+            "label": "inline_alert",
+            "path": "components/inline_alert.md"
+          },
+          {
             "label": "link",
             "path": "components/link.md"
           },
