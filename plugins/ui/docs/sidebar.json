@@ -147,6 +147,10 @@
         "label": "Hooks",
         "items": [
           {
+            "label" "Overview",
+            "path": "hooks/README.md"
+          },
+          {
             "label": "use_boolean",
             "path": "hooks/use_boolean.md"
           },
