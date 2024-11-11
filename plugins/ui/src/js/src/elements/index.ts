@@ -1,5 +1,6 @@
 export * from './ActionButton';
 export * from './ActionGroup';
+export * from './Badge';
 export * from './Button';
 export * from './Calendar';
 export * from './ComboBox';

@@ -58,7 +58,7 @@ my_button = ui.button("Click Me!", on_press=lambda e: print(f"Button was clicked
 
 ## Creating components
 
-Use the `@ui.component` decorator to create your own custom components. This decorator wraps the function provided as a Deephaven component. For more details on the architecture, see [TODO: Link to architecture]().
+Use the `@ui.component` decorator to create your own custom components. This decorator wraps the function provided as a Deephaven component. For more details on the architecture, see [Architecture documentation](./architecture.md).
 
 We can display a heading above a button as our custom component:
 
@@ -893,7 +893,7 @@ def ui_range_table(source, column):
 my_range_table = ui_range_table(stocks, "Size")
 ```
 
-![Table with a slider for selecting the range.](_assets/range_table.png)
+![Table with a slider for selecting the range.](./_assets/range_table.png)
 
 ## Table with required filters
 
