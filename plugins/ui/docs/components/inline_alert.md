@@ -89,7 +89,3 @@ my_inline_alert_variant_examples = ui_inline_alert_variant_examples()
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.inline_alert
 ```
-
-
-
-
