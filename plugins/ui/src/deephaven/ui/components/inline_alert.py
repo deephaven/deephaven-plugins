@@ -16,6 +16,7 @@ from ..elements import Element
 def inline_alert(
     *children: Any,
     variant: InlineAlertVariant | None = "neutral",
+    auto_focus: bool | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,
@@ -111,6 +112,7 @@ def inline_alert(
         "InlineAlert",
         children=children,
         variant=variant,
+        auto_focus=auto_focus,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
