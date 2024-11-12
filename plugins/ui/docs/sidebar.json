@@ -147,12 +147,16 @@
         "label": "Hooks",
         "items": [
           {
-            "label" "Overview",
+            "label": "Overview",
             "path": "hooks/README.md"
           },
           {
             "label": "use_boolean",
             "path": "hooks/use_boolean.md"
+          },
+          {
+            "label": "use_callback",
+            "path": "hooks/use_callback.md"
           },
           {
             "label": "use_effect",
