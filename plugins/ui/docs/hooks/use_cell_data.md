@@ -22,7 +22,7 @@ In the above example, `ui_table_first_cell` is a component that listens to the l
 ## Recommendations
 
 1. **Use `use_cell_data` for listening to table updates**: If you need to listen to a table for one cell of data, use `use_cell_data`.
-2. **Use table operations to filter to one cell**: If your table has multiple rows and columns, use table operations such as `.where` and `.select` to filter to the cell you want to listen to. `use_cell_data` always uses the top-left cell of the table.
+2. **Use table operations to filter to one cell**: Because `use_cell_data` always uses the top-left cell of the table, you can filter your table to determine what cell to listen to. If your table has multiple rows and columns, use table operations such as `.where` and `.select` to filter to the desired cell.
 
 ## API Reference
 

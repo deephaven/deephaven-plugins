@@ -31,7 +31,7 @@ Note that we're only using the `ref.current` value within the `handle_press` met
 
 ## Stopwatch example
 
-Here's an example of a stopwatch using `use_ref`. Press the Start button to start the stopwatch, and the Stop button to stop it. The elapsed time will be displayed in the text field:
+Here's an example of a stopwatch using `use_ref`. Press the **Start** button to start the stopwatch and the **Stop** button to stop it. The elapsed time will be displayed in the text field:
 
 ```python
 from deephaven import ui

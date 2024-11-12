@@ -29,19 +29,19 @@ Below are all the built-in hooks that deephaven.ui provides.
 
 ### State hooks
 
-_State_ lets a component remember some data between renders. State is a way to preserve data between renders and to trigger a re-render when the data changes. For example, a counter component might use state to keep track of the current count.
+_State_ lets a component remember some data between renders and trigger a re-render when the data changes. For example, a counter component might use state to keep track of the current count.
 
-To add state to a component, use the [`use_state`](use_state.md) hook.
+The [`use_state`](use_state.md) hook adds state to a component. 
 
 ### Ref hooks
 
-_Refs_ provide a way to hold a value that isn't used for re-rendering. Unlike with state, updating a ref does not re-render your component.
+A _ref_ provides a way to hold a value that isn't used for re-rendering. Unlike with state, updating a ref does not re-render your component.
 
 - [`use_ref`](use_ref.md) returns a mutable ref object whose `.current` property is initialized to the passed argument.
 
 ### Effect hooks
 
-_Effects_ let you perform side effects in your components. Data fetching, setting up a subscription, and manually synchronizing with an external system are all examples of side effects.
+An _effect_ hook lets you perform side effects in your components; for example, data fetching, setting up a subscription, and manually synchronizing with an external system.
 
 - [`use_effect`](use_effect.md) lets you perform side effects in your components.
 
@@ -57,8 +57,8 @@ _Performance_ hooks let you optimize components for performance. They allow you 
 _Data_ hooks let you use data from within a Deephaven table in your component.
 
 - [`use_table_data`](use_table_data.md) lets you use the full table contents.
-- [`use_column_data`](use_column_data.md) lets you use the column data of one column.
-- [`use_cell_data`](use_cell_data.md) lets you use the cell data of one cell.
+- [`use_column_data`](use_column_data.md) lets you use the data of one column.
+- [`use_cell_data`](use_cell_data.md) lets you use the data of one cell.
 
 ## Create custom hooks
 

@@ -39,7 +39,7 @@ def ui_server():
 my_server = ui_server()
 ```
 
-In the example above, the `create_server` callback is memoized using `use_callback`. The `connect` function is then passed to [`use_effect`](./use_effect.md) with `create_server` as a dependency. This ensures that the effect will not be triggered on every re-render because the `create_server` callback is memoized.
+In the example above, `use_callback` memoizes the `create_server` callback. The `connect` function is then passed to [`use_effect`](./use_effect.md) with `create_server` as a dependency. This ensures the effect will not be triggered on every re-render because the `create_server` callback is memoized.
 
 `use_callback` is similar to [`use_memo`](./use_memo.md), but for functions instead of values. Use `use_callback` when you need to memoize a callback function that relies on reference equality to prevent unnecessary re-renders.
 
@@ -47,7 +47,7 @@ In the example above, the `create_server` callback is memoized using `use_callba
 
 Recommendations for memoizing callback functions:
 
-1. **Use memoization when callbacks passed into expensive effects**: If the callback is being passed into an expensive `use_effect` or `use_memo` call, `use_callback` so that it maintains referential equality.
+1. **Use memoization when callbacks are passed into expensive effects**: If the callback is being passed into an expensive `use_effect` or `use_memo` call, use `use_callback` so that it maintains referential equality.
 2. **Use dependencies**: Pass in only the dependencies that the memoized callback relies on. If any of the dependencies change, the memoized callback will be re-computed.
 
 ## API Reference
