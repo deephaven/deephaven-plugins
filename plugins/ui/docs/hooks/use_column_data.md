@@ -1,6 +1,6 @@
 # use_column_data
 
-`use_column_data` lets you use the column data of a table. This is useful when you want to listen to an updating table and use the data in your component.
+`use_column_data` lets you use the data of the first column of a table. This is useful when you want to listen to an updating table and use the data in your component.
 
 ## Example
 

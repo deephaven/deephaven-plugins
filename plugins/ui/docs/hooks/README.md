@@ -1,6 +1,6 @@
 # Hooks
 
-_Hooks_ let you use state and other deephaven.ui features in your components. They are a way to reuse stateful logic between components. Hooks are functions that let you "hook into" state and lifecycle features from function components. You can either use the built-in hooks or combine them to build your own.
+_Hooks_ let you use state and other deephaven.ui features in your components. Hooks are functions that let you "hook into" state and lifecycle features from function components, encapsulating code and logic to avoid duplication. You can either use the built-in hooks or combine them to build your own.
 
 ## Example
 

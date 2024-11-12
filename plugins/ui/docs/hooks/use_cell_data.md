@@ -1,6 +1,6 @@
 # use_cell_data
 
-`use_cell_data` lets you use the cell data of the first cell in a table. This is useful when you want to listen to an updating table and use the data in your component.
+`use_cell_data` lets you use the cell data of the first cell (first row in the first column) in a table. This is useful when you want to listen to an updating table and use the data in your component.
 
 ## Example
 
