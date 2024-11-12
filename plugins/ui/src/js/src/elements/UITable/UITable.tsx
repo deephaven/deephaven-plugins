@@ -47,7 +47,10 @@ const log = Log.module('@deephaven/js-plugin-ui/UITable');
  */
 function useStableArray<T>(array: T[]): T[] {
   const stableArray = useRef<T[]>(array);
-  if (!array.every((v, i) => v === stableArray.current[i])) {
+  if (
+    array.length !== stableArray.current.length ||
+    !array.every((v, i) => v === stableArray.current[i])
+  ) {
     stableArray.current = array;
   }
   return stableArray.current;
