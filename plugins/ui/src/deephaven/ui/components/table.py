@@ -41,13 +41,13 @@ class TableFormat:
         The TableFormat.
     """
 
-    cols: ColumnName | list[ColumnName] | Undefined = UNDEFINED
-    if_: str | Undefined = UNDEFINED
-    color: Color | Undefined = UNDEFINED
-    background_color: Color | Undefined = UNDEFINED
-    alignment: Literal["left", "center", "right"] | Undefined = UNDEFINED
-    value: str | Undefined = UNDEFINED
-    mode: TableDatabar | Undefined = UNDEFINED
+    cols: ColumnName | list[ColumnName] | None = None
+    if_: str | None = None
+    color: Color | None = None
+    background_color: Color | None = None
+    alignment: Literal["left", "center", "right"] | None = None
+    value: str | None = None
+    mode: TableDatabar | None = None
 
 
 @dataclass
@@ -80,14 +80,14 @@ class TableDatabar:
     """
 
     column: ColumnName
-    value_column: ColumnName | Undefined = UNDEFINED
-    min: ColumnName | float | Undefined = UNDEFINED
-    max: ColumnName | float | Undefined = UNDEFINED
-    axis: Literal["proportional", "middle", "directional"] | Undefined = UNDEFINED
-    direction: Literal["LTR", "RTL"] | Undefined = UNDEFINED
-    value_placement: Literal["beside", "overlap", "hide"] | Undefined = UNDEFINED
-    color: Color | Undefined = UNDEFINED
-    opacity: float | Undefined = UNDEFINED
+    value_column: ColumnName | None = None
+    min: ColumnName | float | None = None
+    max: ColumnName | float | None = None
+    axis: Literal["proportional", "middle", "directional"] | None = None
+    direction: Literal["LTR", "RTL"] | None = None
+    value_placement: Literal["beside", "overlap", "hide"] | None = None
+    color: Color | None = None
+    opacity: float | None = None
 
 
 class table(Element):
