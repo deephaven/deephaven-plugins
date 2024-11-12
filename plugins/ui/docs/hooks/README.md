@@ -50,7 +50,7 @@ _Effects_ let you perform side effects in your components. Data fetching, settin
 _Performance_ hooks let you optimize components for performance. They allow you to memoize expensive computations so that you can avoid re-running them on every render, or skip unnecessary re-rendering.
 
 - [`use_memo`](use_memo.md) lets you memoize expensive computations.
-- [`use_callback`](use_callback.md) lets you cache a function definition before passing it down to a child component, so that the child component doesn't re-render unnecessarily.
+- [`use_callback`](use_callback.md) lets you cache a function definition before passing to an effect or child component, preventing unnecessary rendering. It's like `use_memo` but specifically for functions.
 
 ### Data hooks
 
@@ -61,3 +61,26 @@ _Data_ hooks let you use data from within a Deephaven table in your component.
 - [`use_cell_data`](use_cell_data.md) lets you use the cell data of one cell.
 
 ## Create custom hooks
+
+You can create your own hooks to reuse stateful logic between components. A custom hook is a JavaScript function whose name starts with `use` and that may call other hooks. For example, let's say you want to create a custom hook that checks whether a table cell is odd. You can create a custom hook called `use_is_cell_odd`:
+
+```python
+from deephaven import time_table, ui
+
+
+def use_is_cell_odd(table):
+    cell_value = ui.use_cell_data(table, 0)
+    return cell_value % 2 == 1
+
+
+@ui.component
+def ui_table_odd_cell(table):
+    is_odd = use_is_cell_odd(table)
+    return ui.view(f"Is the cell odd? {is_odd}")
+
+
+_table = time_table("PT1s").update("x=i").view("x").tail(1)
+table_odd_cell = ui_table_odd_cell(_table)
+```
+
+Notice at the end of our custom hook, we check if the cell value is odd and return the result. We then use this custom hook in our component to display whether the cell is odd.
