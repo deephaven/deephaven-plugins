@@ -439,12 +439,31 @@ class UITableModel extends IrisGridModel {
         // eslint-disable-next-line no-continue
         continue;
       }
+
+      let resolvedFormatValue = formatValue;
+      const columnSourceIndex =
+        typeof formatValue === 'string'
+          ? this.getColumnIndexByName(formatValue)
+          : null;
+      if (columnSourceIndex != null) {
+        const columnSource = this.columns[columnSourceIndex];
+        if (!TableUtils.isStringType(columnSource.type)) {
+          throw new Error(
+            `Column ${columnSource.name} which provides TableFormat values for ${formatKey} is of type ${columnSource.type}. Columns that provide TableFormat values must be of type string.`
+          );
+        }
+        resolvedFormatValue = this.valueForCell(
+          columnSourceIndex,
+          row
+        ) as NonNullable<FormattingRule[K]>;
+      }
+
       if (
         cols == null ||
         this.formatColumnMatch(ensureArray(cols), columnName)
       ) {
         if (if_ == null) {
-          return formatValue;
+          return resolvedFormatValue;
         }
         const rowValues = this.model.row(row)?.data;
         if (rowValues == null) {
@@ -452,7 +471,7 @@ class UITableModel extends IrisGridModel {
         }
         const whereValue = rowValues.get(getFormatCustomColumnName(i))?.value;
         if (whereValue === true) {
-          return formatValue;
+          return resolvedFormatValue;
         }
       }
     }

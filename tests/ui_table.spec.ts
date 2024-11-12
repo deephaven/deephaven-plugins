@@ -9,6 +9,7 @@ test.describe('UI flex components', () => {
     't_alignment',
     't_background_color',
     't_color',
+    't_color_column_source',
     't_priority',
     't_value_format',
     't_display_names',
