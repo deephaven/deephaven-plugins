@@ -125,6 +125,8 @@ class table(Element):
         column_groups: Columns to group together by default. The groups will be shown in the table header.
             Group names must be unique within the column and group names.
             Groups may be nested by providing the group name as a child of another group.
+        column_display_names: A dictionary of column names to an alternate display name.
+            E.g. {"column1": "Column 1", "column2": "C2"}.
         density: The density of the data displayed in the table.
             One of "compact", "regular", or "spacious".
             If not provided, the app default will be used.
@@ -202,6 +204,7 @@ class table(Element):
         frozen_columns: list[ColumnName] | None = None,
         hidden_columns: list[ColumnName] | None = None,
         column_groups: list[ColumnGroup] | None = None,
+        column_display_names: dict[ColumnName, str] | None = None,
         density: Literal["compact", "regular", "spacious"] | None = None,
         context_menu: (
             ResolvableContextMenuItem | list[ResolvableContextMenuItem] | None
