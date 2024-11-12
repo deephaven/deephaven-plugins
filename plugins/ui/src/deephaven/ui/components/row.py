@@ -3,13 +3,13 @@ from __future__ import annotations
 from typing import Any
 from .basic import component_element
 from ..elements import Element
-from ..types import Undefined, UNDEFINED
+from ..types import UndefinedType, Undefined
 
 
 def row(
     *children: Any,
-    height: float | Undefined = UNDEFINED,
-    key: str | Undefined = UNDEFINED,
+    height: float | UndefinedType = Undefined,
+    key: str | UndefinedType = Undefined,
 ) -> Element:
     """
     A row is a container that can be used to group elements.

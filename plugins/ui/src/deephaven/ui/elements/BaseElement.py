@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 from .Element import Element
-from ..types import Undefined, UNDEFINED
+from ..types import UndefinedType, Undefined
 from .._internal import dict_to_react_props, RenderContext
 
 
@@ -17,7 +17,7 @@ class BaseElement(Element):
         name: str,
         /,
         *children: Any,
-        key: str | Undefined = UNDEFINED,
+        key: str | UndefinedType = Undefined,
         **props: Any,
     ):
         self._name = name
@@ -40,7 +40,7 @@ class BaseElement(Element):
         return self._name
 
     @property
-    def key(self) -> str | Undefined:
+    def key(self) -> str | UndefinedType:
         return self._key
 
     def render(self, context: RenderContext) -> dict[str, Any]:

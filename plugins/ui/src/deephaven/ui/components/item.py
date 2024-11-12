@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Any, Union, List
 
 from ..elements import BaseElement
-from ..types import Stringable, Undefined, UNDEFINED
+from ..types import Stringable, UndefinedType, Undefined
 from .._internal.utils import create_props
 from .basic import component_element
 
@@ -13,10 +13,10 @@ ItemList = List[Item]
 
 def item(
     *children: Stringable,
-    title: str | Undefined = UNDEFINED,
-    text_value: str | Undefined = UNDEFINED,
-    aria_label: str | Undefined = UNDEFINED,
-    key: str | Undefined = UNDEFINED,
+    title: str | UndefinedType = Undefined,
+    text_value: str | UndefinedType = Undefined,
+    aria_label: str | UndefinedType = Undefined,
+    key: str | UndefinedType = Undefined,
     **props: Any,
 ) -> ItemElement:
     """

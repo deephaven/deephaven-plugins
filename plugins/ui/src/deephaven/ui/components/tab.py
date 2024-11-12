@@ -3,15 +3,15 @@ from typing import Any
 
 from .basic import component_element
 from ..elements import Element
-from ..types import Key, Undefined, UNDEFINED
+from ..types import Key, UndefinedType, Undefined
 
 
 def tab(
     *children: Any,
-    title: Any | Undefined = UNDEFINED,
-    key: Key | Undefined = UNDEFINED,
-    icon: Element | Undefined = UNDEFINED,
-    text_value: str | Undefined = UNDEFINED,
+    title: Any | UndefinedType = Undefined,
+    key: Key | UndefinedType = Undefined,
+    icon: Element | UndefinedType = Undefined,
+    text_value: str | UndefinedType = Undefined,
 ):
     """
     Tab item implementation for tabs component.

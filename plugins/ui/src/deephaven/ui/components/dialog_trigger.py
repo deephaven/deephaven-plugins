@@ -7,26 +7,26 @@ from .types import (
 )
 from .basic import component_element
 from ..elements import Element
-from ..types import Undefined, UNDEFINED
+from ..types import UndefinedType, Undefined
 from .._internal.utils import create_props
 
 
 def dialog_trigger(
     *children: Element,
-    type: DialogTriggerType | Undefined = "modal",
-    mobile_type: DialogTriggerMobileType | Undefined = UNDEFINED,
-    placement: Placement | Undefined = "bottom",
-    is_open: bool | Undefined = UNDEFINED,
-    default_open: bool | Undefined = UNDEFINED,
-    container_padding: float | Undefined = UNDEFINED,
-    offset: float | Undefined = UNDEFINED,
-    cross_offset: float | Undefined = UNDEFINED,
-    should_flip: bool | Undefined = UNDEFINED,
-    hide_arrow: bool | Undefined = UNDEFINED,
-    is_dismissable: bool | Undefined = UNDEFINED,
-    is_keyboard_dismiss_disabled: bool | Undefined = UNDEFINED,
-    on_open_change: Callable[[bool], None] | Undefined = UNDEFINED,
-    key: str | Undefined = UNDEFINED,
+    type: DialogTriggerType | UndefinedType = "modal",
+    mobile_type: DialogTriggerMobileType | UndefinedType = Undefined,
+    placement: Placement | UndefinedType = "bottom",
+    is_open: bool | UndefinedType = Undefined,
+    default_open: bool | UndefinedType = Undefined,
+    container_padding: float | UndefinedType = Undefined,
+    offset: float | UndefinedType = Undefined,
+    cross_offset: float | UndefinedType = Undefined,
+    should_flip: bool | UndefinedType = Undefined,
+    hide_arrow: bool | UndefinedType = Undefined,
+    is_dismissable: bool | UndefinedType = Undefined,
+    is_keyboard_dismiss_disabled: bool | UndefinedType = Undefined,
+    on_open_change: Callable[[bool], None] | UndefinedType = Undefined,
+    key: str | UndefinedType = Undefined,
 ) -> Element:
     """
     A dialog_trigger serves as a wrapper around a dialog and its associated trigger.

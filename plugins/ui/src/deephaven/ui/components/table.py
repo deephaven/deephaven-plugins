@@ -14,8 +14,8 @@ from ..types import (
     QuickFilterExpression,
     RowPressCallback,
     ResolvableContextMenuItem,
+    UndefinedType,
     Undefined,
-    UNDEFINED,
 )
 from .._internal import dict_to_react_props, RenderContext
 
@@ -186,83 +186,84 @@ class table(Element):
         self,
         table: Table,
         *,
-        format_: TableFormat | list[TableFormat] | Undefined = UNDEFINED,
-        on_row_press: RowPressCallback | Undefined = UNDEFINED,
-        on_row_double_press: RowPressCallback | Undefined = UNDEFINED,
-        on_cell_press: CellPressCallback | Undefined = UNDEFINED,
-        on_cell_double_press: CellPressCallback | Undefined = UNDEFINED,
-        on_column_press: ColumnPressCallback | Undefined = UNDEFINED,
-        on_column_double_press: ColumnPressCallback | Undefined = UNDEFINED,
+        format_: TableFormat | list[TableFormat] | UndefinedType = Undefined,
+        on_row_press: RowPressCallback | UndefinedType = Undefined,
+        on_row_double_press: RowPressCallback | UndefinedType = Undefined,
+        on_cell_press: CellPressCallback | UndefinedType = Undefined,
+        on_cell_double_press: CellPressCallback | UndefinedType = Undefined,
+        on_column_press: ColumnPressCallback | UndefinedType = Undefined,
+        on_column_double_press: ColumnPressCallback | UndefinedType = Undefined,
         always_fetch_columns: ColumnName
         | list[ColumnName]
         | bool
-        | Undefined = UNDEFINED,
-        quick_filters: dict[ColumnName, QuickFilterExpression] | Undefined = UNDEFINED,
+        | UndefinedType = Undefined,
+        quick_filters: dict[ColumnName, QuickFilterExpression]
+        | UndefinedType = Undefined,
         show_quick_filters: bool = False,
         show_grouping_column: bool = True,
         show_search: bool = False,
         reverse: bool = False,
-        front_columns: list[ColumnName] | Undefined = UNDEFINED,
-        back_columns: list[ColumnName] | Undefined = UNDEFINED,
-        frozen_columns: list[ColumnName] | Undefined = UNDEFINED,
-        hidden_columns: list[ColumnName] | Undefined = UNDEFINED,
-        column_groups: list[ColumnGroup] | Undefined = UNDEFINED,
-        density: Literal["compact", "regular", "spacious"] | Undefined = UNDEFINED,
+        front_columns: list[ColumnName] | UndefinedType = Undefined,
+        back_columns: list[ColumnName] | UndefinedType = Undefined,
+        frozen_columns: list[ColumnName] | UndefinedType = Undefined,
+        hidden_columns: list[ColumnName] | UndefinedType = Undefined,
+        column_groups: list[ColumnGroup] | UndefinedType = Undefined,
+        density: Literal["compact", "regular", "spacious"] | UndefinedType = Undefined,
         context_menu: (
-            ResolvableContextMenuItem | list[ResolvableContextMenuItem] | Undefined
-        ) = UNDEFINED,
+            ResolvableContextMenuItem | list[ResolvableContextMenuItem] | UndefinedType
+        ) = Undefined,
         context_header_menu: (
-            ResolvableContextMenuItem | list[ResolvableContextMenuItem] | Undefined
-        ) = UNDEFINED,
-        databars: list[TableDatabar] | Undefined = UNDEFINED,
-        key: str | Undefined = UNDEFINED,
-        flex: LayoutFlex | Undefined = UNDEFINED,
-        flex_grow: float | Undefined = UNDEFINED,
-        flex_shrink: float | Undefined = UNDEFINED,
-        flex_basis: DimensionValue | Undefined = UNDEFINED,
-        align_self: AlignSelf | Undefined = UNDEFINED,
-        justify_self: JustifySelf | Undefined = UNDEFINED,
-        order: int | Undefined = UNDEFINED,
-        grid_area: str | Undefined = UNDEFINED,
-        grid_row: str | Undefined = UNDEFINED,
-        grid_row_start: str | Undefined = UNDEFINED,
-        grid_row_end: str | Undefined = UNDEFINED,
-        grid_column: str | Undefined = UNDEFINED,
-        grid_column_start: str | Undefined = UNDEFINED,
-        grid_column_end: str | Undefined = UNDEFINED,
-        margin: DimensionValue | Undefined = UNDEFINED,
-        margin_top: DimensionValue | Undefined = UNDEFINED,
-        margin_bottom: DimensionValue | Undefined = UNDEFINED,
-        margin_start: DimensionValue | Undefined = UNDEFINED,
-        margin_end: DimensionValue | Undefined = UNDEFINED,
-        margin_x: DimensionValue | Undefined = UNDEFINED,
-        margin_y: DimensionValue | Undefined = UNDEFINED,
-        width: DimensionValue | Undefined = UNDEFINED,
-        height: DimensionValue | Undefined = UNDEFINED,
-        min_width: DimensionValue | Undefined = UNDEFINED,
-        min_height: DimensionValue | Undefined = UNDEFINED,
-        max_width: DimensionValue | Undefined = UNDEFINED,
-        max_height: DimensionValue | Undefined = UNDEFINED,
-        position: Position | Undefined = UNDEFINED,
-        top: DimensionValue | Undefined = UNDEFINED,
-        bottom: DimensionValue | Undefined = UNDEFINED,
-        start: DimensionValue | Undefined = UNDEFINED,
-        end: DimensionValue | Undefined = UNDEFINED,
-        left: DimensionValue | Undefined = UNDEFINED,
-        right: DimensionValue | Undefined = UNDEFINED,
-        z_index: int | Undefined = UNDEFINED,
+            ResolvableContextMenuItem | list[ResolvableContextMenuItem] | UndefinedType
+        ) = Undefined,
+        databars: list[TableDatabar] | UndefinedType = Undefined,
+        key: str | UndefinedType = Undefined,
+        flex: LayoutFlex | UndefinedType = Undefined,
+        flex_grow: float | UndefinedType = Undefined,
+        flex_shrink: float | UndefinedType = Undefined,
+        flex_basis: DimensionValue | UndefinedType = Undefined,
+        align_self: AlignSelf | UndefinedType = Undefined,
+        justify_self: JustifySelf | UndefinedType = Undefined,
+        order: int | UndefinedType = Undefined,
+        grid_area: str | UndefinedType = Undefined,
+        grid_row: str | UndefinedType = Undefined,
+        grid_row_start: str | UndefinedType = Undefined,
+        grid_row_end: str | UndefinedType = Undefined,
+        grid_column: str | UndefinedType = Undefined,
+        grid_column_start: str | UndefinedType = Undefined,
+        grid_column_end: str | UndefinedType = Undefined,
+        margin: DimensionValue | UndefinedType = Undefined,
+        margin_top: DimensionValue | UndefinedType = Undefined,
+        margin_bottom: DimensionValue | UndefinedType = Undefined,
+        margin_start: DimensionValue | UndefinedType = Undefined,
+        margin_end: DimensionValue | UndefinedType = Undefined,
+        margin_x: DimensionValue | UndefinedType = Undefined,
+        margin_y: DimensionValue | UndefinedType = Undefined,
+        width: DimensionValue | UndefinedType = Undefined,
+        height: DimensionValue | UndefinedType = Undefined,
+        min_width: DimensionValue | UndefinedType = Undefined,
+        min_height: DimensionValue | UndefinedType = Undefined,
+        max_width: DimensionValue | UndefinedType = Undefined,
+        max_height: DimensionValue | UndefinedType = Undefined,
+        position: Position | UndefinedType = Undefined,
+        top: DimensionValue | UndefinedType = Undefined,
+        bottom: DimensionValue | UndefinedType = Undefined,
+        start: DimensionValue | UndefinedType = Undefined,
+        end: DimensionValue | UndefinedType = Undefined,
+        left: DimensionValue | UndefinedType = Undefined,
+        right: DimensionValue | UndefinedType = Undefined,
+        z_index: int | UndefinedType = Undefined,
     ) -> None:
         props = locals()
         del props["self"]
         self._props = props
-        self._key: str | Undefined = props.get("key")  # type: ignore
+        self._key: str | UndefinedType = props.get("key")  # type: ignore
 
     @property
     def name(self):
         return "deephaven.ui.elements.UITable"
 
     @property
-    def key(self) -> str | Undefined:
+    def key(self) -> str | UndefinedType:
         return self._key
 
     def render(self, context: RenderContext) -> dict[str, Any]:

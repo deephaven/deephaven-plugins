@@ -2,7 +2,7 @@ from __future__ import annotations
 import logging
 from typing import Callable
 from .Element import Element, PropsType
-from ..types import Undefined, UNDEFINED
+from ..types import UndefinedType, Undefined
 from .._internal import RenderContext
 
 logger = logging.getLogger(__name__)
@@ -13,7 +13,7 @@ class FunctionElement(Element):
         self,
         name: str,
         render: Callable[[], list[Element]],
-        key: str | Undefined = UNDEFINED,
+        key: str | UndefinedType = Undefined,
     ):
         """
         Create an element that takes a function to render.
@@ -31,7 +31,7 @@ class FunctionElement(Element):
         return self._name
 
     @property
-    def key(self) -> str | Undefined:
+    def key(self) -> str | UndefinedType:
         return self._key
 
     def render(self, context: RenderContext) -> PropsType:

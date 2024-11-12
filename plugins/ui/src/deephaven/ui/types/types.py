@@ -9,6 +9,7 @@ from typing import (
     Tuple,
     Callable,
     Sequence,
+    TypeAlias,
 )
 
 if sys.version_info < (3, 11):
@@ -565,13 +566,16 @@ DataBarDirection = Literal["LTR", "RTL"]
 DataBarValuePlacement = Literal["BESIDE", "OVERLAP", "HIDE"]
 
 
-class Undefined:
-    """
-    A class representing the type of an undefined value. To use the value itself, use `UNDEFINED` instead.
-    """
-
-    def __str__(self):
+class _Undefined:
+    def __str__(self) -> str:
         return "Undefined"
 
+    def __bool__(self) -> bool:
+        return False
 
-UNDEFINED = Undefined()
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, _Undefined) or other is None
+
+
+Undefined = _Undefined()
+UndefinedType: TypeAlias = _Undefined

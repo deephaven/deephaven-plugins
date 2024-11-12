@@ -8,7 +8,7 @@ from .item import ItemElement
 from .list_action_group import ListActionGroupElement
 from .list_action_menu import ListActionMenuElement
 from ..elements import Element
-from ..types import ColumnName, Stringable, Undefined, UNDEFINED
+from ..types import ColumnName, Stringable, UndefinedType, Undefined
 
 ListViewItem = Union[Stringable, ItemElement]
 ListViewElement = Element
@@ -16,23 +16,23 @@ ListViewElement = Element
 
 class ItemTableSource(TypedDict):
     table: Table | PartitionedTable
-    key_column: ColumnName | Undefined
-    label_column: ColumnName | Undefined
-    description_column: ColumnName | Undefined
-    icon_column: ColumnName | Undefined
-    title_column: ColumnName | Undefined
-    actions: ListActionGroupElement | ListActionMenuElement | Undefined
+    key_column: ColumnName | UndefinedType
+    label_column: ColumnName | UndefinedType
+    description_column: ColumnName | UndefinedType
+    icon_column: ColumnName | UndefinedType
+    title_column: ColumnName | UndefinedType
+    actions: ListActionGroupElement | ListActionMenuElement | UndefinedType
 
 
 def item_table_source(
     table: Table | PartitionedTable,
-    key_column: ColumnName | Undefined = UNDEFINED,
-    label_column: ColumnName | Undefined = UNDEFINED,
-    description_column: ColumnName | Undefined = UNDEFINED,
-    icon_column: ColumnName | Undefined = UNDEFINED,
-    title_column: ColumnName | Undefined = UNDEFINED,
-    actions: ListActionGroupElement | ListActionMenuElement | Undefined = UNDEFINED,
-    key: str | Undefined = UNDEFINED,
+    key_column: ColumnName | UndefinedType = Undefined,
+    label_column: ColumnName | UndefinedType = Undefined,
+    description_column: ColumnName | UndefinedType = Undefined,
+    icon_column: ColumnName | UndefinedType = Undefined,
+    title_column: ColumnName | UndefinedType = Undefined,
+    actions: ListActionGroupElement | ListActionMenuElement | UndefinedType = Undefined,
+    key: str | UndefinedType = Undefined,
 ) -> ItemTableSource:
     """
     An item table source wraps a Table or PartitionedTable to provide additional information for
