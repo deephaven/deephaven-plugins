@@ -66,7 +66,7 @@ t = ui.table(
 )
 ```
 
-### Formatting value from a column
+### Formatting values from a column source
 
 Any string value for a formatting rule can be read from a column by specifying the column name as the value. Note that if a value matches a column name, it will always be used (i.e., the theme color `positive` can not be used as a direct value if there is also a column called `positive`). The following example sets the `background_color` of column `x` using the value of the `bg_color` column.
 

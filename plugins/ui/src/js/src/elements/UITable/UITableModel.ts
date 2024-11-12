@@ -449,7 +449,7 @@ class UITableModel extends IrisGridModel {
         const columnSource = this.columns[columnSourceIndex];
         if (!TableUtils.isStringType(columnSource.type)) {
           throw new Error(
-            `Column ${columnSource.name} used as a formatting value for ${formatKey} is type ${columnSource.type}. Must be a String`
+            `Column ${columnSource.name} which provides TableFormat values for ${formatKey} is of type ${columnSource.type}. Columns that provide TableFormat values must be of type string.`
           );
         }
         resolvedFormatValue = this.valueForCell(
