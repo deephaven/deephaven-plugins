@@ -12,6 +12,7 @@ test.describe('UI flex components', () => {
     't_color_column_source',
     't_priority',
     't_value_format',
+    't_display_names',
   ].forEach(name => {
     test(name, async ({ page }) => {
       await gotoPage(page, '');

@@ -3,6 +3,7 @@ from deephaven import empty_table
 import deephaven.plot.express as dx
 
 _t = empty_table(100).update(["x = i", "y = sin(i)"])
+_stocks = dx.data.stocks(False)
 
 t_alignment = ui.table(
     _t,
@@ -54,10 +55,15 @@ t_priority = ui.table(
 )
 
 t_value_format = ui.table(
-    dx.data.stocks(False),
+    _stocks,
     format_=[
         ui.TableFormat(value="0.00"),
         ui.TableFormat(cols="Timestamp", value="MM/dd/yyyy"),
         ui.TableFormat(cols=["Price", "Dollars"], value="$0.00"),
     ],
+)
+
+t_display_names = ui.table(
+    _stocks,
+    column_display_names={"Price": "Price (USD)", "Dollars": "$$$"},
 )

@@ -74,6 +74,7 @@ export function UITable({
   frozenColumns,
   hiddenColumns,
   columnGroups,
+  columnDisplayNames: columnDisplayNamesProp = {},
   density,
   contextMenu,
   contextHeaderMenu,
@@ -140,6 +141,7 @@ export function UITable({
 
   // TODO: #982 respond to prop changes here
   const [format] = useState(formatProp != null ? ensureArray(formatProp) : []);
+  const [columnDisplayNames] = useState(columnDisplayNamesProp ?? {});
   // TODO: #981 move databars to format and rewire for databar support
   const [databars] = useState(databarsProp ?? []);
 
@@ -232,7 +234,8 @@ export function UITable({
           table,
           databars,
           layoutHints,
-          format
+          format,
+          columnDisplayNames
         );
         if (!isCancelled) {
           setError(null);
@@ -253,7 +256,7 @@ export function UITable({
     return () => {
       isCancelled = true;
     };
-  }, [databars, dh, exportedTable, layoutHints, format]);
+  }, [databars, dh, exportedTable, layoutHints, format, columnDisplayNames]);
 
   // Get any format values that match column names
   // Assume the format value is derived from the column
