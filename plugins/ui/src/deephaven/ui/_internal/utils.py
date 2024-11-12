@@ -15,7 +15,6 @@ from ..types import (
     JavaTime,
     LocalDateConvertible,
     LocalDate,
-    UndefinedType,
     Undefined,
 )
 

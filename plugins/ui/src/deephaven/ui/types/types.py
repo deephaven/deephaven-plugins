@@ -9,13 +9,12 @@ from typing import (
     Tuple,
     Callable,
     Sequence,
-    TypeAlias,
 )
 
 if sys.version_info < (3, 11):
-    from typing_extensions import TypedDict, NotRequired
+    from typing_extensions import TypedDict, NotRequired, TypeAlias
 else:
-    from typing import TypedDict, NotRequired
+    from typing import TypedDict, NotRequired, TypeAlias
 
 import datetime
 import pandas
