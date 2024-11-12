@@ -566,14 +566,20 @@ DataBarValuePlacement = Literal["BESIDE", "OVERLAP", "HIDE"]
 
 
 class _Undefined:
-    def __str__(self) -> str:
-        return "Undefined"
-
     def __bool__(self) -> bool:
         return False
 
+    def __copy__(self) -> "_Undefined":
+        return self
+
+    def __deepcopy__(self, _: Any) -> "_Undefined":
+        return self
+
     def __eq__(self, other: object) -> bool:
         return isinstance(other, _Undefined) or other is None
+
+    def __str__(self) -> str:
+        return "Undefined"
 
 
 Undefined = _Undefined()
