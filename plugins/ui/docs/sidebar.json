@@ -93,9 +93,12 @@
             "label": "image",
             "path": "components/image.md"
           },
-          {
             "label": "link",
             "path": "components/link.md"
+          },
+          {
+            "label": "markdown",
+            "path": "components/markdown.md"
           },
           {
             "label": "picker",

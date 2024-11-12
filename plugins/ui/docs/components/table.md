@@ -284,6 +284,23 @@ t = ui.table(
 
 ![Example of column order and visibility](../_assets/table_column_order.png)
 
+## Column display names
+
+You can set custom display names for columns using the `column_display_names` prop. The `column_display_names` prop takes a dictionary where the key is the column name and the value is the display name. The display name can be any string, so this can be used to show a user-friendly name that does not adhere to column naming rules.
+
+```py
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(
+    dx.data.stocks(),
+    column_display_names={
+        "Price": "Price (USD)",
+        "Side": "Buy/Sell"
+    }
+)
+```
+
 ## Grouping columns
 
 Columns can be grouped visually using the `column_groups` prop. Columns in a column group are moved so they are next to each other, and a header spanning all columns in the group is added. Columns can be rearranged within a group, but they cannot be moved outside of the group without using the table sidebar menu.
