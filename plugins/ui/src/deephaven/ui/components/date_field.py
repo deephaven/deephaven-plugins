@@ -81,7 +81,7 @@ def date_field(
     min_value: Date | UndefinedType = Undefined,
     max_value: Date | UndefinedType = Undefined,
     # TODO (issue # 698) we need to implement unavailable_values
-    # unavailable_values: Sequence[Date] | Undefined = UNDEFINED,
+    # unavailable_values: Sequence[Date] | Undefined = Undefined,
     granularity: Granularity | UndefinedType = Undefined,
     hour_cycle: HourCycle | UndefinedType = Undefined,
     hide_time_zone: bool = False,
