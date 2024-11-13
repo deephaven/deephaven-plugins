@@ -9,6 +9,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
+// eslint-disable-next-line camelcase
+import { unstable_batchedUpdates } from 'react-dom';
 import {
   JSONRPCClient,
   JSONRPCServer,
@@ -65,11 +67,13 @@ function WidgetHandler({
 }: WidgetHandlerProps): JSX.Element | null {
   const { widget, error: widgetError } = useWidget(widgetDescriptor);
   const [isLoading, setIsLoading] = useState(true);
-  const [prevWidget, setPrevWidget] = useState(widget);
+  const [prevWidgetDescriptor, setPrevWidgetDescriptor] =
+    useState(widgetDescriptor);
   // Cannot use usePrevious to change setIsLoading
   // Since usePrevious runs in an effect, the value never gets updated if setIsLoading is called during render
-  if (widget !== prevWidget) {
-    setPrevWidget(widget);
+  // Use the widgetDescriptor because useWidget is async so the widget doesn't immediately change
+  if (widgetDescriptor !== prevWidgetDescriptor) {
+    setPrevWidgetDescriptor(widgetDescriptor);
     setIsLoading(true);
   }
 
@@ -232,9 +236,12 @@ function WidgetHandler({
           log.debug2(METHOD_DOCUMENT_UPDATED, params);
           const [documentParam, stateParam] = params;
           const newDocument = parseDocument(documentParam);
-          setInternalError(undefined);
-          setDocument(newDocument);
-          setIsLoading(false); // Must go after setDocument since setters are not batched in effects
+          // TODO: Remove unstable_batchedUpdates wrapper when upgrading to React 18
+          unstable_batchedUpdates(() => {
+            setInternalError(undefined);
+            setDocument(newDocument);
+            setIsLoading(false);
+          });
           if (stateParam != null) {
             try {
               const newState = JSON.parse(stateParam);
