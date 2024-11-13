@@ -58,7 +58,7 @@ def combo_box(
     default_input_value: str | UndefinedType = Undefined,
     allows_custom_value: bool | UndefinedType = Undefined,
     disabled_keys: list[Key] | UndefinedType = Undefined,
-    selected_key: Key | UndefinedType = Undefined,
+    selected_key: Key | None | UndefinedType = Undefined,
     default_selected_key: Key | UndefinedType = Undefined,
     is_disabled: bool | UndefinedType = Undefined,
     is_read_only: bool | UndefinedType = Undefined,

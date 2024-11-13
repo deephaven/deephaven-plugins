@@ -39,7 +39,7 @@ SUPPORTED_SOURCE_ARGS = {
 def picker(
     *children: Item | SectionElement | Table | PartitionedTable | ItemTableSource,
     default_selected_key: Key | UndefinedType = Undefined,
-    selected_key: Key | UndefinedType = Undefined,
+    selected_key: Key | None | UndefinedType = Undefined,
     on_selection_change: Callable[[Key], None] | UndefinedType = Undefined,
     on_change: Callable[[Key], None] | UndefinedType = Undefined,
     is_quiet: bool | UndefinedType = Undefined,
