@@ -194,12 +194,7 @@ function ReactPanel({
 
   let renderedChildren: React.ReactNode;
   if (widgetStatus.status === 'loading') {
-    renderedChildren = (
-      <>
-        <LoadingOverlay />
-        {children}
-      </>
-    );
+    renderedChildren = <LoadingOverlay />;
   } else if (widgetStatus.status === 'error') {
     renderedChildren = <WidgetErrorView error={widgetStatus.error} />;
   } else {
