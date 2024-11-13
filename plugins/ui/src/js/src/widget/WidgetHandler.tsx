@@ -64,6 +64,14 @@ function WidgetHandler({
   initialData: initialDataProp,
 }: WidgetHandlerProps): JSX.Element | null {
   const { widget, error: widgetError } = useWidget(widgetDescriptor);
+  const [isLoading, setIsLoading] = useState(true);
+  const [prevWidget, setPrevWidget] = useState(widget);
+  // Cannot use usePrevious to change setIsLoading
+  // Since usePrevious runs in an effect, the value never gets updated if setIsLoading is called during render
+  if (widget !== prevWidget) {
+    setPrevWidget(widget);
+    setIsLoading(true);
+  }
 
   const [document, setDocument] = useState<ReactNode>();
 
@@ -226,6 +234,7 @@ function WidgetHandler({
           const newDocument = parseDocument(documentParam);
           setInternalError(undefined);
           setDocument(newDocument);
+          setIsLoading(false); // Must go after setDocument since setters are not batched in effects
           if (stateParam != null) {
             try {
               const newState = JSON.parse(stateParam);
@@ -339,11 +348,14 @@ function WidgetHandler({
     if (error != null) {
       return { status: 'error', descriptor: widgetDescriptor, error };
     }
+    if (isLoading) {
+      return { status: 'loading', descriptor: widgetDescriptor };
+    }
     if (renderedDocument != null) {
       return { status: 'ready', descriptor: widgetDescriptor };
     }
     return { status: 'loading', descriptor: widgetDescriptor };
-  }, [error, renderedDocument, widgetDescriptor]);
+  }, [error, renderedDocument, widgetDescriptor, isLoading]);
 
   return useMemo(
     () =>

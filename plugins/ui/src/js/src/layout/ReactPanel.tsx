@@ -7,7 +7,13 @@ import {
   useLayoutManager,
   useListener,
 } from '@deephaven/dashboard';
-import { View, ViewProps, Flex, FlexProps } from '@deephaven/components';
+import {
+  View,
+  ViewProps,
+  Flex,
+  FlexProps,
+  LoadingOverlay,
+} from '@deephaven/components';
 import Log from '@deephaven/log';
 import PortalPanel from './PortalPanel';
 import { ReactPanelControl, useReactPanel } from './ReactPanelManager';
@@ -186,6 +192,20 @@ function ReactPanel({
   );
   const widgetStatus = useWidgetStatus();
 
+  let renderedChildren: React.ReactNode;
+  if (widgetStatus.status === 'loading') {
+    renderedChildren = (
+      <>
+        <LoadingOverlay />
+        {children}
+      </>
+    );
+  } else if (widgetStatus.status === 'error') {
+    renderedChildren = <WidgetErrorView error={widgetStatus.error} />;
+  } else {
+    renderedChildren = children;
+  }
+
   return portal
     ? ReactDOM.createPortal(
         <ReactPanelContext.Provider value={panelId}>
@@ -224,11 +244,7 @@ function ReactPanel({
                  * Don't render the children if there's an error with the widget. If there's an error with the widget, we can assume the children won't render properly,
                  * but we still want the panels to appear so things don't disappear/jump around.
                  */}
-                {widgetStatus.status === 'error' ? (
-                  <WidgetErrorView error={widgetStatus.error} />
-                ) : (
-                  children
-                )}
+                {renderedChildren}
               </ReactPanelErrorBoundary>
             </Flex>
           </View>
