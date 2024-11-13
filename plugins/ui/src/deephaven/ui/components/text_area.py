@@ -31,7 +31,7 @@ from .icon import icon as icon_component
 
 
 def text_area(
-    icon: Element | IconTypes | UndefinedType = Undefined,
+    icon: Element | IconTypes | None | UndefinedType = Undefined,
     is_quiet: bool | UndefinedType = Undefined,
     is_disabled: bool | UndefinedType = Undefined,
     is_read_only: bool | UndefinedType = Undefined,

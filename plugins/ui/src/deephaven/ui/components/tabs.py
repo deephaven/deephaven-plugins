@@ -30,7 +30,7 @@ def tabs(
     keyboard_activation: KeyboardActivationType | UndefinedType = "automatic",
     orientation: Orientation | UndefinedType = "horizontal",
     disallow_empty_selection: bool | UndefinedType = Undefined,
-    selected_key: Key | UndefinedType = Undefined,
+    selected_key: Key | None | UndefinedType = Undefined,
     default_selected_key: Key | UndefinedType = Undefined,
     on_selection_change: Callable[[Key], None] | UndefinedType = Undefined,
     on_change: Callable[[Key], None] | UndefinedType = Undefined,

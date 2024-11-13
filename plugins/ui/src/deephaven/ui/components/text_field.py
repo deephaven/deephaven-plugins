@@ -28,7 +28,7 @@ from ..types import UndefinedType, Undefined
 
 
 def text_field(
-    icon: Element | UndefinedType = Undefined,
+    icon: Element | None | UndefinedType = Undefined,
     is_quiet: bool | UndefinedType = Undefined,
     is_disabled: bool | UndefinedType = Undefined,
     is_read_only: bool | UndefinedType = Undefined,

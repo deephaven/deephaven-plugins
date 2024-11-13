@@ -76,7 +76,7 @@ def combo_box(
     contextual_help: Element | UndefinedType = Undefined,
     on_open_change: Callable[[bool, MenuTriggerAction], None]
     | UndefinedType = Undefined,
-    on_selection_change: Callable[[Key], None] | UndefinedType = Undefined,
+    on_selection_change: Callable[[Key | None], None] | UndefinedType = Undefined,
     on_change: Callable[[Key], None] | UndefinedType = Undefined,
     on_input_change: Callable[[str], None] | UndefinedType = Undefined,
     on_focus: Callable[[FocusEventCallable], None] | UndefinedType = Undefined,

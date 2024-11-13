@@ -71,8 +71,8 @@ def _convert_time_field_props(
 @make_component
 def time_field(
     placeholder_value: Time | UndefinedType = Undefined,
-    value: Time | UndefinedType = Undefined,
-    default_value: Time | UndefinedType = Undefined,
+    value: Time | None | UndefinedType = Undefined,
+    default_value: Time | None | UndefinedType = Undefined,
     min_value: Time | UndefinedType = Undefined,
     max_value: Time | UndefinedType = Undefined,
     granularity: TimeGranularity | UndefinedType = "SECOND",
