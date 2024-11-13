@@ -68,6 +68,7 @@ def panel(
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
         key: A unique identifier used by React to render elements in a list.
+        **props: Any other Panel prop.
 
     Returns:
         The rendered panel element.
