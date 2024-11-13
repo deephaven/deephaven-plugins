@@ -5,7 +5,6 @@ from inspect import signature
 import sys
 from functools import partial
 from deephaven.time import to_j_instant, to_j_zdt, to_j_local_date, to_j_local_time
-from deephaven.dtypes import ZonedDateTime, Instant
 
 from ..types import (
     Date,
@@ -35,6 +34,21 @@ _TIME_CONVERTERS = {
     "java.time.Instant": to_j_instant,
     "java.time.LocalTime": to_j_local_time,
 }
+
+
+def is_nullish(value: Any) -> bool:
+    """
+    Check if the value is None or Undefined. Although the `__eq__` method for Undefined exists, Python uses the
+    `__eq__` method of the left hand side object. If that method is defined, such as afor Java wrapped types, the
+    behaviour is unexpected.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        If the value is nullish.
+    """
+    return value is None or value is Undefined
 
 
 def get_component_name(component: Any) -> str:
@@ -482,7 +496,7 @@ def _get_first_set_key(props: dict[str, Any], sequence: Sequence[str]) -> str | 
         The first non-None prop, or None if all props are None.
     """
     for key in sequence:
-        if Undefined != props.get(key):
+        if not is_nullish(props.get(key)):
             return key
     return None
 
@@ -667,11 +681,11 @@ def convert_date_props(
         The converted props.
     """
     for key in simple_date_props:
-        if Undefined != props.get(key):
+        if not is_nullish(props.get(key)):
             props[key] = _convert_to_java_date(props[key])
 
     for key in date_range_props:
-        if Undefined != props.get(key):
+        if not is_nullish(props.get(key)):
             props[key] = convert_date_range(props[key], _convert_to_java_date)
 
     # the simple props must be converted before this to simplify the callable conversion
@@ -681,25 +695,25 @@ def convert_date_props(
     # Local Dates will default to DAY but we need to default to SECOND for the other types
     if (
         granularity_key is not None
-        and Undefined == props.get(granularity_key)
+        and is_nullish(props.get(granularity_key))
         and converter != to_j_local_date
     ):
         props[granularity_key] = "SECOND"
 
-    # now that the converter is set, we can convert simple props to strings
+    # no.w that the converter is set, we can convert simple props to strings
     for key in simple_date_props:
-        if Undefined != props.get(key):
+        if not is_nullish(props.get(key)):
             props[key] = str(props[key])
 
     # and convert the date range props to strings
     for key in date_range_props:
-        if Undefined != props.get(key):
+        if not is_nullish(props.get(key)):
             props[key] = convert_date_range(props[key], str)
 
     # wrap the date callable with the convert
     # if there are date range props, we need to convert as a date range
     for key in callable_date_props:
-        if Undefined != props.get(key):
+        if not is_nullish(props.get(key)):
             if not callable(props[key]):
                 raise TypeError(f"{key} must be a callable")
             if len(date_range_props) > 0:
@@ -731,7 +745,7 @@ def convert_time_props(
         The converted props.
     """
     for key in simple_time_props:
-        if Undefined != props.get(key):
+        if not is_nullish(props.get(key)):
             props[key] = _convert_to_java_time(props[key])
 
     # the simple props must be converted before this to simplify the callable conversion
@@ -739,12 +753,12 @@ def convert_time_props(
 
     # now that the converter is set, we can convert simple props to strings
     for key in simple_time_props:
-        if Undefined != props.get(key):
+        if not is_nullish(props.get(key)):
             props[key] = str(props[key])
 
     # wrap the date callable with the convert
     for key in callable_time_props:
-        if Undefined != props.get(key):
+        if not is_nullish(props.get(key)):
             if not callable(props[key]):
                 raise TypeError(f"{key} must be a callable")
             props[key] = _wrap_time_callable(props[key], converter)

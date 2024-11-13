@@ -108,7 +108,7 @@ def extract_list_item(node: docutils.nodes.list_item) -> ParamData:
         match = re.match(r"(.+?) \((.*?)\) -- (.+)", field, re.DOTALL)
         if match is None:
             raise ValueError(
-                f"Could not match {field} to extract param data. "
+                f"Could not match {field} to extract param data. {node}"
                 f"Verify this parameter is documented correctly within 'Args:' with type and description."
             )
         matched = match.groups()
