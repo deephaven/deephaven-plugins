@@ -7,6 +7,7 @@ import {
   useFocusEventCallback,
   useKeyboardEventCallback,
 } from './hooks';
+import useDebouncedOnChange from './hooks/useDebouncedOnChange';
 
 export function SearchField(
   props: DHCSearchFieldProps & {
@@ -15,6 +16,8 @@ export function SearchField(
   }
 ): JSX.Element {
   const {
+    defaultValue = '',
+    value: propValue,
     onSubmit: propOnSubmit,
     onClear: propOnClear,
     onFocus: propOnFocus,
@@ -50,12 +53,9 @@ export function SearchField(
     [propOnFocusChange]
   );
 
-  const onChange = useConditionalCallback(
-    propOnChange != null,
-    (value: string) => {
-      propOnChange?.(value);
-    },
-    [propOnChange]
+  const [value, onChange] = useDebouncedOnChange(
+    propValue ?? defaultValue,
+    propOnChange
   );
 
   const onFocus = useFocusEventCallback(propOnFocus);
@@ -66,6 +66,8 @@ export function SearchField(
 
   return (
     <DHCSearchField
+      defaultValue={defaultValue}
+      value={value}
       onSubmit={onSubmit}
       onClear={onClear}
       onFocus={onFocus}
