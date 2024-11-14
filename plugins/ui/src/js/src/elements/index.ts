@@ -1,5 +1,6 @@
 export * from './ActionButton';
 export * from './ActionGroup';
+export * from './Badge';
 export * from './Button';
 export * from './Calendar';
 export * from './ComboBox';
@@ -18,6 +19,7 @@ export * from './IllustratedMessage';
 export * from './Image';
 export * from './InlineAlert';
 export * from './ListView';
+export * from './Markdown';
 export * from './model';
 export * from './ObjectView';
 export * from './Picker';

@@ -508,6 +508,18 @@ ActionGroupDensity = Literal["compact", "regular"]
 TabDensity = Literal["compact", "regular"]
 InlineAlertVariant = Literal["neutral", "info", "positive", "notice", "negative"]
 LinkVariant = Literal["primary", "secondary", "over_background"]
+BadgeVariant = Literal[
+    "neutral",
+    "info",
+    "positive",
+    "negative",
+    "indigo",
+    "yellow",
+    "magenta",
+    "fuchsia",
+    "purple",
+    "seafoam",
+]
 Dependencies = Union[Tuple[Any], List[Any]]
 Selection = Sequence[Key]
 LocalTime = DType

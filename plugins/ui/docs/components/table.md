@@ -66,6 +66,24 @@ t = ui.table(
 )
 ```
 
+### Formatting values from a column source
+
+Any string value for a formatting rule can be read from a column by specifying the column name as the value. Note that if a value matches a column name, it will always be used (i.e., the theme color `positive` can not be used as a direct value if there is also a column called `positive`). The following example sets the `background_color` of column `x` using the value of the `bg_color` column.
+
+```py
+from deephaven import ui
+
+_t = empty_table(100).update(["x = i", "y = sin(i)", "bg_color = x % 2 == 0 ? `positive` : `negative`"])
+
+t = ui.table(
+    _t,
+    format_=[
+        ui.TableFormat(cols="x", background_color="bg_color"),
+    ],
+    hidden_columns=["bg_color"],
+)
+```
+
 ### Formatting color
 
 Formatting rules for colors support Deephaven theme colors, hex colors, or any valid CSS color (e.g., `red`, `#ff0000`, `rgb(255, 0, 0)`). It is **recommended to use Deephaven theme colors** when possible to maintain a consistent look and feel across the UI. Theme colors will also automatically update if the user changes the theme.
@@ -283,6 +301,23 @@ t = ui.table(
 ```
 
 ![Example of column order and visibility](../_assets/table_column_order.png)
+
+## Column display names
+
+You can set custom display names for columns using the `column_display_names` prop. The `column_display_names` prop takes a dictionary where the key is the column name and the value is the display name. The display name can be any string, so this can be used to show a user-friendly name that does not adhere to column naming rules.
+
+```py
+from deephaven import ui
+import deephaven.plot.express as dx
+
+t = ui.table(
+    dx.data.stocks(),
+    column_display_names={
+        "Price": "Price (USD)",
+        "Side": "Buy/Sell"
+    }
+)
+```
 
 ## Grouping columns
 
