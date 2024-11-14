@@ -46,8 +46,16 @@
             "path": "components/button_group.md"
           },
           {
+            "label": "calendar",
+            "path": "components/calendar.md"
+          },
+          {
             "label": "checkbox",
             "path": "components/checkbox.md"
+          },
+          {
+            "label": "checkbox_group",
+            "path": "components/checkbox_group.md"
           },
           {
             "label": "combo_box",
@@ -56,6 +64,14 @@
           {
             "label": "contextual_help",
             "path": "components/contextual_help.md"
+          },
+          {
+            "label": "dashboard",
+            "path": "components/dashboard.md"
+          },
+          {
+            "label": "date_field",
+            "path": "components/date_field.md"
           },
           {
             "label": "date_picker",
@@ -74,12 +90,24 @@
             "path": "components/dialog_trigger.md"
           },
           {
+            "label": "flex",
+            "path": "components/flex.md"
+          },
+          {
+            "label": "form",
+            "path": "components/form.md"
+          },
+          {
             "label": "fragment",
             "path": "components/fragment.md"
           },
           {
             "label": "heading",
             "path": "components/heading.md"
+          },
+          {
+            "label": "icon",
+            "path": "components/icon.md"
           },
           {
             "label": "illustrated_message",
@@ -92,6 +120,18 @@
           {
             "label": "link",
             "path": "components/link.md"
+          },
+          {
+            "label": "list_view",
+            "path": "components/list_view.md"
+          },
+          {
+            "label": "number_field",
+            "path": "components/number_field.md"
+          },
+          {
+            "label": "panel",
+            "path": "components/panel.md"
           },
           {
             "label": "picker",
@@ -122,7 +162,11 @@
             "path": "components/slider.md"
           },
           {
-            "label": "Table",
+            "label": "switch",
+            "path": "components/switch.md"
+          },
+          {
+            "label": "table",
             "path": "components/table.md"
           },
           {
@@ -136,6 +180,14 @@
           {
             "label": "text_area",
             "path": "components/text_area.md"
+          },
+          {
+            "label": "text_field",
+            "path": "components/text_field.md"
+          },
+          {
+            "label": "time_field",
+            "path": "components/time_field.md"
           },
           {
             "label": "toggle_button",
