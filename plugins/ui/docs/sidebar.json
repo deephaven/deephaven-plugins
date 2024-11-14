@@ -38,6 +38,10 @@
             "path": "components/action_menu.md"
           },
           {
+            "label": "badge",
+            "path": "components/badge.md"
+          },
+          {
             "label": "button",
             "path": "components/button.md"
           },
@@ -89,9 +93,12 @@
             "label": "image",
             "path": "components/image.md"
           },
-          {
             "label": "link",
             "path": "components/link.md"
+          },
+          {
+            "label": "markdown",
+            "path": "components/markdown.md"
           },
           {
             "label": "picker",

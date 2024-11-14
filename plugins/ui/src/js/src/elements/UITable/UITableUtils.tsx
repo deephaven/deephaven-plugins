@@ -69,6 +69,7 @@ export type UITableProps = StyleProps & {
   frozenColumns?: string[];
   hiddenColumns?: string[];
   columnGroups?: dh.ColumnGroup[];
+  columnDisplayNames?: Record<ColumnName, string>;
   density?: 'compact' | 'regular' | 'spacious';
   contextMenu?: ResolvableUIContextItem | ResolvableUIContextItem[];
   contextHeaderMenu?: ResolvableUIContextItem | ResolvableUIContextItem[];
