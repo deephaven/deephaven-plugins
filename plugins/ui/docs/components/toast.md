@@ -9,14 +9,14 @@ from deephaven import ui
 
 btn = ui.button(
     "Show toast",
-    on_press=lambda: ui.toast_queue.positive("Toast is done!"),
+    on_press=lambda: ui.toast("Toast is done!"),
     variant="primary",
 )
 ```
 
 ## Content
 
-Toasts are triggered using one of the methods of `ui.toast_queue`.
+Toasts are triggered using the method `ui.toast`. Toasts use `variant` to specify the following styles: `neutral`, `positive`, `negative`, and `info`. Toast will default to `neutral` if `variant` is omitted.
 
 Toasts are shown according to the order they are added, with the most recent toast appearing at the bottom of the stack. Please use Toasts sparingly.
 
@@ -26,22 +26,22 @@ from deephaven import ui
 toasts = ui.button_group(
     ui.button(
         "Show neutral toast",
-        on_press=lambda: ui.toast_queue.neutral("Toast available"),
+        on_press=lambda: ui.toast("Toast available", variant="neutral"),
         variant="secondary",
     ),
     ui.button(
         "Show positive toast",
-        on_press=lambda: ui.toast_queue.positive("Toast is done!"),
+        on_press=lambda: ui.toas("Toast is done!", variant="positive"),
         variant="primary",
     ),
     ui.button(
         "Show negative toast",
-        on_press=lambda: ui.toast_queue.negative("Toast is burned!"),
+        on_press=lambda: ui.toast("Toast is burned!", variant="negative"),
         variant="negative",
     ),
     ui.button(
         "Show info toast",
-        on_press=lambda: ui.toast_queue.info("Toasting..."),
+        on_press=lambda: ui.toast("Toasting...", variant="info"),
         variant="accent",
         style="outline",
     ),
@@ -58,11 +58,12 @@ from deephaven import ui
 
 btn = ui.button(
     "Show toast",
-    on_press=lambda: ui.toast_queue.positive(
+    on_press=lambda: ui.toast(
         "An update is available",
         action_label="Update",
         on_action=lambda: print("Updating!"),
         should_close_on_action=True,
+        variant="positive",
     ),
     variant="primary",
 )
@@ -80,7 +81,7 @@ from deephaven import ui
 
 btn = ui.button(
     "Show toast",
-    on_press=lambda: ui.toast_queue.positive("Toast is done!", timeout=5000),
+    on_press=lambda: ui.toast("Toast is done!", timeout=5000, variant="positive"),
     variant="primary",
 )
 ```
@@ -99,8 +100,8 @@ def close_example():
 
     def handle_press():
         if close is None:
-            toast_close = ui.toast_queue.positive(
-                "Unable to save", on_close=lambda: set_close(None)
+            toast_close = ui.toast(
+                "Unable to save", on_close=lambda: set_close(None), variant="positive"
             )
             set_close(lambda: toast_close())
         else:
