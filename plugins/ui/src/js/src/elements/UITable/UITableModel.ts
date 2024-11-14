@@ -27,7 +27,8 @@ export async function makeUiTableModel(
   table: DhType.Table,
   databars: DatabarConfig[],
   layoutHints: UITableLayoutHints,
-  format: FormattingRule[]
+  format: FormattingRule[],
+  displayNameMap: Record<string, string>
 ): Promise<UITableModel> {
   const joinColumns: string[] = [];
   const totalsOperationMap: Record<string, string[]> = {};
@@ -113,6 +114,7 @@ export async function makeUiTableModel(
     table: uiTableProxy,
     databars,
     format,
+    displayNameMap,
   });
 }
 
@@ -150,6 +152,8 @@ class UITableModel extends IrisGridModel {
    */
   private colorMap: Map<string, string> = new Map();
 
+  private displayNameMap: Record<string, string>;
+
   private format: FormattingRule[];
 
   constructor({
@@ -158,17 +162,20 @@ class UITableModel extends IrisGridModel {
     table,
     databars,
     format,
+    displayNameMap,
   }: {
     dh: typeof DhType;
     model: IrisGridModel;
     table: DhType.Table;
     databars: DatabarConfig[];
     format: FormattingRule[];
+    displayNameMap: Record<string, string>;
   }) {
     super(dh);
 
     this.model = model;
     this.table = table;
+    this.displayNameMap = displayNameMap;
 
     this.databars = new Map<ColumnName, DatabarConfig>();
     databars.forEach(databar => {
@@ -218,6 +225,21 @@ class UITableModel extends IrisGridModel {
         return Reflect.set(target.model, prop, value, target.model);
       },
     });
+  }
+
+  override textForColumnHeader(
+    column: ModelIndex,
+    depth?: number
+  ): string | undefined {
+    const originalText = this.model.textForColumnHeader(column, depth);
+    if (originalText == null) {
+      return originalText;
+    }
+
+    if (originalText in this.displayNameMap) {
+      return this.displayNameMap[originalText];
+    }
+    return originalText;
   }
 
   setColorMap(colorMap: Map<string, string>): void {
@@ -417,12 +439,31 @@ class UITableModel extends IrisGridModel {
         // eslint-disable-next-line no-continue
         continue;
       }
+
+      let resolvedFormatValue = formatValue;
+      const columnSourceIndex =
+        typeof formatValue === 'string'
+          ? this.getColumnIndexByName(formatValue)
+          : null;
+      if (columnSourceIndex != null) {
+        const columnSource = this.columns[columnSourceIndex];
+        if (!TableUtils.isStringType(columnSource.type)) {
+          throw new Error(
+            `Column ${columnSource.name} which provides TableFormat values for ${formatKey} is of type ${columnSource.type}. Columns that provide TableFormat values must be of type string.`
+          );
+        }
+        resolvedFormatValue = this.valueForCell(
+          columnSourceIndex,
+          row
+        ) as NonNullable<FormattingRule[K]>;
+      }
+
       if (
         cols == null ||
         this.formatColumnMatch(ensureArray(cols), columnName)
       ) {
         if (if_ == null) {
-          return formatValue;
+          return resolvedFormatValue;
         }
         const rowValues = this.model.row(row)?.data;
         if (rowValues == null) {
@@ -430,7 +471,7 @@ class UITableModel extends IrisGridModel {
         }
         const whereValue = rowValues.get(getFormatCustomColumnName(i))?.value;
         if (whereValue === true) {
-          return formatValue;
+          return resolvedFormatValue;
         }
       }
     }

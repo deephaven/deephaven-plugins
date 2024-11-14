@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useSelector } from 'react-redux';
 import classNames from 'classnames';
 import {
@@ -10,6 +16,7 @@ import {
   IrisGridUtils,
 } from '@deephaven/iris-grid';
 import {
+  ColorValues,
   colorValueStyle,
   resolveCssVariablesInRecord,
   useStyleProps,
@@ -39,9 +46,14 @@ const log = Log.module('@deephaven/js-plugin-ui/UITable');
  * @returns A stable array if none of the elements have changed
  */
 function useStableArray<T>(array: T[]): T[] {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const stableArray = useMemo(() => array, [...array]);
-  return stableArray;
+  const stableArray = useRef<T[]>(array);
+  if (
+    array.length !== stableArray.current.length ||
+    !array.every((v, i) => v === stableArray.current[i])
+  ) {
+    stableArray.current = array;
+  }
+  return stableArray.current;
 }
 
 export function UITable({
@@ -65,6 +77,7 @@ export function UITable({
   frozenColumns,
   hiddenColumns,
   columnGroups,
+  columnDisplayNames: columnDisplayNamesProp = {},
   density,
   contextMenu,
   contextHeaderMenu,
@@ -131,6 +144,7 @@ export function UITable({
 
   // TODO: #982 respond to prop changes here
   const [format] = useState(formatProp != null ? ensureArray(formatProp) : []);
+  const [columnDisplayNames] = useState(columnDisplayNamesProp ?? {});
   // TODO: #981 move databars to format and rewire for databar support
   const [databars] = useState(databarsProp ?? []);
 
@@ -160,17 +174,10 @@ export function UITable({
       });
     });
 
-    format.forEach(rule => {
-      const { color, background_color: backgroundColor } = rule;
-      if (color != null) {
-        colorSet.add(color);
-      }
-      if (backgroundColor != null) {
-        colorSet.add(backgroundColor);
-      }
-    });
-
     const colorRecord: Record<string, string> = {};
+    ColorValues.forEach(c => {
+      colorRecord[c] = colorValueStyle(c);
+    });
     colorSet.forEach(c => {
       colorRecord[c] = colorValueStyle(c);
     });
@@ -181,7 +188,7 @@ export function UITable({
       newColorMap.set(key, value);
     });
     return newColorMap;
-  }, [databars, format, theme]);
+  }, [theme, databars]);
 
   if (model) {
     model.setColorMap(colorMap);
@@ -230,7 +237,8 @@ export function UITable({
           table,
           databars,
           layoutHints,
-          format
+          format,
+          columnDisplayNames
         );
         if (!isCancelled) {
           setError(null);
@@ -251,13 +259,37 @@ export function UITable({
     return () => {
       isCancelled = true;
     };
-  }, [databars, dh, exportedTable, layoutHints, format]);
+  }, [databars, dh, exportedTable, layoutHints, format, columnDisplayNames]);
+
+  // Get any format values that match column names
+  // Assume the format value is derived from the column
+  const formatColumnSources = useMemo(() => {
+    if (columns == null) {
+      return [];
+    }
+    const columnSet = new Set(columns.map(column => column.name));
+    const alwaysFetch: string[] = [];
+    format.forEach(rule => {
+      Object.entries(rule).forEach(([key, value]) => {
+        if (
+          key !== 'cols' &&
+          key !== 'if_' &&
+          typeof value === 'string' &&
+          columnSet.has(value)
+        ) {
+          alwaysFetch.push(value);
+        }
+      });
+    });
+    return alwaysFetch;
+  }, [format, columns]);
 
   const modelColumns = model?.columns ?? EMPTY_ARRAY;
 
-  const alwaysFetchColumnsArray = useStableArray(
-    ensureArray(alwaysFetchColumnsProp)
-  );
+  const alwaysFetchColumnsArray = useStableArray([
+    ...ensureArray(alwaysFetchColumnsProp),
+    ...formatColumnSources,
+  ]);
 
   const alwaysFetchColumns = useMemo(() => {
     if (alwaysFetchColumnsArray[0] === true) {

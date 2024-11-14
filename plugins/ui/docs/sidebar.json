@@ -38,6 +38,10 @@
             "path": "components/action_menu.md"
           },
           {
+            "label": "badge",
+            "path": "components/badge.md"
+          },
+          {
             "label": "button",
             "path": "components/button.md"
           },
@@ -117,13 +121,16 @@
             "label": "image",
             "path": "components/image.md"
           },
-          {
             "label": "link",
             "path": "components/link.md"
           },
           {
             "label": "list_view",
             "path": "components/list_view.md"
+          },
+          {
+            "label": "markdown",
+            "path": "components/markdown.md"
           },
           {
             "label": "number_field",
