@@ -16,10 +16,6 @@ my_inline_alert_basic = ui.inline_alert(
 )
 ```
 
-## UI Recommendations
-
-Consider using [`ui.heading`](./heading.md) if you want to create different types of headings.
-
 
 ## Content
 
@@ -41,7 +37,7 @@ my_inline_alert_content_example = ui.inline_alert(
 
 ## Variant
 
-A variant can be set using the `variant` prop to give inline alerts a semantic meaning.
+The `variant` prop can set a variant to give inline alerts a semantic meaning.
 
 ```python
 from deephaven import ui
