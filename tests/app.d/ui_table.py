@@ -34,6 +34,14 @@ t_color = ui.table(
     ],
 )
 
+t_color_column_source = ui.table(
+    _t.update("bg_color = x % 2 == 0 ? `positive` : `negative`"),
+    format_=[
+        ui.TableFormat(cols="x", background_color="bg_color"),
+    ],
+    hidden_columns=["bg_color"],
+)
+
 t_priority = ui.table(
     _t,
     format_=[
