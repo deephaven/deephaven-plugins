@@ -121,6 +121,7 @@
             "label": "image",
             "path": "components/image.md"
           },
+          {
             "label": "link",
             "path": "components/link.md"
           },
