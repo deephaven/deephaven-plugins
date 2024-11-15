@@ -19,6 +19,10 @@
         "path": "installation.md"
       },
       {
+        "label": "Architecture",
+        "path": "architecture.md"
+      },
+      {
         "label": "Components",
         "items": [
           {
@@ -32,6 +36,10 @@
           {
             "label": "action_menu",
             "path": "components/action_menu.md"
+          },
+          {
+            "label": "badge",
+            "path": "components/badge.md"
           },
           {
             "label": "button",
@@ -50,6 +58,10 @@
             "path": "components/combo_box.md"
           },
           {
+            "label": "contextual_help",
+            "path": "components/contextual_help.md"
+          },
+          {
             "label": "date_picker",
             "path": "components/date_picker.md"
           },
@@ -66,6 +78,10 @@
             "path": "components/dialog_trigger.md"
           },
           {
+            "label": "fragment",
+            "path": "components/fragment.md"
+          },
+          {
             "label": "heading",
             "path": "components/heading.md"
           },
@@ -76,6 +92,13 @@
           {
             "label": "image",
             "path": "components/image.md"
+          },
+            "label": "link",
+            "path": "components/link.md"
+          },
+          {
+            "label": "markdown",
+            "path": "components/markdown.md"
           },
           {
             "label": "picker",
@@ -108,6 +131,10 @@
           {
             "label": "Table",
             "path": "components/table.md"
+          },
+          {
+            "label": "tabs",
+            "path": "components/tabs.md"
           },
           {
             "label": "text",

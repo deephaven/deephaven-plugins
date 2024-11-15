@@ -42,7 +42,10 @@ export function WidgetErrorView({
         <Flex direction="column" gap="size-150">
           <Text UNSAFE_className="ui-text-wrap-balance">
             {shortMessage}
-            <ContextualHelp variant="info">
+            <ContextualHelp
+              variant="info"
+              UNSAFE_className="ui-widget-error-contextual-help"
+            >
               <Heading>
                 {name}{' '}
                 <CopyButton

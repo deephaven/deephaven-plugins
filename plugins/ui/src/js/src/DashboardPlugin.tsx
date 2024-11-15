@@ -76,13 +76,7 @@ export function DashboardPlugin(
   >(new Map());
 
   const handleWidgetOpen = useCallback(
-    ({
-      widgetId = nanoid(),
-      widget,
-    }: {
-      widgetId: string;
-      widget: WidgetDescriptor;
-    }) => {
+    ({ widgetId, widget }: { widgetId: string; widget: WidgetDescriptor }) => {
       log.debug('Opening widget with ID', widgetId, widget);
       setWidgetMap(prevWidgetMap => {
         const newWidgetMap = new Map(prevWidgetMap);

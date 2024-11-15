@@ -1,4 +1,5 @@
-import { KeyboardEvent, useCallback } from 'react';
+import { KeyboardEvent } from 'react';
+import useConditionalCallback from './useConditionalCallback';
 
 export function serializeKeyboardEvent(
   event: KeyboardEvent
@@ -36,11 +37,11 @@ export type DeserializedKeyboardEventCallback = (e: KeyboardEvent) => void;
 export function useKeyboardEventCallback(
   callback?: SerializedKeyboardEventCallback
 ): DeserializedKeyboardEventCallback | undefined {
-  const keyboardCallback = useCallback(
+  return useConditionalCallback(
+    callback != null,
     (e: KeyboardEvent) => {
       callback?.(serializeKeyboardEvent(e));
     },
     [callback]
   );
-  return callback != null ? keyboardCallback : undefined;
 }

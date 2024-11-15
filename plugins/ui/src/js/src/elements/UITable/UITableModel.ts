@@ -3,24 +3,32 @@ import {
   DataBarOptions,
   CellRenderType,
   ModelIndex,
+  GridColor,
+  NullableGridColor,
+  memoizeClear,
+  GridRenderer,
 } from '@deephaven/grid';
 import {
   ColumnName,
   IrisGridModel,
   IrisGridModelFactory,
+  type IrisGridThemeType,
   isIrisGridTableModelTemplate,
   UIRow,
 } from '@deephaven/iris-grid';
+import { ensureArray } from '@deephaven/utils';
 import { TableUtils } from '@deephaven/jsapi-utils';
 import { type dh as DhType } from '@deephaven/jsapi-types';
-import { ColorGradient, DatabarConfig } from './UITableUtils';
+import { ColorGradient, DatabarConfig, FormattingRule } from './UITableUtils';
 import JsTableProxy, { UITableLayoutHints } from './JsTableProxy';
 
 export async function makeUiTableModel(
   dh: typeof DhType,
   table: DhType.Table,
   databars: DatabarConfig[],
-  layoutHints: UITableLayoutHints
+  layoutHints: UITableLayoutHints,
+  format: FormattingRule[],
+  displayNameMap: Record<string, string>
 ): Promise<UITableModel> {
   const joinColumns: string[] = [];
   const totalsOperationMap: Record<string, string[]> = {};
@@ -56,6 +64,31 @@ export async function makeUiTableModel(
 
   let baseTable = table;
 
+  const customColumns: string[] = [];
+  format.forEach((rule, i) => {
+    const { if_ } = rule;
+    if (if_ != null) {
+      customColumns.push(`${getFormatCustomColumnName(i)}=${if_}`);
+    }
+  });
+
+  if (customColumns.length > 0) {
+    await new TableUtils(dh).applyCustomColumns(baseTable, customColumns);
+    format.forEach((rule, i) => {
+      const { if_ } = rule;
+      if (if_ != null) {
+        const columnType = baseTable.findColumn(
+          getFormatCustomColumnName(i)
+        ).type;
+        if (!TableUtils.isBooleanType(columnType)) {
+          throw new Error(
+            `ui.TableFormat if_ must be a boolean column. "${if_}" is a ${columnType} column`
+          );
+        }
+      }
+    });
+  }
+
   if (joinColumns.length > 0) {
     const totalsTable = await table.getTotalsTable({
       operationMap: totalsOperationMap,
@@ -80,7 +113,18 @@ export async function makeUiTableModel(
     model: baseModel,
     table: uiTableProxy,
     databars,
+    format,
+    displayNameMap,
   });
+}
+
+/**
+ * Gets the name of the custom column that stores the where clause for a formatting rule
+ * @param i The index of the formatting rule
+ * @returns The name of the custom column that stores the where clause for the formatting rule
+ */
+function getFormatCustomColumnName(i: number): string {
+  return `_${i}__FORMAT`;
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -103,28 +147,42 @@ class UITableModel extends IrisGridModel {
 
   private databars: Map<ColumnName, DatabarConfig>;
 
-  private databarColorMap: Map<string, string> = new Map();
+  /**
+   * Map of theme color keys to hex color values
+   */
+  private colorMap: Map<string, string> = new Map();
+
+  private displayNameMap: Record<string, string>;
+
+  private format: FormattingRule[];
 
   constructor({
     dh,
     model,
     table,
     databars,
+    format,
+    displayNameMap,
   }: {
     dh: typeof DhType;
     model: IrisGridModel;
     table: DhType.Table;
     databars: DatabarConfig[];
+    format: FormattingRule[];
+    displayNameMap: Record<string, string>;
   }) {
     super(dh);
 
     this.model = model;
     this.table = table;
+    this.displayNameMap = displayNameMap;
 
     this.databars = new Map<ColumnName, DatabarConfig>();
     databars.forEach(databar => {
       this.databars.set(databar.column, databar);
     });
+
+    this.format = format;
 
     // eslint-disable-next-line no-constructor-return
     return new Proxy(this, {
@@ -169,8 +227,23 @@ class UITableModel extends IrisGridModel {
     });
   }
 
-  setDatabarColorMap(colorMap: Map<string, string>): void {
-    this.databarColorMap = colorMap;
+  override textForColumnHeader(
+    column: ModelIndex,
+    depth?: number
+  ): string | undefined {
+    const originalText = this.model.textForColumnHeader(column, depth);
+    if (originalText == null) {
+      return originalText;
+    }
+
+    if (originalText in this.displayNameMap) {
+      return this.displayNameMap[originalText];
+    }
+    return originalText;
+  }
+
+  setColorMap(colorMap: Map<string, string>): void {
+    this.colorMap = colorMap;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -285,7 +358,7 @@ class UITableModel extends IrisGridModel {
           typeof markerValue === 'string'
             ? this.getDatabarValueFromRow(row, markerValue, 'marker')
             : markerValue,
-        color: this.databarColorMap.get(markerColor) ?? markerColor,
+        color: this.colorMap.get(markerColor) ?? markerColor,
       };
     });
 
@@ -304,18 +377,18 @@ class UITableModel extends IrisGridModel {
 
     if (Array.isArray(positiveColor)) {
       positiveColor = positiveColor.map(
-        color => this.databarColorMap.get(color) ?? color
+        color => this.colorMap.get(color) ?? color
       );
     } else {
-      positiveColor = this.databarColorMap.get(positiveColor) ?? positiveColor;
+      positiveColor = this.colorMap.get(positiveColor) ?? positiveColor;
     }
 
     if (Array.isArray(negativeColor)) {
       negativeColor = negativeColor.map(
-        color => this.databarColorMap.get(color) ?? color
+        color => this.colorMap.get(color) ?? color
       );
     } else {
-      negativeColor = this.databarColorMap.get(negativeColor) ?? negativeColor;
+      negativeColor = this.colorMap.get(negativeColor) ?? negativeColor;
     }
 
     return {
@@ -329,6 +402,158 @@ class UITableModel extends IrisGridModel {
       direction,
       value,
     };
+  }
+
+  formatColumnMatch = memoizeClear(
+    (columns: string[], column: string): boolean =>
+      columns.some(c => c === column),
+    { primitive: true, max: 10000 }
+  );
+
+  /**
+   * Gets the first matching format option for a cell.
+   * Checks if there is a column match and if there is a where clause match if needed.
+   * If there is no value for the key that matches in any rule, returns undefined.
+   * Stops on first match.
+   *
+   * @param column The model column index
+   * @param row The model row index
+   * @param formatKey The key to get the format option for
+   * @returns The format option if set or undefined
+   */
+  getFormatOptionForCell<K extends keyof FormattingRule>(
+    column: ModelIndex,
+    row: ModelIndex,
+    formatKey: K
+  ): FormattingRule[K] | undefined {
+    if (!isIrisGridTableModelTemplate(this.model)) {
+      return undefined;
+    }
+    const columnName = this.columns[column].name;
+
+    // Iterate in reverse so that the last rule that matches is used
+    for (let i = this.format.length - 1; i >= 0; i -= 1) {
+      const rule = this.format[i];
+      const { cols, if_, [formatKey]: formatValue } = rule;
+      if (formatValue == null) {
+        // eslint-disable-next-line no-continue
+        continue;
+      }
+
+      let resolvedFormatValue = formatValue;
+      const columnSourceIndex =
+        typeof formatValue === 'string'
+          ? this.getColumnIndexByName(formatValue)
+          : null;
+      if (columnSourceIndex != null) {
+        const columnSource = this.columns[columnSourceIndex];
+        if (!TableUtils.isStringType(columnSource.type)) {
+          throw new Error(
+            `Column ${columnSource.name} which provides TableFormat values for ${formatKey} is of type ${columnSource.type}. Columns that provide TableFormat values must be of type string.`
+          );
+        }
+        resolvedFormatValue = this.valueForCell(
+          columnSourceIndex,
+          row
+        ) as NonNullable<FormattingRule[K]>;
+      }
+
+      if (
+        cols == null ||
+        this.formatColumnMatch(ensureArray(cols), columnName)
+      ) {
+        if (if_ == null) {
+          return resolvedFormatValue;
+        }
+        const rowValues = this.model.row(row)?.data;
+        if (rowValues == null) {
+          return undefined;
+        }
+        const whereValue = rowValues.get(getFormatCustomColumnName(i))?.value;
+        if (whereValue === true) {
+          return resolvedFormatValue;
+        }
+      }
+    }
+    return undefined;
+  }
+
+  getCachedFormatForCell = memoizeClear(
+    (
+      format: DhType.Format | undefined,
+      formatString: string | null | undefined
+    ): DhType.Format | undefined => ({
+      ...format,
+      formatString,
+    }),
+    { max: 10000 }
+  );
+
+  override formatForCell(
+    column: ModelIndex,
+    row: ModelIndex
+  ): DhType.Format | undefined {
+    const format = this.model.formatForCell(column, row);
+    return this.getCachedFormatForCell(
+      format,
+      this.getFormatOptionForCell(column, row, 'value') ?? format?.formatString
+    );
+  }
+
+  override colorForCell(
+    column: ModelIndex,
+    row: ModelIndex,
+    theme: IrisGridThemeType
+  ): GridColor {
+    const color = this.getFormatOptionForCell(column, row, 'color');
+    const { colorMap } = this;
+
+    // If a color is explicitly set, use it
+    if (color != null) {
+      return colorMap.get(color) ?? color;
+    }
+
+    // If there is a background color, use white or black depending on the background color
+    const backgroundColor = this.getFormatOptionForCell(
+      column,
+      row,
+      'background_color'
+    );
+
+    if (backgroundColor != null) {
+      const isDarkBackground = GridRenderer.getCachedColorIsDark(
+        colorMap.get(backgroundColor) ?? backgroundColor
+      );
+      return isDarkBackground ? theme.white : theme.black;
+    }
+
+    return this.model.colorForCell(column, row, theme);
+  }
+
+  override textAlignForCell(
+    column: ModelIndex,
+    row: ModelIndex
+  ): CanvasTextAlign {
+    return (
+      this.getFormatOptionForCell(column, row, 'alignment') ??
+      this.model.textAlignForCell(column, row)
+    );
+  }
+
+  override backgroundColorForCell(
+    column: ModelIndex,
+    row: ModelIndex,
+    theme: IrisGridThemeType
+  ): NullableGridColor {
+    const backgroundColor = this.getFormatOptionForCell(
+      column,
+      row,
+      'background_color'
+    );
+    if (backgroundColor != null) {
+      return this.colorMap.get(backgroundColor) ?? backgroundColor;
+    }
+    return this.model.backgroundColorForCell(column, row, theme);
   }
 }
 

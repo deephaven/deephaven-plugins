@@ -1,6 +1,6 @@
-import { useCallback } from 'react';
 import { PressEvent } from '@deephaven/components';
 import { getTargetName } from '../utils';
+import useConditionalCallback from './useConditionalCallback';
 
 export function serializePressEvent(event: PressEvent): SerializedPressEvent {
   const { target, type, pointerType, shiftKey, ctrlKey, metaKey, altKey } =
@@ -37,11 +37,11 @@ export type SerializedPressEventCallback = (
 export function usePressEventCallback(
   callback?: SerializedPressEventCallback
 ): ((e: PressEvent) => void) | undefined {
-  const pressCallback = useCallback(
+  return useConditionalCallback(
+    callback != null,
     (e: PressEvent) => {
       callback?.(serializePressEvent(e));
     },
     [callback]
   );
-  return callback != null ? pressCallback : undefined;
 }
