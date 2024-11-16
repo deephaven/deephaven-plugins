@@ -7,6 +7,11 @@
   overflow: hidden;
 }
 
+// Hide if the loader has any siblings
+.ui-portal-panel-loader:has(+ *) {
+  display: none;
+}
+
 .ui-table-container {
   // If all browsers properly supported 'stretch' for height and width
   // we could swap to that, but right now only Chrome properly implements it.

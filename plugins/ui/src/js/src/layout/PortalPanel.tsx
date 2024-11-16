@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { DashboardPanelProps } from '@deephaven/dashboard';
 import { Panel } from '@deephaven/dashboard-core-plugins';
+import { LoadingOverlay } from '@deephaven/components';
 import { emitPortalClosed, emitPortalOpened } from './PortalPanelEvent';
 
 /**
@@ -27,7 +28,13 @@ function PortalPanel({
 
   return (
     <Panel glContainer={glContainer} glEventHub={glEventHub}>
-      <div className="ui-portal-panel" ref={ref} />
+      <div className="ui-portal-panel" ref={ref}>
+        {/* This will be hidden by CSS if it has any siblings (i.e., once the panel contents mount) */}
+        {/* Without this, we show a blank panel while re-hydrating instead of a loading spinner */}
+        <div className="ui-portal-panel-loader">
+          <LoadingOverlay />
+        </div>
+      </div>
     </Panel>
   );
 }

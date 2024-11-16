@@ -82,6 +82,9 @@ import {
   Tabs,
 } from '../elements';
 
+export const WIDGET_ELEMENT = 'deephaven.ui.Element';
+export const DASHBOARD_ELEMENT = 'deephaven.ui.Dashboard';
+
 /**
  * Elements to implicitly wrap primitive children in <Text> components.
  */
