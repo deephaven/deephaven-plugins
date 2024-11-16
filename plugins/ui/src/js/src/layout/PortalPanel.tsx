@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { DashboardPanelProps } from '@deephaven/dashboard';
 import { Panel } from '@deephaven/dashboard-core-plugins';
 import { LoadingOverlay } from '@deephaven/components';
@@ -13,15 +13,31 @@ function PortalPanel({
   glEventHub,
 }: DashboardPanelProps): JSX.Element {
   const ref = useRef<HTMLDivElement>(null);
+  const [contentHasMounted, setContentHasMounted] = useState(false);
 
   useEffect(() => {
     const { current } = ref;
     if (current == null) {
       return;
     }
+
+    // When the page loads, this component loads from golden-layout, but the content
+    // does not load until the components are rendered on the server.
+    // Show a loading overlay until the content is mounted to handle its own loading state
+    const mutationObserver = new MutationObserver((mutationList, observer) => {
+      mutationList.forEach(mutation => {
+        if (mutation.addedNodes.length > 0) {
+          setContentHasMounted(true);
+          observer.disconnect();
+        }
+      });
+    });
+    mutationObserver.observe(current, { childList: true });
+
     emitPortalOpened(glEventHub, { container: glContainer, element: current });
 
     return () => {
+      mutationObserver.disconnect();
       emitPortalClosed(glEventHub, { container: glContainer });
     };
   }, [glContainer, glEventHub]);
@@ -29,11 +45,7 @@ function PortalPanel({
   return (
     <Panel glContainer={glContainer} glEventHub={glEventHub}>
       <div className="ui-portal-panel" ref={ref}>
-        {/* This will be hidden by CSS if it has any siblings (i.e., once the panel contents mount) */}
-        {/* Without this, we show a blank panel while re-hydrating instead of a loading spinner */}
-        <div className="ui-portal-panel-loader">
-          <LoadingOverlay />
-        </div>
+        {!contentHasMounted ? <LoadingOverlay /> : null}
       </div>
     </Panel>
   );
