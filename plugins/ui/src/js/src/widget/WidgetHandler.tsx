@@ -42,7 +42,6 @@ import WidgetStatusContext, {
   WidgetStatus,
 } from '../layout/WidgetStatusContext';
 import WidgetErrorView from './WidgetErrorView';
-import ReactPanel from '../layout/ReactPanel';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
@@ -78,12 +77,7 @@ function WidgetHandler({
     setIsLoading(true);
   }
 
-  // Default to a single panel so we can immediately show a loading spinner
-  // The panel will be replaced with the first actual panel when the document loads
-  // Dashboards already have a loader and the placeholder panel causes an error
-  const [document, setDocument] = useState<ReactNode>(
-    widgetDescriptor.type === 'deephaven.ui.Dashboard' ? null : <ReactPanel />
-  );
+  const [document, setDocument] = useState<ReactNode>();
 
   // We want to update the initial data if the widget changes, as we'll need to re-fetch the widget and want to start with a fresh state.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -364,21 +358,35 @@ function WidgetHandler({
     if (isLoading) {
       return { status: 'loading', descriptor: widgetDescriptor };
     }
-    return { status: 'ready', descriptor: widgetDescriptor };
-  }, [error, widgetDescriptor, isLoading]);
+    if (renderedDocument != null) {
+      return { status: 'ready', descriptor: widgetDescriptor };
+    }
+    return { status: 'loading', descriptor: widgetDescriptor };
+  }, [error, renderedDocument, widgetDescriptor, isLoading]);
 
-  return renderedDocument ? (
-    <WidgetStatusContext.Provider value={widgetStatus}>
-      <DocumentHandler
-        widget={widgetDescriptor}
-        initialData={initialData}
-        onDataChange={onDataChange}
-        onClose={onClose}
-      >
-        {renderedDocument}
-      </DocumentHandler>
-    </WidgetStatusContext.Provider>
-  ) : null;
+  return useMemo(
+    () =>
+      renderedDocument ? (
+        <WidgetStatusContext.Provider value={widgetStatus}>
+          <DocumentHandler
+            widget={widgetDescriptor}
+            initialData={initialData}
+            onDataChange={onDataChange}
+            onClose={onClose}
+          >
+            {renderedDocument}
+          </DocumentHandler>
+        </WidgetStatusContext.Provider>
+      ) : null,
+    [
+      widgetDescriptor,
+      renderedDocument,
+      initialData,
+      onClose,
+      onDataChange,
+      widgetStatus,
+    ]
+  );
 }
 
 WidgetHandler.displayName = '@deephaven/js-plugin-ui/WidgetHandler';
