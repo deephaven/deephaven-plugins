@@ -33,9 +33,9 @@ class TypesTest(BaseTestCase):
     def test_nullish_init(self):
         from deephaven.ui.types import NullType, UndefinedType
 
-        with self.assertRaises(NotImplemented):
+        with self.assertRaises(NotImplementedError):
             NullType()
-        with self.assertRaises(NotImplemented):
+        with self.assertRaises(NotImplementedError):
             UndefinedType()
 
     def test_copy(self):

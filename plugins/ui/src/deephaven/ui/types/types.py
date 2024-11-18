@@ -570,7 +570,7 @@ class UndefinedType:
 
     def __init__(self) -> None:
         if _DISABLE_NULLISH_CONSTRUCTORS:
-            raise NotImplemented
+            raise NotImplementedError
 
     def __bool__(self) -> bool:
         return False
@@ -596,7 +596,7 @@ class NullType:
 
     def __init__(self) -> None:
         if _DISABLE_NULLISH_CONSTRUCTORS:
-            raise NotImplemented
+            raise NotImplementedError
 
     def __bool__(self) -> bool:
         return False
