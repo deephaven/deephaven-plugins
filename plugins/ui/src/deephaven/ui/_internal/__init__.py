@@ -3,6 +3,7 @@ from .RenderContext import (
     StateKey,
     StateUpdateCallable,
     OnChangeCallable,
+    OnEventCallable,
     InitializerFunction,
     UpdaterFunction,
     get_context,

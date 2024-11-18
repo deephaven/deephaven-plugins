@@ -162,7 +162,9 @@ class ElementMessageStream(MessageStream):
         self._manager = JSONRPCResponseManager()
         self._dispatcher = self._make_dispatcher()
         self._encoder = NodeEncoder(separators=(",", ":"))
-        self._context = RenderContext(self._queue_state_update, self._queue_callable)
+        self._context = RenderContext(
+            self._queue_state_update, self._queue_callable, self._queue_event
+        )
         self._renderer = Renderer(self._context)
         self._update_queue = Queue()
         self._callable_queue = Queue()
@@ -272,6 +274,16 @@ class ElementMessageStream(MessageStream):
             callable: The callable to queue
         """
         self._callable_queue.put(callable)
+        self._queue_render()
+
+    def _queue_event(self, name: str, payload: dict) -> None:
+        """
+        Queue an event to be called on the render thread.
+
+        Args:
+            event: The event to queue
+        """
+        self._callable_queue.put(lambda: self._send_event(name, payload))
         self._queue_render()
 
     def start(self) -> None:
@@ -479,5 +491,17 @@ class ElementMessageStream(MessageStream):
                 }
             ),
         )
+        payload = json.dumps(request)
+        self._connection.on_data(payload.encode(), [])
+
+    def _send_event(self, name: str, params: dict) -> None:
+        """
+        Send an event to the client.
+
+        Args:
+            name: The name of the event
+            payload: The payload of the event
+        """
+        request = self._make_notification("event", name, json.dumps(params))
         payload = json.dumps(request)
         self._connection.on_data(payload.encode(), [])

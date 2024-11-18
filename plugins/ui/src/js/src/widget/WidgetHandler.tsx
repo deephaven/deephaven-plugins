@@ -35,6 +35,7 @@ import {
   WidgetError,
   METHOD_DOCUMENT_ERROR,
   METHOD_DOCUMENT_UPDATED,
+  METHOD_EVENT,
 } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
 import { getComponentForElement, wrapCallable } from './WidgetUtils';
@@ -264,6 +265,12 @@ function WidgetHandler({
           action: () => sendSetState(),
         };
         setInternalError(newError);
+      });
+
+      jsonClient.addMethod(METHOD_EVENT, (params: [string, object]) => {
+        log.debug2(METHOD_EVENT, params);
+        const [name, data] = params;
+        console.log('Event', name, data); // TODO
       });
 
       return () => {
