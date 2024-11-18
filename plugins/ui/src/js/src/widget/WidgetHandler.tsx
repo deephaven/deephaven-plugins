@@ -43,6 +43,7 @@ import WidgetStatusContext, {
   WidgetStatus,
 } from '../layout/WidgetStatusContext';
 import WidgetErrorView from './WidgetErrorView';
+import Toast, { TOAST_EVENT } from '../events/Toast';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
@@ -267,10 +268,23 @@ function WidgetHandler({
         setInternalError(newError);
       });
 
-      jsonClient.addMethod(METHOD_EVENT, (params: [string, object]) => {
+      jsonClient.addMethod(METHOD_EVENT, (params: [string, string]) => {
         log.debug2(METHOD_EVENT, params);
-        const [name, data] = params;
-        console.log('Event', name, data); // TODO
+        const [name, payload] = params;
+        try {
+          const eventParams = JSON.parse(payload);
+          switch (name) {
+            case TOAST_EVENT:
+              Toast(eventParams.message, eventParams.options);
+              break;
+            default:
+              throw new Error(`Unknown event ${name}`);
+          }
+        } catch (e) {
+          throw new Error(
+            `Error parssing event ${name} payload ${payload}: ${e}`
+          );
+        }
       });
 
       return () => {

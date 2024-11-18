@@ -3,6 +3,8 @@ from ..hooks import use_event_queue
 from typing import Callable
 from .make_component import make_component
 
+_TOAST_EVENT = "toast.event"
+
 
 @make_component
 def toast(
@@ -15,4 +17,4 @@ def toast(
         message: The message to display in the toast.
     """
     event_queue = use_event_queue()
-    return lambda: event_queue("toast", {"message": message})
+    return lambda: event_queue(_TOAST_EVENT, {"message": message})
