@@ -118,6 +118,10 @@
             "path": "components/range_slider.md"
           },
           {
+            "label": "search_field",
+            "path": "components/search_field.md"
+          },
+          {
             "label": "slider",
             "path": "components/slider.md"
           },
