@@ -1,8 +1,10 @@
 from ..hooks import use_event_queue
 
 from typing import Callable
+from .make_component import make_component
 
 
+@make_component
 def toast(
     message: str,
 ) -> Callable[[], None]:
