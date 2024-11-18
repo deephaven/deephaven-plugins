@@ -15,6 +15,8 @@ from ..types import (
     JavaTime,
     LocalDateConvertible,
     LocalDate,
+    Null,
+    Undefined,
 )
 
 T = TypeVar("T")
@@ -34,6 +36,19 @@ _TIME_CONVERTERS = {
     "java.time.Instant": to_j_instant,
     "java.time.LocalTime": to_j_local_time,
 }
+
+
+def is_nullish(value: Any) -> bool:
+    """
+    Check if a value is nullish (`None`, `Null`, or `Undefined`).
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        Checks if the value is nullish.
+    """
+    return value is None or value is Null or value is Undefined
 
 
 def get_component_name(component: Any) -> str:
@@ -138,7 +153,9 @@ def dict_to_camel_case(
     return convert_dict_keys(dict, to_camel_case)
 
 
-def dict_to_react_props(dict: dict[str, Any]) -> dict[str, Any]:
+def dict_to_react_props(
+    dict: dict[str, Any], _nullable_props: list[str] = []
+) -> dict[str, Any]:
     """
     Convert a dict to React-style prop names ready for the web.
     Converts snake_case to camelCase with the exception of special props like `UNSAFE_` or `aria_` props.
@@ -150,10 +167,14 @@ def dict_to_react_props(dict: dict[str, Any]) -> dict[str, Any]:
     Returns:
         The React props dict.
     """
-    return convert_dict_keys(remove_empty_keys(dict), to_react_prop_case)
+    return convert_dict_keys(
+        remove_empty_keys(dict, _nullable_props), to_react_prop_case
+    )
 
 
-def remove_empty_keys(dict: dict[str, Any]) -> dict[str, Any]:
+def remove_empty_keys(
+    dict: dict[str, Any], _nullable_props: list[str] = []
+) -> dict[str, Any]:
     """
     Remove keys from a dict that have a value of None.
 
@@ -163,7 +184,22 @@ def remove_empty_keys(dict: dict[str, Any]) -> dict[str, Any]:
     Returns:
         The dict with keys removed.
     """
-    return {k: v for k, v in dict.items() if v is not None}
+    cleaned = {}
+    for k, v in dict.items():
+        if k in _nullable_props:
+            if v is Null:
+                cleaned[k] = None
+            elif v is not Undefined and v is not None:
+                cleaned[k] = v
+        else:
+            if v is Null or v is Undefined:
+                raise ValueError(
+                    "NullType or UndefinedType found in a non-nullable prop."
+                )
+            elif v is not None:
+                cleaned[k] = v
+
+    return cleaned
 
 
 def _wrapped_callable(
@@ -478,10 +514,10 @@ def _get_first_set_key(props: dict[str, Any], sequence: Sequence[str]) -> str | 
         sequence: The sequence to check.
 
     Returns:
-        The first non-None prop, or None if all props are None.
+        The first non-nullish prop, or None if all props are None.
     """
     for key in sequence:
-        if props.get(key) is not None:
+        if not is_nullish(props.get(key)):
             return key
     return None
 
@@ -523,9 +559,10 @@ def _prioritized_date_callable_converter(
     """
 
     first_set_key = _get_first_set_key(props, priority)
+    # type ignore because pyright is not recognizing the nullish check
     return (
-        _jclass_date_converter(_date_or_range(props[first_set_key]))
-        if first_set_key is not None
+        _jclass_date_converter(_date_or_range(props[first_set_key]))  # type: ignore
+        if not is_nullish(first_set_key)
         else default_converter
     )
 
@@ -552,9 +589,10 @@ def _prioritized_time_callable_converter(
     """
 
     first_set_key = _get_first_set_key(props, priority)
+    # type ignore because pyright is not recognizing the nullish check
     return (
-        _jclass_time_converter(props[first_set_key])
-        if first_set_key is not None
+        _jclass_time_converter(props[first_set_key])  # type: ignore
+        if not is_nullish(first_set_key)
         else default_converter
     )
 
@@ -666,11 +704,11 @@ def convert_date_props(
         The converted props.
     """
     for key in simple_date_props:
-        if props.get(key) is not None:
+        if not is_nullish(props.get(key)):
             props[key] = _convert_to_java_date(props[key])
 
     for key in date_range_props:
-        if props.get(key) is not None:
+        if not is_nullish(props.get(key)):
             props[key] = convert_date_range(props[key], _convert_to_java_date)
 
     # the simple props must be converted before this to simplify the callable conversion
@@ -680,25 +718,25 @@ def convert_date_props(
     # Local Dates will default to DAY but we need to default to SECOND for the other types
     if (
         granularity_key is not None
-        and props.get(granularity_key) is None
+        and is_nullish(props.get(granularity_key))
         and converter != to_j_local_date
     ):
         props[granularity_key] = "SECOND"
 
     # now that the converter is set, we can convert simple props to strings
     for key in simple_date_props:
-        if props.get(key) is not None:
+        if not is_nullish(props.get(key)):
             props[key] = str(props[key])
 
     # and convert the date range props to strings
     for key in date_range_props:
-        if props.get(key) is not None:
+        if not is_nullish(props.get(key)):
             props[key] = convert_date_range(props[key], str)
 
     # wrap the date callable with the convert
     # if there are date range props, we need to convert as a date range
     for key in callable_date_props:
-        if props.get(key) is not None:
+        if not is_nullish(props.get(key)):
             if not callable(props[key]):
                 raise TypeError(f"{key} must be a callable")
             if len(date_range_props) > 0:
@@ -730,7 +768,7 @@ def convert_time_props(
         The converted props.
     """
     for key in simple_time_props:
-        if props.get(key) is not None:
+        if not is_nullish(props.get(key)):
             props[key] = _convert_to_java_time(props[key])
 
     # the simple props must be converted before this to simplify the callable conversion
@@ -738,12 +776,12 @@ def convert_time_props(
 
     # now that the converter is set, we can convert simple props to strings
     for key in simple_time_props:
-        if props.get(key) is not None:
+        if not is_nullish(props.get(key)):
             props[key] = str(props[key])
 
     # wrap the date callable with the convert
     for key in callable_time_props:
-        if props.get(key) is not None:
+        if not is_nullish(props.get(key)):
             if not callable(props[key]):
                 raise TypeError(f"{key} must be a callable")
             props[key] = _wrap_time_callable(props[key], converter)

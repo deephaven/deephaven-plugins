@@ -19,15 +19,19 @@ from .types import (
 )
 from .basic import component_element
 from ..elements import Element
+from ..types import NullType, Undefined, UndefinedType
 from .._internal.utils import create_props
+
+
+_NULLABLE_PROPS = ["value", "default_value"]
 
 
 def radio_group(
     *children: Any,
     is_emphasized: bool | None = None,
     orientation: Orientation = "vertical",
-    value: str | None = None,
-    default_value: str | None = None,
+    value: str | UndefinedType | NullType = Undefined,
+    default_value: str | UndefinedType | NullType = Undefined,
     is_disabled: bool | None = None,
     is_read_only: bool | None = None,
     name: str | None = None,
@@ -174,4 +178,6 @@ def radio_group(
 
     children, props = create_props(locals())
 
-    return component_element(f"RadioGroup", *children, **props)
+    return component_element(
+        f"RadioGroup", *children, _nullable_props=_NULLABLE_PROPS, **props
+    )

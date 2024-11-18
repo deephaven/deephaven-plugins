@@ -14,10 +14,13 @@ from .types import (
     Position,
 )
 
-from ..types import Key, TabDensity
+from ..types import Key, TabDensity, NullType, Undefined, UndefinedType
 from ..elements import BaseElement
 
 TabElement = BaseElement
+
+
+_NULLABLE_PROPS = ["selected_key"]
 
 
 def tabs(
@@ -30,7 +33,7 @@ def tabs(
     keyboard_activation: KeyboardActivationType | None = "automatic",
     orientation: Orientation | None = "horizontal",
     disallow_empty_selection: bool | None = None,
-    selected_key: Key | None = None,
+    selected_key: Key | UndefinedType | NullType = Undefined,
     default_selected_key: Key | None = None,
     on_selection_change: Callable[[Key], None] | None = None,
     on_change: Callable[[Key], None] | None = None,
@@ -231,4 +234,5 @@ def tabs(
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
         key=key,
+        _nullable_props=_NULLABLE_PROPS,
     )

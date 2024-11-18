@@ -558,3 +558,63 @@ class DateRange(TypedDict):
     """
     End value for the date range.
     """
+
+
+_DISABLE_NULLISH_CONSTRUCTORS = False
+
+
+class UndefinedType:
+    """
+    Placeholder for undefined values.
+    """
+
+    def __init__(self) -> None:
+        if _DISABLE_NULLISH_CONSTRUCTORS:
+            raise NotImplemented
+
+    def __bool__(self) -> bool:
+        return False
+
+    def __copy__(self) -> "UndefinedType":
+        return self
+
+    def __deepcopy__(self, _: Any) -> "UndefinedType":
+        return self
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, NullType)
+            or isinstance(other, UndefinedType)
+            or other is None
+        )
+
+
+class NullType:
+    """
+    Placeholder for undefined values.
+    """
+
+    def __init__(self) -> None:
+        if _DISABLE_NULLISH_CONSTRUCTORS:
+            raise NotImplemented
+
+    def __bool__(self) -> bool:
+        return False
+
+    def __copy__(self) -> "NullType":
+        return self
+
+    def __deepcopy__(self, _: Any) -> "NullType":
+        return self
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, NullType)
+            or isinstance(other, UndefinedType)
+            or other is None
+        )
+
+
+Undefined = UndefinedType()
+Null = NullType()
+_DISABLE_NULLISH_CONSTRUCTORS = True

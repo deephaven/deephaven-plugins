@@ -15,10 +15,16 @@ from .types import (
 
 from ..elements import Element
 from .._internal.utils import create_props, convert_date_props, wrap_local_date_callable
-from ..types import Date, LocalDateConvertible, DateRange
+from ..types import (
+    Date,
+    LocalDateConvertible,
+    DateRange,
+    NullType,
+    Undefined,
+    UndefinedType,
+)
 from .basic import component_element
 from .make_component import make_component
-from deephaven.time import dh_now
 
 RangeCalendarElement = Element
 
@@ -40,6 +46,8 @@ _DATE_PROPS_PRIORITY = [
     "focused_value",
     "default_focused_value",
 ]
+
+_NULLABLE_PROPS = ["value", "default_value"]
 
 
 def _convert_range_calendar_props(
@@ -73,8 +81,8 @@ def _convert_range_calendar_props(
 
 @make_component
 def range_calendar(
-    value: DateRange | None = None,
-    default_value: DateRange | None = None,
+    value: DateRange | UndefinedType | NullType = Undefined,
+    default_value: DateRange | UndefinedType | NullType = Undefined,
     focused_value: Date | None = None,
     default_focused_value: Date | None = None,
     min_value: Date | None = None,
@@ -211,4 +219,4 @@ def range_calendar(
 
     _convert_range_calendar_props(props)
 
-    return component_element("RangeCalendar", **props)
+    return component_element("RangeCalendar", _nullable_props=_NULLABLE_PROPS, **props)

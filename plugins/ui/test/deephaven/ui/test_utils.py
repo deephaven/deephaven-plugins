@@ -117,10 +117,39 @@ class UtilsTest(BaseTestCase):
 
     def test_remove_empty_keys(self):
         from deephaven.ui._internal.utils import remove_empty_keys
+        from deephaven.ui.types import Null, Undefined
 
         self.assertDictEqual(
             remove_empty_keys({"foo": "bar", "biz": None, "baz": 0}),
             {"foo": "bar", "baz": 0},
+        )
+        self.assertDictEqual(
+            remove_empty_keys(
+                {
+                    "foo": "bar",
+                    "biz": None,
+                    "baz": 0,
+                    "is_null": Null,
+                    "is_undefined": Undefined,
+                },
+                _nullable_props={"is_null", "is_undefined"},
+            ),
+            {"foo": "bar", "baz": 0, "is_null": None},
+        )
+
+        with self.assertRaises(ValueError) as err:
+            remove_empty_keys(
+                {
+                    "foo": "bar",
+                    "biz": None,
+                    "baz": 0,
+                    "is_null": Null,
+                    "is_undefined": Undefined,
+                }
+            )
+        self.assertEqual(
+            str(err.exception),
+            "NullType or UndefinedType found in a non-nullable prop.",
         )
 
     def test_wrap_callable(self):

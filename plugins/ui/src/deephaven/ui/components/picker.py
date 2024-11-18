@@ -8,7 +8,7 @@ from .section import SectionElement, Item
 from .item_table_source import ItemTableSource
 from ..elements import BaseElement, Element
 from .._internal.utils import create_props, unpack_item_table_source
-from ..types import Key
+from ..types import Key, NullType, Undefined, UndefinedType
 from .types import (
     AlignSelf,
     CSSProperties,
@@ -35,11 +35,13 @@ SUPPORTED_SOURCE_ARGS = {
     "title_column",
 }
 
+_NULLABLE_PROPS = ["selected_key"]
+
 
 def picker(
     *children: Item | SectionElement | Table | PartitionedTable | ItemTableSource,
     default_selected_key: Key | None = None,
-    selected_key: Key | None = None,
+    selected_key: Key | UndefinedType | NullType = Undefined,
     on_selection_change: Callable[[Key], None] | None = None,
     on_change: Callable[[Key], None] | None = None,
     is_quiet: bool | None = None,
@@ -227,4 +229,6 @@ def picker(
 
     children, props = unpack_item_table_source(children, props, SUPPORTED_SOURCE_ARGS)
 
-    return component_element("Picker", *children, **props)
+    return component_element(
+        "Picker", *children, _nullable_props=_NULLABLE_PROPS, **props
+    )

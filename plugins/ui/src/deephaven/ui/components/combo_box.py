@@ -29,7 +29,7 @@ from .item import Item
 from .item_table_source import ItemTableSource
 from ..elements import BaseElement, Element
 from .._internal.utils import create_props, unpack_item_table_source
-from ..types import Key
+from ..types import Key, NullType, Undefined, UndefinedType
 from .basic import component_element
 
 ComboBoxElement = BaseElement
@@ -41,6 +41,8 @@ SUPPORTED_SOURCE_ARGS = {
     "icon_column",
     "title_column",
 }
+
+_NULLABLE_PROPS = ["selected_key"]
 
 
 def combo_box(
@@ -58,7 +60,7 @@ def combo_box(
     default_input_value: str | None = None,
     allows_custom_value: bool | None = None,
     disabled_keys: list[Key] | None = None,
-    selected_key: Key | None = None,
+    selected_key: Key | UndefinedType | NullType = Undefined,
     default_selected_key: Key | None = None,
     is_disabled: bool | None = None,
     is_read_only: bool | None = None,
@@ -241,4 +243,6 @@ def combo_box(
 
     children, props = unpack_item_table_source(children, props, SUPPORTED_SOURCE_ARGS)
 
-    return component_element("ComboBox", *children, **props)
+    return component_element(
+        "ComboBox", *children, _nullable_props=_NULLABLE_PROPS, **props
+    )

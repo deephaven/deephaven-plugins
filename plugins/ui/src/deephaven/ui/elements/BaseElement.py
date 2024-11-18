@@ -12,7 +12,13 @@ class BaseElement(Element):
     """
 
     def __init__(
-        self, name: str, /, *children: Any, key: str | None = None, **props: Any
+        self,
+        name: str,
+        /,
+        *children: Any,
+        key: str | None = None,
+        _nullable_props: list[str] = [],
+        **props: Any,
     ):
         self._name = name
         self._key = key
@@ -27,7 +33,7 @@ class BaseElement(Element):
             # If there's only one child, we pass it as a single child, not a list
             # There are many React elements that expect only a single child, and will fail if they get a list (even if it only has one element)
             props["children"] = children[0]
-        self._props = dict_to_react_props(props)
+        self._props = dict_to_react_props(props, _nullable_props)
 
     @property
     def name(self) -> str:

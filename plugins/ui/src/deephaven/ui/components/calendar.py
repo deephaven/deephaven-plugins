@@ -15,10 +15,9 @@ from .types import (
 
 from ..elements import Element
 from .._internal.utils import create_props, convert_date_props, wrap_local_date_callable
-from ..types import Date, LocalDateConvertible
+from ..types import Date, LocalDateConvertible, NullType, Undefined, UndefinedType
 from .basic import component_element
 from .make_component import make_component
-from deephaven.time import dh_now
 
 CalendarElement = Element
 
@@ -42,6 +41,8 @@ _DATE_PROPS_PRIORITY = [
     "focused_value",
     "default_focused_value",
 ]
+
+_NULLABLE_PROPS = ["value", "default_value"]
 
 
 def _convert_calendar_props(
@@ -75,8 +76,8 @@ def _convert_calendar_props(
 
 @make_component
 def calendar(
-    value: Date | None = None,
-    default_value: Date | None = None,
+    value: Date | UndefinedType | NullType = Undefined,
+    default_value: Date | UndefinedType | NullType = Undefined,
     focused_value: Date | None = None,
     default_focused_value: Date | None = None,
     min_value: Date | None = None,
@@ -213,4 +214,4 @@ def calendar(
 
     _convert_calendar_props(props)
 
-    return component_element("Calendar", **props)
+    return component_element("Calendar", _nullable_props=_NULLABLE_PROPS, **props)
