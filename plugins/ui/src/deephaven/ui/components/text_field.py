@@ -31,7 +31,7 @@ _NULLABLE_PROPS = ["icon"]
 
 
 def text_field(
-    icon: Element | UndefinedType = Undefined,
+    icon: Element | None | UndefinedType = Undefined,
     is_quiet: bool | None = None,
     is_disabled: bool | None = None,
     is_read_only: bool | None = None,

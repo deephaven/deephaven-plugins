@@ -76,8 +76,8 @@ def _convert_calendar_props(
 
 @make_component
 def calendar(
-    value: Date | UndefinedType = Undefined,
-    default_value: Date | UndefinedType = Undefined,
+    value: Date | None | UndefinedType = Undefined,
+    default_value: Date | None | UndefinedType = Undefined,
     focused_value: Date | None = None,
     default_focused_value: Date | None = None,
     min_value: Date | None = None,

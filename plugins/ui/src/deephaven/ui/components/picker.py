@@ -41,7 +41,7 @@ _NULLABLE_PROPS = ["selected_key"]
 def picker(
     *children: Item | SectionElement | Table | PartitionedTable | ItemTableSource,
     default_selected_key: Key | None = None,
-    selected_key: Key | UndefinedType = Undefined,
+    selected_key: Key | None | UndefinedType = Undefined,
     on_selection_change: Callable[[Key], None] | None = None,
     on_change: Callable[[Key], None] | None = None,
     is_quiet: bool | None = None,

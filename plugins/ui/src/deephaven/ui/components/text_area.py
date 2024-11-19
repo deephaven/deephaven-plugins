@@ -34,7 +34,7 @@ _NULLABLE_PROPS = ["icon"]
 
 
 def text_area(
-    icon: Element | IconTypes | UndefinedType = Undefined,
+    icon: Element | IconTypes | None | UndefinedType = Undefined,
     is_quiet: bool | None = None,
     is_disabled: bool | None = None,
     is_read_only: bool | None = None,

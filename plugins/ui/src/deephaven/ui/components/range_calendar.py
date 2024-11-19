@@ -80,8 +80,8 @@ def _convert_range_calendar_props(
 
 @make_component
 def range_calendar(
-    value: DateRange | UndefinedType = Undefined,
-    default_value: DateRange | UndefinedType = Undefined,
+    value: DateRange | None | UndefinedType = Undefined,
+    default_value: DateRange | None | UndefinedType = Undefined,
     focused_value: Date | None = None,
     default_focused_value: Date | None = None,
     min_value: Date | None = None,

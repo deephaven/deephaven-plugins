@@ -80,8 +80,8 @@ def _convert_date_range_picker_props(
 @make_component
 def date_range_picker(
     placeholder_value: Date | None = dh_now(),
-    value: DateRange | UndefinedType = Undefined,
-    default_value: DateRange | UndefinedType = Undefined,
+    value: DateRange | None | UndefinedType = Undefined,
+    default_value: DateRange | None | UndefinedType = Undefined,
     min_value: Date | None = None,
     max_value: Date | None = None,
     # TODO (issue # 698) we need to implement unavailable_values
