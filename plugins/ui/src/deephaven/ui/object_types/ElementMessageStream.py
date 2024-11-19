@@ -503,6 +503,10 @@ class ElementMessageStream(MessageStream):
             name: The name of the event
             params: The params of the event
         """
-        request = self._make_notification("event", name, json.dumps(params))
+        encoded_params, callable_id_dict = self._encoder.encode_event_params(params)
+        for callable, callable_id in callable_id_dict.items():
+            logger.debug("Registering callable %s", callable_id)
+            self._callable_dict[callable_id] = wrap_callable(callable)
+        request = self._make_notification("event", name, encoded_params)
         payload = json.dumps(request)
         self._connection.on_data(payload.encode(), [])

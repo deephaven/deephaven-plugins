@@ -272,7 +272,19 @@ function WidgetHandler({
         log.debug2(METHOD_EVENT, params);
         const [name, payload] = params;
         try {
-          const eventParams = JSON.parse(payload);
+          const eventParams = JSON.parse(payload, (_, value) => {
+            // Need to re-hydrate any callables that are defined
+            if (isCallableNode(value)) {
+              const callableId = value[CALLABLE_KEY];
+              log.debug2('Registering callableId', callableId);
+              return wrapCallable(
+                jsonClient,
+                callableId,
+                callableFinalizationRegistry
+              );
+            }
+            return value;
+          });
           switch (name) {
             case TOAST_EVENT:
               Toast(eventParams);
@@ -291,7 +303,13 @@ function WidgetHandler({
         jsonClient.rejectAllPendingRequests('Widget was changed');
       };
     },
-    [jsonClient, onDataChange, parseDocument, sendSetState]
+    [
+      jsonClient,
+      onDataChange,
+      parseDocument,
+      sendSetState,
+      callableFinalizationRegistry,
+    ]
   );
 
   /**
