@@ -31,7 +31,7 @@ Below are all the built-in hooks that deephaven.ui provides.
 
 _State_ lets a component remember some data between renders and trigger a re-render when the data changes. For example, a counter component might use state to keep track of the current count.
 
-The [`use_state`](use_state.md) hook adds state to a component. 
+The [`use_state`](use_state.md) hook adds state to a component.
 
 ### Ref hooks
 
