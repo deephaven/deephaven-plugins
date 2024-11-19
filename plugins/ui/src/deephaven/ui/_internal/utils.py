@@ -555,7 +555,11 @@ def _prioritized_date_callable_converter(
     first_set_key = _get_first_set_key(props, priority)
     # type ignore because pyright is not recognizing the nullish check
     return (
-        _jclass_date_converter(_date_or_range(props[first_set_key]))  # type: ignore
+        _jclass_date_converter(
+            _date_or_range(
+                props[first_set_key]  # pyright: ignore[reportGeneralTypeIssues]
+            )
+        )
         if not is_nullish(first_set_key)
         else default_converter
     )
@@ -585,7 +589,9 @@ def _prioritized_time_callable_converter(
     first_set_key = _get_first_set_key(props, priority)
     # type ignore because pyright is not recognizing the nullish check
     return (
-        _jclass_time_converter(props[first_set_key])  # type: ignore
+        _jclass_time_converter(
+            props[first_set_key]  # pyright: ignore[reportGeneralTypeIssues]
+        )
         if not is_nullish(first_set_key)
         else default_converter
     )
