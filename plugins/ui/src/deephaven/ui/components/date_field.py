@@ -25,7 +25,7 @@ from .._internal.utils import (
     create_props,
     convert_date_props,
 )
-from ..types import Date, Granularity, NullType, Undefined, UndefinedType
+from ..types import Date, Granularity, Undefined, UndefinedType
 from .basic import component_element
 from .make_component import make_component
 from deephaven.time import dh_now
@@ -78,8 +78,8 @@ def _convert_date_field_props(
 @make_component
 def date_field(
     placeholder_value: Date | None = dh_now(),
-    value: Date | UndefinedType | NullType = Undefined,
-    default_value: Date | UndefinedType | NullType = Undefined,
+    value: Date | UndefinedType = Undefined,
+    default_value: Date | UndefinedType = Undefined,
     min_value: Date | None = None,
     max_value: Date | None = None,
     # TODO (issue # 698) we need to implement unavailable_values

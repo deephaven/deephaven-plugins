@@ -19,7 +19,6 @@ from ..types import (
     Date,
     LocalDateConvertible,
     DateRange,
-    NullType,
     Undefined,
     UndefinedType,
 )
@@ -81,8 +80,8 @@ def _convert_range_calendar_props(
 
 @make_component
 def range_calendar(
-    value: DateRange | UndefinedType | NullType = Undefined,
-    default_value: DateRange | UndefinedType | NullType = Undefined,
+    value: DateRange | UndefinedType = Undefined,
+    default_value: DateRange | UndefinedType = Undefined,
     focused_value: Date | None = None,
     default_focused_value: Date | None = None,
     min_value: Date | None = None,

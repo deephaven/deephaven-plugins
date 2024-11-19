@@ -24,14 +24,14 @@ from .types import (
 )
 from .basic import component_element
 from ..elements import Element
-from ..types import NullType, Undefined, UndefinedType
+from ..types import Undefined, UndefinedType
 
 
 _NULLABLE_PROPS = ["icon"]
 
 
 def text_field(
-    icon: Element | UndefinedType | NullType = Undefined,
+    icon: Element | UndefinedType = Undefined,
     is_quiet: bool | None = None,
     is_disabled: bool | None = None,
     is_read_only: bool | None = None,

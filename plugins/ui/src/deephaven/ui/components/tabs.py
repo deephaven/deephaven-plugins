@@ -14,7 +14,7 @@ from .types import (
     Position,
 )
 
-from ..types import Key, TabDensity, NullType, Undefined, UndefinedType
+from ..types import Key, TabDensity, Undefined, UndefinedType
 from ..elements import BaseElement
 
 TabElement = BaseElement
@@ -33,7 +33,7 @@ def tabs(
     keyboard_activation: KeyboardActivationType | None = "automatic",
     orientation: Orientation | None = "horizontal",
     disallow_empty_selection: bool | None = None,
-    selected_key: Key | UndefinedType | NullType = Undefined,
+    selected_key: Key | UndefinedType = Undefined,
     default_selected_key: Key | None = None,
     on_selection_change: Callable[[Key], None] | None = None,
     on_change: Callable[[Key], None] | None = None,

@@ -5,7 +5,6 @@ from inspect import signature
 import sys
 from functools import partial
 from deephaven.time import to_j_instant, to_j_zdt, to_j_local_date, to_j_local_time
-from deephaven.dtypes import ZonedDateTime, Instant
 
 from ..types import (
     Date,
@@ -15,7 +14,6 @@ from ..types import (
     JavaTime,
     LocalDateConvertible,
     LocalDate,
-    Null,
     Undefined,
 )
 
@@ -40,7 +38,7 @@ _TIME_CONVERTERS = {
 
 def is_nullish(value: Any) -> bool:
     """
-    Check if a value is nullish (`None`, `Null`, or `Undefined`).
+    Check if a value is nullish (`None` or `Undefined`).
 
     Args:
         value: The value to check.
@@ -48,7 +46,7 @@ def is_nullish(value: Any) -> bool:
     Returns:
         Checks if the value is nullish.
     """
-    return value is None or value is Null or value is Undefined
+    return value is None or value is Undefined
 
 
 def get_component_name(component: Any) -> str:
@@ -187,15 +185,11 @@ def remove_empty_keys(
     cleaned = {}
     for k, v in dict.items():
         if k in _nullable_props:
-            if v is Null:
-                cleaned[k] = None
-            elif v is not Undefined and v is not None:
+            if v is not Undefined:
                 cleaned[k] = v
         else:
-            if v is Null or v is Undefined:
-                raise ValueError(
-                    "NullType or UndefinedType found in a non-nullable prop."
-                )
+            if v is Undefined:
+                raise ValueError("UndefinedType found in a non-nullable prop.")
             elif v is not None:
                 cleaned[k] = v
 

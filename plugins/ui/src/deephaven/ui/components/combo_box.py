@@ -29,7 +29,7 @@ from .item import Item
 from .item_table_source import ItemTableSource
 from ..elements import BaseElement, Element
 from .._internal.utils import create_props, unpack_item_table_source
-from ..types import Key, NullType, Undefined, UndefinedType
+from ..types import Key, Undefined, UndefinedType
 from .basic import component_element
 
 ComboBoxElement = BaseElement
@@ -60,7 +60,7 @@ def combo_box(
     default_input_value: str | None = None,
     allows_custom_value: bool | None = None,
     disabled_keys: list[Key] | None = None,
-    selected_key: Key | UndefinedType | NullType = Undefined,
+    selected_key: Key | UndefinedType = Undefined,
     default_selected_key: Key | None = None,
     is_disabled: bool | None = None,
     is_read_only: bool | None = None,

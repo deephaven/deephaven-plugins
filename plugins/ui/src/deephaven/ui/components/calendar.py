@@ -15,7 +15,7 @@ from .types import (
 
 from ..elements import Element
 from .._internal.utils import create_props, convert_date_props, wrap_local_date_callable
-from ..types import Date, LocalDateConvertible, NullType, Undefined, UndefinedType
+from ..types import Date, LocalDateConvertible, Undefined, UndefinedType
 from .basic import component_element
 from .make_component import make_component
 
@@ -76,8 +76,8 @@ def _convert_calendar_props(
 
 @make_component
 def calendar(
-    value: Date | UndefinedType | NullType = Undefined,
-    default_value: Date | UndefinedType | NullType = Undefined,
+    value: Date | UndefinedType = Undefined,
+    default_value: Date | UndefinedType = Undefined,
     focused_value: Date | None = None,
     default_focused_value: Date | None = None,
     min_value: Date | None = None,

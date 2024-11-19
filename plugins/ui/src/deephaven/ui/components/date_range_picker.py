@@ -28,7 +28,7 @@ from .._internal.utils import (
     convert_date_props,
     convert_list_prop,
 )
-from ..types import Date, Granularity, DateRange, NullType, Undefined, UndefinedType
+from ..types import Date, Granularity, DateRange, Undefined, UndefinedType
 from .basic import component_element
 from .make_component import make_component
 from deephaven.time import dh_now
@@ -80,8 +80,8 @@ def _convert_date_range_picker_props(
 @make_component
 def date_range_picker(
     placeholder_value: Date | None = dh_now(),
-    value: DateRange | UndefinedType | NullType = Undefined,
-    default_value: DateRange | UndefinedType | NullType = Undefined,
+    value: DateRange | UndefinedType = Undefined,
+    default_value: DateRange | UndefinedType = Undefined,
     min_value: Date | None = None,
     max_value: Date | None = None,
     # TODO (issue # 698) we need to implement unavailable_values

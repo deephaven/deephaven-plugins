@@ -25,7 +25,7 @@ from .._internal.utils import (
     create_props,
     convert_time_props,
 )
-from ..types import Time, TimeGranularity, NullType, Undefined, UndefinedType
+from ..types import Time, TimeGranularity, Undefined, UndefinedType
 from .basic import component_element
 from .make_component import make_component
 
@@ -73,8 +73,8 @@ def _convert_time_field_props(
 @make_component
 def time_field(
     placeholder_value: Time | None = None,
-    value: Time | UndefinedType | NullType = Undefined,
-    default_value: Time | UndefinedType | NullType = Undefined,
+    value: Time | UndefinedType = Undefined,
+    default_value: Time | UndefinedType = Undefined,
     min_value: Time | None = None,
     max_value: Time | None = None,
     granularity: TimeGranularity | None = "SECOND",

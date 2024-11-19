@@ -19,7 +19,7 @@ from .types import (
 )
 from .basic import component_element
 from ..elements import Element
-from ..types import NullType, Undefined, UndefinedType
+from ..types import Undefined, UndefinedType
 from .._internal.utils import create_props
 
 
@@ -30,8 +30,8 @@ def radio_group(
     *children: Any,
     is_emphasized: bool | None = None,
     orientation: Orientation = "vertical",
-    value: str | UndefinedType | NullType = Undefined,
-    default_value: str | UndefinedType | NullType = Undefined,
+    value: str | UndefinedType = Undefined,
+    default_value: str | UndefinedType = Undefined,
     is_disabled: bool | None = None,
     is_read_only: bool | None = None,
     name: str | None = None,
