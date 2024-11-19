@@ -276,14 +276,15 @@ class ElementMessageStream(MessageStream):
         self._callable_queue.put(callable)
         self._queue_render()
 
-    def _queue_event(self, name: str, payload: dict) -> None:
+    def _queue_event(self, name: str, params: dict) -> None:
         """
         Queue an event to be called on the render thread.
 
         Args:
             event: The event to queue
+            params: The parameters to pass to the event
         """
-        self._callable_queue.put(lambda: self._send_event(name, payload))
+        self._callable_queue.put(lambda: self._send_event(name, params))
         self._queue_render()
 
     def start(self) -> None:
@@ -500,7 +501,7 @@ class ElementMessageStream(MessageStream):
 
         Args:
             name: The name of the event
-            payload: The payload of the event
+            params: The params of the event
         """
         request = self._make_notification("event", name, json.dumps(params))
         payload = json.dumps(request)

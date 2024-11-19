@@ -497,15 +497,15 @@ class RenderContext:
         """
         self._on_queue_render(update)
 
-    def queue_event(self, name: str, payload: dict) -> None:
+    def queue_event(self, name: str, params: dict) -> None:
         """
         Queue up an event to be sent to the client.
 
         Args:
             name: The name of the event.
-            payload: The payload of the event.
+            params: The params of the event.
         """
-        self._on_queue_event(name, payload)
+        self._on_queue_event(name, params)
 
     def manage(self, liveness_scope: LivenessScope) -> None:
         """

@@ -275,7 +275,7 @@ function WidgetHandler({
           const eventParams = JSON.parse(payload);
           switch (name) {
             case TOAST_EVENT:
-              Toast(eventParams.message, eventParams.options);
+              Toast(eventParams);
               break;
             default:
               throw new Error(`Unknown event ${name}`);
