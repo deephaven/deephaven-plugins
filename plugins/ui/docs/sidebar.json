@@ -38,6 +38,10 @@
             "path": "components/action_menu.md"
           },
           {
+            "label": "avatar",
+            "path": "components/avatar.md"
+          },
+          {
             "label": "badge",
             "path": "components/badge.md"
           },

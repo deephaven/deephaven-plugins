@@ -507,6 +507,16 @@ ListViewOverflowMode = Literal["truncate", "wrap"]
 ActionGroupDensity = Literal["compact", "regular"]
 TabDensity = Literal["compact", "regular"]
 LinkVariant = Literal["primary", "secondary", "over_background"]
+AvatarSize = Literal[
+    "avatar-size-50",
+    "avatar-sie-100",
+    "avatar-size-200",
+    "avatar-size-300",
+    "avatar-size-400",
+    "avatar-size-500",
+    "avatar-size-600",
+    "avatar-size-600",
+]
 BadgeVariant = Literal[
     "neutral",
     "info",

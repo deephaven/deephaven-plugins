@@ -1,6 +1,7 @@
 from .action_button import action_button
 from .action_group import action_group
 from .action_menu import action_menu
+from .avatar import avatar
 from .basic import (
     component_element,
 )
@@ -69,6 +70,7 @@ __all__ = [
     "action_button",
     "action_group",
     "action_menu",
+    "avatar",
     "component_element",
     "badge",
     "button",
