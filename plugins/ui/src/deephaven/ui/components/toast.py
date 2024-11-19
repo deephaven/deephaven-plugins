@@ -25,6 +25,12 @@ def toast(
     Args:
         message: The message to display in the toast.
         variant: The variant of the toast. Defaults to "neutral".
+        action_label: The label for the action button with the toast. If provided, an action button will be displayed.
+        on_action: Handler that is called when the action button is pressed.
+        should_close_on_action: Whether the toast should automatically close when an action is performed.
+        on_close: Handler that is called when the toast is closed, either by the user or after a timeout.
+        timeout: A timeout to automatically close the toast after, in milliseconds.
+        id: The element's unique identifier.
     """
     local_params = locals()
     event_queue = use_event_queue()
