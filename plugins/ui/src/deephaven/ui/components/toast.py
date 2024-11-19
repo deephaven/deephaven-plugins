@@ -14,6 +14,7 @@ def toast(
     variant: ToastVariant = "neutral",
     action_label: str | None = None,
     on_action: Callable[[], None] | None = None,
+    should_close_on_action: bool | None = None,
     on_close: Callable[[], None] | None = None,
     timeout: int | None = None,
     id: str | None = None,
@@ -25,17 +26,7 @@ def toast(
         message: The message to display in the toast.
         variant: The variant of the toast. Defaults to "neutral".
     """
+    local_params = locals()
     event_queue = use_event_queue()
-    # _, params = create_props(locals()) TODO should be able to use locals() here
-    params = dict_to_react_props(
-        {
-            "message": message,
-            "variant": variant,
-            "action_label": action_label,
-            "on_action": on_action,
-            "on_close": on_close,
-            "timeout": timeout,
-            "id": id,
-        }
-    )
+    params = dict_to_react_props(local_params)
     return lambda: event_queue(_TOAST_EVENT, params)
