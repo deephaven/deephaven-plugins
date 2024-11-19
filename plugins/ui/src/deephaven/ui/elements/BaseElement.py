@@ -9,6 +9,13 @@ class BaseElement(Element):
     """
     Base class for basic UI Elements that don't have any special rendering logic.
     Must provide a name for the element.
+
+    Args:
+        name: The name of the element, e.g. "div", "span", "deephaven.ui.button", etc.
+        children: The children
+        key: The key for the element
+        _nullable_props: A list of props that can be nullable
+        props: The props for the element
     """
 
     def __init__(
