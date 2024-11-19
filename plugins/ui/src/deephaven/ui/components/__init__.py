@@ -30,6 +30,7 @@ from .illustrated_message import illustrated_message
 from .image import image
 from .item import item
 from .item_table_source import item_table_source
+from .labeled_value import labeled_value
 from .link import link
 from .list_action_group import list_action_group
 from .list_action_menu import list_action_menu
@@ -97,6 +98,7 @@ __all__ = [
     "item_table_source",
     "illustrated_message",
     "image",
+    "labeled_value",
     "link",
     "list_view",
     "list_action_group",

@@ -14,15 +14,23 @@ my_labeled_value_basic = ui.labeled_value(label="File name", value="Budget.xls")
 
 ## Value
 
-A labeled value accepts numbers, dates, times, strings,  and lists of strings in the `value` prop.
+A labeled value accepts numbers, dates, times, strings, and lists of strings in the `value` prop.
 
 ```python
 from deephaven import ui
+import datetime
 
 
 @ui.component
 def ui_labeled_value_examples():
-    return 1
+    return [
+        ui.labeled_value(label="File name", value="Budget.xls"),
+        ui.labeled_value(label="Number of expenses in Budget file", value=123),
+        ui.labeled_value(
+            label="Pizza toppings", value=["Pizza", "Pineapple", "Mushroom", "Garlic"]
+        ),
+        ui.labeled_value(label="Date", value=datetime.datetime(2020, 5, 17)),
+    ]
 
 
 my_labeled_value_values_examples = ui_labeled_value_examples()

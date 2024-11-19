@@ -10,15 +10,20 @@ from .types import (
     Position,
     LabelPosition,
 )
+from ..types import Date
 from .basic import component_element
 from ..elements import Element
 
 
 def labeled_value(
-    value: str | List[str] | int | None = None,  # need to add new types here,
+    value: str
+    | List[str]
+    | int
+    | Date
+    | Any
+    | None = None,  # need to add new types here,
     label: Element | None = None,
     # format_options:
-    # value
     label_position: LabelPosition | None = "top",
     label_align: Alignment | None = None,
     contextual_help: Any | None = None,
