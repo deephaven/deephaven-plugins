@@ -10,7 +10,7 @@ from deephaven import ui
 
 @ui.component
 def ui_picker_basic():
-    option, set_option = ui.use_state("")
+    option, set_option = ui.use_state(None)
 
     return ui.picker(
         "Rarely",
@@ -180,6 +180,31 @@ def ui_picker_selected_key_examples():
 
 
 my_picker_selected_key_examples = ui_picker_selected_key_examples()
+```
+
+There is difference between using `None` and `ui.types.Undefined`. For `None` and a valid option, users are not able to switch options since `selected_key` is defined and controlled. However, using `ui.types.Undefined` allows the user to switch options.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def ui_picker_key_variations():
+    return [
+        ui.picker(
+            "Option 1", "Option 2", selected_key="Option 1", label="Key: Option 1"
+        ),
+        ui.picker("Option 1", "Option 2", selected_key=None, label="Key: None"),
+        ui.picker(
+            "Option 1",
+            "Option 2",
+            selected_key=ui.types.Undefined,
+            label="Key: Undefined",
+        ),
+    ]
+
+
+my_picker_key_variations = ui_picker_key_variations()
 ```
 
 

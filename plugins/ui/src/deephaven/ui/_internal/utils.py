@@ -174,10 +174,11 @@ def remove_empty_keys(
     dict: dict[str, Any], _nullable_props: list[str] = []
 ) -> dict[str, Any]:
     """
-    Remove keys from a dict that have a value of None.
+    Remove keys from a dict that have a value of None, or Undefined if in _nullable_props.
 
     Args:
         dict: The dict to remove keys from.
+        _nullable_props: A list of props that get removed if they are Undefined (instead of None).
 
     Returns:
         The dict with keys removed.
