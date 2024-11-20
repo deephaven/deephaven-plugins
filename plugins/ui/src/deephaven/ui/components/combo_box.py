@@ -77,7 +77,7 @@ def combo_box(
     necessity_indicator: NecessityIndicator | None = None,
     contextual_help: Element | None = None,
     on_open_change: Callable[[bool, MenuTriggerAction], None] | None = None,
-    on_selection_change: Callable[[Key], None] | None = None,
+    on_selection_change: Callable[[Key | None], None] | None = None,
     on_change: Callable[[Key], None] | None = None,
     on_input_change: Callable[[str], None] | None = None,
     on_focus: Callable[[FocusEventCallable], None] | None = None,
