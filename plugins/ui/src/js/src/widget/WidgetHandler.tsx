@@ -37,11 +37,16 @@ import {
   METHOD_DOCUMENT_UPDATED,
 } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
-import { getComponentForElement, wrapCallable } from './WidgetUtils';
+import {
+  getComponentForElement,
+  WIDGET_ELEMENT,
+  wrapCallable,
+} from './WidgetUtils';
 import WidgetStatusContext, {
   WidgetStatus,
 } from '../layout/WidgetStatusContext';
 import WidgetErrorView from './WidgetErrorView';
+import ReactPanel from '../layout/ReactPanel';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
@@ -77,12 +82,32 @@ function WidgetHandler({
     setIsLoading(true);
   }
 
-  const [document, setDocument] = useState<ReactNode>();
+  if (widgetError != null && isLoading) {
+    setIsLoading(false);
+  }
 
   // We want to update the initial data if the widget changes, as we'll need to re-fetch the widget and want to start with a fresh state.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const initialData = useMemo(() => initialDataProp, [widget]);
   const [internalError, setInternalError] = useState<WidgetError>();
+
+  const [document, setDocument] = useState<ReactNode>(() => {
+    if (widgetDescriptor.type === WIDGET_ELEMENT) {
+      // Rehydration. Mount ReactPanels for each panelId in the initial data
+      // so loading spinners or widget errors are shown
+      if (initialData?.panelIds != null && initialData.panelIds.length > 0) {
+        // Do not add a key here
+        // When the real document mounts, it doesn't use keys and will cause a remount
+        // which triggers the DocumentHandler to think the panels were closed and messes up the layout
+        // eslint-disable-next-line react/jsx-key
+        return initialData.panelIds.map(() => <ReactPanel />);
+      }
+      // Default to a single panel so we can immediately show a loading spinner
+      return <ReactPanel />;
+    }
+    // Dashboards should not have a default document. It breaks its render flow
+    return null;
+  });
 
   const error = useMemo(
     () => internalError ?? widgetError ?? undefined,
@@ -261,9 +286,16 @@ function WidgetHandler({
         const newError: WidgetError = JSON.parse(params[0]);
         newError.action = {
           title: 'Reload',
-          action: () => sendSetState(),
+          action: () => {
+            setInternalError(undefined);
+            setIsLoading(true);
+            sendSetState();
+          },
         };
-        setInternalError(newError);
+        unstable_batchedUpdates(() => {
+          setIsLoading(false);
+          setInternalError(newError);
+        });
       });
 
       return () => {
@@ -345,48 +377,34 @@ function WidgetHandler({
       return document;
     }
     if (error != null) {
-      // If there's an error and the document hasn't rendered yet, explicitly show an error view
+      // If there's an error and the document hasn't rendered yet (mostly applies to dashboards), explicitly show an error view
       return <WidgetErrorView error={error} />;
     }
-    return null;
+    return document;
   }, [document, error]);
 
   const widgetStatus: WidgetStatus = useMemo(() => {
-    if (error != null) {
-      return { status: 'error', descriptor: widgetDescriptor, error };
-    }
     if (isLoading) {
       return { status: 'loading', descriptor: widgetDescriptor };
     }
-    if (renderedDocument != null) {
-      return { status: 'ready', descriptor: widgetDescriptor };
+    if (error != null) {
+      return { status: 'error', descriptor: widgetDescriptor, error };
     }
-    return { status: 'loading', descriptor: widgetDescriptor };
-  }, [error, renderedDocument, widgetDescriptor, isLoading]);
+    return { status: 'ready', descriptor: widgetDescriptor };
+  }, [error, widgetDescriptor, isLoading]);
 
-  return useMemo(
-    () =>
-      renderedDocument ? (
-        <WidgetStatusContext.Provider value={widgetStatus}>
-          <DocumentHandler
-            widget={widgetDescriptor}
-            initialData={initialData}
-            onDataChange={onDataChange}
-            onClose={onClose}
-          >
-            {renderedDocument}
-          </DocumentHandler>
-        </WidgetStatusContext.Provider>
-      ) : null,
-    [
-      widgetDescriptor,
-      renderedDocument,
-      initialData,
-      onClose,
-      onDataChange,
-      widgetStatus,
-    ]
-  );
+  return renderedDocument != null ? (
+    <WidgetStatusContext.Provider value={widgetStatus}>
+      <DocumentHandler
+        widget={widgetDescriptor}
+        initialData={initialData}
+        onDataChange={onDataChange}
+        onClose={onClose}
+      >
+        {renderedDocument}
+      </DocumentHandler>
+    </WidgetStatusContext.Provider>
+  ) : null;
 }
 
 WidgetHandler.displayName = '@deephaven/js-plugin-ui/WidgetHandler';
