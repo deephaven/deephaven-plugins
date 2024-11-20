@@ -82,7 +82,6 @@ function WidgetHandler({
     setIsLoading(true);
   }
 
-  // If the widget throws an error, we should stop loading
   if (widgetError != null && isLoading) {
     setIsLoading(false);
   }
