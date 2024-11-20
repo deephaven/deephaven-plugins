@@ -4,7 +4,7 @@ Inline alerts display non-modal messages related to objects in a view, often use
 
 ## Example
 
-For the contextual help component, both the `heading` and `content` props are required. 
+For the inline alert component, both the `heading` and `content` props are required. 
 
 ```python
 from deephaven import ui
