@@ -18,7 +18,6 @@ A labeled value accepts numbers, dates, times, strings, and lists of strings in 
 
 ```python
 from deephaven import ui
-import datetime
 
 
 @ui.component
@@ -29,7 +28,6 @@ def ui_labeled_value_examples():
         ui.labeled_value(
             label="Pizza toppings", value=["Pizza", "Pineapple", "Mushroom", "Garlic"]
         ),
-        ui.labeled_value(label="Date", value=datetime.datetime(2020, 5, 17)),
     ]
 
 
@@ -63,7 +61,7 @@ my_labeled_value_contextual_help_example = ui.labeled_value(
     label="File name",
     value="Onboarding.pdf",
     contextual_help=ui.contextual_help(
-        ui.heading("Info about the onboarding document")
+        heading="Info about the onboarding document", content="Sample content"
     ),
 )
 ```
