@@ -10,6 +10,7 @@ from deephaven import ui
 from .BaseTest import BaseTestCase
 
 run_on_change: OnChangeCallable = lambda x: x()
+queue_event: OnEventCallable = lambda x: x()
 
 
 class RendererTestCase(BaseTestCase):
@@ -45,6 +46,10 @@ class RendererTestCase(BaseTestCase):
             side_effect=run_on_change
         )
         on_queue: Callable[[Callable[[], None]], None] = Mock(side_effect=run_on_change)
+
+        on_queue_event: Callable[[Callable[[], None]], None] = Mock(
+            side_effect=queue_event
+        )
 
         called_funcs: List[str] = []
 
@@ -85,7 +90,7 @@ class RendererTestCase(BaseTestCase):
                 ui_counter() if is_shown else None,
             ]
 
-        rc = RenderContext(on_change, on_queue)
+        rc = RenderContext(on_change, on_queue, on_queue_event)
 
         renderer = Renderer(rc)
 
@@ -212,7 +217,7 @@ class RendererTestCase(BaseTestCase):
         )
 
     def test_render_child_item(self):
-        rc = RenderContext(Mock(), Mock())
+        rc = RenderContext(Mock(), Mock(), Mock())
 
         self.assertEqual(
             _render_child_item({"key": "value"}, rc, "key"),

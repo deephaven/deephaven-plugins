@@ -35,7 +35,9 @@ def render_hook(
     if queue is None:
         queue = Queue()
 
-    context = RenderContext(lambda x: queue.put(x), lambda x: queue.put(x))
+    context = RenderContext(
+        lambda x: queue.put(x), lambda x: queue.put(x), lambda x: queue.put(x)
+    )
 
     def _rerender(*args: Any, **kwargs: Any) -> Any:
         while not queue.empty():

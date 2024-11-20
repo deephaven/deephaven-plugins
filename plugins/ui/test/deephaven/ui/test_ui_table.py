@@ -16,7 +16,8 @@ class UITableTestCase(BaseTestCase):
 
         on_change = Mock()
         on_queue = Mock()
-        context = RenderContext(on_change, on_queue)
+        on_queue_event = Mock()
+        context = RenderContext(on_change, on_queue, on_queue_event)
         result = ui_table.render(context)
 
         # Can replace 2nd param with result | expected_props after dropping Python 3.8

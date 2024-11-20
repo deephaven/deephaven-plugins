@@ -5,15 +5,17 @@ from unittest.mock import Mock
 from .BaseTest import BaseTestCase
 
 run_on_change: OnChangeCallable = lambda x: x()
+queue_event: OnEventCallable = lambda x: x()
 
 
 def make_render_context(
     on_change: OnChangeCallable = run_on_change,
     on_queue: OnChangeCallable = run_on_change,
+    on_queue_event: OnEventCallable = queue_event,
 ) -> RenderContext:
     from deephaven.ui._internal.RenderContext import RenderContext
 
-    return RenderContext(on_change, on_queue)
+    return RenderContext(on_change, on_queue, on_queue_event)
 
 
 class RenderTestCase(BaseTestCase):
