@@ -6,7 +6,7 @@ export type ToastVariant = 'positive' | 'negative' | 'neutral' | 'info';
 
 export type ToastParams = ToastOptions & {
   message: string;
-  variant?: ToastVariant;
+  variant: ToastVariant;
 };
 
 export function Toast(params: ToastParams): void {
