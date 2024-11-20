@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from ..hooks import use_event_queue
 
 from typing import Callable
@@ -33,6 +35,9 @@ def toast(
         timeout: A timeout to automatically close the toast after, in milliseconds.
         id: The element's unique identifier.
         show: True if the toast should be displayed immediately, False to wait for a later call.
+
+    Returns:
+        A callback to show the toast or None if show is True.
     """
     local_params = locals()
     del local_params["show"]
