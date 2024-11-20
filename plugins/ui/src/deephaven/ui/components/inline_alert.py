@@ -14,7 +14,9 @@ from ..elements import Element
 
 
 def inline_alert(
-    *children: Any,
+    heading: Any,
+    content: Any,
+    *,
     variant: InlineAlertVariant | None = "neutral",
     auto_focus: bool | None = None,
     flex: LayoutFlex | None = None,
@@ -61,7 +63,8 @@ def inline_alert(
     Inline alerts display non-modal messages related to objects in a view.
 
     Args:
-        *children: The content of the Inline Alert.
+        heading: The heading of the Inline Alert.
+        content: The content of the Inline Alert.
         variant: The visual style of the Inline Alert.
         auto_focus: Whether to automatically focus the Inline Alert when it first renders.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
@@ -110,7 +113,8 @@ def inline_alert(
     """
     return component_element(
         "InlineAlert",
-        children=children,
+        heading=heading,
+        content=content,
         variant=variant,
         auto_focus=auto_focus,
         flex=flex,

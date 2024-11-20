@@ -4,33 +4,15 @@ Inline alerts display non-modal messages related to objects in a view, often use
 
 ## Example
 
+For the contextual help component, both the `heading` and `content` props are required. 
+
 ```python
 from deephaven import ui
 
 
 my_inline_alert_basic = ui.inline_alert(
-    ui.heading("Payment Information"),
-    ui.content(
-        "Enter your billing address, shipping address, and payment method to complete your purchase."
-    ),
-)
-```
-
-
-## Content
-
-The inline alerts contain a title and body using the `ui.heading` and `ui.content`.
-
-
-```python
-from deephaven import ui
-
-
-my_inline_alert_content_example = ui.inline_alert(
-    ui.heading("Payment Information"),
-    ui.content(
-        "Enter your billing address, shipping address, and payment method to complete your purchase."
-    ),
+    heading="Payment Information",
+    content="Enter your billing address, shipping address, and payment method to complete your purchase.",
 )
 ```
 
@@ -47,31 +29,23 @@ from deephaven import ui
 def ui_inline_alert_variant_examples():
     return [
         ui.inline_alert(
-            ui.heading("Accepted Payment Methods"),
-            ui.content(
-                "Only major credit cards are accepted for payment. Direct debit is currently unavailable."
-            ),
+            heading="Accepted Payment Methods",
+            content="Only major credit cards are accepted for payment. Direct debit is currently unavailable.",
             variant="info",
         ),
         ui.inline_alert(
-            ui.heading("Purchase completed"),
-            ui.content(
-                "You'll get a confirmation email with your order details shortly."
-            ),
+            heading="Purchase completed",
+            content="You'll get a confirmation email with your order details shortly.",
             variant="positive",
         ),
         ui.inline_alert(
-            ui.heading("Payment Information"),
-            ui.content(
-                "Enter your billing address, shipping address, and payment method to complete your purchase."
-            ),
+            heading="Payment Information",
+            content="Enter your billing address, shipping address, and payment method to complete your purchase.",
             variant="notice",
         ),
         ui.inline_alert(
-            ui.heading("Payment Information"),
-            ui.content(
-                "Enter your billing address, shipping address, and payment method to complete your purchase."
-            ),
+            heading="Payment Information",
+            content="Enter your billing address, shipping address, and payment method to complete your purchase.",
             variant="negative",
         ),
     ]
