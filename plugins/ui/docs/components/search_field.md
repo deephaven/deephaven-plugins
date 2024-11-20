@@ -42,7 +42,9 @@ from deephaven import ui
 
 
 my_search_field_name_example = ui.form(
-    ui.search_field(label="Email", name="email", type="email")
+    ui.search_field(label="Email", name="email", type="email"),
+    ui.button("Submit", type="submit"),
+    on_submit=print,
 )
 ```
 
@@ -116,7 +118,7 @@ my_search_field_on_submit = ui.search_field(
 )
 ```
 
-The `on_clear` property is triggered whenever the value in the search field is edited.
+The `on_clear` property is triggered whenever the value in the search field is cleared.
 
 ```python
 from deephaven import ui
@@ -234,7 +236,7 @@ my_search_field_help_text_examples = ui_search_field_help_text_examples()
 
 ## Contextual Help
 
-Using the `contextual_help` prop, a `ui.contextual_help` can be placed next to the label to provide additional information about the search field.
+The `contextual_help` prop places a `ui.contextual_help` next to the label to provide additional information about the search field.
 
 
 ```python
