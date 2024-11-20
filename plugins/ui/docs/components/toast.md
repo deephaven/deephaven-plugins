@@ -9,7 +9,7 @@ from deephaven import ui
 
 btn = ui.button(
     "Show toast",
-    on_press=lambda: ui.toast("Toast is done!"),
+    on_press=ui.toast("Toast is done!"),
     variant="primary",
 )
 ```
@@ -26,22 +26,22 @@ from deephaven import ui
 toasts = ui.button_group(
     ui.button(
         "Show neutral toast",
-        on_press=lambda: ui.toast("Toast available", variant="neutral"),
+        on_press=ui.toast("Toast available", variant="neutral"),
         variant="secondary",
     ),
     ui.button(
         "Show positive toast",
-        on_press=lambda: ui.toas("Toast is done!", variant="positive"),
+        on_press=ui.toast("Toast is done!", variant="positive"),
         variant="primary",
     ),
     ui.button(
         "Show negative toast",
-        on_press=lambda: ui.toast("Toast is burned!", variant="negative"),
+        on_press=ui.toast("Toast is burned!", variant="negative"),
         variant="negative",
     ),
     ui.button(
         "Show info toast",
-        on_press=lambda: ui.toast("Toasting...", variant="info"),
+        on_press=ui.toast("Toasting...", variant="info"),
         variant="accent",
         style="outline",
     ),
@@ -58,7 +58,7 @@ from deephaven import ui
 
 btn = ui.button(
     "Show toast",
-    on_press=lambda: ui.toast(
+    on_press=ui.toast(
         "An update is available",
         action_label="Update",
         on_action=lambda: print("Updating!"),
@@ -81,40 +81,56 @@ from deephaven import ui
 
 btn = ui.button(
     "Show toast",
-    on_press=lambda: ui.toast("Toast is done!", timeout=5000, variant="positive"),
+    on_press=ui.toast("Toast is done!", timeout=5000, variant="positive"),
     variant="primary",
 )
 ```
 
-## Programmatic dismissal
+## Show flag
 
-Toasts may be programmatically dismissed if they become irrelevant before the user manually closes them. Each method of `toast_queue` returns a function which may be used to close a toast.
+`ui.toast` returns a callback that shows a toast when a button is clicked. If you want to show the toast immediatley, set the `show` flag to `True`.
 
 ```python
 from deephaven import ui
 
 
+toast = ui.toast("Show toast", show=True)
+```
+
+## Toast from table example
+
+This example shows how to create a toast from the latest update of a ticking table. It is recommded to auto dismiss these toasts with a `timeout` and to avoid ticking faster than the value of the `timeout`.
+
+```python
+from deephaven.table_listener import listen
+from deephaven import time_table
+from deephaven import ui
+
+_source = time_table("PT5S").update("X = i").tail(5)
+
+
 @ui.component
-def close_example():
-    close, set_close = use_state(None)
+def toast_table(t):
+    toast, show_toast = ui.use_state()
 
-    def handle_press():
-        if close is None:
-            toast_close = ui.toast(
-                "Unable to save", on_close=lambda: set_close(None), variant="positive"
-            )
-            set_close(lambda: toast_close())
-        else:
-            close()
+    def listener_function(update, is_replay):
+        data_added = update.added()["X"][0]
+        show_toast(ui.toast(f"added {data_added}", timeout=5000, show=True))
 
-    return ui.button(
-        "Toggle toast",
-        on_press=handle_press,
-        variant="primary",
-    )
+    def listener():
+        handle = listen(t, listener_function)
+
+        def stop_listening():
+            if handle is not None:
+                handle.stop()
+
+        return stop_listening
+
+    ui.use_effect(listener, [t])
+    return [t, toast]
 
 
-my_close_example = close_example()
+my_toast_table = toast_table(_source)
 ```
 
 ## API Reference
