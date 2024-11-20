@@ -18,7 +18,8 @@ def toast(
     on_close: Callable[[], None] | None = None,
     timeout: int | None = None,
     id: str | None = None,
-) -> Callable[[], None]:
+    show: bool = False,
+) -> Callable[[], None] | None:
     """
     Toasts display brief, temporary notifications of actions, errors, or other events in an application.
 
@@ -31,8 +32,13 @@ def toast(
         on_close: Handler that is called when the toast is closed, either by the user or after a timeout.
         timeout: A timeout to automatically close the toast after, in milliseconds.
         id: The element's unique identifier.
+        show: True if the toast should be displayed immediately, False to wait for a later call.
     """
     local_params = locals()
-    event_queue = use_event_queue()
+    del local_params["show"]
     params = dict_to_react_props(local_params)
-    return lambda: event_queue(_TOAST_EVENT, params)
+    event_queue = use_event_queue()
+    if show:
+        event_queue(_TOAST_EVENT, params)
+    else:
+        return lambda: event_queue(_TOAST_EVENT, params)
