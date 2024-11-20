@@ -82,17 +82,33 @@ function WidgetHandler({
     setIsLoading(true);
   }
 
-  // Default to a single panel so we can immediately show a loading spinner
-  // The panel will be replaced with the first actual panel when the document loads
-  // Dashboards already have a loader and the placeholder panel causes an error
-  const [document, setDocument] = useState<ReactNode>(
-    widgetDescriptor.type === WIDGET_ELEMENT ? <ReactPanel /> : null
-  );
+  // If the widget throws an error, we should stop loading
+  if (widgetError != null && isLoading) {
+    setIsLoading(false);
+  }
 
   // We want to update the initial data if the widget changes, as we'll need to re-fetch the widget and want to start with a fresh state.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const initialData = useMemo(() => initialDataProp, [widget]);
   const [internalError, setInternalError] = useState<WidgetError>();
+
+  const [document, setDocument] = useState<ReactNode>(() => {
+    if (widgetDescriptor.type === WIDGET_ELEMENT) {
+      // Rehydration. Mount ReactPanels for each panelId in the initial data
+      // so loading spinners or widget errors are shown
+      if (initialData?.panelIds != null && initialData.panelIds.length > 0) {
+        // Do not add a key here
+        // When the real document mounts, it doesn't use keys and will cause a remount
+        // which triggers the DocumentHandler to think the panels were closed and messes up the layout
+        // eslint-disable-next-line react/jsx-key
+        return initialData.panelIds.map(() => <ReactPanel />);
+      }
+      // Default to a single panel so we can immediately show a loading spinner
+      return <ReactPanel />;
+    }
+    // Dashboards should not have a default document. It breaks its render flow
+    return null;
+  });
 
   const error = useMemo(
     () => internalError ?? widgetError ?? undefined,
