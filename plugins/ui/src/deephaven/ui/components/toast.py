@@ -3,14 +3,12 @@ from __future__ import annotations
 from ..hooks import use_send_event
 
 from typing import Callable
-from .make_component import make_component
 from .._internal.utils import dict_to_react_props
 from ..types import ToastVariant
 
 _TOAST_EVENT = "toast.event"
 
 
-@make_component
 def toast(
     message: str,
     *,
@@ -38,7 +36,6 @@ def toast(
     Returns:
         A callback to show the toast or None if show is True.
     """
-    local_params = locals()
-    params = dict_to_react_props(local_params)
+    params = dict_to_react_props(locals())
     send_event = use_send_event()
     send_event(_TOAST_EVENT, params)
