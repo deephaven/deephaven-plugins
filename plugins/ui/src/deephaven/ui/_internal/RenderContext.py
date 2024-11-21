@@ -20,6 +20,7 @@ from deephaven import DHError
 from deephaven.liveness_scope import LivenessScope
 from contextlib import contextmanager
 from dataclasses import dataclass
+from .NoContextException import NoContextException
 
 logger = logging.getLogger(__name__)
 
@@ -33,10 +34,6 @@ OnChangeCallable = Callable[[StateUpdateCallable], None]
 Callable that is called when there is a change in the context (setting the state).
 """
 
-OnEventCallable = Callable[[str, dict], None]
-"""
-Callable that is called when an event is queued up.
-"""
 
 StateKey = int
 """
@@ -129,10 +126,6 @@ def _should_retain_value(value: ValueWithLiveness[T | None]) -> bool:
 
 
 _local_data = threading.local()
-
-
-class NoContextException(Exception):
-    pass
 
 
 def get_context() -> RenderContext:
@@ -228,12 +221,7 @@ class RenderContext:
     Flag to indicate if this context is mounted. It is unusable after being unmounted.
     """
 
-    def __init__(
-        self,
-        on_change: OnChangeCallable,
-        on_queue_render: OnChangeCallable,
-        on_queue_event: OnEventCallable,
-    ):
+    def __init__(self, on_change: OnChangeCallable, on_queue_render: OnChangeCallable):
         """
         Create a new render context.
 
@@ -248,7 +236,6 @@ class RenderContext:
         self._children_context = {}
         self._on_change = on_change
         self._on_queue_render = on_queue_render
-        self._on_queue_event = on_queue_event
         self._collected_scopes = set()
         self._collected_effects = []
         self._collected_unmount_listeners = []
@@ -461,9 +448,7 @@ class RenderContext:
         """
         logger.debug("Getting child context for key %s", key)
         if key not in self._children_context:
-            child_context = RenderContext(
-                self._on_change, self._on_queue_render, self._on_queue_event
-            )
+            child_context = RenderContext(self._on_change, self._on_queue_render)
             logger.debug(
                 "Created new child context %s for key %s in %s",
                 child_context,
@@ -496,16 +481,6 @@ class RenderContext:
             update: The update to queue up.
         """
         self._on_queue_render(update)
-
-    def queue_event(self, name: str, params: dict) -> None:
-        """
-        Queue up an event to be sent to the client.
-
-        Args:
-            name: The name of the event.
-            params: The params of the event.
-        """
-        self._on_queue_event(name, params)
 
     def manage(self, liveness_scope: LivenessScope) -> None:
         """
