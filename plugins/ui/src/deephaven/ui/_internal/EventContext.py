@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from types import TracebackType
 import threading
 from typing import (
     Any,
@@ -61,18 +60,6 @@ class EventContext:
         """
 
         self._on_send_event = on_send_event
-
-    def __enter__(self):
-        self.open()
-        return self
-
-    def __exit__(
-        self,
-        type_: type[BaseException] | None,
-        value: BaseException | None,
-        traceback: TracebackType | None,
-    ):
-        pass
 
     @contextmanager
     def open(self) -> Generator[EventContext, None, None]:

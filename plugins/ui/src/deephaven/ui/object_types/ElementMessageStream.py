@@ -215,7 +215,7 @@ class ElementMessageStream(MessageStream):
         """
         try:
             with self._exec_context:
-                with self._event_context:
+                with self._event_context.open():
                     with self._render_lock:
                         self._render_thread = threading.current_thread()
                         self._render_state = _RenderState.RENDERING
