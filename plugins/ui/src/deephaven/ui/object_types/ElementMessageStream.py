@@ -20,7 +20,12 @@ from .._internal import wrap_callable
 from ..elements import Element
 from ..renderer import NodeEncoder, Renderer, RenderedNode
 from ..renderer.NodeEncoder import CALLABLE_KEY
-from .._internal import RenderContext, StateUpdateCallable, ExportedRenderState
+from .._internal import (
+    RenderContext,
+    StateUpdateCallable,
+    ExportedRenderState,
+    EventContext,
+)
 from .ErrorCode import ErrorCode
 
 logger = logging.getLogger(__name__)
@@ -81,6 +86,11 @@ class ElementMessageStream(MessageStream):
     _context: RenderContext
     """
     Render context for this element
+    """
+
+    _event_context: EventContext
+    """
+    Event context for this element
     """
 
     _renderer: Renderer
@@ -162,9 +172,8 @@ class ElementMessageStream(MessageStream):
         self._manager = JSONRPCResponseManager()
         self._dispatcher = self._make_dispatcher()
         self._encoder = NodeEncoder(separators=(",", ":"))
-        self._context = RenderContext(
-            self._queue_state_update, self._queue_callable, self._queue_event
-        )
+        self._context = RenderContext(self._queue_state_update, self._queue_callable)
+        self._event_context = EventContext(self._send_event)
         self._renderer = Renderer(self._context)
         self._update_queue = Queue()
         self._callable_queue = Queue()
@@ -206,9 +215,10 @@ class ElementMessageStream(MessageStream):
         """
         try:
             with self._exec_context:
-                with self._render_lock:
-                    self._render_thread = threading.current_thread()
-                    self._render_state = _RenderState.RENDERING
+                with self._event_context:
+                    with self._render_lock:
+                        self._render_thread = threading.current_thread()
+                        self._render_state = _RenderState.RENDERING
 
                 while not self._callable_queue.empty():
                     item = self._callable_queue.get()
@@ -274,17 +284,6 @@ class ElementMessageStream(MessageStream):
             callable: The callable to queue
         """
         self._callable_queue.put(callable)
-        self._queue_render()
-
-    def _queue_event(self, name: str, params: dict) -> None:
-        """
-        Queue an event to be called on the render thread.
-
-        Args:
-            event: The event to queue
-            params: The parameters to pass to the event
-        """
-        self._callable_queue.put(lambda: self._send_event(name, params))
         self._queue_render()
 
     def start(self) -> None:
