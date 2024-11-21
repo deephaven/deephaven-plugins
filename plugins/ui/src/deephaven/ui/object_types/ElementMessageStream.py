@@ -214,11 +214,10 @@ class ElementMessageStream(MessageStream):
         Process any queued callables, then re-renders the element if it is dirty.
         """
         try:
-            with self._exec_context:
-                with self._event_context.open():
-                    with self._render_lock:
-                        self._render_thread = threading.current_thread()
-                        self._render_state = _RenderState.RENDERING
+            with self._exec_context, self._event_context.open():
+                with self._render_lock:
+                    self._render_thread = threading.current_thread()
+                    self._render_state = _RenderState.RENDERING
 
                 while not self._callable_queue.empty():
                     item = self._callable_queue.get()

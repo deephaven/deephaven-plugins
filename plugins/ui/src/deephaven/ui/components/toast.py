@@ -19,7 +19,7 @@ def toast(
     on_close: Callable[[], None] | None = None,
     timeout: int | None = None,
     id: str | None = None,
-) -> Callable[[], None] | None:
+) -> None:
     """
     Toasts display brief, temporary notifications of actions, errors, or other events in an application.
 
