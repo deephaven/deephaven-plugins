@@ -1,6 +1,6 @@
 from .use_callback import use_callback
 from .use_effect import use_effect
-from .use_event_queue import use_event_queue
+from .use_send_event import use_send_event
 from .use_memo import use_memo
 from .use_state import use_state
 from .use_ref import use_ref
@@ -19,7 +19,7 @@ from .use_boolean import use_boolean
 __all__ = [
     "use_callback",
     "use_effect",
-    "use_event_queue",
+    "use_send_event",
     "use_memo",
     "use_state",
     "use_ref",

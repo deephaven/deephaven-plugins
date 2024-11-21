@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ..hooks import use_event_queue
+from ..hooks import use_send_event
 
 from typing import Callable
 from .make_component import make_component
@@ -13,6 +13,7 @@ _TOAST_EVENT = "toast.event"
 @make_component
 def toast(
     message: str,
+    *,
     variant: ToastVariant = "neutral",
     action_label: str | None = None,
     on_action: Callable[[], None] | None = None,
@@ -20,7 +21,6 @@ def toast(
     on_close: Callable[[], None] | None = None,
     timeout: int | None = None,
     id: str | None = None,
-    show: bool = False,
 ) -> Callable[[], None] | None:
     """
     Toasts display brief, temporary notifications of actions, errors, or other events in an application.
@@ -34,16 +34,11 @@ def toast(
         on_close: Handler that is called when the toast is closed, either by the user or after a timeout.
         timeout: A timeout to automatically close the toast after, in milliseconds.
         id: The element's unique identifier.
-        show: True if the toast should be displayed immediately, False to wait for a later call.
 
     Returns:
         A callback to show the toast or None if show is True.
     """
     local_params = locals()
-    del local_params["show"]
     params = dict_to_react_props(local_params)
-    event_queue = use_event_queue()
-    if show:
-        event_queue(_TOAST_EVENT, params)
-    else:
-        return lambda: event_queue(_TOAST_EVENT, params)
+    send_event = use_send_event()
+    send_event(_TOAST_EVENT, params)

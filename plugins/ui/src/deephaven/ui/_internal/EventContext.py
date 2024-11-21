@@ -74,7 +74,7 @@ class EventContext:
         yield self
         _set_event_context(old_context)
 
-    def send_event(self, name: str, params: dict) -> None:
+    def send_event(self, name: str, params: Dict[str, Any]) -> None:
         """
         Send an event to the client.
 
