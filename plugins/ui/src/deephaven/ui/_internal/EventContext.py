@@ -69,7 +69,11 @@ class EventContext:
         Returns:
             A context manager to manage EventContext resources.
         """
-        old_context = get_event_context()
+        old_context: Optional[EventContext] = None
+        try:
+            old_context = get_event_context()
+        except NoContextException:
+            pass
         _set_event_context(self)
         yield self
         _set_event_context(old_context)
