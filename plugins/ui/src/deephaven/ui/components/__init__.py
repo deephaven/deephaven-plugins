@@ -47,6 +47,7 @@ from .radio_group import radio_group
 from .range_calendar import range_calendar
 from .range_slider import range_slider
 from .row import row
+from .search_field import search_field
 from .section import section
 from .slider import slider
 from .stack import stack
@@ -115,6 +116,7 @@ __all__ = [
     "range_calendar",
     "range_slider",
     "row",
+    "search_field",
     "section",
     "slider",
     "stack",

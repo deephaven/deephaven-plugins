@@ -29,6 +29,7 @@ export * from './Radio';
 export * from './RadioGroup';
 export * from './RangeCalendar';
 export * from './RangeSlider';
+export * from './SearchField';
 export * from './Slider';
 export * from './Tabs';
 export * from './TabPanels';
