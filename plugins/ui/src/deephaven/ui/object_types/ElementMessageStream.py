@@ -504,9 +504,8 @@ class ElementMessageStream(MessageStream):
         encoded_params, callable_id_dict = self._encoder.encode_event_params(params)
         # Register any new callables
         for callable, callable_id in callable_id_dict.items():
-            if callable_id not in self._callable_dict:
-                logger.debug("Registering callable %s", callable_id)
-                self._callable_dict[callable_id] = wrap_callable(callable)
+            logger.debug("Registering callable %s", callable_id)
+            self._temp_callable_dict[callable_id] = wrap_callable(callable)
         request = self._make_notification("event", name, encoded_params)
         payload = json.dumps(request)
         self._connection.on_data(payload.encode(), [])
