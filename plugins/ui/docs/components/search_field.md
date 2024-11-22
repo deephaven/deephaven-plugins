@@ -67,9 +67,9 @@ def ui_search_field_is_required_examples():
 my_search_field_is_required_example = ui_search_field_is_required_examples()
 ```
 
-By setting `is_required` to True, the `necessity_indicator` is set to "icon" by default, but this can be changed. The `necessity_indicator` can also be used independently to indicate that the search field is optional.
+By setting `is_required` to True, the `necessity_indicator` is set to "icon" by default. This can be changed with the `necessity_indicator` prop, which can be used independently to indicate that the search field is optional.
 
-When the `necessity_indicator` prop is set to "label", a localized string will be generated for "(required)" or "(optional)" automatically.
+When `necessity_indicator` is set to "label," a localized string will be automatically generated for "(required)" or "(optional)."
 
 ```python
 from deephaven import ui
@@ -276,7 +276,7 @@ my_search_field_width_examples = ui_search_field_width_examples()
 
 ## Custom icon
 
-The `icon` prop changes the icon within the search field. This can quickly indicate to the user what the field is for. The complete list of icons can be found in [`icon`](./icon.md)
+The `icon` prop changes the icon within the search field. This can quickly indicate to the user what the field is for. The complete list of icons can be found in [`icon`](./icon.md).
 
 
 ```python
