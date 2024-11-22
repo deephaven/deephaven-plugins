@@ -19,6 +19,7 @@ export * from './IllustratedMessage';
 export * from './Image';
 export * from './ListView';
 export * from './Markdown';
+export * from './Meter';
 export * from './model';
 export * from './ObjectView';
 export * from './Picker';

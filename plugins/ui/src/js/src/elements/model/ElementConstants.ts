@@ -53,6 +53,7 @@ export const ELEMENT_NAME = {
   link: uiComponentName('Link'),
   listView: uiComponentName('ListView'),
   markdown: uiComponentName('Markdown'),
+  meter: uiComponentName('Meter'),
   numberField: uiComponentName('NumberField'),
   picker: uiComponentName('Picker'),
   progressBar: uiComponentName('ProgressBar'),
