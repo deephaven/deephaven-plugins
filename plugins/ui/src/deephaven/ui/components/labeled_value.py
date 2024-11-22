@@ -1,5 +1,7 @@
 from __future__ import annotations
 from typing import Any, List
+
+from .number_field import NumberFieldFormatOptions
 from .types import (
     Alignment,
     AlignSelf,
@@ -18,7 +20,7 @@ from ..elements import Element
 def labeled_value(
     value: str | List[str] | int | None = None,
     label: Element | None = None,
-    # format_options: TODO Add date formatting options
+    format_options: NumberFieldFormatOptions | None = None,
     label_position: LabelPosition | None = "top",
     label_align: Alignment | None = None,
     contextual_help: Any | None = None,
@@ -68,6 +70,7 @@ def labeled_value(
     Args:
         value: The value to be displayed.
         label: The content of the label.
+        format_options: Formatting options for the value displayed in the number field.
         label_position: The label's overall position relative to the element it is labeling.
         label_align: The label's horizontal alignment relative to the element it is labeling.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
@@ -117,6 +120,7 @@ def labeled_value(
         "LabeledValue",
         value=value,
         label=label,
+        format_options=format_options,
         label_position=label_position,
         label_align=label_align,
         contextual_help=contextual_help,

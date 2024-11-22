@@ -14,7 +14,7 @@ my_labeled_value_basic = ui.labeled_value(label="File name", value="Budget.xls")
 
 ## Value
 
-A labeled value accepts numbers, dates, times, strings, and lists of strings in the `value` prop.
+A labeled value accepts numbers, strings, and lists of strings in the `value` prop.
 
 ```python
 from deephaven import ui
