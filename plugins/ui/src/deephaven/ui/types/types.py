@@ -506,6 +506,7 @@ ListViewDensity = Literal["COMPACT", "NORMAL", "SPACIOUS"]
 ListViewOverflowMode = Literal["truncate", "wrap"]
 ActionGroupDensity = Literal["compact", "regular"]
 TabDensity = Literal["compact", "regular"]
+InlineAlertVariant = Literal["neutral", "info", "positive", "notice", "negative"]
 LinkVariant = Literal["primary", "secondary", "over_background"]
 BadgeVariant = Literal[
     "neutral",

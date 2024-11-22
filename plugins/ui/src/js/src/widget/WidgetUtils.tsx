@@ -64,6 +64,7 @@ import {
   IllustratedMessage,
   Image,
   LabeledValue,
+  InlineAlert,
   ListView,
   Markdown,
   Picker,
@@ -82,6 +83,9 @@ import {
   UITable,
   Tabs,
 } from '../elements';
+
+export const WIDGET_ELEMENT = 'deephaven.ui.Element';
+export const DASHBOARD_ELEMENT = 'deephaven.ui.Dashboard';
 
 /**
  * Elements to implicitly wrap primitive children in <Text> components.
@@ -134,6 +138,7 @@ export const elementComponentMap = {
   [ELEMENT_NAME.heading]: Heading,
   [ELEMENT_NAME.illustratedMessage]: IllustratedMessage,
   [ELEMENT_NAME.image]: Image,
+  [ELEMENT_NAME.inlineAlert]: InlineAlert,
   [ELEMENT_NAME.item]: Item,
   [ELEMENT_NAME.labeledValue]: LabeledValue,
   [ELEMENT_NAME.link]: Link,

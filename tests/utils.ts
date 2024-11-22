@@ -1,5 +1,11 @@
 import test, { Page, expect } from '@playwright/test';
 
+export const SELECTORS = {
+  REACT_PANEL: '.dh-react-panel',
+  REACT_PANEL_VISIBLE: '.dh-react-panel:visible',
+  REACT_PANEL_OVERLAY: '.dh-react-panel-overlay',
+};
+
 /**
  * Goes to a page and waits for the progress bar to disappear
  * @param page The page
@@ -28,12 +34,14 @@ export async function gotoPage(
  * @param page The page
  * @param name The name of the panel
  * @param panelLocator The locator for the panel, passed to `page.locator`
+ * @param awaitLoad If we should wait for the loading spinner to disappear
  */
 export async function openPanel(
   page: Page,
   name: string,
-  panelLocator = '.dh-panel'
-) {
+  panelLocator = '.dh-panel',
+  awaitLoad = true
+): Promise<void> {
   await test.step(`Open panel (${name})`, async () => {
     const panelCount = await page.locator(panelLocator).count();
 
@@ -62,6 +70,8 @@ export async function openPanel(
 
     // check for panel to be loaded
     await expect(page.locator(panelLocator)).toHaveCount(panelCount + 1);
-    await expect(page.locator('.loading-spinner')).toHaveCount(0);
+    if (awaitLoad) {
+      await expect(page.locator('.loading-spinner')).toHaveCount(0);
+    }
   });
 }

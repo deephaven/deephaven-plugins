@@ -27,10 +27,12 @@ import {
 import PortalPanel from './layout/PortalPanel';
 import PortalPanelManager from './layout/PortalPanelManager';
 import DashboardWidgetHandler from './widget/DashboardWidgetHandler';
-import { getPreservedData } from './widget/WidgetUtils';
+import {
+  getPreservedData,
+  DASHBOARD_ELEMENT,
+  WIDGET_ELEMENT,
+} from './widget/WidgetUtils';
 
-const NAME_ELEMENT = 'deephaven.ui.Element';
-const DASHBOARD_ELEMENT = 'deephaven.ui.Dashboard';
 const PLUGIN_NAME = '@deephaven/js-plugin-ui.DashboardPlugin';
 
 const log = Log.module('@deephaven/js-plugin-ui.DashboardPlugin');
@@ -119,7 +121,7 @@ export function DashboardPlugin(
       const { type } = widget;
 
       switch (type) {
-        case NAME_ELEMENT: {
+        case WIDGET_ELEMENT: {
           handleWidgetOpen({ widgetId, widget });
           break;
         }

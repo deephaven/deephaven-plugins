@@ -122,6 +122,10 @@
             "path": "components/image.md"
           },
           {
+            "label": "inline_alert",
+            "path": "components/inline_alert.md"
+          },
+          {
             "label": "labeled_value",
             "path": "components/labeled_value.md"
           },
@@ -215,8 +219,24 @@
         "label": "Hooks",
         "items": [
           {
+            "label": "Overview",
+            "path": "hooks/overview.md"
+          },
+          {
             "label": "use_boolean",
             "path": "hooks/use_boolean.md"
+          },
+          {
+            "label": "use_callback",
+            "path": "hooks/use_callback.md"
+          },
+          {
+            "label": "use_cell_data",
+            "path": "hooks/use_cell_data.md"
+          },
+          {
+            "label": "use_column_data",
+            "path": "hooks/use_column_data.md"
           },
           {
             "label": "use_effect",
@@ -227,8 +247,16 @@
             "path": "hooks/use_memo.md"
           },
           {
+            "label": "use_ref",
+            "path": "hooks/use_ref.md"
+          },
+          {
             "label": "use_state",
             "path": "hooks/use_state.md"
+          },
+          {
+            "label": "use_table_data",
+            "path": "hooks/use_table_data.md"
           }
         ]
       }
