@@ -9,7 +9,7 @@ from deephaven import ui
 
 btn = ui.button(
     "Show toast",
-    on_press=ui.toast("Toast is done!"),
+    on_press=lambda: ui.toast("Toast is done!"),
     variant="primary",
 )
 ```
@@ -26,22 +26,22 @@ from deephaven import ui
 toasts = ui.button_group(
     ui.button(
         "Show neutral toast",
-        on_press=ui.toast("Toast available", variant="neutral"),
+        on_press=lambda: ui.toast("Toast available", variant="neutral"),
         variant="secondary",
     ),
     ui.button(
         "Show positive toast",
-        on_press=ui.toast("Toast is done!", variant="positive"),
+        on_press=lambda: ui.toast("Toast is done!", variant="positive"),
         variant="primary",
     ),
     ui.button(
         "Show negative toast",
-        on_press=ui.toast("Toast is burned!", variant="negative"),
+        on_press=lambda: ui.toast("Toast is burned!", variant="negative"),
         variant="negative",
     ),
     ui.button(
         "Show info toast",
-        on_press=ui.toast("Toasting...", variant="info"),
+        on_press=lambda: ui.toast("Toasting...", variant="info"),
         variant="accent",
         style="outline",
     ),
@@ -50,7 +50,7 @@ toasts = ui.button_group(
 
 ## Events
 
-Toasts can include an optional action by specifying the `action_label` and `on_action` options when queueing a toast. In addition, the on_close event is triggered when the toast is dismissed. The `should_close_on_action` option automatically closes the toast when an action is performed.
+Toasts can include an optional action by specifying the `action_label` and `on_action` options when queueing a toast. In addition, the `on_close` event is triggered when the toast is dismissed. The `should_close_on_action` option automatically closes the toast when an action is performed.
 
 ```python
 from deephaven import ui
@@ -58,11 +58,12 @@ from deephaven import ui
 
 btn = ui.button(
     "Show toast",
-    on_press=ui.toast(
+    on_press=lambda: ui.toast(
         "An update is available",
         action_label="Update",
         on_action=lambda: print("Updating!"),
         should_close_on_action=True,
+        on_close=lambda: print("Closed"),
         variant="positive",
     ),
     variant="primary",
@@ -81,25 +82,16 @@ from deephaven import ui
 
 btn = ui.button(
     "Show toast",
-    on_press=ui.toast("Toast is done!", timeout=5000, variant="positive"),
+    on_press=lambda: ui.toast("Toast is done!", timeout=5000, variant="positive"),
     variant="primary",
 )
 ```
 
-## Show flag
-
-`ui.toast` returns a callback that shows a toast when a button is clicked. If you want to show the toast immediatley, set the `show` flag to `True`.
-
-```python
-from deephaven import ui
-
-
-toast = ui.toast("Show toast", show=True)
-```
+## Render Queue?
 
 ## Toast from table example
 
-This example shows how to create a toast from the latest update of a ticking table. It is recommded to auto dismiss these toasts with a `timeout` and to avoid ticking faster than the value of the `timeout`.
+This example shows how to create a toast from the latest update of a ticking table. It is recommended to auto dismiss these toasts with a `timeout` and to avoid ticking faster than the value of the `timeout`.
 
 ```python
 from deephaven.table_listener import listen
@@ -111,11 +103,11 @@ _source = time_table("PT5S").update("X = i").tail(5)
 
 @ui.component
 def toast_table(t):
-    toast, show_toast = ui.use_state()
+    render_queue = ui.use_render_queue()
 
     def listener_function(update, is_replay):
         data_added = update.added()["X"][0]
-        show_toast(ui.toast(f"added {data_added}", timeout=5000, show=True))
+        render_queue(lambda: ui.toast(f"added {data_added}", timeout=5000))
 
     def listener():
         handle = listen(t, listener_function)
@@ -127,7 +119,7 @@ def toast_table(t):
         return stop_listening
 
     ui.use_effect(listener, [t])
-    return [t, toast]
+    return t
 
 
 my_toast_table = toast_table(_source)
