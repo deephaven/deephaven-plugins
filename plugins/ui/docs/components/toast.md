@@ -87,7 +87,22 @@ btn = ui.button(
 )
 ```
 
-## Render Queue?
+## Show toast on mount
+
+This example shows how to display a toast when a component mounts.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def ui_toast_on_mount():
+    ui.toast("Mounted.", variant="info")
+    return ui.heading("Toast was shown on mount.")
+
+
+my_mount_example = ui_toast_on_mount()
+```
 
 ## Toast from table example
 
@@ -123,6 +138,100 @@ def toast_table(t):
 
 
 my_toast_table = toast_table(_source)
+```
+
+# Multi threading example
+
+This example shows how to use toast with multi threading.
+
+```python
+import threading
+from deephaven import read_csv, ui
+
+
+@ui.component
+def csv_loader():
+    # The render_queue we fetch using the `use_render_queue` hook at the top of the component
+    render_queue = ui.use_render_queue()
+    table, set_table = ui.use_state()
+    error, set_error = ui.use_state()
+
+    def handle_submit(data):
+        # We define a callable that we'll queue up on our own thread
+        def load_table():
+            try:
+                # Read the table from the URL
+                t = read_csv(data["url"])
+
+                # Define our state updates in another callable. We'll need to call this on the render thread
+                def update_state():
+                    set_error(None)
+                    set_table(t)
+                    ui.toast("Table loaded", variant="positive", timeout=5000)
+
+                # Queue up the state update on the render thread
+                render_queue(update_state)
+            except Exception as e:
+                # In case we have any errors, we should show the error to the user. We still need to call this from the render thread,
+                # so we must assign the exception to a variable and call the render_queue with a callable that will set the error
+                error_message = e
+
+                def update_state():
+                    set_table(None)
+                    set_error(error_message)
+                    ui.toast(
+                        f"Unable to load table: {error_message}",
+                        variant="negative",
+                        timeout=5000,
+                    )
+
+                # Queue up the state update on the render thread
+                render_queue(update_state)
+
+        # Start our own thread loading the table
+        threading.Thread(target=load_table).start()
+
+    return [
+        # Our form displaying input from the user
+        ui.form(
+            ui.flex(
+                ui.text_field(
+                    default_value="https://media.githubusercontent.com/media/deephaven/examples/main/DeNiro/csv/deniro.csv",
+                    label="Enter URL",
+                    label_position="side",
+                    name="url",
+                    flex_grow=1,
+                ),
+                ui.button(f"Load Table", type="submit"),
+                gap=10,
+            ),
+            on_submit=handle_submit,
+        ),
+        (
+            # Display a hint if the table is not loaded yet and we don't have an error
+            ui.illustrated_message(
+                ui.heading("Enter URL above"),
+                ui.content("Enter a URL of a CSV above and click 'Load' to load it"),
+            )
+            if error is None and table is None
+            else None
+        ),
+        # The loaded table. Doesn't show anything if it is not loaded yet
+        table,
+        # An error message if there is an error
+        (
+            ui.illustrated_message(
+                ui.icon("vsWarning"),
+                ui.heading("Error loading table"),
+                ui.content(f"{error}"),
+            )
+            if error != None
+            else None
+        ),
+    ]
+
+
+my_loader = csv_loader()
 ```
 
 ## API Reference
