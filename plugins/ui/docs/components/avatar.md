@@ -16,7 +16,7 @@ my_avatar_basic = ui.avatar(
 
 ## Disabled State
 
-The `is_disabled` prop disables avatars to prevent user interaction, and gives it a silenced style.
+The `is_disabled` prop disables avatars to prevent user interaction and gives them a silenced style.
 
 ```python
 from deephaven import ui
