@@ -17,6 +17,7 @@ export * from './HTMLElementView';
 export * from './IconElementView';
 export * from './IllustratedMessage';
 export * from './Image';
+export * from './InlineAlert';
 export * from './ListView';
 export * from './Markdown';
 export * from './model';

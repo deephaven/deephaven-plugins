@@ -47,6 +47,7 @@ export const ELEMENT_NAME = {
   heading: uiComponentName('Heading'),
   illustratedMessage: uiComponentName('IllustratedMessage'),
   image: uiComponentName('Image'),
+  inlineAlert: uiComponentName('InlineAlert'),
   item: uiComponentName('Item'),
   listActionGroup: uiComponentName('ListActionGroup'),
   listActionMenu: uiComponentName('ListActionMenu'),
