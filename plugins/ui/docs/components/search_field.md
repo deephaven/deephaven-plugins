@@ -108,7 +108,7 @@ def ui_search_field_on_change():
 my_search_field_on_change = ui_search_field_on_change()
 ```
 
-The `on_submit` property is triggered whenever the value in the search field is edited.
+The `on_submit` property is triggered whenever the value in the search field is submitted.
 
 ```python
 from deephaven import ui
