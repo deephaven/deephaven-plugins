@@ -27,7 +27,7 @@ def get_event_context() -> EventContext:
         The active EventContext, or throws if none is present.
     """
     try:
-        return _local_data.context
+        return _local_data.event_context
     except AttributeError:
         raise NoContextException("No context set")
 
@@ -37,9 +37,9 @@ def _set_event_context(context: Optional[EventContext]):
     Set the current context for the thread. Can be set to None to unset the context for a thread.
     """
     if context is None:
-        del _local_data.context
+        del _local_data.event_context
     else:
-        _local_data.context = context
+        _local_data.event_context = context
 
 
 class EventContext:
