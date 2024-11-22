@@ -34,7 +34,7 @@ def toast(
         id: The element's unique identifier.
 
     Returns:
-        A callback to show the toast or None if show is True.
+        None
     """
     params = dict_to_react_props(locals())
     send_event = use_send_event()
