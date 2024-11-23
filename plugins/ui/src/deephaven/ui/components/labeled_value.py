@@ -73,6 +73,7 @@ def labeled_value(
         format_options: Formatting options for the value displayed in the number field.
         label_position: The label's overall position relative to the element it is labeling.
         label_align: The label's horizontal alignment relative to the element it is labeling.
+        contextual_help: A contextual help element to place next to the label.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
