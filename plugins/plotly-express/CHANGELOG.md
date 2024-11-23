@@ -2,6 +2,26 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.12.0 - 2024-11-23
+#### Bug Fixes
+- `dx` now respects the webgl flag (#934) - (9cdf1ee) - Joe
+- Remove `frequency_bar` (#955) - (17fbfca) - Joe
+- Correct type for generated JsPlugin (#741) - (7da0ecc) - Joe
+- Remove server startup from python tests (#768) - (c6c2dd2) - Joe
+- Plotly express ticking 3d plots reset pending orientation on tick (#677) - (169354f) - Matthew Runyon
+- Prevent pushing broken docs to main (#719) - (86fb7aa) - Joe
+- Can't pass both x and y to violin, box and strip (#699) - (70c1805) - Joe
+#### Build system
+- Upgrade to Vite 5 (#899) - (e94b990) - Matthew Runyon
+#### Documentation
+- Mention Deephaven version where `server-ui` Docker image is mentioned (#951) - (1fac6af) - JJ Brosnan
+#### Features
+- Allow passing in a pandas dataframe to dx plots (#967) - (cf03ff0) - Joe
+#### Tests
+- default tox to 3.8 (#972) - (103c1e7) - Joe
+
+- - -
+
 ## plotly-express-v0.11.2 - 2024-07-31
 #### Bug Fixes
 - Add hist by e2e test and fix error with static plot by (#664) - (88eeaea) - Joe
