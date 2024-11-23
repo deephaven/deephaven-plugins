@@ -297,20 +297,17 @@ describe('PlotlyExpressChartModel', () => {
     await chartModel.subscribe(mockSubscribe);
     await new Promise(process.nextTick); // Subscribe is async
     chartModel.setRenderOptions({ webgl: true });
-    // one call because the chart needs a blocker and switched from undefined to true, which triggers a clear
-    expect(mockSubscribe).toHaveBeenCalledTimes(1);
-    expect(mockSubscribe).toHaveBeenLastCalledWith(
-      new CustomEvent(ChartModel.EVENT_BLOCKER_CLEAR)
-    );
+    // no calls because the chart has webgl enabled
+    expect(mockSubscribe).toHaveBeenCalledTimes(0);
     chartModel.setRenderOptions({ webgl: false });
     // blocking event should be emitted
-    expect(mockSubscribe).toHaveBeenCalledTimes(2);
+    expect(mockSubscribe).toHaveBeenCalledTimes(1);
     expect(mockSubscribe).toHaveBeenLastCalledWith(
       new CustomEvent(ChartModel.EVENT_BLOCKER)
     );
     chartModel.setRenderOptions({ webgl: true });
     // blocking clear event should be emitted, but this doesn't count as an acknowledge
-    expect(mockSubscribe).toHaveBeenCalledTimes(3);
+    expect(mockSubscribe).toHaveBeenCalledTimes(2);
     expect(mockSubscribe).toHaveBeenLastCalledWith(
       new CustomEvent(ChartModel.EVENT_BLOCKER_CLEAR)
     );
@@ -318,7 +315,7 @@ describe('PlotlyExpressChartModel', () => {
     // if user had accepted the rendering (simulated by fireBlockerClear), no EVENT_BLOCKER event should be emitted again
     chartModel.fireBlockerClear();
     chartModel.setRenderOptions({ webgl: false });
-    expect(mockSubscribe).toHaveBeenCalledTimes(4);
+    expect(mockSubscribe).toHaveBeenCalledTimes(3);
     expect(mockSubscribe).toHaveBeenLastCalledWith(
       new CustomEvent(ChartModel.EVENT_BLOCKER_CLEAR)
     );

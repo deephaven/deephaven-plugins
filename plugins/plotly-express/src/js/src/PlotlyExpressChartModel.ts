@@ -235,10 +235,7 @@ export class PlotlyExpressChartModel extends ChartModel {
    * @param webgl The new WebGL value. True if WebGL is enabled.
    * @param prevWebgl The previous WebGL value
    */
-  handleWebGlAllowed(
-    webgl: boolean | undefined = true,
-    prevWebgl: boolean | undefined = undefined
-  ): void {
+  handleWebGlAllowed(webgl = true, prevWebgl = true): void {
     setWebGlTraceType(this.plotlyData, webgl, this.webGlTraceIndices);
 
     const needsBlocker = hasUnreplaceableWebGlTraces(this.plotlyData);
@@ -248,11 +245,7 @@ export class PlotlyExpressChartModel extends ChartModel {
       this.fireBlocker([
         'WebGL is disabled but this chart cannot render without it. Check the Advanced section in the settings to enable WebGL or click below to render with WebGL for this chart.',
       ]);
-    } else if (
-      webgl === true &&
-      (prevWebgl === false || prevWebgl == null) &&
-      needsBlocker
-    ) {
+    } else if (webgl && !prevWebgl && needsBlocker) {
       // clear the blocker but not the acknowledged flag in case WebGL is disabled again
       this.fireBlockerClear(false);
     }
