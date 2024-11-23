@@ -7,7 +7,7 @@ import {
   removeColorsFromData,
   getDataMappings,
   PlotlyChartWidgetData,
-  getReplaceableWebGlTraceIndexes,
+  getReplaceableWebGlTraceIndices,
   hasUnreplaceableWebGlTraces,
   setWebGlTraceType,
 } from './PlotlyExpressChartUtils';
@@ -209,7 +209,7 @@ describe('areSameAxisRange', () => {
 describe('getReplaceableWebGlTraceIndexes', () => {
   it('should return the indexes of any trace with gl', () => {
     expect(
-      getReplaceableWebGlTraceIndexes([
+      getReplaceableWebGlTraceIndices([
         {
           type: 'scattergl',
         },
@@ -228,7 +228,7 @@ describe('getReplaceableWebGlTraceIndexes', () => {
 
   it('should return an empty set if there are no traces with gl', () => {
     expect(
-      getReplaceableWebGlTraceIndexes([
+      getReplaceableWebGlTraceIndices([
         {
           type: 'scatter',
         },
