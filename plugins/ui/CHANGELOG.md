@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.23.1 - 2024-11-23
+
+- - -
+
 ## ui-v0.23.0 - 2024-11-23
 #### Bug Fixes
 - missing sidebar docs (#1018) - (00c2181) - ethanalvizo
