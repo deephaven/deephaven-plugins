@@ -109,7 +109,6 @@ my_mount_example = ui_toast_on_mount()
 This example shows how to create a toast from the latest update of a ticking table. It is recommended to auto dismiss these toasts with a `timeout` and to avoid ticking faster than the value of the `timeout`.
 
 ```python
-from deephaven.table_listener import listen
 from deephaven import time_table
 from deephaven import ui
 
@@ -124,16 +123,7 @@ def toast_table(t):
         data_added = update.added()["X"][0]
         render_queue(lambda: ui.toast(f"added {data_added}", timeout=5000))
 
-    def listener():
-        handle = listen(t, listener_function)
-
-        def stop_listening():
-            if handle is not None:
-                handle.stop()
-
-        return stop_listening
-
-    ui.use_effect(listener, [t])
+    ui.use_table_listener(t, listener_function, [t])
     return t
 
 
