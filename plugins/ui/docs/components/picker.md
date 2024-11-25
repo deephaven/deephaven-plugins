@@ -190,15 +190,21 @@ from deephaven import ui
 
 @ui.component
 def ui_picker_key_variations():
+    controlled_value, set_controlled_value = ui.use_state(None)
+
     return [
         ui.picker(
-            "Option 1", "Option 2", selected_key="Option 1", label="Key: Option 1"
+            "Option 1",
+            "Option 2",
+            selected_key=controlled_value,
+            on_change=set_controlled_value,
+            label="Key: Controlled",
         ),
-        ui.picker("Option 1", "Option 2", selected_key=None, label="Key: None"),
         ui.picker(
             "Option 1",
             "Option 2",
             selected_key=ui.types.Undefined,
+            on_change=lambda x: print(x),
             label="Key: Undefined",
         ),
     ]
