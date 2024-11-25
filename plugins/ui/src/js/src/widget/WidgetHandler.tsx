@@ -326,7 +326,7 @@ function WidgetHandler({
           }
         } catch (e) {
           throw new Error(
-            `Error parssing event ${name} payload ${payload}: ${e}`
+            `Error parsing event ${name} with payload ${payload}: ${e}`
           );
         }
       });
