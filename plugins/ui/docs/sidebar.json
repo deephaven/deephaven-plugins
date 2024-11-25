@@ -122,6 +122,10 @@
             "path": "components/image.md"
           },
           {
+            "label": "inline_alert",
+            "path": "components/inline_alert.md"
+          },
+          {
             "label": "link",
             "path": "components/link.md"
           },
@@ -164,6 +168,10 @@
           {
             "label": "range_slider",
             "path": "components/range_slider.md"
+          },
+          {
+            "label": "search_field",
+            "path": "components/search_field.md"
           },
           {
             "label": "slider",

@@ -28,6 +28,7 @@ from .grid import grid
 from .icon import icon
 from .illustrated_message import illustrated_message
 from .image import image
+from .inline_alert import inline_alert
 from .item import item
 from .item_table_source import item_table_source
 from .link import link
@@ -46,6 +47,7 @@ from .radio_group import radio_group
 from .range_calendar import range_calendar
 from .range_slider import range_slider
 from .row import row
+from .search_field import search_field
 from .section import section
 from .slider import slider
 from .stack import stack
@@ -98,6 +100,7 @@ __all__ = [
     "item_table_source",
     "illustrated_message",
     "image",
+    "inline_alert",
     "link",
     "list_view",
     "list_action_group",
@@ -114,6 +117,7 @@ __all__ = [
     "range_calendar",
     "range_slider",
     "row",
+    "search_field",
     "section",
     "slider",
     "stack",
