@@ -41,7 +41,7 @@ def open_change_example():
                 ui.item("Copy"),
                 ui.item("Paste"),
             ),
-            on_open_chnage=set_open,
+            on_open_change=set_open.toggle,
         ),
         ui.text(f"Currently open: {is_open}"),
         gap="size-100",
