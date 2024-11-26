@@ -211,6 +211,34 @@ my_submenu_example = ui.menu_trigger(
 )
 ```
 
+## Using item_table_source
+
+`item_table_source` is used to create complex items from a table (ie., defining which columns are the keys/labels of the data).
+
+```python
+from deephaven import ui, new_table
+from deephaven.column import string_col
+
+_table = new_table(
+    [
+        string_col("Keys", ["key-0", "key-1", "key-2"]),
+        string_col("Labels", ["Option 0", "Option 1", "Option 2"]),
+    ]
+)
+
+
+@ui.component
+def menu_table_source():
+    source = ui.item_table_source(_table, key_column="Keys", label_column="Labels")
+    return ui.menu_trigger(
+        ui.action_button("Table source"),
+        ui.menu(source),
+    )
+
+
+my_menu_table_source = menu_table_source()
+```
+
 ## API Reference
 
 ```{eval-rst}
