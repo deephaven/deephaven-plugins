@@ -8,16 +8,18 @@ fi
 # Create directories if they don't exist
 # Otherwise, Docker will create them owned by root
 createDirectory () {
-  if [[ ! -d "$1" ]]; then
-    echo "Creating $1 directory"
-    mkdir $1
-  fi
-  if [[ $IS_CI -eq 0 && ! -O "$1" ]]; then
-    echo "$1 directory not owned by current user"
-    echo "Running 'sudo chown -R $(id -u):$(id -g) $1' to take ownership"
-    echo "Please enter your password if prompted"
-    echo ""
-    sudo chown -R $(id -u):$(id -g) $1
+  if [[ $IS_CI -eq 0 ]]; then
+    if [[ ! -d "$1" ]]; then
+      echo "Creating $1 directory"
+      mkdir $1
+    fi
+    if [[ ! -O "$1" ]]; then
+      echo "$1 directory not owned by current user"
+      echo "Running 'sudo chown -R $(id -u):$(id -g) $1' to take ownership"
+      echo "Please enter your password if prompted"
+      echo ""
+      sudo chown -R $(id -u):$(id -g) $1
+    fi
   fi
 }
 
@@ -26,10 +28,6 @@ createDirectory "./playwright-report"
 
 # Set pwd to this directory
 pushd "$(dirname "$0")"
-
-# Use current user/group ID so docker doesn't write files as root
-export DOCKER_UID=$(id -u)
-export DOCKER_GID=$(id -g)
 
 # Start the containers
 if [[ $IS_CI -eq 1 ]]; then
@@ -40,7 +38,8 @@ if [[ $IS_CI -eq 1 ]]; then
   # stop instead of down to preserve container logs
   docker compose -f ../tests/docker-compose.yml stop deephaven-plugins
 else
-  docker compose -f ../tests/docker-compose.yml run --service-ports --rm --build "$@"
+  # Use current user/group ID so docker doesn't write files as root
+  DOCKER_UID=$(id -u) DOCKER_GID=$(id -g) docker compose -f ../tests/docker-compose.yml run --service-ports --rm --build "$@"
   exit_code=$?
   docker compose -f ../tests/docker-compose.yml down
 fi
