@@ -26,6 +26,7 @@ from .._internal import (
     ExportedRenderState,
     EventContext,
 )
+from .EventEncoder import EventEncoder
 from .ErrorCode import ErrorCode
 
 logger = logging.getLogger(__name__)
@@ -66,6 +67,11 @@ class ElementMessageStream(MessageStream):
     _encoder: NodeEncoder
     """
     Encoder to use to encode the document.
+    """
+
+    _event_encoder: EventEncoder
+    """
+    Encoder to use to encode events.
     """
 
     _message_id: int
@@ -172,6 +178,9 @@ class ElementMessageStream(MessageStream):
         self._manager = JSONRPCResponseManager()
         self._dispatcher = self._make_dispatcher()
         self._encoder = NodeEncoder(separators=(",", ":"))
+        self._event_encoder = EventEncoder(
+            self._serialize_callables, separators=(",", ":")
+        )
         self._context = RenderContext(self._queue_state_update, self._queue_callable)
         self._event_context = EventContext(self._send_event)
         self._renderer = Renderer(self._context)
@@ -383,6 +392,24 @@ class ElementMessageStream(MessageStream):
         self._context.import_state(state)
         self._mark_dirty()
 
+    def _serialize_callables(self, node: Any) -> Any:
+        """
+        Serialize a callable.
+
+        Args:
+            node: The node to serialize
+        """
+        if callable(node):
+            new_id = f"tempCb{self._next_temp_callable_id}"
+            self._next_temp_callable_id += 1
+            self._temp_callable_dict[new_id] = node
+            return {
+                CALLABLE_KEY: new_id,
+            }
+        raise TypeError(
+            f"A Deephaven UI callback returned a non-serializable value. Object of type {type(node).__name__} is not JSON serializable"
+        )
+
     def _call_callable(self, callable_id: str, args: Any) -> Any:
         """
         Call a callable by its ID.
@@ -401,20 +428,8 @@ class ElementMessageStream(MessageStream):
             return
         result = fn(*args)
 
-        def serialize_callables(node: Any) -> Any:
-            if callable(node):
-                new_id = f"tempCb{self._next_temp_callable_id}"
-                self._next_temp_callable_id += 1
-                self._temp_callable_dict[new_id] = node
-                return {
-                    CALLABLE_KEY: new_id,
-                }
-            raise TypeError(
-                f"A Deephaven UI callback returned a non-serializable value. Object of type {type(node).__name__} is not JSON serializable"
-            )
-
         try:
-            return json.dumps(result, default=serialize_callables)
+            return json.dumps(result, default=self._serialize_callables)
         except Exception as e:
             # This is shown to the user in the Python console
             # The stack trace from logger.exception is useless to the user
@@ -501,11 +516,7 @@ class ElementMessageStream(MessageStream):
             name: The name of the event
             params: The params of the event
         """
-        encoded_params, callable_id_dict = self._encoder.encode_event_params(params)
-        # Register any new callables
-        for callable, callable_id in callable_id_dict.items():
-            logger.debug("Registering callable %s", callable_id)
-            self._temp_callable_dict[callable_id] = wrap_callable(callable)
+        encoded_params = self._event_encoder.encode(params)
         request = self._make_notification("event", name, encoded_params)
         payload = json.dumps(request)
         self._connection.on_data(payload.encode(), [])

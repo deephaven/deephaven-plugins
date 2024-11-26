@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Callable, TypedDict, Tuple
+from typing import Any, Callable, TypedDict
 from weakref import WeakKeyDictionary
 from .RenderedNode import RenderedNode
 
@@ -151,18 +151,6 @@ class NodeEncoder(json.JSONEncoder):
             "new_objects": self._new_objects,
             "callable_id_dict": self._callable_dict,
         }
-
-    def encode_event_params(
-        self, params: dict[str, Any]
-    ) -> Tuple[str, WeakKeyDictionary[Callable[..., Any], CallableId]]:
-        """
-        Encode the event parameters.
-
-        Args:
-            params: The parameters to encode
-        """
-        encoded_params = super().encode(params)
-        return encoded_params, self._callable_dict
 
     def _convert_rendered_node(self, node: RenderedNode):
         result: dict[str, Any] = {ELEMENT_KEY: node.name}
