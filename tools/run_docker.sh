@@ -27,6 +27,7 @@ createDirectory "./playwright-report"
 # Set pwd to this directory
 pushd "$(dirname "$0")"
 
+# Use current user/group ID so docker doesn't write files as root
 export DOCKER_UID=$(id -u)
 export DOCKER_GID=$(id -g)
 
@@ -39,7 +40,6 @@ if [[ $IS_CI -eq 1 ]]; then
   # stop instead of down to preserve container logs
   docker compose -f ../tests/docker-compose.yml stop deephaven-plugins
 else
-  # Use current user/group ID so docker doesn't write files as root
   docker compose -f ../tests/docker-compose.yml run --service-ports --rm --build "$@"
   exit_code=$?
   docker compose -f ../tests/docker-compose.yml down
