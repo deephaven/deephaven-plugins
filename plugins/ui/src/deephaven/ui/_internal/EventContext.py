@@ -28,8 +28,8 @@ def get_event_context() -> EventContext:
     """
     try:
         return _local_data.event_context
-    except AttributeError:
-        raise NoContextException("No context set")
+    except AttributeError as e:
+        raise NoContextException("No context set") from e
 
 
 def _set_event_context(context: Optional[EventContext]):

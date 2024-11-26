@@ -107,5 +107,5 @@ def use_table_listener(
 
     use_effect(
         start_listener,
-        [table, listener, description, do_replay] + list(dependencies),
+        [table, description, do_replay] + list(dependencies),
     )
