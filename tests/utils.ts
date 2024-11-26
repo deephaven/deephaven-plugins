@@ -25,8 +25,16 @@ export async function gotoPage(
     await page.goto(url, options);
     await expect(
       page.getByRole('progressbar', { name: 'Loading...', exact: true })
-    ).not.toBeVisible();
+    ).toHaveCount(0);
   });
+}
+
+/**
+ * Waits for all loading spinners to disappear
+ * @param page The page
+ */
+export async function waitForLoad(page: Page): Promise<void> {
+  await expect(page.locator('.loading-spinner')).toHaveCount(0);
 }
 
 /**
@@ -71,7 +79,7 @@ export async function openPanel(
     // check for panel to be loaded
     await expect(page.locator(panelLocator)).toHaveCount(panelCount + 1);
     if (awaitLoad) {
-      await expect(page.locator('.loading-spinner')).toHaveCount(0);
+      await waitForLoad(page);
     }
   });
 }
