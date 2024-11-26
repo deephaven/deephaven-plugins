@@ -508,7 +508,7 @@ class ElementMessageStream(MessageStream):
         payload = json.dumps(request)
         self._connection.on_data(payload.encode(), [])
 
-    def _send_event(self, name: str, params: dict) -> None:
+    def _send_event(self, name: str, params: dict[str, Any]) -> None:
         """
         Send an event to the client.
 
