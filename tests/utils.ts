@@ -25,7 +25,7 @@ export async function gotoPage(
     await page.goto(url, options);
     await expect(
       page.getByRole('progressbar', { name: 'Loading...', exact: true })
-    ).not.toBeVisible();
+    ).toHaveCount(0);
   });
 }
 
