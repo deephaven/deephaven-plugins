@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   deephaven-plugins:
     container_name: deephaven-plugins
@@ -20,8 +18,12 @@ services:
       context: ../
       dockerfile: ./tests/Dockerfile
       pull: true # We only use FROM with a pinned version here, but adding this just in case that changes in the future
+      args:
+        UID: $DOCKER_UID
+        GID: $DOCKER_GID
     ports:
       - '9323:9323'
+    user: ${DOCKER_UID}:${DOCKER_GID}
     ipc: host
     volumes:
       - ../tests:/work/tests
@@ -33,6 +35,7 @@ services:
         condition: service_healthy
 
   update-snapshots:
+    user: ${DOCKER_UID}:${DOCKER_GID}
     extends:
       service: e2e-tests
     entrypoint: 'npx playwright test --config=playwright-docker.config.ts --update-snapshots'
