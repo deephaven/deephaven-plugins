@@ -20,7 +20,13 @@ from .._internal import wrap_callable
 from ..elements import Element
 from ..renderer import NodeEncoder, Renderer, RenderedNode
 from ..renderer.NodeEncoder import CALLABLE_KEY
-from .._internal import RenderContext, StateUpdateCallable, ExportedRenderState
+from .._internal import (
+    RenderContext,
+    StateUpdateCallable,
+    ExportedRenderState,
+    EventContext,
+)
+from .EventEncoder import EventEncoder
 from .ErrorCode import ErrorCode
 
 logger = logging.getLogger(__name__)
@@ -63,6 +69,11 @@ class ElementMessageStream(MessageStream):
     Encoder to use to encode the document.
     """
 
+    _event_encoder: EventEncoder
+    """
+    Encoder to use to encode events.
+    """
+
     _message_id: int
     """
     The next message ID to use.
@@ -81,6 +92,11 @@ class ElementMessageStream(MessageStream):
     _context: RenderContext
     """
     Render context for this element
+    """
+
+    _event_context: EventContext
+    """
+    Event context for this element
     """
 
     _renderer: Renderer
@@ -162,7 +178,11 @@ class ElementMessageStream(MessageStream):
         self._manager = JSONRPCResponseManager()
         self._dispatcher = self._make_dispatcher()
         self._encoder = NodeEncoder(separators=(",", ":"))
+        self._event_encoder = EventEncoder(
+            self._serialize_callables, separators=(",", ":")
+        )
         self._context = RenderContext(self._queue_state_update, self._queue_callable)
+        self._event_context = EventContext(self._send_event)
         self._renderer = Renderer(self._context)
         self._update_queue = Queue()
         self._callable_queue = Queue()
@@ -203,7 +223,7 @@ class ElementMessageStream(MessageStream):
         Process any queued callables, then re-renders the element if it is dirty.
         """
         try:
-            with self._exec_context:
+            with self._exec_context, self._event_context.open():
                 with self._render_lock:
                     self._render_thread = threading.current_thread()
                     self._render_state = _RenderState.RENDERING
@@ -372,6 +392,24 @@ class ElementMessageStream(MessageStream):
         self._context.import_state(state)
         self._mark_dirty()
 
+    def _serialize_callables(self, node: Any) -> Any:
+        """
+        Serialize a callable.
+
+        Args:
+            node: The node to serialize
+        """
+        if callable(node):
+            new_id = f"tempCb{self._next_temp_callable_id}"
+            self._next_temp_callable_id += 1
+            self._temp_callable_dict[new_id] = node
+            return {
+                CALLABLE_KEY: new_id,
+            }
+        raise TypeError(
+            f"A Deephaven UI callback returned a non-serializable value. Object of type {type(node).__name__} is not JSON serializable"
+        )
+
     def _call_callable(self, callable_id: str, args: Any) -> Any:
         """
         Call a callable by its ID.
@@ -390,20 +428,8 @@ class ElementMessageStream(MessageStream):
             return
         result = fn(*args)
 
-        def serialize_callables(node: Any) -> Any:
-            if callable(node):
-                new_id = f"tempCb{self._next_temp_callable_id}"
-                self._next_temp_callable_id += 1
-                self._temp_callable_dict[new_id] = node
-                return {
-                    CALLABLE_KEY: new_id,
-                }
-            raise TypeError(
-                f"A Deephaven UI callback returned a non-serializable value. Object of type {type(node).__name__} is not JSON serializable"
-            )
-
         try:
-            return json.dumps(result, default=serialize_callables)
+            return json.dumps(result, default=self._serialize_callables)
         except Exception as e:
             # This is shown to the user in the Python console
             # The stack trace from logger.exception is useless to the user
@@ -479,5 +505,18 @@ class ElementMessageStream(MessageStream):
                 }
             ),
         )
+        payload = json.dumps(request)
+        self._connection.on_data(payload.encode(), [])
+
+    def _send_event(self, name: str, params: dict[str, Any]) -> None:
+        """
+        Send an event to the client.
+
+        Args:
+            name: The name of the event
+            params: The params of the event
+        """
+        encoded_params = self._event_encoder.encode(params)
+        request = self._make_notification("event", name, encoded_params)
         payload = json.dumps(request)
         self._connection.on_data(payload.encode(), [])

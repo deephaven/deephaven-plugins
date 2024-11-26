@@ -35,6 +35,7 @@ import {
   WidgetError,
   METHOD_DOCUMENT_ERROR,
   METHOD_DOCUMENT_UPDATED,
+  METHOD_EVENT,
 } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
 import {
@@ -47,6 +48,7 @@ import WidgetStatusContext, {
 } from '../layout/WidgetStatusContext';
 import WidgetErrorView from './WidgetErrorView';
 import ReactPanel from '../layout/ReactPanel';
+import Toast, { TOAST_EVENT } from '../events/Toast';
 
 const log = Log.module('@deephaven/js-plugin-ui/WidgetHandler');
 
@@ -298,11 +300,48 @@ function WidgetHandler({
         });
       });
 
+      jsonClient.addMethod(METHOD_EVENT, (params: [string, string]) => {
+        log.debug2(METHOD_EVENT, params);
+        const [name, payload] = params;
+        try {
+          const eventParams = JSON.parse(payload, (_, value) => {
+            // Need to re-hydrate any callables that are defined
+            if (isCallableNode(value)) {
+              const callableId = value[CALLABLE_KEY];
+              log.debug2('Registering callableId', callableId);
+              return wrapCallable(
+                jsonClient,
+                callableId,
+                callableFinalizationRegistry
+              );
+            }
+            return value;
+          });
+          switch (name) {
+            case TOAST_EVENT:
+              Toast(eventParams);
+              break;
+            default:
+              throw new Error(`Unknown event ${name}`);
+          }
+        } catch (e) {
+          throw new Error(
+            `Error parsing event ${name} with payload ${payload}: ${e}`
+          );
+        }
+      });
+
       return () => {
         jsonClient.rejectAllPendingRequests('Widget was changed');
       };
     },
-    [jsonClient, onDataChange, parseDocument, sendSetState]
+    [
+      jsonClient,
+      onDataChange,
+      parseDocument,
+      sendSetState,
+      callableFinalizationRegistry,
+    ]
   );
 
   /**

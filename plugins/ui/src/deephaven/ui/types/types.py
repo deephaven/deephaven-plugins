@@ -559,3 +559,6 @@ class DateRange(TypedDict):
     """
     End value for the date range.
     """
+
+
+ToastVariant = Literal["positive", "negative", "neutral", "info"]
