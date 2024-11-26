@@ -34,6 +34,40 @@ def ui_labeled_value_examples():
 my_labeled_value_values_examples = ui_labeled_value_examples()
 ```
 
+## Numbers
+
+When passing a number into a labeled value, the `format_options` prop dictates how the value is displayed. There are 3 styles supported by this parameter: Percentage, Currency, and Units.
+
+Note that this prop is compatible with the option parameter of [Intl.NumberFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NumberFormat).
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def ui_labeled_value_numbers_example():
+    return [
+        ui.labeled_value(
+            label="Percent completed",
+            value=0.89,
+            format_options={"style": "percent"},
+        ),
+        ui.labeled_value(
+            label="Withdrawal amount",
+            value=2350.50,
+            format_options={"style": "currency", "currency": "USD"},
+        ),
+        ui.labeled_value(
+            label="Height of Burj Khalifa",
+            value=32600,
+            format_options={"style": "unit", "unit": "inch"},
+        ),
+    ]
+
+
+my_labeled_value_numbers_example = ui_labeled_value_numbers_example()
+```
+
 
 ## Label position
 
