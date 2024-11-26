@@ -28,29 +28,6 @@ my_avatar_is_disabled_example = ui.avatar(
 ```
 
 
-## Local Image
-
-The following example shows to download an image from a URL, encode it in base64, and use it to create an avatar with a specified size using `ui.avatar`.
-
-```python
-from deephaven import ui
-import urllib.request
-import base64
-
-
-url = "https://github.com/deephaven.png"
-file_name, headers = urllib.request.urlretrieve(url)
-
-
-with open(file_name, "rb") as f:
-    file_content = f.read()
-
-
-b64_content = base64.b64encode(file_content).decode()
-b64_avatar = ui.avatar(src=f"data:image/png;base64,{b64_content}", size=300)
-```
-
-
 ## Size
 
 The `size` of an avatar can be set to one of the preset sizes, or a custom pixel value.
