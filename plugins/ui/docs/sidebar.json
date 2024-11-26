@@ -206,6 +206,10 @@
             "path": "components/time_field.md"
           },
           {
+            "label": "toast",
+            "path": "components/toast.md"
+          },
+          {
             "label": "toggle_button",
             "path": "components/toggle_button.md"
           },
