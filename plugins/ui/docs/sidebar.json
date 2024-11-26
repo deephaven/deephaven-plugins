@@ -94,6 +94,10 @@
             "path": "components/dialog_trigger.md"
           },
           {
+            "label": "divider",
+            "path": "components/divider.md"
+          },
+          {
             "label": "flex",
             "path": "components/flex.md"
           },

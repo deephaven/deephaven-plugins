@@ -62,6 +62,7 @@ def ui_components1():
             label="Date Range Picker",
             value={"start": "2021-01-01", "end": "2021-01-02"},
         ),
+        ui.divider(),
         ui.flex("Flex default child A", "Flex default child B"),
         ui.flex("Flex column child A", "Flex column child B", direction="column"),
         ui.form("Form"),
