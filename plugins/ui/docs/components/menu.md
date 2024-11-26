@@ -120,6 +120,97 @@ def multiple_selection_example():
 my_multiple_selection_example = multiple_selection_example()
 ```
 
+## Links
+
+By default, interacting with an item in a Menu triggers `on_action` and optionally `on_selection_change` depending on the `selection_mode`. Alternatively, items may be links to another page or website. This can be achieved by passing the `href` prop to the `item` component. Link items in a menu are not selectable.
+
+```python
+from deephaven import ui
+
+
+my_link_example = ui.menu_trigger(
+    ui.action_button("Links"),
+    ui.menu(
+        ui.item("Adobe", href="https://adobe.com/", target="_blank"),
+        ui.item("Apple", href="https://apple.com/", target="_blank"),
+        ui.item("Google", href="https://google.com/", target="_blank"),
+        ui.item("Microsoft", href="https://microsoft.com/", target="_blank"),
+    ),
+)
+```
+
+## Sections
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def sections_example():
+    selected, set_selected = ui.use_state(["bold", "left"])
+    return (
+        ui.menu_trigger(
+            ui.action_button("Show"),
+            ui.menu(
+                ui.section(
+                    ui.item("Bold", key="bold"),
+                    ui.item("Underline", key="underline"),
+                    title="Styles",
+                ),
+                ui.section(
+                    ui.item("Left", key="left"),
+                    ui.item("Middle", key="middle"),
+                    ui.item("Right", key="right"),
+                    title="Align",
+                ),
+                selection_mode="multiple",
+                selected_keys=selected,
+                on_selection_change=set_selected,
+            ),
+            close_on_select=False,
+        ),
+    )
+
+
+my_sections_example = sections_example()
+```
+
+## Submenus
+
+Submenus can be created by wrapping an item and a menu in a `submenu_trigger`. The `submenu_trigger` accepts exactly two children: the `item` which triggers opening of the submenu, and the `menu` itself. Each submenu's `menu` accepts its own set of menu props, allowing you to customize its user action and selection behavior.
+
+```python
+from deephaven import ui
+
+
+my_submenu_example = ui.menu_trigger(
+    ui.action_button("Actions"),
+    ui.menu(
+        ui.item("Cut", key="cut"),
+        ui.item("Copy", key="copy"),
+        ui.item("Paste", key="paste"),
+        ui.submenu_trigger(
+            ui.item("Share", key="share"),
+            ui.menu(
+                ui.item("Copy link", key="copy link"),
+                ui.submenu_trigger(
+                    ui.item("Email", key="email"),
+                    ui.menu(
+                        ui.item("Email as attachment", "attachment"),
+                        ui.item("Email as link", "link"),
+                        on_action=lambda key: print(f"Email menu {key} action"),
+                    ),
+                ),
+                ui.item("SMS", key="sms"),
+                on_action=lambda key: print(f"Share menu {key} action"),
+            ),
+        ),
+        ui.item("Delete", key="delete"),
+        on_action=lambda key: print(f"Root menu {key} action"),
+    ),
+)
+```
+
 ## API Reference
 
 ```{eval-rst}
