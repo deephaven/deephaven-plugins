@@ -56,9 +56,12 @@ _Performance_ hooks let you optimize components for performance. They allow you 
 
 _Data_ hooks let you use data from within a Deephaven table in your component.
 
-- [`use_table_data`](use_table_data.md) lets you use the full table contents.
-- [`use_column_data`](use_column_data.md) lets you use the data of one column.
+- [`use_table_data`](use_table_data.md) lets you use the full table contents as a dictionary of rows and columns.
+- [`use_column_data`](use_column_data.md) lets you use the data of one column as a list.
+- [`use_row_data`](use_row_data.md) lets you use the data of one row as a dictionary.
+- [`use_row_list`](use_row_list.md) lets you use the data of one row as a list.
 - [`use_cell_data`](use_cell_data.md) lets you use the data of one cell.
+- [`use_table_listener`](use_table_listener.md) lets you listen to a table for updates.
 
 ## Create custom hooks
 

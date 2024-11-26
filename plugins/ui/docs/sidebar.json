@@ -247,6 +247,10 @@
             "path": "hooks/use_effect.md"
           },
           {
+            "label": "use_liveness_scope",
+            "path": "hooks/use_liveness_scope.md"
+          },
+          {
             "label": "use_memo",
             "path": "hooks/use_memo.md"
           },
@@ -255,12 +259,28 @@
             "path": "hooks/use_ref.md"
           },
           {
+            "label": "use_render_queue",
+            "path": "hooks/use_render_queue.md"
+          },
+          {
+            "label": "use_row_data",
+            "path": "hooks/use_row_data.md"
+          },
+          {
+            "label": "use_row_list",
+            "path": "hooks/use_row_list.md"
+          },
+          {
             "label": "use_state",
             "path": "hooks/use_state.md"
           },
           {
             "label": "use_table_data",
             "path": "hooks/use_table_data.md"
+          },
+          {
+            "label": "use_table_listener",
+            "path": "hooks/use_table_listener.md"
           }
         ]
       }
