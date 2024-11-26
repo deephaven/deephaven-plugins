@@ -30,6 +30,14 @@ export async function gotoPage(
 }
 
 /**
+ * Waits for all loading spinners to disappear
+ * @param page The page
+ */
+export async function waitForLoad(page: Page): Promise<void> {
+  await expect(page.locator('.loading-spinner')).toHaveCount(0);
+}
+
+/**
  * Opens a panel by clicking on the Panels button and then the panel button
  * @param page The page
  * @param name The name of the panel
@@ -71,7 +79,7 @@ export async function openPanel(
     // check for panel to be loaded
     await expect(page.locator(panelLocator)).toHaveCount(panelCount + 1);
     if (awaitLoad) {
-      await expect(page.locator('.loading-spinner')).toHaveCount(0);
+      await waitForLoad(page);
     }
   });
 }
