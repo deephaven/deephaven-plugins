@@ -16,7 +16,7 @@ from ..elements import Element
 
 def divider(
     size: DividerSize | None = "L",
-    orientation: Orientation | None = "horizontal",
+    orientation: Orientation = "horizontal",
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,

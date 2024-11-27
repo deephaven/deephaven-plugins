@@ -21,6 +21,8 @@ my_divider_basic_example = ui_divider_basic_example()
 
 While aligned horizontally by default, the alignment of the divider can be set using the `orientation` prop.
 
+If aligned vertically, a height should also be provided.
+
 ```python
 from deephaven import ui
 
@@ -29,7 +31,7 @@ from deephaven import ui
 def ui_divider_orientation_example():
     return [
         ui.text("Content above"),
-        ui.divider(orientation="vertical"),
+        ui.divider(orientation="vertical", height=20),
         ui.text("Content below"),
     ]
 
