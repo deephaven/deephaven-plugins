@@ -3,8 +3,7 @@ import { openPanel, gotoPage } from './utils';
 
 const REACT_PANEL_VISIBLE = '.dh-react-panel:visible';
 
-// Tests flex components render as expected
-test.describe('UI flex components', () => {
+test.describe('UI table formatting', () => {
   [
     't_alignment',
     't_background_color',
@@ -21,4 +20,20 @@ test.describe('UI flex components', () => {
       await expect(page.locator(REACT_PANEL_VISIBLE)).toHaveScreenshot();
     });
   });
+});
+
+test('UI table responds to prop changes', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(page, 'toggle_table', REACT_PANEL_VISIBLE);
+
+  const locator = page.locator(REACT_PANEL_VISIBLE);
+
+  await expect(locator).toHaveScreenshot();
+
+  await locator.getByRole('button', { name: 'formatting' }).click();
+  await expect(locator).toHaveScreenshot();
+  await locator.getByRole('button', { name: 'databars' }).click();
+  await expect(locator).toHaveScreenshot();
+  await locator.getByRole('button', { name: 'case' }).click();
+  await expect(locator).toHaveScreenshot();
 });

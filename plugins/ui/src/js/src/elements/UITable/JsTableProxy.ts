@@ -39,16 +39,24 @@ class JsTableProxy implements dh.Table {
     hiddenColumns: dh.Column[];
   };
 
+  private originalCustomColumns: dh.CustomColumn[];
+
+  private onClose: () => void;
+
   layoutHints: dh.LayoutHints | null = null;
 
   constructor({
     table,
     layoutHints,
+    onClose,
   }: {
     table: dh.Table;
     layoutHints: UITableLayoutHints;
+    onClose: () => void;
   }) {
     this.table = table;
+    this.originalCustomColumns = table.customColumns;
+    this.onClose = onClose;
 
     this.stableColumns = {
       allColumns: [],
@@ -143,6 +151,20 @@ class JsTableProxy implements dh.Table {
         )
       );
     }
+  }
+
+  close(): void {
+    this.onClose();
+    this.table.close();
+  }
+
+  applyCustomColumns(
+    customColumns: Array<string | dh.CustomColumn>
+  ): Array<dh.CustomColumn> {
+    return this.table.applyCustomColumns([
+      ...this.originalCustomColumns,
+      ...customColumns,
+    ]);
   }
 
   get columns(): dh.Column[] {
