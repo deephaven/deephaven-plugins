@@ -25,6 +25,9 @@ def listener_with_ctx(
         listener: The listener to call.
         update: The update to pass to the listener.
         is_replay: Whether the update is a replay.
+
+    Returns:
+        None
     """
     with exec_ctx:
         listener(update, is_replay)
@@ -84,6 +87,9 @@ def use_table_listener(
         description: An optional description for the UpdatePerformanceTracker to append to the listener’s
           entry description, default is None.
         do_replay: Whether to replay the initial snapshot of the table, default is False.
+
+    Returns:
+        None
     """
 
     def start_listener() -> Callable[[], None]:

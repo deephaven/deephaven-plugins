@@ -140,9 +140,3 @@ batch_example = ui_batch_example()
 ```
 
 Now when we run this example and press the button, we'll see only one toast with the updated values of `a` and `b`, and they will always be the same value when the component re-renders (since the updates are batched together on the render thread).
-
-## API Reference
-
-```{eval-rst}
-.. dhautofunction:: deephaven.ui.use_render_queue
-```
