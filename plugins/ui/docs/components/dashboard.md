@@ -158,7 +158,7 @@ dash_stack = ui.dashboard(
 )
 ```
 
-### Stack with tabs
+### Stack with nested tabs
 
 ```python
 from deephaven import ui
