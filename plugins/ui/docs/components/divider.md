@@ -10,7 +10,7 @@ from deephaven import ui
 
 @ui.component
 def ui_divider_basic_example():
-    return [ui.text("Content above"), ui.divider(), ui.text("Content below")]
+    return ["Content above", ui.divider(), "Content below"]
 
 
 my_divider_basic_example = ui_divider_basic_example()
@@ -29,11 +29,12 @@ from deephaven import ui
 
 @ui.component
 def ui_divider_orientation_example():
-    return [
-        ui.text("Content above"),
-        ui.divider(orientation="vertical", height=20),
-        ui.text("Content below"),
-    ]
+    return ui.flex(
+        "Content before",
+        ui.divider(orientation="vertical"),
+        "Content after",
+        flex_grow=0,
+    )
 
 
 my_checkbox_group_orientation_example = ui_divider_orientation_example()
@@ -49,12 +50,15 @@ from deephaven import ui
 
 @ui.component
 def ui_divider_size_example():
-    ui.text("Content above"),
-    ui.divider(size="L"),
-    ui.text("Content below")
-    ui.divider(size="M"),
-    ui.text("More content below"),
-    ui.divider(size="S"),
+    return ui.flex(
+        "Content below",
+        ui.divider(size="L"),
+        "Content above",
+        ui.divider(size="M"),
+        "More content above",
+        ui.divider(size="S"),
+        direction="column",
+    )
 
 
 my_divider_size_example = ui_divider_size_example()

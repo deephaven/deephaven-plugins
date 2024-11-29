@@ -39,7 +39,7 @@ def divider(
     margin_x: DimensionValue | None = None,
     margin_y: DimensionValue | None = None,
     width: DimensionValue | None = None,
-    height: DimensionValue | None = 20,
+    height: DimensionValue | None = None,
     min_width: DimensionValue | None = None,
     min_height: DimensionValue | None = None,
     max_width: DimensionValue | None = None,
