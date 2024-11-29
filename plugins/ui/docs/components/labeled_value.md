@@ -85,7 +85,7 @@ my_labeled_value_label_position_example = ui.labeled_value(
 
 ## Contextual Help
 
-Using the `contextual_help` prop, a `ui.contextual_help` can be placed next to the labeled value to provide additional information about the labeled value.
+Using the `contextual_help` prop, a `ui.contextual_help` can be placed next to the labeled value to provide additional information.
 
 ```python
 from deephaven import ui
