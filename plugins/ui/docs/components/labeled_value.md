@@ -1,6 +1,6 @@
 # Labeled Value
 
-A Labeled Value displays a non-editable value with a label. 
+A labeled value displays a non-editable value with a label. 
 
 ## Example
 
