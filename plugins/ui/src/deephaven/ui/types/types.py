@@ -508,6 +508,17 @@ ActionGroupDensity = Literal["compact", "regular"]
 TabDensity = Literal["compact", "regular"]
 InlineAlertVariant = Literal["neutral", "info", "positive", "notice", "negative"]
 LinkVariant = Literal["primary", "secondary", "over_background"]
+AvatarSize = Literal[
+    "avatar-size-50",
+    "avatar-size-75",
+    "avatar-size-100",
+    "avatar-size-200",
+    "avatar-size-300",
+    "avatar-size-400",
+    "avatar-size-500",
+    "avatar-size-600",
+    "avatar-size-700",
+]
 BadgeVariant = Literal[
     "neutral",
     "info",
