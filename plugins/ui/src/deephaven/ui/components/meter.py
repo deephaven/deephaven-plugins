@@ -73,7 +73,7 @@ def meter(
     key: str | None = None,
 ) -> Element:
     """
-    Meters visually represent a quantity or achievement, with their progress driven by user actions instead of system actions.
+    Meters visually represent a quantity or achievement, displaying progress on a bar with a label.
 
     Args:
         variant: The visual style of the meter.
