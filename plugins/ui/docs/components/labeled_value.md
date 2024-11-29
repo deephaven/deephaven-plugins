@@ -71,7 +71,7 @@ my_labeled_value_numbers_example = ui_labeled_value_numbers_example()
 
 ## Label position
 
-By default, the position of a labeled value's label is above the labeled value, but it can be changed to the side using the `label_position` prop. 
+By default, the label is positioned above the labeled value, but it can be changed to the side using the `label_position` prop. 
 
 ```python
 from deephaven import ui
