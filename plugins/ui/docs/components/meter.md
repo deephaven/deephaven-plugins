@@ -34,7 +34,7 @@ my_meter_value = ui_meter_value()
 
 ## Formatting
 
-The `format_options` prop dictates how the value is displayed and which characters can be inputted. There are 3 styles supported by this parameter: Percentage, Currency, and Units.
+The `format_options` prop dictates how the value is displayed and which characters can be inputted. This parameter supports three styles: Percentage, Currency, and Units.
 
 Note: This prop is compatible with the option parameter of [Intl.NumberFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NumberFormat).
 
@@ -56,7 +56,7 @@ my_meter_format = ui_meter_format()
 
 ## Labeling
 
-Value labels are shown and positioned above the meter by default when a label is provided. The `label_position` prop can change where these labels are placed while the `show_value_prop` can hide it entirely.
+When a label is provided, value labels are positioned above the meter by default. The `label_position` prop can change where these labels are placed, while the `show_value_prop` can hide them entirely.
 
 ```python
 from deephaven import ui
@@ -116,7 +116,7 @@ my_meter_size = ui_meter_size()
 
 ## Variants
 
-The `variant` prop changes the visual style of the mter. It supports 4 options: informative, positive, critical and warning. 
+The `variant` prop changes the meter's visual style. It supports four options: informative, positive, critical, and warning. 
 
 ```python
 from deephaven import ui
