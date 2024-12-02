@@ -48,7 +48,7 @@ export function getRootChildren(
   if (nonLayoutCount === childrenArray.length) {
     // Just wrap it in a panel
     return (
-      <ReactPanel key="root" title={widget.name ?? widget.id ?? widget.type}>
+      <ReactPanel title={widget.name ?? widget.id ?? widget.type}>
         {children}
       </ReactPanel>
     );
