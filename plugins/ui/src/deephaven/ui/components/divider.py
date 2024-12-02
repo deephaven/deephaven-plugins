@@ -8,8 +8,8 @@ from .types import (
     JustifySelf,
     LayoutFlex,
     Position,
-    DividerSize,
 )
+from ..types import DividerSize
 from .basic import component_element
 from ..elements import Element
 
