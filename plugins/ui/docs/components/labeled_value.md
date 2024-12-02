@@ -1,6 +1,6 @@
 # Labeled Value
 
-A Labeled Value displays a non-editable value with a label. 
+A labeled value displays a non-editable value with a label. 
 
 ## Example
 
@@ -71,7 +71,7 @@ my_labeled_value_numbers_example = ui_labeled_value_numbers_example()
 
 ## Label position
 
-By default, the position of a labeled value's label is above the labeled value, but it can be changed to the side using the `label_position` prop. 
+By default, the label is positioned above the labeled value, but it can be changed to the side using the `label_position` prop. 
 
 ```python
 from deephaven import ui
@@ -85,7 +85,7 @@ my_labeled_value_label_position_example = ui.labeled_value(
 
 ## Contextual Help
 
-Using the `contextual_help` prop, a `ui.contextual_help` can be placed next to the labeled value to provide additional information about the labeled value.
+Using the `contextual_help` prop, a `ui.contextual_help` can be placed next to the labeled value to provide additional information.
 
 ```python
 from deephaven import ui

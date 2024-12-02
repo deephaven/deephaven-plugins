@@ -12,7 +12,6 @@ from .types import (
     Position,
     LabelPosition,
 )
-from ..types import Date
 from .basic import component_element
 from ..elements import Element
 
