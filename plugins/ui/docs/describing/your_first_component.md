@@ -98,6 +98,6 @@ my_mulitple_contents = mulitple_contents()
 
 ## Nesting and organizing components
 
-Components are regular Python functions, so you can keep multiple components in the same file. This is convenient when components are relatively small or tightly related to each other. If this file gets crowded, you can always move a component to a separate file. See [How do I import one Python script into another in the Deephaven IDE?](/core/docs/reference/community-questions/import-python-script)
+Components are regular Python functions, so you can keep multiple components in the same file. This is convenient when components are relatively small or tightly related to each other. If this file gets crowded, you can always move a component to a separate file. See [How do I import one Python script into another in the Deephaven IDE?](/core/docs/reference/community-questions/import-python-script) and [Modularizing Queries](/enterprise/docs/development/modularizing-queries)
 
 Because the `table_of_contents` components are rendered inside `mulitple_contents` we can say that `mulitple_contents` is a parent component, rendering each `table_of_contents` as a "child". You can define a component once, and then use it in as many places and as many times as you like.
