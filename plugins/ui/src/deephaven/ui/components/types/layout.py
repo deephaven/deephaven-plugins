@@ -164,7 +164,6 @@ BorderRadius = Literal[
     "large",
 ]
 MenuDirection = Literal["bottom", "top"]
-DividerSize = Literal["S", "M", "L"]
 IconSize = Literal["XXS", "XS", "S", "M", "L", "XL", "XXL"]
 IconColor = Literal["negative", "notice", "positive", "informative"]
 ObjectFit = Literal["fill", "contain", "cover", "none", "scale-down"]
