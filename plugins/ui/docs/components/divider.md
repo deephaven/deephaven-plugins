@@ -42,7 +42,7 @@ my_checkbox_group_orientation_example = ui_divider_orientation_example()
 
 ## Sizing
 
-The thickness (height of the divider) can be set through the `size`.s
+The thickness (height of the divider) can be set through the `size` property.
 
 ```python
 from deephaven import ui
