@@ -60,7 +60,6 @@ def divider(
     """
     Dividers bring clarity to a layout by grouping and dividing content in close proximity.
     Args:
-
         size: How thick the Divider should be.
         orientation: The axis the Divider should align with.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
