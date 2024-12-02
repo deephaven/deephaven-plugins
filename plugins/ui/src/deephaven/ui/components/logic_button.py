@@ -90,7 +90,8 @@ def logic_button(
     key: str | None = None,
 ) -> Element:
     """
-    ToggleButtons allow users to toggle a selection on or off, for example switching between two states or modes.
+
+    A LogicButton shows an operator in a boolean logic sequence.
 
     Args:
         *children: The children to render inside the button.
