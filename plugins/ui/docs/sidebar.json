@@ -38,6 +38,10 @@
             "path": "components/action_menu.md"
           },
           {
+            "label": "avatar",
+            "path": "components/avatar.md"
+          },
+          {
             "label": "badge",
             "path": "components/badge.md"
           },
@@ -122,6 +126,10 @@
             "path": "components/image.md"
           },
           {
+            "label": "inline_alert",
+            "path": "components/inline_alert.md"
+          },
+          {
             "label": "link",
             "path": "components/link.md"
           },
@@ -170,6 +178,10 @@
             "path": "components/range_slider.md"
           },
           {
+            "label": "search_field",
+            "path": "components/search_field.md"
+          },
+          {
             "label": "slider",
             "path": "components/slider.md"
           },
@@ -200,6 +212,10 @@
           {
             "label": "time_field",
             "path": "components/time_field.md"
+          },
+          {
+            "label": "toast",
+            "path": "components/toast.md"
           },
           {
             "label": "toggle_button",
