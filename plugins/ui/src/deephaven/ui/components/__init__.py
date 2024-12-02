@@ -36,6 +36,7 @@ from .link import link
 from .list_action_group import list_action_group
 from .list_action_menu import list_action_menu
 from .list_view import list_view
+from .logic_button import logic_button
 from .make_component import make_component as component
 from .markdown import markdown
 from .number_field import number_field
@@ -107,6 +108,7 @@ __all__ = [
     "list_view",
     "list_action_group",
     "list_action_menu",
+    "logic_button",
     "html",
     "markdown",
     "number_field",

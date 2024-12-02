@@ -19,6 +19,7 @@ export * from './IllustratedMessage';
 export * from './Image';
 export * from './InlineAlert';
 export * from './ListView';
+export * from './LogicButton';
 export * from './Markdown';
 export * from './model';
 export * from './ObjectView';
