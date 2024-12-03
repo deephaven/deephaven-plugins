@@ -23,6 +23,15 @@
         "path": "architecture.md"
       },
       {
+        "label": "Describing the UI",
+        "items": [
+          {
+            "label": "Importing and Exporting Components",
+            "path": "describing/importing_and_exporting_components.md"
+          }
+        ]
+      },
+      {
         "label": "Components",
         "items": [
           {
