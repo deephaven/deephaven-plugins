@@ -203,7 +203,6 @@ def ui_picker_key_variations():
         ui.picker(
             "Option 1",
             "Option 2",
-            selected_key=ui.types.Undefined,
             on_change=lambda x: print(x),
             label="Key: Undefined",
         ),
