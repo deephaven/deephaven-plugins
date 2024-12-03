@@ -1,28 +1,23 @@
 import { expect, test } from '@playwright/test';
-import { openPanel, gotoPage } from './utils';
-
-const selector = {
-  REACT_PANEL_VISIBLE: '.dh-react-panel:visible',
-  REACT_PANEL_OVERLAY: '.dh-react-panel-overlay',
-};
+import { openPanel, gotoPage, SELECTORS } from './utils';
 
 test('UI loads', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_component', selector.REACT_PANEL_VISIBLE);
-  await expect(page.locator(selector.REACT_PANEL_VISIBLE)).toHaveScreenshot();
+  await openPanel(page, 'ui_component', SELECTORS.REACT_PANEL_VISIBLE);
+  await expect(page.locator(SELECTORS.REACT_PANEL_VISIBLE)).toHaveScreenshot();
 });
 
 test('boom component shows an error in a panel', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_boom', selector.REACT_PANEL_VISIBLE);
-  await expect(page.locator(selector.REACT_PANEL_VISIBLE)).toBeVisible();
+  await openPanel(page, 'ui_boom', SELECTORS.REACT_PANEL_VISIBLE);
+  await expect(page.locator(SELECTORS.REACT_PANEL_VISIBLE)).toBeVisible();
   await expect(
     page
-      .locator(selector.REACT_PANEL_VISIBLE)
+      .locator(SELECTORS.REACT_PANEL_VISIBLE)
       .getByText('Exception', { exact: true })
   ).toBeVisible();
   await expect(
-    page.locator(selector.REACT_PANEL_VISIBLE).getByText('BOOM!')
+    page.locator(SELECTORS.REACT_PANEL_VISIBLE).getByText('BOOM!')
   ).toBeVisible();
 });
 
@@ -30,9 +25,9 @@ test('boom counter component shows error overlay after clicking the button twice
   page,
 }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_boom_counter', selector.REACT_PANEL_VISIBLE);
+  await openPanel(page, 'ui_boom_counter', SELECTORS.REACT_PANEL_VISIBLE);
 
-  const panelLocator = page.locator(selector.REACT_PANEL_VISIBLE);
+  const panelLocator = page.locator(SELECTORS.REACT_PANEL_VISIBLE);
 
   let btn = await panelLocator.getByRole('button', { name: 'Count is 0' });
   await expect(btn).toBeVisible();
@@ -50,7 +45,7 @@ test('boom counter component shows error overlay after clicking the button twice
 
 test('Using keys for lists works', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_cells', selector.REACT_PANEL_VISIBLE);
+  await openPanel(page, 'ui_cells', SELECTORS.REACT_PANEL_VISIBLE);
 
   // setup cells
   await page.getByRole('button', { name: 'Add cell' }).click();
@@ -69,14 +64,14 @@ test('Using keys for lists works', async ({ page }) => {
 
 test('UI all components render 1', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_render_all1', selector.REACT_PANEL_VISIBLE);
-  await expect(page.locator(selector.REACT_PANEL_VISIBLE)).toHaveScreenshot();
+  await openPanel(page, 'ui_render_all1', SELECTORS.REACT_PANEL_VISIBLE);
+  await expect(page.locator(SELECTORS.REACT_PANEL_VISIBLE)).toHaveScreenshot();
 });
 
 test('UI all components render 2', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_render_all2', selector.REACT_PANEL_VISIBLE);
-  await expect(page.locator(selector.REACT_PANEL_VISIBLE)).toHaveScreenshot();
+  await openPanel(page, 'ui_render_all2', SELECTORS.REACT_PANEL_VISIBLE);
+  await expect(page.locator(SELECTORS.REACT_PANEL_VISIBLE)).toHaveScreenshot();
 });
 
 // Tests flex components render as expected
@@ -110,18 +105,18 @@ test.describe('UI flex components', () => {
   ].forEach(i => {
     test(i.name, async ({ page }) => {
       await gotoPage(page, '');
-      await openPanel(page, i.name, selector.REACT_PANEL_VISIBLE);
+      await openPanel(page, i.name, SELECTORS.REACT_PANEL_VISIBLE);
 
       // need to wait for plots to be loaded before taking screenshot
       // easiest way to check that is if the traces are present
       if (i.traces > 0) {
         await expect(
-          await page.locator(selector.REACT_PANEL_VISIBLE).locator('.trace')
+          await page.locator(SELECTORS.REACT_PANEL_VISIBLE).locator('.trace')
         ).toHaveCount(i.traces);
       }
 
       await expect(
-        page.locator(selector.REACT_PANEL_VISIBLE)
+        page.locator(SELECTORS.REACT_PANEL_VISIBLE)
       ).toHaveScreenshot();
     });
   });
