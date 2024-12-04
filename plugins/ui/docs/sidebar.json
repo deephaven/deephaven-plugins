@@ -28,6 +28,10 @@
           {
             "label": "Your First Component",
             "path": "describing/your_first_component.md"
+          },
+          {
+            "label": "Using Hooks",
+            "path": "describing/using_hooks.md"
           }
         ]
       },
