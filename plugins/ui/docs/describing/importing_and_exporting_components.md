@@ -4,7 +4,7 @@ The value of `deephaven.ui` components lies in their reusability: you can create
 
 # Exporting in Python
 
-By default, values and functions defined in a Python file are automatically exported. Define a component in a in `file1.py`:
+By default, values and functions defined in a Python file are automatically exported. Define a component in a file `file1.py`:
 
 ```python
 # file1.py
@@ -46,8 +46,8 @@ my_mulitple_contents = mulitple_contents()
 
 # Deephaven Core Data Directory
 
-To import Python scripts in Deephave Core, you must tell the Python interpreter the location of the data directory where the files are stored. For details on how to do this, see [How do I import one Python script into another in the Deephaven IDE?](/core/docs/reference/community-questions/import-python-script)
+To import Python scripts in Deephaven Core, you must tell the Python interpreter the location of the data directory where the files are stored. For details on how to do this, see [How do I import one Python script into another in the Deephaven IDE?](/core/docs/reference/community-questions/import-python-script)
 
-# Deephaven Enterprise notebook Module
+# Deephaven Enterprise `notebook` module
 
-To import Python scripts in Deephave Enterprise, you can use the `notebook` module. See [Modularizing Queries](/enterprise/docs/development/modularizing-queries).
+To import Python scripts in Deephaven Enterprise, you can use the `notebook` module. See [Modularizing Queries](/enterprise/docs/development/modularizing-queries).
