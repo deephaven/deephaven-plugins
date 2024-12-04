@@ -33,7 +33,7 @@ from file1 import table_of_contents
 
 
 @ui.component
-def mulitple_contents():
+def multiple_contents():
     return ui.flex(
         table_of_contents(),
         table_of_contents(),
@@ -41,7 +41,7 @@ def mulitple_contents():
     )
 
 
-my_mulitple_contents = mulitple_contents()
+my_multiple_contents = multiple_contents()
 ```
 
 # Deephaven Core Data Directory
