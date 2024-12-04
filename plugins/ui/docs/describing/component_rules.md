@@ -43,7 +43,7 @@ my_custom_flex = custom_flex(ui.text("text"), ui.button("button"), is_column=Tru
 
 ## Component Return Values
 
-You can return three values from a `deephaven.ui` component: a component, a list of components, or `None`. Returning a single component will render that component at the root level of a panel. Returning a list of components will render all the components in a panel. Returning `None` should be used when a component is used to perform logic but does not need to be rendered.
+A `deephaven.ui` component usually returns a component. It may also return a list or tuple of components. It may return `None` if it should perform logic but does not need to be rendered. It may also return a single value like a `string` or `int`.
 
 ```python
 from deephaven import ui
@@ -60,14 +60,32 @@ def list_of_components():
 
 
 @ui.component
+def return_tuple():
+    return (ui.text("a"), ui.text("b"))
+
+
+@ui.component
 def return_none():
     print("return none")
     return None
 
 
+@ui.component
+def return_string():
+    return "string"
+
+
+@ui.component
+def return_int():
+    return 1
+
+
 my_return_component = return_component()
 my_list_of_components = list_of_components()
+my_return_tuple = return_tuple()
 my_return_none = return_none()
+my_return_string = return_string()
+my_return_int = return_int()
 ```
 
 ## Conditional Return
