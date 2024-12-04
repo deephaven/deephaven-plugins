@@ -23,6 +23,15 @@
         "path": "architecture.md"
       },
       {
+        "label": "Describing the UI",
+        "items": [
+          {
+            "label": "Component Rules",
+            "path": "describing/component_rules.md"
+          }
+        ]
+      },
+      {
         "label": "Components",
         "items": [
           {
