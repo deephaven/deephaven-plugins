@@ -4,7 +4,7 @@ Here are some important rules to understand about `deephaven.ui` components.
 
 ## Children and Props
 
-Arguments passed to a component may be either `children` or `props`. `Children` refers to `child` components that are passed to a `parent` component as arguments. `Props` are properties that determine the behavior and rendering style of the component.
+Arguments passed to a component may be either `children` or `props`. `Children` refers to `child` components that are passed to a `parent` component as positional arguments. `Props` are properties passed as keyword arguments that determine the behavior and rendering style of the component.
 
 ```python
 from deephaven import ui
