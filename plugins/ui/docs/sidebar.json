@@ -26,6 +26,10 @@
         "label": "Describing the UI",
         "items": [
           {
+            "label": "Your First Component",
+            "path": "describing/your_first_component.md"
+          },
+          {
             "label": "Component Rules",
             "path": "describing/component_rules.md"
           }
