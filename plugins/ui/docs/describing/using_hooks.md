@@ -128,8 +128,68 @@ See the [use_callback](../hooks/use_callback.md) documentation for more detailed
 
 ## Rules for Hooks
 
-TODO
+Hooks are Python functions, but you need to follow two rules when using them.
+
+### Only Call Hooks at the Top Level
+
+Don’t call hooks inside loops, conditions, or nested functions. Instead, always use hooks at the top level of your `deephaven.io` component function, before any early returns. By following this rule, you ensure that hooks are called in the same order each time a component renders.
+
+### Only Call Hooks from Components and Custom Hooks
+
+Don’t call hooks from regular Python functions. Instead, you can:
+
+- Call Hooks from `deephaven.io` function components.
+- Call hooks from custom hooks.
+
+By following this rule, you ensure that all stateful logic in a component is clearly visible from its source code.
 
 ## Building Your Own Hooks
 
-TODO
+When you have reusable logic involving one or more hooks, you may want to write a custom hook to encapsulate that logic. A hook is Python function that follows these guidelines:
+
+- Custom hooks may call other hooks
+- Custom hooks follow the same follow the same rules as built-in hooks
+- Custom hooks should start with the word `use` to indicate that is a hook and may contain component state and effects.
+
+### Example: Extracting the use_server Hook
+
+Look back at the code example for the `use_callback` hook. The component uses two hooks to connect to a server. This logic can be extracted into a `use_server` hook to make it reusable by other components.
+
+```python
+from deephaven import ui
+import time
+
+# Custom hook
+def use_server():
+    create_server = ui.use_callback(lambda: {"host": "localhost"}, [])
+
+    def connect():
+        server = create_server()
+        print(f"Connecting to {server}")
+        time.sleep(0.5)
+
+    ui.use_effect(connect, [create_server])
+
+
+@ui.component
+def ui_server():
+    theme, set_theme = ui.use_state("red")
+
+    use_server()
+
+    return ui.view(
+        ui.picker(
+            "red",
+            "orange",
+            "yellow",
+            label="Theme",
+            selected_key=theme,
+            on_change=set_theme,
+        ),
+        padding="size-100",
+        background_color=theme,
+    )
+
+
+my_server = ui_server()
+```
