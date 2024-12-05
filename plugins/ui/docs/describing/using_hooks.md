@@ -50,15 +50,54 @@ def ui_todo_list(todos: list[str], filter: str):
 result = ui_todo_list(["Do grocery shopping", "Walk the dog", "Do laundry"], "Do")
 ```
 
-TODO explain more
+The `use_memo` hook takes two parameters: a `callable` that returns a value and a list of dependencies. The value is computed once and then stored in the memoized value. The memoized value is returned on subsequent renders until the dependencies change.
 
 See the [use_memo](../hooks/use_memo.md) documentation for more detailed information.
 
+### Use Effect Hook
+
+TODO
+
 ### Use Callback Hook
 
-Call `use_callback` to memoizes a callback function. This prevents unecessary re-renders when the dependencies of the callback have not changed.
+Call `use_callback` to memoizes a callback function. This prevents unnecessary re-renders when the dependencies of the callback have not changed.
 
-TODO short example
+```python
+from deephaven import ui
+import time
+
+
+@ui.component
+def ui_server():
+    theme, set_theme = ui.use_state("red")
+
+    create_server = ui.use_callback(lambda: {"host": "localhost"}, [])
+
+    def connect():
+        server = create_server()
+        print(f"Connecting to {server}")
+        time.sleep(0.5)
+
+    ui.use_effect(connect, [create_server])
+
+    return ui.view(
+        ui.picker(
+            "red",
+            "orange",
+            "yellow",
+            label="Theme",
+            selected_key=theme,
+            on_change=set_theme,
+        ),
+        padding="size-100",
+        background_color=theme,
+    )
+
+
+my_server = ui_server()
+```
+
+The `use_callback` hook takes two parameters: a callable and a list of dependencies. It returns a memoized callback. The memoized callback is returned on subsequent renders until the dependencies change.
 
 ## Rules for Hooks
 
