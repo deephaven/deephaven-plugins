@@ -1,6 +1,6 @@
 # Using Hooks
 
-Hooks are functions that isolate reusable parts of a component. Built in `deephaven.ui` hooks allow you to manage state, cache values, synchronize with external systems, and much more. You can either use the built-in hooks or combine them to build your own.
+Hooks are functions that isolate reusable parts of a component. Built-in `deephaven.ui` hooks allow you to manage state, cache values, synchronize with external systems, and much more. You can either use the built-in hooks or combine them to build your own.
 
 ## Built-in Hooks
 
@@ -25,7 +25,7 @@ counter = ui_counter()
 
 The `use_state` hook takes an optional parameter that is the initial state. It initializes to `None` if this is omitted. The hook returns two values: a state variable and a `set` function that lets you update the state and trigger a re-render.
 
-See the [use_state](../hooks/use_state.md) documentation for more detailed information.
+See the [`use_state`](../hooks/use_state.md) documentation for more detailed information.
 
 ### Use Memo Hook
 
@@ -52,7 +52,7 @@ result = ui_todo_list(["Do grocery shopping", "Walk the dog", "Do laundry"], "Do
 
 The `use_memo` hook takes two parameters: a `callable` that returns a value and a list of dependencies. The value is computed once and then stored in the memoized value. The memoized value is returned on subsequent renders until the dependencies change.
 
-See the [use_memo](../hooks/use_memo.md) documentation for more detailed information.
+See the [`use_memo`](../hooks/use_memo.md) documentation for more detailed information.
 
 ### Use Effect Hook
 
@@ -81,11 +81,11 @@ effect_example = ui_effect_example()
 
 The `use_effect` hook takes two parameters: a callable and a list of dependencies. The callable may return a function for cleanup.
 
-See the [use_effect](../hooks/use_effect.md) documentation for more detailed information.
+See the [`use_effect`](../hooks/use_effect.md) documentation for more detailed information.
 
 ### Use Callback Hook
 
-Call `use_callback` to memoizes a callback function. This prevents unnecessary re-renders when the dependencies of the callback have not changed.
+Call `use_callback` to memoize a callback function. This prevents unnecessary re-renders when the dependencies of the callback have not changed.
 
 ```python
 from deephaven import ui
@@ -124,7 +124,7 @@ my_server = ui_server()
 
 The `use_callback` hook takes two parameters: a callable and a list of dependencies. It returns a memoized callback. The memoized callback is returned on subsequent renders until the dependencies change.
 
-See the [use_callback](../hooks/use_callback.md) documentation for more detailed information.
+See the [`use_callback`](../hooks/use_callback.md) documentation for more detailed information.
 
 ## Rules for Hooks
 
@@ -141,14 +141,14 @@ Don’t call hooks from regular Python functions. Instead, you can:
 - Call Hooks from `deephaven.io` function components.
 - Call hooks from custom hooks.
 
-By following this rule, you ensure that all stateful logic in a component is clearly visible from its source code.
+Following this rule ensures that all stateful logic in a component is clearly visible from its source code.
 
 ## Building Your Own Hooks
 
 When you have reusable logic involving one or more hooks, you may want to write a custom hook to encapsulate that logic. A hook is Python function that follows these guidelines:
 
 - Custom hooks may call other hooks
-- Custom hooks follow the same follow the same rules as built-in hooks
+- Custom hooks follow the same rules as built-in hooks.
 - Custom hooks should start with the word `use` to indicate that is a hook and may contain component state and effects.
 
 ### Example: Extracting the use_server Hook
