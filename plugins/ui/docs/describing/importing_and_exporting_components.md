@@ -27,12 +27,12 @@ def table_of_contents():
 ### Example Import in Deephaven Core
 
 ```python
+# file2.py
 # Tell the Python interpreter where the data directory is located
 import sys
 
 sys.path.append("/data/storage/notebooks")
 
-# file2.py
 from deephaven import ui
 
 # Import component from file1
@@ -53,9 +53,9 @@ my_multiple_contents = multiple_contents()
 
 ## Exporting and Importing in Deephaven Enterprise
 
-# Exporting in Python
+In Deephaven Enterprise, notebook files are stored in a secure file system which prevents importing by default. In order to import from another script, you can use the `deephaven_enterprise.notebook` module to do either an `exec_notebook` or a `meta_import`. For details on how to do this, see [Modularizing Queries](/enterprise/docs/development/modularizing-queries).
 
-By default, values and functions defined in a Python file are automatically exported. Define a component in a file `file1.py`:
+### Example Export in Deephaven Enterprise
 
 ```python
 # file1.py
@@ -73,14 +73,19 @@ def table_of_contents():
     )
 ```
 
-# Importing in Python
-
-Use the `import` and `from` keywords to import values from a separate Python file. In `file2.py`:
+### Example Import in Deephaven Enterprise
 
 ```python
 # file2.py
+# Use the notebook module to meta_import file1.py
+from deephaven_enterprise.notebook import meta_import
+
+meta_import(db, "nb")
+
+# Import component from file1
+from nb.file1 import table_of_contents
+
 from deephaven import ui
-from file1 import table_of_contents
 
 
 @ui.component
@@ -94,11 +99,3 @@ def multiple_contents():
 
 my_multiple_contents = multiple_contents()
 ```
-
-# Deephaven Core Data Directory
-
-To import Python scripts in Deephaven Core, you must tell the Python interpreter the location of the data directory where the files are stored. For details on how to do this, see [How do I import one Python script into another in the Deephaven IDE?](/core/docs/reference/community-questions/import-python-script)
-
-# Deephaven Enterprise `notebook` module
-
-To import Python scripts in Deephaven Enterprise, you can use the `notebook` module. See [Modularizing Queries](/enterprise/docs/development/modularizing-queries).
