@@ -56,7 +56,32 @@ See the [use_memo](../hooks/use_memo.md) documentation for more detailed informa
 
 ### Use Effect Hook
 
-TODO
+Call `use_effect` to synchronize a component with an external system. An effect runs when it is mounted or a dependency changes. An optional cleanup function runs when dependencies change or the component is unmounted.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def ui_effect_example():
+    def handle_mount():
+        # effect prints "Mounted" once when component is first rendered
+        print("Mounted")
+        # cleanup function prints "Unmounted" when component is closed
+        return lambda: print("Unmounted")
+
+    # Passing in an empty list for dependencies will run the effect only once when the component is mounted, and cleanup when the component is unmounted
+    ui.use_effect(handle_mount, [])
+
+    return ui.text("Effect Example")
+
+
+effect_example = ui_effect_example()
+```
+
+The `use_effect` hook takes two parameters: a callable and a list of dependencies. The callable may return a function for cleanup.
+
+See the [use_effect](../hooks/use_effect.md) documentation for more detailed information.
 
 ### Use Callback Hook
 
@@ -99,6 +124,12 @@ my_server = ui_server()
 
 The `use_callback` hook takes two parameters: a callable and a list of dependencies. It returns a memoized callback. The memoized callback is returned on subsequent renders until the dependencies change.
 
+See the [use_callback](../hooks/use_callback.md) documentation for more detailed information.
+
 ## Rules for Hooks
 
+TODO
+
 ## Building Your Own Hooks
+
+TODO
