@@ -23,6 +23,15 @@
         "path": "architecture.md"
       },
       {
+        "label": "Describing the UI",
+        "items": [
+          {
+            "label": "Your First Component",
+            "path": "describing/your_first_component.md"
+          }
+        ]
+      },
+      {
         "label": "Components",
         "items": [
           {
@@ -36,6 +45,10 @@
           {
             "label": "action_menu",
             "path": "components/action_menu.md"
+          },
+          {
+            "label": "avatar",
+            "path": "components/avatar.md"
           },
           {
             "label": "badge",
@@ -174,6 +187,10 @@
             "path": "components/range_slider.md"
           },
           {
+            "label": "search_field",
+            "path": "components/search_field.md"
+          },
+          {
             "label": "slider",
             "path": "components/slider.md"
           },
@@ -204,6 +221,10 @@
           {
             "label": "time_field",
             "path": "components/time_field.md"
+          },
+          {
+            "label": "toast",
+            "path": "components/toast.md"
           },
           {
             "label": "toggle_button",

@@ -6,6 +6,7 @@ import type { JSONRPCServerAndClient } from 'json-rpc-2.0';
 // wrapped due to how Spectrum collection components consume them.
 import {
   ActionMenu,
+  Avatar,
   ButtonGroup,
   SpectrumCheckbox as Checkbox,
   CheckboxGroup,
@@ -74,6 +75,7 @@ import {
   RadioGroup,
   RangeCalendar,
   RangeSlider,
+  SearchField,
   Slider,
   TabPanels,
   TextField,
@@ -117,6 +119,7 @@ export const elementComponentMap = {
   [ELEMENT_NAME.actionButton]: ActionButton,
   [ELEMENT_NAME.actionGroup]: ActionGroup,
   [ELEMENT_NAME.actionMenu]: ActionMenu,
+  [ELEMENT_NAME.avatar]: Avatar,
   [ELEMENT_NAME.badge]: Badge,
   [ELEMENT_NAME.button]: Button,
   [ELEMENT_NAME.buttonGroup]: ButtonGroup,
@@ -154,6 +157,7 @@ export const elementComponentMap = {
   [ELEMENT_NAME.radioGroup]: RadioGroup,
   [ELEMENT_NAME.rangeCalendar]: RangeCalendar,
   [ELEMENT_NAME.rangeSlider]: RangeSlider,
+  [ELEMENT_NAME.searchField]: SearchField,
   [ELEMENT_NAME.section]: Section,
   [ELEMENT_NAME.slider]: Slider,
   [ELEMENT_NAME.switch]: Switch,

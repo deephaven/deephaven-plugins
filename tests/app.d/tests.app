@@ -10,3 +10,4 @@ file_3=ui_render_all.py
 file_4=ui_flex.py
 file_5=ui_table.py
 file_6=ui_panel_loading.py
+file_7=ui_dialog.py

@@ -71,3 +71,6 @@ export const METHOD_DOCUMENT_UPDATED = 'documentUpdated';
 
 /** Message containing a document error */
 export const METHOD_DOCUMENT_ERROR = 'documentError';
+
+/** Message containing an event */
+export const METHOD_EVENT = 'event';

@@ -1,6 +1,6 @@
 {
   "name": "@deephaven/js-plugin-plotly-express",
-  "version": "0.11.2",
+  "version": "0.12.0",
   "description": "Deephaven plotly express plugin",
   "keywords": [
     "Deephaven",
@@ -36,7 +36,8 @@
     "update-dh-packages": "node ../../../../tools/update-dh-packages.mjs"
   },
   "devDependencies": {
-    "@deephaven/jsapi-types": "1.0.0-dev0.35.2",
+    "@deephaven/jsapi-types": "1.0.0-dev0.36.1",
+    "@deephaven/test-utils": "0.97.0",
     "@types/deep-equal": "^1.0.1",
     "@types/plotly.js": "^2.12.18",
     "@types/plotly.js-dist-min": "^2.3.1",
@@ -51,15 +52,15 @@
     "react-dom": "^17.0.2"
   },
   "dependencies": {
-    "@deephaven/chart": "0.88.0",
-    "@deephaven/components": "0.88.0",
-    "@deephaven/dashboard": "0.88.0",
-    "@deephaven/dashboard-core-plugins": "0.88.0",
-    "@deephaven/icons": "0.88.0",
-    "@deephaven/jsapi-bootstrap": "0.88.0",
-    "@deephaven/log": "0.88.0",
-    "@deephaven/plugin": "0.88.0",
-    "@deephaven/utils": "0.88.0",
+    "@deephaven/chart": "0.97.0",
+    "@deephaven/components": "0.97.0",
+    "@deephaven/dashboard": "0.97.0",
+    "@deephaven/dashboard-core-plugins": "0.97.0",
+    "@deephaven/icons": "0.97.0",
+    "@deephaven/jsapi-bootstrap": "0.97.0",
+    "@deephaven/log": "0.97.0",
+    "@deephaven/plugin": "0.97.0",
+    "@deephaven/utils": "0.97.0",
     "deep-equal": "^2.2.1",
     "nanoid": "^5.0.7",
     "plotly.js": "^2.29.1",

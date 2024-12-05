@@ -1,5 +1,27 @@
-import type { Data, LayoutAxis, PlotlyDataLayoutConfig } from 'plotly.js';
+import type {
+  Data,
+  LayoutAxis,
+  PlotlyDataLayoutConfig,
+  PlotType,
+} from 'plotly.js';
 import type { dh as DhType } from '@deephaven/jsapi-types';
+
+/**
+ * Traces that are at least partially powered by WebGL and have no SVG equivalent.
+ * https://plotly.com/python/webgl-vs-svg/
+ */
+const UNREPLACEABLE_WEBGL_TRACE_TYPES = new Set([
+  'splom',
+  'parcoords',
+  'scatter3d',
+  'surface',
+  'mesh3d',
+  'cone',
+  'streamtube',
+  'scattermapbox',
+  'choroplethmapbox',
+  'densitymapbox',
+]);
 
 export interface PlotlyChartWidget {
   getDataAsBase64: () => string;
@@ -214,4 +236,55 @@ export function downsample(
         : dh.LongWrapper.ofString(val)
     )
   );
+}
+
+/**
+ * Get the indexes of the replaceable WebGL traces in the data
+ * A replaceable WebGL has a type that ends with 'gl' which indicates it has a SVG equivalent
+ * @param data The data to check
+ * @returns The indexes of the WebGL traces
+ */
+export function getReplaceableWebGlTraceIndices(data: Data[]): Set<number> {
+  const webGlTraceIndexes = new Set<number>();
+  data.forEach((trace, index) => {
+    if (trace.type && trace.type.endsWith('gl')) {
+      webGlTraceIndexes.add(index);
+    }
+  });
+  return webGlTraceIndexes;
+}
+
+/**
+ * Check if the data contains any traces that are at least partially powered by WebGL and have no SVG equivalent.
+ * @param data The data to check for WebGL traces
+ * @returns True if the data contains any unreplaceable WebGL traces
+ */
+export function hasUnreplaceableWebGlTraces(data: Data[]): boolean {
+  return data.some(
+    trace => trace.type && UNREPLACEABLE_WEBGL_TRACE_TYPES.has(trace.type)
+  );
+}
+
+/**
+ * Set traces to use WebGL if WebGL is enabled and the trace was originally WebGL
+ * or swap out WebGL for SVG if WebGL is disabled and the trace was originally WebGL
+ * @param data The plotly figure data to update
+ * @param webgl True if WebGL is enabled
+ * @param webGlTraceIndices The indexes of the traces that are originally WebGL traces
+ */
+export function setWebGlTraceType(
+  data: Data[],
+  webgl: boolean,
+  webGlTraceIndices: Set<number>
+): void {
+  webGlTraceIndices.forEach(index => {
+    const trace = data[index];
+    if (webgl && trace.type && !trace.type.endsWith('gl')) {
+      // If WebGL is enabled and the trace is not already a WebGL trace, make it one
+      trace.type = `${trace.type}gl` as PlotType;
+    } else if (!webgl && trace.type && trace.type.endsWith('gl')) {
+      // If WebGL is disabled and the trace is a WebGL trace, remove the 'gl'
+      trace.type = trace.type.substring(0, trace.type.length - 2) as PlotType;
+    }
+  });
 }

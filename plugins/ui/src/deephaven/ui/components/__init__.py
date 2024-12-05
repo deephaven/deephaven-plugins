@@ -1,6 +1,7 @@
 from .action_button import action_button
 from .action_group import action_group
 from .action_menu import action_menu
+from .avatar import avatar
 from .basic import (
     component_element,
 )
@@ -48,6 +49,7 @@ from .radio_group import radio_group
 from .range_calendar import range_calendar
 from .range_slider import range_slider
 from .row import row
+from .search_field import search_field
 from .section import section
 from .slider import slider
 from .stack import stack
@@ -61,6 +63,7 @@ from .text import text
 from .text_area import text_area
 from .text_field import text_field
 from .time_field import time_field
+from .toast import toast
 from .toggle_button import toggle_button
 from .view import view
 
@@ -71,6 +74,7 @@ __all__ = [
     "action_button",
     "action_group",
     "action_menu",
+    "avatar",
     "component_element",
     "badge",
     "button",
@@ -117,6 +121,7 @@ __all__ = [
     "range_calendar",
     "range_slider",
     "row",
+    "search_field",
     "section",
     "slider",
     "stack",
@@ -132,6 +137,7 @@ __all__ = [
     "text_area",
     "text_field",
     "time_field",
+    "toast",
     "toggle_button",
     "view",
 ]
