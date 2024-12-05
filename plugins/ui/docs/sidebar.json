@@ -151,6 +151,10 @@
             "path": "components/markdown.md"
           },
           {
+            "label": "meter",
+            "path": "components/meter.md"
+          },
+          {
             "label": "number_field",
             "path": "components/number_field.md"
           },

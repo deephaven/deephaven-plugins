@@ -1,10 +1,6 @@
 from __future__ import annotations
-from typing import Any, Callable
+from typing import Any
 from .types import (
-    FocusEventCallable,
-    KeyboardEventCallable,
-    TextFieldValidationState,
-    NecessityIndicator,
     AlignSelf,
     CSSProperties,
     DimensionValue,
@@ -13,45 +9,24 @@ from .types import (
     Position,
     LabelPosition,
     NumberFormatOptions,
-    Alignment,
+    MeterVariants,
+    MeterSizes,
 )
 from .basic import component_element
 from ..elements import Element
 
 
-def number_field(
-    is_quiet: bool | None = None,
-    hide_stepper: bool | None = None,
-    decrement_aria_label: str | None = None,
-    increment_aria_label: str | None = None,
-    is_wheel_disabled: bool | None = None,
-    format_options: NumberFormatOptions | None = None,
-    is_disabled: bool | None = None,
-    is_read_only: bool | None = None,
-    is_required: bool | None = None,
-    # validation_behaviour, # omitted because validate is not implemented
-    # validate, # omitted because it needs to return a ValidationError synchronously
-    auto_focus: bool | None = None,
-    value: float | None = None,
-    default_value: float | None = None,
-    min_value: float | None = None,
-    max_value: float | None = None,
-    step: float | None = None,
-    label: Any | None = None,
-    description: Any | None = None,
-    error_message: Any | None = None,
-    validation_state: TextFieldValidationState | None = None,
-    name: str | None = None,
+def meter(
+    variant: MeterVariants = "informative",
+    size: MeterSizes = "L",
     label_position: LabelPosition = "top",
-    label_align: Alignment | None = None,
-    necessity_indicator: NecessityIndicator | None = None,
-    contextual_help: Any | None = None,
-    on_focus: FocusEventCallable | None = None,
-    on_blur: FocusEventCallable | None = None,
-    on_focus_change: Callable[[bool], None] | None = None,
-    on_key_down: KeyboardEventCallable | None = None,
-    on_key_up: KeyboardEventCallable | None = None,
-    on_change: Callable[[float], None] | None = None,
+    show_value_label: bool | None = None,
+    label: Any | None = None,
+    format_options: NumberFormatOptions | None = None,
+    value_label: Any | None = None,
+    value: float = 0,
+    min_value: float = 0,
+    max_value: float = 100,
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,
@@ -96,42 +71,21 @@ def number_field(
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
     key: str | None = None,
-    # missing properties that are clipboard or composition events
 ) -> Element:
     """
-    NumberFields allow users to enter a number, and increment or decrement the value using stepper buttons.
+    Meters visually represent a quantity or achievement, displaying progress on a bar with a label.
 
     Args:
-        is_quiet: Whether the input should be displayed with a quiet style
-        hide_stepper: Whether to hide the increment and decrement stepper buttons
-        decrement_aria_label: The aria label for the decrement stepper button. If not provided, the default is "Decrement"
-        increment_aria_label: The aria label for the increment stepper button. If not provided, the default is "Increment"
-        is_wheel_disabled: Whether the input should change with scroll
+        variant: The visual style of the meter.
+        size: How thick the bar should be.
+        label_position: The position of the label relative to the input.
+        show_value_label: Whether to show the value label.
+        label: The label for the input.
         format_options: Options for formatting the displayed value, which also restricts input characters.
-        is_disabled: Whether the input should be disabled
-        is_read_only: Whether the input scan be selected but not changed by the user
-        is_required: Whether the input is required before form submission
-        auto_focus: Whether the input should be focused on page load
+        value_label: The label for the value (e.g. 1 of 4).
         value: The current value of the input
-        default_value: The default value of the input
         min_value: The minimum value of the input
         max_value: The maximum value of the input
-        step: The step value for the input
-        label: The label for the input
-        description: A description for the field. Provides a hint such as specific requirements for what to choose.
-        error_message: An error message to display when the field is invalid
-        validation_state: Whether the input should display its "valid" or "invalid" state
-        name: The name of the input, used when submitting an HTML form
-        label_position: The position of the label relative to the input
-        label_align: The alignment of the label relative to the input
-        necessity_indicator: Whether the required state should be shown as an icon or text
-        contextual_help: A ContentualHelp element to place next to the label
-        on_focus: Function called when the button receives focus.
-        on_blur: Function called when the button loses focus.
-        on_focus_change: Function called when the focus state changes.
-        on_key_down: Function called when a key is pressed.
-        on_key_up: Function called when a key is released.
-        on_change: Function called when the input value changes
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -178,41 +132,21 @@ def number_field(
         key: A unique identifier used by React to render elements in a list.
 
     Returns:
-        The rendered number field element.
+        The rendered meter element.
     """
 
     return component_element(
-        "NumberField",
-        is_quiet=is_quiet,
-        hide_stepper=hide_stepper,
-        decrement_aria_label=decrement_aria_label,
-        increment_aria_label=increment_aria_label,
-        is_wheel_disabled=is_wheel_disabled,
+        "Meter",
+        variant=variant,
+        size=size,
+        label_position=label_position,
+        show_value_label=show_value_label,
+        label=label,
         format_options=format_options,
-        is_disabled=is_disabled,
-        is_read_only=is_read_only,
-        is_required=is_required,
-        auto_focus=auto_focus,
+        value_label=value_label,
         value=value,
-        default_value=default_value,
         min_value=min_value,
         max_value=max_value,
-        step=step,
-        label=label,
-        description=description,
-        error_message=error_message,
-        validation_state=validation_state,
-        name=name,
-        label_position=label_position,
-        label_align=label_align,
-        necessity_indicator=necessity_indicator,
-        contextual_help=contextual_help,
-        on_focus=on_focus,
-        on_blur=on_blur,
-        on_focus_change=on_focus_change,
-        on_key_down=on_key_down,
-        on_key_up=on_key_up,
-        on_change=on_change,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
