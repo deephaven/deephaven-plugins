@@ -28,10 +28,7 @@ export function DashboardPlugin({
       widget: VariableDefinition;
     }) => {
       const { id: widgetId, name, type } = widget;
-      if (
-        type === 'dh.VariableType.TABLE' ||
-        type === 'dh.VariableType.FIGURE'
-      ) {
+      if (type === 'Table' || type === 'Figure') {
         // Just ignore table and figure types - only want interesting other types
         return;
       }
