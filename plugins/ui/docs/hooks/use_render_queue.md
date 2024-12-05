@@ -101,7 +101,7 @@ def ui_batch_example():
 batch_example = ui_batch_example()
 ```
 
-When running the above example, we'll see _two_ toasts with each press of the button: a red one where `a != b` (as `a` gets updated first), then a neutral one where `a == b` (as `b` gets updated second). We can use the `use_render_queue` hook to ensure the updates are always batched together when working with a background thread:
+When running the above example,  _two_ toasts appear with each button press: a red one where `a != b` (as `a` gets updated first), then a neutral one where `a == b` (as `b` gets updated second). Use the `use_render_queue` hook to ensure the updates are always batched together when working with a background thread:
 
 ```python
 from deephaven import ui
