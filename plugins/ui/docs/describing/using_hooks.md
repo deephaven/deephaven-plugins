@@ -4,7 +4,7 @@ Hooks are functions that isolate reusable parts of a component. Built-in `deepha
 
 ## Built-in Hooks
 
-`Deephaven.ui` has a large number of built-in hooks to help with the development of components. The full documenation for these can be found in the `Hooks` section of the documentation.
+`Deephaven.ui` has a large number of built-in hooks to help with the development of components. The full documentation for these can be found in the [`Hooks` section](../hooks/overview.md) of the documentation.
 
 ### Use State Hook
 
@@ -50,7 +50,7 @@ def ui_todo_list(todos: list[str], filter: str):
 result = ui_todo_list(["Do grocery shopping", "Walk the dog", "Do laundry"], "Do")
 ```
 
-The `use_memo` hook takes two parameters: a `callable` that returns a value and a list of dependencies. The value is computed once and then stored in the memoized value. The memoized value is returned on subsequent renders until the dependencies change.
+The `use_memo` hook takes two parameters: a `callable` that returns a value and a list of dependencies. The value is computed once when dependencies are changed and then stored in the memoized value. The memoized value is returned on subsequent renders until the dependencies change.
 
 See the [`use_memo`](../hooks/use_memo.md) documentation for more detailed information.
 
@@ -138,14 +138,14 @@ Don’t call hooks inside loops, conditions, or nested functions. Instead, alway
 
 Don’t call hooks from regular Python functions. Instead, you can:
 
-- Call Hooks from `deephaven.io` function components.
+- Call Hooks from `deephaven.ui` function components.
 - Call hooks from custom hooks.
 
 Following this rule ensures that all stateful logic in a component is clearly visible from its source code.
 
 ## Building Your Own Hooks
 
-When you have reusable logic involving one or more hooks, you may want to write a custom hook to encapsulate that logic. A hook is Python function that follows these guidelines:
+When you have reusable logic involving one or more hooks, you may want to write a custom hook to encapsulate that logic. A hook is a Python function that follows these guidelines:
 
 - Custom hooks may call other hooks
 - Custom hooks follow the same rules as built-in hooks.
