@@ -28,6 +28,10 @@
           {
             "label": "Your First Component",
             "path": "describing/your_first_component.md"
+          },
+          {
+            "label": "Importing and Exporting Components",
+            "path": "describing/importing_and_exporting_components.md"
           }
         ]
       },
