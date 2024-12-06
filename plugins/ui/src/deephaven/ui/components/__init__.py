@@ -38,6 +38,7 @@ from .list_action_menu import list_action_menu
 from .list_view import list_view
 from .make_component import make_component as component
 from .markdown import markdown
+from .meter import meter
 from .number_field import number_field
 from .panel import panel
 from .picker import picker
@@ -109,6 +110,7 @@ __all__ = [
     "list_action_menu",
     "html",
     "markdown",
+    "meter",
     "number_field",
     "panel",
     "picker",
