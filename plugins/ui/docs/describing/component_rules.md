@@ -2,7 +2,7 @@
 
 Here are some important rules to understand about `deephaven.ui` components.
 
-## Children and Props
+## Children and props
 
 Arguments passed to a component may be either `children` or `props`. `Children` refers to `child` components that are passed to a `parent` component as positional arguments. `Props` are properties passed as keyword arguments that determine the behavior and rendering style of the component. Positional arguments must be included in the correct order. Keyword arguments are included with a keyword and equals sign.
 
@@ -35,7 +35,7 @@ Here is the same component written in `deephaven.ui`.
 my_component("Hello World", prop1="value1")
 ```
 
-## Defining Your Own Children and Props
+## Defining your wwn children and props
 
 To define `children` and `props` for a custom component, add them as arguments to the component function. As a convention, you may declare the children using the `*` symbol to take any number of arguments.
 
@@ -55,7 +55,7 @@ def custom_flex(*children, is_column):
 my_custom_flex = custom_flex(ui.text("text"), ui.button("button"), is_column=True)
 ```
 
-## Component Return Values
+## Component return values
 
 A `deephaven.ui` component usually returns a component. It may also return a list or tuple of components. It may return `None` if it should perform logic but does not need to be rendered. It may also return a single value like a `string` or `int`.
 
@@ -102,7 +102,7 @@ my_return_string = return_string()
 my_return_int = return_int()
 ```
 
-## Conditional Return
+## Conditional return
 
 Return statements can be conditional in order to render different components based on inputs.
 
