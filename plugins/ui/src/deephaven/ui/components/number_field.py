@@ -12,7 +12,7 @@ from .types import (
     LayoutFlex,
     Position,
     LabelPosition,
-    NumberFieldFormatOptions,
+    NumberFormatOptions,
     Alignment,
 )
 from .basic import component_element
@@ -25,7 +25,7 @@ def number_field(
     decrement_aria_label: str | None = None,
     increment_aria_label: str | None = None,
     is_wheel_disabled: bool | None = None,
-    format_options: NumberFieldFormatOptions | None = None,
+    format_options: NumberFormatOptions | None = None,
     is_disabled: bool | None = None,
     is_read_only: bool | None = None,
     is_required: bool | None = None,

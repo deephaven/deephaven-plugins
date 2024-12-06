@@ -56,6 +56,7 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: plugins/${{ inputs.package }}/dist/
+          attestations: false # TODO: Followup this thread to see if there's a better fix https://github.com/pypa/gh-action-pypi-publish/issues/283
 
   check-make-docs:
     runs-on: ubuntu-22.04

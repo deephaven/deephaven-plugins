@@ -6,6 +6,7 @@ import type { JSONRPCServerAndClient } from 'json-rpc-2.0';
 // wrapped due to how Spectrum collection components consume them.
 import {
   ActionMenu,
+  Avatar,
   ButtonGroup,
   SpectrumCheckbox as Checkbox,
   CheckboxGroup,
@@ -63,8 +64,10 @@ import {
   Grid,
   IllustratedMessage,
   Image,
+  InlineAlert,
   ListView,
   Markdown,
+  Meter,
   Picker,
   ProgressBar,
   ProgressCircle,
@@ -72,6 +75,7 @@ import {
   RadioGroup,
   RangeCalendar,
   RangeSlider,
+  SearchField,
   Slider,
   TabPanels,
   TextField,
@@ -81,6 +85,9 @@ import {
   UITable,
   Tabs,
 } from '../elements';
+
+export const WIDGET_ELEMENT = 'deephaven.ui.Element';
+export const DASHBOARD_ELEMENT = 'deephaven.ui.Dashboard';
 
 /**
  * Elements to implicitly wrap primitive children in <Text> components.
@@ -112,6 +119,7 @@ export const elementComponentMap = {
   [ELEMENT_NAME.actionButton]: ActionButton,
   [ELEMENT_NAME.actionGroup]: ActionGroup,
   [ELEMENT_NAME.actionMenu]: ActionMenu,
+  [ELEMENT_NAME.avatar]: Avatar,
   [ELEMENT_NAME.badge]: Badge,
   [ELEMENT_NAME.button]: Button,
   [ELEMENT_NAME.buttonGroup]: ButtonGroup,
@@ -133,12 +141,14 @@ export const elementComponentMap = {
   [ELEMENT_NAME.heading]: Heading,
   [ELEMENT_NAME.illustratedMessage]: IllustratedMessage,
   [ELEMENT_NAME.image]: Image,
+  [ELEMENT_NAME.inlineAlert]: InlineAlert,
   [ELEMENT_NAME.item]: Item,
   [ELEMENT_NAME.link]: Link,
   [ELEMENT_NAME.listActionGroup]: ListActionGroup,
   [ELEMENT_NAME.listActionMenu]: ListActionMenu,
   [ELEMENT_NAME.listView]: ListView,
   [ELEMENT_NAME.markdown]: Markdown,
+  [ELEMENT_NAME.meter]: Meter,
   [ELEMENT_NAME.numberField]: NumberField,
   [ELEMENT_NAME.picker]: Picker,
   [ELEMENT_NAME.progressBar]: ProgressBar,
@@ -147,6 +157,7 @@ export const elementComponentMap = {
   [ELEMENT_NAME.radioGroup]: RadioGroup,
   [ELEMENT_NAME.rangeCalendar]: RangeCalendar,
   [ELEMENT_NAME.rangeSlider]: RangeSlider,
+  [ELEMENT_NAME.searchField]: SearchField,
   [ELEMENT_NAME.section]: Section,
   [ELEMENT_NAME.slider]: Slider,
   [ELEMENT_NAME.switch]: Switch,

@@ -7,6 +7,9 @@ import {
   removeColorsFromData,
   getDataMappings,
   PlotlyChartWidgetData,
+  getReplaceableWebGlTraceIndices,
+  hasUnreplaceableWebGlTraces,
+  setWebGlTraceType,
 } from './PlotlyExpressChartUtils';
 
 describe('getDataMappings', () => {
@@ -200,5 +203,118 @@ describe('areSameAxisRange', () => {
     expect(areSameAxisRange([0, 20], [0, 10])).toBe(false);
     expect(areSameAxisRange([0, 10], null)).toBe(false);
     expect(areSameAxisRange(null, [0, 10])).toBe(false);
+  });
+});
+
+describe('getReplaceableWebGlTraceIndexes', () => {
+  it('should return the indexes of any trace with gl', () => {
+    expect(
+      getReplaceableWebGlTraceIndices([
+        {
+          type: 'scattergl',
+        },
+        {
+          type: 'scatter',
+        },
+        {
+          type: 'scatter3d',
+        },
+        {
+          type: 'scattergl',
+        },
+      ])
+    ).toEqual(new Set([0, 3]));
+  });
+
+  it('should return an empty set if there are no traces with gl', () => {
+    expect(
+      getReplaceableWebGlTraceIndices([
+        {
+          type: 'scatter',
+        },
+        {
+          type: 'scatter3d',
+        },
+      ])
+    ).toEqual(new Set());
+  });
+});
+
+describe('hasUnreplaceableWebGlTraces', () => {
+  it('should return true if there is a single unreplaceable trace', () => {
+    expect(
+      hasUnreplaceableWebGlTraces([
+        {
+          type: 'scattermapbox',
+        },
+      ])
+    ).toBe(true);
+  });
+
+  it('should return true if there are unreplaceable traces', () => {
+    expect(
+      hasUnreplaceableWebGlTraces([
+        {
+          type: 'scattergl',
+        },
+        {
+          type: 'scatter',
+        },
+        {
+          type: 'scatter3d',
+        },
+        {
+          type: 'scattergl',
+        },
+        {
+          type: 'scatter3d',
+        },
+      ])
+    ).toBe(true);
+  });
+
+  it('should return false if there are no unreplaceable traces', () => {
+    expect(
+      hasUnreplaceableWebGlTraces([
+        {
+          type: 'scatter',
+        },
+        {
+          type: 'scattergl',
+        },
+      ])
+    ).toBe(false);
+  });
+});
+
+describe('setWebGlTraceType', () => {
+  it('should set the trace type to gl if webgl is enabled', () => {
+    const data: Plotly.Data[] = [
+      {
+        type: 'scatter',
+      },
+      {
+        type: 'scatter',
+      },
+    ];
+    const webGlTraceIndices = new Set([1]);
+    setWebGlTraceType(data, true, webGlTraceIndices);
+    expect(data[0].type).toBe('scatter');
+    expect(data[1].type).toBe('scattergl');
+  });
+
+  it('should remove the gl from the trace type if webgl is disabled', () => {
+    const data: Plotly.Data[] = [
+      {
+        type: 'scatter',
+      },
+      {
+        type: 'scattergl',
+      },
+    ];
+    const webGlTraceIndices = new Set([1]);
+    setWebGlTraceType(data, false, webGlTraceIndices);
+    expect(data[0].type).toBe('scatter');
+    expect(data[1].type).toBe('scatter');
   });
 });

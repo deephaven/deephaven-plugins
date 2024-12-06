@@ -35,6 +35,7 @@ const nodeModulesToTransform = [
   'rehype.*',
   'web-namespaces',
   'hastscript',
+  '@astral-sh/ruff-wasm-web',
 ];
 
 module.exports = {
