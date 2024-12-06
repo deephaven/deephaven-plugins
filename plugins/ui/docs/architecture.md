@@ -31,6 +31,25 @@ def my_app():
 app = my_app()
 ```
 
+## Props
+
+For almost all components, Python positional arguments are mapped to React children and keyword-only arguments are mapped to React props. Rarely, there are arguments that are positional and keyword. For example, in `contextual_help`, the footer argument is positional and keyword since it has a default of `None`. It will still be passed as children.
+
+```python
+from deephaven import ui
+
+
+my_prop_variations = ui.flex("Hello", "World", direction="column")
+footer_as_positional = ui.contextual_help("Heading", "Content", "Footer")
+footer_as_keyword = ui.contextual_help("Heading", "Content", footer="Footer")
+```
+
+The strings `"Hello"` and `"World"` will be passed to flex as children, while `"column"` is passed as the value to the `direction` prop. `"Footer"` is passed as children even if it's used in a keyword-manner. For more information, see the `contextual_help` doc.
+
+### Handling `null` vs `undefined`
+
+Python has one nullish value (`None`) while JavaScript has two (`null` and `undefined`). In most cases, a distinction is not needed and `None` is mapped to `undefined`. However, for some props, such as `picker`'s `selected_value`, we differentiate between `null` and `undefined` with `None` and `ui.types.Undefined`, respectively. A list of props that need the distinction is passed through the `_nullable_props` parameter to `component_element`/`BaseElement`.
+
 ## Rendering
 
 When you call a function decorated by `@ui.component`, it will return an `Element` object that references the function it is decorated by; that is to say, the function does _not_ run immediately. The function runs when the `Element` is rendered by the client, and the result is sent back to the client. This allows the `@ui.component` decorator to execute the function with the appropriate rendering context. The client must also set the initial state before rendering, allowing the client to persist the state and re-render in the future.
