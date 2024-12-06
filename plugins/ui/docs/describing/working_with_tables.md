@@ -23,7 +23,7 @@ _source = new_table([int_col("IntegerColumn", [1, 2, 3])])
 
 @ui.component
 def single_table(t):
-    use_effect(lambda: print("displaying table"), [])
+    ui.use_effect(lambda: print("displaying table"), [])
     return t
 
 
@@ -41,8 +41,6 @@ my_single_table = single_table(_source)
 my_list_table = list_table(_source)
 my_flex_table = flex_table(_source)
 ```
-
-TODO test above code
 
 ## Using ui.table
 
