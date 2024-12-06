@@ -4,6 +4,7 @@ from typing import Any, Callable
 
 from .types import (
     Orientation,
+    Alignment,
     AlignSelf,
     CSSProperties,
     DimensionValue,
@@ -12,6 +13,7 @@ from .types import (
     Position,
     ValidationBehavior,
     FocusEventCallable,
+    LabelPosition,
 )
 from .basic import component_element
 from ..elements import Element
@@ -33,8 +35,8 @@ def checkbox_group(
     is_required: bool | None = None,
     is_invalid: bool | None = None,
     validation_behavior: ValidationBehavior | None = "aria",
-    label_position: str | None = None,
-    label_align: str | None = None,
+    label_position: LabelPosition | None = None,
+    label_align: Alignment | None = None,
     necessity_indicator: str | None = None,
     contextual_help: Any | None = None,
     show_error_icon: bool | None = None,
