@@ -22,6 +22,7 @@ from ..shared.distribution_args import (
     STRIP_DEFAULTS,
     HISTOGRAM_DEFAULTS,
     SPREAD_GROUPS,
+    STRIP_GROUPS,
 )
 from ..types import PartitionableTableLike
 
@@ -469,7 +470,7 @@ def shared_strip(is_marginal: bool = True, **args: Any) -> DeephavenFigure:
     set_all(args, STRIP_DEFAULTS)
 
     func = px.strip
-    groups = SPREAD_GROUPS
+    groups = STRIP_GROUPS
 
     return shared_marginal(is_marginal, func, groups, **args)
 
