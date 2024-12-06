@@ -147,8 +147,7 @@ Following this rule ensures that all stateful logic in a component is clearly vi
 
 When you have reusable logic involving one or more hooks, you may want to write a custom hook to encapsulate that logic. A hook is a Python function that follows these guidelines:
 
-- Custom hooks may call other hooks
-- Custom hooks follow the same rules as built-in hooks.
+- Hooks can call other hooks, but usage of hooks within hooks follows the same rules as using hooks within components.
 - Custom hooks should start with the word `use` to indicate that is a hook and may contain component state and effects.
 
 ### Example: Extracting the use_server Hook
