@@ -30,6 +30,10 @@
             "path": "describing/your_first_component.md"
           },
           {
+            "label": "Importing and Exporting Components",
+            "path": "describing/importing_and_exporting_components.md"
+          },
+          {
             "label": "Component Rules",
             "path": "describing/component_rules.md"
           }
@@ -153,6 +157,10 @@
           {
             "label": "markdown",
             "path": "components/markdown.md"
+          },
+          {
+            "label": "meter",
+            "path": "components/meter.md"
           },
           {
             "label": "number_field",
