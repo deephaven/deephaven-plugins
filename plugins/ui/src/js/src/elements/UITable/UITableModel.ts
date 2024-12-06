@@ -22,48 +22,25 @@ import { type dh as DhType } from '@deephaven/jsapi-types';
 import { ColorGradient, DatabarConfig, FormattingRule } from './UITableUtils';
 import JsTableProxy, { UITableLayoutHints } from './JsTableProxy';
 
+/**
+ * Create a UITableModel.
+ * WARNING: This may mutate the baseTable object to add customColumns for formatting.
+ * @param dh The JS API object
+ * @param baseTable The base table to create the UI table model from. This may be mutated.
+ * @param databars Databar configurations
+ * @param layoutHints Layout hints for the table
+ * @param format Format rules for the table
+ * @param displayNameMap Column display name mappings
+ * @returns Promise resolving to a new UITableModel
+ */
 export async function makeUiTableModel(
   dh: typeof DhType,
-  table: DhType.Table,
+  baseTable: DhType.Table,
   databars: DatabarConfig[],
   layoutHints: UITableLayoutHints,
   format: FormattingRule[],
   displayNameMap: Record<string, string>
 ): Promise<UITableModel> {
-  const joinColumns: string[] = [];
-  const totalsOperationMap: Record<string, string[]> = {};
-  databars.forEach(config => {
-    const { column, value_column: valueColumn = column, min, max } = config;
-
-    try {
-      table.findColumn(column);
-    } catch {
-      throw new Error(`Can't find databar column ${column}`);
-    }
-
-    try {
-      table.findColumn(valueColumn);
-    } catch {
-      throw new Error(`Can't find databar value column ${valueColumn}`);
-    }
-
-    if (min == null && max == null) {
-      totalsOperationMap[valueColumn] = ['Min', 'Max'];
-      joinColumns.push(
-        `${valueColumn}__DATABAR_Min=${valueColumn}__Min`,
-        `${valueColumn}__DATABAR_Max=${valueColumn}__Max`
-      );
-    } else if (min == null) {
-      totalsOperationMap[valueColumn] = ['Min'];
-      joinColumns.push(`${valueColumn}__DATABAR_Min=${valueColumn}`);
-    } else if (max == null) {
-      totalsOperationMap[valueColumn] = ['Max'];
-      joinColumns.push(`${valueColumn}__DATABAR_Max=${valueColumn}`);
-    }
-  });
-
-  let baseTable = table;
-
   const customColumns: string[] = [];
   format.forEach((rule, i) => {
     const { if_ } = rule;
@@ -89,21 +66,62 @@ export async function makeUiTableModel(
     });
   }
 
-  if (joinColumns.length > 0) {
-    const totalsTable = await table.getTotalsTable({
+  const joinColumns: string[] = [];
+  const totalsOperationMap: Record<string, string[]> = {};
+  databars.forEach(config => {
+    const { column, value_column: valueColumn = column, min, max } = config;
+
+    try {
+      baseTable.findColumn(column);
+    } catch {
+      throw new Error(`Can't find databar column ${column}`);
+    }
+
+    try {
+      baseTable.findColumn(valueColumn);
+    } catch {
+      throw new Error(`Can't find databar value column ${valueColumn}`);
+    }
+
+    if (min == null && max == null) {
+      totalsOperationMap[valueColumn] = ['Min', 'Max'];
+      joinColumns.push(
+        `${valueColumn}__DATABAR_Min=${valueColumn}__Min`,
+        `${valueColumn}__DATABAR_Max=${valueColumn}__Max`
+      );
+    } else if (min == null) {
+      totalsOperationMap[valueColumn] = ['Min'];
+      joinColumns.push(`${valueColumn}__DATABAR_Min=${valueColumn}`);
+    } else if (max == null) {
+      totalsOperationMap[valueColumn] = ['Max'];
+      joinColumns.push(`${valueColumn}__DATABAR_Max=${valueColumn}`);
+    }
+  });
+
+  let table = baseTable;
+  let totalsTable: DhType.TotalsTable | undefined;
+
+  if (Object.keys(totalsOperationMap).length > 0) {
+    totalsTable = await baseTable.getTotalsTable({
       operationMap: totalsOperationMap,
       defaultOperation: 'Skip',
       showGrandTotalsByDefault: false,
       showTotalsByDefault: false,
       groupBy: [],
     });
-
-    baseTable = await table.naturalJoin(totalsTable, [], joinColumns);
+    table = await baseTable.naturalJoin(totalsTable, [], joinColumns);
   }
 
   const uiTableProxy = new JsTableProxy({
-    table: baseTable,
+    table,
     layoutHints,
+    onClose: () => {
+      // Need to cleanup the base tables when the proxy is closed if we needed aggregations
+      if (totalsTable != null) {
+        baseTable.close();
+        totalsTable.close();
+      }
+    },
   });
 
   const baseModel = await IrisGridModelFactory.makeModel(dh, uiTableProxy);
@@ -141,11 +159,9 @@ type NumericValue =
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 class UITableModel extends IrisGridModel {
-  table: DhType.Table;
+  table: JsTableProxy;
 
   private model: IrisGridModel;
-
-  private databars: Map<ColumnName, DatabarConfig>;
 
   /**
    * Map of theme color keys to hex color values
@@ -153,6 +169,8 @@ class UITableModel extends IrisGridModel {
   private colorMap: Map<string, string> = new Map();
 
   private displayNameMap: Record<string, string>;
+
+  private databars: Map<ColumnName, DatabarConfig>;
 
   private format: FormattingRule[];
 
@@ -166,7 +184,7 @@ class UITableModel extends IrisGridModel {
   }: {
     dh: typeof DhType;
     model: IrisGridModel;
-    table: DhType.Table;
+    table: JsTableProxy;
     databars: DatabarConfig[];
     format: FormattingRule[];
     displayNameMap: Record<string, string>;
