@@ -4,7 +4,7 @@ Hooks are functions that isolate reusable parts of a component. Built-in `deepha
 
 ## Built-in Hooks
 
-`Deephaven.ui` has a large number of built-in hooks to help with the development of components. The full documentation for these can be found in the [`Hooks` section](../hooks/overview.md) of the documentation.
+`deephaven.ui` has a large number of built-in hooks to help with the development of components. The full documentation for these can be found in the [`hooks` section](../hooks/overview.md) of the documentation.
 
 ### Use State Hook
 
