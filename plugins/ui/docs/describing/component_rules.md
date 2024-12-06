@@ -35,7 +35,7 @@ Here is the same component written in `deephaven.ui`.
 my_component("Hello World", prop1="value1")
 ```
 
-## Defining your wwn children and props
+## Defining your own children and props
 
 To define `children` and `props` for a custom component, add them as arguments to the component function. As a convention, you may declare the children using the `*` symbol to take any number of arguments.
 
