@@ -130,15 +130,15 @@ See the [`use_callback`](../hooks/use_callback.md) documentation for more detail
 
 Hooks are Python functions, but you need to follow two rules when using them.
 
-### Only Call Hooks at the Top Level
+1. Only Call Hooks at the Top Level
 
-Don’t call hooks inside loops, conditions, or nested functions. Instead, always use hooks at the top level of your `deephaven.io` component function, before any early returns. By following this rule, you ensure that hooks are called in the same order each time a component renders.
+Don’t call hooks inside loops, conditions, or nested functions. Instead, always use hooks at the top level of your `deephaven.ui` component function, before any early returns. By following this rule, you ensure that hooks are called in the same order each time a component renders.
 
-### Only Call Hooks from Components and Custom Hooks
+2. Only Call Hooks from Components and Custom Hooks
 
 Don’t call hooks from regular Python functions. Instead, you can:
 
-- Call Hooks from `deephaven.ui` function components.
+- Call Hooks from `@ui.component` decorated functions.
 - Call hooks from custom hooks.
 
 Following this rule ensures that all stateful logic in a component is clearly visible from its source code.
