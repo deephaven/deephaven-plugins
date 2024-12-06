@@ -34,21 +34,24 @@ class Preprocessor:
         groups: set[str],
         always_attached: dict[tuple[str, str], tuple[dict[str, str], list[str], str]],
         pivot_vars: dict[str, str],
+        list_var: str | None,
     ):
         self.args = args
         self.groups = groups
         self.preprocesser = None
         self.always_attached = always_attached
         self.pivot_vars = pivot_vars
+        self.list_var = list_var
         self.prepare_preprocess()
-        pass
 
     def prepare_preprocess(self) -> None:
         """
         Prepare for preprocessing by capturing information needed
         """
         if "preprocess_hist" in self.groups:
-            self.preprocesser = HistPreprocessor(self.args, self.pivot_vars)
+            self.preprocesser = HistPreprocessor(
+                self.args, self.pivot_vars, self.list_var
+            )
         elif "preprocess_freq" in self.groups:
             self.preprocesser = FreqPreprocessor(self.args)
         elif "always_attached" in self.groups and self.always_attached:
