@@ -11,7 +11,9 @@ from deephaven import time_table, ui
 @ui.component
 def ui_table_row(table):
     row_data = ui.use_row_data(table)
-    return ui.heading(f"The row data is {row_data}")
+    if row_data == ():
+        return ui.heading("No data yet.")
+    return ui.heading(f"Row data is {row_data}. Value of X is {row_data['x']}")
 
 
 table_row = ui_table_row(time_table("PT1s").update("x=i").reverse())
@@ -23,6 +25,7 @@ In the above example, `ui_table_row` is a component that listens to a table and 
 
 1. **Use `use_row_data` for listening to table updates**: If you need to listen to a table for one row of data, use `use_row_data`.
 2. **Use table operations to filter to one row**: If your table has multiple rows and columns, use table operations such as `.where`, `.select` and `.reverse` to filter to the row you want to listen to. `use_row_data` always uses the first row of the table.
+3. **Pass a Sentinel value to `use_row_data`**: If you want to use a default value when the table is empty, pass a sentinel value to `use_row_data`. The default sentinel value is `()`, which is returned when the table is empty.
 
 ## API reference
 
