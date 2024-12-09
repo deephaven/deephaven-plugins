@@ -23,6 +23,15 @@
         "path": "architecture.md"
       },
       {
+        "label": "Describing the UI",
+        "items": [
+          {
+            "label": "Your First Component",
+            "path": "describing/your_first_component.md"
+          }
+        ]
+      },
+      {
         "label": "Components",
         "items": [
           {
