@@ -63,7 +63,7 @@ t = ui.table(
 
 For more examples and detailed information, see [ui.table](../components/table.md)
 
-# Memoize table operations
+## Memoize table operations
 
 If you are working with a table, memoize the table operation, storing the result in a memoized value. This will prevent the table from being re-computed on every render. This can be done with the [use_memo](../hooks/use_memo.md) hook.
 
