@@ -133,6 +133,10 @@
           {
             "label": "Multiple axes",
             "path": "multiple-axes.md"
+          },
+          {
+            "label": "`unsafe_update_figure` Chart Customization",
+            "path": "unsafe_update_figure.md"
           }
         ]
       }
