@@ -96,15 +96,9 @@ def logic_button(
     Args:
         *children: The children to render inside the button.
         variant: The variant of the button. (default: "primary")
-        is_emphasized: Whether the button should be displayed with an emphasized style.
-        is_selected: Whether the button is selected.
-        default_selected: Whether the button is selected by default.
         is_disabled: Whether the button is disabled.
         auto_focus: Whether the button should automatically get focus when the page loads.
-        is_quiet: Whether the button should be quiet.
-        static_color: The static color style to apply. Useful when the button appears over a color background.
         type: The type of button to render. (default: "button")
-        on_change: Handler that is called when the element's selection state changes.
         on_press: Function called when the button is pressed.
         on_press_start: Function called when the button is pressed.
         on_press_end: Function called when a press interaction ends, either over the target or when the pointer leaves the target.
