@@ -24,7 +24,7 @@ The `menu_trigger` accepts exactly two children: the element which triggers the 
 
 ## Events
 
-`menu_trigger` accepts an `on_open_chnage` handler which is triggered whenever the `menu` is opened or closed.
+`menu_trigger` accepts an `on_open_change` handler which is triggered whenever the `menu` is opened or closed.
 
 ```python
 from deephaven import ui
