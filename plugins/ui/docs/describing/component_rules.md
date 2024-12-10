@@ -4,7 +4,7 @@ This guide presents some important rules to remember for `deephaven.ui` componen
 
 ## Children and props
 
-Arguments passed to a component may be either `children` or `props`. `Children` refers to `child` components that are passed to a `parent` component as positional arguments. `Props` are properties passed as keyword arguments that determine the behavior and rendering style of the component. Positional arguments must be included in the correct order. Keyword arguments are included with a keyword and equals sign.
+Arguments passed to a component may be either `children` or `props`. `Children` refers to `child` components that are passed to a `parent` component as positional arguments. `Props` are properties passed as keyword arguments that determine the behavior and rendering style of the component. Positional arguments must be included in the correct order. Keyword arguments are included with a keyword and equals sign. Keyword argument ordering does not matter, but the ordering of keyword arguments can affect ordering of positional arguments and make them out of order.
 
 ```python
 from deephaven import ui
@@ -18,6 +18,8 @@ my_flex = ui.flex(
     width="200px",
 )
 ```
+
+![Children and props](../_assets/component_rules_1.png)
 
 In the above example, the `flex` component is the `parent`. It has three `children`: a `heading`, a `button`, and a `text` component. These `children` will be rendered inside the `flex`. It also has three props: `direction`, `wrap`, and `width`. These three props indicate that the flex should be rendered as a 200 pixel column with wrap enabled.
 
@@ -54,6 +56,8 @@ def custom_flex(*children, is_column):
 
 my_custom_flex = custom_flex(ui.text("text"), ui.button("button"), is_column=True)
 ```
+
+![Define your own children and props](../_assets/component_rules_2.png)
 
 ## Component return values
 
@@ -120,3 +124,5 @@ def return_conditional(is_button):
 my_button = return_conditional(True)
 my_text = return_conditional(False)
 ```
+
+See [Conditional Rendering](./conditional_rendering.md)
