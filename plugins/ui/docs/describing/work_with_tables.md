@@ -46,7 +46,7 @@ my_flex_table = flex_table(_source)
 
 ## Use `ui.table`
 
-`ui.table` is a wrapper for Deephaven tables that allows you to change how the table is displayed in the UI and how to handle user events. Here is an example of adding custom color formatting.
+[ui.table](../components/table.md) is a wrapper for Deephaven tables that allows you to change how the table is displayed in the UI and how to handle user events. Here is an example of adding custom color formatting.
 
 ```py
 from deephaven import ui
@@ -64,8 +64,6 @@ t = ui.table(
 ```
 
 ![Use ui.table](../_assets/work_with_tables2.png)
-
-For more examples and detailed information, see [ui.table](../components/table.md)
 
 ## Memoize table operations
 
