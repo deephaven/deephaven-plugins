@@ -32,6 +32,10 @@
           {
             "label": "Importing and Exporting Components",
             "path": "describing/importing_and_exporting_components.md"
+          },
+          {
+            "label": "Conditional Rendering",
+            "path": "describing/conditional_rendering.md"
           }
         ]
       },
