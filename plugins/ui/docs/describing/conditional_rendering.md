@@ -151,6 +151,36 @@ def packing_list():
 my_packing_list = packing_list()
 ```
 
+A Python `and` expression returns the value of its right side (in our case, the checkmark) if the left side (our condition) is `True`. But if the condition is `False`, the whole expression becomes `False`. `deephaven.ui` considers `False` to be like `None` and does not render anything in its place.
+
 ### Conditionally assigning to a variable
+
+When the shortcuts get in the way of writing plain code, try using an if statement and a variable. You can reassign variables, so start by providing the default content you want to display. Use an if statement to reassign an expression to `item_content` if `is_packed` is `True`.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def item(name, is_packed):
+    item_content = name
+    if is_packed:
+        item_content = name + " ✅"
+    return ui.text("- ", item_content)
+
+
+@ui.component
+def packing_list():
+    return ui.flex(
+        ui.heading("Packing list"),
+        item("Clothes", is_packed=True),
+        item("Shoes", is_packed=True),
+        item("Wallet", is_packed=False),
+        direction="column",
+    )
+
+
+my_packing_list = packing_list()
+```
 
 ## Recap
