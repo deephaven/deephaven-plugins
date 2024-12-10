@@ -1,4 +1,4 @@
-# Using Hooks
+# Use Hooks
 
 Hooks are functions that isolate reusable parts of a component. Built-in `deephaven.ui` hooks allow you to manage state, cache values, synchronize with external systems, and much more. You can either use the built-in hooks or combine them to build your own.
 
@@ -8,7 +8,7 @@ Hooks are functions that isolate reusable parts of a component. Built-in `deepha
 
 ### Use State Hook
 
-Call `use_state` at the top level of your component to declare a state variable.
+Call [`use_state`](../hooks/use_state.md) at the top level of your component to declare a state variable.
 
 ```python
 from deephaven import ui
@@ -25,11 +25,9 @@ counter = ui_counter()
 
 The `use_state` hook takes an optional parameter that is the initial state. It initializes to `None` if this is omitted. The hook returns two values: a state variable and a `set` function that lets you update the state and trigger a re-render.
 
-See the [`use_state`](../hooks/use_state.md) documentation for more detailed information.
-
 ### Use Memo Hook
 
-Call `use_memo` to cache the result of a calculation, function, or operation. This is useful when you have a value that is expensive to compute and you want to avoid re-computing it on every render.
+Call [`use_memo`](../hooks/use_memo.md) to cache the result of a calculation, function, or operation. This is useful when you have a value that is expensive to compute and you want to avoid re-computing it on every render.
 
 ```python
 from deephaven import ui
@@ -52,11 +50,9 @@ result = ui_todo_list(["Do grocery shopping", "Walk the dog", "Do laundry"], "Do
 
 The `use_memo` hook takes two parameters: a `callable` that returns a value and a list of dependencies. The value is computed once when dependencies are changed and then stored in the memoized value. The memoized value is returned on subsequent renders until the dependencies change.
 
-See the [`use_memo`](../hooks/use_memo.md) documentation for more detailed information.
-
 ### Use Effect Hook
 
-Call `use_effect` to synchronize a component with an external system. An effect runs when it is mounted or a dependency changes. An optional cleanup function runs when dependencies change or the component is unmounted.
+Call [`use_effect`](../hooks/use_effect.md) to synchronize a component with an external system. An effect runs when it is mounted or a dependency changes. An optional cleanup function runs when dependencies change or the component is unmounted.
 
 ```python
 from deephaven import ui
@@ -81,11 +77,9 @@ effect_example = ui_effect_example()
 
 The `use_effect` hook takes two parameters: a callable and a list of dependencies. The callable may return a function for cleanup.
 
-See the [`use_effect`](../hooks/use_effect.md) documentation for more detailed information.
-
 ### Use Callback Hook
 
-Call `use_callback` to memoize a callback function. This prevents unnecessary re-renders when the dependencies of the callback have not changed.
+Call [`use_callback`](../hooks/use_callback.md) to memoize a callback function. This prevents unnecessary re-renders when the dependencies of the callback have not changed.
 
 ```python
 from deephaven import ui
@@ -123,8 +117,6 @@ my_server = ui_server()
 ```
 
 The `use_callback` hook takes two parameters: a callable and a list of dependencies. It returns a memoized callback. The memoized callback is returned on subsequent renders until the dependencies change.
-
-See the [`use_callback`](../hooks/use_callback.md) documentation for more detailed information.
 
 ## Rules for Hooks
 
