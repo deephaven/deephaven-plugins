@@ -1,6 +1,6 @@
 # Component Rules
 
-Here are some important rules to understand about `deephaven.ui` components.
+This guide presents some important rules to remember for `deephaven.ui` components when writing queries.
 
 ## Children and props
 
