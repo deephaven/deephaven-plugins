@@ -1,17 +1,17 @@
-# Working with Tables
+# Work with Tables
 
 The Deephaven table is the key abstraction that unites static and real-time data for a seamless, integrated experience. Combining tables with `deephaven.ui` components allows you to create your own powerful, data centered workflows.
 
 For more information about tables, see [Working with Deephaven Tables](/core/docs/getting-started/quickstart/#4-working-with-deephaven-tables)
 
-## Displaying a table in a component
+## Display a table in a component
 
 You can display a Deephaven table in a component by doing one of the following:
 
 - return a table directly from a component
 - return a table as part of a `list` or `tuple`
 - add a table to a container such as a `flex` or `panel`
-- use `ui.table` (see next section)
+- [use ui.table](#Use-ui.table)
 
 ```python
 from deephaven import new_table, ui
@@ -42,7 +42,9 @@ my_list_table = list_table(_source)
 my_flex_table = flex_table(_source)
 ```
 
-## Using ui.table
+![Display a table in a component](../_assets/work_with_tables1.png)
+
+## Use ui.table
 
 `ui.table` is a wrapper for Deephaven tables that allow you to change how the table is displayed in the UI and handle user events. Here is an example of how to add custom color formatting.
 
@@ -61,11 +63,13 @@ t = ui.table(
 )
 ```
 
+![Use ui.table](../_assets/work_with_tables2.png)
+
 For more examples and detailed information, see [ui.table](../components/table.md)
 
 ## Memoize table operations
 
-If you are working with a table, memoize the table operation, storing the result in a memoized value. This will prevent the table from being re-computed on every render. This can be done with the [use_memo](../hooks/use_memo.md) hook.
+If you are working with a table, memoize the table operation. This will store the result in a memoized value and prevent the table from being re-computed on every render. This can be done with the [use_memo](../hooks/use_memo.md) hook.
 
 ```python
 from deephaven import time_table, ui
