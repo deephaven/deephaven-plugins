@@ -21,6 +21,7 @@ export * from './InlineAlert';
 export * from './ListView';
 export * from './LogicButton';
 export * from './Markdown';
+export * from './Meter';
 export * from './model';
 export * from './ObjectView';
 export * from './Picker';

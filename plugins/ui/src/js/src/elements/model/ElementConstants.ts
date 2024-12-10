@@ -56,6 +56,7 @@ export const ELEMENT_NAME = {
   listView: uiComponentName('ListView'),
   logicButton: uiComponentName('LogicButton'),
   markdown: uiComponentName('Markdown'),
+  meter: uiComponentName('Meter'),
   numberField: uiComponentName('NumberField'),
   picker: uiComponentName('Picker'),
   progressBar: uiComponentName('ProgressBar'),
