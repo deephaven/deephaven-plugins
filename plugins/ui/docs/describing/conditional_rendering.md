@@ -182,5 +182,3 @@ def packing_list():
 
 my_packing_list = packing_list()
 ```
-
-## Recap
