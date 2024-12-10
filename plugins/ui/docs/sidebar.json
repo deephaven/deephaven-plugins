@@ -32,6 +32,10 @@
           {
             "label": "Importing and Exporting Components",
             "path": "describing/importing_and_exporting_components.md"
+          },
+          {
+            "label": "Working with Tables",
+            "path": "describing/work_with_tables.md"
           }
         ]
       },
