@@ -34,6 +34,10 @@
             "path": "describing/importing_and_exporting_components.md"
           },
           {
+            "label": "Working with Tables",
+            "path": "describing/work_with_tables.md"
+          },
+          {
             "label": "Conditional Rendering",
             "path": "describing/conditional_rendering.md"
           }
