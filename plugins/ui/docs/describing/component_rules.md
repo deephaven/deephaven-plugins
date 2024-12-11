@@ -4,7 +4,7 @@ This guide presents some important rules to remember for `deephaven.ui` componen
 
 ## Children and props
 
-Arguments passed to a component may be either `children` or `props`. `Children` refers to `child` components that are passed to a `parent` component as positional arguments. `Props` are properties passed as keyword arguments that determine the behavior and rendering style of the component. Positional arguments must be included in the correct order. Keyword arguments are included with a keyword and equals sign. Keyword argument ordering does not matter, but the ordering of keyword arguments can affect ordering of positional arguments and make them out of order.
+Arguments passed to a component may be either `children` or `props`. `Children` refers to `child` components that are passed to a `parent` component as positional arguments. `Props` are properties passed as keyword arguments that determine the behavior and rendering style of the component. Positional arguments must be included in the correct order. Keyword arguments are included with a keyword and equals sign. Keyword argument ordering does not matter, but the ordering of keyword arguments can affect the ordering of positional arguments and make them out of order.
 
 ```python
 from deephaven import ui
@@ -61,7 +61,10 @@ my_custom_flex = custom_flex(ui.text("text"), ui.button("button"), is_column=Tru
 
 ## Component return values
 
-A `deephaven.ui` component usually returns a component. It may also return a list or tuple of components. It may return `None` if it should perform logic but does not need to be rendered. It may also return a single value like a `string` or `int`.
+A `deephaven.ui` component usually returns a component. However, it may also return:
+- a list or tuple of components. 
+- `None` if it should perform logic but does not need to be rendered. 
+- a single value like a `string` or `int`.
 
 ```python
 from deephaven import ui
@@ -125,4 +128,3 @@ my_button = return_conditional(True)
 my_text = return_conditional(False)
 ```
 
-See [Conditional Rendering](./conditional_rendering.md)
