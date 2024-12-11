@@ -4,7 +4,7 @@ Hooks are functions that isolate reusable parts of a component. Built-in `deepha
 
 ## Built-in Hooks
 
-`deephaven.ui` has a large number of built-in hooks to help with the development of components. The full documentation for these can be found in the [`hooks` section](../hooks/overview.md) of the documentation.
+`deephaven.ui` has a large number of built-in hooks to help with the development of components. More details can be found in the [`hooks` section](../hooks/overview.md) of the documentation.
 
 ### Use State Hook
 
@@ -122,11 +122,11 @@ The `use_callback` hook takes two parameters: a callable and a list of dependenc
 
 Hooks are Python functions, but you need to follow two rules when using them.
 
-1. Only Call Hooks at the Top Level
+1. Only call hooks at the top level.
 
 Don’t call hooks inside loops, conditions, or nested functions. Instead, always use hooks at the top level of your `deephaven.ui` component function, before any early returns. By following this rule, you ensure that hooks are called in the same order each time a component renders.
 
-2. Only Call Hooks from Components and Custom Hooks
+2. Only call hooks from components and custom hooks
 
 Don’t call hooks from regular Python functions. Instead, you can:
 
@@ -135,14 +135,14 @@ Don’t call hooks from regular Python functions. Instead, you can:
 
 Following this rule ensures that all stateful logic in a component is clearly visible from its source code.
 
-## Building Your Own Hooks
+## Build your own hooks
 
 When you have reusable logic involving one or more hooks, you may want to write a custom hook to encapsulate that logic. A hook is a Python function that follows these guidelines:
 
 - Hooks can call other hooks, but usage of hooks within hooks follows the same rules as using hooks within components.
 - Custom hooks should start with the word `use` to indicate that is a hook and may contain component state and effects.
 
-### Example: Extracting the use_server Hook
+### Example: Extracting the `use_server` hook
 
 Look back at the code example for the `use_callback` hook. The component uses two hooks to connect to a server. This logic can be extracted into a `use_server` hook to make it reusable by other components.
 
