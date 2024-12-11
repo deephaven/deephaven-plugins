@@ -1,6 +1,23 @@
 # Use Hooks
 
-Hooks are functions that isolate reusable parts of a component. Built-in `deephaven.ui` hooks allow you to manage state, cache values, synchronize with external systems, and much more. You can either use the built-in hooks or combine them to build your own.
+Hooks are Python functions that isolate reusable parts of a component. Built-in `deephaven.ui` hooks allow you to manage state, cache values, synchronize with external systems, and much more. You can either use the built-in hooks or combine them to build your own.
+
+## Rules for Hooks
+
+Hooks are Python functions, but you need to follow two rules when using them.
+
+1. Only call hooks at the top level.
+
+Don’t call hooks inside loops, conditions, or nested functions. Instead, always use hooks at the top level of your `deephaven.ui` component function, before any early returns. By following this rule, you ensure that hooks are called in the same order each time a component renders.
+
+2. Only call hooks from components and custom hooks
+
+Don’t call hooks from regular Python functions. Instead, you can:
+
+- Call Hooks from `@ui.component` decorated functions.
+- Call hooks from custom hooks.
+
+Following this rule ensures that all stateful logic in a component is clearly visible from its source code.
 
 ## Built-in Hooks
 
@@ -117,23 +134,6 @@ my_server = ui_server()
 ```
 
 The `use_callback` hook takes two parameters: a callable and a list of dependencies. It returns a memoized callback. The memoized callback is returned on subsequent renders until the dependencies change.
-
-## Rules for Hooks
-
-Hooks are Python functions, but you need to follow two rules when using them.
-
-1. Only call hooks at the top level.
-
-Don’t call hooks inside loops, conditions, or nested functions. Instead, always use hooks at the top level of your `deephaven.ui` component function, before any early returns. By following this rule, you ensure that hooks are called in the same order each time a component renders.
-
-2. Only call hooks from components and custom hooks
-
-Don’t call hooks from regular Python functions. Instead, you can:
-
-- Call Hooks from `@ui.component` decorated functions.
-- Call hooks from custom hooks.
-
-Following this rule ensures that all stateful logic in a component is clearly visible from its source code.
 
 ## Build your own hooks
 
