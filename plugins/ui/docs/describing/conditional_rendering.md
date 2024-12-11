@@ -29,6 +29,8 @@ def packing_list():
 my_packing_list = packing_list()
 ```
 
+![my_packing_list](../_assets/conditional_rendering1.png)
+
 Some of the `item` components have their `is_packed` prop set to `True` instead of `False`. You want to add a checkmark (✅) to packed items if `is_packed=True`.
 
 You can write this as an if/else statement like so:
@@ -57,6 +59,8 @@ def packing_list():
 
 my_packing_list = packing_list()
 ```
+
+![my_packing_list2](../_assets/conditional_rendering2.png)
 
 Notice you are creating branching logic with Python's if and return statements. In `deephaven.ui`, control flow (like conditions) is handled by Python.
 
@@ -88,6 +92,8 @@ def packing_list():
 
 my_packing_list = packing_list()
 ```
+
+![my_packing_list3](../_assets/conditional_rendering3.png)
 
 If `is_packed` is True, the component will return nothing. Otherwise, it will return a component to render.
 
