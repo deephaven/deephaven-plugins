@@ -4,7 +4,7 @@ This guide presents some important rules to remember for `deephaven.ui` componen
 
 ## Children and props
 
-Arguments passed to a component may be either `children` or `props`. `Children` refers to `child` components that are passed to a `parent` component as positional arguments. `Props` are properties passed as keyword arguments that determine the behavior and rendering style of the component. Positional arguments must be included in the correct order. Keyword arguments are included with a keyword and equals sign. Keyword argument ordering does not matter, but the ordering of keyword arguments can affect the ordering of positional arguments and make them out of order.
+Arguments passed to a component may be either `children` or `props`. `Children` are positional arguments passed to a `parent` component. `Props` are keyword arguments that determine the behavior and rendering style of the component. The `child` positional arguments must be passed first in the desired order. The `prop` keyword arguments can then be added in any order. Placing a `prop` before a `child` argument will cause the `child` to be out of order.
 
 ```python
 from deephaven import ui
@@ -25,7 +25,7 @@ In the above example, the `flex` component is the `parent`. It has three `childr
 
 ## Comparison with JSX
 
-Here is a component written in React JSX.
+For developers familiar with React JSX, this example shows how `prop` and `child` arguments are specified in JSX.
 
 ```html
 <MyComponent prop1="value1">Hello World</MyComponent>
@@ -62,8 +62,9 @@ my_custom_flex = custom_flex(ui.text("text"), ui.button("button"), is_column=Tru
 ## Component return values
 
 A `deephaven.ui` component usually returns a component. However, it may also return:
-- a list or tuple of components. 
-- `None` if it should perform logic but does not need to be rendered. 
+
+- a list or tuple of components.
+- `None` if it should perform logic but does not need to be rendered.
 - a single value like a `string` or `int`.
 
 ```python
@@ -127,4 +128,3 @@ def return_conditional(is_button):
 my_button = return_conditional(True)
 my_text = return_conditional(False)
 ```
-
