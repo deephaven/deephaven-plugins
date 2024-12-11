@@ -36,6 +36,10 @@
           {
             "label": "Component Rules",
             "path": "describing/component_rules.md"
+          },
+          {
+            "label": "Working with Tables",
+            "path": "describing/work_with_tables.md"
           }
         ]
       },
