@@ -1,6 +1,6 @@
 # Conditional Rendering
 
-Your components will often need to display different things depending on different conditions. In `deephaven.ui`, you can conditionally render components using Python syntax like if statements, `and` operator, and the ternary operator.
+Your components will often need to display different things depending on different conditions. In `deephaven.ui`, you can conditionally render components using Python syntax like if statements, the `and` operator, and the ternary operator.
 
 ## Conditional returning
 
@@ -31,9 +31,10 @@ my_packing_list = packing_list()
 
 ![my_packing_list](../_assets/conditional_rendering1.png)
 
-Some of the `item` components have their `is_packed` prop set to `True` instead of `False`. You want to add a checkmark (✅) to packed items if `is_packed=True`.
+Some of the `item` components have their `is_packed` prop set to `True` instead of `False`. 
 
-You can write this as an if/else statement like so:
+To add a checkmark (✅) to packed items if `is_packed=True`, you can write an if/else statement like so:
+
 
 ```python
 from deephaven import ui
@@ -66,7 +67,7 @@ Notice you are creating branching logic with Python's if and return statements. 
 
 ### Conditionally return nothing with `None`
 
-In some situations, you do not want to render anything at all. For example, you do not want to show packed items at all. A component must return something. In this case, you can return `None`:
+In some situations, you do not want to render anything at all. For example, you do not want to show any packed items. A component must return something. In this case, you can return `None`:
 
 ```python
 from deephaven import ui
@@ -97,7 +98,7 @@ my_packing_list = packing_list()
 
 If `is_packed` is True, the component will return nothing. Otherwise, it will return a component to render.
 
-In practice, returning `None` from a component is not common because it might surprise a developer trying to render it. More often, you would conditionally include or exclude the component in the parent component. Here’s how to do that.
+In practice, returning `None` from a component is not common because it might surprise a developer trying to render it. More often, you would conditionally include or exclude the component in the parent component. The next section explains how to do that.
 
 ## Conditionally including components
 
@@ -132,7 +133,7 @@ my_packing_list = packing_list()
 
 ### Logical `and` operator
 
-Another common shortcut you will encounter is the Python logical `and` operator. Inside `deephaven.ui` components, it often comes up when you want to render a component when the condition is `True`, or render nothing otherwise. With `and`, you could conditionally render the checkmark only if `is_packed` is `True`:
+Another common shortcut is the Python logical `and` operator. Inside `deephaven.ui` components, it often comes up when you want to render a component when the condition is `True`, or render nothing otherwise. With `and`, you could conditionally render the checkmark only if `is_packed` is `True`:
 
 ```python
 from deephaven import ui
