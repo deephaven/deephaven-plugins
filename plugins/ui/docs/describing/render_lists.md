@@ -47,6 +47,7 @@ food = [
 
 @ui.component
 def content_list(data):
+    # map the text items to components
     components = [ui.text(item) for item in data]
     return ui.flex(components, direction="column")
 
@@ -56,4 +57,30 @@ my_content_list = content_list(food)
 
 ## Filter lists of items
 
-This data can be structured even more.
+If you want a way to only show items of type vegetable, you can use the Python `filter` function to return just those items.
+
+```python
+from deephaven import ui
+
+food = [
+    "apple: fruit",
+    "broccoli: vegetable",
+    "banana: fruit",
+    "yogurt: dairy",
+    "carrot: vegetable",
+]
+
+
+@ui.component
+def content_list(data, data_type):
+    # filter for items that end with the desired data type
+    filtered = list(filter(lambda item: item.endswith(data_type), data))
+    # map the text items to components
+    components = [ui.text(item) for item in filtered]
+    return ui.flex(components, direction="column")
+
+
+my_content_list = content_list(food, "vegetable")
+```
+
+![my_content_list2](../_assets/render_lists2.png)
