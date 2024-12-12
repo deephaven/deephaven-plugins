@@ -4,6 +4,7 @@ To customize a chart in a way that is not directly supported by Deephaven Plotly
 A Plotly [`Figure`](https://plotly.com/python/figure-structure/) object backs every `dx` chart, and `unsafe_update_figure` allows you to directly modify this object.  
 
 > [!WARNING]
+> Update figure is marked "unsafe" because some modifications can entirely break your figure, and care must be taken.  
 > `dx` maps `Table` columns to an index of a trace within `Figure.data` which will break if the trace order changes. Do not remove traces. Add new traces at the end of the list.
 
 `unsafe_update_figure` accepts a function that takes a Plotly `Figure` object as input and optionally returns a modified `Figure` object. If a `Figure` is not returned, it is assumed that the input `Figure` has been modified in place.
