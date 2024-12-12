@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.12.1 - 2024-12-12
+#### Bug Fixes
+- switch to webgl by default for line plot (#992) - (2c7bc01) - Joe
+
+- - -
+
 ## plotly-express-v0.12.0 - 2024-11-23
 #### Bug Fixes
 - `dx` now respects the webgl flag (#934) - (9cdf1ee) - Joe
