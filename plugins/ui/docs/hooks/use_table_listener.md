@@ -1,6 +1,6 @@
 # use_table_listener
 
-`use_table_listener` lets you listen to a table for updates. This is useful when you want to listen to a table and perform an action when the table updates.
+`use_table_listener` lets you listen to a table for raw updates. This is an advanced feature requiring an understanding of how [table listeners](https://deephaven.io/core/docs/how-to-guides/table-listeners-python/) work and limitations of running code while the Update Graph is running. Most usages of this are more appropriate to implement with [the table data hooks](./overview.md#data-hooks). This is useful when you want to listen to the raw updates from a table and perform a custom action when the table updates.
 
 ## Example
 

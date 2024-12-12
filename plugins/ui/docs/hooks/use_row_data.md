@@ -1,6 +1,6 @@
 # use_row_data
 
-`use_row_data` lets you use the data of the first row of a table. This is useful when you want to listen to an updating table and use the data in your component.
+`use_row_data` lets you use the data of the first row of a table as a dictionary. This is useful when you want to listen to an updating table and use the data in your component.
 
 ## Example
 

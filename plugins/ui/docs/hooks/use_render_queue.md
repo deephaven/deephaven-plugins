@@ -26,7 +26,7 @@ def toast_table(t):
 my_toast_table = toast_table(_source)
 ```
 
-The above example listens to table updates and displays a toast message when the table updates. The `toast` function must be triggered on the render thread, whereas the listener is not fired on the render thread. Therefore, you must use the render queue to trigger the toast.
+The above example listens to table updates and displays a toast message when the table updates. The [`toast` function](../components/toast.md) must be triggered on the render thread, whereas the listener is not fired on the render thread. Therefore, you must use the render queue to trigger the toast.
 
 ## UI recommendations
 
@@ -101,7 +101,7 @@ def ui_batch_example():
 batch_example = ui_batch_example()
 ```
 
-When running the above example,  _two_ toasts appear with each button press: a red one where `a != b` (as `a` gets updated first), then a neutral one where `a == b` (as `b` gets updated second). Use the `use_render_queue` hook to ensure the updates are always batched together when working with a background thread:
+When running the above example, _two_ toasts appear with each button press: a red one where `a != b` (as `a` gets updated first), then a neutral one where `a == b` (as `b` gets updated second). Use the `use_render_queue` hook to ensure the updates are always batched together when working with a background thread:
 
 ```python
 from deephaven import ui
