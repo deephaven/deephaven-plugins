@@ -25,7 +25,7 @@ table_monitor = ui_table_monitor(_source)
 
 ## UI recommendations
 
-1. **Use table data hooks instead when possible**: `use_table_listener` is an advanced feature, requiring understanding of how the [table listeners](https://deephaven.io/core/docs/how-to-guides/table-listeners-python/) work, and limitations of running code while the Update Graph is running. Most usages of this are more appropriate to implement with [the table data hooks](./overview.md#data-hooks).
+1. **Use table data hooks instead when possible**: `use_table_listener` is an advanced feature requiring an understanding of how [table listeners](https://deephaven.io/core/docs/how-to-guides/table-listeners-python/) work and limitations of running code while the Update Graph is running. Most usages of this are more appropriate to implement with [the table data hooks](./overview.md#data-hooks).
 
 ## Display the last updated row
 
@@ -53,7 +53,7 @@ show_last_changed = ui_show_last_changed(_source)
 
 ## Display a toast
 
-Here's an example that listens to table updates and will display a toast message when the table updates. This is a simple example to demonstrate how to use `use_table_listener` to listen to table updates and display a toast message. Note you must use a [render queue](./use_render_queue.md) to trigger the toast, as the listener is not fired on the render thread.
+Here is a simple example that listens to table updates and displays a toast message when the table updates. Note you must use a [render queue](./use_render_queue.md) to trigger the toast, as the listener is not fired on the render thread.
 
 ```python
 from deephaven import time_table

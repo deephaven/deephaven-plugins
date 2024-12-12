@@ -1,8 +1,8 @@
 # use_liveness_scope
 
-`use_liveness_scope` allows your to interact with the [liveness scope](https://deephaven.io/core/docs/conceptual/liveness-scope-concept/) for a component. Some functions which interact with a component will create live objects that need to be managed by the component to ensure they are kept active.
+`use_liveness_scope` allows you to interact with the [liveness scope](https://deephaven.io/core/docs/conceptual/liveness-scope-concept/) to manage live objects within a component. Some functions that interact with a component will create live objects that need to be managed by the component to ensure they are kept active.
 
-The primary use case for this is when creating tables outside the component's own function, and passing them as state for the component's next update. If the table is not kept alive by the component, it will be garbage collected and the component will not be able to update with the new data.
+The primary use case is when creating tables outside the component's own function, and passing them as state for the component's next update. If the table is not kept alive by the component, it will be garbage collected and the component will not be able to update with the new data.
 
 ## Example
 
@@ -28,7 +28,7 @@ resetable_table = ui_resetable_table()
 
 ## UI recommendations
 
-1. **Avoid using `use_liveness_scope` unless necessary**: This is an advanced feature that should only be used when you need to manage the liveness of objects outside of the component's own function. Prefer instead to derive a live component based on state rather than setting a live component within state.
+1. **Avoid using `use_liveness_scope` unless necessary**: This is an advanced feature that should only be used when you need to manage the liveness of objects outside of the component's own function. Instead, derive a live component based on state rather than setting a live component within state.
 2. **Use `use_liveness_scope` to manage live objects**: If you need to manage the liveness of objects created outside of the component's own function, use `use_liveness_scope` to ensure they are kept alive. For more information on liveness scopes and why they are needed, see the [liveness scope documentation](https://deephaven.io/core/docs/conceptual/liveness-scope-concept/).
 
 ## Refactoring to avoid liveness scope
