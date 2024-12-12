@@ -33,7 +33,7 @@ app = my_app()
 
 ## Props
 
-For almost all components, Python positional arguments are mapped to React children and keyword-only arguments are mapped to React props. Rarely, some arguments are positional and keyword. For example, in `contextual_help`, the footer argument is positional and keyword since it has a default of `None`. It will still be passed as children.
+For almost all components, Python positional arguments are mapped to React children and keyword-only arguments are mapped to React props. Rarely, some arguments are positional and keyword. For example, in `contextual_help`, the footer argument is positional and keyword since it has a default of `None`. It will still be passed as a child.
 
 ```python
 from deephaven import ui
@@ -44,7 +44,7 @@ footer_as_positional = ui.contextual_help("Heading", "Content", "Footer")
 footer_as_keyword = ui.contextual_help("Heading", "Content", footer="Footer")
 ```
 
-The strings `"Hello"` and `"World"` will be passed to flex as children, while `"column"` is passed as the value to the `direction` prop. `"Footer"` is passed as children even if it's used in a keyword-manner. For more information, see the `contextual_help` doc.
+The strings `"Hello"` and `"World"` will be passed to flex as a child, while `"column"` is passed as the value to the `direction` prop. `"Footer"` is passed as a child even if it's used in a keyword-manner. For more information, see the `contextual_help` doc.
 
 ### Handling `null` vs `undefined`
 
