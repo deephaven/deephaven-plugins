@@ -63,7 +63,7 @@ my_packing_list = packing_list()
 
 ![my_packing_list2](../_assets/conditional_rendering2.png)
 
-Notice you are creating branching logic with Python's if and return statements. In `deephaven.ui`, control flow (like conditions) is handled by Python.
+Notice you are creating branching logic with Python's `if` and `return` statements. In `deephaven.ui`, control flow (like conditions) is handled by Python.
 
 ### Conditionally return nothing with `None`
 
@@ -96,17 +96,17 @@ my_packing_list = packing_list()
 
 ![my_packing_list3](../_assets/conditional_rendering3.png)
 
-If `is_packed` is True, the component will return nothing. Otherwise, it will return a component to render.
+If `is_packed` is `True`, the component will return nothing. Otherwise, it will return a component to render.
 
 In practice, returning `None` from a component is not common because it might surprise a developer trying to render it. More often, you would conditionally include or exclude the component in the parent component. The next section explains how to do that.
 
 ## Conditionally including components
 
-In the previous example, you controlled which component would be returned by using an if/else statement. This led to some code duplication. You can remove this duplication by conditionally including components.
+In the previous example, you controlled which component would be returned by using an [`if`/`else` statement](https://docs.python.org/3/tutorial/controlflow.html#if-statements). This led to some code duplication. You can remove this duplication by conditionally including components.
 
 ### Conditional ternary
 
-Python has a ternary conditional in the form: `a if condition else b`. This can simplify the `item` component.
+Python has a [ternary conditional](https://docs.python.org/3/reference/expressions.html#conditional-expressions) in the form: `a if condition else b`. This can simplify the `item` component.
 
 ```python
 from deephaven import ui
@@ -133,7 +133,7 @@ my_packing_list = packing_list()
 
 ### Logical `and` operator
 
-Another common shortcut is the Python logical `and` operator. Inside `deephaven.ui` components, it often comes up when you want to render a component when the condition is `True`, or render nothing otherwise. With `and`, you could conditionally render the checkmark only if `is_packed` is `True`:
+Another common shortcut is the Python [logical `and` operator](https://docs.python.org/3/reference/expressions.html#and). Inside `deephaven.ui` components, it often comes up when you want to render a component when the condition is `True`, or render nothing otherwise. With `and`, you could conditionally render the checkmark only if `is_packed` is `True`:
 
 ```python
 from deephaven import ui
@@ -162,7 +162,7 @@ A Python `and` expression returns the value of its right side (in our case, the 
 
 ### Conditionally assigning to a variable
 
-When the shortcuts get in the way of writing plain code, try using an if statement and a variable. You can reassign variables, so start by providing the default content you want to display. Use an if statement to reassign an expression to `item_content` if `is_packed` is `True`.
+When the shortcuts get in the way of writing plain code, try using an `if` statement and a variable. You can reassign variables, so start by providing the default content you want to display. Use an `if` statement to reassign an expression to `item_content` if `is_packed` is `True`.
 
 ```python
 from deephaven import ui
