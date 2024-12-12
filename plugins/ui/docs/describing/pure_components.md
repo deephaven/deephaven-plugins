@@ -55,3 +55,36 @@ my_tea_set2 = tea_set()
 ```
 
 ![side effects 2](../_assets/pure_components2.png)
+
+Now the component is pure. It returns only depends on the `guest` prop.
+
+In general, you should not expect components to be rendered in any particular order. Each component should only “think for itself”, and not attempt to coordinate with or depend upon others during rendering.
+
+## Local Mutations
+
+Pure functions do not mutate variables outside of the function’s scope or objects that were created before the function call. However, it is fine to change variables and objects created inside the function. In this example, the component creates list and adds a dozen cups to it:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def cup(guest):
+    return ui.text(f"Tea cup for guest {guest}")
+
+
+@ui.component
+def tea_set():
+    cups = []
+    for i in range(1, 13):
+        cups.append(cup(guest=i))
+    return ui.flex(cups, direction="column")
+
+
+my_tea_set1 = tea_set()
+my_tea_set2 = tea_set()
+```
+
+![local mutations](../_assets/pure_components3.png)
+
+TODO more explanation
