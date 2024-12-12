@@ -40,7 +40,7 @@ def ui_counter():
 counter = ui_counter()
 ```
 
-The `use_state` hook takes an optional parameter that is the initial state. It initializes to `None` if this is omitted. The hook returns two values: a state variable and a `set` function that lets you update the state and trigger a re-render.
+The `use_state` hook takes an optional parameter, the initial state. If this is omitted, it initializes to `None`. The hook returns two values: a state variable and a `set` function that lets you update the state and trigger a re-render.
 
 ### Use Memo Hook
 
@@ -65,7 +65,7 @@ def ui_todo_list(todos: list[str], filter: str):
 result = ui_todo_list(["Do grocery shopping", "Walk the dog", "Do laundry"], "Do")
 ```
 
-The `use_memo` hook takes two parameters: a `callable` that returns a value and a list of dependencies. The value is computed once when dependencies are changed and then stored in the memoized value. The memoized value is returned on subsequent renders until the dependencies change.
+The `use_memo` hook takes two parameters: a `callable` that returns a value and a list of dependencies. When dependencies are changed, the value is computed once and then stored in the memoized value. The memoized value is returned on subsequent renders until the dependencies change. The memoized value is returned on subsequent renders until the dependencies change.
 
 ### Use Effect Hook
 
