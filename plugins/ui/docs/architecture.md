@@ -44,7 +44,7 @@ footer_as_positional = ui.contextual_help("Heading", "Content", "Footer")
 footer_as_keyword = ui.contextual_help("Heading", "Content", footer="Footer")
 ```
 
-The strings `"Hello"` and `"World"` will be passed to flex as a child, while `"column"` is passed as the value to the `direction` prop. `"Footer"` is passed as a child even if it's used in a keyword-manner. For more information, see the `contextual_help` doc.
+The strings `"Hello"` and `"World"` will be passed to flex as a child, while `"column"` is passed as the value to the `direction` prop. `"Footer"` is passed as a child even if it's used in a keyword-manner. For more information, see the [`contextual_help`](./components/contextual_help.md) doc.
 
 ### Handling `null` vs `undefined`
 
