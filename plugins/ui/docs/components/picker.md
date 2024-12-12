@@ -182,7 +182,7 @@ def ui_picker_selected_key_examples():
 my_picker_selected_key_examples = ui_picker_selected_key_examples()
 ```
 
-Providing a value to the `selected_key` prop runs the component in "controlled" mode where the selection state is driven from the provided value. A value of `None` can be used to indicate nothing is selected while keeping the component in controlled mode. The default value is `ui.types.Undefined` which causes the component to run in "uncontrolled" mode.
+Providing a value to the `selected_key` prop runs the component in "controlled" mode where the selection state is driven from the provided value. A value of `None` can be used to indicate nothing is selected while keeping the component in controlled mode. The default value is `ui.types.Undefined`, which causes the component to run in "uncontrolled" mode.
 
 ```python
 from deephaven import ui

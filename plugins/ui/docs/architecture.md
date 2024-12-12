@@ -33,7 +33,7 @@ app = my_app()
 
 ## Props
 
-For almost all components, Python positional arguments are mapped to React children and keyword-only arguments are mapped to React props. Rarely, there are arguments that are positional and keyword. For example, in `contextual_help`, the footer argument is positional and keyword since it has a default of `None`. It will still be passed as children.
+For almost all components, Python positional arguments are mapped to React children and keyword-only arguments are mapped to React props. Rarely, some arguments are positional and keyword. For example, in `contextual_help`, the footer argument is positional and keyword since it has a default of `None`. It will still be passed as children.
 
 ```python
 from deephaven import ui
