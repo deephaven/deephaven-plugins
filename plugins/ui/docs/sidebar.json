@@ -38,6 +38,10 @@
             "path": "describing/work_with_tables.md"
           },
           {
+            "label": "Conditional Rendering",
+            "path": "describing/conditional_rendering.md"
+          },
+          {
             "label": "Pure Components",
             "path": "describing/pure_components.md"
           }
