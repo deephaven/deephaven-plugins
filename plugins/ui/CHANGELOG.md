@@ -2,6 +2,21 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.24.0 - 2024-12-12
+#### Bug Fixes
+- UI loading duplicate panels in embed iframe (#1043) - (e1559a4) - Matthew Runyon
+#### Documentation
+- Working with Tables (#1059) - (6e73350) - dgodinez-dh
+- Importing and Exporting Components (#1054) - (21b752c) - dgodinez-dh
+- Your First Component (#1052) - (ce3843a) - dgodinez-dh
+- Add Stack with tabs to dashboard docs (#1048) - (cf0c994) - mofojed
+#### Features
+- ui.meter (#1032) - (6730aa9) - ethanalvizo
+- ui.avatar (#1027) - (2738a1d) - Akshat Jawne
+- Toast Implementation (#1030) - (e53b322) - dgodinez-dh
+
+- - -
+
 ## ui-v0.23.1 - 2024-11-23
 
 - - -
