@@ -62,7 +62,7 @@ In general, you should not expect components to be rendered in any particular or
 
 ## Local Mutations
 
-Pure functions do not mutate variables outside of the function’s scope or objects that were created before the function call. However, it is fine to change variables and objects created inside the function. In this example, the component creates list and adds a dozen cups to it:
+Pure functions do not mutate variables outside of the function's scope or objects that were created before the function call. However, it is fine to change variables and objects created inside the function. In this example, the component creates list and adds a dozen cups to it:
 
 ```python
 from deephaven import ui
@@ -87,4 +87,30 @@ my_tea_set2 = tea_set()
 
 ![local mutations](../_assets/pure_components3.png)
 
-TODO more explanation
+If the `cups` variable was outside the TeaGathering function, this would be a problem. You would be changing a preexisting object by appending items to that list.
+
+However, because you created them during the same render, no code outside of `tea_set` will be impacted by this. This a local mutation.
+
+## Side Effects
+
+While the rendering process must remain pure, at some point, something needs to change. You may need to update the screen, start an animation, or change data. These changes are called side effects. These things need to happen on the side rather than during rendering.
+
+In `deephaven.ui`, side effects usually belong in event handlers. Event handlers are functions that run when you perform some action like clicking a button. Even though the event handlers are defined inside your component, they do not run during rendering, so even handlers do not need to be pure.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def event_handler_example():
+    # An event handler for a button
+    def button_handler():
+        print("button pressed")
+
+    return ui.button("button", on_press=button_handler)
+
+
+my_event_handler_example = event_handler_example()
+```
+
+If an event handler is not the correct place for a certain side effect, you can place it in a [`use_effect`](../hooks/use_effect.md) hook. This tells `deephaven.ui` to execute it later, after rendering, when side affects are allowed.
