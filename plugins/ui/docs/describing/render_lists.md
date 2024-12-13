@@ -1,6 +1,6 @@
 # Render Lists
 
-You will often want to display multiple similar components from a collection of data. You can use Python `filter` and `list comprehension` with `deephaven.ui` to filter and transform your list of data into an list of components.
+You will often want to display multiple similar components from a collection of data. You can use Python [`filter`](https://docs.python.org/3/library/functions.html#filter) and [`list comprehensions`](https://docs.python.org/3/tutorial/datastructures.html#list-comprehensions) with `deephaven.ui` to filter and transform your list of data into an list of components.
 
 ## Render data from lists
 
