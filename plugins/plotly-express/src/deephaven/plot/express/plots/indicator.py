@@ -7,7 +7,7 @@ from ..deephaven_figure import DeephavenFigure
 from ..types import PartitionableTableLike, Gauge, StyleMap
 
 
-def indicators(
+def indicator(
     table: PartitionableTableLike,
     value: str | None = None,
     reference: str | None = None,
