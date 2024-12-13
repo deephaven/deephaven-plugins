@@ -15,12 +15,12 @@
         "path": "README.md"
       },
       {
-        "label": "Tutorial",
-        "path": "tutorial.md"
-      },
-      {
         "label": "Installation",
         "path": "installation.md"
+      },
+      {
+        "label": "Tutorial",
+        "path": "tutorial.md"
       },
       {
         "label": "Architecture",
