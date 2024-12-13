@@ -2,7 +2,7 @@
 
 A [pure function](https://en.wikipedia.org/wiki/Pure_function) returns the same value given the same arguments and has no side effects. By writing `deephaven.ui` components as pure functions, you can avoid bugs and unpredictable behavior.
 
-## Side effects
+## Unintentional Side effects
 
 The rendering process must always be pure. Component functions should always return the same value for the same arguments. They should not _change_ any objects or variables that existed before rendering. That would not be pure.
 
@@ -91,7 +91,7 @@ If the `cups` variable was outside the TeaGathering function, this would be a pr
 
 However, because you created them during the same render, no code outside of `tea_set` will be impacted by this. This a local mutation.
 
-## Side Effects
+## Intentional Side Effects
 
 While the rendering process must remain pure, at some point, something needs to change. You may need to update the screen, start an animation, or change data. These changes are called side effects. These things need to happen on the side rather than during rendering.
 
