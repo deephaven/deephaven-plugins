@@ -38,6 +38,10 @@
             "path": "describing/work_with_tables.md"
           },
           {
+            "label": "Conditional Rendering",
+            "path": "describing/conditional_rendering.md"
+          },
+          {
             "label": "Render Lists",
             "path": "describing/render_lists.md"
           }
