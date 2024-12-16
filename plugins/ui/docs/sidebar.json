@@ -34,6 +34,10 @@
             "path": "describing/importing_and_exporting_components.md"
           },
           {
+            "label": "Component Rules",
+            "path": "describing/component_rules.md"
+          },
+          {
             "label": "Using Hooks",
             "path": "describing/use_hooks.md"
           },
