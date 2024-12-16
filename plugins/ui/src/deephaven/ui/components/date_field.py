@@ -25,7 +25,7 @@ from .._internal.utils import (
     create_props,
     convert_date_props,
 )
-from ..types import Date, Granularity
+from ..types import Date, Granularity, Undefined, UndefinedType
 from .basic import component_element
 from .make_component import make_component
 from deephaven.time import dh_now
@@ -46,6 +46,8 @@ _GRANULARITY_KEY = "granularity"
 
 # The priority of the date props to determine the format of the date passed to the callable date props
 _DATE_PROPS_PRIORITY = ["value", "default_value", "placeholder_value"]
+
+_NULLABLE_PROPS = ["value", "default_value"]
 
 
 def _convert_date_field_props(
@@ -76,8 +78,8 @@ def _convert_date_field_props(
 @make_component
 def date_field(
     placeholder_value: Date | None = dh_now(),
-    value: Date | None = None,
-    default_value: Date | None = None,
+    value: Date | None | UndefinedType = Undefined,
+    default_value: Date | None | UndefinedType = Undefined,
     min_value: Date | None = None,
     max_value: Date | None = None,
     # TODO (issue # 698) we need to implement unavailable_values
@@ -261,4 +263,4 @@ def date_field(
 
     _convert_date_field_props(props)
 
-    return component_element("DateField", **props)
+    return component_element("DateField", _nullable_props=_NULLABLE_PROPS, **props)
