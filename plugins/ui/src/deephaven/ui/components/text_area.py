@@ -25,12 +25,16 @@ from .types import (
 from .types import IconTypes
 from .basic import component_element
 from ..elements import Element
+from ..types import Undefined, UndefinedType
 
 from .icon import icon as icon_component
 
 
+_NULLABLE_PROPS = ["icon"]
+
+
 def text_area(
-    icon: Element | IconTypes | None = None,
+    icon: Element | IconTypes | None | UndefinedType = Undefined,
     is_quiet: bool | None = None,
     is_disabled: bool | None = None,
     is_read_only: bool | None = None,
@@ -271,4 +275,5 @@ def text_area(
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
         key=key,
+        _nullable_props=_NULLABLE_PROPS,
     )

@@ -25,7 +25,7 @@ from .._internal.utils import (
     create_props,
     convert_time_props,
 )
-from ..types import Time, TimeGranularity
+from ..types import Time, TimeGranularity, Undefined, UndefinedType
 from .basic import component_element
 from .make_component import make_component
 
@@ -43,6 +43,8 @@ _CALLABLE_TIME_PROPS = {"on_change"}
 
 # The priority of the time props to determine the format of the time passed to the callable time props
 _TIME_PROPS_PRIORITY = ["value", "default_value", "placeholder_value"]
+
+_NULLABLE_PROPS = ["value", "default_value"]
 
 
 def _convert_time_field_props(
@@ -71,8 +73,8 @@ def _convert_time_field_props(
 @make_component
 def time_field(
     placeholder_value: Time | None = None,
-    value: Time | None = None,
-    default_value: Time | None = None,
+    value: Time | None | UndefinedType = Undefined,
+    default_value: Time | None | UndefinedType = Undefined,
     min_value: Time | None = None,
     max_value: Time | None = None,
     granularity: TimeGranularity | None = "SECOND",
@@ -245,4 +247,4 @@ def time_field(
 
     _convert_time_field_props(props)
 
-    return component_element("TimeField", **props)
+    return component_element("TimeField", _nullable_props=_NULLABLE_PROPS, **props)
