@@ -1,16 +1,16 @@
 # Create a Dashboard with `deephaven.ui`
 
-This guide shows you how to build a dashboard with `deephaven.ui`. [`deephaven.ui`](https://github.com/deephaven/deephaven-plugins/tree/main/plugins/ui) is Deephaven’s Python library to create user interfaces. You’ll use a wide range of components supported by the library to get you familiar with what `deephaven.ui` provides and dive deep into simulated `iris` data, with live dataframes, visualizations, and interactivity, seamlessly integrated into a dashboard.  
-First, you'll learn the basic `deephaven.ui` components. Basic components use panels, which are individual and adjustable windows within Deephaven. Tables, charts, and other components are rendered in panels.  
-After creating panels, you'll create a dashboard. A dashboard is a collection of panels that open in a separate window within Deephaven.  
-Then, you'll create a custom panel component. Custom components enable rich interactivity within your panels and dashboards.  
-Finally, you'll embed your custom component into your dashboard.  
+This guide shows you how to build a dashboard with [`deephaven.ui`](https://github.com/deephaven/deephaven-plugins/tree/main/plugins/ui), Deephaven’s Python library to create user interfaces. You’ll use a wide range of components supported by the library to familiarize you with what `deephaven.ui` provides and dive deep into simulated data with live dataframes, visualizations, and interactivity seamlessly integrated into a dashboard.  
+
+- First, you'll learn the basic `deephaven.ui` components. Basic components use panels, which are individual and adjustable windows within Deephaven. Tables, charts, and other components are rendered in panels.  
+- After creating panels, you'll create a dashboard. A dashboard is a collection of panels that open in a separate window within Deephaven.  
+- Then, you'll create a custom panel component. Custom components enable rich interactivity within your panels and dashboards.  
+- Finally, you'll embed your custom component into your dashboard.  
 
 ![img](_assets/deephaven-ui-crash-course/iris_species_dashboard_final.png)
-To follow along, you need the [`deephaven.ui`](https://pypi.org/project/deephaven-plugin-ui/) package.  
-You also need simulated data and charts from [`deephaven.plot.express`](https://pypi.org/project/deephaven-plugin-ui/). You’ll create the simulated `iris` data below. 
-Both of these packages are included in the default setup.  
-Import the data with this script:
+To follow along, you need the [`deephaven.ui`](https://pypi.org/project/deephaven-plugin-ui/) package and simulated data and charts from [`deephaven.plot.express`](https://pypi.org/project/deephaven-plugin-ui/). Both of these packages are included in the default setup. 
+
+Import the simulated `iris` data with this script:
 
 ```py
 from deephaven import ui
@@ -21,12 +21,11 @@ iris = dx.data.iris()
 
 ![img](_assets/deephaven-ui-crash-course/iris.png)
 
-You'll specifically investigate `SepalLength`, `SepalWidth`, and `Species`. `Timestamp` is also useful to order the data.  
-The `Species` column is a categorical column with three values: `setosa`, `versicolor`, and `virginica`.  
-The `SepalLength`, `SepalWidth`, `PetalLength`, and `PetalWidth` columns are continuous numerical columns that contain measurements of the sepal and petal of an iris flower.  
+In this dataset, the `Species` column is a categorical column with three values: `setosa`, `Versicolor`, and `Virginia`. The `SepalLength`, `SepalWidth`, `PetalLength`, and `PetalWidth` columns are continuous numerical columns that contain measurements of the sepal and petal of an iris flower. The `Timestamp` column is also useful for ordering the data. 
+
 You'll mostly focus on `SepalLength` and `SepalWidth` in this guide.  
 
-## Basic Components
+## Basic components
 
 Components are the building blocks of `deephaven.ui`. Each component takes parameters that control how the component appears. By default, a component renders in a panel.
 
@@ -36,10 +35,10 @@ Wrapping a table in [`ui.table`](components/table.md) unlocks visual functionali
 Since you're investigating `SepalLength` and `SepalWidth`, create a `ui.table` that accentuates the latest filtered data.
 With `iris`, create a `ui.table` that:  
 
-1. Reverses the order so that the newest rows are shown first
-2. Pulls the `Species` column to the front along with `Timestamp`
-3. Hides the `PetalLength`, `PetalWidth`, and `SpeciesID` columns
-4. Uses the compact table density so you can see as many rows as possible
+1. Reverses the order so that the newest rows are shown first.
+2. Pulls the `Species` column to the front along with `Timestamp`.
+3. Hides the `PetalLength`, `PetalWidth`, and `SpeciesID` columns.
+4. Uses the compact table density so you can see as many rows as possible.
 
 ```py
 ui_iris = ui.table(
@@ -65,7 +64,7 @@ scatter_by_species = dx.scatter(iris, x = "SepalLength", y = "SepalWidth", by="S
 
 ### `ui.text`
 
-Basic text is added with the [`ui.text`](components/text.md) component. Create text to accompany the chart and table.
+The [`ui.text`](components/text.md) component adds basic text. Create text to accompany the chart and table.
 
 ```py
 sepal_text = ui.text("SepalLength vs. SepalWidth By Species Panel")
@@ -96,7 +95,7 @@ sepal_flex_column = ui.flex(sepal_text, sepal_flex, direction="column")
 
 The [`ui.tabs`](components/tabs.md) component enables tabs within a panel. Create histograms of `SepalLength` to display in tabs.  
 Histograms are useful to display comparisons of data distributions, so create [`dx.histogram`](../../plotly-express/main/histogram.md) charts of the columns of interest, `SepalLength` and `SepalWidth`, by `Species`.  
-Create `ui.tab` elements for `sepal_flex`, `sepal_length_hist`, and `sepal_width_hist` then pass them to `ui.tabs` to allow you to switch between different views.  
+Create `ui.tab` elements for `sepal_flex`, `sepal_length_hist`, and `sepal_width_hist`, then pass them to `ui.tabs` to switch between different views.  
 
 ```py
 sepal_length_hist = dx.histogram(iris, x="SepalLength", by="Species")
@@ -137,7 +136,7 @@ By default, components are rendered in a panel, but a dashboard enables more com
 When you have multiple panels, you can create a dashboard to contain them so that you can add even more panels later for your `iris` data exploration.
 
 <details>
-<summary>Expand for code up to this point</summary>
+<summary>Expand for complete code up to this point</summary>
 
 ```py skip-test
 from deephaven import ui
@@ -207,9 +206,9 @@ iris_dashboard = ui.dashboard(sepal_panel)
 
 ![img](_assets/deephaven-ui-crash-course/iris_dashboard.png)
 
-You now have a one panel dashboard.
+You now have a one-panel dashboard.
 
-With multiple panels, you can create a default layout. Create a panel for `about_markdown` so you can provide it a `title`.
+You can create a default layout with multiple panels. Create a panel for `about_markdown` so you can give it a `title`.
 
 ```py
 about_panel = ui.panel(about_markdown, title="About")
@@ -265,7 +264,7 @@ iris_dashboard_stack = ui.dashboard(iris_agg_stack)
 ## Interactivity
 
 So far, you’ve worked with `deephaven.ui` components that don’t interact with each other. Now, you’ll create your own component with interactivity and embed it into your dashboard.  
-Since you're investigating `SepalLength` and `SepalWidth` create a [`dx.densityheatmap`](../../plotly-express/main/density_heatmap.md) chart that shows the density of `SepalLength` and `SepalWidth`, with a `Species` filter.
+Since you're investigating `SepalLength` and `SepalWidth`, create a [`dx.densityheatmap`](../../plotly-express/main/density_heatmap.md) chart that shows the density of `SepalLength` and `SepalWidth`, with a `Species` filter.
 
 ### `ui.component`
 
@@ -283,7 +282,7 @@ custom_panel = custom_component()
 
 ### Picker
 
-A [`ui.picker`](components/picker.md) allows you to select options from a list. Start by creating one.
+A [`ui.picker`](components/picker.md) allows you to select options from a list. 
 
 ```py
 @ui.component
@@ -340,12 +339,12 @@ species_picker_panel = species_panel()
 
 ![img](_assets/deephaven-ui-crash-course/species_picker_panel_controlled.png)
 
-Now your picker is both controlled by the rendering engine and updates as you pick values and you have an up-to-date value from the table to filter on.
+Now, your picker is controlled by the rendering engine and updates as you pick values, and you have an up-to-date value from the table to filter on.
 
 ### Utilizing State
 
-Add in a table filtered on this value and a chart that uses this filtered table and return them with the picker.
-You'll create a `dx.heatmap`, which shows the joint density of `SepalLength` and `SepalWidth`, the variables of interest, filtered by `Species`.
+Now, add a table filtered on this value and a chart that uses this filtered table. Return them with the picker.
+You'll create a `dx.heatmap`, which shows the joint density of `SepalLength` and `SepalWidth` (the variables of interest) filtered by `Species`.
 
 ```py
 @ui.component
@@ -371,7 +370,7 @@ species_picker_panel = species_panel()
 
 ### `ui.illustrated_message`
 
-Currently, an empty table and chart appears if no species is selected. Add a [`ui.illustrated_message`](components/illustrated_message.md) component to display instead if no `species` is selected for a more user-friendly experience.  
+Currently, an empty table and chart appear if no species is selected. For a more user-friendly experience, add a [`ui.illustrated_message`](components/illustrated_message.md) component to display instead if no `species` is selected.  
 
 ```py
 @ui.component
@@ -404,9 +403,10 @@ species_picker_panel = species_panel()
 ![img](_assets/deephaven-ui-crash-course/species_picker_panel_illustrated.png)
 
 
-### Utilizing Custom Components
+### Utilizing custom components
 
 Next, embed your custom component in your dashboard.
+
 ```python
 iris_species_dashboard = ui.dashboard(
     ui.column(
@@ -422,13 +422,15 @@ iris_species_dashboard_resized = ui.dashboard(ui.column(ui.row(about_panel, iris
 
 ![img](_assets/deephaven-ui-crash-course/iris_species_dashboard_resized.png)
 
-### Dashboard State Across Panels
+### Dashboard state across panels
+
 Currently, the `ui.picker` selects `Species` within a panel. You can change state across panels as well.  
-Recreate the `sepal_flex_tabs` panel within the `create_sepal_panel` function, which takes a `set_species` function as an argument.  
-`ui.table` events are useful if you see a row you want to investigate further.  
-Add a listener, `on_row_double_press`, to the `ui.table`. `on_row_double_press` is called when a row is double-clicked, returning the row data, which then sets the `Species` value that is displayed in the `ui.picker` and `dx.density_heatmap`.  
-Pull the `Species` value from the row data and set it with `set_species`.  
-Then, create `sepal_panel` with `create_sepal_panel`, passing `set_species` to it.  
+
+Recreate the `sepal_flex_tabs` panel within the `create_sepal_panel` function, which takes a `set_species` function as an argument. Now, we'll add a `ui.table` event -- these are useful if you see a row you want to investigate further.  
+
+- Add a listener (`on_row_double_press`) to the table that is called when a row is double-clicked, returning the row data. This sets the `Species` value displayed in the `ui.picker` and `dx.density_heatmap`.  
+- Pull the `Species` value from the row data and set it with `set_species`.  
+- Then, create `sepal_panel` with `create_sepal_panel`, passing `set_species` to it.  
 
 ```python
 def create_sepal_panel(set_species):
@@ -495,15 +497,16 @@ iris_species_dashboard_state = ui.dashboard(create_species_dashboard())
 ![img](_assets/deephaven-ui-crash-course/iris_species_dashboard_resized.png)
 
 ### `ui.use_row_data` and `ui.badge`
+
 You've got a density heatmap that shows the density of `SepalLength` and `SepalWidth` by `Species`, but it's tricky to see the min, max, and average overall values for `SepalLength` and `SepalWidth` for the selected `Species`. They're in your table stack, but you can make them more prominent.  
 
 `deephaven.ui` provides hooks to access table data. Each hook provides access to a specific part of the table and is updated when the table changes.  
 The hooks are:
-- [`ui.use_cell_data`](hooks/use_cell_data.md) - Access a single cell value
-- [`ui.use_row_data`](hooks/use_row_data.md) - Access a row of data
-- [`ui.use_row_list`](hooks/use_row_list.md) - Access a row as a list
-- [`ui.use_column_data`](hooks/use_column_data.md) - Access a column of data
-- [`ui.use_table_data`](hooks/use_table_data.md) - Access the entire table
+- [`ui.use_cell_data`](hooks/use_cell_data.md) - Accesses a single cell value.
+- [`ui.use_row_data`](hooks/use_row_data.md) - Accesses a row of data.
+- [`ui.use_row_list`](hooks/use_row_list.md) - Accesses a row as a list.
+- [`ui.use_column_data`](hooks/use_column_data.md) - Accesses a column of data.
+- [`ui.use_table_data`](hooks/use_table_data.md) - Accesses the entire table.
 
 > [!WARNING]
 > Filter your table to only the data you need the hook to pull out. The hooks do not filter the table for you.
@@ -729,9 +732,9 @@ iris_species_dashboard_final = ui.dashboard(create_species_dashboard())
 
 Finally, you’ve completed this dashboard crash course, with your custom component and interactivity.
 
-## Wrapping Up
+## Wrapping up
 
-This wraps up the `deephaven.ui` dashboard crash course. In this course you learned about the following components and concepts and created a dashboard with many of them
+This wraps up the `deephaven.ui` dashboard crash course. In this course, you learned about the following components and concepts and created a dashboard with many of them:
 
 - [`ui.table`](components/table.md)
 - [`ui.text`](components/text.md)
@@ -757,5 +760,3 @@ This wraps up the `deephaven.ui` dashboard crash course. In this course you lear
 - [`dx.densityheatmap`](../../plotly-express/main/density_heatmap.md)
 - Component State
 - Custom Components
-
-This gets you started on the rich set of components `deephaven.ui` has to offer to create a dashboard.
