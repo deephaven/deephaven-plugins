@@ -40,6 +40,10 @@
           {
             "label": "Conditional Rendering",
             "path": "describing/conditional_rendering.md"
+          },
+          {
+            "label": "Your UI as a Tree",
+            "path": "describing/your_ui_as_a_tree.md"
           }
         ]
       },
