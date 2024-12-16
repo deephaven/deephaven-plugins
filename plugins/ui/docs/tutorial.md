@@ -68,7 +68,7 @@ scatter_by_species = dx.scatter(iris, x = "SepalLength", y = "SepalWidth", by="S
 Basic text is added with the [`ui.text`](components/text.md) component. Create text to accompany the chart and table.
 
 ```py
-sepal_text = ui.text("SepalLength vs. SepalWidth By Species Panel")
+sepal_text = ui.text("SepalLength vs. SepalWidth By Species")
 ```
 
 ![img](_assets/deephaven-ui-crash-course/sepal_text.png)
@@ -416,6 +416,8 @@ iris_species_dashboard = ui.dashboard(
 ```
 ![img](_assets/deephaven-ui-crash-course/iris_species_dashboard.png)
 
+There is lots of empty space in the top row. Resize the height of the top row to 1 and the bottom row to 2 for a ratio of 1:2, so the bottom row is twice the height of the top row.  
+
 ```py
 iris_species_dashboard_resized = ui.dashboard(ui.column(ui.row(about_panel, iris_agg_stack, height=1), ui.row(sepal_panel, species_picker_panel, height=2)))
 ```
@@ -528,6 +530,7 @@ def summary_badges(species):
     sepal_width_avg = ui.use_cell_data(species_avg.view(["SepalWidth"]))
 
     # format the values to 3 decimal places
+    # set flex_grow to 0 to prevent the badges from growing
     return ui.flex(
         ui.badge(f"SepalLength Min: {sepal_length_min:.3f}", variant="info"),
         ui.badge(f"SepalLength Max: {sepal_length_max:.3f}", variant="info"),
@@ -535,6 +538,7 @@ def summary_badges(species):
         ui.badge(f"SepalWidth Min: {sepal_width_min:.3f}", variant="info"),
         ui.badge(f"SepalWidth Max: {sepal_width_max:.3f}", variant="info"),
         ui.badge(f"SepalWidth Avg: {sepal_width_avg:.3f}", variant="info"),
+        flex_grow=0,
     )
 
 
@@ -563,6 +567,60 @@ def create_species_dashboard():
         heatmap = dx.density_heatmap(filtered_table, x="SepalLength", y="SepalWidth")
 
         badges = summary_badges(species)
+
+    species_panel = ui.panel(
+        ui.flex(species_picker, badges, heatmap, direction="column"),
+        title="Investigate Species",
+    )
+
+    sepal_panel = create_sepal_panel(set_species)
+
+    return ui.column(
+        ui.row(about_panel, iris_agg_stack, height=1),
+        ui.row(sepal_panel, species_panel, height=2),
+    )
+
+
+iris_species_dashboard_badge = ui.dashboard(create_species_dashboard())
+```
+
+![img](_assets/deephaven-ui-crash-course/iris_species_dashboard_final.png)
+
+### `ui.use_memo`
+
+`ui.use_memo` allows you to cache expensive calculations so they are only recalculated when needed. `ui.use_memo` takes a function and a list of dependencies. If the dependencies change, the function is recalculated.
+Since you've added badges to the dashboard, the `dx.heatmap` is recreated every time any of the badges change, but only needs to be recreated when the `Species` changes.  
+Heatmap is a fairly expensive chart to create, requires a filtered table in this case, and changes rarely, so pull the heatmap creation into a separate function and use `ui.use_memo` to cache the heatmap creation.
+
+```python
+def create_heatmap(species):
+    heatmap = ui.illustrated_message(
+        ui.icon("vsFilter"),
+        ui.heading("Species required"),
+        ui.content("Select a species to display filtered table and chart."),
+        width="100%",
+    )
+
+    if species:
+        filtered_table = iris.where("Species = species")
+        heatmap = dx.density_heatmap(filtered_table, x="SepalLength", y="SepalWidth")
+
+    return heatmap
+
+
+@ui.component
+def create_species_dashboard():
+    species, set_species = ui.use_state()
+    species_picker = ui.picker(
+        species_table,
+        on_change=set_species,
+        selected_key=species,
+        label="Current Species",
+    )
+
+    heatmap = ui.use_memo(lambda: create_heatmap(species), [species])
+
+    badges = summary_badges(species) if species else None
 
     species_panel = ui.panel(
         ui.flex(species_picker, badges, heatmap, direction="column"),
@@ -681,6 +739,7 @@ def summary_badges(species):
   sepal_width_avg = ui.use_cell_data(species_avg.view(["SepalWidth"]))
 
   # format the values to 3 decimal places
+  # set flex_grow to 0 to prevent the badges from growing 
   return ui.flex(
     ui.badge(f"SepalLength Min: {sepal_length_min:.3f}", variant="info"), 
     ui.badge(f"SepalLength Max: {sepal_length_max:.3f}", variant="info"),
@@ -688,39 +747,48 @@ def summary_badges(species):
     ui.badge(f"SepalWidth Min: {sepal_width_min:.3f}", variant="info"), 
     ui.badge(f"SepalWidth Max: {sepal_width_max:.3f}", variant="info"),
     ui.badge(f"SepalWidth Avg: {sepal_width_avg:.3f}", variant="info"),
+    flex_grow=0
   )
-  
+
+def create_heatmap(species):
+    heatmap = ui.illustrated_message(
+        ui.icon("vsFilter"),
+        ui.heading("Species required"),
+        ui.content("Select a species to display filtered table and chart."),
+        width="100%",
+    )
+    
+    if species:
+        filtered_table = iris.where("Species = species")
+        heatmap = dx.density_heatmap(filtered_table, x="SepalLength", y="SepalWidth")
+        
+    return heatmap
+    
 @ui.component
 def create_species_dashboard():
-  species, set_species = ui.use_state()
-  species_picker = ui.picker(
-    species_table,
-    on_change=set_species,
-    selected_key=species,
-    label="Current Species"
-  )
-  
-  heatmap = ui.illustrated_message(
-      ui.icon("vsFilter"),
-      ui.heading("Species required"),
-      ui.content("Select a species to display filtered table and chart."),
-      width="100%",
-  )
+    species, set_species = ui.use_state()
+    species_picker = ui.picker(
+        species_table,
+        on_change=set_species,
+        selected_key=species,
+        label="Current Species",
+    )
+    
+    heatmap = ui.use_memo(lambda: create_heatmap(species), [species])
 
-  badges = None 
-  
-  if species:
-    filtered_table = iris.where("Species = species")
+    badges = summary_badges(species) if species else None
 
-    heatmap = dx.density_heatmap(filtered_table, x="SepalLength", y="SepalWidth")
-      
-    badges = summary_badges(species)
-      
-  species_panel = ui.panel(ui.flex(species_picker, badges, heatmap, direction="column"), title="Investigate Species")
-  
-  sepal_panel = create_sepal_panel(set_species)
-  
-  return ui.column(ui.row(about_panel, iris_agg_stack, height=1), ui.row(sepal_panel, species_panel, height=2))
+    species_panel = ui.panel(
+        ui.flex(species_picker, badges, heatmap, direction="column"),
+        title="Investigate Species",
+    )
+
+    sepal_panel = create_sepal_panel(set_species)
+
+    return ui.column(
+        ui.row(about_panel, iris_agg_stack, height=1),
+        ui.row(sepal_panel, species_panel, height=2),
+    )
 
 iris_species_dashboard_final = ui.dashboard(create_species_dashboard())
 ```
@@ -746,12 +814,13 @@ This wraps up the `deephaven.ui` dashboard crash course. In this course you lear
 - [`ui.picker`](components/picker.md)
 - [`ui.use_state`](hooks/use_state.md)
 - [`ui.illustrated_message`](components/illustrated_message.md)
+- [`ui.badge`](components/illustrated_message.md)
 - [`ui.use_cell_data`](hooks/use_cell_data.md)
 - [`ui.use_row_data`](hooks/use_row_data.md)
 - [`ui.use_row_list`](hooks/use_row_list.md)
 - [`ui.use_column_data`](hooks/use_column_data.md)
 - [`ui.use_table_data`](hooks/use_table_data.md)
-- [`ui.badge`](components/illustrated_message.md)
+- [`ui.use_memo`](hooks/use_memo.md)
 - [`dx.scatter`](../../plotly-express/main/scatter.md)
 - [`dx.histogram`](../../plotly-express/main/histogram.md)
 - [`dx.densityheatmap`](../../plotly-express/main/density_heatmap.md)
