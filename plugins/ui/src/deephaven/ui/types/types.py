@@ -573,3 +573,32 @@ class DateRange(TypedDict):
 
 
 ToastVariant = Literal["positive", "negative", "neutral", "info"]
+
+
+_DISABLE_NULLISH_CONSTRUCTORS = False
+
+
+class UndefinedType:
+    """
+    Placeholder for undefined values.
+    """
+
+    def __init__(self) -> None:
+        if _DISABLE_NULLISH_CONSTRUCTORS:
+            raise NotImplementedError
+
+    def __bool__(self) -> bool:
+        return False
+
+    def __copy__(self) -> "UndefinedType":
+        return self
+
+    def __deepcopy__(self, _: Any) -> "UndefinedType":
+        return self
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, UndefinedType) or other is None
+
+
+Undefined = UndefinedType()
+_DISABLE_NULLISH_CONSTRUCTORS = True

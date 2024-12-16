@@ -38,6 +38,10 @@
             "path": "describing/component_rules.md"
           },
           {
+            "label": "Using Hooks",
+            "path": "describing/use_hooks.md"
+          },
+          {
             "label": "Working with Tables",
             "path": "describing/work_with_tables.md"
           },
