@@ -23,10 +23,6 @@ def ui_table_monitor(t: Table):
 table_monitor = ui_table_monitor(_source)
 ```
 
-## UI recommendations
-
-1. **Use table data hooks instead when possible**: `use_table_listener` is an advanced feature requiring an understanding of how [table listeners](https://deephaven.io/core/docs/how-to-guides/table-listeners-python/) work and limitations of running code while the Update Graph is running. Most usages of this are more appropriate to implement with [table data hooks](./overview.md#data-hooks).
-
 ## Display the last updated row
 
 Here's an example that listens to table updates and will display the last update as a header above the table. This is a simple example to demonstrate how to use `use_table_listener` to listen to table updates and update state in your component.
