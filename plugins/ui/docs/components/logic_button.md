@@ -15,19 +15,21 @@ my_logic_button_basic = ui.logic_button("Or", variant="or")
 Logic buttons handles user interaction through the `on_press` prop.
 
 ```python
-# from deephaven import ui
+from deephaven import ui
 
-# @ui.component
-# def ui_toggle_logic_button():
-#     variant, set_variant = ui.use_state("or")
 
-#     return ui.logic_button(
-#         variant,
-#         variant=variant,
-#         on_press=lamdba: set_variant("and" if variant == "or" else "or"),
-#     )
+@ui.component
+def ui_toggle_logic_button():
+    variant, set_variant = ui.use_state("or")
 
-# my_toggle_logic_button = ui_toggle_logic_button()
+    return ui.logic_button(
+        variant,
+        variant=variant,
+        on_press=lambda: set_variant("and" if variant == "or" else "or"),
+    )
+
+
+my_toggle_logic_button = ui_toggle_logic_button()
 ```
 
 ## Variants
