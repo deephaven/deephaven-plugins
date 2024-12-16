@@ -56,7 +56,7 @@ def line(
     line_shape: str = "linear",
     title: str | None = None,
     template: str | None = None,
-    render_mode: str = "svg",
+    render_mode: str = "webgl",
     unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """Returns a line chart
@@ -170,8 +170,9 @@ def line(
         'spline', 'vhv', 'hvh', 'vh', 'hv'. Default 'linear'
       title: The title of the chart
       template: The template for the chart.
-      render_mode: Either "svg" or "webgl". Setting to "webgl" will lead to a more
-        performant plot but there may be graphical bugs.
+      render_mode: Either "svg" or "webgl". The default is "webgl" as it leads to a more
+        performant plot but there may be graphical bugs, in which case it is
+        recommended to switch to "svg"
       unsafe_update_figure: An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is
         not returned, the plotly figure passed will be assumed to be the return
