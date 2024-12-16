@@ -19,7 +19,7 @@ On the Web, HTML lets us create rich structured documents with its built-in set 
 
 This markup represents an article `<div>`, its heading `<h1>`, and an (abbreviated) table of contents as an ordered list `<ol>`. Markup like this, combined with CSS for style, and JavaScript for interactivity, lies behind every sidebar, avatar, modal, dropdown—every piece of UI you see on the Web.
 
-`Deephaven.ui` lets you use Python code to write custom "components", resuable UI elements for your app. The table of contents code you saw above could be turned into a `table_of_contents` component you could render in the UI.
+`Deephaven.ui` lets you use Python code to write custom "components", reusable UI elements for your app. The table of contents code you saw above could be turned into a `table_of_contents` component you could render in the UI.
 
 As your project grows, you will notice that many of your designs can be composed by reusing components you already wrote, speeding up your development.
 
@@ -45,6 +45,8 @@ def table_of_contents():
 my_table_of_contents = table_of_contents()
 ```
 
+![table_of_contents](../_assets/your_first_component1.png)
+
 And here’s how to build a component:
 
 ### Step 1: Import deephaven.ui
@@ -55,7 +57,7 @@ Your Python code must include this import:
 from deephaven import ui
 ```
 
-This allows you to acces the `@ui.component` annotation and all of the `deephaven.ui` components which you will use to build your component.
+This allows you to access the `@ui.component` annotation and all of the `deephaven.ui` components which you will use to build your component.
 
 ### Step 2: Define the function
 
@@ -95,6 +97,8 @@ def multiple_contents():
 
 my_multiple_contents = multiple_contents()
 ```
+
+![multiple_contents](../_assets/your_first_component2.png)
 
 ## Nesting and organizing components
 
