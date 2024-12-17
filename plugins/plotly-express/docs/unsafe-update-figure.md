@@ -1,7 +1,7 @@
 # `unsafe_update_figure` Chart Customization
 
 To customize a chart in a way that is not directly supported by Deephaven Plotly Express (`dx`), use the `unsafe_update_figure` parameter.  
-A Plotly [`Figure`](https://plotly.com/python/figure-structure/) object backs every `dx` chart, and `unsafe_update_figure` allows you to directly modify this object.  
+Every `dx` chart is backed by a Plotly [`Figure`](https://plotly.com/python/figure-structure/). This object gets passed to `unsafe_update_figure` where it can be modified directly. See the [Plotly Figure Reference](https://plotly.com/python/reference/) docs for details on available `Figure` properties.
 
 > [!WARNING]
 > Update figure is marked "unsafe" because some modifications can entirely break your figure, and care must be taken.  
