@@ -41,6 +41,26 @@ dog_agg = my_table.where("Sym = `DOG`").agg_by([agg.avg(cols="Price"), agg.first
 indicator_plot = dx.indicator(dog_agg, value="Price", reference="StartingPrice")
 ```
 
+## Indicator plots from variables
+
+Pass variables into a table to create an indicator plot.
+
+```python order=indicator_plot,my_table
+import deephaven.plot.express as dx
+from deephaven import new_table
+from deephaven.column import int_col
+
+my_value = 10
+my_reference = 5
+
+my_table = new_table([
+    int_col("MyValue", [my_value]),
+    int_col("MyReference", [my_reference])
+])
+
+indicator_plot = dx.indicator(my_table, value="MyValue", reference="MyReference")
+```
+
 # Delta only indicator plot
 
 Visualize only the delta to a reference value by passing `number=False`.
