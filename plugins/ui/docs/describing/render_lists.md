@@ -1,6 +1,6 @@
 # Render Lists
 
-You will often want to display multiple similar components from a collection of data. You can use Python [`filter`](https://docs.python.org/3/library/functions.html#filter) and [`list comprehensions`](https://docs.python.org/3/tutorial/datastructures.html#list-comprehensions) with `deephaven.ui` to filter and transform your list of data into an list of components.
+You will often want to display multiple similar components from a collection of data. You can use the Python [`filter`](https://docs.python.org/3/library/functions.html#filter) function and [`list comprehensions`](https://docs.python.org/3/tutorial/datastructures.html#list-comprehensions) with `deephaven.ui` to filter and transform your list of data into a list of components.
 
 ## Render data from lists
 
@@ -27,7 +27,7 @@ my_content_list = content_list()
 
 ![my_content_list](../_assets/render_lists1.png)
 
-The only difference among those list items is their contents, their data. You will often need to show several instances of the same component using different data when building interfaces. Here is a short example of how to generate a list of items from an list of data:
+The only difference among those list items is their contents (their data). You will often need to show several instances of the same component using different data when building interfaces. Here is a short example of how to generate a list of items from a list of data:
 
 1. Move the data into a list
 2. Use list comprehension to map the list of data to a list of components
@@ -87,7 +87,7 @@ my_content_list = content_list(food, "vegetable")
 
 ## Keep list items in order with keys
 
-Keys tell `deephaven.ui` which list item each component corresponds to, so that it can match them up later. This becomes important if your list items can move (e.g. due to sorting), get inserted, or get deleted. A well-chosen key helps `deephaven.ui` infer what exactly has happened, and make the correct updates.
+Keys tell `deephaven.ui` which list item each component corresponds to so that it can match them up later. This becomes important if your list items can move (e.g., due to sorting), get inserted, or get deleted. A well-chosen key helps `deephaven.ui` infer exactly what happened and make the correct updates.
 
 Rather than generating keys on the fly, you should include them in your data.
 
