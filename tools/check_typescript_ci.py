@@ -29,7 +29,7 @@ def main():
             messages.append(line)
 
     for message in messages:
-        # Check if the message is actually and extract the details
+        # Check if the message is actually an error and extract the details
         # Error message format: file(line,col): error_message
         match = fullmatch(r"(.+?)\((\d+),(\d+)\): ([\s\S]+)", message)
         if match is None:
