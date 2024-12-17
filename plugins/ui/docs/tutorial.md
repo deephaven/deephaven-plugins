@@ -180,19 +180,6 @@ Explore the Iris dataset with **deephaven.ui**
 - Charts are from Deephaven Plotly Express
 - Other components are from **deephaven.ui**
   """)
-
-sepal_panel = ui.panel(sepal_flex_tabs, title="Sepal Panel")
-about_panel = ui.panel(about_markdown, title="About")
-
-iris_avg = iris.agg_by([agg.avg(cols=["SepalLength", "SepalWidth", "PetalLength", "PetalWidth"])], by=["Species"])
-iris_max = iris.agg_by([agg.max_(cols=["SepalLength", "SepalWidth", "PetalLength", "PetalWidth"])], by=["Species"])
-iris_min = iris.agg_by([agg.min_(cols=["SepalLength", "SepalWidth", "PetalLength", "PetalWidth"])], by=["Species"])
-
-ui_iris_avg = ui.panel(iris_avg, title="Average")
-ui_iris_max = ui.panel(iris_max, title="Max")
-ui_iris_min = ui.panel(iris_min, title="Min")
-
-iris_agg_stack = ui.stack(ui_iris_avg, ui_iris_max, ui_iris_min)
 ```
 
 </details>
