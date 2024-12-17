@@ -26,7 +26,7 @@ dog_avg = my_table.where("Sym = `DOG`").agg_by([agg.avg(cols="Price")])
 indicator_plot = dx.indicator(dog_avg, value="Price")
 ```
 
-### A reference indicator plot
+### A delta indicator plot
 
 Visualize a single numeric value with a delta to a reference value by passing the reference column name to the `reference` argument.
 
@@ -41,7 +41,7 @@ dog_agg = my_table.where("Sym = `DOG`").agg_by([agg.avg(cols="Price"), agg.first
 indicator_plot = dx.indicator(dog_agg, value="Price", reference="StartingPrice")
 ```
 
-# Reference only indicator plot
+# Delta only indicator plot
 
 Visualize only the delta to a reference value by passing `number=False`.
 
@@ -116,7 +116,7 @@ dog_avg = my_table.where("Sym = `DOG`").agg_by([agg.avg(cols="Price")])
 indicator_plot = dx.indicator(dog_avg, value="Price", increasing_text="Up: ", decreasing_text="Down: ")
 ```
 
-### An indicator with text
+### Indicator with text
 
 Add text to the indicator by passing the text column name to the `text` argument.
 
@@ -219,7 +219,7 @@ indicator_plot = dx.indicator(
 
 ### Plot by
 
-Create groups of styled indicators by passing the grouping column name to the `by` argument.
+Create groups of styled indicators by passing the grouping categorical column name to the `by` argument.
 `increasing_color_map` and `decreasing_color_map` can be used to style the indicators based on the group.
 
 ```python
