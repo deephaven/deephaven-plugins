@@ -87,7 +87,7 @@ my_tea_set2 = tea_set()
 
 ![local mutations](../_assets/pure_components3.png)
 
-If the `cups` variable was outside the TeaGathering function, this would be a problem. You would be changing a preexisting object by appending items to that list.
+If the `cups` variable was outside the `tea_set` function, this would be a problem. You would be changing a preexisting object by appending items to that list.
 
 However, because you created them during the same render, no code outside of `tea_set` will be impacted by this. This a local mutation.
 
