@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Union, Literal
+from typing import Union, Literal, Tuple, Dict
 from pandas import DataFrame
 from deephaven.table import Table, PartitionedTable
 
@@ -9,7 +9,7 @@ PartitionableTableLike = Union[PartitionedTable, TableLike]
 Gauge = Literal["shape", "bullet"]
 
 # StyleDict is a dictionary that maps column values to style values.
-StyleDict = dict[Union[str, tuple[str]], str]
+StyleDict = Dict[Union[str, Tuple[str]], str]
 
 # In addition to StyleDict, StyleMap can also be a string literal "identity" or "by"
 # that specifies how to map column values to style values.
@@ -18,5 +18,5 @@ StyleDict = dict[Union[str, tuple[str]], str]
 # "by" is only used to override parameters that default to numeric mapping on a continuous scale, such as scatter color.
 # Providing a tuple of "by" and a StyleDict is equivalent to providing a StyleDict.
 StyleMap = Union[
-    Literal["identity"], Literal["by"], tuple[Literal["by"], StyleDict], StyleDict
+    Literal["identity"], Literal["by"], Tuple[Literal["by"], StyleDict], StyleDict
 ]
