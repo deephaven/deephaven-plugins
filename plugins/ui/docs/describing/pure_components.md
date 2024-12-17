@@ -93,7 +93,7 @@ However, because you created them during the same render, no code outside of `te
 
 ## Intentional Side Effects
 
-While the rendering process must remain pure, at some point, something needs to change. You may need to update the screen, start an animation, or change data. These changes are called side effects. These things need to happen on the side rather than during rendering.
+While the rendering process must remain pure, at some point, something needs to change. You may need to print a message, update the screen, start an animation, or change data. These changes are called side effects. These things need to happen on the side rather than during rendering.
 
 In `deephaven.ui`, side effects usually belong in event handlers. Event handlers are functions that run when you perform some action like clicking a button. Even though the event handlers are defined inside your component, they do not run during rendering, so even handlers do not need to be pure.
 
