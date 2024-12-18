@@ -48,6 +48,10 @@
           {
             "label": "Conditional Rendering",
             "path": "describing/conditional_rendering.md"
+          },
+          {
+            "label": "Pure Components",
+            "path": "describing/pure_components.md"
           }
         ]
       },
