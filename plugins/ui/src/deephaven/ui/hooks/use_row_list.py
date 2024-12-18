@@ -30,14 +30,14 @@ def _row_list(
 
 
 def use_row_list(
-    table: Table | None, sentinel: Sentinel = ()
+    table: Table | None, sentinel: Sentinel = None
 ) -> list[Any] | Sentinel | None:
     """
     Return the first row of the table as a list. The table should already be filtered to only have a single row.
 
     Args:
         table: The table to extract the row from.
-        sentinel: The sentinel value to return if the table is ticking but empty. Defaults to ().
+        sentinel: The sentinel value to return if the table is ticking but empty. Defaults to None.
 
     Returns:
         The first row of the table as a list or the sentinel value.
