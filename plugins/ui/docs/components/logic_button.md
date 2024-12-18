@@ -1,6 +1,6 @@
 # Logic Button
 
-A LogicButton shows an operator in a boolean logic sequence.
+A Logic Button shows an operator in a boolean logic sequence.
 
 ## Example
 
