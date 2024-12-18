@@ -17,8 +17,8 @@ class Preprocessor:
     Preprocessor for tables
 
     Attributes:
-    pivot_vars: dict[str, str]: A dictionary that stores the "real" column
-      names if there is a list_var. This is needed in case the column names
+    stacked_column_names: dict[str, str]: A dictionary that stores the "real" column
+      names if there is a list_param. This is needed in case the column names
       used are already in the table.
     always_attached: dict[tuple[str, str],
       tuple[dict[str, str], list[str], str]: The dict mapping the arg and column
@@ -33,15 +33,15 @@ class Preprocessor:
         args: dict[str, Any],
         groups: set[str],
         always_attached: dict[tuple[str, str], tuple[dict[str, str], list[str], str]],
-        pivot_vars: dict[str, str],
-        list_var: str | None,
+        stacked_column_names: dict[str, str],
+        list_param: str | None,
     ):
         self.args = args
         self.groups = groups
         self.preprocesser = None
         self.always_attached = always_attached
-        self.pivot_vars = pivot_vars
-        self.list_var = list_var
+        self.stacked_column_names = stacked_column_names
+        self.list_param = list_param
         self.prepare_preprocess()
 
     def prepare_preprocess(self) -> None:
@@ -50,7 +50,7 @@ class Preprocessor:
         """
         if "preprocess_hist" in self.groups:
             self.preprocesser = HistPreprocessor(
-                self.args, self.pivot_vars, self.list_var
+                self.args, self.stacked_column_names, self.list_param
             )
         elif "preprocess_freq" in self.groups:
             self.preprocesser = FreqPreprocessor(self.args)

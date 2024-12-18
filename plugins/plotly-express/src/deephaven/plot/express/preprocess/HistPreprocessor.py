@@ -54,10 +54,10 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
     def __init__(
         self,
         args: dict[str, Any],
-        pivot_vars: dict[str, str],
-        list_var: str | None = None,
+        stacked_column_names: dict[str, str],
+        list_param: str | None = None,
     ):
-        super().__init__(args, pivot_vars, list_var)
+        super().__init__(args, stacked_column_names, list_param)
         self.range_table = None
         self.names = {}
         self.nbins = args.pop("nbins", 10)
@@ -296,5 +296,6 @@ class HistPreprocessor(UnivariateAwarePreprocessor):
             yield bin_counts.view([f"{bin_col} = {bin_mid}", new_agg_col]), {
                 self.agg_var: new_agg_col,
                 self.bin_var: bin_col,
-                f"hist_agg_label_{self.orientation}": hist_agg_label,
+                f"hist_agg_label": hist_agg_label,
+                f"hist_orientation": self.orientation,
             }
