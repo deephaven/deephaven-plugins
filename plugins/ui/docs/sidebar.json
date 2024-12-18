@@ -167,6 +167,10 @@
             "path": "components/list_view.md"
           },
           {
+            "label": "logic_button",
+            "path": "components/logic_button.md"
+          },
+          {
             "label": "markdown",
             "path": "components/markdown.md"
           },
