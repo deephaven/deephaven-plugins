@@ -11,6 +11,7 @@ import React, {
 } from 'react';
 // eslint-disable-next-line camelcase
 import { unstable_batchedUpdates } from 'react-dom';
+import { applyPatch, type Operation } from 'fast-json-patch';
 import {
   JSONRPCClient,
   JSONRPCServer,
@@ -21,12 +22,14 @@ import { useWidget } from '@deephaven/jsapi-bootstrap';
 import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { EMPTY_FUNCTION, assertNotNull } from '@deephaven/utils';
+
 import {
   CALLABLE_KEY,
   OBJECT_KEY,
   isCallableNode,
   isElementNode,
   isObjectNode,
+  isPrimitive,
 } from '../elements/utils/ElementUtils';
 import {
   ReadonlyWidgetData,
@@ -34,7 +37,7 @@ import {
   WidgetMessageEvent,
   WidgetError,
   METHOD_DOCUMENT_ERROR,
-  METHOD_DOCUMENT_UPDATED,
+  METHOD_DOCUMENT_PATCHED,
   METHOD_EVENT,
 } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
@@ -73,6 +76,9 @@ function WidgetHandler({
   initialData: initialDataProp,
 }: WidgetHandlerProps): JSX.Element | null {
   const { widget, error: widgetError } = useWidget(widgetDescriptor);
+  const uiDomRef = useRef({});
+  const reactDomRef: any = useRef(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const reactDomNewRef: any = useRef(null); // eslint-disable-line @typescript-eslint/no-explicit-any
   const [isLoading, setIsLoading] = useState(true);
   const [prevWidgetDescriptor, setPrevWidgetDescriptor] =
     useState(widgetDescriptor);
@@ -166,9 +172,9 @@ function WidgetHandler({
     [jsonClient]
   );
 
-  const parseDocument = useCallback(
+  const parseDocumentFromObject = useCallback(
     /**
-     * Parse the data from the server, replacing some of the nodes on the way.
+     * Parses an object representing a document, making a deep copy and replacing some of the nodes on the way.
      * Replaces all Callables with an async callback that will automatically call the server use JSON-RPC.
      * Replaces all Objects with the exported object from the server.
      * Replaces all Element nodes with the ReactNode derived from that Element.
@@ -176,26 +182,39 @@ function WidgetHandler({
      * @param data The data to parse
      * @returns The parsed data
      */
-    (data: string) => {
+    (data: object) => {
       assertNotNull(jsonClient);
       // Keep track of exported objects that are no longer in use after this render.
       // We close those objects that are no longer referenced, as they will never be referenced again.
       const deadObjectMap = new Map(exportedObjectMap.current);
 
-      const parsedData = JSON.parse(data, (key, value) => {
-        // Need to re-hydrate any objects that are defined
-        if (isCallableNode(value)) {
-          const callableId = value[CALLABLE_KEY];
+      const deepCopyAndParse = (obj: unknown, map = new WeakMap()): unknown => {
+        // make a deep copy of the object and recurse on children before making any replacements
+        if (obj === null || typeof obj !== 'object') return obj;
+        if (map.has(obj)) return map.get(obj);
+        const clone = Array.isArray(obj)
+          ? []
+          : Object.create(Object.getPrototypeOf(obj));
+        map.set(obj, clone);
+        const keys = Reflect.ownKeys(obj);
+        keys.forEach(key => {
+          const value = obj[key as keyof typeof obj];
+          clone[key] = deepCopyAndParse(value, map);
+        });
+
+        if (isCallableNode(clone)) {
+          const callableId = clone[CALLABLE_KEY];
           log.debug2('Registering callableId', callableId);
-          return wrapCallable(
+          const res = wrapCallable(
             jsonClient,
             callableId,
             callableFinalizationRegistry
           );
+          return res;
         }
-        if (isObjectNode(value)) {
+        if (isObjectNode(clone)) {
           // Replace this node with the exported object
-          const objectKey = value[OBJECT_KEY];
+          const objectKey = clone[OBJECT_KEY];
           const exportedObject = exportedObjectMap.current.get(objectKey);
           if (exportedObject === undefined) {
             // The map should always have the exported object for a key, otherwise the protocol is broken
@@ -205,19 +224,21 @@ function WidgetHandler({
           return exportedObject;
         }
 
-        if (isElementNode(value)) {
+        if (isElementNode(clone)) {
           // Replace the elements node with the Component it maps to
           try {
-            return getComponentForElement(value);
+            const res = getComponentForElement(clone);
+            return res;
           } catch (e) {
             log.warn('Error getting component for element', e);
-            return value;
+            return clone;
           }
         }
 
-        return value;
-      });
+        return clone;
+      };
 
+      const parsedData = deepCopyAndParse(data);
       // Close any objects that are no longer referenced
       deadObjectMap.forEach((deadObject, objectKey) => {
         log.debug('Closing dead object', objectKey);
@@ -250,6 +271,93 @@ function WidgetHandler({
     []
   );
 
+  const optimizeObject = useCallback(
+    /**
+     * Optimizes an object for React, by reusing an existing object if it hasn't changed. If any children object has
+     * changed, a shallow copy is made.
+     *
+     * @param oldObj The old object to use for optimization
+     * @param newObj The new object to optimize
+     * @returns An object with parts of OldObj that are unchanged and parts of newObj that are changed
+     */
+    (
+      oldObj: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+      newObj: any // eslint-disable-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ): { changed: boolean; obj: any } => {
+      if (typeof oldObj !== typeof newObj) {
+        return { changed: true, obj: newObj };
+      }
+      if (
+        isPrimitive(oldObj) ||
+        typeof oldObj === 'symbol' ||
+        typeof oldObj === 'function'
+      ) {
+        if (oldObj === newObj) return { changed: false, obj: oldObj };
+        return { changed: true, obj: newObj };
+      }
+
+      // typeof null is object
+      if (oldObj == null && newObj == null) {
+        return { changed: false, obj: oldObj };
+      }
+      if (oldObj == null || newObj == null) {
+        return { changed: true, obj: newObj };
+      }
+
+      if (typeof newObj !== 'object') {
+        return { changed: true, obj: newObj };
+      }
+      if (Array.isArray(oldObj) !== Array.isArray(newObj)) {
+        return { changed: true, obj: newObj };
+      }
+
+      // For object nodes
+      if (
+        'connection' in newObj &&
+        'fetched' in newObj &&
+        'ticket_0' in newObj
+      ) {
+        if (oldObj.connection === newObj.connection) {
+          return { changed: false, obj: oldObj };
+        }
+        return { changed: true, obj: newObj };
+      }
+
+      const obj = newObj;
+      if (Array.isArray(obj)) {
+        let changed = oldObj.length !== obj.length;
+        for (let i = 0; i < obj.length; i += 1) {
+          const { changed: thisChanged, obj: newValue } = optimizeObject(
+            oldObj[i],
+            newObj[i]
+          );
+          if (thisChanged) {
+            changed = true;
+            obj[i] = newValue;
+          }
+        }
+        if (changed) return { changed: true, obj: [...obj] };
+        return { changed: false, obj: oldObj };
+      }
+
+      let changed = Object.keys(oldObj).length !== Object.keys(obj).length;
+      Reflect.ownKeys(obj).forEach(key => {
+        const { changed: thisChanged, obj: newValue } = optimizeObject(
+          oldObj[key as keyof typeof oldObj],
+          obj[key as keyof typeof obj]
+        );
+        obj[key] = newValue;
+        if (thisChanged) {
+          changed = true;
+        }
+      });
+      if (changed) return { changed: true, obj: { ...obj } };
+      return { changed: false, obj: oldObj };
+    },
+    []
+  );
+
   useEffect(
     function initMethods() {
       if (jsonClient == null) {
@@ -258,15 +366,25 @@ function WidgetHandler({
 
       log.debug('Adding methods to jsonClient');
       jsonClient.addMethod(
-        METHOD_DOCUMENT_UPDATED,
-        async (params: [string, string]) => {
-          log.debug2(METHOD_DOCUMENT_UPDATED, params);
-          const [documentParam, stateParam] = params;
-          const newDocument = parseDocument(documentParam);
+        METHOD_DOCUMENT_PATCHED,
+        async (params: [Operation[], string]) => {
+          log.debug2(METHOD_DOCUMENT_PATCHED, params);
+          const [patch, stateParam] = params;
+
+          applyPatch(uiDomRef.current, patch);
+          reactDomRef.current = reactDomNewRef.current;
+          reactDomNewRef.current = parseDocumentFromObject(uiDomRef.current);
+
+          const { obj: updatedDocument } = optimizeObject(
+            reactDomRef.current,
+            reactDomNewRef.current
+          );
+          reactDomNewRef.current = updatedDocument;
+
           // TODO: Remove unstable_batchedUpdates wrapper when upgrading to React 18
           unstable_batchedUpdates(() => {
             setInternalError(undefined);
-            setDocument(newDocument);
+            setDocument(updatedDocument);
             setIsLoading(false);
           });
           if (stateParam != null) {
@@ -338,7 +456,8 @@ function WidgetHandler({
     [
       jsonClient,
       onDataChange,
-      parseDocument,
+      parseDocumentFromObject,
+      optimizeObject,
       sendSetState,
       callableFinalizationRegistry,
     ]
