@@ -1,8 +1,10 @@
 # use_render_queue
 
-`use_render_queue` lets you use the render queue in your component. This is useful when you want to queue updates on the render thread from a background thread.
+`use_render_queue` lets you use the render queue in your component. Whenever work is done in a component, it must be performed on the render thread. If you create a new thread to perform some work on the background and then want to update a component, you should queue that work on the render thread. Some actions (like [toasts](../components/toast.md)) will raise an error if they are not triggered from the render thread.
 
 ## Example
+
+This example listens to table updates and displays a toast message when the table updates. The [`toast` function](../components/toast.md) must be triggered on the render thread, whereas the listener is not fired on the render thread. Therefore, you must use the render queue to trigger the toast.
 
 ```python
 from deephaven import time_table
@@ -26,8 +28,6 @@ def toast_table(t):
 my_toast_table = toast_table(_source)
 ```
 
-The above example listens to table updates and displays a toast message when the table updates. The [`toast` function](../components/toast.md) must be triggered on the render thread, whereas the listener is not fired on the render thread. Therefore, you must use the render queue to trigger the toast.
-
 ## UI recommendations
 
 1. **Use the render queue to trigger toasts**: When you need to trigger a toast from a background thread, use the render queue to ensure the toast is triggered on the render thread. Otherwise, an exception will be raised.
@@ -35,7 +35,7 @@ The above example listens to table updates and displays a toast message when the
 
 ## Batch updates
 
-Setter functions from the `use_state` hook are fired on the render thread, so if you call a series of updates from a callback on the render thread, they will be batched together. Consider the following, which will increment states `a` and `b` in the callback from pressing on "Update values":
+Setter functions from the `use_state` hook are always fired on the render thread, so if you call a series of updates from a callback on the render thread, they will be batched together. Consider the following, which will increment states `a` and `b` in the callback from pressing on "Update values":
 
 ```python
 from deephaven import ui
@@ -140,3 +140,9 @@ batch_example = ui_batch_example()
 ```
 
 Now when we run this example and press the button, we'll see only one toast with the updated values of `a` and `b`, and they will always be the same value when the component re-renders (since the updates are batched together on the render thread).
+
+## API Reference
+
+```{eval-rst}
+.. dhautofunction:: deephaven.ui.use_render_queue
+```
