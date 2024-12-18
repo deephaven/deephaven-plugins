@@ -21,6 +21,7 @@ from .date_picker import date_picker
 from .date_range_picker import date_range_picker
 from .dialog import dialog
 from .dialog_trigger import dialog_trigger
+from .disclosure import disclosure
 from .flex import flex
 from .form import form
 from .fragment import fragment
@@ -93,6 +94,7 @@ __all__ = [
     "date_range_picker",
     "dialog",
     "dialog_trigger",
+    "disclosure",
     "flex",
     "form",
     "fragment",
