@@ -22,7 +22,7 @@ In the above example, `ui_table_column` is a component that listens to the last 
 ## Recommendations
 
 1. **Use `use_column_data` for listening to table updates**: If you need to listen to a table for one column of data, use `use_column_data`.
-2. **Use table operations to filter to one column**: If your table has multiple rows and columns, use table operations such as `.where` and `.select` to filter to the column you want to listen to. `use_column_data` always uses the first column of the table.
+2. **Use table operations to filter to one column**: If your table has multiple rows and columns, use table operations such as [`.where`](/core/docs/reference/table-operations/filter/where/), [`.select`](/core/docs/reference/table-operations/select/) and [`.reverse`](/core/docs/reference/table-operations/sort/reverse/) to filter to the column you want to listen to. `use_column_data` always uses the first column of the table.
 3. **Do not use `use_column_data` with [`list_view`](../components/list_view.md) or [`picker`](../components/picker.md)**: Some components are optimized to work with large tables of data, and will take a table passed in directly as their data source, only pulling in the options currently visible to the user. In those cases, pass the table directly to the component, otherwise you will fetch the entire column of data unnecessarily.
 4. **Pass a Sentinel value to `use_column_data`**: If you want to use a default value when the table is empty, pass a sentinel value to `use_column_data`. The default sentinel value is `None`, which is returned when the table is empty.
 

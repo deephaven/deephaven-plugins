@@ -22,7 +22,7 @@ In the above example, `ui_table_data` is a component that listens to the last 5 
 ## Recommendations
 
 1. **Use `use_table_data` for listening to table updates**: If you need to listen to a table for all the data, use `use_table_data`.
-2. **Use table operations to filter to the data you want**: If your table has multiple rows and columns, use table operations such as `.where` and `.select` to filter to the data you want to listen to.
+2. **Use table operations to filter to the data you want**: If your table has multiple rows and columns, use table operations such as [`.where`](/core/docs/reference/table-operations/filter/where/), [`.select`](/core/docs/reference/table-operations/select/) and [`.reverse`](/core/docs/reference/table-operations/sort/reverse/) to filter to the data you want to listen to.
 3. **Pass a Sentinel value to `use_table_data`**: If you want to use a default value when the table is empty, pass a sentinel value to `use_table_data`. The default sentinel value is `None`, which is returned when the table is empty.
 
 ## Empty tables

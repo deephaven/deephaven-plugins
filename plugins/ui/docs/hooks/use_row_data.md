@@ -24,7 +24,7 @@ In the above example, `ui_table_row` is a component that listens to a table and 
 ## Recommendations
 
 1. **Use `use_row_data` for listening to table updates**: If you need to listen to a table for one row of data, use `use_row_data`.
-2. **Use table operations to filter to one row**: If your table has multiple rows and columns, use table operations such as `.where`, `.select` and `.reverse` to filter to the row you want to listen to. `use_row_data` always uses the first row of the table.
+2. **Use table operations to filter to one row**: If your table has multiple rows and columns, use table operations such as [`.where`](/core/docs/reference/table-operations/filter/where/), [`.select`](/core/docs/reference/table-operations/select/) and [`.reverse`](/core/docs/reference/table-operations/sort/reverse/) to filter to the row you want to listen to. `use_row_data` always uses the first row of the table.
 3. **Pass a Sentinel value to `use_row_data`**: If you want to use a default value when the table is empty, pass a sentinel value to `use_row_data`. The default sentinel value is `None`, which is returned when the table is empty.
 
 ## Empty tables
