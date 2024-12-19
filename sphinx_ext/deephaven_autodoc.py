@@ -46,7 +46,8 @@ SignatureValue = Union[str, Params]
 
 AUTOFUNCTION_COMMENT_PREFIX = "AutofunctionCommentPrefix:"
 
-UNDOCUMENTED_PARAMS = {"*"}
+# Some parameters don't need to be documented
+UNDOCUMENTED_PARAMS = {"*", "/"}
 
 
 def extract_parameter_defaults(
@@ -115,7 +116,7 @@ def extract_list_item(node: docutils.nodes.list_item) -> ParamData:
         match = re.match(r"(.+?) \((.*?)\) -- (.+)", field, re.DOTALL)
         if match is None:
             raise ValueError(
-                f"Could not match {field} to extract param data. "
+                f"Could not match '{field}' to extract param data. "
                 f"Verify this parameter is documented correctly within 'Args:' with type and description."
             )
         matched = match.groups()
