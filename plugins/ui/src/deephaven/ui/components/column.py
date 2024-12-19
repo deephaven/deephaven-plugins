@@ -13,7 +13,7 @@ def column(
     Each element will be placed below its prior sibling.
 
     Args:
-        children: Elements to render in the column.
+        *children: Elements to render in the column.
         width: The percent width of the column relative to other children of its parent. If not provided, the column will be sized automatically.
         key: A unique identifier used by React to render elements in a list.
 

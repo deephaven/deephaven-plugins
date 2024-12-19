@@ -91,7 +91,7 @@ def action_menu(
     ActionMenu combines an ActionButton with a Menu for simple "more actions" use cases.
 
     Args:
-        children: The contents of the collection.
+        *children: The contents of the collection.
         is_disabled: Whether the button is disabled.
         is_quiet: Whether the button should be displayed with a quiet style.
         auto_focus: Whether the element should receive focus on render.
