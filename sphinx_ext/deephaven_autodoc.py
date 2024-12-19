@@ -266,13 +266,7 @@ def extract_desc_data(node: sphinx.addnodes.desc) -> SignatureData:
             result.update(extract_content_data(child_node))
     # map all to lowercase for consistency
     function = f"{result['module_name']}{result['name']}"
-    try:
-        result["parameters"] = result.pop("Parameters")
-    except KeyError:
-        raise ValueError(
-            "Parameters missing from description. "
-            f"Verify the function description for {function} is formatted correctly."
-        )
+    result["parameters"] = result.pop("Parameters") if "Parameters" in result else []
     try:
         result["return_description"] = result.pop("Returns")
     except KeyError:
