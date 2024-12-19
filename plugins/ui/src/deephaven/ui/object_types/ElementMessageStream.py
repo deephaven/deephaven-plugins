@@ -15,6 +15,7 @@ from deephaven.plugin.object_type import MessageStream
 from deephaven.server.executors import submit_task
 from deephaven.execution_context import ExecutionContext, get_exec_ctx
 from deephaven.liveness_scope import liveness_scope
+from pyjsonpatch import generate_patch
 
 from .._internal import wrap_callable
 from ..elements import Element
@@ -194,6 +195,7 @@ class ElementMessageStream(MessageStream):
         self._render_state = _RenderState.IDLE
         self._exec_context = get_exec_ctx()
         self._is_closed = False
+        self._last_document = {}
 
     def _render(self) -> None:
         logger.debug("ElementMessageStream._render")
@@ -208,7 +210,7 @@ class ElementMessageStream(MessageStream):
         try:
             node = self._renderer.render(self._element)
             state = self._context.export_state()
-            self._send_document_update(node, state)
+            self._send_document_patch(node, state)
         except Exception as e:
             # Send the error to the client for displaying to the user
             # If there's an error sending it to the client, then it will be caught by the render exception handler
@@ -450,11 +452,11 @@ class ElementMessageStream(MessageStream):
         self._callable_dict.pop(callable_id, None)
         self._temp_callable_dict.pop(callable_id, None)
 
-    def _send_document_update(
+    def _send_document_patch(
         self, root: RenderedNode, state: ExportedRenderState
     ) -> None:
         """
-        Send a document update to the client. Currently just sends the entire document for each update.
+        Send a document update to the client in the form of a JSON Patch (RFC 6902).
 
         Args:
             root: The root node of the document to send
@@ -464,18 +466,19 @@ class ElementMessageStream(MessageStream):
             logger.error("Stream is closed, cannot render document")
             sys.exit()
 
-        # TODO(#67): Send a diff of the document instead of the entire document.
         encoder_result = self._encoder.encode_node(root)
         encoded_document = encoder_result["encoded_node"]
         new_objects = encoder_result["new_objects"]
         callable_id_dict = encoder_result["callable_id_dict"]
 
+        document = json.loads(encoded_document)
+        patch = generate_patch(self._last_document, document)
+        self._last_document = document
+
         logger.debug("Exported state: %s", state)
         encoded_state = json.dumps(state)
 
-        request = self._make_notification(
-            "documentUpdated", encoded_document, encoded_state
-        )
+        request = self._make_notification("documentPatched", patch, encoded_state)
         payload = json.dumps(request)
         logger.debug(f"Sending payload: {payload}")
 
