@@ -46,7 +46,7 @@ SignatureValue = Union[str, Params]
 
 AUTOFUNCTION_COMMENT_PREFIX = "AutofunctionCommentPrefix:"
 
-# Some parameters don't need to be documented
+# Some parameters don't need to be documented such as function dividers
 UNDOCUMENTED_PARAMS = {"*", "/"}
 
 
