@@ -251,7 +251,7 @@ iris_dashboard_stack = ui.dashboard(iris_agg_stack)
 ## Interactivity
 
 So far, you’ve worked with `deephaven.ui` components that don’t interact with each other. Now, you’ll create your own component with interactivity and embed it into your dashboard.  
-Since you're investigating `SepalLength` and `SepalWidth`, create a [`dx.densityheatmap`](../../plotly-express/main/density_heatmap.md) chart that shows the density of `SepalLength` and `SepalWidth`, with a `Species` filter.
+Since this walkthrough investigates `SepalLength` and `SepalWidth`, this section shows you how to create a [`dx.densityheatmap`](../../plotly-express/main/density_heatmap.md) chart that shows the density of `SepalLength` and `SepalWidth`, with a `Species` filter.
 
 ### `ui.component`
 
@@ -403,7 +403,7 @@ iris_species_dashboard = ui.dashboard(
 ```
 ![img](_assets/deephaven-ui-crash-course/iris_species_dashboard.png)
 
-There is lots of empty space in the top row. Resize the height of the top row to 1 and the bottom row to 2 for a ratio of 1:2, so the bottom row is twice the height of the top row.  
+The top row contains lots of empty space. Resize the height of the top row to 1 and the bottom row to 2 for a ratio of 1:2, so the bottom row is twice the height of the top row.  
 
 ```py
 iris_species_dashboard_resized = ui.dashboard(ui.column(ui.row(about_panel, iris_agg_stack, height=1), ui.row(sepal_panel, species_picker_panel, height=2)))
@@ -501,7 +501,7 @@ The hooks are:
 > Filter your table to only the data you need the hook to pull out. The hooks do not filter the table for you.
 
 Create a custom component that pulls the min, max, and average values for `SepalLength` and `SepalWidth` for the selected `Species`.  
-Wrap the values in [`ui.badge`](components/badge.md) components to display them. `ui.badge` components draw attention to specific values.  
+To display the values, wrap them in [`ui.badge`](components/badge.md) components, which draw attention to specific values.  
 
 ```python
 @ui.component
@@ -578,9 +578,9 @@ iris_species_dashboard_badge = ui.dashboard(create_species_dashboard())
 
 ### `ui.use_memo`
 
-`ui.use_memo` allows you to cache expensive calculations so they are only recalculated when needed. `ui.use_memo` takes a function and a list of dependencies. If the dependencies change, the function is recalculated.
+`ui.use_memo` allows you to cache expensive calculations so they are only recalculated when needed. It takes a function and a list of dependencies. If the dependencies change, the function is recalculated.
 Since you've added badges to the dashboard, the `dx.heatmap` is recreated every time any of the badges change, but only needs to be recreated when the `Species` changes.  
-Heatmap is a fairly expensive chart to create, requires a filtered table in this case, and changes rarely, so pull the heatmap creation into a separate function and use `ui.use_memo` to cache the heatmap creation.
+Heatmap is a fairly expensive chart to create (it requires a filtered table in this case) and changes rarely, so pull the heatmap creation into a separate function and use `ui.use_memo` to cache the heatmap creation.
 
 ```python
 def create_heatmap(species):
@@ -785,7 +785,7 @@ iris_species_dashboard_final = ui.dashboard(create_species_dashboard())
 
 </details>
 
-Finally, you’ve completed this dashboard crash course, with your custom component and interactivity.
+You've now completed this dashboard crash course with your custom component and interactivity.
 
 ## Wrapping up
 
