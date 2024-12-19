@@ -7,7 +7,7 @@ An indicator plot is a type of plot that highlights a collection of numeric valu
 - **Highlight specific metrics**: Indicator plots are useful when you want to highlight specific numeric metrics in a visually appealing way.
 - **Compare metrics to a reference value**: Indicator plots are useful to compare metrics to a reference value, such as a starting value or a target value.
 - **Compare metrics to each other**: Indicator plots are useful to compare multiple metrics to each other by highlighting where they fall relative to each other.
-- 
+
 ## Examples
 
 ### A basic indicator plot
