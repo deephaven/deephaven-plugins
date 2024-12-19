@@ -49,7 +49,8 @@ hist_8_bins = dx.histogram(setosa, x="SepalLength", nbins=8)
 
 ### Bin and aggregate on different columns
 
-If both `x` and `y` are specified, the histogram will be binned across one column and aggregated on the other.
+If the plot orientation is vertical (`"v"`), the `x` column is binned and the `y` column is aggregated. The operations are flipped if the plot orientation is horizontal.
+
 
 ```python order=hist_v,hist_h,hist_avg,iris
 import deephaven.plot.express as dx
