@@ -31,11 +31,11 @@ my_toast_table = toast_table(_source)
 ## UI recommendations
 
 1. **Use the render queue to trigger toasts**: When you need to trigger a toast from a background thread, use the render queue to ensure the toast is triggered on the render thread. Otherwise, an exception will be raised.
-2. **Use the render queue to batch UI updates from a background thread**: By default, setter functions from the `use_state` hook are already fired on the render thread. However, if you have multiple updates to make to the UI from a background thread, you can use the render queue to batch them together.
+2. **Use the render queue to batch UI updates from a background thread**: By default, setter functions from the [`use_state`](./use_state.md) hook are already fired on the render thread. However, if you have multiple updates to make to the UI from a background thread, you can use the render queue to batch them together.
 
 ## Batch updates
 
-Setter functions from the `use_state` hook are always fired on the render thread, so if you call a series of updates from a callback on the render thread, they will be batched together. Consider the following, which will increment states `a` and `b` in the callback from pressing on "Update values":
+Setter functions from the [`use_state`](./use_state.md) hook are always fired on the render thread, so if you call a series of updates from a callback on the render thread, they will be batched together. Consider the following, which will increment states `a` and `b` in the callback from pressing on "Update values":
 
 ```python
 from deephaven import ui
