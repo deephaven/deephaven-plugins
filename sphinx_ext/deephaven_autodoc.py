@@ -100,7 +100,7 @@ def extract_signature_data(
         node: The node to extract the signature data from
 
     Returns:
-        The function metadata, the parameter defaults, and the expected number for comparison
+        The function metadata, the parameter defaults, and the expected parameters
     """
     result = {}
     param_defaults = {}
