@@ -49,19 +49,6 @@ AUTOFUNCTION_COMMENT_PREFIX = "AutofunctionCommentPrefix:"
 UNDOCUMENTED_PARAMS = {"*"}
 
 
-def filter_expected_params(expected_params: set[str]) -> set[str]:
-    """
-    Filter the expected parameters to only include the ones that need to be documented
-
-    Args:
-        expected_params: The expected parameters
-
-    Returns:
-        The filtered expected parameters
-    """
-    return expected_params - UNDOCUMENTED_PARAMS
-
-
 def extract_parameter_defaults(
     node: sphinx.addnodes.desc_parameterlist,
 ) -> tuple[ParamDefaults, set[str]]:
@@ -83,8 +70,6 @@ def extract_parameter_defaults(
         # otherwise, no default value - do not add it to defaults because None is not the same as no default
         # but add it to expected_params so that we can check that all parameters are documented
         expected_params.add(params[0])
-
-    expected_params = filter_expected_params(expected_params)
 
     return defaults, expected_params
 
@@ -276,7 +261,7 @@ def missing_parameters(params: Params, expected_params: set[str]) -> set[str]:
         expected_params: The parameters that are expected
     """
     param_names = set(param["name"] for param in params)
-    return expected_params - param_names
+    return expected_params - UNDOCUMENTED_PARAMS - param_names
 
 
 def extract_desc_data(node: sphinx.addnodes.desc) -> SignatureData:
