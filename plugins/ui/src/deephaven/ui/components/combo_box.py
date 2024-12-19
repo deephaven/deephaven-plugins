@@ -27,7 +27,7 @@ from deephaven.table import Table, PartitionedTable
 from .section import SectionElement
 from .item import Item
 from .item_table_source import ItemTableSource
-from ..elements import BaseElement, Element
+from ..elements import BaseElement, Element, NodeType
 from .._internal.utils import create_props, unpack_item_table_source
 from ..types import Key, Undefined, UndefinedType
 from .basic import component_element
@@ -67,7 +67,7 @@ def combo_box(
     is_required: bool | None = None,
     validation_behavior: ValidationBehavior = "aria",
     auto_focus: bool | None = None,
-    label: Element | None = None,
+    label: NodeType = None,
     description: Element | None = None,
     error_message: Element | None = None,
     name: str | None = None,

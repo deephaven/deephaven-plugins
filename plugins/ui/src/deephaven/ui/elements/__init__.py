@@ -1,4 +1,4 @@
-from .Element import Element, PropsType
+from .Element import Element, PropsType, NodeType
 from .BaseElement import BaseElement
 from .DashboardElement import DashboardElement
 from .FunctionElement import FunctionElement

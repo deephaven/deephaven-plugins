@@ -22,7 +22,7 @@ from .types import (
 )
 
 from ..hooks import use_memo
-from ..elements import Element
+from ..elements import Element, NodeType
 from .._internal.utils import (
     create_props,
     convert_date_props,
@@ -96,7 +96,7 @@ def date_range_picker(
     is_required: bool | None = None,
     validation_behavior: ValidationBehavior | None = None,
     auto_focus: bool | None = None,
-    label: Element | None = None,
+    label: NodeType = None,
     description: Element | None = None,
     error_message: Element | None = None,
     is_open: bool | None = None,
