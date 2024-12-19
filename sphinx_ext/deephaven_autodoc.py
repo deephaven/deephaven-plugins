@@ -46,10 +46,25 @@ SignatureValue = Union[str, Params]
 
 AUTOFUNCTION_COMMENT_PREFIX = "AutofunctionCommentPrefix:"
 
+UNDOCUMENTED_PARAMS = {"*"}
+
+
+def filter_expected_params(expected_params: set[str]) -> set[str]:
+    """
+    Filter the expected parameters to only include the ones that need to be documented
+
+    Args:
+        expected_params: The expected parameters
+
+    Returns:
+        The filtered expected parameters
+    """
+    return expected_params - UNDOCUMENTED_PARAMS
+
 
 def extract_parameter_defaults(
     node: sphinx.addnodes.desc_parameterlist,
-) -> ParamDefaults:
+) -> tuple[ParamDefaults, set[str]]:
     """
     Extract the default values for the parameters from the parameter list
 
@@ -57,20 +72,26 @@ def extract_parameter_defaults(
         node: The node to extract the defaults from
 
     Returns:
-        The parameter defaults
+        The parameter defaults and the expected parameters for comparison
     """
     defaults = {}
+    expected_params = set()
     for child in node.children:
         params = child.astext().split("=")
         if len(params) == 2:
             defaults[params[0]] = params[1]
-        # otherwise, no default value - do not add it because None is not the same as no default
-    return defaults
+        # otherwise, no default value - do not add it to defaults because None is not the same as no default
+        # but add it to expected_params so that we can check that all parameters are documented
+        expected_params.add(params[0])
+
+    expected_params = filter_expected_params(expected_params)
+
+    return defaults, expected_params
 
 
 def extract_signature_data(
     node: sphinx.addnodes.desc_signature,
-) -> tuple[FunctionMetadata, ParamDefaults]:
+) -> tuple[FunctionMetadata, ParamDefaults, set[str]]:
     """
     Extract the signature data from the signature node
     The default values for the parameters are extracted from the signature
@@ -79,18 +100,19 @@ def extract_signature_data(
         node: The node to extract the signature data from
 
     Returns:
-        The function metadata and the parameter defaults
+        The function metadata, the parameter defaults, and the expected number for comparison
     """
     result = {}
     param_defaults = {}
+    expected_params = set()
     for child in node.children:
         if isinstance(child, sphinx.addnodes.desc_addname):
             result["module_name"] = child.astext()
         elif isinstance(child, sphinx.addnodes.desc_name):
             result["name"] = child.astext()
         elif isinstance(child, sphinx.addnodes.desc_parameterlist):
-            param_defaults = extract_parameter_defaults(child)
-    return FunctionMetadata(**result), param_defaults
+            param_defaults, expected_params = extract_parameter_defaults(child)
+    return FunctionMetadata(**result), param_defaults, expected_params
 
 
 def extract_list_item(node: docutils.nodes.list_item) -> ParamData:
@@ -245,6 +267,18 @@ def attach_parameter_defaults(params: Params, param_defaults: ParamDefaults) -> 
             param["default"] = param_defaults[name]
 
 
+def missing_parameters(params: Params, expected_params: set[str]) -> set[str]:
+    """
+    Get the parameters that are missing from the documentation
+
+    Args:
+        params: The parameters that are documented
+        expected_params: The parameters that are expected
+    """
+    param_names = set(param["name"] for param in params)
+    return expected_params - param_names
+
+
 def extract_desc_data(node: sphinx.addnodes.desc) -> SignatureData:
     """
     Extract the content of the description.
@@ -258,15 +292,27 @@ def extract_desc_data(node: sphinx.addnodes.desc) -> SignatureData:
     """
     result = {}
     param_defaults = {}
+    params_expected = set()
     for child_node in node.children:
         if isinstance(child_node, sphinx.addnodes.desc_signature):
-            signature_results, param_defaults = extract_signature_data(child_node)
+            signature_results, param_defaults, params_expected = extract_signature_data(
+                child_node
+            )
             result.update(signature_results)
         elif isinstance(child_node, sphinx.addnodes.desc_content):
             result.update(extract_content_data(child_node))
     # map all to lowercase for consistency
     function = f"{result['module_name']}{result['name']}"
+
     result["parameters"] = result.pop("Parameters") if "Parameters" in result else []
+    missing_params = missing_parameters(result["parameters"], params_expected)
+
+    if missing_params:
+        raise ValueError(
+            f"Missing documentation for {function} parameters {missing_params}. "
+            "Verify that all parameters are documented in the 'Args:' section."
+        )
+
     try:
         result["return_description"] = result.pop("Returns")
     except KeyError:
