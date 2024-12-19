@@ -296,7 +296,7 @@ def extract_desc_data(node: sphinx.addnodes.desc) -> SignatureData:
     if missing_params:
         raise ValueError(
             f"Missing documentation for {function} parameters {missing_params}. "
-            "Verify that all parameters are documented in the 'Args:' section."
+            "Verify that parameter names have leading asterisks in the description."
         )
 
     try:
