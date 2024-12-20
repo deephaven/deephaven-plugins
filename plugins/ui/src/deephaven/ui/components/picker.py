@@ -6,7 +6,7 @@ from deephaven.table import Table, PartitionedTable
 from .basic import component_element
 from .section import SectionElement, Item
 from .item_table_source import ItemTableSource
-from ..elements import BaseElement, Element
+from ..elements import BaseElement, Element, NodeType
 from .._internal.utils import create_props, unpack_item_table_source
 from ..types import Key, Undefined, UndefinedType
 from .types import (
@@ -60,7 +60,7 @@ def picker(
     validation_behavior: ValidationBehavior | None = None,
     description: Element | None = None,
     error_message: Element | None = None,
-    label: Element | None = None,
+    label: NodeType = None,
     placeholder: str | None = None,
     is_loading: bool | None = None,
     label_position: LabelPosition = "top",
