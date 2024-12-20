@@ -126,8 +126,6 @@ def ui_deletable_cell(i, delete_cell):
             on_press=lambda: delete_cell(i),
         ),
         align_items="end",
-        # comment in this line to fix
-        # key=str(i),
     )
 
 
@@ -143,7 +141,7 @@ def ui_cells():
         set_cells(lambda old_cells: [c for c in old_cells if c != delete_id])
 
     return ui.view(
-        [ui_deletable_cell(i, delete_cell) for i in cells],
+        [ui_deletable_cell(i, delete_cell, key=str(i)) for i in cells],
         ui.action_button(ui.icon("vsAdd"), "Add cell", on_press=add_cell),
         overflow="auto",
     )
