@@ -2,7 +2,7 @@
 
 Your `deephaven.ui` query is taking shape with many components being nested within each other. How does `deephaven.ui` keep track of your query's component structure?
 
-`deephaven.ui`, and many other UI libraries, model UI as a tree. Thinking of your app as a tree is useful for understanding the relationship between components. This understanding will help you debug future concepts like performance and state management.
+`deephaven.ui`, and many other UI libraries, model UI as a tree. This approach helps clarify the relationships between components and aids in debugging issues related to performance and state management.
 
 ## UI as a tree
 
@@ -129,6 +129,6 @@ flowchart TD
 
 In this example, depending on the `flag` , we may render `ui.text` or `ui.heading`. The render tree may be different for each render pass.
 
-Although render trees may differ across render passes, these trees are generally helpful for identifying what the top-level and leaf components are in a `deephaven.ui` component. Top-level components are the components nearest to the root component and affect the rendering performance of all the components beneath them and often contain the most complexity. Leaf components are near the bottom of the tree and have no child components and are often frequently re-rendered.
+Although render trees may differ across render passes, these trees are generally helpful for identifying what the top-level and leaf components are in a `deephaven.ui` component. Top-level components are those nearest to the root component and affect the rendering performance of all the components beneath them and often contain the most complexity. Leaf components are near the bottom of the tree and have no child components. They are often frequently re-rendered.
 
-Identifying these categories of components are useful for understanding data flow and performance of your component.
+Identifying these categories of components is useful for understanding the data flow and performance of your component.
