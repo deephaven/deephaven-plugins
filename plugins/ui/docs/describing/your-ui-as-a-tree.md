@@ -63,7 +63,7 @@ def app():
 my_app = app()
 ```
 
-![my_app](../_assets/your_ui_as_a_tree1.png)
+![my_app](../_assets/your-ui-as-a-tree1.png)
 
 ```mermaid
 flowchart TD
@@ -132,21 +132,3 @@ In this example, depending on the `flag` , we may render `ui.text` or `ui.headin
 Although render trees may differ across render passes, these trees are generally helpful for identifying what the top-level and leaf components are in a `deephaven.ui` component. Top-level components are the components nearest to the root component and affect the rendering performance of all the components beneath them and often contain the most complexity. Leaf components are near the bottom of the tree and have no child components and are often frequently re-rendered.
 
 Identifying these categories of components are useful for understanding data flow and performance of your component.
-
-## The dependency tree
-
-Another relationship in a `deephaven.ui` query that can be modeled with a tree are a query's dependencies. Each node in a dependency tree is a module and each branch represents an import statement in that module.
-
-If we take the previous app, we can build a dependency tree.
-
-```mermaid
-flowchart TD
-    A[app] -->|imports| B[ui]
-    A -->|imports| C[random]
-```
-
-Comparing to the render tree of the same app, there are similar structures but some notable differences:
-
-- The nodes that make-up the tree represent modules, not components.
-- Non-component modules, like `random`, are also represented in this tree. The render tree only encapsulates components.
-- Dependency trees are useful to determine what modules are necessary to run your `deephaven.ui` query.
