@@ -135,7 +135,7 @@ Identifying these categories of components are useful for understanding data flo
 
 ## The dependency tree
 
-Another relationship in a `deephaven.ui` query that can be modeled with a tree are an query's dependencies. Each node in a dependency tree is a module and each branch represents an import statement in that module.
+Another relationship in a `deephaven.ui` query that can be modeled with a tree are a query's dependencies. Each node in a dependency tree is a module and each branch represents an import statement in that module.
 
 If we take the previous app, we can build a dependency tree.
 
