@@ -56,6 +56,10 @@
           {
             "label": "Pure Components",
             "path": "describing/pure_components.md"
+          },
+          {
+            "label": "Your UI as a Tree",
+            "path": "describing/your-ui-as-a-tree.md"
           }
         ]
       },
