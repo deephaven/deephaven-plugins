@@ -7,20 +7,15 @@ from .types import (
     JustifySelf,
     LayoutFlex,
     Position,
+    HeadingLevel,
 )
 from .basic import component_element
 from ..elements import Element
 
-# TODO: create disclosure_title and disclosure_panel
-def disclosure(
-    title: Any,
-    panel: Any,
-    *,
-    is_quiet: bool | None = None,
-    is_disabled: bool | None = None,
-    is_expanded: bool | None = None,
-    default_expanded: bool | None = None,
-    on_expanded_change: Callable[[bool], None] | None = None,
+
+def disclosure_title(
+    *children: Any,
+    level: HeadingLevel = 3,
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,
@@ -35,7 +30,6 @@ def disclosure(
     grid_column_end: str | None = None,
     grid_row_start: str | None = None,
     grid_row_end: str | None = None,
-    slot: str | None = None,
     margin: DimensionValue | None = None,
     margin_top: DimensionValue | None = None,
     margin_bottom: DimensionValue | None = None,
@@ -68,16 +62,11 @@ def disclosure(
     key: str | None = None,
 ) -> Element:
     """
-    A collapsible section of content with a heading that toggles the visibility of a panel.
+    The title of a disclosure panel.
 
     Args:
-        title: The title of the disclosure.
-        panel: The content of the disclosure.
-        is_quiet: Whether the element is displayed with a quiet style.
-        is_disabled: Whether the element is disabled.
-        is_expanded: Whether the element is expanded (controlled).
-        default_expanded: Whether the element is expanded by default (uncontrolled).
-        on_expanded_change: Handler that is called when the element's expanded state changes.
+        *children: The content to render within the container.
+        level: Sets heading level, h1 through h6. Defaults to 3.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how the element will shrink to fit the space available.
@@ -92,7 +81,6 @@ def disclosure(
         grid_row_end: When used in a grid layout, specifies the ending row to span within the grid.
         grid_column_start: When used in a grid layout, specifies the starting column to span within the grid.
         grid_column_end: When used in a grid layout, specifies the ending column to span within the grid.
-        slot: Slot name for the element. Slows enable components to receive props from a parent component. An explicit null indicates that local props override parent props.
         margin: The margin for all four sides of the element.
         margin_top: The margin for the top side of the element.
         margin_bottom: The margin for the bottom side of the element.
@@ -125,18 +113,13 @@ def disclosure(
         key: A unique identifier used by React to render elements in a list.
 
     Returns:
-        The rendered contextual help component.
+        The rendered disclosure title component.
 
     """
     return component_element(
-        "Disclosure",
-        title=title,
-        panel=panel,
-        is_quiet=is_quiet,
-        is_disabled=is_disabled,
-        is_expanded=is_expanded,
-        default_expanded=default_expanded,
-        on_expanded_change=on_expanded_change,
+        "DisclosureTitle",
+        *children,
+        level=level,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,
@@ -151,7 +134,6 @@ def disclosure(
         grid_column_end=grid_column_end,
         grid_row_start=grid_row_start,
         grid_row_end=grid_row_end,
-        slot=slot,
         margin=margin,
         margin_top=margin_top,
         margin_bottom=margin_bottom,
