@@ -116,6 +116,8 @@ def app():
 my_app = app()
 ```
 
+![my_app](../_assets/your-ui-as-a-tree2.png)
+
 ```mermaid
 flowchart TD
     A[app] -->|renders| B[ui.flex]
