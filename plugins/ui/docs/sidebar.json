@@ -50,6 +50,10 @@
             "path": "describing/conditional_rendering.md"
           },
           {
+            "label": "Render Lists",
+            "path": "describing/render_lists.md"
+          },
+          {
             "label": "Pure Components",
             "path": "describing/pure_components.md"
           }
