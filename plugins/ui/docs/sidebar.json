@@ -50,6 +50,10 @@
             "path": "describing/conditional_rendering.md"
           },
           {
+            "label": "Pure Components",
+            "path": "describing/pure_components.md"
+          },
+          {
             "label": "Your UI as a Tree",
             "path": "describing/your-ui-as-a-tree.md"
           }
@@ -169,6 +173,10 @@
           {
             "label": "list_view",
             "path": "components/list_view.md"
+          },
+          {
+            "label": "logic_button",
+            "path": "components/logic_button.md"
           },
           {
             "label": "markdown",
