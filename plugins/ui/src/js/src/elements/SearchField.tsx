@@ -8,9 +8,10 @@ import {
   useKeyboardEventCallback,
 } from './hooks';
 import useDebouncedOnChange from './hooks/useDebouncedOnChange';
+import { SerializedTextInputEventProps } from './model';
 
 export function SearchField(
-  props: DHCSearchFieldProps & {
+  props: SerializedTextInputEventProps<DHCSearchFieldProps, string> & {
     onSubmit?: (value: string) => void;
     onClear?: () => void;
   }

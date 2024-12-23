@@ -14,9 +14,8 @@ from .types import (
     Position,
     ProgressBarSize,
 )
-
 from .basic import component_element
-from ..elements import Element
+from ..elements import Element, NodeType
 
 ProgressBarElement = Element
 
@@ -26,9 +25,9 @@ def progress_bar(
     static_color: StaticColor | None = None,
     label_position: LabelPosition = "top",
     show_value_label: bool | None = None,
-    label: Element | None = None,
+    label: NodeType = None,
     # format_options, # omitted because need to connect it to Deephaven formatting options as well
-    value_label: Element | None = None,
+    value_label: NodeType = None,
     value: float = 0,
     min_value: float = 0,
     max_value: float = 100,

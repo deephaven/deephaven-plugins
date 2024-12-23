@@ -10,7 +10,7 @@ from deephaven import ui
 
 @ui.component
 def ui_picker_basic():
-    option, set_option = ui.use_state("")
+    option, set_option = ui.use_state(None)
 
     return ui.picker(
         "Rarely",
@@ -180,6 +180,36 @@ def ui_picker_selected_key_examples():
 
 
 my_picker_selected_key_examples = ui_picker_selected_key_examples()
+```
+
+Providing a value to the `selected_key` prop runs the component in "controlled" mode where the selection state is driven from the provided value. A value of `None` can be used to indicate nothing is selected while keeping the component in controlled mode. The default value is `ui.types.Undefined`, which causes the component to run in "uncontrolled" mode.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def ui_picker_key_variations():
+    controlled_value, set_controlled_value = ui.use_state(None)
+
+    return [
+        ui.picker(
+            "Option 1",
+            "Option 2",
+            selected_key=controlled_value,
+            on_change=set_controlled_value,
+            label="Key: Controlled",
+        ),
+        ui.picker(
+            "Option 1",
+            "Option 2",
+            on_change=lambda x: print(x),
+            label="Key: Undefined",
+        ),
+    ]
+
+
+my_picker_key_variations = ui_picker_key_variations()
 ```
 
 

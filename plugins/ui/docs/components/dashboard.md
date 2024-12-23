@@ -158,6 +158,25 @@ dash_stack = ui.dashboard(
 )
 ```
 
+### Stack with nested tabs
+
+```python
+from deephaven import ui
+
+dash_stack = ui.dashboard(
+    ui.stack(
+        ui.panel(
+            ui.tabs(ui.tab("A1 content", title="A1"), ui.tab("A2 content", title="A2")),
+            title="A",
+        ),
+        ui.panel(
+            ui.tabs(ui.tab("B1 content", title="B1"), ui.tab("B2 content", title="B2")),
+            title="B",
+        ),
+    )
+)
+```
+
 ### Stack in a layout
 
 ```python

@@ -3,7 +3,9 @@ from deephaven.plot import express as dx
 from deephaven import empty_table
 
 _t_flex = empty_table(100).update(["x = i", "y = sin(i)"])
-_p_flex = dx.line(_t_flex, x="x", y="y")
+# By default, dx.line renders with webgl but some tests use the trace class to see if the chart is rendered,
+# which is not there in webgl.
+_p_flex = dx.line(_t_flex, x="x", y="y", render_mode="svg")
 
 
 @ui.component

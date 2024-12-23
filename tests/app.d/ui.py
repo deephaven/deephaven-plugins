@@ -18,6 +18,14 @@ def ui_basic_component():
 
 
 @ui.component
+def ui_multi_panel_component():
+    return [
+        ui.panel(ui.button("Hello"), title="foo"),
+        ui.panel(ui.text("World"), title="bar"),
+    ]
+
+
+@ui.component
 def ui_boom_component():
     raise Exception("BOOM!")
 
@@ -40,7 +48,7 @@ def ui_cell(label: str = "Cell"):
 
 
 @ui.component
-def ui_cells():
+def ui_cells_component():
     id_iter, _ = ui.use_state(lambda: count())
     cells, set_cells = ui.use_state(lambda: [next(id_iter)])
 
@@ -55,21 +63,37 @@ def ui_cells():
             lambda i: ui.flex(
                 ui_cell(label=f"Cell {i}"),
                 ui.action_button(
-                    ui.icon("vsTrash"),
+                    ui.icon("trash"),
                     aria_label="Delete cell",
-                    on_press=lambda: delete_cell(i),
+                    on_press=lambda _: delete_cell(i),
                 ),
                 align_items="end",
                 key=str(i),
             ),
             cells,
         ),
-        ui.action_button(ui.icon("vsAdd"), "Add cell", on_press=add_cell),
+        ui.action_button(ui.icon("add"), "Add cell", on_press=add_cell),
         overflow="auto",
     )
 
 
 ui_component = ui_basic_component()
+ui_multi_panel = ui_multi_panel_component()
 ui_boom = ui_boom_component()
 ui_boom_counter = ui_boom_counter_component()
-ui_cells = ui_cells()
+ui_cells = ui_cells_component()
+
+ui_dashboard = ui.dashboard(
+    ui.column(
+        ui.stack(
+            ui.panel(ui_basic_component(), title="Component"),
+            ui.panel(ui_boom_counter_component(), title="Boom Counter"),
+            active_item_index=0,
+            height=75,
+        ),
+        ui.row(
+            ui_multi_panel_component(),
+            height=25,
+        ),
+    )
+)

@@ -22,13 +22,13 @@ from .types import (
 )
 
 from ..hooks import use_memo
-from ..elements import Element
+from ..elements import Element, NodeType
 from .._internal.utils import (
     create_props,
     convert_date_props,
     convert_list_prop,
 )
-from ..types import Date, Granularity
+from ..types import Date, Granularity, Undefined, UndefinedType
 from .basic import component_element
 from .make_component import make_component
 from deephaven.time import dh_now
@@ -50,6 +50,8 @@ _GRANULARITY_KEY = "granularity"
 
 # The priority of the date props to determine the format of the date passed to the callable date props
 _DATE_PROPS_PRIORITY = ["value", "default_value", "placeholder_value"]
+
+_NULLABLE_PROPS = ["value", "default_value"]
 
 
 def _convert_date_picker_props(
@@ -80,8 +82,8 @@ def _convert_date_picker_props(
 @make_component
 def date_picker(
     placeholder_value: Date | None = dh_now(),
-    value: Date | None = None,
-    default_value: Date | None = None,
+    value: Date | None | UndefinedType = Undefined,
+    default_value: Date | None | UndefinedType = Undefined,
     min_value: Date | None = None,
     max_value: Date | None = None,
     # TODO (issue # 698) we need to implement unavailable_values
@@ -96,7 +98,7 @@ def date_picker(
     is_required: bool | None = None,
     validation_behavior: ValidationBehavior | None = None,
     auto_focus: bool | None = None,
-    label: Element | None = None,
+    label: NodeType = None,
     description: Element | None = None,
     error_message: Element | None = None,
     is_open: bool | None = None,
@@ -280,4 +282,4 @@ def date_picker(
     #     [unavailable_values],
     # )
 
-    return component_element("DatePicker", **props)
+    return component_element("DatePicker", _nullable_props=_NULLABLE_PROPS, **props)

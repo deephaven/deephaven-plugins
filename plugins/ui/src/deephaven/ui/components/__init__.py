@@ -1,6 +1,7 @@
 from .action_button import action_button
 from .action_group import action_group
 from .action_menu import action_menu
+from .avatar import avatar
 from .basic import (
     component_element,
 )
@@ -35,8 +36,10 @@ from .link import link
 from .list_action_group import list_action_group
 from .list_action_menu import list_action_menu
 from .list_view import list_view
+from .logic_button import logic_button
 from .make_component import make_component as component
 from .markdown import markdown
+from .meter import meter
 from .number_field import number_field
 from .panel import panel
 from .picker import picker
@@ -72,6 +75,7 @@ __all__ = [
     "action_button",
     "action_group",
     "action_menu",
+    "avatar",
     "component_element",
     "badge",
     "button",
@@ -105,8 +109,10 @@ __all__ = [
     "list_view",
     "list_action_group",
     "list_action_menu",
+    "logic_button",
     "html",
     "markdown",
+    "meter",
     "number_field",
     "panel",
     "picker",
