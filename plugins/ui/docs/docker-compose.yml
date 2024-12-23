@@ -1,0 +1,9 @@
+services:
+  docs:
+    image: ghcr.io/deephaven/salmon
+    ports:
+      - '${PORT:-3001}:${PORT:-3001}'
+    environment:
+      - PORT=${PORT:-3001}
+    volumes:
+      - ./build/markdown:/core/ui/docs
