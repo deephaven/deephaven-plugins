@@ -125,7 +125,7 @@ def disclosure(
         key: A unique identifier used by React to render elements in a list.
 
     Returns:
-        The rendered contextual help component.
+        The rendered disclosure component.
 
     """
     return component_element(
