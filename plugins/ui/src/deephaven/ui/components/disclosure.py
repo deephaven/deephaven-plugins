@@ -11,7 +11,7 @@ from .types import (
 from .basic import component_element
 from ..elements import Element
 
-# TODO: create disclosure_title and disclosure_panel
+
 def disclosure(
     title: Any,
     panel: Any,

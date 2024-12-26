@@ -7,7 +7,6 @@ from .types import (
     JustifySelf,
     LayoutFlex,
     Position,
-    HeadingLevel,
 )
 from .basic import component_element
 from ..elements import Element
@@ -117,6 +116,7 @@ def disclosure_panel(
     """
     return component_element(
         "DisclosurePanel",
+        *children,
         flex=flex,
         flex_grow=flex_grow,
         flex_shrink=flex_shrink,

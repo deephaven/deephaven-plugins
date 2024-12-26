@@ -127,6 +127,10 @@
             "path": "components/dialog_trigger.md"
           },
           {
+            "label": "disclosure",
+            "path": "components/disclosure.md"
+          },
+          {
             "label": "flex",
             "path": "components/flex.md"
           },
