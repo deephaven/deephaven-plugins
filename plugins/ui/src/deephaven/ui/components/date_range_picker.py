@@ -22,13 +22,13 @@ from .types import (
 )
 
 from ..hooks import use_memo
-from ..elements import Element
+from ..elements import Element, NodeType
 from .._internal.utils import (
     create_props,
     convert_date_props,
     convert_list_prop,
 )
-from ..types import Date, Granularity, DateRange
+from ..types import Date, Granularity, DateRange, Undefined, UndefinedType
 from .basic import component_element
 from .make_component import make_component
 from deephaven.time import dh_now
@@ -48,6 +48,8 @@ _GRANULARITY_KEY = "granularity"
 
 # The priority of the date props to determine the format of the date passed to the callable date props
 _DATE_PROPS_PRIORITY = ["value", "default_value", "placeholder_value"]
+
+_NULLABLE_PROPS = ["value", "default_value"]
 
 
 def _convert_date_range_picker_props(
@@ -78,8 +80,8 @@ def _convert_date_range_picker_props(
 @make_component
 def date_range_picker(
     placeholder_value: Date | None = dh_now(),
-    value: DateRange | None = None,
-    default_value: DateRange | None = None,
+    value: DateRange | None | UndefinedType = Undefined,
+    default_value: DateRange | None | UndefinedType = Undefined,
     min_value: Date | None = None,
     max_value: Date | None = None,
     # TODO (issue # 698) we need to implement unavailable_values
@@ -94,7 +96,7 @@ def date_range_picker(
     is_required: bool | None = None,
     validation_behavior: ValidationBehavior | None = None,
     auto_focus: bool | None = None,
-    label: Element | None = None,
+    label: NodeType = None,
     description: Element | None = None,
     error_message: Element | None = None,
     is_open: bool | None = None,
@@ -278,4 +280,6 @@ def date_range_picker(
 
     _convert_date_range_picker_props(props)
 
-    return component_element("DateRangePicker", **props)
+    return component_element(
+        "DateRangePicker", _nullable_props=_NULLABLE_PROPS, **props
+    )

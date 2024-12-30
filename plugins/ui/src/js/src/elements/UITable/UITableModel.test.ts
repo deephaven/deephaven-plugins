@@ -33,6 +33,7 @@ describe('Formatting', () => {
         table: MOCK_TABLE,
         databars: [],
         format: [{ color: 'red' }, { color: 'blue' }],
+        displayNameMap: {},
       });
       expect(model.getFormatOptionForCell(0, 0, 'color')).toBe('blue');
       expect(model.getFormatOptionForCell(1, 1, 'color')).toBe('blue');
@@ -48,6 +49,7 @@ describe('Formatting', () => {
           { cols: 'column0', color: 'red' },
           { cols: 'column1', color: 'blue' },
         ],
+        displayNameMap: {},
       });
       expect(model.getFormatOptionForCell(0, 0, 'color')).toBe('red');
       expect(model.getFormatOptionForCell(1, 1, 'color')).toBe('blue');
@@ -71,6 +73,7 @@ describe('Formatting', () => {
           { color: 'red', if_: 'even' },
           { cols: 'column1', color: 'blue', if_: 'even' },
         ],
+        displayNameMap: {},
       });
       expect(model.getFormatOptionForCell(0, 0, 'color')).toBe('red');
       expect(model.getFormatOptionForCell(0, 1, 'color')).toBeUndefined();
@@ -86,6 +89,7 @@ describe('Formatting', () => {
         table: MOCK_TABLE,
         databars: [],
         format: [{ cols: 'column0', color: 'red' }],
+        displayNameMap: {},
       });
       expect(model.getFormatOptionForCell(1, 1, 'color')).toBeUndefined();
       expect(
@@ -104,6 +108,7 @@ describe('Formatting', () => {
         table: MOCK_TABLE,
         databars: [],
         format: [{ color: 'red', if_: 'even' }],
+        displayNameMap: {},
       });
       expect(model.getFormatOptionForCell(0, 0, 'color')).toBeUndefined();
       expect(model.getFormatOptionForCell(0, 1, 'color')).toBeUndefined();
@@ -119,6 +124,7 @@ describe('Formatting', () => {
         table: MOCK_TABLE,
         databars: [],
         format: [{ color: 'red' }],
+        displayNameMap: {},
       });
       expect(model.colorForCell(0, 0, {} as IrisGridThemeType)).toBe('red');
     });
@@ -130,6 +136,7 @@ describe('Formatting', () => {
         table: MOCK_TABLE,
         databars: [],
         format: [],
+        displayNameMap: {},
       });
       expect(model.colorForCell(0, 0, {} as IrisGridThemeType)).toBeUndefined();
       expect(MOCK_BASE_MODEL.colorForCell).toHaveBeenCalledTimes(1);
@@ -145,6 +152,7 @@ describe('Formatting', () => {
         table: MOCK_TABLE,
         databars: [],
         format: [{ background_color: 'black' }],
+        displayNameMap: {},
       });
       expect(
         model.colorForCell(0, 0, { white: 'white' } as IrisGridThemeType)
@@ -162,6 +170,7 @@ describe('Formatting', () => {
         table: MOCK_TABLE,
         databars: [],
         format: [{ background_color: 'white' }],
+        displayNameMap: {},
       });
       expect(
         model.colorForCell(0, 0, { black: 'black' } as IrisGridThemeType)
@@ -176,6 +185,7 @@ describe('Formatting', () => {
         table: MOCK_TABLE,
         databars: [],
         format: [{ color: 'foo' }],
+        displayNameMap: {},
       });
       model.setColorMap(new Map([['foo', 'bar']]));
       expect(model.colorForCell(0, 0, {} as IrisGridThemeType)).toBe('bar');
@@ -190,6 +200,7 @@ describe('Formatting', () => {
         table: MOCK_TABLE,
         databars: [],
         format: [],
+        displayNameMap: {},
       });
       expect(
         model.backgroundColorForCell(0, 0, {} as IrisGridThemeType)
@@ -204,6 +215,7 @@ describe('Formatting', () => {
         table: MOCK_TABLE,
         databars: [],
         format: [{ background_color: 'foo' }],
+        displayNameMap: {},
       });
       model.setColorMap(new Map([['foo', 'bar']]));
       expect(model.backgroundColorForCell(0, 0, {} as IrisGridThemeType)).toBe(
