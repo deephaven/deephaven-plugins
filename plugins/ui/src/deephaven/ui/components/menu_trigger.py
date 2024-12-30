@@ -25,7 +25,7 @@ def menu_trigger(
     """
     A menu_trigger serves as a wrapper around a menu and its associated trigger.
     Args:
-        *children: The Dialog and its trigger element.
+        *children: The menu and its trigger element.
         align: The alignment of the menu relative to the trigger.
         direction: Where the Menu opens relative to its trigger.
         should_flip: Whether the menu should automatically flip direction when space is limited.
