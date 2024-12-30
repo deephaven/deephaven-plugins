@@ -1,14 +1,16 @@
 from __future__ import annotations
 from .basic import component_element
-from ..elements import Element
+from ..elements import BaseElement, Element
 from .._internal.utils import create_props
+
+ContextualHelpTrigger = BaseElement
 
 
 def contextual_help_trigger(
     *children: Element,
     is_unavailable: bool | None = None,
     key: str | None = None,
-) -> Element:
+) -> ContextualHelpTrigger:
     """
     A contextual_help_trigger disables a menu item's action and replaces it with a popover with information on why the item is unavailable..
     Args:

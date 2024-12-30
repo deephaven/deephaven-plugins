@@ -1,13 +1,15 @@
 from __future__ import annotations
 from .basic import component_element
-from ..elements import Element
+from ..elements import BaseElement, Element
 from .._internal.utils import create_props
+
+SubmenuTrigger = BaseElement
 
 
 def submenu_trigger(
     *children: Element,
     key: str | None = None,
-) -> Element:
+) -> SubmenuTrigger:
     """
     A submenu_trigger serves as a wrapper around a menu and item in a submenu.
     Args:

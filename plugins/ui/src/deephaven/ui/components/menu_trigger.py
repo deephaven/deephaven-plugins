@@ -6,8 +6,10 @@ from .types import (
     MenuTriggerType,
 )
 from .basic import component_element
-from ..elements import Element
+from ..elements import BaseElement, Element
 from .._internal.utils import create_props
+
+MenuTrigger = BaseElement
 
 
 def menu_trigger(
@@ -21,7 +23,7 @@ def menu_trigger(
     default_open: bool | None = None,
     on_open_change: Callable[[bool], None] | None = None,
     key: str | None = None,
-) -> Element:
+) -> MenuTrigger:
     """
     A menu_trigger serves as a wrapper around a menu and its associated trigger.
     Args:
