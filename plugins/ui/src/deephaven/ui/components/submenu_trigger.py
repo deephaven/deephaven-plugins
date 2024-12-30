@@ -15,7 +15,7 @@ def submenu_trigger(
         key: A unique identifier used by React to render elements in a list.
 
     Returns:
-        The menu trigger element.
+        The submenu trigger element.
     """
     children, props = create_props(locals())
     return component_element("SubmenuTrigger", *children, **props)
