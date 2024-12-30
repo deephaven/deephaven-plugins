@@ -31,3 +31,5 @@ DialogTriggerType = Literal[
 DialogTriggerMobileType = Literal["modal", "fullscreen", "fullscreenTakeover"]
 
 DialogSize = Literal["S", "M", "L"]
+
+MenuTriggerType = Literal["press", "longPress"]
