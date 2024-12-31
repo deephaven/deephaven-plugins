@@ -10,11 +10,12 @@ from .contextual_help_trigger import ContextualHelpTrigger
 from .item_table_source import ItemTableSource
 from ..elements import BaseElement, Element, NodeType
 from .._internal.utils import create_props, unpack_item_table_source
-from ..types import Key, Undefined, UndefinedType
+from ..types import Key, Undefined, UndefinedType, List
 from .types import (
     AlignSelf,
     CSSProperties,
     DimensionValue,
+    FocusStrategy,
     JustifySelf,
     LayoutFlex,
     Position,
@@ -25,6 +26,8 @@ from .types import (
     MenuDirection,
     FocusEventCallable,
     KeyboardEventCallable,
+    SelectionAll,
+    SelectionMode,
 )
 
 MenuElement = BaseElement
@@ -32,40 +35,17 @@ MenuElement = BaseElement
 
 def menu(
     *children: Item | SubmenuTrigger | ContextualHelpTrigger,
-    # TODO finish props
-    default_selected_key: Key | None = None,
-    selected_key: Key | None | UndefinedType = Undefined,
-    on_selection_change: Callable[[Key], None] | None = None,
-    on_change: Callable[[Key], None] | None = None,
-    is_quiet: bool | None = None,
-    align: Alignment = "start",
-    direction: MenuDirection = "bottom",
-    should_flip: bool = True,
-    menu_width: DimensionValue | None = None,
-    auto_focus: bool | None = None,
-    auto_complete: str | None = None,
-    name: str | None = None,
-    is_open: bool | None = None,
-    default_open: bool | None = None,
-    is_disabled: bool | None = None,
-    is_required: bool | None = None,
-    is_invalid: bool | None = None,
-    validation_behavior: ValidationBehavior | None = None,
-    description: Element | None = None,
-    error_message: Element | None = None,
-    label: NodeType = None,
-    placeholder: str | None = None,
-    is_loading: bool | None = None,
-    label_position: LabelPosition = "top",
-    label_align: Alignment | None = None,
-    necessity_indicator: NecessityIndicator | None = None,
-    contextual_help: Element | None = None,
-    on_open_change: Callable[[bool], None] | None = None,
-    on_focus: FocusEventCallable | None = None,
-    on_blur: FocusEventCallable | None = None,
-    on_focus_change: Callable[[bool], None] | None = None,
-    on_key_down: KeyboardEventCallable | None = None,
-    on_key_up: KeyboardEventCallable | None = None,
+    auto_focus: bool | FocusStrategy | None = None,
+    should_focus_wrap: bool | None = None,
+    disabled_key: List[Key] | None = None,
+    selection_mode: SelectionMode | None = None,
+    disallow_empty_selection: bool | None = None,
+    selected_keys: SelectionAll | List[Key] | None = None,
+    default_selected_keys: SelectionAll | List[Key] | None = None,
+    on_action: Callable[[Key], None] | None = None,
+    on_close: Callable[[], None] | None = None,
+    on_selection_change: Callable[[SelectionAll | List[Key]], None] | None = None,
+    # TODO check these
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,
