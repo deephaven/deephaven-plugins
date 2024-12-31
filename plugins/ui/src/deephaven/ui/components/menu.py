@@ -37,7 +37,7 @@ def menu(
     *children: Item | SubmenuTrigger | ContextualHelpTrigger,
     auto_focus: bool | FocusStrategy | None = None,
     should_focus_wrap: bool | None = None,
-    disabled_key: List[Key] | None = None,
+    disabled_keys: List[Key] | None = None,
     selection_mode: SelectionMode | None = None,
     disallow_empty_selection: bool | None = None,
     selected_keys: SelectionAll | List[Key] | None = None,
@@ -45,7 +45,6 @@ def menu(
     on_action: Callable[[Key], None] | None = None,
     on_close: Callable[[], None] | None = None,
     on_selection_change: Callable[[SelectionAll | List[Key]], None] | None = None,
-    # TODO check these
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,
@@ -96,45 +95,17 @@ def menu(
     A menu displays a list of actions or options that a user can choose.
 
     Args:
-        *children: The options to render within the picker.
-        default_selected_key:
-            The initial selected key in the collection (uncontrolled).
-        selected_key:
-            The currently selected key in the collection (controlled).
-        on_selection_change:
-            Handler that is called when the selection changes.
-        on_change:
-            Alias of `on_selection_change`. Handler that is called when the selection changes.
-
-        is_quiet: Whether the TextField should be displayed with a quiet style
-        align: Alignment of the menu relative to the input target.
-        direction: Direction in which the menu should open relative to the Picker.
-        should_flip: Whether the menu should flip when it reaches the viewport boundaries.
-        menu_width: Width of the menu. By default, matches width of the trigger. Note that the minimum width of the dropdown is always equal to the trigger's width.
-        auto_focus: Whether the input should be focused on render.
-        auto_complete: Describes the type of autocomplete functionality the input should provide if any.
-        name: Name of the input, used when submitting an HTML form.
-        is_open: Sets the open state of the menu.
-        default_open: Sets the default open state of the menu.
-        is_disabled: Whether the Picker is disabled.
-        is_required: Whether user input on the Picker is required before form submission.
-        is_invalid: Whether the Picker is in an invalid state.
-        validation_behavior: Whether to use native HTML form validation to prevent form submission when the value is missing or invalid, or mark the field as required or invalid via ARIA.
-        description: A description for the field. Provides a hint such as specific requirements for what to choose.
-        error_message: An error message for the field.
-        label: A label for the field.
-        placeholder: Placeholder text for the input.
-        is_loading: Whether the Picker is in a loading state.
-        label_position: The label's overall position relative to the element it is labeling.
-        label_align: The label's horizontal alignment relative to the element it is labeling.
-        necessity_indicator: Whether the required state should be shown as an icon or text.
-        contextual_help: A ContextualHelp element to place next to the label.
-        on_open_change: Handler that is called when the open state changes.
-        on_focus: Handler that is called when the input is focused.
-        on_blur: Handler that is called when the input loses focus.
-        on_focus_change: Handler that is called when the input is focused or blurred.
-        on_key_down: Handler that is called when a key is pressed down.
-        on_key_up: Handler that is called when a key is released.
+        *children: The contents of the collection.
+        auto_focus: Where the focus should be set.
+        should_focus_wrap: Whether keyboard navigation is circular.
+        disabled_keys: The item keys that are disabled. These items cannot be selected, focused, or otherwise interacted with.
+        selection_mode: The type of selection that is allowed in the collection.
+        disallow_empty_selection: Whether the collection allows empty selection.
+        selected_keys: The currently selected keys in the collection (controlled).
+        default_selected_keys: The default selected keys in the collection (uncontrolled).
+        on_action: Handler that is called when an item is selected.
+        on_close: Handler that is called when the menu should close after selecting an item.
+        on_selection_change: Handler that is called when the selection changes.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how much the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how much the element will shrink to fit the space available.
