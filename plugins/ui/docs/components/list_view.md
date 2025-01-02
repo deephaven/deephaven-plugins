@@ -76,7 +76,7 @@ my_list_view_table_source = ui_list_view_table_source()
 
 ## Selection
 
-The `selection_mode` prop can be used to configure how ui.list_view handles item selection. The options are `'MULTIPLE'` (the default value), `'SINGLE'` or `'NONE'`.
+The `selection_mode` prop can be used to configure how `ui.list_view` handles item selection. The options are `'MULTIPLE'` (the default value), `'SINGLE'`, or `'NONE'`.
 
 Set `selection_mode='SINGLE'` to constrain selection to a single item.
 
@@ -116,7 +116,7 @@ def ui_list_view():
 my_list_view = ui_list_view()
 ```
 
-`selection_mode` can be explicitly set to `MULTIPLE` for cases where it is dynamically defined. For example, a ui.radio can be used to allow changing the selection mode.
+`selection_mode` can be explicitly set to `MULTIPLE` for cases where it is dynamically defined. For example, a `ui.radio` can be used to change the selection mode.
 
 ```python
 @ui.component
