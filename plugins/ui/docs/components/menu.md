@@ -175,6 +175,51 @@ def sections_example():
 my_sections_example = sections_example()
 ```
 
+## Unavailable Items
+
+`contextual_help_trigger` disables a menu item's action and replaces it with a popover with information on why the item is unavailable and may link users to more information elsewhere.
+
+The `contextual_help_trigger` accepts exactly two children: the `item` which triggers opening of the `dialog` and the Dialog itself. The trigger must be the first child passed into the `contextual_help_trigger` and should be an `item`. Similar to `contextual_help`, the layout of the `dialog` is very deliberate. See [`contextual_help`](./contextual_help.md) for further explanation.
+
+Setting the `is_unavailable` prop on the `contextual_help_trigger` makes the menu item unavailable and enables the `dialog` with contextual help, allowing for programmatic control.
+
+Note that the `menu's` `on_action` and `on_selection_change` callbacks will not fire for items made unavailable by a `contextual_help_trigger`.
+
+The example below illustrates how one would setup a `menu` to use `contextual_help_trigger`.
+
+```python
+from deephaven import ui
+
+
+my_menu_example = ui.menu_trigger(
+    ui.action_button("Edit"),
+    ui.menu(
+        ui.item("Undo", key="undo"),
+        ui.item("Redo", key="redo"),
+        ui.contextual_help_trigger(
+            ui.item("Cut", key="cut"),
+            ui.dialog(
+                ui.heading("Cut"),
+                ui.content("Please select text for 'Cut' to be enabled."),
+            ),
+            is_unavailable=True,
+        ),
+        ui.contextual_help_trigger(
+            ui.item("Copy", key="copy"),
+            ui.dialog(
+                ui.heading("Copy"),
+                ui.content("Please select text for 'Copy' to be enabled."),
+            ),
+            is_unavailable=True,
+        ),
+        ui.contextual_help_trigger(
+            ui.item("Paste", key="paste"),
+            ui.dialog(ui.heading("Paste"), ui.content("You have nothing to 'Paste'.")),
+        ),
+    ),
+)
+```
+
 ## Submenus
 
 Submenus can be created by wrapping an item and a menu in a `submenu_trigger`. The `submenu_trigger` accepts exactly two children: the `item` which triggers opening of the submenu, and the `menu` itself. Each submenu's `menu` accepts its own set of menu props, allowing you to customize its user action and selection behavior.
