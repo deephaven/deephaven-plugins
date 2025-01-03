@@ -109,7 +109,7 @@ const log = Log.module('@deephaven/js-plugin-ui/WidgetUtils');
 /*
  * Map element node names to their corresponding React components
  */
-export const elementComponentMap = {
+const elementComponentMap: Record<ValueOf<ElementName>, unknown> = {
   // Elements
   [ELEMENT_NAME.uiTable]: UITable,
 
