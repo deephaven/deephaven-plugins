@@ -24,7 +24,7 @@
       },
       {
         "label": "Describing the UI",
-        "expanded": true,
+        "collapsible": false,
         "items": [
           {
             "label": "Your First Component",
