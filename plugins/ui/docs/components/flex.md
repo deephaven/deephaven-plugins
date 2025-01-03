@@ -1,5 +1,9 @@
 # Flex
+
 A [flexbox](https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Flexbox)-based layout container that utilizes dimension values and supports the gap property for consistent spacing between items.
+
+> [!TIP]
+> The `flex` component follows the same rules as a browser flexbox layout. A good game for understanding flexbox is [Flexbox Froggy](https://flexboxfroggy.com/).
 
 ## Example
 
@@ -24,6 +28,7 @@ my_flex = ui_flex()
 The `direction` prop determines the direction in which the flex items are laid out.
 
 Options:
+
 - `row` (default): the flex items are arranged horizontally from left to right.
 - `column`: the flex items are arranged vertically from top to bottom.
 - `row-reverse`: the flex items are arranged horizontally from right to left.
@@ -98,7 +103,6 @@ def ui_flex_nesting():
 my_flex_nesting = ui_flex_nesting()
 ```
 
-
 ## Wrapping
 
 When enabled, items that overflow wrap into the next row. Resize your browser window to see the items reflow.
@@ -124,12 +128,12 @@ def ui_flex_wrap():
 my_flex_wrap = ui_flex_wrap()
 ```
 
-
 ## Justification
 
 The `justify_content` prop is used to align items along the main axis. When the direction is set to "column", it controls the vertical alignment, and when the direction is set to "row", it controls the horizontal alignment.
 
 Options:
+
 - `stretch` (default): the flex items are stretched to fill the container along the cross-axis.
 - `start`: the flex items are aligned at the start of the cross-axis.
 - `end`: the flex items are aligned at the end of the cross-axis.
@@ -200,12 +204,12 @@ def ui_flex_justify():
 my_flex_justify = ui_flex_justify()
 ```
 
-
 ## Alignment
 
 The `align_items` prop aligns items along the cross-axis. When the direction is set to "column", it controls horizontal alignment, and when it is set to "row", it controls vertical alignment.
 
 Options:
+
 - `stretch` (default): the flex items are stretched to fill the container along the cross-axis.
 - `start`: the flex items are aligned at the start of the cross-axis.
 - `end`: the flex items are aligned at the end of the cross-axis.
@@ -254,7 +258,6 @@ def ui_flex_align_vertical():
 my_flex_align_vertical = ui_flex_align_vertical()
 ```
 
-
 ```python
 from deephaven import ui
 
@@ -288,7 +291,6 @@ def ui_flex_align_horizontal():
 
 my_flex_align_horizontal = ui_flex_align_horizontal()
 ```
-
 
 ## API reference
 

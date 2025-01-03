@@ -16,6 +16,7 @@
       },
       {
         "label": "Plot Types",
+        "expanded": true,
         "items": [
           {
             "label": "Area",
@@ -117,6 +118,7 @@
       },
       {
         "label": "Concepts",
+        "expanded": true,
         "items": [
           {
             "label": "Plot by",

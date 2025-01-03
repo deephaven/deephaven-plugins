@@ -24,6 +24,7 @@
       },
       {
         "label": "Describing the UI",
+        "expanded": true,
         "items": [
           {
             "label": "Your First Component",
