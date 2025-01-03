@@ -3,7 +3,7 @@
 A [flexbox](https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Flexbox)-based layout container that utilizes dimension values and supports the gap property for consistent spacing between items.
 
 > [!TIP]
-> The `flex` component follows the same rules as a browser flexbox layout. A good game for understanding flexbox is [Flexbox Froggy](https://flexboxfroggy.com/).
+> The `flex` component follows the same rules as a browser CSS flexbox. The [CSS flexbox layout guide](https://css-tricks.com/snippets/css/a-guide-to-flexbox/) from CSS-Tricks and the [Flexbox Froggy](https://flexboxfroggy.com/) game are great resources to learn more about flexbox.
 
 ## Example
 
