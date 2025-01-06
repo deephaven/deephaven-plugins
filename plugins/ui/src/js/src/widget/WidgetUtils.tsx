@@ -2,7 +2,7 @@
 /* eslint-disable import/prefer-default-export */
 import React, { ComponentType } from 'react';
 import type { JSONRPCServerAndClient } from 'json-rpc-2.0';
-// Importing `Item` and `Section` compnents directly since they should not be
+// Importing `Item` and `Section` components directly since they should not be
 // wrapped due to how Spectrum collection components consume them.
 import {
   ActionMenu,
