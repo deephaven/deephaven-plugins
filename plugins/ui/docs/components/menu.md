@@ -241,8 +241,8 @@ my_submenu_example = ui.menu_trigger(
                 ui.submenu_trigger(
                     ui.item("Email", key="email"),
                     ui.menu(
-                        ui.item("Email as attachment", "attachment"),
-                        ui.item("Email as link", "link"),
+                        ui.item("Email as attachment", key="attachment"),
+                        ui.item("Email as link", key="link"),
                         on_action=lambda key: print(f"Email menu {key} action"),
                     ),
                 ),
