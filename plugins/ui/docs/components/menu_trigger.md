@@ -133,6 +133,9 @@ my_align_example = ui.flex(
 By default, the `menu` closes when an item is selected. To change this, set the `close_on_select` prop to `False`. This might be useful when multiple selection is used.
 
 ```python
+from deephaven import ui
+
+
 my_close_on_selection_example = ui.menu_trigger(
     ui.action_button("View"),
     ui.menu(
@@ -141,7 +144,7 @@ my_close_on_selection_example = ui.menu_trigger(
         ui.item("Edit panel"),
         selection_mode="multiple",
     ),
-    close_on_selection=False,
+    close_on_select=False,
 )
 ```
 
@@ -187,7 +190,7 @@ from deephaven import ui
 @ui.component
 def open_example():
     is_open, set_open = ui.use_boolean()
-    ui.menu_trigger(
+    return ui.menu_trigger(
         ui.action_button("View"),
         ui.menu(
             ui.item("Side bar"),
@@ -196,8 +199,8 @@ def open_example():
             selection_mode="multiple",
         ),
         is_open=is_open,
-        on_open_chnage=set_open,
-    ),
+        on_open_change=set_open,
+    )
 
 
 my_open_example = open_example()
