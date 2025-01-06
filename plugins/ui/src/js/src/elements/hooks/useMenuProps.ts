@@ -43,8 +43,7 @@ export function useOnSelectionChange(
         callback(value);
         return;
       }
-      // TODO fix this
-      callback([...value] as SerializedSelection);
+      callback([...value] as [Key]);
     },
     [callback]
   );
