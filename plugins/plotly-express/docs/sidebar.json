@@ -16,6 +16,7 @@
       },
       {
         "label": "Plot Types",
+        "collapsible": false,
         "items": [
           {
             "label": "Area",
@@ -117,6 +118,7 @@
       },
       {
         "label": "Concepts",
+        "collapsible": false,
         "items": [
           {
             "label": "Plot by",
