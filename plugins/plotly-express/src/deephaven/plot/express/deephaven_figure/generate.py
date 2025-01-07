@@ -59,6 +59,8 @@ DATA_ARGS = {
     "lat",
     "lon",
     "locations",
+    "value",
+    "reference",
 }
 DATA_ARGS.update(DATA_LIST_ARGS)
 
@@ -82,6 +84,9 @@ SEQUENCE_ARGS_MAP = {
     "width_sequence": "line_width",
     "increasing_color_sequence": "increasing_line_color",
     "decreasing_color_sequence": "decreasing_line_color",
+    "gauge_color_sequence": "gauge_color",
+    "increasing_color_sequence_indicator": "delta_increasing_color",
+    "decreasing_color_sequence_indicator": "delta_decreasing_color",
     "size_sequence": "marker_size",
     "mode": "mode",
 }
@@ -704,6 +709,8 @@ def get_list_var_info(data_cols: Mapping[str, str | list[str]]) -> set[str]:
     # for them
     types.add("finance" if data_cols.get("x_finance", False) else None)
 
+    types.add("indicator" if data_cols.get("value", False) else None)
+
     """for var, cols in data_cols.items():
         # there should only be at most one data list (with the filtered
         # exception of finance charts) so the first one encountered is the var
@@ -798,8 +805,8 @@ def hover_text_generator(
     Yields:
       A dictionary update
     """
-    if isinstance(types, set) and "finance" in types:
-        # finance has no hover text currently (besides the default)
+    if isinstance(types, set) and ("finance" in types or "indicator" in types):
+        # finance and indicator have no custom hover text
         while True:
             yield {}
 

@@ -18,6 +18,7 @@ import {
   removeColorsFromData,
   setWebGlTraceType,
   hasUnreplaceableWebGlTraces,
+  isSingleValue,
 } from './PlotlyExpressChartUtils';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
@@ -145,11 +146,16 @@ export class PlotlyExpressChartModel extends ChartModel {
         paths.forEach(destination => {
           // The JSON pointer starts w/ /plotly/data and we don't need that part
           const parts = getPathParts(destination);
+
+          const single = isSingleValue(hydratedData, parts);
+
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           let selector: any = hydratedData;
           for (let i = 0; i < parts.length; i += 1) {
             if (i !== parts.length - 1) {
               selector = selector[parts[i]];
+            } else if (single) {
+                selector[parts[i]] = tableData[columnName]?.[0] ?? null;
             } else {
               selector[parts[i]] = tableData[columnName] ?? [];
             }

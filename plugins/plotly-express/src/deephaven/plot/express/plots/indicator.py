@@ -3,8 +3,9 @@ from __future__ import annotations
 from typing import Callable
 
 from ..shared import default_callback
-from ..deephaven_figure import DeephavenFigure
+from ..deephaven_figure import DeephavenFigure, draw_indicator
 from ..types import PartitionableTableLike, Gauge, StyleDict
+from ._private_utils import process_args
 
 
 def indicator(
@@ -28,8 +29,8 @@ def indicator(
     axis: bool = True,
     prefix: str | None = None,
     suffix: str | None = None,
-    increasing_text: str | None = "▲",
-    decreasing_text: str | None = "▼",
+    increasing_text: str | None = None,
+    decreasing_text: str | None = None,
     rows: int | None = None,
     columns: int | None = None,
     unsafe_update_figure: Callable = default_callback,
@@ -102,4 +103,6 @@ def indicator(
         A DeephavenFigure that contains the indicator chart
 
     """
-    raise NotImplementedError
+    args = locals()
+
+    return process_args(args, {"indicator"}, px_func=draw_indicator)

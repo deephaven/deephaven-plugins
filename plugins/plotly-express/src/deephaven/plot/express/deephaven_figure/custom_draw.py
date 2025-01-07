@@ -186,3 +186,75 @@ def draw_density_heatmap(
     )
 
     return heatmap
+
+
+def draw_indicator(
+    data_frame: DataFrame,
+    value: str,
+    reference: str | None = None,
+    number: bool = True,
+    gauge: str | None = None,
+    axis: bool = False,
+    prefix: str | None = None,
+    suffix: str | None = None,
+    increasing_text: str | None = None,
+    decreasing_text: str | None = None,
+) -> Figure:
+    """Create an indicator chart.
+
+    Args:
+      data_frame: The data frame to draw with
+      value: The column to use as the value.
+      reference: The column to use as the reference value.
+      number: True to show the number, False to hide it.
+      gauge: Specifies the type of gauge to use.
+        Set to "angular" for a half-circle gauge and "bullet" for a horizontal gauge.
+      axis: True to show the axis. Only valid if gauge is set.
+      prefix: A string to prepend to the number value.
+      suffix: A string to append to the number value.
+      increasing_text: The text to display before the delta if the number value
+        is greater than the reference value.
+      decreasing_text: The text to display before the delta if the number value
+        is less than the reference value.
+
+    Returns:
+      The plotly indicator chart.
+
+    """
+
+    modes = []
+    if number:
+        modes.append("number")
+    if reference:
+        modes.append("delta")
+    if gauge:
+        modes.append("gauge")
+    mode = "+".join(modes)
+
+    fig = go.Figure(
+        go.Indicator(
+            value=200,
+            mode=mode,
+        )
+    )
+
+    if reference:
+        print("reference")
+        fig.update_traces(delta_reference=160)  # data_frame[reference][0])
+
+    if gauge:
+        fig.update_traces(gauge={"shape": gauge, "axis": {"visible": axis}})
+
+    if prefix:
+        fig.update_traces(delta_prefix=prefix)
+
+    if suffix:
+        fig.update_traces(delta_suffix=suffix)
+
+    if increasing_text:
+        print("increasing")
+        fig.update_traces(delta_increasing_symbol=increasing_text)
+
+    if decreasing_text:
+        fig.update_traces(delta_decreasing_symbol=decreasing_text)
+    return fig

@@ -24,6 +24,9 @@ PARTITION_ARGS = {
     "size": ("size_sequence", "size_map"),
     "line_dash": ("line_dash_sequence", "line_dash_map"),
     "width": ("width_sequence", "width_map"),
+    "increasing_color": ("increasing_color_sequence", "increasing_color_map"),
+    "decreasing_color": ("decreasing_color_sequence", "decreasing_color_map"),
+    "gauge_color": ("gauge_color_sequence", "gauge_color_map"),
 }
 
 FACET_ARGS = {"facet_row", "facet_col"}

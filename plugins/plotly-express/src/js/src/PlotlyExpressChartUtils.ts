@@ -23,6 +23,15 @@ const UNREPLACEABLE_WEBGL_TRACE_TYPES = new Set([
   'densitymapbox',
 ]);
 
+/*
+* A map of trace type to attributes that should be set to a single value instead
+* of an array in the Figure object. The attributes should be relative to the trace
+* within the plotly/data/ array.
+*/
+const SINGLE_VALUE_REPLACEMENTS = {
+    'indicator': new Set(["value", "delta/reference"])
+} as Record<string, Set<string>>;
+
 export interface PlotlyChartWidget {
   getDataAsBase64: () => string;
   exportedObjects: { fetch: () => Promise<DhType.Table> }[];
@@ -145,7 +154,7 @@ export function getPathParts(path: string): string[] {
 /**
  * Checks if a plotly series is a line series without markers
  * @param data The plotly data to check
- * @returns True if the data is a line series without marakers
+ * @returns True if the data is a line series without markers
  */
 export function isLineSeries(data: Data): boolean {
   return (
@@ -287,4 +296,14 @@ export function setWebGlTraceType(
       trace.type = trace.type.substring(0, trace.type.length - 2) as PlotType;
     }
   });
+}
+
+export function isSingleValue(
+    data: Data[],
+    selector: string[],
+): boolean {
+    const index = parseInt(selector[0]);
+    const type = data[index].type as string;
+    const path = selector.slice(1).join('/');
+    return SINGLE_VALUE_REPLACEMENTS[type]?.has(path) ?? false;
 }
