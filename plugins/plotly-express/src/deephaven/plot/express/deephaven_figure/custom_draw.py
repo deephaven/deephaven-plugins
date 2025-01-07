@@ -233,14 +233,13 @@ def draw_indicator(
 
     fig = go.Figure(
         go.Indicator(
-            value=200,
+            value=data_frame[value][0],
             mode=mode,
         )
     )
 
     if reference:
-        print("reference")
-        fig.update_traces(delta_reference=160)  # data_frame[reference][0])
+        fig.update_traces(delta_reference=data_frame[reference][0])
 
     if gauge:
         fig.update_traces(gauge={"shape": gauge, "axis": {"visible": axis}})
@@ -252,7 +251,6 @@ def draw_indicator(
         fig.update_traces(delta_suffix=suffix)
 
     if increasing_text:
-        print("increasing")
         fig.update_traces(delta_increasing_symbol=increasing_text)
 
     if decreasing_text:
