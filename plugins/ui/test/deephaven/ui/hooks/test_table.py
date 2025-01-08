@@ -5,6 +5,20 @@ from queue import Queue
 from typing import Any, Callable, Union
 from ..BaseTest import BaseTestCase
 from .render_utils import render_hook
+from deephaven.ui.hooks import (
+    use_cell_data,
+    use_column_data,
+    use_row_data,
+    use_row_list,
+    use_table_data,
+    use_table_listener,
+)
+from deephaven import new_table
+from deephaven.column import int_col
+from deephaven import DynamicTableWriter
+from deephaven.table_listener import TableUpdate
+import deephaven.dtypes as dht
+import pandas as pd
 
 LISTENER_TIMEOUT = 2.0
 QUEUE_TIMEOUT = 1.0
@@ -55,9 +69,6 @@ class NotifyQueue(Queue):
 
 class UseTableTestCase(BaseTestCase):
     def verify_table_updated(self, table_writer, table, update):
-        from deephaven.ui.hooks import use_table_listener
-        from deephaven.table_listener import TableUpdate
-
         event = threading.Event()
 
         def listener(update: TableUpdate, is_replay: bool) -> None:
@@ -75,9 +86,6 @@ class UseTableTestCase(BaseTestCase):
             assert False, "listener was not called"
 
     def verify_table_replayed(self, table):
-        from deephaven.ui.hooks import use_table_listener
-        from deephaven.table_listener import TableUpdate
-
         event = threading.Event()
 
         def listener(update: TableUpdate, is_replay: bool) -> None:
@@ -93,9 +101,6 @@ class UseTableTestCase(BaseTestCase):
             assert False, "listener was not called"
 
     def test_table_listener(self):
-        from deephaven import DynamicTableWriter
-        import deephaven.dtypes as dht
-
         column_definitions = {"Numbers": dht.int32, "Words": dht.string}
 
         table_writer = DynamicTableWriter(column_definitions)
@@ -104,10 +109,6 @@ class UseTableTestCase(BaseTestCase):
         self.verify_table_updated(table_writer, table, (1, "Testing"))
 
     def test_table_data(self):
-        from deephaven.ui.hooks import use_table_data
-        from deephaven import new_table
-        from deephaven.column import int_col
-
         table = new_table(
             [
                 int_col("X", [1, 2, 3]),
@@ -127,9 +128,6 @@ class UseTableTestCase(BaseTestCase):
         self.assertEqual(result, expected)
 
     def test_empty_table_data(self):
-        from deephaven.ui.hooks import use_table_data
-        from deephaven import new_table
-
         empty = new_table([])
 
         def _test_table_data(t=empty):
@@ -144,10 +142,6 @@ class UseTableTestCase(BaseTestCase):
         self.assertEqual(result, expected)
 
     def test_ticking_table_data(self):
-        from deephaven.ui.hooks import use_table_data
-        from deephaven import DynamicTableWriter
-        import deephaven.dtypes as dht
-
         column_definitions = {"Numbers": dht.int32, "Words": dht.string}
 
         table_writer = DynamicTableWriter(column_definitions)
@@ -161,7 +155,7 @@ class UseTableTestCase(BaseTestCase):
 
         result, _ = itemgetter("result", "rerender")(render_result)
 
-        self.assertEqual(result, ())
+        self.assertEqual(result, None)
 
         def _test_table_data(t=table):
             return use_table_data(t, sentinel="sentinel")
@@ -212,12 +206,6 @@ class UseTableTestCase(BaseTestCase):
         queue.unregister_notify()
 
     def test_swapping_table_data(self):
-        from deephaven.ui.hooks import use_table_data
-        from deephaven import new_table
-        from deephaven.column import int_col
-        from deephaven import DynamicTableWriter
-        import deephaven.dtypes as dht
-
         table = new_table(
             [
                 int_col("X", [1, 2, 3]),
@@ -262,8 +250,6 @@ class UseTableTestCase(BaseTestCase):
         self.assertEqual(result, expected)
 
     def test_none_table_data(self):
-        from deephaven.ui.hooks import use_table_data
-
         def _test_table_data(t=None):
             return use_table_data(t)
 
@@ -276,10 +262,6 @@ class UseTableTestCase(BaseTestCase):
         self.assertEqual(result, expected)
 
     def test_column_data(self):
-        from deephaven.ui.hooks import use_column_data
-        from deephaven import new_table
-        from deephaven.column import int_col
-
         table = new_table(
             [
                 int_col("X", [1, 2, 3]),
@@ -298,9 +280,6 @@ class UseTableTestCase(BaseTestCase):
         self.assertEqual(result, expected)
 
     def test_empty_column_data(self):
-        from deephaven.ui.hooks import use_column_data
-        from deephaven import new_table
-
         empty = new_table([])
 
         def _test_column_data(t=empty):
@@ -309,10 +288,6 @@ class UseTableTestCase(BaseTestCase):
         self.assertRaises(IndexError, render_hook, _test_column_data)
 
     def test_ticking_column_data(self):
-        from deephaven.ui.hooks import use_column_data
-        from deephaven import DynamicTableWriter
-        import deephaven.dtypes as dht
-
         column_definitions = {"Words": dht.string}
 
         table_writer = DynamicTableWriter(column_definitions)
@@ -326,7 +301,7 @@ class UseTableTestCase(BaseTestCase):
 
         result, _ = itemgetter("result", "rerender")(render_result)
 
-        self.assertEqual(result, ())
+        self.assertEqual(result, None)
 
         def _test_column_data(t=table):
             return use_column_data(t, sentinel="sentinel")
@@ -349,8 +324,6 @@ class UseTableTestCase(BaseTestCase):
         self.assertEqual(result, expected)
 
     def test_none_column_data(self):
-        from deephaven.ui.hooks import use_column_data
-
         def _test_column_data(t=None):
             return use_column_data(t)
 
@@ -361,10 +334,6 @@ class UseTableTestCase(BaseTestCase):
         self.assertEqual(result, None)
 
     def test_row_data(self):
-        from deephaven.ui.hooks import use_row_data
-        from deephaven import new_table
-        from deephaven.column import int_col
-
         table = new_table(
             [
                 int_col("X", [1]),
@@ -384,9 +353,6 @@ class UseTableTestCase(BaseTestCase):
         self.assertEqual(result, expected)
 
     def test_empty_row_data(self):
-        from deephaven.ui.hooks import use_row_data
-        from deephaven import new_table
-
         empty = new_table([])
 
         def _test_row_data(t=empty):
@@ -395,10 +361,6 @@ class UseTableTestCase(BaseTestCase):
         self.assertRaises(IndexError, render_hook, _test_row_data)
 
     def test_ticking_row_data(self):
-        from deephaven.ui.hooks import use_row_data
-        from deephaven import DynamicTableWriter
-        import deephaven.dtypes as dht
-
         column_definitions = {"Numbers": dht.int32, "Words": dht.string}
 
         table_writer = DynamicTableWriter(column_definitions)
@@ -412,7 +374,7 @@ class UseTableTestCase(BaseTestCase):
 
         result, _ = itemgetter("result", "rerender")(render_result)
 
-        self.assertEqual(result, ())
+        self.assertEqual(result, None)
 
         def _test_row_data(t=table):
             return use_row_data(t, sentinel="sentinel")
@@ -435,8 +397,6 @@ class UseTableTestCase(BaseTestCase):
         self.assertEqual(result, expected)
 
     def test_none_row_data(self):
-        from deephaven.ui.hooks import use_row_data
-
         def _test_row_data(t=None):
             return use_row_data(t)
 
@@ -447,10 +407,6 @@ class UseTableTestCase(BaseTestCase):
         self.assertEqual(result, None)
 
     def test_row_list(self):
-        from deephaven.ui.hooks import use_row_list
-        from deephaven import new_table
-        from deephaven.column import int_col
-
         table = new_table(
             [
                 int_col("X", [1]),
@@ -470,9 +426,6 @@ class UseTableTestCase(BaseTestCase):
         self.assertEqual(result, expected)
 
     def test_empty_row_list(self):
-        from deephaven.ui.hooks import use_row_list
-        from deephaven import new_table
-
         empty = new_table([])
 
         def _test_row_list(t=empty):
@@ -481,10 +434,6 @@ class UseTableTestCase(BaseTestCase):
         self.assertRaises(IndexError, render_hook, _test_row_list)
 
     def test_ticking_row_list(self):
-        from deephaven.ui.hooks import use_row_list
-        from deephaven import DynamicTableWriter
-        import deephaven.dtypes as dht
-
         column_definitions = {"Numbers": dht.int32, "Words": dht.string}
 
         table_writer = DynamicTableWriter(column_definitions)
@@ -498,7 +447,7 @@ class UseTableTestCase(BaseTestCase):
 
         result, _ = itemgetter("result", "rerender")(render_result)
 
-        self.assertEqual(result, ())
+        self.assertEqual(result, None)
 
         def _test_row_list(t=table):
             return use_row_list(t, sentinel="sentinel")
@@ -521,8 +470,6 @@ class UseTableTestCase(BaseTestCase):
         self.assertEqual(result, expected)
 
     def test_none_row_list(self):
-        from deephaven.ui.hooks import use_row_list
-
         def _use_row_list(t=None):
             return use_row_list(t)
 
@@ -533,10 +480,6 @@ class UseTableTestCase(BaseTestCase):
         self.assertEqual(result, None)
 
     def test_cell_data(self):
-        from deephaven.ui.hooks import use_cell_data
-        from deephaven import new_table
-        from deephaven.column import int_col
-
         table = new_table(
             [
                 int_col("X", [1]),
@@ -555,9 +498,6 @@ class UseTableTestCase(BaseTestCase):
         self.assertEqual(result, expected)
 
     def test_empty_cell_data(self):
-        from deephaven.ui.hooks import use_cell_data
-        from deephaven import new_table
-
         empty = new_table([])
 
         def _use_cell_data(t=empty):
@@ -566,10 +506,6 @@ class UseTableTestCase(BaseTestCase):
         self.assertRaises(IndexError, render_hook, _use_cell_data)
 
     def test_ticking_cell_data(self):
-        from deephaven.ui.hooks import use_cell_data
-        from deephaven import DynamicTableWriter
-        import deephaven.dtypes as dht
-
         column_definitions = {"Words": dht.string}
 
         table_writer = DynamicTableWriter(column_definitions)
@@ -583,7 +519,7 @@ class UseTableTestCase(BaseTestCase):
 
         result, _ = itemgetter("result", "rerender")(render_result)
 
-        self.assertEqual(result, ())
+        self.assertEqual(result, None)
 
         def _test_cell_data(t=table):
             return use_cell_data(t, sentinel="sentinel")
@@ -606,8 +542,6 @@ class UseTableTestCase(BaseTestCase):
         self.assertEqual(result, expected)
 
     def test_none_cell_data(self):
-        from deephaven.ui.hooks import use_cell_data
-
         def _test_cell_data(t=None):
             return use_cell_data(t)
 
@@ -616,3 +550,29 @@ class UseTableTestCase(BaseTestCase):
         result, rerender = itemgetter("result", "rerender")(render_result)
 
         self.assertEqual(result, None)
+
+    def test_ticking_cell_data_with_none(self):
+
+        column_definitions = {"Words": dht.string}
+
+        table_writer = DynamicTableWriter(column_definitions)
+        table = table_writer.table
+
+        # a ticking table with no data should return the sentinel value
+        def _test_cell_data(t=table):
+            return use_cell_data(t, sentinel="sentinel")
+
+        render_result = render_hook(_test_cell_data)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        # the initial render should return the sentinel value
+        self.assertEqual(result, "sentinel")
+
+        self.verify_table_updated(table_writer, table, (None,))
+
+        render_result = render_hook(_test_cell_data)
+
+        result, rerender = itemgetter("result", "rerender")(render_result)
+
+        self.assertTrue(pd.isna(result))
