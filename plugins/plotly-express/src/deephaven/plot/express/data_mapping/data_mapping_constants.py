@@ -27,6 +27,7 @@ OVERRIDES = {
     "color": "marker/color",
     "colors": "marker/colors",
     "reference": "delta/reference",
+    "text_indicator": "title/text",
 }
 
 # x_end is not used, the calculations are made in preprocessing step and passed to x

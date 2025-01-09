@@ -199,6 +199,7 @@ def draw_indicator(
     suffix: str | None = None,
     increasing_text: str | None = None,
     decreasing_text: str | None = None,
+    text_indicator: str | None = None,
 ) -> Figure:
     """Create an indicator chart.
 
@@ -235,6 +236,7 @@ def draw_indicator(
         go.Indicator(
             value=data_frame[value][0],
             mode=mode,
+            domain={"x": [0, 1], "y": [0, 1]},
         )
     )
 
@@ -255,4 +257,8 @@ def draw_indicator(
 
     if decreasing_text:
         fig.update_traces(delta_decreasing_symbol=decreasing_text)
+
+    if text_indicator:
+        fig.update_traces(title_text=data_frame[text_indicator][0])
+
     return fig

@@ -6,7 +6,7 @@ from deephaven.table import Table, PartitionedTable
 
 TableLike = Union[Table, DataFrame]
 PartitionableTableLike = Union[PartitionedTable, TableLike]
-Gauge = Literal["shape", "bullet"]
+Gauge = Literal["angular", "bullet"]
 
 # StyleDict is a dictionary that maps column values to style values.
 StyleDict = Dict[Union[str, Tuple[str]], str]

@@ -151,10 +151,13 @@ export class PlotlyExpressChartModel extends ChartModel {
 
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           let selector: any = hydratedData;
+          console.log('selector', selector);
+
           for (let i = 0; i < parts.length; i += 1) {
             if (i !== parts.length - 1) {
               selector = selector[parts[i]];
             } else if (single) {
+                console.log('single', parts[i], tableData[columnName]?.[0]);
                 selector[parts[i]] = tableData[columnName]?.[0] ?? null;
             } else {
               selector[parts[i]] = tableData[columnName] ?? [];
@@ -322,7 +325,6 @@ export class PlotlyExpressChartModel extends ChartModel {
   ): void {
     const chartData = this.chartDataMap.get(tableId);
     const tableData = this.tableDataMap.get(tableId);
-
     if (chartData == null) {
       log.warn('Unknown chartData for this event. Skipping update');
       return;

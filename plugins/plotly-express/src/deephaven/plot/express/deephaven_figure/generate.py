@@ -61,6 +61,7 @@ DATA_ARGS = {
     "locations",
     "value",
     "reference",
+    "text_indicator",
 }
 DATA_ARGS.update(DATA_LIST_ARGS)
 
@@ -84,7 +85,7 @@ SEQUENCE_ARGS_MAP = {
     "width_sequence": "line_width",
     "increasing_color_sequence": "increasing_line_color",
     "decreasing_color_sequence": "decreasing_line_color",
-    "gauge_color_sequence": "gauge_color",
+    "gauge_color_sequence": "gauge_bar_color",
     "increasing_color_sequence_indicator": "delta_increasing_color",
     "decreasing_color_sequence_indicator": "delta_decreasing_color",
     "size_sequence": "marker_size",
@@ -1042,7 +1043,6 @@ def generate_figure(
     data_frame = construct_min_dataframe(
         table, data_cols=merge_cols(list(data_cols.values()))
     )
-
     px_fig = draw(data_frame=data_frame, **filtered_call_args)
 
     data_mapping, hover_mapping = create_data_mapping(

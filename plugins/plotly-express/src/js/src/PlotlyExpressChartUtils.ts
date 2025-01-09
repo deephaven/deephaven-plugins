@@ -29,7 +29,7 @@ const UNREPLACEABLE_WEBGL_TRACE_TYPES = new Set([
 * within the plotly/data/ array.
 */
 const SINGLE_VALUE_REPLACEMENTS = {
-    'indicator': new Set(["value", "delta/reference"])
+    'indicator': new Set(["value", "delta/reference", "title/text"])
 } as Record<string, Set<string>>;
 
 export interface PlotlyChartWidget {

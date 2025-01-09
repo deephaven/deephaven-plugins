@@ -83,6 +83,7 @@ Visualize a single numeric value with an angular gauge by passing `gauge="angula
 ```python order=indicator_plot,my_table
 import deephaven.plot.express as dx
 from deephaven import agg as agg
+
 my_table = dx.data.stocks()
 
 # subset data and aggregate for DOG prices
@@ -98,6 +99,7 @@ Visualize a single numeric value with a bullet gauge by passing `gauge="bullet"`
 ```python order=indicator_plot,my_table
 import deephaven.plot.express as dx
 from deephaven import agg as agg
+
 my_table = dx.data.stocks()
 
 # subset data and aggregate for DOG prices
@@ -113,12 +115,13 @@ Add a prefix and suffix to the numeric value by passing `prefix` and `suffix`.
 ```python order=indicator_plot,my_table
 import deephaven.plot.express as dx
 from deephaven import agg as agg
+
 my_table = dx.data.stocks()
 
 # subset data and aggregate for DOG prices
-dog_avg = my_table.where("Sym = `DOG`").agg_by([agg.avg(cols="Price")])
+dog_avg = my_table.where("Sym = `DOG`").agg_by([agg.avg(cols="Price"), agg.first(cols="StartingPrice = Price")])
 
-indicator_plot = dx.indicator(dog_avg, value="Price", prefix="$", suffix="USD")
+indicator_plot = dx.indicator(dog_avg, value="Price", reference="StartingPrice", prefix="$", suffix=" USD")
 ```
 
 ### Delta Symbols
@@ -128,12 +131,19 @@ Modify the symbol before the delta value by passing `increasing_text` and `decre
 ```python order=indicator_plot,my_table
 import deephaven.plot.express as dx
 from deephaven import agg as agg
+
 my_table = dx.data.stocks()
 
 # subset data and aggregate for DOG prices
-dog_avg = my_table.where("Sym = `DOG`").agg_by([agg.avg(cols="Price")])
+dog_agg = my_table.where("Sym = `DOG`").agg_by([agg.avg(cols="Price"), agg.first(cols="StartingPrice = Price")])
 
-indicator_plot = dx.indicator(dog_avg, value="Price", increasing_text="Up: ", decreasing_text="Down: ")
+indicator_plot = dx.indicator(
+    dog_agg, 
+    value="Price", 
+    reference="StartingPrice", 
+    increasing_text="Up: ", 
+    decreasing_text="Down: "
+)
 ```
 
 ### Indicator with text
@@ -143,26 +153,29 @@ Add text to the indicator by passing the text column name to the `text` argument
 ```python order=indicator_plot,my_table
 import deephaven.plot.express as dx
 from deephaven import agg as agg
+
 my_table = dx.data.stocks()
 
 # subset data and aggregate prices, keeping the Sym
-dog_avg = my_table.where("Sym = `DOG`").agg_by([agg.avg(cols="Price")])
+dog_avg = my_table.where("Sym = `DOG`").agg_by([agg.avg(cols="Price")], by="Sym")
 
-indicator_plot = dx.indicator(dog_avg, value="Price", text="Sym")
+indicator_plot = dx.indicator(dog_avg, value="Price", by="Sym", text="Sym")
 ```
 
 ### Multiple indicators
 
-Visualize multiple numeric values by passing in a table with multiple rows. By default, a square grid of indicators is created.
+Visualize multiple numeric values by passing in a table with multiple rows and the `by` argument. By default, a square grid of indicators is created.
 
 ```python order=indicator_plot,my_table
 import deephaven.plot.express as dx
+from deephaven import agg as agg
+
 my_table = dx.data.stocks()
 
 # aggregate for average prices by Sym
 sym_avg = my_table.agg_by([agg.avg(cols="Price")], by="Sym")
 
-indicator_plot = dx.indicator(sym_avg, value="Price")
+indicator_plot = dx.indicator(sym_avg, value="Price", by="Sym")
 ```
 
 ### Multiple rows
@@ -171,12 +184,14 @@ By default, a grid of indicators is created. To create a specific amount of rows
 
 ```python order=indicator_plot,my_table
 import deephaven.plot.express as dx
+from deephaven import agg as agg
+
 my_table = dx.data.stocks()
 
 # aggregate for average prices by Sym
 sym_avg = my_table.agg_by([agg.avg(cols="Price")], by="Sym")
 
-indicator_plot = dx.indicator(sym_avg, value="Price", rows=2)
+indicator_plot = dx.indicator(sym_avg, value="Price", by="Sym", rows=2)
 ```
 
 ### Multiple columns
@@ -185,12 +200,14 @@ By default, a grid of indicators is created. To create a specific amount of colu
 
 ```python order=indicator_plot,my_table
 import deephaven.plot.express as dx
+from deephaven import agg as agg
+
 my_table = dx.data.stocks()
 
 # aggregate for average prices by Sym
 sym_avg = my_table.agg_by([agg.avg(cols="Price")], by="Sym")
 
-indicator_plot = dx.indicator(sym_avg, value="Price", columns=2)
+indicator_plot = dx.indicator(sym_avg, value="Price", by="Sym", columns=2)
 ```
 
 ### Delta colors
@@ -212,9 +229,9 @@ sym_agg = my_table.agg_by(
 indicator_plot = dx.indicator(
     sym_agg,
     value="Price",
-    reference="Starting Price",
-    increasing_color_sequence=["green", "darkgreen"],
-    decreasing_color_sequence=["red", "darkred"],
+    reference="StartingPrice",
+    increasing_color_sequence=["darkgreen", "green"],
+    decreasing_color_sequence=["darkred", "red"],
 )
 ```
 
@@ -230,10 +247,10 @@ from deephaven import agg as agg
 my_table = dx.data.stocks()
 
 # subset data and aggregate for DOG prices
-sym_agg = my_table.agg_by([agg.avg(cols="Price")])
+sym_agg = my_table.where("Sym = `DOG`").agg_by([agg.avg(cols="Price")])
 
 indicator_plot = dx.indicator(
-    sym_agg, value="Price", gauge_color_sequence=["green", "darkgreen"]
+    sym_agg, value="Price", gauge="angular", gauge_color_sequence=["darkgreen", "green"]
 )
 ```
 
@@ -249,7 +266,7 @@ from deephaven import agg as agg
 my_table = dx.data.stocks()
 
 # subset data and aggregate prices, keeping the Sym
-sym_agg = my_table.agg_by(
+sym_agg = my_table.where("Sym = `DOG`").agg_by(
     [
         agg.avg(cols="Price"),
         agg.first(cols="StartingPrice = Price"),
@@ -262,6 +279,7 @@ indicator_plot = dx.indicator(
     value="Price",
     reference="StartingPrice",
     by="Sym",
+    by_vars=("increasing_color", "decreasing_color"),
     increasing_color_map={"DOG": "darkgreen"},
     decreasing_color_map={"DOG": "darkred"},
 )

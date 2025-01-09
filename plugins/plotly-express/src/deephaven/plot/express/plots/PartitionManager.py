@@ -15,6 +15,7 @@ from ._layer import atomic_layer
 from .. import DeephavenFigure
 from ..preprocess.Preprocessor import Preprocessor
 from ..shared import get_unique_names
+from .subplots import atomic_make_grid
 
 PARTITION_ARGS = {
     "by": None,
@@ -47,6 +48,21 @@ STYLE_DEFAULTS = {
     "pattern_shape": ["", "/", "\\", "x", "+", "."],
     "size": [4, 5, 6, 7, 8, 9],
     "width": [4, 5, 6, 7, 8, 9],
+    # TODO correct these defaults
+    "increasing_color": "green",
+    "decreasing_color": "red",
+    "gauge_color": "green",
+}
+
+# params that invoke plot bys and have no special cases like color and size
+PLOT_BY_ONLY = {
+    "pattern_shape",
+    "symbol",
+    "line_dash",
+    "width",
+    "gauge_color",
+    "increasing_color",
+    "decreasing_color",
 }
 
 
@@ -167,6 +183,9 @@ class PartitionManager:
         # in some cases, such as violin plots, the default groups are a static object that is shared and should
         # be copied to not modify the original
         self.groups = copy(groups) if groups else set()
+        self.rows = args.pop("rows", None)
+        self.columns = args.pop("columns", None)
+        self.indicator = "indicator" in self.groups
         self.preprocessor = None
         self.set_long_mode_variables()
         self.convert_table_to_long_mode()
@@ -260,12 +279,16 @@ class PartitionManager:
         else:
             map_arg = PARTITION_ARGS[arg][1]
             map_val = self.args[map_arg]
+
             if map_val == "by":
                 self.args[map_arg] = None
             if isinstance(map_val, tuple):
                 # the first element should be "by" and the map should be in the second, although a tuple with only "by"
                 # in it should also work
                 self.args[map_arg] = map_val[1] if len(map_val) == 2 else None
+            if self.args[arg] is None and self.by_vars and arg in self.by_vars:
+                # if there is no column specified for this specific arg, the by column is used
+                self.args[arg] = self.args["by"]
             self.args[f"{arg}_by"] = self.args.pop(arg)
 
     def handle_plot_by_arg(
@@ -349,7 +372,7 @@ class PartitionManager:
                     self.args["size_sequence"] = STYLE_DEFAULTS[arg]
                 args["size_by"] = plot_by_cols
 
-        elif arg in {"pattern_shape", "symbol", "line_dash", "width"}:
+        elif arg in PLOT_BY_ONLY:
             seq_name, map_name = PARTITION_ARGS[arg][0], PARTITION_ARGS[arg][1]
             seq, map_ = args[seq_name], args[map_name]
             if map_ == "by" or isinstance(map_, dict):
@@ -415,7 +438,7 @@ class PartitionManager:
                     self.facet_col = val
 
         # it's possible that by vars are set but by_vars is None,
-        # so partitioning is still needed but it won't affect styles
+        # so partitioning is still needed, but it won't affect styles
         if not self.by_vars and self.by:
             partition_cols.update(self.by if isinstance(self.by, list) else [self.by])
 
@@ -670,7 +693,10 @@ class PartitionManager:
             figs.append(fig)
 
         try:
-            layered_fig = atomic_layer(*figs, which_layout=0)
+            if self.indicator:
+                layered_fig = atomic_make_grid(*figs, rows=self.rows, cols=self.columns)
+            else:
+                layered_fig = atomic_layer(*figs, which_layout=0)
         except ValueError:
             return self.default_figure()
 

@@ -169,12 +169,13 @@ def apply_args_groups(args: dict[str, Any], possible_groups: set[str] | None) ->
 
     if "indicator" in groups:
         append_suffixes(
-            ["increasing_color_sequence", "attached_increasing_color"],
-            ["indicator"],
-            sync_dict,
-        )
-        append_suffixes(
-            ["decreasing_color_sequence", "attached_decreasing_color"],
+            [
+                "increasing_color_sequence",
+                "attached_increasing_color",
+                "decreasing_color_sequence",
+                "attached_decreasing_color",
+                "text",
+            ],
             ["indicator"],
             sync_dict,
         )
