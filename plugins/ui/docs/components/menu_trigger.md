@@ -189,7 +189,7 @@ from deephaven import ui
 
 @ui.component
 def open_example():
-    is_open, set_open = ui.use_boolean()
+    is_open, set_open = ui.use_boolean(True)
     return ui.flex(
         ui.text(f"Is Open: {is_open}"),
         ui.menu_trigger(
