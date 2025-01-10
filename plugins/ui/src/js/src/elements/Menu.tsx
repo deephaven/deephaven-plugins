@@ -13,6 +13,4 @@ export function Menu(
   return <DHCMenu {...menuProps} />;
 }
 
-Menu.displayName = 'Menu';
-
 export default Menu;
