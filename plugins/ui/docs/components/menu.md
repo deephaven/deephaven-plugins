@@ -26,7 +26,7 @@ Menu accepts `item` elements as children, each with a `key` prop. Basic usage of
 
 ## Events
 
-Use the `on_selection_change` prop as a callback to handle press events on items when `selection_mode` is either `single` or `multiple`. See Selection for more information.
+Use the `on_selection_change` prop as a callback to handle press events on items when `selection_mode` is either `single` or `multiple`. See [Selection](#selection) for more information.
 
 Menu also supports the `on_action` callback when `selection_mode` is `none` (default).
 
@@ -58,7 +58,7 @@ my_open_action_example = open_action_example()
 
 ## Selection
 
-Menu supports multiple selection modes. By default, selection is disabled, however this can be changed using the `selection_mode` prop. Use `default_selected_keys` to provide a default set of selected items (uncontrolled) or `selected_keys` to set the selected items (controlled). The value of the selected keys must match the key prop of the items.
+Menu supports multiple selection modes. By default, selection is disabled, however this can be changed using the `selection_mode` prop. Use `default_selected_keys` to provide a default set of selected items (uncontrolled) or `selected_keys` to set the selected items (controlled). The values of the selected keys must match the key props of the items.
 
 ```python
 from deephaven import ui
