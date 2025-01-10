@@ -24,7 +24,7 @@ The `menu_trigger` accepts exactly two children: the element which triggers the 
 
 ## Events
 
-`menu_trigger` accepts an `on_open_change` handler which is triggered whenever the `menu` is opened or closed.
+`menu_trigger` accepts an `on_open_change` handler, which is triggered whenever the `menu` is opened or closed.
 
 ```python
 from deephaven import ui
@@ -54,9 +54,9 @@ my_open_change_example = open_change_example()
 
 ## Long press
 
-By default, a menu_trigger's menu is opened by pressing the trigger element or activating it via the Space or Enter keys. However, there may be cases in which your trigger element should perform a separate default action on press such as selection, and should only display the menu when long pressed. This behavior can be changed by providing `longPress` to the `trigger` prop. With this prop, the menu will only be opened upon pressing and holding the trigger element or by using the Option (Alt on Windows) + Down Arrow/Up Arrow keys while focusing the trigger element.
+By default, a `menu_trigger`'s menu is opened by pressing the trigger element or activating it via the Space or Enter keys. However, there may be cases where your trigger element should perform a separate default action on press, such as selection, and should only display the menu when long-pressed. This behavior can be changed by providing `longPress` to the `trigger` prop. With this prop, the menu will only be opened upon pressing and holding the trigger element or by using the Option (Alt on Windows) + Down Arrow/Up Arrow keys while focusing the trigger element.
 
-The example below illustrates how one would setup a `menu_trigger` to have long press behavior.
+The example below illustrates how one would set up a `menu_trigger` to have long press behavior.
 
 ```python
 from deephaven import ui
@@ -77,7 +77,7 @@ my_long_press_example = ui.menu_trigger(
 
 ### Align and direction
 
-The `align` prop aligns the `menu` relative to the `trigger` and the direction prop controls the `direction` the `menu` will render
+The `align` prop aligns the `menu` relative to the `trigger` and the direction prop controls the `direction` the `menu` will render.
 
 ```python
 from deephaven import ui

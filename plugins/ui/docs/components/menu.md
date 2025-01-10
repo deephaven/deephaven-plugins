@@ -60,7 +60,7 @@ my_open_action_example = open_action_example()
 
 ## Selection
 
-Menu supports multiple selection modes. By default, selection is disabled, however this can be changed using the `selection_mode` prop. Use `default_selected_keys` to provide a default set of selected items (uncontrolled) or `selected_keys` to set the selected items (controlled). The values of the selected keys must match the key props of the items.
+Menu supports multiple selection modes. By default, selection is disabled. However, this can be changed using the `selection_mode` prop. Use `default_selected_keys` to provide a default set of selected items (uncontrolled) or `selected_keys` to set the selected items (controlled). The values of the selected keys must match the key props of the items.
 
 ```python
 from deephaven import ui
@@ -177,7 +177,7 @@ def sections_example():
 my_sections_example = sections_example()
 ```
 
-## Unavailable Items
+## Unavailable items
 
 `contextual_help_trigger` disables a menu item's action and replaces it with a popover with information on why the item is unavailable and may link users to more information elsewhere.
 
@@ -185,9 +185,9 @@ The `contextual_help_trigger` accepts exactly two children: the `item` which tri
 
 Setting the `is_unavailable` prop on the `contextual_help_trigger` makes the menu item unavailable and enables the `dialog` with contextual help, allowing for programmatic control.
 
-Note that the `menu's` `on_action` and `on_change` callbacks will not fire for items made unavailable by a `contextual_help_trigger`.
+Note that the `menu`s `on_action` and `on_change` callbacks will not fire for items made unavailable by a `contextual_help_trigger`.
 
-The example below illustrates how one would setup a `menu` to use `contextual_help_trigger`.
+The example below illustrates how one would set up a `menu` to use `contextual_help_trigger`.
 
 ```python
 from deephaven import ui
