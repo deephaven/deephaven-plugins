@@ -190,16 +190,19 @@ from deephaven import ui
 @ui.component
 def open_example():
     is_open, set_open = ui.use_boolean()
-    return ui.menu_trigger(
-        ui.action_button("View"),
-        ui.menu(
-            ui.item("Side bar"),
-            ui.item("Page options"),
-            ui.item("Edit panel"),
-            selection_mode="multiple",
+    return ui.flex(
+        ui.text(f"Is Open: {is_open}"),
+        ui.menu_trigger(
+            ui.action_button("View"),
+            ui.menu(
+                ui.item("Side bar"),
+                ui.item("Page options"),
+                ui.item("Edit panel"),
+                selection_mode="multiple",
+            ),
+            is_open=is_open,
+            on_open_change=set_open,
         ),
-        is_open=is_open,
-        on_open_change=set_open,
     )
 
 

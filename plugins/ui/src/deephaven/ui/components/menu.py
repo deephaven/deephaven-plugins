@@ -1,16 +1,14 @@
 from __future__ import annotations
 
-from typing import Callable, Any
+from typing import Callable
 
-from deephaven.table import Table, PartitionedTable
 from .basic import component_element
-from .section import SectionElement, Item
+from .section import Item
 from .submenu_trigger import SubmenuTrigger
 from .contextual_help_trigger import ContextualHelpTrigger
-from .item_table_source import ItemTableSource
-from ..elements import BaseElement, Element, NodeType
-from .._internal.utils import create_props, unpack_item_table_source
-from ..types import Key, Undefined, UndefinedType, List
+from ..elements import BaseElement
+from .._internal.utils import create_props
+from ..types import Key, List
 from .types import (
     AlignSelf,
     CSSProperties,
@@ -19,13 +17,6 @@ from .types import (
     JustifySelf,
     LayoutFlex,
     Position,
-    ValidationBehavior,
-    LabelPosition,
-    Alignment,
-    NecessityIndicator,
-    MenuDirection,
-    FocusEventCallable,
-    KeyboardEventCallable,
     SelectionAll,
     SelectionMode,
 )
