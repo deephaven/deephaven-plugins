@@ -4,6 +4,8 @@ Menus display a list of actions or options that a user can choose.
 
 ## Example
 
+The menu is wrapped in a [`ui.menu_trigger`](./menu_trigger.md) along with a trigger element such as an [`ui.action_button`](./action_button.md).
+
 ```python
 from deephaven import ui
 
