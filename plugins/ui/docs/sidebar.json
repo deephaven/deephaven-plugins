@@ -188,6 +188,14 @@
             "path": "components/markdown.md"
           },
           {
+            "label": "menu",
+            "path": "components/menu.md"
+          },
+          {
+            "label": "menu_trigger",
+            "path": "components/menu_trigger.md"
+          },
+          {
             "label": "meter",
             "path": "components/meter.md"
           },
