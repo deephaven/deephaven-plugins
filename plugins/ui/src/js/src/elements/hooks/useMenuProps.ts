@@ -2,7 +2,7 @@ import { useCallback, Key } from 'react';
 
 export type Selection = 'all' | Set<Key>;
 
-type SerializedSelection = 'all' | [Key];
+type SerializedSelection = 'all' | Key[];
 
 type SerializedOnSelectionChangeCallback = (keys: SerializedSelection) => void;
 
@@ -43,7 +43,7 @@ export function useOnSelectionChange(
         callback(value);
         return;
       }
-      callback([...value] as [Key]);
+      callback([...value]);
     },
     [callback]
   );
