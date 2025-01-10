@@ -24,7 +24,7 @@ my_menu_example = ui.menu_trigger(
 
 ## Content
 
-Menu accepts `item` elements as children, each with a `key` prop. Basic usage of `menu`, seen in the example above, shows multiple items populated with a string.
+`menu` accepts `item` elements as children, each with a `key` prop. Basic usage of `menu`, seen in the example above, shows multiple items populated with a string.
 
 ## Events
 
