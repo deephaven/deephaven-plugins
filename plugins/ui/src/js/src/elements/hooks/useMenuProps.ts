@@ -9,7 +9,7 @@ type SerializedOnSelectionChangeCallback = (keys: SerializedSelection) => void;
 type DeserializedOnSelectionChangeCallback = (keys: Selection) => void;
 
 export interface SerializedMenuEventProps {
-  onSelectionChange?: SerializedOnSelectionChangeCallback;
+  onChange?: SerializedOnSelectionChangeCallback;
 }
 
 export interface DeserializedMenuEventProps {
@@ -55,10 +55,10 @@ export function useOnSelectionChange(
  * @returns Wrapped props
  */
 export function useMenuProps<TProps>({
-  onSelectionChange,
+  onChange,
   ...otherProps
 }: SerializedMenuProps<TProps>): DeserializedMenuProps<TProps> {
-  const serializedOnSelectionChange = useOnSelectionChange(onSelectionChange);
+  const serializedOnSelectionChange = useOnSelectionChange(onChange);
 
   return {
     onSelectionChange: serializedOnSelectionChange,

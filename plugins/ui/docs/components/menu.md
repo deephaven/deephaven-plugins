@@ -28,7 +28,7 @@ Menu accepts `item` elements as children, each with a `key` prop. Basic usage of
 
 ## Events
 
-Use the `on_selection_change` prop as a callback to handle press events on items when `selection_mode` is either `single` or `multiple`. See [Selection](#selection) for more information.
+Use the `on_change` prop as a callback to handle press events on items when `selection_mode` is either `single` or `multiple`. See [Selection](#selection) for more information.
 
 Menu also supports the `on_action` callback when `selection_mode` is `none` (default).
 
@@ -78,7 +78,7 @@ def single_selection_example():
                 ui.item("Right", key="right"),
                 selection_mode="single",
                 selected_keys=selected,
-                on_selection_change=set_selected,
+                on_change=set_selected,
             ),
         ),
         ui.text(f"Current selection (controlled) {selected}"),
@@ -98,7 +98,7 @@ from deephaven import ui
 
 @ui.component
 def multiple_selection_example():
-    selected, set_selected = ui.use_state(["sidebar", "console"])
+    selected, set_selected = ui.use_state("all")
     return ui.flex(
         ui.menu_trigger(
             ui.action_button("Show"),
@@ -109,7 +109,7 @@ def multiple_selection_example():
                 ui.item("Console", key="console"),
                 selection_mode="multiple",
                 selected_keys=selected,
-                on_selection_change=set_selected,
+                on_change=set_selected,
             ),
             close_on_select=False,
         ),
@@ -124,7 +124,7 @@ my_multiple_selection_example = multiple_selection_example()
 
 ## Links
 
-By default, interacting with an item in a Menu triggers `on_action` and optionally `on_selection_change` depending on the `selection_mode`. Alternatively, items may be links to another page or website. This can be achieved by passing the `href` prop to the `item` component. Link items in a menu are not selectable.
+By default, interacting with an item in a Menu triggers `on_action` and optionally `on_change` depending on the `selection_mode`. Alternatively, items may be links to another page or website. This can be achieved by passing the `href` prop to the `item` component. Link items in a menu are not selectable.
 
 ```python
 from deephaven import ui
@@ -167,7 +167,7 @@ def sections_example():
                 ),
                 selection_mode="multiple",
                 selected_keys=selected,
-                on_selection_change=set_selected,
+                on_change=set_selected,
             ),
             close_on_select=False,
         ),
@@ -185,7 +185,7 @@ The `contextual_help_trigger` accepts exactly two children: the `item` which tri
 
 Setting the `is_unavailable` prop on the `contextual_help_trigger` makes the menu item unavailable and enables the `dialog` with contextual help, allowing for programmatic control.
 
-Note that the `menu's` `on_action` and `on_selection_change` callbacks will not fire for items made unavailable by a `contextual_help_trigger`.
+Note that the `menu's` `on_action` and `on_change` callbacks will not fire for items made unavailable by a `contextual_help_trigger`.
 
 The example below illustrates how one would setup a `menu` to use `contextual_help_trigger`.
 

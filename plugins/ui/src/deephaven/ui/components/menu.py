@@ -35,7 +35,7 @@ def menu(
     default_selected_keys: SelectionAll | List[Key] | None = None,
     on_action: Callable[[Key], None] | None = None,
     on_close: Callable[[], None] | None = None,
-    on_selection_change: Callable[[SelectionAll | List[Key]], None] | None = None,
+    on_change: Callable[[SelectionAll | List[Key]], None] | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,
