@@ -2,7 +2,7 @@
 /* eslint-disable import/prefer-default-export */
 import React, { ComponentType } from 'react';
 import type { JSONRPCServerAndClient } from 'json-rpc-2.0';
-// Importing `Item` and `Section` compnents directly since they should not be
+// Importing `Item` and `Section` components directly since they should not be
 // wrapped due to how Spectrum collection components consume them.
 import {
   ActionMenu,
@@ -11,17 +11,20 @@ import {
   SpectrumCheckbox as Checkbox,
   CheckboxGroup,
   Content,
+  ContextualHelpTrigger,
   DialogTrigger,
   Heading,
   Item,
   Link,
   ListActionGroup,
   ListActionMenu,
+  MenuTrigger,
   NumberField,
   Section,
   Switch,
   TabList,
   Text,
+  SubmenuTrigger,
   View,
 } from '@deephaven/components';
 import { ValueOf } from '@deephaven/utils';
@@ -68,6 +71,7 @@ import {
   ListView,
   LogicButton,
   Markdown,
+  Menu,
   Meter,
   Picker,
   ProgressBar,
@@ -105,7 +109,7 @@ const log = Log.module('@deephaven/js-plugin-ui/WidgetUtils');
 /*
  * Map element node names to their corresponding React components
  */
-export const elementComponentMap = {
+export const elementComponentMap: Record<ValueOf<ElementName>, unknown> = {
   // Elements
   [ELEMENT_NAME.uiTable]: UITable,
 
@@ -130,6 +134,7 @@ export const elementComponentMap = {
   [ELEMENT_NAME.comboBox]: ComboBox,
   [ELEMENT_NAME.content]: Content,
   [ELEMENT_NAME.contextualHelp]: ContextualHelp,
+  [ELEMENT_NAME.contextualHelpTrigger]: ContextualHelpTrigger,
   [ELEMENT_NAME.dateField]: DateField,
   [ELEMENT_NAME.datePicker]: DatePicker,
   [ELEMENT_NAME.dateRangePicker]: DateRangePicker,
@@ -150,6 +155,8 @@ export const elementComponentMap = {
   [ELEMENT_NAME.listView]: ListView,
   [ELEMENT_NAME.logicButton]: LogicButton,
   [ELEMENT_NAME.markdown]: Markdown,
+  [ELEMENT_NAME.menu]: Menu,
+  [ELEMENT_NAME.menuTrigger]: MenuTrigger,
   [ELEMENT_NAME.meter]: Meter,
   [ELEMENT_NAME.numberField]: NumberField,
   [ELEMENT_NAME.picker]: Picker,
@@ -162,6 +169,7 @@ export const elementComponentMap = {
   [ELEMENT_NAME.searchField]: SearchField,
   [ELEMENT_NAME.section]: Section,
   [ELEMENT_NAME.slider]: Slider,
+  [ELEMENT_NAME.submenuTrigger]: SubmenuTrigger,
   [ELEMENT_NAME.switch]: Switch,
   [ELEMENT_NAME.tabList]: TabList,
   [ELEMENT_NAME.tabPanels]: TabPanels,

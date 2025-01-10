@@ -141,6 +141,15 @@ def ui_components2():
             "By Exchange",
         ),
         ui.view("View"),
+        # place this last rather than alphabetically to prevent popping over other components
+        ui.menu_trigger(
+            ui.action_button("Menu"),
+            ui.menu(
+                ui.item("Menu Item 1"),
+                ui.item("Menu Item 2"),
+            ),
+            default_open=True,
+        ),
     )
 
 
