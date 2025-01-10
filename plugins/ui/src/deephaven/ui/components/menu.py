@@ -96,7 +96,7 @@ def menu(
         default_selected_keys: The default selected keys in the collection (uncontrolled).
         on_action: Handler that is called when an item is selected.
         on_close: Handler that is called when the menu should close after selecting an item.
-        on_selection_change: Handler that is called when the selection changes.
+        on_change: Handler that is called when the selection changes.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how much the element will grow to fit the space available.
         flex_shrink: When used in a flex layout, specifies how much the element will shrink to fit the space available.
