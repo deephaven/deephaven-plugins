@@ -51,7 +51,7 @@
     "@deephaven/iris-grid": "^0.101.0",
     "@deephaven/jsapi-bootstrap": "^0.101.0",
     "@deephaven/jsapi-components": "^0.101.0",
-    "@deephaven/jsapi-types": "^1.0.0-dev0.35.0",
+    "@deephaven/jsapi-types": "^1.0.0-dev0.37.2",
     "@deephaven/jsapi-utils": "^0.101.0",
     "@deephaven/log": "^0.101.0",
     "@deephaven/plugin": "^0.101.0",
