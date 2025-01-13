@@ -110,9 +110,52 @@ def toolbar():
     ]
 
 
-props_toolbar_example = toolbar()
+read_props_example = toolbar()
 ```
 
 This lets these two buttons show different messages. Try changing the messages passed to them.
 
 ## Pass event handlers as props
+
+Often you’ll want the parent component to specify a child’s event handler. Consider buttons: depending on where you’re using a Button component, you might want to execute a different function—perhaps one plays a movie and another uploads an image.
+
+To do this, pass a prop the component receives from its parent as the event handler like so:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def custom_button(label, on_press):
+    return ui.button(label, on_press=on_press)
+
+
+@ui.component
+def play_button(movie_name):
+    def handle_play_press():
+        print(f"Playing {movie_name}")
+
+    return custom_button(f"Play {movie_name}", on_press=handle_play_press)
+
+
+@ui.component
+def upload_button():
+    return custom_button("Upload Image", on_press=lambda: print("Uploading!"))
+
+
+@ui.component
+def toolbar():
+    return [play_button("Alice in Wonderland"), upload_button()]
+
+
+pass_event_handlers = toolbar()
+```
+
+Here, the `toolbar` component renders a `play_button` and an `upload_button`:
+
+- `play_button` passes `handle_play_press` as the `on_press` prop to the `custom_button` inside.
+- `upload_button` passes `lambda: print("Uploading!")` as the `on_press` prop to the `custom_button` inside.
+
+Finally, `custom_button` component accepts a prop called `on_press`. It passes that prop directly to the `ui.button` with `on_press=on_press`. This tells `deephaven.ui` to call the passed function on press.
+
+## Name even handler props
