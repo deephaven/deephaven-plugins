@@ -3,5 +3,10 @@
   "useWorkspaces": true,
   "useNx": false,
   "version": "independent",
-  "packages": ["plugins/*/src/js/"]
+  "packages": ["plugins/*/src/js/"],
+  "command": {
+    "version": {
+      "changelogPreset": "conventionalcommits"
+    }
+  }
 }
