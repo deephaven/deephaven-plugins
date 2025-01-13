@@ -126,8 +126,8 @@ from deephaven import ui
 
 
 @ui.component
-def custom_button(label, on_press):
-    return ui.button(label, on_press=on_press)
+def custom_button(*children, on_press):
+    return ui.button(children, on_press=on_press)
 
 
 @ui.component
@@ -158,4 +158,30 @@ Here, the `toolbar` component renders a `play_button` and an `upload_button`:
 
 Finally, `custom_button` component accepts a prop called `on_press`. It passes that prop directly to the `ui.button` with `on_press=on_press`. This tells `deephaven.ui` to call the passed function on press.
 
-## Name even handler props
+## Name event handler props
+
+When building your own components, you can name their event handler props any way that you like.
+
+By convention, event handler props should start with `on`, followed by an underscore.
+
+For example, the `custom_button` component’s `on_press` prop could have been called `on_smash`:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def custom_button(*children, on_smash):
+    return ui.button(children, on_press=on_smash)
+
+
+@ui.component
+def toolbar():
+    return [
+        custom_button("Play Movie", on_smash=lambda: print("Playing!")),
+        custom_button("Upload Image", on_smash=lambda: print("Uploading!")),
+    ]
+
+
+handler_name_example = toolbar()
+```
