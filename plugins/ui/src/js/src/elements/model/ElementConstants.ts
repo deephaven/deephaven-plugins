@@ -23,6 +23,7 @@ export const ELEMENT_NAME = {
   stack: uiComponentName('Stack'),
 
   /** Other Components */
+  accordion: uiComponentName('Accordion'),
   actionButton: uiComponentName('ActionButton'),
   actionGroup: uiComponentName('ActionGroup'),
   actionMenu: uiComponentName('ActionMenu'),
@@ -42,6 +43,7 @@ export const ELEMENT_NAME = {
   dateRangePicker: uiComponentName('DateRangePicker'),
   dialog: uiComponentName('Dialog'),
   dialogTrigger: uiComponentName('DialogTrigger'),
+  disclosure: uiComponentName('Disclosure'),
   flex: uiComponentName('Flex'),
   form: uiComponentName('Form'),
   fragment: uiComponentName('Fragment'),

@@ -51,6 +51,7 @@ import Stack from '../layout/Stack';
 import Column from '../layout/Column';
 import Dashboard from '../layout/Dashboard';
 import {
+  Accordion,
   ActionButton,
   ActionGroup,
   Badge,
@@ -62,6 +63,7 @@ import {
   DatePicker,
   DateRangePicker,
   Dialog,
+  Disclosure,
   Flex,
   Form,
   Grid,
@@ -121,6 +123,7 @@ export const elementComponentMap: Record<ValueOf<ElementName>, unknown> = {
   [ELEMENT_NAME.stack]: Stack,
 
   // Other components
+  [ELEMENT_NAME.accordion]: Accordion,
   [ELEMENT_NAME.actionButton]: ActionButton,
   [ELEMENT_NAME.actionGroup]: ActionGroup,
   [ELEMENT_NAME.actionMenu]: ActionMenu,
@@ -140,6 +143,7 @@ export const elementComponentMap: Record<ValueOf<ElementName>, unknown> = {
   [ELEMENT_NAME.dateRangePicker]: DateRangePicker,
   [ELEMENT_NAME.dialog]: Dialog,
   [ELEMENT_NAME.dialogTrigger]: DialogTrigger,
+  [ELEMENT_NAME.disclosure]: Disclosure,
   [ELEMENT_NAME.flex]: Flex,
   [ELEMENT_NAME.form]: Form,
   [ELEMENT_NAME.fragment]: React.Fragment,
