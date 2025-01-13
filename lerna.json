@@ -5,6 +5,9 @@
   "version": "independent",
   "packages": ["plugins/*/src/js/"],
   "command": {
+    "publish": {
+      "distTag": "ui-v0.23"
+    },
     "version": {
       "changelogPreset": "conventionalcommits"
     }
