@@ -811,8 +811,6 @@ This wraps up the `deephaven.ui` dashboard crash course. In this course, you lea
 - [`ui.use_column_data`](hooks/use_column_data.md)
 - [`ui.use_table_data`](hooks/use_table_data.md)
 - [`ui.use_memo`](hooks/use_memo.md)
-- [`dx.scatter`](core/plotly/docs/box)
-- [`dx.histogram`](core/plotly/docs/histogram)
-- [`dx.density_heatmap`](core/plotly/docs/density_heatmap)
-- Component State
-- Custom Components
+- [`dx.scatter`](/core/plotly/docs/box)
+- [`dx.histogram`](/core/plotly/docs/histogram)
+- [`dx.density_heatmap`](/core/plotly/docs/density_heatmap)
