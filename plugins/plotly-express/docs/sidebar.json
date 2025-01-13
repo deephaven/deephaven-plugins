@@ -16,6 +16,7 @@
       },
       {
         "label": "Plot Types",
+        "collapsible": false,
         "items": [
           {
             "label": "Area",
@@ -117,6 +118,7 @@
       },
       {
         "label": "Concepts",
+        "collapsible": false,
         "items": [
           {
             "label": "Plot by",
@@ -133,6 +135,10 @@
           {
             "label": "Multiple axes",
             "path": "multiple-axes.md"
+          },
+          {
+            "label": "`unsafe_update_figure` Chart Customization",
+            "path": "unsafe_update_figure.md"
           }
         ]
       }

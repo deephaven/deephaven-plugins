@@ -15,6 +15,7 @@ from .column import column
 from .combo_box import combo_box
 from .content import content
 from .contextual_help import contextual_help
+from .contextual_help_trigger import contextual_help_trigger
 from .dashboard import dashboard
 from .date_field import date_field
 from .date_picker import date_picker
@@ -36,8 +37,11 @@ from .link import link
 from .list_action_group import list_action_group
 from .list_action_menu import list_action_menu
 from .list_view import list_view
+from .logic_button import logic_button
 from .make_component import make_component as component
 from .markdown import markdown
+from .menu import menu
+from .menu_trigger import menu_trigger
 from .meter import meter
 from .number_field import number_field
 from .panel import panel
@@ -53,6 +57,7 @@ from .search_field import search_field
 from .section import section
 from .slider import slider
 from .stack import stack
+from .submenu_trigger import submenu_trigger
 from .switch import switch
 from .tab_list import tab_list
 from .tab_panels import tab_panels
@@ -87,6 +92,7 @@ __all__ = [
     "component",
     "content",
     "contextual_help",
+    "contextual_help_trigger",
     "dashboard",
     "date_field",
     "date_picker",
@@ -108,8 +114,11 @@ __all__ = [
     "list_view",
     "list_action_group",
     "list_action_menu",
+    "logic_button",
     "html",
     "markdown",
+    "menu",
+    "menu_trigger",
     "meter",
     "number_field",
     "panel",
@@ -125,6 +134,7 @@ __all__ = [
     "section",
     "slider",
     "stack",
+    "submenu_trigger",
     "switch",
     "table",
     "TableDatabar",
