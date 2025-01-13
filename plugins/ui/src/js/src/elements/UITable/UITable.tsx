@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useSelector } from 'react-redux';
 import classNames from 'classnames';
 import {
@@ -10,6 +16,7 @@ import {
   IrisGridUtils,
 } from '@deephaven/iris-grid';
 import {
+  ColorValues,
   colorValueStyle,
   resolveCssVariablesInRecord,
   useStyleProps,
@@ -39,12 +46,18 @@ const log = Log.module('@deephaven/js-plugin-ui/UITable');
  * @returns A stable array if none of the elements have changed
  */
 function useStableArray<T>(array: T[]): T[] {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const stableArray = useMemo(() => array, [...array]);
-  return stableArray;
+  const stableArray = useRef<T[]>(array);
+  if (
+    array.length !== stableArray.current.length ||
+    !array.every((v, i) => v === stableArray.current[i])
+  ) {
+    stableArray.current = array;
+  }
+  return stableArray.current;
 }
 
 export function UITable({
+  format_: formatProp,
   onCellPress,
   onCellDoublePress,
   onColumnPress,
@@ -64,6 +77,7 @@ export function UITable({
   frozenColumns,
   hiddenColumns,
   columnGroups,
+  columnDisplayNames: columnDisplayNamesProp = {},
   density,
   contextMenu,
   contextHeaderMenu,
@@ -127,9 +141,14 @@ export function UITable({
     hiddenColumns,
     columnGroups,
   });
+
+  // TODO: #982 respond to prop changes here
+  const [format] = useState(formatProp != null ? ensureArray(formatProp) : []);
+  const [columnDisplayNames] = useState(columnDisplayNamesProp ?? {});
+  // TODO: #981 move databars to format and rewire for databar support
   const [databars] = useState(databarsProp ?? []);
 
-  const databarColorMap = useMemo(() => {
+  const colorMap = useMemo(() => {
     log.debug('Theme changed, updating databar color map', theme);
     const colorSet = new Set<string>();
     databars?.forEach(databar => {
@@ -156,20 +175,23 @@ export function UITable({
     });
 
     const colorRecord: Record<string, string> = {};
+    ColorValues.forEach(c => {
+      colorRecord[c] = colorValueStyle(c);
+    });
     colorSet.forEach(c => {
       colorRecord[c] = colorValueStyle(c);
     });
 
     const resolvedColors = resolveCssVariablesInRecord(colorRecord);
-    const colorMap = new Map<string, string>();
+    const newColorMap = new Map<string, string>();
     Object.entries(resolvedColors).forEach(([key, value]) => {
-      colorMap.set(key, value);
+      newColorMap.set(key, value);
     });
-    return colorMap;
-  }, [databars, theme]);
+    return newColorMap;
+  }, [theme, databars]);
 
   if (model) {
-    model.setDatabarColorMap(databarColorMap);
+    model.setColorMap(colorMap);
   }
 
   const hydratedSorts = useMemo(() => {
@@ -214,7 +236,9 @@ export function UITable({
           dh,
           table,
           databars,
-          layoutHints
+          layoutHints,
+          format,
+          columnDisplayNames
         );
         if (!isCancelled) {
           setError(null);
@@ -235,13 +259,37 @@ export function UITable({
     return () => {
       isCancelled = true;
     };
-  }, [databars, dh, exportedTable, layoutHints]);
+  }, [databars, dh, exportedTable, layoutHints, format, columnDisplayNames]);
+
+  // Get any format values that match column names
+  // Assume the format value is derived from the column
+  const formatColumnSources = useMemo(() => {
+    if (columns == null) {
+      return [];
+    }
+    const columnSet = new Set(columns.map(column => column.name));
+    const alwaysFetch: string[] = [];
+    format.forEach(rule => {
+      Object.entries(rule).forEach(([key, value]) => {
+        if (
+          key !== 'cols' &&
+          key !== 'if_' &&
+          typeof value === 'string' &&
+          columnSet.has(value)
+        ) {
+          alwaysFetch.push(value);
+        }
+      });
+    });
+    return alwaysFetch;
+  }, [format, columns]);
 
   const modelColumns = model?.columns ?? EMPTY_ARRAY;
 
-  const alwaysFetchColumnsArray = useStableArray(
-    ensureArray(alwaysFetchColumnsProp)
-  );
+  const alwaysFetchColumnsArray = useStableArray([
+    ...ensureArray(alwaysFetchColumnsProp),
+    ...formatColumnSources,
+  ]);
 
   const alwaysFetchColumns = useMemo(() => {
     if (alwaysFetchColumnsArray[0] === true) {
@@ -258,7 +306,9 @@ export function UITable({
     if (alwaysFetchColumnsArray[0] === false) {
       return [];
     }
-    return alwaysFetchColumnsArray.filter(v => typeof v === 'string');
+    return alwaysFetchColumnsArray.filter(
+      v => typeof v === 'string'
+    ) as string[];
   }, [alwaysFetchColumnsArray, modelColumns]);
 
   const mouseHandlers = useMemo(

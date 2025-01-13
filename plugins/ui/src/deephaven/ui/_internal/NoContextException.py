@@ -1,0 +1,2 @@
+class NoContextException(Exception):
+    pass

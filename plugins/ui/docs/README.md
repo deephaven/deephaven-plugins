@@ -58,7 +58,7 @@ my_button = ui.button("Click Me!", on_press=lambda e: print(f"Button was clicked
 
 ## Creating components
 
-Use the `@ui.component` decorator to create your own custom components. This decorator wraps the function provided as a Deephaven component. For more details on the architecture, see [TODO: Link to architecture]().
+Use the `@ui.component` decorator to create your own custom components. This decorator wraps the function provided as a Deephaven component. For more details on the architecture, see [Architecture documentation](./architecture.md).
 
 We can display a heading above a button as our custom component:
 
@@ -893,7 +893,7 @@ def ui_range_table(source, column):
 my_range_table = ui_range_table(stocks, "Size")
 ```
 
-![Table with a slider for selecting the range.](_assets/range_table.png)
+![Table with a slider for selecting the range.](./_assets/range_table.png)
 
 ## Table with required filters
 
@@ -1448,104 +1448,6 @@ st = stock_table(stocks)
 
 ![Stock Rollup](_assets/stock_rollup.png)
 
-## Listening to Table Updates
-
-You can use the `use_table_listener` hook to listen to changes to a table. In this example, we use the `use_table_listener` hook to listen to changes to the table then display the last changes.
-
-This is an advanced feature, requiring understanding of how the [table listeners](https://deephaven.io/core/docs/how-to-guides/table-listeners-python/) work, and limitations of running code while the Update Graph is running. Most usages of this are more appropriate to implement with [the table data hooks](#using-table-data-hooks).
-
-```python
-from deephaven import ui
-from deephaven.table import Table
-from deephaven import time_table, empty_table, merge
-from deephaven import pandas as dhpd
-import pandas as pd
-
-
-def to_table(update):
-    return dhpd.to_table(pd.DataFrame.from_dict(update))
-
-
-def add_as_op(ls, t, op):
-    t = t.update(f"type=`{op}`")
-    ls.append(t)
-
-
-@ui.component
-def monitor_changed_data(source: Table):
-
-    changed, set_changed = ui.use_state(empty_table(0))
-
-    show_added, set_show_added = ui.use_state(True)
-    show_removed, set_show_removed = ui.use_state(True)
-
-    def listener(update, is_replay):
-
-        to_merge = []
-
-        if (added_dict := update.added()) and show_added:
-            added = to_table(added_dict)
-            add_as_op(to_merge, added, "added")
-
-        if (removed_dict := update.removed()) and show_removed:
-            removed = to_table(removed_dict)
-            add_as_op(to_merge, removed, "removed")
-
-        if to_merge:
-            set_changed(merge(to_merge))
-        else:
-            set_changed(empty_table(0))
-
-    ui.use_table_listener(source, listener, [])
-
-    added_check = ui.checkbox(
-        "Show Added", isSelected=show_added, on_change=set_show_added
-    )
-
-    removed_check = ui.checkbox(
-        "Show Removed", isSelected=show_removed, on_change=set_show_removed
-    )
-
-    return [added_check, removed_check, changed]
-
-
-t = time_table("PT1S").update(formulas=["X=i"]).tail(5)
-
-monitor = monitor_changed_data(t)
-```
-
-## Handling liveness in functions
-
-Some functions which interact with a component will create live objects that need to be managed by the component to ensure they are kept active.
-
-The primary use case for this is when creating tables outside the component's own function, and passing them as state for the component's next update:
-
-```python
-from deephaven import ui, time_table
-
-
-@ui.component
-def resetable_table():
-    table, set_table = ui.use_state(lambda: time_table("PT1s"))
-    handle_press = ui.use_liveness_scope(lambda _: set_table(time_table("PT1s")), [])
-    return [
-        ui.action_button(
-            "Reset",
-            on_press=handle_press,
-        ),
-        table,
-    ]
-
-
-f = resetable_table()
-```
-
-Without the `use_liveness_scope` wrapping the lamdba, the newly created live tables it creates go out of scope before the component can make use of it.
-
-For more information on liveness scopes and why they are needed, see the [liveness scope documentation](https://deephaven.io/core/docs/conceptual/liveness-scope-concept/).
-
-![Change Monitor](_assets/change_monitor.png)
-
 ## Tabs using ui.tab
 
 You can add [Tabs](https://react-spectrum.adobe.com/react-spectrum/Tabs.html) within a panel by using the `ui.tabs` method. In this example, we create a panel with two tabs by passing in two instances of `ui.tab` as children.
@@ -1606,73 +1508,6 @@ def ui_tabs(source):
 
 my_tabs = ui_tabs(stocks)
 ```
-
-## Using Table Data Hooks
-
-There are five different hooks that can be used to get data from a table:
-
-1. `use_table_data`: Returns a dictionary of rows and columns from the table.
-2. `use_row_data`: Returns a single row from the table as a dictionary
-3. `use_row_list`: Returns a single row from the table as a list
-4. `use_column_data`: Returns a single column from the table as a list
-5. `use_cell_data`: Returns a single cell from the table
-
-In this example, the hooks are used to display various pieces of information about LIZARD trades.
-
-```python
-from deephaven import ui
-from deephaven.table import Table
-from deephaven import time_table, agg
-import deephaven.plot.express as dx
-
-stocks = dx.data.stocks()
-
-
-@ui.component
-def watch_lizards(source: Table):
-
-    sold_lizards = source.where(["Side in `sell`", "Sym in `LIZARD`"])
-    exchange_count_table = sold_lizards.view(["Exchange"]).count_by(
-        "Count", by=["Exchange"]
-    )
-    last_sell_table = sold_lizards.tail(1)
-    max_size_and_price_table = sold_lizards.agg_by([agg.max_(cols=["Size", "Price"])])
-    last_ten_sizes_table = sold_lizards.view("Size").tail(10)
-    average_sell_table = (
-        sold_lizards.view(["Size", "Dollars"])
-        .tail(100)
-        .sum_by()
-        .view("Average = Dollars/Size")
-    )
-
-    exchange_count = ui.use_table_data(exchange_count_table)
-    last_sell = ui.use_row_data(last_sell_table)
-    max_size_and_price = ui.use_row_list(max_size_and_price_table)
-    last_ten_sizes = ui.use_column_data(last_ten_sizes_table)
-    average_sell = ui.use_cell_data(average_sell_table)
-
-    exchange_count_view = ui.view(f"Exchange counts {exchange_count}")
-    last_sell_view = ui.view(f"Last Sold LIZARD: {last_sell}")
-    max_size_and_price_view = ui.view(f"Max size and max price: {max_size_and_price}")
-    last_ten_sizes_view = ui.view(f"Last Ten Sizes: {last_ten_sizes}")
-    average_sell_view = ui.view(f"Average LIZARD price: {average_sell}")
-
-    return ui.flex(
-        exchange_count_view,
-        last_sell_view,
-        max_size_and_price_view,
-        last_ten_sizes_view,
-        average_sell_view,
-        margin=10,
-        gap=10,
-        direction="column",
-    )
-
-
-watch = watch_lizards(stocks)
-```
-
-![Table Hooks](_assets/table_hooks.png)
 
 ## Multi-threading
 

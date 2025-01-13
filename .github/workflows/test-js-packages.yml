@@ -42,18 +42,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-lintcache-
 
-      - name: Cache node modules
-        id: cache-node-modules
-        uses: actions/cache@v4
+      - name: Restore cached node modules
+        id: restore-node-modules
+        uses: actions/cache/restore@v4
         with:
-          save-always: true
           path: |
             node_modules
             plugins/**/node_modules
           key: unit-node-modules-${{ hashFiles('package-lock.json')}}
 
       - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        if: steps.restore-node-modules.outputs.cache-hit != 'true'
         run: npm ci --no-audit
 
       # Run all tests for all the packages
@@ -61,3 +60,13 @@ jobs:
       # Then there's caches in all plugin folders
       - name: Run Tests
         run: npm run test:ci
+
+      - name: Always cache node modules
+        id: cache-node-modules
+        if: always() && steps.restore-node-modules.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          key: ${{ steps.restore-node-modules.outputs.cache-primary-key }}
+          path: |
+            node_modules
+            plugins/**/node_modules

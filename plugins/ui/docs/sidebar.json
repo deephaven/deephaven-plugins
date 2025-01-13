@@ -19,6 +19,52 @@
         "path": "installation.md"
       },
       {
+        "label": "Architecture",
+        "path": "architecture.md"
+      },
+      {
+        "label": "Describing the UI",
+        "collapsible": false,
+        "items": [
+          {
+            "label": "Your First Component",
+            "path": "describing/your_first_component.md"
+          },
+          {
+            "label": "Importing and Exporting Components",
+            "path": "describing/importing_and_exporting_components.md"
+          },
+          {
+            "label": "Component Rules",
+            "path": "describing/component_rules.md"
+          },
+          {
+            "label": "Using Hooks",
+            "path": "describing/use_hooks.md"
+          },
+          {
+            "label": "Working with Tables",
+            "path": "describing/work_with_tables.md"
+          },
+          {
+            "label": "Conditional Rendering",
+            "path": "describing/conditional_rendering.md"
+          },
+          {
+            "label": "Render Lists",
+            "path": "describing/render_lists.md"
+          },
+          {
+            "label": "Pure Components",
+            "path": "describing/pure_components.md"
+          },
+          {
+            "label": "Your UI as a Tree",
+            "path": "describing/your-ui-as-a-tree.md"
+          }
+        ]
+      },
+      {
         "label": "Components",
         "items": [
           {
@@ -30,6 +76,18 @@
             "path": "components/action_group.md"
           },
           {
+            "label": "action_menu",
+            "path": "components/action_menu.md"
+          },
+          {
+            "label": "avatar",
+            "path": "components/avatar.md"
+          },
+          {
+            "label": "badge",
+            "path": "components/badge.md"
+          },
+          {
             "label": "button",
             "path": "components/button.md"
           },
@@ -38,12 +96,32 @@
             "path": "components/button_group.md"
           },
           {
+            "label": "calendar",
+            "path": "components/calendar.md"
+          },
+          {
             "label": "checkbox",
             "path": "components/checkbox.md"
           },
           {
+            "label": "checkbox_group",
+            "path": "components/checkbox_group.md"
+          },
+          {
             "label": "combo_box",
             "path": "components/combo_box.md"
+          },
+          {
+            "label": "contextual_help",
+            "path": "components/contextual_help.md"
+          },
+          {
+            "label": "dashboard",
+            "path": "components/dashboard.md"
+          },
+          {
+            "label": "date_field",
+            "path": "components/date_field.md"
           },
           {
             "label": "date_picker",
@@ -54,8 +132,32 @@
             "path": "components/date_range_picker.md"
           },
           {
+            "label": "dialog",
+            "path": "components/dialog.md"
+          },
+          {
+            "label": "dialog_trigger",
+            "path": "components/dialog_trigger.md"
+          },
+          {
+            "label": "flex",
+            "path": "components/flex.md"
+          },
+          {
+            "label": "form",
+            "path": "components/form.md"
+          },
+          {
+            "label": "fragment",
+            "path": "components/fragment.md"
+          },
+          {
             "label": "heading",
             "path": "components/heading.md"
+          },
+          {
+            "label": "icon",
+            "path": "components/icon.md"
           },
           {
             "label": "illustrated_message",
@@ -64,6 +166,46 @@
           {
             "label": "image",
             "path": "components/image.md"
+          },
+          {
+            "label": "inline_alert",
+            "path": "components/inline_alert.md"
+          },
+          {
+            "label": "link",
+            "path": "components/link.md"
+          },
+          {
+            "label": "list_view",
+            "path": "components/list_view.md"
+          },
+          {
+            "label": "logic_button",
+            "path": "components/logic_button.md"
+          },
+          {
+            "label": "markdown",
+            "path": "components/markdown.md"
+          },
+          {
+            "label": "menu",
+            "path": "components/menu.md"
+          },
+          {
+            "label": "menu_trigger",
+            "path": "components/menu_trigger.md"
+          },
+          {
+            "label": "meter",
+            "path": "components/meter.md"
+          },
+          {
+            "label": "number_field",
+            "path": "components/number_field.md"
+          },
+          {
+            "label": "panel",
+            "path": "components/panel.md"
           },
           {
             "label": "picker",
@@ -90,12 +232,24 @@
             "path": "components/range_slider.md"
           },
           {
+            "label": "search_field",
+            "path": "components/search_field.md"
+          },
+          {
             "label": "slider",
             "path": "components/slider.md"
           },
           {
-            "label": "Table",
+            "label": "switch",
+            "path": "components/switch.md"
+          },
+          {
+            "label": "table",
             "path": "components/table.md"
+          },
+          {
+            "label": "tabs",
+            "path": "components/tabs.md"
           },
           {
             "label": "text",
@@ -104,6 +258,18 @@
           {
             "label": "text_area",
             "path": "components/text_area.md"
+          },
+          {
+            "label": "text_field",
+            "path": "components/text_field.md"
+          },
+          {
+            "label": "time_field",
+            "path": "components/time_field.md"
+          },
+          {
+            "label": "toast",
+            "path": "components/toast.md"
           },
           {
             "label": "toggle_button",
@@ -119,16 +285,64 @@
         "label": "Hooks",
         "items": [
           {
+            "label": "Overview",
+            "path": "hooks/overview.md"
+          },
+          {
+            "label": "use_boolean",
+            "path": "hooks/use_boolean.md"
+          },
+          {
+            "label": "use_callback",
+            "path": "hooks/use_callback.md"
+          },
+          {
+            "label": "use_cell_data",
+            "path": "hooks/use_cell_data.md"
+          },
+          {
+            "label": "use_column_data",
+            "path": "hooks/use_column_data.md"
+          },
+          {
             "label": "use_effect",
             "path": "hooks/use_effect.md"
+          },
+          {
+            "label": "use_liveness_scope",
+            "path": "hooks/use_liveness_scope.md"
           },
           {
             "label": "use_memo",
             "path": "hooks/use_memo.md"
           },
           {
+            "label": "use_ref",
+            "path": "hooks/use_ref.md"
+          },
+          {
+            "label": "use_render_queue",
+            "path": "hooks/use_render_queue.md"
+          },
+          {
+            "label": "use_row_data",
+            "path": "hooks/use_row_data.md"
+          },
+          {
+            "label": "use_row_list",
+            "path": "hooks/use_row_list.md"
+          },
+          {
             "label": "use_state",
             "path": "hooks/use_state.md"
+          },
+          {
+            "label": "use_table_data",
+            "path": "hooks/use_table_data.md"
+          },
+          {
+            "label": "use_table_listener",
+            "path": "hooks/use_table_listener.md"
           }
         ]
       }

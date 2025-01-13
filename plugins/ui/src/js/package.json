@@ -1,6 +1,6 @@
 {
   "name": "@deephaven/js-plugin-ui",
-  "version": "0.22.0",
+  "version": "0.24.0",
   "description": "Deephaven UI plugin",
   "keywords": [
     "Deephaven",
@@ -29,6 +29,7 @@
     "update-dh-packages": "node ../../../../tools/update-dh-packages.mjs"
   },
   "devDependencies": {
+    "@types/memoizee": "^0.4.5",
     "@types/react": "^17.0.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
@@ -39,30 +40,34 @@
     "react-dom": "^17.0.2"
   },
   "dependencies": {
-    "@deephaven/chart": "^0.95.0",
-    "@deephaven/components": "^0.95.0",
-    "@deephaven/dashboard": "^0.95.0",
-    "@deephaven/dashboard-core-plugins": "^0.95.0",
-    "@deephaven/golden-layout": "^0.95.0",
-    "@deephaven/grid": "^0.95.0",
-    "@deephaven/icons": "^0.95.0",
-    "@deephaven/iris-grid": "^0.95.0",
-    "@deephaven/jsapi-bootstrap": "^0.95.0",
-    "@deephaven/jsapi-components": "^0.95.0",
+    "@deephaven/chart": "^0.101.0",
+    "@deephaven/components": "^0.101.0",
+    "@deephaven/console": "^0.101.0",
+    "@deephaven/dashboard": "^0.101.0",
+    "@deephaven/dashboard-core-plugins": "^0.101.0",
+    "@deephaven/golden-layout": "^0.101.0",
+    "@deephaven/grid": "^0.101.0",
+    "@deephaven/icons": "^0.101.0",
+    "@deephaven/iris-grid": "^0.101.0",
+    "@deephaven/jsapi-bootstrap": "^0.101.0",
+    "@deephaven/jsapi-components": "^0.101.0",
     "@deephaven/jsapi-types": "^1.0.0-dev0.35.0",
-    "@deephaven/jsapi-utils": "^0.95.0",
-    "@deephaven/log": "^0.95.0",
-    "@deephaven/plugin": "^0.95.0",
-    "@deephaven/react-hooks": "^0.95.0",
-    "@deephaven/redux": "^0.95.0",
-    "@deephaven/test-utils": "^0.95.0",
-    "@deephaven/utils": "^0.95.0",
+    "@deephaven/jsapi-utils": "^0.101.0",
+    "@deephaven/log": "^0.101.0",
+    "@deephaven/plugin": "^0.101.0",
+    "@deephaven/react-hooks": "^0.101.0",
+    "@deephaven/redux": "^0.101.0",
+    "@deephaven/test-utils": "^0.101.0",
+    "@deephaven/utils": "^0.101.0",
     "@fortawesome/react-fontawesome": "^0.2.0",
     "@internationalized/date": "^3.5.5",
     "classnames": "^2.5.1",
     "json-rpc-2.0": "^1.6.0",
     "nanoid": "^5.0.7",
-    "react-redux": "^7.x"
+    "react-markdown": "^8.0.7",
+    "react-redux": "^7.x",
+    "rehype-mathjax": "^3.1.0",
+    "remark-math": "^5.1.1"
   },
   "publishConfig": {
     "access": "public"

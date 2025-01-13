@@ -506,6 +506,31 @@ ListViewDensity = Literal["COMPACT", "NORMAL", "SPACIOUS"]
 ListViewOverflowMode = Literal["truncate", "wrap"]
 ActionGroupDensity = Literal["compact", "regular"]
 TabDensity = Literal["compact", "regular"]
+InlineAlertVariant = Literal["neutral", "info", "positive", "notice", "negative"]
+LinkVariant = Literal["primary", "secondary", "over_background"]
+AvatarSize = Literal[
+    "avatar-size-50",
+    "avatar-size-75",
+    "avatar-size-100",
+    "avatar-size-200",
+    "avatar-size-300",
+    "avatar-size-400",
+    "avatar-size-500",
+    "avatar-size-600",
+    "avatar-size-700",
+]
+BadgeVariant = Literal[
+    "neutral",
+    "info",
+    "positive",
+    "negative",
+    "indigo",
+    "yellow",
+    "magenta",
+    "fuchsia",
+    "purple",
+    "seafoam",
+]
 Dependencies = Union[Tuple[Any], List[Any]]
 Selection = Sequence[Key]
 LocalTime = DType
@@ -547,69 +572,33 @@ class DateRange(TypedDict):
     """
 
 
-DataBarAxis = Literal["PROPORTIONAL", "MIDDLE", "DIRECTIONAL"]
-DataBarDirection = Literal["LTR", "RTL"]
-DataBarValuePlacement = Literal["BESIDE", "OVERLAP", "HIDE"]
+ToastVariant = Literal["positive", "negative", "neutral", "info"]
 
 
-class DatabarConfig(TypedDict):
+_DISABLE_NULLISH_CONSTRUCTORS = False
+
+
+class UndefinedType:
     """
-    Configuration for displaying a databar.
+    Placeholder for undefined values.
     """
 
-    column: ColumnName
-    """
-    Name of the column to display as a databar.
-    """
+    def __init__(self) -> None:
+        if _DISABLE_NULLISH_CONSTRUCTORS:
+            raise NotImplementedError
 
-    value_column: NotRequired[ColumnName]
-    """
-    Name of the column to use as the value for the databar.
-    If not provided, the databar will use the column value.
+    def __bool__(self) -> bool:
+        return False
 
-    This can be useful if you want to display a databar with
-    a log scale, but display the actual value in the cell.
-    In this case, the value_column would be the log of the actual value.
-    """
+    def __copy__(self) -> "UndefinedType":
+        return self
 
-    min: NotRequired[Union[ColumnName, float]]
-    """
-    Minimum value for the databar. Defaults to the minimum value in the column.
+    def __deepcopy__(self, _: Any) -> "UndefinedType":
+        return self
 
-    If a column name is provided, the minimum value will be the value in that column.
-    If a constant is providded, the minimum value will be that constant.
-    """
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, UndefinedType) or other is None
 
-    max: NotRequired[Union[ColumnName, float]]
-    """
-    Maximum value for the databar. Defaults to the maximum value in the column.
 
-    If a column name is provided, the maximum value will be the value in that column.
-    If a constant is providded, the maximum value will be that constant.
-    """
-
-    axis: NotRequired[DataBarAxis]
-    """
-    Whether the databar 0 value should be proportional to the min and max values,
-    in the middle of the cell, or on one side of the databar based on direction.
-    """
-
-    direction: NotRequired[DataBarDirection]
-    """
-    Direction of the databar.
-    """
-
-    value_placement: NotRequired[DataBarValuePlacement]
-    """
-    Placement of the value relative to the databar.
-    """
-
-    color: NotRequired[Color]
-    """
-    Color of the databar.
-    """
-
-    opacity: NotRequired[float]
-    """
-    Opacity of the databar fill.
-    """
+Undefined = UndefinedType()
+_DISABLE_NULLISH_CONSTRUCTORS = True

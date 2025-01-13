@@ -48,6 +48,7 @@ def ui_components1():
         ui.action_button("Action Button"),
         ui.action_group("Aaa", "Bbb", "Ccc"),
         ui.action_menu("Aaa", "Bbb", "Ccc"),
+        ui.badge("Licensed", variant="positive"),
         ui.button_group(ui.button("One"), ui.button("Two")),
         ui.button("Button"),
         ui.calendar(value="2021-01-01"),
@@ -79,6 +80,14 @@ def ui_components2():
             ui.heading("Warning"),
             ui.content("This is a warning message."),
         ),
+        ui.inline_alert(
+            ui.heading("Purchase completed"),
+            ui.content(
+                "You'll get a confirmation email with your order details shortly."
+            ),
+            variant="positive",
+        ),
+        ui.link("Learn more about Deephaven", href="https://deephaven.io/"),
         ui.list_view(
             _item_table_source_with_action_group,
             aria_label="List View - List action group",
@@ -132,6 +141,15 @@ def ui_components2():
             "By Exchange",
         ),
         ui.view("View"),
+        # place this last rather than alphabetically to prevent popping over other components
+        ui.menu_trigger(
+            ui.action_button("Menu"),
+            ui.menu(
+                ui.item("Menu Item 1"),
+                ui.item("Menu Item 2"),
+            ),
+            default_open=True,
+        ),
     )
 
 

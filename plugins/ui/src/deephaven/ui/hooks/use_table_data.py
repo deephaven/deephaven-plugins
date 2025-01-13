@@ -118,11 +118,11 @@ def _table_data(
 
 def use_table_data(
     table: Table | None,
-    sentinel: Sentinel = (),
-    transform: Callable[
-        [pd.DataFrame | Sentinel | None, bool], TransformedData | Sentinel
-    ]
-    | None = None,
+    sentinel: Sentinel = None,
+    transform: (
+        Callable[[pd.DataFrame | Sentinel | None, bool], TransformedData | Sentinel]
+        | None
+    ) = None,
 ) -> TableData | Sentinel | TransformedData:
     """
     Returns a dictionary with the contents of the table. Component will redraw if the table
@@ -130,7 +130,7 @@ def use_table_data(
 
     Args:
         table: The table to listen to. If None, None will be returned, not the sentinel value.
-        sentinel: The sentinel value to return if the table is ticking but empty. Defaults to an empty tuple.
+        sentinel: The sentinel value to return if the table is ticking but empty. Defaults to None.
         transform: A function to transform the table data and is_sentinel values. Defaults to None, which will
             return the data as TableData.
 

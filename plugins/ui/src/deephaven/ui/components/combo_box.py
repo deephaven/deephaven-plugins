@@ -27,9 +27,9 @@ from deephaven.table import Table, PartitionedTable
 from .section import SectionElement
 from .item import Item
 from .item_table_source import ItemTableSource
-from ..elements import BaseElement, Element
+from ..elements import BaseElement, Element, NodeType
 from .._internal.utils import create_props, unpack_item_table_source
-from ..types import Key
+from ..types import Key, Undefined, UndefinedType
 from .basic import component_element
 
 ComboBoxElement = BaseElement
@@ -41,6 +41,8 @@ SUPPORTED_SOURCE_ARGS = {
     "icon_column",
     "title_column",
 }
+
+_NULLABLE_PROPS = ["selected_key"]
 
 
 def combo_box(
@@ -58,14 +60,14 @@ def combo_box(
     default_input_value: str | None = None,
     allows_custom_value: bool | None = None,
     disabled_keys: list[Key] | None = None,
-    selected_key: Key | None = None,
+    selected_key: Key | None | UndefinedType = Undefined,
     default_selected_key: Key | None = None,
     is_disabled: bool | None = None,
     is_read_only: bool | None = None,
     is_required: bool | None = None,
     validation_behavior: ValidationBehavior = "aria",
     auto_focus: bool | None = None,
-    label: Element | None = None,
+    label: NodeType = None,
     description: Element | None = None,
     error_message: Element | None = None,
     name: str | None = None,
@@ -75,7 +77,7 @@ def combo_box(
     necessity_indicator: NecessityIndicator | None = None,
     contextual_help: Element | None = None,
     on_open_change: Callable[[bool, MenuTriggerAction], None] | None = None,
-    on_selection_change: Callable[[Key], None] | None = None,
+    on_selection_change: Callable[[Key | None], None] | None = None,
     on_change: Callable[[Key], None] | None = None,
     on_input_change: Callable[[str], None] | None = None,
     on_focus: Callable[[FocusEventCallable], None] | None = None,
@@ -241,4 +243,6 @@ def combo_box(
 
     children, props = unpack_item_table_source(children, props, SUPPORTED_SOURCE_ARGS)
 
-    return component_element("ComboBox", *children, **props)
+    return component_element(
+        "ComboBox", *children, _nullable_props=_NULLABLE_PROPS, **props
+    )

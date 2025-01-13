@@ -38,8 +38,19 @@ export type DatabarConfig = {
   markers?: { value: number | string; color?: string }[];
 };
 
+export type FormattingRule = {
+  cols?: ColumnName | ColumnName[];
+  if_?: string;
+  color?: string;
+  background_color?: string;
+  alignment?: 'left' | 'center' | 'right';
+  value?: string;
+  mode?: DatabarConfig;
+};
+
 export type UITableProps = StyleProps & {
   table: dh.WidgetExportedObject;
+  format_?: FormattingRule | FormattingRule[];
   onCellPress?: (data: CellData) => void;
   onCellDoublePress?: (data: CellData) => void;
   onRowPress?: (rowData: RowDataMap) => void;
@@ -58,6 +69,7 @@ export type UITableProps = StyleProps & {
   frozenColumns?: string[];
   hiddenColumns?: string[];
   columnGroups?: dh.ColumnGroup[];
+  columnDisplayNames?: Record<ColumnName, string>;
   density?: 'compact' | 'regular' | 'spacious';
   contextMenu?: ResolvableUIContextItem | ResolvableUIContextItem[];
   contextHeaderMenu?: ResolvableUIContextItem | ResolvableUIContextItem[];

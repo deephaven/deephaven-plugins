@@ -1,6 +1,6 @@
 import type { Layout } from 'plotly.js';
 import { dh as DhType } from '@deephaven/jsapi-types';
-import { TestUtils } from '@deephaven/utils';
+import { TestUtils } from '@deephaven/test-utils';
 import { ChartModel } from '@deephaven/chart';
 import { PlotlyExpressChartModel } from './PlotlyExpressChartModel';
 import { PlotlyChartWidgetData } from './PlotlyExpressChartUtils';
@@ -260,6 +260,64 @@ describe('PlotlyExpressChartModel', () => {
     expect(mockSubscribe).toHaveBeenCalledTimes(1);
     expect(mockSubscribe).toHaveBeenCalledWith(
       new CustomEvent(ChartModel.EVENT_DOWNSAMPLEFAILED)
+    );
+  });
+
+  it('should swap replaceable WebGL traces without blocker events if WebGL is disabled or reenabled', async () => {
+    const mockWidget = createMockWidget([SMALL_TABLE], 'scattergl');
+    const chartModel = new PlotlyExpressChartModel(
+      mockDh,
+      mockWidget,
+      jest.fn()
+    );
+
+    const mockSubscribe = jest.fn();
+    await chartModel.subscribe(mockSubscribe);
+    await new Promise(process.nextTick); // Subscribe is async
+    chartModel.setRenderOptions({ webgl: true });
+    expect(chartModel.plotlyData[0].type).toBe('scattergl');
+    chartModel.setRenderOptions({ webgl: false });
+    expect(chartModel.plotlyData[0].type).toBe('scatter');
+    chartModel.setRenderOptions({ webgl: true });
+    expect(chartModel.plotlyData[0].type).toBe('scattergl');
+
+    // No events should be emitted since the trace is replaceable
+    expect(mockSubscribe).toHaveBeenCalledTimes(0);
+  });
+
+  it('should emit blocker events only if unreplaceable WebGL traces are present and WebGL is disabled, then blocker clear events when reenabled', async () => {
+    const mockWidget = createMockWidget([SMALL_TABLE], 'scatter3d');
+    const chartModel = new PlotlyExpressChartModel(
+      mockDh,
+      mockWidget,
+      jest.fn()
+    );
+
+    const mockSubscribe = jest.fn();
+    await chartModel.subscribe(mockSubscribe);
+    await new Promise(process.nextTick); // Subscribe is async
+    chartModel.setRenderOptions({ webgl: true });
+    // no calls because the chart has webgl enabled
+    expect(mockSubscribe).toHaveBeenCalledTimes(0);
+    chartModel.setRenderOptions({ webgl: false });
+    // blocking event should be emitted
+    expect(mockSubscribe).toHaveBeenCalledTimes(1);
+    expect(mockSubscribe).toHaveBeenLastCalledWith(
+      new CustomEvent(ChartModel.EVENT_BLOCKER)
+    );
+    chartModel.setRenderOptions({ webgl: true });
+    // blocking clear event should be emitted, but this doesn't count as an acknowledge
+    expect(mockSubscribe).toHaveBeenCalledTimes(2);
+    expect(mockSubscribe).toHaveBeenLastCalledWith(
+      new CustomEvent(ChartModel.EVENT_BLOCKER_CLEAR)
+    );
+    expect(chartModel.hasAcknowledgedWebGlWarning).toBe(false);
+    // if user had accepted the rendering (simulated by fireBlockerClear), no EVENT_BLOCKER event should be emitted again
+    chartModel.fireBlockerClear();
+    chartModel.setRenderOptions({ webgl: false });
+    expect(mockSubscribe).toHaveBeenCalledTimes(3);
+    expect(mockSubscribe).toHaveBeenLastCalledWith(
+      new CustomEvent(ChartModel.EVENT_BLOCKER_CLEAR)
     );
   });
 });

@@ -480,7 +480,7 @@ class Options(TypedDict):
     """
 
 
-class NumberFieldFormatOptions(TypedDict):
+class NumberFormatOptions(TypedDict):
     """
     Options for formatting the value of a NumberField.
     This also affects the characters allowed in the input.

@@ -1,5 +1,6 @@
-import { FocusEvent, useCallback } from 'react';
+import { FocusEvent } from 'react';
 import { getTargetName } from '../utils';
+import useConditionalCallback from './useConditionalCallback';
 
 export function serializeFocusEvent(event: FocusEvent): SerializedFocusEvent {
   const { relatedTarget, target, type } = event;
@@ -36,11 +37,11 @@ export type DeserializedFocusEventCallback = (e: FocusEvent) => void;
 export function useFocusEventCallback(
   callback?: SerializedFocusEventCallback
 ): DeserializedFocusEventCallback | undefined {
-  const focusCallBack = useCallback(
+  return useConditionalCallback(
+    callback != null,
     (e: FocusEvent) => {
       callback?.(serializeFocusEvent(e));
     },
     [callback]
   );
-  return callback != null ? focusCallBack : undefined;
 }

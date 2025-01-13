@@ -20,6 +20,7 @@ from deephaven import DHError
 from deephaven.liveness_scope import LivenessScope
 from contextlib import contextmanager
 from dataclasses import dataclass
+from .NoContextException import NoContextException
 
 logger = logging.getLogger(__name__)
 
@@ -125,10 +126,6 @@ def _should_retain_value(value: ValueWithLiveness[T | None]) -> bool:
 
 
 _local_data = threading.local()
-
-
-class NoContextException(Exception):
-    pass
 
 
 def get_context() -> RenderContext:

@@ -1,1 +1,8 @@
-from .plots import PartitionableTableLike, TableLike, Orientation
+from .plots import (
+    PartitionableTableLike,
+    TableLike,
+    Orientation,
+    Gauge,
+    StyleDict,
+    StyleMap,
+)

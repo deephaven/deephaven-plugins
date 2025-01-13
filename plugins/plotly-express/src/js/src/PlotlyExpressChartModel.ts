@@ -2,6 +2,7 @@ import type { Layout, Data, PlotData, LayoutAxis } from 'plotly.js';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { ChartModel, ChartUtils } from '@deephaven/chart';
 import Log from '@deephaven/log';
+import { RenderOptions } from '@deephaven/chart/dist/ChartModel';
 import {
   DownsampleInfo,
   PlotlyChartWidgetData,
@@ -9,11 +10,14 @@ import {
   downsample,
   getDataMappings,
   getPathParts,
+  getReplaceableWebGlTraceIndices,
   getWidgetData,
   isAutoAxis,
   isLineSeries,
   isLinearAxis,
   removeColorsFromData,
+  setWebGlTraceType,
+  hasUnreplaceableWebGlTraces,
 } from './PlotlyExpressChartUtils';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
@@ -116,6 +120,17 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   isDownsamplingDisabled = false;
 
+  /**
+   * Set of traces that are originally WebGL and can be replaced with non-WebGL traces.
+   * These need to be replaced if WebGL is disabled and re-enabled if WebGL is enabled again.
+   */
+  webGlTraceIndices: Set<number> = new Set();
+
+  /**
+   * The WebGl warning is only shown once per chart. When the user acknowledges the warning, it will not be shown again.
+   */
+  hasAcknowledgedWebGlWarning = false;
+
   override getData(): Partial<Data>[] {
     const hydratedData = [...this.plotlyData];
 
@@ -207,6 +222,41 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.widget = undefined;
   }
 
+  override setRenderOptions(renderOptions: RenderOptions): void {
+    this.handleWebGlAllowed(renderOptions.webgl, this.renderOptions?.webgl);
+    super.setRenderOptions(renderOptions);
+  }
+
+  /**
+   * Handle the WebGL option being set in the render options.
+   * If WebGL is enabled, traces have their original types as given.
+   * If WebGL is disabled, replace traces that require WebGL with non-WebGL traces if possible.
+   * Also, show a dismissible warning per-chart if there are WebGL traces that cannot be replaced.
+   * @param webgl The new WebGL value. True if WebGL is enabled.
+   * @param prevWebgl The previous WebGL value
+   */
+  handleWebGlAllowed(webgl = true, prevWebgl = true): void {
+    setWebGlTraceType(this.plotlyData, webgl, this.webGlTraceIndices);
+
+    const needsBlocker = hasUnreplaceableWebGlTraces(this.plotlyData);
+
+    // If WebGL is disabled and there are traces that require WebGL, show a warning that is dismissible on a per-chart basis
+    if (needsBlocker && !webgl && !this.hasAcknowledgedWebGlWarning) {
+      this.fireBlocker([
+        'WebGL is disabled but this chart cannot render without it. Check the Advanced section in the settings to enable WebGL or click below to render with WebGL for this chart.',
+      ]);
+    } else if (webgl && !prevWebgl && needsBlocker) {
+      // clear the blocker but not the acknowledged flag in case WebGL is disabled again
+      this.fireBlockerClear(false);
+    }
+  }
+
+  override fireBlockerClear(isAcknowledged = true): void {
+    super.fireBlockerClear();
+    this.hasAcknowledgedWebGlWarning =
+      isAcknowledged || this.hasAcknowledgedWebGlWarning;
+  }
+
   updateLayout(data: PlotlyChartWidgetData): void {
     const { figure } = data;
     const { plotly } = figure;
@@ -245,6 +295,11 @@ export class PlotlyExpressChartModel extends ChartModel {
         this.plotlyData
       );
     }
+
+    // Retrieve the indexes of traces that require WebGL so they can be replaced if WebGL is disabled
+    this.webGlTraceIndices = getReplaceableWebGlTraceIndices(this.plotlyData);
+
+    this.handleWebGlAllowed(this.renderOptions?.webgl);
 
     newReferences.forEach(async (id, i) => {
       this.tableDataMap.set(id, {}); // Plot may render while tables are being fetched. Set this to avoid a render error

@@ -14,7 +14,13 @@ from .types import (
     Position,
 )
 
-from ..types import Key, TabDensity
+from ..types import Key, TabDensity, Undefined, UndefinedType
+from ..elements import BaseElement
+
+TabElement = BaseElement
+
+
+_NULLABLE_PROPS = ["selected_key"]
 
 
 def tabs(
@@ -27,7 +33,7 @@ def tabs(
     keyboard_activation: KeyboardActivationType | None = "automatic",
     orientation: Orientation | None = "horizontal",
     disallow_empty_selection: bool | None = None,
-    selected_key: Key | None = None,
+    selected_key: Key | None | UndefinedType = Undefined,
     default_selected_key: Key | None = None,
     on_selection_change: Callable[[Key], None] | None = None,
     on_change: Callable[[Key], None] | None = None,
@@ -75,7 +81,7 @@ def tabs(
     UNSAFE_class_name: str | None = None,
     UNSAFE_style: CSSProperties | None = None,
     key: str | None = None,
-):
+) -> TabElement:
     """
     Python implementation for the Adobe React Spectrum Tabs component.
     https://react-spectrum.adobe.com/react-spectrum/Tabs.html
@@ -118,6 +124,12 @@ def tabs(
         margin_end: The margin for the logical end side of the element, depending on layout direction.
         margin_x: The margin for the left and right sides of the element.
         margin_y: The margin for the top and bottom sides of the element.
+        width: The width of the element.
+        height: The height of the element.
+        min_width: The minimum width of the element.
+        min_height: The minimum height of the element.
+        max_width: The maximum width of the element.
+        max_height: The maximum height of the element.
         position: Specifies how the element is position.
         top: The top position of the element.
         bottom: The bottom position of the element.
@@ -135,6 +147,10 @@ def tabs(
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
         key: A unique identifier used by React to render elements in a list.
+
+    Returns:
+        The rendered tabs component.
+
     """
     if not children:
         raise ValueError("Tabs must have at least one child.")
@@ -218,4 +234,5 @@ def tabs(
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
         key=key,
+        _nullable_props=_NULLABLE_PROPS,
     )

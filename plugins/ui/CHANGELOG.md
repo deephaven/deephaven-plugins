@@ -2,6 +2,90 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.24.0 - 2024-12-12
+#### Bug Fixes
+- UI loading duplicate panels in embed iframe (#1043) - (e1559a4) - Matthew Runyon
+#### Documentation
+- Working with Tables (#1059) - (6e73350) - dgodinez-dh
+- Importing and Exporting Components (#1054) - (21b752c) - dgodinez-dh
+- Your First Component (#1052) - (ce3843a) - dgodinez-dh
+- Add Stack with tabs to dashboard docs (#1048) - (cf0c994) - mofojed
+#### Features
+- ui.meter (#1032) - (6730aa9) - ethanalvizo
+- ui.avatar (#1027) - (2738a1d) - Akshat Jawne
+- Toast Implementation (#1030) - (e53b322) - dgodinez-dh
+
+- - -
+
+## ui-v0.23.1 - 2024-11-23
+
+- - -
+
+## ui-v0.23.0 - 2024-11-23
+#### Bug Fixes
+- missing sidebar docs (#1018) - (00c2181) - ethanalvizo
+- Re-running ui code initially rendering the old document (#1017) - (b3f5459) - Matthew Runyon
+- Resize contextual help popup for widget error messages (#995) - (3a74733) - mofojed
+- to_camel_case fails on leading or trailing underscores (#979) - (08ff89c) - Matthew Runyon
+- slider input default value (#959) - (3a448ea) - Steven Wu
+- text input default value (#958) - (0ac72be) - Steven Wu
+- set necessity_indicator default to None (#947) - (3b25024) - Steven Wu
+- contextual_help uses heading, content, footer props (#945) - (d7bcc22) - Steven Wu
+- number field format options (#827) - (317e80b) - ethanalvizo
+- button group align (#917) - (aac6593) - Steven Wu
+#### Build system
+- Update required versions (#1020) - (cb28447) - mofojed
+#### Documentation
+- Add docs for use_callback, use_ref, hooks overview page (#1012) - (701b004) - mofojed
+- form (#925) - (2eb5fab) - ethanalvizo
+- Add architecture document (#949) - (6ae6493) - mofojed
+- ui.tabs (#943) - (bbe18e3) - Akshat Jawne
+- ui.contextual_help (#974) - (e3c5540) - Akshat Jawne
+- panel (#964) - (1eecb75) - ethanalvizo
+- fragment (#962) - (954184c) - ethanalvizo
+- flex (#785) - (54337d1) - ethanalvizo
+- ui.action_menu (#928) - (992bd33) - Akshat Jawne
+- update README.md (#975) - (f7ee1a6) - margaretkennedy
+- dashboard (#814) - (4114ecc) - ethanalvizo
+- number field (#932) - (ada2acc) - ethanalvizo
+- Mention Deephaven version where `server-ui` Docker image is mentioned (#951) - (1fac6af) - JJ Brosnan
+- Table formatting spec (#889) - (f79224a) - Matthew Runyon
+- list view (#769) - (37cb5a7) - ethanalvizo
+- ui.toggle_button (#927) - (93ca388) - Akshat Jawne
+- ui.button_group (#910) - (0ccd557) - Akshat Jawne
+- icon (#774) - (afa4faf) - ethanalvizo
+- ui.heading (#908) - (863655b) - Akshat Jawne
+- ui.text (#907) - (68b6515) - Akshat Jawne
+- ui.action_group (#895) - (356d33a) - Akshat Jawne
+#### Features
+- ui.search_field (#999) - (063f39a) - ethanalvizo
+- ui.inline_alert (#1007) - (cfd6410) - Akshat Jawne
+- Show loading spinners immediately in ui (#1023) - (3748dac) - Matthew Runyon
+- Show loading panel immediately for deephaven UI - (dcbfdab) - Matthew Runyon
+- Column sources for ui.table formatting (#1010) - (c25f578) - Matthew Runyon
+- Add column_display_names to ui.table (#1008) - (1343ec8) - Matthew Runyon
+- ui.markdown component (#987) - (7ec5060) - Steven Wu
+- ui.badge  (#973) - (55e8ce2) - Akshat Jawne
+- ui.link (#980) - (2f07d2e) - Akshat Jawne
+- Add useConditionalCallback hook (#993) - (512fab2) - mofojed
+- UI table formatting (#950) - (b9109e0) - Matthew Runyon
+- UI Dialog and DialogTrigger Components (#953) - (0fbae91) - dgodinez-dh
+- Add standard style props to UI table (#921) - (46f236e) - Matthew Runyon
+- ui.markdown component (#903) - (0d1eea8) - Steven Wu
+- ui.checkbox_group (#813) - (8901fad) - Akshat Jawne
+- UI Component Range Calendar (#930) - (fde198c) - dgodinez-dh
+- ui.table always_fetch_columns (#929) - (7f8c023) - Matthew Runyon
+- ui.progress_bar and ui.progress_circle (#892) - (1ea206e) - Steven Wu
+- UI Calendar Component (#918) - (90b27b1) - dgodinez-dh
+#### Refactoring
+- Separate remove_empty_keys and dict_to_camel_case behavior (#971) - (6a99461) - Matthew Runyon
+#### Revert
+- "feat: ui.markdown component" (#956) - (d8e9f2f) - Steven Wu
+#### Tests
+- default tox to 3.8 (#972) - (103c1e7) - Joe
+
+- - -
+
 ## ui-v0.22.0 - 2024-10-01
 #### Bug Fixes
 - text_field events throw error (#913) - (94206d8) - Steven Wu
