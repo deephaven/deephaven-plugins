@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.23.2 - 2025-01-13
+#### Bug Fixes
+- UI loading duplicate panels in embed iframe (#1043) (#1082) - ([928ee35](https://github.com/deephaven/deephaven-plugins/commit/928ee35972d556cd74da34fd3c81690df17b2323)) - [@mofojed](https://github.com/mofojed)
+#### Build system
+- Set distTag to ui-v0.23 for this release branch - ([1315965](https://github.com/deephaven/deephaven-plugins/commit/13159652c79ee52ba4b3599f46125d61b368c31d)) - mikebender
+- Update the changelogPreset to use conventionalcommits, allow release branches to bump versions (#1081) - ([825a5c0](https://github.com/deephaven/deephaven-plugins/commit/825a5c0766b56a4aef0917c63cfa9c3ce6d931fb)) - [@mofojed](https://github.com/mofojed)
+
+- - -
+
 ## ui-v0.23.1 - 2024-11-23
 
 - - -
