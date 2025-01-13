@@ -65,6 +65,15 @@
         ]
       },
       {
+        "label": "Add Interactivity",
+        "items": [
+          {
+            "label": "Respond to Events",
+            "path": "add-interactivity/respond-to-events.md"
+          }
+        ]
+      },
+      {
         "label": "Components",
         "items": [
           {
