@@ -46,7 +46,7 @@ RUN npm run build
 # Now build the Python bundles
 RUN find ./plugins -maxdepth 1 -mindepth 1 -type d -exec python3 -m build --wheel {} \;
 
-FROM ghcr.io/deephaven/server:0.37.2
+FROM ghcr.io/deephaven/server:0.37.1
 COPY --link --from=build /work/ /opt/deephaven/config/plugins/
 RUN pip install /opt/deephaven/config/plugins/plugins/*/dist/*.whl
 
