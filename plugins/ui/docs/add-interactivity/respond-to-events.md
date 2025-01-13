@@ -62,7 +62,7 @@ button_with_inline_event = my_button()
 
 These styles are equivalent. Inline event handlers are convenient for short functions.
 
-### Pitfall: functions must be passed, not called
+## Functions must be passed, not called
 
 Functions passed to event handlers must be passed, not called. For example:
 
@@ -88,3 +88,31 @@ In both cases, what you want to pass is a function:
 
 - `ui.button(on_press=handle_press)` passes the `handle_press` function.
 - `ui.button(on_press=lambda: print("click"))` pass the `lambda: print("click")` function.
+
+## Read props in event handlers
+
+Because event handlers are declared inside of a component, they have access to the component’s props. Here is a button that, when clicked, prints its message prop:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def custom_button(label, message):
+    return ui.button(label, on_press=lambda: print(message))
+
+
+@ui.component
+def toolbar():
+    return [
+        custom_button("Play Movie", "Playing!"),
+        custom_button("Upload Image", "Uploading!"),
+    ]
+
+
+props_toolbar_example = toolbar()
+```
+
+This lets these two buttons show different messages. Try changing the messages passed to them.
+
+## Pass event handlers as props
