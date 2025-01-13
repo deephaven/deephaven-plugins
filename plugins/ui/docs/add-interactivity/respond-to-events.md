@@ -185,3 +185,43 @@ def toolbar():
 
 handler_name_example = toolbar()
 ```
+
+In this example, `ui.button(children, on_press=on_smash)` shows that the `ui.button` still needs a prop called `on_press`, but the prop name received by your `custom_button` component is up to you.
+
+When your component supports multiple interactions, you might name event handler props for app-specific concepts. For example, this `toolbar` component receives `on_play_movie` and `on_upload_image` event handlers:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def custom_button(*children, on_press):
+    return ui.button(children, on_press=on_press)
+
+
+@ui.component
+def toolbar(on_play_movie, on_upload_image):
+    return [
+        custom_button("Play Movie", on_press=on_play_movie),
+        custom_button("Upload Image", on_press=on_upload_image),
+    ]
+
+
+@ui.component
+def app():
+    return toolbar(
+        on_play_movie=lambda: print("Playing!"),
+        on_upload_image=lambda: print("Uploading!"),
+    )
+
+
+app_example = app()
+```
+
+Notice how the `app` component does not need to know what `toolbar` will do with `on_play_movie` or `on_upload_image`. That is an implementation detail of the `toolbar`. Here, `toolbar` passes them down as `on_press` handlers to its buttons, but it could later also trigger them on a keyboard shortcut. Naming props after app-specific interactions like `on_play_movie` gives you the flexibility to change how they’re used later.
+
+## Can event handlers have side effects?
+
+Yes. Event handlers are the best place for side effects.
+
+Unlike rendering functions, event handlers do not need to be [pure](../describing/pure_components.md), so it’s a great place to change something. For example, you can change an input’s value in response to typing, or change a list in response to a button press.
