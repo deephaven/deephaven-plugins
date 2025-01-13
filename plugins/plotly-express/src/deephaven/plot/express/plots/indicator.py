@@ -33,6 +33,7 @@ def indicator(
     decreasing_text: str | None = "▼",
     rows: int | None = None,
     columns: int | None = None,
+    title: str | None = None,
     unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """

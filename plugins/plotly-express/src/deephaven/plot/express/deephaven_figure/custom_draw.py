@@ -200,6 +200,7 @@ def draw_indicator(
     increasing_text: str | None = None,
     decreasing_text: str | None = None,
     text_indicator: str | None = None,
+    title: str | None = None,
 ) -> Figure:
     """Create an indicator chart.
 
@@ -260,5 +261,8 @@ def draw_indicator(
 
     if text_indicator:
         fig.update_traces(title_text=data_frame[text_indicator][0])
+
+    if title:
+        fig.update_layout(title=title)
 
     return fig
