@@ -51,17 +51,23 @@ The [`use_state`](../hooks/use_state.md) hook provides those two things:
 
 To add a state variable, replace this line:
 
-`index = 0`
+```python
+index = 0
+```
 
 with
 
-`index, set_index = ui.use_state(0)`
+```python
+index, set_index = ui.use_state(0)
+```
 
 `index` is a state variable and `set_index` is the setter function.
 
 This is how they work together in `handle_press`:
 
-`set_index(index + 1)`
+```python
+set_index(index + 1)
+```
 
 Now clicking the “Next” button switches the current word:
 
@@ -101,3 +107,33 @@ State is just one of those features, but you will meet the other hooks later.
 Hooks can only be called at the top level of your components or your own hooks. You cannot call hooks inside conditions, loops, or other nested functions. Hooks are functions, but it is helpful to think of them as unconditional declarations about your component’s needs. You “use” `deephaven.ui` features at the top of your component similar to how you “import” at the top of your file.
 
 ## Anatomy of `use_state`
+
+When you call `use_state`, you are telling `deephaven.ui` that you want this component to remember something:
+
+```python
+index, set_index = ui.use_state(0)
+```
+
+In this case, you want `deephaven.ui` to remember `index`.
+
+The convention is to name this pair like const `something`, `set_something`. You can name it anything you like, but conventions make things easier to understand across projects.
+
+The only argument to `use_state` is the initial value of your state variable. In this example, the index’s initial value is set to `0` with `ui.use_state(0)`.
+
+Every time your component renders, use_state gives you an array containing two values:
+
+1. The state variable `index` with the value you stored.
+2. The state setter function `set_index` which can update the state variable and trigger `deephaven.ui` to render the component again.
+
+Here’s how that happens in action:
+
+```python
+index, set_index = ui.use_state(0)
+```
+
+1. Your component renders the first time. Because you passed `0` to `use_state` as the initial value for `index`, it will return `0`, `set_index`. `deephaven.ui` remembers 0 is the latest state value.
+2. You update the state. When a user clicks the button, it calls `set_index(index + 1)`. `index` is `0`, so it’s `set_index(1)`. This tells `deephaven.ui` to remember `index` is `1` now and triggers another render.
+3. During your component’s second render, `deephaven.ui` still sees `use_state(0)`, but because `deephaven.ui` remembers that you set `index` to `1`, it returns `1`, `set_index` instead.
+4. And so on with each render.
+
+## Give a component multiple state variables
