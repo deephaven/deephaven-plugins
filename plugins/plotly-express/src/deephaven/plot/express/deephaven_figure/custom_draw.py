@@ -199,6 +199,7 @@ def draw_indicator(
     suffix: str | None = None,
     increasing_text: str | None = None,
     decreasing_text: str | None = None,
+    number_format: str | None = None,
     text_indicator: str | None = None,
     title: str | None = None,
 ) -> Figure:
@@ -218,6 +219,9 @@ def draw_indicator(
         is greater than the reference value.
       decreasing_text: The text to display before the delta if the number value
         is less than the reference value.
+      number_format: The format to use for the number.
+      text_indicator: The column to use as text for the indicator.
+      title: The title of the chart.
 
     Returns:
       The plotly indicator chart.
@@ -244,14 +248,17 @@ def draw_indicator(
     if reference:
         fig.update_traces(delta_reference=data_frame[reference][0])
 
+    if text_indicator:
+        fig.update_traces(title_text=data_frame[text_indicator][0])
+
     if gauge:
         fig.update_traces(gauge={"shape": gauge, "axis": {"visible": axis}})
 
     if prefix:
-        fig.update_traces(delta_prefix=prefix)
+        fig.update_traces(delta_prefix=prefix, number_prefix=prefix)
 
     if suffix:
-        fig.update_traces(delta_suffix=suffix)
+        fig.update_traces(delta_suffix=suffix, number_suffix=suffix)
 
     if increasing_text:
         fig.update_traces(delta_increasing_symbol=increasing_text)
@@ -259,8 +266,11 @@ def draw_indicator(
     if decreasing_text:
         fig.update_traces(delta_decreasing_symbol=decreasing_text)
 
-    if text_indicator:
-        fig.update_traces(title_text=data_frame[text_indicator][0])
+    if number_format:
+        # Plotly expects d3 format strings so these will be converted on the client.
+        fig.update_traces(
+            delta_valueformat=number_format, number_valueformat=number_format
+        )
 
     if title:
         fig.update_layout(title=title)

@@ -31,6 +31,7 @@ def indicator(
     suffix: str | None = None,
     increasing_text: str | None = "▲",
     decreasing_text: str | None = "▼",
+    number_format: str | None = "#,##0.00",
     rows: int | None = None,
     columns: int | None = None,
     title: str | None = None,
@@ -86,12 +87,16 @@ def indicator(
         is greater than the reference value.
       decreasing_text: The text to display before the delta if the number value
         is less than the reference value.
+      number_format: A string that specifies the number format for values and deltas.
+        Default is "#,##0.00" which formats numbers with commas every three digits
+        and two decimal places.
       rows: The number of rows of indicators to create.
         If None, the number of rows is determined by the number of columns.
         If both rows and columns are None, a square grid is created.
       columns: The number of columns of indicators to create.
         If None, the number of columns is determined by the number of rows.
         If both rows and columns are None, a square grid is created.
+      title: The title of the chart
       unsafe_update_figure: An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is
         not returned, the plotly figure passed will be assumed to be the return

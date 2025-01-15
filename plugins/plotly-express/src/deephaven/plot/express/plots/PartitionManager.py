@@ -48,10 +48,12 @@ STYLE_DEFAULTS = {
     "pattern_shape": ["", "/", "\\", "x", "+", "."],
     "size": [4, 5, 6, 7, 8, 9],
     "width": [4, 5, 6, 7, 8, 9],
-    # TODO correct these defaults
-    "increasing_color": "green",
-    "decreasing_color": "red",
-    "gauge_color": "green",
+    # these are plot by but do not currently have a default sequence
+    # setting them to None ensures they don't have to be removed in the
+    # client for theming to work
+    "increasing_color": None,
+    "decreasing_color": None,
+    "gauge_color": None,
 }
 
 # params that invoke plot bys and have no special cases like color and size

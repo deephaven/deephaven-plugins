@@ -5,6 +5,7 @@ import type {
   PlotType,
 } from 'plotly.js';
 import type { dh as DhType } from '@deephaven/jsapi-types';
+import { ChartUtils } from '@deephaven/chart';
 
 /**
  * Traces that are at least partially powered by WebGL and have no SVG equivalent.
@@ -24,12 +25,12 @@ const UNREPLACEABLE_WEBGL_TRACE_TYPES = new Set([
 ]);
 
 /*
-* A map of trace type to attributes that should be set to a single value instead
-* of an array in the Figure object. The attributes should be relative to the trace
-* within the plotly/data/ array.
-*/
+ * A map of trace type to attributes that should be set to a single value instead
+ * of an array in the Figure object. The attributes should be relative to the trace
+ * within the plotly/data/ array.
+ */
 const SINGLE_VALUE_REPLACEMENTS = {
-    'indicator': new Set(["value", "delta/reference", "title/text"])
+  indicator: new Set(['value', 'delta/reference', 'title/text']),
 } as Record<string, Set<string>>;
 
 export interface PlotlyChartWidget {
@@ -298,12 +299,34 @@ export function setWebGlTraceType(
   });
 }
 
-export function isSingleValue(
-    data: Data[],
-    selector: string[],
-): boolean {
-    const index = parseInt(selector[0]);
-    const type = data[index].type as string;
-    const path = selector.slice(1).join('/');
-    return SINGLE_VALUE_REPLACEMENTS[type]?.has(path) ?? false;
+export function isSingleValue(data: Data[], selector: string[]): boolean {
+  const index = parseInt(selector[0], 10);
+  const type = data[index].type as string;
+  const path = selector.slice(1).join('/');
+  return SINGLE_VALUE_REPLACEMENTS[type]?.has(path) ?? false;
+}
+
+export function transformNumberFormat(numberFormat: string): string {
+  const axisFormat = ChartUtils.getPlotlyNumberFormat(null, '', numberFormat);
+
+  return axisFormat?.tickformat ?? '';
+}
+
+export function replaceValueFormat(data: Data[]): void {
+  for (let i = 0; i < data.length; i += 1) {
+    const trace = data[i];
+
+    if (trace.type === 'indicator') {
+      if (trace.number?.valueformat != null) {
+        trace.number.valueformat = transformNumberFormat(
+          trace.number.valueformat
+        );
+      }
+      if (trace.delta?.valueformat != null) {
+        trace.delta.valueformat = transformNumberFormat(
+          trace.delta.valueformat
+        );
+      }
+    }
+  }
 }

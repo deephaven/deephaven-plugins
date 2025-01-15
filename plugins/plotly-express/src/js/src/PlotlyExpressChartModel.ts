@@ -19,6 +19,7 @@ import {
   setWebGlTraceType,
   hasUnreplaceableWebGlTraces,
   isSingleValue,
+  replaceValueFormat,
 } from './PlotlyExpressChartUtils';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
@@ -151,14 +152,12 @@ export class PlotlyExpressChartModel extends ChartModel {
 
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           let selector: any = hydratedData;
-          console.log('selector', selector);
 
           for (let i = 0; i < parts.length; i += 1) {
             if (i !== parts.length - 1) {
               selector = selector[parts[i]];
             } else if (single) {
-                console.log('single', parts[i], tableData[columnName]?.[0]);
-                selector[parts[i]] = tableData[columnName]?.[0] ?? null;
+              selector[parts[i]] = tableData[columnName]?.[0] ?? null;
             } else {
               selector[parts[i]] = tableData[columnName] ?? [];
             }
@@ -304,6 +303,8 @@ export class PlotlyExpressChartModel extends ChartModel {
         this.plotlyData
       );
     }
+
+    replaceValueFormat(this.plotlyData);
 
     // Retrieve the indexes of traces that require WebGL so they can be replaced if WebGL is disabled
     this.webGlTraceIndices = getReplaceableWebGlTraceIndices(this.plotlyData);
