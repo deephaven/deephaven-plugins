@@ -137,3 +137,47 @@ index, set_index = ui.use_state(0)
 4. And so on with each render.
 
 ## Give a component multiple state variables
+
+You can have as many state variables of as many types as you like in one component. This component has two state variables, a number `index` and a boolean `show_more` that is toggled when you click “Show details”:
+
+```python
+from deephaven import ui
+
+word_list = ["apple", "banana", "cherry", "orange", "kiwi", "strawberry"]
+detail_list = [
+    "An apple is a round, edible fruit produced by an apple tree.",
+    "A banana is an elongated, edible fruit.",
+    "A cherry is the fruit of many plants of the genus Prunus.",
+    "The oranges the fruit of a tree in the family Rutaceae.",
+    "Kiwi has a thin, fuzzy, fibrous, tart but edible, light brown skin and light green or golden flesh with rows of tiny, black, edible seeds.",
+    "The genus Fragaria, the strawberries, is in the rose family, Rosaceae.",
+]
+
+
+@ui.component
+def word_display():
+    index, set_index = ui.use_state(0)
+    show_more, set_show_more = ui.use_state(False)
+
+    def handle_press():
+        set_index(index + 1)
+
+    def handle_more_press():
+        set_show_more(not show_more)
+
+    word = word_list[index]
+    detail = detail_list[index]
+
+    return [
+        ui.button("Next", on_press=handle_press),
+        ui.text(f"({index+1} of {len(word_list)})"),
+        ui.heading(word),
+        ui.button("Show Details", on_press=handle_more_press),
+        show_more and ui.text(detail),
+    ]
+
+
+word_display_example = word_display()
+```
+
+It is a good idea to have multiple state variables if their state is unrelated, like `index` and `show_more` in this example. But if you find that you often change two state variables together, it might be easier to combine them into one. For example, if you have a form with many fields, it’s more convenient to have a single state variable that holds an dictionary than state variable per field.
