@@ -1,15 +1,18 @@
 import { WidgetDescriptor } from '@deephaven/dashboard';
 import { TestUtils } from '@deephaven/test-utils';
 import type { dh } from '@deephaven/jsapi-types';
+import { Operation } from 'fast-json-patch';
 import { WidgetMessageEvent } from './WidgetTypes';
 
-export function makeDocumentUpdatedJsonRpc(
-  document: Record<string, unknown> = {}
-): { jsonrpc: string; method: string; params: string[] } {
+export function makeDocumentPatchedJsonRpc(patch: Operation[] = []): {
+  jsonrpc: string;
+  method: string;
+  params: [Operation[]];
+} {
   return {
     jsonrpc: '2.0',
-    method: 'documentUpdated',
-    params: [JSON.stringify(document)],
+    method: 'documentPatched',
+    params: [patch],
   };
 }
 
@@ -21,10 +24,10 @@ export function makeJsonRpcResponseString(id: number, result = ''): string {
   });
 }
 
-export function makeDocumentUpdatedJsonRpcString(
-  document: Record<string, unknown> = {}
+export function makeDocumentPatchedJsonRpcString(
+  patch: Operation[] = []
 ): string {
-  return JSON.stringify(makeDocumentUpdatedJsonRpc(document));
+  return JSON.stringify(makeDocumentPatchedJsonRpc(patch));
 }
 
 export function makeWidgetEvent(data = ''): WidgetMessageEvent {
@@ -44,10 +47,10 @@ export function makeWidgetEventJsonRpcResponse(
   return makeWidgetEvent(makeJsonRpcResponseString(id, response));
 }
 
-export function makeWidgetEventDocumentUpdated(
-  document: Record<string, unknown> = {}
+export function makeWidgetEventDocumentPatched(
+  patch: Operation[] = []
 ): WidgetMessageEvent {
-  return makeWidgetEvent(makeDocumentUpdatedJsonRpcString(document));
+  return makeWidgetEvent(makeDocumentPatchedJsonRpcString(patch));
 }
 
 export function makeWidgetDescriptor({
@@ -64,7 +67,7 @@ export function makeWidgetDescriptor({
 
 export function makeWidget({
   addEventListener = jest.fn(() => jest.fn()),
-  getDataAsString = () => makeDocumentUpdatedJsonRpcString(),
+  getDataAsString = () => makeDocumentPatchedJsonRpcString(),
   exportedObjects = [],
   sendMessage = jest.fn(),
 }: Partial<dh.Widget> = {}): dh.Widget {

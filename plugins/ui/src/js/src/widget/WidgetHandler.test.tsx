@@ -3,12 +3,13 @@ import { act, render } from '@testing-library/react';
 import { useWidget } from '@deephaven/jsapi-bootstrap';
 import { dh } from '@deephaven/jsapi-types';
 import { TestUtils } from '@deephaven/test-utils';
+import { Operation } from 'fast-json-patch';
 import WidgetHandler, { WidgetHandlerProps } from './WidgetHandler';
 import { DocumentHandlerProps } from './DocumentHandler';
 import {
   makeWidget,
   makeWidgetDescriptor,
-  makeWidgetEventDocumentUpdated,
+  makeWidgetEventDocumentPatched,
   makeWidgetEventJsonRpcResponse,
 } from './WidgetTestUtils';
 
@@ -68,6 +69,7 @@ it('updates the document when event is received', async () => {
   const mockSendMessage = jest.fn();
   const initialData = { state: { fiz: 'baz' } };
   const initialDocument = { foo: 'bar' };
+  const initialPatch: Operation[] = [{ op: 'add', path: '/foo', value: 'bar' }];
   mockWidgetWrapper = {
     widget: makeWidget({
       addEventListener: mockAddEventListener,
@@ -102,7 +104,7 @@ it('updates the document when event is received', async () => {
     listener(makeWidgetEventJsonRpcResponse(1));
 
     // Then send the initial document update
-    listener(makeWidgetEventDocumentUpdated(initialDocument));
+    listener(makeWidgetEventDocumentPatched(initialPatch));
   });
 
   expect(mockDocumentHandler).toHaveBeenCalledWith(
@@ -115,13 +117,13 @@ it('updates the document when event is received', async () => {
 
   mockDocumentHandler.mockClear();
 
-  const updatedDocument = { fiz: 'baz' };
-
+  const updatedDocument = { foo: 'bar', fiz: 'baz' };
+  const updatedPatch: Operation[] = [{ op: 'add', path: '/fiz', value: 'baz' }];
   act(() => {
     // Send an updated document event to the listener of the widget
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (mockAddEventListener.mock.calls[0] as any)[1](
-      makeWidgetEventDocumentUpdated(updatedDocument)
+      makeWidgetEventDocumentPatched(updatedPatch)
     );
   });
   expect(mockDocumentHandler).toHaveBeenCalledWith(
@@ -144,6 +146,7 @@ it('updates the initial data only when widget has changed', async () => {
   const onClose = jest.fn();
   const data1 = { state: { fiz: 'baz' } };
   const document1 = { foo: 'bar' };
+  const patch1: Operation[] = [{ op: 'add', path: '/foo', value: 'bar' }];
   mockWidgetWrapper = {
     widget: makeWidget({
       addEventListener,
@@ -181,7 +184,7 @@ it('updates the initial data only when widget has changed', async () => {
     listener(makeWidgetEventJsonRpcResponse(1));
 
     // Then send the initial document update
-    listener(makeWidgetEventDocumentUpdated(document1));
+    listener(makeWidgetEventDocumentPatched(patch1));
   });
 
   expect(mockDocumentHandler).toHaveBeenCalledWith(
@@ -210,7 +213,8 @@ it('updates the initial data only when widget has changed', async () => {
   expect(sendMessage).not.toHaveBeenCalled();
 
   const widget2 = makeWidgetDescriptor();
-  const document2 = { FOO: 'BAR' };
+  const document2 = { foo: 'bar', FOO: 'BAR' };
+  const patch2: Operation[] = [{ op: 'add', path: '/FOO', value: 'BAR' }];
   mockWidgetWrapper = {
     widget: makeWidget({
       addEventListener,
@@ -253,7 +257,7 @@ it('updates the initial data only when widget has changed', async () => {
     listener(makeWidgetEventJsonRpcResponse(1));
 
     // Then send the initial document update
-    listener(makeWidgetEventDocumentUpdated(document2));
+    listener(makeWidgetEventDocumentPatched(patch2));
   });
 
   expect(mockDocumentHandler).toHaveBeenCalledWith(
