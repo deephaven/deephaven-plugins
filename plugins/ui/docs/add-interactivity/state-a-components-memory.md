@@ -47,4 +47,47 @@ The [`use_state`](../hooks/use_state.md) hook provides those two things:
 1. A state variable to retain the data between renders.
 2. A state setter function to update the variable and trigger `deephaven.ui` to render the component again.
 
-## Add a star=te variable
+## Add a state variable
+
+To add a state variable, replace this line:
+
+`index = 0`
+
+with
+
+`index, set_index = ui.use_state(0)`
+
+`index` is a state variable and `set_index` is the setter function.
+
+This is how they work together in `handle_press`:
+
+`set_index(index + 1)`
+
+Now clicking the “Next” button switches the current word:
+
+```python
+from deephaven import ui
+
+word_list = ["apple", "banana", "cherry", "orange", "kiwi", "strawberry"]
+
+
+@ui.component
+def word_display():
+    index, set_index = ui.use_state(0)
+
+    def handle_press():
+        set_index(index + 1)
+
+    word = word_list[index]
+
+    return [
+        ui.button("Next", on_press=handle_press),
+        ui.text(f"({index+1} of {len(word_list)})"),
+        ui.heading(word),
+    ]
+
+
+word_display_example = word_display()
+```
+
+## Meet your first hook
