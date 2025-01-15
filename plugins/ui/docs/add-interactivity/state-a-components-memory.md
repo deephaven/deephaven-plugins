@@ -181,3 +181,59 @@ word_display_example = word_display()
 ```
 
 It is a good idea to have multiple state variables if their state is unrelated, like `index` and `show_more` in this example. But if you find that you often change two state variables together, it might be easier to combine them into one. For example, if you have a form with many fields, it’s more convenient to have a single state variable that holds an dictionary than state variable per field.
+
+# State is isolated and private
+
+State is local to a component instance on the screen. In other words, if you render the same component twice, each copy will have completely isolated state! Changing one of them will not affect the other.
+
+In this example, the `word_display` component from earlier is rendered twice with no changes to its logic. Try clicking the buttons inside each of the component. Notice that their state is independent:
+
+```python
+from deephaven import ui
+
+word_list = ["apple", "banana", "cherry", "orange", "kiwi", "strawberry"]
+detail_list = [
+    "An apple is a round, edible fruit produced by an apple tree.",
+    "A banana is an elongated, edible fruit.",
+    "A cherry is the fruit of many plants of the genus Prunus.",
+    "The oranges the fruit of a tree in the family Rutaceae.",
+    "Kiwi has a thin, fuzzy, fibrous, tart but edible, light brown skin and light green or golden flesh with rows of tiny, black, edible seeds.",
+    "The genus Fragaria, the strawberries, is in the rose family, Rosaceae.",
+]
+
+
+@ui.component
+def word_display():
+    index, set_index = ui.use_state(0)
+    show_more, set_show_more = ui.use_state(False)
+
+    def handle_press():
+        set_index(index + 1)
+
+    def handle_more_press():
+        set_show_more(not show_more)
+
+    word = word_list[index]
+    detail = detail_list[index]
+
+    return ui.flex(
+        ui.button("Next", on_press=handle_press),
+        ui.text(f"({index+1} of {len(word_list)})"),
+        ui.heading(word),
+        ui.button("Show Details", on_press=handle_more_press),
+        show_more and ui.text(detail),
+        direction="column",
+    )
+
+
+@ui.component
+def page():
+    return ui.flex(word_display(), word_display())
+
+
+page_example = page()
+```
+
+This is what makes state different from regular variables that you might declare at the top of your script. State is not tied to a particular function call or a place in the code, but it’s “local” to the specific place on the screen. You rendered two `word_display` components, so their state is stored separately.
+
+Also notice how the `page` component does not “know” anything about the `word_display` state or even whether it has any. Unlike props, state is fully private to the component declaring it. The parent component can’t change it. This lets you add state to any component or remove it without impacting the rest of the components.
