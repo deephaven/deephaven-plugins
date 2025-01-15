@@ -65,6 +65,15 @@
         ]
       },
       {
+        "label": "Add Interactivity",
+        "items": [
+          {
+            "label": "State: A Component's Memory",
+            "path": "add-interactivity/state-a-components-memory.md"
+          }
+        ]
+      },
+      {
         "label": "Components",
         "items": [
           {
