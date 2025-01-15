@@ -91,3 +91,13 @@ word_display_example = word_display()
 ```
 
 ## Meet your first hook
+
+In `deephaven.ui`, [`use_state`](../hooks/use_state.md), as well as any other function starting with “use”, is called a [`hook`](../describing/use_hooks.md).
+
+Hooks are special functions that are only available while `deephaven.ui` is rendering. They let you “hook into” different `deephaven.ui` features.
+
+State is just one of those features, but you will meet the other hooks later.
+
+Hooks can only be called at the top level of your components or your own hooks. You cannot call hooks inside conditions, loops, or other nested functions. Hooks are functions, but it is helpful to think of them as unconditional declarations about your component’s needs. You “use” `deephaven.ui` features at the top of your component similar to how you “import” at the top of your file.
+
+## Anatomy of `use_state`
