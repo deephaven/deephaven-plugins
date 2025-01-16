@@ -20,8 +20,6 @@ my_divider_basic_example = ui_divider_basic_example()
 
 While aligned horizontally by default, the alignment of the divider can be set using the `orientation` prop.
 
-If aligned vertically, a height should also be provided.
-
 ```python
 from deephaven import ui
 
@@ -36,12 +34,12 @@ def ui_divider_orientation_example():
     )
 
 
-my_checkbox_group_orientation_example = ui_divider_orientation_example()
+my_ui_divider_orientation_example = ui_divider_orientation_example()
 ```
 
 ## Sizing
 
-The thickness (height of the divider) can be set through the `size` property.
+The thickness of the divider can be set using the `size` prop.
 
 ```python
 from deephaven import ui
