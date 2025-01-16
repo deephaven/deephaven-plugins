@@ -74,6 +74,79 @@ def ui_list_view_table_source():
 my_list_view_table_source = ui_list_view_table_source()
 ```
 
+## Selection
+
+The `selection_mode` prop can be used to configure how `ui.list_view` handles item selection. The options are `'MULTIPLE'` (the default value), `'SINGLE'`, or `'NONE'`.
+
+Set `selection_mode='SINGLE'` to constrain selection to a single item.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def ui_list_view():
+    return ui.list_view(
+        ui.item("Option 1"),
+        ui.item("Option 2"),
+        ui.item("Option 3"),
+        selection_mode="SINGLE",
+    )
+
+
+my_list_view = ui_list_view()
+```
+
+Set `selection_mode=None` or `selection_mode='NONE'` to disable selection.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def ui_list_view():
+    return ui.list_view(
+        ui.item("Option 1"),
+        ui.item("Option 2"),
+        ui.item("Option 3"),
+        selection_mode=None,
+    )
+
+
+my_list_view = ui_list_view()
+```
+
+`selection_mode` can be explicitly set to `MULTIPLE` for cases where it is dynamically defined. For example, a `ui.radio` can be used to change the selection mode.
+
+```python
+@ui.component
+def ui_list_view():
+    selection_mode, set_selection_mode = ui.use_state("NONE")
+
+    radio = ui.radio_group(
+        ui.radio("None", value="NONE"),
+        ui.radio("Multiple", value="MULTIPLE"),
+        ui.radio("Single", value="SINGLE"),
+        label="Selection Mode",
+        orientation="horizontal",
+        value=selection_mode,
+        on_change=set_selection_mode,
+    )
+
+    lv = ui.list_view(
+        ui.item("Option 1"),
+        ui.item("Option 2"),
+        ui.item("Option 3"),
+        ui.item("Option 4"),
+        selection_mode=selection_mode,
+    )
+
+    return radio, lv
+
+
+my_list_view = ui_list_view()
+```
+
 ## Events
 
 List view accepts an action that can be triggered when a user performs an action on an item.

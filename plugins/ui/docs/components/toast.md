@@ -106,7 +106,7 @@ my_mount_example = ui_toast_on_mount()
 
 ## Toast from table example
 
-This example shows how to create a toast from the latest update of a ticking table. It is recommended to auto dismiss these toasts with a `timeout` and to avoid ticking faster than the value of the `timeout`.
+This example shows how to create a toast from the latest update of a ticking table. It is recommended to auto dismiss these toasts with a `timeout` and to avoid ticking faster than the value of the `timeout`. Note that the toast must be triggered on the render thread, whereas the table listener may be fired from another thread. Therefore you must use the render queue to trigger the toast.
 
 ```python
 from deephaven import time_table
@@ -123,7 +123,7 @@ def toast_table(t):
         data_added = update.added()["X"][0]
         render_queue(lambda: ui.toast(f"added {data_added}", timeout=5000))
 
-    ui.use_table_listener(t, listener_function, [t])
+    ui.use_table_listener(t, listener_function, [])
     return t
 
 
@@ -141,7 +141,8 @@ from deephaven import read_csv, ui
 
 @ui.component
 def csv_loader():
-    # The render_queue we fetch using the `use_render_queue` hook at the top of the component
+    # The render_queue we fetch using the `use_render_queue` hook at the top of the component.
+    # The toast must be triggered from the render queue.
     render_queue = ui.use_render_queue()
     table, set_table = ui.use_state()
     error, set_error = ui.use_state()

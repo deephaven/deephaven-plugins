@@ -4,9 +4,14 @@ from ..hooks import use_send_event
 
 from typing import Callable
 from .._internal.utils import dict_to_react_props
+from .._internal.EventContext import NoContextException
 from ..types import ToastVariant
 
 _TOAST_EVENT = "toast.event"
+
+
+class ToastException(NoContextException):
+    pass
 
 
 def toast(
@@ -37,5 +42,10 @@ def toast(
         None
     """
     params = dict_to_react_props(locals())
-    send_event = use_send_event()
+    try:
+        send_event = use_send_event()
+    except NoContextException as e:
+        raise ToastException(
+            "Toasts must be triggered from the render thread. Use the hook `use_render_queue` to queue a function on the render thread."
+        ) from e
     send_event(_TOAST_EVENT, params)

@@ -2,6 +2,44 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.25.0 - 2025-01-15
+#### Bug Fixes
+- add menu and menu_trigger to sidebar (#1078) - (49ad632) - dgodinez-dh
+- Allow autodoc functions to have no parameters (#1072) - (6b261d6) - Joe
+- label prop typing (#1071) - (716b3d9) - Steven Wu
+#### Documentation
+- use_render_queue, use_liveness_scope, use_table_listener docs (#1044) - (abd691e) - mofojed
+- Expand sidebars by default for certain categories, add link to flexbox froggy (#1073) - (e76591d) - Don
+- ui.list_view selection_mode (#1070) - (b51373f) - bmingles
+- ui as a tree (#1067) - (2e1a725) - dgodinez-dh
+- Render Lists (#1061) - (30a1f9f) - dgodinez-dh
+- Pure Components (#1064) - (30f3730) - dgodinez-dh
+- Using Hooks (#1056) - (28b5a51) - dgodinez-dh
+- Component Rules (#1055) - (21e8c5d) - dgodinez-dh
+- Update First Component (#1065) - (a6d1aad) - dgodinez-dh
+- Conditional Rendering (#1060) - (0ce7634) - dgodinez-dh
+#### Features
+- ui.menu component (#1076) - (cf23da1) - dgodinez-dh
+- ui.logic button (#1050) - (7c83ec2) - ethanalvizo
+- add undefined type option (#1026) - (ef7e741) - Steven Wu
+
+- - -
+
+## ui-v0.24.0 - 2024-12-12
+#### Bug Fixes
+- UI loading duplicate panels in embed iframe (#1043) - (e1559a4) - Matthew Runyon
+#### Documentation
+- Working with Tables (#1059) - (6e73350) - dgodinez-dh
+- Importing and Exporting Components (#1054) - (21b752c) - dgodinez-dh
+- Your First Component (#1052) - (ce3843a) - dgodinez-dh
+- Add Stack with tabs to dashboard docs (#1048) - (cf0c994) - mofojed
+#### Features
+- ui.meter (#1032) - (6730aa9) - ethanalvizo
+- ui.avatar (#1027) - (2738a1d) - Akshat Jawne
+- Toast Implementation (#1030) - (e53b322) - dgodinez-dh
+
+- - -
+
 ## ui-v0.23.1 - 2024-11-23
 
 - - -
