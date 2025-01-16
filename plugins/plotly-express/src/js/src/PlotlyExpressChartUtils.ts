@@ -1,11 +1,14 @@
 import type {
   Data,
+  Delta,
   LayoutAxis,
   PlotlyDataLayoutConfig,
+  PlotNumber,
   PlotType,
 } from 'plotly.js';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { ChartUtils } from '@deephaven/chart';
+import { prefix } from '@deephaven/icons';
 
 /**
  * Traces that are at least partially powered by WebGL and have no SVG equivalent.
@@ -32,6 +35,12 @@ const UNREPLACEABLE_WEBGL_TRACE_TYPES = new Set([
 const SINGLE_VALUE_REPLACEMENTS = {
   indicator: new Set(['value', 'delta/reference', 'title/text']),
 } as Record<string, Set<string>>;
+
+/**
+ * A prefix for the number format to indicate it is in Java format and should be
+ *  transformed to a d3 format
+ */
+export const FORMAT_PREFIX = 'DEEPHAVEN_JAVA_FORMAT';
 
 export interface PlotlyChartWidget {
   getDataAsBase64: () => string;
@@ -299,6 +308,12 @@ export function setWebGlTraceType(
   });
 }
 
+/**
+ * Check if the data at the selector should be replaced with a single value instead of an array
+ * @param data The data to check
+ * @param selector The selector to check
+ * @returns True if the data at the selector should be replaced with a single value
+ */
 export function isSingleValue(data: Data[], selector: string[]): boolean {
   const index = parseInt(selector[0], 10);
   const type = data[index].type as string;
@@ -306,26 +321,50 @@ export function isSingleValue(data: Data[], selector: string[]): boolean {
   return SINGLE_VALUE_REPLACEMENTS[type]?.has(path) ?? false;
 }
 
-export function transformNumberFormat(numberFormat: string): string {
-  const axisFormat = ChartUtils.getPlotlyNumberFormat(null, '', numberFormat);
+/**
+ * Transform the number format to a d3 number format, which is used by Plotly
+ * @param numberFormat The number format to transform
+ * @returns The d3 number format
+ */
+export function transformValueFormat(
+  data: Partial<PlotNumber> | Partial<Delta>
+): void {
+  let valueFormat = data?.valueformat;
+  if (valueFormat == null) {
+    return;
+  }
 
-  return axisFormat?.tickformat ?? '';
+  if (valueFormat.startsWith(FORMAT_PREFIX)) {
+    valueFormat = valueFormat.substring(FORMAT_PREFIX.length);
+  } else {
+    // don't transform if it's not a deephaven format
+    return;
+  }
+
+  const formatResults = ChartUtils.getPlotlyNumberFormat(null, '', valueFormat);
+  // eslint-disable-next-line no-param-reassign
+  data.valueformat = formatResults?.tickformat ?? '';
+  // prefix and suffix might already be set, which should take precedence
+  // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-explicit-any
+  (data as any).prefix ??= formatResults?.tickprefix ?? '';
+  // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-explicit-any
+  (data as any).suffix ??= formatResults?.ticksuffix ?? '';
 }
 
+/**
+ * Replace the number formats in the data with a d3 number format
+ * @param data The data to update
+ */
 export function replaceValueFormat(data: Data[]): void {
   for (let i = 0; i < data.length; i += 1) {
     const trace = data[i];
 
     if (trace.type === 'indicator') {
-      if (trace.number?.valueformat != null) {
-        trace.number.valueformat = transformNumberFormat(
-          trace.number.valueformat
-        );
+      if (trace.number != null) {
+        transformValueFormat(trace.number);
       }
-      if (trace.delta?.valueformat != null) {
-        trace.delta.valueformat = transformNumberFormat(
-          trace.delta.valueformat
-        );
+      if (trace.delta != null) {
+        transformValueFormat(trace.delta);
       }
     }
   }

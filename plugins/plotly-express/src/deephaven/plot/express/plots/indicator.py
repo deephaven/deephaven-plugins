@@ -33,7 +33,7 @@ def indicator(
     decreasing_text: str | None = "▼",
     number_format: str | None = "#,##0.00",
     rows: int | None = None,
-    columns: int | None = None,
+    cols: int | None = None,
     title: str | None = None,
     unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
@@ -93,7 +93,7 @@ def indicator(
       rows: The number of rows of indicators to create.
         If None, the number of rows is determined by the number of columns.
         If both rows and columns are None, a square grid is created.
-      columns: The number of columns of indicators to create.
+      cols: The number of columns of indicators to create.
         If None, the number of columns is determined by the number of rows.
         If both rows and columns are None, a square grid is created.
       title: The title of the chart

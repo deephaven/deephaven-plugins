@@ -8,6 +8,14 @@ import plotly.graph_objects as go
 from plotly.graph_objects import Figure
 from plotly.validators.heatmap import ColorscaleValidator
 
+# attach a prefix to the number format so that we can identify it as the GWT Java NumberFormat syntax
+# https://www.gwtproject.org/javadoc/latest/com/google/gwt/i18n/client/NumberFormat.html
+# this differentiates it from the d3 format syntax, which the user could provide through an unsafe update
+# this should be safe as it shouldn't appear naturally in a d3 format string
+# https://github.com/d3/d3-format/tree/v1.4.5#d3-format
+# but isn't a perfect solution
+FORMAT_PREFIX = "DEEPHAVEN_JAVA_FORMAT"
+
 
 def draw_finance(
     data_frame: DataFrame,
@@ -242,7 +250,11 @@ def draw_indicator(
             value=data_frame[value][0],
             mode=mode,
             domain={"x": [0, 1], "y": [0, 1]},
-        )
+        ),
+        layout={
+            "legend": {"tracegroupgap": 0},
+            "margin": {"t": 60},
+        },
     )
 
     if reference:
@@ -269,7 +281,8 @@ def draw_indicator(
     if number_format:
         # Plotly expects d3 format strings so these will be converted on the client.
         fig.update_traces(
-            delta_valueformat=number_format, number_valueformat=number_format
+            delta_valueformat=FORMAT_PREFIX + number_format,
+            number_valueformat=FORMAT_PREFIX + number_format,
         )
 
     if title:

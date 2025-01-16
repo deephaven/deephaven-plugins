@@ -1,3 +1,4 @@
+import { prefix } from '@deephaven/icons';
 import {
   getPathParts,
   isLineSeries,
@@ -10,7 +11,12 @@ import {
   getReplaceableWebGlTraceIndices,
   hasUnreplaceableWebGlTraces,
   setWebGlTraceType,
+  isSingleValue,
+  transformValueFormat,
+  replaceValueFormat,
+  FORMAT_PREFIX,
 } from './PlotlyExpressChartUtils';
+import { number } from 'prop-types';
 
 describe('getDataMappings', () => {
   it('should return the data mappings from the widget data', () => {
@@ -316,5 +322,98 @@ describe('setWebGlTraceType', () => {
     setWebGlTraceType(data, false, webGlTraceIndices);
     expect(data[0].type).toBe('scatter');
     expect(data[1].type).toBe('scatter');
+  });
+});
+
+describe('isSingleValue', () => {
+  it('should return true is the data contains an indicator trace', () => {
+    expect(
+      isSingleValue([{ type: 'indicator' }], ['0', 'delta', 'reference'])
+    ).toBe(true);
+  });
+
+  it('should return false if the data does not contain an indicator trace', () => {
+    expect(isSingleValue([{ type: 'scatter' }], ['0', 'x'])).toBe(false);
+  });
+});
+
+describe('transformValueFormat', () => {
+  it('should not transform the value if it does not contain FORMAT_PREFIX', () => {
+    const data = {
+      valueformat: '.2f',
+    };
+
+    transformValueFormat(data);
+    expect(data.valueformat).toBe('.2f');
+  });
+
+  it('should transform the value if it contains FORMAT_PREFIX', () => {
+    const data = {
+      valueformat: `${FORMAT_PREFIX}#,##0.00`,
+    };
+
+    transformValueFormat(data);
+
+    expect(data.valueformat).toBe('01,.2f');
+  });
+
+  it('should not replace the prefix and suffix if they are already there', () => {
+    const data = {
+      valueformat: `${FORMAT_PREFIX}$#,##0.00USD`,
+      prefix: 'prefix',
+      suffix: 'suffix',
+    };
+
+    transformValueFormat(data);
+
+    expect(data.valueformat).toBe('01,.2f');
+    expect(data.prefix).toBe('prefix');
+    expect(data.suffix).toBe('suffix');
+  });
+
+  it('should replace the prefix and suffix if they are null', () => {
+    const data = {
+      valueformat: `${FORMAT_PREFIX}$#,##0.00USD`,
+      prefix: null,
+      suffix: null,
+    };
+
+    transformValueFormat(data);
+
+    expect(data.valueformat).toBe('01,.2f');
+    expect(data.prefix).toBe('$');
+    expect(data.suffix).toBe('USD');
+  });
+});
+
+describe('replaceValueFormat', () => {
+  it('should replace formatting for indicator traces', () => {
+    const data = [
+      {
+        type: 'indicator',
+        delta: {
+          valueformat: `${FORMAT_PREFIX}#,##0.00`,
+        },
+        number: {
+          valueformat: `${FORMAT_PREFIX}#,##0.00`,
+        },
+      },
+    ] as Plotly.Data[];
+
+    const expectedData = [
+      {
+        type: 'indicator',
+        delta: {
+          valueformat: '01,.2f',
+        },
+        number: {
+          valueformat: '01,.2f',
+        },
+      },
+    ];
+
+    replaceValueFormat(data);
+
+    expect(data).toEqual(expectedData);
   });
 });

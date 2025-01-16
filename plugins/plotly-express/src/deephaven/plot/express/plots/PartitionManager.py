@@ -185,8 +185,8 @@ class PartitionManager:
         # in some cases, such as violin plots, the default groups are a static object that is shared and should
         # be copied to not modify the original
         self.groups = copy(groups) if groups else set()
-        self.rows = args.pop("rows", None)
-        self.columns = args.pop("columns", None)
+        self.grid_rows = args.pop("rows", None)
+        self.grid_cols = args.pop("cols", None)
         self.indicator = "indicator" in self.groups
         self.preprocessor = None
         self.set_long_mode_variables()
@@ -696,7 +696,9 @@ class PartitionManager:
 
         try:
             if self.indicator:
-                layered_fig = atomic_make_grid(*figs, rows=self.rows, cols=self.columns)
+                layered_fig = atomic_make_grid(
+                    *figs, rows=self.grid_rows, cols=self.grid_cols
+                )
             else:
                 layered_fig = atomic_layer(*figs, which_layout=0)
         except ValueError:
