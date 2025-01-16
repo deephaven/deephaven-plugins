@@ -64,6 +64,7 @@ from .tab_panels import tab_panels
 from .tab import tab
 from .table import table, TableDatabar, TableFormat
 from .tabs import tabs
+from .tag_group import tag_group
 from .text import text
 from .text_area import text_area
 from .text_field import text_field
@@ -143,6 +144,7 @@ __all__ = [
     "tab_panels",
     "tabs",
     "tab",
+    "tag_group",
     "text",
     "text_area",
     "text_field",

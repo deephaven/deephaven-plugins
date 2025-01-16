@@ -26,6 +26,7 @@ import {
   Text,
   SubmenuTrigger,
   View,
+  TagGroup,
 } from '@deephaven/components';
 import { ValueOf } from '@deephaven/utils';
 import Log from '@deephaven/log';
@@ -175,6 +176,7 @@ export const elementComponentMap: Record<ValueOf<ElementName>, unknown> = {
   [ELEMENT_NAME.tabPanels]: TabPanels,
   [ELEMENT_NAME.tab]: Item,
   [ELEMENT_NAME.tabs]: Tabs,
+  [ELEMENT_NAME.tagGroup]: TagGroup,
   [ELEMENT_NAME.text]: Text,
   [ELEMENT_NAME.textArea]: TextArea,
   [ELEMENT_NAME.textField]: TextField,
