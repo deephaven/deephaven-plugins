@@ -59,6 +59,7 @@ def divider(
 ) -> Element:
     """
     Dividers bring clarity to a layout by grouping and dividing content in close proximity.
+
     Args:
         size: How thick the Divider should be.
         orientation: The axis the Divider should align with.
