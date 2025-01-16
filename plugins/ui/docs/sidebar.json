@@ -65,6 +65,15 @@
         ]
       },
       {
+        "label": "Add Interactivity",
+        "items": [
+          {
+            "label": "Render Cycle",
+            "path": "add-interactivity/render-cycle.md"
+          }
+        ]
+      },
+      {
         "label": "Components",
         "items": [
           {
