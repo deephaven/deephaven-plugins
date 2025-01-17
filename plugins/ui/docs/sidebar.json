@@ -144,6 +144,10 @@
             "path": "components/disclosure.md"
           },
           {
+            "label": "divider",
+            "path": "components/divider.md"
+          },
+          {
             "label": "flex",
             "path": "components/flex.md"
           },
