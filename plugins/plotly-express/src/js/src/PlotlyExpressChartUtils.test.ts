@@ -1,4 +1,3 @@
-import { prefix } from '@deephaven/icons';
 import {
   getPathParts,
   isLineSeries,
@@ -16,7 +15,6 @@ import {
   replaceValueFormat,
   FORMAT_PREFIX,
 } from './PlotlyExpressChartUtils';
-import { number } from 'prop-types';
 
 describe('getDataMappings', () => {
   it('should return the data mappings from the widget data', () => {
@@ -409,6 +407,23 @@ describe('replaceValueFormat', () => {
         number: {
           valueformat: '01,.2f',
         },
+      },
+    ];
+
+    replaceValueFormat(data);
+
+    expect(data).toEqual(expectedData);
+  });
+  it('should not add fields for traces that do not have valueformat set', () => {
+    const data = [
+      {
+        type: 'indicator',
+      },
+    ] as Plotly.Data[];
+
+    const expectedData = [
+      {
+        type: 'indicator',
       },
     ];
 
