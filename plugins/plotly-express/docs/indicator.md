@@ -124,6 +124,31 @@ dog_avg = my_table.where("Sym = `DOG`").agg_by([agg.avg(cols="Price"), agg.first
 indicator_plot = dx.indicator(dog_avg, value="Price", reference="StartingPrice", prefix="$", suffix=" USD")
 ```
 
+## Number Format
+
+Format the numbers by passing a format string to the `number_format` argument.  
+The format follows [the GWT Java NumberFormat syntax](https://www.gwtproject.org/javadoc/latest/com/google/gwt/i18n/client/NumberFormat.html). 
+The default format is `#,##0.00`, which formats with a comma separator for every 3 digits, 2 decimal places, and a minimum of 1 digit to the left of the decimal point.  
+If a prefix or suffix is passed within the format string, it will be overridden by the `prefix` and `suffix` arguments.
+
+```python
+import deephaven.plot.express as dx
+from deephaven import agg as agg
+
+my_table = dx.data.stocks()
+
+# subset data and aggregate for DOG prices
+dog_avg = my_table.where("Sym = `DOG`").agg_by([agg.avg(cols="Price")])
+
+# format the number with a dollar sign prefix, USD suffix, and three decimal places
+indicator_plot = dx.indicator(dog_avg, value="Price", number_format="$#,##0.000USD")
+
+# prefix overrides the prefix from the number_format
+indicator_plot_prefix = dx.indicator(
+    dog_avg, value="Price", number_format="$#,##0.000USD", prefix="Dollars: "
+)
+```
+
 ### Delta Symbols
 
 Modify the symbol before the delta value by passing `increasing_text` and `decreasing_text`.
