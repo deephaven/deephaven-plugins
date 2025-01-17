@@ -232,7 +232,7 @@ my_table = dx.data.stocks()
 # aggregate for average prices by Sym
 sym_avg = my_table.agg_by([agg.avg(cols="Price")], by="Sym")
 
-indicator_plot = dx.indicator(sym_avg, value="Price", by="Sym", columns=2)
+indicator_plot = dx.indicator(sym_avg, value="Price", by="Sym", cols=2)
 ```
 
 ### Delta colors
