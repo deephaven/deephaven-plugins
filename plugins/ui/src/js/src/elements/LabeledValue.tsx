@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   LabeledValue as DHCLabeledValue,
   LabeledValueProps as DHCLabeledValueProps,
