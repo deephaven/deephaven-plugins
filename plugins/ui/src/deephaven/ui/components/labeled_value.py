@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Any, List
 
-from .number_field import NumberFieldFormatOptions
+from .number_field import NumberFormatOptions
 from .types import (
     Alignment,
     AlignSelf,
@@ -19,7 +19,7 @@ from ..elements import Element
 def labeled_value(
     value: str | List[str] | int | None = None,
     label: Element | None = None,
-    format_options: NumberFieldFormatOptions | None = None,
+    format_options: NumberFormatOptions | None = None,
     label_position: LabelPosition | None = "top",
     label_align: Alignment | None = None,
     contextual_help: Any | None = None,
