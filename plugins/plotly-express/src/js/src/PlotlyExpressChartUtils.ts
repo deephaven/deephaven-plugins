@@ -8,7 +8,6 @@ import type {
 } from 'plotly.js';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { ChartUtils } from '@deephaven/chart';
-import { prefix } from '@deephaven/icons';
 
 /**
  * Traces that are at least partially powered by WebGL and have no SVG equivalent.
@@ -342,13 +341,19 @@ export function transformValueFormat(
   }
 
   const formatResults = ChartUtils.getPlotlyNumberFormat(null, '', valueFormat);
-  // eslint-disable-next-line no-param-reassign
-  data.valueformat = formatResults?.tickformat ?? '';
+  if (formatResults?.tickformat != null && formatResults?.tickformat !== '') {
+    // eslint-disable-next-line no-param-reassign
+    data.valueformat = formatResults.tickformat;
+  }
   // prefix and suffix might already be set, which should take precedence
-  // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-explicit-any
-  (data as any).prefix ??= formatResults?.tickprefix ?? '';
-  // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-explicit-any
-  (data as any).suffix ??= formatResults?.ticksuffix ?? '';
+  if (formatResults?.tickprefix != null && formatResults?.tickprefix !== '') {
+    // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-explicit-any
+    (data as any).prefix ??= formatResults.tickprefix;
+  }
+  if (formatResults?.ticksuffix != null && formatResults?.ticksuffix !== '') {
+    // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-explicit-any
+    (data as any).suffix ??= formatResults.ticksuffix;
+  }
 }
 
 /**
