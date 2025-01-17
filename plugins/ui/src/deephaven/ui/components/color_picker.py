@@ -1,18 +1,6 @@
 from __future__ import annotations
 from typing import Any, Callable
 
-from .types import (
-    # Events
-    FocusEventCallable,
-    KeyboardEventCallable,
-    # Layout
-    AlignSelf,
-    CSSProperties,
-    DimensionValue,
-    JustifySelf,
-    LayoutFlex,
-    Position,
-)
 from .basic import component_element
 from ..elements import Element
 
@@ -31,6 +19,12 @@ def color_picker(
     aria_details: str | None = None,
     hide_alpha_channel: bool | None = None,
 ) -> Element:
+    """
+    A ColorPicker combines a swatch with a customizable popover for editing a color.
+
+    Returns:
+      The rendered color picker.
+    """
     return component_element(
         "ColorPicker",
         children=children,
