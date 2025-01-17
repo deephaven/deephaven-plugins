@@ -44,6 +44,7 @@ export const ELEMENT_NAME = {
   dialog: uiComponentName('Dialog'),
   dialogTrigger: uiComponentName('DialogTrigger'),
   disclosure: uiComponentName('Disclosure'),
+  divider: uiComponentName('Divider'),
   flex: uiComponentName('Flex'),
   form: uiComponentName('Form'),
   fragment: uiComponentName('Fragment'),
