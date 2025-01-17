@@ -7,7 +7,6 @@ class IndicatorTestCase(BaseTestCase):
     def setUp(self) -> None:
         from deephaven import new_table
         from deephaven.column import int_col, string_col
-        import deephaven.pandas as dhpd
 
         self.source = new_table(
             [
@@ -16,8 +15,6 @@ class IndicatorTestCase(BaseTestCase):
                 string_col("text", ["A", "B", "C"]),
             ]
         )
-
-        self.pandas_source = dhpd.to_pandas(self.source)
 
     def test_basic_indicator(self):
         import src.deephaven.plot.express as dx
@@ -81,7 +78,7 @@ class IndicatorTestCase(BaseTestCase):
                     "decreasing": {"symbol": "decreasing"},
                     "increasing": {"symbol": "increasing"},
                     "prefix": "prefix",
-                    "reference": -2147483648,
+                    "reference": NULL_INT,
                     "suffix": "suffix",
                     "valueformat": "DEEPHAVEN_JAVA_FORMAT$#,##0.00",
                 },
@@ -95,7 +92,7 @@ class IndicatorTestCase(BaseTestCase):
                 },
                 "title": {"text": "None"},
                 "type": "indicator",
-                "value": -2147483648,
+                "value": NULL_INT,
             }
         ]
 
@@ -132,6 +129,8 @@ class IndicatorTestCase(BaseTestCase):
         chart = dx.indicator(
             self.source,
             value="value",
+            reference="reference",
+            gauge="angular",
             by="text",
             by_vars=("increasing_color", "decreasing_color", "gauge_color"),
             increasing_color_sequence=["salmon", "green", "chocolate"],
@@ -142,16 +141,23 @@ class IndicatorTestCase(BaseTestCase):
             gauge_color_map={"B": "chartreuse"},
         ).to_dict(self.exporter)
 
+        chart["plotly"]["layout"].pop("template")
+
         expected_data = [
             {
                 "delta": {
                     "decreasing": {"color": "red", "symbol": "▼"},
                     "increasing": {"color": "chocolate", "symbol": "▲"},
+                    "reference": NULL_INT,
                     "valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00",
                 },
                 "domain": {"x": [0.0, 0.45], "y": [0.0, 0.425]},
-                "gauge": {"bar": {"color": "orange"}},
-                "mode": "number",
+                "gauge": {
+                    "axis": {"visible": True},
+                    "bar": {"color": "orange"},
+                    "shape": "angular",
+                },
+                "mode": "number+delta+gauge",
                 "number": {"valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00"},
                 "type": "indicator",
                 "value": NULL_INT,
@@ -160,11 +166,16 @@ class IndicatorTestCase(BaseTestCase):
                 "delta": {
                     "decreasing": {"color": "blue", "symbol": "▼"},
                     "increasing": {"color": "salmon", "symbol": "▲"},
+                    "reference": NULL_INT,
                     "valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00",
                 },
                 "domain": {"x": [0.0, 0.45], "y": [0.575, 1.0]},
-                "gauge": {"bar": {"color": "pink"}},
-                "mode": "number",
+                "gauge": {
+                    "axis": {"visible": True},
+                    "bar": {"color": "pink"},
+                    "shape": "angular",
+                },
+                "mode": "number+delta+gauge",
                 "number": {"valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00"},
                 "type": "indicator",
                 "value": NULL_INT,
@@ -173,11 +184,16 @@ class IndicatorTestCase(BaseTestCase):
                 "delta": {
                     "decreasing": {"color": "bisque", "symbol": "▼"},
                     "increasing": {"color": "salmon", "symbol": "▲"},
+                    "reference": NULL_INT,
                     "valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00",
                 },
                 "domain": {"x": [0.55, 1.0], "y": [0.575, 1.0]},
-                "gauge": {"bar": {"color": "chartreuse"}},
-                "mode": "number",
+                "gauge": {
+                    "axis": {"visible": True},
+                    "bar": {"color": "chartreuse"},
+                    "shape": "angular",
+                },
+                "mode": "number+delta+gauge",
                 "number": {"valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00"},
                 "type": "indicator",
                 "value": NULL_INT,
@@ -187,9 +203,27 @@ class IndicatorTestCase(BaseTestCase):
         expected_layout = {"legend": {"tracegroupgap": 0}, "margin": {"t": 60}}
 
         expected_mappings = [
-            {"data_columns": {"value": ["/plotly/data/0/value"]}, "table": 0},
-            {"data_columns": {"value": ["/plotly/data/1/value"]}, "table": 0},
-            {"data_columns": {"value": ["/plotly/data/2/value"]}, "table": 0},
+            {
+                "data_columns": {
+                    "reference": ["/plotly/data/0/delta/reference"],
+                    "value": ["/plotly/data/0/value"],
+                },
+                "table": 0,
+            },
+            {
+                "data_columns": {
+                    "reference": ["/plotly/data/1/delta/reference"],
+                    "value": ["/plotly/data/1/value"],
+                },
+                "table": 0,
+            },
+            {
+                "data_columns": {
+                    "reference": ["/plotly/data/2/delta/reference"],
+                    "value": ["/plotly/data/2/value"],
+                },
+                "table": 0,
+            },
         ]
 
         self.assert_chart_equals(
