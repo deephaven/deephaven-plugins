@@ -172,7 +172,9 @@ def word_display():
         ui.button("Next", on_press=handle_press),
         ui.text(f"({index+1} of {len(word_list)})"),
         ui.heading(word),
-        ui.button(f"{'Hide' if show_more else 'Show'} Details", on_press=handle_more_press),
+        ui.button(
+            f"{'Hide' if show_more else 'Show'} Details", on_press=handle_more_press
+        ),
         show_more and ui.text(detail),
     ]
 
