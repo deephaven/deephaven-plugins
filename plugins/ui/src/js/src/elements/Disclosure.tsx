@@ -12,7 +12,7 @@ export type SerializedDisclosureProps = Omit<DHCDisclosureProps, 'children'> & {
   panel: ReactNode;
 };
 
-export function Disclosure(props: DHCDisclosureProps): JSX.Element {
+export function Disclosure(props: SerializedDisclosureProps): JSX.Element {
   const { title, panel, ...otherProps } = props;
   return (
     /* eslint-disable-next-line react/jsx-props-no-spreading */
