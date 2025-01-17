@@ -1,5 +1,5 @@
 # Accordion
-
+A collection of expandable and collapsible disclosure elements
 
 ## Example
 
@@ -22,7 +22,7 @@ from deephaven import ui
 
 @ui.component
 def ui_accordion_event():
-    expanded_keys, set_expanded_keys = ui.use_state(["a"])
+    expanded_keys, set_expanded_keys = ui.use_state([])
 
     def handle_expanded_keys_change(e):
         set_expanded_keys(e)

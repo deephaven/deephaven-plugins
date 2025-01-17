@@ -17,7 +17,7 @@ export function Accordion(
 
   const onExpandedChange = useConditionalCallback(
     propOnExpandedChange != null,
-    (e: Set<React.Key>) => onExpandedChange?.(Array.from(e)),
+    (e: Set<React.Key>) => propOnExpandedChange?.(Array.from(e)),
     [propOnExpandedChange]
   );
 
