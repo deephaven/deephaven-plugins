@@ -9,7 +9,6 @@ from ..types import Key
 from .types import (
     LabelPosition,
     Alignment,
-    PressEventCallable,
     AlignSelf,
     CSSProperties,
     DimensionValue,
@@ -20,7 +19,7 @@ from .types import (
 
 
 def tag_group(
-    children: list[Item],
+    *children: Item,
     action_label: str | None = None,
     render_empty_state: Element | None = None,
     max_rows: int | None = None,
@@ -31,7 +30,7 @@ def tag_group(
     label_align: Alignment | None = "start",
     contextual_help: NodeType = None,
     is_invalid: bool | None = None,
-    on_action: PressEventCallable | None = None,
+    on_action: Callable[[None], None] | None = None,
     on_remove: Callable[[Set[Key]], None] | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
