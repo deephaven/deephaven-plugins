@@ -75,3 +75,53 @@ Rendering must always be a [pure](../describing/pure_components.md) calculation:
 Otherwise, you can encounter confusing bugs and unpredictable behavior as your codebase grows in complexity.
 
 ### Step 3: Commit changes to the DOM
+
+After rendering your components, `deephaven.ui` sends the components to client and React renders and will modify the DOM.
+
+-For the initial render, React will use the `appendChild()` DOM API to put all the DOM nodes it has created on screen.
+-For re-renders, React will apply the minimal necessary operations (calculated while rendering!) to make the DOM match the latest rendering output.
+
+React only changes the DOM nodes if there’s a difference between renders. For example, here is a component that re-renders with different props passed from its parent every second. Notice how you can add some text into the `ui.text_field`, updating its value, but the text doesn’t disappear when the component re-renders:
+
+```python
+import time, threading
+from deephaven import ui
+
+
+@ui.component
+def clock(t):
+    return [ui.heading(t), ui.text_field()]
+
+
+@ui.component
+def clock_wrapper():
+    clock_time, set_clock_time = ui.use_state(time.ctime())
+    is_cancelled = False
+
+    def periodic_update():
+        if is_cancelled:
+            return
+        set_clock_time(time.ctime())
+        threading.Timer(1, periodic_update).start()
+
+    def start_update():
+        periodic_update()
+
+        def cancel_timer():
+            nonlocal is_cancelled
+            is_cancelled = True
+
+        return cancel_timer
+
+    start_timer = ui.use_callback(start_update, [set_clock_time])
+    ui.use_effect(start_timer, [])
+
+    return clock(clock_time)
+
+
+clock_example = clock_wrapper()
+```
+
+This works because during this last step, React only updates the content of `ui.header` with the new time. It sees that the `ui.text_field` appears in the JSX in the same place as last time, so React doesn’t touch the `ui.text_field` or its value.
+
+After rendering is done and React updated the DOM, the browser will repaint the screen.
