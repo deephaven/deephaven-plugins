@@ -503,6 +503,7 @@ Date = Union[
 ]
 Granularity = Literal["DAY", "HOUR", "MINUTE", "SECOND"]
 ListViewDensity = Literal["COMPACT", "NORMAL", "SPACIOUS"]
+DividerSize = Literal["S", "M", "L"]
 ListViewOverflowMode = Literal["truncate", "wrap"]
 ActionGroupDensity = Literal["compact", "regular"]
 TabDensity = Literal["compact", "regular"]
