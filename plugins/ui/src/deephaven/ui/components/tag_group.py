@@ -83,7 +83,7 @@ def tag_group(
     Args:
         *children: The tags to render within the tag_group.
         action_label: The label for the action button. If provided, an action button will be displayed.
-        render_empty_state: Sets what should be rendered when there is no content to display.
+        render_empty_state: The element that will be rendered when there is no content to display.
         max_rows: The maximum amount of rows to show. If provided, will render a button that allows the user to expand the tag group.
         error_message: An error message for the field.
         label: The label for the tag group.

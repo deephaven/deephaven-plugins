@@ -158,7 +158,7 @@ my_tag_group_action_example = tag_group_action_example()
 
 ## Links
 
-Tags can become links to another page or website by passing the `href` prop to the `ui.text` component.
+Tags can become links to another page or website by passing the `href` prop to the `ui.item` component.
 
 ```python
 from deephaven import ui
@@ -199,6 +199,7 @@ def tag_group_help_text_example():
             ui.item("Gaming", key="gaming"),
             ui.item("Shopping", key="shopping"),
             description="Pick your favorite category",
+            error_message="Sample error message",
         ),
         ui.tag_group(
             ui.item("News", key="news"),
@@ -206,6 +207,7 @@ def tag_group_help_text_example():
             ui.item("Gaming", key="gaming"),
             ui.item("Shopping", key="shopping"),
             is_invalid=True,
+            description="Pick your favorite category",
             error_message="Sample error message",
         ),
     ]
@@ -287,6 +289,8 @@ my_tag_group_max_rows_example = tag_group_max_rows_example()
 
 ## Empty state
 
+Use the `render_empty_state` prop to specify the element to be displayed when the tag group will display when no tags are provided. By default the empty state displays the text "None".
+
 ```python
 from deephaven import ui
 
@@ -294,27 +298,18 @@ from deephaven import ui
 @ui.component
 def tag_group_empty_state_example():
     return (
-        (
+        [
+            ui.tag_group(),
             ui.tag_group(
-                render_empty_state=ui.flex("No elements"),
+                render_empty_state=ui.flex(
+                    ui.icon("dh_warning_circle_filled", size="S"),
+                    ui.text("No tags here"),
+                    align_items="center",
+                ),
             ),
-        ),
+        ],
     )
 
 
 my_tag_group_empty_state_example = tag_group_empty_state_example()
-```
-
-## Full example
-
-```python
-from deephaven import ui
-
-
-@ui.component
-def full_tag_group_example():
-    return ui.tag_group()
-
-
-my_full_tag_group_example() = full_tag_group_example()
 ```
