@@ -99,7 +99,7 @@ my_tag_group_label_example = tag_group_label_example()
 
 ## Events
 
-Use the `on_remove` prop to
+Removing tags can be enabled by providing the `on_remove` prop to the tag group, which will receive the set of keys to remove.
 
 ```python
 from deephaven import ui
@@ -107,16 +107,21 @@ from deephaven import ui
 
 @ui.component
 def tag_group_remove_example():
-    def handle_remove(keys):
-        print(keys)
-
-    return (
-        ui.tag_group(
+    items, set_items = ui.use_state(
+        [
             ui.item("News", key="news"),
             ui.item("Travel", key="travel"),
             ui.item("Gaming", key="gaming"),
             ui.item("Shopping", key="shopping"),
-            on_remove=handle_remove,
+        ]
+    )
+
+    return (
+        ui.tag_group(
+            *items,
+            on_remove=lambda keys: set_items(
+                [item for item in items if item.key != keys[0]]
+            )
         ),
     )
 

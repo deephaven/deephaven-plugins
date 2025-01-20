@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable, Set
+from typing import Callable, List
 
 from .basic import component_element
 from .section import Item
@@ -31,7 +31,7 @@ def tag_group(
     contextual_help: NodeType = None,
     is_invalid: bool | None = None,
     on_action: Callable[[None], None] | None = None,
-    on_remove: Callable[[Set[Key]], None] | None = None,
+    on_remove: Callable[[List[Key]], None] | None = None,
     flex: LayoutFlex | None = None,
     flex_grow: float | None = None,
     flex_shrink: float | None = None,

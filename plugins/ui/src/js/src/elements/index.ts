@@ -36,6 +36,7 @@ export * from './SearchField';
 export * from './Slider';
 export * from './Tabs';
 export * from './TabPanels';
+export * from './TagGroup';
 export * from './TextField';
 export * from './TextArea';
 export * from './TimeField';

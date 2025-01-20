@@ -26,7 +26,6 @@ import {
   Text,
   SubmenuTrigger,
   View,
-  TagGroup,
 } from '@deephaven/components';
 import { ValueOf } from '@deephaven/utils';
 import Log from '@deephaven/log';
@@ -84,6 +83,7 @@ import {
   SearchField,
   Slider,
   TabPanels,
+  TagGroup,
   TextField,
   TextArea,
   TimeField,
