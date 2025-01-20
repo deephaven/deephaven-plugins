@@ -52,7 +52,7 @@ export class ReactPanelErrorBoundary extends Component<
   render(): ReactNode {
     const { children } = this.props;
     const { error } = this.state;
-    return error != null ? <WidgetErrorView error={error} /> : children;
+    return error != null ? <WidgetErrorView error={error} /> : children ?? null;
   }
 }
 
