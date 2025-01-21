@@ -45,3 +45,80 @@ Here’s what happens when you click the button:
 3. `deephaven.ui` re-renders the component according to the new `is_sent` value.
 
 Let’s take a closer look at the relationship between state and rendering.
+
+## A render takes one snapshot in time
+
+“Rendering” means that `deephaven.ui` is calling your component, which is a function. The components you return from that function is like a snapshot of the UI in time. Its props, event handlers, and local variables were all calculated using its state at the time of the render.
+
+Unlike a photograph or a movie frame, the UI “snapshot” you return is interactive. It includes logic like event handlers that specify what happens in response to inputs. `deephaven.ui` updates the screen to match this snapshot and connects the event handlers. As a result, pressing a button will trigger the click handler from your components.
+
+When `deephaven.ui` re-renders a component:
+
+1. `deephaven.ui` calls your function again.
+2. Your function returns a new snapshot of components.
+3. `deephaven.ui` then converts the snapshot to JSON and sends it to the web client ui to display.
+
+As a component’s memory, state is not like a regular variable that disappears after your function returns. State actually “lives” in a `deephaven.ui` context outside of your function. When React calls your component, it gives you a snapshot of the state for that particular render. Your component returns a snapshot of the UI with a fresh set of props and event handlers, all calculated using the state values from that render!
+
+Here iss a little experiment to show you how this works. In this example, you might expect that clicking the “+3” button would increment the counter three times because it calls `set_number(number + 1)` three times.
+
+See what happens when you click the “+3” button:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def counter():
+    number, set_number = ui.use_state(0)
+
+    def handle_press():
+        set_number(number + 1)
+        set_number(number + 1)
+        set_number(number + 1)
+
+    return [ui.heading(f"{number}"), ui.button("+3", on_press=handle_press)]
+
+
+example_counter = counter()
+```
+
+Notice that `number` only increments once per click.
+
+Setting state only changes it for the next render. During the first render, `number` was `0`. This is why, in that render’s `on_press` handler, the value of `number` is still `0` even after `set_number(number + 1)` was called.
+
+Here is what `handle_press` tells `deephaven.ui` to do:
+
+1. `set_number(number + 1)`: number is 0 so `set_number(0 + 1)`.
+
+- `deephaven.ui` prepares to change number to 1 on the next render.
+
+2. `set_number(number + 1)`: number is 0 so `set_number(0 + 1)`.
+
+- `deephaven.ui` prepares to change number to 1 on the next render.
+
+3. `set_number(number + 1)`: number is 0 so `set_number(0 + 1)`.
+
+- `deephaven.ui` prepares to change number to 1 on the next render.
+
+Even though you called `set_number(number + 1)` three times, in this render’s event handler `number` is always `0`, so you set the state to `1` three times. This is why, after your event handler finishes, React re-renders the component with number equal to `1` rather than `3`.
+
+You can also visualize this by mentally substituting state variables with their values in your code. Since the number state variable is 0 for this render, its event handler looks like this:
+
+```python
+def handle_press():
+    set_number(0 + 1)
+    set_number(0 + 1)
+    set_number(0 + 1)
+```
+
+For the next render, `number` is `1`, so that render’s click handler looks like this:
+
+```python
+def handle_press():
+    set_number(1 + 1)
+    set_number(1 + 1)
+    set_number(1 + 1)
+```
+
+This is why clicking the button again will set the counter to `2`, then to `3` on the next click, and so on.
