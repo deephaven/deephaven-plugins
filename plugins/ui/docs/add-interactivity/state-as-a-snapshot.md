@@ -122,3 +122,101 @@ def handle_press():
 ```
 
 This is why clicking the button again will set the counter to `2`, then to `3` on the next click, and so on.
+
+## State over time
+
+What number will this print when clicking the button?
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def counter():
+    number, set_number = ui.use_state(0)
+
+    def handle_press():
+        set_number(number + 5)
+        print(number)
+
+    return [ui.heading(f"{number}"), ui.button("+5", on_press=handle_press)]
+
+
+example_counter = counter()
+```
+
+If you use the substitution method from before, you can guess that the alert shows “0”:
+
+```python
+def handle_press():
+    set_number(0 + 5)
+    print(5)
+```
+
+What if you put a timer on the alert, so it only fires after the component re-rendered? Will it say “0” or “5”?
+
+```python
+from threading import Timer
+from deephaven import ui
+
+
+@ui.component
+def counter():
+    number, set_number = ui.use_state(0)
+
+    def handle_press():
+        set_number(number + 5)
+        Timer(3, lambda: print(number)).start()
+
+    return [ui.heading(f"{number}"), ui.button("+5", on_press=handle_press)]
+
+
+example_counter = counter()
+```
+
+If you use the substitution method, you can see the “snapshot” of the state passed to the alert.
+
+```python
+def handle_press():
+    set_number(0 + 5)
+    Timer(3, lambda: print(0)).start()
+```
+
+The state stored in `deephaven.ui` may have changed by the time the alert runs, but it was scheduled using a snapshot of the state at the time the user interacted with it.
+
+A state variable’s value never changes within a render, even if its event handler’s code is asynchronous. Inside that render’s `on_press`, the value of number continues to be 0 even after `set_number(number + 5)` was called. Its value was “fixed” when `deephaven.ui` “took the snapshot” of the UI by calling your component.
+
+Here is an example of how that makes your event handlers less prone to timing mistakes. Below is a form that sends a message with a five-second delay. Imagine this scenario:
+
+1. You press the “Send” button, sending “Hello” to Alice.
+2. Before the five-second delay ends, you change the value of the “To” field to “Bob”.
+
+What do you expect the alert to display? Would it display, “You said Hello to Alice”? Or would it display, “You said Hello to Bob”?
+
+```python
+from threading import Timer
+from deephaven import ui
+
+
+@ui.component
+def form():
+    to, set_to = ui.use_state("Alice")
+    message, set_message = ui.use_state("Hello")
+
+    def handle_submit():
+        Timer(5, lambda: print(f"You said {message} to {to}")).start()
+
+    return ui.form(
+        ui.picker(
+            "Alice", "Bob", label="To", selected_key=to, on_selection_change=set_to
+        ),
+        ui.text_area(value=message, on_change=set_message),
+        ui.button("Send", type="submit"),
+        on_submit=handle_submit,
+    )
+
+
+example_form = form()
+```
+
+`deephaven.ui` keeps the state values “fixed” within one render’s event handlers. You do not need to worry whether the state has changed while the code is running.
