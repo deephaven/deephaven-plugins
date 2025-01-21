@@ -19,6 +19,10 @@
         "path": "installation.md"
       },
       {
+        "label": "Tutorial",
+        "path": "tutorial.md"
+      },
+      {
         "label": "Architecture",
         "path": "architecture.md"
       },
@@ -138,6 +142,10 @@
           {
             "label": "dialog_trigger",
             "path": "components/dialog_trigger.md"
+          },
+          {
+            "label": "divider",
+            "path": "components/divider.md"
           },
           {
             "label": "flex",
