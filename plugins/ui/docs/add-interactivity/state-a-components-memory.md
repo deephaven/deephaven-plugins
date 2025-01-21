@@ -1,6 +1,6 @@
 # State: A Component's Memory
 
-Components often need to change what’s on the screen as a result of an interaction. Typing into the form should update the input field, clicking “next” on an image carousel should change which image is displayed, clicking “buy” should put a product in the shopping cart. Components need to “remember” things: the current input value, the current image, the shopping cart. In `deephaven.ui`, this kind of component-specific memory is called state.
+Components often need to change what’s on the screen as a result of an interaction. Typing into a form should update the input field, clicking “Next” on an image carousel should change which image is displayed, and clicking “Buy” should put a product in the shopping cart. Components need to “remember” things: the current input value, the current image, the shopping cart. In `deephaven.ui`, this kind of component-specific memory is called state.
 
 ## When a regular variable is not enough
 
@@ -116,14 +116,14 @@ index, set_index = ui.use_state(0)
 
 In this case, you want `deephaven.ui` to remember `index`.
 
-The convention is to name this pair like const `something`, `set_something`. You can name it anything you like, but conventions make things easier to understand across projects.
+The convention is to name this pair consistently, like `something` and `set_something`. You can name it anything you like, but conventions make things easier to understand across projects.
 
 The only argument to `use_state` is the initial value of your state variable. In this example, the index’s initial value is set to `0` with `ui.use_state(0)`.
 
-Every time your component renders, use_state gives you an array containing two values:
+Every time your component renders, `use_state` gives you an array containing two values:
 
 1. The state variable `index` with the value you stored.
-2. The state setter function `set_index` which can update the state variable and trigger `deephaven.ui` to render the component again.
+2. The state setter function `set_index`, which can update the state variable and trigger `deephaven.ui` to render the component again.
 
 Here’s how that happens in action:
 
@@ -132,7 +132,7 @@ index, set_index = ui.use_state(0)
 ```
 
 1. Your component renders the first time. Because you passed `0` to `use_state` as the initial value for `index`, it will return `0`, `set_index`. `deephaven.ui` remembers 0 is the latest state value.
-2. You update the state. When a user clicks the button, it calls `set_index(index + 1)`. `index` is `0`, so it’s `set_index(1)`. This tells `deephaven.ui` to remember `index` is `1` now and triggers another render.
+2. You update the state. When a user clicks the button, it calls `set_index(index + 1)`. Since `index` is `0`, it becomes `set_index(1)`. This instructs `deephaven.ui` to remember that `index` is now `1` and triggers another render.
 3. During your component’s second render, `deephaven.ui` still sees `use_state(0)`, but because `deephaven.ui` remembers that you set `index` to `1`, it returns `1`, `set_index` instead.
 4. And so on with each render.
 
@@ -148,9 +148,9 @@ detail_list = [
     "An apple is a round, edible fruit produced by an apple tree.",
     "A banana is an elongated, edible fruit.",
     "A cherry is the fruit of many plants of the genus Prunus.",
-    "The oranges the fruit of a tree in the family Rutaceae.",
+    "The oranges are the fruit of a tree in the family Rutaceae.",
     "Kiwi has a thin, fuzzy, fibrous, tart but edible, light brown skin and light green or golden flesh with rows of tiny, black, edible seeds.",
-    "The genus Fragaria, the strawberries, is in the rose family, Rosaceae.",
+    "The genus Fragaria, strawberries, is in the rose family, Rosaceae.",
 ]
 
 
@@ -182,7 +182,7 @@ def word_display():
 word_display_example = word_display()
 ```
 
-It is a good idea to have multiple state variables if their state is unrelated, like `index` and `show_more` in this example. But if you find that you often change two state variables together, it might be easier to combine them into one. For example, if you have a form with many fields, it’s more convenient to have a single state variable that holds an dictionary than state variable per field.
+It is a good idea to have multiple state variables if their state is unrelated, like `index` and `show_more` in this example. But if you find that you often change two state variables together, it might be easier to combine them into one. For example, if you have a form with many fields, it’s more convenient to have a single state variable that holds a dictionary than a state variable per field.
 
 # State is isolated and private
 
@@ -238,4 +238,4 @@ page_example = page()
 
 This is what makes state different from regular variables that you might declare at the top of your script. State is not tied to a particular function call or a place in the code, but it’s “local” to the specific place on the screen. You rendered two `word_display` components, so their state is stored separately.
 
-Also notice how the `page` component does not “know” anything about the `word_display` state or even whether it has any. Unlike props, state is fully private to the component declaring it. The parent component can’t change it. This lets you add state to any component or remove it without impacting the rest of the components.
+Also notice how the `page` component does not “know” anything about the `word_display` state or even whether it has any. Unlike props, state is fully private to the component declaring it. The parent component can’t change it. This lets you add state to or remove it from any component without impacting the rest of the components.
