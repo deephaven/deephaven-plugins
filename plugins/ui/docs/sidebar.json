@@ -65,6 +65,15 @@
         ]
       },
       {
+        "label": "Add Interactivity",
+        "items": [
+          {
+            "label": "State as a Snapshot",
+            "path": "add-interactivity/state-as-a-snapshot.md"
+          }
+        ]
+      },
+      {
         "label": "Components",
         "items": [
           {
