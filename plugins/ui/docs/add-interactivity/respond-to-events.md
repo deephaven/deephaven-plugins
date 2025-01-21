@@ -44,7 +44,7 @@ You defined the `handle_press` function and then passed it as a prop to `ui.butt
 - Are usually defined inside your components.
 - Have names that start with handle, followed by the name of the event.
 
-By convention, it is common to name event handlers as handle followed by the event name. You’ll often see `on_press=handle_press`, `on_mouse_enter=handle_mouse_enter`, and so on.
+By convention, it is common to name event handlers as "handle" followed by the event name. You’ll often see `on_press=handle_press`, `on_mouse_enter=handle_mouse_enter`, and so on.
 
 Alternatively, you can define an event handler inline with a lambda in the component:
 
@@ -66,7 +66,7 @@ These styles are equivalent. Inline event handlers are convenient for short func
 
 Functions passed to event handlers must be passed, not called. For example:
 
-| passing a function (correct)       | calling a function (incorrect)                   |
+| Passing a function (correct)       | Calling a function (incorrect)                   |
 | ---------------------------------- | ------------------------------------------------ |
 | `ui.button(on_press=handle_press)` | `ui.button("Click me", on_press=handle_press())` |
 
@@ -76,18 +76,18 @@ In the second example, the `()` at the end of `handle_press()` fires the functio
 
 When you write code inline, the same pitfall presents itself in a different way:
 
-| passing a function (correct)                 | calling a function (incorrect)                            |
+| Passing a function (correct)                 | Calling a function (incorrect)                            |
 | -------------------------------------------- | --------------------------------------------------------- |
 | `ui.button(on_press=lambda: print("click"))` | `ui.button("Click me", on_press=on_press=print("click"))` |
 
-The first example uses lambda to create an anonymous function which is called every time the button is clicked.
+The first example uses lambda to create an anonymous function that is called every time the button is clicked.
 
 The second example will execute the code every time the component renders.
 
-In both cases, what you want to pass is a function:
+In both cases, you should pass a function:
 
 - `ui.button(on_press=handle_press)` passes the `handle_press` function.
-- `ui.button(on_press=lambda: print("click"))` pass the `lambda: print("click")` function.
+- `ui.button(on_press=lambda: print("click"))` passes the `lambda: print("click")` function.
 
 ## Read props in event handlers
 
@@ -117,7 +117,7 @@ This lets these two buttons show different messages. Try changing the messages p
 
 ## Pass event handlers as props
 
-Often you’ll want the parent component to specify a child’s event handler. Consider buttons: depending on where you’re using a Button component, you might want to execute a different function—perhaps one plays a movie and another uploads an image.
+Often, you’ll want the parent component to specify a child’s event handler. Consider buttons: depending on where you’re using a button component, you might want to execute a different function — perhaps one plays a movie and another uploads an image.
 
 To do this, pass a prop the component receives from its parent as the event handler like so:
 
