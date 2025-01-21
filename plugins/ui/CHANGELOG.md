@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.23.3 - 2025-01-21
+#### Bug Fixes
+- Ensure ReactPanelErrorBoundary handles undefined children (#1089) (#1092) - ([2c31622](https://github.com/deephaven/deephaven-plugins/commit/2c31622ae548897549cb6da68dc990ec5efad8ee)) - [@mofojed](https://github.com/mofojed)
+
+- - -
+
 ## ui-v0.23.2 - 2025-01-13
 #### Bug Fixes
 - UI loading duplicate panels in embed iframe (#1043) (#1082) - ([928ee35](https://github.com/deephaven/deephaven-plugins/commit/928ee35972d556cd74da34fd3c81690df17b2323)) - [@mofojed](https://github.com/mofojed)
