@@ -313,3 +313,9 @@ def tag_group_empty_state_example():
 
 my_tag_group_empty_state_example = tag_group_empty_state_example()
 ```
+
+## API reference
+
+```{eval-rst}
+.. dhautofunction:: deephaven.ui.tag_group
+```
