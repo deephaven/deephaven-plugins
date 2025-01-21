@@ -19,6 +19,10 @@
         "path": "installation.md"
       },
       {
+        "label": "Tutorial",
+        "path": "tutorial.md"
+      },
+      {
         "label": "Architecture",
         "path": "architecture.md"
       },
@@ -67,6 +71,10 @@
       {
         "label": "Add Interactivity",
         "items": [
+          {
+            "label": "Respond to Events",
+            "path": "add-interactivity/respond-to-events.md"
+          },
           {
             "label": "State: A Component's Memory",
             "path": "add-interactivity/state-a-components-memory.md"
@@ -147,6 +155,10 @@
           {
             "label": "dialog_trigger",
             "path": "components/dialog_trigger.md"
+          },
+          {
+            "label": "divider",
+            "path": "components/divider.md"
           },
           {
             "label": "flex",
