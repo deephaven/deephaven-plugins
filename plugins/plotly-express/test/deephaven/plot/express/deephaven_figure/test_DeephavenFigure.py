@@ -11,7 +11,7 @@ class DeephavenFigureTestCase(BaseTestCase):
         from deephaven.column import int_col
         import src.deephaven.plot.express as dx
         from deephaven.execution_context import get_exec_ctx
-        from deephaven.liveness_scope import LivenessScope, liveness_scope
+        from deephaven.liveness_scope import liveness_scope
 
         static_source = new_table([int_col("X", [1, 2, 3])])
 
