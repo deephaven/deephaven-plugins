@@ -143,7 +143,7 @@ def breadcrumbs_root_context_example():
                 ui.item("Holiday", key="holiday"),
                 show_root=True,
             ),
-            width="25%",
+            width="200px",
         ),
     )
 
@@ -181,7 +181,7 @@ my_breadcrumbs_disabled_example = breadcrumbs_disabled_example()
 
 Breadcrumbs collapses items into a menu when space is limited. It will only show a maximum of 4 visible items including the root and menu button, if either are visible.
 
-If the root item cannot be rendered in the available horizontal space, it will be collapsed into the menu regardless of showRoot.
+If the root item cannot be rendered in the available horizontal space, it will be collapsed into the menu regardless of the `show_root` prop.
 
 Note that the last breadcrumb item will automatically truncate with an ellipsis instead of collapsing into the menu.
 
@@ -216,7 +216,7 @@ def breadcrumbs_overflow_example():
             ),
             border_width="thin",
             border_color="accent-400",
-            width="20%",
+            width="150px",
         ),
         ui.view(
             ui.breadcrumbs(
@@ -228,7 +228,7 @@ def breadcrumbs_overflow_example():
             ),
             border_width="thin",
             border_color="accent-400",
-            width="10%",
+            width="100px",
         ),
     ]
 
