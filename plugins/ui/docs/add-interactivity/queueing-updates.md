@@ -92,4 +92,40 @@ This is why clicking “+3” in the above example correctly increments the valu
 
 ## What happens if you update state after replacing it
 
+What about this event handler? What do you think number will be in the next render?
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def counter():
+    number, set_number = ui.use_state(0)
+
+    def handle_press():
+        set_number(number + 5)
+        set_number(lambda n: n + 1)
+
+    return [ui.heading(f"{number}"), ui.button("+3", on_press=handle_press)]
+
+
+example_counter = counter()
+```
+
+Here is what this event handler tells `deephaven.ui` to do:
+
+1. `set_number(number + 5)`: number is `0`, so `set_number(0 + 5)`. `deephaven.ui` adds "replace with 5" to its queue.
+2. `set_number(lambda n: n + 1)`: `lambda n: n + 1` is an updater function. `deephaven.ui` adds that function to its queue.
+
+During the next render, `deephaven.ui` goes through the state queue:
+
+| queued update     | n            | returns     |
+| ----------------- | ------------ | ----------- |
+| "replace with 5"  | `0` (unused) | `5`         |
+| `lambda n: n + 1` | `5`          | `5 + 1 = 6` |
+
+`deephaven.ui` stores `6` as the final result and returns it from `use_state`.
+
+## What happens if you replace state after updating it
+
 TODO Arman's question!!!!
