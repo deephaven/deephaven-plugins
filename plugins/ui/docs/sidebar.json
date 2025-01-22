@@ -74,6 +74,10 @@
           {
             "label": "Respond to Events",
             "path": "add-interactivity/respond-to-events.md"
+          },
+          {
+            "label": "Queueing a Series of State Updates",
+            "path": "add-interactivity/queueing-updates.md"
           }
         ]
       },
