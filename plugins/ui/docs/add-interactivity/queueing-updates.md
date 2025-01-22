@@ -172,4 +172,12 @@ After the event handler completes, `deephaven.ui` will trigger a re-render. Duri
 
 ## Naming conventions
 
-TODO Arman's question!!!!
+It is common to name the updater function argument by the first letters of the corresponding state variable:
+
+```python
+set_enabled(lambda e: not e)
+set_last_name(lambda ln: ln.upper())
+set_friend_count(lambda fc: fc * 2)
+```
+
+If you prefer more verbose code, another common convention is to repeat the full state variable name, like `set_enabled(lambda enabled: not enabled)`, or to use a prefix like `set_enabled(lambda prev_enabled: not prev_enabled)`.
