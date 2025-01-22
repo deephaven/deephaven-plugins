@@ -1,7 +1,5 @@
 import unittest
 
-from deephaven.liveness_scope import is_liveness_referent
-
 from ..BaseTest import BaseTestCase
 
 
@@ -25,3 +23,7 @@ class DeephavenFigureTestCase(BaseTestCase):
                     get_exec_ctx(), {}, filtered, None, lambda: None
                 )
                 del figure
+
+
+if __name__ == "__main__":
+    unittest.main()
