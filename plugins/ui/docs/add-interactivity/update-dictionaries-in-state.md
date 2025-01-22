@@ -102,3 +102,135 @@ my_range_example = range_example()
 ```
 
 ## Copy Dictionaries
+
+In the previous example, the `value` dictionary is always created from new data. But often, you will want to include existing data as a part of the new dictionary you are creating. For example, you may want to update only one field in a form, but keep the previous values for all other fields.
+
+These input fields don’t work because the `on_change` handlers mutate the state:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def form():
+    person, set_person = ui.use_state(
+        {
+            "first_name": "John",
+            "last_name": "Doe",
+            "email": "jondoe@domain.com",
+        }
+    )
+
+    def handle_first_name_change(value):
+        person["first_name"] = value
+
+    def handle_last_name_change(value):
+        person["last_name"] = value
+
+    def handle_email_change(value):
+        person["email"] = value
+
+    return [
+        ui.text_field(
+            label="First name",
+            value=person["first_name"],
+            on_change=handle_first_name_change,
+        ),
+        ui.text_field(
+            label="Last name",
+            value=person["last_name"],
+            on_change=handle_last_name_change,
+        ),
+        ui.text_field(
+            label="Email", value=person["email"], on_change=handle_email_change
+        ),
+        ui.text(f'{person["first_name"]} {person["last_name"]} {person["email"]}'),
+    ]
+
+
+form_example = form()
+```
+
+For example, this line mutates the state from a past render:
+
+```python
+person["first_name"] = value
+```
+
+The reliable way to get the behavior you are looking for is to create a new dictionary and pass it to `set_person`. But here, you want to also copy the existing data into it because only one of the fields has changed:
+
+```python
+set_person(
+    {
+        "first_name": value,
+        "last_name": person["last_name"],
+        "email": person["email"],
+    }
+)
+```
+
+You can use the dictionary `copy()` method so that you do not need to copy every property separately.
+
+```python
+copy = person.copy()
+copy["first_name"] = value
+set_person(copy)
+```
+
+Now the form works.
+
+Notice you did not need to declare a separate state variable for each input field. For large forms, keeping all data grouped in a dictionary is convenient if updated correctly.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def form():
+    person, set_person = ui.use_state(
+        {
+            "first_name": "John",
+            "last_name": "Doe",
+            "email": "jondoe@domain.com",
+        }
+    )
+
+    def handle_first_name_change(value):
+        copy = person.copy()
+        copy["first_name"] = value
+        set_person(copy)
+
+    def handle_last_name_change(value):
+        copy = person.copy()
+        copy["last_name"] = value
+        set_person(copy)
+
+    def handle_email_change(value):
+        copy = person.copy()
+        copy["email"] = value
+        set_person(copy)
+
+    return [
+        ui.text_field(
+            label="First name",
+            value=person["first_name"],
+            on_change=handle_first_name_change,
+        ),
+        ui.text_field(
+            label="Last name",
+            value=person["last_name"],
+            on_change=handle_last_name_change,
+        ),
+        ui.text_field(
+            label="Email", value=person["email"], on_change=handle_email_change
+        ),
+        ui.text(f'{person["first_name"]} {person["last_name"]} {person["email"]}'),
+    ]
+
+
+form_example = form()
+```
+
+Note that the `copy()` method is “shallow”. It only copies things one level deep. This makes it fast, but it also means that if you want to update a nested property, you’ll have to use it more than once.
+
+## Update a nested dictionary
