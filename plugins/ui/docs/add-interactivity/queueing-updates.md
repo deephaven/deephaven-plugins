@@ -42,4 +42,54 @@ This lets you update multiple state variables—even from multiple components—
 
 ## Update the same state multiple times before the next render
 
+If you would like to update the same state variable multiple times before the next render, instead of passing the next state value like `set_number(number + 1)`, you can pass a function that calculates the next state based on the previous one in the queue, like `set_number(lambda n: n + 1)`. It is a way to tell `deephaven.ui` to “do something with the state value” instead of just replacing it.
+
+Try incrementing the counter now:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def counter():
+    number, set_number = ui.use_state(0)
+
+    def handle_press():
+        set_number(lambda n: n + 1)
+        set_number(lambda n: n + 1)
+        set_number(lambda n: n + 1)
+
+    return [ui.heading(f"{number}"), ui.button("+3", on_press=handle_press)]
+
+
+example_counter = counter()
+```
+
+Here, `lambda n: n + 1` is called an updater function. When you pass it to a state setter:
+
+1. `deephaven.ui` queues this function to be processed after all the other code in the event handler has run.
+2. During the next render, `deephaven.ui` goes through the queue and gives you the final updated state.
+
+```python
+set_number(lambda n: n + 1)
+set_number(lambda n: n + 1)
+set_number(lambda n: n + 1)
+```
+
+`deephaven.ui` adds each `lambda n: n + 1` to the queue.
+
+When you call `use_state` during the next render, `deephaven.ui` goes through the queue. The previous number state was 0, so that’s what `deephaven.ui` passes to the first updater function as the n argument. Then `deephaven.ui` takes the return value of your previous updater function and passes it to the next updater as n, and so on:
+
+| queued update     | n   | returns     |
+| ----------------- | --- | ----------- |
+| `lambda n: n + 1` | `0` | `0 + 1 = 1` |
+| `lambda n: n + 1` | `1` | `1 + 1 = 2` |
+| `lambda n: n + 1` | `2` | `2 + 1 = 3` |
+
+`deephaven.ui` stores `3` as the final result and returns it from `use_state`.
+
+This is why clicking “+3” in the above example correctly increments the value by 3.
+
+## What happens if you update state after replacing it
+
 TODO Arman's question!!!!
