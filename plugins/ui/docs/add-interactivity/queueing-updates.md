@@ -128,4 +128,48 @@ During the next render, `deephaven.ui` goes through the state queue:
 
 ## What happens if you replace state after updating it
 
+Let's try an example where you replace state after updating it. What do you think number will be in the next render?
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def counter():
+    number, set_number = ui.use_state(0)
+
+    def handle_press():
+        set_number(number + 5)
+        set_number(lambda n: n + 1)
+        set_number(42)
+
+    return [ui.heading(f"{number}"), ui.button("+3", on_press=handle_press)]
+
+
+example_counter = counter()
+```
+
+Here is how `deephaven.ui` works through these lines of code while executing this event handler:
+
+1. `set_number(number + 5)`: number is `0`, so `set_number(0 + 5)`. `deephaven.ui` adds "replace with 5" to its queue.
+2. `set_number(lambda n: n + 1)`: `lambda n: n + 1` is an updater function. `deephaven.ui` adds that function to its queue.
+3. `set_number(42)`: `deephaven.ui` adds "replace with 42" to its queue.
+
+| queued update     | n            | returns     |
+| ----------------- | ------------ | ----------- |
+| "replace with 5"  | `0` (unused) | `5`         |
+| `lambda n: n + 1` | `5`          | `5 + 1 = 6` |
+| "replace with 42" | `6` (unused) | `42`        |
+
+Then `deephaven.ui` stores `42` as the final result and returns it from `use_state`.
+
+To summarize, here is how you can think of what you are passing to the `set_number` state setter:
+
+1. An updater function (e.g. `lambda n: n + 1`) gets added to the queue.
+2. Any other value (e.g. number `5`) adds "replace with 5" to the queue, ignoring what’s already queued.
+
+After the event handler completes, `deephaven.ui` will trigger a re-render. During the re-render, `deephaven.ui` will process the queue. Updater functions run during rendering, so updater functions must be pure and only return the result. Do not try to set state from inside of them or run other side effects.
+
+## Naming conventions
+
 TODO Arman's question!!!!
