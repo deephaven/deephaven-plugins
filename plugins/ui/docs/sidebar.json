@@ -80,6 +80,10 @@
             "path": "add-interactivity/state-a-components-memory.md"
           },
           {
+            "label": "Render Cycle",
+            "path": "add-interactivity/render-cycle.md"
+          },
+          {
             "label": "Queueing a Series of State Updates",
             "path": "add-interactivity/queueing-updates.md"
           }
