@@ -280,14 +280,16 @@ def form():
     )
 
     def handle_first_name_change(value):
-        copy = person.copy()
-        copy["first_name"] = value
-        set_person(copy)
+        person_copy = person.copy()
+        person_copy["first_name"] = value
+        person_copy["contact"] = person["contact"].copy()
+        set_person(person_copy)
 
     def handle_last_name_change(value):
-        copy = person.copy()
-        copy["last_name"] = value
-        set_person(copy)
+        person_copy = person.copy()
+        person_copy["last_name"] = value
+        person_copy["contact"] = person["contact"].copy()
+        set_person(person_copy)
 
     def handle_email_change(value):
         contact_copy = person["contact"].copy()
@@ -332,3 +334,74 @@ def form():
 
 form_example = form()
 ```
+
+## Write concise update logic with `deepcopy`
+
+If your state is deeply nested, you might want to consider flattening it. But, if you do not want to change your state structure, you might prefer to use `deepcopy`. The Python `copy` library includes a `deepcopy` function that constructs a new dictionary and recursively inserts copies of dictionaries found in the original.
+
+```python
+import copy
+from deephaven import ui
+
+
+@ui.component
+def form():
+    person, set_person = ui.use_state(
+        {
+            "first_name": "John",
+            "last_name": "Doe",
+            "contact": {"email": "jondoe@domain.com", "phone": "555-5555"},
+        }
+    )
+
+    def handle_first_name_change(value):
+        person_copy = copy.deepcopy(person)
+        person_copy["first_name"] = value
+        set_person(person_copy)
+
+    def handle_last_name_change(value):
+        person_copy = copy.deepcopy(person)
+        person_copy["last_name"] = value
+        set_person(person_copy)
+
+    def handle_email_change(value):
+        person_copy = copy.deepcopy(person)
+        person_copy["contact"]["email"] = value
+        set_person(person_copy)
+
+    def handle_phone_change(value):
+        person_copy = copy.deepcopy(person)
+        person_copy["contact"]["phone"] = value
+        set_person(person_copy)
+
+    return [
+        ui.text_field(
+            label="First name",
+            value=person["first_name"],
+            on_change=handle_first_name_change,
+        ),
+        ui.text_field(
+            label="Last name",
+            value=person["last_name"],
+            on_change=handle_last_name_change,
+        ),
+        ui.text_field(
+            label="Email",
+            value=person["contact"]["email"],
+            on_change=handle_email_change,
+        ),
+        ui.text_field(
+            label="Phone",
+            value=person["contact"]["phone"],
+            on_change=handle_phone_change,
+        ),
+        ui.text(
+            f'{person["first_name"]} {person["last_name"]} {person["contact"]["email"]} {person["contact"]["phone"]}'
+        ),
+    ]
+
+
+form_example = form()
+```
+
+Notice how much more concise the event handlers have become. `deepcopy` is a great way to keep the update handlers if there is nesting in your state.
