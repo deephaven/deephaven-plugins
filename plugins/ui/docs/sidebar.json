@@ -76,6 +76,10 @@
             "path": "add-interactivity/respond-to-events.md"
           },
           {
+            "label": "State: A Component's Memory",
+            "path": "add-interactivity/state-a-components-memory.md"
+          },
+          {
             "label": "Queueing a Series of State Updates",
             "path": "add-interactivity/queueing-updates.md"
           }
