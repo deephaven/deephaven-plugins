@@ -80,6 +80,10 @@
             "path": "add-interactivity/state-a-components-memory.md"
           },
           {
+            "label": "Render Cycle",
+            "path": "add-interactivity/render-cycle.md"
+          },
+          {
             "label": "Update Dictionaries in State",
             "path": "add-interactivity/update-dictionaries-in-state.md"
           }
