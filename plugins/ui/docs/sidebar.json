@@ -78,6 +78,10 @@
           {
             "label": "State: A Component's Memory",
             "path": "add-interactivity/state-a-components-memory.md"
+          },
+          {
+            "label": "Update Lists in State",
+            "path": "add-interactivity/update-lists-in-state.md"
           }
         ]
       },
