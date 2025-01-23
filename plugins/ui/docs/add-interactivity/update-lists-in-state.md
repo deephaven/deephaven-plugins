@@ -106,3 +106,11 @@ artist_list_example = artist_list()
 Here, `[artist for artist in artists if artist["id"] != id]` means create an list that consists of those artists whose IDs are different from `artist["id"]`. In other words, each artist’s “Delete” button will filter that artist out of the list, and then request a re-render with the resulting array. Note that list comprehension does not modify the original array.
 
 ## Transform a list
+
+If you want to change some or all items of the list, you can use list comprehension to create a new array.
+
+In this example, a list holds three values. Two are "mutable" and one is "immutable". Clicking on the button will increment only the "mutable" values.
+
+```python
+# TODO
+```
