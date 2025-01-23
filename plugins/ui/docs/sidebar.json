@@ -197,6 +197,10 @@
             "path": "components/inline_alert.md"
           },
           {
+            "label": "labeled_value",
+            "path": "components/labeled_value.md"
+          },
+          {
             "label": "link",
             "path": "components/link.md"
           },

@@ -34,6 +34,7 @@ from .image import image
 from .inline_alert import inline_alert
 from .item import item
 from .item_table_source import item_table_source
+from .labeled_value import labeled_value
 from .link import link
 from .list_action_group import list_action_group
 from .list_action_menu import list_action_menu
@@ -111,6 +112,7 @@ __all__ = [
     "item_table_source",
     "illustrated_message",
     "image",
+    "labeled_value",
     "inline_alert",
     "link",
     "list_view",

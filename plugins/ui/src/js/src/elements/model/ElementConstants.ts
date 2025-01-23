@@ -52,6 +52,7 @@ export const ELEMENT_NAME = {
   image: uiComponentName('Image'),
   inlineAlert: uiComponentName('InlineAlert'),
   item: uiComponentName('Item'),
+  labeledValue: uiComponentName('LabeledValue'),
   listActionGroup: uiComponentName('ListActionGroup'),
   listActionMenu: uiComponentName('ListActionMenu'),
   link: uiComponentName('Link'),

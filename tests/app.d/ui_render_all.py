@@ -88,6 +88,7 @@ def ui_components2():
             ),
             variant="positive",
         ),
+        ui.labeled_value(label="File name", value="Budget.xls"),
         ui.link("Learn more about Deephaven", href="https://deephaven.io/"),
         ui.list_view(
             _item_table_source_with_action_group,
