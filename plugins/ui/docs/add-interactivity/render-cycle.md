@@ -62,9 +62,6 @@ example = example_renderer()
 
 After you trigger a render, `deephaven.ui` runs the component functions and then encodes your components as JSON which is sent from the server to the web client UI. The client decodes the JSON into a document which is rendered by React.
 
-- On initial render, `deephaven.ui` will encode the root component.
-- For subsequent renders, `deephaven.ui` will encode the component whose state update triggered the render.
-
 This process is recursive: if the updated component returns some other component, `deephaven.ui` will render that component next, and if that component also returns something, it will render that component next, and so on. The process will continue until there are no more nested components.
 
 Rendering must always be a [pure](../describing/pure_components.md) calculation:
