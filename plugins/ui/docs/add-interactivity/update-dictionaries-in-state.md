@@ -234,3 +234,101 @@ form_example = form()
 Note that the `copy()` method is “shallow”. It only copies things one level deep. This makes it fast, but it also means that if you want to update a nested property, you’ll have to use it more than once.
 
 ## Update a nested dictionary
+
+Consider a nested dictionary structure like this:
+
+```python
+person, set_person = ui.use_state(
+    {
+        "first_name": "John",
+        "last_name": "Doe",
+        "contact": {"email": "jondoe@domain.com", "phone": "555-5555"},
+    }
+)
+```
+
+If you wanted to update `email`, it’s clear how to do it with mutation:
+
+```python
+person["contact"]["email"] = "jdoe@domain.net"
+```
+
+But in `deephaven.ui`, you should treat state as immutable. In order to change `email`, you would first need to produce the new `contact` dictionary (pre-populated with data from the previous one), and then produce the new `person` dictionary which points at the new artwork:
+
+```python
+contact_copy = person["contact"].copy()
+contact_copy["email"] = "jdoe@domain.net"
+person_copy = person.copy()
+person_copy["contact"] = contact_copy
+person_copy(person_copy)
+```
+
+This gets a bit wordy, but it works fine for many cases:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def form():
+    person, set_person = ui.use_state(
+        {
+            "first_name": "John",
+            "last_name": "Doe",
+            "contact": {"email": "jondoe@domain.com", "phone": "555-5555"},
+        }
+    )
+
+    def handle_first_name_change(value):
+        copy = person.copy()
+        copy["first_name"] = value
+        set_person(copy)
+
+    def handle_last_name_change(value):
+        copy = person.copy()
+        copy["last_name"] = value
+        set_person(copy)
+
+    def handle_email_change(value):
+        contact_copy = person["contact"].copy()
+        contact_copy["email"] = value
+        person_copy = person.copy()
+        person_copy["contact"] = contact_copy
+        set_person(person_copy)
+
+    def handle_phone_change(value):
+        contact_copy = person["contact"].copy()
+        contact_copy["phone"] = value
+        person_copy = person.copy()
+        person_copy["contact"] = contact_copy
+        set_person(person_copy)
+
+    return [
+        ui.text_field(
+            label="First name",
+            value=person["first_name"],
+            on_change=handle_first_name_change,
+        ),
+        ui.text_field(
+            label="Last name",
+            value=person["last_name"],
+            on_change=handle_last_name_change,
+        ),
+        ui.text_field(
+            label="Email",
+            value=person["contact"]["email"],
+            on_change=handle_email_change,
+        ),
+        ui.text_field(
+            label="Phone",
+            value=person["contact"]["phone"],
+            on_change=handle_phone_change,
+        ),
+        ui.text(
+            f'{person["first_name"]} {person["last_name"]} {person["contact"]["email"]} {person["contact"]["phone"]}'
+        ),
+    ]
+
+
+form_example = form()
+```
