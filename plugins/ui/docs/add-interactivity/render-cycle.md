@@ -17,7 +17,7 @@ There are two reasons for a component to render:
 
 ### Initial Render
 
-When your component first mounts, it triggers an initial render. It is rendered with it's props and initial state.
+Opening a component to view it causes the component to be mounted, which means adding nodes to the DOM. When your component first mounts, it triggers an initial render. It is rendered with it's props and initial state.
 
 ```python
 from deephaven import ui
@@ -60,7 +60,7 @@ example = example_renderer()
 
 ## Step 2: `deephaven.ui` renders your components
 
-After you trigger a render, `deephaven.ui` encodes your components as JSON which is sent from the server to the web client UI. The client decodes the JSON into a document which is rendered by React.
+After you trigger a render, `deephaven.ui` runs the component functions and then encodes your components as JSON which is sent from the server to the web client UI. The client decodes the JSON into a document which is rendered by React.
 
 - On initial render, `deephaven.ui` will encode the root component.
 - For subsequent renders, `deephaven.ui` will encode the component whose state update triggered the render.
