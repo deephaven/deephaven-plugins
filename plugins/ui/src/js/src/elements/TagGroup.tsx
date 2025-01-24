@@ -1,5 +1,5 @@
 import {
-  TagGroup as DHCAccordion,
+  TagGroup as DHCTagGroup,
   TagGroupProps as DHCTagGroupProps,
 } from '@deephaven/components';
 import { useConditionalCallback } from './hooks';
@@ -18,15 +18,10 @@ export function TagGroup(
     [propOnRemove]
   );
 
-  const renderEmptyStateProp = renderEmptyState
-    ? { renderEmptyState: () => renderEmptyState }
-    : {};
-
   return (
-    <DHCAccordion
+    <DHCTagGroup
       onRemove={onRemove}
-      /* eslint-disable-next-line react/jsx-props-no-spreading */
-      {...renderEmptyStateProp}
+      renderEmptyState={renderEmptyState ? () => renderEmptyState : undefined}
       /* eslint-disable-next-line react/jsx-props-no-spreading */
       {...otherProps}
     />
