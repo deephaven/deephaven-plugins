@@ -221,7 +221,7 @@ def artist_list():
     return [
         ui.heading("Artists:"),
         ui.text_field(label="Name", value=value, on_change=set_value),
-        ui.button("Insert", on_press=lambda: handle_insert()),
+        ui.button("Insert", on_press=handle_insert),
         [ui.text(artist["name"]) for artist in artists],
     ]
 
@@ -230,3 +230,53 @@ artist_list_example = artist_list()
 ```
 
 ## Make other changes to a list
+
+There are some things you cannot do with non-mutating methods. For example, you may want to reverse or sort an array. The Python list `reverse()` and `sort()` methods are mutating the original list, so you cannot use them directly.
+
+However, you can copy the list first, and then make changes to it.
+
+For example:
+
+```python
+from deephaven import ui
+
+initial_artists = [
+    {"id": 0, "name": "Leonardo"},
+    {"id": 1, "name": "Donatello"},
+    {"id": 2, "name": "Michelangelo"},
+    {"id": 3, "name": "Raphael"},
+]
+
+
+@ui.component
+def artist_list():
+    artists, set_artists = ui.use_state(initial_artists)
+
+    def handle_reverse():
+        artists_copy = artists.copy()
+        artists_copy.reverse()
+        set_artists(artists_copy)
+
+    return [
+        ui.heading("Artists:"),
+        ui.button("Reverse", on_press=handle_reverse),
+        [ui.text(artist["name"]) for artist in artists],
+    ]
+
+
+artist_list_example = artist_list()
+```
+
+Here, you use the `copy()` method to create a copy of the original list first. Now that you have a copy, you can use mutating methods like `reverse()` or `sort()`, or even assign individual items.
+
+However, even if you copy list, you cannot mutate existing items inside of it directly. This is because copying is shallow and the new list will contain the same items as the original one. So if you modify an dictionary inside the copied list, you are mutating the existing state. For example, code like this is a problem.
+
+```python
+artists_copy = artists.copy()
+artists_copy[0]["name"] = "Splinter"
+set_artists(artists_copy)
+```
+
+Although `artists_copy` and `artists` are two different lists, `artists_copy[0]` and `artists[0]` point to the same dictionary. So by changing `artists_copy[0]["name"]`, you are also changing `artists[0]["name"]`. This is a state mutation, which you should avoid. You can solve this issue in a similar way to updating nested python dictionaries by copying individual items you want to change instead of mutating them. Here’s how.
+
+## Update dictionaries inside arrays
