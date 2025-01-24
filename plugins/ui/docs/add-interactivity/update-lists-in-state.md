@@ -103,14 +103,47 @@ def artist_list():
 artist_list_example = artist_list()
 ```
 
-Here, `[artist for artist in artists if artist["id"] != id]` means create an list that consists of those artists whose IDs are different from `artist["id"]`. In other words, each artist’s “Delete” button will filter that artist out of the list, and then request a re-render with the resulting array. Note that list comprehension does not modify the original array.
+Here, `[artist for artist in artists if artist["id"] != id]` means create an list that consists of those artists whose IDs are different from `artist["id"]`. In other words, each artist’s “Delete” button will filter that artist out of the list, and then request a re-render with the resulting list. Note that list comprehension does not modify the original list.
 
 ## Transform a list
 
-If you want to change some or all items of the list, you can use list comprehension to create a new array.
+If you want to change some or all items of the list, you can use list comprehension to create a new list.
 
-In this example, a list holds three values. Two are "mutable" and one is "immutable". Clicking on the button will increment only the "mutable" values.
+In this example, a list holds three values. Two are "mutable" and one is "immutable". Clicking on the button will increment only the "mutable" values. It does this by producing a new list using list comprehension.
 
 ```python
-# TODO
+from deephaven import ui
+
+initial_values = [
+    {"number": 0, "type": "mutable"},
+    {"number": 10, "type": "immutable"},
+    {"number": 20, "type": "mutable"},
+]
+
+
+@ui.component
+def transform():
+    values, set_values = ui.use_state(initial_values)
+
+    def handle_press(id):
+        # Use list comprehension to filter by id
+        set_values(
+            [
+                value
+                if value["type"] == "immutable"
+                else {"number": value["number"] + 1, "type": "mutable"}
+                for value in values
+            ]
+        )
+
+    return [
+        ui.heading("Values:"),
+        ui.button("Increment mutable", on_press=handle_press),
+        [ui.text(value["number"]) for value in values],
+    ]
+
+
+transform_example = transform()
 ```
+
+## Replace items in a list
