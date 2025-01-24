@@ -7,6 +7,7 @@ Tags allow users to categorize content. They can represent keywords or people, a
 ```python
 from deephaven import ui
 
+
 tag_group_example = ui.tag_group(
     ui.item("News", key="news"),
     ui.item("Travel", key="travel"),
@@ -42,6 +43,7 @@ By default, the position of the label is above the tag group, but it can be move
 
 ```python
 from deephaven import ui
+
 
 tag_group_label_example = ui.tag_group(
     ui.item("News", key="news"),
@@ -243,6 +245,7 @@ By default the empty state displays the text "None".
 
 ```python
 from deephaven import ui
+
 
 my_tag_group_empty_default = ui.tag_group()
 ```
