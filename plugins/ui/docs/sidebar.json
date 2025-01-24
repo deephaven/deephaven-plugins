@@ -74,6 +74,14 @@
           {
             "label": "Respond to Events",
             "path": "add-interactivity/respond-to-events.md"
+          },
+          {
+            "label": "State: A Component's Memory",
+            "path": "add-interactivity/state-a-components-memory.md"
+          },
+          {
+            "label": "Render Cycle",
+            "path": "add-interactivity/render-cycle.md"
           }
         ]
       },
@@ -193,6 +201,10 @@
             "path": "components/inline_alert.md"
           },
           {
+            "label": "labeled_value",
+            "path": "components/labeled_value.md"
+          },
+          {
             "label": "link",
             "path": "components/link.md"
           },
@@ -271,6 +283,10 @@
           {
             "label": "tabs",
             "path": "components/tabs.md"
+          },
+          {
+            "label": "tag_group",
+            "path": "components/tag_group.md"
           },
           {
             "label": "text",
