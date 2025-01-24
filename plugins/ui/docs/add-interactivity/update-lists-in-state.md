@@ -280,3 +280,59 @@ set_artists(artists_copy)
 Although `artists_copy` and `artists` are two different lists, `artists_copy[0]` and `artists[0]` point to the same dictionary. So by changing `artists_copy[0]["name"]`, you are also changing `artists[0]["name"]`. This is a state mutation, which you should avoid. You can solve this issue in a similar way to updating nested python dictionaries by copying individual items you want to change instead of mutating them. Here’s how.
 
 ## Update dictionaries inside arrays
+
+When updating nested state, you need to create copies from the point where you want to update, and all the way up to the top level. Let's see how this works.
+
+In this example, two separate artwork lists have the same initial state. They are supposed to be isolated, but because of a mutation, their state is accidentally shared, and checking a box in one list affects the other list:
+
+```python
+from deephaven import ui
+
+initial_art = [
+    {"id": 0, "name": "Mona Lisa", "seen": False},
+    {"id": 1, "name": "The Starry Night", "seen": False},
+    {"id": 2, "name": "The Scream", "seen": True},
+    {"id": 3, "name": "The Persistence of Memory", "seen": False},
+]
+
+
+@ui.component
+def item_list(artworks, on_toggle):
+    return [
+        ui.checkbox(
+            artwork["name"],
+            is_selected=artwork["seen"],
+            on_change=lambda value, artwork=artwork: on_toggle(artwork["id"], value),
+        )
+        for artwork in artworks
+    ]
+
+
+@ui.component
+def bucket_list():
+    my_list, set_my_list = ui.use_state(initial_art)
+    your_list, set_your_list = ui.use_state(initial_art)
+
+    def handle_toggle_my_list(artworkId, next_seen):
+        my_list_copy = my_list.copy()
+        artwork = next((a for a in my_list_copy if a["id"] == artworkId), None)
+        artwork["seen"] = next_seen
+        set_my_list(my_list_copy)
+
+    def handle_toggle_your_list(artworkId, next_seen):
+        your_list_copy = your_list.copy()
+        artwork = next((a for a in your_list_copy if a["id"] == artworkId), None)
+        artwork["seen"] = next_seen
+        set_your_list(your_list_copy)
+
+    return [
+        ui.heading("Art Bucket List"),
+        ui.heading("My list of art to see:", level=2),
+        item_list(my_list, handle_toggle_my_list),
+        ui.heading("Your list of art to see:", level=2),
+        item_list(your_list, handle_toggle_your_list),
+    ]
+
+
+bucket_list_example = bucket_list()
+```
