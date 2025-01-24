@@ -336,3 +336,71 @@ def bucket_list():
 
 bucket_list_example = bucket_list()
 ```
+
+The problem is in code like this:
+
+```python
+my_list_copy = my_list.copy()
+artwork = next((a for a in my_list_copy if a["id"] == artworkId), None)
+artwork["seen"] = next_seen  # Problem: mutates an existing item
+set_my_list(my_list_copy)
+```
+
+Although the `my_list_copy` list is new, the items themselves are the same as in the original `my_list`. Therefore, changing `artwork["seen"]` also changes the original artwork item. Since that artwork item is also in `your_list`, this causes the bug. Such bugs can be tricky to debug, but they can be avoided by not mutating state.
+
+You `deepcopy` to substitute an old item with its updated version without mutation.
+
+```python
+import copy
+from deephaven import ui
+
+initial_art = [
+    {"id": 0, "name": "Mona Lisa", "seen": False},
+    {"id": 1, "name": "The Starry Night", "seen": False},
+    {"id": 2, "name": "The Scream", "seen": True},
+    {"id": 3, "name": "The Persistence of Memory", "seen": False},
+]
+
+
+@ui.component
+def item_list(artworks, on_toggle):
+    return [
+        ui.checkbox(
+            artwork["name"],
+            is_selected=artwork["seen"],
+            on_change=lambda value, artwork=artwork: on_toggle(artwork["id"], value),
+        )
+        for artwork in artworks
+    ]
+
+
+@ui.component
+def bucket_list():
+    my_list, set_my_list = ui.use_state(initial_art)
+    your_list, set_your_list = ui.use_state(initial_art)
+
+    def handle_toggle_my_list(artworkId, next_seen):
+        my_list_copy = copy.deepcopy(my_list)
+        artwork = next((a for a in my_list_copy if a["id"] == artworkId), None)
+        artwork["seen"] = next_seen
+        set_my_list(my_list_copy)
+
+    def handle_toggle_your_list(artworkId, next_seen):
+        your_list_copy = copy.deepcopy(your_list)
+        artwork = next((a for a in your_list_copy if a["id"] == artworkId), None)
+        artwork["seen"] = next_seen
+        set_your_list(your_list_copy)
+
+    return [
+        ui.heading("Art Bucket List"),
+        ui.heading("My list of art to see:", level=4),
+        item_list(my_list, handle_toggle_my_list),
+        ui.heading("Your list of art to see:", level=4),
+        item_list(your_list, handle_toggle_your_list),
+    ]
+
+
+bucket_list_example = bucket_list()
+```
+
+In general, you should only mutate items that you have just created. If you were inserting a new artwork, you could mutate it, but if you are dealing with something that is already in state, you need to make a copy.
