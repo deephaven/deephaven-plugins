@@ -19,6 +19,10 @@
         "path": "installation.md"
       },
       {
+        "label": "Tutorial",
+        "path": "tutorial.md"
+      },
+      {
         "label": "Architecture",
         "path": "architecture.md"
       },
@@ -61,6 +65,23 @@
           {
             "label": "Your UI as a Tree",
             "path": "describing/your-ui-as-a-tree.md"
+          }
+        ]
+      },
+      {
+        "label": "Add Interactivity",
+        "items": [
+          {
+            "label": "Respond to Events",
+            "path": "add-interactivity/respond-to-events.md"
+          },
+          {
+            "label": "State: A Component's Memory",
+            "path": "add-interactivity/state-a-components-memory.md"
+          },
+          {
+            "label": "Render Cycle",
+            "path": "add-interactivity/render-cycle.md"
           }
         ]
       },
@@ -140,6 +161,10 @@
             "path": "components/dialog_trigger.md"
           },
           {
+            "label": "divider",
+            "path": "components/divider.md"
+          },
+          {
             "label": "flex",
             "path": "components/flex.md"
           },
@@ -170,6 +195,10 @@
           {
             "label": "inline_alert",
             "path": "components/inline_alert.md"
+          },
+          {
+            "label": "labeled_value",
+            "path": "components/labeled_value.md"
           },
           {
             "label": "link",

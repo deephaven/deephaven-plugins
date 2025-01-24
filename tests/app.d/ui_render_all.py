@@ -62,6 +62,7 @@ def ui_components1():
             label="Date Range Picker",
             value={"start": "2021-01-01", "end": "2021-01-02"},
         ),
+        ui.flex("Content before", ui.divider(orientation="vertical"), "Content after"),
         ui.flex("Flex default child A", "Flex default child B"),
         ui.flex("Flex column child A", "Flex column child B", direction="column"),
         ui.form("Form"),
@@ -87,6 +88,7 @@ def ui_components2():
             ),
             variant="positive",
         ),
+        ui.labeled_value(label="File name", value="Budget.xls"),
         ui.link("Learn more about Deephaven", href="https://deephaven.io/"),
         ui.list_view(
             _item_table_source_with_action_group,
