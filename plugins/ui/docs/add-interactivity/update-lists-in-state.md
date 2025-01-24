@@ -147,3 +147,48 @@ transform_example = transform()
 ```
 
 ## Replace items in a list
+
+It is particularly common to want to replace one or more items in an list. Assignments like `values[0] = "bird"` are mutating the original list, so instead you will want to use list comprehension for this as well.
+
+```python
+from deephaven import ui
+
+initial_artists = [
+    {"id": 0, "name": "Leonardo"},
+    {"id": 1, "name": "Donatello"},
+    {"id": 2, "name": "Michelangelo"},
+    {"id": 3, "name": "Raphael"},
+]
+
+
+@ui.component
+def artist_list():
+    value, set_value = ui.use_state("")
+    artists, set_artists = ui.use_state(initial_artists)
+
+    def handle_replace(id):
+        # Use list comprehension to filter by id
+        set_artists(
+            [
+                artist if artist["id"] != id else {"id": id, "name": value}
+                for artist in artists
+            ]
+        )
+
+    def artist_row(artist):
+        return ui.flex(
+            ui.text(artist["name"]),
+            ui.button("Replace", on_press=lambda: handle_replace(artist["id"])),
+        )
+
+    return [
+        ui.heading("Artists:"),
+        ui.text_field(label="Name", value=value, on_change=set_value),
+        [artist_row(artist) for artist in artists],
+    ]
+
+
+artist_list_example = artist_list()
+```
+
+## Insert into an list
