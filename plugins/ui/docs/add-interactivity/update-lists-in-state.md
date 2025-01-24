@@ -126,7 +126,6 @@ def transform():
     values, set_values = ui.use_state(initial_values)
 
     def handle_press(id):
-        # Use list comprehension to filter by id
         set_values(
             [
                 value
@@ -167,7 +166,6 @@ def artist_list():
     artists, set_artists = ui.use_state(initial_artists)
 
     def handle_replace(id):
-        # Use list comprehension to filter by id
         set_artists(
             [
                 artist if artist["id"] != id else {"id": id, "name": value}
@@ -191,4 +189,44 @@ def artist_list():
 artist_list_example = artist_list()
 ```
 
-## Insert into an list
+## Insert into a list
+
+You may want to insert an item at a particular position that is neither at the beginning nor at the end. To do this, you can the slice syntax. The slice syntax lets you cut a “slice” of the list. To insert an item, you will create a slice before the insertion point, then the new item, and then a slice that is the rest of the original list.
+
+In this example, the Insert button always inserts at the index 1:
+
+```python
+from deephaven import ui
+
+next_id = 4
+initial_artists = [
+    {"id": 0, "name": "Leonardo"},
+    {"id": 1, "name": "Donatello"},
+    {"id": 2, "name": "Michelangelo"},
+    {"id": 3, "name": "Raphael"},
+]
+
+
+@ui.component
+def artist_list():
+    value, set_value = ui.use_state("")
+    artists, set_artists = ui.use_state(initial_artists)
+
+    def handle_insert():
+        global next_id
+        # Use slicing to create a new list
+        set_artists(artists[:1] + [{"id": next_id, "name": value}] + artists[1:])
+        next_id += 1
+
+    return [
+        ui.heading("Artists:"),
+        ui.text_field(label="Name", value=value, on_change=set_value),
+        ui.button("Insert", on_press=lambda: handle_insert()),
+        [ui.text(artist["name"]) for artist in artists],
+    ]
+
+
+artist_list_example = artist_list()
+```
+
+## Make other changes to a list
