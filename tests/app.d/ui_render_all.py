@@ -68,13 +68,13 @@ def ui_components1():
         ui.form("Form"),
         ui.fragment("Fragment"),
         ui.grid("Grid A", "Grid B"),
-        ui.heading("Heading"),
     )
 
 
 @ui.component
 def ui_components2():
     return (
+        ui.heading("Heading"),
         ui.icon("vsSymbolMisc"),
         ui.illustrated_message(
             ui.icon("vsWarning"),
@@ -119,6 +119,12 @@ def ui_components2():
         ui.range_calendar(
             default_value={"start": "2021-01-01", "end": "2021-01-02"},
         ),
+    )
+
+
+@ui.component
+def ui_components3():
+    return (
         ui.range_slider(default_value={"start": 10, "end": 99}, label="Range Slider"),
         ui.row("Row child A", "Row child B"),
         ui.slider(
@@ -133,6 +139,11 @@ def ui_components2():
         # ui.tab_list("Tab List"),
         # ui.tab_panels("Tab Panels"),
         # ui.tabs("Tabs"),
+        ui.tag_group(
+            ui.item("Tag 1", key="1"),
+            ui.item("Tag 2", key="2"),
+            ui.item("Tag 3", key="3"),
+        ),
         ui.text("Text"),
         ui.text_field(
             ui.icon("vsSymbolMisc"), default_value="Text Field", label="Text Field"
@@ -163,6 +174,7 @@ def ui_html_elements():
 
 _my_components1 = ui_components1()
 _my_components2 = ui_components2()
+_my_components3 = ui_components3()
 _my_html_elements = ui_html_elements()
 
 ui_render_all1 = ui.dashboard(
@@ -189,6 +201,19 @@ ui_render_all2 = ui.dashboard(
                 width="100%",
             ),
             title="Panel C",
+        ),
+    )
+)
+
+ui_render_all3 = ui.dashboard(
+    ui.stack(
+        ui.panel(
+            ui.grid(
+                _my_components3,
+                columns=["1fr", "1fr", "1fr"],
+                width="100%",
+            ),
+            title="Panel D",
         ),
     )
 )

@@ -79,6 +79,7 @@ export const ELEMENT_NAME = {
   tabPanels: uiComponentName('TabPanels'),
   tabs: uiComponentName('Tabs'),
   tab: uiComponentName('Tab'),
+  tagGroup: uiComponentName('TagGroup'),
   text: uiComponentName('Text'),
   textArea: uiComponentName('TextArea'),
   textField: uiComponentName('TextField'),

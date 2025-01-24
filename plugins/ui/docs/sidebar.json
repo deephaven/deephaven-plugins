@@ -281,6 +281,10 @@
             "path": "components/tabs.md"
           },
           {
+            "label": "tag_group",
+            "path": "components/tag_group.md"
+          },
+          {
             "label": "text",
             "path": "components/text.md"
           },
