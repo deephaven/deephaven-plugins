@@ -40,6 +40,8 @@ This is similar to a waiter taking an order at a restaurant. A waiter does not g
 
 This lets you update multiple state variables—even from multiple components—without triggering too many re-renders. But this also means that the UI will not be updated until after your event handler, and any code in it, completes. This behavior, also known as batching, makes your `deephaven.ui` app run much faster. It also avoids dealing with confusing “half-finished” renders where only some of the variables have been updated.
 
+Note that in multi-threaded cases, state updates are not batched by default. You can use the [use_render_queue](../hooks/use_render_queue.md) to ensure they do get batched if you are going to do work from a background thread. See [`batch-updates`](../hooks/use_render_queue.md#batch-updates) for more information.
+
 ## Update the same state multiple times before the next render
 
 If you would like to update the same state variable multiple times before the next render, instead of passing the next state value like `set_number(number + 1)`, you can pass a function that calculates the next state based on the previous one in the queue, like `set_number(lambda n: n + 1)`. It is a way to tell `deephaven.ui` to “do something with the state value” instead of just replacing it.
