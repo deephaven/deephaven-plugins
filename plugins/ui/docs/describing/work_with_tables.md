@@ -135,7 +135,7 @@ def ui_table_data(table):
 table_data_example = ui_table_data(time_table("PT1s").update("x=i").tail(5))
 ```
 
-The [`use_cell_data`](../hooks/use_cell_data.md) hook lets you use the cell data of the first cell (first row in the first column) in a table. This is useful when you want to listen to an updating table and use the data in your component.
+The [`use_cell_data`](../hooks/use_cell_data.md) hook lets you use the cell data of the first cell (first row in the first column) in a table. This is useful when you want to listen to an updating table and use the data in your component. This value can be used for conditional rendering as shown in this example.
 
 ```python
 from deephaven import time_table, ui
@@ -144,8 +144,14 @@ from deephaven import time_table, ui
 @ui.component
 def ui_table_first_cell(table):
     cell_value = ui.use_cell_data(table)
-    return ui.heading(f"The first cell value is {cell_value}")
+    is_even = cell_value % 2 == 0
+    return [
+        ui.heading(f"The first cell value is {cell_value}"),
+        ui.text(f"Is {cell_value} even?", " ✅" if is_even else " ❌"),
+    ]
 
 
-table_first_cell = ui_table_first_cell(time_table("PT1s").tail(1))
+table_first_cell2 = ui_table_first_cell(
+    time_table("PT1s").update("x=i").drop_columns("Timestamp").tail(1)
+)
 ```
