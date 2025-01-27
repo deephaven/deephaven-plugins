@@ -8,9 +8,9 @@ from deephaven import ui
 
 breadcrumbs_example = ui.view(
     ui.breadcrumbs(
-        ui.item("Home", key="home"),
-        ui.item("Trendy", key="trendy"),
-        ui.item("March 2020 Assets", key="march 2020 assets"),
+        ui.item("Deephaven", key="deephaven"),
+        ui.item("Products", key="products"),
+        ui.item("Community Core", key="community_core"),
     ),
     width="100%",
 )
@@ -35,9 +35,9 @@ def breadcrumbs_action_example():
     return (
         ui.view(
             ui.breadcrumbs(
-                ui.item("Home", key="home"),
-                ui.item("Trendy", key="trendy"),
-                ui.item("March 2020 Assets", key="march 2020 assets"),
+                ui.item("Deephaven", key="deephaven"),
+                ui.item("Products", key="products"),
+                ui.item("Community Core", key="community_core"),
                 on_action=set_selected,
             ),
             ui.text(f"{selected} clicked"),
@@ -60,22 +60,21 @@ from deephaven import ui
 breadcrumbs_link_example = ui.view(
     ui.breadcrumbs(
         ui.item(
-            "React Libraries",
-            key="1",
-            on_action=lambda: print("HELLO"),
-            href="https://react-spectrum.adobe.com/",
+            "Deephaven",
+            key="deephaven",
+            href="https://deephaven.io/",
             target="_blank",
         ),
         ui.item(
-            "React Spectrum",
-            key="2",
-            href="https://react-spectrum.adobe.com/react-spectrum/",
+            "Community Core",
+            key="community_core",
+            href="https://deephaven.io/community/",
             target="_blank",
         ),
         ui.item(
-            "Breadcrumbs",
-            key="3",
-            href="https://react-spectrum.adobe.com/react-spectrum/Breadcrumbs.html",
+            "Getting Started",
+            key="getting_started",
+            href="https://deephaven.io/core/docs/getting-started/quickstart/",
             target="_blank",
         ),
     ),
@@ -93,20 +92,20 @@ from deephaven import ui
 
 breadcrumbs_size_example = ui.view(
     ui.breadcrumbs(
-        ui.item("Home", key="home"),
-        ui.item("Trendy", key="trendy"),
-        ui.item("March 2020 Assets", key="march 2020 assets"),
+        ui.item("Deephaven", key="deephaven"),
+        ui.item("Products", key="products"),
+        ui.item("Community Core", key="community_core"),
     ),
     ui.breadcrumbs(
-        ui.item("Home", key="home"),
-        ui.item("Trendy", key="trendy"),
-        ui.item("March 2020 Assets", key="march 2020 assets"),
+        ui.item("Deephaven", key="deephaven"),
+        ui.item("Products", key="products"),
+        ui.item("Community Core", key="community_core"),
         size="M",
     ),
     ui.breadcrumbs(
-        ui.item("Home", key="home"),
-        ui.item("Trendy", key="trendy"),
-        ui.item("March 2020 Assets", key="march 2020 assets"),
+        ui.item("Deephaven", key="deephaven"),
+        ui.item("Products", key="products"),
+        ui.item("Community Core", key="community_core"),
         size="S",
     ),
     width="100%",
@@ -123,9 +122,9 @@ from deephaven import ui
 
 breadcrumbs_multiline_example = ui.view(
     ui.breadcrumbs(
-        ui.item("Home", key="home"),
-        ui.item("Trendy", key="trendy"),
-        ui.item("March 2020 Assets", key="march 2020 assets"),
+        ui.item("Deephaven", key="deephaven"),
+        ui.item("Products", key="products"),
+        ui.item("Community Core", key="community_core"),
         is_multiline=True,
     ),
     width="100%",
@@ -142,14 +141,14 @@ from deephaven import ui
 
 breadcrumbs_root_context_example = ui.view(
     ui.breadcrumbs(
-        ui.item("Home", key="home"),
-        ui.item("Trendy", key="trendy"),
-        ui.item("March 2020 Assets", key="march 2020 assets"),
-        ui.item("Winter", key="winter"),
-        ui.item("Holiday", key="holiday"),
+        ui.item("Deephaven", key="deephaven"),
+        ui.item("Products", key="products"),
+        ui.item("Community Core", key="community_core"),
+        ui.item("Getting Started", key="getting_started"),
+        ui.item("Create Tables", key="create_tables"),
         show_root=True,
     ),
-    width="200px",
+    width="300px",
 )
 ```
 
@@ -163,9 +162,9 @@ from deephaven import ui
 
 breadcrumbs_disabled_example = ui.view(
     ui.breadcrumbs(
-        ui.item("Home", key="home"),
-        ui.item("Trendy", key="trendy"),
-        ui.item("March 2020 Assets", key="march 2020 assets"),
+        ui.item("Deephaven", key="deephaven"),
+        ui.item("Products", key="products"),
+        ui.item("Community Core", key="community_core"),
         is_disabled=True,
     ),
     width="100%",
@@ -189,11 +188,11 @@ def breadcrumbs_overflow_example():
     return [
         ui.view(
             ui.breadcrumbs(
-                ui.item("Home", key="home"),
-                ui.item("Trendy", key="trendy"),
-                ui.item("March 2020 Assets", key="march 2020 assets"),
-                ui.item("Winter", key="winter"),
-                ui.item("Holiday", key="holiday"),
+                ui.item("Deephaven", key="deephaven"),
+                ui.item("Products", key="products"),
+                ui.item("Community Core", key="community_core"),
+                ui.item("Getting Started", key="getting_started"),
+                ui.item("Create Tables", key="create_tables"),
                 show_root=True,
             ),
             border_width="thin",
@@ -202,24 +201,24 @@ def breadcrumbs_overflow_example():
         ),
         ui.view(
             ui.breadcrumbs(
-                ui.item("Home", key="home"),
-                ui.item("Trendy", key="trendy"),
-                ui.item("March 2020 Assets", key="march 2020 assets"),
-                ui.item("Winter", key="winter"),
-                ui.item("Holiday", key="holiday"),
+                ui.item("Deephaven", key="deephaven"),
+                ui.item("Products", key="products"),
+                ui.item("Community Core", key="community_core"),
+                ui.item("Getting Started", key="getting_started"),
+                ui.item("Create Tables", key="create_tables"),
                 show_root=True,
             ),
             border_width="thin",
             border_color="accent-400",
-            width="150px",
+            width="200px",
         ),
         ui.view(
             ui.breadcrumbs(
-                ui.item("Home", key="home"),
-                ui.item("Trendy", key="trendy"),
-                ui.item("March 2020 Assets", key="march 2020 assets"),
-                ui.item("Winter", key="winter"),
-                ui.item("Holiday", key="holiday"),
+                ui.item("Deephaven", key="deephaven"),
+                ui.item("Products", key="products"),
+                ui.item("Community Core", key="community_core"),
+                ui.item("Getting Started", key="getting_started"),
+                ui.item("Create Tables", key="create_tables"),
             ),
             border_width="thin",
             border_color="accent-400",
@@ -229,6 +228,84 @@ def breadcrumbs_overflow_example():
 
 
 my_breadcrumbs_overflow_example = breadcrumbs_overflow_example()
+```
+
+## Detailed Example
+
+Below is an example using the generated `tips` dataset from the Deephaven Express API. It allows you to explore the data in a hierarchical order of day, time, sex, and smoker status.
+
+```python
+import deephaven.plot.express as dx
+from deephaven import ui
+
+OPTIONS = ["Day", "Time", "Sex", "Smoker", ""]
+OPTION_ITEMS = {
+    "Day": [
+        ui.item("Thur", key="Thur"),
+        ui.item("Fri", key="Fri"),
+        ui.item("Sat", key="Sat"),
+        ui.item("Sun", key="Sun"),
+    ],
+    "Time": [
+        ui.item("Lunch", key="Lunch"),
+        ui.item("Dinner", key="Dinner"),
+    ],
+    "Sex": [
+        ui.item("Male", key="Male"),
+        ui.item("Female", key="Female"),
+    ],
+    "Smoker": [
+        ui.item("Yes", key="Yes"),
+        ui.item("No", key="No"),
+    ],
+}
+
+
+@ui.component
+def tips_filterer():
+    tips = dx.data.tips(ticking=False)
+
+    items, set_items = ui.use_state([ui.item("All Tips")])
+    option, set_option = ui.use_state(OPTIONS[0])
+    filters, set_filters = ui.use_state([])
+
+    def handle_action(key):
+        set_items(items + [ui.item(f"{key}", key=option)])
+        set_option(OPTIONS[OPTIONS.index(option) + 1])
+        set_filters(filters + [f"{option} == '{key}'"])
+
+    def handle_back(key):
+        if key not in OPTIONS:
+            set_items([ui.item("All Tips")])
+            set_option(OPTIONS[0])
+            set_filters([])
+            return
+
+        selected_index = OPTIONS.index(key)
+        set_items(items[: selected_index + 2])
+        set_option(OPTIONS[selected_index + 1])
+        set_filters(filters[: selected_index + 1])
+
+    return ui.flex(
+        ui.flex(
+            ui.breadcrumbs(*items, show_root=True, on_action=handle_back, flex_grow=1),
+            ui.view(
+                ui.menu_trigger(
+                    ui.action_button(f"Filter by {option}"),
+                    ui.menu(*OPTION_ITEMS[option], on_action=handle_action),
+                ),
+            )
+            if not option == ""
+            else None,
+        ),
+        tips.where(filters=filters).view(
+            formulas=["TotalBill", "Tip", "Size"] + OPTIONS[OPTIONS.index(option) : -1]
+        ),
+        direction="column",
+    )
+
+
+my_tips = tips_filterer()
 ```
 
 ## API reference
