@@ -201,6 +201,10 @@
             "path": "components/inline_alert.md"
           },
           {
+            "label": "labeled_value",
+            "path": "components/labeled_value.md"
+          },
+          {
             "label": "link",
             "path": "components/link.md"
           },
@@ -279,6 +283,10 @@
           {
             "label": "tabs",
             "path": "components/tabs.md"
+          },
+          {
+            "label": "tag_group",
+            "path": "components/tag_group.md"
           },
           {
             "label": "text",

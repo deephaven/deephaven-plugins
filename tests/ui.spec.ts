@@ -74,6 +74,12 @@ test('UI all components render 2', async ({ page }) => {
   await expect(page.locator(SELECTORS.REACT_PANEL_VISIBLE)).toHaveScreenshot();
 });
 
+test('UI all components render 3', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(page, 'ui_render_all3', SELECTORS.REACT_PANEL_VISIBLE);
+  await expect(page.locator(SELECTORS.REACT_PANEL_VISIBLE)).toHaveScreenshot();
+});
+
 // Tests flex components render as expected
 test.describe('UI flex components', () => {
   [
