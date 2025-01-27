@@ -6,30 +6,29 @@ State variables might look like regular Python variables that you can read and w
 
 You might think of your user interface as changing directly in response to the user event like a click. In `deephaven.ui`, it works a little differently from this mental model. In the previous section, you saw that setting state requests a re-render from `deephaven.ui`. This means that for an interface to react to the event, you need to update the state.
 
-In this example, when you press “send”, `set_is_sent(True)` tells `deephaven.iu` to re-render the UI:
+In this example, when you press “send”, `set_is_sent(True)` tells `deephaven.ui` to re-render the UI:
 
 ```python
 from deephaven import ui
 
 
-def send_message():
-    print("Message sent!")
+def send_message(message: str):
+    print("Message sent: ", message)
 
 
 @ui.component
 def form():
     is_sent, set_is_sent = ui.use_state(False)
-    message, set_message = ui.use_state("Hi!")
 
-    def handle_submit():
+    def handle_submit(form_data):
         set_is_sent(True)
-        send_message()
+        send_message(form_data['message'])
 
     if is_sent:
         return ui.heading("Your message is on its way!")
 
     return ui.form(
-        ui.text_area(value=message, on_change=set_message),
+        ui.text_area(default_value="Hi!", name="message"),
         ui.button("Send", type="submit"),
         on_submit=handle_submit,
     )
@@ -56,11 +55,11 @@ When `deephaven.ui` re-renders a component:
 
 1. `deephaven.ui` calls your function again.
 2. Your function returns a new snapshot of components.
-3. `deephaven.ui` then converts the snapshot to JSON and sends it to the web client ui to display.
+3. `deephaven.ui` then converts the snapshot to JSON and sends it to the web client UI to display.
 
 As a component’s memory, state is not like a regular variable that disappears after your function returns. State actually “lives” in a `deephaven.ui` context outside of your function. When React calls your component, it gives you a snapshot of the state for that particular render. Your component returns a snapshot of the UI with a fresh set of props and event handlers, all calculated using the state values from that render!
 
-Here iss a little experiment to show you how this works. In this example, you might expect that clicking the “+3” button would increment the counter three times because it calls `set_number(number + 1)` three times.
+Here is a little experiment to show you how this works. In this example, you might expect that clicking the “+3” button would increment the counter three times because it calls `set_number(number + 1)` three times.
 
 See what happens when you click the “+3” button:
 
