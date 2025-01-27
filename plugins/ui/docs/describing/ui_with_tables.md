@@ -1,4 +1,4 @@
-# Work with Tables
+# UI with Tables
 
 `deephaven.ui` allows you to programmatically create your own custom UIs. However, the real power of `deephaven.ui` is in its most unique feature: the ability to combine those UIs with Deephaven tables.
 
@@ -135,7 +135,7 @@ def ui_table_data(table):
 table_data_example = ui_table_data(time_table("PT1s").update("x=i").tail(5))
 ```
 
-The [`use_cell_data`](../hooks/use_cell_data.md) hook lets you use the cell data of the first cell (first row in the first column) in a table. This is useful when you want to listen to an updating table and use the data in your component. This value can be used for conditional rendering as shown in this example.
+The [`use_cell_data`](../hooks/use_cell_data.md) hook lets you use the cell data of the first cell (first row in the first column) in a table. This value can be used for conditional rendering as shown in this example.
 
 ```python
 from deephaven import time_table, ui
