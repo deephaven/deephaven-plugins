@@ -22,7 +22,7 @@ def form():
 
     def handle_submit(form_data):
         set_is_sent(True)
-        send_message(form_data['message'])
+        send_message(form_data["message"])
 
     if is_sent:
         return ui.heading("Your message is on its way!")
