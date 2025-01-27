@@ -209,6 +209,7 @@ def draw_indicator(
     decreasing_text: str | None = None,
     number_format: str | None = None,
     text_indicator: str | None = None,
+    layout_title: str | None = None,
     title: str | None = None,
 ) -> Figure:
     """Create an indicator chart.
@@ -229,7 +230,8 @@ def draw_indicator(
         is less than the reference value.
       number_format: The format to use for the number.
       text_indicator: The column to use as text for the indicator.
-      title: The title of the chart.
+      layout_title: The title on the layout
+      title: The title on the indicator trace
 
     Returns:
       The plotly indicator chart.
@@ -260,6 +262,14 @@ def draw_indicator(
     if reference:
         fig.update_traces(delta_reference=data_frame[reference][0])
 
+    if layout_title:
+        fig.update_layout(title=title)
+
+    if title:
+        # This is the title on the indicator trace. This is where it should go by default.
+        # If if needs to go on the layout, it should be set in layout_title.
+        fig.update_traces(title_text=title)
+
     if text_indicator:
         fig.update_traces(title_text=data_frame[text_indicator][0])
 
@@ -284,8 +294,5 @@ def draw_indicator(
             delta_valueformat=FORMAT_PREFIX + number_format,
             number_valueformat=FORMAT_PREFIX + number_format,
         )
-
-    if title:
-        fig.update_layout(title=title)
 
     return fig

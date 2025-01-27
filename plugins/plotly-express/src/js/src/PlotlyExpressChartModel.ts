@@ -1,5 +1,6 @@
 import type { Layout, Data, PlotData, LayoutAxis } from 'plotly.js';
 import type { dh as DhType } from '@deephaven/jsapi-types';
+import { type Formatter } from '@deephaven/jsapi-utils';
 import { ChartModel, ChartUtils } from '@deephaven/chart';
 import Log from '@deephaven/log';
 import { RenderOptions } from '@deephaven/chart/dist/ChartModel';
@@ -20,6 +21,9 @@ import {
   hasUnreplaceableWebGlTraces,
   isSingleValue,
   replaceValueFormat,
+  setDefaultValueFormat,
+  getDataTypeMap,
+  FormatUpdate,
 } from './PlotlyExpressChartUtils';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
@@ -133,6 +137,13 @@ export class PlotlyExpressChartModel extends ChartModel {
    */
   hasAcknowledgedWebGlWarning = false;
 
+  /**
+   * The set of parameters that need to be replaced with the default value format.
+   */
+  defaultValueFormatSet: Set<FormatUpdate> = new Set();
+
+  dataTypeMap: Map<string, string> = new Map();
+
   override getData(): Partial<Data>[] {
     const hydratedData = [...this.plotlyData];
 
@@ -231,8 +242,21 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   override setRenderOptions(renderOptions: RenderOptions): void {
+    console.log('setRenderOptions', renderOptions);
     this.handleWebGlAllowed(renderOptions.webgl, this.renderOptions?.webgl);
     super.setRenderOptions(renderOptions);
+  }
+
+  override setFormatter(formatter: Formatter): void {
+    console.log('setFormatter', formatter);
+    this.formatter = formatter;
+    setDefaultValueFormat(
+      this.plotlyData,
+      this.defaultValueFormatSet,
+      this.dataTypeMap,
+      formatter
+    );
+    super.setFormatter(formatter);
   }
 
   /**
@@ -304,7 +328,7 @@ export class PlotlyExpressChartModel extends ChartModel {
       );
     }
 
-    replaceValueFormat(this.plotlyData);
+    this.defaultValueFormatSet = replaceValueFormat(this.plotlyData);
 
     // Retrieve the indexes of traces that require WebGL so they can be replaced if WebGL is disabled
     this.webGlTraceIndices = getReplaceableWebGlTraceIndices(this.plotlyData);
@@ -314,7 +338,17 @@ export class PlotlyExpressChartModel extends ChartModel {
     newReferences.forEach(async (id, i) => {
       this.tableDataMap.set(id, {}); // Plot may render while tables are being fetched. Set this to avoid a render error
       const table = (await references[i].fetch()) as DhType.Table;
-      this.addTable(id, table);
+      this.addTable(id, table).then(() => {
+        // The data type map requires the table to be added to the reference map
+        this.dataTypeMap = getDataTypeMap(deephaven, this.tableReferenceMap);
+
+        setDefaultValueFormat(
+          this.plotlyData,
+          this.defaultValueFormatSet,
+          this.dataTypeMap,
+          this.formatter
+        );
+      });
     });
 
     removedReferences.forEach(id => this.removeTable(id));

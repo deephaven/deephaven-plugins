@@ -438,6 +438,12 @@ class PartitionManager:
                     self.facet_row = val
                 else:
                     self.facet_col = val
+            if arg == "text":
+                if self.by and val is None and self.indicator:
+                    # if by is set, text should be set to "by" by default
+                    # note that text can be False, which doesn't show text,
+                    # so check for None specifically
+                    args["text"] = self.by
 
         # it's possible that by vars are set but by_vars is None,
         # so partitioning is still needed, but it won't affect styles
@@ -584,6 +590,15 @@ class PartitionManager:
                 # since this is preprocessed it will always be a tuple
                 yield cast(Tuple[Table, Dict[str, str]], (table, current_partition))
 
+    def update_title(self):
+        print(self.args["current_partition"])
+        if self.indicator:
+            if len(self.constituents) > 1:
+                # if there is only one partition, the title should still be on the indicator itself
+                # because of excessive padding when using the layout title
+                # so only update the layout title if there are multiple partitions
+                self.args["layout_title"] = self.args.pop("title")
+
     def partition_generator(self) -> Generator[dict[str, Any], None, None]:
         """
         Generates args that can be used to create one layer of a partitioned
@@ -604,6 +619,8 @@ class PartitionManager:
                     args[self.list_var] = self.pivot_vars["value"]
 
                 args["current_partition"] = current_partition
+
+                self.update_title()
 
                 args["table"] = table
                 yield args

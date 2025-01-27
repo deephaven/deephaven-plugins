@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable
+from typing import Callable, Literal
 
 from ..shared import default_callback
 from ..deephaven_figure import DeephavenFigure, draw_indicator
@@ -12,7 +12,7 @@ def indicator(
     table: PartitionableTableLike,
     value: str | None,
     reference: str | None = None,
-    text: str | None = None,
+    text: str | Literal[False] | None = None,
     by: str | list[str] | None = None,
     by_vars: str | tuple[str, ...] = "gauge_color",
     increasing_color: str | list[str] | None = None,
@@ -31,7 +31,7 @@ def indicator(
     suffix: str | None = None,
     increasing_text: str | None = "▲",
     decreasing_text: str | None = "▼",
-    number_format: str | None = "#,##0.00",
+    number_format: str | None = None,
     rows: int | None = None,
     cols: int | None = None,
     title: str | None = None,
@@ -61,7 +61,8 @@ def indicator(
       gauge_color: A column or list of columns used for a plot by on color.
         Only valid if gauge is not None.
         See gauge_color_map for additional behaviors.
-      text: A column that contains text annotations.
+      text: A column that contains text annotations. Set to "by" if by is specified and is one column.
+        Set to False to hide text annotations.
       increasing_color_sequence: A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
         colors are reused.
