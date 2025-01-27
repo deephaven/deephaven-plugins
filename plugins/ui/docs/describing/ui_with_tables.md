@@ -155,3 +155,51 @@ table_first_cell2 = ui_table_first_cell(
     time_table("PT1s").update("x=i").drop_columns("Timestamp").tail(1)
 )
 ```
+
+## Use tables directly with components
+
+Some `deephaven.ui` components support the use of tables directly or through a `item_table_source`.
+
+This example shows a [`list_view`](../components/list_view.md) populated directly from a table.
+
+```python
+from deephaven import ui, new_table
+from deephaven.column import string_col
+
+_colors = new_table(
+    [
+        string_col("Colors", ["Red", "Blue", "Green"]),
+    ]
+)
+
+
+@ui.component
+def ui_list_view_table():
+    return ui.list_view(_colors)
+
+
+list_view_table_example = ui_list_view_table()
+```
+
+In this example, an `item_table_source` is used to create complex items from a table (ie., defining which columns are the keys/labels of the data). These complex items are displayed in a `picker`.
+
+```python
+from deephaven import ui, empty_table
+
+icon_names = ["vsAccount"]
+columns = [
+    "Key=new Integer(i)",
+    "Label=new String(`Display `+i)",
+    "Icon=(String) icon_names[0]",
+]
+_column_types = empty_table(20).update(columns)
+
+item_table_source = ui.item_table_source(
+    _column_types,
+    key_column="Key",
+    label_column="Label",
+    icon_column="Icon",
+)
+
+picker_item_table_source_example = ui.picker(item_table_source, label="User Picker")
+```
