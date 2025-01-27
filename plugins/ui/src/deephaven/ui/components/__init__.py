@@ -11,6 +11,7 @@ from .button_group import button_group
 from .calendar import calendar
 from .checkbox import checkbox
 from .checkbox_group import checkbox_group
+from .color_editor import color_editor
 from .color_picker import color_picker
 from .column import column
 from .combo_box import combo_box
@@ -89,6 +90,7 @@ __all__ = [
     "calendar",
     "checkbox",
     "checkbox_group",
+    "color_editor",
     "color_picker",
     "column",
     "combo_box",

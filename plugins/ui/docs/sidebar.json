@@ -100,6 +100,10 @@
             "path": "components/calendar.md"
           },
           {
+            "label": "color_picker",
+            "path": "components/color_picker.md"
+          },
+          {
             "label": "checkbox",
             "path": "components/checkbox.md"
           },
