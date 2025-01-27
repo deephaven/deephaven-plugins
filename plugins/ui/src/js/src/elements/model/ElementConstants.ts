@@ -43,6 +43,8 @@ export const ELEMENT_NAME = {
   dialog: uiComponentName('Dialog'),
   dialogTrigger: uiComponentName('DialogTrigger'),
   disclosure: uiComponentName('Disclosure'),
+  disclosureTitle: uiComponentName('DisclosureTitle'),
+  disclosurePanel: uiComponentName('DisclosurePanel'),
   divider: uiComponentName('Divider'),
   flex: uiComponentName('Flex'),
   form: uiComponentName('Form'),
