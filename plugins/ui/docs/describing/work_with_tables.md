@@ -1,8 +1,10 @@
 # Work with Tables
 
-The Deephaven table is the key abstraction that unites static and real-time data for a seamless, integrated experience. Combining tables with `deephaven.ui` components allows you to create your own powerful, data centered workflows.
+`deephaven.ui` allows you to programmatically create your own custom UIs. However, the real power of `deephaven.ui` is in it's most unique feature: the ability to combine those UIs with Deephaven tables.
 
-For more information, see [Working with Deephaven Tables](/core/docs/getting-started/quickstart/#4-working-with-deephaven-tables).
+The Deephaven table is the key data structure for working with and analyzing large real time data. By combining tables with `deephaven.ui`, you can create a UI that allows you to visualize and work with data in way that best suites your own unique needs.
+
+For more information, see the quickstart guide on [Working with Deephaven Tables](/core/docs/getting-started/quickstart/#4-working-with-deephaven-tables).
 
 ## Display a table in a component
 
