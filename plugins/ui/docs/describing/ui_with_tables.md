@@ -203,3 +203,44 @@ item_table_source = ui.item_table_source(
 
 picker_item_table_source_example = ui.picker(item_table_source, label="User Picker")
 ```
+
+## Update tables and plots from user input
+
+Tables and plots can update in response to user input. The following examples allows a user to pick two dates on a [`date_range_picker](../components/date_range_picker.md). This updates a state variable which causes the component to re-render with a filtered table and plot.
+
+```python
+from deephaven.time import dh_now
+from deephaven import time_table, ui
+import deephaven.plot.express as dx
+
+
+@ui.component
+def date_table_filter(table, start_date, end_date, time_col="Timestamp"):
+    dates, set_dates = ui.use_state({"start": start_date, "end": end_date})
+
+    def filter_by_dates():
+        start = dates["start"]
+        end = dates["end"]
+        return table.where(f"{time_col} >= start && {time_col} < end")
+
+    filtered_table = ui.use_memo(filter_by_dates, [table, dates])
+    plot = ui.use_memo(
+        lambda: dx.line(filtered_table, x="Timestamp", y="Row"), [filtered_table]
+    )
+
+    return [
+        ui.date_range_picker(
+            label="Dates", value=dates, on_change=set_dates, max_visible_months=2
+        ),
+        filtered_table,
+        plot,
+    ]
+
+
+SECONDS_IN_DAY = 86400
+today = dh_now()
+_table = time_table("PT1s").update_view(
+    ["Timestamp=today.plusSeconds(SECONDS_IN_DAY*i)", "Row=i"]
+)
+date_filter = date_table_filter(_table, today, today.plusSeconds(SECONDS_IN_DAY * 10))
+```
