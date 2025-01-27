@@ -1,8 +1,8 @@
 # Work with Tables
 
-`deephaven.ui` allows you to programmatically create your own custom UIs. However, the real power of `deephaven.ui` is in it's most unique feature: the ability to combine those UIs with Deephaven tables.
+`deephaven.ui` allows you to programmatically create your own custom UIs. However, the real power of `deephaven.ui` is in its most unique feature: the ability to combine those UIs with Deephaven tables.
 
-The Deephaven table is the key data structure for working with and analyzing large real time data. By combining tables with `deephaven.ui`, you can create a UI that allows you to visualize and work with data in way that best suites your own unique needs.
+The Deephaven table is the key data structure for working with and analyzing large real time data. By combining tables with `deephaven.ui`, you can create a UI that allows you to visualize and work with data in way that best suits your own unique needs.
 
 For more information, see the quickstart guide on [Working with Deephaven Tables](/core/docs/getting-started/quickstart/#4-working-with-deephaven-tables).
 
@@ -110,7 +110,7 @@ memo_table_app = ui_memo_table_app()
 
 ## Hooks for tables
 
-The [`use_table_data`](../hooks/use_table_data.md) hook lets you use a table's data. This is useful when you want to listen to an updating table and use the data in your component.
+The [`use_table_data`](../hooks/use_table_data.md) hook lets you use a table's data. This is useful when you want to listen to an updating table and use the data in your component. This example uses the table data to populate two list views with the table data.
 
 ```python
 from deephaven import time_table, ui
@@ -119,10 +119,20 @@ from deephaven import time_table, ui
 @ui.component
 def ui_table_data(table):
     table_data = ui.use_table_data(table)
-    return ui.heading(f"The table data is {table_data}")
+    return ui.flex(
+        table,
+        ui.list_view(
+            [ui.item(str(timestamp)) for timestamp in table_data["Timestamp"]],
+            selection_mode=None,
+        ),
+        ui.list_view(
+            [ui.item(x) for x in table_data["x"]],
+            selection_mode=None,
+        ),
+    )
 
 
-table_data = ui_table_data(time_table("PT1s").update("x=i").tail(5))
+table_data_example = ui_table_data(time_table("PT1s").update("x=i").tail(5))
 ```
 
 The [`use_cell_data`](../hooks/use_cell_data.md) hook lets you use the cell data of the first cell (first row in the first column) in a table. This is useful when you want to listen to an updating table and use the data in your component.
