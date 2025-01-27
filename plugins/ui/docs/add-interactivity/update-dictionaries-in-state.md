@@ -36,7 +36,7 @@ Although dictionaries in `deephaven.ui` state are technically mutable, you shoul
 
 You should treat any Python dictionary that you put into state as read-only.
 
-This example holds an dictionary in state to represent a range. Clicking the button should increment the end of the range, but the range does no update:
+This example holds a dictionary in state to represent a range. Clicking the button should increment the end of the range, but the range does not update:
 
 ```python
 from deephaven import ui
@@ -187,48 +187,40 @@ from deephaven import ui
 
 @ui.component
 def form():
-    person, set_person = ui.use_state(
-        {
-            "first_name": "John",
-            "last_name": "Doe",
-            "email": "jondoe@domain.com",
-        }
-    )
-
-    def handle_first_name_change(value):
-        copy = person.copy()
-        copy["first_name"] = value
-        set_person(copy)
-
-    def handle_last_name_change(value):
-        copy = person.copy()
-        copy["last_name"] = value
-        set_person(copy)
-
-    def handle_email_change(value):
-        copy = person.copy()
-        copy["email"] = value
-        set_person(copy)
+    person, set_person = ui.use_state({
+        "first_name": "John",
+        "last_name": "Doe",
+        "email": "jondoe@domain.com",
+    })
 
     return [
         ui.text_field(
             label="First name",
             value=person["first_name"],
-            on_change=handle_first_name_change,
+            on_change=lambda new_first_name: set_person({
+                **person,
+                "first_name": new_first_name,
+            }),
         ),
         ui.text_field(
             label="Last name",
             value=person["last_name"],
-            on_change=handle_last_name_change,
+            on_change=lambda new_last_name: set_person({
+                **person,
+                "last_name": new_last_name,
+            }),
         ),
         ui.text_field(
-            label="Email", value=person["email"], on_change=handle_email_change
+            label="Email",
+            value=person["email"],
+            on_change=lambda new_email: set_person({**person, "email": new_email}),
         ),
         ui.text(f'{person["first_name"]} {person["last_name"]} {person["email"]}'),
     ]
 
 
 form_example = form()
+
 ```
 
 Note that the `copy()` method is “shallow”. It only copies things one level deep. This makes it fast, but it also means that if you want to update a nested property, you’ll have to use it more than once.
