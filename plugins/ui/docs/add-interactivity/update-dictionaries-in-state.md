@@ -169,12 +169,10 @@ set_person(
 )
 ```
 
-You can use the dictionary `copy()` method so that you do not need to copy every property separately.
+You can use dictionary `unpacking` so that you do not need to copy every property separately.
 
 ```python
-copy = person.copy()
-copy["first_name"] = value
-set_person(copy)
+set_person({**person, "first_name": value})
 ```
 
 Now the form works.
@@ -187,28 +185,34 @@ from deephaven import ui
 
 @ui.component
 def form():
-    person, set_person = ui.use_state({
-        "first_name": "John",
-        "last_name": "Doe",
-        "email": "jondoe@domain.com",
-    })
+    person, set_person = ui.use_state(
+        {
+            "first_name": "John",
+            "last_name": "Doe",
+            "email": "jondoe@domain.com",
+        }
+    )
 
     return [
         ui.text_field(
             label="First name",
             value=person["first_name"],
-            on_change=lambda new_first_name: set_person({
-                **person,
-                "first_name": new_first_name,
-            }),
+            on_change=lambda new_first_name: set_person(
+                {
+                    **person,
+                    "first_name": new_first_name,
+                }
+            ),
         ),
         ui.text_field(
             label="Last name",
             value=person["last_name"],
-            on_change=lambda new_last_name: set_person({
-                **person,
-                "last_name": new_last_name,
-            }),
+            on_change=lambda new_last_name: set_person(
+                {
+                    **person,
+                    "last_name": new_last_name,
+                }
+            ),
         ),
         ui.text_field(
             label="Email",
@@ -220,10 +224,9 @@ def form():
 
 
 form_example = form()
-
 ```
 
-Note that the `copy()` method is “shallow”. It only copies things one level deep. This makes it fast, but it also means that if you want to update a nested property, you’ll have to use it more than once.
+Note that the dictionary `unpacking` is “shallow”. It only copies things one level deep. This makes it fast, but it also means that if you want to update a nested property, you’ll have to use it more than once.
 
 ## Update a nested dictionary
 
@@ -248,11 +251,7 @@ person["contact"]["email"] = "jdoe@domain.net"
 But in `deephaven.ui`, you should treat state as immutable. In order to change `email`, you would first need to produce the new `contact` dictionary (pre-populated with data from the previous one), and then produce the new `person` dictionary which points at the new artwork:
 
 ```python
-contact_copy = person["contact"].copy()
-contact_copy["email"] = "jdoe@domain.net"
-person_copy = person.copy()
-person_copy["contact"] = contact_copy
-person_copy(person_copy)
+new_person = {**person, "contact": {**person["contact"], "email": "jdoe@domain.net"}}
 ```
 
 This gets a bit wordy, but it works fine for many cases:
@@ -271,52 +270,38 @@ def form():
         }
     )
 
-    def handle_first_name_change(value):
-        person_copy = person.copy()
-        person_copy["first_name"] = value
-        person_copy["contact"] = person["contact"].copy()
-        set_person(person_copy)
-
-    def handle_last_name_change(value):
-        person_copy = person.copy()
-        person_copy["last_name"] = value
-        person_copy["contact"] = person["contact"].copy()
-        set_person(person_copy)
-
-    def handle_email_change(value):
-        contact_copy = person["contact"].copy()
-        contact_copy["email"] = value
-        person_copy = person.copy()
-        person_copy["contact"] = contact_copy
-        set_person(person_copy)
-
-    def handle_phone_change(value):
-        contact_copy = person["contact"].copy()
-        contact_copy["phone"] = value
-        person_copy = person.copy()
-        person_copy["contact"] = contact_copy
-        set_person(person_copy)
-
     return [
         ui.text_field(
             label="First name",
             value=person["first_name"],
-            on_change=handle_first_name_change,
+            on_change=lambda new_first_name: set_person(
+                {
+                    **person,
+                    "first_name": new_first_name,
+                    "contact": {**person["contact"]},
+                }
+            ),
         ),
         ui.text_field(
             label="Last name",
             value=person["last_name"],
-            on_change=handle_last_name_change,
+            on_change=lambda new_last_name: set_person(
+                {**person, "last_name": new_last_name, "contact": {**person["contact"]}}
+            ),
         ),
         ui.text_field(
             label="Email",
             value=person["contact"]["email"],
-            on_change=handle_email_change,
+            on_change=lambda new_email: set_person(
+                {**person, "contact": {**person["contact"], "email": new_email}}
+            ),
         ),
         ui.text_field(
             label="Phone",
             value=person["contact"]["phone"],
-            on_change=handle_phone_change,
+            on_change=lambda new_phone: set_person(
+                {**person, "contact": {**person["contact"], "phone": new_phone}}
+            ),
         ),
         ui.text(
             f'{person["first_name"]} {person["last_name"]} {person["contact"]["email"]} {person["contact"]["phone"]}'
