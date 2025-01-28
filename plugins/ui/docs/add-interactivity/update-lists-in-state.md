@@ -191,7 +191,7 @@ artist_list_example = artist_list()
 
 ## Insert into a list
 
-You may want to insert an item at a particular position that is neither at the beginning nor at the end. To do this, you can the slice syntax. The slice syntax lets you cut a “slice” of the list. To insert an item, you will create a slice before the insertion point, then the new item, and then a slice that is the rest of the original list.
+You may want to insert an item at a particular position that is neither at the beginning nor at the end. To do this, you can the slice syntax. The [slice](https://docs.python.org/3/tutorial/introduction.html#lists) syntax lets you cut a “slice” of the list. To insert an item, you will create a slice before the insertion point, then the new item, and then a slice that is the rest of the original list.
 
 In this example, the Insert button always inserts at the index 1:
 
@@ -215,7 +215,7 @@ def artist_list():
     def handle_insert():
         global next_id
         # Use slicing to create a new list
-        set_artists(artists[:1] + [{"id": next_id, "name": value}] + artists[1:])
+        set_artists([*artists[:1], {"id": next_id, "name": value}, *artists[1:]])
         next_id += 1
 
     return [
@@ -233,7 +233,7 @@ artist_list_example = artist_list()
 
 There are some things you cannot do with non-mutating methods. For example, you may want to reverse or sort an array. The Python list `reverse()` and `sort()` methods are mutating the original list, so you cannot use them directly.
 
-However, you can copy the list first, and then make changes to it.
+However, you can copy the list with unpacking first, and then make changes to it.
 
 For example:
 
@@ -253,9 +253,9 @@ def artist_list():
     artists, set_artists = ui.use_state(initial_artists)
 
     def handle_reverse():
-        artists_copy = artists.copy()
-        artists_copy.reverse()
-        set_artists(artists_copy)
+        new_artists = [*artists]
+        new_artists.reverse()
+        set_artists(new_artists)
 
     return [
         ui.heading("Artists:"),
