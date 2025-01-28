@@ -135,7 +135,7 @@ def ui_table_data(table):
 table_data_example = ui_table_data(time_table("PT1s").update("x=i").tail(5))
 ```
 
-The [`use_row_data`](../hooks/use_row_data.md) hook lets you use the first row of table data a dictionary. This example displays the latest row of data in a ticking time table.
+The [`use_row_data`](../hooks/use_row_data.md) hook lets you use the first row of table data as a dictionary. This example displays the latest row of data in a ticking time table.
 
 ```python
 from deephaven import time_table, ui
