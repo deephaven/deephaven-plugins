@@ -230,82 +230,76 @@ def breadcrumbs_overflow_example():
 my_breadcrumbs_overflow_example = breadcrumbs_overflow_example()
 ```
 
-## Detailed Example
+## Detailed example
 
 Below is an example using the generated `tips` dataset from the Deephaven Express API. It allows you to explore the data in a hierarchical order of day, time, sex, and smoker status.
 
 ```python
 import deephaven.plot.express as dx
+from deephaven.table import Table
 from deephaven import ui
-
-OPTIONS = ["Day", "Time", "Sex", "Smoker", ""]
-OPTION_ITEMS = {
-    "Day": [
-        ui.item("Thur", key="Thur"),
-        ui.item("Fri", key="Fri"),
-        ui.item("Sat", key="Sat"),
-        ui.item("Sun", key="Sun"),
-    ],
-    "Time": [
-        ui.item("Lunch", key="Lunch"),
-        ui.item("Dinner", key="Dinner"),
-    ],
-    "Sex": [
-        ui.item("Male", key="Male"),
-        ui.item("Female", key="Female"),
-    ],
-    "Smoker": [
-        ui.item("Yes", key="Yes"),
-        ui.item("No", key="No"),
-    ],
-}
 
 
 @ui.component
-def tips_filterer():
-    tips = dx.data.tips(ticking=False)
-
-    items, set_items = ui.use_state([ui.item("All Tips")])
-    option, set_option = ui.use_state(OPTIONS[0])
+def table_breadcrumb_filterer(
+    table: Table, filter_columns: list[str], all_item_text="All"
+):
+    items, set_items = ui.use_state([ui.item(all_item_text)])
+    option_column, set_option_column = ui.use_state(filter_columns[0])
     filters, set_filters = ui.use_state([])
 
+    filtered_table = ui.use_memo(lambda: table.where(filters), [table, filters])
+    column_value_table = ui.use_memo(
+        lambda: filtered_table.select_distinct(option_column), [option_column]
+    )
+    column_values = ui.use_column_data(column_value_table)
+
     def handle_action(key):
-        set_items(items + [ui.item(f"{key}", key=option)])
-        set_option(OPTIONS[OPTIONS.index(option) + 1])
-        set_filters(filters + [f"{option} == '{key}'"])
+        current_index = filter_columns.index(option_column)
+        set_items(items + [ui.item(f"{key}", key=option_column)])
+        if current_index < len(filter_columns) - 1:
+            set_option_column(filter_columns[current_index + 1])
+        set_filters(filters + [f"{option_column} == '{key}'"])
 
     def handle_back(key):
-        if key not in OPTIONS:
-            set_items([ui.item("All Tips")])
-            set_option(OPTIONS[0])
+        if key not in filter_columns:
+            set_items([ui.item(all_item_text)])
+            set_option_column(filter_columns[0])
             set_filters([])
             return
 
-        selected_index = OPTIONS.index(key)
+        selected_index = filter_columns.index(key)
         set_items(items[: selected_index + 2])
-        set_option(OPTIONS[selected_index + 1])
+        set_option_column(filter_columns[selected_index + 1])
         set_filters(filters[: selected_index + 1])
+
+    show_filter = len(filters) < len(filter_columns)
 
     return ui.flex(
         ui.flex(
             ui.breadcrumbs(*items, show_root=True, on_action=handle_back, flex_grow=1),
             ui.view(
                 ui.menu_trigger(
-                    ui.action_button(f"Filter by {option}"),
-                    ui.menu(*OPTION_ITEMS[option], on_action=handle_action),
+                    ui.action_button(f"Filter by {option_column}", ui.icon("filter")),
+                    ui.menu(
+                        *[ui.item(value) for value in column_values],
+                        on_action=handle_action,
+                    ),
                 ),
             )
-            if not option == ""
+            if show_filter
             else None,
         ),
-        tips.where(filters=filters).view(
-            formulas=["TotalBill", "Tip", "Size"] + OPTIONS[OPTIONS.index(option) : -1]
+        filtered_table.view(
+            formulas=["TotalBill", "Tip", "Size"]
+            + filter_columns[filter_columns.index(option_column) :]
         ),
         direction="column",
     )
 
 
-my_tips = tips_filterer()
+_tips = dx.data.tips()
+my_tips = table_breadcrumb_filterer(_tips, ["Day", "Time", "Sex", "Smoker"], "All Tips")
 ```
 
 ## API reference
