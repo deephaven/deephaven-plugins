@@ -175,6 +175,27 @@ table_first_cell2 = ui_table_first_cell(
 )
 ```
 
+If the previous hooks do not fit your use case, you can use the [`use_table_listener`](../hooks/use_table_listener.md) hook. This allows you to listen to the raw updates from a table and perform a custom action when the table updates. The update is a dictionary containing dictionaries for data that is `added`, `removed`, or `modified`. Additionally, there is flag indicating if the data is a [replay](core/docs/how-to-guides/replay-data/).
+
+```python
+from deephaven import time_table, ui
+from deephaven.table import Table
+
+_source = time_table("PT1s").update("X = i")
+
+
+@ui.component
+def ui_table_monitor(t: Table):
+    def listener_function(update, is_replay):
+        print(f"Table updated: {update}, is_replay: {is_replay}")
+
+    ui.use_table_listener(t, listener_function, [])
+    return t
+
+
+table_monitor = ui_table_monitor(_source)
+```
+
 ## Use tables directly with components
 
 Some `deephaven.ui` components support the use of tables directly or through an `item_table_source`.
