@@ -11,7 +11,7 @@ from deephaven import ui, time_table
 @ui.component
 def ui_resetable_table():
     table, set_table = ui.use_state(lambda: time_table("PT1s"))
-    handle_press = ui.use_callback(lambda _: set_table(time_table("PT1s")), [])
+    handle_press = ui.use_callback(lambda: set_table(time_table("PT1s")), [])
     return [
         ui.action_button(
             "Reset",
@@ -76,4 +76,50 @@ def ui_resetable_table():
 
 
 resetable_table = ui_resetable_table()
+```
+
+## When to use liveness scope
+
+You should use liveness scope any time you need to manage the liveness of an object. When a table is created outside a component's function, you may need to manage its liveness. Additionally, if you are using multi-thread processing to update your component, you may need to manage the liveness of the table.
+
+```python
+from deephaven import ui, new_table
+from deephaven.column import string_col
+
+
+def create_rgb_table():
+    return new_table(
+        [
+            string_col("Colors", ["Red", "Green", "Blue"]),
+        ]
+    )
+
+
+def create_cmyk_table():
+    return new_table(
+        [
+            string_col("Colors", ["Cyan", "Magenta", "Yellow", "Black"]),
+        ]
+    )
+
+
+@ui.component
+def color_picker(rgb, cmyk):
+    table, set_table = ui.use_state(lambda: rgb)
+    handle_rgb = ui.use_liveness_scope(lambda _: set_table(rgb), [rgb])
+    handle_cmyk = ui.use_liveness_scope(lambda _: set_table(cmyk), [cmyk])
+    return [
+        ui.action_button(
+            "Set RGB",
+            on_press=handle_rgb,
+        ),
+        ui.action_button(
+            "Set CMYK",
+            on_press=handle_cmyk,
+        ),
+        table,
+    ]
+
+
+color_picker_example = color_picker(create_rgb_table(), create_cmyk_table())
 ```
