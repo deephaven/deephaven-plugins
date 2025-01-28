@@ -84,6 +84,10 @@
             "path": "add-interactivity/render-cycle.md"
           },
           {
+            "label": "State as a Snapshot",
+            "path": "add-interactivity/state-as-a-snapshot.md"
+          },
+          {
             "label": "Queueing a Series of State Updates",
             "path": "add-interactivity/queueing-updates.md"
           }
