@@ -1,6 +1,6 @@
 # Update Dictionaries in State
 
-State can hold any kind of Python value, including dictionaries. But you should not change objects that you hold in the `deephaven.ui` state directly. Instead, when you want to update an dictionary, you need to create a new one (or make a copy of an existing one), and then set the state to use that copy.
+State can hold any kind of Python value, including dictionaries. However, you should avoid modifying objects stored in the `deephaven.ui` state directly. Instead, when you want to update a dictionary, create a new one or make a copy of the existing dictionary, and then set the state to use that new or copied version.
 
 ## What is a mutation?
 
@@ -18,7 +18,7 @@ set_x(5)
 
 The `x` state changed from `0` to `5`, but the number `0` itself did not change. It is not possible to make any changes to the built-in data types like numbers, strings, and booleans in Python.
 
-Now consider an dictionary in state:
+Now consider a dictionary in state:
 
 ```python
 position, set_position = ui.use_state({"x": 0, "y": 0})
@@ -65,7 +65,7 @@ def handle_press():
     value["end"] = value["end"] + 1
 ```
 
-This code modifies the dictionary assigned to `value` from the previous render. But without using the state setting function, `deephaven.ui` has no idea that dictionary has changed. So `deephaven.ui` does not do anything in response. While mutating state can work in some cases, we don’t recommend it. You should treat the state value you have access to in a render as read-only.
+This code modifies the dictionary assigned to `value` from the previous render. However, since we are not using the state-setting function, `deephaven.ui` is unaware that the dictionary has changed. As a result, `deephaven.ui` does not respond to the modifications. While it is possible to mutate state in certain cases, we do not recommend this. Treat the state value you have access to during a render as read-only.
 
 To actually trigger a re-render in this case, create a new dictionary and pass it to the state setting function:
 
@@ -157,7 +157,7 @@ For example, this line mutates the state from a past render:
 person["first_name"] = value
 ```
 
-The reliable way to get the behavior you are looking for is to create a new dictionary and pass it to `set_person`. But here, you want to also copy the existing data into it because only one of the fields has changed:
+To achieve the desired behavior, it is best to create a new dictionary and pass it to `set_person`. Since only one of the fields has changed, you'll want to copy the existing data into this new dictionary.
 
 ```python
 set_person(
@@ -248,7 +248,7 @@ If you wanted to update `email`, it’s clear how to do it with mutation:
 person["contact"]["email"] = "jdoe@domain.net"
 ```
 
-But in `deephaven.ui`, you should treat state as immutable. In order to change `email`, you would first need to produce the new `contact` dictionary (pre-populated with data from the previous one), and then produce the new `person` dictionary which points at the new artwork:
+But in `deephaven.ui`, you should treat state as immutable. In order to change `email`, you first need to produce the new `contact` dictionary (pre-populated with data from the previous one), and then produce the new `person` dictionary, which points at the new artwork:
 
 ```python
 new_person = {**person, "contact": {**person["contact"], "email": "jdoe@domain.net"}}
@@ -314,7 +314,7 @@ form_example = form()
 
 ## Write concise update logic with `deepcopy`
 
-If your state is deeply nested, you might want to consider flattening it. But, if you do not want to change your state structure, you might prefer to use `deepcopy`. The Python `copy` library includes a `deepcopy` function that constructs a new dictionary and recursively inserts copies of dictionaries found in the original.
+If your state is deeply nested, you might consider flattening it. If you do not want to change your state structure, you might prefer to use `deepcopy`. The Python `copy` library includes a `deepcopy` function that constructs a new dictionary and recursively inserts copies of dictionaries found in the original.
 
 ```python
 import copy
