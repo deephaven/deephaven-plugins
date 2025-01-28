@@ -82,6 +82,10 @@
           {
             "label": "Render Cycle",
             "path": "add-interactivity/render-cycle.md"
+          },
+          {
+            "label": "State as a Snapshot",
+            "path": "add-interactivity/state-as-a-snapshot.md"
           }
         ]
       },
