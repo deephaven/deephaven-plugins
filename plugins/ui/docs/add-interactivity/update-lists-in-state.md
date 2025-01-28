@@ -130,7 +130,7 @@ def transform():
             [
                 value
                 if value["type"] == "immutable"
-                else {"number": value["number"] + 1, "type": "mutable"}
+                else {**value, "number": value["number"] + 1}
                 for value in values
             ]
         )
