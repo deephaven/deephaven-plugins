@@ -135,6 +135,25 @@ def ui_table_data(table):
 table_data_example = ui_table_data(time_table("PT1s").update("x=i").tail(5))
 ```
 
+The [`use_row_data`](../hooks/use_row_data.md) hook lets you use the first row of table data a dictionary. This example displays the latest row of data in a ticking time table.
+
+```python
+from deephaven import time_table, ui
+
+
+@ui.component
+def ui_table_first_cell(table):
+    row_data = ui.use_row_data(table)
+    return [
+        ui.heading("Latest data"),
+        ui.text(f"Timestamp: {row_data['Timestamp']}"),
+        ui.text(f"x: {row_data['x']}"),
+    ]
+
+
+table_first_cell2 = ui_table_first_cell(time_table("PT1s").update("x=i").reverse())
+```
+
 The [`use_cell_data`](../hooks/use_cell_data.md) hook lets you use the cell data of the first cell (first row in the first column) in a table. This value can be used for conditional rendering as shown in this example.
 
 ```python
