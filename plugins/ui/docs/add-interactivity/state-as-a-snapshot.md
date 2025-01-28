@@ -47,9 +47,9 @@ Let’s take a closer look at the relationship between state and rendering.
 
 ## A render takes one snapshot in time
 
-“Rendering” means that `deephaven.ui` is calling your component, which is a function. The components you return from that function is like a snapshot of the UI in time. Its props, event handlers, and local variables were all calculated using its state at the time of the render.
+“Rendering” means that `deephaven.ui` is calling your component, which is a function. The components you return from that function are like a snapshot of the UI in time. Its props, event handlers, and local variables were all calculated using its state at the time of the render.
 
-Unlike a photograph or a movie frame, the UI “snapshot” you return is interactive. It includes logic like event handlers that specify what happens in response to inputs. `deephaven.ui` updates the screen to match this snapshot and connects the event handlers. As a result, pressing a button will trigger the click handler from your components.
+Unlike a photograph or a movie frame, the UI “snapshot” you return is interactive. It includes logic, like event handlers that specify what happens in response to inputs. `deephaven.ui` updates the screen to match this snapshot and connects the event handlers. As a result, pressing a button will trigger the click handler from your components.
 
 When `deephaven.ui` re-renders a component:
 
@@ -100,7 +100,7 @@ Here is what `handle_press` tells `deephaven.ui` to do:
 
 - `deephaven.ui` prepares to change number to 1 on the next render.
 
-Even though you called `set_number(number + 1)` three times, in this render’s event handler `number` is always `0`, so you set the state to `1` three times. This is why, after your event handler finishes, React re-renders the component with number equal to `1` rather than `3`.
+Even though you called `set_number(number + 1)` three times, in this render’s event handler, `number` is always `0`, so you set the state to `1` three times. This is why, after your event handler finishes, React re-renders the component with number equal to `1` rather than `3`.
 
 You can also visualize this by mentally substituting state variables with their values in your code. Since the number state variable is 0 for this render, its event handler looks like this:
 
