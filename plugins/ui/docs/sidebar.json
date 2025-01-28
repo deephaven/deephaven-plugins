@@ -82,6 +82,10 @@
           {
             "label": "Render Cycle",
             "path": "add-interactivity/render-cycle.md"
+          },
+          {
+            "label": "Update Tables in State",
+            "path": "add-interactivity/update-tables-in-state.md"
           }
         ]
       },
