@@ -278,7 +278,6 @@ def form():
                 {
                     **person,
                     "first_name": new_first_name,
-                    "contact": {**person["contact"]},
                 }
             ),
         ),
@@ -286,7 +285,7 @@ def form():
             label="Last name",
             value=person["last_name"],
             on_change=lambda new_last_name: set_person(
-                {**person, "last_name": new_last_name, "contact": {**person["contact"]}}
+                {**person, "last_name": new_last_name
             ),
         ),
         ui.text_field(
