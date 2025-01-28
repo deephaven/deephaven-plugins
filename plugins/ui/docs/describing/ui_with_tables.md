@@ -2,7 +2,7 @@
 
 `deephaven.ui` allows you to programmatically create your own custom UIs. However, the real power of `deephaven.ui` is in its most unique feature: the ability to combine those UIs with Deephaven tables.
 
-The Deephaven table is the key data structure for working with and analyzing large real time data. By combining tables with `deephaven.ui`, you can create a UI that allows you to visualize and work with data in way that best suits your own unique needs.
+The Deephaven table is the key data structure for working with and analyzing large real-time data. By combining tables with `deephaven.ui`, you can create a UI that allows you to visualize and work with data in a way that best suits your own unique needs.
 
 For more information, see the quickstart guide on [Working with Deephaven Tables](/core/docs/getting-started/quickstart/#4-working-with-deephaven-tables).
 
@@ -10,10 +10,10 @@ For more information, see the quickstart guide on [Working with Deephaven Tables
 
 You can display a Deephaven table in a component by doing one of the following:
 
-- return a table directly from a component
-- return a table as part of a `list` or `tuple`
-- add a table to a container such as a `flex` or `panel`
-- [use ui.table](#use-ui.table)
+- Return a table directly from a component.
+- Return a table as part of a `list` or `tuple`.
+- Add a table to a container such as a `flex` or `panel`.
+- [Use `ui.table`](#use-ui.table).
 
 ```python
 from deephaven import new_table, ui
@@ -69,7 +69,7 @@ t = ui.table(
 
 ## Memoize table operations
 
-If you are working with a table, memoize the table operation. This stores the result in a memoized value and prevents the table from being re-computed on every render. This can be done with the [use_memo](../hooks/use_memo.md) hook.
+If you are working with a table, memoize the table operation. This stores the result in a memoized value and prevents the table from being re-computed on every render. This can be done with the [`use_memo`](../hooks/use_memo.md) hook.
 
 ```python
 from deephaven import time_table, ui
@@ -110,7 +110,7 @@ memo_table_app = ui_memo_table_app()
 
 ## Hooks for tables
 
-The [`use_table_data`](../hooks/use_table_data.md) hook lets you use a table's data. This is useful when you want to listen to an updating table and use the data in your component. This example uses the table data to populate two list views with the table data.
+The [`use_table_data`](../hooks/use_table_data.md) hook lets you use a table's data. This is useful when you want to listen to an updating table and use the data in your component. This example uses the table data to populate two list views.
 
 ```python
 from deephaven import time_table, ui
@@ -158,7 +158,7 @@ table_first_cell2 = ui_table_first_cell(
 
 ## Use tables directly with components
 
-Some `deephaven.ui` components support the use of tables directly or through a `item_table_source`.
+Some `deephaven.ui` components support the use of tables directly or through an `item_table_source`.
 
 This example shows a [`list_view`](../components/list_view.md) populated directly from a table.
 
@@ -181,7 +181,7 @@ def ui_list_view_table():
 list_view_table_example = ui_list_view_table()
 ```
 
-In this example, an `item_table_source` is used to create complex items from a table (ie., defining which columns are the keys/labels of the data). These complex items are displayed in a `picker`.
+In this example, an `item_table_source` is used to create complex items from a table (i.e., defining which columns are the data's keys/labels). These complex items are displayed in a `picker`.
 
 ```python
 from deephaven import ui, empty_table
