@@ -36,7 +36,7 @@ def artist_list():
 artist_list_example = artist_list()
 ```
 
-Instead, create a new list which contains the existing items and a new item at the end. There are multiple ways to do this, you can use the `copy()` method or `concatenation`. Now it works correctly:
+Instead, create a new list which contains the existing items and a new item at the end. There are multiple ways to do this, you can use the `copy()` method, `concatenation`, or `unpacking`. Now it works correctly:
 
 ```python
 from deephaven import ui
@@ -52,8 +52,8 @@ def artist_list():
         ui.text_field(value=name, on_change=set_name),
         ui.button(
             "Add",
-            # Concatenate to create a new list
-            on_press=lambda: set_artists(artists + [name]),
+            # Use unpacking to create a new list
+            on_press=lambda: set_artists([*artists, name]),
         ),
         [ui.text(n) for n in artists],
     ]
