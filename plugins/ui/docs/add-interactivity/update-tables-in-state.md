@@ -53,3 +53,27 @@ def ui_resetable_table():
 
 resetable_table = ui_resetable_table()
 ```
+
+## Refactor to avoid liveness scope
+
+In this case, the code can be refactored to remove the need for a liveness scope. Because the table is created inside the component, it can be removed from the state. You can then use the [`use_memo`](../hooks/use_memo.md) to derive the table from changes to the state.
+
+```python
+from deephaven import ui, time_table
+
+
+@ui.component
+def ui_resetable_table():
+    iteration, set_iteration = ui.use_state(0)
+    table = ui.use_memo(lambda: time_table("PT1s"), [iteration])
+    return [
+        ui.action_button(
+            "Reset",
+            on_press=lambda: set_iteration(iteration + 1),
+        ),
+        table,
+    ]
+
+
+resetable_table = ui_resetable_table()
+```
