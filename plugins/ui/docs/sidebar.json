@@ -117,6 +117,10 @@
             "path": "components/badge.md"
           },
           {
+            "label": "breadcrumbs",
+            "path": "components/breadcrumbs.md"
+          },
+          {
             "label": "button",
             "path": "components/button.md"
           },
