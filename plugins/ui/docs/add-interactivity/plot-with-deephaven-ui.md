@@ -1,10 +1,12 @@
-# Plotting and deephaven.ui
+# Plot with deephaven.ui
 
-Creating dynamic plots that respond to user input is a common task in data analysis. The `deephaven.ui` module provides a simple interface for creating interactive plots using the `deephaven-express` library. This guide will show you how to create plots that updates based on user input.
+In addition to tables, Deephaven supports [dynamic plots](/core/docs/how-to-guides/plotting/) as an excellent way to visualize real time data. You can add plots to your `deephaven.ui` components. Like tables, plots will update in real time and react to changes in the UI.
+
+The `deephaven.ui` module provides a simple interface for creating interactive plots using the `deephaven-express` library. This guide will show you how to create plots that updates based on user input.
 
 ## Plotting a filtered table
 
-This example demonstrates how to create a simple line plot that updates based on user input. The plot will display the price of a stock filtered based on the stock symbol entered by the user. Here we have used a `ui.text_field` to get the value, but it could be driven by any deephaven.ui input, including double clicking on a value from a `ui.table`. We've previously referred to this sort of behaviour as a "one-click" component in enterprise, as the plot updates as soon as the user enters a filter.
+This example demonstrates how to create a simple line plot that updates based on user input. The plot will display the price of a stock filtered based on the stock symbol entered by the user. Here we have used a `ui.text_field` to get the value, but it could be driven by any deephaven.ui input, including double clicking on a value from a `ui.table`. We've previously referred to this sort of behavior as a "one-click" component in enterprise, as the plot updates as soon as the user enters a filter.
 
 ```python
 import deephaven.plot.express as dx
