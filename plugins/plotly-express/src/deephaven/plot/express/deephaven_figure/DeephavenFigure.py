@@ -494,7 +494,7 @@ class DeephavenFigure:
         deephaven = {
             "mappings": mappings,
             "is_user_set_template": self._has_template,
-            "is_user_set_colxor": self._has_color,
+            "is_user_set_color": self._has_color,
         }
         payload = {"plotly": plotly, "deephaven": deephaven}
         return json.dumps(payload)
