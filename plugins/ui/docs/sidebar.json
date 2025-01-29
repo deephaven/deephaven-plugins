@@ -47,8 +47,8 @@
             "path": "describing/use_hooks.md"
           },
           {
-            "label": "Working with Tables",
-            "path": "describing/work_with_tables.md"
+            "label": "UI with Tables",
+            "path": "describing/ui_with_tables.md"
           },
           {
             "label": "Conditional Rendering",
