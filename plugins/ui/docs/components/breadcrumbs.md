@@ -250,7 +250,8 @@ def table_breadcrumb_filterer(
 
     filtered_table = ui.use_memo(lambda: table.where(filters), [table, filters])
     column_value_table = ui.use_memo(
-        lambda: filtered_table.select_distinct(option_column), [option_column]
+        lambda: filtered_table.select_distinct(option_column),
+        [filtered_table, option_column],
     )
     column_values = ui.use_column_data(column_value_table)
 
@@ -291,8 +292,7 @@ def table_breadcrumb_filterer(
             else None,
         ),
         filtered_table.view(
-            formulas=["TotalBill", "Tip", "Size"]
-            + filter_columns[filter_columns.index(option_column) :]
+            formulas=["TotalBill", "Tip", "Size"] + filter_columns[len(filters) :]
         ),
         direction="column",
     )
