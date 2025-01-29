@@ -54,15 +54,18 @@ _stocks = dx.data.stocks()
 
 @ui.component
 def plot_filtered_table(table, initial_value):
-    text, set_text = ui.use_state("DOG")
+    text, set_text = ui.use_state(initial_value)
     # the filter is memoized so that it is only recalculated when the text changes
     filtered_table = ui.use_memo(
         lambda: table.where(f"Sym = `{text.upper()}`"), [table, text]
     )
-    return [
-        ui.text_field(value=text, on_change=set_text),
-        dx.line(filtered_table, x="Timestamp", y="Price", title=f"Filtered by: {text}"),
-    ]
+    plot = ui.use_memo(
+        lambda: dx.line(
+            filtered_table, x="Timestamp", y="Price", title=f"Filtered by: {text}"
+        ),
+        [filtered_table, text],
+    )
+    return [ui.text_field(value=text, on_change=set_text), plot]
 
 
 p = plot_filtered_table(_stocks, "DOG")
@@ -85,17 +88,21 @@ def plot_partitioned_table(table, initial_value):
     # memoize the partition by so that it only performed once
     partitioned_table = ui.use_memo(lambda: table.partition_by(["Sym"]), [table])
     constituent_table = ui.use_memo(
-        lambda: partitioned_table.get_constituent(text.upper()),
+        lambda: partitioned_table.get_constituent(text.upper()) if text != "" else None,
         [partitioned_table, text],
     )
-    return [
-        ui.text_field(value=text, on_change=set_text),
-        # only attempt to plot valid partition keys
-        dx.line(
+    # only attempt to plot valid partition keys
+    plot = ui.use_memo(
+        lambda: dx.line(
             constituent_table, x="Timestamp", y="Price", title=f"partition key: {text}"
         )
         if constituent_table != None
         else ui.text("Please enter a valid partition."),
+        [constituent_table, text],
+    )
+    return [
+        ui.text_field(value=text, on_change=set_text),
+        plot,
     ]
 
 
@@ -104,7 +111,7 @@ p = plot_partitioned_table(_stocks, "DOG")
 
 ## Combine a filter and a partition by
 
-Deephaven Plotly Express allows you to plot by a partition and assign unique colors to each key. Sometimes as a user you may also want to filter the data in addition to partitioning it. We've previously referred to this as a "one-click plot by" behaviour in enterprise. This can be done by either filtering the table first and then partitioning it, or partitioning it first and then filtering it. The choice of which to use depends on the size of the table and the number of unique values in the partition key. The first example is more like a traditional "one-click" component, and the second is more like a parameterized query. Both will give you the same result, but the first one may return results faster, whereas the second one may be more memory efficient.
+Deephaven Plotly Express allows you to plot by a partition and assign unique colors to each key. Sometimes as a user you may also want to filter the data in addition to partitioning it. We've previously referred to this as a "one-click plot by" behavior in enterprise. This can be done by either filtering the table first and then partitioning it, or partitioning it first and then filtering it. The choice of which to use depends on the size of the table and the number of unique values in the partition key. The first example is more like a traditional "one-click" component, and the second is more like a parameterized query. Both will give you the same result, but the first one may return results faster, whereas the second one may be more memory efficient.
 
 ```python
 import deephaven.plot.express as dx
@@ -124,9 +131,13 @@ def partition_then_filter(table, by, initial_value):
         lambda: partitioned_table.filter(f"{by[0]} = `{text.upper()}`"),
         [text, partitioned_table],
     )
+    plot = ui.use_memo(
+        lambda: dx.line(filtered, x="Timestamp", y="Price", by=[f"{by[1]}"]),
+        [filtered, by],
+    )
     return [
         ui.text_field(value=text, on_change=set_text),
-        dx.line(filtered, x="Timestamp", y="Price", by=[f"{by[1]}"]),
+        plot,
     ]
 
 
@@ -139,10 +150,11 @@ def where_then_partition(table, by, initial_value):
     filtered = ui.use_memo(
         lambda: table.where(f"{by[0]} = `{text.upper()}`"), [text, table]
     )
-    return [
-        ui.text_field(value=text, on_change=set_text),
-        dx.line(filtered, x="Timestamp", y="Price", by=[f"{by[1]}"]),
-    ]
+    plot = ui.use_memo(
+        lambda: dx.line(filtered, x="Timestamp", y="Price", by=[f"{by[1]}"]),
+        [filtered, by],
+    )
+    return [ui.text_field(value=text, on_change=set_text), plot]
 
 
 # outputs the same thing, done two different ways depending on how you want the work done
