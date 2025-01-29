@@ -291,7 +291,7 @@ from deephaven import agg as agg
 my_table = dx.data.stocks()
 
 # subset data and aggregate prices, keeping the Sym
-sym_agg = my_table.where("Sym = `DOG`").agg_by(
+sym_agg = my_table.agg_by(
     [
         agg.avg(cols="Price"),
         agg.first(cols="StartingPrice = Price"),

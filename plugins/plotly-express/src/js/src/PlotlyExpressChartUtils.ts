@@ -40,7 +40,7 @@ const SINGLE_VALUE_REPLACEMENTS = {
  * A prefix for the number format to indicate it is in Java format and should be
  *  transformed to a d3 format
  */
-export const FORMAT_PREFIX = 'DEEPHAVEN_JAVA_FORMAT';
+export const FORMAT_PREFIX = 'DEEPHAVEN_JAVA_FORMAT=';
 
 export interface PlotlyChartWidget {
   getDataAsBase64: () => string;

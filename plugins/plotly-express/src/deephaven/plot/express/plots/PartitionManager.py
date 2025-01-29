@@ -124,6 +124,49 @@ def is_single_numeric_col(val: str | list[str], numeric_cols: set[str]) -> bool:
     return (isinstance(val, str) or len(val) == 1) and val in numeric_cols
 
 
+def update_title(
+    args: dict[str, Any], count: int, title: str | None, types: set[str]
+) -> dict[str, Any]:
+    """
+    Update the title
+
+    Args:
+        args: Args used to determine the title
+        count: The number of partitions
+        title: The title to update
+        types: The types of the plot
+
+    Returns:
+        dict[str, Any]: The updated title args
+    """
+    title_args = {}
+    if "indicator" in types and "current_partition" in args:
+        partition_title = ", ".join(args["current_partition"].values())
+        if count == 1:
+            # if there is only one partition, the title should still be on the indicator itself
+            # because of excessive padding when using the layout title
+            title_args["title"] = title
+        else:
+            title_args["layout_title"] = title
+
+        if args.get("text") is None:
+            # if there is no text column, the partition names should be used
+            # text can be False, which doesn't show text, so check for None specifically
+            if title:
+                # add the title to the layout as it could be possibly overwritten if count == 1
+                title_args["layout_title"] = title
+            title_args["title"] = partition_title
+        elif args.get("text") and title:
+            # there is text, so add the title to the layout as it could be possibly overwritten if count == 1
+            title_args["layout_title"] = title
+
+    elif title is not None:
+        # currently, only indicators that are partitioned have custom title behavior
+        # so this is the default behavior
+        title_args["title"] = title
+    return title_args
+
+
 class PartitionManager:
     """
     Handles all partitions for the given args
@@ -195,6 +238,8 @@ class PartitionManager:
         self.partitioned_table = self.process_partitions()
         self.draw_figure = draw_figure
         self.constituents = []
+
+        self.title = args.pop("title", None)
 
     def set_long_mode_variables(self) -> None:
         """
@@ -438,12 +483,14 @@ class PartitionManager:
                     self.facet_row = val
                 else:
                     self.facet_col = val
+            """
             if arg == "text":
                 if self.by and val is None and self.indicator:
                     # if by is set, text should be set to "by" by default
                     # note that text can be False, which doesn't show text,
                     # so check for None specifically
                     args["text"] = self.by
+            """
 
         # it's possible that by vars are set but by_vars is None,
         # so partitioning is still needed, but it won't affect styles
@@ -590,15 +637,6 @@ class PartitionManager:
                 # since this is preprocessed it will always be a tuple
                 yield cast(Tuple[Table, Dict[str, str]], (table, current_partition))
 
-    def update_title(self):
-        print(self.args["current_partition"])
-        if self.indicator:
-            if len(self.constituents) > 1:
-                # if there is only one partition, the title should still be on the indicator itself
-                # because of excessive padding when using the layout title
-                # so only update the layout title if there are multiple partitions
-                self.args["layout_title"] = self.args.pop("title")
-
     def partition_generator(self) -> Generator[dict[str, Any], None, None]:
         """
         Generates args that can be used to create one layer of a partitioned
@@ -619,9 +657,6 @@ class PartitionManager:
                     args[self.list_var] = self.pivot_vars["value"]
 
                 args["current_partition"] = current_partition
-
-                self.update_title()
-
                 args["table"] = table
                 yield args
         elif (
@@ -675,6 +710,12 @@ class PartitionManager:
         trace_generator = None
         figs = []
         for i, args in enumerate(self.partition_generator()):
+            title_update = update_title(
+                args, len(self.constituents), self.title, self.groups
+            )
+
+            args = {**args, **title_update}
+
             fig = self.draw_figure(call_args=args, trace_generator=trace_generator)
             if not trace_generator:
                 trace_generator = fig.get_trace_generator()

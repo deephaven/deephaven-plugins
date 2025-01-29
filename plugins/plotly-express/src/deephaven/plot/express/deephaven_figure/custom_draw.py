@@ -14,7 +14,7 @@ from plotly.validators.heatmap import ColorscaleValidator
 # this should be safe as it shouldn't appear naturally in a d3 format string
 # https://github.com/d3/d3-format/tree/v1.4.5#d3-format
 # but isn't a perfect solution
-FORMAT_PREFIX = "DEEPHAVEN_JAVA_FORMAT"
+FORMAT_PREFIX = "DEEPHAVEN_JAVA_FORMAT="
 
 
 def draw_finance(
@@ -263,7 +263,7 @@ def draw_indicator(
         fig.update_traces(delta_reference=data_frame[reference][0])
 
     if layout_title:
-        fig.update_layout(title=title)
+        fig.update_layout(title=layout_title)
 
     if title:
         # This is the title on the indicator trace. This is where it should go by default.

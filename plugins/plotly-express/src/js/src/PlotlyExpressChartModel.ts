@@ -242,13 +242,11 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   override setRenderOptions(renderOptions: RenderOptions): void {
-    console.log('setRenderOptions', renderOptions);
     this.handleWebGlAllowed(renderOptions.webgl, this.renderOptions?.webgl);
     super.setRenderOptions(renderOptions);
   }
 
   override setFormatter(formatter: Formatter): void {
-    console.log('setFormatter', formatter);
     this.formatter = formatter;
     setDefaultValueFormat(
       this.plotlyData,
@@ -296,6 +294,7 @@ export class PlotlyExpressChartModel extends ChartModel {
 
     // @deephaven/chart Chart component mutates the layout
     // If we want updates like the zoom range, we must only set the layout once on init
+    // The title is currently the only thing that can be updated after init
     if (Object.keys(this.layout).length > 0) {
       return;
     }
@@ -352,6 +351,14 @@ export class PlotlyExpressChartModel extends ChartModel {
     });
 
     removedReferences.forEach(id => this.removeTable(id));
+
+    // title is the only thing expected to be updated after init from the layout
+    if (
+      typeof plotlyLayout.title === 'object' &&
+      plotlyLayout.title.text != null
+    ) {
+      this.fireTitleChange(plotlyLayout.title.text);
+    }
   }
 
   handleFigureUpdated(
