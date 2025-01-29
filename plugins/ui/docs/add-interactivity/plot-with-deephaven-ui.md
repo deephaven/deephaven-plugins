@@ -112,3 +112,9 @@ def where_then_partition(table, by, initial_value):
 ptf = partition_then_filter(_stocks, ["Sym", "Exchange"], "DOG")
 wtp = where_then_partition(_stocks, ["Sym", "Exchange"], "DOG")
 ```
+
+## Plots and Liveness
+
+While you may need to use a liveness scope for deephaven tables, you do not for Deephaven Express plots.
+
+Deephaven Express tracks liveness internally for the tables used by the plot. It cleans up when the figure is deleted or cleaned up by garbage collection.. You should not need to explicitly use liveness scope for Deephaven Express.
