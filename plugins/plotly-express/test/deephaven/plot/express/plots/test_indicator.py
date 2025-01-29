@@ -13,6 +13,7 @@ class IndicatorTestCase(BaseTestCase):
                 int_col("value", [1, 2, 3]),
                 int_col("reference", [2, 2, 2]),
                 string_col("text", ["A", "B", "C"]),
+                string_col("single", ["A", "A", "A"]),
             ]
         )
 
@@ -27,11 +28,9 @@ class IndicatorTestCase(BaseTestCase):
                 "delta": {
                     "decreasing": {"symbol": "▼"},
                     "increasing": {"symbol": "▲"},
-                    "valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00",
                 },
                 "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
                 "mode": "number",
-                "number": {"valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00"},
                 "type": "indicator",
                 "value": NULL_INT,
             }
@@ -80,7 +79,7 @@ class IndicatorTestCase(BaseTestCase):
                     "prefix": "prefix",
                     "reference": NULL_INT,
                     "suffix": "suffix",
-                    "valueformat": "DEEPHAVEN_JAVA_FORMAT$#,##0.00",
+                    "valueformat": "DEEPHAVEN_JAVA_FORMAT=$#,##0.00",
                 },
                 "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
                 "gauge": {"axis": {"visible": False}, "shape": "angular"},
@@ -88,7 +87,7 @@ class IndicatorTestCase(BaseTestCase):
                 "number": {
                     "prefix": "prefix",
                     "suffix": "suffix",
-                    "valueformat": "DEEPHAVEN_JAVA_FORMAT$#,##0.00",
+                    "valueformat": "DEEPHAVEN_JAVA_FORMAT=$#,##0.00",
                 },
                 "title": {"text": "None"},
                 "type": "indicator",
@@ -149,7 +148,6 @@ class IndicatorTestCase(BaseTestCase):
                     "decreasing": {"color": "red", "symbol": "▼"},
                     "increasing": {"color": "chocolate", "symbol": "▲"},
                     "reference": NULL_INT,
-                    "valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00",
                 },
                 "domain": {"x": [0.0, 0.45], "y": [0.0, 0.425]},
                 "gauge": {
@@ -158,8 +156,8 @@ class IndicatorTestCase(BaseTestCase):
                     "shape": "angular",
                 },
                 "mode": "number+delta+gauge",
-                "number": {"valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00"},
                 "type": "indicator",
+                "title": {"text": "C"},
                 "value": NULL_INT,
             },
             {
@@ -167,7 +165,6 @@ class IndicatorTestCase(BaseTestCase):
                     "decreasing": {"color": "blue", "symbol": "▼"},
                     "increasing": {"color": "salmon", "symbol": "▲"},
                     "reference": NULL_INT,
-                    "valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00",
                 },
                 "domain": {"x": [0.0, 0.45], "y": [0.575, 1.0]},
                 "gauge": {
@@ -176,8 +173,8 @@ class IndicatorTestCase(BaseTestCase):
                     "shape": "angular",
                 },
                 "mode": "number+delta+gauge",
-                "number": {"valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00"},
                 "type": "indicator",
+                "title": {"text": "A"},
                 "value": NULL_INT,
             },
             {
@@ -185,7 +182,6 @@ class IndicatorTestCase(BaseTestCase):
                     "decreasing": {"color": "bisque", "symbol": "▼"},
                     "increasing": {"color": "salmon", "symbol": "▲"},
                     "reference": NULL_INT,
-                    "valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00",
                 },
                 "domain": {"x": [0.55, 1.0], "y": [0.575, 1.0]},
                 "gauge": {
@@ -194,8 +190,8 @@ class IndicatorTestCase(BaseTestCase):
                     "shape": "angular",
                 },
                 "mode": "number+delta+gauge",
-                "number": {"valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00"},
                 "type": "indicator",
+                "title": {"text": "B"},
                 "value": NULL_INT,
             },
         ]
@@ -280,36 +276,33 @@ class IndicatorTestCase(BaseTestCase):
                 "delta": {
                     "decreasing": {"symbol": "▼"},
                     "increasing": {"symbol": "▲"},
-                    "valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00",
                 },
                 "domain": {"x": [0.0, 0.45], "y": [0.0, 0.425]},
                 "mode": "number",
-                "number": {"valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00"},
                 "type": "indicator",
+                "title": {"text": "C"},
                 "value": NULL_INT,
             },
             {
                 "delta": {
                     "decreasing": {"symbol": "▼"},
                     "increasing": {"symbol": "▲"},
-                    "valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00",
                 },
                 "domain": {"x": [0.0, 0.45], "y": [0.575, 1.0]},
                 "mode": "number",
-                "number": {"valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00"},
                 "type": "indicator",
+                "title": {"text": "A"},
                 "value": NULL_INT,
             },
             {
                 "delta": {
                     "decreasing": {"symbol": "▼"},
                     "increasing": {"symbol": "▲"},
-                    "valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00",
                 },
                 "domain": {"x": [0.55, 1.0], "y": [0.575, 1.0]},
                 "mode": "number",
-                "number": {"valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00"},
                 "type": "indicator",
+                "title": {"text": "B"},
                 "value": NULL_INT,
             },
         ]
@@ -344,42 +337,39 @@ class IndicatorTestCase(BaseTestCase):
                 "delta": {
                     "decreasing": {"symbol": "▼"},
                     "increasing": {"symbol": "▲"},
-                    "valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00",
                 },
                 "domain": {"x": [0.0, 0.28888888888888886], "y": [0.0, 1.0]},
                 "mode": "number",
-                "number": {"valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00"},
                 "type": "indicator",
+                "title": {"text": "A"},
                 "value": NULL_INT,
             },
             {
                 "delta": {
                     "decreasing": {"symbol": "▼"},
                     "increasing": {"symbol": "▲"},
-                    "valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00",
                 },
                 "domain": {
                     "x": [0.3555555555555555, 0.6444444444444444],
                     "y": [0.0, 1.0],
                 },
                 "mode": "number",
-                "number": {"valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00"},
                 "type": "indicator",
+                "title": {"text": "B"},
                 "value": NULL_INT,
             },
             {
                 "delta": {
                     "decreasing": {"symbol": "▼"},
                     "increasing": {"symbol": "▲"},
-                    "valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00",
                 },
                 "domain": {
                     "x": [0.711111111111111, 0.9999999999999999],
                     "y": [0.0, 1.0],
                 },
                 "mode": "number",
-                "number": {"valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00"},
                 "type": "indicator",
+                "title": {"text": "C"},
                 "value": NULL_INT,
             },
         ]
@@ -414,42 +404,39 @@ class IndicatorTestCase(BaseTestCase):
                 "delta": {
                     "decreasing": {"symbol": "▼"},
                     "increasing": {"symbol": "▲"},
-                    "valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00",
                 },
                 "domain": {"x": [0.0, 1.0], "y": [0.0, 0.26666666666666666]},
                 "mode": "number",
-                "number": {"valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00"},
                 "type": "indicator",
+                "title": {"text": "C"},
                 "value": NULL_INT,
             },
             {
                 "delta": {
                     "decreasing": {"symbol": "▼"},
                     "increasing": {"symbol": "▲"},
-                    "valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00",
                 },
                 "domain": {
                     "x": [0.0, 1.0],
                     "y": [0.36666666666666664, 0.6333333333333333],
                 },
                 "mode": "number",
-                "number": {"valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00"},
                 "type": "indicator",
+                "title": {"text": "B"},
                 "value": NULL_INT,
             },
             {
                 "delta": {
                     "decreasing": {"symbol": "▼"},
                     "increasing": {"symbol": "▲"},
-                    "valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00",
                 },
                 "domain": {
                     "x": [0.0, 1.0],
                     "y": [0.7333333333333333, 0.9999999999999999],
                 },
                 "mode": "number",
-                "number": {"valueformat": "DEEPHAVEN_JAVA_FORMAT#,##0.00"},
                 "type": "indicator",
+                "title": {"text": "A"},
                 "value": NULL_INT,
             },
         ]
@@ -470,6 +457,123 @@ class IndicatorTestCase(BaseTestCase):
             expected_is_user_set_template=False,
             expected_is_user_set_color=False,
         )
+
+    def test_title(self):
+        import src.deephaven.plot.express as dx
+
+        chart = dx.indicator(self.source, value="value", by="single").to_dict(
+            self.exporter
+        )
+
+        self.assertEqual(chart["plotly"]["data"][0]["title"]["text"], "A")
+        self.assertEqual(chart["plotly"]["layout"].get("title"), None)
+
+        chart = dx.indicator(self.source, value="value", by="text").to_dict(
+            self.exporter
+        )
+
+        self.assertEqual(chart["plotly"]["data"][0]["title"]["text"], "C")
+        self.assertEqual(chart["plotly"]["data"][1]["title"]["text"], "A")
+        self.assertEqual(chart["plotly"]["data"][2]["title"]["text"], "B")
+        self.assertEqual(chart["plotly"]["layout"].get("title"), None)
+
+        chart = dx.indicator(self.source, value="value", by=["text", "single"]).to_dict(
+            self.exporter
+        )
+
+        self.assertEqual(chart["plotly"]["data"][0]["title"]["text"], "A, C")
+        self.assertEqual(chart["plotly"]["data"][1]["title"]["text"], "A, A")
+        self.assertEqual(chart["plotly"]["data"][2]["title"]["text"], "A, B")
+        self.assertEqual(chart["plotly"]["layout"].get("title"), None)
+
+        chart = dx.indicator(
+            self.source,
+            value="value",
+            by="single",
+            title="title!",
+        ).to_dict(self.exporter)
+
+        self.assertEqual(chart["plotly"]["data"][0]["title"]["text"], "A")
+        self.assertEqual(chart["plotly"]["layout"]["title"]["text"], "title!")
+
+        chart = dx.indicator(
+            self.source, value="value", by="text", text="single", title="title!"
+        ).to_dict(self.exporter)
+
+        # text is filled on the client side
+        self.assertEqual(chart["plotly"]["data"][0].get("text"), None)
+        self.assertEqual(chart["plotly"]["data"][1].get("text"), None)
+        self.assertEqual(chart["plotly"]["data"][2].get("text"), None)
+        self.assertEqual(chart["plotly"]["layout"]["title"]["text"], "title!")
+
+        expected_mappings = [
+            {
+                "data_columns": {
+                    "single": ["/plotly/data/0/title/text"],
+                    "value": ["/plotly/data/0/value"],
+                },
+                "table": 0,
+            },
+            {
+                "data_columns": {
+                    "single": ["/plotly/data/1/title/text"],
+                    "value": ["/plotly/data/1/value"],
+                },
+                "table": 0,
+            },
+            {
+                "data_columns": {
+                    "single": ["/plotly/data/2/title/text"],
+                    "value": ["/plotly/data/2/value"],
+                },
+                "table": 0,
+            },
+        ]
+
+        self.assertEqual(chart["deephaven"]["mappings"], expected_mappings)
+
+        chart = dx.indicator(
+            self.source, value="value", text="single", title="title!"
+        ).to_dict(self.exporter)
+
+        # text is filled on the client side
+        self.assertEqual(chart["plotly"]["data"][0].get("text"), None)
+        self.assertEqual(chart["plotly"]["layout"]["title"]["text"], "title!")
+
+        expected_mappings = [
+            {
+                "data_columns": {
+                    "single": ["/plotly/data/0/title/text"],
+                    "value": ["/plotly/data/0/value"],
+                },
+                "table": 0,
+            }
+        ]
+
+        self.assertEqual(chart["deephaven"]["mappings"], expected_mappings)
+
+        chart = dx.indicator(
+            self.source, value="value", by="single", text=False
+        ).to_dict(self.exporter)
+
+        self.assertEqual(chart["plotly"]["data"][0].get("title"), None)
+        self.assertEqual(chart["plotly"]["layout"].get("title"), None)
+
+        chart = dx.indicator(
+            self.source, value="value", by="single", text=False, title="title!"
+        ).to_dict(self.exporter)
+
+        self.assertEqual(chart["plotly"]["data"][0]["title"]["text"], "title!")
+        self.assertEqual(chart["plotly"]["layout"].get("title"), None)
+
+        chart = dx.indicator(
+            self.source, value="value", by="text", text=False, title="title!"
+        ).to_dict(self.exporter)
+
+        self.assertEqual(chart["plotly"]["data"][0].get("title"), None)
+        self.assertEqual(chart["plotly"]["data"][1].get("title"), None)
+        self.assertEqual(chart["plotly"]["data"][2].get("title"), None)
+        self.assertEqual(chart["plotly"]["layout"]["title"]["text"], "title!")
 
 
 if __name__ == "__main__":

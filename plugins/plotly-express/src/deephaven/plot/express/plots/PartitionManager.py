@@ -140,28 +140,34 @@ def update_title(
         dict[str, Any]: The updated title args
     """
     title_args = {}
-    if "indicator" in types and "current_partition" in args:
-        partition_title = ", ".join(args["current_partition"].values())
-        if count == 1:
-            # if there is only one partition, the title should still be on the indicator itself
-            # because of excessive padding when using the layout title
-            title_args["title"] = title
-        else:
-            title_args["layout_title"] = title
+    if "indicator" in types:
+        text_indicator = args.get("text_indicator")
 
-        if args.get("text") is None:
-            # if there is no text column, the partition names should be used
-            # text can be False, which doesn't show text, so check for None specifically
-            if title:
-                # add the title to the layout as it could be possibly overwritten if count == 1
+        if "current_partition" in args:
+            partition_title = ", ".join(args["current_partition"].values())
+            if count == 1:
+                # if there is only one partition, the title should still be on the indicator itself
+                # because of excessive padding when using the layout title
+                title_args["title"] = title
+            else:
                 title_args["layout_title"] = title
-            title_args["title"] = partition_title
-        elif args.get("text") and title:
+
+            if text_indicator is None:
+                # if there is no text column, the partition names should be used
+                # text can be False, which doesn't show text, so check for None specifically
+                if title:
+                    # add the title to the layout as it could be possibly overwritten if count == 1
+                    title_args["layout_title"] = title
+                title_args["title"] = partition_title
+
+        # regardless of if there is a partition or not, the title should be on the layout
+        # if there is a text column
+        if text_indicator and title:
             # there is text, so add the title to the layout as it could be possibly overwritten if count == 1
             title_args["layout_title"] = title
 
     elif title is not None:
-        # currently, only indicators that are partitioned have custom title behavior
+        # currently, only indicators that are partitions have custom title behavior
         # so this is the default behavior
         title_args["title"] = title
     return title_args
@@ -687,7 +693,7 @@ class PartitionManager:
         # there are no partitions until a better solution can be done
         # also need the px template to be set
         # the title can also be set here as it will never change
-        title = self.args.get("title")
+        title = self.title
         default_fig = px.scatter(x=[0], y=[0], title=title)
         default_fig.update_traces(x=[], y=[])
         return DeephavenFigure(default_fig)
