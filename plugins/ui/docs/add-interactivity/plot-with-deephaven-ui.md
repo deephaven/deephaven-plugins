@@ -162,6 +162,44 @@ ptf = partition_then_filter(_stocks, ["Sym", "Exchange"], "DOG")
 wtp = where_then_partition(_stocks, ["Sym", "Exchange"], "DOG")
 ```
 
+## Change a plot
+
+TODO
+
+```python
+import deephaven.plot.express as dx
+import deephaven.ui as ui
+
+_stocks = dx.data.stocks().where("Sym = `DOG`")
+
+plot_types = ["Line", "Scatter", "Area"]
+
+
+@ui.component
+def change_plot_type(table):
+    plot_type, set_plot_type = ui.use_state("Line")
+
+    def create_plot(t, pt):
+        match pt:
+            case "Line":
+                return dx.line(t, x="Timestamp", y="Price")
+            case "Scatter":
+                return dx.scatter(t, x="Timestamp", y="Price")
+            case "Area":
+                return dx.area(t, x="Timestamp", y="Price")
+            case _:
+                return ui.text(f"Unknown plot type {pt}")
+
+    plot = ui.use_memo(lambda: create_plot(table, plot_type), [table, plot_type])
+    return [
+        ui.picker(plot_types, selected_key=plot_type, on_change=set_plot_type),
+        plot,
+    ]
+
+
+change_plot_type_example = change_plot_type(_stocks)
+```
+
 ## Plots and Liveness
 
 While you may need to use a liveness scope for deephaven tables, you do not for Deephaven Express plots.
