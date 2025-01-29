@@ -164,7 +164,7 @@ wtp = where_then_partition(_stocks, ["Sym", "Exchange"], "DOG")
 
 ## Change a plot
 
-TODO
+In response to user events, you can change data for a plot and you can change the plot itself. In this example, the plot type is changes by selecting it from a picker.
 
 ```python
 import deephaven.plot.express as dx
