@@ -12,72 +12,24 @@ my_footer = ui.footer("© All rights reserved.")
 
 ## Content
 
-The footer component represents a footer that inherits styling from its parent container.
+The footer component represents a footer that inherits styling from its parent container. It accepts any renderable node, not just strings.
 
 ## Slots
 
-When using certain container elements such as `ui.dialog` and `ui.illustrated_message`, their pre-defined layouts provide a slot for `ui.footer` (and other supported semantic elements), and handles the layout and styling of semantic elements for you.
+`ui.footer` is intended to be used in container components with layouts that provide a slot for `ui.footer` (and other supported elements). These components handle the layout and styling of such elements for you. See [`ui.dialog`](./dialog.md#content) and [`ui.contextual_help`](./contextual_help#example) for more detailed examples.
 
 ```python
 from deephaven import ui
 
-my_footer_order_example = ui.flex(
-    ui.illustrated_message(
-        ui.content("2 (Content)"),
-        ui.footer("3 (Footer)"),
-        ui.heading("1 (Heading)"),
-        ui.icon("vsCheck"),
-    ),
-    height="100%",
-    justify_content="center",
-    align_items="center",
-)
-```
 
-This does not apply to general purpose containers such as `ui.view` and `ui.flex`, which do not provide slots for semantic elements.
-
-```python
-from deephaven import ui
-
-my_footer_order_example = ui.flex(
-    ui.view(
-        ui.content("2 (Content)"),
-        ui.footer("3 (Footer)"),
-        ui.heading("1 (Heading)"),
-        ui.icon("vsCheck"),
-    ),
-    height="100%",
-    justify_content="center",
-    align_items="center",
-)
-```
-
-## Children
-
-`ui.footer`, like `ui.heading` and `ui.content`, accepts any renderable node, not just strings, allowing complex workflows to be modelled around them.
-
-```python
-from deephaven import ui
-
-my_fod = ui.dialog(
-    ui.footer(
-        ui.checkbox("I want to receive updates for exclusive offers in my area."),
-    ),
-    ui.heading(
-        ui.flex(ui.icon("mail"), "Register for newsletter"),
-    ),
+my_footer_order_example = ui.dialog(
+    ui.heading("Customer Support Request"),
     ui.content(
-        ui.form(
-            ui.text_field(name="firstname", label="First Name"),
-            ui.text_field(name="lastname", label="Last Name"),
-            ui.text_field(name="address", label="Address"),
-        ),
+        "We have received your support request and are currently reviewing it. Our team will get back to you soon."
     ),
-    ui.button_group(
-        ui.button("Cancel", variant="primary", style="outline"),
-        ui.button("Register", variant="accent"),
+    ui.footer(
+        "Ticket ID: #123456 | Status: In Progress | Support email: support@deephaven.io"
     ),
-    width="100%",
 )
 ```
 
