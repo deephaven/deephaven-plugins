@@ -150,6 +150,28 @@ is_error, set_is_error = ui.use_state(False)
 
 ### Step 4: Remove any non-essential state variables
 
+To avoid duplication in state content, track only what is essential. Refactoring your state structure will make components easier to understand, reduce duplication, and prevent unintended meanings. Aim to ensure that the state in memory always represents a valid UI. For example, avoid showing an error message while disabling the input simultaneously, as the user wouldn't be able to correct the error.
+
+Here are some questions to consider about your state variables:
+
+- Does this state cause a paradox? For instance, `is_typing` and `is_submitting` cannot both be true simultaneously. This usually indicates that the state is not sufficiently constrained. With two booleans, there are four possible combinations, but only three represent valid states. To eliminate the "impossible" state, you can merge these into a single status with three possible values: `typing`, `submitting`, or `success`.
+- Is the same information already available in another state variable? Another paradox: `is_empty` and `is_typing` cannot both be true at the same time. Keeping them as separate state variables risks them becoming unsynchronized and causing bugs. Instead, you can remove `is_empty` and check `len(answer) == 0`.
+- Can you derive the same information from the inverse of another state variable? `is_error` is unnecessary because you can check `error != None` instead.
+
+After this clean-up, you’re left with 3 essential state variables, down from 7.
+
+```python
+answer, set_answer = ui.use_state("")
+error, set_error = ui.use_state(None)
+status, set_status = ui.use_state("typing")  # "typing", "submitting", or "success"
+```
+
+These are essential because you cannot remove them without breaking functionality.
+
+### Step 5: Connect the event handlers to set state
+
+Lastly, create event handlers that update the state. Below is the final form, with all event handlers wired up:
+
 ```python
 from deephaven import ui
 import threading
@@ -196,3 +218,5 @@ def form():
 
 form_example = form()
 ```
+
+This code is less fragile than the imperative example. Expressing all interactions as state changes lets you later introduce new visual states without breaking existing ones. It also lets you change what should be displayed in each state without changing the logic of the interaction itself.
