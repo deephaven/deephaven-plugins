@@ -8,8 +8,7 @@
   "scripts": {
     "docker": "docker compose up deephaven-plugins --build",
     "start": "run-p \"start:packages -- {@}\" serve:plugins --",
-    "build": "run-s types build:packages",
-    "build:packages": "lerna run build --stream",
+    "build": "lerna run build --stream",
     "types": "tsc",
     "watch:types": "tsc --watch",
     "serve:plugins": "vite",

@@ -55,8 +55,12 @@ jobs:
         if: steps.restore-node-modules.outputs.cache-hit != 'true'
         run: npm ci --no-audit
 
-      - name: Build and type check
+      - name: Build check
         run: npm run build
+
+      - name: Type check
+        if: always() # Can still run types even if the build fails
+        run: npm run types
 
       # Run all tests for all the packages
       # Caching with the absolute path b/c Jest will make a folder in each project
