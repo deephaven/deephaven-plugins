@@ -142,6 +142,10 @@ export class PlotlyExpressChartModel extends ChartModel {
    */
   defaultValueFormatSet: Set<FormatUpdate> = new Set();
 
+  /**
+   * Map of variable within the plotly data to type.
+   * For example, '0/value' -> 'int'
+   */
   dataTypeMap: Map<string, string> = new Map();
 
   override getData(): Partial<Data>[] {
@@ -247,7 +251,6 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   override setFormatter(formatter: Formatter): void {
-    this.formatter = formatter;
     setDefaultValueFormat(
       this.plotlyData,
       this.defaultValueFormatSet,
@@ -357,7 +360,7 @@ export class PlotlyExpressChartModel extends ChartModel {
       typeof plotlyLayout.title === 'object' &&
       plotlyLayout.title.text != null
     ) {
-      this.fireTitleChange(plotlyLayout.title.text);
+      this.fireLayoutUpdated({ title: plotlyLayout.title });
     }
   }
 

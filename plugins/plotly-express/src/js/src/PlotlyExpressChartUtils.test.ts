@@ -1,3 +1,7 @@
+import type { dh as DhType } from '@deephaven/jsapi-types';
+import { type Formatter } from '@deephaven/jsapi-utils';
+import { Delta } from 'plotly.js-dist-min';
+import { TestUtils } from '@deephaven/test-utils';
 import {
   getPathParts,
   isLineSeries,
@@ -14,7 +18,41 @@ import {
   transformValueFormat,
   replaceValueFormat,
   FORMAT_PREFIX,
+  getDataTypeMap,
+  PlotlyChartDeephavenData,
+  setDefaultValueFormat,
+  convertToPlotlyNumberFormat,
 } from './PlotlyExpressChartUtils';
+
+const findColumn = jest.fn().mockImplementation(columnName => {
+  let type = 'int';
+  if (columnName === 'y') {
+    type = 'double';
+  }
+  return { type };
+});
+
+const MOCK_TABLE = TestUtils.createMockProxy<DhType.Table>({
+  columns: [{ name: 'x' }, { name: 'y' }] as DhType.Column[],
+  size: 500,
+  subscribe: () => TestUtils.createMockProxy(),
+  findColumn,
+});
+
+const getColumnTypeFormatter = jest.fn().mockImplementation(columnType => {
+  if (columnType === 'int') {
+    return {
+      defaultFormatString: '$#,##0USD',
+    };
+  }
+  return {
+    defaultFormatString: '$#,##0.00USD',
+  };
+});
+
+const FORMATTER = {
+  getColumnTypeFormatter,
+} as unknown as Formatter;
 
 describe('getDataMappings', () => {
   it('should return the data mappings from the widget data', () => {
@@ -335,14 +373,213 @@ describe('isSingleValue', () => {
   });
 });
 
+describe('setDefaultValueFormat', () => {
+  it('should only set the valueformat to double if at least one type is double and there is no valueformat', () => {
+    const plotlyData = [
+      {
+        type: 'indicator',
+        number: [],
+        value: {},
+        delta: {
+          reference: {},
+          prefix: 'prefix',
+          suffix: 'suffix',
+        },
+      },
+      {
+        type: 'indicator',
+        number: [],
+        value: {
+          valueformat: 'valueformat',
+        },
+        delta: {
+          reference: {},
+          valueformat: 'valueformat',
+          prefix: 'prefix',
+          suffix: 'suffix',
+        },
+      },
+    ] as unknown as Plotly.Data[];
+    const defaultValueFormatSet = new Set([
+      {
+        index: 0,
+        path: 'number',
+        typeFrom: ['value', 'delta/reference'],
+        options: {
+          format: true,
+          prefix: true,
+          suffix: true,
+        },
+      },
+      {
+        index: 0,
+        path: 'delta',
+        typeFrom: ['value', 'delta/reference'],
+        options: {
+          format: true,
+          prefix: false,
+          suffix: false,
+        },
+      },
+    ]);
+    const dataTypeMap = new Map([
+      ['/plotly/data/0/value', 'int'],
+      ['/plotly/data/0/delta/reference', 'double'],
+    ]);
+
+    setDefaultValueFormat(
+      plotlyData,
+      defaultValueFormatSet,
+      dataTypeMap,
+      FORMATTER
+    );
+
+    const expectedData = [
+      {
+        type: 'indicator',
+        number: [],
+        value: {},
+        delta: { reference: {}, prefix: 'prefix', suffix: 'suffix' },
+      },
+      {
+        type: 'indicator',
+        number: [],
+        value: { valueformat: 'valueformat' },
+        delta: {
+          reference: {},
+          valueformat: 'valueformat',
+          prefix: 'prefix',
+          suffix: 'suffix',
+        },
+      },
+    ];
+
+    expect(plotlyData).toEqual(expectedData);
+  });
+  it('should set the value format to the int if all are int', () => {
+    const plotlyData = [
+      {
+        type: 'indicator',
+        number: [],
+        value: {},
+        delta: {
+          reference: {},
+          prefix: 'prefix',
+          suffix: 'suffix',
+        },
+      },
+    ] as unknown as Plotly.Data[];
+    const defaultValueFormatSet = new Set([
+      {
+        index: 0,
+        path: 'number',
+        typeFrom: ['value', 'delta/reference'],
+        options: {
+          format: true,
+          prefix: false,
+          suffix: false,
+        },
+      },
+      {
+        index: 0,
+        path: 'delta',
+        typeFrom: ['value', 'delta/reference'],
+        options: {
+          format: true,
+          prefix: true,
+          suffix: true,
+        },
+      },
+    ]);
+    const dataTypeMap = new Map([
+      ['/plotly/data/0/value', 'int'],
+      ['/plotly/data/0/delta/reference', 'int'],
+    ]);
+
+    setDefaultValueFormat(
+      plotlyData,
+      defaultValueFormatSet,
+      dataTypeMap,
+      FORMATTER
+    );
+
+    const expectedData = [
+      {
+        type: 'indicator',
+        number: [],
+        value: {},
+        delta: { reference: {}, prefix: 'prefix', suffix: 'suffix' },
+      },
+    ];
+
+    expect(plotlyData).toEqual(expectedData);
+  });
+});
+
+describe('convertToPlotlyNumberFormat', () => {
+  it('should convert the format to a Plotly number format', () => {
+    const data = {};
+    const valueformat = '$##,##0.00USD';
+    const options = {
+      format: true,
+      prefix: true,
+      suffix: true,
+    };
+
+    convertToPlotlyNumberFormat(data, valueformat, options);
+
+    expect(data).toEqual({
+      valueformat: '01,.2f',
+      prefix: '$',
+      suffix: 'USD',
+    });
+  });
+
+  it('should not add the prefix and suffix if the are false', () => {
+    const data = {};
+    const valueformat = '##,##0.00USD';
+    const options = {
+      format: true,
+      prefix: false,
+      suffix: false,
+    };
+
+    convertToPlotlyNumberFormat(data, valueformat, options);
+
+    expect(data).toEqual({
+      valueformat: '01,.2f',
+    });
+  });
+
+  it('should not add the format if it is false', () => {
+    const data = {};
+    const valueformat = '##,##0.00USD';
+    const options = {
+      format: false,
+      prefix: true,
+      suffix: true,
+    };
+
+    convertToPlotlyNumberFormat(data, valueformat, options);
+
+    expect(data).toEqual({
+      prefix: '',
+      suffix: 'USD',
+    });
+  });
+});
+
 describe('transformValueFormat', () => {
   it('should not transform the value if it does not contain FORMAT_PREFIX', () => {
     const data = {
       valueformat: '.2f',
     };
 
-    transformValueFormat(data);
+    const numberFormatOptions = transformValueFormat(data);
     expect(data.valueformat).toBe('.2f');
+    expect(numberFormatOptions).toEqual({
+      format: false,
+    });
   });
 
   it('should transform the value if it contains FORMAT_PREFIX', () => {
@@ -350,9 +587,12 @@ describe('transformValueFormat', () => {
       valueformat: `${FORMAT_PREFIX}#,##0.00`,
     };
 
-    transformValueFormat(data);
+    const numberFormatOptions = transformValueFormat(data);
 
     expect(data.valueformat).toBe('01,.2f');
+    expect(numberFormatOptions).toEqual({
+      format: false,
+    });
   });
 
   it('should not replace the prefix and suffix if they are already there', () => {
@@ -362,11 +602,14 @@ describe('transformValueFormat', () => {
       suffix: 'suffix',
     };
 
-    transformValueFormat(data);
+    const numberFormatOptions = transformValueFormat(data);
 
     expect(data.valueformat).toBe('01,.2f');
     expect(data.prefix).toBe('prefix');
     expect(data.suffix).toBe('suffix');
+    expect(numberFormatOptions).toEqual({
+      format: false,
+    });
   });
 
   it('should replace the prefix and suffix if they are null', () => {
@@ -376,11 +619,43 @@ describe('transformValueFormat', () => {
       suffix: null,
     };
 
-    transformValueFormat(data);
+    const numberFormatOptions = transformValueFormat(data);
 
     expect(data.valueformat).toBe('01,.2f');
     expect(data.prefix).toBe('$');
     expect(data.suffix).toBe('USD');
+    expect(numberFormatOptions).toEqual({
+      format: false,
+    });
+  });
+
+  it('should return true for all format options if the format is not defined', () => {
+    const data = {} as Partial<Delta>;
+
+    const numberFormatOptions = transformValueFormat(data);
+
+    expect(data.valueformat).toBe(undefined);
+    expect(numberFormatOptions).toEqual({
+      format: true,
+      prefix: true,
+      suffix: true,
+    });
+  });
+
+  it('should return true for the format but false for the prefix and suffix if they are defined', () => {
+    const data = {
+      prefix: 'prefix',
+      suffix: 'suffix',
+    } as Partial<Delta>;
+
+    const numberFormatOptions = transformValueFormat(data);
+
+    expect(data.valueformat).toBe(undefined);
+    expect(numberFormatOptions).toEqual({
+      format: true,
+      prefix: false,
+      suffix: false,
+    });
   });
 });
 
@@ -403,9 +678,13 @@ describe('replaceValueFormat', () => {
         type: 'indicator',
         delta: {
           valueformat: '01,.2f',
+          prefix: '',
+          suffix: '',
         },
         number: {
           valueformat: '01,.2f',
+          prefix: '',
+          suffix: '',
         },
       },
     ];
@@ -414,7 +693,7 @@ describe('replaceValueFormat', () => {
 
     expect(data).toEqual(expectedData);
   });
-  it('should not add fields for traces that do not have valueformat set', () => {
+  it('should add delta and number for traces that do not have valueformat set', () => {
     const data = [
       {
         type: 'indicator',
@@ -424,11 +703,42 @@ describe('replaceValueFormat', () => {
     const expectedData = [
       {
         type: 'indicator',
+        delta: {},
+        number: {},
       },
     ];
 
     replaceValueFormat(data);
 
     expect(data).toEqual(expectedData);
+  });
+
+  describe('getDataTypeMap', () => {
+    it('should return the data type map', () => {
+      const deephavenData = {
+        mappings: [
+          {
+            table: 0,
+            data_columns: {
+              x: ['/plotly/data/0/x'],
+              y: ['/plotly/data/0/y'],
+            },
+          },
+        ],
+        is_user_set_color: false,
+        is_user_set_template: false,
+      } satisfies PlotlyChartDeephavenData;
+
+      const mockTableData = new Map([[0, MOCK_TABLE]]);
+
+      const dataTypeMap = getDataTypeMap(deephavenData, mockTableData);
+
+      const expectedMap = new Map([
+        ['0/x', 'int'],
+        ['0/y', 'double'],
+      ]);
+
+      expect(dataTypeMap).toEqual(expectedMap);
+    });
   });
 });

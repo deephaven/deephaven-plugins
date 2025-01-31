@@ -461,6 +461,13 @@ class IndicatorTestCase(BaseTestCase):
     def test_title(self):
         import src.deephaven.plot.express as dx
 
+        chart = dx.indicator(self.source, value="value", title="title!").to_dict(
+            self.exporter
+        )
+
+        self.assertEqual(chart["plotly"]["data"][0]["title"]["text"], "title!")
+        self.assertEqual(chart["plotly"]["layout"].get("title"), None)
+
         chart = dx.indicator(self.source, value="value", by="single").to_dict(
             self.exporter
         )

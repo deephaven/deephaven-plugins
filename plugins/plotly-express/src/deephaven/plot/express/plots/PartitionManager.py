@@ -159,6 +159,10 @@ def update_title(
                     # add the title to the layout as it could be possibly overwritten if count == 1
                     title_args["layout_title"] = title
                 title_args["title"] = partition_title
+        elif title is not None:
+            # there must be only one trace, so put the title on the indicator itself
+            # this will be overwritten if there is a text column
+            title_args["title"] = title
 
         # regardless of if there is a partition or not, the title should be on the layout
         # if there is a text column

@@ -389,15 +389,15 @@ export function setDefaultValueFormat(
  * @param options Options of what to update
  */
 
-function convertToPlotlyNumberFormat(
+export function convertToPlotlyNumberFormat(
   data: Partial<PlotNumber> | Partial<Delta>,
   valueFormat: string,
   options: Record<string, boolean> = {}
 ): void {
-  // by default, everything should be updated
+  // by default, everything should be updated dependent on updateFormat
   const updateFormat = options?.format ?? true;
-  const updatePrefix = options?.prefix ?? true;
-  const updateSuffix = options?.suffix ?? true;
+  const updatePrefix = options?.prefix ?? updateFormat;
+  const updateSuffix = options?.suffix ?? updateFormat;
 
   const formatResults = ChartUtils.getPlotlyNumberFormat(null, '', valueFormat);
   if (
@@ -461,8 +461,15 @@ export function transformValueFormat(
     };
   }
 
-  // transform once but don't transform again
-  convertToPlotlyNumberFormat(data, valueFormat);
+  // transform once but don't transform again, so false is returned for format
+  const options = {
+    format: true,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    prefix: (data as any)?.prefix == null,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    suffix: (data as any)?.suffix == null,
+  };
+  convertToPlotlyNumberFormat(data, valueFormat, options);
   return {
     format: false,
   };
@@ -498,7 +505,7 @@ export function replaceValueFormat(plotlyData: Data[]): Set<FormatUpdate> {
         trace.delta = {};
       }
 
-      const deltaFormatOptions = transformValueFormat(trace.number);
+      const deltaFormatOptions = transformValueFormat(trace.delta);
 
       if (deltaFormatOptions.format) {
         defaultValueFormatSet.add({

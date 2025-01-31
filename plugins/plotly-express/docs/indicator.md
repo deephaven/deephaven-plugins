@@ -128,7 +128,8 @@ indicator_plot = dx.indicator(dog_avg, value="Price", reference="StartingPrice",
 
 Format the numbers by passing a format string to the `number_format` argument.  
 The format follows [the GWT Java NumberFormat syntax](https://www.gwtproject.org/javadoc/latest/com/google/gwt/i18n/client/NumberFormat.html). 
-The default format is `#,##0.00`, which formats with a comma separator for every 3 digits, 2 decimal places, and a minimum of 1 digit to the left of the decimal point.  
+The default format is set within the settings panel. If only `value` is specified, the default format matches the type of that column.  
+If `reference` is specified, the default format is the `Integer` format if they are both integers, otherwise the default format is the `Decimal` format.  
 If a prefix or suffix is passed within the format string, it will be overridden by the `prefix` and `suffix` arguments.
 
 ```python
