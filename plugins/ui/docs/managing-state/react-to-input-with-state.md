@@ -15,73 +15,63 @@ In imperative programming, you would implement these interactions by writing exp
 
 They don't know your destination; they simply follow your commands. If you provide incorrect directions, you'll end up in the wrong place. This approach is called imperative because you must "command" each element, from the spinner to the button, instructing the computer on how to update the UI.
 
-This Javascript example shows an html form coded in an imperative style:
+This example shows a quiz form written in an imperative style:
 
-```javascript
-async function handleFormSubmit(e) {
-  e.preventDefault();
-  disable(textarea);
-  disable(button);
-  show(loadingMessage);
-  hide(errorMessage);
-  try {
-    await submitForm(textarea.value);
-    show(successMessage);
-    hide(form);
-  } catch (err) {
-    show(errorMessage);
-    errorMessage.textContent = err.message;
-  } finally {
-    hide(loadingMessage);
-    enable(textarea);
-    enable(button);
-  }
-}
+```python
+from deephaven import ui
+import threading
 
-function handleTextareaChange() {
-  if (textarea.value.length === 0) {
-    disable(button);
-  } else {
-    enable(button);
-  }
-}
 
-function hide(el) {
-  el.style.display = 'none';
-}
+@ui.component
+def form():
+    answer, set_answer = ui.use_state("")
+    error, set_error = ui.use_state(None)
 
-function show(el) {
-  el.style.display = '';
-}
+    # Imperative style means tracking state for each thing that can change
+    disable_text_area, set_disable_text_area = ui.use_state(False)
+    disable_button, set_disable_button = ui.use_state(True)
+    show_error, set_show_error = ui.use_state(False)
+    show_success, set_show_success = ui.use_state(False)
 
-function enable(el) {
-  el.disabled = false;
-}
+    def submit_form(answer):
+        should_error = answer != "3.14"
+        if should_error:
+            set_disable_text_area(False)
+            set_disable_button(False)
+            set_error("Incorrect!")
+            set_show_error(True)
+        else:
+            set_show_success(True)
 
-function disable(el) {
-  el.disabled = true;
-}
+    def handle_submit():
+        set_disable_text_area(True)
+        set_disable_button(True)
+        threading.Timer(1.5, lambda: submit_form(answer)).start()
 
-function submitForm(answer) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (answer.toLowerCase() === 'istanbul') {
-        resolve();
-      } else {
-        reject(new Error('Good guess but a wrong answer. Try again!'));
-      }
-    }, 1500);
-  });
-}
+    def handle_text_area_change(value):
+        set_answer(value)
+        set_disable_button(len(value) == 0)
 
-let form = document.getElementById('form');
-let textarea = document.getElementById('textarea');
-let button = document.getElementById('button');
-let loadingMessage = document.getElementById('loading');
-let errorMessage = document.getElementById('error');
-let successMessage = document.getElementById('success');
-form.onsubmit = handleFormSubmit;
-textarea.oninput = handleTextareaChange;
+    if show_success:
+        return ui.heading("Correct!")
+
+    return [
+        ui.heading("Quiz"),
+        ui.text("What are the first three digits of pi?"),
+        ui.form(
+            ui.text_area(
+                value=answer,
+                on_change=handle_text_area_change,
+                is_disabled=disable_text_area,
+            ),
+            ui.button("Submit", type="submit", is_disabled=disable_button),
+            ui.text(error) if show_error else None,
+            on_submit=handle_submit,
+        ),
+    ]
+
+
+form_example = form()
 ```
 
 Imperatively manipulating the UI works for simple examples, but becomes increasingly difficult in complex systems. Imagine updating a page with multiple forms. Adding a new UI element or interaction would require meticulously checking all existing code to avoid bugs, such as forgetting to show or hide elements.
