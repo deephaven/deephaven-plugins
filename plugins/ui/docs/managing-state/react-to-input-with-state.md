@@ -80,9 +80,55 @@ Imperatively manipulating the UI works for simple examples, but becomes increasi
 
 In `deephaven.ui`, you do not manipulate the UI directly. Instead, you declare what you want to display, and `deephaven.ui` determines how to update the UI. It is like telling a taxi driver your destination instead of giving step-by-step directions. The driver knows the best route and possibly even shortcuts you had not considered.
 
-# Think about UI declaratively
+## Think about UI declaratively
 
-TODO this is the final thing
+You’ve seen how to implement a form imperatively above. To better understand how to think declaratively, let's walk through reimplementing this UI using `deephaven.ui` below:
+
+1. **Identify** your component’s different visual states
+2. **Determine** what triggers those state changes
+3. **Represent** the state in memory using useState
+4. **Remove** any non-essential state variables
+5. **Connect** the event handlers to set the state
+
+### Step 1: Identify your component’s different visual states
+
+In computer science, you may hear about a “state machine” being in one of several “states”. For declarative programming with `deephaven.ui`, you should visualize your component's different states:
+
+- **Empty**: Form has a disabled “Submit” button.
+- **Typing**: Form has an enabled “Submit” button.
+- **Submitting**: Form is completely disabled while the answer is submitted.
+- **Success**: A success message is shown instead of a form.
+- **Error**: Same as Typing state, but with an error message shown.
+
+### Step 2: Determine what triggers those state changes
+
+You can trigger state updates in response to two kinds of inputs:
+
+- **Human inputs**: clicking a button, typing in a field, navigating a link.
+- **Computer inputs**: a network response arriving, a timeout completing, an image loading.
+
+In both cases, you must set state variables to update the UI. For the form you’re developing, you will need to change state in response to a few different inputs:
+
+- **Changing the text input** (human input) should switch it from the Empty state to the Typing state or back, depending on whether the text box is empty or not.
+- **Clicking the Submit button** (human input) should switch it to the Submitting state.
+- **Successful network response** (computer input) should switch it to the Success state.
+- **Failed network response** (computer input) should switch it to the Error state with the matching error message.
+
+To help visualize this flow, try drawing each state diagram.
+
+```mermaid
+---
+title: Form States
+---
+stateDiagram-v2
+    direction LR
+    Empty --> Typing: Start Typing
+    Typing --> Submitting: Press submit
+    Submitting --> Success: Network success
+    Submitting --> Error: Network error
+```
+
+### Step 3: Represent the state in memory with `use_state`
 
 ```python
 from deephaven import ui
