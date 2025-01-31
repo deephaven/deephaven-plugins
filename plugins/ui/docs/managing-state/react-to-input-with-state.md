@@ -24,10 +24,9 @@ import threading
 
 @ui.component
 def form():
+    # Imperative style means tracking state for each thing that can change
     answer, set_answer = ui.use_state("")
     error, set_error = ui.use_state(None)
-
-    # Imperative style means tracking state for each thing that can change
     disable_text_area, set_disable_text_area = ui.use_state(False)
     disable_button, set_disable_button = ui.use_state(True)
     show_error, set_show_error = ui.use_state(False)
@@ -129,6 +128,27 @@ stateDiagram-v2
 ```
 
 ### Step 3: Represent the state in memory with `use_state`
+
+Next you’ll need to represent the visual states of your component in memory with [`use_state`](../hooks/use_state.md). Simplicity is key: each piece of state is a "moving piece", and you want as few "moving pieces" as possible. More complexity leads to more bugs.
+
+Start with the state that absolutely must be there. For example, you’ll need to store the answer for the input, and the error (if it exists) to store the last error:
+
+```python
+answer, set_answer = ui.use_state("")
+error, set_error = ui.use_state(None)
+```
+
+Then, you’ll need a state variable representing which one of the visual states that you want to display. Naively, you can represent each state as a boolean value. There are issues with this which we will cover later.
+
+```python
+is_empty, set_is_empty = ui.use_state(True)
+is_typing, set_is_typing = ui.use_state(False)
+is_submitting, set_is_submitting = ui.use_state(False)
+is_success, set_is_success = ui.use_state(False)
+is_error, set_is_error = ui.use_state(False)
+```
+
+### Step 4: Remove any non-essential state variables
 
 ```python
 from deephaven import ui
