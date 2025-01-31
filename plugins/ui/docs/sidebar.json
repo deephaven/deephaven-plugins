@@ -92,7 +92,7 @@
             "path": "add-interactivity/update-dictionaries-in-state.md"
           },
           {
-            "label": "Plot with deephaven.ui",
+            "label": "Plotting",
             "path": "add-interactivity/plot-with-components.md"
           }
         ]
