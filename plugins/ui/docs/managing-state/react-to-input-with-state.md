@@ -91,3 +91,52 @@ Imperatively manipulating the UI works for simple examples, but becomes increasi
 In `deephaven.ui`, you do not manipulate the UI directly. Instead, you declare what you want to display, and `deephaven.ui` determines how to update the UI. It is like telling a taxi driver your destination instead of giving step-by-step directions. The driver knows the best route and possibly even shortcuts you had not considered.
 
 # Think about UI declaratively
+
+TODO this is the final thing
+
+```python
+from deephaven import ui
+import threading
+
+
+@ui.component
+def form():
+    answer, set_answer = ui.use_state("")
+    error, set_error = ui.use_state(None)
+    status, set_status = ui.use_state("typing")
+
+    def submit_form(answer):
+        should_error = answer != "3.14"
+        if should_error:
+            set_status("typing")
+            set_error("Incorrect!")
+        else:
+            set_status("success")
+
+    def handle_submit():
+        set_status("submitting")
+        threading.Timer(1.5, lambda: submit_form(answer)).start()
+
+    if status == "success":
+        return ui.heading("Correct!")
+
+    return [
+        ui.heading("Quiz"),
+        ui.text("What are the first three digits of pi?"),
+        ui.form(
+            ui.text_area(
+                value=answer, on_change=set_answer, is_disabled=status == "submitting"
+            ),
+            ui.button(
+                "Submit",
+                type="submit",
+                is_disabled=len(answer) == 0 or status == "submitting",
+            ),
+            ui.text(error),
+            on_submit=handle_submit,
+        ),
+    ]
+
+
+form_example = form()
+```
