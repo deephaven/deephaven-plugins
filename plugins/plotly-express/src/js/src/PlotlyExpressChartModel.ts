@@ -48,7 +48,7 @@ export class PlotlyExpressChartModel extends ChartModel {
   ) {
     super(dh);
 
-    this.widget = widget;
+    this.widget = 4;
     this.refetch = refetch;
     this.chartUtils = new ChartUtils(dh);
 
