@@ -52,7 +52,9 @@ export class ReactPanelErrorBoundary extends Component<
   render(): ReactNode {
     const { children } = this.props;
     const { error } = this.state;
-    return error != null ? <WidgetErrorView error={error} /> : children;
+    // We need to check for undefined children because React will throw an error if we return undefined from a render method
+    // Note this behaviour was changed in React 18: https://github.com/reactwg/react-18/discussions/75
+    return error != null ? <WidgetErrorView error={error} /> : children ?? null;
   }
 }
 
