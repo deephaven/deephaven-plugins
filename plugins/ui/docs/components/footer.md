@@ -16,22 +16,7 @@ The footer component represents a footer that inherits styling from its parent c
 
 ## Slots
 
-`ui.footer` is intended to be used in container components with layouts that provide a slot for `ui.footer` (and other supported elements). These components handle the layout and styling of such elements for you. See [`ui.dialog`](./dialog.md#content) and [`ui.contextual_help`](./contextual_help#example) for more detailed examples.
-
-```python
-from deephaven import ui
-
-
-my_footer_order_example = ui.dialog(
-    ui.heading("Customer Support Request"),
-    ui.content(
-        "We have received your support request and are currently reviewing it. Our team will get back to you soon."
-    ),
-    ui.footer(
-        "Ticket ID: #123456 | Status: In Progress | Support email: support@deephaven.io"
-    ),
-)
-```
+`ui.footer` is intended to be used in container components with layouts that provide a slot for `ui.footer` (and other supported elements). These components handle the layout and styling of such elements for you. See [`ui.dialog`](./dialog.md#content) and [`ui.contextual_help`](./contextual_help#example) for examples of a footer used in the context of a container.
 
 ## API reference
 

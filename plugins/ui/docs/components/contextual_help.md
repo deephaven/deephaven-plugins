@@ -13,8 +13,8 @@ from deephaven import ui
 my_contextual_help_basic = ui.contextual_help(
     heading="Need Help",
     content="If you are having issues accessing your account, contact our customer support team for help.",
-    variant="info",
     footer=ui.link("Download support logs"),
+    variant="info",
 )
 ```
 
