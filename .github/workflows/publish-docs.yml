@@ -17,7 +17,7 @@ jobs:
         id: packages
         with:
           script: |
-            const artifacts = await github.actions.rest.listWorkflowRunArtifacts({
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
               owner: context.repo.owner,
               repo: context.repo.repo,
               run_id: ${{ github.event.workflow_run.id }}
