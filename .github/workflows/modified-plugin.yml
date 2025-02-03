@@ -23,7 +23,7 @@ jobs:
     permissions:
       pull-requests: read
     outputs:
-      packages: ${{ steps.filter.outputs.changes }}
+      packages: ${{ steps.filter.outputs.packages }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
