@@ -78,7 +78,7 @@ jobs:
     needs:
       - release
       - check-make-docs
-    uses: ./.github/workflows/make-docs.yml
+    uses: ./.github/workflows/build-docs.yml
     secrets: inherit
     with:
       package: ${{ inputs.package }}
