@@ -28,6 +28,7 @@ export const ELEMENT_NAME = {
   actionMenu: uiComponentName('ActionMenu'),
   avatar: uiComponentName('Avatar'),
   badge: uiComponentName('Badge'),
+  breadcrumbs: uiComponentName('Breadcrumbs'),
   button: uiComponentName('Button'),
   buttonGroup: uiComponentName('ButtonGroup'),
   calendar: uiComponentName('Calendar'),
