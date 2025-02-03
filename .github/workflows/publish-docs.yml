@@ -22,8 +22,12 @@ jobs:
               repo: context.repo.repo,
               run_id: ${{ github.event.workflow_run.id }}
             });
+            console.log(artifacts);
             const versions = artifacts.data.artifacts.filter(artifact => artifact.name.startsWith('docs-build-'));
-            return versions.map(artifact => artifact.name.replace('docs-build-', ''));
+            console.log(versions);
+            const packages = versions.map(artifact => artifact.name.replace('docs-build-', ''))
+            console.log(packages);
+            return packages;
       # - name: Download docs
       #   uses: actions/download-artifact@v4
       #   with:
