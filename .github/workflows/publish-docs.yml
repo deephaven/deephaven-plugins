@@ -7,34 +7,56 @@ on:
       - completed
 
 jobs:
-  make-docs:
+  get-docs-packages:
     runs-on: ubuntu-24.04
+    outputs:
+      packages: ${{ steps.packages.outputs.packages }}
     steps:
-      - name: Download docs
+      - name: Get docs to publish
+        uses: actions/github-script@v7
+        id: packages
+        with:
+          script: |
+            const artifacts = await github.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.event.workflow_run.id }}
+            });
+            const versions = artifacts.data.artifacts.filter(artifact => artifact.name.startsWith('docs-build-'));
+            return versions.map(artifact => artifact.name.replace('docs-build-', ''));
+      # - name: Download docs
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     path: docs-build
+      #     pattern: docs-build-*
+      #     merge-multiple: true # Makes the docs-build directory ready to upload directly to GCP
+      #     run-id: ${{ github.event.workflow_run.id }}
+      #     github-token: ${{ github.token }}
+
+      # Outputs an array of $PACKAGE_NAME/$VERSION/ directories
+      # - name: Find packages
+      #   id: packages
+      #   run: echo "packages=$(ls -d docs-build/*/*/ | jq --raw-input --slurp --compact-output 'split("\n")[:-1]') | map(ltrimstr("docs-build/"))" >> ${GITHUB_OUTPUT}
+
+  publish-docs:
+    needs: get-docs-packages
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        package: ${{fromJson(needs.get-docs-packages.outputs.packages)}}
+    steps:
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
+          name: docs-build-${{ matrix.package }}
           path: docs-build
-          pattern: docs-*
-          merge-multiple: true # Makes the docs-build directory ready to upload directly to GCP
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ github.token }}
 
-      - name: Sync to prod
+      - name: Sync ${{ matrix.package }} to ${{ github.event.workflow_run.event == 'push' && 'prod' || 'preview' }}
         if: ${{ github.event.workflow_run.event == 'push' }}
         uses: deephaven/salmon-sync@v1
         with:
-          source: docs-build/
-          destination: deephaven/deephaven-plugins/
+          source: docs-build/${{ matrix.package }}
+          destination: deephaven/deephaven-plugins/${{ matrix.package }}
           project_number: ${{ secrets.DOCS_GOOGLE_CLOUD_PROJECT_NUMBER}}
-          bucket: ${{ vars.DOCS_GOOGLE_CLOUD_BUCKET }}
-          credentials: ${{ secrets.DOCS_GOOGLE_CLOUD_CREDENTIALS }}
-
-      - name: Sync to preview
-        if: ${{ github.event.workflow_run.event == 'pull_request' }}
-        uses: deephaven/salmon-sync@v1
-        with:
-          source: docs-build/
-          destination: deephaven/deephaven-plugins/
-          project_number: ${{ secrets.DOCS_GOOGLE_CLOUD_PROJECT_NUMBER}}
-          bucket: ${{ vars.DOC_PREVIEW_BUCKET }}
+          bucket: ${{ github.event.workflow_run.event == 'push' && vars.DOCS_GOOGLE_CLOUD_BUCKET || vars.DOC_PREVIEW_BUCKET }}
           credentials: ${{ secrets.DOCS_GOOGLE_CLOUD_CREDENTIALS }}
