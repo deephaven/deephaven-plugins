@@ -1,0 +1,43 @@
+name: Publish Docs
+
+on:
+  workflow_run:
+    workflows: ['Test Modified Plugin'] # Only runs on top level workflows, not reusable workflows called from another run
+    types:
+      - completed
+
+jobs:
+  make-docs:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download docs
+        uses: actions/download-artifact@v4
+        with:
+          path: docs-build
+          pattern: docs-*
+          merge-multiple: true # Makes the docs-build directory ready to upload directly to GCP
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: ls
+        run: ls docs-build
+
+      - name: Sync to prod
+        if: ${{ github.event.workflow_run.event == 'push' }}
+        uses: deephaven/salmon-sync@v1
+        with:
+          source: docs-build/
+          destination: deephaven/deephaven-plugins/
+          project_number: ${{ secrets.DOCS_GOOGLE_CLOUD_PROJECT_NUMBER}}
+          bucket: ${{ vars.DOCS_GOOGLE_CLOUD_BUCKET }}
+          credentials: ${{ secrets.DOCS_GOOGLE_CLOUD_CREDENTIALS }}
+
+      - name: Sync to preview
+        if: ${{ github.event.workflow_run.event == 'pull_request' }}
+        uses: deephaven/salmon-sync@v1
+        with:
+          source: docs-build/
+          destination: deephaven/deephaven-plugins/
+          project_number: ${{ secrets.DOCS_GOOGLE_CLOUD_PROJECT_NUMBER}}
+          bucket: ${{ vars.DOC_PREVIEW_BUCKET }}
+          credentials: ${{ secrets.DOCS_GOOGLE_CLOUD_CREDENTIALS }}

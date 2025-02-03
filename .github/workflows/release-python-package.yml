@@ -18,6 +18,7 @@ jobs:
     uses: ./.github/workflows/build-python-package.yml
     with:
       package: ${{ inputs.package }}
+      artifact-name: dist-${{ inputs.package }}
 
   release:
     needs: build-plugin
@@ -52,11 +53,11 @@ jobs:
           VERSION=$(python -c 'import pkginfo; print(pkginfo.Wheel("${{ steps.get_whl.outputs.whl_path }}").version)')
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
-      - name: Publish package
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: plugins/${{ inputs.package }}/dist/
-          attestations: false # TODO: Followup this thread to see if there's a better fix https://github.com/pypa/gh-action-pypi-publish/issues/283
+      # - name: Publish package
+      #   uses: pypa/gh-action-pypi-publish@release/v1
+      #   with:
+      #     packages-dir: plugins/${{ inputs.package }}/dist/
+      #     attestations: false # TODO: Followup this thread to see if there's a better fix https://github.com/pypa/gh-action-pypi-publish/issues/283
 
   check-make-docs:
     runs-on: ubuntu-22.04

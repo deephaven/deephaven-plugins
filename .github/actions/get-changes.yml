@@ -1,0 +1,36 @@
+# Note this expects checkout to already be performed
+name: 'Get changed plugins'
+description: 'Get the list of plugins that have been modified in the current PR or push'
+outputs:
+  packages:
+    description: 'Changed packges'
+    value: ${{ steps.filter.outputs.changes }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Filter paths
+      uses: dorny/paths-filter@v3
+      id: filter
+      with:
+        filters: |
+          plotly-express:
+            - plugins/plotly-express/**
+            - .github/workflows/test-*.yml
+            - sphinx_ext/*
+          matplotlib:
+            - plugins/matplotlib/**
+            - .github/workflows/test-*.yml
+          json:
+            - plugins/json/**
+            - .github/workflows/test-*.yml
+          ui:
+            - plugins/ui/**
+            - .github/workflows/test-*.yml
+            - sphinx_ext/*
+          utilities:
+            - plugins/utilities/**
+            - .github/workflows/test-*.yml
+          packaging:
+            - plugins/packaging/**
+            - .github/workflows/test-*.yml

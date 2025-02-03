@@ -29,30 +29,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Filter paths
-        uses: dorny/paths-filter@v3
+        uses: ./.github/actions/get-changes.yml
         id: filter
-        with:
-          filters: |
-            plotly-express:
-              - plugins/plotly-express/**
-              - .github/workflows/test-*.yml
-              - sphinx_ext/*
-            matplotlib:
-              - plugins/matplotlib/**
-              - .github/workflows/test-*.yml
-            json:
-              - plugins/json/**
-              - .github/workflows/test-*.yml
-            ui:
-              - plugins/ui/**
-              - .github/workflows/test-*.yml
-              - sphinx_ext/*
-            utilities:
-              - plugins/utilities/**
-              - .github/workflows/test-*.yml
-            packaging:
-              - plugins/packaging/**
-              - .github/workflows/test-*.yml
 
   # Test all python packages that have been modified individually
   test-python:
@@ -77,7 +55,7 @@ jobs:
   test-results:
     if: ${{ always() }}
     runs-on: ubuntu-22.04
-    needs: [test-python, test-js]
+    needs: [test-python, test-js, build-docs]
     steps:
       # Only fail if one of the previous tests failed
       - run: exit 1
@@ -102,16 +80,16 @@ jobs:
     with:
       package: ${{ needs.filter-release.outputs.package }}
 
-  # Main docs are built here, whereas release docs are built in release-python-package.yml
-  build-main-docs:
+  # Main and PR docs are built here, whereas release docs are built in release-python-package.yml
+  build-docs:
     needs: changes
-    # Only build main docs for push on main branch and PRs to main
-    if: ${{ needs.changes.outputs.packages != '[]' && needs.changes.outputs.packages != '' && (github.ref == 'refs/heads/main' || github.base_ref == 'main') && (github.event_name == 'push' || github.event_name == 'pull_request')}}
+    # Only build main docs for push on main branch and any PRs
+    if: ${{ needs.changes.outputs.packages != '[]' && needs.changes.outputs.packages != '' && (github.ref == 'refs/head/main' || github.event_name == 'pull_request') }}
     strategy:
       matrix:
         package: ${{ fromJSON(needs.changes.outputs.packages) }}
-    uses: ./.github/workflows/build-main-docs.yml
+    uses: ./.github/workflows/build-docs.yml
     secrets: inherit
     with:
       package: ${{ matrix.package }}
-      event_name: ${{ github.event_name }}
+      version: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || github.ref == 'refs/head/main' && 'main' }}

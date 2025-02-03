@@ -1,0 +1,71 @@
+name: Build Docs
+
+on:
+  workflow_call:
+    inputs:
+      package:
+        description: The plugin to publish the docs for
+        required: true
+        type: string
+      version:
+        description: The version of the plugin to publish the docs for
+        type: string
+        default: 'main'
+
+jobs:
+  check-make-docs:
+    runs-on: ubuntu-24.04
+    outputs:
+      files_exists: ${{ steps.check_files.outputs.files_exists }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check file existence
+        id: check_files
+        uses: andstor/file-existence-action@v3
+        with:
+          files: 'plugins/${{ inputs.package }}/make_docs.py'
+
+  build-plugin:
+    if: needs.check-make-docs.outputs.files_exists == 'true'
+    needs: check-make-docs
+    uses: ./.github/workflows/build-python-package.yml
+    with:
+      package: ${{ inputs.package }}
+      js: false # No need for JS to build docs
+      artifact-name: 'dist-docs-${{ inputs.package }}' # Don't collide with Python publishing action
+
+  build-docs:
+    needs: build-plugin
+    runs-on: ubuntu-24.04
+    steps:
+      # assume that the dist artifact is already available from calling build-python-package.yml before this workflow
+      - name: Download dist
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-docs-${{ inputs.package }}
+          path: plugins/${{ inputs.package }}/dist/
+
+      - name: Install requirements
+        run: pip install -r sphinx_ext/sphinx-requirements.txt
+
+      - name: Install wheel
+        run: pip install plugins/${{ inputs.package }}/dist/*.whl
+
+      - name: Run make_docs.py
+        run: python plugins/${{ inputs.package }}/make_docs.py
+
+      # Since the upload happens after any changed docs build, we'll setup so
+      # the artifact can be downloaded and merged into 1 directory structure that matches
+      # the expected structure in the GCP bucket
+      - name: Set upload structure
+        run: |
+          mkdir -p docs-build/${{ inputs.package }}/${{ inputs.version }}
+          cp -r plugins/${{ inputs.package }}/docs/build/markdown/* docs-build/${{ inputs.package }}/${{ inputs.version }}
+
+      - name: Upload docs
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-${{ inputs.package }} # This will be downloaded by publish-docs.yml
+          path: docs-build
