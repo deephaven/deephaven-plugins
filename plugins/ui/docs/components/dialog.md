@@ -320,4 +320,6 @@ my_large_example = large_example()
 
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.dialog
+.. dhautofunction:: deephaven.ui.content
+.. dhautofunction:: deephaven.ui.footer
 ```

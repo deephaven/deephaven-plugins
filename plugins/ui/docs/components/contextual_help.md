@@ -110,4 +110,8 @@ my_contextual_help_variant_examples = ui_contextual_help_variant_examples()
 
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.contextual_help
+.. dhautofunction:: deephaven.ui.content
+    :no-index:
+.. dhautofunction:: deephaven.ui.footer
+    :no-index:
 ```
