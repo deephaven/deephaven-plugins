@@ -19,9 +19,6 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
 
-      - name: ls
-        run: ls docs-build
-
       - name: Sync to prod
         if: ${{ github.event.workflow_run.event == 'push' }}
         uses: deephaven/salmon-sync@v1
