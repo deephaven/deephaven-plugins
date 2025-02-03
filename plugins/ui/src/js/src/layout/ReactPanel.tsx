@@ -239,7 +239,7 @@ function ReactPanel({
                  * Don't render the children if there's an error with the widget. If there's an error with the widget, we can assume the children won't render properly,
                  * but we still want the panels to appear so things don't disappear/jump around.
                  */}
-                {renderedChildren}
+                {renderedChildren ?? null}
               </ReactPanelErrorBoundary>
             </Flex>
           </View>
