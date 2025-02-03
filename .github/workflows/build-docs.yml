@@ -40,7 +40,9 @@ jobs:
     needs: build-plugin
     runs-on: ubuntu-24.04
     steps:
-      # assume that the dist artifact is already available from calling build-python-package.yml before this workflow
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Download dist
         uses: actions/download-artifact@v4
         with:
