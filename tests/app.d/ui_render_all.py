@@ -71,6 +71,7 @@ def ui_components1():
         ui.flex("Flex default child A", "Flex default child B"),
         ui.flex("Flex column child A", "Flex column child B", direction="column"),
         ui.form("Form"),
+        ui.disclosure(title="Heading", panel="Content"),
     )
 
 
