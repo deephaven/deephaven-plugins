@@ -6,6 +6,7 @@ from .basic import (
     component_element,
 )
 from .badge import badge
+from .breadcrumbs import breadcrumbs
 from .button import button
 from .button_group import button_group
 from .calendar import calendar
@@ -85,6 +86,7 @@ __all__ = [
     "avatar",
     "component_element",
     "badge",
+    "breadcrumbs",
     "button",
     "button_group",
     "calendar",

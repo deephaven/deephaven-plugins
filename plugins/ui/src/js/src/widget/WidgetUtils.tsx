@@ -7,6 +7,7 @@ import type { JSONRPCServerAndClient } from 'json-rpc-2.0';
 import {
   ActionMenu,
   Avatar,
+  Breadcrumbs,
   ButtonGroup,
   SpectrumCheckbox as Checkbox,
   CheckboxGroup,
@@ -129,6 +130,7 @@ export const elementComponentMap: Record<ValueOf<ElementName>, unknown> = {
   [ELEMENT_NAME.actionMenu]: ActionMenu,
   [ELEMENT_NAME.avatar]: Avatar,
   [ELEMENT_NAME.badge]: Badge,
+  [ELEMENT_NAME.breadcrumbs]: Breadcrumbs,
   [ELEMENT_NAME.button]: Button,
   [ELEMENT_NAME.buttonGroup]: ButtonGroup,
   [ELEMENT_NAME.calendar]: Calendar,
