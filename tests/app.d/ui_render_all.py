@@ -51,6 +51,11 @@ def ui_components1():
         ui.badge("Licensed", variant="positive"),
         ui.button_group(ui.button("One"), ui.button("Two")),
         ui.button("Button"),
+        ui.breadcrumbs(
+            ui.item("Deephaven", key="deephaven"),
+            ui.item("Products", key="products"),
+            ui.item("Community Core", key="community_core"),
+        ),
         ui.calendar(value="2021-01-01"),
         ui.checkbox("Checkbox"),
         ui.column("Column child A", "Column child B", "Column child C"),
@@ -66,14 +71,14 @@ def ui_components1():
         ui.flex("Flex default child A", "Flex default child B"),
         ui.flex("Flex column child A", "Flex column child B", direction="column"),
         ui.form("Form"),
-        ui.fragment("Fragment"),
-        ui.grid("Grid A", "Grid B"),
     )
 
 
 @ui.component
 def ui_components2():
     return (
+        ui.fragment("Fragment"),
+        ui.grid("Grid A", "Grid B"),
         ui.heading("Heading"),
         ui.icon("vsSymbolMisc"),
         ui.illustrated_message(
