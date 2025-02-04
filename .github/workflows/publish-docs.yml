@@ -32,6 +32,7 @@ jobs:
     if: ${{ needs.get-docs-packages.outputs.packages != '[]' && needs.get-docs-packages.outputs.packages != '' }}
     runs-on: ubuntu-24.04
     strategy:
+      fail-fast: false
       matrix:
         package: ${{fromJson(needs.get-docs-packages.outputs.packages)}}
     steps:
@@ -43,9 +44,9 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
 
-      - name: Turn name into path
-        id: path
-        # Replace first hyphen with slashe and re-export as env variable
+      # Extract the package and version from the artifact directories
+      # Each artifact should only contain 1 package and 1 version as the first 2 directories
+      - name: Extract package and version
         run: |
           echo "package=$(ls docs-build)" >> $GITHUB_ENV
           echo "version=$(ls docs-build/*)" >> $GITHUB_ENV
