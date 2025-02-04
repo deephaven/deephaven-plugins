@@ -100,7 +100,11 @@ class JsTableProxy implements dh.Table {
         const trueTarget = proxyHasProp || proxyHasFn ? target : target.table;
         const value = Reflect.get(trueTarget, prop, receiver);
 
-        if (typeof value === 'function') {
+        // Don't do this if the trueTarget is this proxy model (aka target).
+        // Otherwise we'll bind to the class instance and not the proxy instance.
+        // That can cause issues if this class implements something referencing a value
+        // that is defined in the model.
+        if (typeof value === 'function' && trueTarget === target.table) {
           return value.bind(trueTarget);
         }
 
