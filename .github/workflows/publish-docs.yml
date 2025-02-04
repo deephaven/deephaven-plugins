@@ -22,25 +22,9 @@ jobs:
               repo: context.repo.repo,
               run_id: ${{ github.event.workflow_run.id }}
             });
-            console.log(artifacts.data.artifacts);
             const versions = artifacts.data.artifacts.filter(artifact => artifact.name.startsWith('docs-build-'));
-            console.log(versions);
             const packages = versions.map(artifact => artifact.name.replace('docs-build-', ''))
-            console.log(packages);
             return packages;
-      # - name: Download docs
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     path: docs-build
-      #     pattern: docs-build-*
-      #     merge-multiple: true # Makes the docs-build directory ready to upload directly to GCP
-      #     run-id: ${{ github.event.workflow_run.id }}
-      #     github-token: ${{ github.token }}
-
-      # Outputs an array of $PACKAGE_NAME/$VERSION/ directories
-      # - name: Find packages
-      #   id: packages
-      #   run: echo "packages=$(ls -d docs-build/*/*/ | jq --raw-input --slurp --compact-output 'split("\n")[:-1]') | map(ltrimstr("docs-build/"))" >> ${GITHUB_OUTPUT}
 
   publish-docs:
     needs: get-docs-packages
@@ -55,6 +39,8 @@ jobs:
         with:
           name: docs-build-${{ matrix.package }}
           path: docs-build
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
 
       - name: Turn name into path
         id: path
