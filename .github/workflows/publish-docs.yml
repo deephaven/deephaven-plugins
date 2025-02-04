@@ -1,3 +1,4 @@
+# Docs triggered via push will go to prod, while docs triggered via PR will go to preview
 name: Publish Docs
 
 on:
@@ -49,8 +50,7 @@ jobs:
         # Replace first hyphen with slashe and re-export as env variable
         run: echo "packagePath=${packagePath/-/\/}" >> $GITHUB_ENV
 
-      - name: Sync ${{ matrix.package }} to ${{ github.event.workflow_run.event == 'push' && 'prod' || 'preview' }}
-        if: ${{ github.event.workflow_run.event == 'push' }}
+      - name: Sync ${{ env.packagePath }} to ${{ github.event.workflow_run.event == 'push' && 'prod' || 'preview' }}
         uses: deephaven/salmon-sync@v1
         with:
           source: docs-build/${{ env.packagePath }}/
