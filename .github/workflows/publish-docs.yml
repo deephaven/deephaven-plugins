@@ -44,6 +44,7 @@ jobs:
 
   publish-docs:
     needs: get-docs-packages
+    if: ${{ needs.get-docs-packages.outputs.packages != '[]' }}
     runs-on: ubuntu-24.04
     strategy:
       matrix:
