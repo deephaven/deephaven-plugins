@@ -59,3 +59,17 @@ jobs:
           project_number: ${{ secrets.DOCS_GOOGLE_CLOUD_PROJECT_NUMBER}}
           bucket: ${{ github.event.workflow_run.event == 'push' && vars.DOCS_GOOGLE_CLOUD_BUCKET || vars.DOC_PREVIEW_BUCKET }}
           credentials: ${{ secrets.DOCS_GOOGLE_CLOUD_CREDENTIALS }}
+
+      - name: Comment on PR
+        if: ${{ always() && github.event.workflow_run.event == 'pull_request' }} # TODO: Remove always after testing
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const env = process.env;
+            const path = env.package === 'ui' ? 'core/ui/docs' : 'core/plotly/docs'
+            github.rest.issues.createComment({
+              issue_number: env.version.replace('pr-', ''),
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `[${env.package} docs preview](https://deephaven-salmon-staging--deephaven-oss.us-central1.hosted.app/${path}/${env.version}) (Available for 14 days)`
+            });
