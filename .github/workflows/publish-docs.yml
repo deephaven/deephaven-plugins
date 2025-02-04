@@ -45,16 +45,16 @@ jobs:
 
       - name: Turn name into path
         id: path
-        env:
-          packagePath: ${{ matrix.package }}
         # Replace first hyphen with slashe and re-export as env variable
-        run: echo "packagePath=${packagePath/-/\/}" >> $GITHUB_ENV
+        run: |
+          echo "package=$(ls docs-build)" >> $GITHUB_ENV
+          echo "version=$(ls docs-build/*)" >> $GITHUB_ENV
 
-      - name: Sync ${{ env.packagePath }} to ${{ github.event.workflow_run.event == 'push' && 'prod' || 'preview' }}
+      - name: Sync ${{ env.package }}/${{ env.version }} to ${{ github.event.workflow_run.event == 'push' && 'prod' || 'preview' }}
         uses: deephaven/salmon-sync@v1
         with:
-          source: docs-build/${{ env.packagePath }}/
-          destination: deephaven/deephaven-plugins/${{ env.packagePath }}/
+          source: docs-build/${{ env.package }}/${{ env.version }}/
+          destination: deephaven/deephaven-plugins/${{ env.package }}/${{ env.version }}/
           project_number: ${{ secrets.DOCS_GOOGLE_CLOUD_PROJECT_NUMBER}}
           bucket: ${{ github.event.workflow_run.event == 'push' && vars.DOCS_GOOGLE_CLOUD_BUCKET || vars.DOC_PREVIEW_BUCKET }}
           credentials: ${{ secrets.DOCS_GOOGLE_CLOUD_CREDENTIALS }}
