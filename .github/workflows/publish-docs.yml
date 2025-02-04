@@ -61,7 +61,7 @@ jobs:
           credentials: ${{ secrets.DOCS_GOOGLE_CLOUD_CREDENTIALS }}
 
       - name: Comment on PR
-        if: ${{ always() && github.event.workflow_run.event == 'pull_request' }} # TODO: Remove always after testing
+        if: ${{ github.event.workflow_run.event == 'pull_request' }}
         uses: actions/github-script@v7
         with:
           script: |
