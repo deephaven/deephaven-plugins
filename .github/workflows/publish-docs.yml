@@ -22,7 +22,7 @@ jobs:
               repo: context.repo.repo,
               run_id: ${{ github.event.workflow_run.id }}
             });
-            console.log(artifacts);
+            console.log(artifacts.data.artifacts);
             const versions = artifacts.data.artifacts.filter(artifact => artifact.name.startsWith('docs-build-'));
             console.log(versions);
             const packages = versions.map(artifact => artifact.name.replace('docs-build-', ''))
@@ -55,12 +55,19 @@ jobs:
           name: docs-build-${{ matrix.package }}
           path: docs-build
 
+      - name: Turn name into path
+        id: path
+        env:
+          packagePath: ${{ matrix.package }}
+        # Replace hyphens with slashes and re-export as env variable
+        run: echo "packagePath=${packagePath/-/\/}" >> $GITHUB_ENV
+
       - name: Sync ${{ matrix.package }} to ${{ github.event.workflow_run.event == 'push' && 'prod' || 'preview' }}
         if: ${{ github.event.workflow_run.event == 'push' }}
         uses: deephaven/salmon-sync@v1
         with:
-          source: docs-build/${{ matrix.package }}
-          destination: deephaven/deephaven-plugins/${{ matrix.package }}
+          source: docs-build/${{ env.packagePath }}
+          destination: deephaven/deephaven-plugins/${{ env.packagePath }}
           project_number: ${{ secrets.DOCS_GOOGLE_CLOUD_PROJECT_NUMBER}}
           bucket: ${{ github.event.workflow_run.event == 'push' && vars.DOCS_GOOGLE_CLOUD_BUCKET || vars.DOC_PREVIEW_BUCKET }}
           credentials: ${{ secrets.DOCS_GOOGLE_CLOUD_CREDENTIALS }}
