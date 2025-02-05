@@ -40,11 +40,11 @@ jobs:
           cache: 'npm'
 
       - name: Install npm dependencies
-        if: ${{ steps.setup-node.conclusion == 'success'}}
+        if: ${{ steps.setup-node.outcome == 'success'}}
         run: npm ci
 
       - name: Build npm packages
-        if: ${{ steps.setup-node.conclusion == 'success'}}
+        if: ${{ steps.setup-node.outcome == 'success'}}
         run: npm run build -- --scope "@deephaven/js-plugin-${{ inputs.package }}"
 
       - name: Set up Python

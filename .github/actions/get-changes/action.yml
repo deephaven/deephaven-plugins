@@ -3,7 +3,7 @@ name: 'Get changed plugins'
 description: 'Get the list of plugins that have been modified in the current PR or push'
 outputs:
   packages:
-    description: 'Changed packges'
+    description: 'Changed packages'
     value: ${{ steps.filter.outputs.changes }}
 
 runs:
