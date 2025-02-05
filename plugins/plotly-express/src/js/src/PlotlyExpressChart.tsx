@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import Plotly from 'plotly.js-dist-min';
 import { Chart } from '@deephaven/chart';
 import type { dh } from '@deephaven/jsapi-types';
 import { type WidgetComponentProps } from '@deephaven/plugin';
 import { useApi } from '@deephaven/jsapi-bootstrap';
+import { getSettings, type RootState } from '@deephaven/redux';
 import PlotlyExpressChartModel from './PlotlyExpressChartModel.js';
 import { useHandleSceneTicks } from './useHandleSceneTicks.js';
 
@@ -14,6 +16,7 @@ export function PlotlyExpressChart(
   const { fetch } = props;
   const containerRef = useRef<HTMLDivElement>(null);
   const [model, setModel] = useState<PlotlyExpressChartModel>();
+  const settings = useSelector(getSettings<RootState>);
   const [widgetRevision, setWidgetRevision] = useState(0); // Used to force a clean chart state on widget change
 
   useEffect(() => {
@@ -42,6 +45,7 @@ export function PlotlyExpressChart(
       key={widgetRevision}
       containerRef={containerRef}
       model={model}
+      settings={settings}
       Plotly={Plotly}
     />
   ) : null;

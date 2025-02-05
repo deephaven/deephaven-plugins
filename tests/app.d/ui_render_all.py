@@ -77,6 +77,7 @@ def ui_components1():
 @ui.component
 def ui_components2():
     return (
+        ui.footer("© All rights reserved."),
         ui.fragment("Fragment"),
         ui.grid("Grid A", "Grid B"),
         ui.heading("Heading"),
