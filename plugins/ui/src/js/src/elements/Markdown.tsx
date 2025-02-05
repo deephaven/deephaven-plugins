@@ -11,7 +11,16 @@ type MarkdownProps = Omit<ViewProps, 'children'> & {
 };
 
 const renderMarkdown: CodeComponent = props => {
-  const { children, className } = props;
+  const { children, className, inline } = props;
+  if (inline === true) {
+    return (
+      <code>
+        {React.Children.map(children, child =>
+          typeof child === 'string' ? child.trim() : child
+        )}
+      </code>
+    );
+  }
   const language =
     className !== undefined && className?.startsWith('language-')
       ? className.substring(9)
@@ -32,7 +41,7 @@ const renderMarkdown: CodeComponent = props => {
 export function Markdown({ children, ...props }: MarkdownProps): JSX.Element {
   return (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <View {...props}>
+    <View {...props} UNSAFE_className="ui-markdown markdown-editor-container">
       <ReactMarkdown
         components={{ code: renderMarkdown }}
         remarkPlugins={[remarkMath]}
