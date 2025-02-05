@@ -46,6 +46,7 @@ export const ELEMENT_NAME = {
   divider: uiComponentName('Divider'),
   flex: uiComponentName('Flex'),
   form: uiComponentName('Form'),
+  footer: uiComponentName('Footer'),
   fragment: uiComponentName('Fragment'),
   grid: uiComponentName('Grid'),
   heading: uiComponentName('Heading'),
