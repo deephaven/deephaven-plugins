@@ -55,6 +55,7 @@ def dialog_example1():
         ui.dialog(
             ui.heading("Publish 3 pages"),
             ui.content("Confirm publish?"),
+            ui.footer("You can undo this action later."),
             ui.button_group(
                 ui.button("Cancel", variant="secondary", on_press=set_open.off),
                 ui.button(
@@ -106,10 +107,10 @@ def dialog_example3():
                     ui.text_field(label="Last Name"),
                     ui.text_field(label="Street Address"),
                     ui.text_field(label="City"),
-                    ui.checkbox(
-                        "I want to receive updates for exclusive offers in my area."
-                    ),
                 )
+            ),
+            ui.footer(
+                ui.checkbox("I want to receive updates for exclusive offers."),
             ),
             ui.button_group(
                 ui.button("Cancel", variant="secondary", on_press=set_open.off),
@@ -319,4 +320,6 @@ my_large_example = large_example()
 
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.dialog
+.. dhautofunction:: deephaven.ui.content
+.. dhautofunction:: deephaven.ui.footer
 ```

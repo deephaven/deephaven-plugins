@@ -26,6 +26,7 @@ from .dialog_trigger import dialog_trigger
 from .divider import divider
 from .flex import flex
 from .form import form
+from .footer import footer
 from .fragment import fragment
 from .heading import heading
 from .grid import grid
@@ -107,6 +108,7 @@ __all__ = [
     "divider",
     "flex",
     "form",
+    "footer",
     "fragment",
     "grid",
     "heading",
