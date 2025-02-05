@@ -6,6 +6,7 @@ from .basic import (
     component_element,
 )
 from .badge import badge
+from .breadcrumbs import breadcrumbs
 from .button import button
 from .button_group import button_group
 from .calendar import calendar
@@ -27,6 +28,7 @@ from .dialog_trigger import dialog_trigger
 from .divider import divider
 from .flex import flex
 from .form import form
+from .footer import footer
 from .fragment import fragment
 from .heading import heading
 from .grid import grid
@@ -36,6 +38,7 @@ from .image import image
 from .inline_alert import inline_alert
 from .item import item
 from .item_table_source import item_table_source
+from .labeled_value import labeled_value
 from .link import link
 from .list_action_group import list_action_group
 from .list_action_menu import list_action_menu
@@ -67,6 +70,7 @@ from .tab_panels import tab_panels
 from .tab import tab
 from .table import table, TableDatabar, TableFormat
 from .tabs import tabs
+from .tag_group import tag_group
 from .text import text
 from .text_area import text_area
 from .text_field import text_field
@@ -85,6 +89,7 @@ __all__ = [
     "avatar",
     "component_element",
     "badge",
+    "breadcrumbs",
     "button",
     "button_group",
     "calendar",
@@ -107,6 +112,7 @@ __all__ = [
     "divider",
     "flex",
     "form",
+    "footer",
     "fragment",
     "grid",
     "heading",
@@ -115,6 +121,7 @@ __all__ = [
     "item_table_source",
     "illustrated_message",
     "image",
+    "labeled_value",
     "inline_alert",
     "link",
     "list_view",
@@ -149,6 +156,7 @@ __all__ = [
     "tab_panels",
     "tabs",
     "tab",
+    "tag_group",
     "text",
     "text_area",
     "text_field",
