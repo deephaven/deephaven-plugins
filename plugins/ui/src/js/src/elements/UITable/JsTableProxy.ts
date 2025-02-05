@@ -100,17 +100,13 @@ class JsTableProxy implements dh.Table {
         const trueTarget = proxyHasProp || proxyHasFn ? target : target.table;
         const value = Reflect.get(trueTarget, prop, receiver);
 
-        // Don't do this if the trueTarget is this proxy model (aka target).
-        // Otherwise we'll bind to the class instance and not the proxy instance.
-        // That can cause issues if this class implements something referencing a value
-        // that is defined in the model.
-        if (typeof value === 'function' && trueTarget === target.table) {
+        if (typeof value === 'function') {
           return value.bind(trueTarget);
         }
 
         return value;
       },
-      set(target, prop, value) {
+      set(target, prop, value, receiver) {
         const proxyHasSetter =
           Object.getOwnPropertyDescriptor(Object.getPrototypeOf(target), prop)
             ?.set != null;
@@ -118,7 +114,7 @@ class JsTableProxy implements dh.Table {
         const proxyHasProp = Object.prototype.hasOwnProperty.call(target, prop);
 
         if (proxyHasSetter || proxyHasProp) {
-          return Reflect.set(target, prop, value, target);
+          return Reflect.set(target, prop, value, receiver);
         }
 
         return Reflect.set(target.table, prop, value, target.table);

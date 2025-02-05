@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 import {
   GridThemeType,
   DataBarOptions,
@@ -209,19 +210,10 @@ class UITableModel extends IrisGridModel {
         );
 
         const trueTarget = proxyHasProp || proxyHasFn ? target : target.model;
-        const value = Reflect.get(trueTarget, prop, receiver);
 
-        // Don't do this if the trueTarget is this proxy model (aka target).
-        // Otherwise we'll bind to the class instance and not the proxy instance.
-        // That can cause issues if this class implements something referencing a value
-        // that is defined in the model.
-        if (typeof value === 'function' && trueTarget === target.model) {
-          return value.bind(target.model);
-        }
-
-        return value;
+        return Reflect.get(trueTarget, prop, receiver);
       },
-      set(target, prop, value) {
+      set(target, prop, value, receiver) {
         const proxyHasSetter =
           Object.getOwnPropertyDescriptor(Object.getPrototypeOf(target), prop)
             ?.set != null;
@@ -229,7 +221,7 @@ class UITableModel extends IrisGridModel {
         const proxyHasProp = Object.prototype.hasOwnProperty.call(target, prop);
 
         if (proxyHasSetter || proxyHasProp) {
-          return Reflect.set(target, prop, value, target);
+          return Reflect.set(target, prop, value, receiver);
         }
 
         return Reflect.set(target.model, prop, value, target.model);
