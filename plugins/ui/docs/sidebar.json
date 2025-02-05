@@ -94,6 +94,15 @@
         ]
       },
       {
+        "label": "Managing State",
+        "items": [
+          {
+            "label": "Choose the State Structure",
+            "path": "managing-state/choose-the-state-structure.md"
+          }
+        ]
+      },
+      {
         "label": "Components",
         "items": [
           {
