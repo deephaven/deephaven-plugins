@@ -57,7 +57,7 @@ jobs:
           source: docs-build/${{ env.package }}/${{ env.version }}/
           destination: deephaven/deephaven-plugins/${{ env.package }}/${{ env.version }}/
           project_number: ${{ secrets.DOCS_GOOGLE_CLOUD_PROJECT_NUMBER}}
-          bucket: ${{ github.event.workflow_run.event == 'push' && vars.DOCS_GOOGLE_CLOUD_BUCKET || vars.DOC_PREVIEW_BUCKET }}
+          bucket: ${{ github.event.workflow_run.event == 'push' && vars.DOCS_GOOGLE_CLOUD_BUCKET || vars.DOCS_PREVIEW_BUCKET }}
           credentials: ${{ secrets.DOCS_GOOGLE_CLOUD_CREDENTIALS }}
 
       - name: Comment on PR
