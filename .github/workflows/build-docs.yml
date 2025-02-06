@@ -33,7 +33,7 @@ jobs:
     uses: ./.github/workflows/build-python-package.yml
     with:
       package: ${{ inputs.package }}
-      # js: false # No need for JS to build docs
+      js: false # No need for JS to build docs
       artifact-name: 'dist-docs-${{ inputs.package }}' # Don't collide with Python publishing action
 
   build-docs:
