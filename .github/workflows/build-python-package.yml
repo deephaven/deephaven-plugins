@@ -33,7 +33,7 @@ jobs:
 
       - name: Setup Node
         id: setup-node
-        if: ${{ inputs.js && steps.check_files.outputs.files_exists == 'true' }}
+        if: ${{ steps.check_files.outputs.files_exists == 'true' }}
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
