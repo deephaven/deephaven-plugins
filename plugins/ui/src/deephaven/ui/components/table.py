@@ -90,7 +90,7 @@ class TableDatabar:
 
 class table(Element):
     """
-    Customization to how a table is displayed, how it behaves, and listen to UI eventss.
+    Customization to how a table is displayed, how it behaves, and listen to UI events.
 
     Args:
         table: The table to wrap
