@@ -12,6 +12,7 @@ import {
   ColumnName,
   IrisGridModel,
   IrisGridModelFactory,
+  IrisGridTableModel,
   type IrisGridThemeType,
   isIrisGridTableModelTemplate,
   UIRow,
@@ -130,7 +131,7 @@ function getFormatCustomColumnName(i: number): string {
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface UITableModel extends IrisGridModel {}
+interface UITableModel extends IrisGridTableModel {}
 
 type NumericValue =
   | number
