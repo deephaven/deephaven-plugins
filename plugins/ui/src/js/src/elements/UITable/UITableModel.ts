@@ -274,11 +274,7 @@ class UITableModel extends IrisGridModel {
     columnName: ColumnName,
     valueType: string
   ): number {
-    if (!isIrisGridTableModelTemplate(this.model)) {
-      return 0;
-    }
-
-    if (row != null) {
+    if (row != null && isIrisGridTableModelTemplate(this.model)) {
       let column;
 
       try {
