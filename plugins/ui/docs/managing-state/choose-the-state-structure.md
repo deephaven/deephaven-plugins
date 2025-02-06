@@ -15,3 +15,41 @@ When you write a component that holds state, you will make choices about how man
 The purpose of these principles is to simplify state updates and minimize errors. By eliminating redundant and duplicate data from the state, you can ensure consistency across all its pieces. This approach is akin to how a database engineer might "normalize" a database structure to minimize bugs.
 
 ## Group related state
+
+At times, you may be uncertain whether to use a single state variable or multiple state variables.
+
+Should you use this?
+
+```python
+start_date, set_start_date = ui.use_state("2020-02-03")
+end_date, set_end_date = ui.use_state("2020-02-08")
+```
+
+Or should you use this?
+
+```python
+date_range, set_date_range = ui.use_state({"start": "2020-02-03", "end": "2020-02-08"})
+```
+
+You can use either approach, but if two state variables always change together, consider combining them into a single state variable.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def example():
+    date_range, set_date_range = ui.use_state(
+        {"start": "2020-02-03", "end": "2020-02-08"}
+    )
+    return ui.range_calendar(
+        aria_label="Date range (controlled)", value=date_range, on_change=set_date_range
+    )
+
+
+my_example = example()
+```
+
+Grouping data into an object or array is useful when the number of state pieces is unknown. For instance, this approach is beneficial for forms where users can add custom fields.
+
+When your state variable is an object, you must copy the other fields explicitly when updating a single field. For instance, using `set_date_range({ "start": "2020-02-03" })` in the example above would omit the `end` field. To update only x, use `set_date_range({ **date_range, "start": "2020-02-03" })` or separate them into two state variables and use `set_start("2020-02-03")`.
