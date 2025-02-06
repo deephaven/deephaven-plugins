@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.26.1 - 2025-02-06
+#### Bug Fixes
+- DH-18415: Cannot expand rows after applying rollup to ui.table (#1109) - (0d09ef4) - Matthew Runyon
+
+- - -
+
 ## ui-v0.26.0 - 2025-02-06
 #### Bug Fixes
 - ui.markdown was styling code incorrectly (#1106) - (c84db85) - mofojed
