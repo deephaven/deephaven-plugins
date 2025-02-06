@@ -141,8 +141,6 @@ type NumericValue =
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 class UITableModel extends IrisGridModel {
-  table: DhType.Table;
-
   private model: IrisGridModel;
 
   private databars: Map<ColumnName, DatabarConfig>;
@@ -159,7 +157,6 @@ class UITableModel extends IrisGridModel {
   constructor({
     dh,
     model,
-    table,
     databars,
     format,
     displayNameMap,
@@ -174,7 +171,6 @@ class UITableModel extends IrisGridModel {
     super(dh);
 
     this.model = model;
-    this.table = table;
     this.displayNameMap = displayNameMap;
 
     this.databars = new Map<ColumnName, DatabarConfig>();
@@ -210,9 +206,9 @@ class UITableModel extends IrisGridModel {
 
         const trueTarget = proxyHasProp || proxyHasFn ? target : target.model;
 
-        return Reflect.get(trueTarget, prop, receiver);
+        return Reflect.get(trueTarget, prop);
       },
-      set(target, prop, value, receiver) {
+      set(target, prop, value) {
         const proxyHasSetter =
           Object.getOwnPropertyDescriptor(Object.getPrototypeOf(target), prop)
             ?.set != null;
@@ -220,10 +216,10 @@ class UITableModel extends IrisGridModel {
         const proxyHasProp = Object.prototype.hasOwnProperty.call(target, prop);
 
         if (proxyHasSetter || proxyHasProp) {
-          return Reflect.set(target, prop, value, receiver);
+          return Reflect.set(target, prop, value);
         }
 
-        return Reflect.set(target.model, prop, value, target.model);
+        return Reflect.set(target.model, prop, value);
       },
     });
   }
@@ -278,11 +274,15 @@ class UITableModel extends IrisGridModel {
     columnName: ColumnName,
     valueType: string
   ): number {
+    if (!isIrisGridTableModelTemplate(this.model)) {
+      return 0;
+    }
+
     if (row != null) {
       let column;
 
       try {
-        column = this.table.findColumn(columnName);
+        column = this.model.table.findColumn(columnName);
       } catch {
         throw new Error(`Can't find databar ${valueType} column ${columnName}`);
       }

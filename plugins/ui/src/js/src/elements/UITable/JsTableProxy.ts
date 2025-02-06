@@ -106,7 +106,7 @@ class JsTableProxy implements dh.Table {
 
         return value;
       },
-      set(target, prop, value, receiver) {
+      set(target, prop, value) {
         const proxyHasSetter =
           Object.getOwnPropertyDescriptor(Object.getPrototypeOf(target), prop)
             ?.set != null;
@@ -114,7 +114,7 @@ class JsTableProxy implements dh.Table {
         const proxyHasProp = Object.prototype.hasOwnProperty.call(target, prop);
 
         if (proxyHasSetter || proxyHasProp) {
-          return Reflect.set(target, prop, value, receiver);
+          return Reflect.set(target, prop, value);
         }
 
         return Reflect.set(target.table, prop, value, target.table);
