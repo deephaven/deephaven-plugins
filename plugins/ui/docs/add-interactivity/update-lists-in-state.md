@@ -1,12 +1,12 @@
 # Update Lists in State
 
-Python lists are mutable, but you should treat them as immutable when you store them in state. Just like with dictionaries, when you want to update an list stored in state, you need to create a new one (or make a copy of an existing one), and then set state to use the new list.
+Python lists are mutable, but you should treat them as immutable when you store them in state. Just like with dictionaries, when you want to update a list stored in state, you need to create a new one (or make a copy of an existing one) and then set state to use the new list.
 
 ## Update lists without mutation
 
-Like with dictionaries, you should treat lists in `deephaven.ui` state as read-only. This means that you should not reassign items inside an list like `my_list[0] = "bird"`, and you also should not use methods that mutate the list, such as `append()` and `remove()`.
+Like with dictionaries, you should treat lists in `deephaven.ui` state as read-only. This means that you should not reassign items inside a list like `my_list[0] = "bird"`, and you also should not use methods that mutate the list, such as `append()` and `remove()`.
 
-Instead, every time you want to update an list, you will want to pass a new list to your state setting function. To do that, you can create a new list from the original list in your state by copying the list or creating new list via list comprehension. Then you can set your state to the resulting new list.
+Instead, every time you want to update a list, you will want to pass a new list to your state setting function. To do that, you can create a new list from the original list in your state by copying the list or creating a new list via list comprehension. Then, you can set your state to the resulting new list.
 
 ## Add to a list
 
@@ -36,7 +36,7 @@ def artist_list():
 artist_list_example = artist_list()
 ```
 
-Instead, create a new list which contains the existing items and a new item at the end. There are multiple ways to do this, you can use the `copy()` method, `concatenation`, or `unpacking`. Now it works correctly:
+Instead, create a new list that contains the existing items and a new item at the end. There are multiple ways to do this: you can use the `copy()` method, `concatenation`, or `unpacking`. Now it works correctly:
 
 ```python
 from deephaven import ui
@@ -103,7 +103,7 @@ def artist_list():
 artist_list_example = artist_list()
 ```
 
-Here, `[artist for artist in artists if artist["id"] != id]` means create an list that consists of those artists whose IDs are different from `artist["id"]`. In other words, each artist’s “Delete” button will filter that artist out of the list, and then request a re-render with the resulting list. Note that list comprehension does not modify the original list.
+Here, `[artist for artist in artists if artist["id"] != id]` means create a list that consists of those artists whose IDs are different from `artist["id"]`. In other words, each artist’s “Delete” button will filter that artist out of the list, and then request a re-render with the resulting list. Note that list comprehension does not modify the original list.
 
 ## Transform a list
 
@@ -147,7 +147,7 @@ transform_example = transform()
 
 ## Replace items in a list
 
-It is particularly common to want to replace one or more items in an list. Assignments like `values[0] = "bird"` are mutating the original list, so instead you will want to use list comprehension for this as well.
+It is particularly common to want to replace one or more items in a list. Assignments like `values[0] = "bird"` are mutating the original list, so instead, you will want to use list comprehension for this as well.
 
 ```python
 from deephaven import ui
@@ -269,7 +269,7 @@ artist_list_example = artist_list()
 
 Here, you use the `copy()` method to create a copy of the original list first. Now that you have a copy, you can use mutating methods like `reverse()` or `sort()`, or even assign individual items.
 
-However, even if you copy list, you cannot mutate existing items inside of it directly. This is because copying is shallow and the new list will contain the same items as the original one. So if you modify an dictionary inside the copied list, you are mutating the existing state. For example, code like this is a problem.
+However, even if you copy list, you cannot mutate existing items inside of it directly. This is because copying is shallow and the new list will contain the same items as the original one. So, if you modify a dictionary inside the copied list, you are mutating the existing state. For example, code like this is a problem.
 
 ```python
 artists_copy = artists.copy()
@@ -277,7 +277,7 @@ artists_copy[0]["name"] = "Splinter"
 set_artists(artists_copy)
 ```
 
-Although `artists_copy` and `artists` are two different lists, `artists_copy[0]` and `artists[0]` point to the same dictionary. So by changing `artists_copy[0]["name"]`, you are also changing `artists[0]["name"]`. This is a state mutation, which you should avoid. You can solve this issue in a similar way to updating nested python dictionaries by copying individual items you want to change instead of mutating them. Here’s how.
+Although `artists_copy` and `artists` are two different lists, `artists_copy[0]` and `artists[0]` point to the same dictionary. So by changing `artists_copy[0]["name"]`, you are also changing `artists[0]["name"]`. This is a state mutation, which you should avoid. You can solve this issue in a similar way to updating nested Python dictionaries by copying individual items you want to change instead of mutating them. Here’s how.
 
 ## Update dictionaries inside arrays
 
