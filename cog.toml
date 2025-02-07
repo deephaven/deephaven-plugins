@@ -4,7 +4,7 @@ disable_changelog = false
 # we never tag any code outside the plugins/ directory. Everything else is build glue.
 generate_mono_repository_global_tag = false
 # limit which branches to perform bumps from
-branch_whitelist = [ "main" ]
+branch_whitelist = [ "main", "release/*" ]
 # we don't really use [skip ci] action filtering, but leaving here in case we decide to someday
 skip_ci = "[skip ci]"
 skip_untracked = false

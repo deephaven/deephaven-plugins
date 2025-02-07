@@ -19,6 +19,10 @@
         "path": "installation.md"
       },
       {
+        "label": "Tutorial",
+        "path": "tutorial.md"
+      },
+      {
         "label": "Architecture",
         "path": "architecture.md"
       },
@@ -43,8 +47,8 @@
             "path": "describing/use_hooks.md"
           },
           {
-            "label": "Working with Tables",
-            "path": "describing/work_with_tables.md"
+            "label": "UI with Tables",
+            "path": "describing/ui_with_tables.md"
           },
           {
             "label": "Conditional Rendering",
@@ -61,6 +65,31 @@
           {
             "label": "Your UI as a Tree",
             "path": "describing/your-ui-as-a-tree.md"
+          }
+        ]
+      },
+      {
+        "label": "Add Interactivity",
+        "items": [
+          {
+            "label": "Respond to Events",
+            "path": "add-interactivity/respond-to-events.md"
+          },
+          {
+            "label": "State: A Component's Memory",
+            "path": "add-interactivity/state-a-components-memory.md"
+          },
+          {
+            "label": "Render Cycle",
+            "path": "add-interactivity/render-cycle.md"
+          },
+          {
+            "label": "State as a Snapshot",
+            "path": "add-interactivity/state-as-a-snapshot.md"
+          },
+          {
+            "label": "Update Dictionaries in State",
+            "path": "add-interactivity/update-dictionaries-in-state.md"
           }
         ]
       },
@@ -86,6 +115,10 @@
           {
             "label": "badge",
             "path": "components/badge.md"
+          },
+          {
+            "label": "breadcrumbs",
+            "path": "components/breadcrumbs.md"
           },
           {
             "label": "button",
@@ -140,12 +173,24 @@
             "path": "components/dialog_trigger.md"
           },
           {
+            "label": "disclosure",
+            "path": "components/disclosure.md"
+          },
+          {
+            "label": "divider",
+            "path": "components/divider.md"
+          },
+          {
             "label": "flex",
             "path": "components/flex.md"
           },
           {
             "label": "form",
             "path": "components/form.md"
+          },
+          {
+            "label": "footer",
+            "path": "components/footer.md"
           },
           {
             "label": "fragment",
@@ -172,6 +217,10 @@
             "path": "components/inline_alert.md"
           },
           {
+            "label": "labeled_value",
+            "path": "components/labeled_value.md"
+          },
+          {
             "label": "link",
             "path": "components/link.md"
           },
@@ -186,6 +235,14 @@
           {
             "label": "markdown",
             "path": "components/markdown.md"
+          },
+          {
+            "label": "menu",
+            "path": "components/menu.md"
+          },
+          {
+            "label": "menu_trigger",
+            "path": "components/menu_trigger.md"
           },
           {
             "label": "meter",
@@ -242,6 +299,10 @@
           {
             "label": "tabs",
             "path": "components/tabs.md"
+          },
+          {
+            "label": "tag_group",
+            "path": "components/tag_group.md"
           },
           {
             "label": "text",
@@ -301,6 +362,10 @@
             "path": "hooks/use_effect.md"
           },
           {
+            "label": "use_liveness_scope",
+            "path": "hooks/use_liveness_scope.md"
+          },
+          {
             "label": "use_memo",
             "path": "hooks/use_memo.md"
           },
@@ -309,12 +374,28 @@
             "path": "hooks/use_ref.md"
           },
           {
+            "label": "use_render_queue",
+            "path": "hooks/use_render_queue.md"
+          },
+          {
+            "label": "use_row_data",
+            "path": "hooks/use_row_data.md"
+          },
+          {
+            "label": "use_row_list",
+            "path": "hooks/use_row_list.md"
+          },
+          {
             "label": "use_state",
             "path": "hooks/use_state.md"
           },
           {
             "label": "use_table_data",
             "path": "hooks/use_table_data.md"
+          },
+          {
+            "label": "use_table_listener",
+            "path": "hooks/use_table_listener.md"
           }
         ]
       }
