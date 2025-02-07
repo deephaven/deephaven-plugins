@@ -26,34 +26,15 @@ def ui_toggle_disclosure():
         ui.disclosure(
             title="Heading",
             panel="Content",
-            on_expanded_change=lambda: set_is_expanded(
-                True if is_expanded == False else False
-            ),
+            is_expanded=is_expanded,
+            on_expanded_change=lambda: set_is_expanded(not is_expanded),
         ),
-        ui.text("Expanded" if is_expanded == True else "Collapsed"),
+        ui.text("Disclosure is ", "expanded" if is_expanded else "collapsed"),
         direction="column",
     )
 
 
 my_toggle_disclosure = ui_toggle_disclosure()
-```
-
-## Variants
-
-```python
-from deephaven import ui
-
-
-@ui.component
-def ui_disclosure_variants():
-
-    return [
-        ui.disclosure("Or", variant="or"),
-        ui.disclosure("And", variant="and"),
-    ]
-
-
-my_disclosure_variants = ui_disclosure_variants()
 ```
 
 ## Disabled state
@@ -79,7 +60,7 @@ my_disclosure_disabled = ui.disclosure(title="Heading", panel="Content", is_quie
 ```python
 from deephaven import ui
 
-my_disclosure_disabled = ui.disclosure(
+my_disclosure_expanded = ui.disclosure(
     title="Heading", panel="Content", default_expanded=True
 )
 ```

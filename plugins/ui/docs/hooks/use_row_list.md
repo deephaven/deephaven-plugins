@@ -98,5 +98,5 @@ table_row_list = ui_table_row_list(
 ## API reference
 
 ```{eval-rst}
-.. dhaufunction:: deephaven.ui.use_row_list
+.. dhautofunction:: deephaven.ui.use_row_list
 ```
