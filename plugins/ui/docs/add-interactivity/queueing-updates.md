@@ -38,9 +38,9 @@ But there is another factor at play here. `deephaven.ui` waits until all code in
 
 This is similar to a waiter taking an order at a restaurant. A waiter does not go to the kitchen after you order your first dish. Instead, they let you finish your order, allow you to make changes to it, and even take orders from other people at the table.
 
-This lets you update multiple state variables—even from multiple components—without triggering too many re-renders. But this also means that the UI will not be updated until after your event handler, and any code in it, completes. This behavior, also known as batching, makes your `deephaven.ui` app run much faster. It also avoids dealing with confusing “half-finished” renders where only some of the variables have been updated.
+This lets you update multiple state variables—even from multiple components—without triggering too many re-renders. But this also means that the UI will not be updated until after your event handler, and any code in it, completes. This behavior, also known as batching, makes your `deephaven.ui` app run much faster. It also avoids confusing “half-finished” renders where only some variables have been updated.
 
-Note that in multi-threaded cases, state updates are not batched by default. You can use the [use_render_queue](../hooks/use_render_queue.md) to ensure they do get batched if you are going to do work from a background thread. See [`batch-updates`](../hooks/use_render_queue.md#batch-updates) for more information.
+Note that in multi-threaded cases, state updates are not batched by default. [`use_render_queue`](../hooks/use_render_queue.md) can ensure they do get batched if you are going to do work from a background thread. See [`batch-updates`](../hooks/use_render_queue.md#batch-updates) for more information.
 
 ## Update the same state multiple times before the next render
 
@@ -94,7 +94,7 @@ This is why clicking “+3” in the above example correctly increments the valu
 
 ## What happens if you update state after replacing it
 
-What about this event handler? What do you think number will be in the next render?
+What about this event handler? What do you think the number will be in the next render?
 
 ```python
 from deephaven import ui
