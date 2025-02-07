@@ -1,6 +1,6 @@
 # Plotting
 
-In addition to tables, Deephaven supports [dynamic plots](/core/docs/how-to-guides/plotting/) as an excellent way to visualize real time data. You can add plots to your `deephaven.ui` components. Like tables, plots will update in real time and react to changes in the UI.
+In addition to tables, Deephaven supports [dynamic plots](/core/docs/how-to-guides/plotting/) as an excellent way to visualize real-time data. You can add plots to your `deephaven.ui` components. Like tables, plots will update in real-time and react to changes in the UI.
 
 The `deephaven.ui` module provides a simple interface for creating interactive plots using the `deephaven-express` library. This guide will show you how to create plots that update based on user input.
 
@@ -43,7 +43,7 @@ memo_plot_app = ui_memo_plot_app()
 
 ## Plot a filtered table
 
-This example demonstrates how to create a simple line plot that updates based on user input. The plot will display the price of a stock filtered based on the stock symbol entered by the user. Here we have used a `ui.text_field` to get the value, but it could be driven by any deephaven.ui input, including double clicking on a value from a `ui.table`. We've previously referred to this sort of behavior as a "one-click" component in enterprise, as the plot updates as soon as the user enters a filter.
+This example demonstrates how to create a simple line plot that updates based on user input. The plot will display the price of a stock filtered based on the stock symbol entered by the user. Here, we have used a `ui.text_field` to get the value, but it could be driven by any deephaven.ui input, including double clicking on a value from a `ui.table`. We've previously referred to this sort of behavior as a "one-click" component in Enterprise, as the plot updates as soon as the user enters a filter.
 
 ```python
 import deephaven.plot.express as dx
@@ -73,7 +73,7 @@ p = plot_filtered_table(_stocks, "DOG")
 
 ## Plot a partitioned table
 
-Using a partitioned table, as opposed to a where, can be more efficient if you are going to be filtering the same table multiple times with different values. This is because the partitioning is only done once, and then the key is selected from the partitioned table. Compared to using a where statement, it can be faster to return results, but at the expense of the query engine using more memory. Depending on the size of your table and the number of unique values in the partition key, this can be a tradeoff worth making or not.
+Using a partitioned table, as opposed to a where, can be more efficient if you filter the same table multiple times with different values. This is because the partitioning is only done once, and then the key is selected from the partitioned table. Compared to using a where statement, it can be faster to return results, but at the expense of the query engine using more memory. Depending on the size of your table and the number of unique values in the partition key, this can be a tradeoff worth making or not.
 
 ```python
 import deephaven.plot.express as dx
@@ -111,7 +111,7 @@ p = plot_partitioned_table(_stocks, "DOG")
 
 ## Combine a filter and a partition by
 
-Deephaven Plotly Express allows you to plot by a partition and assign unique colors to each key. Sometimes as a user you may also want to filter the data in addition to partitioning it. We've previously referred to this as a "one-click plot by" behavior in enterprise. This can be done by either filtering the table first and then partitioning it, or partitioning it first and then filtering it. The choice of which to use depends on the size of the table and the number of unique values in the partition key. The first example is more like a traditional "one-click" component, and the second is more like a parameterized query. Both will give you the same result, but the first one may return results faster, whereas the second one may be more memory efficient.
+Deephaven Plotly Express allows you to plot by a partition and assign unique colors to each key. Sometimes, as a user, you may also want to filter the data in addition to partitioning it. We've previously referred to this as a "one-click plot by" behavior in Enterprise. This can be done by either filtering the table first and then partitioning it, or partitioning it first and then filtering it. The choice of which to use depends on the size of the table and the number of unique values in the partition key. The first example is more like a traditional "one-click" component, and the second is more like a parameterized query. Both will give you the same result, but the first one may return results faster, whereas the second one may be more memory efficient.
 
 ```python
 import deephaven.plot.express as dx
@@ -202,6 +202,6 @@ change_plot_type_example = change_plot_type(_stocks)
 
 ## Plots and Liveness
 
-While you may need to use a liveness scope for deephaven tables, you do not for Deephaven Express plots.
+While you may need to use a liveness scope for Deephaven tables, you do not for Deephaven Express plots.
 
-Deephaven Express tracks liveness internally for the tables used by the plot. It cleans up when the figure is deleted or cleaned up by garbage collection.. You should not need to explicitly use liveness scope for Deephaven Express.
+Deephaven Express tracks liveness internally for the tables used by the plot. It cleans up when the figure is deleted or cleaned up by garbage collection. You should not need to explicitly use liveness scope for Deephaven Express.
