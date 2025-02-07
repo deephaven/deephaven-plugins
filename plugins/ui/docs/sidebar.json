@@ -189,6 +189,10 @@
             "path": "components/form.md"
           },
           {
+            "label": "footer",
+            "path": "components/footer.md"
+          },
+          {
             "label": "fragment",
             "path": "components/fragment.md"
           },
