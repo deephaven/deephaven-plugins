@@ -97,6 +97,10 @@
         "label": "Components",
         "items": [
           {
+            "label": "accordion",
+            "path": "components/accordion.md"
+          },
+          {
             "label": "action_button",
             "path": "components/action_button.md"
           },
