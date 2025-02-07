@@ -53,3 +53,41 @@ my_example = example()
 Grouping data into an object or array is useful when the number of state pieces is unknown. For instance, this approach is beneficial for forms where users can add custom fields.
 
 When your state variable is an object, you must copy the other fields explicitly when updating a single field. For instance, using `set_date_range({ "start": "2020-02-03" })` in the example above would omit the `end` field. To update only x, use `set_date_range({ **date_range, "start": "2020-02-03" })` or separate them into two state variables and use `set_start("2020-02-03")`.
+
+## Avoid contradictions in state
+
+Here is a feedback form with `is_sending` and `is_sent` state variables:
+
+```python
+from deephaven import ui
+import threading
+
+
+@ui.component
+def feedback_form():
+    text, set_text = ui.use_state("")
+    is_sending, set_is_sending = ui.use_state(False)
+    is_sent, set_is_sent = ui.use_state(False)
+
+    def finish_submit():
+        set_is_sending(False)
+        set_is_sent(True)
+
+    def handle_submit():
+        set_is_sending(True)
+        threading.Timer(5, finish_submit).start()
+
+    if is_sent:
+        return ui.heading("Thanks for the feedback!")
+
+    return ui.form(
+        ui.text("Do you have any feedback?"),
+        ui.text_area(value=text, on_change=set_text, is_disabled=is_sending),
+        ui.button("Send", type="submit"),
+        ui.text("Sending...") if is_sending else None,
+        on_submit=handle_submit,
+    )
+
+
+feedback_form_example = feedback_form()
+```
