@@ -91,3 +91,53 @@ def feedback_form():
 
 feedback_form_example = feedback_form()
 ```
+
+Although this code functions, it allows for "impossible" states. For instance, if you forget to call `set_is_sent` and `set_is_sending` together, you might end up with both `is_sending` and `is_sent` being `True` simultaneously. The more complex your component becomes, the harder it is to trace what went wrong.
+
+Since `is_sending` and `is_sent` should never be `True` at the same time, it is better to replace them with a single status state variable that can take one of three valid states: `typing` (initial), `sending`, and `sent`:
+
+```python
+from deephaven import ui
+import threading
+
+
+@ui.component
+def feedback_form():
+    text, set_text = ui.use_state("")
+    status, set_status = ui.use_state("typing")
+
+    def finish_submit():
+        set_status("sent")
+
+    def handle_submit():
+        set_status("sending")
+        threading.Timer(5, finish_submit).start()
+
+    is_sending = status == "sending"
+    is_sent = status == "sent"
+
+    if is_sent:
+        return ui.heading("Thanks for the feedback!")
+
+    return ui.form(
+        ui.text("Do you have any feedback?"),
+        ui.text_area(value=text, on_change=set_text, is_disabled=is_sending),
+        ui.button("Send", type="submit"),
+        ui.text("Sending...") if is_sending else None,
+        on_submit=handle_submit,
+    )
+
+
+feedback_form_example = feedback_form()
+```
+
+You can still declare some constants for readability:
+
+```python
+is_sending = status == "sending"
+is_sent = status == "sent"
+```
+
+But they are not state variables, so you do not need to worry about them getting out of sync with each other.
+
+## Avoid redundant state
