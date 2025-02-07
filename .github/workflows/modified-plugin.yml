@@ -37,6 +37,7 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.packages != '[]' && needs.changes.outputs.packages != '' }}
     strategy:
+      fail-fast: false
       matrix:
         package: ${{ fromJSON(needs.changes.outputs.packages) }}
     uses: ./.github/workflows/test-python-package.yml
@@ -86,6 +87,7 @@ jobs:
     # Only build main docs for push on main branch and any PRs
     if: ${{ needs.changes.outputs.packages != '[]' && needs.changes.outputs.packages != '' && (github.ref == 'refs/head/main' || github.event_name == 'pull_request') }}
     strategy:
+      fail-fast: false
       matrix:
         package: ${{ fromJSON(needs.changes.outputs.packages) }}
     uses: ./.github/workflows/build-docs.yml
