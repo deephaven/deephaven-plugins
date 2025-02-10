@@ -18,6 +18,7 @@ jobs:
     uses: ./.github/workflows/build-python-package.yml
     with:
       package: ${{ inputs.package }}
+      artifact-name: dist-${{ inputs.package }}
 
   release:
     needs: build-plugin
@@ -77,7 +78,7 @@ jobs:
     needs:
       - release
       - check-make-docs
-    uses: ./.github/workflows/make-docs.yml
+    uses: ./.github/workflows/build-docs.yml
     secrets: inherit
     with:
       package: ${{ inputs.package }}
