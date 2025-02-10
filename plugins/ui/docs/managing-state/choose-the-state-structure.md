@@ -141,3 +141,40 @@ is_sent = status == "sent"
 But they are not state variables, so you do not need to worry about them getting out of sync with each other.
 
 ## Avoid redundant state
+
+If you can derive some information from the component’s props or its existing state variables during rendering, you should avoid putting that information into the component’s state.
+
+For instance, consider this form. It functions correctly, but there is state within it.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def name_input():
+    first_name, set_first_name = ui.use_state("")
+    last_name, set_last_name = ui.use_state("")
+    full_name, set_full_name = ui.use_state("")
+
+    def handle_first_name_change(value):
+        set_first_name(value)
+        set_full_name(f"{value} {last_name}")
+
+    def handle_last_name_change(value):
+        set_last_name(value)
+        set_full_name(f"{first_name} {value}")
+
+    return [
+        ui.heading("Check in"),
+        ui.text_field(
+            label="First Name", value=first_name, on_change=handle_first_name_change
+        ),
+        ui.text_field(
+            label="Last Name", value=last_name, on_change=handle_last_name_change
+        ),
+        ui.text(f"You are checking in: {full_name}"),
+    ]
+
+
+name_input_example = name_input()
+```
