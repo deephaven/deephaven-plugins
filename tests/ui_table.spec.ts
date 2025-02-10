@@ -3,8 +3,7 @@ import { openPanel, gotoPage } from './utils';
 
 const REACT_PANEL_VISIBLE = '.dh-react-panel:visible';
 
-// Tests flex components render as expected
-test.describe('UI flex components', () => {
+test.describe('UI table', () => {
   [
     't_alignment',
     't_background_color',

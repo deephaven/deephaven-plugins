@@ -2,6 +2,36 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.26.1 - 2025-02-06
+#### Bug Fixes
+- DH-18415: Cannot expand rows after applying rollup to ui.table (#1109) - (0d09ef4) - Matthew Runyon
+
+- - -
+
+## ui-v0.26.0 - 2025-02-06
+#### Bug Fixes
+- ui.markdown was styling code incorrectly (#1106) - (c84db85) - mofojed
+- Make docs links passthrough (#1085) - (2ef0ddb) - Joe
+- Ensure ReactPanelErrorBoundary handles undefined children (#1089) - (e622b83) - mofojed
+#### Documentation
+- update dictionaries in state (#1096) - (120ac06) - dgodinez-dh
+- update work with tables (#1098) - (bd9d20d) - dgodinez-dh
+- Fix menu_trigger snippet (#1099) - (3847a35) - vbabich
+- state as a snapshot (#1093) - (2b4d8ea) - dgodinez-dh
+- render cycle (#1087) - (fece0a7) - dgodinez-dh
+- state a component's memory (#1084) - (bed23d8) - dgodinez-dh
+- respond to events (#1083) - (17c6635) - dgodinez-dh
+- deephaven.ui dashboard crash course (#1057) - (185b0dc) - Joe
+#### Features
+- disclosure (#1068) - (6934bf2) - ethanalvizo
+- ui.footer (#1100) - (9b38e75) - Eric Lin
+- ui.breadcrumbs (#1094) - (312af69) - Eric Lin
+- ui.tag_group (#1090) - (05eb407) - Eric Lin
+- ui.labeled_value (#1029) - (8f278a7) - Akshat Jawne
+- ui.divider (#1047) - (0a1b861) - Akshat Jawne
+
+- - -
+
 ## ui-v0.25.0 - 2025-01-15
 #### Bug Fixes
 - add menu and menu_trigger to sidebar (#1078) - (49ad632) - dgodinez-dh

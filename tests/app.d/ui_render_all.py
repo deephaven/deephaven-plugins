@@ -169,6 +169,7 @@ def ui_components3():
             ),
             default_open=True,
         ),
+        ui.disclosure(title="Heading", panel="Content"),
     )
 
 
