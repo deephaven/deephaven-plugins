@@ -23,6 +23,9 @@ from .date_picker import date_picker
 from .date_range_picker import date_range_picker
 from .dialog import dialog
 from .dialog_trigger import dialog_trigger
+from .disclosure import disclosure
+from .disclosure_title import disclosure_title
+from .disclosure_panel import disclosure_panel
 from .divider import divider
 from .flex import flex
 from .form import form
@@ -105,6 +108,9 @@ __all__ = [
     "date_range_picker",
     "dialog",
     "dialog_trigger",
+    "disclosure",
+    "disclosure_title",
+    "disclosure_panel",
     "divider",
     "flex",
     "form",
