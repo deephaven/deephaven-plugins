@@ -182,6 +182,10 @@
             "path": "components/dialog_trigger.md"
           },
           {
+            "label": "disclosure",
+            "path": "components/disclosure.md"
+          },
+          {
             "label": "divider",
             "path": "components/divider.md"
           },
