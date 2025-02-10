@@ -124,6 +124,12 @@ function WidgetHandler({
   );
   const exportedObjectCount = useRef(0);
 
+  // Keep track of callables that are currently rendered/in use
+  // We want to retain the same callable between renders, so we use a map that persists between renders
+  const renderedCallableMap = useRef(
+    new Map<string, (...args: unknown[]) => void>()
+  );
+
   // Bi-directional communication as defined in https://www.npmjs.com/package/json-rpc-2.0
   const jsonClient = useMemo(
     () =>
@@ -178,20 +184,28 @@ function WidgetHandler({
      */
     (data: string) => {
       assertNotNull(jsonClient);
-      // Keep track of exported objects that are no longer in use after this render.
+      // Keep track of exported objects and callables that are no longer in use after this render.
       // We close those objects that are no longer referenced, as they will never be referenced again.
       const deadObjectMap = new Map(exportedObjectMap.current);
+      const deadCallableMap = new Map(renderedCallableMap.current);
 
       const parsedData = JSON.parse(data, (key, value) => {
         // Need to re-hydrate any objects that are defined
         if (isCallableNode(value)) {
           const callableId = value[CALLABLE_KEY];
+          deadCallableMap.delete(callableId);
+          if (renderedCallableMap.current.has(callableId)) {
+            log.debug2('Reusing callableId', callableId);
+            return renderedCallableMap.current.get(callableId);
+          }
           log.debug2('Registering callableId', callableId);
-          return wrapCallable(
+          const callable = wrapCallable(
             jsonClient,
             callableId,
             callableFinalizationRegistry
           );
+          renderedCallableMap.current.set(callableId, callable);
+          return callable;
         }
         if (isObjectNode(value)) {
           // Replace this node with the exported object
@@ -223,6 +237,13 @@ function WidgetHandler({
         log.debug('Closing dead object', objectKey);
         deadObject.close();
         exportedObjectMap.current.delete(objectKey);
+      });
+
+      // Close any callables that are no longer referenced
+      deadCallableMap.forEach((deadCallable, callableId) => {
+        log.debug2('Callable no longer rendered:', callableId);
+        renderedCallableMap.current.delete(callableId);
+        callableFinalizationRegistry.unregister(deadCallable);
       });
 
       log.debug2(
