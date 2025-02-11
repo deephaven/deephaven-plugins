@@ -85,7 +85,7 @@ You’ve seen how to implement a form imperatively above. To better understand h
 
 1. **Identify** your component’s different visual states
 2. **Determine** what triggers those state changes
-3. **Represent** the state in memory using useState
+3. **Represent** the state in memory using `useState`.
 4. **Remove** any non-essential state variables
 5. **Connect** the event handlers to set the state
 
@@ -158,7 +158,7 @@ Here are some questions to consider about your state variables:
 - Is the same information already available in another state variable? Another paradox: `is_empty` and `is_typing` cannot both be true at the same time. Keeping them as separate state variables risks them becoming unsynchronized and causing bugs. Instead, you can remove `is_empty` and check `len(answer) == 0`.
 - Can you derive the same information from the inverse of another state variable? `is_error` is unnecessary because you can check `error != None` instead.
 
-After this clean-up, you’re left with 3 essential state variables, down from 7.
+After this clean-up, you’re left with three essential state variables, down from seven.
 
 ```python
 answer, set_answer = ui.use_state("")
