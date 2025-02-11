@@ -29,12 +29,12 @@ def ui_accordion_event():
     return ui.view(
         ui.accordion(
             ui.disclosure(
-                id="How can I find which Core version to which a particular feature or fix was added?",
+                id="which-core-version",
                 title="How can I find which Core version to which a particular feature or fix was added?",
                 panel="At the bottom of a Deephaven Community Core commit message you can see branches and tags containing that particular change. You can browse commits in the deephaven-core GitHub repository. Click on any title for details.",
             ),
             ui.disclosure(
-                id="Is docker compose required to run deephaven?",
+                id="docker-compose-required",
                 title="Is docker compose required to run deephaven?",
                 panel="No. You can run Deephaven via Docker without compose. See here for an example. Docker compose does make customizing your deployment easier, though, so we recommend it for users who want to do that.",
             ),
@@ -60,17 +60,17 @@ def ui_accordion_event():
     return ui.view(
         ui.accordion(
             ui.disclosure(
-                id="How can I find which Core version to which a particular feature or fix was added?",
+                id="which-core-version",
                 title="How can I find which Core version to which a particular feature or fix was added?",
                 panel="At the bottom of a Deephaven Community Core commit message you can see branches and tags containing that particular change. You can browse commits in the deephaven-core GitHub repository. Click on any title for details.",
             ),
             ui.disclosure(
-                id="Is docker compose required to run deephaven?",
+                id="docker-compose-required",
                 title="Is docker compose required to run deephaven?",
                 panel="No. You can run Deephaven via Docker without compose. See here for an example. Docker compose does make customizing your deployment easier, though, so we recommend it for users who want to do that.",
             ),
             ui.disclosure(
-                id="Can I reset the Python kernel without restarting the Deephaven Docker container?",
+                id="reset-python-kernel",
                 title="Can I reset the Python kernel without restarting the Deephaven Docker container?",
                 panel="At this time, there is no way to restart the Python kernel without restarting Docker as well.",
             ),
