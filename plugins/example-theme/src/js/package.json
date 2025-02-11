@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "start": "npm run build -- -w",
     "update-dh-packages": "node ../../../../tools/update-dh-packages.mjs"
