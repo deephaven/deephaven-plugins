@@ -138,7 +138,11 @@ def multi_count_buttons():
 result = multi_count_buttons()
 ```
 
-All of these setters will be batched together and the component will only re-render once after the event loop (the call to `increase_value`) returns.
+## Multiple updates are batched
+
+When a component calls state setters multiple times, the updates to state are batched. This means multiple updates to state will only trigger one re-render.
+
+For the example above, all of the `set_count` calls will be batched together and the component will only re-render once after the event loop (the call to `increase_value`) returns.
 
 ## Updating state with a dictionary
 
