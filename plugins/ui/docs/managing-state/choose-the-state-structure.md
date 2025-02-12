@@ -367,3 +367,190 @@ The duplication is removed, keeping only the essential state.
 Now, if you edit the selected item, the message below updates immediately. This happens because `set_items` triggers a re-render, and `selected_item = next(item for item in items if item["id"] == selected_id)` locates the item with the updated title. You don't need to store the selected item in the state, as only the selected ID is essential. The rest can be computed during render.
 
 ## Avoid deeply nested state
+
+Consider a travel itinerary that includes planets, continents, and countries. You might think to organize its state with nested objects and arrays, as shown in this example:
+
+```python
+initial_travel_plan = {
+    "id": 0,
+    "title": "(Root)",
+    "child_places": [
+        {
+            "id": 1,
+            "title": "Earth",
+            "child_places": [
+                {
+                    "id": 2,
+                    "title": "Africa",
+                    "child_places": [
+                        {"id": 3, "title": "Botswana", "child_places": []},
+                        {"id": 4, "title": "Egypt", "child_places": []},
+                        {"id": 5, "title": "Kenya", "child_places": []},
+                        {"id": 6, "title": "Madagascar", "child_places": []},
+                        {"id": 7, "title": "Morocco", "child_places": []},
+                        {"id": 8, "title": "Nigeria", "child_places": []},
+                        {"id": 9, "title": "South Africa", "child_places": []},
+                    ],
+                },
+                {
+                    "id": 10,
+                    "title": "Americas",
+                    "child_places": [
+                        {"id": 11, "title": "Argentina", "child_places": []},
+                        {"id": 12, "title": "Brazil", "child_places": []},
+                        {"id": 13, "title": "Barbados", "child_places": []},
+                        {"id": 14, "title": "Canada", "child_places": []},
+                        {"id": 15, "title": "Jamaica", "child_places": []},
+                        {"id": 16, "title": "Mexico", "child_places": []},
+                        {"id": 17, "title": "Trinidad and Tobago", "child_places": []},
+                        {"id": 18, "title": "Venezuela", "child_places": []},
+                    ],
+                },
+                {
+                    "id": 19,
+                    "title": "Asia",
+                    "child_places": [
+                        {"id": 20, "title": "China", "child_places": []},
+                        {"id": 21, "title": "India", "child_places": []},
+                        {"id": 22, "title": "Singapore", "child_places": []},
+                        {"id": 23, "title": "South Korea", "child_places": []},
+                        {"id": 24, "title": "Thailand", "child_places": []},
+                        {"id": 25, "title": "Vietnam", "child_places": []},
+                    ],
+                },
+                {
+                    "id": 26,
+                    "title": "Europe",
+                    "child_places": [
+                        {"id": 27, "title": "Croatia", "child_places": []},
+                        {"id": 28, "title": "France", "child_places": []},
+                        {"id": 29, "title": "Germany", "child_places": []},
+                        {"id": 30, "title": "Italy", "child_places": []},
+                        {"id": 31, "title": "Portugal", "child_places": []},
+                        {"id": 32, "title": "Spain", "child_places": []},
+                        {"id": 33, "title": "Turkey", "child_places": []},
+                    ],
+                },
+                {
+                    "id": 34,
+                    "title": "Oceania",
+                    "child_places": [
+                        {"id": 35, "title": "Australia", "child_places": []},
+                        {
+                            "id": 36,
+                            "title": "Bora Bora (French Polynesia)",
+                            "child_places": [],
+                        },
+                        {
+                            "id": 37,
+                            "title": "Easter Island (Chile)",
+                            "child_places": [],
+                        },
+                        {"id": 38, "title": "Fiji", "child_places": []},
+                        {"id": 39, "title": "Hawaii (the USA)", "child_places": []},
+                        {"id": 40, "title": "New Zealand", "child_places": []},
+                        {"id": 41, "title": "Vanuatu", "child_places": []},
+                    ],
+                },
+            ],
+        },
+        {
+            "id": 42,
+            "title": "Moon",
+            "child_places": [
+                {"id": 43, "title": "Rheita", "child_places": []},
+                {"id": 44, "title": "Piccolomini", "child_places": []},
+                {"id": 45, "title": "Tycho", "child_places": []},
+            ],
+        },
+        {
+            "id": 46,
+            "title": "Mars",
+            "child_places": [
+                {"id": 47, "title": "Corn Town", "child_places": []},
+                {"id": 48, "title": "Green Hill", "child_places": []},
+            ],
+        },
+    ],
+}
+```
+
+If you want to add a button for deleting a place you've visited, you need to update the nested state by making copies of dictionaries from the changed part upwards. Deleting a deeply nested place requires copying its entire parent chain, which can be verbose.
+
+If the state is too nested, consider flattening it. One way to restructure the data is to have each place hold an array of its child place IDs, and store a mapping from each place ID to the corresponding place.
+
+This restructuring is similar to a database table:
+
+```python
+initial_travel_plan = {
+    0: {
+        "id": 0,
+        "title": "(Root)",
+        "child_ids": [1, 42, 46],
+    },
+    1: {"id": 1, "title": "Earth", "child_ids": [2, 10, 19, 26, 34]},
+    2: {"id": 2, "title": "Africa", "child_ids": [3, 4, 5, 6, 7, 8, 9]},
+    3: {"id": 3, "title": "Botswana", "child_ids": []},
+    4: {"id": 4, "title": "Egypt", "child_ids": []},
+    5: {"id": 5, "title": "Kenya", "child_ids": []},
+    6: {"id": 6, "title": "Madagascar", "child_ids": []},
+    7: {"id": 7, "title": "Morocco", "child_ids": []},
+    8: {"id": 8, "title": "Nigeria", "child_ids": []},
+    9: {"id": 9, "title": "South Africa", "child_ids": []},
+    10: {
+        "id": 10,
+        "title": "Americas",
+        "child_ids": [11, 12, 13, 14, 15, 16, 17, 18],
+    },
+    11: {"id": 11, "title": "Argentina", "child_ids": []},
+    12: {"id": 12, "title": "Brazil", "child_ids": []},
+    13: {"id": 13, "title": "Barbados", "child_ids": []},
+    14: {"id": 14, "title": "Canada", "child_ids": []},
+    15: {"id": 15, "title": "Jamaica", "child_ids": []},
+    16: {"id": 16, "title": "Mexico", "child_ids": []},
+    17: {"id": 17, "title": "Trinidad and Tobago", "child_ids": []},
+    18: {"id": 18, "title": "Venezuela", "child_ids": []},
+    19: {
+        "id": 19,
+        "title": "Asia",
+        "child_ids": [20, 21, 22, 23, 24, 25],
+    },
+    20: {"id": 20, "title": "China", "child_ids": []},
+    21: {"id": 21, "title": "India", "child_ids": []},
+    22: {"id": 22, "title": "Singapore", "child_ids": []},
+    23: {"id": 23, "title": "South Korea", "child_ids": []},
+    24: {"id": 24, "title": "Thailand", "child_ids": []},
+    25: {"id": 25, "title": "Vietnam", "child_ids": []},
+    26: {
+        "id": 26,
+        "title": "Europe",
+        "child_ids": [27, 28, 29, 30, 31, 32, 33],
+    },
+    27: {"id": 27, "title": "Croatia", "child_ids": []},
+    28: {"id": 28, "title": "France", "child_ids": []},
+    29: {"id": 29, "title": "Germany", "child_ids": []},
+    30: {"id": 30, "title": "Italy", "child_ids": []},
+    31: {"id": 31, "title": "Portugal", "child_ids": []},
+    32: {"id": 32, "title": "Spain", "child_ids": []},
+    33: {"id": 33, "title": "Turkey", "child_ids": []},
+    34: {
+        "id": 34,
+        "title": "Oceania",
+        "child_ids": [35, 36, 37, 38, 39, 40, 41],
+    },
+    35: {"id": 35, "title": "Australia", "child_ids": []},
+    36: {"id": 36, "title": "Bora Bora (French Polynesia)", "child_ids": []},
+    37: {"id": 37, "title": "Easter Island (Chile)", "child_ids": []},
+    38: {"id": 38, "title": "Fiji", "child_ids": []},
+    39: {"id": 40, "title": "Hawaii (the USA)", "child_ids": []},
+    40: {"id": 40, "title": "New Zealand", "child_ids": []},
+    41: {"id": 41, "title": "Vanuatu", "child_ids": []},
+    42: {"id": 42, "title": "Moon", "child_ids": [43, 44, 45]},
+    43: {"id": 43, "title": "Rheita", "child_ids": []},
+    44: {"id": 44, "title": "Piccolomini", "child_ids": []},
+    45: {"id": 45, "title": "Tycho", "child_ids": []},
+    46: {"id": 46, "title": "Mars", "child_ids": [47, 48]},
+    47: {"id": 47, "title": "Corn Town", "child_ids": []},
+    48: {"id": 48, "title": "Green Hill", "child_ids": []},
+}
+```
