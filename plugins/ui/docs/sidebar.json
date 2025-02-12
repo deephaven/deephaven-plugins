@@ -94,6 +94,15 @@
         ]
       },
       {
+        "label": "Managing State",
+        "items": [
+          {
+            "label": "React to Input with State",
+            "path": "managing-state/react-to-input-with-state.md"
+          }
+        ]
+      },
+      {
         "label": "Components",
         "items": [
           {
