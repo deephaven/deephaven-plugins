@@ -94,6 +94,10 @@
           {
             "label": "Update Dictionaries in State",
             "path": "add-interactivity/update-dictionaries-in-state.md"
+          },
+          {
+            "label": "Update Lists in State",
+            "path": "add-interactivity/update-lists-in-state.md"
           }
         ]
       },
