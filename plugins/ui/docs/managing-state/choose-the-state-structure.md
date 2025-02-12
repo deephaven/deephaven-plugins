@@ -50,7 +50,7 @@ def example():
 my_example = example()
 ```
 
-Grouping data into an object or array is useful when the number of state pieces is unknown. For instance, this approach is beneficial for forms where users can add custom fields.
+Grouping data into an dictionary or list is useful when the number of state pieces is unknown. For instance, this approach is beneficial for forms where users can add custom fields.
 
 When your state variable is an object, you must copy the other fields explicitly when updating a single field. For instance, using `set_date_range({ "start": "2020-02-03" })` in the example above would omit the `end` field. To update only x, use `set_date_range({ **date_range, "start": "2020-02-03" })` or separate them into two state variables and use `set_start("2020-02-03")`.
 
@@ -224,3 +224,146 @@ full_name = f"{first_name} {last_name}"
 Therefore, the change handlers can update it without any special actions. Calling `set_first_name` or `set_last_name` triggers a re-render, and the `full_name` will be recalculated using the updated data.
 
 ## Avoid duplication in state
+
+This component lets you choose a single snack out of several:
+
+```python
+from deephaven import ui
+
+initial_items = [
+    {"title": "peanuts", "id": 0},
+    {"title": "chips", "id": 1},
+    {"title": "apples", "id": 2},
+]
+
+
+@ui.component
+def snacks():
+    items, set_items = ui.use_state(initial_items)
+    selected_item, set_selected_item = ui.use_state(items[0])
+
+    def snack_row(item):
+        return ui.flex(
+            ui.text(item["title"]),
+            ui.button("Choose", on_press=lambda: set_selected_item(item)),
+        )
+
+    return [
+        ui.heading("What is your favorite snack?"),
+        [snack_row(item) for item in items],
+        ui.text(f"You picked {selected_item['title']}"),
+    ]
+
+
+snacks_example = snacks()
+```
+
+The selected item is currently stored as an dictionary in the `selected_item` state variable. However, this approach is not ideal because the `selected_item` contains the same object as one of the items in the `items` list. This results in duplicated information about the item in two places.
+
+Why is this an issue? Let's make each item editable:
+
+```python
+from deephaven import ui
+
+initial_items = [
+    {"title": "peanuts", "id": 0},
+    {"title": "chips", "id": 1},
+    {"title": "apples", "id": 2},
+]
+
+
+@ui.component
+def snacks():
+    items, set_items = ui.use_state(initial_items)
+    selected_item, set_selected_item = ui.use_state(items[0])
+
+    def handle_item_change(id, value):
+        new_items = [
+            {**item, "title": value} if item["id"] == id else item for item in items
+        ]
+        set_items(new_items)
+
+    def snack_row(item):
+        return ui.flex(
+            ui.text_field(
+                value=item["title"],
+                on_change=lambda value: handle_item_change(item["id"], value),
+            ),
+            ui.button("Choose", on_press=lambda: set_selected_item(item)),
+        )
+
+    return [
+        ui.heading("What is your favorite snack?"),
+        [snack_row(item) for item in items],
+        ui.text(f"You picked {selected_item['title']}"),
+    ]
+
+
+snacks_example = snacks()
+```
+
+Notice how if you first click "Choose" on an item and then edit it, the input updates, but the label at the bottom does not reflect the changes. This happens because you have duplicated state and forgot to update `selected_item`.
+
+While you could update `selectedItem` as well, a simpler solution is to eliminate the duplication. In this example, instead of maintaining a `selected_item` dictionary (which duplicates the objects inside `items`), you store the `selected_id` in the state and then retrieve the `selected_item` by searching the `items` list for an item with that ID:
+
+```python
+from deephaven import ui
+
+initial_items = [
+    {"title": "peanuts", "id": 0},
+    {"title": "chips", "id": 1},
+    {"title": "apples", "id": 2},
+]
+
+
+@ui.component
+def snacks():
+    items, set_items = ui.use_state(initial_items)
+    selected_id, set_selected_id = ui.use_state(0)
+
+    selected_item = next(item for item in items if item["id"] == selected_id)
+
+    def handle_item_change(id, value):
+        new_items = [
+            {**item, "title": value} if item["id"] == id else item for item in items
+        ]
+        set_items(new_items)
+
+    def snack_row(item):
+        return ui.flex(
+            ui.text_field(
+                value=item["title"],
+                on_change=lambda value: handle_item_change(item["id"], value),
+            ),
+            ui.button("Choose", on_press=lambda: set_selected_id(item["id"])),
+        )
+
+    return [
+        ui.heading("What is your favorite snack?"),
+        [snack_row(item) for item in items],
+        ui.text(f"You picked {selected_item['title']}"),
+    ]
+
+
+snacks_example = snacks()
+```
+
+Previously, the state was duplicated like this:
+
+```python
+items = [{"title": "peanuts", "id": 0}, ...]
+selected_item = {"title": "peanuts", "id": 0}
+```
+
+After the change, it looks like this:
+
+```python
+items = [{"title": "peanuts", "id": 0}, ...]
+selected_id = 0
+```
+
+The duplication is removed, keeping only the essential state.
+
+Now, if you edit the selected item, the message below updates immediately. This happens because `set_items` triggers a re-render, and `selected_item = next(item for item in items if item["id"] == selected_id)` locates the item with the updated title. You don't need to store the selected item in the state, as only the selected ID is essential. The rest can be computed during render.
+
+## Avoid deeply nested state
