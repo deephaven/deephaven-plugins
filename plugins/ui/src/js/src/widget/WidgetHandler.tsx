@@ -244,7 +244,6 @@ function WidgetHandler({
       deadCallableMap.forEach((deadCallable, callableId) => {
         log.debug2('Callable no longer rendered:', callableId);
         renderedCallableMap.current.delete(callableId);
-        callableFinalizationRegistry.unregister(deadCallable);
       });
 
       log.debug2(
