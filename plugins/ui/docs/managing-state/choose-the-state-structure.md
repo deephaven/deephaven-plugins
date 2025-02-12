@@ -178,3 +178,49 @@ def name_input():
 
 name_input_example = name_input()
 ```
+
+This form has three state variables: `first_name`, `last_name`, and `full_name`. However, `full_name` is redundant because it can be derived from `first_name` and `last_name` during render. Therefore, you should remove `full_name` from the state.
+
+Here is how you can do it:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def name_input():
+    first_name, set_first_name = ui.use_state("")
+    last_name, set_last_name = ui.use_state("")
+
+    def handle_first_name_change(value):
+        set_first_name(value)
+
+    def handle_last_name_change(value):
+        set_last_name(value)
+
+    full_name = f"{first_name} {last_name}"
+
+    return [
+        ui.heading("Check in"),
+        ui.text_field(
+            label="First Name", value=first_name, on_change=handle_first_name_change
+        ),
+        ui.text_field(
+            label="Last Name", value=last_name, on_change=handle_last_name_change
+        ),
+        ui.text(f"You are checking in: {full_name}"),
+    ]
+
+
+name_input_example = name_input()
+```
+
+Here, `full_name` is not a state variable. Instead, it is calculated during render:
+
+```python
+full_name = f"{first_name} {last_name}"
+```
+
+Therefore, the change handlers can update it without any special actions. Calling `set_first_name` or `set_last_name` triggers a re-render, and the `full_name` will be recalculated using the updated data.
+
+## Avoid duplication in state
