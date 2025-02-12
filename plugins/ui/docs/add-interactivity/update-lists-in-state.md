@@ -231,7 +231,7 @@ artist_list_example = artist_list()
 
 ## Make other changes to a list
 
-There are some things you cannot do with non-mutating methods. For example, you may want to reverse or sort an array. The Python list `reverse()` and `sort()` methods are mutating the original list, so you cannot use them directly.
+There are some things you cannot do with non-mutating methods. For example, you may want to reverse or sort an array. The Python list `reverse()` and `sort()` methods mutate the original list, so you cannot use them directly.
 
 However, you can copy the list with unpacking first, and then make changes to it.
 
@@ -269,7 +269,7 @@ artist_list_example = artist_list()
 
 Here, you use the `copy()` method to create a copy of the original list first. Now that you have a copy, you can use mutating methods like `reverse()` or `sort()`, or even assign individual items.
 
-However, even if you copy list, you cannot mutate existing items inside of it directly. This is because copying is shallow and the new list will contain the same items as the original one. So, if you modify a dictionary inside the copied list, you are mutating the existing state. For example, code like this is a problem.
+However, even if you copy the list, you cannot mutate existing items inside of it directly. This is because copying is shallow and the new list will contain the same items as the original one. So, if you modify a dictionary inside the copied list, you are mutating the existing state. For example, code like this is a problem.
 
 ```python
 artists_copy = artists.copy()
@@ -281,7 +281,7 @@ Although `artists_copy` and `artists` are two different lists, `artists_copy[0]`
 
 ## Update dictionaries inside arrays
 
-When updating nested state, you need to create copies from the point where you want to update, and all the way up to the top level. Let's see how this works.
+When updating nested state, you need to create copies from the point where you want to update all the way up to the top level. Let's see how this works.
 
 In this example, two separate artwork lists have the same initial state. They are supposed to be isolated, but because of a mutation, their state is accidentally shared, and checking a box in one list affects the other list:
 
@@ -348,7 +348,7 @@ set_my_list(my_list_copy)
 
 Although the `my_list_copy` list is new, the items themselves are the same as in the original `my_list`. Therefore, changing `artwork["seen"]` also changes the original artwork item. Since that artwork item is also in `your_list`, this causes the bug. Such bugs can be tricky to debug, but they can be avoided by not mutating state.
 
-You `deepcopy` to substitute an old item with its updated version without mutation.
+Use `deepcopy` to substitute an old item with its updated version without mutation.
 
 ```python
 import copy
