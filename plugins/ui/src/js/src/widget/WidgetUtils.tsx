@@ -266,12 +266,14 @@ export function getPreservedData(
  * @param jsonClient The JSON client to send callable requests to
  * @param callableId The callableId to return a wrapped callable for
  * @param registry The finalization registry to register the callable with.
+ * @param shouldRegister Whether to register the callable in the finalization registry
  * @returns A wrapped callable that will automatically wrap any nested callables returned by the server
  */
 export function wrapCallable(
   jsonClient: JSONRPCServerAndClient,
   callableId: string,
-  registry: FinalizationRegistry<string>
+  registry: FinalizationRegistry<string>,
+  shouldRegister = true
 ): (...args: unknown[]) => Promise<unknown> {
   const callable = async (...args: unknown[]) => {
     log.debug2(`Callable ${callableId} called`, args);
@@ -304,7 +306,9 @@ export function wrapCallable(
     }
   };
 
-  registry.register(callable, callableId, callable);
+  if (shouldRegister) {
+    registry.register(callable, callableId, callable);
+  }
 
   return callable;
 }

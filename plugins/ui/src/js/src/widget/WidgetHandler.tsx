@@ -202,7 +202,8 @@ function WidgetHandler({
           const callable = wrapCallable(
             jsonClient,
             callableId,
-            callableFinalizationRegistry
+            callableFinalizationRegistry,
+            false
           );
           renderedCallableMap.current.set(callableId, callable);
           return callable;
