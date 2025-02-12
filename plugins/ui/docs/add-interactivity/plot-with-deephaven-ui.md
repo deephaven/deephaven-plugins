@@ -1,12 +1,12 @@
 # Plotting
 
-In addition to tables, Deephaven supports [dynamic plots](/core/docs/how-to-guides/plotting/) as an excellent way to visualize real-time data. You can add plots to your `deephaven.ui` components. Like tables, plots will update in real-time and react to changes in the UI.
+In addition to tables, Deephaven supports [dynamic plots](/core/docs/how-to-guides/plotting/) as an excellent way to visualize real-time data. You can add plots to your `deephaven.ui` components. Like tables, plots will update in real time and react to changes in the UI.
 
 The `deephaven.ui` module provides a simple interface for creating interactive plots using the `deephaven-express` library. This guide will show you how to create plots that update based on user input.
 
 ## Memoize plots
 
-Similar to how you should memoize table operations, you should also memoize plots as dependent on the table used to create the plot and any arguments that may change. This memoization prevents having the plot be recreated on every re-render. Instead, the plot is only recreated when an argument to plot changes.
+Just as you should memoize table operations, it’s important to memoize plots based on the table used to create them and any arguments that may change. This process of memoization prevents the plot from being recreated during every re-render. Instead, the plot will only be recreated when an argument related to `plot `changes.
 
 ```python
 from deephaven import time_table, ui
@@ -73,7 +73,7 @@ p = plot_filtered_table(_stocks, "DOG")
 
 ## Plot a partitioned table
 
-Using a partitioned table, as opposed to a where, can be more efficient if you filter the same table multiple times with different values. This is because the partitioning is only done once, and then the key is selected from the partitioned table. Compared to using a where statement, it can be faster to return results, but at the expense of the query engine using more memory. Depending on the size of your table and the number of unique values in the partition key, this can be a tradeoff worth making or not.
+Using a partitioned table, as opposed to a `where` statement, can be more efficient if you filter the same table multiple times with different values. This is because the partitioning is only done once, and then the key is selected from the partitioned table. Compared to using `where`, it can be faster to return results, but at the expense of the query engine using more memory. Depending on the size of your table and the number of unique values in the partition key, this trade-off can be worthwhile.
 
 ```python
 import deephaven.plot.express as dx
@@ -111,7 +111,7 @@ p = plot_partitioned_table(_stocks, "DOG")
 
 ## Combine a filter and a partition by
 
-Deephaven Plotly Express allows you to plot by a partition and assign unique colors to each key. Sometimes, as a user, you may also want to filter the data in addition to partitioning it. We've previously referred to this as a "one-click plot by" behavior in Enterprise. This can be done by either filtering the table first and then partitioning it, or partitioning it first and then filtering it. The choice of which to use depends on the size of the table and the number of unique values in the partition key. The first example is more like a traditional "one-click" component, and the second is more like a parameterized query. Both will give you the same result, but the first one may return results faster, whereas the second one may be more memory efficient.
+Deephaven Plotly Express allows you to plot by a partition and assign unique colors to each key. Sometimes, as a user, you may also want to filter the data in addition to partitioning it. We've previously referred to this as "one-click plot by" behavior in Enterprise. This can be done by either filtering the table first and then partitioning it, or partitioning it first and then filtering it. The choice of which to use depends on the size of the table and the number of unique values in the partition key. The first example is more like a traditional "one-click" component, and the second is more like a parameterized query. Both will give you the same result, but the first one may return results faster, whereas the second one may be more memory efficient.
 
 ```python
 import deephaven.plot.express as dx
@@ -164,7 +164,7 @@ wtp = where_then_partition(_stocks, ["Sym", "Exchange"], "DOG")
 
 ## Change a plot
 
-In response to user events, you can change data for a plot and you can change the plot itself. In this example, the plot type is changes by selecting it from a picker.
+In response to user events, you can change data for a plot and you can change the plot itself. In this example, the plot type changes by selecting it from a picker.
 
 ```python
 import deephaven.plot.express as dx
