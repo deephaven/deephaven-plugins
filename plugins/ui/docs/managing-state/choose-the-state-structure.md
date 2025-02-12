@@ -641,15 +641,19 @@ initial_travel_plan = {
 
 
 @ui.component
-def place_tree(my_id, parent_id, places_by_id, on_complete):
+def place_tree(my_id, parent_id, places_by_id, on_complete, n):
     place = places_by_id[my_id]
     child_ids = place["child_ids"]
 
     return [
-        ui.text(place["title"]),
-        ui.button("Complete", on_press=lambda: on_complete(parent_id, my_id)),
+        ui.flex(
+            ui.text("-" * n + place["title"]),
+            ui.action_button(
+                "Complete", on_press=lambda: on_complete(parent_id, my_id)
+            ),
+        ),
         [
-            place_tree(child_id, my_id, places_by_id, on_complete)
+            place_tree(child_id, my_id, places_by_id, on_complete, n + 1)
             for child_id in child_ids
         ],
     ]
@@ -674,7 +678,7 @@ def travel_plan():
 
     return [
         ui.heading("Places to visit"),
-        [place_tree(child_id, 0, plan, handle_complete) for child_id in planet_ids],
+        [place_tree(child_id, 0, plan, handle_complete, 0) for child_id in planet_ids],
     ]
 
 
