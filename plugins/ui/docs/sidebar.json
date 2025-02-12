@@ -88,6 +88,10 @@
             "path": "add-interactivity/state-as-a-snapshot.md"
           },
           {
+            "label": "Queueing a Series of State Updates",
+            "path": "add-interactivity/queueing-updates.md"
+          },
+          {
             "label": "Update Dictionaries in State",
             "path": "add-interactivity/update-dictionaries-in-state.md"
           }
