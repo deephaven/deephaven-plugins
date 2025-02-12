@@ -554,3 +554,131 @@ initial_travel_plan = {
     48: {"id": 48, "title": "Green Hill", "child_ids": []},
 }
 ```
+
+With the state now "flat" (or "normalized"), updating nested items is simplified.
+
+To remove a place, you only need to update two levels of state:
+
+- Update the parent place to exclude the removed ID from its `child_ids` array.
+- Update the root "table" object to include the updated version of the parent place.
+
+Here's an example of how to do it:
+
+```python
+from deephaven import ui
+
+initial_travel_plan = {
+    0: {
+        "id": 0,
+        "title": "(Root)",
+        "child_ids": [1, 42, 46],
+    },
+    1: {"id": 1, "title": "Earth", "child_ids": [2, 10, 19, 26, 34]},
+    2: {"id": 2, "title": "Africa", "child_ids": [3, 4, 5, 6, 7, 8, 9]},
+    3: {"id": 3, "title": "Botswana", "child_ids": []},
+    4: {"id": 4, "title": "Egypt", "child_ids": []},
+    5: {"id": 5, "title": "Kenya", "child_ids": []},
+    6: {"id": 6, "title": "Madagascar", "child_ids": []},
+    7: {"id": 7, "title": "Morocco", "child_ids": []},
+    8: {"id": 8, "title": "Nigeria", "child_ids": []},
+    9: {"id": 9, "title": "South Africa", "child_ids": []},
+    10: {
+        "id": 10,
+        "title": "Americas",
+        "child_ids": [11, 12, 13, 14, 15, 16, 17, 18],
+    },
+    11: {"id": 11, "title": "Argentina", "child_ids": []},
+    12: {"id": 12, "title": "Brazil", "child_ids": []},
+    13: {"id": 13, "title": "Barbados", "child_ids": []},
+    14: {"id": 14, "title": "Canada", "child_ids": []},
+    15: {"id": 15, "title": "Jamaica", "child_ids": []},
+    16: {"id": 16, "title": "Mexico", "child_ids": []},
+    17: {"id": 17, "title": "Trinidad and Tobago", "child_ids": []},
+    18: {"id": 18, "title": "Venezuela", "child_ids": []},
+    19: {
+        "id": 19,
+        "title": "Asia",
+        "child_ids": [20, 21, 22, 23, 24, 25],
+    },
+    20: {"id": 20, "title": "China", "child_ids": []},
+    21: {"id": 21, "title": "India", "child_ids": []},
+    22: {"id": 22, "title": "Singapore", "child_ids": []},
+    23: {"id": 23, "title": "South Korea", "child_ids": []},
+    24: {"id": 24, "title": "Thailand", "child_ids": []},
+    25: {"id": 25, "title": "Vietnam", "child_ids": []},
+    26: {
+        "id": 26,
+        "title": "Europe",
+        "child_ids": [27, 28, 29, 30, 31, 32, 33],
+    },
+    27: {"id": 27, "title": "Croatia", "child_ids": []},
+    28: {"id": 28, "title": "France", "child_ids": []},
+    29: {"id": 29, "title": "Germany", "child_ids": []},
+    30: {"id": 30, "title": "Italy", "child_ids": []},
+    31: {"id": 31, "title": "Portugal", "child_ids": []},
+    32: {"id": 32, "title": "Spain", "child_ids": []},
+    33: {"id": 33, "title": "Turkey", "child_ids": []},
+    34: {
+        "id": 34,
+        "title": "Oceania",
+        "child_ids": [35, 36, 37, 38, 39, 40, 41],
+    },
+    35: {"id": 35, "title": "Australia", "child_ids": []},
+    36: {"id": 36, "title": "Bora Bora (French Polynesia)", "child_ids": []},
+    37: {"id": 37, "title": "Easter Island (Chile)", "child_ids": []},
+    38: {"id": 38, "title": "Fiji", "child_ids": []},
+    39: {"id": 40, "title": "Hawaii (the USA)", "child_ids": []},
+    40: {"id": 40, "title": "New Zealand", "child_ids": []},
+    41: {"id": 41, "title": "Vanuatu", "child_ids": []},
+    42: {"id": 42, "title": "Moon", "child_ids": [43, 44, 45]},
+    43: {"id": 43, "title": "Rheita", "child_ids": []},
+    44: {"id": 44, "title": "Piccolomini", "child_ids": []},
+    45: {"id": 45, "title": "Tycho", "child_ids": []},
+    46: {"id": 46, "title": "Mars", "child_ids": [47, 48]},
+    47: {"id": 47, "title": "Corn Town", "child_ids": []},
+    48: {"id": 48, "title": "Green Hill", "child_ids": []},
+}
+
+
+@ui.component
+def place_tree(my_id, parent_id, places_by_id, on_complete):
+    place = places_by_id[my_id]
+    child_ids = place["child_ids"]
+
+    return [
+        ui.text(place["title"]),
+        ui.button("Complete", on_press=lambda: on_complete(parent_id, my_id)),
+        [
+            place_tree(child_id, my_id, places_by_id, on_complete)
+            for child_id in child_ids
+        ],
+    ]
+
+
+@ui.component
+def travel_plan():
+    plan, set_plan = ui.use_state(initial_travel_plan)
+
+    def handle_complete(parent_id, child_id):
+        parent = plan[parent_id]
+        # Create a new version of the parent place that doesn't include this child id
+        next_parent = {
+            **parent,
+            "child_ids": [cid for cid in parent["child_ids"] if cid != child_id],
+        }
+        # Update the root state dictionary
+        set_plan({**plan, parent_id: next_parent})
+
+    root = plan[0]
+    planet_ids = root["child_ids"]
+
+    return [
+        ui.heading("Places to visit"),
+        [place_tree(child_id, 0, plan, handle_complete) for child_id in planet_ids],
+    ]
+
+
+travel_plan_example = travel_plan()
+```
+
+Nesting state is flexible, but keeping it “flat” can resolve many issues. A flat state is easier to update and helps prevent duplication across different parts of a nested object.
