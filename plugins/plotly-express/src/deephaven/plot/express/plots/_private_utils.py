@@ -299,6 +299,9 @@ def process_args(
     render_args = locals()
     render_args["args"]["table"] = convert_to_table(render_args["args"]["table"])
 
+    # Calendar is directly sent to the client for processing
+    calendar = render_args["args"].pop("calendar", None)
+
     orig_process_args = args_copy(render_args)
     orig_process_func = lambda **local_args: create_deephaven_figure(**local_args)[0]
 
@@ -312,6 +315,8 @@ def process_args(
     new_fig.add_figure_to_graph(
         exec_ctx, orig_process_args, table, key_column_table, orig_process_func
     )
+
+    new_fig.calendar = calendar
 
     return new_fig
 

@@ -3,6 +3,7 @@ import type { dh as DhType } from '@deephaven/jsapi-types';
 import { ChartModel, ChartUtils } from '@deephaven/chart';
 import Log from '@deephaven/log';
 import { RenderOptions } from '@deephaven/chart/dist/ChartModel';
+import { Formatter } from '@deephaven/jsapi-utils';
 import {
   DownsampleInfo,
   PlotlyChartWidgetData,
@@ -18,6 +19,8 @@ import {
   removeColorsFromData,
   setWebGlTraceType,
   hasUnreplaceableWebGlTraces,
+  getCalendar,
+  setRangebreaksFromCalendar,
 } from './PlotlyExpressChartUtils';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
@@ -58,6 +61,8 @@ export class PlotlyExpressChartModel extends ChartModel {
     // Chart only fetches the model layout once on init, so it needs to be set
     // before the widget is subscribed to.
     this.updateLayout(getWidgetData(widget));
+
+    this.calendar = getCalendar(widget, this.dh);
 
     this.setTitle(this.getDefaultTitle());
   }
@@ -130,6 +135,11 @@ export class PlotlyExpressChartModel extends ChartModel {
    * The WebGl warning is only shown once per chart. When the user acknowledges the warning, it will not be shown again.
    */
   hasAcknowledgedWebGlWarning = false;
+
+  /**
+   * A calendar object that is used to set rangebreaks on a time axis.
+   */
+  calendar: DhType.calendar.BusinessCalendar | null = null;
 
   override getData(): Partial<Data>[] {
     const hydratedData = [...this.plotlyData];
@@ -273,6 +283,35 @@ export class PlotlyExpressChartModel extends ChartModel {
     };
   }
 
+  /**
+   * Fire an event to update the rangebreaks on the chart.
+   * @param formatter The formatter to use to set the rangebreaks. If not provided, the current formatter is used.
+   */
+  fireRangebreaksUpdated(
+    formatter: Formatter | undefined = this.formatter
+  ): void {
+    if (!formatter) {
+      return;
+    }
+    const layoutUpdate = setRangebreaksFromCalendar(
+      formatter,
+      this.calendar,
+      this.layout,
+      this.chartUtils
+    );
+
+    if (layoutUpdate) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      this.fireLayoutUpdated(layoutUpdate);
+    }
+  }
+
+  setFormatter(formatter: Formatter): void {
+    this.fireRangebreaksUpdated(formatter);
+    super.setFormatter(formatter);
+  }
+
   handleWidgetUpdated(
     data: PlotlyChartWidgetData,
     references: DhType.Widget['exportedObjects']
@@ -300,6 +339,8 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.webGlTraceIndices = getReplaceableWebGlTraceIndices(this.plotlyData);
 
     this.handleWebGlAllowed(this.renderOptions?.webgl);
+
+    this.fireRangebreaksUpdated();
 
     newReferences.forEach(async (id, i) => {
       this.tableDataMap.set(id, {}); // Plot may render while tables are being fetched. Set this to avoid a render error

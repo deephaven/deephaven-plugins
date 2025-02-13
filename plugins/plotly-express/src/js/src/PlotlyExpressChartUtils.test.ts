@@ -24,6 +24,7 @@ describe('getDataMappings', () => {
           ],
           is_user_set_color: false,
           is_user_set_template: false,
+          calendar: null,
         },
         plotly: {
           data: [],

@@ -3,8 +3,11 @@ import type {
   LayoutAxis,
   PlotlyDataLayoutConfig,
   PlotType,
+  Layout,
 } from 'plotly.js';
 import type { dh as DhType } from '@deephaven/jsapi-types';
+import { type ChartUtils } from '@deephaven/chart';
+import { Formatter } from '@deephaven/jsapi-utils';
 
 /**
  * Traces that are at least partially powered by WebGL and have no SVG equivalent.
@@ -36,6 +39,8 @@ export interface PlotlyChartWidgetData {
   type: string;
   figure: {
     deephaven: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      calendar: any;
       mappings: Array<{
         table: number;
         data_columns: Record<string, string[]>;
@@ -287,4 +292,73 @@ export function setWebGlTraceType(
       trace.type = trace.type.substring(0, trace.type.length - 2) as PlotType;
     }
   });
+}
+
+/**
+ * Get the calendar from the widget data, adding the standard offset to the timezone
+ * @param widget The widget to get the calendar from
+ * @param dh The deephaven instance to get the offset from
+ * @returns The calendar with the standard offset added to the timezone
+ */
+export function getCalendar(
+  widget: DhType.Widget,
+  dh: typeof DhType
+): DhType.calendar.BusinessCalendar | null {
+  const { calendar } = getWidgetData(widget).figure.deephaven;
+  let updatedCalendar = null;
+
+  if (calendar != null) {
+    const timeZoneOffset = dh.i18n.TimeZone.getTimeZone(
+      calendar.timeZone
+    ).standardOffset;
+
+    const updatedTimeZone = {
+      id: calendar.timeZone,
+      standardOffset: timeZoneOffset,
+    };
+
+    updatedCalendar = {
+      ...calendar,
+      timeZone: updatedTimeZone,
+    };
+  }
+
+  return updatedCalendar;
+}
+
+/**
+ * Create rangebreaks from a business calendar
+ * @param formatter The formatter to use for the calendar
+ * @param calendar The business calendar to create the rangebreaks from
+ * @param layout The layout to update with the rangebreaks
+ * @param chartUtils The chart utils to use for the rangebreaks
+ * @returns The updated layout with the rangebreaks added
+ */
+export function setRangebreaksFromCalendar(
+  formatter: Formatter | null,
+  calendar: DhType.calendar.BusinessCalendar | null,
+  layout: Partial<Layout>,
+  chartUtils: ChartUtils
+): Partial<Layout> | null {
+  if (formatter != null && calendar != null) {
+    const layoutUpdate: Partial<Layout> = {};
+
+    Object.keys(layout).forEach(key => {
+      if (key.includes('axis')) {
+        const axis = layout[key as keyof Layout];
+        const rangebreaks = (axis as Partial<LayoutAxis>)?.rangebreaks ?? [];
+        const updatedRangebreaks =
+          chartUtils.createRangeBreaksFromBusinessCalendar(calendar, formatter);
+        const updatedAxis = {
+          ...(typeof axis === 'object' ? axis : {}),
+          rangebreaks: [...rangebreaks, ...updatedRangebreaks],
+        };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        layoutUpdate[key as keyof Layout] = updatedAxis as any;
+      }
+    });
+
+    return layoutUpdate;
+  }
+  return null;
 }

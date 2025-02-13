@@ -6,7 +6,7 @@ from plotly import express as px
 
 from ._private_utils import process_args
 from ..shared import default_callback
-from ..deephaven_figure import DeephavenFigure
+from ..deephaven_figure import DeephavenFigure, Calendar
 from ..types import PartitionableTableLike
 
 
@@ -57,6 +57,7 @@ def line(
     title: str | None = None,
     template: str | None = None,
     render_mode: str = "webgl",
+    calendar: Calendar = False,
     unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """Returns a line chart
@@ -173,6 +174,10 @@ def line(
       render_mode: Either "svg" or "webgl". The default is "webgl" as it leads to a more
         performant plot but there may be graphical bugs, in which case it is
         recommended to switch to "svg"
+      calendar: A boolean or string that specifies a calendar to use for the chart.
+        By default, False and no calendar is used. If True, the default calendar is used.
+        If a string, the calendar with that name is used. If a BusinessCalendar is passed,
+        that calendar is used.
       unsafe_update_figure: An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is
         not returned, the plotly figure passed will be assumed to be the return

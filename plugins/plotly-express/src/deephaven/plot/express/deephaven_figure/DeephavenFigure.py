@@ -15,6 +15,7 @@ from ..shared import args_copy
 from ..data_mapping import DataMapping
 from ..exporter import Exporter
 from .RevisionManager import RevisionManager
+from .FigureCalendar import FigureCalendar, Calendar
 
 
 def has_color_args(call_args: dict[str, Any]) -> bool:
@@ -395,6 +396,7 @@ class DeephavenFigure:
         trace_generator: Generator[dict[str, Any], None, None] | None = None,
         has_subplots: bool = False,
         is_plotly_fig: bool = False,
+        calendar: Calendar = False,
     ):
         """
         Create a new DeephavenFigure
@@ -433,6 +435,10 @@ class DeephavenFigure:
         self._is_plotly_fig = is_plotly_fig
 
         self._liveness_scope = LivenessScope()
+
+        self._calendar = calendar
+
+        self._figure_calendar = FigureCalendar(calendar)
 
     def copy_mappings(self: DeephavenFigure, offset: int = 0) -> list[DataMapping]:
         """Copy all DataMappings within this figure, adding a specific offset
@@ -490,11 +496,13 @@ class DeephavenFigure:
         plotly = None
         if self._plotly_fig and (fig_json := self._plotly_fig.to_json()) is not None:
             plotly = json.loads(fig_json)
+
         mappings = self.get_json_links(exporter)
         deephaven = {
             "mappings": mappings,
             "is_user_set_template": self._has_template,
             "is_user_set_color": self._has_color,
+            "calendar": self._figure_calendar.__dict__(),
         }
         payload = {"plotly": plotly, "deephaven": deephaven}
         return json.dumps(payload)
@@ -592,7 +600,15 @@ class DeephavenFigure:
             # a plotly figure was passed directly
             # just return this figure since it will never be updated
             return self
-        return self._head_node.get_figure()
+
+        figure = self._head_node.get_figure()
+
+        if figure is not None:
+            # there is currently only one calendar for the entire figure, so it's stored in the top level
+            # and attached as needed
+            figure.calendar = self._calendar
+
+        return figure
 
     def get_plotly_fig(self) -> Figure | None:
         """
@@ -685,6 +701,7 @@ class DeephavenFigure:
             self._trace_generator,
             self._has_subplots,
             self._is_plotly_fig,
+            self._calendar,
         )
         new_figure._head_node = self._head_node.copy_graph()
         return new_figure
@@ -694,3 +711,24 @@ class DeephavenFigure:
         Recreate the figure. This is called to ensure the figure is up-to-date
         """
         self._head_node.recreate_figure()
+
+    @property
+    def calendar(self) -> Calendar:
+        """
+        Get the calendar for this figure
+
+        Returns:
+            The calendar
+        """
+        return self._calendar
+
+    @calendar.setter
+    def calendar(self, calendar: Calendar) -> None:
+        """
+        Set the calendar for this figure
+
+        Args:
+            calendar: The calendar to set
+        """
+        self._calendar = calendar
+        self._figure_calendar = FigureCalendar(calendar)
