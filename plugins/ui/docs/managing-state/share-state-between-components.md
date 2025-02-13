@@ -57,3 +57,59 @@ To synchronize these two `info` panels, follow these three steps to “lift thei
 This approach will enable the `accordion` component to manage both `info` panels, ensuring that only one is expanded at a time.
 
 ### Step 1: Remove state from the child components
+
+You will delegate control of the `info` panel’s `is_active` state to its parent component. This means the parent component will pass `is_active` to the `info` panel as a prop. Start by removing this line from the `info` component:
+
+```python
+is_active, set_is_active = ui.use_state(False)
+```
+
+Next, add `is_active` to the `info` panel’s list of parameters:
+
+```
+def info(title, details, is_active):
+```
+
+Now, the parent component can control `is_active` by passing it down as a prop. Consequently, the `info` component no longer manages the value of `is_active`. It is now controlled by the parent component.
+
+### Step 2: Pass hardcoded data from the common parent
+
+To lift state up, identify the nearest common parent component of the child components you want to synchronize:
+
+- accordion (nearest common parent)
+  - info
+  - info
+
+In this case, the `accordion` component is the common parent. Since it is above both `info` components and can manage their props, it will serve as the “source of truth” for the active `info` panel. Have the `accordion` component pass a hardcoded value of `is_active` (e.g., `True`) to both `info` components:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def info(title, details, is_active):
+    return [
+        ui.heading(title, level=4),
+        ui.text(details) if is_active else None,
+        # ui.action_button("Show", on_press=lambda: set_is_active(True)),
+    ]
+
+
+@ui.component
+def accordion():
+    return [
+        ui.heading("Fruits"),
+        ui.divider(),
+        info("Apple", "Red and delicious", True),
+        ui.divider(),
+        info("Banana", "Yellow and sweet", True),
+        ui.divider(),
+    ]
+
+
+accordion_example = accordion()
+```
+
+Try modifying the hardcoded `is_active` values in the `accordion` component and observe the changes on the screen.
+
+### Step 3: Add state to the common parent
