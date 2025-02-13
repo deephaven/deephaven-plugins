@@ -113,3 +113,71 @@ accordion_example = accordion()
 Try modifying the hardcoded `is_active` values in the `accordion` component and observe the changes on the screen.
 
 ### Step 3: Add state to the common parent
+
+Lifting state up often changes the nature of the state you are managing.
+
+In this scenario, only one `info` panel should be active at any given time. Therefore, the parent component must track which `info` is currently active. Instead of using a boolean value, it can use a number representing the index of the active `info` for the state variable:
+
+```python
+active, set_active = ui.use_state(0)
+```
+
+When `active` is `0`, the first `info` is active. When it is `1`, the second `info` is active.
+
+Clicking the “Show” button in any panel should change `active` in the `accordion`. An `info` cannot directly set the `active` state because it is defined within the `accordion`. The `accordion` component must explicitly allow the `info` component to change its state by passing an event handler as a prop:
+
+```python
+info(
+    "Apple", "Red and delicious", is_active=active == 0, on_show=lambda: set_active(0)
+),
+ui.divider(),
+info(
+    "Banana", "Yellow and sweet", is_active=active == 1, on_show=lambda: set_active(1)
+),
+```
+
+The `button` inside the `info` will now use the `on_show` prop as its press event handler:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def info(title, details, is_active, on_show):
+    return [
+        ui.heading(title, level=4),
+        ui.text(details) if is_active else None,
+        ui.action_button("Show", on_press=on_show),
+    ]
+
+
+@ui.component
+def accordion():
+    active, set_active = ui.use_state(0)
+
+    return [
+        ui.heading("Fruits"),
+        ui.divider(),
+        info(
+            "Apple",
+            "Red and delicious",
+            is_active=active == 0,
+            on_show=lambda: set_active(0),
+        ),
+        ui.divider(),
+        info(
+            "Banana",
+            "Yellow and sweet",
+            is_active=active == 1,
+            on_show=lambda: set_active(1),
+        ),
+        ui.divider(),
+    ]
+
+
+accordion_example = accordion()
+```
+
+This completes the process of lifting state up. By moving the state into the common parent component, you can coordinate the two `info` panels effectively. Using the `active` index instead of two separate `is_shown` flags ensures that only one `info` is active at any given time. Additionally, passing down the event handler to the child component allows the child to update the parent’s state.
+
+## A single source of truth for each state
