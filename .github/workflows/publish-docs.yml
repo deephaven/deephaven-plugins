@@ -56,9 +56,10 @@ jobs:
         with:
           source: docs-build/${{ env.package }}/${{ env.version }}/
           destination: deephaven/deephaven-plugins/${{ env.package }}/${{ env.version }}/
-          project_number: ${{ secrets.DOCS_GOOGLE_CLOUD_PROJECT_NUMBER}}
           bucket: ${{ github.event.workflow_run.event == 'push' && vars.DOCS_GOOGLE_CLOUD_BUCKET || vars.DOCS_PREVIEW_BUCKET }}
           credentials: ${{ secrets.DOCS_GOOGLE_CLOUD_CREDENTIALS }}
+          cache-bust-url: ${{ github.event.workflow.run.event == 'push' && vars.DOCS_PROD_CACHE_BUST_URL || vars.DOCS_PREVIEW_CACHE_BUST_URL }}
+          cache-bust-token: ${{ secrets.DOCS_CACHE_BUST_TOKEN }}
 
       - name: Comment on PR
         if: ${{ github.event.workflow_run.event == 'pull_request' }}
