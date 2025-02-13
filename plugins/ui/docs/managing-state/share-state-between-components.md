@@ -181,3 +181,9 @@ accordion_example = accordion()
 This completes the process of lifting state up. By moving the state into the common parent component, you can coordinate the two `info` panels effectively. Using the `active` index instead of two separate `is_shown` flags ensures that only one `info` is active at any given time. Additionally, passing down the event handler to the child component allows the child to update the parent’s state.
 
 ## A single source of truth for each state
+
+In a `deephaven.ui` application, many components will manage their own state. Some state may reside close to the leaf components (those at the bottom of the tree) like inputs, while other state may be managed closer to the top of the app.
+
+For each unique piece of state, you will determine the component that “owns” it. This concept is known as having a “single source of truth”. It doesn’t imply that all state is centralized, but rather that each piece of state is held by a specific component. Instead of duplicating shared state across components, lift it up to their common parent and pass it down to the children that require it.
+
+As you develop your app, it will evolve. It is common to move state down or back up while determining the optimal location for each piece of state. This is a natural part of the development process.
