@@ -56,14 +56,16 @@ jobs:
         with:
           source: docs-build/${{ env.package }}/${{ env.version }}/
           destination: deephaven/deephaven-plugins/${{ env.package }}/${{ env.version }}/
-          bucket: ${{ github.event.workflow_run.event == 'push' && vars.DOCS_GOOGLE_CLOUD_BUCKET || vars.DOCS_PREVIEW_BUCKET }}
+          bucket: ${{ github.event.workflow_run.event == 'push' && vars.DOCS_PROD_BUCKET || vars.DOCS_PREVIEW_BUCKET }}
           credentials: ${{ secrets.DOCS_GOOGLE_CLOUD_CREDENTIALS }}
-          cache-bust-url: ${{ github.event.workflow.run.event == 'push' && vars.DOCS_PROD_CACHE_BUST_URL || vars.DOCS_PREVIEW_CACHE_BUST_URL }}
+          docs-url: ${{ github.event.workflow.run.event == 'push' && vars.DOCS_PROD_URL || vars.DOCS_PREVIEW_URL }}
           cache-bust-token: ${{ secrets.DOCS_CACHE_BUST_TOKEN }}
 
       - name: Comment on PR
         if: ${{ github.event.workflow_run.event == 'pull_request' }}
         uses: actions/github-script@v7
+        env:
+          docsUrl: ${{ github.event.workflow.run.event == 'push' && vars.DOCS_PROD_URL || vars.DOCS_PREVIEW_URL }}
         with:
           script: |
             const env = process.env;
@@ -72,5 +74,5 @@ jobs:
               issue_number: env.version.replace('pr-', ''),
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `[${env.package} docs preview](https://deephaven-salmon-staging--deephaven-oss.us-central1.hosted.app/${path}/${env.version}) (Available for 14 days)`
+              body: `[${env.package} docs preview](${env.docsUrl}/${path}/${env.version}) (Available for 14 days)`
             });
