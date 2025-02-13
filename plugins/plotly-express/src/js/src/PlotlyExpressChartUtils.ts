@@ -346,7 +346,8 @@ export function setRangebreaksFromCalendar(
     Object.keys(layout).forEach(key => {
       if (key.includes('axis')) {
         const axis = layout[key as keyof Layout];
-        const rangebreaks = (axis as Partial<LayoutAxis>)?.rangebreaks ?? [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const rangebreaks = (axis as any)?.rangebreaks ?? [];
         const updatedRangebreaks =
           chartUtils.createRangeBreaksFromBusinessCalendar(calendar, formatter);
         const updatedAxis = {

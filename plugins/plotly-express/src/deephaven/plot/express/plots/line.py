@@ -178,6 +178,7 @@ def line(
         By default, False and no calendar is used. If True, the default calendar is used.
         If a string, the calendar with that name is used. If a BusinessCalendar is passed,
         that calendar is used.
+        Note that if this is provided, `render_mode` is forced to "svg" as "webgl" is not supported.
       unsafe_update_figure: An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is
         not returned, the plotly figure passed will be assumed to be the return

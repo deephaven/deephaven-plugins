@@ -62,7 +62,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     // before the widget is subscribed to.
     this.updateLayout(getWidgetData(widget));
 
-    this.calendar = getCalendar(widget, this.dh);
+    this.calendar = getCalendar(widget, dh);
 
     this.setTitle(this.getDefaultTitle());
   }

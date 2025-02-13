@@ -1,23 +1,20 @@
 from __future__ import annotations
 
 import sys
-from typing import Union
+from typing import Union, List, Any, Literal
 
 from deephaven.calendar import calendar
-
-from typing import Any, Literal
 
 if sys.version_info < (3, 11):
     from typing_extensions import TypedDict
 else:
     from typing import TypedDict
 
-
 BusinessCalendar = Any
 Calendar = Union[bool, str, BusinessCalendar]
 Timezone = str
 Day = str
-Days = list[Day]
+Days = List[Day]
 Date = str
 
 
@@ -31,8 +28,8 @@ class Holiday(TypedDict):
     businessPeriods: list[TimeRange]
 
 
-Holidays = list[Holiday]
-TimeRanges = list[TimeRange]
+Holidays = List[Holiday]
+TimeRanges = List[TimeRange]
 
 
 class FigureCalendarDict(TypedDict):

@@ -300,7 +300,11 @@ def process_args(
     render_args["args"]["table"] = convert_to_table(render_args["args"]["table"])
 
     # Calendar is directly sent to the client for processing
-    calendar = render_args["args"].pop("calendar", None)
+    calendar = render_args["args"].pop("calendar", False)
+
+    # rangebreaks (which a calendar is converted to) are not supported in webgl
+    if calendar is not False and "render_mode" in render_args["args"]:
+        render_args["args"]["render_mode"] = "svg"
 
     orig_process_args = args_copy(render_args)
     orig_process_func = lambda **local_args: create_deephaven_figure(**local_args)[0]

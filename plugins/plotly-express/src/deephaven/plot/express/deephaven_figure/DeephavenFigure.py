@@ -502,8 +502,11 @@ class DeephavenFigure:
             "mappings": mappings,
             "is_user_set_template": self._has_template,
             "is_user_set_color": self._has_color,
-            "calendar": self._figure_calendar.__dict__(),
         }
+
+        if calendar_dict := self._figure_calendar.__dict__():
+            deephaven["calendar"] = calendar_dict
+
         payload = {"plotly": plotly, "deephaven": deephaven}
         return json.dumps(payload)
 
