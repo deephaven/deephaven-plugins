@@ -107,6 +107,10 @@
           {
             "label": "React to Input with State",
             "path": "managing-state/react-to-input-with-state.md"
+          },
+          {
+            "label": "Preserving and Resetting State",
+            "path": "managing-state/preserving-and-resetting-state.md"
           }
         ]
       },
