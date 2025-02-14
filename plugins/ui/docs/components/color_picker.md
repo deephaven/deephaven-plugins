@@ -126,3 +126,37 @@ def ui_color_picker_size():
 
 my_color_picker_size = ui_color_picker_size()
 ```
+
+## Table Formatting
+```python
+from deephaven import ui
+import deephaven.plot.express as dx
+
+
+@ui.component
+def ui_color_picker_table_format():
+    background, set_backgruond = ui.use_state("#232323")
+    highlight, set_highlight = ui.use_state("#65C4D7")
+
+    return [
+        ui.color_picker(label="Background", value=background, on_change=set_backgruond),
+        ui.color_picker(label="Highlight", value=highlight, on_change=set_highlight),
+        ui.table(
+            dx.data.stocks(),
+            format_=[
+                ui.TableFormat(background_color=background, color="white"),
+                ui.TableFormat(cols="Sym", background_color=highlight),
+            ],
+        ),
+    ]
+
+
+my_color_picker_table_format = ui_color_picker_table_format()
+```
+
+
+## API reference
+
+```{eval-rst}
+.. dhautofunction:: deephaven.ui.color_picker
+```
