@@ -109,3 +109,39 @@ Notice how the moment you stop rendering the second counter, its state disappear
 `deephaven.ui` maintains a component's state as long as it remains rendered in the same position within the UI tree. If the component is removed or replaced by a different component at the same position, `deephaven.ui` will discard its state.
 
 ## Same component at the same position preserves state
+
+In this example, there are two different calls to `counter`:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def counter(is_fancy):
+    score, set_score = ui.use_state(0)
+
+    return [
+        ui.heading(f"{score}", level=1 if is_fancy else 3),
+        ui.button(
+            "Add one",
+            on_press=lambda: set_score(score + 1),
+            variant="accent" if is_fancy else "primary",
+        ),
+    ]
+
+
+@ui.component
+def app():
+    is_fancy, set_is_fancy = ui.use_state()
+    return [
+        counter(True) if is_fancy else counter(False),
+        ui.checkbox("Fancy", is_selected=is_fancy, on_change=set_is_fancy),
+    ]
+
+
+counter_example = app()
+```
+
+Toggling the checkbox does not reset the `counter` state. Regardless of whether `is_fancy` is true or false, the `counter` component always remains the first child returned by the root `app` component. It is the same component at the same position, so from the `deephaven.ui` perspective, it’s the same `counter`.
+
+## Different components at the same position reset state
