@@ -443,13 +443,12 @@ class ElementMessageStream(MessageStream):
 
     def _close_callable(self, callable_id: str) -> None:
         """
-        Close a callable by its ID.
+        Close a callable by its ID. Used to close a temporary callable that is outside of the render cycle.
 
         Args:
             callable_id: The ID of the callable to close
         """
         logger.debug("Closing callable %s", callable_id)
-        self._callable_dict.pop(callable_id, None)
         self._temp_callable_dict.pop(callable_id, None)
 
     def _send_document_patch(

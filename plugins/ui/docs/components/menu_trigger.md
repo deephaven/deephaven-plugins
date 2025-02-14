@@ -63,7 +63,7 @@ from deephaven import ui
 
 
 my_long_press_example = ui.menu_trigger(
-    ui.action_button("Crop tool", on_press=print("Cropping!")),
+    ui.action_button("Crop tool", on_press=lambda _: print("Cropping!")),
     ui.menu(
         ui.item("Crop Rotate"),
         ui.item("Slice"),

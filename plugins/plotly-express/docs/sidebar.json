@@ -137,8 +137,8 @@
             "path": "multiple-axes.md"
           },
           {
-            "label": "`unsafe_update_figure` Chart Customization",
-            "path": "unsafe_update_figure.md"
+            "label": "Chart Customization",
+            "path": "unsafe-update-figure.md"
           }
         ]
       }

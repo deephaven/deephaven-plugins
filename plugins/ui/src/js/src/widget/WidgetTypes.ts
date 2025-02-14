@@ -8,7 +8,7 @@ export interface WidgetMessageDetails {
   exportedObjects: dh.WidgetExportedObject[];
 }
 
-export type WidgetMessageEvent = CustomEvent<WidgetMessageDetails>;
+export type WidgetMessageEvent = dh.Event<WidgetMessageDetails>;
 
 export type WidgetFetch = (takeOwnership?: boolean) => Promise<dh.Widget>;
 

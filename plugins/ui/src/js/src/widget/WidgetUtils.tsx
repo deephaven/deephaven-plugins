@@ -7,12 +7,17 @@ import type { JSONRPCServerAndClient } from 'json-rpc-2.0';
 import {
   ActionMenu,
   Avatar,
+  Breadcrumbs,
   ButtonGroup,
   SpectrumCheckbox as Checkbox,
   CheckboxGroup,
   Content,
   ContextualHelpTrigger,
   DialogTrigger,
+  DisclosureTitle,
+  DisclosurePanel,
+  Divider,
+  Footer,
   Heading,
   Item,
   Link,
@@ -62,11 +67,13 @@ import {
   DatePicker,
   DateRangePicker,
   Dialog,
+  Disclosure,
   Flex,
   Form,
   Grid,
   IllustratedMessage,
   Image,
+  LabeledValue,
   InlineAlert,
   ListView,
   LogicButton,
@@ -83,6 +90,7 @@ import {
   SearchField,
   Slider,
   TabPanels,
+  TagGroup,
   TextField,
   TextArea,
   TimeField,
@@ -126,6 +134,7 @@ export const elementComponentMap: Record<ValueOf<ElementName>, unknown> = {
   [ELEMENT_NAME.actionMenu]: ActionMenu,
   [ELEMENT_NAME.avatar]: Avatar,
   [ELEMENT_NAME.badge]: Badge,
+  [ELEMENT_NAME.breadcrumbs]: Breadcrumbs,
   [ELEMENT_NAME.button]: Button,
   [ELEMENT_NAME.buttonGroup]: ButtonGroup,
   [ELEMENT_NAME.calendar]: Calendar,
@@ -140,8 +149,13 @@ export const elementComponentMap: Record<ValueOf<ElementName>, unknown> = {
   [ELEMENT_NAME.dateRangePicker]: DateRangePicker,
   [ELEMENT_NAME.dialog]: Dialog,
   [ELEMENT_NAME.dialogTrigger]: DialogTrigger,
+  [ELEMENT_NAME.disclosure]: Disclosure,
+  [ELEMENT_NAME.disclosureTitle]: DisclosureTitle,
+  [ELEMENT_NAME.disclosurePanel]: DisclosurePanel,
+  [ELEMENT_NAME.divider]: Divider,
   [ELEMENT_NAME.flex]: Flex,
   [ELEMENT_NAME.form]: Form,
+  [ELEMENT_NAME.footer]: Footer,
   [ELEMENT_NAME.fragment]: React.Fragment,
   [ELEMENT_NAME.grid]: Grid,
   [ELEMENT_NAME.heading]: Heading,
@@ -149,6 +163,7 @@ export const elementComponentMap: Record<ValueOf<ElementName>, unknown> = {
   [ELEMENT_NAME.image]: Image,
   [ELEMENT_NAME.inlineAlert]: InlineAlert,
   [ELEMENT_NAME.item]: Item,
+  [ELEMENT_NAME.labeledValue]: LabeledValue,
   [ELEMENT_NAME.link]: Link,
   [ELEMENT_NAME.listActionGroup]: ListActionGroup,
   [ELEMENT_NAME.listActionMenu]: ListActionMenu,
@@ -175,6 +190,7 @@ export const elementComponentMap: Record<ValueOf<ElementName>, unknown> = {
   [ELEMENT_NAME.tabPanels]: TabPanels,
   [ELEMENT_NAME.tab]: Item,
   [ELEMENT_NAME.tabs]: Tabs,
+  [ELEMENT_NAME.tagGroup]: TagGroup,
   [ELEMENT_NAME.text]: Text,
   [ELEMENT_NAME.textArea]: TextArea,
   [ELEMENT_NAME.textField]: TextField,
@@ -250,12 +266,14 @@ export function getPreservedData(
  * @param jsonClient The JSON client to send callable requests to
  * @param callableId The callableId to return a wrapped callable for
  * @param registry The finalization registry to register the callable with.
+ * @param shouldRegister Whether to register the callable in the finalization registry
  * @returns A wrapped callable that will automatically wrap any nested callables returned by the server
  */
 export function wrapCallable(
   jsonClient: JSONRPCServerAndClient,
   callableId: string,
-  registry: FinalizationRegistry<string>
+  registry: FinalizationRegistry<string>,
+  shouldRegister = true
 ): (...args: unknown[]) => Promise<unknown> {
   const callable = async (...args: unknown[]) => {
     log.debug2(`Callable ${callableId} called`, args);
@@ -288,7 +306,9 @@ export function wrapCallable(
     }
   };
 
-  registry.register(callable, callableId, callable);
+  if (shouldRegister) {
+    registry.register(callable, callableId, callable);
+  }
 
   return callable;
 }
