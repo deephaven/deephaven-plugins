@@ -5,6 +5,7 @@ from .avatar import avatar
 from .basic import (
     component_element,
 )
+from .accordion import accordion
 from .badge import badge
 from .breadcrumbs import breadcrumbs
 from .button import button
@@ -84,6 +85,7 @@ from . import html
 
 
 __all__ = [
+    "accordion",
     "action_button",
     "action_group",
     "action_menu",
