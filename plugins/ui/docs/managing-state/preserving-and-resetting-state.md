@@ -145,3 +145,77 @@ counter_example = app()
 Toggling the checkbox does not reset the `counter` state. Regardless of whether `is_fancy` is true or false, the `counter` component always remains the first child returned by the root `app` component. It is the same component at the same position, so from the `deephaven.ui` perspective, it’s the same `counter`.
 
 ## Different components at the same position reset state
+
+In this example, checking the checkbox will replace the `counter` with a `ui.text`:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def counter():
+    score, set_score = ui.use_state(0)
+
+    return [
+        ui.heading(f"{score}"),
+        ui.button("Add one", on_press=lambda: set_score(score + 1)),
+    ]
+
+
+@ui.component
+def app():
+    hide, set_hide = ui.use_state(False)
+    return [
+        ui.text("Counter hidden") if hide else counter(),
+        ui.checkbox(
+            "hide counter",
+            is_selected=hide,
+            on_change=set_hide,
+        ),
+    ]
+
+
+counter_example = app()
+```
+
+In this example, you alternate between different component types at the same location. Initially, the first child of the `app` was a `counter`. However, when you replaced it with a `ui.text` component, `deephaven.ui` removed the `counter` from the UI tree and discarded its state.
+
+Rendering a different component in the same position resets the state of its entire subtree. To observe this, increment the counter and then tick the checkbox:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def counter(is_fancy):
+    score, set_score = ui.use_state(0)
+
+    return [
+        ui.heading(f"{score}", level=1 if is_fancy else 3),
+        ui.button(
+            "Add one",
+            on_press=lambda: set_score(score + 1),
+            variant="accent" if is_fancy else "primary",
+        ),
+    ]
+
+
+@ui.component
+def app():
+    is_fancy, set_is_fancy = ui.use_state()
+    return [
+        ui.grid(counter(True))
+        if is_fancy
+        else ui.flex(counter(False), direction="column"),
+        ui.checkbox("Fancy", is_selected=is_fancy, on_change=set_is_fancy),
+    ]
+
+
+counter_example2 = app()
+```
+
+Clicking the checkbox resets the counter state. Although a `counter` is rendered, the first child of the `app` changes from a `flex` to a `grid`. When the child `flex` is removed from the DOM, the entire tree below it (including the `counter` and its state) is destroyed.
+
+To maintain state between re-renders, ensure that the structure of your component tree remains consistent. `deephaven.ui` will destroy the state if the structure changes, as it removes the component from the tree.
+
+## Resetting state at the same position
