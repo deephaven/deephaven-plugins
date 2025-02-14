@@ -21,7 +21,7 @@ export function ColorPicker(props: DHCColorPickerProps): JSX.Element {
     ...otherProps
   } = props;
 
-  const colorChange = (color: DHCColor) => {
+  const colorChange = async (color: DHCColor) => {
     if (color === undefined) {
       return;
     }
