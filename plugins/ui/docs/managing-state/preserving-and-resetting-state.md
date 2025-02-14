@@ -219,3 +219,73 @@ Clicking the checkbox resets the counter state. Although a `counter` is rendered
 To maintain state between re-renders, ensure that the structure of your component tree remains consistent. `deephaven.ui` will destroy the state if the structure changes, as it removes the component from the tree.
 
 ## Resetting state at the same position
+
+By default, `deephaven.ui` maintains the state of a component as long as it remains in the same position. This default behavior is usually desirable. However, there are cases where you might want to reset a component’s state. For example, consider an app that allows two players to track their scores during each turn:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def counter(person):
+    score, set_score = ui.use_state(0)
+
+    return [
+        ui.heading(f"{person}'s score: {score}"),
+        ui.button("Add one", on_press=lambda: set_score(score + 1)),
+    ]
+
+
+@ui.component
+def scoreboard():
+    is_player1, set_is_player1 = ui.use_boolean(True)
+    return [
+        counter("John") if is_player1 else counter("Jill"),
+        ui.divider(),
+        ui.action_button("Change player", on_press=set_is_player1.toggle),
+    ]
+
+
+scoreboard_example = scoreboard()
+```
+
+When switching players, the score remains unchanged because `deephaven.ui` treats the two `counters` as the same component with a different `person` prop.
+
+However, in this app, they should be treated as separate counters. Although they occupy the same UI position, one `counter` is for John and the other is for Jill.
+
+To reset the state when switching between them, you can:
+
+1. Render components in different positions.
+2. Assign each component a unique identity using the `key` prop.
+
+### Option 1: Rendering a component in different positions
+
+If you want these two `counters` to be independent, you can render them in two different positions:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def counter(person):
+    score, set_score = ui.use_state(0)
+
+    return [
+        ui.heading(f"{person}'s score: {score}"),
+        ui.button("Add one", on_press=lambda: set_score(score + 1)),
+    ]
+
+
+@ui.component
+def scoreboard():
+    is_player1, set_is_player1 = ui.use_boolean(True)
+    return [
+        counter("John") if is_player1 else None,
+        counter("Jill") if not is_player1 else None,
+        ui.divider(),
+        ui.action_button("Change player", on_press=set_is_player1.toggle),
+    ]
+
+
+scoreboard_example = scoreboard()
+```
