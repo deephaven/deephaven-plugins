@@ -85,7 +85,7 @@ jobs:
   build-docs:
     needs: changes
     # Only build main docs for push on main branch and any PRs
-    if: ${{ needs.changes.outputs.packages != '[]' && needs.changes.outputs.packages != '' && (github.ref == 'refs/head/main' || github.event_name == 'pull_request') }}
+    if: ${{ needs.changes.outputs.packages != '[]' && needs.changes.outputs.packages != '' && (github.ref == 'refs/heads/main' || github.event_name == 'pull_request') }}
     strategy:
       fail-fast: false
       matrix:
@@ -94,4 +94,4 @@ jobs:
     secrets: inherit
     with:
       package: ${{ matrix.package }}
-      version: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || github.ref == 'refs/head/main' && 'main' }}
+      version: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || github.ref == 'refs/heads/main' && 'main' }}

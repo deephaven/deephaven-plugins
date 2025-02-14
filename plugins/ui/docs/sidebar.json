@@ -88,8 +88,25 @@
             "path": "add-interactivity/state-as-a-snapshot.md"
           },
           {
+            "label": "Queueing a Series of State Updates",
+            "path": "add-interactivity/queueing-updates.md"
+          },
+          {
             "label": "Update Dictionaries in State",
             "path": "add-interactivity/update-dictionaries-in-state.md"
+          },
+          {
+            "label": "Update Lists in State",
+            "path": "add-interactivity/update-lists-in-state.md"
+          }
+        ]
+      },
+      {
+        "label": "Managing State",
+        "items": [
+          {
+            "label": "React to Input with State",
+            "path": "managing-state/react-to-input-with-state.md"
           }
         ]
       },
