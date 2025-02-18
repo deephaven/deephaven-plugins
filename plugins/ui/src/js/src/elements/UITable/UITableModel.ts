@@ -25,9 +25,8 @@ import JsTableProxy, { UITableLayoutHints } from './JsTableProxy';
 
 /**
  * Create a UITableModel.
- * WARNING: This may mutate the baseTable object to add customColumns for formatting.
  * @param dh The JS API object
- * @param baseTable The base table to create the UI table model from. This may be mutated.
+ * @param baseTable The base table to create the UI table model from.
  * @param databars Databar configurations
  * @param layoutHints Layout hints for the table
  * @param format Format rules for the table
@@ -36,12 +35,13 @@ import JsTableProxy, { UITableLayoutHints } from './JsTableProxy';
  */
 export async function makeUiTableModel(
   dh: typeof DhType,
-  baseTable: DhType.Table,
+  baseTableProp: DhType.Table,
   databars: DatabarConfig[],
   layoutHints: UITableLayoutHints,
   format: FormattingRule[],
   displayNameMap: Record<string, string>
 ): Promise<UITableModel> {
+  const baseTable = await baseTableProp.copy();
   const customColumns: string[] = [];
   format.forEach((rule, i) => {
     const { if_ } = rule;
@@ -130,7 +130,6 @@ export async function makeUiTableModel(
   return new UITableModel({
     dh,
     model: baseModel,
-    table: uiTableProxy,
     databars,
     format,
     displayNameMap,
@@ -160,11 +159,6 @@ type NumericValue =
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 class UITableModel extends IrisGridModel {
-<<<<<<< HEAD
-  table: JsTableProxy;
-
-=======
->>>>>>> main
   private model: IrisGridModel;
 
   /**
@@ -187,7 +181,6 @@ class UITableModel extends IrisGridModel {
   }: {
     dh: typeof DhType;
     model: IrisGridModel;
-    table: JsTableProxy;
     databars: DatabarConfig[];
     format: FormattingRule[];
     displayNameMap: Record<string, string>;

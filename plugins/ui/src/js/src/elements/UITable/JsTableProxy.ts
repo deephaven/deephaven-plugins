@@ -15,6 +15,7 @@ interface JsTableProxy extends dh.Table {}
 
 /**
  * Class to proxy JsTable.
+ * The JsTable passed to the constructor may be modified, so it is recommended to pass a copy.
  * Any methods implemented in this class will be utilized over the underlying JsTable methods.
  * Any methods not implemented in this class will be proxied to the table.
  */
@@ -154,8 +155,11 @@ class JsTableProxy implements dh.Table {
   }
 
   close(): void {
-    this.onClose();
-    this.table.close();
+    // Something causes close to get called twice which will throw some log spam if we try to close the table again
+    if (!this.table.isClosed) {
+      this.onClose();
+      this.table.close();
+    }
   }
 
   applyCustomColumns(

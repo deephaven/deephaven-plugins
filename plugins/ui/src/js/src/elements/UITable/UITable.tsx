@@ -41,6 +41,15 @@ import { UITableLayoutHints } from './JsTableProxy';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
 
+const ALWAYS_FETCH_COLUMN_LIMIT = 500;
+
+/**
+ * Performs a deep equals check on a value if the reference does not match the previous reference.
+ * If the values are deeply equal, returns the previous reference, otherwise returns a new reference.
+ * This is useful for memoizing arrays or objects that are created every render by the server, but we want a stable reference.
+ * @param value The value to check deep equality
+ * @returns A stable reference to the value if it is deeply equal to the previous value, otherwise a new reference
+ */
 function useDeepEquals<T>(value: T): T {
   const ref = useRef<T>(value);
   if (value !== ref.current && !deepEquals(value, ref.current)) {
@@ -52,7 +61,7 @@ function useDeepEquals<T>(value: T): T {
 /**
  * Hook to throw an error during a render cycle so it is caught by the error boundary.
  * Useful to throw from async or callbacks that occur outside the render cycle.
- * @returns [setError, clearError] to throw an error and clear it respectively
+ * @returns [throwError, clearError] to throw an error and clear it respectively
  */
 function useThrowError(): [
   throwError: (error: unknown) => void,
@@ -169,15 +178,7 @@ export function UITable({
   databars: databarsProp,
   ...userStyleProps
 }: UITableProps): JSX.Element | null {
-  const [error, setError] = useState<unknown>(null);
-
-  if (error != null) {
-    // Re-throw the error so that the error boundary can catch it
-    if (typeof error === 'string') {
-      throw new Error(error);
-    }
-    throw error;
-  }
+  const [throwError] = useThrowError();
 
   // Margin looks wrong with ui.table, so we want to map margin to padding instead
   const {
@@ -351,10 +352,10 @@ export function UITable({
 
   const alwaysFetchColumns = useMemo(() => {
     if (alwaysFetchColumnsArray[0] === true) {
-      if (columns.length > 500) {
-        setError(
+      if (columns.length > ALWAYS_FETCH_COLUMN_LIMIT) {
+        throwError(
           `Table has ${columns.length} columns, which is too many to always fetch. ` +
-            'If you want to always fetch more than 500 columns, pass the full array of column names you want to fetch. ' +
+            `If you want to always fetch more than ${ALWAYS_FETCH_COLUMN_LIMIT} columns, pass the full array of column names you want to fetch. ` +
             'This will likely be slow and use a lot of memory. ' +
             'table.column_names contains all columns in a Deephaven table.'
         );
@@ -364,15 +365,8 @@ export function UITable({
     if (alwaysFetchColumnsArray[0] === false) {
       return [];
     }
-<<<<<<< HEAD
     return alwaysFetchColumnsArray.filter(v => typeof v === 'string');
-  }, [alwaysFetchColumnsArray, columns]);
-=======
-    return alwaysFetchColumnsArray.filter(
-      v => typeof v === 'string'
-    ) as string[];
-  }, [alwaysFetchColumnsArray, modelColumns]);
->>>>>>> main
+  }, [alwaysFetchColumnsArray, columns, throwError]);
 
   const mouseHandlers = useMemo(
     () =>
