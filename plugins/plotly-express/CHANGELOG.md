@@ -2,6 +2,26 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.13.0 - 2025-02-04
+#### Bug Fixes
+- DH-18538: Deephaven express not respecting webgl flag within dh.ui (#1103) - (4516b77) - Matthew Runyon
+- Pin plotly version (#1104) - (fa37812) - Joe
+- Make docs links passthrough (#1085) - (2ef0ddb) - Joe
+#### Documentation
+- fix renamed unsafe-figure-update (#1091) - (ea5d637) - Don
+- Add `unsafe_update_figure` doc (#1058) - (90c8e19) - Joe
+- Expand sidebars by default for certain categories, add link to flexbox froggy (#1073) - (e76591d) - Don
+#### Features
+- `dx.indicator` spec (#1062) - (4478013) - Joe
+
+- - -
+
+## plotly-express-v0.12.1 - 2024-12-12
+#### Bug Fixes
+- switch to webgl by default for line plot (#992) - (2c7bc01) - Joe
+
+- - -
+
 ## plotly-express-v0.12.0 - 2024-11-23
 #### Bug Fixes
 - `dx` now respects the webgl flag (#934) - (9cdf1ee) - Joe

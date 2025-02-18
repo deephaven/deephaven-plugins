@@ -1,6 +1,6 @@
 {
   "name": "@deephaven/js-plugin-plotly-express",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "Deephaven plotly express plugin",
   "keywords": [
     "Deephaven",
@@ -32,7 +32,7 @@
   "homepage": "https://github.com/deephaven/deephaven-plugins",
   "scripts": {
     "start": "vite build --watch",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "update-dh-packages": "node ../../../../tools/update-dh-packages.mjs"
   },
   "devDependencies": {
@@ -60,6 +60,7 @@
     "@deephaven/jsapi-bootstrap": "0.97.0",
     "@deephaven/log": "0.97.0",
     "@deephaven/plugin": "0.97.0",
+    "@deephaven/redux": "0.97.0",
     "@deephaven/utils": "0.97.0",
     "deep-equal": "^2.2.1",
     "nanoid": "^5.0.7",

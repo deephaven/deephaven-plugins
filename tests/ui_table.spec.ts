@@ -3,7 +3,7 @@ import { openPanel, gotoPage } from './utils';
 
 const REACT_PANEL_VISIBLE = '.dh-react-panel:visible';
 
-test.describe('UI table formatting', () => {
+test.describe('UI table', () => {
   [
     't_alignment',
     't_background_color',

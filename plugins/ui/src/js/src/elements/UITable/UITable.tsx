@@ -364,8 +364,15 @@ export function UITable({
     if (alwaysFetchColumnsArray[0] === false) {
       return [];
     }
+<<<<<<< HEAD
     return alwaysFetchColumnsArray.filter(v => typeof v === 'string');
   }, [alwaysFetchColumnsArray, columns]);
+=======
+    return alwaysFetchColumnsArray.filter(
+      v => typeof v === 'string'
+    ) as string[];
+  }, [alwaysFetchColumnsArray, modelColumns]);
+>>>>>>> main
 
   const mouseHandlers = useMemo(
     () =>

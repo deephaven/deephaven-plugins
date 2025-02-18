@@ -503,11 +503,24 @@ Date = Union[
 ]
 Granularity = Literal["DAY", "HOUR", "MINUTE", "SECOND"]
 ListViewDensity = Literal["COMPACT", "NORMAL", "SPACIOUS"]
+BreadcrumbsSize = Literal["S", "M", "L"]
+DividerSize = Literal["S", "M", "L"]
 ListViewOverflowMode = Literal["truncate", "wrap"]
 ActionGroupDensity = Literal["compact", "regular"]
 TabDensity = Literal["compact", "regular"]
 InlineAlertVariant = Literal["neutral", "info", "positive", "notice", "negative"]
 LinkVariant = Literal["primary", "secondary", "over_background"]
+AvatarSize = Literal[
+    "avatar-size-50",
+    "avatar-size-75",
+    "avatar-size-100",
+    "avatar-size-200",
+    "avatar-size-300",
+    "avatar-size-400",
+    "avatar-size-500",
+    "avatar-size-600",
+    "avatar-size-700",
+]
 BadgeVariant = Literal[
     "neutral",
     "info",
@@ -562,3 +575,32 @@ class DateRange(TypedDict):
 
 
 ToastVariant = Literal["positive", "negative", "neutral", "info"]
+
+
+_DISABLE_NULLISH_CONSTRUCTORS = False
+
+
+class UndefinedType:
+    """
+    Placeholder for undefined values.
+    """
+
+    def __init__(self) -> None:
+        if _DISABLE_NULLISH_CONSTRUCTORS:
+            raise NotImplementedError
+
+    def __bool__(self) -> bool:
+        return False
+
+    def __copy__(self) -> "UndefinedType":
+        return self
+
+    def __deepcopy__(self, _: Any) -> "UndefinedType":
+        return self
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, UndefinedType) or other is None
+
+
+Undefined = UndefinedType()
+_DISABLE_NULLISH_CONSTRUCTORS = True

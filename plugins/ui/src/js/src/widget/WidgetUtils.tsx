@@ -2,25 +2,34 @@
 /* eslint-disable import/prefer-default-export */
 import React, { ComponentType } from 'react';
 import type { JSONRPCServerAndClient } from 'json-rpc-2.0';
-// Importing `Item` and `Section` compnents directly since they should not be
+// Importing `Item` and `Section` components directly since they should not be
 // wrapped due to how Spectrum collection components consume them.
 import {
   ActionMenu,
+  Avatar,
+  Breadcrumbs,
   ButtonGroup,
   SpectrumCheckbox as Checkbox,
   CheckboxGroup,
   Content,
+  ContextualHelpTrigger,
   DialogTrigger,
+  DisclosureTitle,
+  DisclosurePanel,
+  Divider,
+  Footer,
   Heading,
   Item,
   Link,
   ListActionGroup,
   ListActionMenu,
+  MenuTrigger,
   NumberField,
   Section,
   Switch,
   TabList,
   Text,
+  SubmenuTrigger,
   View,
 } from '@deephaven/components';
 import { ValueOf } from '@deephaven/utils';
@@ -47,6 +56,7 @@ import Stack from '../layout/Stack';
 import Column from '../layout/Column';
 import Dashboard from '../layout/Dashboard';
 import {
+  Accordion,
   ActionButton,
   ActionGroup,
   Badge,
@@ -58,14 +68,19 @@ import {
   DatePicker,
   DateRangePicker,
   Dialog,
+  Disclosure,
   Flex,
   Form,
   Grid,
   IllustratedMessage,
   Image,
+  LabeledValue,
   InlineAlert,
   ListView,
+  LogicButton,
   Markdown,
+  Menu,
+  Meter,
   Picker,
   ProgressBar,
   ProgressCircle,
@@ -76,6 +91,7 @@ import {
   SearchField,
   Slider,
   TabPanels,
+  TagGroup,
   TextField,
   TextArea,
   TimeField,
@@ -102,7 +118,7 @@ const log = Log.module('@deephaven/js-plugin-ui/WidgetUtils');
 /*
  * Map element node names to their corresponding React components
  */
-export const elementComponentMap = {
+export const elementComponentMap: Record<ValueOf<ElementName>, unknown> = {
   // Elements
   [ELEMENT_NAME.uiTable]: UITable,
 
@@ -114,10 +130,13 @@ export const elementComponentMap = {
   [ELEMENT_NAME.stack]: Stack,
 
   // Other components
+  [ELEMENT_NAME.accordion]: Accordion,
   [ELEMENT_NAME.actionButton]: ActionButton,
   [ELEMENT_NAME.actionGroup]: ActionGroup,
   [ELEMENT_NAME.actionMenu]: ActionMenu,
+  [ELEMENT_NAME.avatar]: Avatar,
   [ELEMENT_NAME.badge]: Badge,
+  [ELEMENT_NAME.breadcrumbs]: Breadcrumbs,
   [ELEMENT_NAME.button]: Button,
   [ELEMENT_NAME.buttonGroup]: ButtonGroup,
   [ELEMENT_NAME.calendar]: Calendar,
@@ -126,13 +145,19 @@ export const elementComponentMap = {
   [ELEMENT_NAME.comboBox]: ComboBox,
   [ELEMENT_NAME.content]: Content,
   [ELEMENT_NAME.contextualHelp]: ContextualHelp,
+  [ELEMENT_NAME.contextualHelpTrigger]: ContextualHelpTrigger,
   [ELEMENT_NAME.dateField]: DateField,
   [ELEMENT_NAME.datePicker]: DatePicker,
   [ELEMENT_NAME.dateRangePicker]: DateRangePicker,
   [ELEMENT_NAME.dialog]: Dialog,
   [ELEMENT_NAME.dialogTrigger]: DialogTrigger,
+  [ELEMENT_NAME.disclosure]: Disclosure,
+  [ELEMENT_NAME.disclosureTitle]: DisclosureTitle,
+  [ELEMENT_NAME.disclosurePanel]: DisclosurePanel,
+  [ELEMENT_NAME.divider]: Divider,
   [ELEMENT_NAME.flex]: Flex,
   [ELEMENT_NAME.form]: Form,
+  [ELEMENT_NAME.footer]: Footer,
   [ELEMENT_NAME.fragment]: React.Fragment,
   [ELEMENT_NAME.grid]: Grid,
   [ELEMENT_NAME.heading]: Heading,
@@ -140,11 +165,16 @@ export const elementComponentMap = {
   [ELEMENT_NAME.image]: Image,
   [ELEMENT_NAME.inlineAlert]: InlineAlert,
   [ELEMENT_NAME.item]: Item,
+  [ELEMENT_NAME.labeledValue]: LabeledValue,
   [ELEMENT_NAME.link]: Link,
   [ELEMENT_NAME.listActionGroup]: ListActionGroup,
   [ELEMENT_NAME.listActionMenu]: ListActionMenu,
   [ELEMENT_NAME.listView]: ListView,
+  [ELEMENT_NAME.logicButton]: LogicButton,
   [ELEMENT_NAME.markdown]: Markdown,
+  [ELEMENT_NAME.menu]: Menu,
+  [ELEMENT_NAME.menuTrigger]: MenuTrigger,
+  [ELEMENT_NAME.meter]: Meter,
   [ELEMENT_NAME.numberField]: NumberField,
   [ELEMENT_NAME.picker]: Picker,
   [ELEMENT_NAME.progressBar]: ProgressBar,
@@ -156,11 +186,13 @@ export const elementComponentMap = {
   [ELEMENT_NAME.searchField]: SearchField,
   [ELEMENT_NAME.section]: Section,
   [ELEMENT_NAME.slider]: Slider,
+  [ELEMENT_NAME.submenuTrigger]: SubmenuTrigger,
   [ELEMENT_NAME.switch]: Switch,
   [ELEMENT_NAME.tabList]: TabList,
   [ELEMENT_NAME.tabPanels]: TabPanels,
   [ELEMENT_NAME.tab]: Item,
   [ELEMENT_NAME.tabs]: Tabs,
+  [ELEMENT_NAME.tagGroup]: TagGroup,
   [ELEMENT_NAME.text]: Text,
   [ELEMENT_NAME.textArea]: TextArea,
   [ELEMENT_NAME.textField]: TextField,
@@ -236,12 +268,14 @@ export function getPreservedData(
  * @param jsonClient The JSON client to send callable requests to
  * @param callableId The callableId to return a wrapped callable for
  * @param registry The finalization registry to register the callable with.
+ * @param shouldRegister Whether to register the callable in the finalization registry
  * @returns A wrapped callable that will automatically wrap any nested callables returned by the server
  */
 export function wrapCallable(
   jsonClient: JSONRPCServerAndClient,
   callableId: string,
-  registry: FinalizationRegistry<string>
+  registry: FinalizationRegistry<string>,
+  shouldRegister = true
 ): (...args: unknown[]) => Promise<unknown> {
   const callable = async (...args: unknown[]) => {
     log.debug2(`Callable ${callableId} called`, args);
@@ -274,7 +308,9 @@ export function wrapCallable(
     }
   };
 
-  registry.register(callable, callableId, callable);
+  if (shouldRegister) {
+    registry.register(callable, callableId, callable);
+  }
 
   return callable;
 }

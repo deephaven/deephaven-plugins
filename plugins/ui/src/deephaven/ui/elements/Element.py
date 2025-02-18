@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict
+from typing import Any, Dict, List, Union
 from .._internal import RenderContext
 
 PropsType = Dict[str, Any]
@@ -45,3 +45,7 @@ class Element(ABC):
             The props of this element.
         """
         pass
+
+
+# Some props don't support Undefined, so they need to add it themselves
+NodeType = Union[None, bool, int, str, Element, List["NodeType"]]

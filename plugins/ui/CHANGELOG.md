@@ -2,6 +2,74 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.26.1 - 2025-02-06
+#### Bug Fixes
+- DH-18415: Cannot expand rows after applying rollup to ui.table (#1109) - (0d09ef4) - Matthew Runyon
+
+- - -
+
+## ui-v0.26.0 - 2025-02-06
+#### Bug Fixes
+- ui.markdown was styling code incorrectly (#1106) - (c84db85) - mofojed
+- Make docs links passthrough (#1085) - (2ef0ddb) - Joe
+- Ensure ReactPanelErrorBoundary handles undefined children (#1089) - (e622b83) - mofojed
+#### Documentation
+- update dictionaries in state (#1096) - (120ac06) - dgodinez-dh
+- update work with tables (#1098) - (bd9d20d) - dgodinez-dh
+- Fix menu_trigger snippet (#1099) - (3847a35) - vbabich
+- state as a snapshot (#1093) - (2b4d8ea) - dgodinez-dh
+- render cycle (#1087) - (fece0a7) - dgodinez-dh
+- state a component's memory (#1084) - (bed23d8) - dgodinez-dh
+- respond to events (#1083) - (17c6635) - dgodinez-dh
+- deephaven.ui dashboard crash course (#1057) - (185b0dc) - Joe
+#### Features
+- disclosure (#1068) - (6934bf2) - ethanalvizo
+- ui.footer (#1100) - (9b38e75) - Eric Lin
+- ui.breadcrumbs (#1094) - (312af69) - Eric Lin
+- ui.tag_group (#1090) - (05eb407) - Eric Lin
+- ui.labeled_value (#1029) - (8f278a7) - Akshat Jawne
+- ui.divider (#1047) - (0a1b861) - Akshat Jawne
+
+- - -
+
+## ui-v0.25.0 - 2025-01-15
+#### Bug Fixes
+- add menu and menu_trigger to sidebar (#1078) - (49ad632) - dgodinez-dh
+- Allow autodoc functions to have no parameters (#1072) - (6b261d6) - Joe
+- label prop typing (#1071) - (716b3d9) - Steven Wu
+#### Documentation
+- use_render_queue, use_liveness_scope, use_table_listener docs (#1044) - (abd691e) - mofojed
+- Expand sidebars by default for certain categories, add link to flexbox froggy (#1073) - (e76591d) - Don
+- ui.list_view selection_mode (#1070) - (b51373f) - bmingles
+- ui as a tree (#1067) - (2e1a725) - dgodinez-dh
+- Render Lists (#1061) - (30a1f9f) - dgodinez-dh
+- Pure Components (#1064) - (30f3730) - dgodinez-dh
+- Using Hooks (#1056) - (28b5a51) - dgodinez-dh
+- Component Rules (#1055) - (21e8c5d) - dgodinez-dh
+- Update First Component (#1065) - (a6d1aad) - dgodinez-dh
+- Conditional Rendering (#1060) - (0ce7634) - dgodinez-dh
+#### Features
+- ui.menu component (#1076) - (cf23da1) - dgodinez-dh
+- ui.logic button (#1050) - (7c83ec2) - ethanalvizo
+- add undefined type option (#1026) - (ef7e741) - Steven Wu
+
+- - -
+
+## ui-v0.24.0 - 2024-12-12
+#### Bug Fixes
+- UI loading duplicate panels in embed iframe (#1043) - (e1559a4) - Matthew Runyon
+#### Documentation
+- Working with Tables (#1059) - (6e73350) - dgodinez-dh
+- Importing and Exporting Components (#1054) - (21b752c) - dgodinez-dh
+- Your First Component (#1052) - (ce3843a) - dgodinez-dh
+- Add Stack with tabs to dashboard docs (#1048) - (cf0c994) - mofojed
+#### Features
+- ui.meter (#1032) - (6730aa9) - ethanalvizo
+- ui.avatar (#1027) - (2738a1d) - Akshat Jawne
+- Toast Implementation (#1030) - (e53b322) - dgodinez-dh
+
+- - -
+
 ## ui-v0.23.1 - 2024-11-23
 
 - - -
