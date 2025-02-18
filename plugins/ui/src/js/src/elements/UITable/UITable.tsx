@@ -365,7 +365,10 @@ export function UITable({
     if (alwaysFetchColumnsArray[0] === false) {
       return [];
     }
-    return alwaysFetchColumnsArray.filter(v => typeof v === 'string');
+    return alwaysFetchColumnsArray.filter(
+      // This v is string can be removed when we're on a newer TS version. 5.7 infers this properly at least
+      (v): v is string => typeof v === 'string'
+    );
   }, [alwaysFetchColumnsArray, columns, throwError]);
 
   const mouseHandlers = useMemo(
