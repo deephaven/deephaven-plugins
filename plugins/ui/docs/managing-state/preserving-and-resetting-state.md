@@ -299,3 +299,46 @@ Each `counter` component's state is destroyed each time it is removed from the D
 This solution is convenient when you only have a few independent components rendered in the same place. In this example, you only have two, so it’s not a hassle to render both separately.
 
 ### Option 2: Resetting state with a key
+
+There is another, more general, method to reset a component’s state.
+
+You might have encountered keys when [rendering lists](../describing/render_lists.md). However, keys are not limited to lists. They can be used to help `deephaven.ui` differentiate between any components. By default, `deephaven.ui` uses the order within the parent (e.g., “first counter”, “second counter”) to distinguish between components. However, keys allow you to specify that this is not just any counter, but a specific one—such as John's counter. This way, `deephaven.ui` can identify John's counter wherever it appears in the component tree.
+
+In the following example, the two `counter` components do not share state, even though they are rendered in the same location:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def counter(person):
+    score, set_score = ui.use_state(0)
+
+    return [
+        ui.heading(f"{person}'s score: {score}"),
+        ui.button("Add one", on_press=lambda: set_score(score + 1)),
+    ]
+
+
+@ui.component
+def scoreboard():
+    is_player1, set_is_player1 = ui.use_boolean(True)
+    return [
+        counter("John", key="John") if is_player1 else counter("Jill", key="Jill"),
+        ui.divider(),
+        ui.action_button("Change player", on_press=set_is_player1.toggle),
+    ]
+
+
+scoreboard_example = scoreboard()
+```
+
+Switching between John and Jill does not preserve the state. This is because they have different keys:
+
+```python
+counter("John", key="John") if is_player1 else counter("Jill", key="Jill")
+```
+
+When you specify a key in `deephaven.ui`, it uses the key to determine the component's position rather than its order within the parent. This means that even if you render components in the same place, `deephaven.ui` treats them as distinct entities, so they do not share state. Each time a `counter` is displayed, its state is initialized, and each time it is removed, its state is destroyed. Consequently, toggling between counters resets their state repeatedly.
+
+### Resetting a form with a key
