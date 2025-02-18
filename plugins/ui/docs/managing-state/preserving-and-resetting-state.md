@@ -289,3 +289,13 @@ def scoreboard():
 
 scoreboard_example = scoreboard()
 ```
+
+Initially, `is_player1` is `True`, so the first position contains a `counter` component, while the second one is empty.
+
+When you click the "Change player" button, the first position clears, and the second one now contains a `counter`.
+
+Each `counter` component's state is destroyed each time it is removed from the DOM. This is why they reset every time you click the button.
+
+This solution is convenient when you only have a few independent components rendered in the same place. In this example, you only have two, so it’s not a hassle to render both separately.
+
+### Option 2: Resetting state with a key
