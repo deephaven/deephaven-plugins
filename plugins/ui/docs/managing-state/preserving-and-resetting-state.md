@@ -342,3 +342,109 @@ counter("John", key="John") if is_player1 else counter("Jill", key="Jill")
 When you specify a key in `deephaven.ui`, it uses the key to determine the component's position rather than its order within the parent. This means that even if you render components in the same place, `deephaven.ui` treats them as distinct entities, so they do not share state. Each time a `counter` is displayed, its state is initialized, and each time it is removed, its state is destroyed. Consequently, toggling between counters resets their state repeatedly.
 
 ### Resetting a form with a key
+
+Resetting state with a key is especially helpful when managing forms.
+
+In this chat application, the `chat` component holds the text input state:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def chat(contact):
+    text, set_text = ui.use_state("")
+    return ui.form(
+        ui.text_area(
+            label=f"Chat to {contact['name']}", value=text, on_change=set_text
+        ),
+        ui.action_button(f"Send to {contact['email']}"),
+    )
+
+
+@ui.component
+def contact_list(selected_contact, contacts, on_select):
+    return ui.flex(
+        [
+            ui.action_button(
+                f"{contact['name']}",
+                on_press=lambda e, contact=contact: on_select(contact),
+                key=contact["id"],
+            )
+            for contact in contacts
+        ],
+        max_width="size-1000",
+        direction="column",
+    )
+
+
+contacts = [
+    {"id": 0, "name": "Taylor", "email": "taylor@mail.com"},
+    {"id": 1, "name": "Alice", "email": "alice@mail.com"},
+    {"id": 2, "name": "Bob", "email": "bob@mail.com"},
+]
+
+
+@ui.component
+def messenger():
+    to, set_to = ui.use_state(contacts[0])
+    return ui.flex(contact_list(to, contacts, set_to), chat(to))
+
+
+messenger_example = messenger()
+```
+
+Try typing a message into the text area, then press “Alice” or “Bob” to switch recipients. Notice that the input state is preserved because the `chat` component remains in the same position in the tree.
+
+While this behavior might be desirable in many applications, it is not suitable for a chat app. You don't want users to accidentally send a message to the wrong person due to an unintended click. To resolve this, add a key:
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def chat(contact):
+    text, set_text = ui.use_state("")
+    return ui.form(
+        ui.text_area(
+            label=f"Chat to {contact['name']}",
+            value=text,
+            on_change=set_text,
+        ),
+        ui.action_button(f"Send to {contact['email']}"),
+    )
+
+
+@ui.component
+def contact_list(selected_contact, contacts, on_select):
+    return ui.flex(
+        [
+            ui.action_button(
+                f"{contact['name']}",
+                on_press=lambda e, contact=contact: on_select(contact),
+                key=contact["id"],
+            )
+            for contact in contacts
+        ],
+        max_width="size-1000",
+        direction="column",
+    )
+
+
+contacts = [
+    {"id": 0, "name": "Taylor", "email": "taylor@mail.com"},
+    {"id": 1, "name": "Alice", "email": "alice@mail.com"},
+    {"id": 2, "name": "Bob", "email": "bob@mail.com"},
+]
+
+
+@ui.component
+def messenger():
+    to, set_to = ui.use_state(contacts[0])
+    return ui.flex(contact_list(to, contacts, set_to), chat(to), key=to["id"])
+
+
+messenger_example = messenger()
+```
+
+This guarantees that when you choose a different recipient, the `chat1 component will be rebuilt from the ground up, including all state in its subtree. As a result, switching the recipient always resets the text area.
