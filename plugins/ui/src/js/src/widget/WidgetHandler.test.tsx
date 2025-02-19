@@ -3,12 +3,13 @@ import { act, render } from '@testing-library/react';
 import { useWidget } from '@deephaven/jsapi-bootstrap';
 import { dh } from '@deephaven/jsapi-types';
 import { TestUtils } from '@deephaven/test-utils';
+import { Operation } from 'fast-json-patch';
 import WidgetHandler, { WidgetHandlerProps } from './WidgetHandler';
 import { DocumentHandlerProps } from './DocumentHandler';
 import {
   makeWidget,
   makeWidgetDescriptor,
-  makeWidgetEventDocumentUpdated,
+  makeWidgetEventDocumentPatched,
   makeWidgetEventJsonRpcResponse,
 } from './WidgetTestUtils';
 
@@ -67,7 +68,6 @@ it('updates the document when event is received', async () => {
   const mockAddEventListener = jest.fn(() => cleanup);
   const mockSendMessage = jest.fn();
   const initialData = { state: { fiz: 'baz' } };
-  const initialDocument = { foo: 'bar' };
   mockWidgetWrapper = {
     widget: makeWidget({
       addEventListener: mockAddEventListener,
@@ -100,35 +100,42 @@ it('updates the document when event is received', async () => {
   await act(async () => {
     // Respond to the setState call first
     listener(makeWidgetEventJsonRpcResponse(1));
-
-    // Then send the initial document update
-    listener(makeWidgetEventDocumentUpdated(initialDocument));
   });
 
-  expect(mockDocumentHandler).toHaveBeenCalledWith(
-    expect.objectContaining({
-      widget,
-      children: initialDocument,
-      initialData,
-    })
-  );
-
-  mockDocumentHandler.mockClear();
-
-  const updatedDocument = { fiz: 'baz' };
-
-  act(() => {
-    // Send an updated document event to the listener of the widget
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (mockAddEventListener.mock.calls[0] as any)[1](
-      makeWidgetEventDocumentUpdated(updatedDocument)
+  function testPatch(patch: Operation[], expected: Record<string, unknown>) {
+    mockDocumentHandler.mockClear();
+    act(() => {
+      // Send an updated document event to the listener of the widget
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      listener(makeWidgetEventDocumentPatched(patch));
+    });
+    expect(mockDocumentHandler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        widget,
+        children: expected,
+      })
     );
+  }
+
+  testPatch([{ op: 'add', path: '/foo', value: 'bar' }], { foo: 'bar' });
+
+  testPatch([{ op: 'add', path: '/fiz', value: 'baz' }], {
+    foo: 'bar',
+    fiz: 'baz',
   });
-  expect(mockDocumentHandler).toHaveBeenCalledWith(
-    expect.objectContaining({
-      widget,
-      children: updatedDocument,
-    })
+  testPatch([{ op: 'remove', path: '/fiz' }], { foo: 'bar' });
+  testPatch([{ op: 'replace', path: '/foo', value: 'boo' }], {
+    foo: 'boo',
+  });
+  testPatch(
+    [
+      { op: 'add', path: '/bar', value: 'baz' },
+      { op: 'replace', path: '/foo', value: 'zoo' },
+    ],
+    {
+      foo: 'zoo',
+      bar: 'baz',
+    }
   );
 
   expect(cleanup).not.toHaveBeenCalled();
@@ -144,6 +151,7 @@ it('updates the initial data only when widget has changed', async () => {
   const onClose = jest.fn();
   const data1 = { state: { fiz: 'baz' } };
   const document1 = { foo: 'bar' };
+  const patch1: Operation[] = [{ op: 'add', path: '/foo', value: 'bar' }];
   mockWidgetWrapper = {
     widget: makeWidget({
       addEventListener,
@@ -181,7 +189,7 @@ it('updates the initial data only when widget has changed', async () => {
     listener(makeWidgetEventJsonRpcResponse(1));
 
     // Then send the initial document update
-    listener(makeWidgetEventDocumentUpdated(document1));
+    listener(makeWidgetEventDocumentPatched(patch1));
   });
 
   expect(mockDocumentHandler).toHaveBeenCalledWith(
@@ -210,7 +218,8 @@ it('updates the initial data only when widget has changed', async () => {
   expect(sendMessage).not.toHaveBeenCalled();
 
   const widget2 = makeWidgetDescriptor();
-  const document2 = { FOO: 'BAR' };
+  const document2 = { foo: 'bar', FOO: 'BAR' };
+  const patch2: Operation[] = [{ op: 'add', path: '/FOO', value: 'BAR' }];
   mockWidgetWrapper = {
     widget: makeWidget({
       addEventListener,
@@ -253,7 +262,7 @@ it('updates the initial data only when widget has changed', async () => {
     listener(makeWidgetEventJsonRpcResponse(1));
 
     // Then send the initial document update
-    listener(makeWidgetEventDocumentUpdated(document2));
+    listener(makeWidgetEventDocumentPatched(patch2));
   });
 
   expect(mockDocumentHandler).toHaveBeenCalledWith(
