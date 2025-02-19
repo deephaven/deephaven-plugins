@@ -111,6 +111,15 @@
         ]
       },
       {
+        "label": "Creating Layouts",
+        "items": [
+          {
+            "label": "Layout Overview",
+            "path": "creating-layouts/layout-overview.md"
+          }
+        ]
+      },
+      {
         "label": "Components",
         "items": [
           {
