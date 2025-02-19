@@ -37,7 +37,6 @@ import {
   METHOD_DOCUMENT_ERROR,
   METHOD_DOCUMENT_PATCHED,
   METHOD_EVENT,
-  METHOD_DOCUMENT_UPDATED,
 } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
 import {
@@ -293,33 +292,6 @@ function WidgetHandler({
       }
 
       log.debug('Adding methods to jsonClient');
-      jsonClient.addMethod(
-        METHOD_DOCUMENT_UPDATED,
-        async (params: [string, string]) => {
-          log.debug2(METHOD_DOCUMENT_UPDATED, params);
-          const [documentParam, stateParam] = params;
-          const newDocument = JSON.parse(documentParam);
-          // TODO: Remove unstable_batchedUpdates wrapper when upgrading to React 18
-          unstable_batchedUpdates(() => {
-            setInternalError(undefined);
-            dehydratedDocumentRef.current = newDocument;
-            setDehydratedDocument(newDocument);
-            setIsLoading(false);
-          });
-          if (stateParam != null) {
-            try {
-              const newState = JSON.parse(stateParam);
-              onDataChange({ state: newState });
-            } catch (e) {
-              log.warn(
-                'Error parsing state, widget state may not be persisted.',
-                e
-              );
-            }
-          }
-        }
-      );
-
       jsonClient.addMethod(
         METHOD_DOCUMENT_PATCHED,
         async (params: [Operation[], string]) => {
