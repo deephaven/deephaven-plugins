@@ -68,8 +68,6 @@ it('updates the document when event is received', async () => {
   const mockAddEventListener = jest.fn(() => cleanup);
   const mockSendMessage = jest.fn();
   const initialData = { state: { fiz: 'baz' } };
-  const initialDocument = { foo: 'bar' };
-  const initialPatch: Operation[] = [{ op: 'add', path: '/foo', value: 'bar' }];
   mockWidgetWrapper = {
     widget: makeWidget({
       addEventListener: mockAddEventListener,
@@ -102,35 +100,42 @@ it('updates the document when event is received', async () => {
   await act(async () => {
     // Respond to the setState call first
     listener(makeWidgetEventJsonRpcResponse(1));
-
-    // Then send the initial document update
-    listener(makeWidgetEventDocumentPatched(initialPatch));
   });
 
-  expect(mockDocumentHandler).toHaveBeenCalledWith(
-    expect.objectContaining({
-      widget,
-      children: initialDocument,
-      initialData,
-    })
-  );
-
-  mockDocumentHandler.mockClear();
-
-  const updatedDocument = { foo: 'bar', fiz: 'baz' };
-  const updatedPatch: Operation[] = [{ op: 'add', path: '/fiz', value: 'baz' }];
-  act(() => {
-    // Send an updated document event to the listener of the widget
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (mockAddEventListener.mock.calls[0] as any)[1](
-      makeWidgetEventDocumentPatched(updatedPatch)
+  function testPatch(patch: Operation[], expected: Record<string, unknown>) {
+    mockDocumentHandler.mockClear();
+    act(() => {
+      // Send an updated document event to the listener of the widget
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      listener(makeWidgetEventDocumentPatched(patch));
+    });
+    expect(mockDocumentHandler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        widget,
+        children: expected,
+      })
     );
+  }
+
+  testPatch([{ op: 'add', path: '/foo', value: 'bar' }], { foo: 'bar' });
+
+  testPatch([{ op: 'add', path: '/fiz', value: 'baz' }], {
+    foo: 'bar',
+    fiz: 'baz',
   });
-  expect(mockDocumentHandler).toHaveBeenCalledWith(
-    expect.objectContaining({
-      widget,
-      children: updatedDocument,
-    })
+  testPatch([{ op: 'remove', path: '/fiz' }], { foo: 'bar' });
+  testPatch([{ op: 'replace', path: '/foo', value: 'boo' }], {
+    foo: 'boo',
+  });
+  testPatch(
+    [
+      { op: 'add', path: '/bar', value: 'baz' },
+      { op: 'replace', path: '/foo', value: 'zoo' },
+    ],
+    {
+      foo: 'zoo',
+      bar: 'baz',
+    }
   );
 
   expect(cleanup).not.toHaveBeenCalled();
