@@ -36,7 +36,7 @@ list_example = list_of_components()
 
 ## Flex
 
-The [`flex`](../components/flex.md) layout follows the same rules as the CSS [flexbox](https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Flexbox) layout. The `flex` layout container can specify the following:
+The [`flex`](../components/flex.md) layout follows the same rules as the [CSS flexbox](https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Flexbox) layout. The `flex` layout container can specify the following:
 
 - The `direction` prop determines the direction in which the flex items are laid out such as "row" or "column".
 - When enabled, the `wrap` prop causes items that overflow to wrap into the next row. Resize your browser window to see the items reflow.
@@ -73,6 +73,36 @@ my_flex_nesting = ui_flex_nesting()
 ```
 
 ## Grid
+
+The `grid` component can be used to layout its children in two dimensions with [CSS grid](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout/Grids). The `columns` and `rows` props define the layout of the grid. The layout can use the `area` prop to define grid areas for child components to explicitly place components. Alternatively, an implicit layout can be created using `autoColumns`, `autoRows`, and helper functions like `repeat`.
+
+Similar to `flex`, a grid can justify and align items.
+
+### Explicit grid
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def explicit_grid():
+    return ui.grid(
+        ui.view(background_color="celery-600", grid_area="header"),
+        ui.view(background_color="blue-600", grid_area="sidebar"),
+        ui.view(background_color="purple-600", grid_area="content"),
+        ui.view(background_color="magenta-600", grid_area="footer"),
+        areas=["header header", "sidebar content", "footer footer"],
+        columns=["1fr", "3fr"],
+        rows=["size-1000", "size-3000", "size-1000"],
+        height="size-6000",
+        gap="size-100",
+    )
+
+
+explicit_grid_example = explicit_grid()
+```
+
+### Implicit grid
 
 ## Panel
 
