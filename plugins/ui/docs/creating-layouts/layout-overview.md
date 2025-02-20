@@ -61,6 +61,8 @@ def ui_flex_nesting():
                 ui.view(
                     3, background_color="blue", height="size-800", width="size-800"
                 ),
+                justify_content="right",
+                wrap=True,
             ),
             direction="column",
         ),
