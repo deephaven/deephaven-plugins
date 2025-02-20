@@ -104,6 +104,30 @@ explicit_grid_example = explicit_grid()
 
 ### Implicit grid
 
+```python
+from deephaven import ui
+
+colors = []
+for i in range(100, 900, 100):
+    colors.append(f"gray-{i}")
+    colors.append(f"green-{i}")
+    colors.append(f"blue-{i}")
+
+
+@ui.component
+def implicit_grid():
+    return ui.grid(
+        [ui.view(background_color=color) for color in colors],
+        columns=["repeat(5, 1fr)"],
+        auto_rows="size-800",
+        justify_content="center",
+        gap="size-100",
+    )
+
+
+implicit_grid_example = implicit_grid()
+```
+
 ## Panel
 
 ## Dashboard
