@@ -36,6 +36,40 @@ list_example = list_of_components()
 
 ## Flex
 
+The [`flex`](../components/flex.md) layout follows the same rules as the CSS [flexbox](https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Flexbox) layout. The `flex` layout container can specify the following:
+
+- The `direction` prop determines the direction in which the flex items are laid out such as "row" or "column".
+- When enabled, the `wrap` prop causes items that overflow to wrap into the next row. Resize your browser window to see the items reflow.
+- The `justify_content` prop is used to align items along the main axis. When the `direction` is set to "column", it controls the vertical alignment, and when the direction is set to "row", it controls the horizontal alignment.
+- The `align_items` prop aligns items along the cross-axis. When the direction is set to "column", it controls horizontal alignment, and when it is set to "row", it controls vertical alignment.
+
+In addition, `flex` layouts can be nested to create more complex layouts.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def ui_flex_nesting():
+    return [
+        ui.flex(
+            ui.view(1, background_color="red", height="size-800"),
+            ui.flex(
+                ui.view(
+                    2, background_color="green", height="size-800", width="size-800"
+                ),
+                ui.view(
+                    3, background_color="blue", height="size-800", width="size-800"
+                ),
+            ),
+            direction="column",
+        ),
+    ]
+
+
+my_flex_nesting = ui_flex_nesting()
+```
+
 ## Grid
 
 ## Panel
