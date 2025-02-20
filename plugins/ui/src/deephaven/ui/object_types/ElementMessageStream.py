@@ -483,8 +483,8 @@ class ElementMessageStream(MessageStream):
 
         callable_dict = {}
         for callable, callable_id in callable_id_dict.items():
-            logger.debug("Registering callable %s", callable_id)
             callable_dict[callable_id] = wrap_callable(callable)
+        logger.debug("Registering callables %s", callable_dict.keys())
         self._callable_dict = callable_dict
         self._connection.on_data(payload.encode(), new_objects)
 
