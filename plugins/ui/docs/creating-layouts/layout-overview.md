@@ -10,8 +10,29 @@ The following layouts are available in `deephaven.ui`:
 - `grid` is a [CSS grid](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout/Grids) layout container that arranges components two-dimensional structure of rows and columns.
 - [`panel`](../components/panel.md) is a `flex` container that is presented as individual tabs that can be moved to different positions by dragging the tabs.
 - [`dashboard`](../components/dashboard.md) is a page layout that arranges a collection of `panels` if rows, columns, and stacks.
+- [`view`](../components/view.md) is a general purpose container that can be used for custom styling purposes.
 
 ## Default layout
+
+The top-level return of a `@ui.component` is automatically wrapped in a `panel` with a `flex` layout. Returning a single component or a list of components will have this default layout.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def single_component():
+    return ui.text("hello")
+
+
+@ui.component
+def list_of_components():
+    return [ui.heading("hello"), ui.text("good bye"), ui.button("button")]
+
+
+single_example = single_component()
+list_example = list_of_components()
+```
 
 ## Flex
 
@@ -20,3 +41,5 @@ The following layouts are available in `deephaven.ui`:
 ## Panel
 
 ## Dashboard
+
+## View
