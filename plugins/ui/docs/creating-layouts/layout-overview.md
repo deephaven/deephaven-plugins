@@ -130,6 +130,24 @@ implicit_grid_example = implicit_grid()
 
 ## Panel
 
+The [`panel`](../components/panel.md) component is a container designed to group and organize elements within a layout. Panels are presented as individual tabs that can be moved to different positions by dragging the tabs around. By default, the top-level return of a `@ui.component` is automatically wrapped in a panel, so you only need to define a panel explicitly if you want to customize it or nest panels in a dashboard. Customizations can include setting a custom tab title, background color or customizing the flex layout.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def ui_panel():
+    text = ui.text_field()
+
+    return ui.panel(text, title="Text Field")
+
+
+my_panel = ui_panel()
+
+my_nested_panel = ui.dashboard([ui.panel("A"), ui.panel("B")])
+```
+
 ## Dashboard
 
 ## View
