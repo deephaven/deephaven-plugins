@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import {
   ColorPicker as DHCColorPicker,
   ColorPickerProps,
@@ -9,8 +10,7 @@ import useDebouncedOnChange from './hooks/useDebouncedOnChange';
 type DHCColorPickerProps = Omit<ColorPickerProps, 'onChange'> & {
   onChange?: (color: string) => void;
 };
-// type DHCColor = Exclude<DHCColorPickerProps['value'], string | undefined>;
-type DHCColor = DHCColorPickerProps['value'];
+type DHCColor = Exclude<DHCColorPickerProps['value'], string | undefined>;
 
 export function ColorPicker(props: DHCColorPickerProps): JSX.Element {
   const {
@@ -21,19 +21,22 @@ export function ColorPicker(props: DHCColorPickerProps): JSX.Element {
     ...otherProps
   } = props;
 
-  const colorChange = async (color: DHCColor) => {
-    if (color === undefined) {
-      return;
-    }
+  const colorChange = useCallback(
+    async (color: DHCColor) => {
+      if (color === undefined) {
+        return;
+      }
 
-    const hex = color.toString('hex');
-    propOnChange(hex);
-  };
-
-  const [value, onChange] = useDebouncedOnChange(
-    propValue ?? defaultValue,
-    colorChange
+      const hex = color.toString('hex');
+      propOnChange(hex);
+    },
+    [propOnChange]
   );
+
+  const [value, onChange] = useDebouncedOnChange<
+    DHCColor,
+    DHCColor | string | undefined
+  >(propValue ?? defaultValue, colorChange);
 
   if (Array.isArray(children) && children.length === 0) {
     return (
