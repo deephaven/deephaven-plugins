@@ -196,6 +196,46 @@ class LayerTestCase(BaseTestCase):
         self.assertEqual(deephaven["is_user_set_template"], False)
         self.assertEqual(deephaven["is_user_set_color"], False)
 
+    def test_layered_calendar(self):
+        import src.deephaven.plot.express as dx
+
+        expected_calendar = {
+            "timeZone": "America/New_York",
+            "businessDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
+            "holidays": [
+                {"date": "2024-01-01", "businessPeriods": []},
+                {
+                    "date": "2024-04-01",
+                    "businessPeriods": [
+                        {
+                            "open": "2024-04-01T12:00:00Z",
+                            "close": "2024-04-01T16:00:00Z",
+                        }
+                    ],
+                },
+            ],
+            "businessPeriods": [{"open": "08:00", "close": "12:00"}],
+        }
+
+        chart = dx.area(self.source, x="X", y="Y")
+        chart2 = dx.area(self.source, x="X2", y="Y2", calendar="TestCalendar")
+        layered = dx.layer(chart, chart2).to_dict(self.exporter)
+
+        self.assert_calendar_equal(layered["deephaven"]["calendar"], expected_calendar)
+
+        chart = dx.area(self.source, x="X", y="Y", calendar="TestCalendar")
+        chart2 = dx.area(self.source, x="X2", y="Y2")
+        layered = dx.layer(chart, chart2).to_dict(self.exporter)
+
+        self.assert_calendar_equal(layered["deephaven"]["calendar"], expected_calendar)
+
+        chart = dx.area(self.source, x="X", y="Y", calendar="TestCalendar")
+        chart2 = dx.area(self.source, x="X2", y="Y2", calendar="TestCalendar2")
+
+        layered = dx.layer(chart, chart2, which_layout=0).to_dict(self.exporter)
+
+        self.assert_calendar_equal(layered["deephaven"]["calendar"], expected_calendar)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -218,6 +218,33 @@ class AreaTestCase(BaseTestCase):
 
         self.assert_chart_equals(chart_pandas, chart_table)
 
+    def test_area_calendar(self):
+        import src.deephaven.plot.express as dx
+
+        chart = dx.area(self.source, x="X", y="Y", calendar="TestCalendar").to_dict(
+            self.exporter
+        )
+
+        expected_calendar = {
+            "timeZone": "America/New_York",
+            "businessDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
+            "holidays": [
+                {"date": "2024-01-01", "businessPeriods": []},
+                {
+                    "date": "2024-04-01",
+                    "businessPeriods": [
+                        {
+                            "open": "2024-04-01T12:00:00Z",
+                            "close": "2024-04-01T16:00:00Z",
+                        }
+                    ],
+                },
+            ],
+            "businessPeriods": [{"open": "08:00", "close": "12:00"}],
+        }
+
+        self.assert_calendar_equal(chart["deephaven"]["calendar"], expected_calendar)
+
 
 if __name__ == "__main__":
     unittest.main()

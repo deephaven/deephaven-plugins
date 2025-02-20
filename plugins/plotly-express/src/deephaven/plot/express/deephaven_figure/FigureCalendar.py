@@ -19,11 +19,27 @@ Date = str
 
 
 class TimeRange(TypedDict):
+    """
+    A time range with an open and close time
+
+    Attributes:
+        open: The open time
+        close: The close time
+    """
+
     open: str
     close: str
 
 
 class Holiday(TypedDict):
+    """
+    A holiday with a date and business periods
+
+    Attributes:
+        date: The date of the holiday
+        businessPeriods: The business periods for the holiday
+    """
+
     date: Date
     businessPeriods: list[TimeRange]
 
@@ -33,6 +49,16 @@ TimeRanges = List[TimeRange]
 
 
 class FigureCalendarDict(TypedDict):
+    """
+    A dictionary representation of a FigureCalendar
+
+    Attributes:
+        timeZone: The timezone for the calendar
+        businessDays: The business days for the calendar
+        holidays: The holidays for the calendar
+        businessPeriods: The business periods for the calendar
+    """
+
     timeZone: Timezone | None
     businessDays: Days
     holidays: Holidays

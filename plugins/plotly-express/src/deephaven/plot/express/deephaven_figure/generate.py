@@ -117,6 +117,7 @@ CUSTOM_ARGS = {
     "colors",
     "unsafe_update_figure",
     "heatmap_agg_label",
+    "connectgaps",
 }
 
 # these are columns that are "attached" sequentially to the traces
@@ -673,6 +674,9 @@ def handle_custom_args(
 
             elif arg == "heatmap_agg_label":
                 fig.update_coloraxes(colorbar_title_text=val)
+
+            elif arg == "connectgaps":
+                fig.update_traces(connectgaps=val)
 
     trace_generator = combined_generator(trace_generators)
 

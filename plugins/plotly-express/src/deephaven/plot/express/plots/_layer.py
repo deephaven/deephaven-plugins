@@ -463,6 +463,7 @@ def atomic_layer(
     new_data_mappings = []
     new_has_template = False
     new_has_color = False
+    new_calendar = False
 
     # when recreating axes, need to keep track of start of new axes
     new_axes_start = {"xaxis": 1, "yaxis": 1, "scene": 1, "polar": 1, "ternary": 1}
@@ -501,6 +502,11 @@ def atomic_layer(
             new_has_template = arg.get_has_template() or new_has_template
             new_has_color = arg.get_has_color() or new_has_color
 
+            if which_layout is None or which_layout == i:
+                # since calendar is translated to rangebreaks which are within the layout,
+                # treat it similarly
+                new_calendar = arg.calendar or new_calendar
+
         else:
             raise TypeError("All arguments must be of type Figure or DeephavenFigure")
 
@@ -518,6 +524,7 @@ def atomic_layer(
             has_template=new_has_template,
             has_color=new_has_color,
             has_subplots=True if specs else False,
+            calendar=new_calendar,
         )
     )
 

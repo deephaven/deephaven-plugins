@@ -440,6 +440,8 @@ class DeephavenFigure:
 
         self._figure_calendar = FigureCalendar(calendar)
 
+        self._sent_calendar = False
+
     def copy_mappings(self: DeephavenFigure, offset: int = 0) -> list[DataMapping]:
         """Copy all DataMappings within this figure, adding a specific offset
 
@@ -504,8 +506,12 @@ class DeephavenFigure:
             "is_user_set_color": self._has_color,
         }
 
-        if calendar_dict := self._figure_calendar.__dict__():
+        # currently, there is one calendar and it only needs to be sent once
+        if not self._sent_calendar and (
+            calendar_dict := self._figure_calendar.__dict__()
+        ):
             deephaven["calendar"] = calendar_dict
+            self._sent_calendar = True
 
         payload = {"plotly": plotly, "deephaven": deephaven}
         return json.dumps(payload)

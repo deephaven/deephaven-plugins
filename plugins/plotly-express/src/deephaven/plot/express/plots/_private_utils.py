@@ -3,6 +3,8 @@ from __future__ import annotations
 from functools import partial
 from collections.abc import Callable
 from typing import Any
+
+from deephaven.plot.express.deephaven_figure import Calendar
 from pandas import DataFrame
 
 import plotly.express as px
@@ -270,6 +272,29 @@ def convert_to_table(table: PartitionableTableLike) -> Table | PartitionedTable:
     return table
 
 
+def retrieve_calendar(render_args: dict[str, Any]) -> Calendar:
+    """
+    Retrieve the calendar from the render args
+
+    Args:
+        render_args: The render args to retrieve the calendar from
+
+    Returns:
+        The calendar
+    """
+    calendar = render_args["args"].pop("calendar", False)
+
+    # rangebreaks (which a calendar is converted to) are not supported in webgl
+    if calendar is not False and "render_mode" in render_args["args"]:
+        render_args["args"]["render_mode"] = "svg"
+
+    # if "connectgaps" is False, the lines will not be connected across rangebreaks, which is undesirable
+    if calendar is not False and "line" in render_args["groups"]:
+        render_args["args"]["connectgaps"] = True
+
+    return calendar
+
+
 def process_args(
     args: dict[str, Any],
     groups: set[str] | None = None,
@@ -300,11 +325,7 @@ def process_args(
     render_args["args"]["table"] = convert_to_table(render_args["args"]["table"])
 
     # Calendar is directly sent to the client for processing
-    calendar = render_args["args"].pop("calendar", False)
-
-    # rangebreaks (which a calendar is converted to) are not supported in webgl
-    if calendar is not False and "render_mode" in render_args["args"]:
-        render_args["args"]["render_mode"] = "svg"
+    calendar = retrieve_calendar(render_args)
 
     orig_process_args = args_copy(render_args)
     orig_process_func = lambda **local_args: create_deephaven_figure(**local_args)[0]

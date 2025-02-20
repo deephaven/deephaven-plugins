@@ -4,9 +4,11 @@ import unittest
 from unittest.mock import patch
 
 import pandas as pd
+from deephaven import DHError
 from deephaven.plot.express import DeephavenFigure
-from deephaven_server import Server
-from typing import List
+from typing import List, Any
+import os
+import pathlib
 
 
 def remap_types(
@@ -49,6 +51,7 @@ class BaseTestCase(unittest.TestCase):
         expected_mappings: List[dict] = None,
         expected_is_user_set_template: bool = None,
         expected_is_user_set_color: bool = None,
+        expected_calendar: dict = None,
         pop_template: bool = True,
     ) -> None:
         """
@@ -65,6 +68,7 @@ class BaseTestCase(unittest.TestCase):
             expected_mappings: The expected mappings
             expected_is_user_set_template: The expected is_user_set_template
             expected_is_user_set_color: The expected is_user_set_color
+            expected_calendar: The expected calendar
             pop_template: Whether to pop the template from the chart.
                 Pops from both the chart and the expected values, if provided.
         """
@@ -94,6 +98,8 @@ class BaseTestCase(unittest.TestCase):
                 if expected_is_user_set_color is not None
                 else matching_deephaven["is_user_set_color"]
             )
+            # calendar is optional
+            expected_calendar = expected_calendar or matching_deephaven.get("calendar")
 
         if pop_template:
             plotly["layout"].pop("template", None)
@@ -119,8 +125,28 @@ class BaseTestCase(unittest.TestCase):
             self.assertEqual(deephaven["is_user_set_color"], expected_is_user_set_color)
             asserted = True
 
+        if expected_calendar is not None:
+            self.assert_calendar_equal(deephaven["calendar"], expected_calendar)
+            asserted = True
+
         if not asserted:
             raise ValueError("No comparisons were made in assert_chart_equals")
+
+    def assert_calendar_equal(self, calendar: dict, expected_calendar: dict) -> None:
+        """
+        Assert that the calendar dictionary is as expected.
+        Lists are not required to be in the same order but must have the same elements.
+
+        Args:
+            calendar: The calendar dictionary to verify
+            expected_calendar: The expected calendar dictionary
+        """
+        for key, value in expected_calendar.items():
+            if isinstance(value, list):
+                # lists may not be in the same order which is fine for creating rangebreaks
+                self.assertCountEqual(calendar[key], value)
+            else:
+                self.assertEqual(calendar[key], value)
 
 
 if __name__ == "__main__":

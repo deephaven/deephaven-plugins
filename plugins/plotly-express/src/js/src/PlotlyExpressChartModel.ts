@@ -62,6 +62,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     // before the widget is subscribed to.
     this.updateLayout(getWidgetData(widget));
 
+    // The calendar is only fetched once currently
     this.calendar = getCalendar(widget, dh);
 
     this.setTitle(this.getDefaultTitle());
@@ -309,6 +310,7 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   setFormatter(formatter: Formatter): void {
     this.fireRangebreaksUpdated(formatter);
+    console.log('formatter', formatter);
     super.setFormatter(formatter);
   }
 
