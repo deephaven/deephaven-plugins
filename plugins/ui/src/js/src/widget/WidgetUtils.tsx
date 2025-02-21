@@ -242,15 +242,15 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
 }
 
 /**
- * Deeply decode a given object depth-first and return a new object given a callback function.
+ * Deeply transform a given object depth-first and return a new object given a transform function.
  * Useful for iterating through an object and converting values.
  *
- * @param value The object to decode.
+ * @param value The object to transform.
  * @param transform Function to be called for each key-value pair in the object, allowing for the value to be transformed.
  * @param key The key of the current object.
  * @returns A new object with the same keys as the original object, but with the values replaced by the return value of the callback. If there were no changes, returns the same object.
  */
-export function decodeNode(
+export function transformNode(
   value: unknown,
   transform: (key: string, value: unknown) => unknown,
   key = ''
@@ -261,7 +261,7 @@ export function decodeNode(
   if (Array.isArray(result)) {
     let arrayResult: unknown[] = result;
     arrayResult.forEach((childValue, i) => {
-      const newChildValue = decodeNode(childValue, transform, `${i}`);
+      const newChildValue = transformNode(childValue, transform, `${i}`);
       if (newChildValue !== childValue) {
         if (arrayResult === value) {
           arrayResult = [...arrayResult];
@@ -273,7 +273,7 @@ export function decodeNode(
   } else if (typeof result === 'object' && result != null) {
     let objResult = result as Record<string, unknown>;
     Object.entries(result).forEach(([childKey, childValue]) => {
-      const newChildValue = decodeNode(childValue, transform, childKey);
+      const newChildValue = transformNode(childValue, transform, childKey);
       if (newChildValue !== childValue) {
         if (objResult === value) {
           objResult = { ...objResult };

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Set, cast, Sequence, TypeVar
+from typing import Any, Callable, Dict, List, Set, cast, Sequence, TypeVar
 from inspect import signature
 import sys
 from functools import partial
@@ -812,3 +812,68 @@ def unpack_item_table_source(
             if key in item_table_source:
                 props[key] = item_table_source.pop(key)
     return children, props
+
+
+def transform_node(
+    value: Any, transform: Callable[[str, Any], Any], key: str = ""
+) -> Any:
+    """
+    Deeply transform a given object depth-first and return a new object given a transform function.
+    Useful for iterating through an object and converting values.
+
+    Args:
+        value: The object to transform
+        transform: Function to be called for each key-value pair in the object, allowing for the value to be transformed.
+        key: The key of the current object.
+
+    Returns:
+        A new object with the same keys as the original object, but with the values replaced by the return value of the callback. If there were no changes, returns the same object.
+    """
+    result = value
+    if isinstance(result, (list, map, tuple)):
+        array_result: List[Any] = result  # type: ignore
+        for i, child_value in enumerate(array_result):
+            new_child_value = transform_node(child_value, transform, str(i))
+            if not new_child_value is child_value:
+                if array_result is value:
+                    array_result = list(array_result)
+                array_result[i] = new_child_value
+        result = array_result
+    elif isinstance(result, dict):
+        dict_result: Dict[str, Any] = result
+        for child_key, child_value in dict_result.items():
+            new_child_value = transform_node(child_value, transform, child_key)
+            if not new_child_value is child_value:
+                if dict_result is value:
+                    dict_result = dict(dict_result)
+                dict_result[child_key] = new_child_value
+        result = dict_result
+
+    return transform(key, result)
+
+
+def is_primitive(value: Any) -> bool:
+    """
+    Check if a value is a primitive type.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if the value is a primitive type, False otherwise.
+    """
+    return isinstance(value, (bool, float, int, str, type(None)))
+
+
+def is_serializable(value: Any) -> bool:
+    """
+    Check if a value is serializable to JSON.
+    Note: This does not account for OverflowErrors which may still occur if a number is too large to be encoded, for example.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if the value is serializable, False otherwise.
+    """
+    return is_primitive(value) or isinstance(value, (list, tuple, dict))

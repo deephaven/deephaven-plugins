@@ -14,7 +14,7 @@ import {
 import HTMLElementView from '../elements/HTMLElementView';
 import IconElementView from '../elements/IconElementView';
 import {
-  decodeNode,
+  transformNode,
   elementComponentMap,
   getComponentForElement,
   getComponentTypeForElement,
@@ -248,43 +248,43 @@ describe('wrapCallable', () => {
   });
 });
 
-describe('decodeNode', () => {
+describe('transformNode', () => {
   it.each([null, undefined, '', 'test', 0, 0.5, 1, false, true])(
     'should handle primitive values: %s',
     value => {
-      const callback = jest.fn((k, v) => v);
-      expect(decodeNode(value, callback)).toBe(value);
-      expect(callback).toHaveBeenCalledWith('', value);
+      const transform = jest.fn((k, v) => v);
+      expect(transformNode(value, transform)).toBe(value);
+      expect(transform).toHaveBeenCalledWith('', value);
     }
   );
 
   describe('arrays', () => {
     it('returns original array if no children changed', () => {
-      const callback = jest.fn((k, v) => v);
+      const transform = jest.fn((k, v) => v);
       const value = ['test', 'test2'];
       const valueCopy = [...value];
-      const result = decodeNode(value, callback);
+      const result = transformNode(value, transform);
       expect(result).toBe(value);
       expect(result).toEqual(valueCopy);
-      expect(callback).toHaveBeenCalledTimes(3);
-      expect(callback).toHaveBeenCalledWith('0', 'test');
-      expect(callback).toHaveBeenCalledWith('1', 'test2');
-      expect(callback).toHaveBeenCalledWith('', value);
+      expect(transform).toHaveBeenCalledTimes(3);
+      expect(transform).toHaveBeenCalledWith('0', 'test');
+      expect(transform).toHaveBeenCalledWith('1', 'test2');
+      expect(transform).toHaveBeenCalledWith('', value);
     });
 
     it('returns a new array if children changed', () => {
-      const callback = jest.fn((k, v) => (k === '0' ? 'modified' : v));
+      const transform = jest.fn((k, v) => (k === '0' ? 'modified' : v));
       const value = ['test', 'test2'];
       const expected = ['modified', 'test2'];
-      const result = decodeNode(value, callback);
+      const result = transformNode(value, transform);
       expect(result).toEqual(expected);
       expect(result).not.toBe(value);
     });
 
     it('handles the empty array', () => {
-      const callback = jest.fn((k, v) => v);
+      const transform = jest.fn((k, v) => v);
       const value: unknown[] = [];
-      const result = decodeNode(value, callback);
+      const result = transformNode(value, transform);
       expect(result).toEqual([]);
       expect(result).toBe(value);
     });
@@ -292,41 +292,41 @@ describe('decodeNode', () => {
 
   describe('objects', () => {
     it('returns original object if no children changed', () => {
-      const callback = jest.fn((k, v) => v);
+      const transform = jest.fn((k, v) => v);
       const value = { a: 'test', b: 'test2' };
       const valueCopy = { ...value };
-      const result = decodeNode(value, callback);
+      const result = transformNode(value, transform);
       expect(result).toBe(value);
       expect(result).toStrictEqual(valueCopy);
-      expect(callback).toHaveBeenCalledTimes(3);
-      expect(callback).toHaveBeenCalledWith('a', 'test');
-      expect(callback).toHaveBeenCalledWith('b', 'test2');
-      expect(callback).toHaveBeenCalledWith('', value);
+      expect(transform).toHaveBeenCalledTimes(3);
+      expect(transform).toHaveBeenCalledWith('a', 'test');
+      expect(transform).toHaveBeenCalledWith('b', 'test2');
+      expect(transform).toHaveBeenCalledWith('', value);
     });
 
     it('returns a new object if children changed', () => {
-      const callback = jest.fn((k, v) => (k === 'a' ? 'modified' : v));
+      const transform = jest.fn((k, v) => (k === 'a' ? 'modified' : v));
       const value = { a: 'test', b: 'test2' };
       const expected = { a: 'modified', b: 'test2' };
-      const result = decodeNode(value, callback);
+      const result = transformNode(value, transform);
       expect(result).toEqual(expected);
       expect(result).not.toBe(value);
     });
 
     it('handles the empty object', () => {
-      const callback = jest.fn((k, v) => v);
+      const transform = jest.fn((k, v) => v);
       const value: Record<string, unknown> = {};
-      const result = decodeNode(value, callback);
+      const result = transformNode(value, transform);
       expect(result).toStrictEqual({});
       expect(result).toBe(value);
     });
   });
 
   it('handles nested objects', () => {
-    const callback = jest.fn((k, v) => (k === 'a' ? 'modified' : v));
+    const transform = jest.fn((k, v) => (k === 'a' ? 'modified' : v));
     const value = { a: 'test', b: { c: 'test2' } };
     const expected = { a: 'modified', b: { c: 'test2' } };
-    const result = decodeNode(value, callback);
+    const result = transformNode(value, transform);
     expect(result).toStrictEqual(expected);
     expect(result).not.toBe(value);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -334,10 +334,10 @@ describe('decodeNode', () => {
   });
 
   it('handles nested arrays', () => {
-    const callback = jest.fn((k, v) => (k === 'a' ? 'modified' : v));
+    const transform = jest.fn((k, v) => (k === 'a' ? 'modified' : v));
     const value = { a: 'test', b: ['test2'] };
     const expected = { a: 'modified', b: ['test2'] };
-    const result = decodeNode(value, callback);
+    const result = transformNode(value, transform);
     expect(result).toStrictEqual(expected);
     expect(result).not.toBe(value);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

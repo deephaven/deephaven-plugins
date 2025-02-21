@@ -164,6 +164,11 @@ class ElementMessageStream(MessageStream):
     Whether or not the stream is closed. If closed, no more messages can be sent, and this component should exit.
     """
 
+    _last_document: dict[str, Any]
+    """
+    The last document sent to the client. Used to generate a patch for the next document
+    """
+
     def __init__(self, element: Element, connection: MessageStream):
         """
         Create a new ElementMessageStream. Renders the element in a render context, and sends the rendered result to the
@@ -178,10 +183,8 @@ class ElementMessageStream(MessageStream):
         self._message_id = 0
         self._manager = JSONRPCResponseManager()
         self._dispatcher = self._make_dispatcher()
-        self._encoder = NodeEncoder(separators=(",", ":"))
-        self._event_encoder = EventEncoder(
-            self._serialize_callables, separators=(",", ":")
-        )
+        self._encoder = NodeEncoder()
+        self._event_encoder = EventEncoder(self._serialize_callables)
         self._context = RenderContext(self._queue_state_update, self._queue_callable)
         self._event_context = EventContext(self._send_event)
         self._renderer = Renderer(self._context)
@@ -466,11 +469,10 @@ class ElementMessageStream(MessageStream):
             sys.exit()
 
         encoder_result = self._encoder.encode_node(root)
-        encoded_document = encoder_result["encoded_node"]
+        document = encoder_result["encoded_node"]
         new_objects = encoder_result["new_objects"]
         callable_id_dict = encoder_result["callable_id_dict"]
 
-        document = json.loads(encoded_document)
         patch = generate_patch(self._last_document, document)
         self._last_document = document
 
@@ -518,7 +520,8 @@ class ElementMessageStream(MessageStream):
             name: The name of the event
             params: The params of the event
         """
-        encoded_params = self._event_encoder.encode(params)
+        params = self._event_encoder.encode(params)
+        encoded_params = json.dumps(params)
         request = self._make_notification("event", name, encoded_params)
         payload = json.dumps(request)
         self._connection.on_data(payload.encode(), [])

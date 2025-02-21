@@ -40,7 +40,7 @@ import {
 } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
 import {
-  decodeNode,
+  transformNode,
   getComponentForElement,
   WIDGET_ELEMENT,
   wrapCallable,
@@ -210,7 +210,7 @@ function WidgetHandler({
       // We close those objects that are no longer referenced, as they will never be referenced again.
       const deadObjectMap = new Map(exportedObjectMap.current);
       const deadCallableMap = new Map(renderedCallableMap.current);
-      const hydratedDocument = decodeNode(doc, (key, value) => {
+      const hydratedDocument = transformNode(doc, (key, value) => {
         // Need to re-hydrate any objects that are defined
         if (isCallableNode(value)) {
           const callableId = value[CALLABLE_KEY];
