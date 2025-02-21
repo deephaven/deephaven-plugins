@@ -150,4 +150,41 @@ my_nested_panel = ui.dashboard([ui.panel("A"), ui.panel("B")])
 
 ## Dashboard
 
+The [`dashboard`](../components/dashboard.md) component allows you to create a page layout containing a collection of components. The user can move and resize panels within the dashboard.
+
+### Dashboard rules
+
+1. Dashboards must be a child of the root script and not nested inside a `@ui.component`. Otherwise, the application cannot correctly determine the type of the component.
+2. Dashboards must have one and only one child, typically a row or column.
+3. Height and width of panels are summed to 100% within a row or column.
+
+## Dashboard key components
+
+Four main children make up a dashboard: row, column, stack, and panels.
+
+- **Row**: A container used to group elements horizontally. Each element is placed to the right of the previous one.
+- **Column**: A container used to group elements vertically. Each element is placed below the previous one.
+- **Stack**: A container used to group elements into a stack of tabs. Each element gets its own tab, with only one element visible at a time.
+- **Panel**: A container used to group and label elements.
+
+```python
+from deephaven import ui
+
+dashboard_example = ui.dashboard(
+    ui.column(
+        ui.panel("Header", title="Header"),
+        ui.row(
+            ui.panel("Left Sidebar", title="Left Sidebar"),
+            ui.stack(
+                ui.panel("Main Content", title="Main Content"),
+                ui.panel("Sub Content", title="Sub Content"),
+                width=70,
+            ),
+            ui.panel("Right Sidebar", title="Right Sidebar"),
+        ),
+        ui.panel("Footer", title="Footer"),
+    )
+)
+```
+
 ## View
