@@ -23,6 +23,7 @@ export const ELEMENT_NAME = {
   stack: uiComponentName('Stack'),
 
   /** Other Components */
+  accordion: uiComponentName('Accordion'),
   actionButton: uiComponentName('ActionButton'),
   actionGroup: uiComponentName('ActionGroup'),
   actionMenu: uiComponentName('ActionMenu'),

@@ -56,6 +56,7 @@ import Stack from '../layout/Stack';
 import Column from '../layout/Column';
 import Dashboard from '../layout/Dashboard';
 import {
+  Accordion,
   ActionButton,
   ActionGroup,
   Badge,
@@ -131,6 +132,7 @@ export const elementComponentMap: Record<ValueOf<ElementName>, unknown> = {
   [ELEMENT_NAME.stack]: Stack,
 
   // Other components
+  [ELEMENT_NAME.accordion]: Accordion,
   [ELEMENT_NAME.actionButton]: ActionButton,
   [ELEMENT_NAME.actionGroup]: ActionGroup,
   [ELEMENT_NAME.actionMenu]: ActionMenu,
