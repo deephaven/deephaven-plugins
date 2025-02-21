@@ -242,55 +242,50 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
 }
 
 /**
- * Deeply parse a given object depth-first and return a new object given a callback function.
+ * Deeply decode a given object depth-first and return a new object given a callback function.
  * Useful for iterating through an object and converting values.
- * @param value The object to parse.
- * @param callback Callback to be called for each key-value pair in the object.
+ *
+ * @param value The object to decode.
+ * @param transform Function to be called for each key-value pair in the object, allowing for the value to be transformed.
  * @param key The key of the current object.
  * @returns A new object with the same keys as the original object, but with the values replaced by the return value of the callback. If there were no changes, returns the same object.
  */
 export function decodeNode(
   value: unknown,
-  callback: (key: string, value: unknown) => unknown,
-  key?: string
+  transform: (key: string, value: unknown) => unknown,
+  key = ''
 ): unknown {
   // We initialize the result to the same value, but if any of the children values change, we'll shallow copy it
-  let result: unknown = value;
-  if (result != null) {
-    // First check if it's an object or an array - if it is then we need to encode the children first
-    if (Array.isArray(result)) {
-      let arrayResult: unknown[] = result;
-      arrayResult.forEach((childValue, i) => {
-        const childKey = `${i}`;
-        const newChildValue = decodeNode(childValue, callback, childKey);
-        if (newChildValue !== childValue) {
-          if (arrayResult === value) {
-            arrayResult = [...arrayResult];
-          }
-          arrayResult[i] = newChildValue;
+  let result = value;
+  // First check if it's an object or an array - if it is then we need to encode the children first
+  if (Array.isArray(result)) {
+    let arrayResult: unknown[] = result;
+    arrayResult.forEach((childValue, i) => {
+      const newChildValue = decodeNode(childValue, transform, `${i}`);
+      if (newChildValue !== childValue) {
+        if (arrayResult === value) {
+          arrayResult = [...arrayResult];
         }
-      });
-      result = arrayResult;
-    } else if (typeof result === 'object') {
-      let objResult: Record<string, unknown> = result as Record<
-        string,
-        unknown
-      >;
-      Object.entries(result).forEach(([childKey, childValue]) => {
-        const newChildValue = decodeNode(childValue, callback, childKey);
-        if (newChildValue !== childValue) {
-          if (objResult === value) {
-            objResult = { ...objResult };
-          }
-          objResult[childKey] = newChildValue;
+        arrayResult[i] = newChildValue;
+      }
+    });
+    result = arrayResult;
+  } else if (typeof result === 'object' && result != null) {
+    let objResult = result as Record<string, unknown>;
+    Object.entries(result).forEach(([childKey, childValue]) => {
+      const newChildValue = decodeNode(childValue, transform, childKey);
+      if (newChildValue !== childValue) {
+        if (objResult === value) {
+          objResult = { ...objResult };
         }
-      });
-      result = objResult;
-    }
+        objResult[childKey] = newChildValue;
+      }
+    });
+    result = objResult;
   }
 
   // Finally we encode the object we were passed in
-  return callback(key ?? '', result);
+  return transform(key, result);
 }
 
 /** Data keys of a widget to preserve across re-opening. */

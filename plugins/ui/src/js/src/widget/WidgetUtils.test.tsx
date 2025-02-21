@@ -249,7 +249,7 @@ describe('wrapCallable', () => {
 });
 
 describe('decodeNode', () => {
-  it.each([null, undefined, '', 'test', 0, true])(
+  it.each([null, undefined, '', 'test', 0, 0.5, 1, false, true])(
     'should handle primitive values: %s',
     value => {
       const callback = jest.fn((k, v) => v);
@@ -262,7 +262,10 @@ describe('decodeNode', () => {
     it('returns original array if no children changed', () => {
       const callback = jest.fn((k, v) => v);
       const value = ['test', 'test2'];
-      expect(decodeNode(value, callback)).toBe(value);
+      const valueCopy = [...value];
+      const result = decodeNode(value, callback);
+      expect(result).toBe(value);
+      expect(result).toEqual(valueCopy);
       expect(callback).toHaveBeenCalledTimes(3);
       expect(callback).toHaveBeenCalledWith('0', 'test');
       expect(callback).toHaveBeenCalledWith('1', 'test2');
@@ -291,7 +294,10 @@ describe('decodeNode', () => {
     it('returns original object if no children changed', () => {
       const callback = jest.fn((k, v) => v);
       const value = { a: 'test', b: 'test2' };
-      expect(decodeNode(value, callback)).toBe(value);
+      const valueCopy = { ...value };
+      const result = decodeNode(value, callback);
+      expect(result).toBe(value);
+      expect(result).toStrictEqual(valueCopy);
       expect(callback).toHaveBeenCalledTimes(3);
       expect(callback).toHaveBeenCalledWith('a', 'test');
       expect(callback).toHaveBeenCalledWith('b', 'test2');
@@ -321,7 +327,7 @@ describe('decodeNode', () => {
     const value = { a: 'test', b: { c: 'test2' } };
     const expected = { a: 'modified', b: { c: 'test2' } };
     const result = decodeNode(value, callback);
-    expect(result).toEqual(expected);
+    expect(result).toStrictEqual(expected);
     expect(result).not.toBe(value);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((result as any).b).toBe(value.b);
@@ -332,7 +338,7 @@ describe('decodeNode', () => {
     const value = { a: 'test', b: ['test2'] };
     const expected = { a: 'modified', b: ['test2'] };
     const result = decodeNode(value, callback);
-    expect(result).toEqual(expected);
+    expect(result).toStrictEqual(expected);
     expect(result).not.toBe(value);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((result as any).b).toBe(value.b);

@@ -95,9 +95,8 @@ function WidgetHandler({
   const initialData = useMemo(() => initialDataProp, [widget]);
   const [internalError, setInternalError] = useState<WidgetError>();
 
-  // The dehydrated document. Matches what was sent over the wire, before conversion to React elements/nodes.
-  const [dehydratedDocument, setDehydratedDocument] = useState<object>();
-  const dehydratedDocumentRef = useRef(dehydratedDocument);
+  // The document. Matches what was sent over the wire, before being rendered/conversion to React elements/nodes.
+  const [document, setDocument] = useState<object>();
 
   const error = useMemo(
     () => internalError ?? widgetError ?? undefined,
@@ -160,24 +159,57 @@ function WidgetHandler({
     [jsonClient]
   );
 
-  const hydrateDocument = useCallback(
+  const renderEmptyDocument = useCallback(
     /**
-     * Iterates through a dehydrated document and hydrates it with the appropriate components. Returns the original object/arrays if there are no changes.
+     * Renders an empty document. This is used when the widget is loading or has an error.
+     */
+    () => {
+      // Document hasn't been initialized yet. Display a loading spinner if applicable.
+      if (widgetDescriptor.type === WIDGET_ELEMENT) {
+        // Rehydration. Mount ReactPanels for each panelId in the initial data
+        // so loading spinners or widget errors are shown
+        if (initialData?.panelIds != null && initialData.panelIds.length > 0) {
+          // Do not add a key here
+          // When the real document mounts, it doesn't use keys and will cause a remount
+          // which triggers the DocumentHandler to think the panels were closed and messes up the layout
+          // eslint-disable-next-line react/jsx-key
+          return initialData.panelIds.map(() => <ReactPanel />);
+        }
+        // Default to a single panel so we can immediately show a loading spinner
+        return <ReactPanel />;
+      }
+      if (error != null) {
+        // If there's an error and the document hasn't rendered yet (mostly applies to dashboards), explicitly show an error view
+        return <WidgetErrorView error={error} />;
+      }
+
+      // Dashboards should not have a default document. It breaks its render flow
+      return null;
+    },
+    [error, initialData, widgetDescriptor]
+  );
+
+  const renderDocument = useCallback(
+    /**
+     * Iterates through a document and renders it with the appropriate components. Returns the original object/arrays if there are no changes.
      * Replaces all Callables with an async callback that will automatically call the server use JSON-RPC.
      * Replaces all Objects with the exported object from the server.
      * Replaces all Element nodes with the ReactNode derived from that Element.
      *
-     * @param doc The dehydrated document to hydrate
-     * @returns The hydrated document
+     * @param doc The document to render
+     * @returns The rendered document
      */
-    (doc: object) => {
+    (doc: object | undefined) => {
+      if (document === undefined) {
+        return renderEmptyDocument();
+      }
+
       assertNotNull(jsonClient);
+
       // Keep track of exported objects and callables that are no longer in use after this render.
       // We close those objects that are no longer referenced, as they will never be referenced again.
       const deadObjectMap = new Map(exportedObjectMap.current);
       const deadCallableMap = new Map(renderedCallableMap.current);
-
-      // TODO: We should be parsing the patch operations, and then applying them to the previous document, rather than parsing the entire document each time.
       const hydratedDocument = decodeNode(doc, (key, value) => {
         // Need to re-hydrate any objects that are defined
         if (isCallableNode(value)) {
@@ -212,8 +244,7 @@ function WidgetHandler({
         if (isElementNode(value)) {
           // Replace the elements node with the Component it maps to
           try {
-            const res = getComponentForElement(value);
-            return res;
+            return getComponentForElement(value);
           } catch (e) {
             log.warn('Error getting component for element', e);
             return value;
@@ -246,32 +277,8 @@ function WidgetHandler({
       );
       return hydratedDocument;
     },
-    [jsonClient, callableFinalizationRegistry]
+    [callableFinalizationRegistry, document, jsonClient, renderEmptyDocument]
   );
-
-  const document = useMemo(() => {
-    if (dehydratedDocument !== undefined) {
-      // TODO: Implement hydrate document
-      return hydrateDocument(dehydratedDocument);
-    }
-
-    // Otherwise, document hasn't been initialized yet. Display a loading spinner if applicable.
-    if (widgetDescriptor.type === WIDGET_ELEMENT) {
-      // Rehydration. Mount ReactPanels for each panelId in the initial data
-      // so loading spinners or widget errors are shown
-      if (initialData?.panelIds != null && initialData.panelIds.length > 0) {
-        // Do not add a key here
-        // When the real document mounts, it doesn't use keys and will cause a remount
-        // which triggers the DocumentHandler to think the panels were closed and messes up the layout
-        // eslint-disable-next-line react/jsx-key
-        return initialData.panelIds.map(() => <ReactPanel />);
-      }
-      // Default to a single panel so we can immediately show a loading spinner
-      return <ReactPanel />;
-    }
-    // Dashboards should not have a default document. It breaks its render flow
-    return null;
-  }, [dehydratedDocument, hydrateDocument, initialData, widgetDescriptor]);
 
   const updateExportedObjects = useCallback(
     (newExportedObjects: dh.WidgetExportedObject[]) => {
@@ -298,18 +305,14 @@ function WidgetHandler({
           log.debug2(METHOD_DOCUMENT_PATCHED, params);
           const [patch, stateParam] = params;
 
-          const { newDocument } = applyPatch(
-            dehydratedDocumentRef.current ?? {},
-            patch,
-            undefined,
-            false
-          );
-
           // TODO: Remove unstable_batchedUpdates wrapper when upgrading to React 18
           unstable_batchedUpdates(() => {
             setInternalError(undefined);
-            dehydratedDocumentRef.current = newDocument;
-            setDehydratedDocument(newDocument);
+            setDocument(
+              oldDocument =>
+                applyPatch(oldDocument ?? {}, patch, undefined, false)
+                  .newDocument
+            );
             setIsLoading(false);
           });
           if (stateParam != null) {
@@ -448,16 +451,10 @@ function WidgetHandler({
     [jsonClient, initialData, sendSetState, updateExportedObjects, widget]
   );
 
-  const renderedDocument = useMemo(() => {
-    if (document != null) {
-      return document;
-    }
-    if (error != null) {
-      // If there's an error and the document hasn't rendered yet (mostly applies to dashboards), explicitly show an error view
-      return <WidgetErrorView error={error} />;
-    }
-    return document;
-  }, [document, error]);
+  const renderedDocument = useMemo(
+    () => renderDocument(document),
+    [document, renderDocument]
+  );
 
   const widgetStatus: WidgetStatus = useMemo(() => {
     if (isLoading) {

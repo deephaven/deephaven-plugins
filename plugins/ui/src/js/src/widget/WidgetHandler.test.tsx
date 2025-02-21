@@ -106,15 +106,13 @@ it('updates the document when event is received', async () => {
     mockDocumentHandler.mockClear();
     act(() => {
       // Send an updated document event to the listener of the widget
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       listener(makeWidgetEventDocumentPatched(patch));
     });
-    expect(mockDocumentHandler).toHaveBeenCalledWith(
-      expect.objectContaining({
-        widget,
-        children: expected,
-      })
-    );
+    expect(mockDocumentHandler).toHaveBeenCalledTimes(1);
+    const [props] = mockDocumentHandler.mock.calls[0];
+    expect(props.widget).toBe(widget);
+    expect(props.initialData).toBe(initialData);
+    expect(props.children).toStrictEqual(expected);
   }
 
   testPatch([{ op: 'add', path: '/foo', value: 'bar' }], { foo: 'bar' });
