@@ -317,7 +317,7 @@ describe('decodeNode', () => {
       const callback = jest.fn((k, v) => v);
       const value: Record<string, unknown> = {};
       const result = decodeNode(value, callback);
-      expect(result).toEqual({});
+      expect(result).toStrictEqual({});
       expect(result).toBe(value);
     });
   });
