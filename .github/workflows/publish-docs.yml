@@ -6,6 +6,9 @@ on:
     workflows: ['Test Modified Plugin'] # Only runs on top level workflows, not reusable workflows called from another run
     types:
       - completed
+    branches:
+      - main
+      - 'release/**'
 
 jobs:
   get-docs-packages:
@@ -51,21 +54,23 @@ jobs:
           echo "package=$(ls docs-build)" >> $GITHUB_ENV
           echo "version=$(ls docs-build/*)" >> $GITHUB_ENV
 
-      - name: Sync ${{ env.package }}/${{ env.version }} to ${{ github.event.workflow_run.event == 'push' && 'prod' || 'preview' }}
+      - name: Set production env variable
+        run: echo "production=${{ github.event.workflow_run.event == 'push' && 'true' || 'false' }}" >> $GITHUB_ENV
+
+      - name: Sync ${{ env.package }}/${{ env.version }} to ${{ env.production == 'true' && 'prod' || 'preview' }}
         uses: deephaven/salmon-sync@v1
         with:
           source: docs-build/${{ env.package }}/${{ env.version }}/
           destination: deephaven/deephaven-plugins/${{ env.package }}/${{ env.version }}/
-          bucket: ${{ github.event.workflow_run.event == 'push' && vars.DOCS_PROD_BUCKET || vars.DOCS_PREVIEW_BUCKET }}
-          credentials: ${{ secrets.DOCS_GOOGLE_CLOUD_CREDENTIALS }}
-          docs-url: ${{ github.event.workflow.run.event == 'push' && vars.DOCS_PROD_URL || vars.DOCS_PREVIEW_URL }}
-          cache-bust-token: ${{ secrets.DOCS_CACHE_BUST_TOKEN }}
+          production: ${{ env.production }}
+          temporary: ${{ env.production == 'true' && 'false' || 'true' }}
+          aws-role: ${{ vars.DOCS_AWS_ROLE }}
 
       - name: Comment on PR
         if: ${{ github.event.workflow_run.event == 'pull_request' }}
         uses: actions/github-script@v7
         env:
-          docsUrl: ${{ github.event.workflow.run.event == 'push' && vars.DOCS_PROD_URL || vars.DOCS_PREVIEW_URL }}
+          url: ${{ vars.DOCS_PREVIEW_URL }}
         with:
           script: |
             const env = process.env;
@@ -74,5 +79,5 @@ jobs:
               issue_number: env.version.replace('pr-', ''),
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `[${env.package} docs preview](${env.docsUrl}/${path}/${env.version}) (Available for 14 days)`
+              body: `[${env.package} docs preview](${env.url}/${path}/${env.version}) (Available for 14 days)`
             });
