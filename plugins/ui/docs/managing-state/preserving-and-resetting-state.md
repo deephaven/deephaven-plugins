@@ -447,4 +447,4 @@ def messenger():
 messenger_example = messenger()
 ```
 
-This guarantees that when you choose a different recipient, the `chat1 component will be rebuilt from the ground up, including all state in its subtree. As a result, switching the recipient always resets the text area.
+This guarantees that when you choose a different recipient, the `chat1` component will be rebuilt from the ground up, including all state in its subtree. As a result, switching the recipient always resets the text area.
