@@ -98,6 +98,10 @@
           {
             "label": "Update Lists in State",
             "path": "add-interactivity/update-lists-in-state.md"
+          },
+          {
+            "label": "Plotting",
+            "path": "add-interactivity/plot-with-components.md"
           }
         ]
       },
@@ -117,6 +121,10 @@
       {
         "label": "Components",
         "items": [
+          {
+            "label": "accordion",
+            "path": "components/accordion.md"
+          },
           {
             "label": "action_button",
             "path": "components/action_button.md"

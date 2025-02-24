@@ -29,7 +29,7 @@ const mockJsonClient = TestUtils.createMockProxy<JSONRPCServerAndClient>({
   request: mockJsonRequest,
 });
 
-const mockFinilizationRegistry = TestUtils.createMockProxy<
+const mockFinalizationRegistry = TestUtils.createMockProxy<
   FinalizationRegistry<unknown>
 >({
   register: jest.fn(),
@@ -119,7 +119,7 @@ describe('wrapCallable', () => {
   });
 
   it('should return a function that sends a request to the client', () => {
-    wrapCallable(mockJsonClient, 'testMethod', mockFinilizationRegistry)();
+    wrapCallable(mockJsonClient, 'testMethod', mockFinalizationRegistry)();
     expect(mockJsonClient.request).toHaveBeenCalledWith('callCallable', [
       'testMethod',
       [],
@@ -130,7 +130,7 @@ describe('wrapCallable', () => {
     wrapCallable(
       mockJsonClient,
       'testMethod',
-      mockFinilizationRegistry
+      mockFinalizationRegistry
     )('a', { b: 'b' });
     expect(mockJsonClient.request).toHaveBeenCalledWith('callCallable', [
       'testMethod',
@@ -142,14 +142,19 @@ describe('wrapCallable', () => {
     const wrapped = wrapCallable(
       mockJsonClient,
       'testMethod',
-      mockFinilizationRegistry
+      mockFinalizationRegistry
     );
 
-    expect(mockFinilizationRegistry.register).toHaveBeenCalledWith(
+    expect(mockFinalizationRegistry.register).toHaveBeenCalledWith(
       wrapped,
       'testMethod',
       wrapped
     );
+  });
+
+  it('should not register the function in the finalization registry if the shouldRegister parameter is false', () => {
+    wrapCallable(mockJsonClient, 'testMethod', mockFinalizationRegistry, false);
+    expect(mockFinalizationRegistry.register).not.toHaveBeenCalled();
   });
 
   it('should wrap returned callables', async () => {
@@ -162,12 +167,12 @@ describe('wrapCallable', () => {
     const wrappedResult = await wrapCallable(
       mockJsonClient,
       'testMethod',
-      mockFinilizationRegistry
+      mockFinalizationRegistry
     )();
     expect(wrappedResult).toBeInstanceOf(Function);
 
-    expect(mockFinilizationRegistry.register).toHaveBeenCalledTimes(2);
-    expect(mockFinilizationRegistry.register).toHaveBeenLastCalledWith(
+    expect(mockFinalizationRegistry.register).toHaveBeenCalledTimes(2);
+    expect(mockFinalizationRegistry.register).toHaveBeenLastCalledWith(
       wrappedResult,
       'nestedCb',
       wrappedResult
@@ -187,7 +192,7 @@ describe('wrapCallable', () => {
     const wrappedResult = (await wrapCallable(
       mockJsonClient,
       'testMethod',
-      mockFinilizationRegistry
+      mockFinalizationRegistry
     )()) as { nestedCallable: () => void; someOtherProp: string };
 
     expect(wrappedResult).toMatchObject({
@@ -195,8 +200,38 @@ describe('wrapCallable', () => {
       someOtherProp: 'mock',
     });
 
-    expect(mockFinilizationRegistry.register).toHaveBeenCalledTimes(2);
-    expect(mockFinilizationRegistry.register).toHaveBeenLastCalledWith(
+    expect(mockFinalizationRegistry.register).toHaveBeenCalledTimes(2);
+    expect(mockFinalizationRegistry.register).toHaveBeenLastCalledWith(
+      wrappedResult.nestedCallable,
+      'nestedCb',
+      wrappedResult.nestedCallable
+    );
+  });
+
+  it('should wrap nested returned callables even if the parent is not registered', async () => {
+    mockJsonRequest.mockResolvedValueOnce(
+      JSON.stringify({
+        nestedCallable: {
+          [CALLABLE_KEY]: 'nestedCb',
+        },
+        someOtherProp: 'mock',
+      })
+    );
+
+    const wrappedResult = (await wrapCallable(
+      mockJsonClient,
+      'testMethod',
+      mockFinalizationRegistry,
+      false
+    )()) as { nestedCallable: () => void; someOtherProp: string };
+
+    expect(wrappedResult).toMatchObject({
+      nestedCallable: expect.any(Function),
+      someOtherProp: 'mock',
+    });
+
+    expect(mockFinalizationRegistry.register).toHaveBeenCalledTimes(1);
+    expect(mockFinalizationRegistry.register).toHaveBeenCalledWith(
       wrappedResult.nestedCallable,
       'nestedCb',
       wrappedResult.nestedCallable
@@ -207,7 +242,7 @@ describe('wrapCallable', () => {
     mockJsonRequest.mockResolvedValueOnce('not a json string');
 
     expect(
-      wrapCallable(mockJsonClient, 'testMethod', mockFinilizationRegistry)()
+      wrapCallable(mockJsonClient, 'testMethod', mockFinalizationRegistry)()
     ).rejects.toBeInstanceOf(Error);
   });
 });
