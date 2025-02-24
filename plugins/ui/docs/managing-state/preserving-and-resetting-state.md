@@ -302,7 +302,7 @@ This solution is convenient when you only have a few independent components rend
 
 There is another, more general, method to reset a component’s state.
 
-You might have encountered keys when [rendering lists](../describing/render_lists.md). However, keys are not limited to lists. They can be used to help `deephaven.ui` differentiate between any components. By default, `deephaven.ui` uses the order within the parent (e.g., “first counter”, “second counter”) to distinguish between components. However, keys allow you to specify that this is not just any counter, but a specific one—such as John's counter. This way, `deephaven.ui` can identify John's counter wherever it appears in the component tree.
+You might have encountered keys when [rendering lists](../describing/render_lists.md). However, keys are not limited to lists. They can be used to help `deephaven.ui` differentiate between any components. By default, `deephaven.ui` uses the order within the parent (e.g., “first counter”, “second counter”) to distinguish between components. However, keys allow you to specify that this is not just any counter but a specific one, such as John's counter. This way, `deephaven.ui` can identify John's counter wherever it appears in the component tree.
 
 In the following example, the two `counter` components do not share state, even though they are rendered in the same location:
 
