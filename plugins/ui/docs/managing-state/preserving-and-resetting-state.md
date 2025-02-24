@@ -42,10 +42,10 @@ erDiagram
   app ||--|| counter1 : has
   app ||--|| counter2 : has
   counter1 {
-    count _0
+    int count "0"
   }
   counter2 {
-    count _0
+    int count "0"
   }
 ```
 
@@ -63,10 +63,10 @@ erDiagram
   app ||--|| counter1 : has
   app ||--|| counter2 : has
   counter1 {
-    count _0
+    int count "0"
   }
   counter2 {
-    count _1
+    int count "1"
   }
 ```
 
