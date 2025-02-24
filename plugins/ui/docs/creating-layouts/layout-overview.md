@@ -188,3 +188,18 @@ dashboard_example = ui.dashboard(
 ```
 
 ## View
+
+The [`view`](../components/view.md) component is a general purpose container with no specific semantics that can be used for custom styling purposes. It supports Deephaven UI style props to ensure consistency with other components and is analogous to an HTML `<div>`.
+
+```python
+from deephaven import ui
+
+view = ui.view(
+    ui.text_field(label="Name"),
+    border_width="thin",
+    border_color="accent-400",
+    background_color="seafoam-500",
+    border_radius="medium",
+    padding="size-250",
+)
+```
