@@ -115,6 +115,10 @@
           {
             "label": "Choose the State Structure",
             "path": "managing-state/choose-the-state-structure.md"
+          },
+          {
+            "label": "Share State Between Components",
+            "path": "managing-state/share-state-between-components.md"
           }
         ]
       },
