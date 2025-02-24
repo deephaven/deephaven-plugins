@@ -1,6 +1,6 @@
 # Share State Between Components
 
-To synchronize the state of two components, lift the state up to their nearest common parent. Remove the state from both components, move it to the parent, and pass it down via props. This technique is known as lifting state up.
+To synchronize the state of two components, lift the state up to its nearest common parent. Remove the state from both components, move it to the parent, and pass it down via props. This technique is known as lifting state up.
 
 ## Lift state up by example
 
@@ -136,7 +136,7 @@ info(
 ),
 ```
 
-The `button` inside the `info` will now use the `on_show` prop as its press event handler:
+The `button` inside the `info` component will now use the `on_show` prop as its press event handler:
 
 ```python
 from deephaven import ui
