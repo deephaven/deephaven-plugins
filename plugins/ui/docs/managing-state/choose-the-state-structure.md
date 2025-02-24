@@ -1,6 +1,6 @@
 # Choose the State Structure
 
-Structuring state effectively can be the difference between a component that is easy to modify and debug, and one that is a persistent source of bugs. Here are some tips to consider when organizing state.
+Effectively structuring state can be the difference between a component that is easy to modify and debug and one that is a persistent source of bugs. Here are some tips to consider when organizing state.
 
 ## Principles for structuring state
 
@@ -12,7 +12,7 @@ When you write a component that holds state, you will make choices about how man
 4. **Avoid duplication in state.** When the same data is duplicated between multiple state variables, or within nested objects, it is difficult to keep them in sync. Reduce duplication when you can.
 5. **Avoid deeply nested state.** Deeply hierarchical state is not very convenient to update. When possible, prefer to structure state in a flat way.
 
-The purpose of these principles is to simplify state updates and minimize errors. By eliminating redundant and duplicate data from the state, you can ensure consistency across all its pieces. This approach is akin to how a database engineer might "normalize" a database structure to minimize bugs.
+These principles aim to simplify state updates and minimize errors. By eliminating redundant and duplicate data from the state, you can ensure consistency across all its pieces. This approach is akin to how a database engineer might "normalize" a database structure to minimize bugs.
 
 ## Group related state
 
@@ -138,7 +138,7 @@ is_sending = status == "sending"
 is_sent = status == "sent"
 ```
 
-But they are not state variables, so you do not need to worry about them getting out of sync with each other.
+However, they are not state variables, so you do not need to worry about them getting out of sync with each other.
 
 ## Avoid redundant state
 
@@ -258,7 +258,7 @@ def snacks():
 snacks_example = snacks()
 ```
 
-The selected item is currently stored as an dictionary in the `selected_item` state variable. However, this approach is not ideal because the `selected_item` contains the same object as one of the items in the `items` list. This results in duplicated information about the item in two places.
+The selected item is currently stored as a dictionary in the `selected_item` state variable. However, this approach is not ideal because the `selected_item` contains the same object as one of the items in the `items` list. This results in duplicated information about the item in two places.
 
 Why is this an issue? Let's make each item editable:
 
