@@ -15,6 +15,7 @@ interface JsTableProxy extends dh.Table {}
 
 /**
  * Class to proxy JsTable.
+ * The JsTable passed to the constructor may be modified, so it is recommended to pass a copy.
  * Any methods implemented in this class will be utilized over the underlying JsTable methods.
  * Any methods not implemented in this class will be proxied to the table.
  */
@@ -39,16 +40,24 @@ class JsTableProxy implements dh.Table {
     hiddenColumns: dh.Column[];
   };
 
+  private originalCustomColumns: dh.CustomColumn[];
+
+  private onClose: () => void;
+
   layoutHints: dh.LayoutHints | null = null;
 
   constructor({
     table,
     layoutHints,
+    onClose,
   }: {
     table: dh.Table;
     layoutHints: UITableLayoutHints;
+    onClose: () => void;
   }) {
     this.table = table;
+    this.originalCustomColumns = table.customColumns;
+    this.onClose = onClose;
 
     this.stableColumns = {
       allColumns: [],
@@ -143,6 +152,23 @@ class JsTableProxy implements dh.Table {
         )
       );
     }
+  }
+
+  close(): void {
+    // Something causes close to get called twice which will throw some log spam if we try to close the table again
+    if (!this.table.isClosed) {
+      this.onClose();
+      this.table.close();
+    }
+  }
+
+  applyCustomColumns(
+    customColumns: Array<string | dh.CustomColumn>
+  ): Array<dh.CustomColumn> {
+    return this.table.applyCustomColumns([
+      ...this.originalCustomColumns,
+      ...customColumns,
+    ]);
   }
 
   get columns(): dh.Column[] {

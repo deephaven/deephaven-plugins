@@ -98,6 +98,10 @@
           {
             "label": "Update Lists in State",
             "path": "add-interactivity/update-lists-in-state.md"
+          },
+          {
+            "label": "Plotting",
+            "path": "add-interactivity/plot-with-components.md"
           }
         ]
       },
@@ -109,6 +113,14 @@
             "path": "managing-state/react-to-input-with-state.md"
           },
           {
+            "label": "Choose the State Structure",
+            "path": "managing-state/choose-the-state-structure.md"
+          },
+          {
+            "label": "Share State Between Components",
+            "path": "managing-state/share-state-between-components.md"
+          },
+          {
             "label": "Preserving and Resetting State",
             "path": "managing-state/preserving-and-resetting-state.md"
           }
@@ -117,6 +129,10 @@
       {
         "label": "Components",
         "items": [
+          {
+            "label": "accordion",
+            "path": "components/accordion.md"
+          },
           {
             "label": "action_button",
             "path": "components/action_button.md"
