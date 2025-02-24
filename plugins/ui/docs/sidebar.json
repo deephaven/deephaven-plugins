@@ -111,6 +111,10 @@
           {
             "label": "React to Input with State",
             "path": "managing-state/react-to-input-with-state.md"
+          },
+          {
+            "label": "Choose the State Structure",
+            "path": "managing-state/choose-the-state-structure.md"
           }
         ]
       },
