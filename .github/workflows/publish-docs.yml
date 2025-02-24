@@ -34,6 +34,10 @@ jobs:
     needs: get-docs-packages
     if: ${{ needs.get-docs-packages.outputs.packages != '[]' && needs.get-docs-packages.outputs.packages != '' }}
     runs-on: ubuntu-24.04
+    permissions:
+      id-token: write # Auth to AWS with OIDC
+      pull-requests: write # Add comment
+      actions: read # Download artifact
     strategy:
       fail-fast: false
       matrix:
