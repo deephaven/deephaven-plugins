@@ -108,7 +108,7 @@ explicit_grid_example = explicit_grid()
 from deephaven import ui
 
 colors = []
-for i in range(100, 900, 100):
+for i in range(100, 901, 100):
     colors.append(f"gray-{i}")
     colors.append(f"green-{i}")
     colors.append(f"blue-{i}")
@@ -130,7 +130,7 @@ implicit_grid_example = implicit_grid()
 
 ## Panel
 
-The [`panel`](../components/panel.md) component is a container designed to group and organize elements within a layout. Panels are presented as individual tabs that can be moved to different positions by dragging the tabs around. By default, the top-level return of a `@ui.component` is automatically wrapped in a panel, so you only need to define a panel explicitly if you want to customize it or nest panels in a dashboard. Customizations can include setting a custom tab title, background color or customizing the flex layout.
+The [`panel`](../components/panel.md) component is a container designed to group and organize elements within a dashboard. Panels are presented as individual tabs that can be moved to different positions by dragging the tabs around. By default, the top-level return of a `@ui.component` is automatically wrapped in a panel, so you only need to define a panel explicitly if you want to customize it or nest panels in a dashboard. Customizations can include setting a custom tab title, background color or customizing the flex layout.
 
 ```python
 from deephaven import ui
