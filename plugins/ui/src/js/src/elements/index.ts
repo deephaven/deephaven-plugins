@@ -4,6 +4,8 @@ export * from './ActionGroup';
 export * from './Badge';
 export * from './Button';
 export * from './Calendar';
+export * from './ColorEditor';
+export * from './ColorPicker';
 export * from './ComboBox';
 export * from './ContextualHelp';
 export * from './DateField';

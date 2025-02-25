@@ -33,6 +33,8 @@ export const ELEMENT_NAME = {
   button: uiComponentName('Button'),
   buttonGroup: uiComponentName('ButtonGroup'),
   calendar: uiComponentName('Calendar'),
+  colorPicker: uiComponentName('ColorPicker'),
+  colorEditor: uiComponentName('ColorEditor'),
   checkbox: uiComponentName('Checkbox'),
   checkboxGroup: uiComponentName('CheckboxGroup'),
   comboBox: uiComponentName('ComboBox'),
