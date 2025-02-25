@@ -119,6 +119,10 @@
           {
             "label": "Share State Between Components",
             "path": "managing-state/share-state-between-components.md"
+          },
+          {
+            "label": "Preserving and Resetting State",
+            "path": "managing-state/preserving-and-resetting-state.md"
           }
         ]
       },
