@@ -21,3 +21,19 @@ test.describe('UI table', () => {
     });
   });
 });
+
+test('UI table responds to prop changes', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(page, 'toggle_table', REACT_PANEL_VISIBLE);
+
+  const locator = page.locator(REACT_PANEL_VISIBLE);
+
+  await expect(locator).toHaveScreenshot();
+
+  await locator.getByRole('button', { name: 'formatting' }).click();
+  await expect(locator).toHaveScreenshot();
+  await locator.getByRole('button', { name: 'databars' }).click();
+  await expect(locator).toHaveScreenshot();
+  await locator.getByRole('button', { name: 'case' }).click();
+  await expect(locator).toHaveScreenshot();
+});
