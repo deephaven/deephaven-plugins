@@ -211,7 +211,7 @@ class PartitionManager:
         self,
     ) -> None:
         """
-        Convert a table to long mode if thie plot supports lists
+        Convert a table to long mode if this plot supports lists
         If there is no by arg, the new column becomes it
 
         """

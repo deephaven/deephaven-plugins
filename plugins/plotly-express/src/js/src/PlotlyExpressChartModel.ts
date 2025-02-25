@@ -3,7 +3,7 @@ import type { dh as DhType } from '@deephaven/jsapi-types';
 import { ChartModel, ChartUtils } from '@deephaven/chart';
 import Log from '@deephaven/log';
 import { RenderOptions } from '@deephaven/chart/dist/ChartModel';
-import { Formatter } from '@deephaven/jsapi-utils';
+import { DateTimeColumnFormatter, Formatter } from '@deephaven/jsapi-utils';
 import {
   DownsampleInfo,
   PlotlyChartWidgetData,
@@ -19,7 +19,6 @@ import {
   removeColorsFromData,
   setWebGlTraceType,
   hasUnreplaceableWebGlTraces,
-  getCalendar,
   setRangebreaksFromCalendar,
 } from './PlotlyExpressChartUtils';
 
@@ -62,8 +61,16 @@ export class PlotlyExpressChartModel extends ChartModel {
     // before the widget is subscribed to.
     this.updateLayout(getWidgetData(widget));
 
-    // The calendar is only fetched once currently
-    this.calendar = getCalendar(widget, dh);
+    // The calendar is only fetched once at init.
+    // Timezone must be replaced for accurate rangebreaks.
+    const { calendar } = getWidgetData(widget).figure.deephaven;
+    if (calendar != null) {
+      const timeZone = dh.i18n.TimeZone.getTimeZone(calendar.timeZone);
+      this.calendar = {
+        ...calendar,
+        timeZone,
+      } as unknown as DhType.calendar.BusinessCalendar;
+    }
 
     this.setTitle(this.getDefaultTitle());
   }
@@ -310,7 +317,6 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   setFormatter(formatter: Formatter): void {
     this.fireRangebreaksUpdated(formatter);
-    console.log('formatter', formatter);
     super.setFormatter(formatter);
   }
 
@@ -375,7 +381,15 @@ export class PlotlyExpressChartModel extends ChartModel {
     figureUpdateEvent.columns.forEach(column => {
       const columnData = chartData.getColumn(
         column.name,
-        this.chartUtils.unwrapValue,
+        val =>
+          this.chartUtils.unwrapValue(
+            val,
+            (
+              this.formatter?.getColumnTypeFormatter(
+                'datetime'
+              ) as DateTimeColumnFormatter
+            ).dhTimeZone
+          ),
         figureUpdateEvent
       );
       tableData[column.name] = columnData;

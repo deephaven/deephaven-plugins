@@ -4,6 +4,7 @@ import sys
 from typing import Union, List, Any, Literal
 
 from deephaven.calendar import calendar
+import jpy
 
 if sys.version_info < (3, 11):
     from typing_extensions import TypedDict
@@ -16,6 +17,8 @@ Timezone = str
 Day = str
 Days = List[Day]
 Date = str
+
+_JDateTimeUtils = jpy.get_type("io.deephaven.time.DateTimeUtils")
 
 
 class TimeRange(TypedDict):
@@ -68,33 +71,41 @@ class FigureCalendarDict(TypedDict):
 DAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
 
 
-def unpack_time_range(time_range: Any) -> TimeRange:
+def unpack_time_range(time_range: Any, timezone: Timezone | None = None) -> TimeRange:
     """
     Unpack a time range from a Deephaven Java object to a Python dictionary
 
     Args:
         time_range: The time range to unpack
+        timezone: The timezone to convert to local time
 
     Returns:
         The unpacked time range
     """
-    start = str(time_range.start())
-    end = str(time_range.end())
+    start = time_range.start()
+    end = time_range.end()
+    if timezone:
+        timezone = _JDateTimeUtils.timeZone(timezone)
+        start = _JDateTimeUtils.toLocalTime(start, timezone)
+        end = _JDateTimeUtils.toLocalTime(end, timezone)
+    start = str(start)
+    end = str(end)
     return {"open": start, "close": end}
 
 
-def unpack_calendar_day(day: Any) -> TimeRanges:
+def unpack_calendar_day(day: Any, timezone: Timezone | None) -> TimeRanges:
     """
     Unpack a calendar day from a Deephaven Java object to a Python dictionary
 
     Args:
         day: The calendar day to unpack
+        timezone: The timezone to convert to local time
 
     Returns:
         The unpacked calendar day
     """
     time_ranges = list(day.businessTimeRanges().toArray())
-    return [unpack_time_range(time_range) for time_range in time_ranges]
+    return [unpack_time_range(time_range, timezone) for time_range in time_ranges]
 
 
 class FigureCalendar:
@@ -164,12 +175,14 @@ class FigureCalendar:
         }
 
         new_holidays = []
+        timezone = self.timezone
         for date, time_range in j_holidays.items():
             new_holiday = {
                 "date": date,
-                "businessPeriods": unpack_calendar_day(time_range),
+                "businessPeriods": unpack_calendar_day(time_range, timezone),
             }
             new_holidays.append(new_holiday)
+        new_holidays.sort(key=lambda x: x["date"])
         return new_holidays
 
     @property

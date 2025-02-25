@@ -35,12 +35,24 @@ export interface PlotlyChartWidget {
   ) => void;
 }
 
+interface DeephavenCalendarBusinessPeriod {
+  open: string;
+  close: string;
+}
+
 export interface PlotlyChartWidgetData {
   type: string;
   figure: {
     deephaven: {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      calendar: any;
+      calendar?: {
+        timeZone: string;
+        businessDays: Array<string>;
+        holidays: Array<{
+          date: string;
+          businessPeriods: Array<DeephavenCalendarBusinessPeriod>;
+        }>;
+        businessPeriods: Array<DeephavenCalendarBusinessPeriod>;
+      };
       mappings: Array<{
         table: number;
         data_columns: Record<string, string[]>;
@@ -295,40 +307,8 @@ export function setWebGlTraceType(
 }
 
 /**
- * Get the calendar from the widget data, adding the standard offset to the timezone
- * @param widget The widget to get the calendar from
- * @param dh The deephaven instance to get the offset from
- * @returns The calendar with the standard offset added to the timezone
- */
-export function getCalendar(
-  widget: DhType.Widget,
-  dh: typeof DhType
-): DhType.calendar.BusinessCalendar | null {
-  const { calendar } = getWidgetData(widget).figure.deephaven;
-  let updatedCalendar = null;
-
-  if (calendar != null) {
-    const timeZoneOffset = dh.i18n.TimeZone.getTimeZone(
-      calendar.timeZone
-    ).standardOffset;
-
-    const updatedTimeZone = {
-      id: calendar.timeZone,
-      standardOffset: timeZoneOffset,
-    };
-
-    updatedCalendar = {
-      ...calendar,
-      timeZone: updatedTimeZone,
-    };
-  }
-
-  return updatedCalendar;
-}
-
-/**
  * Create rangebreaks from a business calendar
- * @param formatter The formatter to use for the calendar
+ * @param formatter The formatter to use for the rangebreak calculations
  * @param calendar The business calendar to create the rangebreaks from
  * @param layout The layout to update with the rangebreaks
  * @param chartUtils The chart utils to use for the rangebreaks
@@ -354,6 +334,7 @@ export function setRangebreaksFromCalendar(
           ...(typeof axis === 'object' ? axis : {}),
           rangebreaks: [...rangebreaks, ...updatedRangebreaks],
         };
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         layoutUpdate[key as keyof Layout] = updatedAxis as any;
       }
