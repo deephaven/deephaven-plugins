@@ -830,16 +830,7 @@ def transform_node(
         A new object with the same keys as the original object, but with the values replaced by the return value of the callback. If there were no changes, returns the same object.
     """
     result = value
-    if isinstance(result, (list, map, tuple)):
-        array_result: List[Any] = result  # type: ignore
-        for i, child_value in enumerate(array_result):
-            new_child_value = transform_node(child_value, transform, str(i))
-            if not new_child_value is child_value:
-                if array_result is value:
-                    array_result = list(array_result)
-                array_result[i] = new_child_value
-        result = array_result
-    elif isinstance(result, dict):
+    if isinstance(result, dict):
         dict_result: Dict[str, Any] = result
         for child_key, child_value in dict_result.items():
             new_child_value = transform_node(child_value, transform, child_key)
@@ -848,6 +839,15 @@ def transform_node(
                     dict_result = dict(dict_result)
                 dict_result[child_key] = new_child_value
         result = dict_result
+    elif is_iterable(result):
+        array_result: List[Any] = result  # type: ignore
+        for i, child_value in enumerate(array_result):
+            new_child_value = transform_node(child_value, transform, str(i))
+            if not new_child_value is child_value:
+                if array_result is value:
+                    array_result = list(array_result)
+                array_result[i] = new_child_value
+        result = array_result
 
     return transform(key, result)
 
@@ -865,15 +865,19 @@ def is_primitive(value: Any) -> bool:
     return isinstance(value, (bool, float, int, str, type(None)))
 
 
-def is_serializable(value: Any) -> bool:
+def is_iterable(value: Any, excluded_types: tuple[type] = (str,)) -> bool:
     """
-    Check if a value is serializable to JSON.
-    Note: This does not account for OverflowErrors which may still occur if a number is too large to be encoded, for example.
+    Check if a value is iterable.
 
     Args:
         value: The value to check.
+        excluded_types: Types to exclude as iterable. Defaults to excluding strings.
 
     Returns:
-        True if the value is serializable, False otherwise.
+        True if the value is iterable and not an excluded type, False otherwise.
     """
-    return is_primitive(value) or isinstance(value, (list, tuple, dict))
+    try:
+        iter(value)
+    except TypeError:
+        return False
+    return not isinstance(value, excluded_types)

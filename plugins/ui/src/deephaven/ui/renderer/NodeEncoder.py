@@ -4,7 +4,7 @@ import logging
 from typing import Any, Callable, TypedDict
 from weakref import WeakKeyDictionary
 from .RenderedNode import RenderedNode
-from .._internal.utils import transform_node, is_serializable
+from .._internal.utils import transform_node, is_primitive, is_iterable
 
 logger = logging.getLogger(__name__)
 
@@ -137,12 +137,11 @@ class NodeEncoder:
             return self._convert_rendered_node(value)
         elif callable(value):
             return self._convert_callable(value)
-        elif not is_serializable(value):
-            # This is a non-serializable object. We'll store a reference to the object in the objects array.
-            return self._convert_object(value)
-        else:
-            # Just return the value itself, it should be serializable
+        elif is_primitive(value) or is_iterable(value):
+            # This is an iterable object, we'll have already converted the children.
             return value
+        # This is a non-serializable object. We'll store a reference to the object in the objects array.
+        return self._convert_object(value)
 
     def _convert_rendered_node(self, node: RenderedNode):
         result: dict[str, Any] = {ELEMENT_KEY: node.name}

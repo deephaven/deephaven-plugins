@@ -6,24 +6,21 @@ from .._internal.utils import transform_node
 
 class EventEncoder:
     """
-    Encode an event in JSON.
+    Encode an event in a serializable dictionary.
     """
 
-    def __init__(
-        self,
-        convert_callable: Callable[[Any], Any],
-        *args: Any,
-        **kwargs: Any,
-    ):
+    _convert_callable: Callable[[Any], Any]
+    """
+    Function that will be called to serialize callables.
+    """
+
+    def __init__(self, convert_callable: Callable[[Any], Any]):
         """
         Create a new EventEncoder.
 
         Args:
             convert_callable: A function that will be called to serialize callables
-            *args: Arguments to pass to the JSONEncoder constructor
-            **kwargs: Args to pass to the JSONEncoder constructor
         """
-        super().__init__(*args, **kwargs)
         self._convert_callable = convert_callable
 
     def transform_node(self, key: str, value: Any):

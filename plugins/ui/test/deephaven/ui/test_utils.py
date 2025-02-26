@@ -9,7 +9,7 @@ from deephaven.ui._internal.utils import (
     dict_to_react_props,
     get_component_name,
     is_primitive,
-    is_serializable,
+    is_iterable,
     remove_empty_keys,
     to_camel_case,
     to_react_prop_case,
@@ -381,19 +381,27 @@ class UtilsTest(BaseTestCase):
         self.assertTrue(is_primitive(False))
         self.assertFalse(is_primitive([]))
         self.assertFalse(is_primitive({}))
+        self.assertFalse(is_primitive(()))
         self.assertFalse(is_primitive(object()))
         self.assertFalse(is_primitive(Exception()))
 
-    def test_is_serializable(self):
-        self.assertTrue(is_serializable(1))
-        self.assertTrue(is_serializable("a"))
-        self.assertTrue(is_serializable(None))
-        self.assertTrue(is_serializable(False))
-        self.assertTrue(is_serializable([]))
-        self.assertTrue(is_serializable({}))
-        self.assertFalse(is_serializable(object()))
-        self.assertFalse(is_serializable(Exception()))
-        self.assertFalse(is_serializable(lambda: None))
+    def test_is_iterable(self):
+        self.assertTrue(is_iterable([]))
+        self.assertTrue(is_iterable({}))
+        self.assertTrue(is_iterable(()))
+        self.assertTrue(is_iterable({"foo": "bar"}))
+        self.assertTrue(is_iterable(("foo", "bar")))
+        self.assertTrue(is_iterable(map(lambda x: x, [1, 2, 3])))
+        self.assertTrue(is_iterable(filter(lambda x: x, [1, 2, 3])))
+        self.assertTrue(is_iterable(range(10)))
+        self.assertTrue(is_iterable("foo", ()))
+        self.assertFalse(is_iterable(1))
+        self.assertFalse(is_iterable("a"))
+        self.assertFalse(is_iterable(None))
+        self.assertFalse(is_iterable(False))
+        self.assertFalse(is_iterable(object()))
+        self.assertFalse(is_iterable(Exception()))
+        self.assertFalse(is_iterable(lambda: None))
 
 
 if __name__ == "__main__":
