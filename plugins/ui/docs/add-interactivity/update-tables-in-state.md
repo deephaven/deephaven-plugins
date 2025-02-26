@@ -123,3 +123,91 @@ def color_picker(rgb, cmyk):
 
 color_picker_example = color_picker(create_rgb_table(), create_cmyk_table())
 ```
+
+## Multithreading
+
+TODO explain everything!
+
+```python
+from deephaven import ui, time_table
+import threading
+
+
+@ui.component
+def ui_resetable_table():
+    table, set_table = ui.use_state(lambda: time_table("PT1s"))
+
+    def do_work():
+        set_table(time_table("PT1s"))
+
+    def start_background_thread():
+        threading.Thread(target=do_work).start()
+
+    return [
+        ui.action_button(
+            "Reset",
+            on_press=start_background_thread,
+        ),
+        table,
+    ]
+
+
+resetable_table = ui_resetable_table()
+```
+
+```python
+from deephaven import ui, time_table
+import threading
+
+
+@ui.component
+def ui_resetable_table():
+    render_queue = ui.use_render_queue()
+    table, set_table = ui.use_state(lambda: time_table("PT1s"))
+
+    def do_work():
+        render_queue(lambda: set_table(time_table("PT1s")))
+
+    def start_background_thread():
+        threading.Thread(target=do_work).start()
+
+    return [
+        ui.action_button(
+            "Reset",
+            on_press=start_background_thread,
+        ),
+        table,
+    ]
+
+
+resetable_table = ui_resetable_table()
+```
+
+```python
+from deephaven import ui, time_table
+import threading
+
+
+@ui.component
+def ui_resetable_table():
+    render_queue = ui.use_render_queue()
+    table, set_table = ui.use_state(lambda: time_table("PT1s"))
+    reset_table = ui.use_liveness_scope(lambda: set_table(time_table("PT1s")), [])
+
+    def do_work():
+        render_queue(reset_table)
+
+    def start_background_thread():
+        threading.Thread(target=do_work).start()
+
+    return [
+        ui.action_button(
+            "Reset",
+            on_press=start_background_thread,
+        ),
+        table,
+    ]
+
+
+resetable_table = ui_resetable_table()
+```
