@@ -31,7 +31,7 @@ STRIP_DEFAULTS = {
 HISTOGRAM_DEFAULTS = {
     "barmode": "group",
     "nbins": 10,
-    "histfunc": "count",
+    "histfunc": None,
     "histnorm": None,
     "cumulative": False,
     "range_bins": None,
