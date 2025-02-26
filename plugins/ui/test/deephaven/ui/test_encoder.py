@@ -43,7 +43,7 @@ class EncoderTest(BaseTestCase):
         encoder = NodeEncoder(callable_id_prefix=callable_id_prefix)
         result = encoder.encode_node(node)
         self.assertDictEqual(
-            json.loads(result["encoded_node"]), expected_payload, "payloads don't match"
+            result["encoded_node"], expected_payload, "payloads don't match"
         )
         self.assertListEqual(
             list(result["callable_id_dict"].keys()),
@@ -431,7 +431,7 @@ class EncoderTest(BaseTestCase):
         }
 
         self.assertDictEqual(
-            json.loads(result["encoded_node"]), expected_payload, "payloads don't match"
+            result["encoded_node"], expected_payload, "payloads don't match"
         )
         self.assertListEqual(
             list(result["callable_id_dict"].keys()), cbs, "callables don't match"
@@ -494,7 +494,7 @@ class EncoderTest(BaseTestCase):
         }
 
         self.assertDictEqual(
-            json.loads(result["encoded_node"]), expected_payload, "payloads don't match"
+            result["encoded_node"], expected_payload, "payloads don't match"
         )
         self.assertListEqual(
             list(result["callable_id_dict"].keys()),
@@ -559,7 +559,7 @@ class EncoderTest(BaseTestCase):
         }
         self.maxDiff = None
         self.assertDictEqual(
-            json.loads(result["encoded_node"]), expected_payload, "payloads don't match"
+            result["encoded_node"], expected_payload, "payloads don't match"
         )
         self.assertListEqual(
             list(result["callable_id_dict"].keys()),

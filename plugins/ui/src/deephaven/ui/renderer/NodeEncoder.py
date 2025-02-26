@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import json
 import logging
 from typing import Any, Callable, TypedDict
 from weakref import WeakKeyDictionary
 from .RenderedNode import RenderedNode
+from .._internal.utils import transform_node, is_primitive, is_iterable
 
 logger = logging.getLogger(__name__)
 
@@ -23,10 +23,11 @@ ObjectId = int
 
 class NodeEncoderResult(TypedDict):
     """
-    Result of encoding a node. Contains the encoded node, set of new objects, and callables dictionary.
+    Result of encoding a node - replaces non-serializable items in a dictionary in place with a serializable equivalent.
+    Contains the encoded node, set of new objects, and callables dictionary.
     """
 
-    encoded_node: str
+    encoded_node: dict[str, Any]
     """
     The encoded node.
     """
@@ -42,9 +43,9 @@ class NodeEncoderResult(TypedDict):
     """
 
 
-class NodeEncoder(json.JSONEncoder):
+class NodeEncoder:
     """
-    Encode the node in JSON. Store any replaced objects and callables in their respective arrays.
+    Encode the node in a serializable dictionary. Store any replaced objects and callables in their respective arrays.
     - RenderedNodes in the tree are replaced with a dict with property `ELEMENT_KEY` set to the name of the element, and props set to the props key.
     - callables in the tree are replaced with an object with property `CALLABLE_KEY` set to the index in the callables array.
     - non-serializable objects in the tree are replaced wtih an object with property `OBJECT_KEY` set to the index in the objects array.
@@ -91,40 +92,19 @@ class NodeEncoder(json.JSONEncoder):
     def __init__(
         self,
         callable_id_prefix: str = DEFAULT_CALLABLE_ID_PREFIX,
-        *args: Any,
-        **kwargs: Any,
     ):
         """
         Create a new NodeEncoder.
 
         Args:
-            *args: Arguments to pass to the JSONEncoder constructor
             callable_id_prefix: Prefix to use for callable ids. Used to ensure callables used in stream are unique.
-            **kwargs: Args to pass to the JSONEncoder constructor
         """
-        super().__init__(*args, **kwargs)
         self._callable_id_prefix = callable_id_prefix
         self._next_callable_id = 0
         self._callable_dict = WeakKeyDictionary()
         self._new_objects = []
         self._next_object_id = 0
         self._object_id_dict = {}
-
-    def default(self, o: Any):
-        if isinstance(o, RenderedNode):
-            return self._convert_rendered_node(o)
-        elif callable(o):
-            return self._convert_callable(o)
-        else:
-            try:
-                return super().default(o)
-            except TypeError:
-                # This is a non-serializable object. We'll store a reference to the object in the objects array.
-                return self._convert_object(o)
-
-    def encode(self, o: Any) -> str:
-        # Raise an error - should call encode_node instead
-        raise NotImplementedError("Use encode_node instead")
 
     def encode_node(self, node: RenderedNode) -> NodeEncoderResult:
         """
@@ -140,7 +120,7 @@ class NodeEncoder(json.JSONEncoder):
 
         logger.debug("Encoding node with object_id_dict: %s", self._object_id_dict)
 
-        encoded_node = super().encode(node)
+        encoded_node = transform_node(node, self._transform_node)
 
         # Remove the old objects from last render from the object id dict
         for py_id in self._old_objects:
@@ -152,10 +132,21 @@ class NodeEncoder(json.JSONEncoder):
             "callable_id_dict": self._callable_dict,
         }
 
+    def _transform_node(self, key: str, value: Any):
+        if isinstance(value, RenderedNode):
+            return self._convert_rendered_node(value)
+        elif callable(value):
+            return self._convert_callable(value)
+        elif is_primitive(value) or is_iterable(value):
+            # This is an iterable object, we'll have already converted the children.
+            return value
+        # This is a non-serializable object. We'll store a reference to the object in the objects array.
+        return self._convert_object(value)
+
     def _convert_rendered_node(self, node: RenderedNode):
         result: dict[str, Any] = {ELEMENT_KEY: node.name}
         if node.props is not None:
-            result["props"] = node.props
+            result["props"] = transform_node(node.props, self._transform_node)
         return result
 
     def _convert_callable(self, cb: Callable[..., Any]):

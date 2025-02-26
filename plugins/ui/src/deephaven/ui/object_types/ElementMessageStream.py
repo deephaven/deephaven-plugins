@@ -15,6 +15,7 @@ from deephaven.plugin.object_type import MessageStream
 from deephaven.server.executors import submit_task
 from deephaven.execution_context import ExecutionContext, get_exec_ctx
 from deephaven.liveness_scope import liveness_scope
+from pyjsonpatch import generate_patch
 
 from .._internal import wrap_callable
 from ..elements import Element
@@ -163,6 +164,11 @@ class ElementMessageStream(MessageStream):
     Whether or not the stream is closed. If closed, no more messages can be sent, and this component should exit.
     """
 
+    _last_document: dict[str, Any]
+    """
+    The last document sent to the client. Used to generate a patch for the next document
+    """
+
     def __init__(self, element: Element, connection: MessageStream):
         """
         Create a new ElementMessageStream. Renders the element in a render context, and sends the rendered result to the
@@ -177,10 +183,8 @@ class ElementMessageStream(MessageStream):
         self._message_id = 0
         self._manager = JSONRPCResponseManager()
         self._dispatcher = self._make_dispatcher()
-        self._encoder = NodeEncoder(separators=(",", ":"))
-        self._event_encoder = EventEncoder(
-            self._serialize_callables, separators=(",", ":")
-        )
+        self._encoder = NodeEncoder()
+        self._event_encoder = EventEncoder(self._serialize_callables)
         self._context = RenderContext(self._queue_state_update, self._queue_callable)
         self._event_context = EventContext(self._send_event)
         self._renderer = Renderer(self._context)
@@ -194,6 +198,7 @@ class ElementMessageStream(MessageStream):
         self._render_state = _RenderState.IDLE
         self._exec_context = get_exec_ctx()
         self._is_closed = False
+        self._last_document = {}
 
     def _render(self) -> None:
         logger.debug("ElementMessageStream._render")
@@ -208,7 +213,7 @@ class ElementMessageStream(MessageStream):
         try:
             node = self._renderer.render(self._element)
             state = self._context.export_state()
-            self._send_document_update(node, state)
+            self._send_document_patch(node, state)
         except Exception as e:
             # Send the error to the client for displaying to the user
             # If there's an error sending it to the client, then it will be caught by the render exception handler
@@ -449,11 +454,11 @@ class ElementMessageStream(MessageStream):
         logger.debug("Closing callable %s", callable_id)
         self._temp_callable_dict.pop(callable_id, None)
 
-    def _send_document_update(
+    def _send_document_patch(
         self, root: RenderedNode, state: ExportedRenderState
     ) -> None:
         """
-        Send a document update to the client. Currently just sends the entire document for each update.
+        Send a document update to the client in the form of a JSON Patch (RFC 6902).
 
         Args:
             root: The root node of the document to send
@@ -463,25 +468,25 @@ class ElementMessageStream(MessageStream):
             logger.error("Stream is closed, cannot render document")
             sys.exit()
 
-        # TODO(#67): Send a diff of the document instead of the entire document.
         encoder_result = self._encoder.encode_node(root)
-        encoded_document = encoder_result["encoded_node"]
+        document = encoder_result["encoded_node"]
         new_objects = encoder_result["new_objects"]
         callable_id_dict = encoder_result["callable_id_dict"]
+
+        patch = generate_patch(self._last_document, document)
+        self._last_document = document
 
         logger.debug("Exported state: %s", state)
         encoded_state = json.dumps(state)
 
-        request = self._make_notification(
-            "documentUpdated", encoded_document, encoded_state
-        )
+        request = self._make_notification("documentPatched", patch, encoded_state)
         payload = json.dumps(request)
         logger.debug(f"Sending payload: {payload}")
 
         callable_dict = {}
         for callable, callable_id in callable_id_dict.items():
-            logger.debug("Registering callable %s", callable_id)
             callable_dict[callable_id] = wrap_callable(callable)
+        logger.debug("Registering callables %s", callable_dict.keys())
         self._callable_dict = callable_dict
         self._connection.on_data(payload.encode(), new_objects)
 
@@ -515,7 +520,8 @@ class ElementMessageStream(MessageStream):
             name: The name of the event
             params: The params of the event
         """
-        encoded_params = self._event_encoder.encode(params)
+        params = self._event_encoder.encode(params)
+        encoded_params = json.dumps(params)
         request = self._make_notification("event", name, encoded_params)
         payload = json.dumps(request)
         self._connection.on_data(payload.encode(), [])
