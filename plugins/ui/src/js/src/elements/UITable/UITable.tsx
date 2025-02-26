@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import { useSelector } from 'react-redux';
 import classNames from 'classnames';
+import deepEquals from 'fast-deep-equal/es6/react';
 import {
   DehydratedQuickFilter,
   IrisGrid,
@@ -25,46 +26,139 @@ import {
 } from '@deephaven/components';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import { TableUtils } from '@deephaven/jsapi-utils';
-import type { dh } from '@deephaven/jsapi-types';
+import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { getSettings, RootState } from '@deephaven/redux';
 import { GridMouseHandler } from '@deephaven/grid';
 import { EMPTY_ARRAY, ensureArray } from '@deephaven/utils';
-import { UITableProps } from './UITableUtils';
+import { DatabarConfig, FormattingRule, UITableProps } from './UITableUtils';
 import UITableMouseHandler from './UITableMouseHandler';
 import UITableContextMenuHandler, {
   wrapContextActions,
 } from './UITableContextMenuHandler';
 import UITableModel, { makeUiTableModel } from './UITableModel';
+import { UITableLayoutHints } from './JsTableProxy';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
 
+const ALWAYS_FETCH_COLUMN_LIMIT = 500;
+
 /**
- * Returns a stable array if none of the elements have changed.
- * Mostly put this here to avoid ignoring the exhaustive-deps rule where there are more deps in the component.
- * @param array The array to make stable
- * @returns A stable array if none of the elements have changed
+ * Performs a deep equals check on a value if the reference does not match the previous reference.
+ * If the values are deeply equal, returns the previous reference, otherwise returns a new reference.
+ * This is useful for memoizing arrays or objects that are created every render by the server, but we want a stable reference.
+ * @param value The value to check deep equality
+ * @returns A stable reference to the value if it is deeply equal to the previous value, otherwise a new reference
  */
-function useStableArray<T>(array: T[]): T[] {
-  const stableArray = useRef<T[]>(array);
-  if (
-    array.length !== stableArray.current.length ||
-    !array.every((v, i) => v === stableArray.current[i])
-  ) {
-    stableArray.current = array;
+function useDeepEquals<T>(value: T): T {
+  const ref = useRef<T>(value);
+  if (value !== ref.current && !deepEquals(value, ref.current)) {
+    ref.current = value;
   }
-  return stableArray.current;
+  return ref.current;
+}
+
+/**
+ * Hook to throw an error during a render cycle so it is caught by the error boundary.
+ * Useful to throw from async or callbacks that occur outside the render cycle.
+ * @returns [throwError, clearError] to throw an error and clear it respectively
+ */
+function useThrowError(): [
+  throwError: (error: unknown) => void,
+  clearError: () => void,
+] {
+  const [error, setError] = useState<unknown>(null);
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+  if (error != null) {
+    // Re-throw the error so that the error boundary can catch it
+    if (typeof error === 'string') {
+      throw new Error(error);
+    }
+    throw error;
+  }
+
+  return [setError, clearError];
+}
+
+function useUITableModel({
+  dh,
+  databars,
+  exportedTable,
+  layoutHints,
+  format,
+  columnDisplayNames,
+}: {
+  dh: typeof DhType;
+  databars: DatabarConfig[];
+  exportedTable: DhType.WidgetExportedObject;
+  layoutHints: UITableLayoutHints;
+  format: FormattingRule[];
+  columnDisplayNames: Record<string, string>;
+}): UITableModel | undefined {
+  const [model, setModel] = useState<UITableModel>();
+  const [throwError, clearError] = useThrowError();
+
+  // Just load the object on mount
+  useEffect(() => {
+    let isCancelled = false;
+    async function loadModel() {
+      try {
+        const reexportedTable = await exportedTable.reexport();
+        const table = (await reexportedTable.fetch()) as DhType.Table;
+        const newModel = await makeUiTableModel(
+          dh,
+          table,
+          databars,
+          layoutHints,
+          format,
+          columnDisplayNames
+        );
+        if (!isCancelled) {
+          clearError();
+          setModel(newModel);
+        } else {
+          newModel.close();
+        }
+      } catch (e) {
+        if (!isCancelled) {
+          // Errors thrown from an async useEffect are not caught
+          // by the component's error boundary
+          throwError(e);
+        }
+      }
+    }
+    loadModel();
+    return () => {
+      isCancelled = true;
+    };
+  }, [
+    databars,
+    dh,
+    exportedTable,
+    layoutHints,
+    format,
+    columnDisplayNames,
+    clearError,
+    throwError,
+  ]);
+
+  // We want to clean up the model when we unmount or get a new model
+  useEffect(() => () => model?.close(), [model]);
+
+  return model;
 }
 
 export function UITable({
-  format_: formatProp,
+  format_: formatProp = [],
   onCellPress,
   onCellDoublePress,
   onColumnPress,
   onColumnDoublePress,
   onRowPress,
   onRowDoublePress,
-  quickFilters,
+  quickFilters: quickFiltersProp,
   sorts,
   alwaysFetchColumns: alwaysFetchColumnsProp,
   table: exportedTable,
@@ -84,15 +178,7 @@ export function UITable({
   databars: databarsProp,
   ...userStyleProps
 }: UITableProps): JSX.Element | null {
-  const [error, setError] = useState<unknown>(null);
-
-  if (error != null) {
-    // Re-throw the error so that the error boundary can catch it
-    if (typeof error === 'string') {
-      throw new Error(error);
-    }
-    throw error;
-  }
+  const [throwError] = useThrowError();
 
   // Margin looks wrong with ui.table, so we want to map margin to padding instead
   const {
@@ -130,23 +216,24 @@ export function UITable({
   const dh = useApi();
   const theme = useTheme();
   const [irisGrid, setIrisGrid] = useState<IrisGridType | null>(null);
-  const [model, setModel] = useState<UITableModel>();
-  const [columns, setColumns] = useState<dh.Table['columns']>();
   const utils = useMemo(() => new IrisGridUtils(dh), [dh]);
   const settings = useSelector(getSettings<RootState>);
-  const [layoutHints] = useState({
+  const layoutHints = useDeepEquals({
     frontColumns,
     backColumns,
     frozenColumns,
     hiddenColumns,
     columnGroups,
   });
+  const quickFilters = useDeepEquals(quickFiltersProp);
 
-  // TODO: #982 respond to prop changes here
-  const [format] = useState(formatProp != null ? ensureArray(formatProp) : []);
-  const [columnDisplayNames] = useState(columnDisplayNamesProp ?? {});
+  const format = useDeepEquals(ensureArray(formatProp));
+  const columnDisplayNames = useDeepEquals(columnDisplayNamesProp);
+  const stableAlwaysFetchColumnsProp = useDeepEquals(
+    ensureArray(alwaysFetchColumnsProp)
+  );
   // TODO: #981 move databars to format and rewire for databar support
-  const [databars] = useState(databarsProp ?? []);
+  const databars = useDeepEquals(databarsProp ?? []);
 
   const colorMap = useMemo(() => {
     log.debug('Theme changed, updating databar color map', theme);
@@ -190,6 +277,16 @@ export function UITable({
     return newColorMap;
   }, [theme, databars]);
 
+  const model = useUITableModel({
+    dh,
+    databars,
+    exportedTable,
+    layoutHints,
+    format,
+    columnDisplayNames,
+  });
+  const columns = model?.columns ?? EMPTY_ARRAY;
+
   if (model) {
     model.setColorMap(colorMap);
   }
@@ -225,46 +322,10 @@ export function UITable({
     return undefined;
   }, [quickFilters, model, columns, utils]);
 
-  // Just load the object on mount
-  useEffect(() => {
-    let isCancelled = false;
-    async function loadModel() {
-      try {
-        const reexportedTable = await exportedTable.reexport();
-        const table = (await reexportedTable.fetch()) as dh.Table;
-        const newModel = await makeUiTableModel(
-          dh,
-          table,
-          databars,
-          layoutHints,
-          format,
-          columnDisplayNames
-        );
-        if (!isCancelled) {
-          setError(null);
-          setColumns(newModel.table.columns);
-          setModel(newModel);
-        } else {
-          newModel.close();
-        }
-      } catch (e) {
-        if (!isCancelled) {
-          // Errors thrown from an async useEffect are not caught
-          // by the component's error boundary
-          setError(e);
-        }
-      }
-    }
-    loadModel();
-    return () => {
-      isCancelled = true;
-    };
-  }, [databars, dh, exportedTable, layoutHints, format, columnDisplayNames]);
-
   // Get any format values that match column names
   // Assume the format value is derived from the column
   const formatColumnSources = useMemo(() => {
-    if (columns == null) {
+    if (columns == null || format.length === 0) {
       return [];
     }
     const columnSet = new Set(columns.map(column => column.name));
@@ -284,32 +345,31 @@ export function UITable({
     return alwaysFetch;
   }, [format, columns]);
 
-  const modelColumns = model?.columns ?? EMPTY_ARRAY;
-
-  const alwaysFetchColumnsArray = useStableArray([
-    ...ensureArray(alwaysFetchColumnsProp),
-    ...formatColumnSources,
-  ]);
+  const alwaysFetchColumnsArray = useMemo(
+    () => [...stableAlwaysFetchColumnsProp, ...formatColumnSources],
+    [stableAlwaysFetchColumnsProp, formatColumnSources]
+  );
 
   const alwaysFetchColumns = useMemo(() => {
     if (alwaysFetchColumnsArray[0] === true) {
-      if (modelColumns.length > 500) {
-        setError(
-          `Table has ${modelColumns.length} columns, which is too many to always fetch. ` +
-            'If you want to always fetch more than 500 columns, pass the full array of column names you want to fetch. ' +
+      if (columns.length > ALWAYS_FETCH_COLUMN_LIMIT) {
+        throwError(
+          `Table has ${columns.length} columns, which is too many to always fetch. ` +
+            `If you want to always fetch more than ${ALWAYS_FETCH_COLUMN_LIMIT} columns, pass the full array of column names you want to fetch. ` +
             'This will likely be slow and use a lot of memory. ' +
             'table.column_names contains all columns in a Deephaven table.'
         );
       }
-      return modelColumns.map(column => column.name);
+      return columns.map(column => column.name);
     }
     if (alwaysFetchColumnsArray[0] === false) {
       return [];
     }
     return alwaysFetchColumnsArray.filter(
-      v => typeof v === 'string'
-    ) as string[];
-  }, [alwaysFetchColumnsArray, modelColumns]);
+      // This v is string can be removed when we're on a newer TS version. 5.7 infers this properly at least
+      (v): v is string => typeof v === 'string'
+    );
+  }, [alwaysFetchColumnsArray, columns, throwError]);
 
   const mouseHandlers = useMemo(
     () =>
@@ -387,9 +447,6 @@ export function UITable({
       onContextMenu,
     ]
   );
-
-  // We want to clean up the model when we unmount or get a new model
-  useEffect(() => () => model?.close(), [model]);
 
   return model ? (
     <div
