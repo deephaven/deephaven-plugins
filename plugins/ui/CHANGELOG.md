@@ -2,6 +2,24 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.27.0 - 2025-02-26
+#### Bug Fixes
+- Callable cleanup race (DH-18536) (#1113) - (34c0b60) - mofojed
+#### Documentation
+- preserving and resetting state (#1118) - (374a9e9) - dgodinez-dh
+- share state between components (#1116) - (66fdee9) - dgodinez-dh
+- choose the state structure (#1114) - (838741f) - dgodinez-dh
+- update plotting (#1101) - (2c5ba66) - dgodinez-dh
+- update lists in state (#1097) - (c45c5f5) - dgodinez-dh
+- queueing a series of updates (#1095) - (d5dee4d) - dgodinez-dh
+- react to input with state (#1105) - (11b2335) - dgodinez-dh
+- add docs attribution statement, purge the readme content (#1111) - (98c9c27) - Don
+#### Features
+- UI table respond to non-primitive prop changes (#1046) - (024811d) - Matthew Runyon
+- accordion (#1075) - (76b6195) - ethanalvizo
+
+- - -
+
 ## ui-v0.26.1 - 2025-02-06
 #### Bug Fixes
 - DH-18415: Cannot expand rows after applying rollup to ui.table (#1109) - (0d09ef4) - Matthew Runyon
