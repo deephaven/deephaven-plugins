@@ -126,7 +126,7 @@ color_picker_example = color_picker(create_rgb_table(), create_cmyk_table())
 
 ## Multithreading
 
-TODO explain everything!
+You may want to set a table in state after doing work in another thread. In this example, the table is set directly in the background thread.
 
 ```python
 from deephaven import ui, time_table
@@ -155,6 +155,8 @@ def ui_resetable_table():
 resetable_table = ui_resetable_table()
 ```
 
+Pressing the reset button prints an error: "Attempt to setRefreshing(true) but Table was constructed with a static-only UpdateGraph." To solve this. the table must be set on the render thread, which is done using the [`use_render_queue`](../hooks/use_render_queue.md) hook.
+
 ```python
 from deephaven import ui, time_table
 import threading
@@ -182,6 +184,8 @@ def ui_resetable_table():
 
 resetable_table = ui_resetable_table()
 ```
+
+Now pressing the reset button causes the component to fail with a "LivenessStateException". Now use the `use_liveness_scope` hook to manage the liveness of the table.
 
 ```python
 from deephaven import ui, time_table
