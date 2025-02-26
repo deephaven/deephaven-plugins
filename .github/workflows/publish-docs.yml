@@ -6,6 +6,9 @@ on:
     workflows: ['Test Modified Plugin'] # Only runs on top level workflows, not reusable workflows called from another run
     types:
       - completed
+    branches:
+      - main
+      - 'release/**'
 
 jobs:
   get-docs-packages:
@@ -31,6 +34,10 @@ jobs:
     needs: get-docs-packages
     if: ${{ needs.get-docs-packages.outputs.packages != '[]' && needs.get-docs-packages.outputs.packages != '' }}
     runs-on: ubuntu-24.04
+    permissions:
+      id-token: write # Auth to AWS with OIDC
+      pull-requests: write # Add comment
+      actions: read # Download artifact
     strategy:
       fail-fast: false
       matrix:
@@ -51,18 +58,23 @@ jobs:
           echo "package=$(ls docs-build)" >> $GITHUB_ENV
           echo "version=$(ls docs-build/*)" >> $GITHUB_ENV
 
-      - name: Sync ${{ env.package }}/${{ env.version }} to ${{ github.event.workflow_run.event == 'push' && 'prod' || 'preview' }}
+      - name: Set production env variable
+        run: echo "production=${{ github.event.workflow_run.event == 'push' && 'true' || 'false' }}" >> $GITHUB_ENV
+
+      - name: Sync ${{ env.package }}/${{ env.version }} to ${{ env.production == 'true' && 'prod' || 'preview' }}
         uses: deephaven/salmon-sync@v1
         with:
           source: docs-build/${{ env.package }}/${{ env.version }}/
           destination: deephaven/deephaven-plugins/${{ env.package }}/${{ env.version }}/
-          project_number: ${{ secrets.DOCS_GOOGLE_CLOUD_PROJECT_NUMBER}}
-          bucket: ${{ github.event.workflow_run.event == 'push' && vars.DOCS_GOOGLE_CLOUD_BUCKET || vars.DOCS_PREVIEW_BUCKET }}
-          credentials: ${{ secrets.DOCS_GOOGLE_CLOUD_CREDENTIALS }}
+          production: ${{ env.production }}
+          temporary: ${{ env.production == 'true' && 'false' || 'true' }}
+          aws-role: ${{ vars.DOCS_AWS_ROLE }}
 
       - name: Comment on PR
         if: ${{ github.event.workflow_run.event == 'pull_request' }}
         uses: actions/github-script@v7
+        env:
+          url: ${{ vars.DOCS_PREVIEW_URL }}
         with:
           script: |
             const env = process.env;
@@ -71,5 +83,5 @@ jobs:
               issue_number: env.version.replace('pr-', ''),
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `[${env.package} docs preview](https://deephaven-salmon-staging--deephaven-oss.us-central1.hosted.app/${path}/${env.version}) (Available for 14 days)`
+              body: `[${env.package} docs preview](${env.url}/${path}/${env.version}) (Available for 14 days)`
             });
