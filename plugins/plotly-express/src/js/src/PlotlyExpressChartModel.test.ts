@@ -2,6 +2,7 @@ import type { Layout } from 'plotly.js';
 import { dh as DhType } from '@deephaven/jsapi-types';
 import { TestUtils } from '@deephaven/test-utils';
 import { ChartModel } from '@deephaven/chart';
+import { Formatter } from '@deephaven/jsapi-utils';
 import { PlotlyExpressChartModel } from './PlotlyExpressChartModel';
 import { PlotlyChartWidgetData } from './PlotlyExpressChartUtils';
 
@@ -48,6 +49,18 @@ function createMockWidget(tables: DhType.Table[], plotType = 'scatter') {
         })),
         is_user_set_color: false,
         is_user_set_template: false,
+        calendar: {
+          timeZone: 'America/New_York',
+          businessDays: [
+            'MONDAY',
+            'TUESDAY',
+            'WEDNESDAY',
+            'THURSDAY',
+            'FRIDAY',
+          ],
+          holidays: [{ date: '2024-01-01', businessPeriods: [] }],
+          businessPeriods: [{ open: '08:00', close: '17:00' }],
+        },
       },
       plotly: {
         data: tables.map((_, i) => ({
@@ -105,7 +118,47 @@ const mockDh = {
   Widget: {
     EVENT_MESSAGE: 'message',
   },
+  i18n: {
+    TimeZone: {
+      getTimeZone: () => ({ id: 'America/New_York', standardOffset: 300 }),
+    },
+  },
 } satisfies DeepPartial<typeof DhType> as unknown as typeof DhType;
+
+const mockDhChicago = {
+  calendar: {
+    DayOfWeek: {
+      values: () => [],
+    },
+  },
+  plot: {
+    Downsample: {
+      runChartDownsample: mockDownsample,
+    },
+    ChartData: (() =>
+      TestUtils.createMockProxy()) as unknown as typeof DhType.plot.ChartData,
+  },
+  Table: {
+    EVENT_UPDATED: 'updated',
+  },
+  Widget: {
+    EVENT_MESSAGE: 'message',
+  },
+  i18n: {
+    TimeZone: {
+      getTimeZone: () => ({ id: 'America/Chicago', standardOffset: 300 }),
+    },
+  },
+} satisfies DeepPartial<typeof DhType> as unknown as typeof DhType;
+
+// toHaveBeenLastCalledWith etc. do not actually check for the correct event type like this does
+const checkEventTypes = (mockSubscribe: jest.Mock, eventTypes: string[]) => {
+  const { calls } = mockSubscribe.mock;
+  expect(calls.length).toBe(eventTypes.length);
+  for (let i = 0; i < calls.length; i += 1) {
+    expect(calls[i][0].type).toBe(eventTypes[i]);
+  }
+};
 
 beforeEach(() => {
   jest.resetAllMocks();
@@ -167,13 +220,11 @@ describe('PlotlyExpressChartModel', () => {
     await new Promise(process.nextTick); // Subscribe and addTable are async
     expect(mockDownsample).toHaveBeenCalledTimes(1);
     expect(mockSubscribe).toHaveBeenCalledTimes(2);
-    expect(mockSubscribe).toHaveBeenNthCalledWith(
-      1,
-      new CustomEvent(ChartModel.EVENT_DOWNSAMPLESTARTED)
-    );
-    expect(mockSubscribe).toHaveBeenLastCalledWith(
-      new CustomEvent(ChartModel.EVENT_DOWNSAMPLEFINISHED)
-    );
+
+    checkEventTypes(mockSubscribe, [
+      ChartModel.EVENT_DOWNSAMPLESTARTED,
+      ChartModel.EVENT_DOWNSAMPLEFINISHED,
+    ]);
   });
 
   it('should downsample only the required tables', async () => {
@@ -193,21 +244,13 @@ describe('PlotlyExpressChartModel', () => {
     await new Promise(process.nextTick); // Subscribe and addTable are async
     expect(mockDownsample).toHaveBeenCalledTimes(2);
     expect(mockSubscribe).toHaveBeenCalledTimes(4);
-    expect(mockSubscribe).toHaveBeenNthCalledWith(
-      1,
-      new CustomEvent(ChartModel.EVENT_DOWNSAMPLESTARTED)
-    );
-    expect(mockSubscribe).toHaveBeenNthCalledWith(
-      2,
-      new CustomEvent(ChartModel.EVENT_DOWNSAMPLESTARTED)
-    );
-    expect(mockSubscribe).toHaveBeenNthCalledWith(
-      3,
-      new CustomEvent(ChartModel.EVENT_DOWNSAMPLEFINISHED)
-    );
-    expect(mockSubscribe).toHaveBeenLastCalledWith(
-      new CustomEvent(ChartModel.EVENT_DOWNSAMPLEFINISHED)
-    );
+
+    checkEventTypes(mockSubscribe, [
+      ChartModel.EVENT_DOWNSAMPLESTARTED,
+      ChartModel.EVENT_DOWNSAMPLESTARTED,
+      ChartModel.EVENT_DOWNSAMPLEFINISHED,
+      ChartModel.EVENT_DOWNSAMPLEFINISHED,
+    ]);
   });
 
   it('should fail to downsample for non-line plots', async () => {
@@ -223,9 +266,8 @@ describe('PlotlyExpressChartModel', () => {
     await new Promise(process.nextTick); // Subscribe and addTable are async
     expect(mockDownsample).toHaveBeenCalledTimes(0);
     expect(mockSubscribe).toHaveBeenCalledTimes(1);
-    expect(mockSubscribe).toHaveBeenCalledWith(
-      new CustomEvent(ChartModel.EVENT_DOWNSAMPLEFAILED)
-    );
+
+    checkEventTypes(mockSubscribe, [ChartModel.EVENT_DOWNSAMPLEFAILED]);
   });
 
   it('should fetch non-line plots under the max threshold with downsampling disabled', async () => {
@@ -258,9 +300,8 @@ describe('PlotlyExpressChartModel', () => {
     await new Promise(process.nextTick); // Subscribe and addTable are async
     expect(mockDownsample).toHaveBeenCalledTimes(0);
     expect(mockSubscribe).toHaveBeenCalledTimes(1);
-    expect(mockSubscribe).toHaveBeenCalledWith(
-      new CustomEvent(ChartModel.EVENT_DOWNSAMPLEFAILED)
-    );
+
+    checkEventTypes(mockSubscribe, [ChartModel.EVENT_DOWNSAMPLEFAILED]);
   });
 
   it('should swap replaceable WebGL traces without blocker events if WebGL is disabled or reenabled', async () => {
@@ -302,22 +343,58 @@ describe('PlotlyExpressChartModel', () => {
     chartModel.setRenderOptions({ webgl: false });
     // blocking event should be emitted
     expect(mockSubscribe).toHaveBeenCalledTimes(1);
-    expect(mockSubscribe).toHaveBeenLastCalledWith(
-      new CustomEvent(ChartModel.EVENT_BLOCKER)
-    );
+
     chartModel.setRenderOptions({ webgl: true });
     // blocking clear event should be emitted, but this doesn't count as an acknowledge
     expect(mockSubscribe).toHaveBeenCalledTimes(2);
-    expect(mockSubscribe).toHaveBeenLastCalledWith(
-      new CustomEvent(ChartModel.EVENT_BLOCKER_CLEAR)
-    );
+
     expect(chartModel.hasAcknowledgedWebGlWarning).toBe(false);
     // if user had accepted the rendering (simulated by fireBlockerClear), no EVENT_BLOCKER event should be emitted again
     chartModel.fireBlockerClear();
     chartModel.setRenderOptions({ webgl: false });
     expect(mockSubscribe).toHaveBeenCalledTimes(3);
-    expect(mockSubscribe).toHaveBeenLastCalledWith(
-      new CustomEvent(ChartModel.EVENT_BLOCKER_CLEAR)
+
+    checkEventTypes(mockSubscribe, [
+      ChartModel.EVENT_BLOCKER,
+      ChartModel.EVENT_BLOCKER_CLEAR,
+      ChartModel.EVENT_BLOCKER_CLEAR,
+    ]);
+  });
+
+  it('should emit layout update events if the formatter is updated', async () => {
+    const mockWidget = createMockWidget([SMALL_TABLE], 'line');
+    const chartModel = new PlotlyExpressChartModel(
+      mockDh,
+      mockWidget,
+      jest.fn()
     );
+    const formatter = new Formatter(mockDh);
+    const formatterChicago = new Formatter(mockDhChicago);
+
+    const mockSubscribe = jest.fn();
+    await chartModel.subscribe(mockSubscribe);
+    await new Promise(process.nextTick); // Subscribe is async
+    expect(mockSubscribe).toHaveBeenCalledTimes(0);
+
+    chartModel.setFormatter(formatter);
+    // since a calendar is provided and the formatter is set for the first time, the layout and data should be updated
+    // three calls are made because fireTimeZoneUpdated calls fireUpdated, which fires fireLoadFinished the first time
+    expect(mockSubscribe).toHaveBeenCalledTimes(3);
+
+    chartModel.setFormatter(formatterChicago);
+    // since the timezone is different, the layout should be updated and the data should be updated
+    expect(mockSubscribe).toHaveBeenCalledTimes(5);
+
+    chartModel.setFormatter(formatterChicago);
+    // no updates should be emitted since the formatter is the same
+    expect(mockSubscribe).toHaveBeenCalledTimes(5);
+
+    checkEventTypes(mockSubscribe, [
+      ChartModel.EVENT_LAYOUT_UPDATED,
+      ChartModel.EVENT_UPDATED,
+      ChartModel.EVENT_LOADFINISHED,
+      ChartModel.EVENT_LAYOUT_UPDATED,
+      ChartModel.EVENT_UPDATED,
+    ]);
   });
 });

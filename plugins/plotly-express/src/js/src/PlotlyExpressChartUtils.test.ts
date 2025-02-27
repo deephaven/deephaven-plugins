@@ -1,6 +1,5 @@
 import { ChartUtils } from '@deephaven/chart';
 import type { dh as DhType } from '@deephaven/jsapi-types';
-import { TestUtils } from '@deephaven/test-utils';
 import { Formatter } from '@deephaven/jsapi-utils';
 import {
   getPathParts,
@@ -23,26 +22,24 @@ type DeepPartial<T> = T extends object
     }
   : T;
 
-const mockDownsample = jest.fn(t => t);
-
 const mockDh = {
   calendar: {
     DayOfWeek: {
-      values: () => [],
+      values: () => [
+        'SUNDAY',
+        'MONDAY',
+        'TUESDAY',
+        'WEDNESDAY',
+        'THURSDAY',
+        'FRIDAY',
+        'SATURDAY',
+      ],
     },
   },
-  plot: {
-    Downsample: {
-      runChartDownsample: mockDownsample,
+  i18n: {
+    TimeZone: {
+      getTimeZone: () => ({ id: 'America/New_York', standardOffset: 300 }),
     },
-    ChartData: (() =>
-      TestUtils.createMockProxy()) as unknown as typeof DhType.plot.ChartData,
-  },
-  Table: {
-    EVENT_UPDATED: 'updated',
-  },
-  Widget: {
-    EVENT_MESSAGE: 'message',
   },
 } satisfies DeepPartial<typeof DhType> as unknown as typeof DhType;
 
@@ -358,32 +355,39 @@ describe('setRangeBreaksFromCalendar', () => {
     const calendar = {
       timeZone: { id: 'America/New_York', standardOffset: 300 },
       businessDays: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
-      holidays: [
-        { date: '2024-01-01', businessPeriods: [] },
-        {
-          date: '2024-04-01',
-          businessPeriods: [
-            { open: '2024-04-01T12:00:00Z', close: '2024-04-01T16:00:00Z' },
-          ],
-        },
-      ],
-      businessPeriods: [{ open: '08:00', close: '12:00' }],
+      holidays: [{ date: '2024-01-01', businessPeriods: [] }],
+      businessPeriods: [{ open: '08:00', close: '17:00' }],
     } as unknown as DhType.calendar.BusinessCalendar;
 
     const layout = {
       xaxis: {},
       yaxis: {},
     };
-    console.log(mockDh);
 
     const chartUtils = new ChartUtils(mockDh);
 
-    console.log("hi");
-
     const formatter = new Formatter(mockDh);
 
-    setRangebreaksFromCalendar(formatter, calendar, layout, chartUtils);
+    const updatedLayout = {
+      ...layout,
+      ...setRangebreaksFromCalendar(formatter, calendar, layout, chartUtils),
+    };
 
-    console.log(layout);
+    expect(updatedLayout).toEqual({
+      xaxis: {
+        rangebreaks: [
+          { values: ['2024-01-01 00:00:00.000000'] },
+          { pattern: 'hour', bounds: [17, 8] },
+          { bounds: [6, 1], pattern: 'day of week' },
+        ],
+      },
+      yaxis: {
+        rangebreaks: [
+          { values: ['2024-01-01 00:00:00.000000'] },
+          { pattern: 'hour', bounds: [17, 8] },
+          { bounds: [6, 1], pattern: 'day of week' },
+        ],
+      },
+    });
   });
 });

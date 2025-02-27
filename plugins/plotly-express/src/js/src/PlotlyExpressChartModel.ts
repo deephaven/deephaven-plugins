@@ -292,6 +292,25 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   /**
+   * Check if the timezone has changed in the new formatter.
+   * @param formatter The new formatter
+   * @returns True if the timezone has changed
+   */
+  timeZoneChanged(formatter: Formatter): boolean {
+    const timeZone = (
+      this.formatter?.getColumnTypeFormatter(
+        'datetime'
+      ) as DateTimeColumnFormatter
+    )?.dhTimeZone.id;
+
+    const newTimeZone = (
+      formatter.getColumnTypeFormatter('datetime') as DateTimeColumnFormatter
+    )?.dhTimeZone.id;
+
+    return timeZone !== newTimeZone && newTimeZone != null;
+  }
+
+  /**
    * Fire an event to update the rangebreaks on the chart.
    * @param formatter The formatter to use to set the rangebreaks. If not provided, the current formatter is used.
    */
@@ -301,6 +320,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     if (!formatter) {
       return;
     }
+
     const layoutUpdate = setRangebreaksFromCalendar(
       formatter,
       this.calendar,
@@ -309,14 +329,32 @@ export class PlotlyExpressChartModel extends ChartModel {
     );
 
     if (layoutUpdate) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       this.fireLayoutUpdated(layoutUpdate);
     }
   }
 
+  /**
+   * Fire an event to update the timezone on the chart data if it has changed.
+   * @param formatter The new formatter
+   */
+  fireTimeZoneUpdated(): void {
+    this.tableDataMap.forEach((_, tableId) => {
+      const table = this.tableReferenceMap.get(tableId);
+      if (table) {
+        // resubscribe to get the data with the new timezone
+        this.tableSubscriptionMap.get(tableId)?.close();
+        this.tableSubscriptionMap.delete(tableId);
+        this.subscribeTable(tableId);
+      }
+    });
+    this.fireUpdate(this.getData());
+  }
+
   setFormatter(formatter: Formatter): void {
-    this.fireRangebreaksUpdated(formatter);
+    if (this.timeZoneChanged(formatter)) {
+      this.fireRangebreaksUpdated(formatter);
+      this.fireTimeZoneUpdated();
+    }
     super.setFormatter(formatter);
   }
 
