@@ -42,9 +42,7 @@ class FigureCalendarTestCase(BaseTestCase):
             {"date": "2024-01-01", "businessPeriods": []},
             {
                 "date": "2024-04-01",
-                "businessPeriods": [
-                    {"open": "2024-04-01T12:00:00Z", "close": "2024-04-01T16:00:00Z"}
-                ],
+                "businessPeriods": [{"open": "08:00", "close": "12:00"}],
             },
         ]
         self.assertCountEqual(figure_calendar.holidays, expected_holidays)

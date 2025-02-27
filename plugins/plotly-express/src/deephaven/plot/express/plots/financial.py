@@ -53,7 +53,7 @@ def ohlc(
           loop.
       xaxis_titles: A list of titles to sequentially apply to the x axes. The titles do not
           loop.
-      calendar: A boolean or string that specifies a calendar to use for the chart.
+      calendar: A boolean, BusinessCalendar or string that specifies a calendar to use for the chart.
         By default, False and no calendar is used. If True, the default calendar is used.
         If a string, the calendar with that name is used. If a BusinessCalendar is passed,
         that calendar is used.
@@ -123,7 +123,7 @@ def candlestick(
           loop.
       xaxis_titles: A list of titles to sequentially apply to the x axes. The titles do not
           loop.
-      calendar: A boolean or string that specifies a calendar to use for the chart.
+      calendar: A boolean, BusinessCalendar or string that specifies a calendar to use for the chart.
         By default, False and no calendar is used. If True, the default calendar is used.
         If a string, the calendar with that name is used. If a BusinessCalendar is passed,
         that calendar is used.

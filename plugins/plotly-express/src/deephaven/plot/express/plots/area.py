@@ -144,7 +144,7 @@ def area(
         'spline', 'vhv', 'hvh', 'vh', 'hv'. Default 'linear'
       title: The title of the chart
       template: The template for the chart.
-      calendar: A boolean or string that specifies a calendar to use for the chart.
+      calendar: A boolean, BusinessCalendar or string that specifies a calendar to use for the chart.
         By default, False and no calendar is used. If True, the default calendar is used.
         If a string, the calendar with that name is used. If a BusinessCalendar is passed,
         that calendar is used.

@@ -93,8 +93,8 @@ class LineTestCase(BaseTestCase):
                     "date": "2024-04-01",
                     "businessPeriods": [
                         {
-                            "open": "2024-04-01T12:00:00Z",
-                            "close": "2024-04-01T16:00:00Z",
+                            "open": "08:00",
+                            "close": "12:00",
                         }
                     ],
                 },

@@ -288,10 +288,6 @@ def retrieve_calendar(render_args: dict[str, Any]) -> Calendar:
     if calendar is not False and "render_mode" in render_args["args"]:
         render_args["args"]["render_mode"] = "svg"
 
-    new_table = render_args["args"]["table"]
-
-    render_args["args"]["table"] = new_table
-
     return calendar
 
 
