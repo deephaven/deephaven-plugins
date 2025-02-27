@@ -4,12 +4,10 @@ When using `deephaven.ui` to build complex workflows with multiple components, i
 
 In `deephaven.ui`, you will have a `dashboard` that contains `panels`. The `panels` contain `components` which are arranged by various layouts.
 
-## Containers
+## Dashboard
 
 - [`dashboard`](../components/dashboard.md) is a full page top level container comprised of panels and stacks of panels, which the user can re-arrange. Dashboards cannot nest within other dashboards or panels.
 - [`panel`](../components/panel.md) is a container that is presented as individual tabs in a `dashboard` that can be moved to different positions by dragging the tabs. A `panel` contains components and arranges them using layouts. Panels cannot nest within other panels.
-
-## Dashboard
 
 The [`dashboard`](../components/dashboard.md) component allows you to create a page layout containing a collection of components. The user can move and resize panels within the dashboard.
 
@@ -23,10 +21,10 @@ The [`dashboard`](../components/dashboard.md) component allows you to create a p
 
 Four main children make up a dashboard: row, column, stack, and panels.
 
-- **Row**: A container used to group elements horizontally. Each element is placed to the right of the previous one.
-- **Column**: A container used to group elements vertically. Each element is placed below the previous one.
-- **Stack**: A container used to group elements into a stack of tabs. Each element gets its own tab, with only one element visible at a time.
-- **Panel**: A container used to group and label elements.
+- [**Row**](../components/dashboard.md#row-api-reference): A container used to group elements horizontally. Each element is placed to the right of the previous one.
+- [**Column**](../components/dashboard.md#column-api-reference): A container used to group elements vertically. Each element is placed below the previous one.
+- [**Stack**](../components/dashboard.md#stack-api-reference): A container used to group elements into a stack of tabs. Each element gets its own tab, with only one element visible at a time.
+- [**Panel**](../components/panel.md): A container used to group and label elements.
 
 ```python
 from deephaven import ui
