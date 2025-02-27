@@ -12,12 +12,13 @@ from .types import (
     Position,
     LabelPosition,
 )
+from ..types import Date, DateRange, NumberRange
 from .basic import component_element
 from ..elements import Element
 
 
 def labeled_value(
-    value: str | List[str] | int | None = None,
+    value: str | List[str] | float | NumberRange | Date | DateRange | None = None,
     label: Element | None = None,
     format_options: NumberFormatOptions | None = None,
     label_position: LabelPosition | None = "top",

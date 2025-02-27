@@ -574,6 +574,22 @@ class DateRange(TypedDict):
     """
 
 
+class NumberRange(TypedDict):
+    """
+    Range of number values.
+    """
+
+    start: float
+    """
+    Start value for the number range.
+    """
+
+    end: float
+    """
+    End value for the number range.
+    """
+
+
 ToastVariant = Literal["positive", "negative", "neutral", "info"]
 
 

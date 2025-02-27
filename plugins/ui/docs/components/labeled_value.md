@@ -1,6 +1,6 @@
 # Labeled Value
 
-A labeled value displays a non-editable value with a label. 
+A labeled value displays a non-editable value with a label.
 
 ## Example
 
@@ -10,7 +10,6 @@ from deephaven import ui
 
 my_labeled_value_basic = ui.labeled_value(label="File name", value="Budget.xls")
 ```
-
 
 ## Value
 
@@ -38,7 +37,7 @@ my_labeled_value_values_examples = ui_labeled_value_examples()
 
 When passing a number into a labeled value, the `format_options` prop dictates how the value is displayed. There are 3 styles supported by this parameter: Percentage, Currency, and Units.
 
-Note that this prop is compatible with the option parameter of [Intl.NumberFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NumberFormat).
+Note that this prop is compatible with the optional parameter of [Intl.NumberFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NumberFormat).
 
 ```python
 from deephaven import ui
@@ -68,10 +67,21 @@ def ui_labeled_value_numbers_example():
 my_labeled_value_numbers_example = ui_labeled_value_numbers_example()
 ```
 
+An object with a `start` and `end` property can be passed to the `value` prop in order to format a numeric range.
+
+```python
+from deephaven import ui
+
+my_number_range = ui.labeled_value(
+    label="Price range",
+    value={"start": 150, "end": 400},
+    format_options={"style": "currency", "currency": "USD", "minimumFractionDigits": 0},
+)
+```
 
 ## Label position
 
-By default, the label is positioned above the labeled value, but it can be moved to the side using the `label_position` prop. 
+By default, the label is positioned above the labeled value, but it can be moved to the side using the `label_position` prop.
 
 ```python
 from deephaven import ui
@@ -81,7 +91,6 @@ my_labeled_value_label_position_example = ui.labeled_value(
     label="File name", value="Onboarding.pdf", label_position="side", label_align="end"
 )
 ```
-
 
 ## Contextual Help
 
@@ -99,7 +108,6 @@ my_labeled_value_contextual_help_example = ui.labeled_value(
     ),
 )
 ```
-
 
 ## API reference
 
