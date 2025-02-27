@@ -508,7 +508,7 @@ class DeephavenFigure:
 
         # currently, there is one calendar and it only needs to be sent once
         if not self._sent_calendar and (
-            calendar_dict := self._figure_calendar.__dict__()
+            calendar_dict := self._figure_calendar.to_dict()
         ):
             deephaven["calendar"] = calendar_dict
             self._sent_calendar = True

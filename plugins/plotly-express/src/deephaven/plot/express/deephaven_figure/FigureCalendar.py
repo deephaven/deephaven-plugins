@@ -213,7 +213,7 @@ class FigureCalendar:
 
         return [str(day) for day in list(self._calendar.weekendDays().toArray())]
 
-    def __dict__(self) -> FigureCalendarDict | None:
+    def to_dict(self) -> FigureCalendarDict | None:
         """
         Convert the FigureCalendar to a dictionary
 

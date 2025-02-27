@@ -59,7 +59,7 @@ class FigureCalendarTestCase(BaseTestCase):
             "businessPeriods": expected_business_periods,
         }
 
-        calendar_dict = figure_calendar.__dict__()
+        calendar_dict = figure_calendar.to_dict()
 
         self.assert_calendar_equal(calendar_dict, expected_calendar)
 
@@ -80,4 +80,4 @@ class FigureCalendarTestCase(BaseTestCase):
 
         self.assertCountEqual(figure_calendar.business_periods, [])
 
-        self.assertIsNone(figure_calendar.__dict__())
+        self.assertIsNone(figure_calendar.to_dict())
