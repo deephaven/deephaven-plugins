@@ -577,7 +577,12 @@ class DeephavenFigure:
             func: The function to call
 
         """
-        self._liveness_scope.manage(table)
+        if isinstance(table, Table) and not table.is_refreshing:
+            # static tables should not be managed
+            # check because it doesn't throw an error on first manage attempt, but leads to errors later
+            pass
+        else:
+            self._liveness_scope.manage(table)
 
         node = DeephavenFigureNode(self._head_node, exec_ctx, args, table, func)
 

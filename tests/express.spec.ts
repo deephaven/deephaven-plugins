@@ -19,6 +19,18 @@ test('Histogram loads', async ({ page }) => {
   await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
 });
 
+test('Ticking loads', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(page, 'ticking_fig', '.js-plotly-plot');
+  await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
+});
+
+test('Partitioned loads', async ({ page }) => {
+    await gotoPage(page, '');
+    await openPanel(page, 'partitioned_fig', '.js-plotly-plot');
+    await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
+});
+
 test('Calendar line chart loads', async ({ page }) => {
   await gotoPage(page, '');
   await openPanel(page, 'line_calendar', '.js-plotly-plot');

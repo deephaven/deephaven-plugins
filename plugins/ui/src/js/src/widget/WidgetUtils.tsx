@@ -56,6 +56,7 @@ import Stack from '../layout/Stack';
 import Column from '../layout/Column';
 import Dashboard from '../layout/Dashboard';
 import {
+  Accordion,
   ActionButton,
   ActionGroup,
   Badge,
@@ -129,6 +130,7 @@ export const elementComponentMap: Record<ValueOf<ElementName>, unknown> = {
   [ELEMENT_NAME.stack]: Stack,
 
   // Other components
+  [ELEMENT_NAME.accordion]: Accordion,
   [ELEMENT_NAME.actionButton]: ActionButton,
   [ELEMENT_NAME.actionGroup]: ActionGroup,
   [ELEMENT_NAME.actionMenu]: ActionMenu,
@@ -266,12 +268,14 @@ export function getPreservedData(
  * @param jsonClient The JSON client to send callable requests to
  * @param callableId The callableId to return a wrapped callable for
  * @param registry The finalization registry to register the callable with.
+ * @param shouldRegister Whether to register the callable in the finalization registry
  * @returns A wrapped callable that will automatically wrap any nested callables returned by the server
  */
 export function wrapCallable(
   jsonClient: JSONRPCServerAndClient,
   callableId: string,
-  registry: FinalizationRegistry<string>
+  registry: FinalizationRegistry<string>,
+  shouldRegister = true
 ): (...args: unknown[]) => Promise<unknown> {
   const callable = async (...args: unknown[]) => {
     log.debug2(`Callable ${callableId} called`, args);
@@ -304,7 +308,9 @@ export function wrapCallable(
     }
   };
 
-  registry.register(callable, callableId, callable);
+  if (shouldRegister) {
+    registry.register(callable, callableId, callable);
+  }
 
   return callable;
 }
