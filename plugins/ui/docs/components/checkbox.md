@@ -2,7 +2,7 @@
 
 Checkbox allows users to select or mark a single item as selected.
 
-To use multiple checkboxes together, use the `checkbox_group` component. 
+To use multiple checkboxes together, use the `checkbox_group` component.
 
 ## Example
 
@@ -12,6 +12,8 @@ from deephaven import ui
 cb = ui.checkbox("Unsubscribe")
 ```
 
+![Checkbox Basic Example](../_assets/checkbox_basic.png)
+
 ## UI recommendations
 
 Recommendations for creating checkboxes:
@@ -20,7 +22,6 @@ Recommendations for creating checkboxes:
 2. Use standalone checkboxes when the context is clear without a text label, such as when a checkbox is associated with other controls within a panel.
 3. Checkboxes and radio buttons should not be used interchangably. Use checkboxes to allow multiple selections (or none) from a list. Use radio buttons to select only one option from a list of mutually exclusive choices.
 4. Checkboxes should be used when selecting (ie., multiple table rows), whereas switches should be used for activation (ie., on/off states).
-
 
 Consider using a [`checkbox`](./checkbox.md) for individual selections or when marking a single item as selected. For a set of related checkboxes, use a [`checkbox_group`](./checkbox_group.md) to manage multiple selections within a group. If you need to display a list of checkboxes driven by a Deephaven table, use a [`list_view`](./list_view.md) to dynamically generate the checkboxes.
 
@@ -36,7 +37,7 @@ my_checkbox_basic = ui.checkbox("Basic Checkbox")
 
 ## Value
 
-Checkboxes are not selected by default. Use the `default_selected` prop to set the initial state (uncontrolled) or the `is_selected` prop to control the selected state. 
+Checkboxes are not selected by default. Use the `default_selected` prop to set the initial state (uncontrolled) or the `is_selected` prop to control the selected state.
 
 ```python
 from deephaven import ui
@@ -57,11 +58,9 @@ def ui_checkbox_content_examples():
 my_checkbox_content_examples = ui_checkbox_content_examples()
 ```
 
-
 ## Indeterminate state
 
 A checkbox can be set to an indeterminate state using the `is_indeterminate` prop, which overrides its appearance. The Checkbox remains visually indeterminate until the prop is set to false, regardless of user interaction.
-
 
 ```python
 from deephaven import ui
@@ -103,6 +102,7 @@ def ui_checkbox_event_example():
 
 my_checkbox_event_example = ui_checkbox_event_example()
 ```
+
 ## Validation
 
 Checkboxes can indicate a validation state to show if the current value is invalid, via the `is_invalid` prop. Since the invalid state is only shown through a color change, ensure the validation error is also communicated in another accessible way.

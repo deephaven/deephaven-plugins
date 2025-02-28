@@ -20,6 +20,8 @@ my_dialog_trigger_example = ui.dialog_trigger(
 )
 ```
 
+![Dialog Trigger Basic Example](../_assets/dialog_trigger_basic.png)
+
 ## Content
 
 The `dialog_trigger` accepts exactly two children: the element which triggers opening of the `dialog` and the `dialog` itself. The trigger must be the first child passed into the `dialog_trigger` and should be an element that supports press events.
