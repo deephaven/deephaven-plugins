@@ -50,7 +50,7 @@ export type FormattingRule = {
 
 export type UITableProps = StyleProps & {
   table: dh.WidgetExportedObject;
-  format_?: FormattingRule | FormattingRule[];
+  format_?: FormattingRule | readonly FormattingRule[];
   onCellPress?: (data: CellData) => void;
   onCellDoublePress?: (data: CellData) => void;
   onRowPress?: (rowData: RowDataMap) => void;
@@ -59,21 +59,23 @@ export type UITableProps = StyleProps & {
   onColumnDoublePress?: (columnName: ColumnName) => void;
   alwaysFetchColumns?: string | string[] | boolean;
   quickFilters?: Record<string, string>;
-  sorts?: DehydratedSort[];
+  sorts?: readonly DehydratedSort[];
   showSearch: boolean;
   showQuickFilters: boolean;
   showGroupingColumn: boolean;
   reverse: boolean;
-  frontColumns?: string[];
-  backColumns?: string[];
-  frozenColumns?: string[];
-  hiddenColumns?: string[];
-  columnGroups?: dh.ColumnGroup[];
+  frontColumns?: readonly string[];
+  backColumns?: readonly string[];
+  frozenColumns?: readonly string[];
+  hiddenColumns?: readonly string[];
+  columnGroups?: readonly dh.ColumnGroup[];
   columnDisplayNames?: Record<ColumnName, string>;
   density?: 'compact' | 'regular' | 'spacious';
-  contextMenu?: ResolvableUIContextItem | ResolvableUIContextItem[];
-  contextHeaderMenu?: ResolvableUIContextItem | ResolvableUIContextItem[];
-  databars?: DatabarConfig[];
+  contextMenu?: ResolvableUIContextItem | readonly ResolvableUIContextItem[];
+  contextHeaderMenu?:
+    | ResolvableUIContextItem
+    | readonly ResolvableUIContextItem[];
+  databars?: readonly DatabarConfig[];
   [key: string]: unknown; // Needed because StyleProps is an interface which removes the implicit index signature of the type
 };
 
@@ -86,4 +88,16 @@ export function isUITable(obj: unknown): obj is UITableNode {
     isElementNode(obj) &&
     (obj as UITableNode)[ELEMENT_KEY] === ELEMENT_NAME.uiTable
   );
+}
+
+/**
+ * Wrap a value in an array if it is not already an array. Otherwise return the
+ * value.
+ * TODO: This can be removed once @deephaven/utils is updated to handle readonly arrays with ensureArray.
+ *
+ * @param value The value to ensure is an array
+ * @returns The value as an array
+ */
+export function ensureArray<T>(value: T | readonly T[]): readonly T[] {
+  return Array.isArray(value) ? value : [value as T];
 }

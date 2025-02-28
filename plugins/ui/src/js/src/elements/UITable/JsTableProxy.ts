@@ -1,11 +1,11 @@
 import type { dh } from '@deephaven/jsapi-types';
 
 export interface UITableLayoutHints {
-  frontColumns?: string[];
-  frozenColumns?: string[];
-  backColumns?: string[];
-  hiddenColumns?: string[];
-  columnGroups?: dh.ColumnGroup[];
+  frontColumns?: readonly string[];
+  frozenColumns?: readonly string[];
+  backColumns?: readonly string[];
+  hiddenColumns?: readonly string[];
+  columnGroups?: readonly dh.ColumnGroup[];
 }
 
 // This tricks TS into believing the class extends dh.Table

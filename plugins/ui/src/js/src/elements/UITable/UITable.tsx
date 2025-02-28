@@ -1,13 +1,6 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import classNames from 'classnames';
-import deepEquals from 'fast-deep-equal/es6/react';
 import {
   DehydratedQuickFilter,
   IrisGrid,
@@ -30,8 +23,13 @@ import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { getSettings, RootState } from '@deephaven/redux';
 import { GridMouseHandler } from '@deephaven/grid';
-import { EMPTY_ARRAY, ensureArray } from '@deephaven/utils';
-import { DatabarConfig, FormattingRule, UITableProps } from './UITableUtils';
+import { EMPTY_ARRAY } from '@deephaven/utils';
+import {
+  DatabarConfig,
+  ensureArray,
+  FormattingRule,
+  UITableProps,
+} from './UITableUtils';
 import UITableMouseHandler from './UITableMouseHandler';
 import UITableContextMenuHandler, {
   wrapContextActions,
@@ -43,20 +41,7 @@ const log = Log.module('@deephaven/js-plugin-ui/UITable');
 
 const ALWAYS_FETCH_COLUMN_LIMIT = 500;
 
-/**
- * Performs a deep equals check on a value if the reference does not match the previous reference.
- * If the values are deeply equal, returns the previous reference, otherwise returns a new reference.
- * This is useful for memoizing arrays or objects that are created every render by the server, but we want a stable reference.
- * @param value The value to check deep equality
- * @returns A stable reference to the value if it is deeply equal to the previous value, otherwise a new reference
- */
-function useDeepEquals<T>(value: T): T {
-  const ref = useRef<T>(value);
-  if (value !== ref.current && !deepEquals(value, ref.current)) {
-    ref.current = value;
-  }
-  return ref.current;
-}
+const EMPTY_OBJECT = Object.freeze({});
 
 /**
  * Hook to throw an error during a render cycle so it is caught by the error boundary.
@@ -91,10 +76,10 @@ function useUITableModel({
   columnDisplayNames,
 }: {
   dh: typeof DhType;
-  databars: DatabarConfig[];
+  databars: readonly DatabarConfig[];
   exportedTable: DhType.WidgetExportedObject;
   layoutHints: UITableLayoutHints;
-  format: FormattingRule[];
+  format: readonly FormattingRule[];
   columnDisplayNames: Record<string, string>;
 }): UITableModel | undefined {
   const [model, setModel] = useState<UITableModel>();
@@ -151,14 +136,14 @@ function useUITableModel({
 }
 
 export function UITable({
-  format_: formatProp = [],
+  format_: formatProp = EMPTY_ARRAY,
   onCellPress,
   onCellDoublePress,
   onColumnPress,
   onColumnDoublePress,
   onRowPress,
   onRowDoublePress,
-  quickFilters: quickFiltersProp,
+  quickFilters,
   sorts,
   alwaysFetchColumns: alwaysFetchColumnsProp,
   table: exportedTable,
@@ -171,11 +156,12 @@ export function UITable({
   frozenColumns,
   hiddenColumns,
   columnGroups,
-  columnDisplayNames: columnDisplayNamesProp = {},
+  columnDisplayNames = EMPTY_OBJECT,
   density,
-  contextMenu,
+  contextMenu = EMPTY_ARRAY,
   contextHeaderMenu,
-  databars: databarsProp,
+  // TODO: #981 move databars to format and rewire for databar support
+  databars = EMPTY_ARRAY,
   ...userStyleProps
 }: UITableProps): JSX.Element | null {
   const [throwError] = useThrowError();
@@ -218,22 +204,17 @@ export function UITable({
   const [irisGrid, setIrisGrid] = useState<IrisGridType | null>(null);
   const utils = useMemo(() => new IrisGridUtils(dh), [dh]);
   const settings = useSelector(getSettings<RootState>);
-  const layoutHints = useDeepEquals({
-    frontColumns,
-    backColumns,
-    frozenColumns,
-    hiddenColumns,
-    columnGroups,
-  });
-  const quickFilters = useDeepEquals(quickFiltersProp);
-
-  const format = useDeepEquals(ensureArray(formatProp));
-  const columnDisplayNames = useDeepEquals(columnDisplayNamesProp);
-  const stableAlwaysFetchColumnsProp = useDeepEquals(
-    ensureArray(alwaysFetchColumnsProp)
+  const format = useMemo(() => ensureArray(formatProp), [formatProp]);
+  const layoutHints = useMemo(
+    () => ({
+      frontColumns,
+      backColumns,
+      frozenColumns,
+      hiddenColumns,
+      columnGroups,
+    }),
+    [frontColumns, backColumns, frozenColumns, hiddenColumns, columnGroups]
   );
-  // TODO: #981 move databars to format and rewire for databar support
-  const databars = useDeepEquals(databarsProp ?? []);
 
   const colorMap = useMemo(() => {
     log.debug('Theme changed, updating databar color map', theme);
@@ -346,8 +327,8 @@ export function UITable({
   }, [format, columns]);
 
   const alwaysFetchColumnsArray = useMemo(
-    () => [...stableAlwaysFetchColumnsProp, ...formatColumnSources],
-    [stableAlwaysFetchColumnsProp, formatColumnSources]
+    () => [...ensureArray(alwaysFetchColumnsProp), ...formatColumnSources],
+    [alwaysFetchColumnsProp, formatColumnSources]
   );
 
   const alwaysFetchColumns = useMemo(() => {
@@ -413,7 +394,7 @@ export function UITable({
 
   const onContextMenu = useCallback(
     (data: IrisGridContextMenuData) =>
-      wrapContextActions(contextMenu ?? [], data, alwaysFetchColumns),
+      wrapContextActions(contextMenu ?? EMPTY_ARRAY, data, alwaysFetchColumns),
     [contextMenu, alwaysFetchColumns]
   );
 
