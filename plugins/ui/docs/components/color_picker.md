@@ -33,8 +33,6 @@ def ui_color_picker_value():
 my_color_picker_value = ui_color_picker_value()
 ```
 
-![Color Picker State Example](../_assets/color_picker_state.png)
-
 ## Labeling
 
 A visual label can be provided using the `label` prop. If a visible label isn't specified, an `aria_label` prop should be provided for accessibility.
@@ -53,8 +51,6 @@ def ui_color_picker_label():
 
 my_color_picker_label = ui_color_picker_label()
 ```
-
-![Color Picker Label Example](../_assets/color_picker_label.png)
 
 ## Events
 
@@ -78,8 +74,6 @@ def ui_color_picker_event():
 my_color_picker_event = ui_color_picker_event()
 ```
 
-![Color Picker Event Example](../_assets/color_picker_event.png)
-
 ## Visual Options
 
 The appearance of the color picker can be customized using various visual options such as hiding the alpha channel, adjusting rounding, and changing the size.
@@ -95,8 +89,6 @@ my_color_picker_hide_alpha_channel = ui.color_picker(
     default_value="#65C4D7",
 )
 ```
-
-![Color Picker Alpha Channel Example](../_assets/color_picker_alpha_channel.png)
 
 ### Rounding
 
@@ -118,8 +110,6 @@ def ui_color_picker_rounding():
 my_color_picker_rounding = ui_color_picker_rounding()
 ```
 
-![Color Picker Rounding Example](../_assets/color_picker_rounding.png)
-
 ### Size
 
 ```python
@@ -140,8 +130,6 @@ def ui_color_picker_size():
 
 my_color_picker_size = ui_color_picker_size()
 ```
-
-![Color Picker Size Example](../_assets/color_picker_size.png)
 
 ## Table Formatting
 
@@ -170,8 +158,6 @@ def ui_color_picker_table_format():
 
 my_color_picker_table_format = ui_color_picker_table_format()
 ```
-
-![Color Picker Table Format Example](../_assets/color_picker_table_format.png)
 
 ## API reference
 
