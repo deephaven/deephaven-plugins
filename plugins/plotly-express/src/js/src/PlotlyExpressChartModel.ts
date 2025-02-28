@@ -2,7 +2,7 @@ import type { Layout, Data, PlotData, LayoutAxis } from 'plotly.js';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { ChartModel, ChartUtils } from '@deephaven/chart';
 import Log from '@deephaven/log';
-import { RenderOptions } from '@deephaven/chart/dist/ChartModel';
+import { ChartEvent, RenderOptions } from '@deephaven/chart/dist/ChartModel';
 import { DateTimeColumnFormatter, Formatter } from '@deephaven/jsapi-utils';
 import {
   DownsampleInfo,
@@ -190,7 +190,7 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   override async subscribe(
-    callback: (event: CustomEvent) => void
+    callback: (event: ChartEvent) => void
   ): Promise<void> {
     if (this.isSubscribed) {
       log.debug('already subscribed');
@@ -226,7 +226,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     }
   }
 
-  override unsubscribe(callback: (event: CustomEvent) => void): void {
+  override unsubscribe(callback: (event: ChartEvent) => void): void {
     if (!this.isSubscribed) {
       return;
     }
@@ -292,7 +292,7 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   /**
-   * Check if the timezone has changed in the new formatter.
+   * Check if the timezone has changed in the new formatter
    * @param formatter The new formatter
    * @returns True if the timezone has changed
    */
@@ -398,7 +398,7 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   handleFigureUpdated(
-    event: CustomEvent<DhType.SubscriptionTableData>,
+    event: DhType.Event<DhType.SubscriptionTableData>,
     tableId: number
   ): void {
     const chartData = this.chartDataMap.get(tableId);
