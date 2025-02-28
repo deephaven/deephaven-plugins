@@ -335,8 +335,7 @@ export function setRangebreaksFromCalendar(
           rangebreaks: [...rangebreaks, ...updatedRangebreaks],
         };
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        layoutUpdate[key as keyof Layout] = updatedAxis as any;
+        (layoutUpdate as Record<string, unknown>)[key] = updatedAxis;
       }
     });
 
