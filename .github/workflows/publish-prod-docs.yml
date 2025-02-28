@@ -1,4 +1,3 @@
-# Docs triggered via push will go to prod, while docs triggered via PR will go to preview
 name: Publish Prod Docs
 
 on:
