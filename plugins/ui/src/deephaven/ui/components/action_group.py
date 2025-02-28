@@ -88,6 +88,7 @@ def action_group(
 ) -> Element:
     """
     An action grouping of action items that are related to each other.
+
     Args:
         *children: The children of the action group.
         is_emphasized: Whether the action buttons should be displayed with emphasized style.
@@ -96,7 +97,7 @@ def action_group(
         is_quiet: Whether ActionButtons should use the quiet style.
         static_color: The static color style to apply. Useful when the ActionGroup appears over a color background.
         overflow_mode: The behavior of the ActionGroup when the buttons do not fit in the available space.
-        button_label_behaviour: Defines when the text within the buttons should be hidden and only the icon should be shown.
+        button_label_behavior: Defines when the text within the buttons should be hidden and only the icon should be shown.
         summary_icon: The icon displayed in the dropdown menu button when a selectable ActionGroup is collapsed.
         orientation: The axis the ActionGroup should align with.
         disabled_keys: A list of keys to disable.
@@ -106,9 +107,7 @@ def action_group(
         selected_keys: The currently selected keys in the collection (controlled).
         default_selected_keys: The initial selected keys in the collection (uncontrolled).
         on_action: Invoked when an action is taken on a child. Especially useful when selectionMode is none. The sole argument key is the key for the item.
-        on_change: Alias of on_selection_change.
-            Handler that is called when the selection changes.
-            The first argument is the selection, the second argument is the key of the list_view item.
+        on_change: Alias of on_selection_change. Handler that is called when the selection changes. The first argument is the selection, the second argument is the key of the list_view item.
         on_selection_change: Handler that is called when the selection changes.
         flex: When used in a flex layout, specifies how the element will grow or shrink to fit the space available.
         flex_grow: When used in a flex layout, specifies how the element will grow to fit the space available.
@@ -147,13 +146,17 @@ def action_group(
         z_index: The stacking order for the element
         is_hidden: Hides the element.
         id: The unique identifier of the element.
-        aria-label: Defines a string value that labels the current element.
-        aria-labelledby: Identifies the element (or elements) that labels the current element.
-        aria-describedby: Identifies the element (or elements) that describes the object.
-        aria-details: Identifies the element (or elements) that provide a detailed, extended description for the object.
+        aria_label: Defines a string value that labels the current element.
+        aria_labelledby: Identifies the element (or elements) that labels the current element.
+        aria_describedby: Identifies the element (or elements) that describes the object.
+        aria_details: Identifies the element (or elements) that provide a detailed, extended description for the object.
         UNSAFE_class_name: Set the CSS className for the element. Only use as a last resort. Use style props instead.
         UNSAFE_style: Set the inline style for the element. Only use as a last resort. Use style props instead.
         key: A unique identifier used by React to render elements in a list.
+
+    Returns:
+        The rendered action_group element.
+
     """
     return component_element(
         "ActionGroup",
