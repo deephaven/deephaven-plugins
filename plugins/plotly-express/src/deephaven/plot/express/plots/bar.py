@@ -10,7 +10,7 @@ from deephaven.table import Table
 from ._private_utils import validate_common_args, process_args
 from ..shared import default_callback
 from ..deephaven_figure import generate_figure, DeephavenFigure
-from ..types import PartitionableTableLike
+from ..types import PartitionableTableLike, Orientation
 
 
 def bar(
@@ -42,6 +42,7 @@ def bar(
     range_color: list[float] | None = None,
     color_continuous_midpoint: float | None = None,
     opacity: float | None = None,
+    orientation: Orientation | None = None,
     barmode: str = "relative",
     log_x: bool = False,
     log_y: bool = False,
@@ -114,6 +115,12 @@ def bar(
       color_continuous_midpoint: A number that is the midpoint of the color axis
       opacity: Opacity to apply to all markers. 0 is completely transparent
         and 1 is completely opaque.
+      orientation: The orientation of the bars.
+        If 'v', the bars are vertical.
+        If 'h', the bars are horizontal.
+        Defaults to 'v' if only `x` is specified.
+        Defaults to 'h' if only `y` is specified.
+        Defaults to 'v' if both `x` and `y` are specified unless `x` is passed only numeric columns and `y` is not.
       barmode: If 'relative', bars are stacked. If 'overlay', bars are drawn on top
         of each other. If 'group', bars are drawn next to each other.
       log_x: A boolean or list of booleans that specify if
