@@ -97,7 +97,7 @@ def action_group(
         is_quiet: Whether ActionButtons should use the quiet style.
         static_color: The static color style to apply. Useful when the ActionGroup appears over a color background.
         overflow_mode: The behavior of the ActionGroup when the buttons do not fit in the available space.
-        button_label_behaviour: Defines when the text within the buttons should be hidden and only the icon should be shown.
+        button_label_behavior: Defines when the text within the buttons should be hidden and only the icon should be shown.
         summary_icon: The icon displayed in the dropdown menu button when a selectable ActionGroup is collapsed.
         orientation: The axis the ActionGroup should align with.
         disabled_keys: A list of keys to disable.
