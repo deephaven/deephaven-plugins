@@ -10,6 +10,8 @@ from deephaven import ui
 my_date_range_picker_basic = ui.date_range_picker(label="Date range")
 ```
 
+![Date Range Picker Basic Example](../_assets/date_range_picker_basic.png)
+
 ## Date types
 
 A date range picker can be used to select a `range` of dates.

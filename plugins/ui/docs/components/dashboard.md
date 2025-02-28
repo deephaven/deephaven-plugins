@@ -10,6 +10,8 @@ from deephaven import ui
 my_dash = ui.dashboard(ui.row(ui.panel("A")))
 ```
 
+![Dashboard Basic Example](../_assets/dashboard_basic.png)
+
 ## Rules
 
 1. Dashboards must be a child of the root script and not nested inside a `@ui.component`. Otherwise, the application cannot correctly determine the type of the component.

@@ -29,6 +29,8 @@ def ui_combo_box_basic():
 my_combo_box_basic = ui_combo_box_basic()
 ```
 
+![Combo Box Basic Example](../_assets/combo_box_basic.png)
+
 ## UI Recommendations
 
 Recommendations for creating clear and effective combo boxes:
@@ -42,7 +44,6 @@ Recommendations for creating clear and effective combo boxes:
 7. A combo box's help text should provide actionable guidance on what to select and how to select it, offering additional context without repeating the placeholder text.
 8. When an error occurs, the help text specified in a combo box is replaced by error text; thus, ensure both help and error text convey the same essential information to maintain consistent messaging and prevent loss of critical details.
 9. Write error messages in a clear, concise, and helpful manner, guiding users to resolve the issue without ambiguity; ideally, they should be 1-2 short, complete sentences.
-
 
 ## Data sources
 
@@ -61,7 +62,7 @@ my_combo_box_table_source_example = ui.combo_box(countries, label="Sample Combo 
 
 ## Item table sources
 
-If you wish to manually specify the keys and labels, use a `ui.item_table_source` to dynamically derive the options from a table. 
+If you wish to manually specify the keys and labels, use a `ui.item_table_source` to dynamically derive the options from a table.
 
 ```python
 from deephaven import ui, empty_table
@@ -88,11 +89,9 @@ my_combo_box_item_table_source_example = ui.combo_box(
 )
 ```
 
-
 ## Custom Value
 
 By default, when a combo box loses focus, it resets its input value to match the selected option's text or clears the input if no option is selected. To allow users to enter a custom value, use the `allows_custom_value` prop to override this behavior.
-
 
 ```python
 from deephaven import ui
@@ -125,7 +124,6 @@ def ui_combo_box_custom_value_examples():
 
 my_combo_box_custom_value_examples = ui_combo_box_custom_value_examples()
 ```
-
 
 ## HTML Forms
 
@@ -169,7 +167,6 @@ def ui_combo_box_form_examples():
 my_combo_box_form_examples = ui_combo_box_form_examples()
 ```
 
-
 ## Labeling
 
 The combo box can be labeled using the `label` prop, and if no label is provided, an `aria_label` must be provided to identify the control for accessibility purposes.
@@ -208,7 +205,6 @@ def ui_combo_box_label_examples():
 
 my_combo_box_label_examples = ui_combo_box_label_examples()
 ```
-
 
 The `is_required` prop and the `necessity_indicator` props can be used to show whether selecting an option in the combo box is required or optional.
 
@@ -264,7 +260,6 @@ def ui_combo_box_required_examples():
 my_combo_box_required_examples = ui_combo_box_required_examples()
 ```
 
-
 ## Selection
 
 In a combo box, the `default_selected_key` or `selected_key` props set a selected option.
@@ -312,12 +307,11 @@ def ui_combo_box_selected_key_examples():
 my_combo_box_selected_key_examples = ui_combo_box_selected_key_examples()
 ```
 
-
 ## Sections
 
 Combo boxes support sections to group options. Sections can be used by wrapping groups of items in a Section element. Each Section takes a title and key prop.
 
-Note that, when searching for options, searching by section will not result in the respective options within that section appearing. 
+Note that, when searching for options, searching by section will not result in the respective options within that section appearing.
 
 Also, sections can only be used directly, not from a table data source.
 
@@ -351,7 +345,6 @@ my_combo_box_section_example = ui.combo_box(
 )
 ```
 
-
 ## Events
 
 Combo boxes support selection via mouse, keyboard, and touch. You can handle all these via the `on_change` prop, which receives the selected key as an argument. Additionally, combo boxes accept an `on_input_change` prop, which is triggered whenever the search value is edited by the user, whether through typing or option selection.
@@ -359,7 +352,6 @@ Combo boxes support selection via mouse, keyboard, and touch. You can handle all
 Each interaction done in the combo box will trigger its associated event handler. For instance, typing in the input field will only trigger the `on_input_change`, not the `on_change`.
 
 Note, this is not the case for selections; when a selection is made, both the `on_change` and `on_input_change` are triggered.
-
 
 ```python
 from deephaven import ui
@@ -402,7 +394,6 @@ def ui_combo_box_control_example():
 my_combo_box_control_example = ui_combo_box_control_example()
 ```
 
-
 ## Complex items
 
 Items within a combo box can include additional content to better convey options. You can add icons, avatars, and descriptions to the children of an `ui.item`. When adding a description, set the `slot` prop to "description" to differentiate between the text elements.
@@ -426,7 +417,6 @@ my_combo_box_complex_items_example = ui.combo_box(
     ),
 )
 ```
-
 
 ## Validation
 
@@ -452,11 +442,9 @@ def ui_combo_box_validation_behaviour_example():
 my_combo_box_validation_behaviour_example = ui_combo_box_validation_behaviour_example()
 ```
 
-
 ## Trigger Options
 
 By default, the combo box's menu opens when the user types into the input field ("input"). This behavior can be changed to open on focus ("focus") or only when the field button is clicked ("manual") using the `menu_trigger` prop.
-
 
 ```python
 from deephaven import ui
@@ -509,7 +497,6 @@ def ui_combo_box_trigger_option_examples():
 my_combo_box_trigger_option_examples = ui_combo_box_trigger_option_examples()
 ```
 
-
 ## Label position
 
 By default, the position of a combo box's label is above the combo box, but it can be moved to the side using the `label_position` prop.
@@ -552,7 +539,6 @@ def ui_combo_box_label_position_examples():
 my_combo_box_label_position_examples = ui_combo_box_label_position_examples()
 ```
 
-
 ## Quiet State
 
 The `is_quiet` prop makes a combo box "quiet". This can be useful when the combo box and its corresponding styling should not distract users from surrounding content.
@@ -574,7 +560,6 @@ my_combo_box_is_quiet_example = ui.combo_box(
     is_quiet=True,
 )
 ```
-
 
 ## Disabled State
 
@@ -598,7 +583,6 @@ my_combo_box_is_disabled_example = ui.combo_box(
 )
 ```
 
-
 ## Read-only State
 
 The `is_read_only` prop prevents user input in a combo box, but the selected option should be visible.
@@ -620,7 +604,6 @@ my_combo_box_is_read_only_example = ui.combo_box(
     is_read_only=True,
 )
 ```
-
 
 ## Help text
 
@@ -670,7 +653,6 @@ def ui_combo_box_help_text_examples():
 my_combo_box_help_text_examples = ui_combo_box_help_text_examples()
 ```
 
-
 ## Contextual Help
 
 Using the `contextual_help` prop, a `ui.contextual_help` can be placed next to the label to provide additional information about the combo box.
@@ -696,10 +678,9 @@ my_combo_box_contextual_help_example = ui.combo_box(
 )
 ```
 
-
 ## Custom width
 
-The `width` prop adjusts the width of a combo box, and the `max_width` prop enforces a maximum width. 
+The `width` prop adjusts the width of a combo box, and the `max_width` prop enforces a maximum width.
 
 ```python
 from deephaven import ui
@@ -736,7 +717,6 @@ def ui_combo_box_width_examples():
 
 my_combo_box_width_examples = ui_combo_box_width_examples()
 ```
-
 
 ## Align and Direction
 
@@ -782,7 +762,6 @@ def ui_combo_box_alignment_direction_examples():
 
 my_combo_box_alignment_direction_examples = ui_combo_box_alignment_direction_examples()
 ```
-
 
 ## API Reference
 
