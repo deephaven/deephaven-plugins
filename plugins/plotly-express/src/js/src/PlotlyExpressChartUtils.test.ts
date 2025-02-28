@@ -1,3 +1,6 @@
+import { ChartUtils } from '@deephaven/chart';
+import type { dh as DhType } from '@deephaven/jsapi-types';
+import { Formatter } from '@deephaven/jsapi-utils';
 import {
   getPathParts,
   isLineSeries,
@@ -10,7 +13,35 @@ import {
   getReplaceableWebGlTraceIndices,
   hasUnreplaceableWebGlTraces,
   setWebGlTraceType,
+  setRangebreaksFromCalendar,
 } from './PlotlyExpressChartUtils';
+
+type DeepPartial<T> = T extends object
+  ? {
+      [P in keyof T]?: DeepPartial<T[P]>;
+    }
+  : T;
+
+const mockDh = {
+  calendar: {
+    DayOfWeek: {
+      values: () => [
+        'SUNDAY',
+        'MONDAY',
+        'TUESDAY',
+        'WEDNESDAY',
+        'THURSDAY',
+        'FRIDAY',
+        'SATURDAY',
+      ],
+    },
+  },
+  i18n: {
+    TimeZone: {
+      getTimeZone: () => ({ id: 'America/New_York', standardOffset: 300 }),
+    },
+  },
+} satisfies DeepPartial<typeof DhType> as unknown as typeof DhType;
 
 describe('getDataMappings', () => {
   it('should return the data mappings from the widget data', () => {
@@ -316,5 +347,47 @@ describe('setWebGlTraceType', () => {
     setWebGlTraceType(data, false, webGlTraceIndices);
     expect(data[0].type).toBe('scatter');
     expect(data[1].type).toBe('scatter');
+  });
+});
+
+describe('setRangeBreaksFromCalendar', () => {
+  it('should set the range breaks from the calendar data', () => {
+    const calendar = {
+      timeZone: { id: 'America/New_York', standardOffset: 300 },
+      businessDays: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
+      holidays: [{ date: '2024-01-01', businessPeriods: [] }],
+      businessPeriods: [{ open: '08:00', close: '17:00' }],
+    } as unknown as DhType.calendar.BusinessCalendar;
+
+    const layout = {
+      xaxis: {},
+      yaxis: {},
+    };
+
+    const chartUtils = new ChartUtils(mockDh);
+
+    const formatter = new Formatter(mockDh);
+
+    const updatedLayout = {
+      ...layout,
+      ...setRangebreaksFromCalendar(formatter, calendar, layout, chartUtils),
+    };
+
+    expect(updatedLayout).toEqual({
+      xaxis: {
+        rangebreaks: [
+          { values: ['2024-01-01 00:00:00.000000'] },
+          { pattern: 'hour', bounds: [17, 8] },
+          { bounds: [6, 1], pattern: 'day of week' },
+        ],
+      },
+      yaxis: {
+        rangebreaks: [
+          { values: ['2024-01-01 00:00:00.000000'] },
+          { pattern: 'hour', bounds: [17, 8] },
+          { bounds: [6, 1], pattern: 'day of week' },
+        ],
+      },
+    });
   });
 });
