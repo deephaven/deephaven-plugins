@@ -1,5 +1,4 @@
-# Docs triggered via push will go to prod, while docs triggered via PR will go to preview
-name: Publish Docs
+name: Publish Prod Docs
 
 on:
   workflow_run:
@@ -12,6 +11,7 @@ on:
 
 jobs:
   get-docs-packages:
+    if: ${{ github.event.workflow_run.event == 'push' }}
     runs-on: ubuntu-24.04
     outputs:
       packages: ${{ steps.packages.outputs.result }}
@@ -58,30 +58,11 @@ jobs:
           echo "package=$(ls docs-build)" >> $GITHUB_ENV
           echo "version=$(ls docs-build/*)" >> $GITHUB_ENV
 
-      - name: Set production env variable
-        run: echo "production=${{ github.event.workflow_run.event == 'push' && 'true' || 'false' }}" >> $GITHUB_ENV
-
-      - name: Sync ${{ env.package }}/${{ env.version }} to ${{ env.production == 'true' && 'prod' || 'preview' }}
+      - name: Sync ${{ env.package }}/${{ env.version }} to prod
         uses: deephaven/salmon-sync@v1
         with:
           source: docs-build/${{ env.package }}/${{ env.version }}/
           destination: deephaven/deephaven-plugins/${{ env.package }}/${{ env.version }}/
-          production: ${{ env.production }}
-          temporary: ${{ env.production == 'true' && 'false' || 'true' }}
+          production: true
+          temporary: false
           aws-role: ${{ vars.DOCS_AWS_ROLE }}
-
-      - name: Comment on PR
-        if: ${{ github.event.workflow_run.event == 'pull_request' }}
-        uses: actions/github-script@v7
-        env:
-          url: ${{ vars.DOCS_PREVIEW_URL }}
-        with:
-          script: |
-            const env = process.env;
-            const path = env.package === 'ui' ? 'core/ui/docs' : 'core/plotly/docs'
-            github.rest.issues.createComment({
-              issue_number: env.version.replace('pr-', ''),
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `[${env.package} docs preview](${env.url}/${path}/${env.version}) (Available for 14 days)`
-            });
