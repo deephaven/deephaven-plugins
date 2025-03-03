@@ -156,3 +156,20 @@ dashboard_example = ui.dashboard(
 ```
 
 ## Multiple dashboards
+
+In order to create multiple dashboards, you can return more than one `dashboard` from your script.
+
+```python
+from deephaven import ui
+
+dash_2x1 = ui.dashboard(ui.row(ui.panel("A", title="A"), ui.panel("B", title="B")))
+
+dash_1x2 = ui.dashboard(ui.column(ui.panel("A", title="A"), ui.panel("B", title="B")))
+
+dash_2x2 = ui.dashboard(
+    ui.row(
+        ui.column(ui.panel("A", title="A"), ui.panel("C", title="C")),
+        ui.column(ui.panel("B", title="B"), ui.panel("D", title="D")),
+    )
+)
+```
