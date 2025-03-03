@@ -4,7 +4,13 @@ import {
 } from '@deephaven/components';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import { getSettings, RootState } from '@deephaven/redux';
-import { parseZonedDateTime, ZonedDateTime } from '@internationalized/date';
+import {
+  CalendarDate,
+  fromAbsolute,
+  parseDate,
+  parseZonedDateTime,
+  ZonedDateTime,
+} from '@internationalized/date';
 import { useSelector } from 'react-redux';
 
 type LabeledValueFormatOptions =
@@ -12,9 +18,7 @@ type LabeledValueFormatOptions =
   | Intl.ListFormatOptions
   | { [date_format: string]: string };
 
-// todo: make default formatting locale-aware
-const DEFAULT_DATE_FORMAT = `M/d/yyyy`;
-const DEFAULT_DATETIME_FORMAT = `M/d/yyyy, h:mm:ss a`;
+const nanosToMillis = (nanos: number): number => Math.floor(nanos / 1_000_000);
 
 const isDateFormat = (
   options?: LabeledValueFormatOptions
@@ -28,10 +32,16 @@ const isDateFormat = (
 
 export function LabeledValue(
   props: Omit<
-    DHCLabeledValueProps<number | string | string[] | ZonedDateTime>,
+    DHCLabeledValueProps<
+      number | string | string[] | CalendarDate | ZonedDateTime
+    >,
     'formatOptions'
   > & {
-    formatOptions?: LabeledValueFormatOptions | undefined;
+    formatOptions?:
+      | LabeledValueFormatOptions
+      | Intl.NumberFormatOptions
+      | Intl.ListFormatOptions
+      | undefined;
     timezone?: string;
     isDate: boolean;
   }
@@ -54,20 +64,24 @@ export function LabeledValue(
     const tz = dh.i18n.TimeZone.getTimeZone(tzString);
 
     if (typeof value === 'string') {
-      // local date string
-      const format =
-        (hasDateFormat ? formatOptions.date_format : DEFAULT_DATE_FORMAT) ||
-        DEFAULT_DATE_FORMAT;
-
-      const zdt = parseZonedDateTime(`${value}T00:00:00[${tz.id}]`);
-      const date = zdt.toDate();
-      value = dh.i18n.DateTimeFormat.format(format, date, tz);
+      // date string
+      if (hasDateFormat && formatOptions.date_format !== '') {
+        const format = formatOptions.date_format;
+        const zdt = parseZonedDateTime(`${value}T00:00:00[${tz.id}]`);
+        const date = zdt.toDate();
+        value = dh.i18n.DateTimeFormat.format(format, date, tz);
+      } else {
+        value = parseDate(value);
+      }
     } else if (typeof value === 'number') {
       // nanoseconds
-      const format =
-        (hasDateFormat ? formatOptions.date_format : DEFAULT_DATETIME_FORMAT) ||
-        DEFAULT_DATETIME_FORMAT;
-      value = dh.i18n.DateTimeFormat.format(format, value, tz);
+      if (hasDateFormat && formatOptions.date_format !== '') {
+        const format = formatOptions.date_format;
+        value = dh.i18n.DateTimeFormat.format(format, value, tz);
+      } else {
+        const millis = nanosToMillis(value);
+        value = fromAbsolute(millis, tzString);
+      }
     }
   }
 

@@ -46,7 +46,7 @@ def _convert_labeled_value_props(
     if isinstance(props["value"], (int, float, str)) and not hasDateFormat:
         return props
     if hasRange:
-        # todo: implement date formatting for date range
+        # TODO: implement date formatting for date range
         return props
 
     java_date = _convert_to_java_date(props["value"])  # type: ignore
@@ -59,7 +59,7 @@ def labeled_value(
     value: str | List[str] | float | NumberRange | Date | DateRange | None = None,
     label: Element | None = None,
     format_options: NumberFormatOptions | DateFormatOptions | None = None,
-    # todo: add list formatting
+    # TODO: add list formatting
     # format_options: NumberFormatOptions | DateFormatOptions | ListFormatOptions | None = None,
     timezone: str | None = None,
     label_position: LabelPosition | None = "top",

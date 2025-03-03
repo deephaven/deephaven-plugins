@@ -95,7 +95,7 @@ my_number_range = ui.labeled_value(
 - `numpy.datetime64`
 - `pandas.Timestamp`
 
-When passing a `int` or `str` into the `value` prop, `format_options` must be specified to indicate that it should be parsed as a date. See more about date formatting in the section below this one.
+When passing a `int` or `str` into the `value` prop, `format_options` with a `date_format` parameter must be specified to indicate that it should be parsed as a date. See more about date formatting in the next section.
 
 Note that the conversion methods, such as `to_j_instant()`, used in this example are to demonstrate the types that are accepted, and _should not_ be used, in favor of passing a date string directly to the component.
 
@@ -119,16 +119,16 @@ def labeled_value_datetime():
             format_options={"date_format": ""},
         ),
         ui.labeled_value(
+            label="Nanoseconds",
+            value=2053877400123450000,
+            format_options={"date_format": ""},
+        ),
+        ui.labeled_value(
             label="Python datetime",
             value=datetime.datetime(2035, 1, 31, 12, 30, 0, 12345),
         ),
         ui.labeled_value(label="Zoned date time", value=zoned_date_time),
         ui.labeled_value(label="Local date", value=local_date),
-        ui.labeled_value(
-            label="Nanoseconds",
-            value=2053877400123450000,
-            format_options={"date_format": "yyyy-MM-dd'T'HH:mm:SSSSSSSSS z"},
-        ),
     ]
 
 
