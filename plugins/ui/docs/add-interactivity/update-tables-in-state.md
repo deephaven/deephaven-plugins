@@ -1,6 +1,6 @@
 # Update Tables in State
 
-As your `deephaven.ui` components become more complex, you may want to set a deephaven [table](../describing/ui_with_tables.md) as state for your component. This will allow you to create UIs where the underlying table changes in response to user events. However, it is important to keep in mind the [liveness scope](/core/docs/conceptual/liveness-scope-concept/) of a table when you set it in state.
+As your `deephaven.ui` components become more complex, you may want to set a Deephaven [table](../describing/ui_with_tables.md) as state for your component. This will allow you to create UIs where the underlying table changes in response to user events. However, it is important to keep in mind the [liveness scope](/core/docs/conceptual/liveness-scope-concept/) of a table when you set it in state.
 
 For example, this component allows a user to reset a table by setting it in state:
 
@@ -56,7 +56,7 @@ resetable_table = ui_resetable_table()
 
 ## Refactor to avoid liveness scope
 
-In this case, the code can be refactored to remove the need for a liveness scope. Because the table is created inside the component, it can be removed from the state. You can then use the [`use_memo`](../hooks/use_memo.md) to derive the table from changes to the state.
+In this case, the code can be refactored to remove the need for a liveness scope. Because the table is created inside the component, it can be removed from the state. You can then use the [`use_memo`](../hooks/use_memo.md) hook to derive the table from changes to the state.
 
 ```python
 from deephaven import ui, time_table
@@ -185,7 +185,7 @@ def ui_resetable_table():
 resetable_table = ui_resetable_table()
 ```
 
-Now pressing the reset button causes the component to fail with a "LivenessStateException". Now use the `use_liveness_scope` hook to manage the liveness of the table.
+Now pressing the reset button causes the component to fail with a "LivenessStateException". Use the `use_liveness_scope` hook to manage the liveness of the table.
 
 ```python
 from deephaven import ui, time_table
