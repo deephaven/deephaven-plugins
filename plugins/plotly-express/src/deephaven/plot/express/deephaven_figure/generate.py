@@ -1054,6 +1054,14 @@ def generate_figure(
         extra_generators=[hover_text],
     )
 
+    # px adds a margin of 60 if a title is not specified
+    # since most charts still use px at their core and
+    # this isn't user controlled in any way, remove it after
+    # the figure is already created
+    px_fig.update_layout(
+        margin_t=None,
+    )
+
     dh_fig = DeephavenFigure(
         px_fig,
         call_args=call_args,

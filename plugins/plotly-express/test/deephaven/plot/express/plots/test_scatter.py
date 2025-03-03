@@ -51,7 +51,6 @@ class ScatterTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -123,7 +122,6 @@ class ScatterTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -207,7 +205,6 @@ class ScatterTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -285,7 +282,6 @@ class ScatterTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -363,7 +359,6 @@ class ScatterTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -447,7 +442,6 @@ class ScatterTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -557,7 +551,6 @@ class ScatterTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -687,7 +680,6 @@ class ScatterTestCase(BaseTestCase):
             "barmode": "overlay",
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "showlegend": False,
             "xaxis": {
                 "anchor": "y",
