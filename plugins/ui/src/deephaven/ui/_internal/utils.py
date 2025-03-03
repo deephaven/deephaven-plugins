@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Set, cast, Sequence, TypeVar
+from typing import Any, Callable, Set, cast, Sequence, TypeVar, Union
+from deephaven.dtypes import (
+    Instant as DTypeInstant,
+    ZonedDateTime as DTypeZonedDateTime,
+    LocalDate as DTypeLocalDate,
+)
 from inspect import signature
 import sys
 from functools import partial
@@ -14,6 +19,7 @@ from ..types import (
     JavaTime,
     LocalDateConvertible,
     LocalDate,
+    Instant,
     Undefined,
 )
 
@@ -285,6 +291,25 @@ def create_props(args: dict[str, Any]) -> tuple[tuple[Any, ...], dict[str, Any]]
     children, props = args.pop("children", tuple()), args.pop("props", {})
     props.update(args)
     return children, props
+
+
+def _convert_date_to_nanos(date: JavaDate) -> Union[int, str, None]:
+    if isinstance(date, DTypeInstant.j_type):
+        return _convert_instant_to_nanos(date)
+
+    if isinstance(date, DTypeZonedDateTime.j_type):
+        # print(date.getZone())
+        instant = date.toInstant()  # type: ignore
+        return _convert_instant_to_nanos(instant)
+
+    if isinstance(date, DTypeLocalDate.j_type):
+        return str(date)
+
+
+def _convert_instant_to_nanos(instant: Instant) -> int:
+    seconds = instant.getEpochSecond()  # type: ignore
+    nanos = instant.getNano()  # type: ignore
+    return seconds * 1_000_000_000 + nanos
 
 
 def _convert_to_java_date(

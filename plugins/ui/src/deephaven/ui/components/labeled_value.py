@@ -2,6 +2,11 @@ from __future__ import annotations
 from typing import Any, List
 
 from .number_field import NumberFormatOptions
+from .._internal.utils import (
+    create_props,
+    _convert_to_java_date,
+    _convert_date_to_nanos,
+)
 from .types import (
     Alignment,
     AlignSelf,
@@ -15,12 +20,48 @@ from .types import (
 from ..types import Date, DateRange, NumberRange
 from .basic import component_element
 from ..elements import Element
+from typing import TypedDict
+
+
+DateFormatJavaString = str
+
+
+class DateFormatOptions(TypedDict):
+    date_format: DateFormatJavaString
+
+
+def _convert_labeled_value_props(
+    props: dict[str, Any],
+) -> dict[str, Any]:
+    hasDateFormat = (
+        "format_options" in props
+        and isinstance(props["format_options"], dict)
+        and "date_format" in props["format_options"]
+    )
+    hasRange = isinstance(props["value"], dict)
+    props["is_date"] = False
+
+    if isinstance(props["value"], (List)):
+        return props
+    if isinstance(props["value"], (int, float, str)) and not hasDateFormat:
+        return props
+    if hasRange:
+        # todo: implement date formatting for date range
+        return props
+
+    java_date = _convert_to_java_date(props["value"])  # type: ignore
+    props["value"] = _convert_date_to_nanos(java_date)
+    props["is_date"] = True
+    return props
 
 
 def labeled_value(
     value: str | List[str] | float | NumberRange | Date | DateRange | None = None,
     label: Element | None = None,
-    format_options: NumberFormatOptions | None = None,
+    format_options: NumberFormatOptions | DateFormatOptions | None = None,
+    # todo: add list formatting
+    # format_options: NumberFormatOptions | DateFormatOptions | ListFormatOptions | None = None,
+    timezone: str | None = None,
     label_position: LabelPosition | None = "top",
     label_align: Alignment | None = None,
     contextual_help: Any | None = None,
@@ -117,51 +158,8 @@ def labeled_value(
     Returns:
         The rendered labeled value element.
     """
-    return component_element(
-        "LabeledValue",
-        value=value,
-        label=label,
-        format_options=format_options,
-        label_position=label_position,
-        label_align=label_align,
-        contextual_help=contextual_help,
-        flex=flex,
-        flex_grow=flex_grow,
-        flex_shrink=flex_shrink,
-        flex_basis=flex_basis,
-        align_self=align_self,
-        justify_self=justify_self,
-        order=order,
-        grid_area=grid_area,
-        grid_row=grid_row,
-        grid_row_start=grid_row_start,
-        grid_row_end=grid_row_end,
-        grid_column=grid_column,
-        grid_column_start=grid_column_start,
-        grid_column_end=grid_column_end,
-        margin=margin,
-        margin_top=margin_top,
-        margin_bottom=margin_bottom,
-        margin_start=margin_start,
-        margin_end=margin_end,
-        margin_x=margin_x,
-        margin_y=margin_y,
-        width=width,
-        height=height,
-        min_width=min_width,
-        min_height=min_height,
-        max_width=max_width,
-        max_height=max_height,
-        position=position,
-        top=top,
-        bottom=bottom,
-        start=start,
-        end=end,
-        left=left,
-        right=right,
-        z_index=z_index,
-        is_hidden=is_hidden,
-        id=id,
-        UNSAFE_class_name=UNSAFE_class_name,
-        UNSAFE_style=UNSAFE_style,
-    )
+
+    _, props = create_props(locals())
+    props = _convert_labeled_value_props(props)
+
+    return component_element("LabeledValue", **props)
