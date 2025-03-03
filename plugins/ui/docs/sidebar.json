@@ -127,6 +127,15 @@
         ]
       },
       {
+        "label": "Creating Layouts",
+        "items": [
+          {
+            "label": "Creating Dashboards",
+            "path": "creating-layouts/creating-dashboards.md"
+          }
+        ]
+      },
+      {
         "label": "Components",
         "items": [
           {
