@@ -66,7 +66,7 @@ my_nested_panel = ui.dashboard(
 The following layouts can be returned by a component and used inside a `panel` to layout components:
 
 - [`flex`](../components/flex.md) is a [flexbox](https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Flexbox)-based layout container that arranges components in either a row or column.
-- `grid` is a [CSS grid](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout/Grids) layout container that arranges components two-dimensional structure of rows and columns.
+- `grid` is a [CSS grid](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout/Grids) layout container that arranges components in a two-dimensional structure of rows and columns.
 - [`view`](../components/view.md) is a general purpose container that can be used for custom styling purposes.
 
 ## Default layout
