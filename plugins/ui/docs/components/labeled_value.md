@@ -17,7 +17,7 @@ A labeled value accepts numbers, dates, strings, and lists of strings in the `va
 
 ```python
 from deephaven import ui
-from deephaven.time import dh_today
+import datetime
 
 
 @ui.component
@@ -28,7 +28,7 @@ def ui_labeled_value_examples():
         ui.labeled_value(
             label="Pizza toppings", value=["Pizza", "Pineapple", "Mushroom", "Garlic"]
         ),
-        ui.labeled_value(label="Today's date", value=dh_today()),
+        ui.labeled_value(label="Today's date", value=datetime.datetime.today().date()),
     ]
 
 
@@ -97,7 +97,7 @@ my_number_range = ui.labeled_value(
 
 When passing a `int` or `str` into the `value` prop, `format_options` with a `date_format` parameter must be specified to indicate that it should be parsed as a date. See more about date formatting in the next section.
 
-Note that the conversion methods, such as `to_j_instant()`, used in this example are to demonstrate the types that are accepted, and _should not_ be used, in favor of passing a date string directly to the component.
+Note that the time conversion methods, such as `to_j_instant()`, used in this example are to demonstrate the types that are accepted, and _should not_ be used, in favor of passing a date string directly to the component.
 
 ```python
 from deephaven import ui
@@ -135,7 +135,9 @@ def labeled_value_datetime():
 my_labeled_value_datetime = labeled_value_datetime()
 ```
 
-By default, dates and times are formatted according to the user's locale. An empty string can be passed to when passing a `str` or `int` date value to indicate that this default formatting behavior should be used.
+### Formatting dates
+
+By default, dates and times are formatted according to the user's locale. An empty string can be passed to when passing a `str` or `int` date value to indicate that the default formatting behavior should be used.
 
 If more precision or another format is desired, datetime values can be formatted using the `format_options` property. To do so, pass an object with a `date_format` property string that follows [the GWT Java DateTimeFormat syntax](https://www.gwtproject.org/javadoc/latest/com/google/gwt/i18n/client/DateTimeFormat.html) with additional support for nanoseconds. You may provide up to 9 `S` characters after the decimal to represent partial seconds down to nanoseconds. Below are examples of patterns that can be used to format dates.
 
@@ -173,7 +175,42 @@ def labeled_value_datetime_formatting():
 my_labeled_value_datetime_formatting = labeled_value_datetime_formatting()
 ```
 
-By default, dates and times are displayed based on the timezone set in user settings. If the provided date is already timezone aware, such is the case with a `ZonedDateTime`, its timezone will be used. If a different timezone is desired, it can be overridden by passing a timezone code or abbreviation string to the `timezone` prop. See the [list of timezones supported by Deephaven](https://deephaven.io/core/client-api/javascript/classes/dh.i18n.TimeZone.html).
+### Timezones
+
+By default, dates and times are displayed in the timezone set in user settings. If the provided date is already timezone aware, such is the case with a `ZonedDateTime`, its timezone will be used. If a different timezone is desired, it can be overridden by passing a timezone identification string to the `timezone` prop. See the [list of timezones supported by Deephaven](https://deephaven.io/core/client-api/javascript/classes/dh.i18n.TimeZone.html).
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def labeled_value_datetime_timezone():
+    date = "2035-01-31T12:30:00.12345 UTC"
+    date_with_timezone = "2035-01-31T12:30:00.12345 America/New_York"
+    default_date_format = {"date_format": ""}
+
+    return [
+        ui.labeled_value(
+            label="User settings timezone",
+            value=date,
+            format_options=default_date_format,
+        ),
+        ui.labeled_value(
+            label="Provided timezone from date string",
+            value=date_with_timezone,
+            format_options=default_date_format,
+        ),
+        ui.labeled_value(
+            label="Overridden with timezone property",
+            value=date_with_timezone,
+            format_options=default_date_format,
+            timezone="America/Halifax",
+        ),
+    ]
+
+
+my_labeled_value_datetime_timezone = labeled_value_datetime_timezone()
+```
 
 ## Label position
 

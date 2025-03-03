@@ -5,7 +5,7 @@ from .number_field import NumberFormatOptions
 from .._internal.utils import (
     create_props,
     _convert_to_java_date,
-    _convert_date_to_nanos,
+    convert_date_for_labeled_value,
 )
 from .types import (
     Alignment,
@@ -20,7 +20,7 @@ from .types import (
 from ..types import Date, DateRange, NumberRange
 from .basic import component_element
 from ..elements import Element
-from typing import TypedDict
+from typing import TypedDict, Tuple
 
 
 DateFormatJavaString = str
@@ -49,8 +49,21 @@ def _convert_labeled_value_props(
         # TODO: implement date formatting for date range
         return props
 
-    java_date = _convert_to_java_date(props["value"])  # type: ignore
-    props["value"] = _convert_date_to_nanos(java_date)
+    try:
+        java_date = _convert_to_java_date(props["value"])  # type: ignore
+    except:
+        return props
+
+    tz = None
+    date = convert_date_for_labeled_value(java_date)
+    if isinstance(date, Tuple):
+        nanos, tz = date
+    else:
+        nanos = date
+
+    if props["timezone"] is None and tz != "UTC" and tz is not None:
+        props["timezone"] = tz
+    props["value"] = nanos
     props["is_date"] = True
     return props
 
@@ -112,6 +125,7 @@ def labeled_value(
         value: The value to be displayed.
         label: The content of the label.
         format_options: Formatting options for the value displayed in the number field.
+        timezone: The timezone to use when displaying a date value.
         label_position: The label's overall position relative to the element it is labeling.
         label_align: The label's horizontal alignment relative to the element it is labeling.
         contextual_help: A contextual help element to place next to the label.

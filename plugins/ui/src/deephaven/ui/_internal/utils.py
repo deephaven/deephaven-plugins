@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Set, cast, Sequence, TypeVar, Union
+from typing import Any, Callable, Set, Tuple, cast, Sequence, TypeVar, Union
 from deephaven.dtypes import (
     Instant as DTypeInstant,
     ZonedDateTime as DTypeZonedDateTime,
@@ -291,25 +291,6 @@ def create_props(args: dict[str, Any]) -> tuple[tuple[Any, ...], dict[str, Any]]
     children, props = args.pop("children", tuple()), args.pop("props", {})
     props.update(args)
     return children, props
-
-
-def _convert_date_to_nanos(date: JavaDate) -> Union[int, str, None]:
-    if isinstance(date, DTypeInstant.j_type):
-        return _convert_instant_to_nanos(date)
-
-    if isinstance(date, DTypeZonedDateTime.j_type):
-        # print(date.getZone())
-        instant = date.toInstant()  # type: ignore
-        return _convert_instant_to_nanos(instant)
-
-    if isinstance(date, DTypeLocalDate.j_type):
-        return str(date)
-
-
-def _convert_instant_to_nanos(instant: Instant) -> int:
-    seconds = instant.getEpochSecond()  # type: ignore
-    nanos = instant.getNano()  # type: ignore
-    return seconds * 1_000_000_000 + nanos
 
 
 def _convert_to_java_date(
@@ -811,6 +792,46 @@ def convert_time_props(
             if not callable(props[key]):
                 raise TypeError(f"{key} must be a callable")
             props[key] = _wrap_time_callable(props[key], converter)
+
+
+def convert_date_for_labeled_value(
+    date: JavaDate,
+) -> Union[int, str, Tuple[int, str | None], None]:
+    """
+    Convert a Java date to an appropriate value for ui.labeled_value based on the date type.
+
+    Args:
+        date: The Java date to convert.
+
+    Returns:
+        Nanoseconds since epoch along with timezone information if present, or a string of a local date string.
+
+    """
+    if isinstance(date, DTypeInstant.j_type):
+        return _convert_instant_to_nanos(date)
+
+    if isinstance(date, DTypeZonedDateTime.j_type):
+        tz = date.getZone()  # type: ignore
+        instant = date.toInstant()  # type: ignore
+        return (_convert_instant_to_nanos(instant), str(tz) if tz else None)
+
+    if isinstance(date, DTypeLocalDate.j_type):
+        return str(date)
+
+
+def _convert_instant_to_nanos(instant: Instant) -> int:
+    """
+    Convert a Java Instant to nanoseconds since the epoch.
+
+    Args:
+        instant: The Java Instant to convert.
+
+    Returns:
+        The equivalent nanoseconds since the epoch.
+    """
+    seconds = instant.getEpochSecond()  # type: ignore
+    nanos = instant.getNano()  # type: ignore
+    return seconds * 1_000_000_000 + nanos
 
 
 def unpack_item_table_source(
