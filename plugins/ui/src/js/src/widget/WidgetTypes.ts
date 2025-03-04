@@ -66,8 +66,8 @@ export type WidgetError = {
   action?: WidgetAction;
 };
 
-/** Message containing a new document update */
-export const METHOD_DOCUMENT_UPDATED = 'documentUpdated';
+/** Message containing a patch to apply to the previous document. Assumes we start with an initial empty document. */
+export const METHOD_DOCUMENT_PATCHED = 'documentPatched';
 
 /** Message containing a document error */
 export const METHOD_DOCUMENT_ERROR = 'documentError';

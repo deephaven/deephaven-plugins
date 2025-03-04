@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.28.0 - 2025-03-03
+#### Features
+- color picker (#1086) - (9174c56) - ethanalvizo
+- Document delta updates (DH-18090) (#1119) - (3ac3a22) - mofojed
+
+- - -
+
 ## ui-v0.27.0 - 2025-02-26
 #### Bug Fixes
 - Callable cleanup race (DH-18536) (#1113) - (34c0b60) - mofojed

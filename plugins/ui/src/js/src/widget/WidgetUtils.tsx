@@ -62,6 +62,8 @@ import {
   Badge,
   Button,
   Calendar,
+  ColorEditor,
+  ColorPicker,
   ComboBox,
   ContextualHelp,
   DateField,
@@ -142,6 +144,8 @@ export const elementComponentMap: Record<ValueOf<ElementName>, unknown> = {
   [ELEMENT_NAME.calendar]: Calendar,
   [ELEMENT_NAME.checkbox]: Checkbox,
   [ELEMENT_NAME.checkboxGroup]: CheckboxGroup,
+  [ELEMENT_NAME.colorEditor]: ColorEditor,
+  [ELEMENT_NAME.colorPicker]: ColorPicker,
   [ELEMENT_NAME.comboBox]: ComboBox,
   [ELEMENT_NAME.content]: Content,
   [ELEMENT_NAME.contextualHelp]: ContextualHelp,
@@ -239,6 +243,53 @@ export function getComponentForElement(element: ElementNode): React.ReactNode {
   }
 
   return newElement.props?.children;
+}
+
+/**
+ * Deeply transform a given object depth-first and return a new object given a transform function.
+ * Useful for iterating through an object and converting values.
+ *
+ * @param value The object to transform.
+ * @param transform Function to be called for each key-value pair in the object, allowing for the value to be transformed.
+ * @param key The key of the current object.
+ * @returns A new object with the same keys as the original object, but with the values replaced by the return value of the callback. If there were no changes, returns the same object.
+ */
+export function transformNode(
+  value: unknown,
+  transform: (key: string, value: unknown) => unknown,
+  key = ''
+): unknown {
+  // We initialize the result to the same value, but if any of the children values change, we'll shallow copy it
+  let result = value;
+  // First check if it's an object or an array - if it is then we need to encode the children first
+  if (Array.isArray(result)) {
+    let arrayResult: unknown[] = result;
+    arrayResult.forEach((childValue, i) => {
+      const newChildValue = transformNode(childValue, transform, `${i}`);
+      if (newChildValue !== childValue) {
+        if (arrayResult === value) {
+          arrayResult = [...arrayResult];
+        }
+        arrayResult[i] = newChildValue;
+      }
+    });
+    result = arrayResult;
+  } else if (typeof result === 'object' && result != null) {
+    let objResult = result as Record<string, unknown>;
+    Object.entries(result).forEach(([childKey, childValue]) => {
+      const newChildValue = transformNode(childValue, transform, childKey);
+      if (newChildValue !== childValue) {
+        if (objResult === value) {
+          objResult = { ...objResult };
+        }
+        objResult[childKey] = newChildValue;
+      }
+    });
+    result = objResult;
+  }
+
+  // Finally we encode the object we were passed in
+  return transform(key, result);
 }
 
 /** Data keys of a widget to preserve across re-opening. */
