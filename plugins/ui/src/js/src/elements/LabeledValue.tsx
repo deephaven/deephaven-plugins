@@ -96,10 +96,8 @@ export function LabeledValue(
     isNanoseconds,
     ...restProps
   } = props;
-
   let value = propValue;
 
-  const hasDateFormat = isDateFormat(formatOptions);
   if (isDate) {
     const timezoneString = propTimezone != null ? propTimezone : userTimezone;
 
@@ -116,22 +114,26 @@ export function LabeledValue(
       typeof value === 'object' &&
       'start' in value &&
       'end' in value &&
+      'isStartNanoseconds' in value &&
+      'isEndNanoseconds' in value &&
       typeof value.start === 'string' &&
-      typeof value.end === 'string'
+      typeof value.end === 'string' &&
+      typeof value.isStartNanoseconds === 'boolean' &&
+      typeof value.isEndNanoseconds === 'boolean'
     ) {
       // date range
       const startDate = getFormattedDate(
         dh,
         value.start,
         timezoneString,
-        isNanoseconds,
+        value.isStartNanoseconds,
         formatOptions
       );
       const endDate = getFormattedDate(
         dh,
         value.end,
         timezoneString,
-        isNanoseconds,
+        value.isEndNanoseconds,
         formatOptions
       );
       if (typeof startDate === 'string' && typeof endDate === 'string') {
@@ -154,7 +156,7 @@ export function LabeledValue(
       // Not sure why there is a type incompatibility on value, since SpectrumLabeledValueTypes
       // includes all the types defined on value, casting as never for now.
       value={value as never}
-      formatOptions={hasDateFormat ? undefined : formatOptions}
+      formatOptions={isDateFormat(formatOptions) ? undefined : formatOptions}
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...restProps}
     />
