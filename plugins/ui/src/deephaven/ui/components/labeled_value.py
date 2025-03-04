@@ -76,8 +76,11 @@ def _convert_labeled_value_props(
         and isinstance(props["format_options"], dict)
         and "date_format" in props["format_options"]
     )
-    # passing this custom prop to allow JS component to distinguish between dates (passed as int or str) and other values
+    # passing this custom prop to allow JS component to distinguish between dates passed as a str and other values
     props["is_date"] = False
+    # passing this custom prop since nanoseconds need to be passed as a string to prevent loss of precision,
+    # need a way for JS component to distinguish between nanoseconds strings and other date strings
+    props["is_nanoseconds"] = False
 
     if isinstance(props["value"], dict):
         # range value
@@ -100,8 +103,10 @@ def _convert_labeled_value_props(
         props["value"], props["timezone"], has_date_format
     )
     if date_value:
-        props["value"] = date_value
+        props["value"] = str(date_value)
         props["is_date"] = True
+        if isinstance(date_value, int):
+            props["is_nanoseconds"] = True
         if tz:
             props["timezone"] = tz
 

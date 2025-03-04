@@ -34,33 +34,32 @@ const isDateFormat = (
 
 const getFormattedDate = (
   dh: typeof DhType,
-  value: string | number,
+  value: string,
   timezoneString: string,
+  isNanoseconds: boolean,
   formatOptions?: LabeledValueFormatOptions
 ): string | ZonedDateTime | CalendarDate => {
   const hasDateFormat = isDateFormat(formatOptions);
   const timezone = dh.i18n.TimeZone.getTimeZone(timezoneString);
 
-  if (typeof value === 'string') {
-    // date string
-    if (hasDateFormat && formatOptions.date_format !== '') {
-      const format = formatOptions.date_format;
-      const zdt = parseZonedDateTime(`${value}T00:00:00[${timezone.id}]`);
-      const date = zdt.toDate();
-      return dh.i18n.DateTimeFormat.format(format, date, timezone);
-    }
-    return parseDate(value);
-  }
-  if (typeof value === 'number') {
-    // nanoseconds
+  if (isNanoseconds) {
+    // nanoseconds string
     if (hasDateFormat && formatOptions.date_format !== '') {
       const format = formatOptions.date_format;
       return dh.i18n.DateTimeFormat.format(format, value, timezone);
     }
-    const millis = nanosToMillis(value);
+    const millis = nanosToMillis(parseInt(value, 10)); // loss of precision is ok here since being converted to millis
     return fromAbsolute(millis, timezoneString);
   }
-  return '';
+
+  // date string
+  if (hasDateFormat && formatOptions.date_format !== '') {
+    const format = formatOptions.date_format;
+    const zdt = parseZonedDateTime(`${value}T00:00:00[${timezone.id}]`);
+    const date = zdt.toDate();
+    return dh.i18n.DateTimeFormat.format(format, date, timezone);
+  }
+  return parseDate(value);
 };
 
 export function LabeledValue(
@@ -83,6 +82,7 @@ export function LabeledValue(
       | undefined;
     timezone?: string;
     isDate: boolean;
+    isNanoseconds: boolean;
   }
 ): JSX.Element {
   const dh = useApi();
@@ -93,6 +93,7 @@ export function LabeledValue(
     formatOptions,
     timezone: propTimezone,
     isDate,
+    isNanoseconds,
     ...restProps
   } = props;
 
@@ -102,29 +103,37 @@ export function LabeledValue(
   if (isDate) {
     const timezoneString = propTimezone != null ? propTimezone : userTimezone;
 
-    if (typeof value === 'string' || typeof value === 'number') {
+    if (typeof value === 'string') {
       // single value
-      value = getFormattedDate(dh, value, timezoneString, formatOptions);
+      value = getFormattedDate(
+        dh,
+        value,
+        timezoneString,
+        isNanoseconds,
+        formatOptions
+      );
     } else if (
       typeof value === 'object' &&
       'start' in value &&
-      'end' in value
+      'end' in value &&
+      typeof value.start === 'string' &&
+      typeof value.end === 'string'
     ) {
       // date range
-      const dateRange = value as RangeValue<string | number>;
       const startDate = getFormattedDate(
         dh,
-        dateRange.start,
+        value.start,
         timezoneString,
+        isNanoseconds,
         formatOptions
       );
       const endDate = getFormattedDate(
         dh,
-        dateRange.end,
+        value.end,
         timezoneString,
+        isNanoseconds,
         formatOptions
       );
-
       if (typeof startDate === 'string' && typeof endDate === 'string') {
         // combine date strings manually
         value = `${startDate}\u2013${endDate}`;
