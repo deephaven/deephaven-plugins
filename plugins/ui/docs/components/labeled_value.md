@@ -167,7 +167,7 @@ def labeled_value_datetime_formatting():
         ui.labeled_value(
             label="Timestamp in nanoseconds",
             value=now,
-            format_options={"date_format": "yyyy-MM-dd'T'HH:mm:SSSSSSSSS z"},
+            format_options={"date_format": "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS z"},
         ),
     ]
 

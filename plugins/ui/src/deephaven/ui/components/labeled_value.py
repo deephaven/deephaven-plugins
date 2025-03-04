@@ -95,6 +95,7 @@ def _convert_labeled_value_props(
             props["value"] = {
                 "start": str(start_date_value),
                 "end": str(end_date_value),
+                # same idea as discussed above, need to define on each date to be flexible with accepting different types of dates for start and end.
                 "isStartNanoseconds": isinstance(start_date_value, int),
                 "isEndNanoseconds": isinstance(end_date_value, int),
             }
