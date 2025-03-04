@@ -4,9 +4,8 @@ from typing import Any, List
 from .number_field import NumberFormatOptions
 from .._internal.utils import (
     create_props,
-    _convert_to_java_date,
+    convert_to_java_date,
     convert_date_for_labeled_value,
-    is_java_date,
 )
 from .types import (
     Alignment,
@@ -18,92 +17,94 @@ from .types import (
     Position,
     LabelPosition,
 )
-from ..types import Date, DateFormatOptions, DateRange, NumberRange
+from ..types import Date, DateFormatOptions, DateRange, NumberRange, JavaDate
 from .basic import component_element
 from ..elements import Element
 from typing import Tuple
 
 
+def _get_serialized_date_props(
+    value_prop: Any, timezone_prop: str | None, has_date_format: bool
+) -> Tuple[int | str | None, str | None]:
+    """
+    Checks if the value prop should be parsed as a date, and parses it into a
+    serialized date value and also a timezone value if present in the value_prop.
+
+    Args:
+        value_prop: The value property.
+        timezone_prop: The timezone property.
+        has_date_format: Whether a date format has been defined on labeled_value.
+
+    Returns:
+        Either the serialized date value as either an int or str and the timezone if present in the value_prop, or nothing.
+
+    """
+    if (
+        isinstance(value_prop, (List))
+        or (isinstance(value_prop, (int, str)) and not has_date_format)
+        or isinstance(value_prop, float)
+    ):
+        # not a date value, don't convert props
+        return (None, None)
+
+    date = (
+        value_prop
+        if isinstance(value_prop, JavaDate)
+        else convert_to_java_date(value_prop)
+    )
+    date = convert_date_for_labeled_value(date)
+
+    timezone = None
+    if isinstance(date, Tuple):
+        date_value, timezone = date
+    else:
+        date_value = date
+
+    timezone_value = (
+        timezone
+        if timezone_prop is None and timezone is not None and timezone != "Z"
+        else timezone_prop
+    )
+    return (date_value, timezone_value)
+
+
 def _convert_labeled_value_props(
     props: dict[str, Any],
 ) -> dict[str, Any]:
-    hasDateFormat = (
+    has_date_format = (
         "format_options" in props
         and isinstance(props["format_options"], dict)
         and "date_format" in props["format_options"]
     )
-    # need to pass this custom prop to allow component to distinguish between dates (passed as int or str) and other values
+    # passing this custom prop to allow JS component to distinguish between dates (passed as int or str) and other values
     props["is_date"] = False
 
-    if (
-        isinstance(props["value"], (List))
-        or (isinstance(props["value"], (int, str)) and not hasDateFormat)
-        or isinstance(props["value"], float)
-    ):
-        # not date value, don't convert props
-        return props
-
     if isinstance(props["value"], dict):
-        # range values
-        if (
-            props["value"]["start"] is None
-            or (isinstance(props["value"]["start"], (int, str)) and not hasDateFormat)
-            or isinstance(props["value"]["start"], float)
-            or props["value"]["end"] is None
-            or (isinstance(props["value"]["end"], (int, str)) and not hasDateFormat)
-            or isinstance(props["value"]["end"], float)
-        ):
-            return props
+        # range value
+        start_date_value, start_tz = _get_serialized_date_props(
+            props["value"]["start"], props["timezone"], has_date_format
+        )
+        end_date_value, end_tz = _get_serialized_date_props(
+            props["value"]["end"], props["timezone"], has_date_format
+        )
 
-        if is_java_date(props["value"]["start"]):
-            start_date = props["value"]["start"]
-        else:
-            start_date = _convert_to_java_date(props["value"]["start"])
-        start_date = convert_date_for_labeled_value(start_date)
-
-        if is_java_date(props["value"]["end"]):
-            end_date = props["value"]["end"]
-        else:
-            end_date = _convert_to_java_date(props["value"]["end"])
-        end_date = convert_date_for_labeled_value(end_date)
-
-        start_tz = None
-        end_tz = None
-        if isinstance(start_date, Tuple):
-            start_prop_value, start_tz = start_date
-        else:
-            start_prop_value = start_date
-        if isinstance(end_date, Tuple):
-            end_prop_value, end_tz = end_date
-        else:
-            end_prop_value = end_date
-
-        if props["timezone"] is None and start_tz is not None and start_tz != "Z":
-            props["timezone"] = start_tz
-        elif props["timezone"] is None and end_tz is not None and end_tz != "Z":
-            props["timezone"] = end_tz
-
-        props["value"] = {"start": start_prop_value, "end": end_prop_value}
-        props["is_date"] = True
+        if start_date_value and end_date_value:
+            props["value"] = {"start": start_date_value, "end": end_date_value}
+            props["is_date"] = True
+            if start_tz or end_tz:
+                props["timezone"] = start_tz if start_tz else end_tz
         return props
 
-    # single date value
-    if is_java_date(props["value"]):
-        date = props["value"]
-    else:
-        date = _convert_to_java_date(props["value"])
-    date = convert_date_for_labeled_value(date)
+    # single value
+    date_value, tz = _get_serialized_date_props(
+        props["value"], props["timezone"], has_date_format
+    )
+    if date_value:
+        props["value"] = date_value
+        props["is_date"] = True
+        if tz:
+            props["timezone"] = tz
 
-    tz = None
-    if isinstance(date, Tuple):
-        prop_value, tz = date
-    else:
-        prop_value = date
-
-    if props["timezone"] is None and tz != "Z" and tz is not None:
-        props["timezone"] = tz
-    props["value"] = prop_value
-    props["is_date"] = True
     return props
 
 

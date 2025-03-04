@@ -293,7 +293,7 @@ def create_props(args: dict[str, Any]) -> tuple[tuple[Any, ...], dict[str, Any]]
     return children, props
 
 
-def _convert_to_java_date(
+def convert_to_java_date(
     date: Date,
 ) -> JavaDate:
     """
@@ -623,7 +623,7 @@ def convert_list_prop(
 
     if not isinstance(value, list):
         raise TypeError(f"{key} must be a list of Dates")
-    return [str(_convert_to_java_date(date)) for date in value]
+    return [str(convert_to_java_date(date)) for date in value]
 
 
 def convert_date_range(
@@ -712,11 +712,11 @@ def convert_date_props(
     """
     for key in simple_date_props:
         if not is_nullish(props.get(key)):
-            props[key] = _convert_to_java_date(props[key])
+            props[key] = convert_to_java_date(props[key])
 
     for key in date_range_props:
         if not is_nullish(props.get(key)):
-            props[key] = convert_date_range(props[key], _convert_to_java_date)
+            props[key] = convert_date_range(props[key], convert_to_java_date)
 
     # the simple props must be converted before this to simplify the callable conversion
     converter = _prioritized_date_callable_converter(props, priority, default_converter)
@@ -817,23 +817,6 @@ def convert_date_for_labeled_value(
 
     if isinstance(date, DTypeLocalDate.j_type):
         return str(date)
-
-
-def is_java_date(value: Any) -> TypeGuard[JavaDate]:
-    """
-    Check if a value is a Java date type.
-
-    Args:
-        value: The value to check.
-
-    Returns:
-        True if the value is a Java date type, False otherwise.
-    """
-    return (
-        isinstance(value, DTypeInstant.j_type)
-        or isinstance(value, DTypeZonedDateTime.j_type)
-        or isinstance(value, DTypeLocalDate.j_type)
-    )
 
 
 def _convert_instant_to_nanos(instant: Instant) -> int:
