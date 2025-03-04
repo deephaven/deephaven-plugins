@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Set, Tuple, cast, Sequence, TypeVar, Union
+from typing import Any, Callable, Set, Tuple, cast, Sequence, TypeVar, Union, TypeGuard
 from deephaven.dtypes import (
     Instant as DTypeInstant,
     ZonedDateTime as DTypeZonedDateTime,
@@ -804,7 +804,7 @@ def convert_date_for_labeled_value(
         date: The Java date to convert.
 
     Returns:
-        Nanoseconds since epoch along with timezone information if present, or a string of a local date string.
+        Nanoseconds since epoch along with timezone information if present, or a local date string.
 
     """
     if isinstance(date, DTypeInstant.j_type):
@@ -817,6 +817,23 @@ def convert_date_for_labeled_value(
 
     if isinstance(date, DTypeLocalDate.j_type):
         return str(date)
+
+
+def is_java_date(value: Any) -> TypeGuard[JavaDate]:
+    """
+    Check if a value is a Java date type.
+
+    Args:
+        value: The value to check.
+
+    Returns:
+        True if the value is a Java date type, False otherwise.
+    """
+    return (
+        isinstance(value, DTypeInstant.j_type)
+        or isinstance(value, DTypeZonedDateTime.j_type)
+        or isinstance(value, DTypeLocalDate.j_type)
+    )
 
 
 def _convert_instant_to_nanos(instant: Instant) -> int:

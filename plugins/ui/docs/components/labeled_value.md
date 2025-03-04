@@ -107,7 +107,7 @@ import datetime
 
 @ui.component
 def labeled_value_datetime():
-    instant = to_j_instant("2035-01-31T12:30:00.12345 UTC")
+    instant = to_j_instant("2035-01-31T12:30:00.12345Z")
     zoned_date_time = to_j_zdt("2035-01-31T12:30:00.12345 America/New_York")
     local_date = to_j_local_date("2035-01-31")
 
@@ -115,7 +115,7 @@ def labeled_value_datetime():
         ui.labeled_value(label="Instant", value=instant),
         ui.labeled_value(
             label="Date string",
-            value="2035-01-31T12:30:00.12345 UTC",
+            value="2035-01-31T12:30:00.12345Z",
             format_options={"date_format": ""},
         ),
         ui.labeled_value(
@@ -185,8 +185,8 @@ from deephaven import ui
 
 @ui.component
 def labeled_value_datetime_timezone():
-    date = "2035-01-31T12:30:00.12345 UTC"
-    date_with_timezone = "2035-01-31T12:30:00.12345 America/New_York"
+    date = "2035-01-31T12:30:00.12345Z"
+    zoned_date = "2035-01-31T12:30:00.12345 America/Los_Angeles"
     default_date_format = {"date_format": ""}
 
     return [
@@ -197,12 +197,12 @@ def labeled_value_datetime_timezone():
         ),
         ui.labeled_value(
             label="Provided timezone from date string",
-            value=date_with_timezone,
+            value=zoned_date,
             format_options=default_date_format,
         ),
         ui.labeled_value(
             label="Overridden with timezone property",
-            value=date_with_timezone,
+            value=zoned_date,
             format_options=default_date_format,
             timezone="America/Halifax",
         ),
@@ -210,6 +210,96 @@ def labeled_value_datetime_timezone():
 
 
 my_labeled_value_datetime_timezone = labeled_value_datetime_timezone()
+```
+
+### Date ranges
+
+An object with a `start` and `end` property can be passed to the `value` prop in order to format a date range. The same date types listed above in [dates and times](./labeled_value.md#dates-and-time) are also accepted for the `start` and `end` props.
+
+The formatting options are identical to individual dates, and will be applied to both `start` and `end` dates. By default, the formatter will compare the values to determine the appropriate format, combining the range when the dates share the same year, month, day, etc. However, when a custom format is specified, each of the dates in the range will always show the same format regardless of their value.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def labeled_value_datetime_range_format():
+    time_range = {"start": "2035-01-31T12:30:00Z", "end": "2035-01-31T16:30:00Z"}
+    day_range = {"start": "2035-01-31", "end": "2035-02-01"}
+    default_date_format = {"date_format": ""}
+
+    return [
+        ui.labeled_value(
+            label="Auto-format time range",
+            value=time_range,
+            format_options=default_date_format,
+        ),
+        ui.labeled_value(
+            label="Custom format time range",
+            value=time_range,
+            format_options={"date_format": "MMMM d, yyyy, h:mm a z"},
+        ),
+        ui.labeled_value(
+            label="Auto-format day range",
+            value=day_range,
+            format_options=default_date_format,
+        ),
+        ui.labeled_value(
+            label="Custom format day range",
+            value=day_range,
+            format_options={"date_format": "MMMM d, yyyy"},
+        ),
+    ]
+
+
+my_labeled_value_datetime_range_format = labeled_value_datetime_range_format()
+```
+
+By default, both dates in the range will be displayed using the timezone set in user settings. If either of the provided date is already timezone aware, its timezone will be used. If both the dates passed in are timezone aware, the timezone of the `start` date will be used to display both dates. However, this can be overridden using the `timezone` prop to [set the display timezone](./labeled_value.md#timezones) for both dates.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def labeled_value_datetime_range_timezone():
+    date_range = {"start": "2035-01-31T12:30:00Z", "end": "2035-02-01T12:30:00Z"}
+    zoned_date_range = {
+        "start": "2035-01-31T12:30:00Z",
+        "end": "2035-02-01T23:30:00 Asia/Tokyo",
+    }
+    both_zoned_date_range = {
+        "start": "2035-01-31T12:30:00 America/Los_Angeles",
+        "end": "2035-02-01T23:30:00 Asia/Tokyo",
+    }
+    default_date_format = {"date_format": ""}
+
+    return [
+        ui.labeled_value(
+            label="User settings timezone",
+            value=date_range,
+            format_options=default_date_format,
+        ),
+        ui.labeled_value(
+            label="Provided timezone from one date",
+            value=zoned_date_range,
+            format_options=default_date_format,
+        ),
+        ui.labeled_value(
+            label="Provided timezone from both dates",
+            value=both_zoned_date_range,
+            format_options=default_date_format,
+        ),
+        ui.labeled_value(
+            label="Overridden with timezone property",
+            value=both_zoned_date_range,
+            format_options=default_date_format,
+            timezone="America/Halifax",
+        ),
+    ]
+
+
+my_labeled_value_datetime_range_timezone = labeled_value_datetime_range_timezone()
 ```
 
 ## Label position

@@ -6,6 +6,7 @@ from .._internal.utils import (
     create_props,
     _convert_to_java_date,
     convert_date_for_labeled_value,
+    is_java_date,
 )
 from .types import (
     Alignment,
@@ -17,17 +18,10 @@ from .types import (
     Position,
     LabelPosition,
 )
-from ..types import Date, DateRange, NumberRange
+from ..types import Date, DateFormatOptions, DateRange, NumberRange
 from .basic import component_element
 from ..elements import Element
-from typing import TypedDict, Tuple
-
-
-DateFormatJavaString = str
-
-
-class DateFormatOptions(TypedDict):
-    date_format: DateFormatJavaString
+from typing import Tuple
 
 
 def _convert_labeled_value_props(
@@ -38,32 +32,77 @@ def _convert_labeled_value_props(
         and isinstance(props["format_options"], dict)
         and "date_format" in props["format_options"]
     )
-    hasRange = isinstance(props["value"], dict)
+    # need to pass this custom prop to allow component to distinguish between dates (passed as int or str) and other values
     props["is_date"] = False
 
-    if isinstance(props["value"], (List)):
-        return props
-    if isinstance(props["value"], (int, float, str)) and not hasDateFormat:
-        return props
-    if hasRange:
-        # TODO: implement date formatting for date range
+    if (
+        isinstance(props["value"], (List))
+        or (isinstance(props["value"], (int, str)) and not hasDateFormat)
+        or isinstance(props["value"], float)
+    ):
+        # not date value, don't convert props
         return props
 
-    try:
-        java_date = _convert_to_java_date(props["value"])  # type: ignore
-    except:
+    if isinstance(props["value"], dict):
+        # range values
+        if (
+            props["value"]["start"] is None
+            or (isinstance(props["value"]["start"], (int, str)) and not hasDateFormat)
+            or isinstance(props["value"]["start"], float)
+            or props["value"]["end"] is None
+            or (isinstance(props["value"]["end"], (int, str)) and not hasDateFormat)
+            or isinstance(props["value"]["end"], float)
+        ):
+            return props
+
+        if is_java_date(props["value"]["start"]):
+            start_date = props["value"]["start"]
+        else:
+            start_date = _convert_to_java_date(props["value"]["start"])
+        start_date = convert_date_for_labeled_value(start_date)
+
+        if is_java_date(props["value"]["end"]):
+            end_date = props["value"]["end"]
+        else:
+            end_date = _convert_to_java_date(props["value"]["end"])
+        end_date = convert_date_for_labeled_value(end_date)
+
+        start_tz = None
+        end_tz = None
+        if isinstance(start_date, Tuple):
+            start_prop_value, start_tz = start_date
+        else:
+            start_prop_value = start_date
+        if isinstance(end_date, Tuple):
+            end_prop_value, end_tz = end_date
+        else:
+            end_prop_value = end_date
+
+        if props["timezone"] is None and start_tz is not None and start_tz != "Z":
+            props["timezone"] = start_tz
+        elif props["timezone"] is None and end_tz is not None and end_tz != "Z":
+            props["timezone"] = end_tz
+
+        props["value"] = {"start": start_prop_value, "end": end_prop_value}
+        props["is_date"] = True
         return props
+
+    # single date value
+    if is_java_date(props["value"]):
+        date = props["value"]
+    else:
+        date = _convert_to_java_date(props["value"])
+    date = convert_date_for_labeled_value(date)
 
     tz = None
-    date = convert_date_for_labeled_value(java_date)
     if isinstance(date, Tuple):
-        nanos, tz = date
+        prop_value, tz = date
     else:
-        nanos = date
+        prop_value = date
 
-    if props["timezone"] is None and tz != "UTC" and tz is not None:
+    if props["timezone"] is None and tz != "Z" and tz is not None:
         props["timezone"] = tz
-    props["value"] = nanos
+    props["value"] = prop_value
     props["is_date"] = True
     return props
 
