@@ -35,11 +35,11 @@ const isDateFormat = (
 const getFormattedDate = (
   dh: typeof DhType,
   value: string | number,
-  tzString: string,
+  timezoneString: string,
   formatOptions?: LabeledValueFormatOptions
 ): string | ZonedDateTime | CalendarDate => {
   const hasDateFormat = isDateFormat(formatOptions);
-  const timezone = dh.i18n.TimeZone.getTimeZone(tzString);
+  const timezone = dh.i18n.TimeZone.getTimeZone(timezoneString);
 
   if (typeof value === 'string') {
     // date string
@@ -58,7 +58,7 @@ const getFormattedDate = (
       return dh.i18n.DateTimeFormat.format(format, value, timezone);
     }
     const millis = nanosToMillis(value);
-    return fromAbsolute(millis, tzString);
+    return fromAbsolute(millis, timezoneString);
   }
   return '';
 };
@@ -83,7 +83,7 @@ export function LabeledValue(
   const {
     value: propValue,
     formatOptions,
-    timezone,
+    timezone: propTimezone,
     isDate,
     ...restProps
   } = props;
@@ -94,11 +94,12 @@ export function LabeledValue(
     | string[]
     | CalendarDate
     | ZonedDateTime
-    | RangeValue<number | ZonedDateTime | CalendarDate> = propValue;
+    | RangeValue<number>
+    | RangeValue<ZonedDateTime | CalendarDate> = propValue;
 
   const hasDateFormat = isDateFormat(formatOptions);
   if (isDate) {
-    const timezoneString = timezone != null ? timezone : userTimezone;
+    const timezoneString = propTimezone != null ? propTimezone : userTimezone;
 
     if (typeof value === 'string' || typeof value === 'number') {
       // single value
@@ -127,9 +128,9 @@ export function LabeledValue(
         // combine date strings manually
         value = `${startDate}\u2013${endDate}`;
       } else if (
-        (startDate instanceof ZonedDateTime &&
-          endDate instanceof ZonedDateTime) ||
-        (startDate instanceof CalendarDate && endDate instanceof CalendarDate)
+        (startDate instanceof ZonedDateTime ||
+          startDate instanceof CalendarDate) &&
+        (endDate instanceof ZonedDateTime || endDate instanceof CalendarDate)
       ) {
         // pass start and end date objects for component to format
         value = { start: startDate, end: endDate };

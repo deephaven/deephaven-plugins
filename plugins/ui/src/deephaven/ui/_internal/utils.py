@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Set, Tuple, cast, Sequence, TypeVar, Union, TypeGuard
+from typing import Any, Callable, Set, Tuple, cast, Sequence, TypeVar, Union
 from deephaven.dtypes import (
     Instant as DTypeInstant,
     ZonedDateTime as DTypeZonedDateTime,
