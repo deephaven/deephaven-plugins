@@ -4,6 +4,7 @@ import { ChartModel, ChartUtils } from '@deephaven/chart';
 import Log from '@deephaven/log';
 import { ChartEvent, RenderOptions } from '@deephaven/chart/dist/ChartModel';
 import { DateTimeColumnFormatter, Formatter } from '@deephaven/jsapi-utils';
+import memoize from 'memoizee';
 import {
   DownsampleInfo,
   PlotlyChartWidgetData,
@@ -57,20 +58,14 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.handleFigureUpdated = this.handleFigureUpdated.bind(this);
     this.handleWidgetUpdated = this.handleWidgetUpdated.bind(this);
 
+    const widgetData = getWidgetData(widget);
+
     // Chart only fetches the model layout once on init, so it needs to be set
     // before the widget is subscribed to.
-    this.updateLayout(getWidgetData(widget));
+    this.updateLayout(widgetData);
 
     // The calendar is only fetched once at init.
-    // Timezone must be replaced for accurate rangebreaks.
-    const { calendar } = getWidgetData(widget).figure.deephaven;
-    if (calendar != null) {
-      const timeZone = dh.i18n.TimeZone.getTimeZone(calendar.timeZone);
-      this.calendar = {
-        ...calendar,
-        timeZone,
-      } as unknown as DhType.calendar.BusinessCalendar;
-    }
+    this.updateCalendar(widgetData);
 
     this.setTitle(this.getDefaultTitle());
   }
@@ -311,6 +306,45 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   /**
+   * Update the calendar object from the data
+   * @param data The new data to update the calendar from
+   */
+  updateCalendar(data: PlotlyChartWidgetData): void {
+    const { calendar } = data.figure.deephaven;
+    if (calendar != null) {
+      // Timezone must be replaced for accurate rangebreaks.
+      const timeZone = this.dh.i18n.TimeZone.getTimeZone(calendar.timeZone);
+      const newCalendar = {
+        ...calendar,
+        timeZone,
+      } as unknown as DhType.calendar.BusinessCalendar;
+
+      // Holidays should be converted to LocalDate objects so
+      // they have all the necessary methods to match the BusinessCalendar interface
+      newCalendar.holidays.forEach((holiday, i) => {
+        const { date } = holiday;
+        // date is a really a string at this point, but it should be a LocalDate object
+        const dateObj = new Date(date as unknown as string);
+        const year = dateObj.getFullYear();
+        const month = dateObj.getMonth();
+        const day = dateObj.getDate();
+        newCalendar.holidays[i] = {
+          ...newCalendar.holidays[i],
+          date: {
+            valueOf: () => date,
+            getYear: () => year,
+            getMonthValue: () => month,
+            getDayOfMonth: () => day,
+            toString: () => date,
+          } as unknown as DhType.LocalDateWrapper,
+        };
+      });
+
+      this.calendar = newCalendar;
+    }
+  }
+
+  /**
    * Fire an event to update the rangebreaks on the chart.
    * @param formatter The formatter to use to set the rangebreaks. If not provided, the current formatter is used.
    */
@@ -334,6 +368,15 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   /**
+   * Unsubscribe from a table.
+   * @param id The table ID to unsubscribe from
+   */
+  unsubscribeTable(id: number): void {
+    this.tableSubscriptionMap.get(id)?.close();
+    this.tableSubscriptionMap.delete(id);
+  }
+
+  /**
    * Fire an event to update the timezone on the chart data if it has changed.
    * @param formatter The new formatter
    */
@@ -342,8 +385,7 @@ export class PlotlyExpressChartModel extends ChartModel {
       const table = this.tableReferenceMap.get(tableId);
       if (table) {
         // resubscribe to get the data with the new timezone
-        this.tableSubscriptionMap.get(tableId)?.close();
-        this.tableSubscriptionMap.delete(tableId);
+        this.unsubscribeTable(tableId);
         this.subscribeTable(tableId);
       }
     });
@@ -417,17 +459,14 @@ export class PlotlyExpressChartModel extends ChartModel {
     const { detail: figureUpdateEvent } = event;
     chartData.update(figureUpdateEvent);
     figureUpdateEvent.columns.forEach(column => {
+      const valueTranslator = this.getValueTranslator(
+        column.type,
+        this.formatter
+      );
+
       const columnData = chartData.getColumn(
         column.name,
-        val =>
-          this.chartUtils.unwrapValue(
-            val,
-            (
-              this.formatter?.getColumnTypeFormatter(
-                'datetime'
-              ) as DateTimeColumnFormatter
-            ).dhTimeZone
-          ),
+        valueTranslator,
         figureUpdateEvent
       );
       tableData[column.name] = columnData;
@@ -741,6 +780,25 @@ export class PlotlyExpressChartModel extends ChartModel {
       0
     );
   }
+
+  getTimeZone = memoize(
+    (columnType: string, formatter: Formatter | undefined) => {
+      if (formatter != null) {
+        const dataFormatter = formatter.getColumnTypeFormatter(columnType);
+        if (dataFormatter != null) {
+          return (dataFormatter as DateTimeColumnFormatter).dhTimeZone;
+        }
+      }
+      return undefined;
+    }
+  );
+
+  getValueTranslator = memoize(
+    (columnType: string, formatter: Formatter | undefined) => {
+      const timeZone = this.getTimeZone(columnType, formatter);
+      return (value: unknown) => this.chartUtils.unwrapValue(value, timeZone);
+    }
+  );
 }
 
 export default PlotlyExpressChartModel;

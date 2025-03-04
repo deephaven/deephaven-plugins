@@ -20,6 +20,7 @@ from deephaven.updateby import rolling_sum_tick, ema_tick, cum_max
 
 SECOND = 1_000_000_000  #: One second in nanoseconds.
 MINUTE = 60 * SECOND  #: One minute in nanoseconds.
+STARTING_TIME = "2018-06-01T08:00:00 ET"  # day deephaven.io was registered
 
 
 def _cast_timestamp(time: pd.Timestamp | None) -> pd.Timestamp:
@@ -265,7 +266,7 @@ def marketing(ticking: bool = True) -> Table:
 def stocks(
     ticking: bool = True,
     hours_of_data: int = 1,
-    starting_time: str = "2018-06-01T08:00:00 ET",
+    starting_time: str = STARTING_TIME,
 ) -> Table:
     """Returns a Deephaven table containing a generated example data set.
 
@@ -305,7 +306,7 @@ def stocks(
         ```
     """
 
-    base_time = to_j_instant(starting_time)  # day deephaven.io was registered
+    base_time = to_j_instant(starting_time)
 
     pd_base_time = _cast_timestamp(to_pd_timestamp(base_time))
 
