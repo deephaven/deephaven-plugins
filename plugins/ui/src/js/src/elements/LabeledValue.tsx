@@ -65,7 +65,15 @@ const getFormattedDate = (
 
 export function LabeledValue(
   props: Omit<
-    DHCLabeledValueProps<number | string | string[]>,
+    DHCLabeledValueProps<
+      | number
+      | string
+      | string[]
+      | CalendarDate
+      | ZonedDateTime
+      | RangeValue<number>
+      | RangeValue<ZonedDateTime | CalendarDate>
+    >,
     'formatOptions'
   > & {
     formatOptions?:
@@ -88,14 +96,7 @@ export function LabeledValue(
     ...restProps
   } = props;
 
-  let value:
-    | number
-    | string
-    | string[]
-    | CalendarDate
-    | ZonedDateTime
-    | RangeValue<number>
-    | RangeValue<ZonedDateTime | CalendarDate> = propValue;
+  let value = propValue;
 
   const hasDateFormat = isDateFormat(formatOptions);
   if (isDate) {
@@ -140,7 +141,10 @@ export function LabeledValue(
 
   return (
     <DHCLabeledValue
-      value={value}
+      // value={value}
+      // Not sure why there is a type incompatibility on value, since SpectrumLabeledValueTypes
+      // includes all the types defined on value, casting as never for now.
+      value={value as never}
       formatOptions={hasDateFormat ? undefined : formatOptions}
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...restProps}
