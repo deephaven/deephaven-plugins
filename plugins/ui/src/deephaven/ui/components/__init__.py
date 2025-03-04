@@ -5,6 +5,7 @@ from .avatar import avatar
 from .basic import (
     component_element,
 )
+from .accordion import accordion
 from .badge import badge
 from .breadcrumbs import breadcrumbs
 from .button import button
@@ -12,6 +13,8 @@ from .button_group import button_group
 from .calendar import calendar
 from .checkbox import checkbox
 from .checkbox_group import checkbox_group
+from .color_editor import color_editor
+from .color_picker import color_picker
 from .column import column
 from .combo_box import combo_box
 from .content import content
@@ -84,6 +87,7 @@ from . import html
 
 
 __all__ = [
+    "accordion",
     "action_button",
     "action_group",
     "action_menu",
@@ -96,6 +100,8 @@ __all__ = [
     "calendar",
     "checkbox",
     "checkbox_group",
+    "color_editor",
+    "color_picker",
     "column",
     "combo_box",
     "component",

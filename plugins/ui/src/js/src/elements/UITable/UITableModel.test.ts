@@ -22,15 +22,12 @@ const MOCK_BASE_MODEL = TestUtils.createMockProxy<IrisGridTableModel>({
   ] as dh.Column[],
 });
 
-const MOCK_TABLE = TestUtils.createMockProxy<dh.Table>();
-
 describe('Formatting', () => {
   describe('getFormatOptionForCell', () => {
     test('applies last rule for an option', () => {
       const model = new UITableModel({
         dh: MOCK_DH,
         model: MOCK_BASE_MODEL,
-        table: MOCK_TABLE,
         databars: [],
         format: [{ color: 'red' }, { color: 'blue' }],
         displayNameMap: {},
@@ -43,7 +40,6 @@ describe('Formatting', () => {
       const model = new UITableModel({
         dh: MOCK_DH,
         model: MOCK_BASE_MODEL,
-        table: MOCK_TABLE,
         databars: [],
         format: [
           { cols: 'column0', color: 'red' },
@@ -67,7 +63,6 @@ describe('Formatting', () => {
       const model = new UITableModel({
         dh: MOCK_DH,
         model: MOCK_BASE_MODEL,
-        table: MOCK_TABLE,
         databars: [],
         format: [
           { color: 'red', if_: 'even' },
@@ -86,7 +81,6 @@ describe('Formatting', () => {
       const model = new UITableModel({
         dh: MOCK_DH,
         model: MOCK_BASE_MODEL,
-        table: MOCK_TABLE,
         databars: [],
         format: [{ cols: 'column0', color: 'red' }],
         displayNameMap: {},
@@ -105,7 +99,6 @@ describe('Formatting', () => {
       const model = new UITableModel({
         dh: MOCK_DH,
         model: MOCK_BASE_MODEL,
-        table: MOCK_TABLE,
         databars: [],
         format: [{ color: 'red', if_: 'even' }],
         displayNameMap: {},
@@ -121,7 +114,6 @@ describe('Formatting', () => {
       const model = new UITableModel({
         dh: MOCK_DH,
         model: MOCK_BASE_MODEL,
-        table: MOCK_TABLE,
         databars: [],
         format: [{ color: 'red' }],
         displayNameMap: {},
@@ -133,7 +125,6 @@ describe('Formatting', () => {
       const model = new UITableModel({
         dh: MOCK_DH,
         model: MOCK_BASE_MODEL,
-        table: MOCK_TABLE,
         databars: [],
         format: [],
         displayNameMap: {},
@@ -149,7 +140,6 @@ describe('Formatting', () => {
       const model = new UITableModel({
         dh: MOCK_DH,
         model: MOCK_BASE_MODEL,
-        table: MOCK_TABLE,
         databars: [],
         format: [{ background_color: 'black' }],
         displayNameMap: {},
@@ -167,7 +157,6 @@ describe('Formatting', () => {
       const model = new UITableModel({
         dh: MOCK_DH,
         model: MOCK_BASE_MODEL,
-        table: MOCK_TABLE,
         databars: [],
         format: [{ background_color: 'white' }],
         displayNameMap: {},
@@ -182,7 +171,6 @@ describe('Formatting', () => {
       const model = new UITableModel({
         dh: MOCK_DH,
         model: MOCK_BASE_MODEL,
-        table: MOCK_TABLE,
         databars: [],
         format: [{ color: 'foo' }],
         displayNameMap: {},
@@ -197,7 +185,6 @@ describe('Formatting', () => {
       const model = new UITableModel({
         dh: MOCK_DH,
         model: MOCK_BASE_MODEL,
-        table: MOCK_TABLE,
         databars: [],
         format: [],
         displayNameMap: {},
@@ -212,7 +199,6 @@ describe('Formatting', () => {
       const model = new UITableModel({
         dh: MOCK_DH,
         model: MOCK_BASE_MODEL,
-        table: MOCK_TABLE,
         databars: [],
         format: [{ background_color: 'foo' }],
         displayNameMap: {},

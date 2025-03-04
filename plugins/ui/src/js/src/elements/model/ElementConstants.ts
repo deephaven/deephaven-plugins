@@ -23,6 +23,7 @@ export const ELEMENT_NAME = {
   stack: uiComponentName('Stack'),
 
   /** Other Components */
+  accordion: uiComponentName('Accordion'),
   actionButton: uiComponentName('ActionButton'),
   actionGroup: uiComponentName('ActionGroup'),
   actionMenu: uiComponentName('ActionMenu'),
@@ -32,6 +33,8 @@ export const ELEMENT_NAME = {
   button: uiComponentName('Button'),
   buttonGroup: uiComponentName('ButtonGroup'),
   calendar: uiComponentName('Calendar'),
+  colorPicker: uiComponentName('ColorPicker'),
+  colorEditor: uiComponentName('ColorEditor'),
   checkbox: uiComponentName('Checkbox'),
   checkboxGroup: uiComponentName('CheckboxGroup'),
   comboBox: uiComponentName('ComboBox'),

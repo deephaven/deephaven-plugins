@@ -30,3 +30,15 @@ test('Indicator grid loads', async ({ page }) => {
   await openPanel(page, 'express_indicator_by', '.js-plotly-plot');
   await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
 });
+
+test('Ticking loads', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(page, 'ticking_fig', '.js-plotly-plot');
+  await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
+});
+
+test('Partitioned loads', async ({ page }) => {
+    await gotoPage(page, '');
+    await openPanel(page, 'partitioned_fig', '.js-plotly-plot');
+    await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
+});

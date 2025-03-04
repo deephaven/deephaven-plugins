@@ -2,7 +2,6 @@
  * Handles document events for one widget.
  */
 import React, {
-  ReactNode,
   useCallback,
   useEffect,
   useMemo,
@@ -11,6 +10,7 @@ import React, {
 } from 'react';
 // eslint-disable-next-line camelcase
 import { unstable_batchedUpdates } from 'react-dom';
+import { applyPatch, type Operation } from 'fast-json-patch';
 import {
   JSONRPCClient,
   JSONRPCServer,
@@ -21,6 +21,7 @@ import { useWidget } from '@deephaven/jsapi-bootstrap';
 import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { EMPTY_FUNCTION, assertNotNull } from '@deephaven/utils';
+
 import {
   CALLABLE_KEY,
   OBJECT_KEY,
@@ -34,11 +35,12 @@ import {
   WidgetMessageEvent,
   WidgetError,
   METHOD_DOCUMENT_ERROR,
-  METHOD_DOCUMENT_UPDATED,
+  METHOD_DOCUMENT_PATCHED,
   METHOD_EVENT,
 } from './WidgetTypes';
 import DocumentHandler from './DocumentHandler';
 import {
+  transformNode,
   getComponentForElement,
   WIDGET_ELEMENT,
   wrapCallable,
@@ -93,23 +95,8 @@ function WidgetHandler({
   const initialData = useMemo(() => initialDataProp, [widget]);
   const [internalError, setInternalError] = useState<WidgetError>();
 
-  const [document, setDocument] = useState<ReactNode>(() => {
-    if (widgetDescriptor.type === WIDGET_ELEMENT) {
-      // Rehydration. Mount ReactPanels for each panelId in the initial data
-      // so loading spinners or widget errors are shown
-      if (initialData?.panelIds != null && initialData.panelIds.length > 0) {
-        // Do not add a key here
-        // When the real document mounts, it doesn't use keys and will cause a remount
-        // which triggers the DocumentHandler to think the panels were closed and messes up the layout
-        // eslint-disable-next-line react/jsx-key
-        return initialData.panelIds.map(() => <ReactPanel />);
-      }
-      // Default to a single panel so we can immediately show a loading spinner
-      return <ReactPanel />;
-    }
-    // Dashboards should not have a default document. It breaks its render flow
-    return null;
-  });
+  // The document. Matches what was sent over the wire, before being rendered/conversion to React elements/nodes.
+  const [document, setDocument] = useState<object>();
 
   const error = useMemo(
     () => internalError ?? widgetError ?? undefined,
@@ -123,6 +110,12 @@ function WidgetHandler({
     new Map()
   );
   const exportedObjectCount = useRef(0);
+
+  // Keep track of callables that are currently rendered/in use
+  // We want to retain the same callable between renders, so we use a map that persists between renders
+  const renderedCallableMap = useRef(
+    new Map<string, (...args: unknown[]) => void>()
+  );
 
   // Bi-directional communication as defined in https://www.npmjs.com/package/json-rpc-2.0
   const jsonClient = useMemo(
@@ -166,32 +159,75 @@ function WidgetHandler({
     [jsonClient]
   );
 
-  const parseDocument = useCallback(
+  const renderEmptyDocument = useCallback(
     /**
-     * Parse the data from the server, replacing some of the nodes on the way.
+     * Renders an empty document. This is used when the widget is loading or has an error.
+     */
+    () => {
+      // Document hasn't been initialized yet. Display a loading spinner if applicable.
+      if (widgetDescriptor.type === WIDGET_ELEMENT) {
+        // Rehydration. Mount ReactPanels for each panelId in the initial data
+        // so loading spinners or widget errors are shown
+        if (initialData?.panelIds != null && initialData.panelIds.length > 0) {
+          // Do not add a key here
+          // When the real document mounts, it doesn't use keys and will cause a remount
+          // which triggers the DocumentHandler to think the panels were closed and messes up the layout
+          // eslint-disable-next-line react/jsx-key
+          return initialData.panelIds.map(() => <ReactPanel />);
+        }
+        // Default to a single panel so we can immediately show a loading spinner
+        return <ReactPanel />;
+      }
+      if (error != null) {
+        // If there's an error and the document hasn't rendered yet (mostly applies to dashboards), explicitly show an error view
+        return <WidgetErrorView error={error} />;
+      }
+
+      // Dashboards should not have a default document. It breaks its render flow
+      return null;
+    },
+    [error, initialData, widgetDescriptor]
+  );
+
+  const renderDocument = useCallback(
+    /**
+     * Iterates through a document and renders it with the appropriate components. Returns the original object/arrays if there are no changes.
      * Replaces all Callables with an async callback that will automatically call the server use JSON-RPC.
      * Replaces all Objects with the exported object from the server.
      * Replaces all Element nodes with the ReactNode derived from that Element.
      *
-     * @param data The data to parse
-     * @returns The parsed data
+     * @param doc The document to render
+     * @returns The rendered document
      */
-    (data: string) => {
+    (doc: object | undefined) => {
+      if (document === undefined) {
+        return renderEmptyDocument();
+      }
+
       assertNotNull(jsonClient);
-      // Keep track of exported objects that are no longer in use after this render.
+
+      // Keep track of exported objects and callables that are no longer in use after this render.
       // We close those objects that are no longer referenced, as they will never be referenced again.
       const deadObjectMap = new Map(exportedObjectMap.current);
-
-      const parsedData = JSON.parse(data, (key, value) => {
+      const deadCallableMap = new Map(renderedCallableMap.current);
+      const hydratedDocument = transformNode(doc, (key, value) => {
         // Need to re-hydrate any objects that are defined
         if (isCallableNode(value)) {
           const callableId = value[CALLABLE_KEY];
+          deadCallableMap.delete(callableId);
+          if (renderedCallableMap.current.has(callableId)) {
+            log.debug2('Reusing callableId', callableId);
+            return renderedCallableMap.current.get(callableId);
+          }
           log.debug2('Registering callableId', callableId);
-          return wrapCallable(
+          const callable = wrapCallable(
             jsonClient,
             callableId,
-            callableFinalizationRegistry
+            callableFinalizationRegistry,
+            false
           );
+          renderedCallableMap.current.set(callableId, callable);
+          return callable;
         }
         if (isObjectNode(value)) {
           // Replace this node with the exported object
@@ -225,17 +261,23 @@ function WidgetHandler({
         exportedObjectMap.current.delete(objectKey);
       });
 
+      // Close any callables that are no longer referenced
+      deadCallableMap.forEach((deadCallable, callableId) => {
+        log.debug2('Callable no longer rendered:', callableId);
+        renderedCallableMap.current.delete(callableId);
+      });
+
       log.debug2(
-        'Parsed data',
-        parsedData,
+        'Hydrated document',
+        hydratedDocument,
         'exportedObjectMap',
         exportedObjectMap.current,
         'deadObjectMap',
         deadObjectMap
       );
-      return parsedData;
+      return hydratedDocument;
     },
-    [jsonClient, callableFinalizationRegistry]
+    [callableFinalizationRegistry, document, jsonClient, renderEmptyDocument]
   );
 
   const updateExportedObjects = useCallback(
@@ -258,15 +300,19 @@ function WidgetHandler({
 
       log.debug('Adding methods to jsonClient');
       jsonClient.addMethod(
-        METHOD_DOCUMENT_UPDATED,
-        async (params: [string, string]) => {
-          log.debug2(METHOD_DOCUMENT_UPDATED, params);
-          const [documentParam, stateParam] = params;
-          const newDocument = parseDocument(documentParam);
+        METHOD_DOCUMENT_PATCHED,
+        async (params: [Operation[], string]) => {
+          log.debug2(METHOD_DOCUMENT_PATCHED, params);
+          const [patch, stateParam] = params;
+
           // TODO: Remove unstable_batchedUpdates wrapper when upgrading to React 18
           unstable_batchedUpdates(() => {
             setInternalError(undefined);
-            setDocument(newDocument);
+            setDocument(
+              oldDocument =>
+                applyPatch(oldDocument ?? {}, patch, undefined, false)
+                  .newDocument
+            );
             setIsLoading(false);
           });
           if (stateParam != null) {
@@ -335,13 +381,7 @@ function WidgetHandler({
         jsonClient.rejectAllPendingRequests('Widget was changed');
       };
     },
-    [
-      jsonClient,
-      onDataChange,
-      parseDocument,
-      sendSetState,
-      callableFinalizationRegistry,
-    ]
+    [jsonClient, onDataChange, sendSetState, callableFinalizationRegistry]
   );
 
   /**
@@ -411,16 +451,10 @@ function WidgetHandler({
     [jsonClient, initialData, sendSetState, updateExportedObjects, widget]
   );
 
-  const renderedDocument = useMemo(() => {
-    if (document != null) {
-      return document;
-    }
-    if (error != null) {
-      // If there's an error and the document hasn't rendered yet (mostly applies to dashboards), explicitly show an error view
-      return <WidgetErrorView error={error} />;
-    }
-    return document;
-  }, [document, error]);
+  const renderedDocument = useMemo(
+    () => renderDocument(document),
+    [document, renderDocument]
+  );
 
   const widgetStatus: WidgetStatus = useMemo(() => {
     if (isLoading) {
