@@ -123,7 +123,7 @@ def labeled_value(
     value: str | List[str] | float | NumberRange | Date | DateRange | None = None,
     label: Element | None = None,
     format_options: NumberFormatOptions | DateFormatOptions | None = None,
-    # TODO: add list formatting
+    # TODO: DH-18854 Implement list format options for ui.labeled_value
     # format_options: NumberFormatOptions | DateFormatOptions | ListFormatOptions | None = None,
     timezone: str | None = None,
     label_position: LabelPosition | None = "top",
