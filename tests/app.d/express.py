@@ -14,7 +14,7 @@ express_source = new_table(
 )
 express_fig = dx.bar(table=express_source, x="Categories", y="Values")
 
-title_fig = dx.scatter(express_source, x="Values", y="Values2")
+title_fig = dx.scatter(express_source, x="Values", y="Values2", title="Test Title")
 
 # Test a basic plotly chart
 plotly_fig = px.scatter(x=[0, 1, 2, 3, 4], y=[0, 1, 4, 9, 16])
