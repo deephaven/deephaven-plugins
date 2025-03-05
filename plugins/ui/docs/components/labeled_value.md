@@ -74,6 +74,7 @@ An object with a `start` and `end` property can be passed to the `value` prop in
 ```python
 from deephaven import ui
 
+
 my_number_range = ui.labeled_value(
     label="Price range",
     value={"start": 150, "end": 400},
