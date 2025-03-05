@@ -1,6 +1,6 @@
 # Action Group
 
-An action group is a UI component that groups multiple actions together. 
+An action group is a UI component that groups multiple actions together.
 
 ## Example
 
@@ -18,7 +18,6 @@ my_action_group_basic = ui.action_group(
 ## UI recommendations
 
 Consider using a [`button_group`](./button_group.md) to align multiple buttons that do not necessarily correspond to an action.
-
 
 ## Icons
 
@@ -49,10 +48,9 @@ my_action_group_button_label_behavior_example = ui.action_group(
 )
 ```
 
-
 ## Selection
 
-Action groups support multiple selection modes, which are configurable via the `selection_mode` prop. 
+Action groups support multiple selection modes, which are configurable via the `selection_mode` prop.
 
 The `default_selected_keys` can be used for uncontrolled default selections.
 
@@ -94,7 +92,6 @@ def ui_action_group_selected_keys_example():
 my_action_group_selected_keys_example = ui_action_group_selected_keys_example()
 ```
 
-
 ## Events
 
 The `on_selection_change` property is triggered whenever the value in the action group selection changes.
@@ -120,7 +117,6 @@ def ui_action_group_on_change_example():
 
 my_action_group_on_change_example = ui_action_group_on_change_example()
 ```
-
 
 ## Collapsing Behavior
 
@@ -159,7 +155,6 @@ my_action_group_selection_collapsing_example = ui.action_group(
 )
 ```
 
-
 ## Quiet State
 
 The `is_quiet` prop makes action groups "quiet". This can be useful when the action group and its corresponding styling should not distract users from surrounding content.
@@ -176,11 +171,9 @@ my_action_group_is_quiet_example = ui.action_group(
 )
 ```
 
-
 ## Emphasized
 
 The `is_emphasized` prop makes the selected action item the user's accent color, adding a visual prominence to the selection.
-
 
 ```python
 from deephaven import ui
@@ -195,7 +188,6 @@ my_action_group_is_emphasized_example = ui.action_group(
     is_emphasized=True,
 )
 ```
-
 
 ## Static Color
 
@@ -217,7 +209,6 @@ my_action_group_static_color_example = ui.view(
 )
 ```
 
-
 ## Disabled State
 
 Action groups can be disabled to prevent user interaction. This is useful when the group is not currently available, but the button should still be visible.
@@ -234,7 +225,6 @@ my_action_group_is_disabled_example = ui.action_group(
 )
 ```
 
-
 ## Orientation
 
 While aligned horizontally by default, the axis with which the action items align can be changed via the `orientation` prop.
@@ -250,7 +240,6 @@ my_action_group_orientation_example = ui.action_group(
     orientation="vertical",
 )
 ```
-
 
 ## Density
 
@@ -288,7 +277,6 @@ def ui_action_group_density_examples():
 my_action_group_density_examples = ui_action_group_density_examples()
 ```
 
-
 ## Justified
 
 The `is_justified` prop evenly divides all available horizontal space among the action items.
@@ -308,4 +296,10 @@ my_action_group_is_justified_example = ui.flex(
     width="size-3000",
     direction="column",
 )
+```
+
+## API Reference
+
+```{eval-rst}
+.. dhautofunction:: deephaven.ui.action_group
 ```
