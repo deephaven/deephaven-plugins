@@ -23,6 +23,8 @@ def ui_flex():
 my_flex = ui_flex()
 ```
 
+![Flex Basic Example](../_assets/flex_basic.png)
+
 ## Direction
 
 The `direction` prop determines the direction in which the flex items are laid out.

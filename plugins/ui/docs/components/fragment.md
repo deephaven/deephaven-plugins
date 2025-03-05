@@ -10,6 +10,8 @@ from deephaven import ui
 my_fragment = ui.fragment(ui.text("Child 1"), ui.text("Child 2"))
 ```
 
+![Fragment Basic Example](../_assets/fragment_basic.png)
+
 ## Rendering a List
 
 When rendering multiple elements in a loop, ensure each fragment has a unique key. This is crucial if array items might be inserted, deleted, or reordered.

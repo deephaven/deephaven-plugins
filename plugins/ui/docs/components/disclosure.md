@@ -10,6 +10,8 @@ from deephaven import ui
 my_disclosure_basic = ui.disclosure(title="Heading", panel="Content")
 ```
 
+![Disclosure Basic Example](../_assets/disclosure_basic.png)
+
 ## Events
 
 Disclosure accepts an `on_expanded_change` prop which triggers when it is expanded or collapsed.

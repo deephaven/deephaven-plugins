@@ -12,6 +12,8 @@ from deephaven import ui
 my_heading_basic = ui.heading("Hello world")
 ```
 
+![Heading Basic Example](../_assets/heading_basic.png)
+
 ## UI recommendations
 
 Consider using a [`text`](./text.md) component if the content does not require a specific heading level or semantic importance, such as for paragraphs or inline text.

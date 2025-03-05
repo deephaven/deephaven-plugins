@@ -19,6 +19,8 @@ def ui_form():
 my_form = ui_form()
 ```
 
+![Form Basic Example](../_assets/form_basic.png)
+
 ## Events
 
 Forms can handle three events:

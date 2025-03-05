@@ -10,6 +10,8 @@ from deephaven import ui
 my_logic_button_basic = ui.logic_button("Or", variant="or")
 ```
 
+![Logic Button Basic Example](../_assets/logic_button_basic.png)
+
 ## Events
 
 Logic buttons handles user interaction through the `on_press` prop.

@@ -2,7 +2,6 @@
 
 An illustrated message displays an illustration along with a message, typically used for empty states or error pages.
 
-
 ## Example
 
 ```python
@@ -15,19 +14,21 @@ my_illustrated_message_basic = ui.illustrated_message(
 )
 ```
 
+![Illustrated Message Basic Example](../_assets/illustrated_message_basic.png)
+
 ## UI recommendations
 
 Recommendations for creating an illustrated message:
 
 1. The message should be concise and, if applicable, describe the next step a user can take.
 2. The heading should be no longer than 6 words and should not be a replacement for the message text.
-2. Use sentence case for the heading and message text.
-3. Use illustrations that are relevant to the message and help convey the context effectively.
-4. Reserve illustrated messages for situations where they add value and clarity, rather than using them for minor notifications or messages.
+3. Use sentence case for the heading and message text.
+4. Use illustrations that are relevant to the message and help convey the context effectively.
+5. Reserve illustrated messages for situations where they add value and clarity, rather than using them for minor notifications or messages.
 
 ## Content
 
-An illustrated message is made up of three parts: an illustration, a heading, and a body. 
+An illustrated message is made up of three parts: an illustration, a heading, and a body.
 
 You can populate these sections by providing the following components as children: an `ui.icon` for the illustration, a `ui.heading` for the heading, and `ui.content` for the body.
 
@@ -86,7 +87,6 @@ def illustrated_message_placeholder_example():
 
 my_illustrated_message_placeholder_example = illustrated_message_placeholder_example()
 ```
-
 
 ## API reference
 
