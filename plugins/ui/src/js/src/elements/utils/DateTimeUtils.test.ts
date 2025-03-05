@@ -12,6 +12,9 @@ import {
   parseCalendarValue,
   parseNullableCalendarValue,
   dateValuetoIsoString,
+  nanosToMillis,
+  isCustomDateFormatOptions,
+  getFormattedDate,
 } from './DateTimeUtils';
 
 const DEFAULT_TIME_ZONE = 'UTC';
@@ -224,5 +227,101 @@ describe('dateValuetoIsoString', () => {
     expect(dateValuetoIsoString(date)).toEqual(
       '2021-03-04T00:00:00+00:00[America/New_York]'
     );
+  });
+
+  describe('nanosToMillis', () => {
+    it('should convert nanoseconds to milliseconds', () => {
+      expect(nanosToMillis(1000000)).toEqual(1);
+    });
+  });
+
+  describe('isCustomDateFormatOptions', () => {
+    it('should return true for a valid date format', () => {
+      expect(isCustomDateFormatOptions({ date_format: 'date format' })).toBe(
+        true
+      );
+    });
+
+    it('should return true for a valid but empty date format', () => {
+      expect(isCustomDateFormatOptions({ date_format: '' })).toBe(true);
+    });
+
+    it('should return false for invalid date format', () => {
+      expect(isCustomDateFormatOptions({ invalid: 'invalid' })).toBe(false);
+    });
+
+    it('should return false for undefined date format', () => {
+      expect(isCustomDateFormatOptions(undefined)).toBe(false);
+    });
+  });
+
+  describe('getFormattedDate', () => {
+    const mockDh = {
+      i18n: {
+        TimeZone: {
+          getTimeZone: jest.fn(),
+        },
+        DateTimeFormat: {
+          format: jest.fn(),
+        },
+      },
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('dh api should be used to format date if formatOptions is provided', () => {
+      const value = '2020-01-01';
+      const timezoneString = 'America/New_York';
+      const dateFormat = 'yyyy-MM-dd';
+      const formatOptions = { date_format: dateFormat };
+      mockDh.i18n.TimeZone.getTimeZone.mockReturnValue({ id: timezoneString });
+      getFormattedDate(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockDh as any,
+        value,
+        timezoneString,
+        true,
+        formatOptions
+      );
+      expect(mockDh.i18n.TimeZone.getTimeZone).toHaveBeenCalledWith(
+        timezoneString
+      );
+      expect(mockDh.i18n.DateTimeFormat.format).toHaveBeenCalledWith(
+        dateFormat,
+        value,
+        { id: timezoneString }
+      );
+    });
+
+    it('date string should be parsed into CalendarDate when no formatOptions', () => {
+      const value = '2020-01-01';
+      const timezone = 'America/New_York';
+      const result = getFormattedDate(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockDh as any,
+        value,
+        timezone,
+        false
+      );
+      expect(result).toBeInstanceOf(CalendarDate);
+    });
+
+    it('nanosecond string should be parsed into ZonedDateTime when no formatOptions', () => {
+      const value = '1577854800000000000';
+      const timezone = 'America/New_York';
+      const result = getFormattedDate(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockDh as any,
+        value,
+        timezone,
+        true
+      );
+      expect(result).toBeInstanceOf(ZonedDateTime);
+      if (result instanceof ZonedDateTime) {
+        expect(result.timeZone).toEqual(timezone);
+      }
+    });
   });
 });
