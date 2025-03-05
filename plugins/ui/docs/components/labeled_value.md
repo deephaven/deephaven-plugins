@@ -1,6 +1,6 @@
 # Labeled Value
 
-A labeled value displays a non-editable value with a label. 
+A labeled value displays a non-editable value with a label.
 
 ## Example
 
@@ -11,6 +11,7 @@ from deephaven import ui
 my_labeled_value_basic = ui.labeled_value(label="File name", value="Budget.xls")
 ```
 
+![Labeled Value Basic Example](../_assets/labeled_value_basic.png)
 
 ## Value
 
@@ -68,10 +69,9 @@ def ui_labeled_value_numbers_example():
 my_labeled_value_numbers_example = ui_labeled_value_numbers_example()
 ```
 
-
 ## Label position
 
-By default, the label is positioned above the labeled value, but it can be moved to the side using the `label_position` prop. 
+By default, the label is positioned above the labeled value, but it can be moved to the side using the `label_position` prop.
 
 ```python
 from deephaven import ui
@@ -81,7 +81,6 @@ my_labeled_value_label_position_example = ui.labeled_value(
     label="File name", value="Onboarding.pdf", label_position="side", label_align="end"
 )
 ```
-
 
 ## Contextual Help
 
@@ -99,7 +98,6 @@ my_labeled_value_contextual_help_example = ui.labeled_value(
     ),
 )
 ```
-
 
 ## API reference
 

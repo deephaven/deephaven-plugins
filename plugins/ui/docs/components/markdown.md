@@ -35,6 +35,8 @@ def ui_markdown():
 ui_markdown_example = ui_markdown()
 ```
 
+![Markdown Basic Example](../_assets/markdown_basic.png)
+
 ## LaTeX
 
 When writing LaTeX, be careful how Python handles backslashes with escape characters. To minimize this issue, it is recommended to use raw strings.

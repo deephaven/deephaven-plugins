@@ -10,6 +10,7 @@ from deephaven import ui
 my_link_basic = ui.link("Learn more about Deephaven", href="https://deephaven.io/")
 ```
 
+![Link Basic Example](../_assets/Link_basic.png)
 
 ## Content
 
@@ -29,7 +30,6 @@ def ui_link_content_examples():
 
 my_link_content_examples = ui_link_content_examples()
 ```
-
 
 ## Variants
 
@@ -54,7 +54,7 @@ def ui_link_variant_examples():
 my_link_variant_examples = ui_link_variant_examples()
 ```
 
-## Over background 
+## Over background
 
 Links can be placed over a background to add a visual prominence to the link.
 
@@ -75,7 +75,7 @@ my_link_over_background_example = ui.view(
 
 ## Quiet State
 
-The `is_quiet` prop makes the link  "quiet". This can be useful when the link and its corresponding styling should not distract users from surrounding content.
+The `is_quiet` prop makes the link "quiet". This can be useful when the link and its corresponding styling should not distract users from surrounding content.
 
 ```python
 from deephaven import ui
@@ -86,10 +86,8 @@ my_link_is_quiet_example = ui.text(
 )
 ```
 
-
 ## API Reference
 
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.link
 ```
-
