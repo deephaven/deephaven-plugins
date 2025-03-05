@@ -47,6 +47,28 @@ hist_3_bins = dx.histogram(setosa, x="SepalLength", nbins=3)
 hist_8_bins = dx.histogram(setosa, x="SepalLength", nbins=8)
 ```
 
+### Bin and aggregate on different columns
+
+If the plot orientation is vertical (`"v"`), the `x` column is binned and the `y` column is aggregated. The operations are flipped if the plot orientation is horizontal.
+
+
+```python order=hist_v,hist_h,hist_avg,iris
+import deephaven.plot.express as dx
+iris = dx.data.iris()
+
+# subset to get specific species
+setosa = iris.where("Species == `setosa`")
+
+# The default orientation is "v" (vertical) and the default aggregation function is "sum"
+hist_v = dx.histogram(setosa, x="SepalLength", y="SepalWidth")
+
+# Control the plot orientation using orientation
+hist_h = dx.histogram(setosa, x="SepalLength", y="SepalWidth", orientation="h")
+
+# Control the aggregation function using histfunc
+hist_avg = dx.histogram(setosa, x="SepalLength", y="SepalWidth", histfunc="avg")
+```
+
 ### Distributions of several groups
 
 Histograms can also be used to compare the distributional properties of different groups of data, though they may be a little harder to read than [box plots](box.md) or [violin plots](violin.md). Pass the name of the grouping column(s) to the `by` argument.
