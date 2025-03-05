@@ -233,6 +233,15 @@ describe('dateValuetoIsoString', () => {
     it('should convert nanoseconds to milliseconds', () => {
       expect(nanosToMillis(1000000)).toEqual(1);
     });
+
+    it('should return 0 when 0 nanoseconds is given', () => {
+      expect(nanosToMillis(0)).toEqual(0);
+    });
+
+    it('should round down properly', () => {
+      expect(nanosToMillis(999999)).toEqual(0);
+      expect(nanosToMillis(1000001)).toEqual(1);
+    });
   });
 
   describe('isCustomDateFormatOptions', () => {
