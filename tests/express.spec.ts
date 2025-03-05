@@ -19,6 +19,18 @@ test('Histogram loads', async ({ page }) => {
   await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
 });
 
+test('Indicator loads', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(page, 'express_indicator', '.js-plotly-plot');
+  await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
+});
+
+test('Indicator grid loads', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(page, 'express_indicator_by', '.js-plotly-plot');
+  await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
+});
+
 test('Ticking loads', async ({ page }) => {
   await gotoPage(page, '');
   await openPanel(page, 'ticking_fig', '.js-plotly-plot');

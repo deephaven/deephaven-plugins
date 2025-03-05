@@ -42,6 +42,7 @@ from .plots import (
     line_geo,
     line_mapbox,
     density_heatmap,
+    indicator,
 )
 
 from .data import data_generators

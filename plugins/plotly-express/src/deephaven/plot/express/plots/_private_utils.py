@@ -101,7 +101,7 @@ def apply_args_groups(args: dict[str, Any], possible_groups: set[str] | None) ->
 
     Args:
       args: A dictionary of args to transform
-      groups: A set of groups used to transform the args
+      possible_groups: A set of groups used to transform the args
 
     """
     groups: set = (
@@ -166,6 +166,19 @@ def apply_args_groups(args: dict[str, Any], possible_groups: set[str] | None) ->
 
     if "webgl" in groups:
         args["render_mode"] = "webgl"
+
+    if "indicator" in groups:
+        append_suffixes(
+            [
+                "increasing_color_sequence",
+                "attached_increasing_color",
+                "decreasing_color_sequence",
+                "attached_decreasing_color",
+                "text",
+            ],
+            ["indicator"],
+            sync_dict,
+        )
 
     sync_dict.sync_pop()
 
