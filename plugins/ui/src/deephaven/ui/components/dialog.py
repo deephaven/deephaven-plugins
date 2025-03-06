@@ -15,13 +15,32 @@ from .types import (
 
 from ..elements import Element
 from .._internal.utils import create_props
-from .basic import component_element
+from .basic import component_element, NamePrefix
+
+from .heading import HeadingName
+from .footer import FooterName
+from .content import ContentName
+from .button_group import ButtonGroupName
+from .divider import DividerName
+
+_valid_names = {
+    f"{NamePrefix}{HeadingName}",
+    f"{NamePrefix}{FooterName}",
+    f"{NamePrefix}{ContentName}",
+    f"{NamePrefix}{ButtonGroupName}",
+    f"{NamePrefix}{DividerName}",
+}
+
+
+def is_valid_dialog_child(child: Element) -> bool:
+    return child.name in _valid_names
+
 
 DialogElement = Element
 
 
 def dialog(
-    *children: Any,
+    *children: Element,
     size: DialogSize | None = None,
     is_dismissable: bool | None = None,
     on_dismiss: Callable[[], None] | None = None,
@@ -129,4 +148,7 @@ def dialog(
         The dialog element.
     """
     children, props = create_props(locals())
+    for child in children:
+        if not is_valid_dialog_child(child):
+            raise ValueError(f"{child.name} is not a valid child for dialog")
     return component_element("Dialog", *children, **props)
