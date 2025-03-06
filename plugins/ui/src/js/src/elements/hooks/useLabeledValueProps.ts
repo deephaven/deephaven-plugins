@@ -22,15 +22,24 @@ export interface SerializedLabeledValuePropsInterface {
   isNanoseconds: boolean;
 }
 
-export interface DeserializedLabeledValuePropsInterface {
-  value:
-    | number
-    | string
-    | string[]
-    | CalendarDate
-    | ZonedDateTime
-    | RangeValue<number>
-    | RangeValue<CalendarDate | ZonedDateTime>;
+type DeserializedValue<T> = T extends number
+  ? number
+  : T extends string
+  ? string
+  : T extends string[]
+  ? string[]
+  : T extends CalendarDate
+  ? CalendarDate
+  : T extends ZonedDateTime
+  ? ZonedDateTime
+  : T extends RangeValue<number>
+  ? RangeValue<number>
+  : T extends RangeValue<CalendarDate | ZonedDateTime>
+  ? RangeValue<CalendarDate | ZonedDateTime>
+  : never;
+
+export interface DeserializedLabeledValuePropsInterface<T> {
+  value: DeserializedValue<T>;
   formatOptions?: Intl.NumberFormatOptions | Intl.ListFormatOptions | undefined;
 }
 
@@ -41,7 +50,7 @@ export type DeserializedLabeledValueProps<TProps> = Omit<
   TProps,
   keyof SerializedLabeledValuePropsInterface
 > &
-  DeserializedLabeledValuePropsInterface;
+  DeserializedLabeledValuePropsInterface<TProps>;
 
 interface CustomDateRangeValue {
   start: string;
@@ -176,7 +185,7 @@ export function useLabeledValueProps<TProps>({
   );
 
   return {
-    value: deserializedValue,
+    value: deserializedValue as DeserializedValue<TProps>,
     formatOptions: deserializedFormatOptions,
     ...otherProps,
   };
