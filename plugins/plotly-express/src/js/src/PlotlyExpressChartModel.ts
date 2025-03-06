@@ -121,6 +121,8 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   isDownsamplingDisabled = false;
 
+  isWebGlSupported = IS_WEBGL_SUPPORTED;
+
   /**
    * Set of traces that are originally WebGL and can be replaced with non-WebGL traces.
    * These need to be replaced if WebGL is disabled and re-enabled if WebGL is enabled again.
@@ -239,7 +241,7 @@ export class PlotlyExpressChartModel extends ChartModel {
   handleWebGlAllowed(webgl = true, prevWebgl = true): void {
     setWebGlTraceType(
       this.plotlyData,
-      webgl && IS_WEBGL_SUPPORTED,
+      webgl && this.isWebGlSupported,
       this.webGlTraceIndices
     );
 
