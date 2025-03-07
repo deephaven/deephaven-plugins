@@ -1,7 +1,8 @@
 from deephaven.column import int_col, string_col
-from deephaven import new_table, merge, time_table
+from deephaven import new_table, merge, time_table, empty_table
 import deephaven.plot.express as dx
 import plotly.express as px
+from deephaven.calendar import calendar
 
 
 # Test a basic deephaven plot
@@ -43,3 +44,16 @@ ticking_fig = dx.bar(ticking_source, x="Categories", y="Values")
 partitioned_source = express_source.partition_by("Categories")
 
 partitioned_fig = dx.bar(partitioned_source, x="Values", y="Values2", by="Categories")
+
+name = "USNYSE_EXAMPLE"
+nyse_cal = calendar(name)
+
+# checks a full holiday on the 28th, a partial holiday on the 29th, a weekend, and regular business days
+source = empty_table(3000).update(
+    [
+        "Timestamp = '2024-11-27T9:27:00 ET' + i * 3 * MINUTE",
+        "Price = randomDouble(100.0, 200.0)",
+    ]
+)
+
+line_calendar = dx.line(source, x="Timestamp", y="Price", calendar=nyse_cal)

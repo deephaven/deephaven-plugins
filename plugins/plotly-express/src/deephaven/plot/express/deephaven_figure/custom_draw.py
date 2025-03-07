@@ -56,7 +56,20 @@ def draw_finance(
             )
         )
 
-    return go.Figure(data=data)
+    layout = go.Layout(
+        xaxis={
+            "anchor": "y",
+            "domain": [0.0, 1.0],
+            "side": "bottom",
+        },
+        yaxis={
+            "anchor": "x",
+            "domain": [0.0, 1.0],
+            "side": "left",
+        },
+    )
+
+    return go.Figure(data=data, layout=layout)
 
 
 def draw_ohlc(
