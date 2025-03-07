@@ -7,7 +7,12 @@ Dashboards allow you to create a page layout containing a collection of componen
 ```python
 from deephaven import ui
 
-my_dash = ui.dashboard(ui.row(ui.panel("A")))
+my_dash = ui.dashboard(
+    ui.row(
+        ui.column(ui.panel("A"), ui.panel("C")),
+        ui.column(ui.panel("B"), ui.panel("D")),
+    )
+)
 ```
 
 ![Dashboard Basic Example](../_assets/dashboard_basic.png)
