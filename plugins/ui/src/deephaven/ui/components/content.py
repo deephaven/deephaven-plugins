@@ -12,7 +12,7 @@ from .types import (
 from .basic import component_element
 from ..elements import Element
 
-ContentName = "Content"
+CONTENT_NAME = "Content"
 
 
 def content(
@@ -108,7 +108,7 @@ def content(
         The rendered content element.
     """
     return component_element(
-        ContentName,
+        CONTENT_NAME,
         children=children,
         flex=flex,
         flex_grow=flex_grow,

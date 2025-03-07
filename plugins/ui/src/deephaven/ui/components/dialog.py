@@ -15,20 +15,20 @@ from .types import (
 
 from ..elements import Element
 from .._internal.utils import create_props
-from .basic import component_element, NamePrefix
+from .basic import component_element, NAME_PREFIX
 
-from .heading import HeadingName
-from .footer import FooterName
-from .content import ContentName
-from .button_group import ButtonGroupName
-from .divider import DividerName
+from .heading import HEADING_NAME
+from .footer import FOOTER_NAME
+from .content import CONTENT_NAME
+from .button_group import BUTTON_GROUP_NAME
+from .divider import DIVIDER_NAME
 
 _valid_names = {
-    f"{NamePrefix}{HeadingName}",
-    f"{NamePrefix}{FooterName}",
-    f"{NamePrefix}{ContentName}",
-    f"{NamePrefix}{ButtonGroupName}",
-    f"{NamePrefix}{DividerName}",
+    f"{NAME_PREFIX}{HEADING_NAME}",
+    f"{NAME_PREFIX}{FOOTER_NAME}",
+    f"{NAME_PREFIX}{CONTENT_NAME}",
+    f"{NAME_PREFIX}{BUTTON_GROUP_NAME}",
+    f"{NAME_PREFIX}{DIVIDER_NAME}",
 }
 
 

@@ -11,7 +11,7 @@ from .types import (
     Position,
 )
 
-FooterName = "Footer"
+FOOTER_NAME = "Footer"
 
 
 def footer(
@@ -108,7 +108,7 @@ def footer(
         The rendered footer element.
     """
     return component_element(
-        FooterName,
+        FOOTER_NAME,
         children=children,
         flex=flex,
         flex_grow=flex_grow,

@@ -15,7 +15,7 @@ from .types import (
 from .basic import component_element
 from ..elements import Element
 
-ButtonGroupName = "ButtonGroup"
+BUTTON_GROUP_NAME = "ButtonGroup"
 
 
 def button_group(
@@ -118,7 +118,7 @@ def button_group(
 
     """
     return component_element(
-        ButtonGroupName,
+        BUTTON_GROUP_NAME,
         *children,
         is_disabled=is_disabled,
         orientation=orientation,

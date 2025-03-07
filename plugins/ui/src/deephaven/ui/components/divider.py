@@ -13,7 +13,7 @@ from ..types import DividerSize
 from .basic import component_element
 from ..elements import Element
 
-DividerName = "Divider"
+DIVIDER_NAME = "Divider"
 
 
 def divider(
@@ -109,7 +109,7 @@ def divider(
         The rendered divider element.
     """
     return component_element(
-        DividerName,
+        DIVIDER_NAME,
         size=size,
         orientation=orientation,
         flex=flex,

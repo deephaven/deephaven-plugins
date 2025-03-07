@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Any
 from ..elements import BaseElement
 
-NamePrefix = "deephaven.ui.components."
+NAME_PREFIX = "deephaven.ui.components."
 
 
 def component_element(name: str, /, *children: Any, **props: Any) -> BaseElement:
@@ -11,4 +11,4 @@ def component_element(name: str, /, *children: Any, **props: Any) -> BaseElement
     All names are automatically prefixed with "deephaven.ui.components.", and
     all props are automatically camelCased.
     """
-    return BaseElement(f"{NamePrefix}{name}", *children, **props)
+    return BaseElement(f"{NAME_PREFIX}{name}", *children, **props)

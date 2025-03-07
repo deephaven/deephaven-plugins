@@ -14,7 +14,7 @@ from ..types import Color
 from .basic import component_element
 from ..elements import Element
 
-HeadingName = "Heading"
+HEADING_NAME = "Heading"
 
 
 def heading(
@@ -115,7 +115,7 @@ def heading(
 
     """
     return component_element(
-        HeadingName,
+        HEADING_NAME,
         children=children,
         level=level,
         color=color,
