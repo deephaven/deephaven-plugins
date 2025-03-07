@@ -100,6 +100,10 @@
             "path": "add-interactivity/update-lists-in-state.md"
           },
           {
+            "label": "Update Tables in State",
+            "path": "add-interactivity/update-tables-in-state.md"
+          },
+          {
             "label": "Plotting",
             "path": "add-interactivity/plot-with-components.md"
           }
@@ -168,6 +172,10 @@
           {
             "label": "calendar",
             "path": "components/calendar.md"
+          },
+          {
+            "label": "color_picker",
+            "path": "components/color_picker.md"
           },
           {
             "label": "checkbox",

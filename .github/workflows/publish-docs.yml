@@ -6,9 +6,10 @@ on:
     workflows: ['Test Modified Plugin'] # Only runs on top level workflows, not reusable workflows called from another run
     types:
       - completed
-    branches:
-      - main
-      - 'release/**'
+    # Applicable branches/tags are protected by the `Test Modified Plugin` workflow
+    # A workflow_run action can only filter on branches, not tags
+    # Although it does seem to call the tag the head_branch in the event object,
+    # so we could probably filter by including the tag name as a branch name if needed
 
 jobs:
   get-docs-packages:
