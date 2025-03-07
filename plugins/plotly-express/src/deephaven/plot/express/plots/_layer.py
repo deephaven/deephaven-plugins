@@ -2,13 +2,12 @@ from __future__ import annotations
 
 from functools import partial
 from typing import Any, Callable, cast, Tuple, TypedDict
-
+from deephaven.execution_context import make_user_exec_ctx
 
 from plotly.graph_objs import Figure
 
 from ..deephaven_figure import DeephavenFigure
 from ..shared import default_callback, unsafe_figure_update_wrapper
-from deephaven.execution_context import make_user_exec_ctx
 
 
 class LayerSpecDict(TypedDict, total=False):
