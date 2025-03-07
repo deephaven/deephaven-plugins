@@ -36,13 +36,12 @@ def _get_serialized_date_props(
         has_date_format: Whether a date format has been defined on labeled_value.
 
     Returns:
-        Either the serialized date value as either an int or str and the timezone if present in the value_prop, or nothing.
+        The serialized int or str date value, and a timezone identifier as a str if present in input.
+        (None, None) if the inputs do not represent a valid date value.
 
     """
-    if (
-        isinstance(value_prop, (List))
-        or (isinstance(value_prop, (int, str)) and not has_date_format)
-        or isinstance(value_prop, float)
+    if isinstance(value_prop, (List, float)) or (
+        isinstance(value_prop, (int, str)) and not has_date_format
     ):
         # not a date value, don't convert props
         return (None, None)
@@ -76,10 +75,10 @@ def _convert_labeled_value_props(
         and isinstance(props["format_options"], dict)
         and "date_format" in props["format_options"]
     )
-    # passing this custom prop to allow JS component to distinguish between dates passed as a string and other values
+    # allows JS component to distinguish between dates passed as a string and other values
     props["is_date"] = False
-    # passing this custom prop since nanoseconds need to be passed as a string to prevent loss of precision,
-    # need a way for JS component to distinguish between nanoseconds strings and other date strings
+    # allows JS component to distinguish between nanoseconds strings and other date strings
+    # nanoseconds need to be passed as a string to prevent loss of precision
     props["is_nanoseconds"] = False
 
     if isinstance(props["value"], dict):
@@ -95,7 +94,7 @@ def _convert_labeled_value_props(
             props["value"] = {
                 "start": str(start_date_value),
                 "end": str(end_date_value),
-                # same idea as discussed above, need to define on each date to be flexible with accepting different types of dates for start and end.
+                # start and end can both be either a nanoseconds or date string
                 "isStartNanoseconds": isinstance(start_date_value, int),
                 "isEndNanoseconds": isinstance(end_date_value, int),
             }

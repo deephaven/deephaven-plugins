@@ -804,8 +804,7 @@ def convert_date_for_labeled_value(
         date: The Java date to convert.
 
     Returns:
-        Nanoseconds since epoch along with timezone information if present, or a local date string.
-
+        Nanoseconds since epoch as an int or a local date as a str, and timezone identifier as a str if input is a ZonedDateTime.
     """
     if isinstance(date, DTypeInstant.j_type):
         return _convert_instant_to_nanos(date)
