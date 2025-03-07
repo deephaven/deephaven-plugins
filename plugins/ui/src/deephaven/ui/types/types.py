@@ -556,6 +556,18 @@ Time = Union[
     ZonedDateTimeConvertible,
 ]
 TimeGranularity = Literal["HOUR", "MINUTE", "SECOND"]
+JavaDateFormat = str
+
+
+class DateFormatOptions(TypedDict):
+    """
+    Options for formatting dates.
+    """
+
+    date_format: JavaDateFormat
+    """
+    A string that follows the GWT Java DateTimeFormat syntax.
+    """
 
 
 class DateRange(TypedDict):
@@ -571,6 +583,22 @@ class DateRange(TypedDict):
     end: Date
     """
     End value for the date range.
+    """
+
+
+class NumberRange(TypedDict):
+    """
+    Range of number values.
+    """
+
+    start: float
+    """
+    Start value for the number range.
+    """
+
+    end: float
+    """
+    End value for the number range.
     """
 
 

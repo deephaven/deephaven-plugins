@@ -9,7 +9,9 @@ import {
   parseZonedDateTime,
   parseTime,
   toTimeZone,
+  fromAbsolute,
 } from '@internationalized/date';
+import type { dh as DhType } from '@deephaven/jsapi-types';
 
 export type MappedDateValue<T> = T extends ZonedDateTime
   ? ZonedDateTime
@@ -34,6 +36,11 @@ export type MappedTimeValue<T> = T extends ZonedDateTime
   : never;
 
 type DateTimeValue = CalendarDateTime | ZonedDateTime;
+
+export type CustomDateFormatOptions =
+  | Intl.NumberFormatOptions
+  | Intl.ListFormatOptions
+  | { [date_format: string]: string };
 
 /**
  * Checks if a string is an Instant.
@@ -262,4 +269,63 @@ export function dateValuetoIsoString(value: DateValue): string {
   }
 
   return value.toString();
+}
+
+export function nanosToMillis(nanos: number): number {
+  return Math.floor(nanos / 1_000_000);
+}
+
+export function isCustomDateFormatOptions(
+  options?: CustomDateFormatOptions
+): options is { [date_format: string]: string } {
+  if (options === null || typeof options !== 'object') return false;
+
+  return (
+    Object.keys(options).length === 1 &&
+    'date_format' in options &&
+    typeof options.date_format === 'string'
+  );
+}
+
+/**
+ * Formats a datetime string value representing a date (e.g. 2020-01-01) or a nanosecond value.
+ * When formatOptions is provided, the dh JS API is used to format the date, and a string is returned.
+ * Otherwise, @internationalized/date is used to parse dates into CalendarDate and nanoseconds into ZonedDateTime.
+ *
+ * @param dh The JS API object
+ * @param value The string datetime value
+ * @param timezoneString The timezone identifier used for formatting
+ * @param isNanoseconds If the datetime value is in nanoseconds
+ * @param formatOptions The format options
+ * @returns string or ZonedDateTime or CalendarDate
+ */
+export function getFormattedDate(
+  dh: typeof DhType,
+  value: string,
+  timezoneString: string,
+  isNanoseconds: boolean,
+  formatOptions?: CustomDateFormatOptions
+): string | ZonedDateTime | CalendarDate {
+  const hasDateFormat = isCustomDateFormatOptions(formatOptions);
+  const timezone = dh.i18n.TimeZone.getTimeZone(timezoneString);
+
+  if (isNanoseconds) {
+    // nanoseconds string
+    if (hasDateFormat && formatOptions.date_format !== '') {
+      const format = formatOptions.date_format;
+      return dh.i18n.DateTimeFormat.format(format, value, timezone);
+    }
+    // loss of precision is ok here since being converted to millis
+    const millis = nanosToMillis(parseInt(value, 10));
+    return fromAbsolute(millis, timezoneString);
+  }
+
+  // date string
+  if (hasDateFormat && formatOptions.date_format !== '') {
+    const format = formatOptions.date_format;
+    const zdt = parseZonedDateTime(`${value}T00:00:00[${timezone.id}]`);
+    const date = zdt.toDate();
+    return dh.i18n.DateTimeFormat.format(format, date, timezone);
+  }
+  return parseDate(value);
 }
