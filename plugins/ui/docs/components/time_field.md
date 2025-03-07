@@ -10,6 +10,8 @@ from deephaven import ui
 my_time_field_basic = ui.time_field(label="Time field")
 ```
 
+![Time Field Basic Example](../_assets/time_field_basic.png)
+
 ## Time types
 
 A time field can be used to input a time.

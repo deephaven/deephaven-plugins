@@ -4,7 +4,7 @@ Inline alerts display non-modal messages related to objects in a view, often use
 
 ## Example
 
-For the inline alert component, both the `heading` and `content` props are required. 
+For the inline alert component, both the `heading` and `content` props are required.
 
 ```python
 from deephaven import ui
@@ -16,6 +16,7 @@ my_inline_alert_basic = ui.inline_alert(
 )
 ```
 
+![Inline Alert Basic Example](../_assets/inline_alert_basic.png)
 
 ## Variant
 

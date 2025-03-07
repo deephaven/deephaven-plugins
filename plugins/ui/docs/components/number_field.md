@@ -15,6 +15,8 @@ my_number_field = ui.number_field(
 )
 ```
 
+![Number Field Basic Example](../_assets/number_field_basic.png)
+
 ## Value
 
 A number field's value is empty by default. The `default_value` prop can set an initial, uncontrolled value, or the `value` prop can set a controlled value.

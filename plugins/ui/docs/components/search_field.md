@@ -13,6 +13,8 @@ my_search_field_basic = ui.search_field(
 )
 ```
 
+![Search Field Basic Example](../_assets/search_field_basic.png)
+
 ## Value
 
 A search field's value is empty by default, but the `default_value` prop can set an initial, uncontrolled value, or a controlled value can be set via the `value` prop.

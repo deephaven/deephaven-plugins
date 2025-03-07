@@ -22,6 +22,8 @@ my_menu_example = ui.menu_trigger(
 )
 ```
 
+![Menu Basic Example](../_assets/menu_basic.png)
+
 ## Content
 
 `menu` accepts `item` elements as children, each with a `key` prop. Basic usage of `menu`, seen in the example above, shows multiple items populated with a string.

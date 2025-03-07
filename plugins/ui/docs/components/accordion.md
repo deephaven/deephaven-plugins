@@ -13,6 +13,8 @@ my_accordion_basic = ui.accordion(
 )
 ```
 
+![Accordion Basic Example](../_assets/accordion_basic.png)
+
 ## Events
 
 Accordion accepts an `on_expanded_change` prop which triggers when a disclosure element is expanded or collapsed.

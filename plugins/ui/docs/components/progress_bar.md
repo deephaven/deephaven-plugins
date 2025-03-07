@@ -16,6 +16,8 @@ def ui_progress_bar():
 progress_bar = ui_progress_bar()
 ```
 
+![Progress Bar Basic Example](../_assets/progress_bar_basic.png)
+
 ## UI Recommendations
 
 1. Use the appropriate size based on the parent's size.
@@ -24,7 +26,7 @@ progress_bar = ui_progress_bar()
 
 ## Value
 
-The progress is controlled by the `value`, `min_value`, and `max_value` props. The default values of `min_value` and `max_value` are `0` and `100`, respectively. 
+The progress is controlled by the `value`, `min_value`, and `max_value` props. The default values of `min_value` and `max_value` are `0` and `100`, respectively.
 
 ```python
 from deephaven import ui

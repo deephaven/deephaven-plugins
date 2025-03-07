@@ -19,6 +19,8 @@ my_tabs_basic = ui.tabs(
 )
 ```
 
+![Tabs Basic Example](../_assets/tabs_basic.png)
+
 ## UI Recommendations
 
 1. Use tabs to organize sections of equal importance. Avoid using tabs for content with varying levels of importance.

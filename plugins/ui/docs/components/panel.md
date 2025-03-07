@@ -18,6 +18,8 @@ def ui_panel():
 my_panel = ui_panel()
 ```
 
+![Panel Basic Example](../_assets/panel_basic.png)
+
 ## Nesting
 
 Panels can only be nested within [ui.row](./dashboard.md#row-api-reference), [ui.column](./dashboard.md#column-api-reference), [ui.stack](./dashboard.md#stack-api-reference) or [ui.dashboard](#./dashboard.md).
@@ -28,13 +30,8 @@ from deephaven import ui
 my_nested_panel = ui.dashboard([ui.panel("A"), ui.panel("B")])
 ```
 
-
 ## API Reference
 
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.panel
 ```
-
-
-
-

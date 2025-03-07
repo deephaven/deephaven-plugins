@@ -10,6 +10,8 @@ from deephaven import ui
 btn = ui.button("Press me", on_press=lambda: print("Button clicked"))
 ```
 
+![Button Basic Example](../_assets/button_basic.png)
+
 ## UI recommendations
 
 Recommendations for creating clear and effective buttons:

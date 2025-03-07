@@ -16,6 +16,8 @@ tag_group_example = ui.tag_group(
 )
 ```
 
+![Tag Group Basic Example](../_assets/tag_group_basic.png)
+
 ## Content
 
 `tag_group` accepts `item` elements as children, each with a `key` prop. Basic usage of `tag_group`, seen in the example above, shows multiple items populated with a string.
