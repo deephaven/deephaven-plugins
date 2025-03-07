@@ -25,6 +25,8 @@ def ui_picker_basic():
 my_picker_basic = ui_picker_basic()
 ```
 
+![Picker Basic Example](../_assets/picker_basic.png)
+
 ## UI recommendations
 
 Recommendations for creating pickers:

@@ -21,6 +21,8 @@ view = ui.view(
 )
 ```
 
+![View Basic Example](../_assets/view_basic.png)
+
 ## UI recommendations
 
 Recommendations for creating views:
