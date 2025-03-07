@@ -85,7 +85,6 @@ class LayerTestCase(BaseTestCase):
                 "side": "left",
             },
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
         }
 
         self.assertEqual(plotly["layout"], expected_layout)
@@ -172,7 +171,6 @@ class LayerTestCase(BaseTestCase):
                 "side": "left",
             },
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
         }
 
         self.assertEqual(plotly["layout"], expected_layout)

@@ -47,7 +47,6 @@ class MapTestCase(BaseTestCase):
         expected_layout = {
             "geo": {"domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]}, "fitbounds": False},
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
         }
 
         self.assertEqual(plotly["layout"], expected_layout)
@@ -89,7 +88,6 @@ class MapTestCase(BaseTestCase):
                 "style": "open-street-map",
                 "zoom": 8,
             },
-            "margin": {"t": 60},
         }
 
         self.assertEqual(plotly["layout"], expected_layout)
@@ -126,7 +124,6 @@ class MapTestCase(BaseTestCase):
         expected_layout = {
             "geo": {"domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]}, "fitbounds": False},
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
         }
 
         self.assertEqual(plotly["layout"], expected_layout)
@@ -166,7 +163,6 @@ class MapTestCase(BaseTestCase):
                 "style": "open-street-map",
                 "zoom": 8,
             },
-            "margin": {"t": 60},
         }
 
         self.assertEqual(plotly["layout"], expected_layout)
@@ -222,7 +218,6 @@ class MapTestCase(BaseTestCase):
                 "style": "open-street-map",
                 "zoom": 8,
             },
-            "margin": {"t": 60},
         }
 
         self.assertEqual(plotly["layout"], expected_layout)
