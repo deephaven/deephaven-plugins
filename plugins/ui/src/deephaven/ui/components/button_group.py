@@ -15,6 +15,8 @@ from .types import (
 from .basic import component_element
 from ..elements import Element
 
+BUTTON_GROUP_NAME = "ButtonGroup"
+
 
 def button_group(
     *children: Any,
@@ -116,7 +118,7 @@ def button_group(
 
     """
     return component_element(
-        "ButtonGroup",
+        BUTTON_GROUP_NAME,
         *children,
         is_disabled=is_disabled,
         orientation=orientation,
