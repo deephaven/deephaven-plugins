@@ -168,6 +168,26 @@ t = ui.table(
 )
 ```
 
+## Aggregations
+
+You can add aggregations to the table using the `aggregations` prop. These aggregations will be shown as floating rows at the top or bottom of the table.
+
+```py
+from deephaven import ui
+
+t = ui.table(
+    dx.data.stocks(),
+    aggregations=[
+        ui.TableAgg(agg="first"), # Applies to all columns since all columns can use first
+        ui.TableAgg(agg="max"), # Applies to all columns that can be maxed
+        ui.TableAgg(cols="Price", agg="avg"), # Applies avg to just the Price column
+        ui.TableAgg(ignore_cols="Size", agg="min") # Applies min to all valid columns except Size
+    ],
+    aggregation_position="top" # Default is bottom
+    show_grand_totals=True # Default is False
+)
+```
+
 ## Events
 
 You can listen for different user events on a `ui.table`. There is both a `press` and `double_press` event for `row`, `cell`, and `column`. These events typically correspond to a click or double click on the table. The event payloads include table data related to the event. For `row` and `column` events, the corresponding data within the viewport will be sent to the event handler. The viewport is typically the visible area &plusmn; a window equal to the visible area (e.g., if rows 5-10 are visible, rows 0-15 will be in the viewport).
