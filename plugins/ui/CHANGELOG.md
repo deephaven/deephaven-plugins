@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.28.1 - 2025-03-07
+#### Bug Fixes
+- ui.dialog should throw error for invalid children (#1130) - (66aec06) - dgodinez-dh
+#### Documentation
+- add missing api reference for ui.action_group (#1124) - (a04dee5) - Don
+- update tables in state (#1121) - (3a0a682) - dgodinez-dh
+
+- - -
+
 ## ui-v0.28.0 - 2025-03-03
 #### Features
 - color picker (#1086) - (9174c56) - ethanalvizo
