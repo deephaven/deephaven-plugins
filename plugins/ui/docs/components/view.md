@@ -14,8 +14,8 @@ from deephaven import ui
 view = ui.view(
     ui.text_field(label="Name"),
     border_width="thin",
-    border_color="accent-400",
-    background_color="seafoam-500",
+    border_color="seafoam-800",
+    background_color="seafoam-300",
     border_radius="medium",
     padding="size-250",
 )

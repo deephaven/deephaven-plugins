@@ -10,7 +10,7 @@ from deephaven import ui
 my_link_basic = ui.link("Learn more about Deephaven", href="https://deephaven.io/")
 ```
 
-![Link Basic Example](../_assets/Link_basic.png)
+![Link Basic Example](../_assets/link_basic.png)
 
 ## Content
 
