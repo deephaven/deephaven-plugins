@@ -9,9 +9,9 @@ import {
   parseZonedDateTime,
   parseTime,
   toTimeZone,
-  fromAbsolute,
 } from '@internationalized/date';
 import type { dh as DhType } from '@deephaven/jsapi-types';
+import { WorkspaceSettings } from '@deephaven/redux';
 
 export type MappedDateValue<T> = T extends ZonedDateTime
   ? ZonedDateTime
@@ -289,43 +289,72 @@ export function isCustomDateFormatOptions(
 
 /**
  * Formats a datetime string value representing a date (e.g. 2020-01-01) or a nanosecond value.
- * When formatOptions is provided, the dh JS API is used to format the date, and a string is returned.
- * Otherwise, @internationalized/date is used to parse dates into CalendarDate and nanoseconds into ZonedDateTime.
+ * The dh JS API is used to format the date, and a string is returned.
  *
  * @param dh The JS API object
  * @param value The string datetime value
- * @param timezoneString The timezone identifier used for formatting
  * @param isNanoseconds If the datetime value is in nanoseconds
+ * @param settings The workspace settings
+ * @param timezoneOverride The timezone to be used instead of the user's timezone
  * @param formatOptions The format options
- * @returns string or ZonedDateTime or CalendarDate
+ * @returns string
  */
 export function getFormattedDate(
   dh: typeof DhType,
   value: string,
-  timezoneString: string,
   isNanoseconds: boolean,
-  formatOptions?: CustomDateFormatOptions
-): string | ZonedDateTime | CalendarDate {
-  const hasDateFormat = isCustomDateFormatOptions(formatOptions);
-  const timezone = dh.i18n.TimeZone.getTimeZone(timezoneString);
+  settings: WorkspaceSettings,
+  formatOptions?: CustomDateFormatOptions,
+  timezoneOverride?: string
+): string {
+  const { timeZone: userTimezone } = settings;
+  const timezone = dh.i18n.TimeZone.getTimeZone(
+    timezoneOverride != null ? timezoneOverride : userTimezone
+  );
 
   if (isNanoseconds) {
     // nanoseconds string
-    if (hasDateFormat && formatOptions.date_format !== '') {
-      const format = formatOptions.date_format;
-      return dh.i18n.DateTimeFormat.format(format, value, timezone);
-    }
-    // loss of precision is ok here since being converted to millis
-    const millis = nanosToMillis(parseInt(value, 10));
-    return fromAbsolute(millis, timezoneString);
+    const format =
+      isCustomDateFormatOptions(formatOptions) &&
+      formatOptions.date_format !== ''
+        ? formatOptions.date_format
+        : getDateTimeFormat(settings, false);
+
+    return dh.i18n.DateTimeFormat.format(format, value, timezone);
   }
 
   // date string
-  if (hasDateFormat && formatOptions.date_format !== '') {
-    const format = formatOptions.date_format;
-    const zdt = parseZonedDateTime(`${value}T00:00:00[${timezone.id}]`);
-    const date = zdt.toDate();
-    return dh.i18n.DateTimeFormat.format(format, date, timezone);
+  const zdt = parseZonedDateTime(`${value}T00:00:00[${timezone.id}]`);
+  const date = zdt.toDate();
+  const format =
+    isCustomDateFormatOptions(formatOptions) && formatOptions.date_format !== ''
+      ? formatOptions.date_format
+      : getDateTimeFormat(settings, true);
+  return dh.i18n.DateTimeFormat.format(format, date, timezone);
+}
+
+/**
+ * Builds up the default date time format string based on workspace settings.
+ * Takes into account whether the value to be formatted is a date only and strips the time portion if so.
+ *
+ * @param settings The workspace settings
+ * @param isDate If the value to be formatted is a date only
+ * @returns string
+ */
+export function getDateTimeFormat(
+  settings: WorkspaceSettings,
+  isDate: boolean
+): string {
+  const { defaultDateTimeFormat, showTSeparator, showTimeZone } = settings;
+  if (isDate) {
+    const format = defaultDateTimeFormat.split(' ')[0];
+    return showTimeZone ? `${format} z` : format;
   }
-  return parseDate(value);
+
+  let format = defaultDateTimeFormat;
+  if (showTSeparator) {
+    format = format.replace(/ /, `'T'`);
+  }
+
+  return showTimeZone ? `${format} z` : format;
 }

@@ -1,4 +1,3 @@
-import { CalendarDate, ZonedDateTime } from '@internationalized/date';
 import { useMemo } from 'react';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import { useSelector } from 'react-redux';
@@ -28,14 +27,8 @@ type DeserializedValue<T> = T extends number
   ? string
   : T extends string[]
   ? string[]
-  : T extends CalendarDate
-  ? CalendarDate
-  : T extends ZonedDateTime
-  ? ZonedDateTime
   : T extends RangeValue<number>
   ? RangeValue<number>
-  : T extends RangeValue<CalendarDate | ZonedDateTime>
-  ? RangeValue<CalendarDate | ZonedDateTime>
   : never;
 
 export interface DeserializedLabeledValuePropsInterface<T> {
@@ -80,30 +73,21 @@ function useLabeledValueValueMemo(
   value: number | string | string[] | RangeValue<number> | CustomDateRangeValue,
   formatOptions?: CustomDateFormatOptions,
   timezone?: string
-):
-  | number
-  | string
-  | string[]
-  | CalendarDate
-  | ZonedDateTime
-  | RangeValue<number>
-  | RangeValue<CalendarDate | ZonedDateTime> {
+): number | string | string[] | RangeValue<number> {
   const dh = useApi();
   const settings = useSelector(getSettings<RootState>);
 
   return useMemo(() => {
     if (isDate) {
-      const { timeZone: userTimezone } = settings;
-      const timezoneString = timezone != null ? timezone : userTimezone;
-
       if (typeof value === 'string') {
         // single value
         return getFormattedDate(
           dh,
           value,
-          timezoneString,
           isNanoseconds,
-          formatOptions
+          settings,
+          formatOptions,
+          timezone
         );
       }
 
@@ -112,31 +96,20 @@ function useLabeledValueValueMemo(
         const startDate = getFormattedDate(
           dh,
           value.start,
-          timezoneString,
           value.isStartNanoseconds,
-          formatOptions
+          settings,
+          formatOptions,
+          timezone
         );
         const endDate = getFormattedDate(
           dh,
           value.end,
-          timezoneString,
           value.isEndNanoseconds,
-          formatOptions
+          settings,
+          formatOptions,
+          timezone
         );
-
-        if (typeof startDate === 'string' && typeof endDate === 'string') {
-          // combine date strings manually
-          return `${startDate}\u2013${endDate}`;
-        }
-
-        if (
-          (startDate instanceof CalendarDate ||
-            startDate instanceof ZonedDateTime) &&
-          (endDate instanceof CalendarDate || endDate instanceof ZonedDateTime)
-        ) {
-          // pass start and end date objects for component to format
-          return { start: startDate, end: endDate };
-        }
+        return `${startDate}\u2013${endDate}`;
       }
     }
 

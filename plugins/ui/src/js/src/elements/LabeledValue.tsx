@@ -2,7 +2,6 @@ import {
   LabeledValue as DHCLabeledValue,
   LabeledValueProps as DHCLabeledValueProps,
 } from '@deephaven/components';
-import { CalendarDate, ZonedDateTime } from '@internationalized/date';
 import { RangeValue } from './hooks';
 import {
   SerializedLabeledValueProps,
@@ -11,15 +10,7 @@ import {
 
 export function LabeledValue(
   props: SerializedLabeledValueProps<
-    DHCLabeledValueProps<
-      | number
-      | string
-      | string[]
-      | CalendarDate
-      | ZonedDateTime
-      | RangeValue<number>
-      | RangeValue<CalendarDate | ZonedDateTime>
-    >
+    DHCLabeledValueProps<number | string | string[] | RangeValue<number>>
   >
 ): JSX.Element {
   const labeledValueProps = useLabeledValueProps(props);

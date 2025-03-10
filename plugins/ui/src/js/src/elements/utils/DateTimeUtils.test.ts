@@ -3,6 +3,7 @@ import {
   CalendarDateTime,
   ZonedDateTime,
 } from '@internationalized/date';
+import { WorkspaceSettings } from '@deephaven/redux';
 import {
   parseDateValue,
   parseNullableDateValue,
@@ -15,6 +16,7 @@ import {
   nanosToMillis,
   isCustomDateFormatOptions,
   getFormattedDate,
+  getDateTimeFormat,
 } from './DateTimeUtils';
 
 const DEFAULT_TIME_ZONE = 'UTC';
@@ -276,61 +278,113 @@ describe('dateValuetoIsoString', () => {
       },
     };
 
+    const workspaceSettings = {
+      defaultDateTimeFormat: 'yyyy-MM-dd HH:mm:ss',
+      timeZone: 'America/New_York',
+    } as WorkspaceSettings;
+
     beforeEach(() => {
       jest.clearAllMocks();
     });
 
-    it('dh api should be used to format date if formatOptions is provided', () => {
-      const value = '2020-01-01';
-      const timezoneString = 'America/New_York';
-      const dateFormat = 'yyyy-MM-dd';
-      const formatOptions = { date_format: dateFormat };
-      mockDh.i18n.TimeZone.getTimeZone.mockReturnValue({ id: timezoneString });
+    it('dh api should be used to parse and format date if isNanoseconds', () => {
+      const value = '2053877400123450000';
+
+      mockDh.i18n.TimeZone.getTimeZone.mockReturnValue({
+        id: workspaceSettings.timeZone,
+      });
       getFormattedDate(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockDh as any,
         value,
-        timezoneString,
         true,
-        formatOptions
+        workspaceSettings
+      );
+
+      expect(mockDh.i18n.DateTimeFormat.format).toHaveBeenCalledWith(
+        getDateTimeFormat(workspaceSettings, false),
+        value,
+        { id: workspaceSettings.timeZone }
+      );
+    });
+
+    it('dh api should be called with a JS date object if not isNanoseconds', () => {
+      mockDh.i18n.TimeZone.getTimeZone.mockReturnValue({
+        id: workspaceSettings.timeZone,
+      });
+      getFormattedDate(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockDh as any,
+        '2020-01-01',
+        false,
+        workspaceSettings
+      );
+
+      expect(mockDh.i18n.DateTimeFormat.format).toHaveBeenCalledWith(
+        getDateTimeFormat(workspaceSettings, true),
+        expect.any(Date),
+        { id: workspaceSettings.timeZone }
+      );
+    });
+
+    it('should use timezoneOverride if provided', () => {
+      const timezoneOverride = 'America/Los_Angeles';
+
+      getFormattedDate(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockDh as any,
+        '2053877400123450000',
+        true,
+        workspaceSettings,
+        undefined,
+        timezoneOverride
       );
       expect(mockDh.i18n.TimeZone.getTimeZone).toHaveBeenCalledWith(
-        timezoneString
+        timezoneOverride
       );
-      expect(mockDh.i18n.DateTimeFormat.format).toHaveBeenCalledWith(
-        dateFormat,
-        value,
-        { id: timezoneString }
+    });
+  });
+
+  describe('getDateTimeFormat', () => {
+    const defaultWorkspaceSettings = {
+      defaultDateTimeFormat: 'yyyy-MM-dd HH:mm:ss',
+      showTimeZone: false,
+      showTSeparator: false,
+    } as WorkspaceSettings;
+
+    it('should return the default date time format', () => {
+      expect(getDateTimeFormat(defaultWorkspaceSettings, false)).toEqual(
+        defaultWorkspaceSettings.defaultDateTimeFormat
       );
     });
 
-    it('date string should be parsed into CalendarDate when no formatOptions', () => {
-      const value = '2020-01-01';
-      const timezone = 'America/New_York';
-      const result = getFormattedDate(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mockDh as any,
-        value,
-        timezone,
-        false
+    it('should strip time portion is isDate', () => {
+      expect(getDateTimeFormat(defaultWorkspaceSettings, true)).toEqual(
+        'yyyy-MM-dd'
       );
-      expect(result).toBeInstanceOf(CalendarDate);
     });
 
-    it('nanosecond string should be parsed into ZonedDateTime when no formatOptions', () => {
-      const value = '1577854800000000000';
-      const timezone = 'America/New_York';
-      const result = getFormattedDate(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mockDh as any,
-        value,
-        timezone,
-        true
+    it('should include T seperator if setting enabled', () => {
+      defaultWorkspaceSettings.showTSeparator = true;
+      expect(getDateTimeFormat(defaultWorkspaceSettings, false)).toEqual(
+        `yyyy-MM-dd'T'HH:mm:ss`
       );
-      expect(result).toBeInstanceOf(ZonedDateTime);
-      if (result instanceof ZonedDateTime) {
-        expect(result.timeZone).toEqual(timezone);
-      }
+    });
+
+    it('should include timezone if setting enabled', () => {
+      defaultWorkspaceSettings.showTSeparator = false;
+      defaultWorkspaceSettings.showTimeZone = true;
+      expect(getDateTimeFormat(defaultWorkspaceSettings, false)).toEqual(
+        `yyyy-MM-dd HH:mm:ss z`
+      );
+    });
+
+    it('should include both T seperator and timezone if settings enabled', () => {
+      defaultWorkspaceSettings.showTSeparator = true;
+      defaultWorkspaceSettings.showTimeZone = true;
+      expect(getDateTimeFormat(defaultWorkspaceSettings, false)).toEqual(
+        `yyyy-MM-dd'T'HH:mm:ss z`
+      );
     });
   });
 });

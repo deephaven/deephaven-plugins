@@ -138,7 +138,7 @@ my_labeled_value_datetime = labeled_value_datetime()
 
 ### Formatting dates
 
-By default, dates and times are formatted according to the user's locale. An empty string can be passed to when passing a `str` or `int` date value to indicate that the default formatting behavior should be used.
+By default, dates and times are formatted according to the DateTime format set in user settings. An empty string can be passed to when passing a `str` or `int` date value to indicate that the default formatting behavior should be used.
 
 If more precision or another format is desired, datetime values can be formatted using the `format_options` property. To do so, pass an object with a `date_format` property string that follows [the GWT Java DateTimeFormat syntax](https://www.gwtproject.org/javadoc/latest/com/google/gwt/i18n/client/DateTimeFormat.html) with additional support for nanoseconds. You may provide up to 9 `S` characters after the decimal to represent partial seconds down to nanoseconds. Below are examples of patterns that can be used to format dates.
 
@@ -215,9 +215,7 @@ my_labeled_value_datetime_timezone = labeled_value_datetime_timezone()
 
 ### Date ranges
 
-An object with a `start` and `end` property can be passed to the `value` prop in order to format a date range. The same date types listed above in [dates and times](./labeled_value.md#dates-and-time) are also accepted for the `start` and `end` props.
-
-The formatting options are identical to individual dates, and will be applied to both `start` and `end` dates. By default, the formatter will compare the values to determine the appropriate format, combining the range when the dates share the same year, month, day, etc. However, when a custom format is specified, each of the dates in the range will always show the same format regardless of their value.
+An object with a `start` and `end` property can be passed to the `value` prop in order to display a date range. The same date types listed above in [dates and times](./labeled_value.md#dates-and-time) are also accepted for the `start` and `end` props. The formatting options are the same as for individual dates, and will be applied to both dates.
 
 ```python
 from deephaven import ui
