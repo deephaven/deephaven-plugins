@@ -8,6 +8,7 @@ from deephaven.ui._internal.utils import (
     dict_to_camel_case,
     dict_to_react_props,
     get_component_name,
+    convert_date_for_labeled_value,
     is_primitive,
     is_iterable,
     remove_empty_keys,
@@ -335,6 +336,22 @@ class UtilsTest(BaseTestCase):
                 "test": "value",
             },
         )
+
+    def test_convert_date_for_labeled_value(self):
+        from deephaven.time import to_j_instant, to_j_zdt, to_j_local_date
+
+        instant = convert_date_for_labeled_value(
+            to_j_instant("2035-01-31T12:30:00.12345Z")
+        )
+        self.assertEqual(instant, 2053859400123450000)
+
+        zdt = convert_date_for_labeled_value(
+            to_j_zdt("2035-01-31T12:30:00.12345 America/New_York")
+        )
+        self.assertEqual(zdt, (2053877400123450000, "America/New_York"))
+
+        local_date = convert_date_for_labeled_value(to_j_local_date("2035-01-31"))
+        self.assertEqual(local_date, "2035-01-31")
 
     def test_unpack_item_table_source(self):
 
