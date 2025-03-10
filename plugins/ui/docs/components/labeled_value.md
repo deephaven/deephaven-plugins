@@ -178,7 +178,7 @@ my_labeled_value_datetime_formatting = labeled_value_datetime_formatting()
 
 ### Timezones
 
-By default, dates and times are displayed in the timezone set in user settings. If the provided date is already timezone aware, such is the case with a `ZonedDateTime`, its timezone will be used. If a different timezone is desired, it can be overridden by passing a timezone identification string to the `timezone` prop. See the [list of timezones supported by Deephaven](https://deephaven.io/core/client-api/javascript/classes/dh.i18n.TimeZone.html).
+By default, dates and times are displayed in the timezone set in user settings. If the provided date is already timezone aware, such is the case with a `ZonedDateTime`, its timezone will be used. If a different timezone is desired, it can be overridden by passing an object to the `format_options` prop containing a `timezone` property corresponding to a timezone identification string. See the [list of timezones supported by Deephaven](https://deephaven.io/core/client-api/javascript/classes/dh.i18n.TimeZone.html).
 
 ```python
 from deephaven import ui
@@ -204,8 +204,7 @@ def labeled_value_datetime_timezone():
         ui.labeled_value(
             label="Overridden with timezone property",
             value=zoned_date,
-            format_options=default_date_format,
-            timezone="America/Halifax",
+            format_options={**default_date_format, "timezone": "America/Halifax"},
         ),
     ]
 
@@ -229,7 +228,7 @@ def labeled_value_datetime_range_format():
 
     return [
         ui.labeled_value(
-            label="Auto-format time range",
+            label="Default format time range",
             value=time_range,
             format_options=default_date_format,
         ),
@@ -239,7 +238,7 @@ def labeled_value_datetime_range_format():
             format_options={"date_format": "MMMM d, yyyy, h:mm a z"},
         ),
         ui.labeled_value(
-            label="Auto-format day range",
+            label="Default format day range",
             value=day_range,
             format_options=default_date_format,
         ),
@@ -254,7 +253,7 @@ def labeled_value_datetime_range_format():
 my_labeled_value_datetime_range_format = labeled_value_datetime_range_format()
 ```
 
-By default, both dates in the range will be displayed using the timezone set in user settings. If either of the provided date is already timezone aware, its timezone will be used. If both the dates passed in are timezone aware, the timezone of the `start` date will be used to display both dates. However, this can be overridden using the `timezone` prop to [set the display timezone](./labeled_value.md#timezones) for both dates.
+By default, both dates in the range will be displayed using the timezone set in user settings. If either of the provided date is already timezone aware, its timezone will be used. If both the dates passed in are timezone aware, the timezone of the `start` date will be used to display both dates. However, this can be overridden using the `format_options.timezone` prop to [set the display timezone](./labeled_value.md#timezones) for both dates.
 
 ```python
 from deephaven import ui
@@ -292,8 +291,7 @@ def labeled_value_datetime_range_timezone():
         ui.labeled_value(
             label="Overridden with timezone property",
             value=both_zoned_date_range,
-            format_options=default_date_format,
-            timezone="America/Halifax",
+            format_options={**default_date_format, "timezone": "America/Halifax"},
         ),
     ]
 

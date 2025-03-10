@@ -257,10 +257,6 @@ describe('dateValuetoIsoString', () => {
       expect(isCustomDateFormatOptions({ date_format: '' })).toBe(true);
     });
 
-    it('should return false for invalid date format', () => {
-      expect(isCustomDateFormatOptions({ invalid: 'invalid' })).toBe(false);
-    });
-
     it('should return false for undefined date format', () => {
       expect(isCustomDateFormatOptions(undefined)).toBe(false);
     });
@@ -329,6 +325,7 @@ describe('dateValuetoIsoString', () => {
 
     it('should use timezoneOverride if provided', () => {
       const timezoneOverride = 'America/Los_Angeles';
+      const formatOptions = { timezone: timezoneOverride };
 
       getFormattedDate(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -336,8 +333,7 @@ describe('dateValuetoIsoString', () => {
         '2053877400123450000',
         true,
         workspaceSettings,
-        undefined,
-        timezoneOverride
+        formatOptions
       );
       expect(mockDh.i18n.TimeZone.getTimeZone).toHaveBeenCalledWith(
         timezoneOverride

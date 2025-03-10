@@ -16,44 +16,39 @@ class LabeledValueTest(BaseTestCase):
         def verify_date_converted_to_string(props, expected_value, timezone=None):
             newProps = _convert_labeled_value_props(props)
             self.assertEqual(newProps["value"], expected_value)
-            self.assertEqual(newProps["timezone"], timezone)
+            self.assertEqual(newProps["format_options"].get("timezone"), timezone)
             self.assertEqual(newProps["is_date"], True)
             self.assertEqual(newProps["is_nanoseconds"], False)
 
         def verify_date_converted_to_nanos(props, expected_value, timezone=None):
             newProps = _convert_labeled_value_props(props)
             self.assertEqual(newProps["value"], expected_value)
-            self.assertEqual(newProps["timezone"], timezone)
+            self.assertEqual(newProps["format_options"].get("timezone"), timezone)
             self.assertEqual(newProps["is_date"], True)
             self.assertEqual(newProps["is_nanoseconds"], True)
 
         def verify_date_range_conversion(props, expected_value, timezone=None):
             newProps = _convert_labeled_value_props(props)
             self.assertEqual(newProps["value"], expected_value)
-            self.assertEqual(newProps["timezone"], timezone)
+            self.assertEqual(newProps["format_options"].get("timezone"), timezone)
             self.assertEqual(newProps["is_date"], True)
 
         # number without date format
-        verify_non_dates_not_converted({"value": 0, "timezone": None})
+        verify_non_dates_not_converted({"value": 0})
         # string without date format
-        verify_non_dates_not_converted({"value": "0", "timezone": None})
+        verify_non_dates_not_converted({"value": "0"})
         # number range without date format
-        verify_non_dates_not_converted(
-            {"value": {"start": 0, "end": 1}, "timezone": None}
-        )
+        verify_non_dates_not_converted({"value": {"start": 0, "end": 1}})
         # string range without date format
-        verify_non_dates_not_converted(
-            {"value": {"start": "0", "end": "1"}, "timezone": None}
-        )
+        verify_non_dates_not_converted({"value": {"start": "0", "end": "1"}})
         # string list without date format
-        verify_non_dates_not_converted({"value": ["0", "1"], "timezone": None})
+        verify_non_dates_not_converted({"value": ["0", "1"]})
 
         # number with date format
         verify_date_converted_to_nanos(
             {
                 "value": 2053859400123450000,
                 "format_options": {"date_format": ""},
-                "timezone": None,
             },
             "2053859400123450000",
         )
@@ -62,25 +57,23 @@ class LabeledValueTest(BaseTestCase):
             {
                 "value": "2053859400123450000",
                 "format_options": {"date_format": ""},
-                "timezone": None,
             },
             "2053859400123450000",
         )
         # instant
         verify_date_converted_to_nanos(
-            {"value": to_j_instant("2035-01-31T12:30:00.12345Z"), "timezone": None},
+            {"value": to_j_instant("2035-01-31T12:30:00.12345Z")},
             "2053859400123450000",
         )
         # local date
         verify_date_converted_to_string(
-            {"value": to_j_local_date("2035-01-31"), "timezone": None}, "2035-01-31"
+            {"value": to_j_local_date("2035-01-31")}, "2035-01-31"
         )
         # number range with date format
         verify_date_range_conversion(
             {
                 "value": {"start": 2053859400123450000, "end": 2053859400123450001},
                 "format_options": {"date_format": ""},
-                "timezone": None,
             },
             {
                 "start": "2053859400123450000",
@@ -94,7 +87,6 @@ class LabeledValueTest(BaseTestCase):
             {
                 "value": {"start": "2053859400123450000", "end": "2053859400123450001"},
                 "format_options": {"date_format": ""},
-                "timezone": None,
             },
             {
                 "start": "2053859400123450000",
@@ -110,7 +102,6 @@ class LabeledValueTest(BaseTestCase):
                     "start": to_j_instant("2035-01-31T12:30:00.12345Z"),
                     "end": to_j_instant("2035-01-31T12:30:00.12346Z"),
                 },
-                "timezone": None,
             },
             {
                 "start": "2053859400123450000",
@@ -126,7 +117,6 @@ class LabeledValueTest(BaseTestCase):
                     "start": to_j_local_date("2035-01-31"),
                     "end": to_j_instant("2035-01-31T12:30:00.12345Z"),
                 },
-                "timezone": None,
             },
             {
                 "start": "2035-01-31",
@@ -140,7 +130,6 @@ class LabeledValueTest(BaseTestCase):
         verify_date_converted_to_nanos(
             {
                 "value": to_j_zdt("2035-01-31T12:30:00.12345 America/New_York"),
-                "timezone": None,
             },
             "2053877400123450000",
             "America/New_York",
@@ -149,7 +138,7 @@ class LabeledValueTest(BaseTestCase):
         verify_date_converted_to_nanos(
             {
                 "value": to_j_zdt("2035-01-31T12:30:00.12345 America/New_York"),
-                "timezone": "User Timezone",
+                "format_options": {"timezone": "User Timezone"},
             },
             "2053877400123450000",
             "User Timezone",
@@ -161,7 +150,6 @@ class LabeledValueTest(BaseTestCase):
                     "start": to_j_local_date("2035-01-31"),
                     "end": to_j_zdt("2035-01-31T12:30:00.12345 America/New_York"),
                 },
-                "timezone": None,
             },
             {
                 "start": "2035-01-31",
@@ -178,7 +166,6 @@ class LabeledValueTest(BaseTestCase):
                     "start": to_j_zdt("2035-01-31T9:30:00.12345 America/Los_Angeles"),
                     "end": to_j_zdt("2035-01-31T12:30:00.12345 America/New_York"),
                 },
-                "timezone": None,
             },
             {
                 "start": "2053877400123450000",

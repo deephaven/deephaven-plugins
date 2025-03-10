@@ -16,7 +16,6 @@ export interface SerializedLabeledValuePropsInterface {
     | Intl.NumberFormatOptions
     | Intl.ListFormatOptions
     | undefined;
-  timezone?: string;
   isDate: boolean;
   isNanoseconds: boolean;
 }
@@ -71,8 +70,7 @@ function useLabeledValueValueMemo(
   isDate: boolean,
   isNanoseconds: boolean,
   value: number | string | string[] | RangeValue<number> | CustomDateRangeValue,
-  formatOptions?: CustomDateFormatOptions,
-  timezone?: string
+  formatOptions?: CustomDateFormatOptions
 ): number | string | string[] | RangeValue<number> {
   const dh = useApi();
   const settings = useSelector(getSettings<RootState>);
@@ -86,8 +84,7 @@ function useLabeledValueValueMemo(
           value,
           isNanoseconds,
           settings,
-          formatOptions,
-          timezone
+          formatOptions
         );
       }
 
@@ -98,16 +95,14 @@ function useLabeledValueValueMemo(
           value.start,
           value.isStartNanoseconds,
           settings,
-          formatOptions,
-          timezone
+          formatOptions
         );
         const endDate = getFormattedDate(
           dh,
           value.end,
           value.isEndNanoseconds,
           settings,
-          formatOptions,
-          timezone
+          formatOptions
         );
         return `${startDate}\u2013${endDate}`;
       }
@@ -120,7 +115,7 @@ function useLabeledValueValueMemo(
     }
 
     return value;
-  }, [dh, formatOptions, isDate, isNanoseconds, settings, timezone, value]);
+  }, [dh, formatOptions, isDate, isNanoseconds, settings, value]);
 }
 
 function useLabeledValueFormatOptionsMemo(
@@ -141,7 +136,6 @@ function useLabeledValueFormatOptionsMemo(
 export function useLabeledValueProps<TProps>({
   value: serializedValue,
   formatOptions: serializedFormatOptions,
-  timezone,
   isDate,
   isNanoseconds,
   ...otherProps
@@ -150,8 +144,7 @@ export function useLabeledValueProps<TProps>({
     isDate,
     isNanoseconds,
     serializedValue,
-    serializedFormatOptions,
-    timezone
+    serializedFormatOptions
   );
   const deserializedFormatOptions = useLabeledValueFormatOptionsMemo(
     serializedFormatOptions

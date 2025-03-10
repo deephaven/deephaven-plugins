@@ -70,9 +70,11 @@ def _get_serialized_date_props(
 def _convert_labeled_value_props(
     props: dict[str, Any],
 ) -> dict[str, Any]:
+    if "format_options" not in props or props["format_options"] is None:
+        props["format_options"] = {}
+
     has_date_format = (
-        "format_options" in props
-        and isinstance(props["format_options"], dict)
+        isinstance(props["format_options"], dict)
         and "date_format" in props["format_options"]
     )
     # allows JS component to distinguish between dates passed as a string and other values
@@ -84,10 +86,14 @@ def _convert_labeled_value_props(
     if isinstance(props["value"], dict):
         # range value
         start_date_value, start_tz = _get_serialized_date_props(
-            props["value"]["start"], props["timezone"], has_date_format
+            props["value"]["start"],
+            props["format_options"].get("timezone"),
+            has_date_format,
         )
         end_date_value, end_tz = _get_serialized_date_props(
-            props["value"]["end"], props["timezone"], has_date_format
+            props["value"]["end"],
+            props["format_options"].get("timezone"),
+            has_date_format,
         )
 
         if start_date_value and end_date_value:
@@ -100,12 +106,12 @@ def _convert_labeled_value_props(
             }
             props["is_date"] = True
             if start_tz or end_tz:
-                props["timezone"] = start_tz if start_tz else end_tz
+                props["format_options"]["timezone"] = start_tz if start_tz else end_tz
         return props
 
     # single value
     date_value, tz = _get_serialized_date_props(
-        props["value"], props["timezone"], has_date_format
+        props["value"], props["format_options"].get("timezone"), has_date_format
     )
     if date_value:
         props["value"] = str(date_value)
@@ -113,7 +119,7 @@ def _convert_labeled_value_props(
         if isinstance(date_value, int):
             props["is_nanoseconds"] = True
         if tz:
-            props["timezone"] = tz
+            props["format_options"]["timezone"] = tz
 
     return props
 
@@ -124,7 +130,6 @@ def labeled_value(
     format_options: NumberFormatOptions | DateFormatOptions | None = None,
     # TODO: DH-18854 Implement list format options for ui.labeled_value
     # format_options: NumberFormatOptions | DateFormatOptions | ListFormatOptions | None = None,
-    timezone: str | None = None,
     label_position: LabelPosition | None = "top",
     label_align: Alignment | None = None,
     contextual_help: Any | None = None,

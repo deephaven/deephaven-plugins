@@ -40,7 +40,7 @@ type DateTimeValue = CalendarDateTime | ZonedDateTime;
 export type CustomDateFormatOptions =
   | Intl.NumberFormatOptions
   | Intl.ListFormatOptions
-  | { [date_format: string]: string };
+  | { date_format?: string; timezone?: string };
 
 /**
  * Checks if a string is an Instant.
@@ -277,13 +277,14 @@ export function nanosToMillis(nanos: number): number {
 
 export function isCustomDateFormatOptions(
   options?: CustomDateFormatOptions
-): options is { [date_format: string]: string } {
+): options is { date_format?: string; timezone?: string } {
   if (options === null || typeof options !== 'object') return false;
 
   return (
-    Object.keys(options).length === 1 &&
-    'date_format' in options &&
-    typeof options.date_format === 'string'
+    ('date_format' in options
+      ? typeof options.date_format === 'string'
+      : true) &&
+    ('timezone' in options ? typeof options.timezone === 'string' : true)
   );
 }
 
@@ -304,18 +305,23 @@ export function getFormattedDate(
   value: string,
   isNanoseconds: boolean,
   settings: WorkspaceSettings,
-  formatOptions?: CustomDateFormatOptions,
-  timezoneOverride?: string
+  formatOptions?: CustomDateFormatOptions
 ): string {
   const { timeZone: userTimezone } = settings;
-  const timezone = dh.i18n.TimeZone.getTimeZone(
-    timezoneOverride != null ? timezoneOverride : userTimezone
-  );
+  const hasCustomDateFormat = isCustomDateFormatOptions(formatOptions);
+
+  const timezoneString =
+    hasCustomDateFormat && formatOptions.timezone !== undefined
+      ? formatOptions.timezone
+      : userTimezone;
+
+  const timezone = dh.i18n.TimeZone.getTimeZone(timezoneString);
 
   if (isNanoseconds) {
     // nanoseconds string
     const format =
-      isCustomDateFormatOptions(formatOptions) &&
+      hasCustomDateFormat &&
+      formatOptions.date_format !== undefined &&
       formatOptions.date_format !== ''
         ? formatOptions.date_format
         : getDateTimeFormat(settings, false);
@@ -327,7 +333,9 @@ export function getFormattedDate(
   const zdt = parseZonedDateTime(`${value}T00:00:00[${timezone.id}]`);
   const date = zdt.toDate();
   const format =
-    isCustomDateFormatOptions(formatOptions) && formatOptions.date_format !== ''
+    hasCustomDateFormat &&
+    formatOptions.date_format !== undefined &&
+    formatOptions.date_format !== ''
       ? formatOptions.date_format
       : getDateTimeFormat(settings, true);
   return dh.i18n.DateTimeFormat.format(format, date, timezone);
