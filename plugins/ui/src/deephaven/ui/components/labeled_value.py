@@ -185,7 +185,6 @@ def labeled_value(
         value: The value to be displayed.
         label: The content of the label.
         format_options: Formatting options for the value displayed in the number field.
-        timezone: The timezone to use when displaying a date value.
         label_position: The label's overall position relative to the element it is labeling.
         label_align: The label's horizontal alignment relative to the element it is labeling.
         contextual_help: A contextual help element to place next to the label.
