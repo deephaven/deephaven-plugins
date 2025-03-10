@@ -98,22 +98,22 @@ my_number_range = ui.labeled_value(
 
 When passing a `int` or `str` into the `value` prop, `format_options` with a `date_format` parameter must be specified to indicate that it should be parsed as a date. See more about date formatting in the next section.
 
-Note that the time conversion methods, such as `to_j_instant()`, used in this example are to demonstrate the types that are accepted, and _should not_ be used, in favor of passing a date string directly to the component.
-
 ```python
-from deephaven import ui
-from deephaven.time import to_j_instant, to_j_zdt, to_j_local_date
+from deephaven import ui, time_table
+from deephaven.time import dh_now
 import datetime
+
+
+_table = time_table(period="PT1s").reverse()
 
 
 @ui.component
 def labeled_value_datetime():
-    instant = to_j_instant("2035-01-31T12:30:00.12345Z")
-    zoned_date_time = to_j_zdt("2035-01-31T12:30:00.12345 America/New_York")
-    local_date = to_j_local_date("2035-01-31")
+    timestamp = ui.use_cell_data(_table)
 
     return [
-        ui.labeled_value(label="Instant", value=instant),
+        ui.labeled_value(label="Instant", value=dh_now()),
+        ui.labeled_value(label="Pandas timestamp", value=timestamp),
         ui.labeled_value(
             label="Date string",
             value="2035-01-31T12:30:00.12345Z",
@@ -126,10 +126,8 @@ def labeled_value_datetime():
         ),
         ui.labeled_value(
             label="Python datetime",
-            value=datetime.datetime(2035, 1, 31, 12, 30, 0, 12345),
+            value=datetime.datetime(2035, 1, 31, 12, 30, 0),
         ),
-        ui.labeled_value(label="Zoned date time", value=zoned_date_time),
-        ui.labeled_value(label="Local date", value=local_date),
     ]
 
 

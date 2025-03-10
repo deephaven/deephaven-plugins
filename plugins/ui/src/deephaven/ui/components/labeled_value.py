@@ -61,7 +61,10 @@ def _get_serialized_date_props(
 
     timezone_value = (
         timezone
-        if timezone_prop is None and timezone is not None and timezone != "Z"
+        if timezone_prop is None
+        and timezone is not None
+        and timezone != "Z"
+        and timezone != "UTC"
         else timezone_prop
     )
     return (date_value, timezone_value)
@@ -72,6 +75,8 @@ def _convert_labeled_value_props(
 ) -> dict[str, Any]:
     if "format_options" not in props or props["format_options"] is None:
         props["format_options"] = {}
+    else:
+        props["format_options"] = props["format_options"].copy()
 
     has_date_format = (
         isinstance(props["format_options"], dict)

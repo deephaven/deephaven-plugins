@@ -70,13 +70,21 @@ function useLabeledValueValueMemo(
   isDate: boolean,
   isNanoseconds: boolean,
   value: number | string | string[] | RangeValue<number> | CustomDateRangeValue,
-  formatOptions?: CustomDateFormatOptions
+  formatOptions?:
+    | CustomDateFormatOptions
+    | Intl.NumberFormatOptions
+    | Intl.ListFormatOptions
+    | undefined
 ): number | string | string[] | RangeValue<number> {
   const dh = useApi();
   const settings = useSelector(getSettings<RootState>);
 
   return useMemo(() => {
     if (isDate) {
+      const dateFormatOptions = isCustomDateFormatOptions(formatOptions)
+        ? formatOptions
+        : undefined;
+
       if (typeof value === 'string') {
         // single value
         return getFormattedDate(
@@ -84,7 +92,7 @@ function useLabeledValueValueMemo(
           value,
           isNanoseconds,
           settings,
-          formatOptions
+          dateFormatOptions
         );
       }
 
@@ -95,14 +103,14 @@ function useLabeledValueValueMemo(
           value.start,
           value.isStartNanoseconds,
           settings,
-          formatOptions
+          dateFormatOptions
         );
         const endDate = getFormattedDate(
           dh,
           value.end,
           value.isEndNanoseconds,
           settings,
-          formatOptions
+          dateFormatOptions
         );
         return `${startDate}\u2013${endDate}`;
       }

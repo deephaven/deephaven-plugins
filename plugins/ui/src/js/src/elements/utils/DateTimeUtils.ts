@@ -37,10 +37,10 @@ export type MappedTimeValue<T> = T extends ZonedDateTime
 
 type DateTimeValue = CalendarDateTime | ZonedDateTime;
 
-export type CustomDateFormatOptions =
-  | Intl.NumberFormatOptions
-  | Intl.ListFormatOptions
-  | { date_format?: string; timezone?: string };
+export type CustomDateFormatOptions = {
+  date_format?: string;
+  timezone?: string;
+};
 
 /**
  * Checks if a string is an Instant.
@@ -276,16 +276,18 @@ export function nanosToMillis(nanos: number): number {
 }
 
 export function isCustomDateFormatOptions(
-  options?: CustomDateFormatOptions
+  options: unknown
 ): options is { date_format?: string; timezone?: string } {
   if (options === null || typeof options !== 'object') return false;
 
-  return (
-    ('date_format' in options
-      ? typeof options.date_format === 'string'
-      : true) &&
-    ('timezone' in options ? typeof options.timezone === 'string' : true)
-  );
+  const hasDateFormat =
+    'date_format' in options &&
+    typeof (options as { date_format?: string }).date_format === 'string';
+  const hasTimezone =
+    'timezone' in options &&
+    typeof (options as { timezone?: string }).timezone === 'string';
+
+  return hasDateFormat || hasTimezone;
 }
 
 /**
