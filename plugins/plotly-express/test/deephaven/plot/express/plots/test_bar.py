@@ -55,7 +55,6 @@ class BarTestCase(BaseTestCase):
         expected_layout = {
             "barmode": "relative",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -121,7 +120,6 @@ class BarTestCase(BaseTestCase):
         expected_layout = {
             "barmode": "relative",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -187,7 +185,6 @@ class BarTestCase(BaseTestCase):
         expected_layout = {
             "barmode": "relative",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],

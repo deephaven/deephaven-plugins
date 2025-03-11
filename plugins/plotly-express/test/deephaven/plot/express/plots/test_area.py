@@ -69,7 +69,6 @@ class AreaTestCase(BaseTestCase):
                 "side": "left",
             },
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
         }
 
         self.assertEqual(plotly["layout"], expected_layout)
@@ -134,7 +133,6 @@ class AreaTestCase(BaseTestCase):
                 "side": "left",
             },
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
         }
 
         self.assertEqual(plotly["layout"], expected_layout)
@@ -191,7 +189,6 @@ class AreaTestCase(BaseTestCase):
                 "side": "left",
             },
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
         }
 
         expected_mappings = [
