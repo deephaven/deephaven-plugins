@@ -10,10 +10,11 @@ from deephaven import ui
 my_toggle_button_basic = ui.toggle_button("Pin")
 ```
 
+![Toggle Button Basic Example](../_assets/toggle_button_basic.png)
+
 ## UI Recommendations
 
 If you want to represent a binary choice for the user, consider using a [`checkbox`](./checkbox.md).
-
 
 ## Content
 
@@ -25,7 +26,6 @@ from deephaven import ui
 
 my_toggle_button = ui.toggle_button(ui.icon("pin"), ui.text("Pin content"))
 ```
-
 
 ## Accessibility
 
@@ -39,7 +39,6 @@ my_toggle_button_accessibility_example = ui.toggle_button(
     ui.icon("pin"), aria_label="pin content"
 )
 ```
-
 
 ## Value
 
@@ -64,7 +63,6 @@ def ui_toggle_button_value_examples():
 
 my_toggle_button_value_examples = ui_toggle_button_value_examples()
 ```
-
 
 ## Events
 
@@ -92,7 +90,6 @@ def ui_toggle_button_on_change_example():
 my_toggle_button_on_change_example = ui_toggle_button_on_change_example()
 ```
 
-
 ## Quiet state
 
 The `is_quiet` prop makes a toggle button "quiet". This can be useful when the toggle button and its corresponding styling should not distract users from surrounding content.
@@ -106,7 +103,6 @@ my_toggle_button_is_quiet_example = ui.toggle_button(
     is_quiet=True,
 )
 ```
-
 
 ## Disabled state
 
@@ -122,7 +118,6 @@ my_toggle_button_is_disabled_example = ui.toggle_button(
 )
 ```
 
-
 ## Emphasized
 
 The `is_emphasized` prop makes the toggle button the user's accent color when selected, adding a visual prominence to the selection.
@@ -136,7 +131,6 @@ my_toggle_button_is_emphasized_example = ui.toggle_button(
     is_emphasized=True,
 )
 ```
-
 
 ## Static Color
 

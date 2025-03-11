@@ -14,6 +14,8 @@ dp = ui.date_picker(
 )
 ```
 
+![Date Picker Basic Example](../_assets/date_picker_basic.png)
+
 ## Date types
 
 The date picker accepts the following date types as inputs:  

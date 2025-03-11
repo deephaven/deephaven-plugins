@@ -10,6 +10,8 @@ from deephaven import ui
 img = ui.image(src="https://i.imgur.com/Z7AzH2c.png", alt="Sky and roof")
 ```
 
+![Image Basic Example](../_assets/image_basic.png)
+
 ## UI Recommendations
 
 1. Provide descriptive alt text for all images to ensure accessibility for users with visual impairments. Note: If the image is considered decorative and should not be announced by screen readers, then set alt="" to suppress the warning.
@@ -21,6 +23,7 @@ img = ui.image(src="https://i.imgur.com/Z7AzH2c.png", alt="Sky and roof")
 Different styles determine how an image fits into its container. The default value for the `object_fit` parameter is `fill`, which takes up the whole dimension of the container.
 
 Other options:
+
 - `contain` scales the image to the dimension of the container while preserving its aspect ratio. If the image's aspect ratio does not match the aspect ratio of the box, the image will be "letterboxed".
 - `cover` scales the image to fill the entire container. If the image's aspect ratio does not match the aspect ratio of the box, the image will be clipped to fit.
 - `none` renders the image in its original dimensions.
