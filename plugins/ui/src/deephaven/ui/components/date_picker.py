@@ -27,11 +27,13 @@ from .._internal.utils import (
     create_props,
     convert_date_props,
     convert_list_prop,
+    is_nullish,
+    to_j_local_date,
 )
 from ..types import Date, Granularity, Undefined, UndefinedType
 from .basic import component_element
 from .make_component import make_component
-from deephaven.time import dh_now
+from deephaven.time import dh_now, dh_today
 
 DatePickerElement = Element
 
@@ -79,9 +81,28 @@ def _convert_date_picker_props(
     return props
 
 
+def _set_placeholder_value(
+    props: dict[str, Any],
+) -> None:
+    """
+    Set the placeholder value of the date picker if there is no value or default_value.
+
+    Args:
+        props: The props passed to the date picker.
+    """
+    # If there is no value, default_value, or placeholder then set the placeholder based on granularity
+    if all(is_nullish(props.get(key)) for key in _DATE_PROPS_PRIORITY):
+        granularity = props.get(_GRANULARITY_KEY)
+        props["placeholder_value"] = (
+            to_j_local_date(dh_today())
+            if isinstance(granularity, str) and granularity.upper() == "DAY"
+            else dh_now()
+        )
+
+
 @make_component
 def date_picker(
-    placeholder_value: Date | None = dh_now(),
+    placeholder_value: Date | None = None,
     value: Date | None | UndefinedType = Undefined,
     default_value: Date | None | UndefinedType = Undefined,
     min_value: Date | None = None,
@@ -275,6 +296,7 @@ def date_picker(
     """
     _, props = create_props(locals())
 
+    _set_placeholder_value(props)
     _convert_date_picker_props(props)
 
     # props["unavailable_values"] = use_memo(
