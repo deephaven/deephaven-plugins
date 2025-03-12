@@ -27,6 +27,7 @@ from .._internal.utils import (
     create_props,
     convert_date_props,
     convert_list_prop,
+    get_placeholder_value,
 )
 from ..types import Date, Granularity, DateRange, Undefined, UndefinedType
 from .basic import component_element
@@ -45,6 +46,7 @@ _RANGE_DATE_PROPS = {"value", "default_value"}
 _LIST_DATE_PROPS = {"unavailable_values"}
 _CALLABLE_DATE_PROPS = {"on_change"}
 _GRANULARITY_KEY = "granularity"
+_PLACEHOLDER_KEY = "placeholder_value"
 
 # The priority of the date props to determine the format of the date passed to the callable date props
 _DATE_PROPS_PRIORITY = ["value", "default_value", "placeholder_value"]
@@ -79,7 +81,7 @@ def _convert_date_range_picker_props(
 
 @make_component
 def date_range_picker(
-    placeholder_value: Date | None = dh_now(),
+    placeholder_value: Date | None = None,
     value: DateRange | None | UndefinedType = Undefined,
     default_value: DateRange | None | UndefinedType = Undefined,
     min_value: Date | None = None,
@@ -278,6 +280,7 @@ def date_range_picker(
     """
     _, props = create_props(locals())
 
+    props[_PLACEHOLDER_KEY] = get_placeholder_value(placeholder_value, granularity)
     _convert_date_range_picker_props(props)
 
     return component_element(
