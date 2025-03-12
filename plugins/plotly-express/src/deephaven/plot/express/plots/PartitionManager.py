@@ -250,6 +250,7 @@ class PartitionManager:
                 map_val,
                 self.args[seq_arg],
                 new_col,
+                False,
             )
             # a new column will be constructed so this color is always updated
             self.args[f"attached_{arg}"] = new_col
@@ -312,9 +313,16 @@ class PartitionManager:
             ):
                 if "always_attached" in self.groups:
                     args["colors"] = args.pop("color")
-                # just keep the argument in place so it can be passed to plotly
-                # express directly
-                pass
+                    if self.args.get("path"):
+                        new_col = get_unique_names(self.args["table"], [arg])[arg]
+                        # colors need to be aggregated and attached if path is passed
+                        self.always_attached[(arg, args["colors"])] = (
+                            None,
+                            None,
+                            new_col,
+                            True,
+                        )
+                    # otherwise the colors are passed to plotly and attached directly
             elif val:
                 self.is_by(arg, args[map_name])
             elif plot_by_cols and (
@@ -333,7 +341,7 @@ class PartitionManager:
             map_ = args["size_map"]
             if map_ == "by" or isinstance(map_, dict):
                 self.is_by(arg)
-            elif val and is_single_numeric_col(val, numeric_cols):
+            elif val and is_single_numeric_col(val, numeric_cols ):
                 # just keep the argument in place so it can be passed to plotly
                 # express directly
                 pass

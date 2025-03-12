@@ -40,8 +40,8 @@ class Preprocessor:
         self.preprocesser = None
         self.always_attached = always_attached
         self.pivot_vars = pivot_vars
+        self.path = self.args.pop("path", None)
         self.prepare_preprocess()
-        pass
 
     def prepare_preprocess(self) -> None:
         """
@@ -51,8 +51,8 @@ class Preprocessor:
             self.preprocesser = HistPreprocessor(self.args, self.pivot_vars)
         elif "preprocess_freq" in self.groups:
             self.preprocesser = FreqPreprocessor(self.args)
-        elif "always_attached" in self.groups and self.always_attached:
-            AttachedPreprocessor(self.args, self.always_attached)
+        elif "always_attached" in self.groups and (self.always_attached or self.path):
+            AttachedPreprocessor(self.args, self.always_attached, self.path)
         elif "preprocess_time" in self.groups:
             self.preprocesser = TimePreprocessor(self.args)
         elif "preprocess_heatmap" in self.groups:
