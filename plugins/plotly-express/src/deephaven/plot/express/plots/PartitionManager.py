@@ -341,7 +341,7 @@ class PartitionManager:
             map_ = args["size_map"]
             if map_ == "by" or isinstance(map_, dict):
                 self.is_by(arg)
-            elif val and is_single_numeric_col(val, numeric_cols ):
+            elif val and is_single_numeric_col(val, numeric_cols):
                 # just keep the argument in place so it can be passed to plotly
                 # express directly
                 pass
@@ -592,8 +592,11 @@ class PartitionManager:
             or "preprocess_freq" in self.groups
             or "preprocess_time" in self.groups
             or "preprocess_heatmap" in self.groups
+            or "always_attached" in self.groups
         ) and self.preprocessor:
             # still need to preprocess the base table
+            print([*self.preprocessor.preprocess_partitioned_tables([args["table"]])][0])
+            print(self.preprocessor.preprocesser)
             table, arg_update = cast(
                 Tuple,
                 [*self.preprocessor.preprocess_partitioned_tables([args["table"]])][0],

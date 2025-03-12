@@ -52,7 +52,7 @@ class Preprocessor:
         elif "preprocess_freq" in self.groups:
             self.preprocesser = FreqPreprocessor(self.args)
         elif "always_attached" in self.groups and (self.always_attached or self.path):
-            AttachedPreprocessor(self.args, self.always_attached, self.path)
+            self.preprocesser = AttachedPreprocessor(self.args, self.always_attached, self.path)
         elif "preprocess_time" in self.groups:
             self.preprocesser = TimePreprocessor(self.args)
         elif "preprocess_heatmap" in self.groups:
