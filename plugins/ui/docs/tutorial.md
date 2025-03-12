@@ -31,7 +31,7 @@ Components are the building blocks of `deephaven.ui`. Each component takes param
 
 ### `ui.table`
 
-Wrapping a table in [`ui.table`](components/table.md) unlocks visual functionality on the table. 
+Wrapping a table in [`ui.table`](components/table.md) unlocks visual functionality on the table.
 Since you're investigating `SepalLength` and `SepalWidth`, create a `ui.table` that accentuates the latest filtered data.
 With `iris`, create a `ui.table` that:
 
