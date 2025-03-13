@@ -130,7 +130,7 @@ class table(Element):
         quick_filters: The quick filters to apply to the table. Dictionary of column name to filter value.
         show_quick_filters: Whether to show the quick filter bar by default.
         aggregations: An aggregation or list of aggregations to apply to the table. These will be shown as a floating row at the bottom of the table by default.
-        aggregation_position: The position to show the aggregations. One of "top" or "bottom". "bottom" by default.
+        aggregations_position: The position to show the aggregations. One of "top" or "bottom". "bottom" by default.
         show_grouping_column: Whether to show the grouping column by default for rollup tables.
         show_search: Whether to show the search bar by default.
         reverse: Whether to reverse the table rows. Applied after any sorts.
@@ -215,7 +215,7 @@ class table(Element):
         quick_filters: dict[ColumnName, QuickFilterExpression] | None = None,
         show_quick_filters: bool = False,
         aggregations: TableAgg | list[TableAgg] | None = None,
-        aggregation_position: Literal["top", "bottom"] | None = None,
+        aggregations_position: Literal["top", "bottom"] | None = None,
         show_grouping_column: bool = True,
         show_search: bool = False,
         reverse: bool = False,

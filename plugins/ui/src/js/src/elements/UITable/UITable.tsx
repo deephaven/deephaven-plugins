@@ -166,7 +166,7 @@ export function UITable({
   quickFilters: quickFiltersProp,
   sorts,
   aggregations,
-  aggregationPosition = 'bottom',
+  aggregationsPosition = 'bottom',
   alwaysFetchColumns: alwaysFetchColumnsProp,
   table: exportedTable,
   showSearch: showSearchBar,
@@ -454,7 +454,7 @@ export function UITable({
                     (agg.cols == null && agg.ignore_cols != null),
                 }))
               : [],
-          showOnTop: aggregationPosition === 'top',
+          showOnTop: aggregationsPosition === 'top',
         },
       }) satisfies Partial<IrisGridProps>,
     [
@@ -470,7 +470,7 @@ export function UITable({
       showGroupingColumn,
       onContextMenu,
       aggregations,
-      aggregationPosition,
+      aggregationsPosition,
     ]
   );
 

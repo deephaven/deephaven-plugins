@@ -12,6 +12,10 @@ test.describe('UI table', () => {
     't_priority',
     't_value_format',
     't_display_names',
+    // Will need new server with updated web-client-ui packages
+    // 't_single_agg',
+    // 't_bottom_agg',
+    // 't_top_agg',
   ].forEach(name => {
     test(name, async ({ page }) => {
       await gotoPage(page, '');

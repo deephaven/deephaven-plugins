@@ -170,21 +170,31 @@ t = ui.table(
 
 ## Aggregations
 
-You can add aggregations to the table using the `aggregations` prop. These aggregations will be shown as floating rows at the top or bottom of the table.
+You can add aggregation rows to the table using `ui.TableAgg` with the `aggregations` prop. These will be shown as floating rows at the top or bottom of the table and account for any user-applied filters. The `aggregations_position` prop determines if aggregations are shown at the top or bottom of the table and defaults to the bottom. The full list of aggregations can be found in the "Aggregate Columns" section in the table sidebar menu and in our [JavaScript API docs](/core/client-api/javascript/classes/dh.AggregationOperation.html).
+
+Aggregations will be applied to all columns that can use the chosen aggregation unless `cols` or `ignore_cols` are provided. The `cols` parameter takes precedence over `ignore_cols`. If `cols` is provided, only the specified columns will be aggregated. If `ignore_cols` is provided, all columns which can be aggregated except those specified will be aggregated.
+
+The following example show aggregations of the first row for each column, the last row for the `Timestamp` column, and the sum of all columns which can be summed except `Index` and `Random`. One table shows the aggregations at the bottom, and the other shows the aggregations at the top.
 
 ```py
 from deephaven import ui
+import deephaven.plot.express as dx
 
-t = ui.table(
+aggs = [
+    ui.TableAgg(agg="first"),
+    ui.TableAgg(agg="last", cols="Timestamp"),
+    ui.TableAgg(agg="sum", ignore_cols=["Index", "Random"])
+]
+
+t_bottom = ui.table(
     dx.data.stocks(),
-    aggregations=[
-        ui.TableAgg(agg="first"), # Applies to all columns since all columns can use first
-        ui.TableAgg(agg="max"), # Applies to all columns that can be maxed
-        ui.TableAgg(cols="Price", agg="avg"), # Applies avg to just the Price column
-        ui.TableAgg(ignore_cols="Size", agg="min") # Applies min to all valid columns except Size
-    ],
-    aggregation_position="top" # Default is bottom
-    show_grand_totals=True # Default is False
+    aggregations=aggs
+)
+
+t_top = ui.table(
+    dx.data.stocks(),
+    aggregations=aggs,
+    aggregations_position="top"
 )
 ```
 
@@ -457,6 +467,12 @@ t = ui.table(
 
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.table
+```
+
+### TableAgg
+
+```{eval-rst}
+.. dhautofunction:: deephaven.ui.TableAgg
 ```
 
 ### TableFormat

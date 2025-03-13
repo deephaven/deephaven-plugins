@@ -75,7 +75,7 @@ export type UITableProps = StyleProps & {
   quickFilters?: Record<string, string>;
   sorts?: DehydratedSort[];
   aggregations?: UIAggregation | UIAggregation[];
-  aggregationPosition?: 'top' | 'bottom';
+  aggregationsPosition?: 'top' | 'bottom';
   showSearch: boolean;
   showQuickFilters: boolean;
   showGroupingColumn: boolean;
@@ -106,14 +106,15 @@ export function isUITable(obj: unknown): obj is UITableNode {
 
 /**
  * Gets the case-sensitive aggregation name for use with the JS API from a case-insensitive name.
- * E.g. "sum" -> "Sum" or "COUNT" -> "Count"
+ * Also removes undescores when needed.
+ * E.g. "sum" -> "Sum" or "COUNT" -> "Count" or "ABS_SUM" -> "AbsSum" or "abssum" -> "AbsSum"
  * @param agg The name of the aggregation operation
  * @returns The case-sensitive aggregation operation enum value
  */
 export function getAggregationOperation(
   agg: string
 ): AggregationOperation | undefined {
-  const lowerAgg = agg.toLowerCase();
+  const lowerAgg = agg.toLowerCase().replace(/_/g, '');
   const operation = Object.values(AggregationOperation).find(
     op => op.toLowerCase() === lowerAgg
   );
