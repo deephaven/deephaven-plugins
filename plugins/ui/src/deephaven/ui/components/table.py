@@ -21,6 +21,22 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
+class TableAgg:
+    """
+    An aggregation for a table.
+
+    Args:
+        agg: The name of the aggregation to apply.
+        cols: The columns to aggregate. If None, the aggregation will apply to all applicable columns unless ignore_cols is specified.
+        ignore_cols: The columns to ignore when aggregating. If cols is also specified, ignore_cols will not apply.
+    """
+
+    agg: str
+    cols: ColumnName | list[ColumnName] | None = None
+    ignore_cols: ColumnName | list[ColumnName] | None = None
+
+
+@dataclass
 class TableFormat:
     """
     A formatting rule for a table.
@@ -113,6 +129,8 @@ class table(Element):
             If True, all columns will always be fetched. This may make tables with many columns slow.
         quick_filters: The quick filters to apply to the table. Dictionary of column name to filter value.
         show_quick_filters: Whether to show the quick filter bar by default.
+        aggregations: An aggregation or list of aggregations to apply to the table. These will be shown as a floating row at the bottom of the table by default.
+        aggregation_position: The position to show the aggregations. One of "top" or "bottom". "bottom" by default.
         show_grouping_column: Whether to show the grouping column by default for rollup tables.
         show_search: Whether to show the search bar by default.
         reverse: Whether to reverse the table rows. Applied after any sorts.
@@ -196,6 +214,8 @@ class table(Element):
         always_fetch_columns: ColumnName | list[ColumnName] | bool | None = None,
         quick_filters: dict[ColumnName, QuickFilterExpression] | None = None,
         show_quick_filters: bool = False,
+        aggregations: TableAgg | list[TableAgg] | None = None,
+        aggregation_position: Literal["top", "bottom"] | None = None,
         show_grouping_column: bool = True,
         show_search: bool = False,
         reverse: bool = False,

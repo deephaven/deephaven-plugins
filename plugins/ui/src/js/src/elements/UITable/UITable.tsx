@@ -31,7 +31,12 @@ import Log from '@deephaven/log';
 import { getSettings, RootState } from '@deephaven/redux';
 import { GridMouseHandler } from '@deephaven/grid';
 import { EMPTY_ARRAY, ensureArray } from '@deephaven/utils';
-import { DatabarConfig, FormattingRule, UITableProps } from './UITableUtils';
+import {
+  DatabarConfig,
+  FormattingRule,
+  getAggregationOperation,
+  UITableProps,
+} from './UITableUtils';
 import UITableMouseHandler from './UITableMouseHandler';
 import UITableContextMenuHandler, {
   wrapContextActions,
@@ -160,6 +165,8 @@ export function UITable({
   onRowDoublePress,
   quickFilters: quickFiltersProp,
   sorts,
+  aggregations,
+  aggregationPosition = 'bottom',
   alwaysFetchColumns: alwaysFetchColumnsProp,
   table: exportedTable,
   showSearch: showSearchBar,
@@ -432,6 +439,23 @@ export function UITable({
         density,
         settings: { ...settings, showExtraGroupColumn: showGroupingColumn },
         onContextMenu,
+        aggregationSettings: {
+          aggregations:
+            aggregations != null
+              ? ensureArray(aggregations).map(agg => ({
+                  operation: getAggregationOperation(agg.agg),
+                  selected: ensureArray(agg.cols ?? agg.ignore_cols ?? []),
+                  // Both null = true (select all w/ nothing in selected)
+                  // Only ignore_cols exists = true
+                  // Both exist = false (cols takes priority over ignore_cols)
+                  // Only cols exists = false
+                  invert:
+                    (agg.cols == null && agg.ignore_cols == null) ||
+                    (agg.cols == null && agg.ignore_cols != null),
+                }))
+              : [],
+          showOnTop: aggregationPosition === 'top',
+        },
       }) satisfies Partial<IrisGridProps>,
     [
       mouseHandlers,
@@ -445,6 +469,8 @@ export function UITable({
       settings,
       showGroupingColumn,
       onContextMenu,
+      aggregations,
+      aggregationPosition,
     ]
   );
 
