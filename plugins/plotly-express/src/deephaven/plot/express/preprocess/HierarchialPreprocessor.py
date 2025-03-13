@@ -6,10 +6,34 @@ from deephaven.table import Table
 
 from .StyleManager import StyleManager
 from ..shared import get_unique_names
-from ..types import HierarchicalTransform, AttachedTransform
 
+class HierarchialTransform(TypedDict):
+    """
+    A dictionary with info about an attached transformation that should be applied to a table
 
-class AttachedPreprocessor:
+    Attributes:
+        col: str: The by column that the style should be computed from
+        map: dict[str, str]: The map of values within col to styles
+        ls: list[str]: The list of styles to use
+        new_col: str: The new column name to store the style
+        sum_col: bool: True if this column should be summed if a path is present.
+            For example, if the column is numeric and is used for color,
+    """
+    by_col: str
+    new_col_name: str
+
+    @classmethod
+    def create(
+            cls,
+            by_col: str,
+            new_col_name: str | None = None,
+    ) -> HierarchialTransform:
+        return cls(
+            by_col=by_col,
+            new_col_name=new_col_name,
+        )
+
+class HierarchialPreprocessor:
     """A AttachedPreprocessor that adds styles to "always_attached" plot tables
     such as treemap and pie.
 
@@ -23,7 +47,7 @@ class AttachedPreprocessor:
     def __init__(
             self,
             args: dict[str, Any],
-            attached_transforms: list[AttachedTransform],
+            always_attached: list[HierarchialTransform],
             path: str | list[str] | None = None,
     ):
         self.args = args

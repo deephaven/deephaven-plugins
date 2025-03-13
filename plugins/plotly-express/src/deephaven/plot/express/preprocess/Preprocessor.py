@@ -10,6 +10,9 @@ from .FreqPreprocessor import FreqPreprocessor
 from .HistPreprocessor import HistPreprocessor
 from .TimePreprocessor import TimePreprocessor
 from .HeatmapPreprocessor import HeatmapPreprocessor
+from .HierarchialPreprocessor import HierarchialPreprocessor
+
+from ..types import AttachedTransform, HierarchicalTransform
 
 
 class Preprocessor:
@@ -32,16 +35,19 @@ class Preprocessor:
         self,
         args: dict[str, Any],
         groups: set[str],
-        always_attached: dict[tuple[str, str], tuple[dict[str, str], list[str], str]],
+        attached_transforms: list[AttachedTransform],
+        hierarchial_transforms: list[HierarchicalTransform],
         pivot_vars: dict[str, str],
     ):
         self.args = args
         self.groups = groups
         self.preprocesser = None
-        self.always_attached = always_attached
+        self.attached_transforms = attached_transforms
+        self.hierarchial_transforms = hierarchial_transforms
         self.pivot_vars = pivot_vars
         self.path = self.args.pop("path", None)
         self.prepare_preprocess()
+
 
     def prepare_preprocess(self) -> None:
         """
@@ -51,12 +57,22 @@ class Preprocessor:
             self.preprocesser = HistPreprocessor(self.args, self.pivot_vars)
         elif "preprocess_freq" in self.groups:
             self.preprocesser = FreqPreprocessor(self.args)
-        elif "always_attached" in self.groups and (self.always_attached or self.path):
-            self.preprocesser = AttachedPreprocessor(self.args, self.always_attached, self.path)
         elif "preprocess_time" in self.groups:
             self.preprocesser = TimePreprocessor(self.args)
         elif "preprocess_heatmap" in self.groups:
             self.preprocesser = HeatmapPreprocessor(self.args)
+        if "always_attached" in self.groups:
+            if self.attached_transforms:
+                # currently the AttachedPreprocessor only calls prepare_preprocess
+                # so it doesn't need to be stored
+                AttachedPreprocessor(
+                    self.args, self.attached_transforms, self.always_attached
+                )
+            if self.path:
+                self.preprocesser = HierarchialPreprocessor(
+                    self.args, self.hierarchial_transforms, self.path
+                )
+
 
     def preprocess_partitioned_tables(
         self, tables: list[Table] | None, column: str | None = None

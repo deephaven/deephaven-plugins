@@ -152,7 +152,8 @@ class PartitionManager:
         self.has_color = None
         self.facet_row = None
         self.facet_col = None
-        self.always_attached = {}
+        self.attached_transforms = {}
+        self.hierarchical_transforms = {}
 
         self.marginal_x = args.pop("marginal_x", None)
         self.marginal_y = args.pop("marginal_y", None)
@@ -316,12 +317,7 @@ class PartitionManager:
                     if self.args.get("path"):
                         new_col = get_unique_names(self.args["table"], [arg])[arg]
                         # colors need to be aggregated and attached if path is passed
-                        self.always_attached[(arg, args["colors"])] = (
-                            None,
-                            None,
-                            new_col,
-                            True,
-                        )
+                        self.hierarchical_transforms.append(HierarchicalTransformcreate(by_col=val, new_col=new_col)
                     # otherwise the colors are passed to plotly and attached directly
             elif val:
                 self.is_by(arg, args[map_name])
@@ -595,7 +591,9 @@ class PartitionManager:
             or "always_attached" in self.groups
         ) and self.preprocessor:
             # still need to preprocess the base table
-            print([*self.preprocessor.preprocess_partitioned_tables([args["table"]])][0])
+            print(
+                [*self.preprocessor.preprocess_partitioned_tables([args["table"]])][0]
+            )
             print(self.preprocessor.preprocesser)
             table, arg_update = cast(
                 Tuple,
