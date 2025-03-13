@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.13.1 - 2025-03-07
+#### Bug Fixes
+- LivenessStateException with static table in `dx` and `ui` (#1074) - (951a376) - Joe
+
+- - -
+
 ## plotly-express-v0.13.0 - 2025-02-04
 #### Bug Fixes
 - DH-18538: Deephaven express not respecting webgl flag within dh.ui (#1103) - (4516b77) - Matthew Runyon

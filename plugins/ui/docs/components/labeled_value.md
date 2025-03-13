@@ -11,6 +11,8 @@ from deephaven import ui
 my_labeled_value_basic = ui.labeled_value(label="File name", value="Budget.xls")
 ```
 
+![Labeled Value Basic Example](../_assets/labeled_value_basic.png)
+
 ## Value
 
 A labeled value accepts numbers, dates, strings, and lists of strings in the `value` prop.

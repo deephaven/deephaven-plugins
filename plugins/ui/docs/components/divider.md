@@ -16,6 +16,8 @@ def ui_divider_basic_example():
 my_divider_basic_example = ui_divider_basic_example()
 ```
 
+![Divider Basic Example](../_assets/divider_basic.png)
+
 ## Orientation
 
 While aligned horizontally by default, the alignment of the divider can be set using the `orientation` prop.

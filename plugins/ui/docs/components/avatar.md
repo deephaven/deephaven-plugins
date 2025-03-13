@@ -13,6 +13,7 @@ my_avatar_basic = ui.avatar(
 )
 ```
 
+![Avatar Basic Example](../_assets/avatar_basic.png)
 
 ## Disabled State
 
@@ -26,7 +27,6 @@ my_avatar_is_disabled_example = ui.avatar(
     src="https://github.com/deephaven.png", alt="default avatar", is_disabled=True
 )
 ```
-
 
 ## Size
 
