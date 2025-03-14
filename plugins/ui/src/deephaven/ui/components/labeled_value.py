@@ -137,7 +137,6 @@ def labeled_value(
     | DateFormatOptions
     | ListFormatOptions
     | None = None,
-    timezone: str | None = None,
     label_position: LabelPosition | None = "top",
     label_align: Alignment | None = None,
     contextual_help: Any | None = None,
