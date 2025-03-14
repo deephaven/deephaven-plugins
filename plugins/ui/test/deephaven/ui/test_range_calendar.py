@@ -9,22 +9,22 @@ class CalendarTest(BaseTestCase):
         from deephaven.ui.components.range_calendar import _convert_range_calendar_props
         from deephaven.ui._internal.utils import (
             get_jclass_name,
-            _convert_to_java_date,
+            convert_to_java_date,
         )
 
         def verify_is_local_date(dateStr):
             self.assertEqual(
-                get_jclass_name(_convert_to_java_date(dateStr)), "java.time.LocalDate"
+                get_jclass_name(convert_to_java_date(dateStr)), "java.time.LocalDate"
             )
 
         def verify_is_instant(dateStr):
             self.assertEqual(
-                get_jclass_name(_convert_to_java_date(dateStr)), "java.time.Instant"
+                get_jclass_name(convert_to_java_date(dateStr)), "java.time.Instant"
             )
 
         def verify_is_zdt(dateStr):
             self.assertEqual(
-                get_jclass_name(_convert_to_java_date(dateStr)),
+                get_jclass_name(convert_to_java_date(dateStr)),
                 "java.time.ZonedDateTime",
             )
 
