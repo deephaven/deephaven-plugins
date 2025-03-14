@@ -2,6 +2,11 @@ from __future__ import annotations
 from typing import Any, List
 
 from .number_field import NumberFormatOptions
+from .._internal.utils import (
+    create_props,
+    convert_to_java_date,
+    convert_date_for_labeled_value,
+)
 from .types import (
     Alignment,
     AlignSelf,
@@ -12,14 +17,124 @@ from .types import (
     Position,
     LabelPosition,
 )
+from ..types import Date, DateFormatOptions, DateRange, NumberRange, JavaDate
 from .basic import component_element
 from ..elements import Element
+from typing import Tuple
+
+
+def _get_serialized_date_props(
+    value_prop: Any, timezone_prop: str | None, has_date_format: bool
+) -> Tuple[int | str | None, str | None]:
+    """
+    Checks if the value prop should be parsed as a date, and parses it into a
+    serialized date value and also a timezone value if present in the value_prop.
+
+    Args:
+        value_prop: The value property.
+        timezone_prop: The timezone property.
+        has_date_format: Whether a date format has been defined on labeled_value.
+
+    Returns:
+        The serialized int or str date value, and a timezone identifier as a str if present in input.
+        (None, None) if the inputs do not represent a valid date value.
+
+    """
+    if isinstance(value_prop, (List, float)) or (
+        isinstance(value_prop, (int, str)) and not has_date_format
+    ):
+        # not a date value, don't convert props
+        return (None, None)
+
+    date = (
+        value_prop
+        if isinstance(value_prop, JavaDate)
+        else convert_to_java_date(value_prop)
+    )
+    date = convert_date_for_labeled_value(date)
+
+    timezone = None
+    if isinstance(date, Tuple):
+        date_value, timezone = date
+    else:
+        date_value = date
+
+    timezone_value = (
+        timezone
+        if timezone_prop is None
+        and timezone is not None
+        and timezone != "Z"
+        and timezone != "UTC"
+        else timezone_prop
+    )
+    return (date_value, timezone_value)
+
+
+def _convert_labeled_value_props(
+    props: dict[str, Any],
+) -> dict[str, Any]:
+    if "format_options" not in props or props["format_options"] is None:
+        props["format_options"] = {}
+    else:
+        props["format_options"] = props["format_options"].copy()
+
+    has_date_format = (
+        isinstance(props["format_options"], dict)
+        and "date_format" in props["format_options"]
+    )
+    # allows JS component to distinguish between dates passed as a string and other values
+    props["is_date"] = False
+    # allows JS component to distinguish between nanoseconds strings and other date strings
+    # nanoseconds need to be passed as a string to prevent loss of precision
+    props["is_nanoseconds"] = False
+
+    if isinstance(props["value"], dict):
+        # range value
+        start_date_value, start_tz = _get_serialized_date_props(
+            props["value"]["start"],
+            props["format_options"].get("timezone"),
+            has_date_format,
+        )
+        end_date_value, end_tz = _get_serialized_date_props(
+            props["value"]["end"],
+            props["format_options"].get("timezone"),
+            has_date_format,
+        )
+
+        if start_date_value and end_date_value:
+            props["value"] = {
+                "start": str(start_date_value),
+                "end": str(end_date_value),
+                # start and end can both be either a nanoseconds or date string
+                "isStartNanoseconds": isinstance(start_date_value, int),
+                "isEndNanoseconds": isinstance(end_date_value, int),
+            }
+            props["is_date"] = True
+            if start_tz or end_tz:
+                props["format_options"]["timezone"] = start_tz if start_tz else end_tz
+        return props
+
+    # single value
+    date_value, tz = _get_serialized_date_props(
+        props["value"], props["format_options"].get("timezone"), has_date_format
+    )
+    if date_value:
+        props["value"] = str(date_value)
+        props["is_date"] = True
+        if isinstance(date_value, int):
+            props["is_nanoseconds"] = True
+        if tz:
+            props["format_options"]["timezone"] = tz
+
+    return props
 
 
 def labeled_value(
-    value: str | List[str] | int | None = None,
+    value: str | List[str] | float | NumberRange | Date | DateRange | None = None,
     label: Element | None = None,
-    format_options: NumberFormatOptions | None = None,
+    format_options: NumberFormatOptions | DateFormatOptions | None = None,
+    # TODO: DH-18854 Implement list format options for ui.labeled_value
+    # format_options: NumberFormatOptions | DateFormatOptions | ListFormatOptions | None = None,
     label_position: LabelPosition | None = "top",
     label_align: Alignment | None = None,
     contextual_help: Any | None = None,
@@ -116,51 +231,8 @@ def labeled_value(
     Returns:
         The rendered labeled value element.
     """
-    return component_element(
-        "LabeledValue",
-        value=value,
-        label=label,
-        format_options=format_options,
-        label_position=label_position,
-        label_align=label_align,
-        contextual_help=contextual_help,
-        flex=flex,
-        flex_grow=flex_grow,
-        flex_shrink=flex_shrink,
-        flex_basis=flex_basis,
-        align_self=align_self,
-        justify_self=justify_self,
-        order=order,
-        grid_area=grid_area,
-        grid_row=grid_row,
-        grid_row_start=grid_row_start,
-        grid_row_end=grid_row_end,
-        grid_column=grid_column,
-        grid_column_start=grid_column_start,
-        grid_column_end=grid_column_end,
-        margin=margin,
-        margin_top=margin_top,
-        margin_bottom=margin_bottom,
-        margin_start=margin_start,
-        margin_end=margin_end,
-        margin_x=margin_x,
-        margin_y=margin_y,
-        width=width,
-        height=height,
-        min_width=min_width,
-        min_height=min_height,
-        max_width=max_width,
-        max_height=max_height,
-        position=position,
-        top=top,
-        bottom=bottom,
-        start=start,
-        end=end,
-        left=left,
-        right=right,
-        z_index=z_index,
-        is_hidden=is_hidden,
-        id=id,
-        UNSAFE_class_name=UNSAFE_class_name,
-        UNSAFE_style=UNSAFE_style,
-    )
+
+    _, props = create_props(locals())
+    props = _convert_labeled_value_props(props)
+
+    return component_element("LabeledValue", **props)
