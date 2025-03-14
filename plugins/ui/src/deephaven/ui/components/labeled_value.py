@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import Any, List
 
-from .number_field import NumberFormatOptions
 from .._internal.utils import (
     create_props,
     convert_to_java_date,
@@ -11,6 +10,8 @@ from .types import (
     Alignment,
     AlignSelf,
     CSSProperties,
+    NumberFormatOptions,
+    ListFormatOptions,
     DimensionValue,
     JustifySelf,
     LayoutFlex,
@@ -132,9 +133,11 @@ def _convert_labeled_value_props(
 def labeled_value(
     value: str | List[str] | float | NumberRange | Date | DateRange | None = None,
     label: Element | None = None,
-    format_options: NumberFormatOptions | DateFormatOptions | None = None,
-    # TODO: DH-18854 Implement list format options for ui.labeled_value
-    # format_options: NumberFormatOptions | DateFormatOptions | ListFormatOptions | None = None,
+    format_options: NumberFormatOptions
+    | DateFormatOptions
+    | ListFormatOptions
+    | None = None,
+    timezone: str | None = None,
     label_position: LabelPosition | None = "top",
     label_align: Alignment | None = None,
     contextual_help: Any | None = None,
