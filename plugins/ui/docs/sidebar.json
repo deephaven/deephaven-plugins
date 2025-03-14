@@ -2,12 +2,6 @@
   "config": {
     "name": "deephaven.ui Docs"
   },
-  "nav": [
-    {
-      "label": "Main",
-      "sidebar": "main"
-    }
-  ],
   "sidebars": {
     "main": [
       {
@@ -105,7 +99,7 @@
           },
           {
             "label": "Plotting",
-            "path": "add-interactivity/plot-with-components.md"
+            "path": "add-interactivity/plot-with-deephaven-ui.md"
           }
         ]
       },
@@ -232,10 +226,6 @@
           {
             "label": "form",
             "path": "components/form.md"
-          },
-          {
-            "label": "footer",
-            "path": "components/footer.md"
           },
           {
             "label": "fragment",

@@ -54,7 +54,7 @@ ui_iris = ui.table(
 
 ### Charts
 
-Charts from Deephaven Plotly Express (`dx`) have no `deephaven.ui` specific wrapping and are added directly. Create a [`dx.scatter`](../../plotly-express/main/scatter.md) chart that compares `SepalLength` and `SepalWidth` by `Species`.
+Charts from Deephaven Plotly Express (`dx`) have no `deephaven.ui` specific wrapping and are added directly. Create a [`dx.scatter`](/core/plotly/docs/scatter) chart that compares `SepalLength` and `SepalWidth` by `Species`.
 
 ```py
 scatter_by_species = dx.scatter(iris, x = "SepalLength", y = "SepalWidth", by="Species")
@@ -94,7 +94,7 @@ sepal_flex_column = ui.flex(sepal_text, sepal_flex, direction="column")
 ### Tabs
 
 The [`ui.tabs`](components/tabs.md) component enables tabs within a panel. Create histograms of `SepalLength` to display in tabs.  
-Histograms are useful to display comparisons of data distributions, so create [`dx.histogram`](../../plotly-express/main/histogram.md) charts of the columns of interest, `SepalLength` and `SepalWidth`, by `Species`.  
+Histograms are useful to display comparisons of data distributions, so create [`dx.histogram`](/core/plotly/docs/histogram) charts of the columns of interest, `SepalLength` and `SepalWidth`, by `Species`.  
 Create `ui.tab` elements for `sepal_flex`, `sepal_length_hist`, and `sepal_width_hist`, then pass them to `ui.tabs` to switch between different views.  
 
 ```py
@@ -251,7 +251,7 @@ iris_dashboard_stack = ui.dashboard(iris_agg_stack)
 ## Interactivity
 
 So far, you’ve worked with `deephaven.ui` components that don’t interact with each other. Now, you’ll create your own component with interactivity and embed it into your dashboard.  
-Since this walkthrough investigates `SepalLength` and `SepalWidth`, this section shows you how to create a [`dx.densityheatmap`](../../plotly-express/main/density_heatmap.md) chart that shows the density of `SepalLength` and `SepalWidth`, with a `Species` filter.
+Since this walkthrough investigates `SepalLength` and `SepalWidth`, this section shows you how to create a [`dx.densityheatmap`](/core/plotly/docs/density_heatmap) chart that shows the density of `SepalLength` and `SepalWidth`, with a `Species` filter.
 
 ### `ui.component`
 
@@ -797,9 +797,9 @@ This wraps up the `deephaven.ui` dashboard crash course. In this course, you lea
 - [`ui.tabs`](components/tabs.md)
 - [`ui.markdown`](components/markdown.md)
 - [`ui.dashboard`](components/dashboard.md)
-- [`ui.row`](components/row.md)
-- [`ui.column`](components/column.md)
-- [`ui.stack`](components/stack.md)
+- [`ui.row`](components/dashboard.md#row-api-reference)
+- [`ui.column`](components/dashboard.md#column-api-reference)
+- [`ui.stack`](components/dashboard.md#stack-api-reference)
 - [`ui.component`](describing/your_first_component.md)
 - [`ui.picker`](components/picker.md)
 - [`ui.use_state`](hooks/use_state.md)
