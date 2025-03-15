@@ -149,3 +149,27 @@ def toggle_table_component():
 
 
 toggle_table = toggle_table_component()
+
+aggs = [
+    ui.TableAgg("count", cols=["Sym", "Exchange"], ignore_cols="Timestamp"),
+    ui.TableAgg("MAX", ignore_cols="Timestamp"),
+    ui.TableAgg("Min", cols="Random"),
+    ui.TableAgg("FiRsT", ignore_cols=["Sym", "Exchange"]),
+    ui.TableAgg("Last"),
+]
+
+t_bottom_agg = ui.table(
+    _stocks,
+    aggregations=aggs,
+)
+
+t_top_agg = ui.table(
+    _stocks,
+    aggregations=aggs,
+    aggregations_position="top",
+)
+
+t_single_agg = ui.table(
+    _stocks,
+    aggregations=ui.TableAgg("sum"),
+)

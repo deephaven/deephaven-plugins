@@ -168,6 +168,36 @@ t = ui.table(
 )
 ```
 
+## Aggregations
+
+You can add aggregation rows to the table using `ui.TableAgg` with the `aggregations` prop. These will be shown as floating rows at the top or bottom of the table and account for any user-applied filters. The `aggregations_position` prop determines if aggregations are shown at the top or bottom of the table and defaults to the bottom. The full list of aggregations can be found in the "Aggregate Columns" section in the table sidebar menu and in our [JavaScript API docs](/core/client-api/javascript/classes/dh.AggregationOperation.html).
+
+Aggregations will be applied to all columns that can use the chosen aggregation unless `cols` or `ignore_cols` are provided. If `cols` is provided, only the specified columns will be aggregated. If `ignore_cols` is provided, all columns which can be aggregated except those specified will be aggregated.
+
+The following example show aggregations of the first row for each column, the last row for the `Timestamp` column, and the sum of all columns which can be summed except `Index` and `Random`. One table shows the aggregations at the bottom, and the other shows the aggregations at the top.
+
+```py
+from deephaven import ui
+import deephaven.plot.express as dx
+
+aggs = [
+    ui.TableAgg(agg="first"),
+    ui.TableAgg(agg="last", cols="Timestamp"),
+    ui.TableAgg(agg="sum", ignore_cols=["Index", "Random"])
+]
+
+t_bottom = ui.table(
+    dx.data.stocks(),
+    aggregations=aggs
+)
+
+t_top = ui.table(
+    dx.data.stocks(),
+    aggregations=aggs,
+    aggregations_position="top"
+)
+```
+
 ## Events
 
 You can listen for different user events on a `ui.table`. There is both a `press` and `double_press` event for `row`, `cell`, and `column`. These events typically correspond to a click or double click on the table. The event payloads include table data related to the event. For `row` and `column` events, the corresponding data within the viewport will be sent to the event handler. The viewport is typically the visible area &plusmn; a window equal to the visible area (e.g., if rows 5-10 are visible, rows 0-15 will be in the viewport).
@@ -437,6 +467,12 @@ t = ui.table(
 
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.table
+```
+
+### TableAgg
+
+```{eval-rst}
+.. dhautofunction:: deephaven.ui.TableAgg
 ```
 
 ### TableFormat
