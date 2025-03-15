@@ -120,7 +120,11 @@ export function getAggregationOperation(
   );
 
   if (operation == null) {
-    throw new Error(`Invalid aggregation operation: ${agg}`);
+    throw new Error(
+      `Invalid aggregation operation: ${agg}. Valid operations are: ${Object.values(
+        AggregationOperation
+      ).join(', ')}`
+    );
   }
 
   return operation;

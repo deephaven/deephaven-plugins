@@ -442,17 +442,20 @@ export function UITable({
         aggregationSettings: {
           aggregations:
             aggregations != null
-              ? ensureArray(aggregations).map(agg => ({
-                  operation: getAggregationOperation(agg.agg),
-                  selected: ensureArray(agg.cols ?? agg.ignore_cols ?? []),
-                  // Both null = true (select all w/ nothing in selected)
-                  // Only ignore_cols exists = true
-                  // Both exist = false (cols takes priority over ignore_cols)
-                  // Only cols exists = false
-                  invert:
-                    (agg.cols == null && agg.ignore_cols == null) ||
-                    (agg.cols == null && agg.ignore_cols != null),
-                }))
+              ? ensureArray(aggregations).map(agg => {
+                  if (agg.cols != null && agg.ignore_cols != null) {
+                    throw new Error(
+                      'Cannot specify both cols and ignore_cols in a UI table aggregation'
+                    );
+                  }
+                  return {
+                    operation: getAggregationOperation(agg.agg),
+                    selected: ensureArray(agg.cols ?? agg.ignore_cols ?? []),
+                    // We're either ignoring or selecting all columns
+                    // Error thrown abaove if both cols and ignore_cols are set
+                    invert: agg.cols == null,
+                  };
+                })
               : [],
           showOnTop: aggregationsPosition === 'top',
         },

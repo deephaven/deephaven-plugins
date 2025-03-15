@@ -19,6 +19,23 @@ from .._internal import dict_to_react_props, RenderContext
 
 logger = logging.getLogger(__name__)
 
+AggTypes = Literal[
+    "AbsSum",
+    "Avg",
+    "Count",
+    "CountDistinct",
+    "Distinct",
+    "First",
+    "Last",
+    "Max",
+    "Min",
+    "Std",
+    "Sum",
+    "Unique",
+    "Unique",
+    "Var",
+]
+
 
 @dataclass
 class TableAgg:
@@ -29,9 +46,11 @@ class TableAgg:
         agg: The name of the aggregation to apply.
         cols: The columns to aggregate. If None, the aggregation will apply to all applicable columns unless ignore_cols is specified.
         ignore_cols: The columns to ignore when aggregating. If cols is also specified, ignore_cols will not apply.
+    Returns:
+        The TableAgg configuration.
     """
 
-    agg: str
+    agg: AggTypes
     cols: ColumnName | list[ColumnName] | None = None
     ignore_cols: ColumnName | list[ColumnName] | None = None
 
