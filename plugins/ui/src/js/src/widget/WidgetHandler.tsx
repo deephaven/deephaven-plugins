@@ -20,7 +20,7 @@ import { WidgetDescriptor } from '@deephaven/dashboard';
 import { useWidget } from '@deephaven/jsapi-bootstrap';
 import type { dh } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
-import { EMPTY_FUNCTION, assertNotNull } from '@deephaven/utils';
+import { EMPTY_FUNCTION } from '@deephaven/utils';
 
 import {
   CALLABLE_KEY,
@@ -200,11 +200,9 @@ function WidgetHandler({
      * @returns The rendered document
      */
     (doc: object | undefined) => {
-      if (document === undefined) {
+      if (document === undefined || jsonClient == null) {
         return renderEmptyDocument();
       }
-
-      assertNotNull(jsonClient);
 
       // Keep track of exported objects and callables that are no longer in use after this render.
       // We close those objects that are no longer referenced, as they will never be referenced again.
