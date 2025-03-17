@@ -47,7 +47,6 @@ _RANGE_DATE_PROPS = set()
 _LIST_DATE_PROPS = {"unavailable_values"}
 _CALLABLE_DATE_PROPS = {"on_change"}
 _GRANULARITY_KEY = "granularity"
-_PLACEHOLDER_KEY = "placeholder_value"
 
 # The priority of the date props to determine the format of the date passed to the callable date props
 _DATE_PROPS_PRIORITY = ["value", "default_value", "placeholder_value"]
@@ -276,7 +275,7 @@ def date_picker(
     """
     _, props = create_props(locals())
 
-    props[_PLACEHOLDER_KEY] = get_placeholder_value(placeholder_value, granularity)
+    props["placeholder_value"] = get_placeholder_value(placeholder_value, granularity)
     _convert_date_picker_props(props)
 
     # props["unavailable_values"] = use_memo(
