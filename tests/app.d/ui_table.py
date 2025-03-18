@@ -151,7 +151,7 @@ def toggle_table_component():
 toggle_table = toggle_table_component()
 
 aggs = [
-    ui.TableAgg("count", cols=["Sym", "Exchange"], ignore_cols="Timestamp"),
+    ui.TableAgg("count", cols=["Sym", "Exchange"]),
     ui.TableAgg("MAX", ignore_cols="Timestamp"),
     ui.TableAgg("Min", cols="Random"),
     ui.TableAgg("FiRsT", ignore_cols=["Sym", "Exchange"]),
