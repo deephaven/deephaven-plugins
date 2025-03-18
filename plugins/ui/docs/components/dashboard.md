@@ -42,7 +42,7 @@ Note: Nesting rows within rows or columns within columns will sub-divide the row
 
 ### Bottom-Level
 
-Stacks and panels are considered the "bottom" of the layout tree. Once added, the layout in that section is considered complete. You can't further nest stacks within panels. For layouts within a panel, see [`tabs`](./tabs.md) abd [`flex`](./flex.md).
+Stacks and panels are considered the "bottom" of the layout tree. Once added, the layout in that section is considered complete. You can't further nest stacks within panels. For layouts within a panel, see [`tabs`](./tabs.md) and [`flex`](./flex.md).
 
 ## Automatic Wrapping
 
