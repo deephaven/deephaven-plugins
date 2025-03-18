@@ -45,7 +45,7 @@ class TableAgg:
     Args:
         agg: The name of the aggregation to apply.
         cols: The columns to aggregate. If None, the aggregation will apply to all applicable columns unless ignore_cols is specified.
-        ignore_cols: The columns to ignore when aggregating. If cols is also specified, ignore_cols will not apply.
+        ignore_cols: The columns to ignore when aggregating. Can only be used if cols is not specified.
     Returns:
         The TableAgg configuration.
     """

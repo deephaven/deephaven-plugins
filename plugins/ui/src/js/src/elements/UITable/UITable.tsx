@@ -451,8 +451,9 @@ export function UITable({
                   return {
                     operation: getAggregationOperation(agg.agg),
                     selected: ensureArray(agg.cols ?? agg.ignore_cols ?? []),
-                    // We're either ignoring or selecting all columns
-                    // Error thrown abaove if both cols and ignore_cols are set
+                    // If agg.cols is set, we don't want to invert
+                    // If it is not set, then the only other options are ignore_cols or neither
+                    // In both cases, we want to invert since we are either ignoring, or selecting all as [] inverted
                     invert: agg.cols == null,
                   };
                 })
