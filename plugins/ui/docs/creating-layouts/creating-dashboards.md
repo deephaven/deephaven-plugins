@@ -2,15 +2,15 @@
 
 When creating a workflow in `deephaven.ui`, components are laid out in a [`panel`](../components/panel.md) and those `panels` are then laid out in a [`dashboard`](../components/dashboard.md).
 
-The [`dashboard`](../components/dashboard.md) is the top level component that allows you to create a page layout containing a collection of components. The user can move and resize panels within the dashboard in [`rows`](../components/dashboard.md#row-api-reference), [`columns`](../components/dashboard.md#column-api-reference), and [`stacks`](../components/dashboard.md#stack-api-reference).
+The [`dashboard`](../components/dashboard.md) is the top-level component that allows you to create a page layout containing a collection of components. The user can move and resize panels within the dashboard in [`rows`](../components/dashboard.md#row-api-reference), [`columns`](../components/dashboard.md#column-api-reference), and [`stacks`](../components/dashboard.md#stack-api-reference).
 
-In the previous section, we went over the important rules of `dashboards` and the basics of how to lay out `panels` in a `dashboard` with [`ui.row`](../components/dashboard.md#row-api-reference), [`ui.column`](../components/dashboard.md#column-api-reference), and [`ui.stack`](../components/dashboard.md#stack-api-reference). In this section we will cover more advanced topics.
+In the previous section, we went over the important rules of `dashboards` and the basics of how to lay out `panels` in a `dashboard` with [`ui.row`](../components/dashboard.md#row-api-reference), [`ui.column`](../components/dashboard.md#column-api-reference), and [`ui.stack`](../components/dashboard.md#stack-api-reference). This section covers more advanced topics.
 
 ## Layout Hierarchy
 
 ### Top-Level
 
-Your dashboard must start with a row or column, which is the "top" of the layout tree. Columns should go inside rows and rows should go inside columns
+Your dashboard must start with a row or column, which is the "top" of the layout tree. Columns should go inside rows, and rows should go inside columns.
 
 Note: Nesting rows within rows or columns within columns will sub-divide the row or column.
 
@@ -26,15 +26,15 @@ End to end example: `dashboard([t1, t2])` would become `dashboard(column(stack(p
 
 Automatic wrapping is applied by the following rules:
 
-1. Dashboard: wrap in row/column if no single node is the default (e.g., `[t1, t2]` as the child to the dashboard would become `row(t1, t2)`).
+1. Dashboard: wrap in row/column if no single node is the default. For example, `[t1, t2]` as the child to the dashboard would become `row(t1, t2)`.
 2. Row/Column:
-   - If there are children that are rows/columns, wrap the non-wrapped children with the same element (e.g., `row(col(t1), t2)` becomes `row(col(t1), col(t2))`).
-   - If none of the children are wrapped by rows/columns, they are wrapped in stacks (e.g., `row(col(t1), col(t2))` from above becomes `row(col(stack(t1)), col(stack(t2)))`).
-3. Stacks: wrap non-panel children in panels (e.g., `row(col(stack(t1)), col(stack(t2)))` becomes `row(col(stack(panel(t1))), col(stack(panel(t2))))`).
+   - If there are children that are rows/columns, wrap the non-wrapped children with the same element. For example, `row(col(t1), t2)` becomes `row(col(t1), col(t2))`.
+   - If none of the children are wrapped by rows/columns, they are wrapped in stacks. For example, `row(col(t1), col(t2))` from above becomes `row(col(stack(t1)), col(stack(t2)))`.
+3. Stacks: wrap non-panel children in panels. For example, `row(col(stack(t1)), col(stack(t2)))` becomes `row(col(stack(panel(t1))), col(stack(panel(t2))))`.
 
 ## Multiple dashboards
 
-In order to create multiple dashboards, you can return more than one `dashboard` from your script.
+To create multiple dashboards, you can return more than one `dashboard` from your script.
 
 ```python
 from deephaven import ui
@@ -57,9 +57,9 @@ As `deephaven.ui` components are spread across multiple `panels` in a dashboard,
 
 In the sections on [sharing state](../managing-state/share-state-between-components.md), we learned to "lift state up" to a common parent in order to share it between multiple components. However, one of the rules of a `dashboard` is that it must be a child of the root script and not nested inside a `@ui.component`. This means that state cannot be lifted up into a component that returns a `dashboard`.
 
-How then do we lift state up to share it between `panels` in a `dashboard`? The answer is that a `ui.row` or a `ui.column` can be return from a `@ui.component` containing state for the dashboard.
+How, then, do we lift state up to share it between `panels` in a `dashboard`? A `ui.row` or a `ui.column` can be returned from a `@ui.component` containing state for the dashboard.
 
-In the example, the `create_dashboard` contains the state variables shared across multiple panels. It then returns a `ui.row` which is used as the root layout for a `dashboard`. This allows the UI elements in the `control_panel` component to apply a filter to table and plot located in separate `panels`.
+In the example, `create_dashboard` contains the state variables shared across multiple panels. It then returns a `ui.row` which is used as the root layout for a `dashboard`. This allows the UI elements in the `control_panel` component to apply a filter to table and plot located in separate `panels`.
 
 ```python
 from deephaven.time import dh_now
