@@ -134,6 +134,10 @@
         "label": "Creating Layouts",
         "items": [
           {
+            "label": "Layout Overview",
+            "path": "creating-layouts/layout-overview.md"
+          },
+          {
             "label": "Creating Dashboards",
             "path": "creating-layouts/creating-dashboards.md"
           }

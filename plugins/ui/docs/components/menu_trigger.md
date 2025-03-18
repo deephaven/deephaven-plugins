@@ -18,6 +18,8 @@ my_menu_trigger_example = ui.menu_trigger(
 )
 ```
 
+![Menu Trigger Basic Example](../_assets/menu_trigger_basic.png)
+
 ## Content
 
 The `menu_trigger` accepts exactly two children: the element which triggers the opening of the `menu` and the `menu` itself. The trigger element must be the first child passed into the `menu_trigger` and should support press events.

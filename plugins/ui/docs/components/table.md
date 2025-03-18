@@ -11,6 +11,8 @@ _t = empty_table(10).update("X=i")
 t = ui.table(_t)
 ```
 
+![Table Basic Example](../_assets/table_basic.png)
+
 ## UI recommendations
 
 1. It is not necessary to use a UI table if you do not need any of its properties. You can just use the Deephaven table directly.

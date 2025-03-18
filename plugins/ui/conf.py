@@ -23,6 +23,7 @@ extensions = [
     "myst_parser",
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
+    "deephaven_markdown_translator",
     "sphinx_markdown_builder",
     "sphinx_autodoc_typehints",
     "deephaven_autodoc",
