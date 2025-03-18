@@ -111,9 +111,7 @@ export function isUITable(obj: unknown): obj is UITableNode {
  * @param agg The name of the aggregation operation
  * @returns The case-sensitive aggregation operation enum value
  */
-export function getAggregationOperation(
-  agg: string
-): AggregationOperation | undefined {
+export function getAggregationOperation(agg: string): AggregationOperation {
   const lowerAgg = agg.toLowerCase().replace(/_/g, '');
   const operation = Object.values(AggregationOperation).find(
     op => op.toLowerCase() === lowerAgg
