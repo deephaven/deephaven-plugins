@@ -6,7 +6,7 @@ import { AgGridWidget } from './AgGridWidget';
 export const AgGridPlugin: WidgetPlugin<Widget> = {
   name: '@deephaven/js-plugin-ag-grid',
   type: PluginType.WIDGET_PLUGIN,
-  supportedTypes: 'deephaven.aggrid.AgGrid',
+  supportedTypes: 'deephaven.ag_grid.AgGrid',
   component: AgGridWidget,
   icon: vsTable,
 };

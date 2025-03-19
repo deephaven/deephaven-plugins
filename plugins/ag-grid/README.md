@@ -1,6 +1,6 @@
-# Deephaven Plugin for Ag-Grid
+# Deephaven Plugin for AG Grid
 
-Display Deephaven tables using Ag-Grid.
+Display Deephaven tables using [AG Grid](https://www.ag-grid.com/).
 
 ## Build
 
@@ -37,7 +37,7 @@ Once you have the plugin installed and the server started, you can wrap a Deepha
 ```python
 from deephaven import new_table
 from deephaven.column import string_col, double_col
-from deephaven.aggrid import AgGrid
+from deephaven.ag_grid import AgGrid
 
 _result = new_table(
     [

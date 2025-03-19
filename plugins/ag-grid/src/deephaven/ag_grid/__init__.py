@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import json
 from typing import Any
 
 from deephaven.plugin.object_type import BidirectionalObjectType, MessageStream
 from .AgGrid import AgGrid
 from .AgGridMessageStream import AgGridMessageStream
 
-NAME = "deephaven.aggrid.AgGrid"
+NAME = "deephaven.ag_grid.AgGrid"
 
 
 class DeephavenAgGridType(BidirectionalObjectType):
@@ -39,7 +38,7 @@ class DeephavenAgGridType(BidirectionalObjectType):
         return isinstance(obj, AgGrid)
 
     def create_client_connection(
-        self, obj: AgGrid, connection: MessageStream
+        self, obj: Any, connection: MessageStream
     ) -> MessageStream:
         """
         Create a client connection for the DeephavenAgGrid.
