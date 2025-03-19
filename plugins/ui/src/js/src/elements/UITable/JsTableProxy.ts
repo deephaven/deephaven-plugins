@@ -80,7 +80,7 @@ class JsTableProxy implements dh.Table {
       hiddenColumns,
       columnGroups,
       areSavedLayoutsAllowed: false,
-    };
+    } as dh.LayoutHints;
 
     // eslint-disable-next-line no-constructor-return
     return new Proxy(this, {
