@@ -22,12 +22,12 @@ class ListFormatOptions(TypedDict):
 
     type: NotRequired[Literal["conjunction", "disjunction", "unit"]]
     """
-    The formatting style to use. 
+    The type of grouping to use. 
     Possible values are "conjunction" for "and"-based grouping of list items, "disjunction" for "or"-based grouping, and "unit" for grouping the list items as a compound unit (neither conjunction or disjunction).
     """
 
     style: NotRequired[Literal["long", "short", "narrow"]]
     """
-    The formatting style to use. 
+    The grouping style to use. 
     Possible values are "long" for a typical list, or "short" to reduce the length of the output, or "narrow" to further abbreviate the output.
     """
