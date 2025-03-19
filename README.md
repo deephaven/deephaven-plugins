@@ -70,19 +70,24 @@ We use [Playwright](https://playwright.dev/) for end-to-end tests. We test again
 
 You should be able to pass arguments to these commands as if you were running Playwright via CLI directly. For example, to test only `matplotlib.spec.ts` you could run `npm run e2e:docker -- ./tests/matplotlib.spec.ts`, or to test only `matplotlib.spec.ts` in Firefox, you could run `npm run e2e:docker -- --project firefox ./tests/matplotlib.spec.ts`. See [Playwright CLI](https://playwright.dev/docs/test-cli) for more details.
 
-It is highly recommended to use `npm run e2e:docker` (instead of `npm run e2e`) as CI also uses the same environment. You can also use `npm run e2e:update-snapshots` to regenerate snapshots in said environment. Run Playwright in [UI Mode](https://playwright.dev/docs/test-ui-mode) with `npm run e2e:ui` when creating new tests or debugging, as this will allow you to run each test individually, see the browser as it runs it, inspect the console, evaluate locators, etc.
+It is highly recommended to use `npm run e2e:docker` (instead of `npm run e2e`) as CI also uses the same environment. You can also use `npm run e2e:update-snapshots` to regenerate snapshots in said environment.
+
+If you want to run tests locally (which may be easier for debugging or creating new tests), run Playwright in [UI Mode](https://playwright.dev/docs/test-ui-mode) with `npm run e2e:ui`. This will allow you to run each test individually, see the browser as it runs it, inspect the console, evaluate locators, etc. **Note**: There may be a permissions issue starting up Playwright in local mode after running it in docker. If you encounter this, delete the previous `test-results` folder using `sudo rm -rf test-results`.
 
 ### Running Python tests
+
 The [venv setup](#pre-commit-hookspython-formatting) steps will also set up `tox` to run tests for the python plugins that support it.
 Note that `tox` sets up an isolated environment for running tests.  
 Be default, `tox` will run against Python 3.8, which will need to be installed on your system before running tests.
 You can run tests with the following command from the `plugins/<plugin>` directory:
+
 ```shell
 tox -e py
 ```
 
 > [!IMPORTANT]
 > Linux, and possibly other setups such as MacOS depending on method, may require additional packages to be installed to run Python 3.8.
+>
 > ```shell
 > sudo apt install python3.8 python3.8-distutils libpython3.8
 > # or just full install although it will include more packages than necessary
@@ -91,11 +96,11 @@ tox -e py
 
 You can also run tests against a specific version of python by appending the version to `py`  
 This assumes that the version of Python you're targeting is installed on your system.  
-For example, to run tests against Python 3.12, run:  
+For example, to run tests against Python 3.12, run:
+
 ```shell
 tox -e py3.12
 ```
-
 
 ### Running plugin against deephaven-core
 
@@ -226,80 +231,97 @@ services:
 The `tools/plugin_builder.py` script is a utility script that makes common plugin development cases easier.
 The tool uses `click` for command line argument parsing and `watchdog` for file watching.  
 Skip the venv setup if you already have one
+
 ```shell
 python -m venv .venv
 source .venv/bin/activate
+pip install --upgrade -r requirements.txt
 pip install click watchdog
 ```
 
 The script can then be used to help set up your venv.
 This command will setup the basic dependencies for building plugins:
+
 ```shell
 python tools/plugin_builder.py --configure=min
 ```
 
 This command will setup the basic dependencies, plus optional ones for building docs and running the server:
+
 ```shell
 python tools/plugin_builder.py --configure=full
 ```
 
 The simplest way to use the script is to run it with no arguments. This will build and install all plugins:
+
 ```shell
 python tools/plugin_builder.py
 ```
 
 To target a specific plugin or plugins, pass the name or names of the plugins as arguments:
+
 ```shell
 python tools/plugin_builder.py plotly-express ui
 ```
+
 This targeting works for all commands that target the plugins directly, such as `--docs` or `--install`.
 
 To build docs, pass the `--docs` flag.  
-First install the necessary dependencies (if setup with `--configure=full` this is already done)  
+First install the necessary dependencies (if setup with `--configure=full` this is already done)
+
 ```shell
 pip install -r sphinx_ext/sphinx-requirements.txt
 ```
 
 This example builds the docs for the `ui` plugin:
+
 ```shell
 python tools/plugin_builder.py --docs ui
 ```
 
 It is necessary to install the latest version of the plugin you're building docs for before building the docs themselves.  
-Run with `--install` or `--reinstall` to install the plugin (depending on if you're installing a new version or not) 
+Run with `--install` or `--reinstall` to install the plugin (depending on if you're installing a new version or not)
 before building the docs.
+
 ```shell
 python tools/plugin_builder.py --docs --install ui
 ```
+
 After the first time install, you can drop the `--install` flag and just run the script with `--docs` unless you have plugin changes.
 
-
 To run the server, pass the `--server` flag.  
-First install `deephaven-server` if it is not already installed (if setup with `--configure=full` this is already done):  
+First install `deephaven-server` if it is not already installed (if setup with `--configure=full` this is already done):
+
 ```shell
 pip install deephaven-server
 ```
 
-This example reinstalls the `plotly-express` plugin, then starts the server:  
+This example reinstalls the `plotly-express` plugin, then starts the server:
+
 ```shell
 python tools/plugin_builder.py --reinstall --server plotly-express
 ```
+
 Reinstall will force reinstall the plugins (but only the plugins, not the dependencies), which is useful if there are changes to the plugins but without a bumped version number.
 
 To run the server with specific args, pass the `--server-arg` flag.  
 By default, the server is passed the `--no-browser` flag, which will prevent the server from opening a browser window.  
 This example will override that default and open the browser:
+
 ```shell
 python tools/plugin_builder.py --server-arg --browser
 ```
+
 Similar to other arguments, this argument can be shortened to `-sa`.  
-This example changes the port and psk and reinstalls the `ui` plugin before starting the server:  
+This example changes the port and psk and reinstalls the `ui` plugin before starting the server:
+
 ```shell
-python tools/plugin_builder.py -r -sa --port=9999 -sa --jvm-args="-Dauthentication.psk=mypsk" ui  
+python tools/plugin_builder.py -r -sa --port=9999 -sa --jvm-args="-Dauthentication.psk=mypsk" ui
 ```
 
 The js plugins can be built with the `--js` flag. This will build all js plugins or target specific ones if specified.
 This example reinstalls the `ui` plugin with js, and starts the server with shorthand flags.
+
 ```shell
 python tools/plugin_builder.py --js -r -s ui
 ```
@@ -307,11 +329,13 @@ python tools/plugin_builder.py --js -r -s ui
 Enable `watch` mode with the `--watch` flag. This will watch the project for changes and rerun the script with the same arguments.  
 Note that when using `--watch`, the script will not exit until stopped manually.
 For example, to watch the `plotly-express` plugin for changes and rebuild the docs when changes are made:
+
 ```shell
 python tools/plugin_builder.py --docs --watch plotly-express
 ```
 
 This example reinstalls the `ui` plugin with js, starts the server, and watches for changes.
+
 ```shell
 python tools/plugin_builder.py -jrsw ui
 ```
