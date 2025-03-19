@@ -48,3 +48,5 @@ _result = new_table(
 
 ag_result = AgGrid(_result)
 ```
+
+![AG Grid example](ag-grid-example.png)
