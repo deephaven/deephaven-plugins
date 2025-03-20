@@ -37,6 +37,8 @@ def explicit_grid():
 explicit_grid_example = explicit_grid()
 ```
 
+TODO image
+
 ### Implicit grid
 
 This example creates an implicit grid. It uses the `repeat` function to automatically generate five columns of equal width. The `auto_rows` prop sets the height of the rows, and the items are centered horizontally within the container. A gap is also added between the items.
@@ -64,3 +66,52 @@ def implicit_grid():
 
 implicit_grid_example = implicit_grid()
 ```
+
+TODO image
+
+## Justification
+
+The `justify_content` prop is used to align items along the inline axis of a `grid`.
+
+Options:
+
+- `stretch` (default): the grid items are stretched to fill the container along the block axis.
+- `start`: the grid items are aligned at the start of the block axis.
+- `end`: the grid items are aligned at the end of the block axis.
+- `center`: the grid items are centered along the block axis.
+- `left`: the grid items are packed toward the left edge of the container.
+- `right`: the grid items are packed toward the right edge of the container.
+- `space-between`: the grid items are evenly distributed with the first item at the start and the last item at the end.
+- `space-around`: the grid items are evenly distributed with equal space around them.
+- `space-evenly`: the grid items are evenly distributed with equal space between them.
+- `baseline`: the grid items are aligned based on their baselines.
+- `first baseline`: the grid items are aligned based on the first baseline of the container.
+- `last baseline`: the grid items are aligned based on the last baseline of the container.
+- `safe center`: the grid items are centered along the block axis, ensuring they remain within the safe area.
+- `unsafe center`: the grid items are centered along the block axis, without considering the safe area.
+
+TODO example from here https://developer.mozilla.org/en-US/docs/Web/CSS/justify-content#examples (or use example above with a pulldown of options)
+
+TODO image
+
+## Alignment
+
+The `align_items` prop aligns items along the block axis of a `grid`.
+
+Options:
+
+- `stretch` (default): the grid items are stretched to fill the container along the block axis.
+- `start`: the grid items are aligned at the start of the block axis.
+- `end`: the grid items are aligned at the end of the block axis.
+- `center`: the grid items are centered along the block axis.
+- `self-start`: the grid items are aligned at the start of their container.
+- `self-end`: the grid items are aligned at the end of their container.
+- `baseline`: the grid items are aligned based on their baselines.
+- `first baseline`: the grid items are aligned based on the first baseline of the container.
+- `last baseline`: the grid items are aligned based on the last baseline of the container.
+- `safe center`: the grid items are centered along the block axis, ensuring they remain within the safe area.
+- `unsafe center`: the grid items are centered along the block axis, without considering the safe area.
+
+TODO example from here https://developer.mozilla.org/en-US/docs/Web/CSS/align-items#examples
+
+TODO image
