@@ -66,6 +66,16 @@ jobs:
           mkdir -p docs-build/${{ inputs.package }}/${{ inputs.version }}
           cp -r plugins/${{ inputs.package }}/docs/build/markdown/* docs-build/${{ inputs.package }}/${{ inputs.version }}
 
+      - name: Validate docs
+        run: docker run -v ./docs-build:/validate -v ./validator-results:/results ghcr.io/deephaven/salmon-validator
+
+      - name: Upload validation results on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: validator-results
+          path: ./validator-results
+
       - name: Upload docs
         uses: actions/upload-artifact@v4
         with:
