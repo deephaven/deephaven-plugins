@@ -54,7 +54,7 @@ ui_iris = ui.table(
 
 ### Charts
 
-Charts from Deephaven Plotly Express (`dx`) have no `deephaven.ui` specific wrapping and are added directly. Create a [`dx.scatter`](../../plotly-express/main/scatter.md) chart that compares `SepalLength` and `SepalWidth` by `Species`.
+Charts from Deephaven Plotly Express (`dx`) have no `deephaven.ui` specific wrapping and are added directly. Create a [`dx.scatter`](/core/plotly/docs/scatter) chart that compares `SepalLength` and `SepalWidth` by `Species`.
 
 ```py
 scatter_by_species = dx.scatter(iris, x = "SepalLength", y = "SepalWidth", by="Species")
@@ -797,9 +797,9 @@ This wraps up the `deephaven.ui` dashboard crash course. In this course, you lea
 - [`ui.tabs`](components/tabs.md)
 - [`ui.markdown`](components/markdown.md)
 - [`ui.dashboard`](components/dashboard.md)
-- [`ui.row`](components/row.md)
-- [`ui.column`](components/column.md)
-- [`ui.stack`](components/stack.md)
+- [`ui.row`](components/dashboard.md#row-api-reference)
+- [`ui.column`](components/dashboard.md#column-api-reference)
+- [`ui.stack`](components/dashboard.md#stack-api-reference)
 - [`ui.component`](describing/your_first_component.md)
 - [`ui.picker`](components/picker.md)
 - [`ui.use_state`](hooks/use_state.md)
