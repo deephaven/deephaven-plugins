@@ -181,16 +181,16 @@
             "path": "components/calendar.md"
           },
           {
-            "label": "color_picker",
-            "path": "components/color_picker.md"
-          },
-          {
             "label": "checkbox",
             "path": "components/checkbox.md"
           },
           {
             "label": "checkbox_group",
             "path": "components/checkbox_group.md"
+          },
+          {
+            "label": "color_picker",
+            "path": "components/color_picker.md"
           },
           {
             "label": "combo_box",
@@ -243,6 +243,10 @@
           {
             "label": "fragment",
             "path": "components/fragment.md"
+          },
+          {
+            "label": "grid",
+            "path": "components/grid.md"
           },
           {
             "label": "heading",
