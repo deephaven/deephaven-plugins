@@ -1,17 +1,18 @@
 from __future__ import annotations
 
-from typing import Callable
+from typing import Callable, Literal
 
 from ..shared import default_callback
-from ..deephaven_figure import DeephavenFigure
+from ..deephaven_figure import DeephavenFigure, draw_indicator
 from ..types import PartitionableTableLike, Gauge, StyleDict
+from ._private_utils import process_args
 
 
 def indicator(
     table: PartitionableTableLike,
     value: str | None,
     reference: str | None = None,
-    text: str | None = None,
+    text: str | Literal[False] | None = None,
     by: str | list[str] | None = None,
     by_vars: str | tuple[str, ...] = "gauge_color",
     increasing_color: str | list[str] | None = None,
@@ -30,8 +31,10 @@ def indicator(
     suffix: str | None = None,
     increasing_text: str | None = "▲",
     decreasing_text: str | None = "▼",
+    number_format: str | None = None,
     rows: int | None = None,
-    columns: int | None = None,
+    cols: int | None = None,
+    title: str | None = None,
     unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """
@@ -58,7 +61,8 @@ def indicator(
       gauge_color: A column or list of columns used for a plot by on color.
         Only valid if gauge is not None.
         See gauge_color_map for additional behaviors.
-      text: A column that contains text annotations.
+      text: A column that contains text annotations. Set to "by" if by is specified and is one column.
+        Set to False to hide text annotations.
       increasing_color_sequence: A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
         colors are reused.
@@ -84,12 +88,16 @@ def indicator(
         is greater than the reference value.
       decreasing_text: The text to display before the delta if the number value
         is less than the reference value.
+      number_format: A string that specifies the number format for values and deltas.
+        Default is "#,##0.00" which formats numbers with commas every three digits
+        and two decimal places.
       rows: The number of rows of indicators to create.
         If None, the number of rows is determined by the number of columns.
         If both rows and columns are None, a square grid is created.
-      columns: The number of columns of indicators to create.
+      cols: The number of columns of indicators to create.
         If None, the number of columns is determined by the number of rows.
         If both rows and columns are None, a square grid is created.
+      title: The title of the chart
       unsafe_update_figure: An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is
         not returned, the plotly figure passed will be assumed to be the return
@@ -102,4 +110,6 @@ def indicator(
         A DeephavenFigure that contains the indicator chart
 
     """
-    raise NotImplementedError
+    args = locals()
+
+    return process_args(args, {"indicator"}, px_func=draw_indicator)
