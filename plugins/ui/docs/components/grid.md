@@ -90,9 +90,52 @@ Options:
 - `safe center`: the grid items are centered along the block axis, ensuring they remain within the safe area.
 - `unsafe center`: the grid items are centered along the block axis, without considering the safe area.
 
-TODO example from here https://developer.mozilla.org/en-US/docs/Web/CSS/justify-content#examples (or use example above with a pulldown of options)
+```python
+from deephaven import ui
 
-TODO image
+colors = []
+for i in range(100, 901, 100):
+    colors.append(f"gray-{i}")
+    colors.append(f"green-{i}")
+    colors.append(f"blue-{i}")
+
+
+@ui.component
+def grid_justification():
+    justify, set_justify = ui.use_state("stretch")
+    return [
+        ui.picker(
+            ui.item("stretch"),
+            ui.item("start"),
+            ui.item("end"),
+            ui.item("left"),
+            ui.item("right"),
+            ui.item("center"),
+            ui.item("space-between"),
+            ui.item("space-around"),
+            ui.item("space-evenly"),
+            ui.item("baseline"),
+            ui.item("first baseline"),
+            ui.item("last baseline"),
+            ui.item("safe center"),
+            ui.item("unsafe center"),
+            selected_key=justify,
+            on_selection_change=set_justify,
+            label="Pick an option (controlled)",
+        ),
+        ui.grid(
+            [
+                ui.view(background_color=color, height="25px", width="25px")
+                for color in colors
+            ],
+            columns=["repeat(3, 80px)"],
+            justify_content=justify,
+        ),
+    ]
+
+
+grid_justification_example = grid_justification()
+```
 
 ## Alignment
 
