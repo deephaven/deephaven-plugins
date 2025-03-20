@@ -5,6 +5,10 @@
 > [!TIP]
 > The `ui.grid` component follows the same rules as a browser CSS grid. The [CSS grid layout guide](https://css-tricks.com/snippets/css/complete-guide-grid/) from CSS-Tricks and the [Grid Garden](https://cssgridgarden.com/) game are great resources to learn more about grid.
 
+The `columns` and `rows` props define the layout of the grid. The layout can use the `area` prop to define grid areas for child components to explicitly place components. Alternatively, an implicit layout can be created using `autoColumns`, `autoRows`, and helper functions like `repeat`.
+
+Similar to [`flex`](./flex.md), a grid can justify and align items.
+
 ## Examples
 
 ### Explicit grid
