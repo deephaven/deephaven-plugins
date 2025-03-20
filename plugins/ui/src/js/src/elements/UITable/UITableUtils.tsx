@@ -1,8 +1,16 @@
 import { type StyleProps } from '@react-types/shared';
 import type { dh } from '@deephaven/jsapi-types';
-import { ColumnName, DehydratedSort } from '@deephaven/iris-grid';
-import { ELEMENT_KEY, ElementNode, isElementNode } from '../utils/ElementUtils';
-import { ELEMENT_NAME, ElementName } from '../model/ElementConstants';
+import {
+  type ColumnName,
+  type DehydratedSort,
+  AggregationOperation,
+} from '@deephaven/iris-grid';
+import {
+  ELEMENT_KEY,
+  type ElementNode,
+  isElementNode,
+} from '../utils/ElementUtils';
+import { ELEMENT_NAME, type ElementName } from '../model/ElementConstants';
 import { type ResolvableUIContextItem } from './UITableContextMenuHandler';
 
 export type CellData = {
@@ -48,6 +56,12 @@ export type FormattingRule = {
   mode?: DatabarConfig;
 };
 
+type UIAggregation = {
+  agg: string;
+  cols?: ColumnName | ColumnName[];
+  ignore_cols?: ColumnName | ColumnName[];
+};
+
 export type UITableProps = StyleProps & {
   table: dh.WidgetExportedObject;
   format_?: FormattingRule | readonly FormattingRule[];
@@ -60,6 +74,8 @@ export type UITableProps = StyleProps & {
   alwaysFetchColumns?: string | string[] | boolean;
   quickFilters?: Record<string, string>;
   sorts?: readonly DehydratedSort[];
+  aggregations?: UIAggregation | UIAggregation[];
+  aggregationsPosition?: 'top' | 'bottom';
   showSearch: boolean;
   showQuickFilters: boolean;
   showGroupingColumn: boolean;
@@ -100,4 +116,28 @@ export function isUITable(obj: unknown): obj is UITableNode {
  */
 export function ensureArray<T>(value: T | readonly T[]): readonly T[] {
   return Array.isArray(value) ? value : [value as T];
+}
+
+/**
+ * Gets the case-sensitive aggregation name for use with the JS API from a case-insensitive name.
+ * Also removes undescores when needed.
+ * E.g. "sum" -> "Sum" or "COUNT" -> "Count" or "ABS_SUM" -> "AbsSum" or "abssum" -> "AbsSum"
+ * @param agg The name of the aggregation operation
+ * @returns The case-sensitive aggregation operation enum value
+ */
+export function getAggregationOperation(agg: string): AggregationOperation {
+  const lowerAgg = agg.toLowerCase().replace(/_/g, '');
+  const operation = Object.values(AggregationOperation).find(
+    op => op.toLowerCase() === lowerAgg
+  );
+
+  if (operation == null) {
+    throw new Error(
+      `Invalid aggregation operation: ${agg}. Valid operations are: ${Object.values(
+        AggregationOperation
+      ).join(', ')}`
+    );
+  }
+
+  return operation;
 }

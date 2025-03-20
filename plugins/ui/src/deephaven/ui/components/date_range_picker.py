@@ -27,6 +27,7 @@ from .._internal.utils import (
     create_props,
     convert_date_props,
     convert_list_prop,
+    get_placeholder_value,
 )
 from ..types import Date, Granularity, DateRange, Undefined, UndefinedType
 from .basic import component_element
@@ -79,7 +80,7 @@ def _convert_date_range_picker_props(
 
 @make_component
 def date_range_picker(
-    placeholder_value: Date | None = dh_now(),
+    placeholder_value: Date | None = None,
     value: DateRange | None | UndefinedType = Undefined,
     default_value: DateRange | None | UndefinedType = Undefined,
     min_value: Date | None = None,
@@ -278,6 +279,7 @@ def date_range_picker(
     """
     _, props = create_props(locals())
 
+    props["placeholder_value"] = get_placeholder_value(placeholder_value, granularity)
     _convert_date_range_picker_props(props)
 
     return component_element(

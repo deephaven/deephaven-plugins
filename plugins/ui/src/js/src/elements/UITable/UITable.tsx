@@ -28,6 +28,7 @@ import {
   DatabarConfig,
   ensureArray,
   FormattingRule,
+  getAggregationOperation,
   UITableProps,
 } from './UITableUtils';
 import UITableMouseHandler from './UITableMouseHandler';
@@ -145,6 +146,8 @@ export function UITable({
   onRowDoublePress,
   quickFilters,
   sorts,
+  aggregations,
+  aggregationsPosition = 'bottom',
   alwaysFetchColumns: alwaysFetchColumnsProp,
   table: exportedTable,
   showSearch: showSearchBar,
@@ -413,6 +416,27 @@ export function UITable({
         density,
         settings: { ...settings, showExtraGroupColumn: showGroupingColumn },
         onContextMenu,
+        aggregationSettings: {
+          aggregations:
+            aggregations != null
+              ? ensureArray(aggregations).map(agg => {
+                  if (agg.cols != null && agg.ignore_cols != null) {
+                    throw new Error(
+                      'Cannot specify both cols and ignore_cols in a UI table aggregation'
+                    );
+                  }
+                  return {
+                    operation: getAggregationOperation(agg.agg),
+                    selected: ensureArray(agg.cols ?? agg.ignore_cols ?? []),
+                    // If agg.cols is set, we don't want to invert
+                    // If it is not set, then the only other options are ignore_cols or neither
+                    // In both cases, we want to invert since we are either ignoring, or selecting all as [] inverted
+                    invert: agg.cols == null,
+                  };
+                })
+              : [],
+          showOnTop: aggregationsPosition === 'top',
+        },
       }) satisfies Partial<IrisGridProps>,
     [
       mouseHandlers,
@@ -426,6 +450,8 @@ export function UITable({
       settings,
       showGroupingColumn,
       onContextMenu,
+      aggregations,
+      aggregationsPosition,
     ]
   );
 
