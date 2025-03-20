@@ -79,10 +79,10 @@ jobs:
         with:
           script: |
             const env = process.env;
-            const path = env.package === 'ui' ? 'core/ui/docs' : 'core/plotly/docs'
+            const path = env.package === 'ui' ? 'core/ui' : 'core/plotly'
             github.rest.issues.createComment({
               issue_number: env.version.replace('pr-', ''),
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `[${env.package} docs preview](${env.url}/${path}/${env.version}) (Available for 14 days)`
+              body: `[${env.package} docs preview](${env.url}/${path}/${env.version}/docs) (Available for 14 days)`
             });

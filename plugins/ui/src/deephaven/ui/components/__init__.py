@@ -72,7 +72,7 @@ from .switch import switch
 from .tab_list import tab_list
 from .tab_panels import tab_panels
 from .tab import tab
-from .table import table, TableDatabar, TableFormat
+from .table import table, TableAgg, TableDatabar, TableFormat
 from .tabs import tabs
 from .tag_group import tag_group
 from .text import text
@@ -158,6 +158,7 @@ __all__ = [
     "submenu_trigger",
     "switch",
     "table",
+    "TableAgg",
     "TableDatabar",
     "TableFormat",
     "tab_list",

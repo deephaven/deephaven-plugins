@@ -15,6 +15,8 @@ my_button_group_basic = ui.button_group(
 )
 ```
 
+![Button Group Basic Example](../_assets/button_group_basic.png)
+
 ## UI Recommendations
 
 Recommendations for creating button groups:
@@ -24,8 +26,7 @@ Recommendations for creating button groups:
 3. Button priority should match text alignment: for left-aligned text, the most critical button is on the left; for right- or center-aligned text, the most critical button is on the right.
 4. Icons should be used for higher-priority actions if used in the button group. If the most critical action does not have an icon, avoid using icons for the other lower-priority actions.
 
-Consider using an [`action_group`](./action_group.md) to allow the user to select from a list of actions. 
-
+Consider using an [`action_group`](./action_group.md) to allow the user to select from a list of actions.
 
 ## Content
 
@@ -47,7 +48,6 @@ my_button_group_content_space_example = ui.view(
 )
 ```
 
-
 ## Orientation
 
 Setting the `orientation` prop to "vertical" will prevent any spacing-related dynamic orientation changes.
@@ -65,7 +65,6 @@ my_button_group_orientation_example = ui.button_group(
     orientation="vertical",
 )
 ```
-
 
 ## Alignment
 
@@ -96,11 +95,9 @@ def ui_button_group_alignment_examples():
 my_button_group_alignment_examples = ui_button_group_alignment_examples()
 ```
 
-
 ## Disabled state
 
 The `is_disabled` prop disables the button group to prevent user interaction. This is useful when the button group should be visible but not available for selection.
-
 
 ```python
 from deephaven import ui
