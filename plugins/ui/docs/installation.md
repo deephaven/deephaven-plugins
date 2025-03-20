@@ -71,4 +71,4 @@ hello_world = ui.heading("Hello World!")
 ```
 
 A panel will appear that displays the "Hello world!" text:
-![Basic Hello World example.](../_assets/hello_world.png)
+![Basic Hello World example.](./_assets/hello_world.png)
