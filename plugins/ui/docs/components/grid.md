@@ -37,7 +37,7 @@ def explicit_grid():
 explicit_grid_example = explicit_grid()
 ```
 
-TODO image
+![explicit grid](../_assets/grid_explicit.png)
 
 ### Implicit grid
 
@@ -67,7 +67,7 @@ def implicit_grid():
 implicit_grid_example = implicit_grid()
 ```
 
-TODO image
+![implicit grid](../_assets/grid_implicit.png)
 
 ## Justification
 
