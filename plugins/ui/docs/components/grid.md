@@ -199,3 +199,9 @@ def grid_align():
 
 grid_align_example = grid_align()
 ```
+
+## API reference
+
+```{eval-rst}
+.. dhautofunction:: deephaven.ui.grid
+```
