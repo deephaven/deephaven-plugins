@@ -14,6 +14,8 @@ btn = ui.button(
 )
 ```
 
+![Toast Basic Example](../_assets/toast_basic.png)
+
 ## Content
 
 Toasts are triggered using the method `ui.toast`. Toasts use `variant` to specify the following styles: `neutral`, `positive`, `negative`, and `info`. Toast will default to `neutral` if `variant` is omitted.

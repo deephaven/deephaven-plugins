@@ -16,9 +16,11 @@ def ui_meter():
 my_meter = ui_meter()
 ```
 
+![Meter Basic Example](../_assets/meter_basic.png)
+
 ## Value
 
-The `value` prop controls the meter and represents the current percentage of progress. By default, the minimum and maximum values are 0 and 100 but a different scale can be used by setting the `min_value` and `max_value` props. 
+The `value` prop controls the meter and represents the current percentage of progress. By default, the minimum and maximum values are 0 and 100 but a different scale can be used by setting the `min_value` and `max_value` props.
 
 ```python
 from deephaven import ui
@@ -116,7 +118,7 @@ my_meter_size = ui_meter_size()
 
 ## Variants
 
-The `variant` prop changes the meter's visual style. It supports four options: informative, positive, critical, and warning. 
+The `variant` prop changes the meter's visual style. It supports four options: informative, positive, critical, and warning.
 
 ```python
 from deephaven import ui

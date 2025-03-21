@@ -18,6 +18,8 @@ def icons():
 my_icons = icons()
 ```
 
+![Icon Basic Example](../_assets/icon_basic.png)
+
 ## Available Icons
 
 In the example provided, you can find a showcase of all available icons. Additionally, you have the ability to search for specific icons.

@@ -2,12 +2,6 @@
   "config": {
     "name": "deephaven.ui Docs"
   },
-  "nav": [
-    {
-      "label": "Main",
-      "sidebar": "main"
-    }
-  ],
   "sidebars": {
     "main": [
       {
@@ -100,8 +94,12 @@
             "path": "add-interactivity/update-lists-in-state.md"
           },
           {
+            "label": "Update Tables in State",
+            "path": "add-interactivity/update-tables-in-state.md"
+          },
+          {
             "label": "Plotting",
-            "path": "add-interactivity/plot-with-components.md"
+            "path": "add-interactivity/plot-with-deephaven-ui.md"
           }
         ]
       },
@@ -123,6 +121,19 @@
           {
             "label": "Preserving and Resetting State",
             "path": "managing-state/preserving-and-resetting-state.md"
+          }
+        ]
+      },
+      {
+        "label": "Creating Layouts",
+        "items": [
+          {
+            "label": "Layout Overview",
+            "path": "creating-layouts/layout-overview.md"
+          },
+          {
+            "label": "Creating Dashboards",
+            "path": "creating-layouts/creating-dashboards.md"
           }
         ]
       },
@@ -228,10 +239,6 @@
           {
             "label": "form",
             "path": "components/form.md"
-          },
-          {
-            "label": "footer",
-            "path": "components/footer.md"
           },
           {
             "label": "fragment",

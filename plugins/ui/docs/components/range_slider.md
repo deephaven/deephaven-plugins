@@ -12,6 +12,8 @@ my_range_slider_basic = ui.range_slider(
 )
 ```
 
+![Range Slider Basic Example](../_assets/range_slider_basic.png)
+
 ## UI recommendations
 
 Recommendations for creating range sliders:

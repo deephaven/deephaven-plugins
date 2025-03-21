@@ -10,6 +10,8 @@ from deephaven import ui
 btn = ui.action_button("Press me", on_press=lambda: print("Button clicked"))
 ```
 
+![Action Button Basic Example](../_assets/action_button_basic.png)
+
 ## UI Recommendations
 
 Recommendations for creating clear and effective action buttons:

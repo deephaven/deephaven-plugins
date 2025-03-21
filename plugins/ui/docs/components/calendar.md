@@ -10,6 +10,8 @@ from deephaven import ui
 my_calendar_basic = ui.calendar(aria_label="Event Date")
 ```
 
+![Calendar Basic Example](../_assets/calendar_basic.png)
+
 ## Date types
 
 The calendar accepts the following date types as inputs:

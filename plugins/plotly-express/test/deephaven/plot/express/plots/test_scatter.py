@@ -740,8 +740,8 @@ class ScatterTestCase(BaseTestCase):
             {
                 "table": 0,
                 "data_columns": {
-                    "count": ["/plotly/data/2/y"],
-                    "Y": ["/plotly/data/2/x"],
+                    "Y": ["/plotly/data/2/y"],
+                    "tmpbar0": ["/plotly/data/2/x"],
                 },
             },
         ]
