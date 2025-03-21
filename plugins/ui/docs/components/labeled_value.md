@@ -84,6 +84,41 @@ my_number_range = ui.labeled_value(
 )
 ```
 
+## Lists
+
+When passing a list into a labeled value, the `format_options` prop dictates how the value is displayed.
+
+Note that this prop is compatible with the options of [Intl.ListFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/ListFormat/ListFormat).
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def labeled_value_list_formatting():
+
+    return [
+        ui.labeled_value(
+            label="Interests",
+            value=["Travel", "Hiking", "Snorkeling", "Camping"],
+            format_options={"type": "conjunction"},
+        ),
+        ui.labeled_value(
+            label="Travel Destination",
+            value=["Paris", "Tokyo", "New York", "Sydney"],
+            format_options={"type": "disjunction"},
+        ),
+        ui.labeled_value(
+            label="Clothing Sizes",
+            value=["XS", "S", "M", "L", "XL"],
+            format_options={"type": "unit", "style": "narrow"},
+        ),
+    ]
+
+
+my_labeled_value_list_formatting = labeled_value_list_formatting()
+```
+
 ## Dates and time
 
 `ui.labeled_value` accepts the following date types as inputs:

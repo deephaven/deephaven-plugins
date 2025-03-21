@@ -9,7 +9,14 @@ from deephaven.dtypes import (
 from inspect import signature
 import sys
 from functools import partial
-from deephaven.time import to_j_instant, to_j_zdt, to_j_local_date, to_j_local_time
+from deephaven.time import (
+    to_j_instant,
+    to_j_zdt,
+    to_j_local_date,
+    to_j_local_time,
+    dh_now,
+    dh_today,
+)
 
 from ..types import (
     Date,
@@ -683,6 +690,28 @@ def _date_range_converter(
         return convert_date_range(date_range, converter)
 
     return date_range_converter
+
+
+def get_placeholder_value(
+    placeholder_value: Date | None,
+    granularity: str | None,
+) -> Date:
+    """
+    Get the placeholder value for date components taking into account granularity.
+
+    Args:
+        placeholder_value: The current placeholder value, may be None.
+        granularity: The granularity of the date component.
+    Returns:
+        The placeholder value to use.
+    """
+    # The user set the placeholder value, so use that
+    if placeholder_value is not None:
+        return placeholder_value
+    # Use a local date if the granularity is day
+    if isinstance(granularity, str) and granularity.upper() == "DAY":
+        return to_j_local_date(dh_today())
+    return dh_now()
 
 
 def convert_date_props(

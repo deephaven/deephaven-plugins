@@ -399,6 +399,7 @@ function WidgetHandler({
       >();
       exportedObjectMap.current = widgetExportedObjectMap;
       exportedObjectCount.current = 0;
+      renderedCallableMap.current.clear();
 
       // Set a var to the client that we know will not be null in the closure below
       const activeClient = jsonClient;
