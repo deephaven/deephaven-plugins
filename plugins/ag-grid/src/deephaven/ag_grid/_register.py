@@ -1,24 +1,19 @@
-from . import DeephavenAgGridType
-from ._js import create_js_plugin
-
+from .AgGridType import AgGridType
 from deephaven.plugin import Registration, Callback
+from deephaven.plugin.utilities import create_js_plugin, DheSafeCallbackWrapper
+
+PACKAGE_NAMESPACE = "deephaven.ag_grid"
+JS_NAME = "_js"
 
 
 class AgGridRegistration(Registration):
-    """
-    Register the DeephavenAgGridType and a JsPlugin
-
-    """
-
     @classmethod
     def register_into(cls, callback: Callback) -> None:
-        """
-        Register the DeephavenAgGridType and a JsPlugin
 
-        Args:
-          Registration.Callback:
-            A function to call after registration
+        callback = DheSafeCallbackWrapper(callback)
 
-        """
-        callback.register(DeephavenAgGridType)
-        callback.register(create_js_plugin())
+        callback.register(AgGridType)
+
+        js_plugin = create_js_plugin(PACKAGE_NAMESPACE, JS_NAME)
+
+        callback.register(js_plugin)
