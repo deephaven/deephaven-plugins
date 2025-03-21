@@ -46,7 +46,10 @@ candlestick_plot = dx.candlestick(
 )
 ```
 
+![Candlestick Plot Basic Example](./_assets/candlestick_plot.png)
+
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.candlestick
 ```

@@ -32,7 +32,10 @@ gapminder_recent = (
 sunburst_plot = dx.sunburst(gapminder_recent, names="Continent", values="Pop", parents="World")
 ```
 
+![Sunburst Plot Basic Example](./_assets/sunburst_plot.png)
+
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.sunburst
 ```
