@@ -17,9 +17,9 @@ import {
   isIrisGridTableModelTemplate,
   UIRow,
 } from '@deephaven/iris-grid';
-import { ensureArray } from '@deephaven/utils';
 import { TableUtils } from '@deephaven/jsapi-utils';
 import { type dh as DhType } from '@deephaven/jsapi-types';
+import { ensureArray } from '@deephaven/utils';
 import { ColorGradient, DatabarConfig, FormattingRule } from './UITableUtils';
 import JsTableProxy, { UITableLayoutHints } from './JsTableProxy';
 
