@@ -65,7 +65,9 @@ it('mounts and unmounts', async () => {
 it('updates the document when event is received', async () => {
   const widget = makeWidgetDescriptor();
   const cleanup = jest.fn();
-  const mockAddEventListener = jest.fn(() => cleanup);
+  const mockAddEventListener = jest.fn(
+    (() => cleanup) as dh.Widget['addEventListener']
+  );
   const mockSendMessage = jest.fn();
   const initialData = { state: { fiz: 'baz' } };
   mockWidgetWrapper = {
@@ -94,7 +96,7 @@ it('updates the document when event is received', async () => {
   );
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const listener = (mockAddEventListener.mock.calls[0] as any)[1];
+  const listener = mockAddEventListener.mock.calls[0][1];
 
   // Send the initial document
   await act(async () => {
@@ -144,7 +146,9 @@ it('updates the document when event is received', async () => {
 it('updates the initial data only when widget has changed', async () => {
   const widget1 = makeWidgetDescriptor();
   const cleanup = jest.fn();
-  const addEventListener = jest.fn(() => cleanup);
+  const addEventListener = jest.fn(
+    (() => cleanup) as dh.Widget['addEventListener']
+  );
   const sendMessage = jest.fn();
   const onClose = jest.fn();
   const data1 = { state: { fiz: 'baz' } };
@@ -179,7 +183,7 @@ it('updates the initial data only when widget has changed', async () => {
   );
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let listener = (addEventListener.mock.calls[0] as any)[1];
+  let listener = addEventListener.mock.calls[0][1];
 
   // Send the initial document
   await act(async () => {
@@ -241,7 +245,7 @@ it('updates the initial data only when widget has changed', async () => {
   cleanup.mockClear();
 
   // eslint-disable-next-line prefer-destructuring, @typescript-eslint/no-explicit-any
-  listener = (addEventListener.mock.calls[0] as any)[1];
+  listener = addEventListener.mock.calls[0][1];
 
   expect(sendMessage).toHaveBeenCalledWith(
     JSON.stringify({
@@ -279,14 +283,16 @@ it('updates the initial data only when widget has changed', async () => {
 it('handles rendering widget error if widget is null (query disconnected)', async () => {
   const widget1 = makeWidgetDescriptor();
   const cleanup = jest.fn();
-  const addEventListener = jest.fn(() => cleanup);
+  const mockAddEventListener = jest.fn(
+    (() => cleanup) as dh.Widget['addEventListener']
+  );
   const sendMessage = jest.fn();
   const data1 = { state: { fiz: 'baz' } };
   const document1 = { foo: 'bar' };
   const patch1: Operation[] = [{ op: 'add', path: '/foo', value: 'bar' }];
   mockWidgetWrapper = {
     widget: makeWidget({
-      addEventListener,
+      addEventListener: mockAddEventListener,
       getDataAsString: jest.fn(() => ''),
       sendMessage,
     }),
@@ -299,7 +305,7 @@ it('handles rendering widget error if widget is null (query disconnected)', asyn
       initialData: data1,
     })
   );
-  expect(addEventListener).toHaveBeenCalledTimes(1);
+  expect(mockAddEventListener).toHaveBeenCalledTimes(1);
   expect(mockDocumentHandler).not.toHaveBeenCalled();
   expect(sendMessage).toHaveBeenCalledWith(
     JSON.stringify({
@@ -312,7 +318,7 @@ it('handles rendering widget error if widget is null (query disconnected)', asyn
   );
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const listener = (addEventListener.mock.calls[0] as any)[1];
+  const listener = mockAddEventListener.mock.calls[0][1];
 
   // Send the initial document
   await act(async () => {
@@ -331,7 +337,7 @@ it('handles rendering widget error if widget is null (query disconnected)', asyn
     })
   );
 
-  addEventListener.mockClear();
+  mockAddEventListener.mockClear();
   mockDocumentHandler.mockClear();
   sendMessage.mockClear();
 
