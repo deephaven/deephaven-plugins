@@ -95,7 +95,7 @@ from deephaven import ui
 
 colors = []
 for i in range(100, 901, 100):
-    colors.append(f"gray-{i}")
+    colors.append(f"red-{i}")
     colors.append(f"green-{i}")
     colors.append(f"blue-{i}")
 
@@ -155,6 +155,47 @@ Options:
 - `safe center`: the grid items are centered along the block axis, ensuring they remain within the safe area.
 - `unsafe center`: the grid items are centered along the block axis, without considering the safe area.
 
-TODO example from here https://developer.mozilla.org/en-US/docs/Web/CSS/align-items#examples
+```python
+from deephaven import ui
 
-TODO image
+colors = []
+for i in range(100, 901, 100):
+    colors.append(f"red-{i}")
+    colors.append(f"green-{i}")
+    colors.append(f"blue-{i}")
+
+
+@ui.component
+def grid_align():
+    align, set_align = ui.use_state("stretch")
+    return [
+        ui.picker(
+            ui.item("stretch"),
+            ui.item("start"),
+            ui.item("end"),
+            ui.item("center"),
+            ui.item("self-start"),
+            ui.item("self-end"),
+            ui.item("baseline"),
+            ui.item("first baseline"),
+            ui.item("last baseline"),
+            ui.item("safe center"),
+            ui.item("unsafe center"),
+            selected_key=align,
+            on_selection_change=set_align,
+            label="Pick an option (controlled)",
+        ),
+        ui.grid(
+            [
+                ui.view(background_color=color, height="25px", width="25px")
+                for color in colors
+            ],
+            columns=["repeat(3, 80px)"],
+            rows=["repeat(9, 80px)"],
+            align_items=align,
+        ),
+    ]
+
+
+grid_align_example = grid_align()
+```
