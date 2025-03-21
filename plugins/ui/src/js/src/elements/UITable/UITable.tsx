@@ -32,6 +32,7 @@ import {
 } from './UITableUtils';
 import UITableMouseHandler from './UITableMouseHandler';
 import UITableContextMenuHandler, {
+  ResolvableUIContextItem,
   wrapContextActions,
 } from './UITableContextMenuHandler';
 import UITableModel, { makeUiTableModel } from './UITableModel';
@@ -160,10 +161,10 @@ export function UITable({
   columnGroups,
   columnDisplayNames = EMPTY_OBJECT,
   density,
-  contextMenu = EMPTY_ARRAY,
+  contextMenu = EMPTY_ARRAY as unknown as ResolvableUIContextItem[],
   contextHeaderMenu,
   // TODO: #981 move databars to format and rewire for databar support
-  databars = EMPTY_ARRAY,
+  databars = EMPTY_ARRAY as unknown as DatabarConfig[],
   ...userStyleProps
 }: UITableProps): JSX.Element | null {
   const [throwError] = useThrowError();
