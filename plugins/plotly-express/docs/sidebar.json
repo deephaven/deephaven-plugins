@@ -2,12 +2,6 @@
   "config": {
     "name": "Deephaven Plotly Express Docs"
   },
-  "nav": [
-    {
-      "label": "Main",
-      "sidebar": "main"
-    }
-  ],
   "sidebars": {
     "main": [
       {
