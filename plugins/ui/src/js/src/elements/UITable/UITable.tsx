@@ -23,10 +23,9 @@ import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { getSettings, RootState } from '@deephaven/redux';
 import { GridMouseHandler } from '@deephaven/grid';
-import { EMPTY_ARRAY } from '@deephaven/utils';
+import { EMPTY_ARRAY, ensureArray } from '@deephaven/utils';
 import {
   DatabarConfig,
-  ensureArray,
   FormattingRule,
   getAggregationOperation,
   UITableProps,
@@ -77,10 +76,10 @@ function useUITableModel({
   columnDisplayNames,
 }: {
   dh: typeof DhType;
-  databars: readonly DatabarConfig[];
+  databars: DatabarConfig[];
   exportedTable: DhType.WidgetExportedObject;
   layoutHints: UITableLayoutHints;
-  format: readonly FormattingRule[];
+  format: FormattingRule[];
   columnDisplayNames: Record<string, string>;
 }): UITableModel | undefined {
   const [model, setModel] = useState<UITableModel>();

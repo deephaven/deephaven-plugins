@@ -11,7 +11,8 @@ import {
 } from '@deephaven/iris-grid';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { type ColumnName } from '@deephaven/jsapi-utils';
-import { ensureArray, RowDataMap, type UITableProps } from './UITableUtils';
+import { ensureArray } from '@deephaven/utils';
+import { RowDataMap, type UITableProps } from './UITableUtils';
 import { getIcon } from '../utils/IconElementUtils';
 import { ELEMENT_PREFIX, ElementPrefix } from '../model/ElementConstants';
 import { getRowDataMap } from './UITableMouseHandler';
@@ -85,7 +86,7 @@ function wrapUIContextItems(
  * @returns Context items with the UI actions wrapped so they receive the cell info
  */
 export function wrapContextActions(
-  items: ResolvableUIContextItem | readonly ResolvableUIContextItem[],
+  items: ResolvableUIContextItem | ResolvableUIContextItem[],
   data: IrisGridContextMenuData,
   alwaysFetchColumns: ColumnName[] | RowDataMap
 ): ResolvableContextAction[] {

@@ -19,12 +19,8 @@ import {
 } from '@deephaven/iris-grid';
 import { TableUtils } from '@deephaven/jsapi-utils';
 import { type dh as DhType } from '@deephaven/jsapi-types';
-import {
-  ColorGradient,
-  DatabarConfig,
-  ensureArray,
-  FormattingRule,
-} from './UITableUtils';
+import { ensureArray } from '@deephaven/utils';
+import { ColorGradient, DatabarConfig, FormattingRule } from './UITableUtils';
 import JsTableProxy, { UITableLayoutHints } from './JsTableProxy';
 
 /**
@@ -40,9 +36,9 @@ import JsTableProxy, { UITableLayoutHints } from './JsTableProxy';
 export async function makeUiTableModel(
   dh: typeof DhType,
   baseTableProp: DhType.Table,
-  databars: readonly DatabarConfig[],
+  databars: DatabarConfig[],
   layoutHints: UITableLayoutHints,
-  format: readonly FormattingRule[],
+  format: FormattingRule[],
   displayNameMap: Record<string, string>
 ): Promise<UITableModel> {
   const baseTable = await baseTableProp.copy();
@@ -174,7 +170,7 @@ class UITableModel extends IrisGridModel {
 
   private databars: Map<ColumnName, DatabarConfig>;
 
-  private format: readonly FormattingRule[];
+  private format: FormattingRule[];
 
   constructor({
     dh,
@@ -185,8 +181,8 @@ class UITableModel extends IrisGridModel {
   }: {
     dh: typeof DhType;
     model: IrisGridModel;
-    databars: readonly DatabarConfig[];
-    format: readonly FormattingRule[];
+    databars: DatabarConfig[];
+    format: FormattingRule[];
     displayNameMap: Record<string, string>;
   }) {
     super(dh);
@@ -423,7 +419,7 @@ class UITableModel extends IrisGridModel {
   }
 
   formatColumnMatch = memoizeClear(
-    (columns: readonly string[], column: string): boolean =>
+    (columns: string[], column: string): boolean =>
       columns.some(c => c === column),
     { primitive: true, max: 10000 }
   );

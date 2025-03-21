@@ -1,11 +1,11 @@
 import type { dh } from '@deephaven/jsapi-types';
 
 export interface UITableLayoutHints {
-  frontColumns?: readonly string[];
-  frozenColumns?: readonly string[];
-  backColumns?: readonly string[];
-  hiddenColumns?: readonly string[];
-  columnGroups?: readonly dh.ColumnGroup[];
+  frontColumns?: string[];
+  frozenColumns?: string[];
+  backColumns?: string[];
+  hiddenColumns?: string[];
+  columnGroups?: dh.ColumnGroup[];
 }
 
 // This tricks TS into believing the class extends dh.Table
@@ -80,7 +80,7 @@ class JsTableProxy implements dh.Table {
       hiddenColumns,
       columnGroups,
       areSavedLayoutsAllowed: false,
-    } as dh.LayoutHints;
+    };
 
     // eslint-disable-next-line no-constructor-return
     return new Proxy(this, {
