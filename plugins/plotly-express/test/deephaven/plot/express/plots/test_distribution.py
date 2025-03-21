@@ -411,7 +411,6 @@ class DistributionTestCase(BaseTestCase):
             "bargap": 0,
             "barmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "showlegend": False,
             "xaxis": {
                 "anchor": "y",
@@ -477,7 +476,6 @@ class DistributionTestCase(BaseTestCase):
             "bargap": 0,
             "barmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "showlegend": False,
             "xaxis": {
                 "anchor": "y",
@@ -557,7 +555,6 @@ class DistributionTestCase(BaseTestCase):
             "bargap": 0,
             "barmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -643,7 +640,6 @@ class DistributionTestCase(BaseTestCase):
             "bargap": 0,
             "barmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -729,7 +725,6 @@ class DistributionTestCase(BaseTestCase):
             "bargap": 0,
             "barmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -815,7 +810,6 @@ class DistributionTestCase(BaseTestCase):
             "bargap": 0,
             "barmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
