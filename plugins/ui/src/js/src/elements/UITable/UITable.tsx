@@ -137,7 +137,7 @@ function useUITableModel({
 }
 
 export function UITable({
-  format_: formatProp = EMPTY_ARRAY,
+  format_: formatProp = EMPTY_ARRAY as unknown as FormattingRule[],
   onCellPress,
   onCellDoublePress,
   onColumnPress,
