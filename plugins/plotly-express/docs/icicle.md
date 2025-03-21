@@ -32,7 +32,10 @@ gapminder_recent = (
 icicle_plot = dx.icicle(gapminder_recent, names="Continent", values="Pop", parents="World")
 ```
 
+![Icicle Plot Basic Example](./_assets/icicle_plot.png)
+
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.icicle
 ```
