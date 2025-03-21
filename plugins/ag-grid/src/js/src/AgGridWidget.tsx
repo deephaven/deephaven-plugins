@@ -14,7 +14,7 @@ const log = Log.module('@deephaven/js-plugin-ag-grid/AgGridView');
  */
 export function AgGridWidget(
   props: WidgetComponentProps<Widget>
-): JSX.Element | null {
+): JSX.Element {
   const dh = useApi();
   const { fetch } = props;
   const [table, setTable] = useState<Table>();
