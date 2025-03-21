@@ -18,6 +18,7 @@ import {
   removeColorsFromData,
   setWebGlTraceType,
   hasUnreplaceableWebGlTraces,
+  IS_WEBGL_SUPPORTED,
 } from './PlotlyExpressChartUtils';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
@@ -119,6 +120,8 @@ export class PlotlyExpressChartModel extends ChartModel {
   hasInitialLoadCompleted = false;
 
   isDownsamplingDisabled = false;
+
+  isWebGlSupported = IS_WEBGL_SUPPORTED;
 
   /**
    * Set of traces that are originally WebGL and can be replaced with non-WebGL traces.
@@ -236,7 +239,11 @@ export class PlotlyExpressChartModel extends ChartModel {
    * @param prevWebgl The previous WebGL value
    */
   handleWebGlAllowed(webgl = true, prevWebgl = true): void {
-    setWebGlTraceType(this.plotlyData, webgl, this.webGlTraceIndices);
+    setWebGlTraceType(
+      this.plotlyData,
+      webgl && this.isWebGlSupported,
+      this.webGlTraceIndices
+    );
 
     const needsBlocker = hasUnreplaceableWebGlTraces(this.plotlyData);
 
