@@ -73,7 +73,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v4
         with:
-          name: validator-results
+          name: validator-results-${{ inputs.package }}
           path: ./validator-results
 
       - name: Upload docs
