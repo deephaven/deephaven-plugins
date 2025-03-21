@@ -22,7 +22,7 @@ python -m build --wheel
 The wheel is stored in `dist/`.
 
 To test within [deephaven-core](https://github.com/deephaven/deephaven-core), note where this wheel is stored (using `pwd`, for example).
-Then, follow the directions in the top-level README.md to install the wheel into your Deephaven environment.
+Then, follow the directions in the top-level [README](/README.md#running-plugin-against-deephaven-core) to install the wheel into your Deephaven environment.
 
 To unit test, run the following command from the root of the repo:
 
