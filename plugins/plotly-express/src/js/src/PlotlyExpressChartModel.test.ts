@@ -271,6 +271,9 @@ describe('PlotlyExpressChartModel', () => {
       jest.fn()
     );
 
+    // Assume WebGL is supported as it's false in the test environment
+    chartModel.isWebGlSupported = true;
+
     const mockSubscribe = jest.fn();
     await chartModel.subscribe(mockSubscribe);
     await new Promise(process.nextTick); // Subscribe is async
@@ -280,6 +283,28 @@ describe('PlotlyExpressChartModel', () => {
     expect(chartModel.plotlyData[0].type).toBe('scatter');
     chartModel.setRenderOptions({ webgl: true });
     expect(chartModel.plotlyData[0].type).toBe('scattergl');
+
+    // No events should be emitted since the trace is replaceable
+    expect(mockSubscribe).toHaveBeenCalledTimes(0);
+  });
+
+  it('should swap replaceable WebGL traces without blocker events if WebGL is not supported', async () => {
+    const mockWidget = createMockWidget([SMALL_TABLE], 'scattergl');
+    const chartModel = new PlotlyExpressChartModel(
+      mockDh,
+      mockWidget,
+      jest.fn()
+    );
+
+    const mockSubscribe = jest.fn();
+    await chartModel.subscribe(mockSubscribe);
+    await new Promise(process.nextTick); // Subscribe is async
+    chartModel.setRenderOptions({ webgl: true });
+    expect(chartModel.plotlyData[0].type).toBe('scatter');
+    chartModel.setRenderOptions({ webgl: false });
+    expect(chartModel.plotlyData[0].type).toBe('scatter');
+    chartModel.setRenderOptions({ webgl: true });
+    expect(chartModel.plotlyData[0].type).toBe('scatter');
 
     // No events should be emitted since the trace is replaceable
     expect(mockSubscribe).toHaveBeenCalledTimes(0);
