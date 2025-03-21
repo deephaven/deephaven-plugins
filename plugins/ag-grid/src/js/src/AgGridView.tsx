@@ -3,10 +3,11 @@ import { ColDef } from '@ag-grid-community/core';
 import styles from '@ag-grid-community/styles/ag-grid.css?inline'; // Core CSS
 import quartzStyles from '@ag-grid-community/styles/ag-theme-quartz.css?inline'; // Theme
 import { AgGridReact } from '@ag-grid-community/react';
-import { ServerSideRowModelModule } from '@ag-grid-enterprise/server-side-row-model';
+import { ViewportRowModelModule } from '@ag-grid-enterprise/viewport-row-model';
+import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { Table } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
-import createDataSource from './DeephavenServerSideDataSource';
+import ViewportDataSource from './datasources/ViewportRowDataSource';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/AgGridView');
 
@@ -19,6 +20,8 @@ type AgGridViewProps = { table: Table };
  * just displaying the columns and rows of data.
  */
 export function AgGridView({ table }: AgGridViewProps): JSX.Element | null {
+  const dh = useApi();
+
   log.info('AgGridView rendering', table, table?.columns);
 
   /** Map from Deephaven Table Columns to AG Grid ColDefs */
@@ -27,8 +30,11 @@ export function AgGridView({ table }: AgGridViewProps): JSX.Element | null {
     [table]
   );
 
-  /** Create the ServerSideDatasource to pass in to AG Grid based on the Deephaven Table */
-  const datasource = useMemo(() => createDataSource(table), [table]);
+  /** Create the ViewportDatasource to pass in to AG Grid based on the Deephaven Table */
+  const datasource = useMemo(
+    () => new ViewportDataSource(dh, table),
+    [dh, table]
+  );
 
   return (
     <div className="deephaven-ag-grid-view ag-theme-quartz-dark h-100">
@@ -36,9 +42,11 @@ export function AgGridView({ table }: AgGridViewProps): JSX.Element | null {
       <style>{quartzStyles}</style>
       <AgGridReact
         columnDefs={colDefs}
-        serverSideDatasource={datasource}
-        rowModelType="serverSide"
-        modules={[ServerSideRowModelModule]}
+        // viewportDatasource={datasource}
+        viewportDatasource={datasource}
+        rowModelType="viewport"
+        // rowModel="viewport"
+        modules={[ViewportRowModelModule]}
       />
     </div>
   );
