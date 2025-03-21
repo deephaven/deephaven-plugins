@@ -423,7 +423,7 @@ class UITableModel extends IrisGridModel {
   }
 
   formatColumnMatch = memoizeClear(
-    (columns: string[], column: string): boolean =>
+    (columns: readonly string[], column: string): boolean =>
       columns.some(c => c === column),
     { primitive: true, max: 10000 }
   );
