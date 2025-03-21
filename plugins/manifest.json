@@ -2,7 +2,7 @@
   "plugins": [
     {
       "name": "ag-grid",
-      "version": "0.1.0",
+      "version": "0.0.0",
       "main": "src/js/dist/bundle/index.js"
     },
     {
