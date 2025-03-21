@@ -95,7 +95,6 @@ it('updates the document when event is received', async () => {
     []
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const listener = mockAddEventListener.mock.calls[0][1];
 
   // Send the initial document
@@ -182,7 +181,6 @@ it('updates the initial data only when widget has changed', async () => {
     []
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let listener = addEventListener.mock.calls[0][1];
 
   // Send the initial document
@@ -244,7 +242,7 @@ it('updates the initial data only when widget has changed', async () => {
   expect(cleanup).toHaveBeenCalledTimes(1);
   cleanup.mockClear();
 
-  // eslint-disable-next-line prefer-destructuring, @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line prefer-destructuring
   listener = addEventListener.mock.calls[0][1];
 
   expect(sendMessage).toHaveBeenCalledWith(
@@ -317,7 +315,6 @@ it('handles rendering widget error if widget is null (query disconnected)', asyn
     []
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const listener = mockAddEventListener.mock.calls[0][1];
 
   // Send the initial document
