@@ -134,7 +134,7 @@ def grid(
         key: A unique identifier used by React to render elements in a list.
 
         Returns:
-        The rendered grid.
+            The rendered grid.
     """
     return component_element(
         "Grid",
