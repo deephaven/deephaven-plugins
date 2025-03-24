@@ -10,6 +10,14 @@ const log = Log.module('@deephaven/js-plugin-ag-grid/ViewportRowDataSource');
 export class ViewportDataSource implements IViewportDatasource {
   private params?: IViewportDatasourceParams;
 
+  /**
+   * Create a Viewport Row Model data source that can be used with AG Grid.
+   *
+   * https://www.ag-grid.com/javascript-data-grid/viewport/
+   *
+   * @param dh Deephaven API instance to use
+   * @param table Deephaven table to use
+   */
   constructor(
     private dh: typeof DhType,
     private table: DhType.Table

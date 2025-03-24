@@ -5,13 +5,13 @@ import quartzStyles from '@ag-grid-community/styles/ag-theme-quartz.css?inline';
 import { AgGridReact } from '@ag-grid-community/react';
 import { ViewportRowModelModule } from '@ag-grid-enterprise/viewport-row-model';
 import { useApi } from '@deephaven/jsapi-bootstrap';
-import type { Table } from '@deephaven/jsapi-types';
+import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import ViewportDataSource from './datasources/ViewportRowDataSource';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/AgGridView');
 
-type AgGridViewProps = { table: Table };
+type AgGridViewProps = { table: DhType.Table };
 
 /**
  * Basic AgGrid view that uses a Deephaven table a data source and displays it in AG Grid.

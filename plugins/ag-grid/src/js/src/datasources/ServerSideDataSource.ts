@@ -2,10 +2,21 @@ import {
   IServerSideDatasource,
   IServerSideGetRowsParams,
 } from '@ag-grid-community/core';
-import type { Table } from '@deephaven/jsapi-types';
+import type { dh as DhType } from '@deephaven/jsapi-types';
 
 export class ServerSideDatasource implements IServerSideDatasource {
-  constructor(private table: Table) {}
+  /**
+   * Create a Server Side Datasource that can be used with AG Grid.
+   *
+   * https://www.ag-grid.com/react-data-grid/server-side-model-datasource/
+   *
+   * @param dh Deephaven API instance to use
+   * @param table Deephaven table to use
+   */
+  constructor(
+    private dh: typeof DhType,
+    private table: DhType.Table
+  ) {}
 
   async getRows(params: IServerSideGetRowsParams): Promise<void> {
     const { fail, request, success } = params;
