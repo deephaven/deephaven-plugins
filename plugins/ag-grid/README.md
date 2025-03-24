@@ -2,35 +2,29 @@
 
 Display Deephaven tables using [AG Grid](https://www.ag-grid.com/).
 
-## Build
+## Plugin Structure
 
-To create your build / development environment (skip the first two lines if you already have a venv):
+The `src` directory contains the Python and JavaScript code for the plugin.  
+Within the `src` directory, the `deephaven/ag_grid` directory contains the Python code, and the `js` directory contains the JavaScript code.
 
-```sh
-python -m venv .venv
-source .venv/bin/activate
-pip install --upgrade pip setuptools
-pip install build deephaven-plugin
-```
+The Python files have the following structure:  
+[`AgGridMessageStream.py`](./src/deephaven/ag_grid/AgGridMessageStream.py) defines a simple Python class that can send messages to the client. It just sends the Deephaven table along.
+[`AgGridType.py`](./src/deephaven/ag_grid/AgGridType.py) defines the Python type for the plugin (which is used for registration) and a simple message stream. These can be modified to handle different objects or messages. An initial message is sent from the Python side to the client, then additional messages can be sent back and forth.  
+[`_register.py`](./src/deephaven/ag_grid/_register.py) registers the plugin with Deephaven. This file will not need to be modified for most plugins at the initial stages, but will need to be if the package is renamed or JavaScript files are moved.
 
-To build:
+The JavaScript files have the following structure:  
+[`AgGridPlugin.ts`](./src/js/src/AgGridPlugin.ts) registers the plugin with Deephaven. This contains the client equivalent of the type in [`AgGridType.py`](./src/deephaven/ag_grid/AgGridType.py) and these should be kept in sync.  
+[`AgGridWidget.tsx`](./src/js/src/AgGridWidget.tsx) defines the plugin panel and message handling. This is where messages are received when sent from the Python side of the plugin. It fetches the Deephaven table and passes it to the `AgGridView`.
+[`AgGridView.tsx`](./src/js/src/AgGridView.tsx) defines the view for the plugin. This is where the AG Grid is created and updated with the data from the Deephaven table. This is a good starting point for wiring up more functionality from Deephaven table to AG Grid.
 
-```sh
-python -m build --wheel
-```
+Additionally, the `test` directory contains Python tests for the plugin.  
+It's recommended to use `tox` to run the tests, and the `tox.ini` file is included in the project.
 
-The wheel is stored in `dist/`.
+## Building the Plugin
 
-To test within [deephaven-core](https://github.com/deephaven/deephaven-core), note where this wheel is stored (using `pwd`, for example).
-Then, follow the directions in the top-level [README](/README.md#running-plugin-against-deephaven-core) to install the wheel into your Deephaven environment.
+Use the [`plugin_builder.py`](../../README.md#using-plugin_builderpy) from the root directory to build the plugin.
 
-To unit test, run the following command from the root of the repo:
-
-```sh
-tox -e py
-```
-
-## Usage
+## Using the Plugin
 
 Once you have the plugin installed and the server started, you can wrap a Deephaven table with the `AgGrid` plugin:
 
