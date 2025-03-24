@@ -13,7 +13,7 @@ export class ViewportDataSource implements IViewportDatasource {
   /**
    * Create a Viewport Row Model data source that can be used with AG Grid.
    *
-   * https://www.ag-grid.com/javascript-data-grid/viewport/
+   * https://www.ag-grid.com/react-data-grid/viewport/
    *
    * @param dh Deephaven API instance to use
    * @param table Deephaven table to use
@@ -27,7 +27,7 @@ export class ViewportDataSource implements IViewportDatasource {
   }
 
   init(params: IViewportDatasourceParams): void {
-    log.info('Initializing ViewportDataSource', params);
+    log.debug('Initializing ViewportDataSource', params);
     this.params = params;
     this.startListening();
     // Just set an initial viewport...
@@ -54,7 +54,7 @@ export class ViewportDataSource implements IViewportDatasource {
   }
 
   private handleUpdate(event: DhType.Event<DhType.ViewportData>): void {
-    const newData: { [key: number]: unknown } = {};
+    const newData: Record<number, unknown> = {};
 
     const { detail: data } = event;
     const { columns, offset } = data;
@@ -63,7 +63,7 @@ export class ViewportDataSource implements IViewportDatasource {
       newData[offset + r] = this.extractViewportRow(row, columns);
     }
 
-    log.info('Updating viewport data', this.table.size, newData);
+    log.debug('Updating viewport data', this.table.size, newData);
     this.params?.setRowData(newData);
     this.params?.setRowCount(this.table.size);
   }
@@ -73,7 +73,7 @@ export class ViewportDataSource implements IViewportDatasource {
     row: DhType.Row,
     columns: DhType.Column[]
   ): { [key: string]: unknown } {
-    const data = {};
+    const data: Record<string, unknown> = {};
     for (let c = 0; c < columns.length; c += 1) {
       const column = columns[c];
       data[column.name] = row.get(column);
@@ -85,14 +85,15 @@ export class ViewportDataSource implements IViewportDatasource {
   // eslint-disable-next-line class-methods-use-this
   private handleDisconnect(): void {
     log.info('Table disconnected, stopping listening');
+    this.stopListening();
   }
 
   setViewportRange(firstRow: number, lastRow: number): void {
-    log.info('setViewportRange', firstRow, lastRow);
+    log.debug('setViewportRange', firstRow, lastRow);
     this.table.setViewport(firstRow, lastRow);
   }
 
-  destroy?(): void {
+  destroy(): void {
     this.stopListening();
     this.table.close();
   }

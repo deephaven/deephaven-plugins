@@ -22,7 +22,7 @@ type AgGridViewProps = { table: DhType.Table };
 export function AgGridView({ table }: AgGridViewProps): JSX.Element | null {
   const dh = useApi();
 
-  log.info('AgGridView rendering', table, table?.columns);
+  log.debug('AgGridView rendering', table, table?.columns);
 
   /** Map from Deephaven Table Columns to AG Grid ColDefs */
   const colDefs: ColDef[] = useMemo(
@@ -42,10 +42,8 @@ export function AgGridView({ table }: AgGridViewProps): JSX.Element | null {
       <style>{quartzStyles}</style>
       <AgGridReact
         columnDefs={colDefs}
-        // viewportDatasource={datasource}
         viewportDatasource={datasource}
         rowModelType="viewport"
-        // rowModel="viewport"
         modules={[ViewportRowModelModule]}
       />
     </div>
