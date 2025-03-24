@@ -18,7 +18,7 @@ from ..shared import (
     HISTOGRAM_DEFAULTS,
     default_callback,
 )
-from ..types import PartitionableTableLike
+from ..types import PartitionableTableLike, Orientation
 
 
 def violin(
@@ -321,6 +321,7 @@ def histogram(
     pattern_shape_map: dict[str | tuple[str], str] | None = None,
     marginal: str | None = None,
     opacity: float | None = None,
+    orientation: Orientation | None = None,
     barmode: str = HISTOGRAM_DEFAULTS["barmode"],
     barnorm: str = HISTOGRAM_DEFAULTS["barnorm"],
     histnorm: str = HISTOGRAM_DEFAULTS["histnorm"],
@@ -342,11 +343,11 @@ def histogram(
     Args:
       table: A table to pull data from.
       x: A column name or list of columns that contain x-axis values.
-        Only one of x or y can be specified. If x is specified,
-        the bars are drawn horizontally.
+        Column values must be numeric. If x is specified,
+        the bars are drawn vertically by default.
       y: A column name or list of columns that contain y-axis values.
-        Only one of x or y can be specified. If y is specified, the
-        bars are drawn vertically.
+        Column values must be numeric. If only y is specified,
+        the bars are drawn horizontally by default.
       by: A column or list of columns that contain values to plot the figure traces by.
         All values or combination of values map to a unique design. The variable
         by_vars specifies which design elements are used.
@@ -375,6 +376,11 @@ def histogram(
       marginal: The type of marginal; histogram, violin, rug, box
       opacity: Opacity to apply to all markers. 0 is completely transparent
         and 1 is completely opaque.
+      orientation: The orientation of the bars.
+        If 'v', the bars are vertical.
+        If 'h', the bars are horizontal.
+        Defaults to 'v' if `x` is specified.
+        Defaults to 'h' if only `y` is specified.
       barmode: If 'relative', bars are stacked. If
         'overlay', bars are drawn on top of each other. If 'group', bars are
         drawn next to each other.
@@ -396,6 +402,7 @@ def histogram(
       histfunc: The function to use when aggregating within bins. One of
         'abs_sum', 'avg', 'count', 'count_distinct', 'max', 'median', 'min', 'std',
         'sum', or 'var'
+        Defaults to 'count' if only one of x or y is specified and 'sum' if both are.
       cumulative: If True, values are cumulative.
       nbins: The number of bins to use.
       text_auto: If True, display the value at each bar.

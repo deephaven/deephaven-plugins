@@ -365,7 +365,7 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   handleFigureUpdated(
-    event: CustomEvent<DhType.SubscriptionTableData>,
+    event: DhType.Event<DhType.SubscriptionTableData>,
     tableId: number
   ): void {
     const chartData = this.chartDataMap.get(tableId);

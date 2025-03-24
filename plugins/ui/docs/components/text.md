@@ -1,6 +1,6 @@
 # Text
 
-Text represents text with no specific semantic meaning, serving as a basic element. It is equivalent to an HTML span element. 
+Text represents text with no specific semantic meaning, serving as a basic element. It is equivalent to an HTML span element.
 
 ## Example
 
@@ -10,10 +10,11 @@ from deephaven import ui
 my_text_basic = ui.text("Hello world")
 ```
 
+![Text Basic Example](../_assets/text_basic.png)
+
 ## UI Recommendations
 
 Consider using [`ui.heading`](./heading.md) if you want to create different types of headings.
-
 
 ## Content
 
@@ -47,7 +48,6 @@ def ui_text_content_examples():
 my_text_content_examples = ui_text_content_examples()
 ```
 
-
 ## Color
 
 The color prop sets the text color for the text component.
@@ -71,7 +71,3 @@ my_text_color_example = ui.flex(
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.text
 ```
-
-
-
-

@@ -7,8 +7,15 @@ Dashboards allow you to create a page layout containing a collection of componen
 ```python
 from deephaven import ui
 
-my_dash = ui.dashboard(ui.row(ui.panel("A")))
+my_dash = ui.dashboard(
+    ui.row(
+        ui.column(ui.panel("A"), ui.panel("C")),
+        ui.column(ui.panel("B"), ui.panel("D")),
+    )
+)
 ```
+
+![Dashboard Basic Example](../_assets/dashboard_basic.png)
 
 ## Rules
 
@@ -35,7 +42,7 @@ Note: Nesting rows within rows or columns within columns will sub-divide the row
 
 ### Bottom-Level
 
-Stacks and panels are considered the "bottom" of the layout tree. Once added, the layout in that section is considered complete. You can't further nest stacks within panels. For layouts within a panel, see [`tabs`](./tabs.md), [`flex`](./flex.md), and [`grid`](./grid.md).
+Stacks and panels are considered the "bottom" of the layout tree. Once added, the layout in that section is considered complete. You can't further nest stacks within panels. For layouts within a panel, see [`tabs`](./tabs.md) and [`flex`](./flex.md).
 
 ## Automatic Wrapping
 

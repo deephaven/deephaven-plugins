@@ -9,7 +9,7 @@ from pandas import DataFrame
 
 from deephaven.table import Table, PartitionedTable
 from deephaven import pandas as dhpd
-from deephaven import merge, empty_table
+from deephaven import merge
 
 from ._layer import atomic_layer
 from .. import DeephavenFigure
@@ -183,10 +183,10 @@ class PartitionManager:
 
     Attributes:
         by_vars: set[str]: The set of by_vars that can be used in a plot by
-        list_var: str: "x" or "y" depending on which var is a list
-        cols: str | list: The columns set by the list_var
-        pivot_vars: dict[str, str]: A dictionary that stores the "real" column
-          names if there is a list_var. This is needed in case the column names
+        list_param: str: "x" or "y" depending on which param is a list
+        cols: str | list: The columns set by the list_param
+        stacked_column_names: dict[str, str]: A dictionary that stores the "real" column
+          names if there is a list_param. This is needed in case the column names
           used are already in the table.
         has_color: bool: True if this figure has user set color, False otherwise
         facet_row: str: The facet row
@@ -220,9 +220,9 @@ class PartitionManager:
     ):
         self.by = None
         self.by_vars = None
-        self.list_var = None
+        self.list_param = None
         self.cols = None
-        self.pivot_vars = {}
+        self.stacked_column_names = {}
         self.has_color = None
         self.facet_row = None
         self.facet_col = None
@@ -278,13 +278,13 @@ class PartitionManager:
             self.groups.discard("supports_lists")
             return
 
-        self.list_var = var
+        self.list_param = var
         self.cols = cols
 
-        args["current_var"] = self.list_var
+        args["current_var"] = self.list_param
 
-        self.pivot_vars = get_unique_names(table, ["variable", "value"])
-        self.args["pivot_vars"] = self.pivot_vars
+        self.stacked_column_names = get_unique_names(table, ["variable", "value"])
+        self.args["stacked_column_names"] = self.stacked_column_names
 
     def convert_table_to_long_mode(
         self,
@@ -306,7 +306,7 @@ class PartitionManager:
 
         # if there is no plot by arg, the variable column becomes it
         if not self.args.get("by", None):
-            args["by"] = self.pivot_vars["variable"]
+            args["by"] = self.stacked_column_names["variable"]
 
         args["table"] = self.to_long_mode(table, self.cols)
 
@@ -509,7 +509,11 @@ class PartitionManager:
 
         # preprocessor needs to be initialized after the always attached arguments are found
         self.preprocessor = Preprocessor(
-            args, self.groups, self.always_attached, self.pivot_vars
+            args,
+            self.groups,
+            self.always_attached,
+            self.stacked_column_names,
+            self.list_param,
         )
 
         if partition_cols:
@@ -559,12 +563,14 @@ class PartitionManager:
         Returns:
             The ternary string that builds the new column
         """
-        ternary_string = f"{self.pivot_vars['value']} = "
+        ternary_string = f"{self.stacked_column_names['value']} = "
         for i, col in enumerate(cols):
             if i == len(cols) - 1:
                 ternary_string += f"{col}"
             else:
-                ternary_string += f"{self.pivot_vars['variable']} == `{col}` ? {col} : "
+                ternary_string += (
+                    f"{self.stacked_column_names['variable']} == `{col}` ? {col} : "
+                )
         return ternary_string
 
     def to_long_mode(self, table: Table, cols: list[str] | None) -> Table:
@@ -585,7 +591,7 @@ class PartitionManager:
         new_tables = []
         for col in cols:
             new_tables.append(
-                table.update_view(f"{self.pivot_vars['variable']} = `{col}`")
+                table.update_view(f"{self.stacked_column_names['variable']} = `{col}`")
             )
 
         merged = merge(new_tables)
@@ -636,7 +642,9 @@ class PartitionManager:
         Yields:
             The tuple of table and current partition
         """
-        column = self.pivot_vars["value"] if self.pivot_vars else None
+        column = (
+            self.stacked_column_names["value"] if self.stacked_column_names else None
+        )
         if self.preprocessor:
             tables = self.preprocessor.preprocess_partitioned_tables(
                 self.constituents, column
@@ -662,9 +670,13 @@ class PartitionManager:
                     # if a tuple is returned here, it was preprocessed already so pivots aren't needed
                     table, arg_update = table
                     args.update(arg_update)
-                elif self.pivot_vars and self.pivot_vars["value"] and self.list_var:
+                elif (
+                    self.stacked_column_names
+                    and self.stacked_column_names["value"]
+                    and self.list_param
+                ):
                     # there is a list of variables, so replace them with the combined column
-                    args[self.list_var] = self.pivot_vars["value"]
+                    args[self.list_param] = self.stacked_column_names["value"]
 
                 args["current_partition"] = current_partition
                 args["table"] = table
@@ -781,8 +793,8 @@ class PartitionManager:
             # by color (colors might be used multiple times)
             self.marg_args["table"] = self.partitioned_table
 
-            if self.pivot_vars and self.pivot_vars["value"]:
-                self.marg_args[self.list_var] = self.pivot_vars["value"]
+            if self.stacked_column_names and self.stacked_column_names["value"]:
+                self.marg_args[self.list_param] = self.stacked_column_names["value"]
 
             self.marg_args["color"] = self.marg_color
 
