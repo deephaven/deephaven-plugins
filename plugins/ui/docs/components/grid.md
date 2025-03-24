@@ -57,7 +57,7 @@ for i in range(100, 901, 100):
 def implicit_grid():
     return ui.grid(
         [ui.view(background_color=color) for color in colors],
-        columns=["repeat(5, 1fr)"],
+        columns="repeat(5, 1fr)",
         auto_rows="size-800",
         justify_content="center",
         gap="size-100",

@@ -131,7 +131,7 @@ my_flex_nesting = ui_flex_nesting()
 
 ## Grid
 
-The [`grid`](../components/grid.md) component can be used to layout its children in two dimensions with [CSS grid](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout/Grids). The `columns` and `rows` props define the layout of the grid. The layout can use the `area` prop to define grid areas for child components to explicitly place components. Alternatively, an implicit layout can be created using `autoColumns`, `autoRows`, and helper functions like `repeat`.
+The [`grid`](../components/grid.md) component can be used to layout its children in two dimensions with [CSS grid](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout/Grids). The `columns` and `rows` props define the layout of the grid. The layout can use the `area` prop to define grid areas for child components to explicitly place components. Alternatively, an implicit layout can be created using `auto_columns`, `auto_rows`, and helper functions like `repeat`.
 
 Similar to `flex`, a grid can justify and align items.
 
