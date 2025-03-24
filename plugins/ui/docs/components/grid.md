@@ -128,7 +128,7 @@ def grid_justification():
                 ui.view(background_color=color, height="25px", width="25px")
                 for color in colors
             ],
-            columns=["repeat(3, 80px)"],
+            columns="repeat(3, 80px)",
             justify_content=justify,
         ),
     ]
@@ -190,7 +190,7 @@ def grid_align():
                 ui.view(background_color=color, height="25px", width="25px")
                 for color in colors
             ],
-            columns=["repeat(3, 80px)"],
+            columns="repeat(3, 80px)",
             rows=["repeat(9, 80px)"],
             align_items=align,
         ),
