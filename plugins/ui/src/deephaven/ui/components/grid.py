@@ -133,8 +133,8 @@ def grid(
         UNSAFE_style: A CSS style to apply to the element.
         key: A unique identifier used by React to render elements in a list.
 
-        Returns:
-            The rendered grid.
+    Returns:
+        The rendered grid.
     """
     return component_element(
         "Grid",
