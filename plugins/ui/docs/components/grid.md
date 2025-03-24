@@ -48,7 +48,7 @@ from deephaven import ui
 
 colors = []
 for i in range(100, 901, 100):
-    colors.append(f"gray-{i}")
+    colors.append(f"red-{i}")
     colors.append(f"green-{i}")
     colors.append(f"blue-{i}")
 
