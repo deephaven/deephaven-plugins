@@ -397,7 +397,7 @@ export function UITable({
 
   const onContextMenu = useCallback(
     (data: IrisGridContextMenuData) =>
-      wrapContextActions(contextMenu ?? EMPTY_ARRAY, data, alwaysFetchColumns),
+      wrapContextActions(contextMenu, data, alwaysFetchColumns),
     [contextMenu, alwaysFetchColumns]
   );
 
