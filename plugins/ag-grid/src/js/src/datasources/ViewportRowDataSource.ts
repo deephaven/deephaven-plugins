@@ -30,8 +30,8 @@ export class ViewportDataSource implements IViewportDatasource {
     log.debug('Initializing ViewportDataSource', params);
     this.params = params;
     this.startListening();
-    // Just set an initial viewport...
-    this.table.setViewport(0, 100);
+    // Set the initial size
+    this.params?.setRowCount(this.table.size);
   }
 
   private startListening() {
