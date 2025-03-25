@@ -1,19 +1,16 @@
-import React, { useMemo } from 'react';
-import { ColDef } from '@ag-grid-community/core';
+import React from 'react';
 import styles from '@ag-grid-community/styles/ag-grid.css?inline'; // Core CSS
 import quartzStyles from '@ag-grid-community/styles/ag-theme-quartz.css?inline'; // Theme
-import { AgGridReact } from '@ag-grid-community/react';
-import { ServerSideRowModelModule } from '@ag-grid-enterprise/server-side-row-model';
-import { ViewportRowModelModule } from '@ag-grid-enterprise/viewport-row-model';
-import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { dh as DhType } from '@deephaven/jsapi-types';
-import Log from '@deephaven/log';
-import ViewportDataSource from './datasources/ViewportRowDataSource';
-import ServerSideDatasource from './datasources/ServerSideDataSource';
+import AgGridServerSideView from './AgGridServerSideView';
+import AgGridViewportView from './AgGridViewportView';
 
-const log = Log.module('@deephaven/js-plugin-ag-grid/AgGridView');
+type AgGridViewProps = {
+  table: DhType.Table;
 
-type AgGridViewProps = { table: DhType.Table };
+  /** Choose which model to use */
+  rowModelType?: 'viewport' | 'serverSide';
+};
 
 /**
  * Basic AgGrid view that uses a Deephaven table a data source and displays it in AG Grid.
@@ -21,36 +18,19 @@ type AgGridViewProps = { table: DhType.Table };
  * Does not support value formatting, sorting, filtering, or basically any functionality beyond
  * just displaying the columns and rows of data.
  */
-export function AgGridView({ table }: AgGridViewProps): JSX.Element | null {
-  const dh = useApi();
-
-  log.debug('AgGridView rendering', table, table?.columns);
-
-  /** Map from Deephaven Table Columns to AG Grid ColDefs */
-  const colDefs: ColDef[] = useMemo(
-    () => table?.columns.map(c => ({ field: c.name })) ?? [],
-    [table]
-  );
-
-  /** Create the ViewportDatasource to pass in to AG Grid based on the Deephaven Table */
-  const datasource = useMemo(
-    // () => new ViewportDataSource(dh, table),
-    () => new ServerSideDatasource(dh, table),
-    [dh, table]
-  );
-
+export function AgGridView({
+  table,
+  rowModelType = 'serverSide',
+}: AgGridViewProps): JSX.Element | null {
   return (
     <div className="deephaven-ag-grid-view ag-theme-quartz-dark h-100">
       <style>{styles}</style>
       <style>{quartzStyles}</style>
-      <AgGridReact
-        columnDefs={colDefs}
-        // viewportDatasource={datasource}
-        serverSideDatasource={datasource}
-        // rowModelType="viewport"
-        rowModelType="serverSide"
-        modules={[ServerSideRowModelModule]}
-      />
+      {rowModelType === 'serverSide' ? (
+        <AgGridServerSideView table={table} />
+      ) : (
+        <AgGridViewportView table={table} />
+      )}
     </div>
   );
 }
