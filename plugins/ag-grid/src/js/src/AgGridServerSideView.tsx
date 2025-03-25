@@ -5,7 +5,7 @@ import { ColDef } from '@ag-grid-community/core';
 import { AgGridReact } from '@ag-grid-community/react';
 import { ServerSideRowModelModule } from '@ag-grid-enterprise/server-side-row-model';
 import { useMemo } from 'react';
-import ServerSideDatasource from './datasources/ServerSideDataSource';
+import ServerSideDatasource from './datasources/ServerSideDatasource';
 
 type AgGridServerSideViewProps = {
   table: DhType.Table;

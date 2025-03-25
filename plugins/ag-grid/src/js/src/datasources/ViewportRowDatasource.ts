@@ -7,7 +7,7 @@ import Log from '@deephaven/log';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/ViewportRowDataSource');
 
-export class ViewportDataSource implements IViewportDatasource {
+export class ViewportDatasource implements IViewportDatasource {
   private params?: IViewportDatasourceParams;
 
   /**
@@ -99,4 +99,4 @@ export class ViewportDataSource implements IViewportDatasource {
   }
 }
 
-export default ViewportDataSource;
+export default ViewportDatasource;

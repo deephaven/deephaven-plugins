@@ -5,7 +5,7 @@ import { ColDef } from '@ag-grid-community/core';
 import { AgGridReact } from '@ag-grid-community/react';
 import { ViewportRowModelModule } from '@ag-grid-enterprise/viewport-row-model';
 import { useMemo } from 'react';
-import ViewportDataSource from './datasources/ViewportRowDataSource';
+import ViewportDatasource from './datasources/ViewportRowDatasource';
 
 type AgGridViewportViewProps = {
   table: DhType.Table;
@@ -28,7 +28,7 @@ export function AgGridViewportView({
 
   /** Create the ViewportDatasource to pass in to AG Grid based on the Deephaven Table */
   const datasource = useMemo(
-    () => new ViewportDataSource(dh, table),
+    () => new ViewportDatasource(dh, table),
     [dh, table]
   );
 
