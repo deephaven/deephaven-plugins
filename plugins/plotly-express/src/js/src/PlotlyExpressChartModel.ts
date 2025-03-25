@@ -3,7 +3,7 @@ import type { dh as DhType } from '@deephaven/jsapi-types';
 import { type Formatter } from '@deephaven/jsapi-utils';
 import { ChartModel, ChartUtils } from '@deephaven/chart';
 import Log from '@deephaven/log';
-import { RenderOptions } from '@deephaven/chart/dist/ChartModel';
+import { ChartEvent, RenderOptions } from '@deephaven/chart/dist/ChartModel';
 import {
   DownsampleInfo,
   PlotlyChartWidgetData,
@@ -195,7 +195,7 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   override async subscribe(
-    callback: (event: CustomEvent) => void
+    callback: (event: ChartEvent) => void
   ): Promise<void> {
     if (this.isSubscribed) {
       log.debug('already subscribed');
@@ -231,7 +231,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     }
   }
 
-  override unsubscribe(callback: (event: CustomEvent) => void): void {
+  override unsubscribe(callback: (event: ChartEvent) => void): void {
     if (!this.isSubscribed) {
       return;
     }
