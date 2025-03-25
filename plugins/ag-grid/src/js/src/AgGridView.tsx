@@ -3,11 +3,13 @@ import { ColDef } from '@ag-grid-community/core';
 import styles from '@ag-grid-community/styles/ag-grid.css?inline'; // Core CSS
 import quartzStyles from '@ag-grid-community/styles/ag-theme-quartz.css?inline'; // Theme
 import { AgGridReact } from '@ag-grid-community/react';
+import { ServerSideRowModelModule } from '@ag-grid-enterprise/server-side-row-model';
 import { ViewportRowModelModule } from '@ag-grid-enterprise/viewport-row-model';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import ViewportDataSource from './datasources/ViewportRowDataSource';
+import ServerSideDatasource from './datasources/ServerSideDataSource';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/AgGridView');
 
@@ -32,7 +34,8 @@ export function AgGridView({ table }: AgGridViewProps): JSX.Element | null {
 
   /** Create the ViewportDatasource to pass in to AG Grid based on the Deephaven Table */
   const datasource = useMemo(
-    () => new ViewportDataSource(dh, table),
+    // () => new ViewportDataSource(dh, table),
+    () => new ServerSideDatasource(dh, table),
     [dh, table]
   );
 
@@ -42,9 +45,11 @@ export function AgGridView({ table }: AgGridViewProps): JSX.Element | null {
       <style>{quartzStyles}</style>
       <AgGridReact
         columnDefs={colDefs}
-        viewportDatasource={datasource}
-        rowModelType="viewport"
-        modules={[ViewportRowModelModule]}
+        // viewportDatasource={datasource}
+        serverSideDatasource={datasource}
+        // rowModelType="viewport"
+        rowModelType="serverSide"
+        modules={[ServerSideRowModelModule]}
       />
     </div>
   );
