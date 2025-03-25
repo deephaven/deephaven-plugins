@@ -4,7 +4,7 @@ import {
   IServerSideGetRowsParams,
   ViewportChangedEvent,
 } from '@ag-grid-community/core';
-import { dh as DhType } from '@deephaven/jsapi-types';
+import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/ServerSideDataSource');
@@ -76,8 +76,7 @@ export class ServerSideDatasource implements IServerSideDatasource {
   }
 
   private handleDisconnect(): void {
-    log.debug('Table disconnected, destroying grid.');
-    this.destroy();
+    log.debug('Table disconnected');
   }
 
   private handleRequestFailed({ detail: error }: DhType.Event<unknown>): void {
@@ -85,7 +84,7 @@ export class ServerSideDatasource implements IServerSideDatasource {
   }
 
   async getRows(params: IServerSideGetRowsParams): Promise<void> {
-    const { fail, request, success } = params;
+    const { api, fail, request, success } = params;
     if (this.table == null) {
       fail();
       return;
@@ -98,6 +97,7 @@ export class ServerSideDatasource implements IServerSideDatasource {
     const endRow = Math.max(startRow, (request.endRow ?? this.table.size) - 1);
     if (this.getRowsSubscription == null) {
       this.getRowsSubscription = this.table.setViewport(startRow, endRow);
+      api.addEventListener('viewportChanged', this.handleViewportChanged);
     } else {
       this.getRowsSubscription.setViewport(startRow, endRow);
     }

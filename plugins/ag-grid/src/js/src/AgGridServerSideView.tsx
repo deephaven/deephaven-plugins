@@ -38,8 +38,6 @@ export function AgGridServerSideView({
       serverSideDatasource={datasource}
       rowModelType="serverSide"
       modules={[ServerSideRowModelModule]}
-      // We need to listen to viewport changes so we know what to tell the server to listen to
-      onViewportChanged={datasource.handleViewportChanged}
     />
   );
 }
