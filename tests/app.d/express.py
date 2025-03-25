@@ -33,7 +33,7 @@ express_hist_by = dx.histogram(hist_source, x="Values", by="Categories", nbins=4
 
 express_indicator = dx.indicator(express_source, value="Values", title="Indicator")
 
-express_by_indicator = dx.indicator(
+express_indicator_by = dx.indicator(
     express_source,
     value="Price",
     reference="Reference",
@@ -42,11 +42,12 @@ express_by_indicator = dx.indicator(
 )
 
 # Test ticking tables
+express_view = express_source.view(["Categories", "Values", "Values2"])
 ticking_head = time_table("PT1S").view(
     ["Categories = `A`", "Values = 10", "Values2 = 20"]
 )
 
-ticking_source = merge([express_source, ticking_head]).head(3)
+ticking_source = merge([express_view, ticking_head]).head(3)
 
 ticking_fig = dx.bar(ticking_source, x="Categories", y="Values")
 
