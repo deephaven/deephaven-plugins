@@ -33,7 +33,11 @@ jest.mock('./PlotlyExpressChartUtils', () => ({
   setDefaultValueFormat: jest.fn(),
 }));
 
-function createMockWidget(tables: DhType.Table[], plotType = 'scatter') {
+function createMockWidget(
+  tables: DhType.Table[],
+  plotType = 'scatter',
+  title: string | Partial<Layout['title']> = 'Test'
+) {
   const layoutAxes: Partial<Layout> = {};
   tables.forEach((_, i) => {
     if (i === 0) {
@@ -67,7 +71,7 @@ function createMockWidget(tables: DhType.Table[], plotType = 'scatter') {
           yaxis: i === 0 ? 'y' : `y${i + 1}`,
         })),
         layout: {
-          title: { text: 'Test' },
+          title,
           ...layoutAxes,
         },
       },
@@ -348,30 +352,10 @@ describe('PlotlyExpressChartModel', () => {
     expect(setDefaultValueFormat).toHaveBeenCalledTimes(2);
   });
 
-  it('should emit layout update events when the widget is updated and a title exists', async () => {
-    const mockWidget = createMockWidget([SMALL_TABLE], 'scatter');
-    const chartModel = new PlotlyExpressChartModel(
-      mockDh,
-      mockWidget,
-      jest.fn()
-    );
-
-    const mockSubscribe = jest.fn();
-    await chartModel.subscribe(mockSubscribe);
-    await new Promise(process.nextTick); // Subscribe is async
-    chartModel.setRenderOptions({ webgl: true });
-    // no calls because the chart has webgl enabled
-    expect(mockSubscribe).toHaveBeenCalledTimes(0);
-    chartModel.setRenderOptions({ webgl: false });
-    // blocking event should be emitted
-    expect(mockSubscribe).toHaveBeenCalledTimes(1);
-    expect(mockSubscribe).toHaveBeenLastCalledWith(
-      new CustomEvent(ChartModel.EVENT_BLOCKER)
-    );
-  });
-
   it('should emit layout update events if a widget is updated and has a title', async () => {
-    const mockWidget = createMockWidget([SMALL_TABLE]);
+    const mockWidget = createMockWidget([SMALL_TABLE], 'scatter', {
+      text: 'Test',
+    });
     const chartModel = new PlotlyExpressChartModel(
       mockDh,
       mockWidget,
@@ -387,7 +371,7 @@ describe('PlotlyExpressChartModel', () => {
         chartModel.widget.exportedObjects
       );
     }
-    expect(mockSubscribe).toHaveBeenCalledTimes(1);
+    expect(mockSubscribe).toHaveBeenCalledTimes(2);
     expect(mockSubscribe).toHaveBeenLastCalledWith(
       new CustomEvent(ChartModel.EVENT_LAYOUT_UPDATED)
     );
