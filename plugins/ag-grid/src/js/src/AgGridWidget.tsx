@@ -25,7 +25,8 @@ export function AgGridWidget(
     async function init() {
       log.debug('Fetching widget');
       const widget: DhType.Widget = await fetch();
-      const newTable = (await widget.exportedObjects[0].fetch()) as Table;
+      const newTable =
+        (await widget.exportedObjects[0].fetch()) as DhType.Table;
       if (!cancelled) {
         log.info('AgGridView loaded table', newTable);
         setTable(newTable);
