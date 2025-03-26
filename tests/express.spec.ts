@@ -26,18 +26,14 @@ test('Ticking loads', async ({ page }) => {
 });
 
 test('Partitioned loads', async ({ page }) => {
-    await gotoPage(page, '');
-    await openPanel(page, 'partitioned_fig', '.js-plotly-plot');
-    await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
+  await gotoPage(page, '');
+  await openPanel(page, 'partitioned_fig', '.js-plotly-plot');
+  await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
 });
 
 test('Figure with title loads', async ({ page }) => {
-    await gotoPage(page, '');
-    await openPanel(page, 'title_fig', '.js-plotly-plot');
-    await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
-});
   await gotoPage(page, '');
-  await openPanel(page, 'partitioned_fig', '.js-plotly-plot');
+  await openPanel(page, 'title_fig', '.js-plotly-plot');
   await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
 });
 
