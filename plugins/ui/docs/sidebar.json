@@ -1,4 +1,5 @@
 {
+  "$schema": "https://raw.githubusercontent.com/deephaven/salmon-sync/refs/heads/main/sidebar.schema.json",
   "config": {
     "name": "deephaven.ui Docs"
   },
