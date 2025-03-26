@@ -273,6 +273,9 @@ describe('PlotlyExpressChartModel', () => {
     // Assume WebGL is supported as it's false in the test environment
     chartModel.isWebGlSupported = true;
 
+    // Assume WebGL is supported in case it's false in the test environment
+    chartModel.isWebGlSupported = true;
+
     const mockSubscribe = jest.fn();
     await chartModel.subscribe(mockSubscribe);
     await new Promise(process.nextTick); // Subscribe is async
@@ -294,6 +297,9 @@ describe('PlotlyExpressChartModel', () => {
       mockWidget,
       jest.fn()
     );
+
+    // Assume WebGL is not supported in case it's true in the test environment
+    chartModel.isWebGlSupported = false;
 
     const mockSubscribe = jest.fn();
     await chartModel.subscribe(mockSubscribe);
