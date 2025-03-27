@@ -59,7 +59,6 @@ class TimelineTestCase(BaseTestCase):
         expected_layout = {
             "barmode": "overlay",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "type": "date"},
             "yaxis": {
                 "anchor": "x",

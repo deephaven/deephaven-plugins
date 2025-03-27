@@ -31,6 +31,12 @@ test('Partitioned loads', async ({ page }) => {
   await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
 });
 
+test('Figure with title loads', async ({ page }) => {
+  await gotoPage(page, '');
+  await openPanel(page, 'title_fig', '.js-plotly-plot');
+  await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
+});
+
 test('Figure with scatter loads', async ({ page }) => {
   await gotoPage(page, '');
   await openPanel(page, 'scatter_fig', '.js-plotly-plot');
