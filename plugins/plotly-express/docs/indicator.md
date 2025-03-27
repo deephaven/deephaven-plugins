@@ -296,8 +296,8 @@ sym_agg = my_table.agg_by(
     [
         agg.avg(cols="Price"),
         agg.first(cols="StartingPrice = Price"),
-        agg.last(cols="Sym"),
-    ]
+    ],
+    by="Sym",
 )
 
 indicator_plot = dx.indicator(
