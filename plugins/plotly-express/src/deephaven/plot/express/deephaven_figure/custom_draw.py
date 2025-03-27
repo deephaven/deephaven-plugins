@@ -255,7 +255,6 @@ def draw_indicator(
         ),
         layout={
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
         },
     )
 
