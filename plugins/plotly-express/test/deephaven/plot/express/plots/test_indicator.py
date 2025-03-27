@@ -36,7 +36,7 @@ class IndicatorTestCase(BaseTestCase):
             }
         ]
 
-        expected_layout = {"legend": {"tracegroupgap": 0}}
+        expected_layout = {"legend": {"tracegroupgap": 0}, "margin": {"t": 60}}
 
         expected_mappings = [
             {"data_columns": {"value": ["/plotly/data/0/value"]}, "table": 0}
@@ -97,6 +97,7 @@ class IndicatorTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
+            "margin": {"t": 60},
             "title": {"text": "title"},
         }
 
@@ -195,7 +196,7 @@ class IndicatorTestCase(BaseTestCase):
             },
         ]
 
-        expected_layout = {"legend": {"tracegroupgap": 0}}
+        expected_layout = {"legend": {"tracegroupgap": 0}, "margin": {"t": 60}}
 
         expected_mappings = [
             {
@@ -306,7 +307,7 @@ class IndicatorTestCase(BaseTestCase):
             },
         ]
 
-        expected_layout = {"legend": {"tracegroupgap": 0}}
+        expected_layout = {"legend": {"tracegroupgap": 0}, "margin": {"t": 60}}
 
         expected_mappings = [
             {"data_columns": {"value": ["/plotly/data/0/value"]}, "table": 0},
@@ -373,7 +374,7 @@ class IndicatorTestCase(BaseTestCase):
             },
         ]
 
-        expected_layout = {"legend": {"tracegroupgap": 0}}
+        expected_layout = {"legend": {"tracegroupgap": 0}, "margin": {"t": 60}}
 
         expected_mappings = [
             {"data_columns": {"value": ["/plotly/data/0/value"]}, "table": 0},
@@ -440,7 +441,7 @@ class IndicatorTestCase(BaseTestCase):
             },
         ]
 
-        expected_layout = {"legend": {"tracegroupgap": 0}}
+        expected_layout = {"legend": {"tracegroupgap": 0}, "margin": {"t": 60}}
 
         expected_mappings = [
             {"data_columns": {"value": ["/plotly/data/0/value"]}, "table": 0},
