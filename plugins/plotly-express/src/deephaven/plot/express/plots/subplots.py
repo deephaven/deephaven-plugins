@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import math
-from typing import Any, TypeVar, List, cast, TypedDict
-
+from typing import Any, TypeVar, List, cast, TypedDict, Callable
+from deephaven.execution_context import make_user_exec_ctx
 from plotly.graph_objs import Figure
 
-from ._layer import layer, LayerSpecDict
+from ._layer import layer, LayerSpecDict, atomic_layer
 from .. import DeephavenFigure
+from ..shared import default_callback
 
 # generic grid that is a list of lists of anything
 T = TypeVar("T")
@@ -207,7 +208,7 @@ def is_grid(specs: list[SubplotSpecDict] | Grid[SubplotSpecDict]) -> bool:
     return list_count == len(specs) and list_count > 0
 
 
-def make_subplots(
+def atomic_make_subplots(
     *figs: Figure | DeephavenFigure,
     rows: int = 0,
     cols: int = 0,
@@ -219,41 +220,23 @@ def make_subplots(
     column_widths: list[float] | None = None,
     row_heights: list[float] | None = None,
     specs: list[SubplotSpecDict] | Grid[SubplotSpecDict] | None = None,
+    unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """Create subplots. Either figs and at least one of rows and cols or grid
     should be passed.
 
     Args:
-      *figs: Figures to use. Should be used with rows and/or cols.
-      rows: A list of rows in the resulting subplot grid. This is
-        calculated from cols and number of figs provided if not passed
-        but cols is.
-        One of rows or cols should be provided if passing figs directly.
-      cols: A list of cols in the resulting subplot grid. This is
-        calculated from rows and number of figs provided if not passed
-        but rows is.
-        One of rows or cols should be provided if passing figs directly.
-      shared_xaxes: "rows", "cols"/True, "all" or None depending on what axes
-        should be shared
-      shared_yaxes: "rows"/True, "cols", "all" or None depending on what axes
-        should be shared
-      grid: A grid (list of lists) of figures to draw. None can be
-        provided in a grid entry
-      horizontal_spacing: Spacing between each column. Default 0.2 / cols
-      vertical_spacing: Spacing between each row. Default 0.3 / rows
-      column_widths: The widths of each column. Should sum to 1.
-      row_heights: The heights of each row. Should sum to 1.
-      specs: (Default value = None)
-        A list or grid of dicts that contain specs. An empty
-        dictionary represents no specs, and None represents no figure, either
-        to leave a gap on the subplots on provide room for a figure spanning
-        multiple columns.
-        'l' is a float that adds left padding
-        'r' is a float that adds right padding
-        't' is a float that adds top padding
-        'b' is a float that adds bottom padding
-        'rowspan' is an int to make this figure span multiple rows
-        'colspan' is an int to make this figure span multiple columns
+      *figs: See make_subplots
+      rows: See make_subplots
+      cols: See make_subplots
+      shared_xaxes: See make_subplots
+      shared_yaxes: See make_subplots
+      grid: See make_subplots
+      horizontal_spacing: See make_subplots
+      vertical_spacing: See make_subplots
+      column_widths: See make_subplots
+      row_heights: See make_subplots
+      specs: See make_subplots
 
     Returns:
       DeephavenFigure: The DeephavenFigure with subplots
@@ -301,7 +284,7 @@ def make_subplots(
     col_starts, col_ends = get_domains(column_widths, horizontal_spacing)
     row_starts, row_ends = get_domains(row_heights, vertical_spacing)
 
-    return layer(
+    return atomic_layer(
         *[fig for fig_row in grid for fig in fig_row],
         specs=get_new_specs(
             spec_grid,
@@ -312,4 +295,120 @@ def make_subplots(
             shared_xaxes,
             shared_yaxes,
         ),
+        unsafe_update_figure=unsafe_update_figure,
     )
+
+
+def atomic_make_grid(
+    *figs: Figure | DeephavenFigure,
+    rows: int | None,
+    cols: int | None,
+) -> DeephavenFigure:
+    """
+    Create a grid of figures.
+    The number of rows and columns are calculated to be approximately square if both are None.
+
+    Args:
+        *figs: Figures to use
+        rows: Rows in the grid. Can be None if cols is provided or if a square grid is desired.
+        cols: Columns in the grid. Can be None if rows is provided or if a square grid is desired.
+
+    Returns:
+        DeephavenFigure: The DeephavenFigure with the grid of figures
+    """
+    # grid size is approximately sqrt(len(figs))
+    if rows is None and cols is None:
+        cols = math.ceil(math.sqrt(len(figs)))
+        rows = math.ceil(len(figs) / cols)
+    elif rows is None:
+        # if cols is not None, then rows is calculated from cols in atomic_make_subplots
+        rows = 0
+    elif cols is None:
+        cols = 0
+    if rows is None or cols is None:
+        raise ValueError("Invalid rows and cols")
+    return atomic_make_subplots(*figs, rows=rows, cols=cols)
+
+
+def make_subplots(
+    *figs: Figure | DeephavenFigure,
+    rows: int = 0,
+    cols: int = 0,
+    shared_xaxes: str | bool | None = None,
+    shared_yaxes: str | bool | None = None,
+    grid: Grid[Figure | DeephavenFigure] | None = None,
+    horizontal_spacing: float | None = None,
+    vertical_spacing: float | None = None,
+    column_widths: list[float] | None = None,
+    row_heights: list[float] | None = None,
+    specs: list[SubplotSpecDict] | Grid[SubplotSpecDict] | None = None,
+    unsafe_update_figure: Callable = default_callback,
+) -> DeephavenFigure:
+    """Create subplots. Either figs and at least one of rows and cols or grid
+    should be passed.
+
+    Args:
+      *figs: Figures to use. Should be used with rows and/or cols.
+      rows: A list of rows in the resulting subplot grid. This is
+        calculated from cols and number of figs provided if not passed
+        but cols is.
+        One of rows or cols should be provided if passing figs directly.
+      cols: A list of cols in the resulting subplot grid. This is
+        calculated from rows and number of figs provided if not passed
+        but rows is.
+        One of rows or cols should be provided if passing figs directly.
+      shared_xaxes: "rows", "cols"/True, "all" or None depending on what axes
+        should be shared
+      shared_yaxes: "rows"/True, "cols", "all" or None depending on what axes
+        should be shared
+      grid: A grid (list of lists) of figures to draw. None can be
+        provided in a grid entry
+      horizontal_spacing: Spacing between each column. Default 0.2 / cols
+      vertical_spacing: Spacing between each row. Default 0.3 / rows
+      column_widths: The widths of each column. Should sum to 1.
+      row_heights: The heights of each row. Should sum to 1.
+      specs: (Default value = None)
+        A list or grid of dicts that contain specs. An empty
+        dictionary represents no specs, and None represents no figure, either
+        to leave a gap on the subplots on provide room for a figure spanning
+        multiple columns.
+        'l' is a float that adds left padding
+        'r' is a float that adds right padding
+        't' is a float that adds top padding
+        'b' is a float that adds bottom padding
+        'rowspan' is an int to make this figure span multiple rows
+        'colspan' is an int to make this figure span multiple columns
+      unsafe_update_figure: An update function that takes a plotly figure
+        as an argument and optionally returns a plotly figure. If a figure is not
+        returned, the plotly figure passed will be assumed to be the return value.
+        Used to add any custom changes to the underlying plotly figure. Note that
+        the existing data traces should not be removed. This may lead to unexpected
+        behavior if traces are modified in a way that break data mappings.
+
+    Returns:
+      DeephavenFigure: The DeephavenFigure with subplots
+
+    """
+    args = locals()
+
+    func = atomic_make_subplots
+
+    new_fig = atomic_make_subplots(
+        *figs,
+        rows=rows,
+        cols=cols,
+        shared_xaxes=shared_xaxes,
+        shared_yaxes=shared_yaxes,
+        grid=grid,
+        horizontal_spacing=horizontal_spacing,
+        vertical_spacing=vertical_spacing,
+        column_widths=column_widths,
+        row_heights=row_heights,
+        specs=specs,
+    )
+
+    exec_ctx = make_user_exec_ctx()
+
+    new_fig.add_layer_to_graph(func, args, exec_ctx)
+
+    return new_fig

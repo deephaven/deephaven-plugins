@@ -15,6 +15,7 @@ from ._layer import atomic_layer
 from .. import DeephavenFigure
 from ..preprocess.Preprocessor import Preprocessor
 from ..shared import get_unique_names
+from .subplots import atomic_make_grid
 
 PARTITION_ARGS = {
     "by": None,
@@ -24,6 +25,9 @@ PARTITION_ARGS = {
     "size": ("size_sequence", "size_map"),
     "line_dash": ("line_dash_sequence", "line_dash_map"),
     "width": ("width_sequence", "width_map"),
+    "increasing_color": ("increasing_color_sequence", "increasing_color_map"),
+    "decreasing_color": ("decreasing_color_sequence", "decreasing_color_map"),
+    "gauge_color": ("gauge_color_sequence", "gauge_color_map"),
 }
 
 FACET_ARGS = {"facet_row", "facet_col"}
@@ -44,6 +48,23 @@ STYLE_DEFAULTS = {
     "pattern_shape": ["", "/", "\\", "x", "+", "."],
     "size": [4, 5, 6, 7, 8, 9],
     "width": [4, 5, 6, 7, 8, 9],
+    # these are plot by but do not currently have a default sequence
+    # setting them to None ensures they don't have to be removed in the
+    # client for theming to work
+    "increasing_color": None,
+    "decreasing_color": None,
+    "gauge_color": None,
+}
+
+# params that invoke plot bys and have no special cases like color and size
+PLOT_BY_ONLY = {
+    "pattern_shape",
+    "symbol",
+    "line_dash",
+    "width",
+    "gauge_color",
+    "increasing_color",
+    "decreasing_color",
 }
 
 
@@ -101,6 +122,59 @@ def is_single_numeric_col(val: str | list[str], numeric_cols: set[str]) -> bool:
         bool: True if the column is a single numeric column, false otherwise
     """
     return (isinstance(val, str) or len(val) == 1) and val in numeric_cols
+
+
+def update_title(
+    args: dict[str, Any], count: int, title: str | None, types: set[str]
+) -> dict[str, Any]:
+    """
+    Update the title
+
+    Args:
+        args: Args used to determine the title
+        count: The number of partitions
+        title: The title to update
+        types: The types of the plot
+
+    Returns:
+        dict[str, Any]: The updated title args
+    """
+    title_args = {}
+    if "indicator" in types:
+        text_indicator = args.get("text_indicator")
+
+        if "current_partition" in args:
+            partition_title = ", ".join(args["current_partition"].values())
+            if count == 1:
+                # if there is only one partition, the title should still be on the indicator itself
+                # because of excessive padding when using the layout title
+                title_args["title"] = title
+            else:
+                title_args["layout_title"] = title
+
+            if text_indicator is None:
+                # if there is no text column, the partition names should be used
+                # text can be False, which doesn't show text, so check for None specifically
+                if title:
+                    # add the title to the layout as it could be possibly overwritten if count == 1
+                    title_args["layout_title"] = title
+                title_args["title"] = partition_title
+        elif title is not None:
+            # there must be only one trace, so put the title on the indicator itself
+            # this will be overwritten if there is a text column
+            title_args["title"] = title
+
+        # regardless of if there is a partition or not, the title should be on the layout
+        # if there is a text column
+        if text_indicator and title:
+            # there is text, so add the title to the layout as it could be possibly overwritten if count == 1
+            title_args["layout_title"] = title
+
+    elif title is not None:
+        # currently, only indicators that are partitions have custom title behavior
+        # so this is the default behavior
+        title_args["title"] = title
+    return title_args
 
 
 class PartitionManager:
@@ -164,6 +238,9 @@ class PartitionManager:
         # in some cases, such as violin plots, the default groups are a static object that is shared and should
         # be copied to not modify the original
         self.groups = copy(groups) if groups else set()
+        self.grid_rows = args.pop("rows", None)
+        self.grid_cols = args.pop("cols", None)
+        self.indicator = "indicator" in self.groups
         self.preprocessor = None
         self.set_long_mode_variables()
         self.convert_table_to_long_mode()
@@ -171,6 +248,8 @@ class PartitionManager:
         self.partitioned_table = self.process_partitions()
         self.draw_figure = draw_figure
         self.constituents = []
+
+        self.title = args.pop("title", None)
 
     def set_long_mode_variables(self) -> None:
         """
@@ -257,12 +336,16 @@ class PartitionManager:
         else:
             map_arg = PARTITION_ARGS[arg][1]
             map_val = self.args[map_arg]
+
             if map_val == "by":
                 self.args[map_arg] = None
             if isinstance(map_val, tuple):
                 # the first element should be "by" and the map should be in the second, although a tuple with only "by"
                 # in it should also work
                 self.args[map_arg] = map_val[1] if len(map_val) == 2 else None
+            if self.args[arg] is None and self.by_vars and arg in self.by_vars:
+                # if there is no column specified for this specific arg, the by column is used
+                self.args[arg] = self.args["by"]
             self.args[f"{arg}_by"] = self.args.pop(arg)
 
     def handle_plot_by_arg(
@@ -346,7 +429,7 @@ class PartitionManager:
                     self.args["size_sequence"] = STYLE_DEFAULTS[arg]
                 args["size_by"] = plot_by_cols
 
-        elif arg in {"pattern_shape", "symbol", "line_dash", "width"}:
+        elif arg in PLOT_BY_ONLY:
             seq_name, map_name = PARTITION_ARGS[arg][0], PARTITION_ARGS[arg][1]
             seq, map_ = args[seq_name], args[map_name]
             if map_ == "by" or isinstance(map_, dict):
@@ -410,9 +493,17 @@ class PartitionManager:
                     self.facet_row = val
                 else:
                     self.facet_col = val
+            """
+            if arg == "text":
+                if self.by and val is None and self.indicator:
+                    # if by is set, text should be set to "by" by default
+                    # note that text can be False, which doesn't show text,
+                    # so check for None specifically
+                    args["text"] = self.by
+            """
 
         # it's possible that by vars are set but by_vars is None,
-        # so partitioning is still needed but it won't affect styles
+        # so partitioning is still needed, but it won't affect styles
         if not self.by_vars and self.by:
             partition_cols.update(self.by if isinstance(self.by, list) else [self.by])
 
@@ -588,7 +679,6 @@ class PartitionManager:
                     args[self.list_param] = self.stacked_column_names["value"]
 
                 args["current_partition"] = current_partition
-
                 args["table"] = table
                 yield args
         elif (
@@ -619,7 +709,7 @@ class PartitionManager:
         # there are no partitions until a better solution can be done
         # also need the px template to be set
         # the title can also be set here as it will never change
-        title = self.args.get("title")
+        title = self.title
         default_fig = px.scatter(x=[0], y=[0], title=title)
         default_fig.update_traces(x=[], y=[])
         return DeephavenFigure(default_fig)
@@ -642,6 +732,12 @@ class PartitionManager:
         trace_generator = None
         figs = []
         for i, args in enumerate(self.partition_generator()):
+            title_update = update_title(
+                args, len(self.constituents), self.title, self.groups
+            )
+
+            args = {**args, **title_update}
+
             fig = self.draw_figure(call_args=args, trace_generator=trace_generator)
             if not trace_generator:
                 trace_generator = fig.get_trace_generator()
@@ -679,7 +775,12 @@ class PartitionManager:
             figs.append(fig)
 
         try:
-            layered_fig = atomic_layer(*figs, which_layout=0)
+            if self.indicator:
+                layered_fig = atomic_make_grid(
+                    *figs, rows=self.grid_rows, cols=self.grid_cols
+                )
+            else:
+                layered_fig = atomic_layer(*figs, which_layout=0)
         except ValueError:
             return self.default_figure()
 
