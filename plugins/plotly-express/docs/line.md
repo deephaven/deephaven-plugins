@@ -26,6 +26,8 @@ dog_prices = my_table.where("Sym = `DOG`")
 line_plot = dx.line(dog_prices, x="Timestamp", y="Price")
 ```
 
+![Line Plot Basic Example](./_assets/line_plot.png)
+
 ### Line by group
 
 Create a line with a unique color for each group in the dataset by passing the grouping column name to the `by` argument.
@@ -39,6 +41,7 @@ line_plot = dx.line(my_table, x="Timestamp", y="Price", by="Sym")
 ```
 
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.line
 ```
