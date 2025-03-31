@@ -13,7 +13,7 @@ You can display a Deephaven table in a component by doing one of the following:
 - Return a table directly from a component.
 - Return a table as part of a `list` or `tuple`.
 - Add a table to a container such as a `flex` or `panel`.
-- [Use `ui.table`](#use-ui.table).
+- [Use `ui.table`](#use-uitable).
 
 ```python
 from deephaven import new_table, ui
@@ -175,7 +175,7 @@ table_first_cell2 = ui_table_first_cell(
 )
 ```
 
-If the previous hooks do not fit your use case, you can use the [`use_table_listener`](../hooks/use_table_listener.md) hook. This allows you to listen to the raw updates from a table and perform a custom action when the table updates. The update is a dictionary containing dictionaries for data that is `added`, `removed`, or `modified`. Additionally, there is flag indicating if the data is a [replay](core/docs/how-to-guides/replay-data/).
+If the previous hooks do not fit your use case, you can use the [`use_table_listener`](../hooks/use_table_listener.md) hook. This allows you to listen to the raw updates from a table and perform a custom action when the table updates. The update is a dictionary containing dictionaries for data that is `added`, `removed`, or `modified`. Additionally, there is flag indicating if the data is a [replay](/core/docs/how-to-guides/replay-data/).
 
 ```python
 from deephaven import time_table, ui

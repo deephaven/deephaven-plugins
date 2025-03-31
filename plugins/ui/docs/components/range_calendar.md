@@ -10,6 +10,8 @@ from deephaven import ui
 my_range_calendar_basic = ui.range_calendar(aria_label="Trip Dates")
 ```
 
+![Range Calendar Basic Example](../_assets/range_calendar_basic.png)
+
 ## Date types
 
 The range is a dictionary with a `start` date and an `end` date; e.g., `{ "start": "2024-01-02", "end": "2024-01-05" }`.

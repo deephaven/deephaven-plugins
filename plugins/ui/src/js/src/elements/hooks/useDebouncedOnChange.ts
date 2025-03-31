@@ -4,11 +4,11 @@ import { useDebouncedCallback, usePrevious } from '@deephaven/react-hooks';
 
 const VALUE_CHANGE_DEBOUNCE = 250;
 
-function useDebouncedOnChange<T>(
-  propValue: T,
+function useDebouncedOnChange<T, P = T>(
+  propValue: P,
   propOnChange: (() => void) | ((newValue: T) => Promise<void>) | undefined
-): [T, (newValue: T) => void] {
-  const [value, setValue] = useState<T>(propValue);
+): [T | P, (newValue: T) => void] {
+  const [value, setValue] = useState<T | P>(propValue);
   const [pending, setPending] = useState(false);
   const prevPropValue = usePrevious(propValue);
   const log = Log.module('@deephaven/js-plugin-ui/useDebouncedValue');

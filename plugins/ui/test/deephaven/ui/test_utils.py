@@ -2,6 +2,24 @@ import unittest
 
 from .BaseTest import BaseTestCase
 
+from deephaven.ui._internal.utils import (
+    convert_dict_keys,
+    create_props,
+    dict_to_camel_case,
+    dict_to_react_props,
+    get_component_name,
+    convert_date_for_labeled_value,
+    is_primitive,
+    is_iterable,
+    remove_empty_keys,
+    to_camel_case,
+    to_react_prop_case,
+    wrap_callable,
+    unpack_item_table_source,
+)
+from deephaven.ui.types import Undefined
+from deephaven.ui import item_table_source
+
 
 def my_test_func():
     raise Exception("should not be called")
@@ -9,16 +27,12 @@ def my_test_func():
 
 class UtilsTest(BaseTestCase):
     def test_get_component_name(self):
-        from deephaven.ui._internal.utils import get_component_name
-
         self.assertEqual(
             get_component_name(my_test_func),
             "test.deephaven.ui.test_utils.my_test_func",
         )
 
     def test_to_camel_case(self):
-        from deephaven.ui._internal.utils import to_camel_case
-
         self.assertEqual(to_camel_case("test_string"), "testString")
         self.assertEqual(to_camel_case("test_string_2"), "testString2")
         self.assertEqual(to_camel_case("align_items"), "alignItems")
@@ -32,7 +46,6 @@ class UtilsTest(BaseTestCase):
         self.assertEqual(to_camel_case("unsafe_style"), "unsafeStyle")
 
     def test_to_react_prop_case(self):
-        from deephaven.ui._internal.utils import to_react_prop_case
 
         self.assertEqual(to_react_prop_case("test_string"), "testString")
         self.assertEqual(to_react_prop_case("test_string_2"), "testString2")
@@ -49,8 +62,6 @@ class UtilsTest(BaseTestCase):
         self.assertEqual(to_react_prop_case("aria_labelledby"), "aria-labelledby")
 
     def test_convert_dict_keys(self):
-        from deephaven.ui._internal.utils import convert_dict_keys
-
         # Test with a function reversing the keys
         self.assertDictEqual(
             convert_dict_keys(
@@ -60,8 +71,6 @@ class UtilsTest(BaseTestCase):
         )
 
     def test_dict_to_camel_case(self):
-        from deephaven.ui._internal.utils import dict_to_camel_case
-
         self.assertDictEqual(
             dict_to_camel_case({"test_string": "foo", "test_string_2": "bar_biz"}),
             {"testString": "foo", "testString2": "bar_biz"},
@@ -87,8 +96,6 @@ class UtilsTest(BaseTestCase):
         )
 
     def test_dict_to_react_props(self):
-        from deephaven.ui._internal.utils import dict_to_react_props
-
         self.assertDictEqual(
             dict_to_react_props({"test_string": "foo", "test_string_2": "bar_biz"}),
             {"testString": "foo", "testString2": "bar_biz"},
@@ -116,9 +123,6 @@ class UtilsTest(BaseTestCase):
         )
 
     def test_remove_empty_keys(self):
-        from deephaven.ui._internal.utils import remove_empty_keys
-        from deephaven.ui.types import Undefined
-
         self.assertDictEqual(
             remove_empty_keys({"foo": "bar", "biz": None, "baz": 0}),
             {"foo": "bar", "baz": 0},
@@ -163,8 +167,6 @@ class UtilsTest(BaseTestCase):
         )
 
     def test_wrap_callable(self):
-        from deephaven.ui._internal.utils import wrap_callable
-
         result = None
 
         def test_func_with_no_args():
@@ -294,8 +296,6 @@ class UtilsTest(BaseTestCase):
         wrapped = wrap_callable(print)
 
     def test_create_props(self):
-        from deephaven.ui._internal.utils import create_props
-
         children1, props1 = create_props(
             {
                 "foo": "bar",
@@ -337,9 +337,23 @@ class UtilsTest(BaseTestCase):
             },
         )
 
+    def test_convert_date_for_labeled_value(self):
+        from deephaven.time import to_j_instant, to_j_zdt, to_j_local_date
+
+        instant = convert_date_for_labeled_value(
+            to_j_instant("2035-01-31T12:30:00.12345Z")
+        )
+        self.assertEqual(instant, 2053859400123450000)
+
+        zdt = convert_date_for_labeled_value(
+            to_j_zdt("2035-01-31T12:30:00.12345 America/New_York")
+        )
+        self.assertEqual(zdt, (2053877400123450000, "America/New_York"))
+
+        local_date = convert_date_for_labeled_value(to_j_local_date("2035-01-31"))
+        self.assertEqual(local_date, "2035-01-31")
+
     def test_unpack_item_table_source(self):
-        from deephaven.ui._internal.utils import unpack_item_table_source
-        from deephaven.ui import item_table_source
 
         children = ("table",)
         props = {
@@ -376,6 +390,35 @@ class UtilsTest(BaseTestCase):
             unpack_item_table_source(children, props, {"table", "key_column"}),
             (expected_children, expected_props),
         )
+
+    def test_is_primitive(self):
+        self.assertTrue(is_primitive(1))
+        self.assertTrue(is_primitive("a"))
+        self.assertTrue(is_primitive(None))
+        self.assertTrue(is_primitive(False))
+        self.assertFalse(is_primitive([]))
+        self.assertFalse(is_primitive({}))
+        self.assertFalse(is_primitive(()))
+        self.assertFalse(is_primitive(object()))
+        self.assertFalse(is_primitive(Exception()))
+
+    def test_is_iterable(self):
+        self.assertTrue(is_iterable([]))
+        self.assertTrue(is_iterable({}))
+        self.assertTrue(is_iterable(()))
+        self.assertTrue(is_iterable({"foo": "bar"}))
+        self.assertTrue(is_iterable(("foo", "bar")))
+        self.assertTrue(is_iterable(map(lambda x: x, [1, 2, 3])))
+        self.assertTrue(is_iterable(filter(lambda x: x, [1, 2, 3])))
+        self.assertTrue(is_iterable(range(10)))
+        self.assertTrue(is_iterable("foo", ()))
+        self.assertFalse(is_iterable(1))
+        self.assertFalse(is_iterable("a"))
+        self.assertFalse(is_iterable(None))
+        self.assertFalse(is_iterable(False))
+        self.assertFalse(is_iterable(object()))
+        self.assertFalse(is_iterable(Exception()))
+        self.assertFalse(is_iterable(lambda: None))
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 from deephaven import ui
 from itertools import count
+from typing import Any
 
 
 @ui.component
@@ -7,11 +8,14 @@ def ui_basic_component():
     count, set_count = ui.use_state(0)
     text, set_text = ui.use_state("hello")
 
+    def _handle_press(e: Any):
+        set_count(lambda c: c + 1)
+
+    handle_press = ui.use_callback(_handle_press, [])
+
     return ui.flex(
-        ui.action_button(
-            f"You pressed me {count} times", on_press=lambda _: set_count(count + 1)
-        ),
-        ui.text_field(value=text, on_change=set_text),
+        ui.action_button(f"You pressed me {count} times", on_press=handle_press),
+        ui.text_field(label="Greeting", value=text, on_change=set_text),
         ui.text(f"You typed {text}"),
         direction="column",
     )

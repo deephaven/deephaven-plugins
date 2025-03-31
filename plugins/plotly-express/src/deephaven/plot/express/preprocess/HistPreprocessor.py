@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import Any, Generator
 
-from deephaven import agg, empty_table, new_table
-from deephaven.table import PartitionedTable, Table
+from deephaven import agg, new_table
+from deephaven.table import Table
 
-from .UnivariatePreprocessor import UnivariatePreprocessor
+from .UnivariateAwarePreprocessor import UnivariateAwarePreprocessor
 from ..shared import get_unique_names
 from deephaven.column import long_col
 from deephaven.updateby import cum_sum
@@ -36,7 +36,7 @@ def get_aggs(
     )
 
 
-class HistPreprocessor(UnivariatePreprocessor):
+class HistPreprocessor(UnivariateAwarePreprocessor):
     """
     Preprocessor for histograms.
 
@@ -51,17 +51,39 @@ class HistPreprocessor(UnivariatePreprocessor):
         cumulative: If True, the bins are cumulative
     """
 
-    def __init__(self, args: dict[str, Any], pivot_vars: dict[str, str]):
-        super().__init__(args, pivot_vars)
+    def __init__(
+        self,
+        args: dict[str, Any],
+        stacked_column_names: dict[str, str],
+        list_param: str | None = None,
+    ):
+        super().__init__(args, stacked_column_names, list_param)
         self.range_table = None
         self.names = {}
         self.nbins = args.pop("nbins", 10)
         self.range_bins = args.pop("range_bins", None)
-        self.histfunc = args.pop("histfunc", "count")
+        # plotly express defaults to sum if both x and y are set, count if only one is set
+        self.histfunc = self.determine_histfunc()
         self.barnorm = args.pop("barnorm", None)
         self.histnorm = args.pop("histnorm", None)
         self.cumulative = args.pop("cumulative", False)
         self.prepare_preprocess()
+
+    def determine_histfunc(self) -> str:
+        """
+        Determine the histfunc to use based on the arguments passed in
+
+        Returns:
+            The histfunc to use
+        """
+        histfunc = self.args.pop("histfunc", None)
+        if histfunc is None:
+            histfunc = (
+                "count"
+                if self.args.get("x") is None or self.args.get("y") is None
+                else "sum"
+            )
+        return histfunc
 
     def prepare_preprocess(self) -> None:
         """
@@ -69,25 +91,26 @@ class HistPreprocessor(UnivariatePreprocessor):
         """
         self.names = get_unique_names(
             self.args["table"],
-            ["range_index", "range", "bin_min", "bin_max", self.histfunc, "total"],
+            ["range_index", "range", "bin_min", "bin_max", "bin_mid", "total"],
         )
         self.range_table = create_range_table(
             self.args["table"],
-            self.cols,
+            self.bin_col,
             self.range_bins,
             self.nbins,
             self.names["range"],
         )
 
     def create_count_tables(
-        self, tables: list[Table], column: str | None = None
+        self, tables: list[Table], bin_col: str, agg_col: str
     ) -> Generator[tuple[Table, str], None, None]:
         """
         Create count tables that aggregate up values.
 
         Args:
             tables: List of tables to create counts for
-            column: the column used
+            bin_col: The column to compute indices for
+            agg_col: The column to compute an aggregation over
 
         Yields:
             A tuple containing the table and a temporary column
@@ -99,17 +122,77 @@ class HistPreprocessor(UnivariatePreprocessor):
             raise ValueError("Range table not created")
         for i, table in enumerate(tables):
             # the column needs to be temporarily renamed to avoid collisions
-            tmp_name = f"tmp{i}"
-            tmp_col = get_unique_names(table, [tmp_name])[tmp_name]
+            tmp_bin_col_base = f"tmpbin{i}"
+            tmp_agg_col_base = f"tmpbar{i}"
+            tmp_col_names = get_unique_names(
+                table, [tmp_bin_col_base, tmp_agg_col_base]
+            )
+            tmp_bin_col, tmp_agg_col = (
+                tmp_col_names[tmp_bin_col_base],
+                tmp_col_names[tmp_agg_col_base],
+            )
             count_table = (
-                table.view(f"{tmp_col} = {column}")
+                table.view(
+                    [
+                        f"{tmp_agg_col} = {agg_col}",
+                        f"{tmp_bin_col} = {bin_col}",
+                    ]
+                )
                 .join(self.range_table)
-                .update_view(f"{range_index} = {range_}.index({tmp_col})")
+                .update_view(f"{range_index} = {range_}.index({tmp_bin_col})")
                 .where(f"!isNull({range_index})")
                 .drop_columns(range_)
-                .agg_by([agg_func(tmp_col)], range_index)
+                .agg_by([agg_func(tmp_agg_col)], range_index)
             )
-            yield count_table, tmp_col
+            yield count_table, tmp_agg_col
+
+    def create_hist_agg_label(self) -> str:
+        """
+        Create the agg column name displayed.
+        This mirrors the logic in plotly express.
+
+        Returns:
+            The agg column name displayed
+        """
+        # in the case where only one column is aggregated on, the label should reflect the histfunc used
+        hist_agg_label = self.histfunc
+
+        # it's possible that the user has relabeled the columns, and it's difficult to do it later
+        labels = self.args.get("labels", {})
+        relabeled_agg_col = (
+            labels.get(self.agg_col, self.agg_col) if labels else self.agg_col
+        )
+
+        if self.histfunc != "count" and self.bin_col != self.agg_col:
+            # if a different column is aggregated on, the label name should reflect that
+            # plotly express will not do this in case of count because the value of count is the same
+            # whether aggregating on the same column or a different one
+            # note that plotly express also does not allow histfunc to be anything other than count
+            # if only one column is aggregated on but we do, hence our extra check for column names
+            hist_agg_label = f"{self.histfunc} of {relabeled_agg_col}"
+
+        if self.histnorm:
+            if self.histfunc == "count":
+                hist_agg_label = self.histnorm
+            elif self.histfunc == "sum":
+                if self.histnorm == "probability":
+                    hist_agg_label = f"fraction of {hist_agg_label}"
+                elif self.histnorm == "percent":
+                    hist_agg_label = f"percent of {hist_agg_label}"
+                else:
+                    # in this case, plotly express uses the original column name
+                    hist_agg_label = f"{self.histnorm} weighted by {relabeled_agg_col}"
+            elif self.histnorm == "probability":
+                hist_agg_label = f"fraction of sum of {hist_agg_label}"
+            elif self.histnorm == "percent":
+                hist_agg_label = f"percent of sum of {hist_agg_label}"
+            else:
+                hist_agg_label = f"{self.histnorm} of {hist_agg_label}"
+
+        if self.barnorm:
+            hist_agg_label = f"{hist_agg_label} (normalized as {self.barnorm})"
+
+        return hist_agg_label
 
     def preprocess_partitioned_tables(
         self, tables: list[Table], column: str | None = None
@@ -125,8 +208,9 @@ class HistPreprocessor(UnivariatePreprocessor):
             A tuple containing the table and a mapping of metadata
 
         """
-        # column will only be set if there's a pivot var, which means the table has been restructured
-        column = self.col_val if not column else column
+
+        bin_col = self.bin_col
+        agg_col = self.agg_col
 
         range_index, range_, bin_min, bin_max, total = (
             self.names["range_index"],
@@ -140,14 +224,18 @@ class HistPreprocessor(UnivariatePreprocessor):
             [long_col(self.names["range_index"], [i for i in range(self.nbins)])]
         )
 
-        count_cols = []
-        for count_table, count_col in self.create_count_tables(tables, column):
+        new_agg_cols = []
+        for count_table, count_col in self.create_count_tables(
+            tables, bin_col, agg_col
+        ):
             bin_counts = bin_counts.natural_join(
                 count_table, on=[range_index], joins=[count_col]
             )
-            count_cols.append(count_col)
+            new_agg_cols.append(count_col)
 
-        var_axis_name = self.names[self.histfunc]
+        bin_mid = self.names["bin_mid"]
+
+        hist_agg_label = self.create_hist_agg_label()
 
         if not self.range_table:
             raise ValueError("Range table not created")
@@ -156,28 +244,26 @@ class HistPreprocessor(UnivariatePreprocessor):
             [
                 f"{bin_min} = {range_}.binMin({range_index})",
                 f"{bin_max} = {range_}.binMax({range_index})",
-                f"{var_axis_name}=0.5*({bin_min}+{bin_max})",
+                f"{bin_mid}=0.5*({bin_min}+{bin_max})",
             ]
         )
 
         if self.histnorm in {"percent", "probability", "probability density"}:
             mult_factor = 100 if self.histnorm == "percent" else 1
 
-            sums = [f"{col}_sum = {col}" for col in count_cols]
+            sums = [f"{col}_sum = {col}" for col in new_agg_cols]
 
             normed = [
-                f"{col} = {col} * {mult_factor} / {col}_sum" for col in count_cols
+                f"{col} = {col} * {mult_factor} / {col}_sum" for col in new_agg_cols
             ]
 
             # range_ and bin cols need to be kept for probability density
-            # var_axis_name needs to be kept for plotting
+            # agg_var_name needs to be kept for plotting
             bin_counts = (
                 bin_counts.agg_by(
                     [
                         agg.sum_(sums),
-                        agg.group(
-                            count_cols + [var_axis_name, range_, bin_min, bin_max]
-                        ),
+                        agg.group(new_agg_cols + [bin_mid, range_, bin_min, bin_max]),
                     ]
                 )
                 .update_view(normed)
@@ -185,7 +271,7 @@ class HistPreprocessor(UnivariatePreprocessor):
             )
 
         if self.cumulative:
-            bin_counts = bin_counts.update_by(cum_sum(count_cols))
+            bin_counts = bin_counts.update_by(cum_sum(new_agg_cols))
 
             # with plotly express, cumulative=True will ignore density (including
             # the density part of probability density, but not the probability
@@ -195,19 +281,21 @@ class HistPreprocessor(UnivariatePreprocessor):
 
         if self.histnorm in {"density", "probability density"}:
             bin_counts = bin_counts.update_view(
-                [f"{col} = {col} / ({bin_max} - {bin_min})" for col in count_cols]
+                [f"{col} = {col} / ({bin_max} - {bin_min})" for col in new_agg_cols]
             )
 
         if self.barnorm:
             mult_factor = 100 if self.barnorm == "percent" else 1
-            sum_form = f"sum({','.join(count_cols)})"
+            sum_form = f"sum({','.join(new_agg_cols)})"
             bin_counts = bin_counts.update_view(
                 [f"{total}={sum_form}"]
-                + [f"{col}={col} * {mult_factor} / {total}" for col in count_cols]
+                + [f"{col}={col} * {mult_factor} / {total}" for col in new_agg_cols]
             )
 
-        for count_col in count_cols:
-            yield bin_counts.view([var_axis_name, f"{column} = {count_col}"]), {
-                self.var: var_axis_name,
-                self.other_var: column,
+        for new_agg_col in new_agg_cols:
+            yield bin_counts.view([f"{bin_col} = {bin_mid}", new_agg_col]), {
+                self.agg_var: new_agg_col,
+                self.bin_var: bin_col,
+                f"hist_agg_label": hist_agg_label,
+                f"hist_orientation": self.orientation,
             }

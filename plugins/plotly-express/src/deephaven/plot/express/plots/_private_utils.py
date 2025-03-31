@@ -103,7 +103,7 @@ def apply_args_groups(args: dict[str, Any], possible_groups: set[str] | None) ->
 
     Args:
       args: A dictionary of args to transform
-      groups: A set of groups used to transform the args
+      possible_groups: A set of groups used to transform the args
 
     """
     groups: set = (
@@ -168,6 +168,19 @@ def apply_args_groups(args: dict[str, Any], possible_groups: set[str] | None) ->
 
     if "webgl" in groups:
         args["render_mode"] = "webgl"
+
+    if "indicator" in groups:
+        append_suffixes(
+            [
+                "increasing_color_sequence",
+                "attached_increasing_color",
+                "decreasing_color_sequence",
+                "attached_decreasing_color",
+                "text",
+            ],
+            ["indicator"],
+            sync_dict,
+        )
 
     sync_dict.sync_pop()
 
@@ -235,8 +248,12 @@ def create_deephaven_figure(
         # this is a marginal, so provide an empty update function
         update_wrapper = lambda x: x
 
-    list_var = partitioned.list_var
-    pivot_col = partitioned.pivot_vars["value"] if partitioned.pivot_vars else None
+    list_param = partitioned.list_param
+    pivot_col = (
+        partitioned.stacked_column_names["value"]
+        if partitioned.stacked_column_names
+        else None
+    )
     by = partitioned.by
 
     update = {}
@@ -245,9 +262,9 @@ def create_deephaven_figure(
         # by needs to be updated as if there is a list variable but by is None, the pivot column is used as the by
         update["by"] = by
 
-    if list_var:
+    if list_param:
         # if there is a list variable, update the list variable to the pivot column
-        update[list_var] = pivot_col
+        update[list_param] = pivot_col
 
     return (
         update_wrapper(partitioned.create_figure()),
@@ -515,7 +532,6 @@ def shared_histogram(is_marginal: bool = True, **args: Any) -> DeephavenFigure:
     set_all(args, HISTOGRAM_DEFAULTS)
 
     args["bargap"] = 0
-    args["hist_val_name"] = args.get("histfunc", "count")
 
     func = px.bar
     groups = {"bar", "preprocess_hist", "supports_lists"}

@@ -2,14 +2,27 @@ import {
   LabeledValue as DHCLabeledValue,
   LabeledValueProps as DHCLabeledValueProps,
 } from '@deephaven/components';
+import { RangeValue } from './hooks';
+import {
+  SerializedLabeledValueProps,
+  useLabeledValueProps,
+} from './hooks/useLabeledValueProps';
 
 export function LabeledValue(
-  props: DHCLabeledValueProps<number | string[] | string>
+  props: SerializedLabeledValueProps<
+    DHCLabeledValueProps<number | string | string[] | RangeValue<number>>
+  >
 ): JSX.Element {
+  const labeledValueProps = useLabeledValueProps(props);
+
   return (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <DHCLabeledValue {...props} />
+    <DHCLabeledValue
+      // eslint-disable-next-line react/jsx-props-no-spreading
+      {...labeledValueProps}
+    />
   );
 }
+
 LabeledValue.displayName = 'LabeledValue';
+
 export default LabeledValue;

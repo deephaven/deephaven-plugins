@@ -16,6 +16,8 @@ def ui_progress_circle():
 progress_circle = ui_progress_circle()
 ```
 
+![Progress Circle Basic Example](../_assets/progress_circle_basic.png)
+
 ## UI Recommendations
 
 1. Use the appropriate size based on the parent's size.

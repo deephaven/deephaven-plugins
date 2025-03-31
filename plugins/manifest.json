@@ -1,6 +1,11 @@
 {
   "plugins": [
     {
+      "name": "ag-grid",
+      "version": "0.0.0",
+      "main": "src/js/dist/index.js"
+    },
+    {
       "name": "matplotlib",
       "version": "0.0.0",
       "main": "src/js/dist/index.js"

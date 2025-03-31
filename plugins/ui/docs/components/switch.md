@@ -10,6 +10,8 @@ from deephaven import ui
 my_switch_basic = ui.switch("Low power mode")
 ```
 
+![Switch Basic Example](../_assets/switch_basic.png)
+
 ## UI recommendations
 
 Recommendations for creating switches:
