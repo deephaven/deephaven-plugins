@@ -66,10 +66,11 @@ name = "USNYSE_EXAMPLE"
 nyse_cal = calendar(name)
 
 # checks a full holiday on the 28th, a partial holiday on the 29th, a weekend, and regular business days
+
 source = empty_table(3000).update(
     [
         "Timestamp = '2024-11-27T9:27:00 ET' + i * 3 * MINUTE",
-        "Price = randomDouble(100.0, 200.0)",
+        "Price = i",
     ]
 )
 
