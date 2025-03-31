@@ -4,7 +4,6 @@ import { DateTimeColumnFormatter, Formatter } from '@deephaven/jsapi-utils';
 import { ChartModel, ChartUtils } from '@deephaven/chart';
 import Log from '@deephaven/log';
 import { ChartEvent, RenderOptions } from '@deephaven/chart/dist/ChartModel';
-import { DateTimeColumnFormatter, Formatter } from '@deephaven/jsapi-utils';
 import memoize from 'memoizee';
 import {
   DownsampleInfo,
@@ -153,6 +152,7 @@ export class PlotlyExpressChartModel extends ChartModel {
    */
   calendar: DhType.calendar.BusinessCalendar | null = null;
 
+  /**
    * The set of parameters that need to be replaced with the default value format.
    */
   defaultValueFormatSet: Set<FormatUpdate> = new Set();
@@ -263,16 +263,6 @@ export class PlotlyExpressChartModel extends ChartModel {
   override setRenderOptions(renderOptions: RenderOptions): void {
     this.handleWebGlAllowed(renderOptions.webgl, this.renderOptions?.webgl);
     super.setRenderOptions(renderOptions);
-  }
-
-  override setFormatter(formatter: Formatter): void {
-    setDefaultValueFormat(
-      this.plotlyData,
-      this.defaultValueFormatSet,
-      this.dataTypeMap,
-      formatter
-    );
-    super.setFormatter(formatter);
   }
 
   /**
@@ -433,6 +423,13 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   setFormatter(formatter: Formatter): void {
+    setDefaultValueFormat(
+      this.plotlyData,
+      this.defaultValueFormatSet,
+      this.dataTypeMap,
+      formatter
+    );
+
     if (this.timeZoneChanged(formatter)) {
       this.fireRangebreaksUpdated(formatter);
       this.fireTimeZoneUpdated();
