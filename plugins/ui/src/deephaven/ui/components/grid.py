@@ -27,9 +27,9 @@ def grid(
     auto_rows: DimensionValue | None = None,
     auto_flow: GridFlow | None = None,
     justify_items: JustifyItems | None = None,
-    justify_content: JustifyContent = "stretch",
-    align_content: AlignContent = "start",
-    align_items: AlignItems = "stretch",
+    justify_content: JustifyContent | None = None,
+    align_content: AlignContent | None = None,
+    align_items: AlignItems | None = None,
     gap: DimensionValue | None = "size-100",
     column_gap: DimensionValue | None = None,
     row_gap: DimensionValue | None = None,
@@ -132,6 +132,9 @@ def grid(
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
         key: A unique identifier used by React to render elements in a list.
+
+    Returns:
+        The rendered grid.
     """
     return component_element(
         "Grid",
