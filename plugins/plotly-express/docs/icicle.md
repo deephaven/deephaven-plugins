@@ -32,6 +32,40 @@ gapminder_recent = (
 icicle_plot = dx.icicle(gapminder_recent, names="Continent", values="Pop", parents="World")
 ```
 
+# A nested icicle plot with branchvalues
+
+By default, the `branchvalues` argument is set to `"remainder"`.
+If the values column should be added to the sum of its children to get the value for a node, keep the default.
+If the values column is equal to the sum of its children, set `branchvalues` to `"total"`.
+
+```python
+import deephaven.plot.express as dx
+from deephaven import merge
+
+data = dx.data.gapminder(ticking=False)
+
+countries = data.last_by("Country").view(["Name=Country", "Pop", "Parent=Continent"])
+
+# Sum country population by continent
+continents = (
+    countries.drop_columns("Name")
+    .sum_by("Parent")
+    .view(["Name=Parent", "Pop", "Parent=`World`"])
+)
+
+# Sum continent population
+world = (
+    continents.view("Pop").sum_by().view(["Name=`World`", "Pop", "Parent=(String)null"])
+)
+
+merged_gapminder = merge([world, continents, countries])
+
+# Since the values column is equal to the sum of it's children, set branchvalues to "total"
+icicle_nested = dx.icicle(
+    merged_gapminder, names="Name", values="Pop", parents="Parent", branchvalues="total"
+)
+```
+
 ## API Reference
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.icicle
