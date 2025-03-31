@@ -10,3 +10,4 @@ from ._layer import layer
 from .subplots import make_subplots
 from .maps import scatter_geo, scatter_mapbox, density_mapbox, line_geo, line_mapbox
 from .heatmap import density_heatmap
+from .indicator import indicator

@@ -50,6 +50,10 @@
             "path": "icicle.md"
           },
           {
+            "label": "Indicator",
+            "path": "indicator.md"
+          },
+          {
             "label": "Line",
             "path": "line.md"
           },
