@@ -32,10 +32,10 @@ gapminder_recent = (
 sunburst_plot = dx.sunburst(gapminder_recent, names="Continent", values="Pop", parents="World")
 ```
 
-# A nested sunburst plot with branchvalues
+# A nested sunburst plot with branch values
 
 By default, the `branchvalues` argument is set to `"remainder"`.
-If the values column should be added to the sum of its children to get the value for a node, keep the default.
+Keep the default if the values column should be added to the sum of its children to get the value for a node.
 If the values column is equal to the sum of its children, set `branchvalues` to `"total"`.
 
 ```python
