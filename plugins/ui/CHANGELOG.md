@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.29.1 - 2025-04-01
+#### Bug Fixes
+- Handle a null jsonClient correctly (DH-18461) (#1138) - (1852554) - mofojed
+- Unwanted linebreaks in `tutorial.md` (#1133) - (63d6e66) - Joe
+#### Documentation
+- component doc for ui.grid (#1148) - (e6996c1) - dgodinez-dh
+- Fixing docs links (#1139) - (328802e) - Matthew Runyon
+#### Refactoring
+- Remove fast-deep-equal from UITable (#1140) - (f1054ee) - mofojed
+
+- - -
+
 ## ui-v0.29.0 - 2025-03-19
 #### Bug Fixes
 - Re-opening widget would break interactivity (DH-18090) (#1143) - (8f73a3d) - mofojed
