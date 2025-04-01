@@ -430,7 +430,8 @@ export class PlotlyExpressChartModel extends ChartModel {
       formatter
     );
 
-    if (this.timeZoneChanged(formatter)) {
+    // Only update if isSubscribed because otherwise the events are unnecessary and buggy
+    if (this.timeZoneChanged(formatter) && this.isSubscribed) {
       this.fireRangebreaksUpdated(formatter);
       this.fireTimeZoneUpdated();
     }
@@ -764,7 +765,11 @@ export class PlotlyExpressChartModel extends ChartModel {
     // may still be loading. We should consider making this smarter to fire after
     // all initial data has loaded.
     // https://github.com/deephaven/deephaven-plugins/issues/267
-    if (!this.hasInitialLoadCompleted) {
+    // If not subscribed, the fireLoadFinished will not go through since there is no listeners
+    // which results in a loading spinner that does not go away on its own
+    // isSubscribed can also be checked before calling fireUpdate, but this is a
+    // subtle bug that is good to check for here just in case
+    if (!this.hasInitialLoadCompleted && this.isSubscribed) {
       this.fireLoadFinished();
       this.hasInitialLoadCompleted = true;
     }
