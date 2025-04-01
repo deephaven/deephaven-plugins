@@ -201,3 +201,51 @@ test.describe('UI flex components', () => {
     });
   });
 });
+
+// Tests grid components render as expected
+test.describe('UI grid components', () => {
+  [
+    { name: 'grid_0', traces: 0 },
+    { name: 'grid_1', traces: 0 },
+    { name: 'grid_2', traces: 0 },
+    { name: 'grid_3', traces: 0 },
+    { name: 'grid_4', traces: 0 },
+    { name: 'grid_5', traces: 0 },
+    { name: 'grid_6', traces: 0 },
+    { name: 'grid_7', traces: 1 },
+    { name: 'grid_8', traces: 1 },
+    { name: 'grid_9', traces: 0 },
+    { name: 'grid_10', traces: 0 },
+    { name: 'grid_11', traces: 2 },
+    { name: 'grid_12', traces: 2 },
+    { name: 'grid_13', traces: 2 },
+    { name: 'grid_14', traces: 0 },
+    { name: 'grid_15', traces: 0 },
+    { name: 'grid_16', traces: 0 },
+    { name: 'grid_17', traces: 0 },
+    { name: 'grid_18', traces: 0 },
+    { name: 'grid_19', traces: 1 },
+    { name: 'grid_20', traces: 1 },
+    { name: 'grid_21', traces: 1 },
+    { name: 'grid_22', traces: 0 },
+    { name: 'grid_23', traces: 0 },
+    { name: 'grid_24', traces: 0 },
+  ].forEach(i => {
+    test(i.name, async ({ page }) => {
+      await gotoPage(page, '');
+      await openPanel(page, i.name, SELECTORS.REACT_PANEL_VISIBLE);
+
+      // need to wait for plots to be loaded before taking screenshot
+      // easiest way to check that is if the traces are present
+      if (i.traces > 0) {
+        await expect(
+          await page.locator(SELECTORS.REACT_PANEL_VISIBLE).locator('.trace')
+        ).toHaveCount(i.traces);
+      }
+
+      await expect(
+        page.locator(SELECTORS.REACT_PANEL_VISIBLE)
+      ).toHaveScreenshot();
+    });
+  });
+});
