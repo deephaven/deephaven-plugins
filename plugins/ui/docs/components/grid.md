@@ -13,7 +13,7 @@ Similar to [`flex`](./flex.md), a grid can justify and align items.
 
 ### Explicit grid
 
-This example demonstrates how to create a typical application layout featuring a header, sidebar, content area, and footer. The `areas` prop is used to specify the grid areas, while the `columns` and `rows` props define their sizes. Each child component utilizes the `grid_area` prop to indicate its designated area within the grid.
+This example demonstrates how to create a typical application layout featuring a header, sidebar, content area, and footer. The `areas` prop specifies the grid areas, while the `columns` and `rows` props define their sizes. Each child component utilizes the `grid_area` prop to indicate its designated area within the grid.
 
 ```python
 from deephaven import ui
@@ -41,7 +41,7 @@ explicit_grid_example = explicit_grid()
 
 ### Implicit grid
 
-This example creates an implicit grid. It uses the `repeat` function to automatically generate five columns of equal width. The `auto_rows` prop sets the height of the rows, and the items are centered horizontally within the container. A gap is also added between the items.
+This example creates an implicit grid. It uses the `repeat` function to generate five columns of equal width automatically. The `auto_rows` prop sets the height of the rows, and the items are centered horizontally within the container. A gap is also added between the items.
 
 ```python
 from deephaven import ui
