@@ -5,10 +5,11 @@ import {
   type PlotlyDataLayoutConfig,
   type PlotNumber,
   type PlotType,
+  type Layout,
 } from 'plotly.js';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { ChartUtils } from '@deephaven/chart';
-import { type Formatter } from '@deephaven/jsapi-utils';
+import { Formatter } from '@deephaven/jsapi-utils';
 
 /**
  * Traces that are at least partially powered by WebGL and have no SVG equivalent.
@@ -51,7 +52,21 @@ export interface PlotlyChartWidget {
   ) => void;
 }
 
+interface DeephavenCalendarBusinessPeriod {
+  open: string;
+  close: string;
+}
+
 export interface PlotlyChartDeephavenData {
+  calendar?: {
+    timeZone: string;
+    businessDays: Array<string>;
+    holidays: Array<{
+      date: string;
+      businessPeriods: Array<DeephavenCalendarBusinessPeriod>;
+    }>;
+    businessPeriods: Array<DeephavenCalendarBusinessPeriod>;
+  };
   mappings: Array<{
     table: number;
     data_columns: Record<string, string[]>;
@@ -321,6 +336,44 @@ export function setWebGlTraceType(
       trace.type = trace.type.substring(0, trace.type.length - 2) as PlotType;
     }
   });
+}
+
+/**
+ * Create rangebreaks from a business calendar
+ * @param formatter The formatter to use for the rangebreak calculations
+ * @param calendar The business calendar to create the rangebreaks from
+ * @param layout The layout to update with the rangebreaks
+ * @param chartUtils The chart utils to use for the rangebreaks
+ * @returns The updated layout with the rangebreaks added
+ */
+export function setRangebreaksFromCalendar(
+  formatter: Formatter | null,
+  calendar: DhType.calendar.BusinessCalendar | null,
+  layout: Partial<Layout>,
+  chartUtils: ChartUtils
+): Partial<Layout> | null {
+  if (formatter != null && calendar != null) {
+    const layoutUpdate: Partial<Layout> = {};
+
+    Object.keys(layout).forEach(key => {
+      if (key.includes('axis')) {
+        const axis = layout[key as keyof Layout];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const rangebreaks = (axis as any)?.rangebreaks ?? [];
+        const updatedRangebreaks =
+          chartUtils.createRangeBreaksFromBusinessCalendar(calendar, formatter);
+        const updatedAxis = {
+          ...(typeof axis === 'object' ? axis : {}),
+          rangebreaks: [...rangebreaks, ...updatedRangebreaks],
+        };
+
+        (layoutUpdate as Record<string, unknown>)[key] = updatedAxis;
+      }
+    });
+
+    return layoutUpdate;
+  }
+  return null;
 }
 
 /**

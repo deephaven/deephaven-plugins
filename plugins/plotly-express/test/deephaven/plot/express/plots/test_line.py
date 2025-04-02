@@ -21,7 +21,7 @@ class LineTestCase(BaseTestCase):
             ]
         )
 
-    def test_basic_scatter(self):
+    def test_basic_line(self):
         import src.deephaven.plot.express as dx
         from deephaven.constants import NULL_INT
 
@@ -75,3 +75,30 @@ class LineTestCase(BaseTestCase):
             expected_is_user_set_template=False,
             expected_is_user_set_color=False,
         )
+
+    def test_line_calendar(self):
+        import src.deephaven.plot.express as dx
+
+        chart = dx.line(self.source, x="X", y="Y", calendar="TestCalendar").to_dict(
+            self.exporter
+        )
+
+        expected_calendar = {
+            "timeZone": "America/New_York",
+            "businessDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
+            "holidays": [
+                {"date": "2024-01-01", "businessPeriods": []},
+                {
+                    "date": "2024-04-01",
+                    "businessPeriods": [
+                        {
+                            "open": "08:00",
+                            "close": "12:00",
+                        }
+                    ],
+                },
+            ],
+            "businessPeriods": [{"open": "08:00", "close": "12:00"}],
+        }
+
+        self.assert_calendar_equal(chart["deephaven"]["calendar"], expected_calendar)
