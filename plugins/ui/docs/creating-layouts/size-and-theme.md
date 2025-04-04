@@ -118,3 +118,80 @@ ui_toast_variants_example = ui_toast_variants()
 ![light theme toast](../_assets/size-and-theme-light-toast.png)
 
 ## Size
+
+`deephaven.ui` components will be sized automatically based on [layout](../creating-layouts/layout-overview.md). You can also specify the size using the sizing props:
+
+- [`width`](https://developer.mozilla.org/en-US/docs/Web/CSS/width)
+- [`height`](https://developer.mozilla.org/en-US/docs/Web/CSS/height)
+- [`min_width`](https://developer.mozilla.org/en-US/docs/Web/CSS/min-width)
+- [`min_height`](https://developer.mozilla.org/en-US/docs/Web/CSS/min-height)
+- [`max_width`](https://developer.mozilla.org/en-US/docs/Web/CSS/max-width)
+- [`max_height`](https://developer.mozilla.org/en-US/docs/Web/CSS/max-height)
+
+These props accept normal CSS values like `100px` or `20em`. Additionally, they use an [Adobe Spectrum dimension value](https://react-spectrum.adobe.com/react-spectrum/styling.html#dimension-values).
+
+```python
+from deephaven import ui
+
+sizes = [
+    "size-0",
+    "size-10",
+    "size-25",
+    "size-40",
+    "size-50",
+    "size-65",
+    "size-75",
+    "size-85",
+    "size-100",
+    "size-115",
+    "size-125",
+    "size-130",
+    "size-150",
+    "size-160",
+    "size-175",
+    "size-200",
+    "size-225",
+    "size-250",
+    "size-275",
+    "size-300",
+    "size-325",
+    "size-350",
+    "size-400",
+    "size-450",
+    "size-500",
+    "size-550",
+    "size-600",
+    "size-675",
+    "size-700",
+    "size-800",
+    "size-900",
+    "size-1000",
+    "size-1200",
+    "size-1250",
+    "size-1600",
+    "size-1700",
+    "size-2000",
+    "size-2400",
+    "size-3000",
+    "size-3400",
+    "size-3600",
+    "size-4600",
+    "size-5000",
+    "size-6000",
+]
+
+
+@ui.component
+def size_bar(size):
+    return ui.flex(ui.view(background_color="blue-500", width=size), ui.text(size))
+
+
+@ui.component
+def ui_sizes():
+    return [size_bar(size) for size in sizes]
+
+
+ui_sizes_example = ui_sizes()
+```
+
+![sizes](../_assets/size-and-theme-sizes.png)
