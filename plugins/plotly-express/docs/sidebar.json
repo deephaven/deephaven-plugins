@@ -1,13 +1,8 @@
 {
+  "$schema": "https://raw.githubusercontent.com/deephaven/salmon-sync/refs/heads/main/sidebar.schema.json",
   "config": {
     "name": "Deephaven Plotly Express Docs"
   },
-  "nav": [
-    {
-      "label": "Main",
-      "sidebar": "main"
-    }
-  ],
   "sidebars": {
     "main": [
       {
@@ -53,6 +48,10 @@
           {
             "label": "Icicle",
             "path": "icicle.md"
+          },
+          {
+            "label": "Indicator",
+            "path": "indicator.md"
           },
           {
             "label": "Line",

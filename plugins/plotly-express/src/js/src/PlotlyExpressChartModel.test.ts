@@ -2,8 +2,13 @@ import type { Layout } from 'plotly.js';
 import { dh as DhType } from '@deephaven/jsapi-types';
 import { TestUtils } from '@deephaven/test-utils';
 import { ChartModel } from '@deephaven/chart';
+import { type Formatter } from '@deephaven/jsapi-utils';
 import { PlotlyExpressChartModel } from './PlotlyExpressChartModel';
-import { PlotlyChartWidgetData } from './PlotlyExpressChartUtils';
+import {
+  getWidgetData,
+  PlotlyChartWidgetData,
+  setDefaultValueFormat,
+} from './PlotlyExpressChartUtils';
 
 const SMALL_TABLE = TestUtils.createMockProxy<DhType.Table>({
   columns: [{ name: 'x' }, { name: 'y' }] as DhType.Column[],
@@ -23,7 +28,16 @@ const REALLY_LARGE_TABLE = TestUtils.createMockProxy<DhType.Table>({
   subscribe: () => TestUtils.createMockProxy(),
 });
 
-function createMockWidget(tables: DhType.Table[], plotType = 'scatter') {
+jest.mock('./PlotlyExpressChartUtils', () => ({
+  ...jest.requireActual('./PlotlyExpressChartUtils'),
+  setDefaultValueFormat: jest.fn(),
+}));
+
+function createMockWidget(
+  tables: DhType.Table[],
+  plotType = 'scatter',
+  title: string | Partial<Layout['title']> = 'Test'
+) {
   const layoutAxes: Partial<Layout> = {};
   tables.forEach((_, i) => {
     if (i === 0) {
@@ -57,7 +71,7 @@ function createMockWidget(tables: DhType.Table[], plotType = 'scatter') {
           yaxis: i === 0 ? 'y' : `y${i + 1}`,
         })),
         layout: {
-          title: 'layout',
+          title,
           ...layoutAxes,
         },
       },
@@ -271,6 +285,9 @@ describe('PlotlyExpressChartModel', () => {
       jest.fn()
     );
 
+    // Assume WebGL is supported in case it's false in the test environment
+    chartModel.isWebGlSupported = true;
+
     const mockSubscribe = jest.fn();
     await chartModel.subscribe(mockSubscribe);
     await new Promise(process.nextTick); // Subscribe is async
@@ -280,6 +297,31 @@ describe('PlotlyExpressChartModel', () => {
     expect(chartModel.plotlyData[0].type).toBe('scatter');
     chartModel.setRenderOptions({ webgl: true });
     expect(chartModel.plotlyData[0].type).toBe('scattergl');
+
+    // No events should be emitted since the trace is replaceable
+    expect(mockSubscribe).toHaveBeenCalledTimes(0);
+  });
+
+  it('should swap replaceable WebGL traces without blocker events if WebGL is not supported', async () => {
+    const mockWidget = createMockWidget([SMALL_TABLE], 'scattergl');
+    const chartModel = new PlotlyExpressChartModel(
+      mockDh,
+      mockWidget,
+      jest.fn()
+    );
+
+    // Assume WebGL is not supported in case it's true in the test environment
+    chartModel.isWebGlSupported = false;
+
+    const mockSubscribe = jest.fn();
+    await chartModel.subscribe(mockSubscribe);
+    await new Promise(process.nextTick); // Subscribe is async
+    chartModel.setRenderOptions({ webgl: true });
+    expect(chartModel.plotlyData[0].type).toBe('scatter');
+    chartModel.setRenderOptions({ webgl: false });
+    expect(chartModel.plotlyData[0].type).toBe('scatter');
+    chartModel.setRenderOptions({ webgl: true });
+    expect(chartModel.plotlyData[0].type).toBe('scatter');
 
     // No events should be emitted since the trace is replaceable
     expect(mockSubscribe).toHaveBeenCalledTimes(0);
@@ -318,6 +360,48 @@ describe('PlotlyExpressChartModel', () => {
     expect(mockSubscribe).toHaveBeenCalledTimes(3);
     expect(mockSubscribe).toHaveBeenLastCalledWith(
       new CustomEvent(ChartModel.EVENT_BLOCKER_CLEAR)
+    );
+  });
+
+  it('should call setDefaultValueFormat when the formatter is updated', async () => {
+    const mockWidget = createMockWidget([SMALL_TABLE], 'scatter');
+    const chartModel = new PlotlyExpressChartModel(
+      mockDh,
+      mockWidget,
+      jest.fn()
+    );
+
+    const mockSubscribe = jest.fn();
+    await chartModel.subscribe(mockSubscribe);
+    await new Promise(process.nextTick); // Subscribe is async
+    const mockFormatter = TestUtils.createMockProxy<Formatter>();
+    expect(setDefaultValueFormat).toHaveBeenCalledTimes(1);
+    chartModel.setFormatter(mockFormatter);
+    expect(setDefaultValueFormat).toHaveBeenCalledTimes(2);
+  });
+
+  it('should emit layout update events if a widget is updated and has a title', async () => {
+    const mockWidget = createMockWidget([SMALL_TABLE], 'scatter', {
+      text: 'Test',
+    });
+    const chartModel = new PlotlyExpressChartModel(
+      mockDh,
+      mockWidget,
+      jest.fn()
+    );
+
+    const mockSubscribe = jest.fn();
+    await chartModel.subscribe(mockSubscribe);
+    await new Promise(process.nextTick);
+    if (chartModel.widget instanceof Object) {
+      chartModel.handleWidgetUpdated(
+        getWidgetData(chartModel.widget),
+        chartModel.widget.exportedObjects
+      );
+    }
+    expect(mockSubscribe).toHaveBeenCalledTimes(2);
+    expect(mockSubscribe).toHaveBeenLastCalledWith(
+      new CustomEvent(ChartModel.EVENT_LAYOUT_UPDATED)
     );
   });
 });

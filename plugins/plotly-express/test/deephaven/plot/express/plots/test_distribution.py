@@ -74,7 +74,6 @@ class DistributionTestCase(BaseTestCase):
             "bargap": 0,
             "barmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "showlegend": False,
             "xaxis": {
                 "anchor": "y",
@@ -142,7 +141,6 @@ class DistributionTestCase(BaseTestCase):
             "bargap": 0,
             "barmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "showlegend": False,
             "xaxis": {
                 "anchor": "y",
@@ -230,7 +228,6 @@ class DistributionTestCase(BaseTestCase):
             "bargap": 0,
             "barmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "showlegend": False,
             "violinmode": "group",
             "xaxis": {
@@ -335,7 +332,6 @@ class DistributionTestCase(BaseTestCase):
             "barmode": "group",
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "showlegend": False,
             "xaxis": {
                 "anchor": "y",
@@ -415,7 +411,6 @@ class DistributionTestCase(BaseTestCase):
             "bargap": 0,
             "barmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "showlegend": False,
             "xaxis": {
                 "anchor": "y",
@@ -481,7 +476,6 @@ class DistributionTestCase(BaseTestCase):
             "bargap": 0,
             "barmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "showlegend": False,
             "xaxis": {
                 "anchor": "y",
@@ -561,7 +555,6 @@ class DistributionTestCase(BaseTestCase):
             "bargap": 0,
             "barmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -647,7 +640,6 @@ class DistributionTestCase(BaseTestCase):
             "bargap": 0,
             "barmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -733,7 +725,6 @@ class DistributionTestCase(BaseTestCase):
             "bargap": 0,
             "barmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -819,7 +810,6 @@ class DistributionTestCase(BaseTestCase):
             "bargap": 0,
             "barmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -1052,7 +1042,6 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "showlegend": False,
             "violinmode": "group",
             "xaxis": {
@@ -1109,7 +1098,6 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "showlegend": False,
             "violinmode": "group",
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "side": "bottom"},
@@ -1167,7 +1155,6 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "showlegend": False,
             "violinmode": "group",
             "xaxis": {
@@ -1253,7 +1240,6 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "violinmode": "group",
             "xaxis": {
                 "anchor": "y",
@@ -1331,7 +1317,6 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "violinmode": "group",
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "side": "bottom"},
             "yaxis": {
@@ -1411,7 +1396,6 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "violinmode": "group",
             "xaxis": {
                 "anchor": "y",
@@ -1504,7 +1488,6 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "violinmode": "group",
             "xaxis": {
                 "anchor": "y",
@@ -1599,7 +1582,6 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "violinmode": "group",
             "xaxis": {
                 "anchor": "y",
@@ -1677,7 +1659,6 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "violinmode": "group",
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "side": "bottom"},
             "yaxis": {
@@ -1759,7 +1740,6 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "violinmode": "group",
             "xaxis": {
                 "anchor": "y",
@@ -1850,7 +1830,6 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "violinmode": "group",
             "xaxis": {
                 "anchor": "y",
@@ -1930,7 +1909,6 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "violinmode": "group",
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "side": "bottom"},
             "yaxis": {
@@ -2012,7 +1990,6 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "violinmode": "group",
             "xaxis": {
                 "anchor": "y",
@@ -2110,7 +2087,6 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "violinmode": "group",
             "xaxis": {
                 "anchor": "y",
@@ -2186,7 +2162,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "showlegend": False,
             "xaxis": {
                 "anchor": "y",
@@ -2242,7 +2217,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "showlegend": False,
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "side": "bottom"},
             "yaxis": {
@@ -2299,7 +2273,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "showlegend": False,
             "xaxis": {
                 "anchor": "y",
@@ -2383,7 +2356,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -2459,7 +2431,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "side": "bottom"},
             "yaxis": {
                 "anchor": "x",
@@ -2537,7 +2508,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -2628,7 +2598,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -2721,7 +2690,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -2797,7 +2765,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "side": "bottom"},
             "yaxis": {
                 "anchor": "x",
@@ -2875,7 +2842,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -2962,7 +2928,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -3038,7 +3003,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "side": "bottom"},
             "yaxis": {
                 "anchor": "x",
@@ -3118,7 +3082,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -3215,7 +3178,6 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "violinmode": "group",
             "xaxis": {
                 "anchor": "y",
@@ -3294,7 +3256,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "showlegend": False,
             "xaxis": {
                 "anchor": "y",
@@ -3350,7 +3311,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "showlegend": False,
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "side": "bottom"},
             "yaxis": {
@@ -3410,7 +3370,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "showlegend": False,
             "xaxis": {
                 "anchor": "y",
@@ -3500,7 +3459,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -3582,7 +3540,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "side": "bottom"},
             "yaxis": {
                 "anchor": "x",
@@ -3666,7 +3623,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -3758,7 +3714,6 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "violinmode": "group",
             "xaxis": {
                 "anchor": "y",
@@ -3858,7 +3813,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -3940,7 +3894,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "side": "bottom"},
             "yaxis": {
                 "anchor": "x",
@@ -4026,7 +3979,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -4121,7 +4073,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -4203,7 +4154,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {"anchor": "y", "domain": [0.0, 1.0], "side": "bottom"},
             "yaxis": {
                 "anchor": "x",
@@ -4289,7 +4239,6 @@ class DistributionTestCase(BaseTestCase):
         expected_layout = {
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -4383,7 +4332,6 @@ class DistributionTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "violinmode": "group",
             "xaxis": {
                 "anchor": "y",

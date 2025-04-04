@@ -1,8 +1,9 @@
 import type { Layout, Data, PlotData, LayoutAxis } from 'plotly.js';
 import type { dh as DhType } from '@deephaven/jsapi-types';
+import { type Formatter } from '@deephaven/jsapi-utils';
 import { ChartModel, ChartUtils } from '@deephaven/chart';
 import Log from '@deephaven/log';
-import { RenderOptions } from '@deephaven/chart/dist/ChartModel';
+import { ChartEvent, RenderOptions } from '@deephaven/chart/dist/ChartModel';
 import {
   DownsampleInfo,
   PlotlyChartWidgetData,
@@ -18,6 +19,12 @@ import {
   removeColorsFromData,
   setWebGlTraceType,
   hasUnreplaceableWebGlTraces,
+  isSingleValue,
+  replaceValueFormat,
+  setDefaultValueFormat,
+  getDataTypeMap,
+  FormatUpdate,
+  IS_WEBGL_SUPPORTED,
 } from './PlotlyExpressChartUtils';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
@@ -120,6 +127,8 @@ export class PlotlyExpressChartModel extends ChartModel {
 
   isDownsamplingDisabled = false;
 
+  isWebGlSupported = IS_WEBGL_SUPPORTED;
+
   /**
    * Set of traces that are originally WebGL and can be replaced with non-WebGL traces.
    * These need to be replaced if WebGL is disabled and re-enabled if WebGL is enabled again.
@@ -130,6 +139,17 @@ export class PlotlyExpressChartModel extends ChartModel {
    * The WebGl warning is only shown once per chart. When the user acknowledges the warning, it will not be shown again.
    */
   hasAcknowledgedWebGlWarning = false;
+
+  /**
+   * The set of parameters that need to be replaced with the default value format.
+   */
+  defaultValueFormatSet: Set<FormatUpdate> = new Set();
+
+  /**
+   * Map of variable within the plotly data to type.
+   * For example, '0/value' -> 'int'
+   */
+  dataTypeMap: Map<string, string> = new Map();
 
   override getData(): Partial<Data>[] {
     const hydratedData = [...this.plotlyData];
@@ -145,11 +165,17 @@ export class PlotlyExpressChartModel extends ChartModel {
         paths.forEach(destination => {
           // The JSON pointer starts w/ /plotly/data and we don't need that part
           const parts = getPathParts(destination);
+
+          const single = isSingleValue(hydratedData, parts);
+
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           let selector: any = hydratedData;
+
           for (let i = 0; i < parts.length; i += 1) {
             if (i !== parts.length - 1) {
               selector = selector[parts[i]];
+            } else if (single) {
+              selector[parts[i]] = tableData[columnName]?.[0] ?? null;
             } else {
               selector[parts[i]] = tableData[columnName] ?? [];
             }
@@ -172,7 +198,7 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   override async subscribe(
-    callback: (event: CustomEvent) => void
+    callback: (event: ChartEvent) => void
   ): Promise<void> {
     if (this.isSubscribed) {
       log.debug('already subscribed');
@@ -208,7 +234,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     }
   }
 
-  override unsubscribe(callback: (event: CustomEvent) => void): void {
+  override unsubscribe(callback: (event: ChartEvent) => void): void {
     if (!this.isSubscribed) {
       return;
     }
@@ -227,6 +253,16 @@ export class PlotlyExpressChartModel extends ChartModel {
     super.setRenderOptions(renderOptions);
   }
 
+  override setFormatter(formatter: Formatter): void {
+    setDefaultValueFormat(
+      this.plotlyData,
+      this.defaultValueFormatSet,
+      this.dataTypeMap,
+      formatter
+    );
+    super.setFormatter(formatter);
+  }
+
   /**
    * Handle the WebGL option being set in the render options.
    * If WebGL is enabled, traces have their original types as given.
@@ -236,7 +272,11 @@ export class PlotlyExpressChartModel extends ChartModel {
    * @param prevWebgl The previous WebGL value
    */
   handleWebGlAllowed(webgl = true, prevWebgl = true): void {
-    setWebGlTraceType(this.plotlyData, webgl, this.webGlTraceIndices);
+    setWebGlTraceType(
+      this.plotlyData,
+      webgl && this.isWebGlSupported,
+      this.webGlTraceIndices
+    );
 
     const needsBlocker = hasUnreplaceableWebGlTraces(this.plotlyData);
 
@@ -264,6 +304,7 @@ export class PlotlyExpressChartModel extends ChartModel {
 
     // @deephaven/chart Chart component mutates the layout
     // If we want updates like the zoom range, we must only set the layout once on init
+    // The title is currently the only thing that can be updated after init
     if (Object.keys(this.layout).length > 0) {
       return;
     }
@@ -296,6 +337,8 @@ export class PlotlyExpressChartModel extends ChartModel {
       );
     }
 
+    this.defaultValueFormatSet = replaceValueFormat(this.plotlyData);
+
     // Retrieve the indexes of traces that require WebGL so they can be replaced if WebGL is disabled
     this.webGlTraceIndices = getReplaceableWebGlTraceIndices(this.plotlyData);
 
@@ -304,10 +347,28 @@ export class PlotlyExpressChartModel extends ChartModel {
     newReferences.forEach(async (id, i) => {
       this.tableDataMap.set(id, {}); // Plot may render while tables are being fetched. Set this to avoid a render error
       const table = (await references[i].fetch()) as DhType.Table;
-      this.addTable(id, table);
+      this.addTable(id, table).then(() => {
+        // The data type map requires the table to be added to the reference map
+        this.dataTypeMap = getDataTypeMap(deephaven, this.tableReferenceMap);
+
+        setDefaultValueFormat(
+          this.plotlyData,
+          this.defaultValueFormatSet,
+          this.dataTypeMap,
+          this.formatter
+        );
+      });
     });
 
     removedReferences.forEach(id => this.removeTable(id));
+
+    // title is the only thing expected to be updated after init from the layout
+    if (
+      typeof plotlyLayout.title === 'object' &&
+      plotlyLayout.title.text != null
+    ) {
+      this.fireLayoutUpdated({ title: plotlyLayout.title });
+    }
   }
 
   handleFigureUpdated(
@@ -316,7 +377,6 @@ export class PlotlyExpressChartModel extends ChartModel {
   ): void {
     const chartData = this.chartDataMap.get(tableId);
     const tableData = this.tableDataMap.get(tableId);
-
     if (chartData == null) {
       log.warn('Unknown chartData for this event. Skipping update');
       return;

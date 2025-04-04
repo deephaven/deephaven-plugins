@@ -1,10 +1,14 @@
-import type {
-  Data,
-  LayoutAxis,
-  PlotlyDataLayoutConfig,
-  PlotType,
+import {
+  type Data,
+  type Delta,
+  type LayoutAxis,
+  type PlotlyDataLayoutConfig,
+  type PlotNumber,
+  type PlotType,
 } from 'plotly.js';
 import type { dh as DhType } from '@deephaven/jsapi-types';
+import { ChartUtils } from '@deephaven/chart';
+import { type Formatter } from '@deephaven/jsapi-utils';
 
 /**
  * Traces that are at least partially powered by WebGL and have no SVG equivalent.
@@ -23,6 +27,21 @@ const UNREPLACEABLE_WEBGL_TRACE_TYPES = new Set([
   'densitymapbox',
 ]);
 
+/*
+ * A map of trace type to attributes that should be set to a single value instead
+ * of an array in the Figure object. The attributes should be relative to the trace
+ * within the plotly/data/ array.
+ */
+const SINGLE_VALUE_REPLACEMENTS = {
+  indicator: new Set(['value', 'delta/reference', 'title/text']),
+} as Record<string, Set<string>>;
+
+/**
+ * A prefix for the number format to indicate it is in Java format and should be
+ *  transformed to a d3 format
+ */
+export const FORMAT_PREFIX = 'DEEPHAVEN_JAVA_FORMAT=';
+
 export interface PlotlyChartWidget {
   getDataAsBase64: () => string;
   exportedObjects: { fetch: () => Promise<DhType.Table> }[];
@@ -32,22 +51,37 @@ export interface PlotlyChartWidget {
   ) => void;
 }
 
+export interface PlotlyChartDeephavenData {
+  mappings: Array<{
+    table: number;
+    data_columns: Record<string, string[]>;
+  }>;
+  is_user_set_template: boolean;
+  is_user_set_color: boolean;
+}
+
 export interface PlotlyChartWidgetData {
   type: string;
   figure: {
-    deephaven: {
-      mappings: Array<{
-        table: number;
-        data_columns: Record<string, string[]>;
-      }>;
-      is_user_set_template: boolean;
-      is_user_set_color: boolean;
-    };
+    deephaven: PlotlyChartDeephavenData;
     plotly: PlotlyDataLayoutConfig;
   };
   revision: number;
   new_references: number[];
   removed_references: number[];
+}
+
+/** Information that is needed to update the default value format in the data
+ * The index is relative to the plotly/data/ array
+ * The path within the trace has the valueformat to update
+ * The typeFrom is a path to a variable that is mapped to a column type
+ * The options indicate if the prefix and suffix should be set
+ */
+export interface FormatUpdate {
+  index: number;
+  path: string;
+  typeFrom: string[];
+  options: Record<string, boolean>;
 }
 
 export function getWidgetData(
@@ -145,7 +179,7 @@ export function getPathParts(path: string): string[] {
 /**
  * Checks if a plotly series is a line series without markers
  * @param data The plotly data to check
- * @returns True if the data is a line series without marakers
+ * @returns True if the data is a line series without markers
  */
 export function isLineSeries(data: Data): boolean {
   return (
@@ -288,3 +322,258 @@ export function setWebGlTraceType(
     }
   });
 }
+
+/**
+ * Check if the data at the selector should be replaced with a single value instead of an array
+ * @param data The data to check
+ * @param selector The selector to check
+ * @returns True if the data at the selector should be replaced with a single value
+ */
+export function isSingleValue(data: Data[], selector: string[]): boolean {
+  const index = parseInt(selector[0], 10);
+  const type = data[index].type as string;
+  const path = selector.slice(1).join('/');
+  return SINGLE_VALUE_REPLACEMENTS[type]?.has(path) ?? false;
+}
+
+/**
+ * Set the default value formats for all traces that require it
+ * @param plotlyData The plotly data to update
+ * @param defaultValueFormatSet The set of updates to make
+ * @param dataTypeMap The map of path to column type to pull the correct default format from
+ * @param formatter The formatter to use to get the default format
+ */
+export function setDefaultValueFormat(
+  plotlyData: Data[],
+  defaultValueFormatSet: Set<FormatUpdate>,
+  dataTypeMap: Map<string, string>,
+  formatter: Formatter | null = null
+): void {
+  defaultValueFormatSet.forEach(({ index, path, typeFrom, options }) => {
+    const types = typeFrom.map(type => dataTypeMap.get(`${index}/${type}`));
+    let columnType = null;
+    if (types.some(type => type === 'double')) {
+      // if any of the types are decimal, use decimal since it's the most specific
+      columnType = 'double';
+    } else if (types.some(type => type === 'int')) {
+      columnType = 'int';
+    }
+    if (columnType == null) {
+      return;
+    }
+    const typeFormatter = formatter?.getColumnTypeFormatter(columnType);
+    if (typeFormatter == null || !('defaultFormatString' in typeFormatter)) {
+      return;
+    }
+
+    const valueFormat = typeFormatter.defaultFormatString as string;
+
+    if (valueFormat == null) {
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const trace = (plotlyData[index as number] as Record<string, unknown>)[
+      path as string
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ] as any;
+
+    convertToPlotlyNumberFormat(trace, valueFormat, options);
+  });
+}
+
+/**
+ * Convert the number format to a d3 number format
+ * @param data The data to update
+ * @param valueFormat The number format to convert to a d3 format
+ * @param options Options of what to update
+ */
+
+export function convertToPlotlyNumberFormat(
+  data: Partial<PlotNumber> | Partial<Delta>,
+  valueFormat: string,
+  options: Record<string, boolean> = {}
+): void {
+  // by default, everything should be updated dependent on updateFormat
+  const updateFormat = options?.format ?? true;
+  const updatePrefix = options?.prefix ?? updateFormat;
+  const updateSuffix = options?.suffix ?? updateFormat;
+
+  const formatResults = ChartUtils.getPlotlyNumberFormat(null, '', valueFormat);
+  if (
+    updateFormat &&
+    formatResults?.tickformat != null &&
+    formatResults?.tickformat !== ''
+  ) {
+    // eslint-disable-next-line no-param-reassign
+    data.valueformat = formatResults.tickformat;
+  }
+  if (updatePrefix) {
+    // there may be no prefix now, so remove the preexisting one
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, no-param-reassign
+    (data as any).prefix = '';
+
+    // prefix and suffix might already be set, which should take precedence
+    if (formatResults?.tickprefix != null && formatResults?.tickprefix !== '') {
+      // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-explicit-any
+      (data as any).prefix = formatResults.tickprefix;
+    }
+  }
+  if (updateSuffix) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, no-param-reassign
+    (data as any).suffix = '';
+
+    // prefix and suffix might already be set, which should take precedence
+    if (formatResults?.ticksuffix != null && formatResults?.ticksuffix !== '') {
+      // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-explicit-any
+      (data as any).suffix = formatResults.ticksuffix;
+    }
+  }
+}
+
+/**
+ * Transform the number format to a d3 number format, which is used by Plotly
+ * @param numberFormat The number format to transform
+ * @returns The d3 number format
+ */
+export function transformValueFormat(
+  data: Partial<PlotNumber> | Partial<Delta>
+): Record<string, boolean> {
+  let valueFormat = data?.valueformat;
+  if (valueFormat == null) {
+    // if there's no format, note this so that the default format can be used
+    // prefix and suffix should only be updated if the default format is used and they are not already set
+    return {
+      format: true,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      prefix: (data as any)?.prefix == null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      suffix: (data as any)?.suffix == null,
+    };
+  }
+
+  if (valueFormat.startsWith(FORMAT_PREFIX)) {
+    valueFormat = valueFormat.substring(FORMAT_PREFIX.length);
+  } else {
+    // don't transform if it's not a deephaven format
+    return {
+      format: false,
+    };
+  }
+
+  // transform once but don't transform again, so false is returned for format
+  const options = {
+    format: true,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    prefix: (data as any)?.prefix == null,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    suffix: (data as any)?.suffix == null,
+  };
+  convertToPlotlyNumberFormat(data, valueFormat, options);
+  return {
+    format: false,
+  };
+}
+
+/**
+ * Replace the number formats in the data with a d3 number format
+ * @param data The data to update
+ */
+export function replaceValueFormat(plotlyData: Data[]): Set<FormatUpdate> {
+  const defaultValueFormatSet: Set<FormatUpdate> = new Set();
+
+  plotlyData.forEach((trace, i) => {
+    if (trace.type === 'indicator') {
+      if (trace?.number == null) {
+        // eslint-disable-next-line no-param-reassign
+        trace.number = {};
+      }
+
+      const numberFormatOptions = transformValueFormat(trace.number);
+
+      if (numberFormatOptions.format) {
+        defaultValueFormatSet.add({
+          index: i,
+          path: 'number',
+          typeFrom: ['value', 'delta/reference'],
+          options: numberFormatOptions,
+        });
+      }
+
+      if (trace?.delta == null) {
+        // eslint-disable-next-line no-param-reassign
+        trace.delta = {};
+      }
+
+      const deltaFormatOptions = transformValueFormat(trace.delta);
+
+      if (deltaFormatOptions.format) {
+        defaultValueFormatSet.add({
+          index: i,
+          path: 'delta',
+          typeFrom: ['value', 'delta/reference'],
+          options: deltaFormatOptions,
+        });
+      }
+    }
+  });
+  return defaultValueFormatSet;
+}
+
+/**
+ * Get the types of variables assocated with columns in the data
+ * For example, if the path /plotly/data/0/value is associated with a column of type int,
+ * the map will have the entry '0/value' -> 'int'
+ * @param deephavenData The deephaven data from the widget to get path and column name from
+ * @param tableReferenceMap The map of table index to table reference.
+ * Types are pulled from the table reference
+ * @returns A map of path to column type
+ */
+export function getDataTypeMap(
+  deephavenData: PlotlyChartDeephavenData,
+  tableReferenceMap: Map<number, DhType.Table>
+): Map<string, string> {
+  const dataTypeMap: Map<string, string> = new Map();
+
+  const { mappings } = deephavenData;
+
+  mappings.forEach(({ table: tableIndex, data_columns: dataColumns }) => {
+    const table = tableReferenceMap.get(tableIndex);
+    Object.entries(dataColumns).forEach(([columnName, paths]) => {
+      const column = table?.findColumn(columnName);
+      if (column == null) {
+        return;
+      }
+      const columnType = column.type;
+      paths.forEach(path => {
+        const cleanPath = getPathParts(path).join('/');
+        dataTypeMap.set(cleanPath, columnType);
+      });
+    });
+  });
+  return dataTypeMap;
+}
+
+/**
+ * Check if WebGL is supported in the current environment.
+ * Most modern browsers do support WebGL, but it's possible to disable it and it is also not available
+ * in some headless environments, which can affect e2e tests.
+ *
+ * https://github.com/microsoft/playwright/issues/13146
+ * https://bugzilla.mozilla.org/show_bug.cgi?id=1375585
+ *
+ * @returns True if WebGL is supported, false otherwise
+ */
+export function isWebGLSupported(): boolean {
+  try {
+    // https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/By_example/Detect_WebGL
+    const canvas = document.createElement('canvas');
+    const gl =
+      canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    return gl != null && gl instanceof WebGLRenderingContext;
+  } catch (e) {
+    return false;
+  }
+}
+
+export const IS_WEBGL_SUPPORTED = isWebGLSupported();

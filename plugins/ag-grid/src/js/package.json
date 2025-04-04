@@ -1,0 +1,57 @@
+{
+  "name": "@deephaven/js-plugin-ag-grid",
+  "version": "0.1.0",
+  "description": "Deephaven AG Grid plugin",
+  "keywords": [
+    "Deephaven",
+    "plugin",
+    "deephaven-js-plugin",
+    "ag-grid"
+  ],
+  "author": "Deephaven Data Labs LLC",
+  "license": "Apache-2.0",
+  "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deephaven/deephaven-plugins"
+  },
+  "bugs": {
+    "url": "https://github.com/deephaven/deephaven-plugins/issues"
+  },
+  "homepage": "https://github.com/deephaven/deephaven-plugins",
+  "scripts": {
+    "start": "vite build --watch",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "@deephaven/jsapi-types": "^1.0.0-dev0.37.2",
+    "@types/react": "^17.0.2",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "typescript": "^4.5.4"
+  },
+  "peerDependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
+  "dependencies": {
+    "@ag-grid-community/core": "32.3.4",
+    "@ag-grid-community/react": "32.3.4",
+    "@ag-grid-community/styles": "32.3.4",
+    "@ag-grid-enterprise/core": "32.3.4",
+    "@ag-grid-enterprise/server-side-row-model": "32.3.4",
+    "@ag-grid-enterprise/viewport-row-model": "32.3.4",
+    "@deephaven/components": "^0.106.2",
+    "@deephaven/icons": "^0.106.0",
+    "@deephaven/jsapi-bootstrap": "^0.106.2",
+    "@deephaven/log": "^0.106.2",
+    "@deephaven/plugin": "^0.106.4",
+    "@deephaven/utils": "^0.106.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ]
+}

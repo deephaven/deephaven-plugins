@@ -66,7 +66,7 @@ my_nested_panel = ui.dashboard(
 The following layouts can be returned by a component and used inside a `panel` to layout components:
 
 - [`flex`](../components/flex.md) is a [flexbox](https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Flexbox)-based layout container that arranges components in either a row or column.
-- `grid` is a [CSS grid](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout/Grids) layout container that arranges components in a two-dimensional structure of rows and columns.
+- [`grid`](../components/grid.md) is a [CSS grid](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout/Grids) layout container that arranges components in a two-dimensional structure of rows and columns.
 - [`view`](../components/view.md) is a general purpose container that can be used for custom styling purposes.
 
 ## Default layout
@@ -131,7 +131,7 @@ my_flex_nesting = ui_flex_nesting()
 
 ## Grid
 
-The `grid` component can be used to layout its children in two dimensions with [CSS grid](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout/Grids). The `columns` and `rows` props define the layout of the grid. The layout can use the `area` prop to define grid areas for child components to explicitly place components. Alternatively, an implicit layout can be created using `autoColumns`, `autoRows`, and helper functions like `repeat`.
+The [`grid`](../components/grid.md) component can be used to layout its children in two dimensions with [CSS grid](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout/Grids). The `columns` and `rows` props define the layout of the grid. The layout can use the `area` prop to define grid areas for child components to explicitly place components. Alternatively, an implicit layout can be created using `auto_columns`, `auto_rows`, and helper functions like `repeat`.
 
 Similar to `flex`, a grid can justify and align items.
 

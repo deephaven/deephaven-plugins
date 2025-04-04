@@ -3,7 +3,11 @@
 # because they are built by the plugin builder.
 
 node_modules
-.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
 tsconfig.tsbuildinfo
 .env.*local
 
