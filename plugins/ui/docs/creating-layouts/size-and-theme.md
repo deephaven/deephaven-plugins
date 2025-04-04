@@ -4,7 +4,7 @@
 
 The Deephaven Web IDE theme can be changed in the [settings menu](/enterprise/docs/interfaces/web/settings/#theme). The `Default Dark` and `Default Light` themes are provided, but you can also [create a custom theme](/core/docs/how-to-guides/custom-themes/).
 
-## Color and theme
+## Color palette
 
 `deephaven.ui` uses the same color convention as [Adobe Spectrum](https://spectrum.adobe.com/page/color-system/). A color is specified with a `name` and an `index` number. For example `blue-100` or `red-600`. In a dark theme, `blue-100` will be a dark blue and `blue-1000` will be a light blue. In a light theme, they will be reversed. The example component below displays a color palette for a selected color. Try changing the theme to see the difference in colors.
 
@@ -47,14 +47,50 @@ def color_palette():
 color_palette_example = color_palette()
 ```
 
-**Dark theme example**
-![dark theme example](../_assets/size-and-theme-dark-palette.png)
+**Dark theme palette**
 
-**Light theme example**
-![light theme example](../_assets/size-and-theme-light-palette.png)
+![dark theme palette](../_assets/size-and-theme-dark-palette.png)
+
+**Light theme palette**
+
+![light theme palette](../_assets/size-and-theme-light-palette.png)
 
 For a full list of colors, see the [Adobe Spectrum Palette](https://spectrum.adobe.com/page/color-palette/).
 
 ## Semantic color
+
+In addition to the color palette, `deephaven.ui` uses semantic colors which assign color based on meanings. This means that a `negative` UI element will have the same color throughout the UI rather than various elements having a different shade of red.
+
+For example, the [button](../components/button.md) component uses `variant` to apply semantic color.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def button_variants():
+    return [
+        ui.button(
+            "Accent",
+            variant="accent",
+        ),
+        ui.button("Primary", variant="primary"),
+        ui.button("Secondary", variant="secondary"),
+        ui.button("Negative", variant="negative"),
+    ]
+
+
+button_variants_example = button_variants()
+```
+
+**Dark theme buttons**
+
+![dark theme buttons](../_assets/size-and-theme-dark-buttons.png)
+
+**Light theme example**
+
+![light theme buttons](../_assets/size-and-theme-light-buttons.png)
+
+TODO toast?
 
 ## Size
