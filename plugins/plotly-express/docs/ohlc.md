@@ -45,7 +45,10 @@ ohlc_plot = dx.ohlc(
 )
 ```
 
+![OHLC Plot Basic Example](./_assets/ohlc_plot.png)
+
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.ohlc
 ```

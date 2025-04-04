@@ -23,6 +23,8 @@ iris = dx.data.iris()
 scatter_plot_3D = dx.scatter_3d(iris, x="SepalWidth", y="SepalLength", z="PetalWidth")
 ```
 
+![3D Scatter Plot Basic Example](./_assets/scatter_plot_3d.png)
+
 ### Create a bubble plot
 
 Use the size of the markers in a 3D scatter plot to visualize a fourth quantitative variable. Such a plot is commonly called a bubble plot, where the size of each bubble corresponds to the value of the additional variable.
@@ -131,6 +133,7 @@ scatter_3D_custom_color = dx.scatter_3d(
 ```
 
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.scatter_3d
 ```
