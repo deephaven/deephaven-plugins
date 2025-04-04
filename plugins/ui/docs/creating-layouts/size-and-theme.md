@@ -55,7 +55,7 @@ color_palette_example = color_palette()
 
 ![light theme palette](../_assets/size-and-theme-light-palette.png)
 
-For a full list of colors, see the [Adobe Spectrum Palette](https://spectrum.adobe.com/page/color-palette/).
+For a full list of colors, see the [Adobe Spectrum color values](https://react-spectrum.adobe.com/react-spectrum/styling.html#color-values).
 
 ## Semantic color
 
