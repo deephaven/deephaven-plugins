@@ -91,6 +91,30 @@ button_variants_example = button_variants()
 
 ![light theme buttons](../_assets/size-and-theme-light-buttons.png)
 
-TODO toast?
+In this example, the [toast](../components/toast.md) component uses `variant` to apply semantic color.
+
+```python
+from deephaven import ui
+
+
+@ui.component
+def ui_toast_variants():
+    ui.toast("neutral.", variant="neutral")
+    ui.toast("positive.", variant="positive")
+    ui.toast("negative.", variant="negative")
+    ui.toast("info.", variant="info")
+    return ui.text()
+
+
+ui_toast_variants_example = ui_toast_variants()
+```
+
+**Dark theme toast**
+
+![dark theme toast](../_assets/size-and-theme-dark-toast.png)
+
+**Light theme toast**
+
+![light theme toast](../_assets/size-and-theme-light-toast.png)
 
 ## Size
