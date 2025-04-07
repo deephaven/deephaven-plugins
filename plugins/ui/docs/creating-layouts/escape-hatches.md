@@ -30,11 +30,11 @@ If a component's styling props are not sufficient, you can set the `UNSAFE_class
 ```python
 from deephaven import ui
 
-p = ui.panel(
+unsafe_class_name = ui.panel(
     ui.html.style(
         """
-.my_class { background: red !important;}
-"""
+        .my_class { background: red !important;}
+        """
     ),
     ui.button("test", UNSAFE_class_name="my_class"),
     ui.html.div("test", class_name="my_class"),
