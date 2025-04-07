@@ -16,6 +16,9 @@ from .types import (
 )
 from .basic import component_element
 from ..elements import Element
+from ..types import Undefined, UndefinedType
+
+_NULLABLE_PROPS = ["justify_content", "align_content", "align_items"]
 
 
 def grid(
@@ -27,9 +30,9 @@ def grid(
     auto_rows: DimensionValue | None = None,
     auto_flow: GridFlow | None = None,
     justify_items: JustifyItems | None = None,
-    justify_content: JustifyContent = "stretch",
-    align_content: AlignContent = "start",
-    align_items: AlignItems = "stretch",
+    justify_content: JustifyContent | None | UndefinedType = Undefined,
+    align_content: AlignContent | None | UndefinedType = Undefined,
+    align_items: AlignItems | None | UndefinedType = Undefined,
     gap: DimensionValue | None = "size-100",
     column_gap: DimensionValue | None = None,
     row_gap: DimensionValue | None = None,
@@ -192,4 +195,5 @@ def grid(
         UNSAFE_class_name=UNSAFE_class_name,
         UNSAFE_style=UNSAFE_style,
         key=key,
+        _nullable_props=_NULLABLE_PROPS,
     )
