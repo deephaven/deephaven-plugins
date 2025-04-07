@@ -14,7 +14,7 @@ from deephaven import ui
 
 def generate_colors(color):
     colors = []
-    for i in range(100, 1001, 100):
+    for i in range(100, 1401, 100):
         colors.append(f"{color}-{i}")
     return colors
 
@@ -25,11 +25,19 @@ def color_palette():
     colors = ui.use_memo(lambda: generate_colors(color), [color])
     return [
         ui.picker(
-            ui.item("blue"),
-            ui.item("green"),
-            ui.item("yellow"),
-            ui.item("orange"),
             ui.item("red"),
+            ui.item("orange"),
+            ui.item("yellow"),
+            ui.item("chartreuse"),
+            ui.item("celery"),
+            ui.item("green"),
+            ui.item("seafoam"),
+            ui.item("cyan"),
+            ui.item("blue"),
+            ui.item("indigo"),
+            ui.item("purple"),
+            ui.item("fuchsia"),
+            ui.item("magenta"),
             selected_key=color,
             on_selection_change=set_color,
             label="Pick a color",
@@ -128,7 +136,10 @@ ui_toast_variants_example = ui_toast_variants()
 - [`max_width`](https://developer.mozilla.org/en-US/docs/Web/CSS/max-width)
 - [`max_height`](https://developer.mozilla.org/en-US/docs/Web/CSS/max-height)
 
-These props accept normal CSS values like `100px` or `20em`. Additionally, they use an [Adobe Spectrum dimension value](https://react-spectrum.adobe.com/react-spectrum/styling.html#dimension-values).
+These props accept normal [CSS values](link css values to https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Styling_basics/Values_and_units#numbers_lengths_and_percentages
+) like `100px`, `50%` or `20em`. Additionally, they use an [Adobe Spectrum dimension value](https://react-spectrum.adobe.com/react-spectrum/styling.html#dimension-values).
+
+When absolute sizing is required, using dimension values help promote consistent sizing of your layout across components.
 
 ```python
 from deephaven import ui
