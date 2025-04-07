@@ -10,9 +10,9 @@ from .FreqPreprocessor import FreqPreprocessor
 from .HistPreprocessor import HistPreprocessor
 from .TimePreprocessor import TimePreprocessor
 from .HeatmapPreprocessor import HeatmapPreprocessor
-from .HierarchialPreprocessor import HierarchialPreprocessor
+from .HierarchialPreprocessor import HierarchicalPreprocessor
 
-from ..types import AttachedTransform, HierarchicalTransform
+from ..types import AttachedTransforms, HierarchicalTransforms
 
 
 class Preprocessor:
@@ -35,8 +35,8 @@ class Preprocessor:
         self,
         args: dict[str, Any],
         groups: set[str],
-        attached_transforms: list[AttachedTransform],
-        hierarchial_transforms: list[HierarchicalTransform],
+        attached_transforms: AttachedTransforms,
+        hierarchial_transforms: HierarchicalTransforms,
         pivot_vars: dict[str, str],
     ):
         self.args = args
@@ -69,7 +69,7 @@ class Preprocessor:
                     self.args, self.attached_transforms, self.always_attached
                 )
             if self.path:
-                self.preprocesser = HierarchialPreprocessor(
+                self.preprocesser = HierarchicalPreprocessor(
                     self.args, self.hierarchial_transforms, self.path
                 )
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any, Generator, TypedDict
 
 
-class HierarchicalTransforms:
+class HierarchicalTransform(TypedDict):
     """
     A dictionary with info about an attached transformation that should be applied to a table
 
@@ -23,16 +23,24 @@ class HierarchicalTransforms:
     def __init__(self):
         self.transforms = []
 
-    @classmethod
+
+class HierarchicalTransforms():
+    def __init__(self):
+        self.transforms = []
+
     def add(
-            cls,
-            by_col: str,
-            new_col_name: str | None = None,
-    ) -> HierarchicalTransform:
-        self.transforms.append({
-            by_col: by_col,
-            new_col_name=new_col_name,
-        }
+        self,
+        by_col: str,
+        new_col: str,
+    ) -> None:
+        self.transforms.append(HierarchicalTransform(by_col=by_col, new_col_name=new_col))
+
+    def __bool__(self):
+        return bool(self.transforms)
+
+    def __iter__(self) -> Generator[tuple[str, str], None, None]:
+        for transform in self.transforms:
+            yield transform.values()
 
 
 class AttachedTransform(TypedDict):
@@ -48,21 +56,33 @@ class AttachedTransform(TypedDict):
             For example, if the column is numeric and is used for color,
     """
     by_col: str
-    style_map: dict[str, str]
+    new_col: str
     style_list: list[str]
-    new_col_name: str
+    style_map: dict[str, str]
 
-    @classmethod
-    def create(
-            cls,
+
+class AttachedTransforms:
+    def __init__(self):
+        self.transforms = []
+
+    def add(
+            self,
             by_col: str,
-            new_col_name: str | None = None,
+            new_col: str,
             style_map: dict[str, str] | None = None,
             style_list: list[str] | None = None,
-    ) -> AttachedTransform:
-        return cls(
+    ) -> None:
+        self.transforms.append(AttachedTransform(
             by_col=by_col,
-            style_map=style_map or {},
+            new_col=new_col,
             style_list=style_list or [],
-            new_col_name=new_col_name,
-        )
+            style_map=style_map or {},
+        ))
+
+    def __bool__(self):
+        return bool(self.transforms)
+
+    def __iter__(self) -> Generator[tuple[str, str, list[str], dict[str, str]], None, None]:
+        for transform in self.transforms:
+            yield transform.values()
+

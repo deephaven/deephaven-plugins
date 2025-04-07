@@ -15,6 +15,7 @@ from ._layer import atomic_layer
 from .. import DeephavenFigure
 from ..preprocess.Preprocessor import Preprocessor
 from ..shared import get_unique_names
+from ..types import AttachedTransforms, HierarchicalTransforms
 
 PARTITION_ARGS = {
     "by": None,
@@ -152,8 +153,8 @@ class PartitionManager:
         self.has_color = None
         self.facet_row = None
         self.facet_col = None
-        self.attached_transforms = {}
-        self.hierarchical_transforms = {}
+        self.attached_transforms = AttachedTransforms()
+        self.hierarchical_transforms = HierarchicalTransforms()
 
         self.marginal_x = args.pop("marginal_x", None)
         self.marginal_y = args.pop("marginal_y", None)
@@ -247,11 +248,11 @@ class PartitionManager:
 
         if "always_attached" in self.groups:
             new_col = get_unique_names(self.args["table"], [arg])[arg]
-            self.always_attached[(arg, self.args[arg])] = (
-                map_val,
-                self.args[seq_arg],
-                new_col,
-                False,
+            self.attached_transforms.add(
+                by_col=self.args[arg],
+                new_col=new_col,
+                style_map=map_val,
+                style_list=self.args[seq_arg],
             )
             # a new column will be constructed so this color is always updated
             self.args[f"attached_{arg}"] = new_col
@@ -317,7 +318,7 @@ class PartitionManager:
                     if self.args.get("path"):
                         new_col = get_unique_names(self.args["table"], [arg])[arg]
                         # colors need to be aggregated and attached if path is passed
-                        self.hierarchical_transforms.append(HierarchicalTransformcreate(by_col=val, new_col=new_col)
+                        self.hierarchical_transforms.add(by_col=val, new_col=new_col)
                     # otherwise the colors are passed to plotly and attached directly
             elif val:
                 self.is_by(arg, args[map_name])
@@ -422,7 +423,7 @@ class PartitionManager:
 
         # preprocessor needs to be initialized after the always attached arguments are found
         self.preprocessor = Preprocessor(
-            args, self.groups, self.always_attached, self.pivot_vars
+            args, self.groups, self.attached_transforms, self.hierarchical_transforms, self.pivot_vars
         )
 
         if partition_cols:
