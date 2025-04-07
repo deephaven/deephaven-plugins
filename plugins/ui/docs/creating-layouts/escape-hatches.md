@@ -25,7 +25,7 @@ component_with_html = ui.view(
 
 ## UNSAFE_class_name
 
-If a component's styling props are not sufficient, you can set the `UNSAFE_class_name` prop which set the html [`className`](https://developer.mozilla.org/en-US/docs/Web/API/Element/className) attribute on the element. To do this, you will need to define a `style` using `ui.html`.
+If a component's styling props are not sufficient, you can set the `UNSAFE_class_name` prop which set the html [`className`](https://developer.mozilla.org/en-US/docs/Web/API/Element/className) attribute on the element. To do this, you will need to define a class name using `style` using `ui.html`.
 
 ```python
 from deephaven import ui
@@ -43,4 +43,13 @@ unsafe_class_name = ui.panel(
 
 ## UNSAFE_style
 
-TODO
+Rather than define a class name as above, you can use the `UNSAFE_style` prop which allows you to use a `dict` to set style props directly on a component.
+
+```python
+from deephaven import ui
+
+unsafe_style = ui.panel(
+    ui.button("test", UNSAFE_style={"background": "red"}),
+    ui.button("test", UNSAFE_style={"background": "green"}),
+)
+```
