@@ -344,33 +344,30 @@ export class PlotlyExpressChartModel extends ChartModel {
     if (calendar != null) {
       // Timezone must be replaced for accurate rangebreaks.
       const timeZone = this.dh.i18n.TimeZone.getTimeZone(calendar.timeZone);
-      const newCalendar = {
+
+      this.calendar = {
         ...calendar,
         timeZone,
-      } as unknown as DhType.calendar.BusinessCalendar;
-
-      // Holidays should be converted to LocalDate objects so
-      // they have all the necessary methods to match the BusinessCalendar interface
-      newCalendar.holidays.forEach((holiday, i) => {
-        const { date } = holiday;
-        // date is a really a string at this point, but it should be a LocalDate object
-        const dateObj = new Date(date as unknown as string);
-        const year = dateObj.getFullYear();
-        const month = dateObj.getMonth();
-        const day = dateObj.getDate();
-        newCalendar.holidays[i] = {
-          ...newCalendar.holidays[i],
-          date: {
-            valueOf: () => date,
-            getYear: () => year,
-            getMonthValue: () => month,
-            getDayOfMonth: () => day,
-            toString: () => date,
-          } as unknown as DhType.LocalDateWrapper,
-        };
-      });
-
-      this.calendar = newCalendar;
+        name: 'PlotlyExpressCalendar',
+        holidays: calendar.holidays.map((holiday, i) => {
+          const { date } = holiday;
+          // date is a really a string at this point, but it should be a LocalDate object
+          const dateObj = new Date(date as unknown as string);
+          const year = dateObj.getFullYear();
+          const month = dateObj.getMonth();
+          const day = dateObj.getDate();
+          return {
+            ...holiday,
+            date: {
+              valueOf: () => date,
+              getYear: () => year,
+              getMonthValue: () => month,
+              getDayOfMonth: () => day,
+              toString: () => date,
+            } as unknown as DhType.LocalDateWrapper,
+          };
+        }),
+      };
     }
   }
 
@@ -431,7 +428,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     );
 
     // Only update if isSubscribed because otherwise the events are unnecessary and buggy
-    if (this.timeZoneChanged(formatter) && this.isSubscribed) {
+    if (this.isSubscribed && this.timeZoneChanged(formatter)) {
       this.fireRangebreaksUpdated(formatter);
       this.fireTimeZoneUpdated();
     }

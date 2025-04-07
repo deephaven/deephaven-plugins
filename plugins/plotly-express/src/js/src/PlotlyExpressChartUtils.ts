@@ -355,8 +355,9 @@ export function setRangebreaksFromCalendar(
   if (formatter != null && calendar != null) {
     const layoutUpdate: Partial<Layout> = {};
 
-    Object.keys(layout).forEach(key => {
-      if (key.includes('axis')) {
+    Object.keys(layout)
+      .filter(key => key.includes('axis'))
+      .forEach(key => {
         const axis = layout[key as keyof Layout];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const rangebreaks = (axis as any)?.rangebreaks ?? [];
@@ -368,8 +369,7 @@ export function setRangebreaksFromCalendar(
         };
 
         (layoutUpdate as Record<string, unknown>)[key] = updatedAxis;
-      }
-    });
+      });
 
     return layoutUpdate;
   }
@@ -425,13 +425,15 @@ export function setDefaultValueFormat(
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const trace = (plotlyData[index as number] as Record<string, unknown>)[
-      path as string
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ] as any;
+    const trace = plotlyData[index];
 
-    convertToPlotlyNumberFormat(trace, valueFormat, options);
+    // This object should be safe to cast to PlotNumber or Delta due
+    // to the checks when originally added to the set
+    const convertData = trace[path as keyof Data] as
+      | Partial<PlotNumber>
+      | Partial<Delta>;
+
+    convertToPlotlyNumberFormat(convertData, valueFormat, options);
   });
 }
 
