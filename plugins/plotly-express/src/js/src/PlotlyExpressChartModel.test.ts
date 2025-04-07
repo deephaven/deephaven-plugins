@@ -73,6 +73,7 @@ function createMockWidget(
           ],
           holidays: [{ date: '2024-01-01', businessPeriods: [] }],
           businessPeriods: [{ open: '08:00', close: '17:00' }],
+          name: 'Test',
         },
       },
       plotly: {
