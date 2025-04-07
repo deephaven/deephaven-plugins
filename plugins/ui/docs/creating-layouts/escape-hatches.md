@@ -25,8 +25,22 @@ component_with_html = ui.view(
 
 ## UNSAFE_class_name
 
-`deephaven.ui` components do not support the traditional html `className` property.
+If a component's styling props are not sufficient, you can set the `UNSAFE_class_name` prop which set the html [`className`](https://developer.mozilla.org/en-US/docs/Web/API/Element/className) attribute on the element. To do this, you will need to define a `style` using `ui.html`.
+
+```python
+from deephaven import ui
+
+p = ui.panel(
+    ui.html.style(
+        """
+.my_class { background: red !important;}
+"""
+    ),
+    ui.button("test", UNSAFE_class_name="my_class"),
+    ui.html.div("test", class_name="my_class"),
+)
+```
 
 ## UNSAFE_style
 
-`deephaven.ui` components do not support the traditional html `style` property.
+TODO
