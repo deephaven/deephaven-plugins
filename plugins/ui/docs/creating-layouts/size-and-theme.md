@@ -104,14 +104,22 @@ In this example, the [toast](../components/toast.md) component uses `variant` to
 ```python
 from deephaven import ui
 
+variants = ["neutral", "positive", "negative", "info"]
+
 
 @ui.component
 def ui_toast_variants():
-    ui.toast("neutral.", variant="neutral")
-    ui.toast("positive.", variant="positive")
-    ui.toast("negative.", variant="negative")
-    ui.toast("info.", variant="info")
-    return ui.text()
+    variant, set_variant = ui.use_state("neutral")
+
+    def handle_change(option):
+        set_variant(option)
+        ui.toast(option, variant=option)
+
+    return ui.picker(
+        [ui.item(option) for option in variants],
+        selected_key=variant,
+        on_selection_change=handle_change,
+    )
 
 
 ui_toast_variants_example = ui_toast_variants()
