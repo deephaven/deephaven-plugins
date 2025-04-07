@@ -8,6 +8,21 @@
 
 ## ui.html
 
+`deephaven.ui` provides a large list of components for building a UI. If you need a UI element that is not available, you can use [`ui.html`](../components/html.md) to inject html tags into your UI.
+
+```python
+from deephaven import ui
+
+component_with_html = ui.view(
+    ui.heading("HTML inside a component"),
+    ui.html.div(
+        ui.html.h1("Welcome to Deephaven"),
+        ui.html.p("This is a custom HTML component."),
+        id="html_div",
+    ),
+)
+```
+
 ## UNSAFE_class_name
 
 `deephaven.ui` components do not support the traditional html `className` property.
