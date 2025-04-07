@@ -34,14 +34,16 @@ class HierarchicalPreprocessor:
 
     def preprocess_paths(self, table):
         # sometimes there are columns that need to be aggregated along with the Value column
+        # the weighted average is used to get the correct value for the parent
         numeric_cols = {self.args["values"]}
+        by_cols = set()
         for (by_col, new_col) in self.hierarchical_transforms:
-            numeric_cols.add(by_col)
+            by_cols.add(by_col)
 
         table_columns = set(table.column_names)
         # any numeric columns should be a sum, all others should be last
         # others need to be kept for color, etc.
-        other_cols = table_columns - numeric_cols
+        other_cols = table_columns - numeric_cols - by_cols
 
         new_table = None
 
@@ -52,9 +54,11 @@ class HierarchicalPreprocessor:
             by_col = p
             parent_col = path_rev[i + 1]
 
-            aggs = [agg.last(col) for col in other_cols] + [
-                agg.avg(col) for col in numeric_cols
-            ]
+            aggs = (
+                [agg.last(col) for col in other_cols]
+                + [agg.sum_(col) for col in numeric_cols]
+                + [agg.weighted_avg(self.args["values"], col) for col in by_cols]
+            )
             # update the view because the other columns might need to be kept for color, etc.
             newest_table = table.agg_by(aggs, by=[by_col]).update_view(
                 [

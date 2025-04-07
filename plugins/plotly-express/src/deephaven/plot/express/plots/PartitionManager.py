@@ -695,10 +695,6 @@ class PartitionManager:
             or "always_attached" in self.groups
         ) and self.preprocessor:
             # still need to preprocess the base table
-            print(
-                [*self.preprocessor.preprocess_partitioned_tables([args["table"]])][0]
-            )
-            print(self.preprocessor.preprocesser)
             table, arg_update = cast(
                 Tuple,
                 [*self.preprocessor.preprocess_partitioned_tables([args["table"]])][0],
