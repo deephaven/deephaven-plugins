@@ -4,7 +4,7 @@ from typing import Callable
 
 from ._private_utils import process_args
 from ..shared import default_callback
-from ..deephaven_figure import draw_ohlc, draw_candlestick, DeephavenFigure
+from ..deephaven_figure import draw_ohlc, draw_candlestick, DeephavenFigure, Calendar
 from ..types import TableLike
 
 
@@ -21,6 +21,7 @@ def ohlc(
     yaxis_sequence: list[int] | None = None,
     yaxis_titles: list[str] | None = None,
     xaxis_titles: list[str] | None = None,
+    calendar: Calendar = False,
     unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """Returns an ohlc chart
@@ -52,6 +53,10 @@ def ohlc(
           loop.
       xaxis_titles: A list of titles to sequentially apply to the x axes. The titles do not
           loop.
+      calendar: A boolean, BusinessCalendar or string that specifies a calendar to use for the chart.
+        By default, False and no calendar is used. If True, the default calendar is used.
+        If a string, the calendar with that name is used. If a BusinessCalendar is passed,
+        that calendar is used.
       unsafe_update_figure: An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is
         not returned, the plotly figure passed will be assumed to be the return
@@ -86,6 +91,7 @@ def candlestick(
     yaxis_sequence: list[int] | None = None,
     yaxis_titles: list[str] | None = None,
     xaxis_titles: list[str] | None = None,
+    calendar: Calendar = False,
     unsafe_update_figure: Callable = default_callback,
 ) -> DeephavenFigure:
     """Returns a candlestick chart
@@ -117,6 +123,10 @@ def candlestick(
           loop.
       xaxis_titles: A list of titles to sequentially apply to the x axes. The titles do not
           loop.
+      calendar: A boolean, BusinessCalendar or string that specifies a calendar to use for the chart.
+        By default, False and no calendar is used. If True, the default calendar is used.
+        If a string, the calendar with that name is used. If a BusinessCalendar is passed,
+        that calendar is used.
       unsafe_update_figure: An update function that takes a plotly figure
         as an argument and optionally returns a plotly figure. If a figure is
         not returned, the plotly figure passed will be assumed to be the return
