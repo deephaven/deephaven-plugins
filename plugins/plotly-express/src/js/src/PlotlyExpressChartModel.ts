@@ -348,7 +348,6 @@ export class PlotlyExpressChartModel extends ChartModel {
       this.calendar = {
         ...calendar,
         timeZone,
-        name: 'PlotlyExpressCalendar',
         holidays: calendar.holidays.map((holiday, i) => {
           const { date } = holiday;
           // date is a really a string at this point, but it should be a LocalDate object

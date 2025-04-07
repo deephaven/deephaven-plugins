@@ -12,11 +12,11 @@ class FigureCalendarTestCase(BaseTestCase):
 
         figure_calendar = FigureCalendar(calendar)
 
-        calendar_name = figure_calendar._calendar.name()
+        calendar_name = figure_calendar.name
 
-        calendar_str_name = FigureCalendar(calendar_name)._calendar.name()
+        calendar_str_name = FigureCalendar(calendar_name).name
 
-        calendar_default_name = FigureCalendar(True)._calendar.name()
+        calendar_default_name = FigureCalendar(True).name
 
         # since the default calendar is the same as the calendar set, all should be equal
         self.assertEqual(calendar_name, calendar_name)
@@ -79,5 +79,7 @@ class FigureCalendarTestCase(BaseTestCase):
         self.assertCountEqual(figure_calendar.holidays, [])
 
         self.assertCountEqual(figure_calendar.business_periods, [])
+
+        self.assertEqual(figure_calendar.name, "FigureCalendar")
 
         self.assertIsNone(figure_calendar.to_dict())

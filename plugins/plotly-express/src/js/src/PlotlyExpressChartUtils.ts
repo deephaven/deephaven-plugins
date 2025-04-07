@@ -66,6 +66,7 @@ export interface PlotlyChartDeephavenData {
       businessPeriods: Array<DeephavenCalendarBusinessPeriod>;
     }>;
     businessPeriods: Array<DeephavenCalendarBusinessPeriod>;
+    name: string;
   };
   mappings: Array<{
     table: number;

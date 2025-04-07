@@ -66,6 +66,7 @@ class FigureCalendarDict(TypedDict):
     businessDays: Days
     holidays: Holidays
     businessPeriods: TimeRanges
+    name: str
 
 
 DAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
@@ -213,6 +214,19 @@ class FigureCalendar:
 
         return [str(day) for day in list(self._calendar.weekendDays().toArray())]
 
+    @property
+    def name(self) -> str:
+        """
+        Get the name of the calendar
+
+        Returns:
+            The name of the calendar
+        """
+        if not self._calendar:
+            return "FigureCalendar"
+
+        return str(self._calendar.name())
+
     def to_dict(self) -> FigureCalendarDict | None:
         """
         Convert the FigureCalendar to a dictionary
@@ -228,4 +242,5 @@ class FigureCalendar:
             "businessDays": self.business_days,
             "holidays": self.holidays,
             "businessPeriods": self.business_periods,
+            "name": self.name,
         }
