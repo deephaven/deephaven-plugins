@@ -4,11 +4,11 @@ from typing import Any, Generator
 
 from deephaven.table import Table
 
-from .UnivariatePreprocessor import UnivariatePreprocessor
+from .UnivariateAwarePreprocessor import UnivariateAwarePreprocessor
 from ..shared import get_unique_names
 
 
-class FreqPreprocessor(UnivariatePreprocessor):
+class FreqPreprocessor(UnivariateAwarePreprocessor):
     """
     A type of univariate preprocessor for frequency bar plots
 
@@ -33,14 +33,14 @@ class FreqPreprocessor(UnivariatePreprocessor):
           A tuple containing (the new table, an update to make to the args)
 
         """
-        column = self.col_val if not column else column
+        column = self.agg_col if not column else column
 
         names = get_unique_names(self.table, ["count"])
 
-        self.args[self.other_var] = names["count"]
+        self.args[self.agg_var] = names["count"]
 
         for table in tables:
             yield table.view([column]).count_by(names["count"], by=column), {
-                self.var: column,
-                self.other_var: names["count"],
+                self.bin_var: column,
+                self.agg_var: names["count"],
             }

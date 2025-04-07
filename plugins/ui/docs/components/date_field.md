@@ -10,6 +10,8 @@ from deephaven import ui
 my_date_field_basic = ui.date_field(label="Date field")
 ```
 
+![Date Field Basic Example](../_assets/date_field_basic.png)
+
 ## Date types
 
 A date field can be used to input a date.

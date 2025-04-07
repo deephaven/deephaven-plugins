@@ -69,7 +69,6 @@ class AreaTestCase(BaseTestCase):
                 "side": "left",
             },
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
         }
 
         self.assertEqual(plotly["layout"], expected_layout)
@@ -134,7 +133,6 @@ class AreaTestCase(BaseTestCase):
                 "side": "left",
             },
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
         }
 
         self.assertEqual(plotly["layout"], expected_layout)
@@ -191,7 +189,6 @@ class AreaTestCase(BaseTestCase):
                 "side": "left",
             },
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
         }
 
         expected_mappings = [
@@ -217,6 +214,33 @@ class AreaTestCase(BaseTestCase):
         chart_table = dx.area(self.source, x="X", y="Y")
 
         self.assert_chart_equals(chart_pandas, chart_table)
+
+    def test_area_calendar(self):
+        import src.deephaven.plot.express as dx
+
+        chart = dx.area(self.source, x="X", y="Y", calendar="TestCalendar").to_dict(
+            self.exporter
+        )
+
+        expected_calendar = {
+            "timeZone": "America/New_York",
+            "businessDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
+            "holidays": [
+                {"date": "2024-01-01", "businessPeriods": []},
+                {
+                    "date": "2024-04-01",
+                    "businessPeriods": [
+                        {
+                            "open": "08:00",
+                            "close": "12:00",
+                        }
+                    ],
+                },
+            ],
+            "businessPeriods": [{"open": "08:00", "close": "12:00"}],
+        }
+
+        self.assert_calendar_equal(chart["deephaven"]["calendar"], expected_calendar)
 
 
 if __name__ == "__main__":

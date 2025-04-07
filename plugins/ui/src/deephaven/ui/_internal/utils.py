@@ -1,10 +1,22 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, List, Set, cast, Sequence, TypeVar
+from typing import Any, Callable, Dict, List, Set, Tuple, cast, Sequence, TypeVar, Union
+from deephaven.dtypes import (
+    Instant as DTypeInstant,
+    ZonedDateTime as DTypeZonedDateTime,
+    LocalDate as DTypeLocalDate,
+)
 from inspect import signature
 import sys
 from functools import partial
-from deephaven.time import to_j_instant, to_j_zdt, to_j_local_date, to_j_local_time
+from deephaven.time import (
+    to_j_instant,
+    to_j_zdt,
+    to_j_local_date,
+    to_j_local_time,
+    dh_now,
+    dh_today,
+)
 
 from ..types import (
     Date,
@@ -14,6 +26,7 @@ from ..types import (
     JavaTime,
     LocalDateConvertible,
     LocalDate,
+    Instant,
     Undefined,
 )
 
@@ -287,7 +300,7 @@ def create_props(args: dict[str, Any]) -> tuple[tuple[Any, ...], dict[str, Any]]
     return children, props
 
 
-def _convert_to_java_date(
+def convert_to_java_date(
     date: Date,
 ) -> JavaDate:
     """
@@ -617,7 +630,7 @@ def convert_list_prop(
 
     if not isinstance(value, list):
         raise TypeError(f"{key} must be a list of Dates")
-    return [str(_convert_to_java_date(date)) for date in value]
+    return [str(convert_to_java_date(date)) for date in value]
 
 
 def convert_date_range(
@@ -679,6 +692,28 @@ def _date_range_converter(
     return date_range_converter
 
 
+def get_placeholder_value(
+    placeholder_value: Date | None,
+    granularity: str | None,
+) -> Date:
+    """
+    Get the placeholder value for date components taking into account granularity.
+
+    Args:
+        placeholder_value: The current placeholder value, may be None.
+        granularity: The granularity of the date component.
+    Returns:
+        The placeholder value to use.
+    """
+    # The user set the placeholder value, so use that
+    if placeholder_value is not None:
+        return placeholder_value
+    # Use a local date if the granularity is day
+    if isinstance(granularity, str) and granularity.upper() == "DAY":
+        return to_j_local_date(dh_today())
+    return dh_now()
+
+
 def convert_date_props(
     props: dict[str, Any],
     simple_date_props: set[str],
@@ -706,11 +741,11 @@ def convert_date_props(
     """
     for key in simple_date_props:
         if not is_nullish(props.get(key)):
-            props[key] = _convert_to_java_date(props[key])
+            props[key] = convert_to_java_date(props[key])
 
     for key in date_range_props:
         if not is_nullish(props.get(key)):
-            props[key] = convert_date_range(props[key], _convert_to_java_date)
+            props[key] = convert_date_range(props[key], convert_to_java_date)
 
     # the simple props must be converted before this to simplify the callable conversion
     converter = _prioritized_date_callable_converter(props, priority, default_converter)
@@ -786,6 +821,45 @@ def convert_time_props(
             if not callable(props[key]):
                 raise TypeError(f"{key} must be a callable")
             props[key] = _wrap_time_callable(props[key], converter)
+
+
+def convert_date_for_labeled_value(
+    date: JavaDate,
+) -> Union[int, str, Tuple[int, str | None], None]:
+    """
+    Convert a Java date to an appropriate value for ui.labeled_value based on the date type.
+
+    Args:
+        date: The Java date to convert.
+
+    Returns:
+        Nanoseconds since epoch as an int or a local date as a str, and timezone identifier as a str if input is a ZonedDateTime.
+    """
+    if isinstance(date, DTypeInstant.j_type):
+        return _convert_instant_to_nanos(date)
+
+    if isinstance(date, DTypeZonedDateTime.j_type):
+        tz = date.getZone()  # type: ignore
+        instant = date.toInstant()  # type: ignore
+        return (_convert_instant_to_nanos(instant), str(tz) if tz else None)
+
+    if isinstance(date, DTypeLocalDate.j_type):
+        return str(date)
+
+
+def _convert_instant_to_nanos(instant: Instant) -> int:
+    """
+    Convert a Java Instant to nanoseconds since the epoch.
+
+    Args:
+        instant: The Java Instant to convert.
+
+    Returns:
+        The equivalent nanoseconds since the epoch.
+    """
+    seconds = instant.getEpochSecond()  # type: ignore
+    nanos = instant.getNano()  # type: ignore
+    return seconds * 1_000_000_000 + nanos
 
 
 def unpack_item_table_source(

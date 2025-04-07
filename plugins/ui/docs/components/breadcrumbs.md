@@ -16,6 +16,8 @@ breadcrumbs_example = ui.view(
 )
 ```
 
+![Breadcrumbs Basic Example](../_assets/breadcrumbs_basic.png)
+
 ## Content
 
 `ui.breadcrumbs` accepts `item` elements as children, each with a `key` prop. Basic usage of breadcrumbs, seen in the example above, shows multiple items populated with a string.

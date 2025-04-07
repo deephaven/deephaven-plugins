@@ -11,6 +11,9 @@ from deephaven import ui
 my_action_menu_basic = ui.action_menu("Cut", "Copy", "Paste")
 ```
 
+![Action Menu Basic Example](../_assets/action_menu_basic.png)
+
+
 ## UI recommendations
 
 Consider using an [`action_group`] to group multiple action buttons together. 

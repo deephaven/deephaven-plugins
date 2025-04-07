@@ -47,7 +47,6 @@ This page contains a collection of links to examples demonstrating different plo
 
 </CardList>
 
-
 ### Financial Plots
 
 <CardList>
@@ -91,7 +90,9 @@ This page contains a collection of links to examples demonstrating different plo
 [![Subplot - Combines multiple plots into a single layout](_assets/plot_icons/sub_plot.svg)](sub-plots.md)
 [![Layer plot - Overlays multiple plots on top of each other](_assets/plot_icons/layer_plots.svg)](layer-plots.md)
 [![Multiple axes plot - Uses multiple axes to represent different data dimensions](_assets/plot_icons/multiple_axes.svg)](multiple-axes.md)
-[![Titles and legends - Provides titles and labels for the plot elements](_assets/plot_icons/titles_legends.svg)](other.md)
+
+<!-- TODO: DOC-574 https://deephaven.atlassian.net/browse/DOC-574 >
+<!-- [![Titles and legends - Provides titles and labels for the plot elements](_assets/plot_icons/titles_legends.svg)](other.md) -->
 
 </CardList>
 

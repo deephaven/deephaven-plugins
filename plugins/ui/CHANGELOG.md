@@ -2,6 +2,35 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.29.1 - 2025-04-01
+#### Bug Fixes
+- Handle a null jsonClient correctly (DH-18461) (#1138) - (1852554) - mofojed
+- Unwanted linebreaks in `tutorial.md` (#1133) - (63d6e66) - Joe
+#### Documentation
+- component doc for ui.grid (#1148) - (e6996c1) - dgodinez-dh
+- Fixing docs links (#1139) - (328802e) - Matthew Runyon
+#### Refactoring
+- Remove fast-deep-equal from UITable (#1140) - (f1054ee) - mofojed
+
+- - -
+
+## ui-v0.29.0 - 2025-03-19
+#### Bug Fixes
+- Re-opening widget would break interactivity (DH-18090) (#1143) - (8f73a3d) - mofojed
+- wrong date converter for day granularity (#1132) - (9d277ab) - dgodinez-dh
+#### Build system
+- Add custom sphinx translator to fix relative image paths in output (#1136) - (fa6615e) - Matthew Runyon
+#### Documentation
+- creating dashboards (#1127) - (73607fd) - dgodinez-dh
+- layout overview (#1120) - (6f95184) - dgodinez-dh
+- snapshots for components (#1123) - (a8c5303) - ethanalvizo
+#### Features
+- DH-18652 Programmatically display aggregates rows with ui.table (#1131) - (4437252) - Matthew Runyon
+- List format options for ui.labeled_value (#1137) - (7d0915b) - Eric Lin
+- dates and date formatting for ui.labeled_value (#1128) - (f1b896f) - Eric Lin
+
+- - -
+
 ## ui-v0.28.1 - 2025-03-07
 #### Bug Fixes
 - ui.dialog should throw error for invalid children (#1130) - (66aec06) - dgodinez-dh

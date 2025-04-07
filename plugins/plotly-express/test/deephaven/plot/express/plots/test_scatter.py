@@ -51,7 +51,6 @@ class ScatterTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -123,7 +122,6 @@ class ScatterTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -207,7 +205,6 @@ class ScatterTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -285,7 +282,6 @@ class ScatterTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -363,7 +359,6 @@ class ScatterTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -447,7 +442,6 @@ class ScatterTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -557,7 +551,6 @@ class ScatterTestCase(BaseTestCase):
 
         expected_layout = {
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "xaxis": {
                 "anchor": "y",
                 "domain": [0.0, 1.0],
@@ -687,7 +680,6 @@ class ScatterTestCase(BaseTestCase):
             "barmode": "overlay",
             "boxmode": "group",
             "legend": {"tracegroupgap": 0},
-            "margin": {"t": 60},
             "showlegend": False,
             "xaxis": {
                 "anchor": "y",
@@ -748,8 +740,8 @@ class ScatterTestCase(BaseTestCase):
             {
                 "table": 0,
                 "data_columns": {
-                    "count": ["/plotly/data/2/y"],
-                    "Y": ["/plotly/data/2/x"],
+                    "Y": ["/plotly/data/2/y"],
+                    "tmpbar0": ["/plotly/data/2/x"],
                 },
             },
         ]
@@ -758,6 +750,33 @@ class ScatterTestCase(BaseTestCase):
 
         self.assertEqual(deephaven["is_user_set_template"], False)
         self.assertEqual(deephaven["is_user_set_color"], False)
+
+    def test_scatter_calendar(self):
+        import src.deephaven.plot.express as dx
+
+        chart = dx.scatter(self.source, x="X", y="Y", calendar="TestCalendar").to_dict(
+            self.exporter
+        )
+
+        expected_calendar = {
+            "timeZone": "America/New_York",
+            "businessDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
+            "holidays": [
+                {"date": "2024-01-01", "businessPeriods": []},
+                {
+                    "date": "2024-04-01",
+                    "businessPeriods": [
+                        {
+                            "open": "08:00",
+                            "close": "12:00",
+                        }
+                    ],
+                },
+            ],
+            "businessPeriods": [{"open": "08:00", "close": "12:00"}],
+        }
+
+        self.assert_calendar_equal(chart["deephaven"]["calendar"], expected_calendar)
 
 
 if __name__ == "__main__":

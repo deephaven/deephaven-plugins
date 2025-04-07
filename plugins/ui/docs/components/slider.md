@@ -2,7 +2,6 @@
 
 Sliders allow users to quickly select a value within a fixed range and should be used when the range's upper and lower bounds are constant.
 
-
 ## Example
 
 ```python
@@ -12,6 +11,7 @@ from deephaven import ui
 my_slider_basic = ui.slider(default_value=12, label="Cookies to buy")
 ```
 
+![Slider Basic Example](../_assets/slider_basic.png)
 
 ## UI recommendations
 
@@ -21,7 +21,6 @@ Recommendations for creating sliders:
 2. The label and contextual help text should be in sentence case.
 
 Consider using a [`range_slider`](./range_slider.md) when users should select a subset range or a `number_field` when the range is large or greater precision is required.
-
 
 ## Value
 
@@ -45,10 +44,9 @@ def slider_value_example():
 my_slider_value_example = slider_value_example()
 ```
 
-
 ## Scale
 
-Setting the `min_value` and `max_value` props configures a custom scale for the slider.  
+Setting the `min_value` and `max_value` props configures a custom scale for the slider.
 
 The `step` prop changes the increments that the slider changes.
 
@@ -75,7 +73,6 @@ def slider_range_step_examples():
 my_slider_range_step_examples = slider_range_step_examples()
 ```
 
-
 ## HTML Forms
 
 Sliders can support a `name` prop for integration with HTML forms, allowing for easy identification of a value on form submission.
@@ -88,7 +85,6 @@ my_slider_name_example = ui.form(
     ui.slider(label="Opacity", default_value=50, name="opacity")
 )
 ```
-
 
 ## Labeling
 
@@ -108,7 +104,6 @@ my_slider_label_example = ui.flex(
     gap="size-500",
 )
 ```
-
 
 ## Fill
 
@@ -141,10 +136,9 @@ my_slider_fill_example = ui.flex(
 )
 ```
 
-
 ## Gradient
 
-The `track_gradient` prop applies a gradient to the slider's fill. 
+The `track_gradient` prop applies a gradient to the slider's fill.
 
 ```python
 from deephaven import ui
@@ -159,7 +153,6 @@ my_slider_gradient_example = ui.slider(
     is_filled=True,
 )
 ```
-
 
 ## Contextual Help
 
@@ -185,7 +178,7 @@ my_slider_contextual_help_example = ui.slider(
 
 ## Disabled
 
-Setting the `is_disabled` prop disables the slider.  
+Setting the `is_disabled` prop disables the slider.
 
 ```python
 from deephaven import ui
@@ -195,7 +188,6 @@ my_slider_disabled_example = ui.slider(
     label="Cookies to share", default_value=0, is_disabled=True
 )
 ```
-
 
 ## API Reference
 

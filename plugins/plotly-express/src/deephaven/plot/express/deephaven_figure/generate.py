@@ -59,6 +59,9 @@ DATA_ARGS = {
     "lat",
     "lon",
     "locations",
+    "value",
+    "reference",
+    "text_indicator",
 }
 DATA_ARGS.update(DATA_LIST_ARGS)
 
@@ -82,6 +85,9 @@ SEQUENCE_ARGS_MAP = {
     "width_sequence": "line_width",
     "increasing_color_sequence": "increasing_line_color",
     "decreasing_color_sequence": "decreasing_line_color",
+    "gauge_color_sequence": "gauge_bar_color",
+    "increasing_color_sequence_indicator": "delta_increasing_color",
+    "decreasing_color_sequence_indicator": "delta_decreasing_color",
     "size_sequence": "marker_size",
     "mode": "mode",
 }
@@ -111,8 +117,9 @@ CUSTOM_ARGS = {
     "current_col",
     "current_var",
     "labels",
-    "hist_val_name",
-    "pivot_vars",
+    "hist_agg_label",
+    "hist_orientation",
+    "stacked_column_names",
     "current_partition",
     "colors",
     "unsafe_update_figure",
@@ -684,7 +691,7 @@ def handle_custom_args(
     return trace_generator
 
 
-def get_list_var_info(data_cols: Mapping[str, str | list[str]]) -> set[str]:
+def get_list_param_info(data_cols: Mapping[str, str | list[str]]) -> set[str]:
     """Extract the variable that is a list.
 
     Args:
@@ -703,6 +710,8 @@ def get_list_var_info(data_cols: Mapping[str, str | list[str]]) -> set[str]:
     # DATA_LIST_ARGS) but there is currently no additional hover text generated
     # for them
     types.add("finance" if data_cols.get("x_finance", False) else None)
+
+    types.add("indicator" if data_cols.get("value", False) else None)
 
     """for var, cols in data_cols.items():
         # there should only be at most one data list (with the filtered
@@ -798,8 +807,8 @@ def hover_text_generator(
     Yields:
       A dictionary update
     """
-    if isinstance(types, set) and "finance" in types:
-        # finance has no hover text currently (besides the default)
+    if isinstance(types, set) and ("finance" in types or "indicator" in types):
+        # finance and indicator have no custom hover text
         while True:
             yield {}
 
@@ -824,7 +833,8 @@ def hover_text_generator(
 
 def compute_labels(
     hover_mapping: list[dict[str, str]],
-    hist_val_name: str | None,
+    hist_agg_label: str | None,
+    hist_orientation: str | None,
     heatmap_agg_label: str | None,
     # hover_data - todo, dependent on arrays supported in data mappings
     types: set[str],
@@ -837,7 +847,8 @@ def compute_labels(
 
     Args:
       hover_mapping: The mapping of variables to columns
-      hist_val_name: The histogram name for the value axis, generally histfunc
+      hist_agg_label: The histogram agg label
+      hist_orientation: The histogram orientation
       heatmap_agg_label: The aggregate density heatmap column title
       types: Any types of this chart that require special processing
       labels: A dictionary of old column name to new column name mappings
@@ -847,7 +858,7 @@ def compute_labels(
         the renamed current_col
     """
 
-    calculate_hist_labels(hist_val_name, hover_mapping[0])
+    calculate_hist_labels(hist_agg_label, hist_orientation, hover_mapping[0])
 
     calculate_density_heatmap_labels(heatmap_agg_label, hover_mapping[0], labels)
 
@@ -880,27 +891,30 @@ def calculate_density_heatmap_labels(
 
 
 def calculate_hist_labels(
-    hist_val_name: str | None, current_mapping: dict[str, str]
+    hist_agg_label: str | None,
+    hist_orientation: str | None,
+    hover_mapping: dict[str, str],
 ) -> None:
     """Calculate the histogram labels
 
     Args:
-      hist_val_name: The histogram name for the value axis, generally histfunc
-      current_mapping: The mapping of variables to columns
+      hist_agg_label: The histogram agg label
+      hist_orientation: The histogram orientation
+      hover_mapping: The mapping of variables to columns
 
     """
-    if hist_val_name:
-        # swap the names
-        current_mapping["x"], current_mapping["y"] = (
-            current_mapping["y"],
-            current_mapping["x"],
-        )
+    # only one should be set
+    if hist_orientation == "h" and hist_agg_label:
+        # a bar chart oriented horizontally has the histfunc on the x-axis
+        hover_mapping["x"] = hist_agg_label
+    elif hist_orientation == "v" and hist_agg_label:
+        hover_mapping["y"] = hist_agg_label
 
 
 def add_axis_titles(
     custom_call_args: dict[str, Any],
     hover_mapping: list[dict[str, str]],
-    hist_val_name: str | None,
+    hist_agg_label: str | None,
     heatmap_agg_label: str | None,
 ) -> None:
     """Add axis titles. Generally, this only applies when there is a list variable
@@ -909,7 +923,7 @@ def add_axis_titles(
       custom_call_args: The custom_call_args that are used to
         create hover and axis titles
       hover_mapping: The mapping of variables to columns
-      hist_val_name: The histogram name for the value axis, generally histfunc
+      hist_agg_label: The histogram agg label
       heatmap_agg_label: The aggregate density heatmap column title
 
     """
@@ -919,8 +933,8 @@ def add_axis_titles(
     new_xaxis_titles = None
     new_yaxis_titles = None
 
-    if hist_val_name:
-        # hist names are already set up in the mapping
+    if hist_agg_label:
+        # hist labels are already set up in the mapping
         new_xaxis_titles = [hover_mapping[0].get("x", None)]
         new_yaxis_titles = [hover_mapping[0].get("y", None)]
 
@@ -945,7 +959,7 @@ def create_hover_and_axis_titles(
     hover_mapping: list[dict[str, str]],
 ) -> Generator[dict[str, Any], None, None]:
     """Create hover text and axis titles. There are three main behaviors.
-    First is "current_col", "current_var", and "pivot_vars" are specified in
+    First is "current_col", "current_var", and "stacked_column_names" are specified in
     "custom_call_args".
     In this case, there is a list of variables, but they are layered outside
     the generate function.
@@ -975,17 +989,19 @@ def create_hover_and_axis_titles(
     Yields:
       Dicts containing hover updates
     """
-    types = get_list_var_info(data_cols)
+    types = get_list_param_info(data_cols)
 
     labels = custom_call_args.get("labels", None)
-    hist_val_name = custom_call_args.get("hist_val_name", None)
+    hist_agg_label = custom_call_args.get("hist_agg_label", None)
+    hist_orientation = custom_call_args.get("hist_orientation", None)
     heatmap_agg_label = custom_call_args.get("heatmap_agg_label", None)
 
     current_partition = custom_call_args.get("current_partition", {})
 
     compute_labels(
         hover_mapping,
-        hist_val_name,
+        hist_agg_label,
+        hist_orientation,
         heatmap_agg_label,
         types,
         labels,
@@ -998,7 +1014,12 @@ def create_hover_and_axis_titles(
         # it's possible that heatmap_agg_label was relabeled, so grab the new label
         heatmap_agg_label = hover_mapping[0]["z"]
 
-    add_axis_titles(custom_call_args, hover_mapping, hist_val_name, heatmap_agg_label)
+    add_axis_titles(
+        custom_call_args,
+        hover_mapping,
+        hist_agg_label,
+        heatmap_agg_label,
+    )
 
     return hover_text
 
@@ -1035,7 +1056,6 @@ def generate_figure(
     data_frame = construct_min_dataframe(
         table, data_cols=merge_cols(list(data_cols.values()))
     )
-
     px_fig = draw(data_frame=data_frame, **filtered_call_args)
 
     data_mapping, hover_mapping = create_data_mapping(
@@ -1053,6 +1073,18 @@ def generate_figure(
         trace_generator=trace_generator,
         extra_generators=[hover_text],
     )
+
+    is_indicator = px_fig.data[0].type == "indicator"
+
+    # px adds a margin of 60 if a title is not specified
+    # since most charts still use px at their core and
+    # this isn't user controlled in any way, remove it after
+    # the figure is already created
+    # indicator charts are exempt to reduce likelihood of layout title and indicator title collision
+    if not is_indicator:
+        px_fig.update_layout(
+            margin_t=None,
+        )
 
     dh_fig = DeephavenFigure(
         px_fig,

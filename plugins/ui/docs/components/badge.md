@@ -10,10 +10,11 @@ from deephaven import ui
 my_badge_basic = ui.badge("Licensed", variant="positive")
 ```
 
+![Badge Basic Example](../_assets/badge_basic.png)
+
 ## UI recommendations
 
 Consider using [`text`](./text.md) to provide descriptive text for elements without the colored emphasis of a badge.
-
 
 ## Content
 
@@ -27,7 +28,6 @@ my_badge_context_example = ui.badge(
     ui.icon("vsWarning"), "Rejected", variant="negative"
 )
 ```
-
 
 ## Variants
 
@@ -57,7 +57,6 @@ my_badge_variant_examples = ui_badge_variant_examples()
 ```
 
 Use badges with label colors to color-code categories, ideally for 8 or fewer categories.
-
 
 ```python
 from deephaven import ui

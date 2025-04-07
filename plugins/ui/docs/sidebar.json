@@ -1,13 +1,8 @@
 {
+  "$schema": "https://raw.githubusercontent.com/deephaven/salmon-sync/refs/heads/main/sidebar.schema.json",
   "config": {
     "name": "deephaven.ui Docs"
   },
-  "nav": [
-    {
-      "label": "Main",
-      "sidebar": "main"
-    }
-  ],
   "sidebars": {
     "main": [
       {
@@ -105,7 +100,7 @@
           },
           {
             "label": "Plotting",
-            "path": "add-interactivity/plot-with-components.md"
+            "path": "add-interactivity/plot-with-deephaven-ui.md"
           }
         ]
       },
@@ -127,6 +122,19 @@
           {
             "label": "Preserving and Resetting State",
             "path": "managing-state/preserving-and-resetting-state.md"
+          }
+        ]
+      },
+      {
+        "label": "Creating Layouts",
+        "items": [
+          {
+            "label": "Layout Overview",
+            "path": "creating-layouts/layout-overview.md"
+          },
+          {
+            "label": "Creating Dashboards",
+            "path": "creating-layouts/creating-dashboards.md"
           }
         ]
       },
@@ -174,16 +182,16 @@
             "path": "components/calendar.md"
           },
           {
-            "label": "color_picker",
-            "path": "components/color_picker.md"
-          },
-          {
             "label": "checkbox",
             "path": "components/checkbox.md"
           },
           {
             "label": "checkbox_group",
             "path": "components/checkbox_group.md"
+          },
+          {
+            "label": "color_picker",
+            "path": "components/color_picker.md"
           },
           {
             "label": "combo_box",
@@ -234,12 +242,12 @@
             "path": "components/form.md"
           },
           {
-            "label": "footer",
-            "path": "components/footer.md"
-          },
-          {
             "label": "fragment",
             "path": "components/fragment.md"
+          },
+          {
+            "label": "grid",
+            "path": "components/grid.md"
           },
           {
             "label": "heading",
