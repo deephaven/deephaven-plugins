@@ -423,7 +423,11 @@ class PartitionManager:
 
         # preprocessor needs to be initialized after the always attached arguments are found
         self.preprocessor = Preprocessor(
-            args, self.groups, self.attached_transforms, self.hierarchical_transforms, self.pivot_vars
+            args,
+            self.groups,
+            self.attached_transforms,
+            self.hierarchical_transforms,
+            self.pivot_vars,
         )
 
         if partition_cols:

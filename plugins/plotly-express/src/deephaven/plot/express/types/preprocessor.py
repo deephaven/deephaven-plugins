@@ -17,6 +17,7 @@ class HierarchicalTransform(TypedDict):
         sum_col: bool: True if this column should be summed if a path is present.
             For example, if the column is numeric and is used for color,
     """
+
     by_col: str
     new_col_name: str
 
@@ -24,7 +25,7 @@ class HierarchicalTransform(TypedDict):
         self.transforms = []
 
 
-class HierarchicalTransforms():
+class HierarchicalTransforms:
     def __init__(self):
         self.transforms = []
 
@@ -33,7 +34,9 @@ class HierarchicalTransforms():
         by_col: str,
         new_col: str,
     ) -> None:
-        self.transforms.append(HierarchicalTransform(by_col=by_col, new_col_name=new_col))
+        self.transforms.append(
+            HierarchicalTransform(by_col=by_col, new_col_name=new_col)
+        )
 
     def __bool__(self):
         return bool(self.transforms)
@@ -55,6 +58,7 @@ class AttachedTransform(TypedDict):
         sum_col: bool: True if this column should be summed if a path is present.
             For example, if the column is numeric and is used for color,
     """
+
     by_col: str
     new_col: str
     style_list: list[str]
@@ -66,23 +70,26 @@ class AttachedTransforms:
         self.transforms = []
 
     def add(
-            self,
-            by_col: str,
-            new_col: str,
-            style_map: dict[str, str] | None = None,
-            style_list: list[str] | None = None,
+        self,
+        by_col: str,
+        new_col: str,
+        style_map: dict[str, str] | None = None,
+        style_list: list[str] | None = None,
     ) -> None:
-        self.transforms.append(AttachedTransform(
-            by_col=by_col,
-            new_col=new_col,
-            style_list=style_list or [],
-            style_map=style_map or {},
-        ))
+        self.transforms.append(
+            AttachedTransform(
+                by_col=by_col,
+                new_col=new_col,
+                style_list=style_list or [],
+                style_map=style_map or {},
+            )
+        )
 
     def __bool__(self):
         return bool(self.transforms)
 
-    def __iter__(self) -> Generator[tuple[str, str, list[str], dict[str, str]], None, None]:
+    def __iter__(
+        self,
+    ) -> Generator[tuple[str, str, list[str], dict[str, str]], None, None]:
         for transform in self.transforms:
             yield transform.values()
-

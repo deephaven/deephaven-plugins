@@ -48,7 +48,6 @@ class Preprocessor:
         self.path = self.args.pop("path", None)
         self.prepare_preprocess()
 
-
     def prepare_preprocess(self) -> None:
         """
         Prepare for preprocessing by capturing information needed
@@ -72,7 +71,6 @@ class Preprocessor:
                 self.preprocesser = HierarchicalPreprocessor(
                     self.args, self.hierarchial_transforms, self.path
                 )
-
 
     def preprocess_partitioned_tables(
         self, tables: list[Table] | None, column: str | None = None

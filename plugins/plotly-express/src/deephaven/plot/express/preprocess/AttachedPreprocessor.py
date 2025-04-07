@@ -19,10 +19,10 @@ class AttachedPreprocessor:
     """
 
     def __init__(
-            self,
-            args: dict[str, Any],
-            attached_transforms: AttachedTransforms,
-            path: str | list[str] | None = None,
+        self,
+        args: dict[str, Any],
+        attached_transforms: AttachedTransforms,
+        path: str | list[str] | None = None,
     ):
         self.args = args
         self.attached_transforms = attached_transforms

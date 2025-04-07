@@ -22,10 +22,10 @@ class HierarchicalPreprocessor:
     """
 
     def __init__(
-            self,
-            args: dict[str, Any],
-            hierarchical_transforms: HierarchicalTransforms,
-            path: str | list[str] | None = None,
+        self,
+        args: dict[str, Any],
+        hierarchical_transforms: HierarchicalTransforms,
+        path: str | list[str] | None = None,
     ):
         self.args = args
         self.hierarchical_transforms = hierarchical_transforms
@@ -57,7 +57,10 @@ class HierarchicalPreprocessor:
             ]
             # update the view because the other columns might need to be kept for color, etc.
             newest_table = table.agg_by(aggs, by=[by_col]).update_view(
-                [f"{self.names['Names']}={by_col}", f"{self.names['Parent']}={parent_col}"]
+                [
+                    f"{self.names['Names']}={by_col}",
+                    f"{self.names['Parent']}={parent_col}",
+                ]
             )
 
             if not new_table:
@@ -68,7 +71,7 @@ class HierarchicalPreprocessor:
         return new_table
 
     def preprocess_partitioned_tables(
-            self, tables: list[Table] | None, column: str | None = None
+        self, tables: list[Table] | None, column: str | None = None
     ) -> Generator[
         Table | tuple[Table, dict[str, str | None]] | tuple[Table, dict[str, str]],
         None,
@@ -88,7 +91,7 @@ class HierarchicalPreprocessor:
                     "names": "Names",
                     # always use total for branch values if a path is present
                     # because the values are summed
-                    "branchvalues": "total"
+                    "branchvalues": "total",
                 }
         else:
             for table in tables:
