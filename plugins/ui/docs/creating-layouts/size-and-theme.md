@@ -144,7 +144,7 @@ ui_toast_variants_example = ui_toast_variants()
 - [`max_width`](https://developer.mozilla.org/en-US/docs/Web/CSS/max-width)
 - [`max_height`](https://developer.mozilla.org/en-US/docs/Web/CSS/max-height)
 
-These props accept normal [CSS values](link css values to https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Styling_basics/Values_and_units#numbers_lengths_and_percentages
+These props accept normal [CSS values](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Styling_basics/Values_and_units#numbers_lengths_and_percentages
 ) like `100px`, `50%` or `20em`. Additionally, they use an [Adobe Spectrum dimension value](https://react-spectrum.adobe.com/react-spectrum/styling.html#dimension-values).
 
 When absolute sizing is required, using dimension values help promote consistent sizing of your layout across components.
