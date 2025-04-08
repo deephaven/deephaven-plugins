@@ -10,3 +10,4 @@ from .custom_draw import (
     draw_indicator,
 )
 from .RevisionManager import RevisionManager
+from .FigureCalendar import Calendar

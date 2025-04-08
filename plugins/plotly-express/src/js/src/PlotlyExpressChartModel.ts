@@ -1,9 +1,10 @@
 import type { Layout, Data, PlotData, LayoutAxis } from 'plotly.js';
 import type { dh as DhType } from '@deephaven/jsapi-types';
-import { type Formatter } from '@deephaven/jsapi-utils';
+import { DateTimeColumnFormatter, Formatter } from '@deephaven/jsapi-utils';
 import { ChartModel, ChartUtils } from '@deephaven/chart';
 import Log from '@deephaven/log';
 import { ChartEvent, RenderOptions } from '@deephaven/chart/dist/ChartModel';
+import memoize from 'memoizee';
 import {
   DownsampleInfo,
   PlotlyChartWidgetData,
@@ -25,6 +26,7 @@ import {
   getDataTypeMap,
   FormatUpdate,
   IS_WEBGL_SUPPORTED,
+  setRangebreaksFromCalendar,
 } from './PlotlyExpressChartUtils';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
@@ -62,9 +64,14 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.handleFigureUpdated = this.handleFigureUpdated.bind(this);
     this.handleWidgetUpdated = this.handleWidgetUpdated.bind(this);
 
+    const widgetData = getWidgetData(widget);
+
     // Chart only fetches the model layout once on init, so it needs to be set
     // before the widget is subscribed to.
-    this.updateLayout(getWidgetData(widget));
+    this.updateLayout(widgetData);
+
+    // The calendar is only fetched once at init.
+    this.updateCalendar(widgetData);
 
     this.setTitle(this.getDefaultTitle());
   }
@@ -139,6 +146,11 @@ export class PlotlyExpressChartModel extends ChartModel {
    * The WebGl warning is only shown once per chart. When the user acknowledges the warning, it will not be shown again.
    */
   hasAcknowledgedWebGlWarning = false;
+
+  /**
+   * A calendar object that is used to set rangebreaks on a time axis.
+   */
+  calendar: DhType.calendar.BusinessCalendar | null = null;
 
   /**
    * The set of parameters that need to be replaced with the default value format.
@@ -253,16 +265,6 @@ export class PlotlyExpressChartModel extends ChartModel {
     super.setRenderOptions(renderOptions);
   }
 
-  override setFormatter(formatter: Formatter): void {
-    setDefaultValueFormat(
-      this.plotlyData,
-      this.defaultValueFormatSet,
-      this.dataTypeMap,
-      formatter
-    );
-    super.setFormatter(formatter);
-  }
-
   /**
    * Handle the WebGL option being set in the render options.
    * If WebGL is enabled, traces have their original types as given.
@@ -314,6 +316,124 @@ export class PlotlyExpressChartModel extends ChartModel {
     };
   }
 
+  /**
+   * Check if the timezone has changed in the new formatter
+   * @param formatter The new formatter
+   * @returns True if the timezone has changed
+   */
+  timeZoneChanged(formatter: Formatter): boolean {
+    const timeZone = (
+      this.formatter?.getColumnTypeFormatter(
+        'datetime'
+      ) as DateTimeColumnFormatter
+    )?.dhTimeZone.id;
+
+    const newTimeZone = (
+      formatter.getColumnTypeFormatter('datetime') as DateTimeColumnFormatter
+    )?.dhTimeZone.id;
+
+    return timeZone !== newTimeZone && newTimeZone != null;
+  }
+
+  /**
+   * Update the calendar object from the data
+   * @param data The new data to update the calendar from
+   */
+  updateCalendar(data: PlotlyChartWidgetData): void {
+    const { calendar } = data.figure.deephaven;
+    if (calendar != null) {
+      // Timezone must be replaced for accurate rangebreaks.
+      const timeZone = this.dh.i18n.TimeZone.getTimeZone(calendar.timeZone);
+
+      this.calendar = {
+        ...calendar,
+        timeZone,
+        holidays: calendar.holidays.map((holiday, i) => {
+          const { date } = holiday;
+          // date is a really a string at this point, but it should be a LocalDate object
+          const dateObj = new Date(date as unknown as string);
+          const year = dateObj.getFullYear();
+          const month = dateObj.getMonth();
+          const day = dateObj.getDate();
+          return {
+            ...holiday,
+            date: {
+              valueOf: () => date,
+              getYear: () => year,
+              getMonthValue: () => month,
+              getDayOfMonth: () => day,
+              toString: () => date,
+            } as unknown as DhType.LocalDateWrapper,
+          };
+        }),
+      };
+    }
+  }
+
+  /**
+   * Fire an event to update the rangebreaks on the chart.
+   * @param formatter The formatter to use to set the rangebreaks. If not provided, the current formatter is used.
+   */
+  fireRangebreaksUpdated(
+    formatter: Formatter | undefined = this.formatter
+  ): void {
+    if (!formatter) {
+      return;
+    }
+
+    const layoutUpdate = setRangebreaksFromCalendar(
+      formatter,
+      this.calendar,
+      this.layout,
+      this.chartUtils
+    );
+
+    if (layoutUpdate) {
+      this.fireLayoutUpdated(layoutUpdate);
+    }
+  }
+
+  /**
+   * Unsubscribe from a table.
+   * @param id The table ID to unsubscribe from
+   */
+  unsubscribeTable(id: number): void {
+    this.tableSubscriptionMap.get(id)?.close();
+    this.tableSubscriptionMap.delete(id);
+  }
+
+  /**
+   * Fire an event to update the timezone on the chart data if it has changed.
+   * @param formatter The new formatter
+   */
+  fireTimeZoneUpdated(): void {
+    this.tableDataMap.forEach((_, tableId) => {
+      const table = this.tableReferenceMap.get(tableId);
+      if (table) {
+        // resubscribe to get the data with the new timezone
+        this.unsubscribeTable(tableId);
+        this.subscribeTable(tableId);
+      }
+    });
+    this.fireUpdate(this.getData());
+  }
+
+  setFormatter(formatter: Formatter): void {
+    setDefaultValueFormat(
+      this.plotlyData,
+      this.defaultValueFormatSet,
+      this.dataTypeMap,
+      formatter
+    );
+
+    // Only update if isSubscribed because otherwise the events are unnecessary and buggy
+    if (this.isSubscribed && this.timeZoneChanged(formatter)) {
+      this.fireRangebreaksUpdated(formatter);
+      this.fireTimeZoneUpdated();
+    }
+    super.setFormatter(formatter);
+  }
+
   handleWidgetUpdated(
     data: PlotlyChartWidgetData,
     references: DhType.Widget['exportedObjects']
@@ -343,6 +463,8 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.webGlTraceIndices = getReplaceableWebGlTraceIndices(this.plotlyData);
 
     this.handleWebGlAllowed(this.renderOptions?.webgl);
+
+    this.fireRangebreaksUpdated();
 
     newReferences.forEach(async (id, i) => {
       this.tableDataMap.set(id, {}); // Plot may render while tables are being fetched. Set this to avoid a render error
@@ -390,9 +512,14 @@ export class PlotlyExpressChartModel extends ChartModel {
     const { detail: figureUpdateEvent } = event;
     chartData.update(figureUpdateEvent);
     figureUpdateEvent.columns.forEach(column => {
+      const valueTranslator = this.getValueTranslator(
+        column.type,
+        this.formatter
+      );
+
       const columnData = chartData.getColumn(
         column.name,
-        this.chartUtils.unwrapValue,
+        valueTranslator,
         figureUpdateEvent
       );
       tableData[column.name] = columnData;
@@ -634,7 +761,11 @@ export class PlotlyExpressChartModel extends ChartModel {
     // may still be loading. We should consider making this smarter to fire after
     // all initial data has loaded.
     // https://github.com/deephaven/deephaven-plugins/issues/267
-    if (!this.hasInitialLoadCompleted) {
+    // If not subscribed, the fireLoadFinished will not go through since there is no listeners
+    // which results in a loading spinner that does not go away on its own
+    // isSubscribed can also be checked before calling fireUpdate, but this is a
+    // subtle bug that is good to check for here just in case
+    if (!this.hasInitialLoadCompleted && this.isSubscribed) {
       this.fireLoadFinished();
       this.hasInitialLoadCompleted = true;
     }
@@ -706,6 +837,25 @@ export class PlotlyExpressChartModel extends ChartModel {
       0
     );
   }
+
+  getTimeZone = memoize(
+    (columnType: string, formatter: Formatter | undefined) => {
+      if (formatter != null) {
+        const dataFormatter = formatter.getColumnTypeFormatter(columnType);
+        if (dataFormatter != null) {
+          return (dataFormatter as DateTimeColumnFormatter).dhTimeZone;
+        }
+      }
+      return undefined;
+    }
+  );
+
+  getValueTranslator = memoize(
+    (columnType: string, formatter: Formatter | undefined) => {
+      const timeZone = this.getTimeZone(columnType, formatter);
+      return (value: unknown) => this.chartUtils.unwrapValue(value, timeZone);
+    }
+  );
 }
 
 export default PlotlyExpressChartModel;
