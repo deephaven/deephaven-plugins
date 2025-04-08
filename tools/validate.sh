@@ -14,6 +14,10 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 SCRIPT_NAME=$(basename "${BASH_SOURCE[0]}")
 
+# Set GH_PAGER to nothing to prevent gh output opening `less` and requiring user input to proceed
+# https://github.com/cli/cli/issues/3617
+GH_PAGER=
+
 function log_error() {
     { echo -e "\033[31m$log_prefix $(date "+%Y-%m-%d %H:%M:%S")$tab |--- [ERROR] $* \033[0m" ; } 2> /dev/null
 } 2>/dev/null
