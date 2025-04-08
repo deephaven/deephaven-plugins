@@ -63,4 +63,34 @@ html = ui.html.div(ui.html.h1("Component inside html"), ui.text("this is a compo
 
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.html.html_element
+.. dhautofunction:: deephaven.ui.html.a
+.. dhautofunction:: deephaven.ui.html.button
+.. dhautofunction:: deephaven.ui.html.code
+.. dhautofunction:: deephaven.ui.html.div
+.. dhautofunction:: deephaven.ui.html.form
+.. dhautofunction:: deephaven.ui.html.h1
+.. dhautofunction:: deephaven.ui.html.h2
+.. dhautofunction:: deephaven.ui.html.h3
+.. dhautofunction:: deephaven.ui.html.h4
+.. dhautofunction:: deephaven.ui.html.h5
+.. dhautofunction:: deephaven.ui.html.h6
+.. dhautofunction:: deephaven.ui.html.i
+.. dhautofunction:: deephaven.ui.html.img
+.. dhautofunction:: deephaven.ui.html.input
+.. dhautofunction:: deephaven.ui.html.label
+.. dhautofunction:: deephaven.ui.html.li
+.. dhautofunction:: deephaven.ui.html.ol
+.. dhautofunction:: deephaven.ui.html.option
+.. dhautofunction:: deephaven.ui.html.p
+.. dhautofunction:: deephaven.ui.html.pre
+.. dhautofunction:: deephaven.ui.html.selection
+.. dhautofunction:: deephaven.ui.html.span
+.. dhautofunction:: deephaven.ui.html.table
+.. dhautofunction:: deephaven.ui.html.tbody
+.. dhautofunction:: deephaven.ui.html.td
+.. dhautofunction:: deephaven.ui.html.textarea
+.. dhautofunction:: deephaven.ui.html.th
+.. dhautofunction:: deephaven.ui.html.thread
+.. dhautofunction:: deephaven.ui.html.tr
+.. dhautofunction:: deephaven.ui.html.ul
 ```
