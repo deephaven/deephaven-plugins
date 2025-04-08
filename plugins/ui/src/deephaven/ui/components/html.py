@@ -14,6 +14,9 @@ def html_element(tag: str, *children, **attributes):
         tag: The HTML tag for this element.
         *children: The children of the element.
         **attributes: Attributes to set on the element
+
+    Returns:
+        A new HTML element.
     """
     return BaseElement(f"deephaven.ui.html.{tag}", *children, **attributes)
 
