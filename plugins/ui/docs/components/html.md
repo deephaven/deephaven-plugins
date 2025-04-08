@@ -62,5 +62,5 @@ html = ui.html.div(ui.html.h1("Component inside html"), ui.text("this is a compo
 ## API reference
 
 ```{eval-rst}
-.. dhautofunction:: deephaven.ui.html
+.. dhautofunction:: deephaven.ui.html.html_element
 ```
