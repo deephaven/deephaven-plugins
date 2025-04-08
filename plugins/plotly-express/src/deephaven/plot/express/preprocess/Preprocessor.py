@@ -55,9 +55,9 @@ class Preprocessor:
         Prepare for preprocessing by capturing information needed
         """
         if "preprocess_hist" in self.groups:
-            self.preprocessers.append(HistPreprocessor(
-                self.args, self.stacked_column_names, self.list_param
-            ))
+            self.preprocessers.append(
+                HistPreprocessor(self.args, self.stacked_column_names, self.list_param)
+            )
         elif "preprocess_freq" in self.groups:
             self.preprocessers.append(FreqPreprocessor(self.args))
         elif "preprocess_time" in self.groups:
@@ -66,13 +66,15 @@ class Preprocessor:
             self.preprocessers.append(HeatmapPreprocessor(self.args))
         if "always_attached" in self.groups:
             if self.attached_transforms:
-                self.preprocessers.append(AttachedPreprocessor(
-                    self.args, self.attached_transforms
-                ))
+                self.preprocessers.append(
+                    AttachedPreprocessor(self.args, self.attached_transforms)
+                )
             if self.path:
-                self.preprocessers.append(HierarchicalPreprocessor(
-                    self.args, self.hierarchial_transforms, self.path
-                ))
+                self.preprocessers.append(
+                    HierarchicalPreprocessor(
+                        self.args, self.hierarchial_transforms, self.path
+                    )
+                )
 
     def preprocess_partitioned_tables(
         self, tables: list[Table] | None, column: str | None = None
