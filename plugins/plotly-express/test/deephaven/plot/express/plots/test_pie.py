@@ -3,7 +3,7 @@ import unittest
 from ..BaseTest import BaseTestCase
 
 
-class AreaTestCase(BaseTestCase):
+class PieTestCase(BaseTestCase):
     def setUp(self) -> None:
         from deephaven import new_table
         from deephaven.column import int_col, string_col
