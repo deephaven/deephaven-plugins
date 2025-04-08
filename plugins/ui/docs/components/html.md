@@ -9,9 +9,11 @@ from deephaven import ui
 
 basic_html_example = ui.html.div("basic html example")
 ```
+
 ## UI recommendations
 
 **Avoid using `html` components unless necessary**: This is an advanced feature that should only be used when you need to create an HTML component not covered by other deephaven.ui components. HTML components are not themed and may not respond correctly to different user layouts.
+
 ## HTML Element
 
 The `html_element` method allows to specify any html `tag` along with any `children` and `attributes`.
