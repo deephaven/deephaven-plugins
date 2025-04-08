@@ -2,11 +2,11 @@
 
 ## Deephaven theme
 
-The Deephaven Web IDE theme can be changed in the [settings menu](/enterprise/docs/interfaces/web/settings/#theme). The `Default Dark` and `Default Light` themes are provided, but you can also [create a custom theme](/core/docs/how-to-guides/custom-themes/).
+The Deephaven Web IDE theme can be changed in the [Settings menu](/enterprise/docs/interfaces/web/settings/#theme). The `Default Dark` and `Default Light` themes are provided, but you can also [create a custom theme](/core/docs/how-to-guides/custom-themes/).
 
 ## Color palette
 
-`deephaven.ui` uses the same color convention as [Adobe Spectrum](https://spectrum.adobe.com/page/color-system/). A color is specified with a `name` and an `index` number. For example `blue-100` or `red-600`. In a dark theme, `blue-100` will be a dark blue and `blue-1000` will be a light blue. In a light theme, they will be reversed. The example component below displays a color palette for a selected color. Try changing the theme to see the difference in colors.
+`deephaven.ui` uses the same color convention as [Adobe Spectrum](https://spectrum.adobe.com/page/color-system/). A color is specified with a `name` and an `index` number. For example, `blue-100` or `red-600`. In a dark theme, `blue-100` will be a dark blue and `blue-1000` will be a light blue. In a light theme, they will be reversed. The example component below displays a color palette for a selected color. Try changing the theme to see the difference in colors.
 
 ```python
 from deephaven import ui
