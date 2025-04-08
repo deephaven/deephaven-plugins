@@ -22,12 +22,9 @@ class AttachedPreprocessor:
         self,
         args: dict[str, Any],
         attached_transforms: AttachedTransforms,
-        path: str | list[str] | None = None,
     ):
         self.args = args
         self.attached_transforms = attached_transforms
-        self.path = path
-        self.prepare_preprocess()
 
     def attach_styles(self):
         table = self.args["table"]
@@ -52,3 +49,5 @@ class AttachedPreprocessor:
         Create a table with styles attached
         """
         self.attach_styles()
+
+    preprocess_partitioned_tables

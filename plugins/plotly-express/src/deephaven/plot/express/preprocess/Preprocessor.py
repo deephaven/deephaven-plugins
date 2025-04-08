@@ -42,7 +42,7 @@ class Preprocessor:
     ):
         self.args = args
         self.groups = groups
-        self.preprocesser = None
+        self.preprocessers = []
         self.attached_transforms = attached_transforms
         self.hierarchial_transforms = hierarchial_transforms
         self.path = self.args.pop("path", None)
@@ -55,26 +55,24 @@ class Preprocessor:
         Prepare for preprocessing by capturing information needed
         """
         if "preprocess_hist" in self.groups:
-            self.preprocesser = HistPreprocessor(
+            self.preprocessers.append(HistPreprocessor(
                 self.args, self.stacked_column_names, self.list_param
-            )
+            ))
         elif "preprocess_freq" in self.groups:
-            self.preprocesser = FreqPreprocessor(self.args)
+            self.preprocessers.append(FreqPreprocessor(self.args))
         elif "preprocess_time" in self.groups:
-            self.preprocesser = TimePreprocessor(self.args)
+            self.preprocessers.append(TimePreprocessor(self.args))
         elif "preprocess_heatmap" in self.groups:
-            self.preprocesser = HeatmapPreprocessor(self.args)
+            self.preprocessers.append(HeatmapPreprocessor(self.args))
         if "always_attached" in self.groups:
             if self.attached_transforms:
-                # currently the AttachedPreprocessor only calls prepare_preprocess
-                # so it doesn't need to be stored
-                AttachedPreprocessor(
-                    self.args, self.attached_transforms, self.always_attached
-                )
+                self.preprocessers.append(AttachedPreprocessor(
+                    self.args, self.attached_transforms
+                ))
             if self.path:
-                self.preprocesser = HierarchicalPreprocessor(
+                self.preprocessers.append(HierarchicalPreprocessor(
                     self.args, self.hierarchial_transforms, self.path
-                )
+                ))
 
     def preprocess_partitioned_tables(
         self, tables: list[Table] | None, column: str | None = None
@@ -94,7 +92,9 @@ class Preprocessor:
             Table: the preprocessed table
         """
         tables = tables or []
-        if self.preprocesser:
-            yield from self.preprocesser.preprocess_partitioned_tables(tables, column)
+        if self.preprocessers:
+            table = tables
+            for preprocesser in self.preprocessers:
+                tables = preprocesser.preprocess(tables, column)
         else:
             yield from tables
