@@ -5,6 +5,7 @@ from collections.abc import Generator
 from math import floor, ceil
 from typing import Any, Callable, Mapping, cast, Tuple
 
+import plotly.express as px
 from pandas import DataFrame
 from plotly.graph_objects import Figure
 
@@ -754,12 +755,14 @@ def relabel_columns(
 
 def get_hover_body(
     current_mapping: dict[str, str],
+    types: set[str],
     current_partition: dict[str, str] | None = None,
 ) -> str:
     """Get the hovertext
 
     Args:
       current_mapping: The mapping of variables to columns
+      types: The types of this chart that require special processing
       current_partition: The columns that this figure is partitioned by
 
     Returns:
@@ -776,15 +779,23 @@ def get_hover_body(
         for col, val in current_partition.items():
             hover_body.append(f"{col}={val}")
     for var, data_col in current_mapping.items():
-        # error bars are automatically displayed with the associated variable
-        # attached values do not show up
-        # attached style args should not show up
-        if var.startswith("error") or "color" in var or "pattern" in var:
+        if var == "marker/colors":
+            if "hierarchical" in types:
+                # marker/colors in treemap, iceberg, and sunburst are a special case
+                # https://github.com/plotly/plotly.py/blob/b6d86a7700e0dcc0ac98c463bb56768aceaae91b/plotly/express/_core.py#L526
+                var = "color"
+            else:
+                # pie chart and funnel area can't handle this case at the moment because they require using customdata,
+                # which uses an array, to map to from the hovertext
+                continue
+        elif var.startswith("error"):
+            # error bars are automatically displayed with the associated variable
             continue
-        # "plural" vars ending with s need the s removed in the hover mapping
-        var = var[:-1] if var.endswith("s") else var
-        # slashes are replaced with dots to lookup variables
-        var = var.replace("/", ".")
+        else:
+            # "plural" vars ending with s need the s removed in the hover mapping
+            var = var[:-1] if var.endswith("s") else var
+            # slashes are replaced with dots to lookup variables
+            var = var.replace("/", ".")
         hover_body.append(f"{data_col}=%{{{var}}}")
 
     return hover_name + "<br>".join(hover_body) + "<extra></extra>"
@@ -792,7 +803,7 @@ def get_hover_body(
 
 def hover_text_generator(
     hover_mapping: list[dict[str, str]],
-    types: set[str] | None = None,
+    types: set[str],
     current_partition: dict[str, str] | None = None,
 ) -> Generator[dict[str, Any], None, None]:
     """Generate hovertext
@@ -807,7 +818,7 @@ def hover_text_generator(
     Yields:
       A dictionary update
     """
-    if isinstance(types, set) and ("finance" in types or "indicator" in types):
+    if "finance" in types or "indicator" in types:
         # finance and indicator have no custom hover text
         while True:
             yield {}
@@ -820,6 +831,7 @@ def hover_text_generator(
             "legendgroup": name,
             "hovertemplate": get_hover_body(
                 hover_mapping[0],
+                types,
                 current_partition,
             ),
             "showlegend": True,
@@ -827,7 +839,7 @@ def hover_text_generator(
 
     while True:
         yield {
-            "hovertemplate": get_hover_body(hover_mapping[0]),
+            "hovertemplate": get_hover_body(hover_mapping[0], types),
         }
 
 
@@ -955,8 +967,8 @@ def add_axis_titles(
 
 def create_hover_and_axis_titles(
     custom_call_args: dict[str, Any],
-    data_cols: dict[str, str | list[str]],
     hover_mapping: list[dict[str, str]],
+    types: set[str],
 ) -> Generator[dict[str, Any], None, None]:
     """Create hover text and axis titles. There are three main behaviors.
     First is "current_col", "current_var", and "stacked_column_names" are specified in
@@ -983,13 +995,12 @@ def create_hover_and_axis_titles(
     Args:
       custom_call_args: The custom_call_args that are used to
         create hover and axis titles
-      data_cols: The dictionary of data to column mappings
       hover_mapping: The mapping of variables to columns
+      types: Any types of this chart that require special processing
 
     Yields:
       Dicts containing hover updates
     """
-    types = get_list_param_info(data_cols)
 
     labels = custom_call_args.get("labels", None)
     hist_agg_label = custom_call_args.get("hist_agg_label", None)
@@ -1062,9 +1073,13 @@ def generate_figure(
         data_cols, custom_call_args, table, start_index
     )
 
-    hover_text = create_hover_and_axis_titles(
-        custom_call_args, data_cols, hover_mapping
-    )
+    # types for special hovermap processing
+    types = get_list_param_info(data_cols)
+    is_hierarchical = draw in (px.treemap, px.icicle, px.sunburst)
+    if is_hierarchical:
+        types.add("hierarchical")
+
+    hover_text = create_hover_and_axis_titles(custom_call_args, hover_mapping, types)
 
     trace_generator = handle_custom_args(
         px_fig,
