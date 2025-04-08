@@ -1075,8 +1075,7 @@ def generate_figure(
 
     # types for special hovermap processing
     types = get_list_param_info(data_cols)
-    is_hierarchical = draw in (px.treemap, px.icicle, px.sunburst)
-    if is_hierarchical:
+    if draw in (px.treemap, px.icicle, px.sunburst):
         types.add("hierarchical")
 
     hover_text = create_hover_and_axis_titles(custom_call_args, hover_mapping, types)
