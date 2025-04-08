@@ -137,6 +137,10 @@
             "path": "creating-layouts/creating-dashboards.md"
           },
           {
+            "label": "Size and Theme",
+            "path": "creating-layouts/size-and-theme.md"
+          },
+          {
             "label": "Escape Hatches",
             "path": "creating-layouts/escape-hatches.md"
           }
