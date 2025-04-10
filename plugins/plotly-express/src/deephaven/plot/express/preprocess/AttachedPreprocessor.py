@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from deephaven.table import Table
+
 from .StyleManager import StyleManager
 from ..shared import get_unique_names
 from ..types import AttachedTransforms
@@ -13,7 +15,7 @@ class AttachedPreprocessor:
 
     Attributes:
         args: Args used to create the plot
-        always_attached: The dict mapping the arg and column
+        attached_transforms: The dict mapping the arg and column
           to the style map, dictionary, and new column name, to be used for
           AttachedProcessor when dealing with an "always_attached" plot
     """
@@ -26,8 +28,7 @@ class AttachedPreprocessor:
         self.args = args
         self.attached_transforms = attached_transforms
 
-    def attach_styles(self):
-        table = self.args["table"]
+    def attach_styles(self, table: Table) -> Table:
         for (by_col, new_col, style_list, style_map) in self.attached_transforms:
             manager_col = get_unique_names(table, [f"{new_col}_manager"])[
                 f"{new_col}_manager"
@@ -41,13 +42,9 @@ class AttachedPreprocessor:
                 ]
             )
 
-        # it is safe to modify the table in-place because columns are only added
-        self.args["table"] = table
+        return table
 
-    def prepare_preprocess(self):
-        """
-        Create a table with styles attached
-        """
-        self.attach_styles()
+    def preprocess_partitioned_tables(self, tables: list[Table] | None, column: str | None = None):
+        for table in tables:
+            yield self.attach_styles(table), {}
 
-    preprocess_partitioned_tables

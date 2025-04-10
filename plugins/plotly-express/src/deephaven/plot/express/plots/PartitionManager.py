@@ -399,10 +399,9 @@ class PartitionManager:
                 if "always_attached" in self.groups:
                     args["colors"] = args.pop("color")
                     if self.args.get("path"):
-                        new_col = get_unique_names(self.args["table"], [arg])[arg]
-                        # colors need to be aggregated and attached if path is passed
-                        self.hierarchical_transforms.add(by_col=val, new_col=new_col)
-                    # otherwise the colors are passed to plotly and attached directly
+                        # numeric column that is the source of color need to be aggregated if path is passed
+                        self.hierarchical_transforms.add(sum_col=val)
+                    # otherwise the colors are attached directly
             elif val:
                 self.is_by(arg, args[map_name])
             elif plot_by_cols and (
@@ -687,14 +686,8 @@ class PartitionManager:
                 args["current_partition"] = current_partition
                 args["table"] = table
                 yield args
-        elif (
-            "preprocess_hist" in self.groups
-            or "preprocess_freq" in self.groups
-            or "preprocess_time" in self.groups
-            or "preprocess_heatmap" in self.groups
-            or "always_attached" in self.groups
-        ) and self.preprocessor:
-            # still need to preprocess the base table
+        elif self.preprocessor:
+            # still need to preprocess the base table if preprocessors were created
             table, arg_update = cast(
                 Tuple,
                 [*self.preprocessor.preprocess_partitioned_tables([args["table"]])][0],

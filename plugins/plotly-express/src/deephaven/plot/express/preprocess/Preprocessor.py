@@ -10,7 +10,7 @@ from .FreqPreprocessor import FreqPreprocessor
 from .HistPreprocessor import HistPreprocessor
 from .TimePreprocessor import TimePreprocessor
 from .HeatmapPreprocessor import HeatmapPreprocessor
-from .HierarchialPreprocessor import HierarchicalPreprocessor
+from .HierarchicalPreprocessor import HierarchicalPreprocessor
 
 from ..types import AttachedTransforms, HierarchicalTransforms
 
@@ -36,15 +36,15 @@ class Preprocessor:
         args: dict[str, Any],
         groups: set[str],
         attached_transforms: AttachedTransforms,
-        hierarchial_transforms: HierarchicalTransforms,
+        hierarchical_transforms: HierarchicalTransforms,
         stacked_column_names: dict[str, str],
         list_param: str | None,
     ):
         self.args = args
         self.groups = groups
-        self.preprocessers = []
+        self.preprocessors = []
         self.attached_transforms = attached_transforms
-        self.hierarchial_transforms = hierarchial_transforms
+        self.hierarchical_transforms = hierarchical_transforms
         self.path = self.args.pop("path", None)
         self.stacked_column_names = stacked_column_names
         self.list_param = list_param
@@ -55,26 +55,32 @@ class Preprocessor:
         Prepare for preprocessing by capturing information needed
         """
         if "preprocess_hist" in self.groups:
-            self.preprocessers.append(
+            self.preprocessors.append(
                 HistPreprocessor(self.args, self.stacked_column_names, self.list_param)
             )
         elif "preprocess_freq" in self.groups:
-            self.preprocessers.append(FreqPreprocessor(self.args))
+            self.preprocessors.append(FreqPreprocessor(self.args))
         elif "preprocess_time" in self.groups:
-            self.preprocessers.append(TimePreprocessor(self.args))
+            self.preprocessors.append(TimePreprocessor(self.args))
         elif "preprocess_heatmap" in self.groups:
-            self.preprocessers.append(HeatmapPreprocessor(self.args))
-        if "always_attached" in self.groups:
+            self.preprocessors.append(HeatmapPreprocessor(self.args))
+        elif "always_attached" in self.groups:
             if self.attached_transforms:
-                self.preprocessers.append(
+                self.preprocessors.append(
                     AttachedPreprocessor(self.args, self.attached_transforms)
                 )
             if self.path:
-                self.preprocessers.append(
+                self.preprocessors.append(
                     HierarchicalPreprocessor(
-                        self.args, self.hierarchial_transforms, self.path
+                        self.args, self.hierarchical_transforms, self.path
                     )
                 )
+
+    def __bool__(self):
+        """
+        Check if there are preprocessors
+        """
+        return bool(self.preprocessors)
 
     def preprocess_partitioned_tables(
         self, tables: list[Table] | None, column: str | None = None
@@ -94,9 +100,17 @@ class Preprocessor:
             Table: the preprocessed table
         """
         tables = tables or []
-        if self.preprocessers:
-            table = tables
-            for preprocesser in self.preprocessers:
-                tables = preprocesser.preprocess(tables, column)
+        if self.preprocessors:
+            new_tables = tables
+            new_updates = []
+            for preprocesser in self.preprocessors:
+                for i, (table, update) in enumerate(preprocesser.preprocess_partitioned_tables(
+                    new_tables, column
+                )):
+                    new_tables[i] = table
+                    if len(new_updates) <= i:
+                        new_updates.append({})
+                    new_updates[i].update(update)
+            yield from zip(new_tables, new_updates)
         else:
             yield from tables
