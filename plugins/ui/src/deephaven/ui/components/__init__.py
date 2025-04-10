@@ -40,6 +40,7 @@ from .icon import icon
 from .illustrated_message import illustrated_message
 from .image import image
 from .inline_alert import inline_alert
+from .input_filters import input_filters
 from .item import item
 from .item_table_source import item_table_source
 from .labeled_value import labeled_value
