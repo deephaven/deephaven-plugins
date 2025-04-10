@@ -39,7 +39,6 @@ Recommendations for creating pickers:
 6. When an error occurs, the help text specified in a picker should be replaced by error text.
 7. Write error messages in a concise and helpful manner, guiding users to resolve the issue. Error text should be 1-2 short, complete sentences ending with a period.
 
-
 ## Data sources
 
 We can use a Deephaven table as a data source to populate the options for pickers. A table automatically uses the first column as both the key and label. If there are duplicate keys, an error will be thrown; to avoid this, a `select_distinct` can be used on the table before using it as a picker data source.
@@ -53,8 +52,7 @@ stocks = dx.data.stocks().select_distinct("Sym")
 my_picker_table_source_example = ui.picker(stocks, label="Stock Symbol Picker")
 ```
 
-
-If you wish to specify the keys and labels manually, you can use a  `ui.item_table_source` to dynamically derive the options from a table. 
+If you wish to specify the keys and labels manually, you can use a `ui.item_table_source` to dynamically derive the options from a table.
 
 ```python
 from deephaven import ui, empty_table
@@ -76,7 +74,6 @@ item_table_source = ui.item_table_source(
 
 my_picker_item_table_source_example = ui.picker(item_table_source, label="User Picker")
 ```
-
 
 ## Labeling
 
@@ -149,7 +146,6 @@ def ui_picker_required_examples():
 my_picker_required_examples = ui_picker_required_examples()
 ```
 
-
 ## Selection
 
 In a picker, the `default_selected_key` or `selected_key` props set a selected option.
@@ -214,7 +210,6 @@ def ui_picker_key_variations():
 my_picker_key_variations = ui_picker_key_variations()
 ```
 
-
 ## HTML Forms
 
 Pickers can support a `name` prop for integration with HTML forms, allowing for easy identification of a value on form submission.
@@ -227,7 +222,6 @@ my_picker_name_example = ui.form(
     ui.flex(ui.picker(ui.item("Option 1"), ui.item("Option 2"), name="Sample Name"))
 )
 ```
-
 
 ## Sections
 
@@ -309,7 +303,6 @@ def ui_picker_loading_example():
 my_picker_loading_example = ui_picker_loading_example()
 ```
 
-
 ## Validation
 
 The `is_required` prop ensures that the user selects an option. The related `validation_behaviour` prop allows the user to specify aria or native verification.
@@ -337,7 +330,6 @@ my_picker_validation_behaviour_example = ui_picker_validation_behaviour_example(
 ## Label position
 
 By default, the position of a picker's label is above the picker, but it can be moved to the side using the `label_position` prop.
-
 
 ```python
 from deephaven import ui
@@ -442,7 +434,7 @@ picker_contextual_help_example = ui.picker(
 
 ## Custom width
 
-The `width` prop adjusts the width of a picker, and the `max_width` prop enforces a maximum width. 
+The `width` prop adjusts the width of a picker, and the `max_width` prop enforces a maximum width.
 
 ```python
 from deephaven import ui
@@ -490,7 +482,6 @@ def ui_picker_alignment_direction_examples():
         ),
         gap="size-150",
         direction="column",
-        padding=40,
     )
 
 
