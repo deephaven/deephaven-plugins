@@ -19,7 +19,7 @@ class TreemapTestCase(BaseTestCase):
 
         self.pandas_source = dhpd.to_pandas(self.source)
 
-    def test_basic_pie(self):
+    def test_basic_treemap(self):
         import src.deephaven.plot.express as dx
         from deephaven.constants import NULL_INT
 
@@ -65,7 +65,7 @@ class TreemapTestCase(BaseTestCase):
             expected_is_user_set_color=False,
         )
 
-    def test_pie_colors(self):
+    def test_treemap_colors(self):
         import src.deephaven.plot.express as dx
         from deephaven.constants import NULL_INT
 
