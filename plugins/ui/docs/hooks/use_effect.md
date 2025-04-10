@@ -440,7 +440,7 @@ class ServerDetails:
 def ui_server():
     message, set_message = ui.use_state("")
 
-    # 🚩 this creates a new object on every re-render
+    # ❌ this creates a new object on every re-render
     details = ServerDetails("https", "localhost")
 
     def disconnect():
@@ -450,7 +450,7 @@ def ui_server():
         print(f"Connected to {details}")
         return disconnect
 
-    # 🚩 As a result, these dependencies are different on every re-render and the effect will always run again
+    # ❌ As a result, these dependencies are different on every re-render and the effect will always run again
     ui.use_effect(connect, [details])
 
     # ...
@@ -531,7 +531,7 @@ Similarly, if your effect depends on a function declared within the component, y
 def ui_server():
     message, set_message = ui.use_state("")
 
-    # 🚩 this function is a new function on every re-render
+    # ❌ this function is a new function on every re-render
     def create_details():
         return ServerDetails("https", "localhost")
 
@@ -543,7 +543,7 @@ def ui_server():
         print(f"Connected to {details}")
         return lambda: disconnect(details)
 
-    # 🚩 As a result, these dependencies are different on every re-render and the effect will always run again
+    # ❌ As a result, these dependencies are different on every re-render and the effect will always run again
     ui.use_effect(connect, [create_details])
 
     # ...
