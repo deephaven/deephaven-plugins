@@ -1,13 +1,14 @@
 from __future__ import annotations
 from typing import Any, Callable
+from .types import FilterChangeEvent
 from .basic import component_element
 from ..elements import Element
 from .._internal.utils import create_props
 
 
 def input_filters(
-    # on_input_filters_changes: Callable[[FilterChangeEvent[]], None] | None = None,
-    on_input_filters_changes: Callable[[str], None] | None = None,
+    on_change: FilterChangeEvent | None = None,
+    # on_change: Callable[[str], None] | None = None,
     key: str | None = None,
 ) -> Element:
     """
@@ -22,6 +23,7 @@ def input_filters(
         The rendered button component.
     """
 
-    _, props = create_props(locals())
+    # _, props = create_props(locals())
+    children, props = create_props(locals())
 
-    return component_element("InputFilters", **props)
+    return component_element("InputFilters", *children, **props)
