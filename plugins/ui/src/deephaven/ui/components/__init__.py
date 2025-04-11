@@ -132,6 +132,7 @@ __all__ = [
     "image",
     "labeled_value",
     "inline_alert",
+    "input_filters",
     "link",
     "list_view",
     "list_action_group",
