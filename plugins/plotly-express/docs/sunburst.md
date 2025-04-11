@@ -34,6 +34,40 @@ sunburst_plot = dx.sunburst(gapminder_recent, names="Continent", values="Pop", p
 
 ![Sunburst Plot Basic Example](./_assets/sunburst_plot.png)
 
+# A nested sunburst plot with branch values
+
+By default, the `branchvalues` argument is set to `"remainder"`.
+Keep the default if the values column should be added to the sum of its children to get the value for a node.
+If the values column is equal to the sum of its children, set `branchvalues` to `"total"`.
+
+```python
+import deephaven.plot.express as dx
+from deephaven import merge
+
+data = dx.data.gapminder(ticking=False)
+
+countries = data.last_by("Country").view(["Name=Country", "Pop", "Parent=Continent"])
+
+# Sum country population by continent
+continents = (
+    countries.drop_columns("Name")
+    .sum_by("Parent")
+    .view(["Name=Parent", "Pop", "Parent=`World`"])
+)
+
+# Sum continent population
+world = (
+    continents.view("Pop").sum_by().view(["Name=`World`", "Pop", "Parent=(String)null"])
+)
+
+merged_gapminder = merge([world, continents, countries])
+
+# Since the values column is equal to the sum of it's children, set branchvalues to "total"
+sunburst_nested = dx.sunburst(
+    merged_gapminder, names="Name", values="Pop", parents="Parent", branchvalues="total"
+)
+```
+
 ## API Reference
 
 ```{eval-rst}
