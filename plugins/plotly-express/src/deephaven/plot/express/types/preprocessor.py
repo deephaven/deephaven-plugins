@@ -15,6 +15,7 @@ class HierarchicalTransform(TypedDict):
 
     sum_col: str
 
+
 class HierarchicalTransforms:
     def __init__(self):
         self.transforms = []
@@ -23,9 +24,7 @@ class HierarchicalTransforms:
         self,
         sum_col: str,
     ) -> None:
-        self.transforms.append(
-            HierarchicalTransform(sum_col=sum_col)
-        )
+        self.transforms.append(HierarchicalTransform(sum_col=sum_col))
 
     def __bool__(self):
         return bool(self.transforms)
@@ -63,7 +62,6 @@ class AttachedTransforms:
         style_map: dict[str, str] | None = None,
         style_list: list[str] | None = None,
     ) -> None:
-        print(by_col, new_col, style_map, style_list)
         self.transforms.append(
             AttachedTransform(
                 by_col=by_col,

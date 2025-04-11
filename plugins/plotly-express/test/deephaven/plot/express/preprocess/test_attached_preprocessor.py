@@ -7,50 +7,57 @@ class AttachedPreprocessorTestCase(BaseTestCase):
     def setUp(self) -> None:
         from deephaven import new_table
         from deephaven.column import int_col, string_col
-        import deephaven.pandas as dhpd
 
         self.source = new_table(
             [
-                string_col("names", ["A", "B", "C", "D", "E", "F", "G", "H", "I"]),
-                string_col("parents", ["J", "J", "J", "J", "K", "K", "K", "K", "K"]),
-                string_col("grandparents", ["L", "L", "L", "L", "L", "L", "L", "L", "L"]),
-                int_col("values", [1, 2, 2, 3, 3, 3, 4, 4, 5]),
-                int_col("colors", [2, 2, 2, 3, 3, 3, 4, 4, 4]),
+                string_col("names", ["A", "B", "C"]),
+                int_col("values", [1, 2, 3]),
+                string_col("colors", ["X", "Y", "Z"]),
             ]
         )
 
-    def test_time_preprocessor(self):
-        from src.deephaven.plot.express.preprocess.HierarchicalPreprocessor import (
-            HierarchicalPreprocessor,
+    def test_attached_preprocessor(self):
+        from deephaven.plot.express.preprocess.AttachedPreprocessor import (
+            AttachedPreprocessor,
         )
+        from deephaven.plot.express.types import (
+            AttachedTransforms,
+        )
+
         import deephaven.pandas as dhpd
         import pandas as pd
 
         args = {
-            "x_start": "Start",
-            "x_end": "End",
-            "y": "Category",
-            "table": self.source,
+            "values": "values",
         }
-        time_preprocessor = Hi
 
-        new_table_gen = time_preprocessor.preprocess_partitioned_tables([self.source])
+        transforms = AttachedTransforms()
+        transforms.add(
+            "colors",
+            "colors",
+            {"Z": "blue"},
+            ["salmon", "lemonchiffon"],
+        )
+        attached_preprocessor = AttachedPreprocessor(args, transforms)
+
+        new_table_gen = attached_preprocessor.preprocess_partitioned_tables(
+            [self.source]
+        )
         new_table, _ = next(new_table_gen)
+
+        # drop colors_manager column because it is not meaningful since it's an object
+        new_df = dhpd.to_pandas(new_table.drop_columns(["colors_manager"]))
 
         expected_df = pd.DataFrame(
             {
-                "Start": ["2021-07-04 12:00:00+00:00"],
-                "End": ["2021-07-04 13:00:00+00:00"],
-                "Category": ["A"],
-                "x_diff": [3600000.0],
+                "names": ["A", "B", "C"],
+                "values": [1, 2, 3],
+                "colors": ["salmon", "lemonchiffon", "blue"],
             }
         )
-        expected_df["Start"] = pd.to_datetime(expected_df["Start"])
-        expected_df["End"] = pd.to_datetime(expected_df["End"])
-        expected_df["Category"] = expected_df["Category"].astype("string")
-        expected_df["x_diff"] = expected_df["x_diff"].astype("Float64")
-
-        new_df = dhpd.to_pandas(new_table)
+        expected_df["names"] = expected_df["names"].astype("string[python]")
+        expected_df["values"] = expected_df["values"].astype("Int32")
+        expected_df["colors"] = expected_df["colors"].astype("string[python]")
 
         self.assertTrue(expected_df.equals(new_df))
 

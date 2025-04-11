@@ -101,12 +101,13 @@ class Preprocessor:
         """
         tables = tables or []
         if self.preprocessors:
-            new_tables = tables
+            # make a copy of the tables to avoid modifying the original
+            new_tables = [table for table in tables]
             new_updates = []
-            for preprocesser in self.preprocessors:
-                for i, (table, update) in enumerate(preprocesser.preprocess_partitioned_tables(
-                    new_tables, column
-                )):
+            for preprocessor in self.preprocessors:
+                for i, (table, update) in enumerate(
+                    preprocessor.preprocess_partitioned_tables(new_tables, column)
+                ):
                     new_tables[i] = table
                     if len(new_updates) <= i:
                         new_updates.append({})

@@ -22,17 +22,16 @@ class HierarchicalPreprocessor:
     """
 
     def __init__(
-            self,
-            args: dict[str, Any],
-            hierarchical_transforms: HierarchicalTransforms,
-            path: str | list[str] | None = None,
+        self,
+        args: dict[str, Any],
+        hierarchical_transforms: HierarchicalTransforms,
+        path: str | list[str] | None = None,
     ):
         self.args = args
         self.hierarchical_transforms = hierarchical_transforms
         self.path = path
-        self.names = get_unique_names(self.args["table"], ["Names", "Parents", "Ids"])
 
-    def preprocess_paths(self, table: Table) -> Table:
+    def preprocess_paths(self, table: Table, names) -> Table:
         """
         Preprocess the path
         The path is a list of columns that should be used to create the hierarchy
@@ -53,11 +52,12 @@ class HierarchicalPreprocessor:
         # the weighted average is used to get the correct value for the parent
         numeric_cols = {self.args["values"]}
         sum_cols = set()
+        print("testingeee", self.hierarchical_transforms)
         for (sum_col,) in self.hierarchical_transforms:
             sum_cols.add(sum_col)
 
         ids = f"{' + `/` + '.join(self.path)}"
-        table = table.update_view(f"{self.names['Ids']} = {ids}")
+        table = table.update_view(f"{names['Ids']} = {ids}")
 
         table_columns = set(table.column_names)
         # any numeric columns should be a sum, all others should be last
@@ -80,10 +80,10 @@ class HierarchicalPreprocessor:
             by_col = p
 
             aggs = (
-                    [agg.last(col) for col in other_cols]
-                    + [agg.sum_(col) for col in numeric_cols]
-                    # plotly uses weighted average for the sum_cols such as color
-                    + [agg.weighted_avg(self.args["values"], col) for col in sum_cols]
+                [agg.last(col) for col in other_cols]
+                + [agg.sum_(col) for col in numeric_cols]
+                # plotly uses weighted average for the sum_cols such as color
+                + [agg.weighted_avg(self.args["values"], col) for col in sum_cols]
             )
             # update the view because the other columns might need to be kept for color, etc.
             # the parents are the first part of the id
@@ -91,7 +91,7 @@ class HierarchicalPreprocessor:
 
             newest_table = prev_table.agg_by(aggs, by=[by_col]).update_view(
                 [
-                    f"{self.names['Names']}={by_col}",
+                    f"{names['Names']}={by_col}",
                 ]
             )
 
@@ -99,17 +99,21 @@ class HierarchicalPreprocessor:
                 # on the first iteration, the id doesn't need to be trimmed
                 # so the parent is the id trimmed once
                 newest_table = newest_table.update_view(
-                    f"{self.names['Parents']}=trim_id({self.names['Ids']})"
+                    f"{names['Parents']}=trim_id({names['Ids']})"
                 )
             else:
                 # on subsequent iterations, the id needs to be trimmed
                 # because the id at this point is of an arbitrary child from agg.last
                 # then the id is trimmed to get the parent
                 # if on the last iteration, the parent needs to be empty for plotly to work
-                parent_op = f"trim_id({self.names['Ids']})" if i != len(path_rev) - 1 else '""'
+                parent_op = (
+                    f"trim_id({names['Ids']})" if i != len(path_rev) - 1 else '""'
+                )
                 newest_table = newest_table.update_view(
-                    [f"{self.names['Ids']}=trim_id({self.names['Ids']})",
-                    f"{self.names['Parents']}={parent_op}"]
+                    [
+                        f"{names['Ids']}=trim_id({names['Ids']})",
+                        f"{names['Parents']}={parent_op}",
+                    ]
                 )
 
             if not new_table:
@@ -119,11 +123,10 @@ class HierarchicalPreprocessor:
 
             prev_table = newest_table
 
-
         return new_table
 
     def preprocess_partitioned_tables(
-            self, tables: list[Table] | None, column: str | None = None
+        self, tables: list[Table] | None, column: str | None = None
     ) -> Generator[
         Table | tuple[Table, dict[str, str | None]] | tuple[Table, dict[str, str]],
         None,
@@ -138,10 +141,14 @@ class HierarchicalPreprocessor:
         """
         if self.path:
             for table in tables:
-                yield self.preprocess_paths(table), {
-                    "parents": self.names["Parents"],
-                    "names": self.names["Names"],
-                    "ids": self.names["Ids"],
+                names = get_unique_names(table, ["Names", "Parents", "Ids"])
+
+                print(self.preprocess_paths(table, names))
+
+                yield self.preprocess_paths(table, names), {
+                    "parents": names["Parents"],
+                    "names": names["Names"],
+                    "ids": names["Ids"],
                     # always use total for branch values if a path is present
                     # because the values are summed
                     "branchvalues": "total",

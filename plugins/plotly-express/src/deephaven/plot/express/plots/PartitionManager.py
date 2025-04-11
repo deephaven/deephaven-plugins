@@ -650,15 +650,12 @@ class PartitionManager:
         column = (
             self.stacked_column_names["value"] if self.stacked_column_names else None
         )
-        if self.preprocessor:
-            tables = self.preprocessor.preprocess_partitioned_tables(
-                self.constituents, column
-            )
-            for table, current_partition in zip(
-                tables, self.current_partition_generator()
-            ):
-                # since this is preprocessed it will always be a tuple
-                yield cast(Tuple[Table, Dict[str, str]], (table, current_partition))
+        tables = self.preprocessor.preprocess_partitioned_tables(
+            self.constituents, column
+        )
+        for table, current_partition in zip(tables, self.current_partition_generator()):
+            # since this is preprocessed it will always be a tuple
+            yield cast(Tuple[Table, Dict[str, str]], (table, current_partition))
 
     def partition_generator(self) -> Generator[dict[str, Any], None, None]:
         """
@@ -781,7 +778,7 @@ class PartitionManager:
                 )
             else:
                 layered_fig = atomic_layer(*figs, which_layout=0)
-        except ValueError:
+        except ValueError as e:
             return self.default_figure()
 
         if self.has_color is False:
