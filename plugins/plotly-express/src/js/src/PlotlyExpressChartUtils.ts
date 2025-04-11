@@ -5,10 +5,11 @@ import {
   type PlotlyDataLayoutConfig,
   type PlotNumber,
   type PlotType,
+  type Layout,
 } from 'plotly.js';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { ChartUtils } from '@deephaven/chart';
-import { type Formatter } from '@deephaven/jsapi-utils';
+import { Formatter } from '@deephaven/jsapi-utils';
 
 /**
  * Traces that are at least partially powered by WebGL and have no SVG equivalent.
@@ -51,7 +52,22 @@ export interface PlotlyChartWidget {
   ) => void;
 }
 
+interface DeephavenCalendarBusinessPeriod {
+  open: string;
+  close: string;
+}
+
 export interface PlotlyChartDeephavenData {
+  calendar?: {
+    timeZone: string;
+    businessDays: Array<string>;
+    holidays: Array<{
+      date: string;
+      businessPeriods: Array<DeephavenCalendarBusinessPeriod>;
+    }>;
+    businessPeriods: Array<DeephavenCalendarBusinessPeriod>;
+    name: string;
+  };
   mappings: Array<{
     table: number;
     data_columns: Record<string, string[]>;
@@ -324,6 +340,44 @@ export function setWebGlTraceType(
 }
 
 /**
+ * Create rangebreaks from a business calendar
+ * @param formatter The formatter to use for the rangebreak calculations
+ * @param calendar The business calendar to create the rangebreaks from
+ * @param layout The layout to update with the rangebreaks
+ * @param chartUtils The chart utils to use for the rangebreaks
+ * @returns The updated layout with the rangebreaks added
+ */
+export function setRangebreaksFromCalendar(
+  formatter: Formatter | null,
+  calendar: DhType.calendar.BusinessCalendar | null,
+  layout: Partial<Layout>,
+  chartUtils: ChartUtils
+): Partial<Layout> | null {
+  if (formatter != null && calendar != null) {
+    const layoutUpdate: Partial<Layout> = {};
+
+    Object.keys(layout)
+      .filter(key => key.includes('axis'))
+      .forEach(key => {
+        const axis = layout[key as keyof Layout];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const rangebreaks = (axis as any)?.rangebreaks ?? [];
+        const updatedRangebreaks =
+          chartUtils.createRangeBreaksFromBusinessCalendar(calendar, formatter);
+        const updatedAxis = {
+          ...(typeof axis === 'object' ? axis : {}),
+          rangebreaks: [...rangebreaks, ...updatedRangebreaks],
+        };
+
+        (layoutUpdate as Record<string, unknown>)[key] = updatedAxis;
+      });
+
+    return layoutUpdate;
+  }
+  return null;
+}
+
+/**
  * Check if the data at the selector should be replaced with a single value instead of an array
  * @param data The data to check
  * @param selector The selector to check
@@ -372,13 +426,15 @@ export function setDefaultValueFormat(
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const trace = (plotlyData[index as number] as Record<string, unknown>)[
-      path as string
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ] as any;
+    const trace = plotlyData[index];
 
-    convertToPlotlyNumberFormat(trace, valueFormat, options);
+    // This object should be safe to cast to PlotNumber or Delta due
+    // to the checks when originally added to the set
+    const convertData = trace[path as keyof Data] as
+      | Partial<PlotNumber>
+      | Partial<Delta>;
+
+    convertToPlotlyNumberFormat(convertData, valueFormat, options);
   });
 }
 

@@ -28,7 +28,7 @@ def explicit_grid():
         ui.view(background_color="magenta-600", grid_area="footer"),
         areas=["header header", "sidebar content", "footer footer"],
         columns=["1fr", "3fr"],
-        rows=["size-1200", "size-3600", "size-1200"],
+        rows=["size-1000", "auto", "size-1000"],
         height="size-6000",
         gap="size-100",
     )

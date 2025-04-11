@@ -20,6 +20,7 @@ from deephaven.updateby import rolling_sum_tick, ema_tick, cum_max
 
 SECOND = 1_000_000_000  #: One second in nanoseconds.
 MINUTE = 60 * SECOND  #: One minute in nanoseconds.
+STARTING_TIME = "2018-06-01T08:00:00 ET"  # day deephaven.io was registered
 
 
 def _cast_timestamp(time: pd.Timestamp | None) -> pd.Timestamp:
@@ -262,12 +263,16 @@ def marketing(ticking: bool = True) -> Table:
     )
 
 
-def stocks(ticking: bool = True, hours_of_data: int = 1) -> Table:
+def stocks(
+    ticking: bool = True,
+    hours_of_data: int = 1,
+    starting_time: str = STARTING_TIME,
+) -> Table:
     """Returns a Deephaven table containing a generated example data set.
 
     Data is 1 hour of randomly generated (but deterministic) fictional
     stock market data, and starts with the first 5 minutes of data
-    already initilized so your example plots won't start empty.
+    already initialized so your example plots won't start empty.
 
     Notes:
         Contains the following columns:
@@ -288,6 +293,8 @@ def stocks(ticking: bool = True, hours_of_data: int = 1) -> Table:
             false the whole table will be returned as a static table.
         hours_of_data:
             The number of hours of data to return
+        starting_time:
+            The starting time of the data, defaults to "2018-06-01T08:00:00 ET"
 
     Returns:
         A Deephaven Table
@@ -299,9 +306,7 @@ def stocks(ticking: bool = True, hours_of_data: int = 1) -> Table:
         ```
     """
 
-    base_time = to_j_instant(
-        "2018-06-01T08:00:00 ET"
-    )  # day deephaven.io was registered
+    base_time = to_j_instant(starting_time)
 
     pd_base_time = _cast_timestamp(to_pd_timestamp(base_time))
 

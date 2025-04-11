@@ -47,6 +47,70 @@ ohlc_plot = dx.ohlc(
 
 ![OHLC Plot Basic Example](./_assets/ohlc_plot.png)
 
+### Calendar
+
+OHLC plots take a calendar argument. Dates and times are excluded from axes so that they conform to the calendar.
+
+```python
+import deephaven.plot.express as dx
+import deephaven.agg as agg
+from deephaven.calendar import calendar, set_calendar
+
+cal_name = "USNYSE_EXAMPLE"
+cal = calendar(cal_name)
+set_calendar(cal_name)
+
+stocks = dx.data.stocks(starting_time="2018-06-01T09:27:00 ET")
+
+# compute ohlc per symbol for each minute
+stocks_1min_ohlc = stocks.update_view(
+    "BinnedTimestamp = lowerBin(Timestamp, 'PT1m')"
+).agg_by(
+    [
+        agg.first("Open=Price"),
+        agg.max_("High=Price"),
+        agg.min_("Low=Price"),
+        agg.last("Close=Price"),
+    ],
+    by=["Sym", "BinnedTimestamp"],
+)
+
+dog_prices = stocks.where("Sym = `DOG`")
+
+# plot with a specific calendar by name
+ohlc_plot_cal_name = dx.ohlc(
+    stocks_1min_ohlc.where("Sym == `DOG`"),
+    x="BinnedTimestamp",
+    open="Open",
+    high="High",
+    low="Low",
+    close="Close",
+    calendar=cal_name,
+)
+
+# plot with a specific calendar object
+ohlc_plot_cal = dx.ohlc(
+    stocks_1min_ohlc.where("Sym == `DOG`"),
+    x="BinnedTimestamp",
+    open="Open",
+    high="High",
+    low="Low",
+    close="Close",
+    calendar=cal,
+)
+
+# plot with the default calendar
+ohlc_plot_default = dx.ohlc(
+    stocks_1min_ohlc.where("Sym == `DOG`"),
+    x="BinnedTimestamp",
+    open="Open",
+    high="High",
+    low="Low",
+    close="Close",
+    calendar=True,
+)
+```
+
 ## API Reference
 
 ```{eval-rst}

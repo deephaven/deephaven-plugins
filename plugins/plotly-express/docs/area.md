@@ -43,6 +43,35 @@ large_countries_population = gapminder.where("Country in `United States`, `India
 area_plot_group = dx.area(large_countries_population, x="Year", y="Pop", by="Country")
 ```
 
+### Calendar
+
+Area plots take a calendar argument. Dates and times are excluded from axes so that they conform to the calendar.
+
+```python
+import deephaven.plot.express as dx
+from deephaven.calendar import calendar, set_calendar
+
+cal_name = "USNYSE_EXAMPLE"
+cal = calendar(cal_name)
+set_calendar(cal_name)
+
+stocks = dx.data.stocks(starting_time="2018-06-01T09:27:00 ET")
+
+dog_prices = stocks.where("Sym = `DOG`")
+
+# plot with a specific calendar by name
+area_plot_cal_name = dx.area(dog_prices, x="Timestamp", y="Price", calendar=cal_name)
+
+# plot with a specific calendar by name on the y-axis
+area_plot_cal_y = dx.area(dog_prices, x="Price", y="Timestamp", calendar=cal_name)
+
+# plot with a specific calendar object
+area_plot_cal = dx.area(dog_prices, x="Timestamp", y="Price", calendar=cal)
+
+# plot with the default calendar
+area_plot_default = dx.area(dog_prices, x="Timestamp", y="Price", calendar=True)
+```
+
 ## API Reference
 
 ```{eval-rst}

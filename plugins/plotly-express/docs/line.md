@@ -40,6 +40,35 @@ my_table = dx.data.stocks()
 line_plot = dx.line(my_table, x="Timestamp", y="Price", by="Sym")
 ```
 
+### Calendar
+
+Line plots take a calendar argument. Dates and times are excluded from axes so that they conform to the calendar.
+
+```python
+import deephaven.plot.express as dx
+from deephaven.calendar import calendar, set_calendar
+
+cal_name = "USNYSE_EXAMPLE"
+cal = calendar(cal_name)
+set_calendar(cal_name)
+
+stocks = dx.data.stocks(starting_time="2018-06-01T09:27:00 ET")
+
+dog_prices = stocks.where("Sym = `DOG`")
+
+# plot with a specific calendar by name
+line_plot_cal_name = dx.line(dog_prices, x="Timestamp", y="Price", calendar=cal_name)
+
+# plot with a specific calendar by name on the y-axis
+line_plot_cal_y = dx.line(dog_prices, x="Price", y="Timestamp", calendar=cal_name)
+
+# plot with a specific calendar object
+line_plot_cal = dx.line(dog_prices, x="Timestamp", y="Price", calendar=cal)
+
+# plot with the default calendar
+line_plot_default = dx.line(dog_prices, x="Timestamp", y="Price", calendar=True)
+```
+
 ## API Reference
 
 ```{eval-rst}
