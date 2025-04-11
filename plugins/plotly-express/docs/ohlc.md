@@ -45,6 +45,8 @@ ohlc_plot = dx.ohlc(
 )
 ```
 
+![OHLC Plot Basic Example](./_assets/ohlc_plot.png)
+
 ### Calendar
 
 OHLC plots take a calendar argument. Dates and times are excluded from axes so that they conform to the calendar.
@@ -110,6 +112,7 @@ ohlc_plot_default = dx.ohlc(
 ```
 
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.ohlc
 ```

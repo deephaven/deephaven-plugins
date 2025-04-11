@@ -32,6 +32,8 @@ gapminder_recent = (
 icicle_plot = dx.icicle(gapminder_recent, names="Continent", values="Pop", parents="World")
 ```
 
+![Icicle Plot Basic Example](./_assets/icicle_plot.png)
+
 # A nested icicle plot with branch values
 
 By default, the `branchvalues` argument is set to `"remainder"`.
@@ -67,6 +69,7 @@ icicle_nested = dx.icicle(
 ```
 
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.icicle
 ```

@@ -2,7 +2,7 @@
 
 An area plot, also known as a stacked area chart, is a data visualization that uses multiple filled areas stacked on top of one another to represent the cumulative contribution of distinct categories over a continuous interval or time period. Area plots always start the y-axis at zero, because the height of each line at any point is exactly equal to its contribution to the whole, and the proportion of each category's contribution must be represented faithfully.
 
-Area plots are appropriate when the data contain a continuous response variable that directly depends on a continuous explanatory variable, such as time. Further, the response variable can be broken down into contributions from each of several independent categories, and those categories are represented by an additional categorical variable. 
+Area plots are appropriate when the data contain a continuous response variable that directly depends on a continuous explanatory variable, such as time. Further, the response variable can be broken down into contributions from each of several independent categories, and those categories are represented by an additional categorical variable.
 
 ### What are area plots useful for?
 
@@ -25,6 +25,8 @@ usa_population = gapminder.where("Country == `United States`")
 
 area_plot = dx.area(usa_population, x="Year", y="Pop")
 ```
+
+![Area Plot Basic Example](./_assets/area_plot.png)
 
 ### Area by group
 
@@ -71,6 +73,7 @@ area_plot_default = dx.area(dog_prices, x="Timestamp", y="Price", calendar=True)
 ```
 
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.area
 ```
