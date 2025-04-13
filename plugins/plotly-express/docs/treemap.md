@@ -32,6 +32,8 @@ gapminder_recent = (
 treemap_plot = dx.treemap(gapminder_recent, names="Continent", values="Pop", parents="World")
 ```
 
+![Treemap Plot Basic Example](./_assets/treemap_plot.png)
+
 # A nested treemap plot with branch values
 
 By default, the `branchvalues` argument is set to `"remainder"`.
@@ -67,6 +69,7 @@ treemap_nested = dx.treemap(
 ```
 
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.treemap
 ```

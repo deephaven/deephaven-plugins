@@ -26,6 +26,8 @@ dog_avg = my_table.where("Sym = `DOG`").agg_by([agg.avg(cols="Price")])
 indicator_plot = dx.indicator(dog_avg, value="Price")
 ```
 
+![Indicator Plot Basic Example](./_assets/indicator_plot.png)
+
 ### A delta indicator plot
 
 Visualize a single numeric value with a delta to a reference value by passing the reference column name to the `reference` argument.
@@ -127,7 +129,7 @@ indicator_plot = dx.indicator(dog_avg, value="Price", reference="StartingPrice",
 ## Number Format
 
 Format the numbers by passing a format string to the `number_format` argument.  
-The format follows [the GWT Java NumberFormat syntax](https://www.gwtproject.org/javadoc/latest/com/google/gwt/i18n/client/NumberFormat.html). 
+The format follows [the GWT Java NumberFormat syntax](https://www.gwtproject.org/javadoc/latest/com/google/gwt/i18n/client/NumberFormat.html).
 The default format is set within the Settings panel. If only `value` is specified, the default format matches the type of that column.  
 If `reference` is specified, the default format is the `Integer` format if they are both integers. Otherwise, the default format is the `Decimal` format.  
 If a prefix or suffix is passed within the format string, it will be overridden by the `prefix` and `suffix` arguments.
@@ -164,10 +166,10 @@ my_table = dx.data.stocks()
 dog_agg = my_table.where("Sym = `DOG`").agg_by([agg.avg(cols="Price"), agg.first(cols="StartingPrice = Price")])
 
 indicator_plot = dx.indicator(
-    dog_agg, 
-    value="Price", 
-    reference="StartingPrice", 
-    increasing_text="Up: ", 
+    dog_agg,
+    value="Price",
+    reference="StartingPrice",
+    increasing_text="Up: ",
     decreasing_text="Down: "
 )
 ```
@@ -312,6 +314,7 @@ indicator_plot = dx.indicator(
 ```
 
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.indicator
 ```

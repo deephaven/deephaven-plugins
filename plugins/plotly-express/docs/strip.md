@@ -26,6 +26,8 @@ thursday_tips = tips.where("Day == `Thur`")
 strip_plot = dx.strip(thursday_tips, x="TotalBill", color_discrete_sequence=["lightgreen"])
 ```
 
+![Strip Plot Basic Example](./_assets/strip_plot.png)
+
 ### Distributions for multiple groups
 
 Strip plots are useful for comparing the distributions of two or more groups of data. Pass the name of the grouping column(s) to the `by` argument.
@@ -41,6 +43,7 @@ strip_plot_group = dx.strip(tips, x="TotalBill", by="Day", color_discrete_sequen
 > At the moment, `color_discrete_sequence` must be specified explicitly to get the points to render.
 
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.strip
 ```

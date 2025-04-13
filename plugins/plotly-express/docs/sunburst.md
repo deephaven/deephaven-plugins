@@ -32,6 +32,8 @@ gapminder_recent = (
 sunburst_plot = dx.sunburst(gapminder_recent, names="Continent", values="Pop", parents="World")
 ```
 
+![Sunburst Plot Basic Example](./_assets/sunburst_plot.png)
+
 # A nested sunburst plot with branch values
 
 By default, the `branchvalues` argument is set to `"remainder"`.
@@ -67,6 +69,7 @@ sunburst_nested = dx.sunburst(
 ```
 
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.sunburst
 ```

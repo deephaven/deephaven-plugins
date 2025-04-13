@@ -25,6 +25,8 @@ box_plot_x = dx.box(tips, x="TotalBill")
 box_plot_y = dx.box(tips, y="TotalBill")
 ```
 
+![Box Plot Basic Example](./_assets/box_plot.png)
+
 ### Distributions for multiple groups
 
 Box plots are useful for comparing the distributions of two or more groups of data. Pass the name of the grouping column(s) to the `by` argument.
@@ -41,6 +43,7 @@ box_plot_group_2 = dx.box(tips, y="TotalBill", by="Sex")
 ```
 
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.box
 ```
