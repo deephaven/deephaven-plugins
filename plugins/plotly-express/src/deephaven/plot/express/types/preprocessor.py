@@ -10,13 +10,20 @@ class HierarchicalTransform(TypedDict):
     A dictionary with info about a column that should be summed up the hierarchy
 
     Attributes:
-        sum_col: str: The sum column that should be used to aggregate the data
+        sum_col: str: The sum column that should be aggregated up the hierarchy
     """
 
     sum_col: str
 
 
 class HierarchicalTransforms:
+    """
+    A list of transforms that should be applied to a table.
+    This is used for "hierarchical" plots such as sunburst and treemap.
+    The transforms are columns that should be summed up the hierarchy.
+    One example is
+    """
+
     def __init__(self):
         self.transforms = []
 
@@ -29,7 +36,7 @@ class HierarchicalTransforms:
     def __bool__(self):
         return bool(self.transforms)
 
-    def __iter__(self) -> Generator[tuple[str, str], None, None]:
+    def __iter__(self) -> Generator[tuple[str], None, None]:
         for transform in self.transforms:
             yield transform.values()
 
@@ -39,10 +46,10 @@ class AttachedTransform(TypedDict):
     A dictionary with info about an attached transformation that should be applied to a table
 
     Attributes:
-        col: str: The by column that the style should be computed from
-        map: dict[str, str]: The map of values within col to styles
-        ls: list[str]: The list of styles to use
-        new_col: str: The new column name to store the style
+        by_col: The column to use to compute the style
+        new_col: The new column name to store the style
+        style_map: A dictionary mapping the values in by_col to styles
+        style_list: A list of styles to use
     """
 
     by_col: str
@@ -52,6 +59,13 @@ class AttachedTransform(TypedDict):
 
 
 class AttachedTransforms:
+    """
+    A list of transforms that should be applied to a table.
+    This is used for "always_attached" plots such as treemap and pie.
+    The colors are attached to the table as a column that can be directly
+    linked to in the client.
+    """
+
     def __init__(self):
         self.transforms = []
 
@@ -62,6 +76,15 @@ class AttachedTransforms:
         style_map: dict[str, str] | None = None,
         style_list: list[str] | None = None,
     ) -> None:
+        """
+        Add a new transform to the list of transforms
+
+        Args:
+            by_col: The column to use to compute the style
+            new_col: The new column name to store the style
+            style_map: A dictionary mapping the values in by_col to styles
+            style_list: A list of styles to use
+        """
         self.transforms.append(
             AttachedTransform(
                 by_col=by_col,

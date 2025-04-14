@@ -10,15 +10,20 @@ from ..shared import get_unique_names
 from ..types import HierarchicalTransforms
 
 
+def trim_id(id_: str) -> str:
+    """
+    Trim the ids to remove the last part of the id
+    """
+    return id_.rsplit("/", 1)[0]
+
+
 class HierarchicalPreprocessor:
-    """A AttachedPreprocessor that adds styles to "always_attached" plot tables
-    such as treemap and pie.
+    """A HierarchicalPreprocessor that transforms the path into columns that can be used
+    directly.
 
     Attributes:
         args: Args used to create the plot
-        always_attached: The dict mapping the arg and column
-          to the style map, dictionary, and new column name, to be used for
-          AttachedProcessor when dealing with an "always_attached" plot
+        hierarchical_transforms: The transforms that should be applied to the table
     """
 
     def __init__(
@@ -29,9 +34,12 @@ class HierarchicalPreprocessor:
     ):
         self.args = args
         self.hierarchical_transforms = hierarchical_transforms
-        self.path = path
 
-    def preprocess_paths(self, table: Table, names) -> Table:
+        if isinstance(path, str):
+            path = [path]
+        self.path = path if path is not None else []
+
+    def preprocess_paths(self, table: Table, names: dict[str, str]) -> Table:
         """
         Preprocess the path
         The path is a list of columns that should be used to create the hierarchy
@@ -44,6 +52,7 @@ class HierarchicalPreprocessor:
 
         Args:
             table: The table to preprocess
+            names: The names of the columns to use for the hierarchy
 
         Returns:
             The preprocessed table
@@ -52,7 +61,6 @@ class HierarchicalPreprocessor:
         # the weighted average is used to get the correct value for the parent
         numeric_cols = {self.args["values"]}
         sum_cols = set()
-        print("testingeee", self.hierarchical_transforms)
         for (sum_col,) in self.hierarchical_transforms:
             sum_cols.add(sum_col)
 
@@ -64,17 +72,11 @@ class HierarchicalPreprocessor:
         # others need to be kept for color, etc.
         other_cols = table_columns - numeric_cols - sum_cols
 
-        new_table = None
+        level_tables = []
 
         path_rev = list(reversed(self.path))
 
         prev_table = table
-
-        def trim_id(id_: str) -> str:
-            """
-            Trim the ids to remove the last part of the id
-            """
-            return id_.rsplit("/", 1)[0]
 
         for i, p in enumerate(path_rev):
             by_col = p
@@ -88,8 +90,7 @@ class HierarchicalPreprocessor:
             # update the view because the other columns might need to be kept for color, etc.
             # the parents are the first part of the id
             # if the value of the ID column is A/B/C here, the parent is A because we took last_by
-
-            newest_table = prev_table.agg_by(aggs, by=[by_col]).update_view(
+            level_table = prev_table.agg_by(aggs, by=[by_col]).update_view(
                 [
                     f"{names['Names']}={by_col}",
                 ]
@@ -98,7 +99,7 @@ class HierarchicalPreprocessor:
             if i == 0:
                 # on the first iteration, the id doesn't need to be trimmed
                 # so the parent is the id trimmed once
-                newest_table = newest_table.update_view(
+                level_table = level_table.update_view(
                     f"{names['Parents']}=trim_id({names['Ids']})"
                 )
             else:
@@ -109,24 +110,19 @@ class HierarchicalPreprocessor:
                 parent_op = (
                     f"trim_id({names['Ids']})" if i != len(path_rev) - 1 else '""'
                 )
-                newest_table = newest_table.update_view(
+                level_table = level_table.update_view(
                     [
                         f"{names['Ids']}=trim_id({names['Ids']})",
                         f"{names['Parents']}={parent_op}",
                     ]
                 )
 
-            if not new_table:
-                new_table = newest_table
-            else:
-                new_table = merge([new_table, newest_table])
+            prev_table = level_table
 
-            prev_table = newest_table
-
-        return new_table
+        return merge(level_tables)
 
     def preprocess_partitioned_tables(
-        self, tables: list[Table] | None, column: str | None = None
+        self, tables: list[Table], column: str | None = None
     ) -> Generator[
         Table | tuple[Table, dict[str, str | None]] | tuple[Table, dict[str, str]],
         None,
@@ -139,11 +135,10 @@ class HierarchicalPreprocessor:
             tables: List of tables to preprocess
             column: the column used
         """
+
         if self.path:
             for table in tables:
                 names = get_unique_names(table, ["Names", "Parents", "Ids"])
-
-                print(self.preprocess_paths(table, names))
 
                 yield self.preprocess_paths(table, names), {
                     "parents": names["Parents"],

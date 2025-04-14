@@ -99,6 +99,7 @@ class Preprocessor:
         Yields:
             Table: the preprocessed table
         """
+
         tables = tables or []
         if self.preprocessors:
             # make a copy of the tables to avoid modifying the original

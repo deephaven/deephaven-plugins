@@ -68,15 +68,60 @@ class TreemapTestCase(BaseTestCase):
 
     def test_treemap_path(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
+        from deephaven.constants import NULL_LONG
 
         chart = dx.treemap(
             self.source, values="values", path=["names", "parents", "grandparents"]
         ).to_dict(self.exporter)
-        plotly, deephaven = chart["plotly"], chart["deephaven"]
 
-        # pop template as we currently do not modify it
-        plotly["layout"].pop("template")
+        expected_data = [
+            {
+                "branchvalues": "total",
+                "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
+                "hovertemplate": "Names=%{label}<br>values=%{value}<br>Parents=%{parent}<br>Ids=%{"
+                "id}<extra></extra>",
+                "ids": ["None"],
+                "labels": ["None"],
+                "name": "",
+                "parents": ["None"],
+                "type": "treemap",
+                "values": [NULL_LONG],
+            }
+        ]
+
+        expected_layout = {"legend": {"tracegroupgap": 0}}
+
+        expected_mappings = [
+            {
+                "data_columns": {
+                    "Ids": ["/plotly/data/0/ids"],
+                    "Names": ["/plotly/data/0/labels"],
+                    "Parents": ["/plotly/data/0/parents"],
+                    "values": ["/plotly/data/0/values"],
+                },
+                "table": 0,
+            }
+        ]
+
+        self.assert_chart_equals(
+            chart,
+            expected_data=expected_data,
+            expected_layout=expected_layout,
+            expected_mappings=expected_mappings,
+            expected_is_user_set_template=False,
+            expected_is_user_set_color=False,
+        )
+
+    def test_treemap_path_numeric_colors(self):
+        import src.deephaven.plot.express as dx
+        from deephaven.constants import NULL_DOUBLE, NULL_LONG
+
+        chart = dx.treemap(
+            self.source,
+            values="values",
+            path=["names", "parents", "grandparents"],
+            color="colors",
+        ).to_dict(self.exporter)
 
         expected_data = [
             {
@@ -88,12 +133,12 @@ class TreemapTestCase(BaseTestCase):
                 "labels": ["None"],
                 "marker": {
                     "coloraxis": "coloraxis",
-                    "colors": [-1.7976931348623157e308],
+                    "colors": [NULL_DOUBLE],
                 },
                 "name": "",
                 "parents": ["None"],
                 "type": "treemap",
-                "values": [-9223372036854775808],
+                "values": [NULL_LONG],
             }
         ]
 
@@ -138,64 +183,9 @@ class TreemapTestCase(BaseTestCase):
             expected_is_user_set_color=False,
         )
 
-    def test_treemap_path_numeric_colors(self):
-        import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
-
-        chart = dx.treemap(
-            self.source,
-            values="values",
-            path=["names", "parents", "grandparents"],
-            color="colors",
-        ).to_dict(self.exporter)
-        plotly, deephaven = chart["plotly"], chart["deephaven"]
-
-        # pop template as we currently do not modify it
-        plotly["layout"].pop("template")
-
-        import pprint
-
-        pprint.pprint(plotly["data"])
-        pprint.pprint(plotly["layout"])
-        pprint.pprint(deephaven["mappings"])
-
-        expected_data = [
-            {
-                "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
-                "hovertemplate": "names=%{label}<br>values=%{value}<br>parents=%{parent}<extra></extra>",
-                "labels": ["None"],
-                "name": "",
-                "parents": ["None"],
-                "type": "treemap",
-                "values": [NULL_INT],
-            }
-        ]
-
-        expected_layout = {"legend": {"tracegroupgap": 0}}
-
-        expected_mappings = [
-            {
-                "data_columns": {
-                    "names": ["/plotly/data/0/labels"],
-                    "parents": ["/plotly/data/0/parents"],
-                    "values": ["/plotly/data/0/values"],
-                },
-                "table": 0,
-            }
-        ]
-
-        self.assert_chart_equals(
-            chart,
-            expected_data=expected_data,
-            expected_layout=expected_layout,
-            expected_mappings=expected_mappings,
-            expected_is_user_set_template=False,
-            expected_is_user_set_color=False,
-        )
-
     def test_treemap_path_categorical_colors(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
+        from deephaven.constants import NULL_LONG
 
         chart = dx.treemap(
             self.source,
@@ -203,20 +193,20 @@ class TreemapTestCase(BaseTestCase):
             path=["names", "parents", "grandparents"],
             color="category",
         ).to_dict(self.exporter)
-        plotly, deephaven = chart["plotly"], chart["deephaven"]
-
-        # pop template as we currently do not modify it
-        plotly["layout"].pop("template")
 
         expected_data = [
             {
+                "branchvalues": "total",
                 "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
-                "hovertemplate": "names=%{label}<br>values=%{value}<br>parents=%{parent}<extra></extra>",
+                "hovertemplate": "Names=%{label}<br>values=%{value}<br>Parents=%{parent}<br>Ids=%{"
+                "id}<extra></extra>",
+                "ids": ["None"],
                 "labels": ["None"],
+                "marker": {"colors": []},
                 "name": "",
                 "parents": ["None"],
                 "type": "treemap",
-                "values": [NULL_INT],
+                "values": [NULL_LONG],
             }
         ]
 
@@ -225,8 +215,10 @@ class TreemapTestCase(BaseTestCase):
         expected_mappings = [
             {
                 "data_columns": {
-                    "names": ["/plotly/data/0/labels"],
-                    "parents": ["/plotly/data/0/parents"],
+                    "Ids": ["/plotly/data/0/ids"],
+                    "Names": ["/plotly/data/0/labels"],
+                    "Parents": ["/plotly/data/0/parents"],
+                    "color": ["/plotly/data/0/marker/colors"],
                     "values": ["/plotly/data/0/values"],
                 },
                 "table": 0,

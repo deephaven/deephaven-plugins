@@ -44,7 +44,18 @@ class AttachedPreprocessor:
 
         return table
 
-    def preprocess_partitioned_tables(self, tables: list[Table] | None, column: str | None = None):
+    def preprocess_partitioned_tables(
+        self, tables: list[Table], column: str | None = None
+    ):
+        """
+        Preprocess the attached styles
+
+        Args:
+            tables: The tables to process
+            column:
+
+        Returns:
+            A tuple containing (the new table, an update to make to the args)
+        """
         for table in tables:
             yield self.attach_styles(table), {}
-

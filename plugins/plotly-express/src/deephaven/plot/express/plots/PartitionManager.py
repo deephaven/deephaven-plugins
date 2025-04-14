@@ -312,7 +312,7 @@ class PartitionManager:
 
         args["table"] = self.to_long_mode(table, self.cols)
 
-    def is_by(self, arg: str, map_val: str | list[str] | None = None) -> None:
+    def is_by(self, arg: str, map_val: Any = None) -> None:
         """
         Given that the specific arg is a by arg, prepare the arg depending on
         if it is attached or not
@@ -327,6 +327,10 @@ class PartitionManager:
 
         if "always_attached" in self.groups:
             new_col = get_unique_names(self.args["table"], [arg])[arg]
+            if not isinstance(map_val, dict):
+                raise TypeError(
+                    f"Expected a dictionary for {arg} map, got {type(map_val)}"
+                )
             self.attached_transforms.add(
                 by_col=self.args[arg],
                 new_col=new_col,
@@ -399,6 +403,9 @@ class PartitionManager:
                 if "always_attached" in self.groups:
                     args["colors"] = args.pop("color")
                     if self.args.get("path"):
+                        # is_single_numeric_col must be true so it is safe to pull the first element
+                        if not isinstance(val, str):
+                            val = val[0]
                         # numeric column that is the source of color need to be aggregated if path is passed
                         self.hierarchical_transforms.add(sum_col=val)
                     # otherwise the colors are attached directly
@@ -650,6 +657,10 @@ class PartitionManager:
         column = (
             self.stacked_column_names["value"] if self.stacked_column_names else None
         )
+
+        if self.preprocessor is None:
+            return
+
         tables = self.preprocessor.preprocess_partitioned_tables(
             self.constituents, column
         )
