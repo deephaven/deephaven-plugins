@@ -118,6 +118,7 @@ class HierarchicalPreprocessor:
                     ]
                 )
 
+            level_tables.append(level_table)
             prev_table = level_table
 
         return merge(level_tables)

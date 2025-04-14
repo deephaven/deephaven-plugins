@@ -327,7 +327,7 @@ class PartitionManager:
 
         if "always_attached" in self.groups:
             new_col = get_unique_names(self.args["table"], [arg])[arg]
-            if not isinstance(map_val, dict):
+            if (not isinstance(map_val, dict)) and (map_val is not None):
                 raise TypeError(
                     f"Expected a dictionary for {arg} map, got {type(map_val)}"
                 )
