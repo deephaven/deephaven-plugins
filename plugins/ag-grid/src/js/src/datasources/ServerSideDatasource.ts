@@ -139,17 +139,18 @@ export class ServerSideDatasource implements IServerSideDatasource {
   }
 
   private parseSorts(sortModelItems: readonly SortModelItem[]): DhType.Sort[] {
-    return sortModelItems.flatMap(item => {
+    return sortModelItems.map(item => {
       const column = this.table.findColumn(item.colId);
       const sort = column.sort();
       switch (item.sort) {
         case 'asc':
-          return [sort.asc()];
+          return sort.asc();
         case 'desc':
-          return [sort.desc()];
+          return sort.desc();
         default:
-          log.warn(`Unknown sort direction ${item.sort}`);
-          return [];
+          throw new Error(
+            `Unknown sort direction ${item.sort} for column ${item.colId}`
+          );
       }
     });
   }
