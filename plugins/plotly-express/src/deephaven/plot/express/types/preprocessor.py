@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-# todo: make sure TypedDict is imported correctly by version, or just don't use typeddict
-
-from typing import Any, Generator, TypedDict
+from typing import Generator, TypedDict
 
 
 class HierarchicalTransform(TypedDict):

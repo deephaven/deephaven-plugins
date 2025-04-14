@@ -52,7 +52,7 @@ class AttachedPreprocessor:
 
         Args:
             tables: The tables to process
-            column:
+            column: column: the column used (ignored)
 
         Returns:
             A tuple containing (the new table, an update to make to the args)

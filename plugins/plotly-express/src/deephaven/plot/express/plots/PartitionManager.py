@@ -312,7 +312,7 @@ class PartitionManager:
 
         args["table"] = self.to_long_mode(table, self.cols)
 
-    def is_by(self, arg: str, map_val: Any = None) -> None:
+    def is_by(self, arg: str, map_val: str | list[str] | dict | None = None) -> None:
         """
         Given that the specific arg is a by arg, prepare the arg depending on
         if it is attached or not
@@ -789,7 +789,7 @@ class PartitionManager:
                 )
             else:
                 layered_fig = atomic_layer(*figs, which_layout=0)
-        except ValueError as e:
+        except ValueError:
             return self.default_figure()
 
         if self.has_color is False:

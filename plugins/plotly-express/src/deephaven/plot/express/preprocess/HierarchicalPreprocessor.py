@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Generator, TypedDict
+from typing import Any, Generator
 
 from deephaven.table import Table
 from deephaven import agg
@@ -24,6 +24,7 @@ class HierarchicalPreprocessor:
     Attributes:
         args: Args used to create the plot
         hierarchical_transforms: The transforms that should be applied to the table
+        path: The path defining the hierarchy
     """
 
     def __init__(
@@ -133,7 +134,7 @@ class HierarchicalPreprocessor:
 
         Args:
             tables: List of tables to preprocess
-            column: the column used
+            column: the column used (ignored)
         """
 
         if self.path:
