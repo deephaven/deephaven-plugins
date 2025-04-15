@@ -2,6 +2,10 @@
 
 deephaven.ui is a plugin that works with [Deephaven](https://deephaven.io/core/docs/). Use the deephaven.ui plugin to build dynamic components and layouts using Deephaven.
 
+## Enterprise
+
+Enterprise installations come packaged with deephaven.ui and therefore don't require additional steps. The rest of the document pertains to Core installations.
+
 ## New installation
 
 If you don't already have Deephaven installed, you can install via Docker or pip.

@@ -17,7 +17,7 @@ There are two reasons for a component to render:
 
 ### Initial Render
 
-Opening a component to view it causes the component to be mounted, which means adding nodes to the DOM. When your component first mounts, it triggers an initial render. It is rendered with it's props and initial state.
+Opening a component to view it causes the component to be mounted, which means adding nodes to the DOM. When your component first mounts, it triggers an initial render. It is rendered with its props and initial state.
 
 ```python
 from deephaven import ui
@@ -75,8 +75,8 @@ Otherwise, you can encounter confusing bugs and unpredictable behavior as your c
 
 After rendering your components, `deephaven.ui` sends the components to client and React renders and will modify the DOM.
 
--For the initial render, React will use the `appendChild()` DOM API to put all the DOM nodes it has created on screen.
--For re-renders, React will apply the minimal necessary operations (calculated while rendering!) to make the DOM match the latest rendering output.
+- For the initial render, React will use the `appendChild()` DOM API to put all the DOM nodes it has created on screen.
+- For re-renders, React will apply the minimal necessary operations (calculated while rendering!) to make the DOM match the latest rendering output.
 
 React only changes the DOM nodes if there’s a difference between renders. For example, here is a component that re-renders with different props passed from its parent every second. Notice how you can add some text into the `ui.text_field`, updating its value, but the text doesn’t disappear when the component re-renders:
 

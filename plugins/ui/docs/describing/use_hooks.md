@@ -8,20 +8,20 @@ Hooks are Python functions, but you need to follow two rules when using them.
 
 1. Only call hooks at the top level.
 
-Don’t call hooks inside loops, conditions, or nested functions. Instead, always use hooks at the top level of your `deephaven.ui` component function, before any early returns. By following this rule, you ensure that hooks are called in the same order each time a component renders.
+    Don’t call hooks inside loops, conditions, or nested functions. Instead, always use hooks at the top level of your `deephaven.ui` component function, before any early returns. By following this rule, you ensure that hooks are called in the same order each time a component renders.
 
 2. Only call hooks from components and custom hooks
 
-Don’t call hooks from regular Python functions. Instead, you can:
+    Don’t call hooks from regular Python functions. Instead, you can:
 
-- Call Hooks from `@ui.component` decorated functions.
-- Call hooks from custom hooks.
+    - Call Hooks from `@ui.component` decorated functions.
+    - Call hooks from custom hooks.
 
-Following this rule ensures that all stateful logic in a component is clearly visible from its source code.
+    Following this rule ensures that all stateful logic in a component is clearly visible from its source code.
 
 ## Built-in Hooks
 
-`deephaven.ui` has a large number of built-in hooks to help with the development of components. More details can be found in the [`hooks` section](../hooks/overview.md) of the documentation.
+`deephaven.ui` has a large number of built-in hooks to help with the development of components. More details can be found in the [hooks section](../hooks/overview.md) of the documentation.
 
 ### Use State Hook
 
@@ -65,7 +65,7 @@ def ui_todo_list(todos: list[str], filter: str):
 result = ui_todo_list(["Do grocery shopping", "Walk the dog", "Do laundry"], "Do")
 ```
 
-The `use_memo` hook takes two parameters: a `callable` that returns a value and a list of dependencies. When dependencies are changed, the value is computed once and then stored in the memoized value. The memoized value is returned on subsequent renders until the dependencies change. The memoized value is returned on subsequent renders until the dependencies change.
+The `use_memo` hook takes two parameters: a `callable` that returns a value and a list of dependencies. When dependencies are changed, the value is computed once and then stored in the memoized value. The memoized value is returned on subsequent renders until the dependencies change.
 
 ### Use Effect Hook
 

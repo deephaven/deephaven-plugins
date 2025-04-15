@@ -88,21 +88,21 @@ Setting state only changes it for the next render. During the first render, `num
 
 Here is what `handle_press` tells `deephaven.ui` to do:
 
-1. `set_number(number + 1)`: number is 0 so `set_number(0 + 1)`.
+1. `set_number(number + 1)`: `number` is 0 so `set_number(0 + 1)`.
 
-- `deephaven.ui` prepares to change number to 1 on the next render.
+    - `deephaven.ui` prepares to change `number` to 1 on the next render.
 
-2. `set_number(number + 1)`: number is 0 so `set_number(0 + 1)`.
+2. `set_number(number + 1)`: `number` is 0 so `set_number(0 + 1)`.
 
-- `deephaven.ui` prepares to change number to 1 on the next render.
+    - `deephaven.ui` prepares to change `number` to 1 on the next render.
 
-3. `set_number(number + 1)`: number is 0 so `set_number(0 + 1)`.
+3. `set_number(number + 1)`: `number` is 0 so `set_number(0 + 1)`.
 
-- `deephaven.ui` prepares to change number to 1 on the next render.
+    - `deephaven.ui` prepares to change `number` to 1 on the next render.
 
-Even though you called `set_number(number + 1)` three times, in this render’s event handler, `number` is always `0`, so you set the state to `1` three times. This is why, after your event handler finishes, React re-renders the component with number equal to `1` rather than `3`.
+Even though you called `set_number(number + 1)` three times, in this render’s event handler, `number` is always `0`, so you set the state to `1` three times. This is why, after your event handler finishes, React re-renders the component with `number` equal to `1` rather than `3`.
 
-You can also visualize this by mentally substituting state variables with their values in your code. Since the number state variable is 0 for this render, its event handler looks like this:
+You can also visualize this by mentally substituting state variables with their values in your code. Since the `number` state variable is 0 for this render, its event handler looks like this:
 
 ```python
 def handle_press():
@@ -183,7 +183,7 @@ def handle_press():
 
 The state stored in `deephaven.ui` may have changed by the time the alert runs, but it was scheduled using a snapshot of the state at the time the user interacted with it.
 
-A state variable’s value never changes within a render, even if its event handler’s code is asynchronous. Inside that render’s `on_press`, the value of number continues to be 0 even after `set_number(number + 5)` was called. Its value was “fixed” when `deephaven.ui` “took the snapshot” of the UI by calling your component.
+A state variable’s value never changes within a render, even if its event handler’s code is asynchronous. Inside that render’s `on_press`, the value of `number` continues to be 0 even after `set_number(number + 5)` was called. Its value was “fixed” when `deephaven.ui` “took the snapshot” of the UI by calling your component.
 
 Here is an example of how that makes your event handlers less prone to timing mistakes. Below is a form that sends a message with a five-second delay. Imagine this scenario:
 

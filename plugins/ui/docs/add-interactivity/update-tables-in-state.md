@@ -32,7 +32,7 @@ The error states that "this manager or referent is no longer live". This is a li
 
 ## The `use_liveness_scope` hook
 
-The first way to fix this error is the [`use_liveness_scope`](../hooks/use_liveness_scope.md) hook. This hook allows you to manage the liveness of table to prevent it being garbage collected before your component is done using it. With this change, we can reset the table:
+The first way to fix this error is the [`use_liveness_scope`](../hooks/use_liveness_scope.md) hook. This hook allows you to manage the liveness of a table to prevent it being garbage collected before your component is done using it. With this change, we can reset the table:
 
 ```python
 from deephaven import ui, time_table
