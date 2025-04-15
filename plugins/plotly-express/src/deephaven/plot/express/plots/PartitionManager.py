@@ -407,7 +407,7 @@ class PartitionManager:
                         if not isinstance(val, str):
                             val = val[0]
                         # numeric column that is the source of color need to be aggregated if path is passed
-                        self.hierarchical_transforms.add(sum_col=val)
+                        self.hierarchical_transforms.add(avg_col=val)
                     # otherwise the colors are attached directly
             elif val:
                 self.is_by(arg, args[map_name])

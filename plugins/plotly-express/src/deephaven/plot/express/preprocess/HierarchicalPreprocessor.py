@@ -57,36 +57,35 @@ class HierarchicalPreprocessor:
         Returns:
             The preprocessed table
         """
+        sum_cols = {self.args["values"]}
+
         # sometimes there are columns that need to be aggregated along with the Value column
-        # the weighted average is used to get the correct value for the parent
-        numeric_cols = {self.args["values"]}
-        sum_cols = set()
-        for (sum_col,) in self.hierarchical_transforms:
-            sum_cols.add(sum_col)
+        avg_cols = set()
+        for (avg_col,) in self.hierarchical_transforms:
+            avg_cols.add(avg_col)
 
         ids = f"{' + `/` + '.join(self.path)}"
         table = table.update_view(f"{names['Ids']} = {ids}")
 
         table_columns = set(table.column_names)
-        # any numeric columns should be a sum, all others should be last
+
+        # values columns should be a sum, all others should be last
         # others need to be kept for color, etc.
-        other_cols = table_columns - numeric_cols - sum_cols
+        other_cols = table_columns - sum_cols - avg_cols
 
         level_tables = []
 
-        path_rev = list(reversed(self.path))
-
         prev_table = table
 
-        for i, p in enumerate(path_rev):
-            by_col = p
+        aggs = (
+            [agg.last(col) for col in other_cols]
+            + [agg.sum_(col) for col in sum_cols]
+            # plotly uses weighted average for the sum_cols such as color
+            + [agg.weighted_avg(self.args["values"], col) for col in avg_cols]
+        )
 
-            aggs = (
-                [agg.last(col) for col in other_cols]
-                + [agg.sum_(col) for col in numeric_cols]
-                # plotly uses weighted average for the sum_cols such as color
-                + [agg.weighted_avg(self.args["values"], col) for col in sum_cols]
-            )
+        # reverse the path to aggregate from the bottom up
+        for i, by_col in enumerate(list(reversed(self.path))):
             # update the view because the other columns might need to be kept for color, etc.
             # the parents are the first part of the id
             # if the value of the ID column is A/B/C here, the parent is A because we took last_by
@@ -108,7 +107,7 @@ class HierarchicalPreprocessor:
                 # then the id is trimmed to get the parent
                 # if on the last iteration, the parent needs to be empty for plotly to work
                 parent_op = (
-                    f"trim_id({names['Ids']})" if i != len(path_rev) - 1 else '""'
+                    f"trim_id({names['Ids']})" if i != len(self.path) - 1 else '""'
                 )
                 level_table = level_table.update_view(
                     [

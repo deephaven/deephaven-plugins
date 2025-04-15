@@ -5,13 +5,13 @@ from typing import Generator, TypedDict
 
 class HierarchicalTransform(TypedDict):
     """
-    A dictionary with info about a column that should be summed up the hierarchy
+    A dictionary with info about a column that should be averaged up the hierarchy
 
     Attributes:
-        sum_col: str: The sum column that should be aggregated up the hierarchy
+        avg_col: str: The column that should be averaged up the hierarchy
     """
 
-    sum_col: str
+    avg_col: str
 
 
 class HierarchicalTransforms:
@@ -27,9 +27,15 @@ class HierarchicalTransforms:
 
     def add(
         self,
-        sum_col: str,
+        avg_col: str,
     ) -> None:
-        self.transforms.append(HierarchicalTransform(sum_col=sum_col))
+        """
+        Add a new transform to the list of transforms
+
+        Args:
+            avg_col: The column to take the average of when aggregating up the hierarchy
+        """
+        self.transforms.append(HierarchicalTransform(avg_col=avg_col))
 
     def __bool__(self):
         return bool(self.transforms)
