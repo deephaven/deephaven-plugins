@@ -6,6 +6,8 @@ import { AgGridReact } from '@ag-grid-community/react';
 import { ServerSideRowModelModule } from '@ag-grid-enterprise/server-side-row-model';
 import { useMemo } from 'react';
 import ServerSideDatasource from './datasources/ServerSideDatasource';
+import AgGridTableUtils from './utils/AgGridTableUtils';
+import AgGridFormatter from './AgGridFormatter';
 
 type AgGridServerSideViewProps = {
   table: DhType.Table;
@@ -22,7 +24,13 @@ export function AgGridServerSideView({
 
   /** Map from Deephaven Table Columns to AG Grid ColDefs */
   const colDefs: ColDef[] = useMemo(
-    () => table?.columns.map(c => ({ field: c.name, filter: true })) ?? [],
+    () =>
+      table?.columns.map(c => {
+        const templateColDef: ColDef = {
+          field: c.name,
+        };
+        return AgGridTableUtils.convertColumnToColDef(c, templateColDef);
+      }) ?? [],
     [table]
   );
 
@@ -32,9 +40,12 @@ export function AgGridServerSideView({
     [dh, table]
   );
 
+  const formatter = useMemo(() => new AgGridFormatter(dh), [dh]);
+
   return (
     <AgGridReact
       columnDefs={colDefs}
+      dataTypeDefinitions={formatter.cellDataTypeDefinitions}
       serverSideDatasource={datasource}
       rowModelType="serverSide"
       modules={[ServerSideRowModelModule]}
