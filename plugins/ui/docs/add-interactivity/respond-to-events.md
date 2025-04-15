@@ -119,7 +119,7 @@ This lets these two buttons show different messages. Try changing the messages p
 
 Often, you’ll want the parent component to specify a child’s event handler. Consider buttons: depending on where you’re using a button component, you might want to execute a different function — perhaps one plays a movie and another uploads an image.
 
-To do this, pass a prop that the component receives from its parent as the event handler like so:
+To do this, pass a prop that the component receives as the event handler from its parent like so:
 
 ```python
 from deephaven import ui

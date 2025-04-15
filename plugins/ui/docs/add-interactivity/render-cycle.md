@@ -13,7 +13,7 @@ Think of your components as chefs in a kitchen, preparing delicious meals from v
 There are two reasons for a component to render:
 
 1. It is the component’s initial render.
-2. The component’s state has been updated or one of it's ancestor's state has been updated.
+2. The component’s state has been updated or one of its ancestors' state has been updated.
 
 ### Initial Render
 
