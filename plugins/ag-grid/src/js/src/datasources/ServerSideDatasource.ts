@@ -1,16 +1,15 @@
 /* eslint-disable class-methods-use-this */
 import {
-  AdvancedFilterModel,
-  FilterModel,
   GridApi,
   IServerSideDatasource,
   IServerSideGetRowsParams,
-  SortModelItem,
   ViewportChangedEvent,
 } from '@ag-grid-community/core';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { assertNotNull } from '@deephaven/utils';
+import SortUtils from '../utils/SortUtils';
+import FilterUtils from '../utils/FilterUtils';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/ServerSideDataSource');
 
@@ -144,139 +143,22 @@ export class ServerSideDatasource implements IServerSideDatasource {
     }
   }
 
-  private parseTextFilter(
-    column: DhType.Column,
-    type: string,
-    filter: string
-  ): DhType.FilterCondition {
-    const filterValue = this.dh.FilterValue.ofString(filter ?? '');
-    switch (type) {
-      case 'equals':
-        return column.filter().eq(filterValue);
-      case 'notEqual':
-        return column.filter().notEq(filterValue);
-      case 'contains':
-        return column.filter().contains(filterValue);
-      case 'notContains':
-        return column
-          .filter()
-          .isNull()
-          .or(column.filter().contains(filterValue).not());
-      case 'startsWith':
-        return column
-          .filter()
-          .isNull()
-          .not()
-          .and(column.filter().invoke('startsWith', filterValue));
-      case 'endsWith':
-        return column
-          .filter()
-          .isNull()
-          .not()
-          .and(column.filter().invoke('endsWith', filterValue));
-      // filterValue is ofString('') for blank/notBlank filters
-      case 'blank':
-        return column.filter().isNull().or(column.filter().eq(filterValue));
-      case 'notBlank':
-        return column
-          .filter()
-          .isNull()
-          .not()
-          .and(column.filter().notEq(filterValue));
-      default:
-        throw new Error(`Unimplemented filter operation ${type}`);
+  private updateFilters(newFilters: DhType.FilterCondition[]): boolean {
+    if (FilterUtils.areFiltersEqual(this.filters, newFilters)) {
+      return false;
     }
+    log.debug2('Filters changed', newFilters);
+    this.filters = newFilters;
+    return true;
   }
 
-  private parseFilter(
-    column: DhType.Column,
-    filterType: string,
-    type: string,
-    filter: string
-  ): DhType.FilterCondition {
-    switch (filterType) {
-      case 'text':
-        return this.parseTextFilter(column, type, filter);
-      default:
-        throw new Error(`Unimplemented filter type ${filterType}`);
+  private updateSorts(newSorts: DhType.Sort[]): boolean {
+    if (SortUtils.areSortsEqual(this.sorts, newSorts)) {
+      return false;
     }
-  }
-
-  private parseFilterModel(
-    filterModel: FilterModel | AdvancedFilterModel | null
-  ): DhType.FilterCondition[] {
-    if (filterModel == null) {
-      return [];
-    }
-
-    return Object.entries(filterModel).map(([colId, val]) => {
-      const column = this.table.findColumn(colId);
-
-      const { conditions, operator } = val;
-      if (
-        conditions != null &&
-        operator != null &&
-        Array.isArray(conditions) &&
-        typeof operator === 'string'
-      ) {
-        return conditions
-          .map(condition => {
-            const { filterType, filter, type } = condition;
-            return this.parseFilter(column, filterType, type, filter);
-          })
-          .reduce((prev, curr) => {
-            if (operator === 'OR') {
-              return prev.or(curr);
-            }
-            if (operator === 'AND') {
-              return prev.and(curr);
-            }
-            throw new Error(`Unknown operator ${operator} for column ${colId}`);
-          });
-      }
-
-      const { filterType, filter, type } = val;
-      return this.parseFilter(column, filterType, type, filter);
-    });
-  }
-
-  private parseSortModel(
-    sortModelItems: readonly SortModelItem[]
-  ): DhType.Sort[] {
-    return sortModelItems.map(item => {
-      const column = this.table.findColumn(item.colId);
-      const sort = column.sort();
-      switch (item.sort) {
-        case 'asc':
-          return sort.asc();
-        case 'desc':
-          return sort.desc();
-        default:
-          throw new Error(
-            `Unknown sort direction ${item.sort} for column ${item.colId}`
-          );
-      }
-    });
-  }
-
-  private hasFiltersChanged(
-    newFilters: readonly DhType.FilterCondition[]
-  ): boolean {
-    if (this.filters.length !== newFilters.length) return true;
-    const existingFilters = new Set(this.filters.map(f => f.toString()));
-    return !newFilters.every(f => existingFilters.has(f.toString()));
-  }
-
-  private hasSortsChanged(newSorts: readonly DhType.Sort[]): boolean {
-    if (this.sorts.length !== newSorts.length) return true;
-    for (let i = 0; i < this.sorts.length; i += 1) {
-      const oldSort = this.sorts[i];
-      const newSort = newSorts[i];
-      if (oldSort.column.name !== newSort.column.name) return true;
-      if (oldSort.direction !== newSort.direction) return true;
-      if (oldSort.isAbs !== newSort.isAbs) return true;
-    }
-    return false;
+    log.debug2('Sorts changed', newSorts);
+    this.sorts = newSorts;
+    return true;
   }
 
   async getRows(params: IServerSideGetRowsParams): Promise<void> {
@@ -291,20 +173,17 @@ export class ServerSideDatasource implements IServerSideDatasource {
     // We don't need to worry about cancelling this request, as even if the next request comes in we should still be able to use the data
     const startRow = request.startRow ?? 0;
     const endRow = Math.max(startRow, (request.endRow ?? this.table.size) - 1);
-    const newSorts = this.parseSortModel(request.sortModel);
-    const newFilters = this.parseFilterModel(request.filterModel);
+    const newSorts = SortUtils.parseSortModel(this.table, request.sortModel);
+    const newFilters = FilterUtils.parseFilterModel(
+      this.dh,
+      this.table,
+      request.filterModel
+    );
 
     if (this.getRowsSubscription == null) {
       this.getRowsSubscription = this.table.setViewport(startRow, endRow);
       api.addEventListener('viewportChanged', this.handleViewportChanged);
-    } else if (
-      this.hasFiltersChanged(newFilters) ||
-      this.hasSortsChanged(newSorts)
-    ) {
-      log.debug2('Filters or sorts changed', newFilters, newSorts);
-      this.filters = newFilters;
-      this.sorts = newSorts;
-
+    } else if (this.updateFilters(newFilters) || this.updateSorts(newSorts)) {
       this.getRowsSubscription?.close();
 
       this.table.applyFilter(this.filters);
