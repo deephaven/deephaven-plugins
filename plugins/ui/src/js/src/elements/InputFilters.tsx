@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@deephaven/redux';
 import {
@@ -7,78 +7,86 @@ import {
 } from '@deephaven/dashboard-core-plugins';
 import { FilterChangeEvent } from '@deephaven/dashboard-core-plugins/dist/FilterPlugin';
 import { useLayoutManager } from '@deephaven/dashboard';
+import type { dh as DhType } from '@deephaven/jsapi-types';
 import { nanoid } from 'nanoid';
-// import { usePrevious } from '@deephaven/react-hooks';
-// import { useParentItem } from '../layout/ParentItemContext';
-
-type Column = {
-  name: string;
-  type: string;
-};
-
-// const usePrevious = (value: any, initialValue: any): any => {
-//   const ref = useRef(initialValue);
-//   useEffect(() => {
-//     ref.current = value;
-//   });
-//   return ref.current;
-// };
-
-// const useEffectDebugger = (
-//   effectHook: any,
-//   dependencies: any,
-//   dependencyNames = []
-// ) => {
-//   const previousDeps = usePrevious(dependencies, []);
-
-//   const changedDeps = dependencies.reduce(
-//     (accum: any, dependency: any, index: any) => {
-//       if (dependency !== previousDeps[index]) {
-//         const keyName = dependencyNames[index] || index;
-//         return {
-//           ...accum,
-//           [keyName]: {
-//             before: previousDeps[index],
-//             after: dependency,
-//           },
-//         };
-//       }
-
-//       return accum;
-//     },
-//     {}
-//   );
-
-//   if (Object.keys(changedDeps).length) {
-//     console.log('[use-effect-debugger] ', changedDeps);
-//   }
-
-//   useEffect(effectHook, dependencies);
-// };
 
 export interface InputFiltersProps {
   onChange?: (event: FilterChangeEvent[]) => void;
   onFilters?: (filters: string[]) => void;
-  columns?: Column[];
+  table: DhType.WidgetExportedObject;
+}
+
+// TODO from UITable, make common
+function useThrowError(): [
+  throwError: (error: unknown) => void,
+  clearError: () => void,
+] {
+  const [error, setError] = useState<unknown>(null);
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+  if (error != null) {
+    // Re-throw the error so that the error boundary can catch it
+    if (typeof error === 'string') {
+      throw new Error(error);
+    }
+    throw error;
+  }
+
+  return [setError, clearError];
+}
+
+function useTableColumns(
+  exportedTable: DhType.WidgetExportedObject
+): DhType.Column[] | undefined {
+  const [columns, setColumns] = useState<DhType.Column[]>();
+  const [throwError, clearError] = useThrowError();
+
+  // Just load the object on mount
+  useEffect(() => {
+    let isCancelled = false;
+    async function loadColumns() {
+      try {
+        const reexportedTable = await exportedTable.reexport();
+        const table = (await reexportedTable.fetch()) as DhType.Table;
+        setColumns(table.columns);
+        if (!isCancelled) {
+          clearError();
+          setColumns(table.columns);
+        }
+      } catch (e) {
+        if (!isCancelled) {
+          // Errors thrown from an async useEffect are not caught
+          // by the component's error boundary
+          throwError(e);
+        }
+      }
+    }
+    loadColumns();
+    return () => {
+      isCancelled = true;
+    };
+  }, [exportedTable, clearError, throwError]);
+
+  return columns;
 }
 
 export function InputFilters(props: InputFiltersProps): JSX.Element {
-  const { onChange, onFilters, columns } = props;
+  const { onChange, onFilters, table: exportedTable } = props;
   const { eventHub } = useLayoutManager();
   const inputFilters = useSelector(
     (state: RootState) => getInputFiltersForDashboard(state, 'default') // todo: use the correct dashboard id
   );
 
-  const columnsString = JSON.stringify(columns);
-  const columnsMemo = useMemo(() => columns, [columnsString]);
+  const columns = useTableColumns(exportedTable);
 
   useEffect(() => {
     const id = nanoid();
-    eventHub.emit(InputFilterEvent.COLUMNS_CHANGED, id, columnsMemo);
+    eventHub.emit(InputFilterEvent.COLUMNS_CHANGED, id, columns);
     return () => {
       eventHub.emit(InputFilterEvent.COLUMNS_CHANGED, id, []);
     };
-  }, [columnsMemo, eventHub]);
+  }, [columns, eventHub]);
 
   // If onChange is provided, call it with all of the input filters
   useEffect(() => {
@@ -90,9 +98,9 @@ export function InputFilters(props: InputFiltersProps): JSX.Element {
   // If onFilters is provided, call it with the filters for the columns
   useEffect(() => {
     if (onFilters) {
-      const inputFiltersForColumns = columnsMemo
+      const inputFiltersForColumns = columns
         ? inputFilters.filter(filter =>
-            columnsMemo.some(column => column.name === filter.name)
+            columns.some(column => column.name === filter.name)
           )
         : inputFilters;
       const filters = inputFiltersForColumns
@@ -100,7 +108,7 @@ export function InputFilters(props: InputFiltersProps): JSX.Element {
         .map(filter => `${filter.name}=\`${filter.value}\``); // TODO use some util to do this?
       onFilters(filters);
     }
-  }, [inputFilters, onFilters, columnsMemo]);
+  }, [inputFilters, onFilters, columns]);
 
   return <div>{JSON.stringify(inputFilters)}</div>;
 }
