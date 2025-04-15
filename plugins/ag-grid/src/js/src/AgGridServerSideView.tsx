@@ -22,7 +22,7 @@ export function AgGridServerSideView({
 
   /** Map from Deephaven Table Columns to AG Grid ColDefs */
   const colDefs: ColDef[] = useMemo(
-    () => table?.columns.map(c => ({ field: c.name })) ?? [],
+    () => table?.columns.map(c => ({ field: c.name, filter: true })) ?? [],
     [table]
   );
 
