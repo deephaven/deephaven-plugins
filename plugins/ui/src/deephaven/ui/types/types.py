@@ -433,6 +433,8 @@ class SliderChange(TypedDict):
 SliderChangeCallable = Callable[[SliderChange], None]
 
 ColumnName = str
+ColumnType = str
+Column = Dict[ColumnName, ColumnType]
 RowDataMap = Dict[ColumnName, RowDataValue]
 RowPressCallback = Callable[[RowDataMap], None]
 CellPressCallback = Callable[[CellData], None]
