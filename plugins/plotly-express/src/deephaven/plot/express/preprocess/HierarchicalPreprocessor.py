@@ -44,8 +44,7 @@ class HierarchicalPreprocessor:
         """
         Preprocess the path
         The path is a list of columns that should be used to create the hierarchy
-        The columns are transformed so that there are only Names and Parent columns,
-        dep
+        The path columns are transformed to Names and Parent columns.
         Values are aggregated by sum up the hierarchy.
         Other columns that have a meaningful numeric value are aggregated by weighted average.
         These numeric columns are pulled from hierarchical_transforms.
