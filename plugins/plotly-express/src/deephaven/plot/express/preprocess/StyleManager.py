@@ -49,7 +49,7 @@ class StyleManager:
         if not map_applies:
             if self.wildcard is None:
                 self.wildcard = next(self.cycled)
-            # this should always be a string here, but the cas
+            # This should always be a string.
             return str(self.wildcard)
         if val not in self.found:
             new_val = next(self.cycled)
