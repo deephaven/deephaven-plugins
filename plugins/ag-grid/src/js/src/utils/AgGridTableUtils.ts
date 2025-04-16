@@ -35,6 +35,8 @@ export default class AgGridTableUtils {
             buttons: ['reset', 'apply'],
             numberParser: (text: string | null) =>
               text != null && text.length === 1 ? text.charCodeAt(0) : null,
+            numberFormatter: (value: number | null) =>
+              value != null ? String.fromCharCode(value) : null,
           },
         };
       case TableUtils.dataType.DATETIME:
