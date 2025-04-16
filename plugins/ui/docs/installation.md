@@ -4,7 +4,7 @@ deephaven.ui is a plugin that works with [Deephaven](https://deephaven.io/core/d
 
 ## Enterprise
 
-Enterprise installations come packaged with deephaven.ui and therefore don't require additional steps. The rest of the document pertains to Core installations.
+Enterprise installations come packaged with `deephaven.ui` and therefore don't require additional steps. The rest of the document pertains to Core installations.
 
 ## New installation
 
