@@ -8,15 +8,19 @@ import { useMemo } from 'react';
 import ServerSideDatasource from './datasources/ServerSideDatasource';
 import AgGridTableUtils from './utils/AgGridTableUtils';
 import AgGridFormatter from './AgGridFormatter';
+import { WorkspaceSettings } from '@deephaven/redux';
+import { createFormatterFromSettings } from '@deephaven/jsapi-utils';
 
 type AgGridServerSideViewProps = {
   table: DhType.Table;
+  settings?: WorkspaceSettings;
 };
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/AgGridView');
 
 export function AgGridServerSideView({
   table,
+  settings,
 }: AgGridServerSideViewProps): JSX.Element | null {
   const dh = useApi();
 
@@ -26,7 +30,7 @@ export function AgGridServerSideView({
   const colDefs: ColDef[] = useMemo(
     () =>
       table?.columns.map(c => {
-        const templateColDef: ColDef = {
+        const templateColDef: Partial<ColDef> = {
           field: c.name,
         };
         return AgGridTableUtils.convertColumnToColDef(c, templateColDef);
@@ -40,7 +44,9 @@ export function AgGridServerSideView({
     [dh, table]
   );
 
-  const formatter = useMemo(() => new AgGridFormatter(dh), [dh]);
+  const formatter = useMemo(() => {
+    return new AgGridFormatter(createFormatterFromSettings(dh, settings));
+  }, [dh, settings]);
 
   return (
     <AgGridReact

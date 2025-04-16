@@ -45,9 +45,11 @@
     "@deephaven/icons": "^0.106.0",
     "@deephaven/jsapi-bootstrap": "^0.106.2",
     "@deephaven/jsapi-utils": "^0.107.1",
+    "@deephaven/redux": "^0.107.1",
     "@deephaven/log": "^0.106.2",
     "@deephaven/plugin": "^0.106.4",
-    "@deephaven/utils": "^0.106.0"
+    "@deephaven/utils": "^0.106.0",
+    "react-redux": "^7.x"
   },
   "publishConfig": {
     "access": "public"

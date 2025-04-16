@@ -12,7 +12,7 @@ export default class AgGridTableUtils {
    */
   static convertColumnToColDef(
     column: DhType.Column,
-    templateColDef?: ColDef
+    templateColDef?: Partial<ColDef>
   ): ColDef {
     const dataType = TableUtils.getNormalizedType(column.type);
 

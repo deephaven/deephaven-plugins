@@ -1,14 +1,20 @@
 import { DataTypeDefinition } from '@ag-grid-community/core';
 import { Formatter, TableUtils } from '@deephaven/jsapi-utils';
 
-export default class AgGridFormatter extends Formatter {
-  // Override pre-defined data types/create new ones to match Deephaven types
+export default class AgGridFormatter {
+  private formatter: Formatter;
+
+  constructor(formatter: Formatter) {
+    this.formatter = formatter;
+  }
+
+  // Override pre-defined AG Grid data types/create new ones to match Deephaven types
   cellDataTypeDefinitions: { [cellDataType: string]: DataTypeDefinition } = {
     [TableUtils.dataType.BOOLEAN]: {
       extendsDataType: 'boolean',
       baseDataType: 'boolean',
       valueFormatter: params =>
-        this.getFormattedString(
+        this.formatter.getFormattedString(
           params.value,
           TableUtils.dataType.BOOLEAN,
           params.colDef.field
@@ -18,17 +24,17 @@ export default class AgGridFormatter extends Formatter {
       extendsDataType: 'text',
       baseDataType: 'text',
       valueFormatter: params =>
-        this.getFormattedString(
+        this.formatter.getFormattedString(
           params.value,
           TableUtils.dataType.CHAR,
           params.colDef.field
         ),
     },
     [TableUtils.dataType.DATETIME]: {
-      extendsDataType: 'date',
-      baseDataType: 'date',
+      extendsDataType: 'dateString',
+      baseDataType: 'dateString',
       valueFormatter: params =>
-        this.getFormattedString(
+        this.formatter.getFormattedString(
           params.value,
           TableUtils.dataType.DATETIME,
           params.colDef.field
@@ -38,7 +44,7 @@ export default class AgGridFormatter extends Formatter {
       extendsDataType: 'number',
       baseDataType: 'number',
       valueFormatter: params =>
-        this.getFormattedString(
+        this.formatter.getFormattedString(
           params.value,
           TableUtils.dataType.DECIMAL,
           params.colDef.field
@@ -48,7 +54,7 @@ export default class AgGridFormatter extends Formatter {
       extendsDataType: 'number',
       baseDataType: 'number',
       valueFormatter: params =>
-        this.getFormattedString(
+        this.formatter.getFormattedString(
           params.value,
           TableUtils.dataType.INT,
           params.colDef.field
@@ -58,7 +64,7 @@ export default class AgGridFormatter extends Formatter {
       extendsDataType: 'text',
       baseDataType: 'text',
       valueFormatter: params =>
-        this.getFormattedString(
+        this.formatter.getFormattedString(
           params.value,
           TableUtils.dataType.STRING,
           params.colDef.field
@@ -68,7 +74,7 @@ export default class AgGridFormatter extends Formatter {
       extendsDataType: 'text',
       baseDataType: 'text',
       valueFormatter: params =>
-        this.getFormattedString(
+        this.formatter.getFormattedString(
           params.value,
           TableUtils.dataType.UNKNOWN,
           params.colDef.field

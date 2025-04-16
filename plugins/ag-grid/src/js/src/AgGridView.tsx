@@ -4,9 +4,12 @@ import quartzStyles from '@ag-grid-community/styles/ag-theme-quartz.css?inline';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import AgGridServerSideView from './AgGridServerSideView';
 import AgGridViewportView from './AgGridViewportView';
+import { WorkspaceSettings } from '@deephaven/redux';
 
 type AgGridViewProps = {
   table: DhType.Table;
+
+  settings?: WorkspaceSettings;
 
   /** Choose which model to use */
   rowModelType?: 'viewport' | 'serverSide';
@@ -20,6 +23,7 @@ type AgGridViewProps = {
  */
 export function AgGridView({
   table,
+  settings,
   rowModelType = 'serverSide',
 }: AgGridViewProps): JSX.Element | null {
   return (
@@ -27,7 +31,7 @@ export function AgGridView({
       <style>{styles}</style>
       <style>{quartzStyles}</style>
       {rowModelType === 'serverSide' ? (
-        <AgGridServerSideView table={table} />
+        <AgGridServerSideView table={table} settings={settings} />
       ) : (
         <AgGridViewportView table={table} />
       )}

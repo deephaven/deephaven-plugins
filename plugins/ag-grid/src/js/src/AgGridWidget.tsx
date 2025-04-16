@@ -5,6 +5,8 @@ import { type WidgetComponentProps } from '@deephaven/plugin';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
 import AgGridView from './AgGridView';
+import { getSettings, RootState } from '@deephaven/redux';
+import { useSelector } from 'react-redux';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/AgGridView');
 
@@ -16,6 +18,7 @@ export function AgGridWidget(
   props: WidgetComponentProps<DhType.Widget>
 ): JSX.Element {
   const dh = useApi();
+  const settings = useSelector(getSettings<RootState>);
   const { fetch } = props;
   const [table, setTable] = useState<DhType.Table>();
 
@@ -40,7 +43,11 @@ export function AgGridWidget(
     };
   }, [dh, fetch]);
 
-  return table != null ? <AgGridView table={table} /> : <LoadingOverlay />;
+  return table != null ? (
+    <AgGridView table={table} settings={settings} />
+  ) : (
+    <LoadingOverlay />
+  );
 }
 
 export default AgGridWidget;
