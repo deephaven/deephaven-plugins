@@ -32,6 +32,9 @@ export function AgGridServerSideView({
       table?.columns.map(c => {
         const templateColDef: Partial<ColDef> = {
           field: c.name,
+          filterParams: {
+            buttons: ['reset', 'apply'],
+          },
         };
         return AgGridTableUtils.convertColumnToColDef(c, templateColDef);
       }) ?? [],

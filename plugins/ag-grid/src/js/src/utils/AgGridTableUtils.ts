@@ -29,7 +29,13 @@ export default class AgGridTableUtils {
         return {
           ...templateColDef,
           cellDataType: dataType,
-          filter: true,
+          filter: 'agNumberColumnFilter',
+          filterParams: {
+            allowedCharPattern: 'a-zA-Z',
+            buttons: ['reset', 'apply'],
+            numberParser: (text: string | null) =>
+              text != null && text.length === 1 ? text.charCodeAt(0) : null,
+          },
         };
       case TableUtils.dataType.DATETIME:
         return {
