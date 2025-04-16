@@ -25,6 +25,7 @@ This page contains a collection of links to examples demonstrating different plo
 [![Bar plot - Rectangles depict comparisons between values](_assets/plot_icons/bar.svg)](bar.md)
 [![Area plot - Colored areas highlight trends, emphasizing change over time](_assets/plot_icons/area.svg)](area.md)
 [![Pie plot - Slices represent proportion of parts to a whole](_assets/plot_icons/pie.svg)](pie.md)
+[![Indicator - Displays a single value with an optional gauge](_assets/plot_icons/indicator.svg)](indicator.md)
 
 </CardList>
 
@@ -36,7 +37,6 @@ This page contains a collection of links to examples demonstrating different plo
 [![Box plot - Shows the distribution of a continuous variable across different categories](_assets/plot_icons/box.svg)](box.md)
 [![Violin plot -  Shows the distribution of numeric data for one or more groups using density curves](_assets/plot_icons/violin.svg)](violin.md)
 [![Strip plot - Displays the distribution of a continuous variable as individual data points](_assets/plot_icons/strip.svg)](strip.md)
-[![Indicator - Displays a single value with an optional gauge](_assets/plot_icons/indicator.svg)](indicator.md)
 
 </CardList>
 
