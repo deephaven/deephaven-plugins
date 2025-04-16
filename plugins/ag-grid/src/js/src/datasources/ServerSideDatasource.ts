@@ -8,8 +8,8 @@ import {
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { assertNotNull } from '@deephaven/utils';
-import SortUtils from '../utils/SortUtils';
-import FilterUtils from '../utils/FilterUtils';
+import AgGridSortUtils from '../utils/AgGridSortUtils';
+import AgGridFilterUtils from '../utils/AgGridFilterUtils';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/ServerSideDataSource');
 
@@ -144,7 +144,7 @@ export class ServerSideDatasource implements IServerSideDatasource {
   }
 
   private updateFilters(newFilters: DhType.FilterCondition[]): boolean {
-    if (FilterUtils.areFiltersEqual(this.filters, newFilters)) {
+    if (AgGridFilterUtils.areFiltersEqual(this.filters, newFilters)) {
       return false;
     }
     log.debug2('Filters changed', newFilters);
@@ -153,7 +153,7 @@ export class ServerSideDatasource implements IServerSideDatasource {
   }
 
   private updateSorts(newSorts: DhType.Sort[]): boolean {
-    if (SortUtils.areSortsEqual(this.sorts, newSorts)) {
+    if (AgGridSortUtils.areSortsEqual(this.sorts, newSorts)) {
       return false;
     }
     log.debug2('Sorts changed', newSorts);
@@ -173,8 +173,11 @@ export class ServerSideDatasource implements IServerSideDatasource {
     // We don't need to worry about cancelling this request, as even if the next request comes in we should still be able to use the data
     const startRow = request.startRow ?? 0;
     const endRow = Math.max(startRow, (request.endRow ?? this.table.size) - 1);
-    const newSorts = SortUtils.parseSortModel(this.table, request.sortModel);
-    const newFilters = FilterUtils.parseFilterModel(
+    const newSorts = AgGridSortUtils.parseSortModel(
+      this.table,
+      request.sortModel
+    );
+    const newFilters = AgGridFilterUtils.parseFilterModel(
       this.dh,
       this.table,
       request.filterModel

@@ -1,7 +1,7 @@
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { SortModelItem } from '@ag-grid-community/core';
 
-export default class SortUtils {
+export default class AgGridSortUtils {
   /**
    * Compares two arrays to see if they contain the same Sorts in the same order.
    * @param a A Sort array to compare

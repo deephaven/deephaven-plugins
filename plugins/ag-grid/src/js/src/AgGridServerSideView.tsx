@@ -7,7 +7,7 @@ import { ServerSideRowModelModule } from '@ag-grid-enterprise/server-side-row-mo
 import { useMemo } from 'react';
 import ServerSideDatasource from './datasources/ServerSideDatasource';
 import AgGridTableUtils from './utils/AgGridTableUtils';
-import AgGridFormatter from './AgGridFormatter';
+import AgGridFormatter from './utils/AgGridFormatter';
 import { WorkspaceSettings } from '@deephaven/redux';
 import { createFormatterFromSettings } from '@deephaven/jsapi-utils';
 

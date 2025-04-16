@@ -17,7 +17,7 @@ type SupportedSimpleFilterModel =
   | NumberFilterModel
   | DateFilterModel;
 
-export default class FilterUtils {
+export default class AgGridFilterUtils {
   /**
    * Compares two arrays to see if they contain the same filter conditions in any order.
    * @param a A FilterCondition array to compare
