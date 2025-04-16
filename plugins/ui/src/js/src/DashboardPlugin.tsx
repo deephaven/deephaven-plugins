@@ -32,6 +32,7 @@ import {
   DASHBOARD_ELEMENT,
   WIDGET_ELEMENT,
 } from './widget/WidgetUtils';
+import { DashboardContext } from './DashboardContext';
 
 const PLUGIN_NAME = '@deephaven/js-plugin-ui.DashboardPlugin';
 
@@ -289,10 +290,12 @@ export function DashboardPlugin(
   );
 
   return (
-    <LayoutManagerContext.Provider value={layout}>
-      <style>{styles}</style>
-      <PortalPanelManager>{widgetHandlers}</PortalPanelManager>
-    </LayoutManagerContext.Provider>
+    <DashboardContext.Provider value={id}>
+      <LayoutManagerContext.Provider value={layout}>
+        <style>{styles}</style>
+        <PortalPanelManager>{widgetHandlers}</PortalPanelManager>
+      </LayoutManagerContext.Provider>
+    </DashboardContext.Provider>
   );
 }
 

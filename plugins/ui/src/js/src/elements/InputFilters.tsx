@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@deephaven/redux';
 import {
@@ -9,11 +9,13 @@ import { FilterChangeEvent } from '@deephaven/dashboard-core-plugins/dist/Filter
 import { useLayoutManager } from '@deephaven/dashboard';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { nanoid } from 'nanoid';
+import { useDashboardId } from '../DashboardContext';
 
 export interface InputFiltersProps {
   onChange?: (event: FilterChangeEvent[]) => void;
   onFilters?: (filters: string[]) => void;
   table: DhType.WidgetExportedObject;
+  columnNames?: string[];
 }
 
 // TODO from UITable, make common
@@ -72,13 +74,23 @@ function useTableColumns(
 }
 
 export function InputFilters(props: InputFiltersProps): JSX.Element {
-  const { onChange, onFilters, table: exportedTable } = props;
+  const { onChange, onFilters, table: exportedTable, columnNames } = props;
+  const dashboardId = useDashboardId();
+  console.log('DG dashboardId', dashboardId);
   const { eventHub } = useLayoutManager();
-  const inputFilters = useSelector(
-    (state: RootState) => getInputFiltersForDashboard(state, 'default') // todo: use the correct dashboard id
+  const inputFilters = useSelector((state: RootState) =>
+    getInputFiltersForDashboard(state, dashboardId)
   );
 
-  const columns = useTableColumns(exportedTable);
+  const tableColumns = useTableColumns(exportedTable);
+  const columnsString = JSON.stringify(columnNames);
+  const columns = useMemo(
+    () =>
+      columnNames
+        ? tableColumns?.filter(column => columnNames.includes(column.name))
+        : tableColumns,
+    [tableColumns, columnsString]
+  );
 
   useEffect(() => {
     const id = nanoid();

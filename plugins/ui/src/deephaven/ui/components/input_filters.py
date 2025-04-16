@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Any, Callable
 
 from .types import FilterChangeEventCallable
-from ..types import Column
+from ..types import ColumnName
 from .basic import component_element
 from ..elements import Element
 from .._internal.utils import create_props
@@ -13,6 +13,7 @@ def input_filters(
     table: Table,
     on_change: FilterChangeEventCallable | None = None,
     on_filters: Callable[[list[str]], None] | None = None,
+    column_names: list[ColumnName] | None = None,
     key: str | None = None,
 ) -> Element:
     """
