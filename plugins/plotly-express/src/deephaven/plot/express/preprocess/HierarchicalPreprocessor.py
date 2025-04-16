@@ -25,20 +25,28 @@ class HierarchicalPreprocessor:
         args: Args used to create the plot
         hierarchical_transforms: The transforms that should be applied to the table
         path: The path defining the hierarchy
+        color: The color column to use
+        color_mask: The column to use for the color mask, which controls if a categorical
+        color is valid at this level
     """
 
     def __init__(
         self,
         args: dict[str, Any],
         hierarchical_transforms: HierarchicalTransforms,
-        path: str | list[str] | None = None,
+        path: str | list[str],
+        color: str | None,
+        color_mask: str,
     ):
         self.args = args
         self.hierarchical_transforms = hierarchical_transforms
 
         if isinstance(path, str):
             path = [path]
-        self.path = path if path is not None else []
+        self.path = path
+
+        self.color = color
+        self.color_mask = color_mask
 
     def preprocess_paths(self, table: Table, names: dict[str, str]) -> Table:
         """
@@ -73,51 +81,74 @@ class HierarchicalPreprocessor:
         # others need to be kept for color, etc.
         other_cols = table_columns - sum_cols - avg_cols
 
+        # Parents is a new columns that is added to the table
+        other_cols.update([names["Parents"], self.color_mask])
+
         level_tables = []
 
         prev_table = table
+
+        child_count = get_unique_names(table, ["ChildCount"])["ChildCount"]
 
         aggs = (
             [agg.last(col) for col in other_cols]
             + [agg.sum_(col) for col in sum_cols]
             # plotly uses weighted average for the sum_cols such as color
             + [agg.weighted_avg(self.args["values"], col) for col in avg_cols]
+            # if there is more than one child, the color mask is false for the parent
+            + [agg.count_(child_count)]
         )
+
+        # since we start from the bottom of the hierarchy, all levels should
+        # be styled until we hit the color column
+        in_color_mask = "true"
 
         # reverse the path to aggregate from the bottom up
         for i, by_col in enumerate(list(reversed(self.path))):
-            # update the view because the other columns might need to be kept for color, etc.
-            # the parents are the first part of the id
-            # if the value of the ID column is A/B/C here, the parent is A because we took last_by
-            level_table = prev_table.agg_by(aggs, by=[by_col]).update_view(
-                [
-                    f"{names['Names']}={by_col}",
-                ]
-            )
-
             if i == 0:
                 # on the first iteration, the id doesn't need to be trimmed
                 # so the parent is the id trimmed once
-                level_table = level_table.update_view(
-                    f"{names['Parents']}=trim_id({names['Ids']})"
+                level_table = prev_table.update_view(
+                    [
+                        f"{names['Parents']}=trim_id({names['Ids']})",
+                        # need to add the color mask to the first iteration
+                        # so it is "aggregated" up even if in_color_mask is False
+                        f"{self.color_mask}={in_color_mask}",
+                    ]
                 )
             else:
                 # on subsequent iterations, the id needs to be trimmed
                 # because the id at this point is of an arbitrary child from agg.last
                 # then the id is trimmed to get the parent
                 # if on the last iteration, the parent needs to be empty for plotly to work
-                parent_op = (
+                get_parent = (
                     f"trim_id({names['Ids']})" if i != len(self.path) - 1 else '""'
                 )
-                level_table = level_table.update_view(
+                level_table = prev_table.update_view(
                     [
-                        f"{names['Ids']}=trim_id({names['Ids']})",
-                        f"{names['Parents']}={parent_op}",
+                        f"{names['Ids']}={names['Parents']}",
+                        f"{names['Parents']}={get_parent}",
                     ]
                 )
 
+            level_table = level_table.agg_by(aggs, by=[names["Ids"]]).update_view(
+                [
+                    f"{names['Names']}={by_col}",
+                ]
+            )
+
+            # recalculate the color mask with respect to the child count and child mask
+            level_table = level_table.update_view(
+                f"{self.color_mask}={in_color_mask} || ({self.color_mask} && {child_count} <= 1)"
+            )
+
             level_tables.append(level_table)
             prev_table = level_table
+
+            if by_col == self.color:
+                # if this is the color column, any aggregation above this should not
+                # have the color applied based on a value in by_col unless the child count is 1
+                in_color_mask = "false"
 
         return merge(level_tables)
 

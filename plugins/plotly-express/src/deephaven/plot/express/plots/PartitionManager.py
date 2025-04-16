@@ -192,11 +192,9 @@ class PartitionManager:
         has_color: bool: True if this figure has user set color, False otherwise
         facet_row: str: The facet row
         facet_col: str: The facet col
-        (arg, col), (map, ls, new_col)
-        always_attached: dict[tuple[str, str],
-          tuple[dict[str, str], list[str], str]: The dict mapping the arg and column
-          to the style map, dictionary, and new column name, to be used for
-          AttachedProcessor when dealing with an "always_attached" plot
+        attached_transforms: to be used for AttachedProcessor when dealing with an "always_attached" plot
+        hierarchical_transforms: HierarchicalTransforms: to be used for HierarchicalProcessor when dealing with
+            a hierarchical plot with a path
         marginal_x: Type of marginal on the x-axis, if applicable
         marginal_y: Type of marginal on the y-axis, if applicable
         marg_args: dict[str, Any]: The dictionary of args to pass to marginals
@@ -336,6 +334,7 @@ class PartitionManager:
                 new_col=new_col,
                 style_map=map_val,
                 style_list=self.args[seq_arg],
+                style=arg,
             )
             # a new column will be constructed so this color is always updated
             self.args[f"attached_{arg}"] = new_col

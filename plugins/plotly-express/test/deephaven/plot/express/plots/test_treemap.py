@@ -18,7 +18,6 @@ class TreemapTestCase(BaseTestCase):
                 ),
                 int_col("values", [1, 2, 2, 3, 3, 3, 4, 4, 5]),
                 int_col("colors", [2, 2, 2, 3, 3, 3, 4, 4, 4]),
-                string_col("category", ["A", "B", "C", "D", "E", "F", "G", "H", "I"]),
             ]
         )
 
@@ -191,7 +190,7 @@ class TreemapTestCase(BaseTestCase):
             self.source,
             values="values",
             path=["names", "parents", "grandparents"],
-            color="category",
+            color="parents",
         ).to_dict(self.exporter)
 
         expected_data = [

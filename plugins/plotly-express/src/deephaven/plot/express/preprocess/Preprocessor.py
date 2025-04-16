@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Generator
 from typing import Any
 
+from deephaven.plot.express.shared import get_unique_names
 from deephaven.table import Table
 
 from .AttachedPreprocessor import AttachedPreprocessor
@@ -65,14 +66,29 @@ class Preprocessor:
         elif "preprocess_heatmap" in self.groups:
             self.preprocessors.append(HeatmapPreprocessor(self.args))
         elif "always_attached" in self.groups:
-            if self.attached_transforms:
-                self.preprocessors.append(
-                    AttachedPreprocessor(self.args, self.attached_transforms)
-                )
+            # this is an engine oddity - if maps to a boolean
+            color_mask = "true"
             if self.path:
+                # in the case of hierarchical plots with path, styles should only apply
+                # at or below the hierarchy level
+                color_mask = get_unique_names(
+                    self.args["table"],
+                    ["ColorMask"],
+                )["ColorMask"]
+                color = self.attached_transforms.get_style_col("color")
                 self.preprocessors.append(
                     HierarchicalPreprocessor(
-                        self.args, self.hierarchical_transforms, self.path
+                        self.args,
+                        self.hierarchical_transforms,
+                        self.path,
+                        color,
+                        color_mask,
+                    )
+                )
+            if self.attached_transforms:
+                self.preprocessors.append(
+                    AttachedPreprocessor(
+                        self.args, self.attached_transforms, color_mask
                     )
                 )
 

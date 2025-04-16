@@ -47,6 +47,7 @@ def treemap(
         If only one column is passed, and it contains numeric values, the value
         is used as a value on a continuous color scale. Otherwise, the value is
         used for a plot by on color.
+        If path is provided, only a single color column is allowed.
         See color_discrete_map for additional behaviors.
       hover_name: A column that contains names to bold in the hover tooltip.
       labels: A dictionary of labels mapping columns to new labels.
@@ -119,6 +120,7 @@ def sunburst(
         If only one column is passed, and it contains numeric values, the value
         is used as a value on a continuous color scale. Otherwise, the value is
         used for a plot by on color.
+        If path is provided, only a single color column is allowed.
         See color_discrete_map for additional behaviors.
       hover_name: A column that contains names to bold in the hover tooltip.
       color_discrete_sequence: A list of colors to sequentially apply to
@@ -191,6 +193,7 @@ def icicle(
         If only one column is passed, and it contains numeric values, the value
         is used as a value on a continuous color scale. Otherwise, the value is
         used for a plot by on color.
+        If path is provided, only a single color column is allowed.
         See color_discrete_map for additional behaviors.
       hover_name: A column that contains names to bold in the hover tooltip.
       color_discrete_sequence: A list of colors to sequentially apply to

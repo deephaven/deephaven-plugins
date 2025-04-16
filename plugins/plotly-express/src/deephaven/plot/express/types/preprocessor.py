@@ -71,14 +71,15 @@ class AttachedTransforms:
     """
 
     def __init__(self):
-        self.transforms = []
+        self.transforms = {}
 
     def add(
         self,
         by_col: str,
         new_col: str,
-        style_map: dict[str, str] | None = None,
-        style_list: list[str] | None = None,
+        style_map: dict[str, str] | None,
+        style_list: list[str] | None,
+        style: str,
     ) -> None:
         """
         Add a new transform to the list of transforms
@@ -88,15 +89,28 @@ class AttachedTransforms:
             new_col: The new column name to store the style
             style_map: A dictionary mapping the values in by_col to styles
             style_list: A list of styles to use
+            style: which style this applies to, such as color
         """
-        self.transforms.append(
-            AttachedTransform(
-                by_col=by_col,
-                new_col=new_col,
-                style_list=style_list or [],
-                style_map=style_map or {},
-            )
+        self.transforms[style] = AttachedTransform(
+            by_col=by_col,
+            new_col=new_col,
+            style_list=style_list or [],
+            style_map=style_map or {},
         )
+
+    def get_style_col(self, style: str) -> str | None:
+        """
+        Get the column name for the style
+
+        Args:
+            style: The style to get the column for
+
+        Returns:
+            The column name for the style
+        """
+        if style not in self.transforms:
+            return None
+        return self.transforms[style]["by_col"]
 
     def __bool__(self):
         return bool(self.transforms)
@@ -104,5 +118,5 @@ class AttachedTransforms:
     def __iter__(
         self,
     ) -> Generator[tuple[str, str, list[str], dict[str, str]], None, None]:
-        for transform in self.transforms:
+        for transform in self.transforms.values():
             yield transform.values()

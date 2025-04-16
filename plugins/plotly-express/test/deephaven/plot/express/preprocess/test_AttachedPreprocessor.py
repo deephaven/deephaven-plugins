@@ -37,8 +37,9 @@ class AttachedPreprocessorTestCase(BaseTestCase):
             "colors",
             {"Z": "blue"},
             ["salmon", "lemonchiffon"],
+            "color",
         )
-        attached_preprocessor = AttachedPreprocessor(args, transforms)
+        attached_preprocessor = AttachedPreprocessor(args, transforms, "true")
 
         new_table_gen = attached_preprocessor.preprocess_partitioned_tables(
             [self.source]
