@@ -8,7 +8,8 @@ import {
 import { FilterChangeEvent } from '@deephaven/dashboard-core-plugins/dist/FilterPlugin';
 import { useLayoutManager } from '@deephaven/dashboard';
 import type { dh as DhType } from '@deephaven/jsapi-types';
-import { nanoid } from 'nanoid';
+import { IrisGridUtils } from '@deephaven/iris-grid';
+import { nanoid } from 'nanoid'; // TODO get rid of this
 import { useDashboardId } from '../DashboardContext';
 
 export interface InputFiltersProps {
@@ -108,18 +109,23 @@ export function InputFilters(props: InputFiltersProps): JSX.Element {
 
   // If onFilters is provided, call it with the filters for the columns
   useEffect(() => {
-    if (onFilters) {
-      const inputFiltersForColumns = columns
-        ? inputFilters.filter(filter =>
-            columns.some(column => column.name === filter.name)
-          )
-        : inputFilters;
-      const filters = inputFiltersForColumns
-        .sort((a, b) => a.timestamp - b.timestamp)
-        .map(filter => `${filter.name}=\`${filter.value}\``); // TODO use some util to do this?
+    if (onFilters && columns != null) {
+      const inputFiltersForColumns = IrisGridUtils.getInputFiltersForColumns(
+        columns,
+        // They may have picked a column, but not actually entered a value yet. In that case, don't need to update.
+        inputFilters.filter(
+          ({ value, excludePanelIds }) =>
+            value != null &&
+            (excludePanelIds == null ||
+              (dashboardId != null && !excludePanelIds.includes(dashboardId)))
+        )
+      );
+      const filters = inputFiltersForColumns.map(
+        filter => `${filter.name}=\`${filter.value}\``
+      ); // TODO use some util to do this?
       onFilters(filters);
     }
-  }, [inputFilters, onFilters, columns]);
+  }, [inputFilters, onFilters, columns, dashboardId]);
 
   return <div>{JSON.stringify(inputFilters)}</div>;
 }
