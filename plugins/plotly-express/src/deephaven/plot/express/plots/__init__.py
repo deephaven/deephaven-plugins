@@ -4,7 +4,7 @@ from .area import area
 from .bar import bar, frequency_bar, timeline
 from .distribution import histogram, violin, strip, box
 from .financial import candlestick, ohlc
-from .hierarchial import treemap, icicle, sunburst, funnel, funnel_area
+from .hierarchical import treemap, icicle, sunburst, funnel, funnel_area
 from .pie import pie
 from ._layer import layer
 from .subplots import make_subplots
