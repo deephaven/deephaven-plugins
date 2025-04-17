@@ -65,7 +65,7 @@ _Data_ hooks let you use data from within a Deephaven table in your component.
 
 ## Create custom hooks
 
-You can create your own hooks to reuse stateful logic between components. A custom hook is a JavaScript function whose name starts with `use` and that may call other hooks. For example, let's say you want to create a custom hook that checks whether a table cell is odd. You can create a custom hook called `use_is_cell_odd`:
+You can create your own hooks to reuse stateful logic between components. A custom hook is a function whose name starts with `use` and that may call other hooks. For example, let's say you want to create a custom hook that checks whether a table cell is odd. You can create a custom hook called `use_is_cell_odd`:
 
 ```python
 from deephaven import time_table, ui

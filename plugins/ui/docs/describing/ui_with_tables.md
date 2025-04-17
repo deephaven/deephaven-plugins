@@ -19,7 +19,6 @@ You can display a Deephaven table in a component by doing one of the following:
 from deephaven import new_table, ui
 from deephaven.column import int_col
 
-# Prepend name with an underscore to avoid displaying the source table
 _source = new_table([int_col("IntegerColumn", [1, 2, 3])])
 
 
@@ -246,7 +245,7 @@ picker_item_table_source_example = ui.picker(item_table_source, label="User Pick
 
 ## Update tables and plots from user input
 
-Tables and plots can update in response to user input. The following examples allows a user to pick two dates on a [`date_range_picker](../components/date_range_picker.md). This updates a state variable which causes the component to re-render with a filtered table and plot.
+Tables and plots can update in response to user input. The following examples allows a user to pick two dates on a [`date_range_picker`](../components/date_range_picker.md). This updates a state variable which causes the component to re-render with a filtered table and plot.
 
 ```python
 from deephaven.time import dh_now

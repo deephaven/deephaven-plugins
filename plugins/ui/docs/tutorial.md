@@ -285,7 +285,7 @@ picker_panel = species_panel()
 
 ### Table-backed `ui.picker`
 
-`ui.pickers` can pull directly from a table so they update automatically based on a column in the table. Modify your `ui.picker` to pass in a table instead, which is recommended for dynamic data.
+A `ui.picker` can pull directly from a table so they update automatically based on a column in the table. Modify your `ui.picker` to pass in a table instead, which is recommended for dynamic data.
 
 > [!NOTE]
 > It’s important to filter your table down to the distinct values you want. The `ui.picker` does not do this for you.

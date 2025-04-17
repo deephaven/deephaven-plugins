@@ -19,7 +19,7 @@ On the Web, HTML lets us create rich structured documents with its built-in set 
 
 This markup represents an article `<div>`, its heading `<h1>`, and an (abbreviated) table of contents as an ordered list `<ol>`. Markup like this, combined with CSS for style, and JavaScript for interactivity, lies behind every sidebar, avatar, modal, dropdown—every piece of UI you see on the Web.
 
-`Deephaven.ui` lets you use Python code to write custom "components", reusable UI elements for your app. The table of contents code you saw above could be turned into a `table_of_contents` component you could render in the UI.
+`deephaven.ui` lets you use Python code to write custom "components", reusable UI elements for your app. The table of contents code you saw above could be turned into a `table_of_contents` component you could render in the UI.
 
 As your project grows, you will notice that many of your designs can be composed by reusing components you already wrote, speeding up your development.
 
@@ -69,7 +69,7 @@ The component returns a `ui.flex` component with child components `ui.heading` a
 
 ## Using a component
 
-Now that you’ve defined your `table_of_contents` component, you can nest it inside other components. You can export an `multiple_contents` component that uses multiple `table_of_contents` components:
+Now that you’ve defined your `table_of_contents` component, you can nest it inside other components. You can export a `multiple_contents` component that uses multiple `table_of_contents` components:
 
 ```python
 from deephaven import ui
@@ -102,6 +102,6 @@ my_multiple_contents = multiple_contents()
 
 ## Nesting and organizing components
 
-Components are regular Python functions, so you can keep multiple components in the same file. This is convenient when components are relatively small or tightly related to each other. If this file gets crowded, you can always move a component to a separate file. See [How do I import one Python script into another in the Deephaven IDE?](/core/docs/reference/community-questions/import-python-script) and [Modularizing Queries](/enterprise/docs/development/modularizing-queries)
+Components are regular Python functions, so you can keep multiple components in the same file. This is convenient when components are relatively small or tightly related to each other. If this file gets crowded, you can always move a component to a separate file. See [How do I import one Python script into another in the Deephaven IDE?](/core/docs/reference/community-questions/import-python-script) and [Modularizing Queries](/enterprise/docs/query-management/modularizing-queries-python/).
 
 Because the `table_of_contents` components are rendered inside `multiple_contents` we can say that `multiple_contents` is a parent component, rendering each `table_of_contents` as a "child". You can define a component once, and then use it in as many places and as many times as you like.
