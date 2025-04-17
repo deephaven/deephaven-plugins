@@ -19,6 +19,10 @@ export interface ReactPanelManager {
   /** Triggered when a panel is closed */
   onClose: (panelId: string) => void;
 
+  onDataChange: (panelId: string, data: unknown[]) => void;
+
+  getInitialData: (panelId: string) => unknown[];
+
   /**
    * Get a unique panelId from the panel manager. This should be used to identify the panel in the layout.
    */
@@ -40,6 +44,10 @@ export interface ReactPanelControl {
   /** Must be called when the panel is closed */
   onClose: () => void;
 
+  onDataChange: (data: unknown[]) => void;
+
+  getInitialData: () => unknown[];
+
   /** The panelId for this react panel */
   panelId: string;
 }
@@ -56,16 +64,33 @@ export function useReactPanelManager(): ReactPanelManager {
 }
 
 /**
+ * DO NOT call this hook anywhere except once in ReactPanel.
  * Use the controls for a single react panel.
+ * Otherwise panelIds will be generated/rehydrated incorrectly.
  */
 export function useReactPanel(): ReactPanelControl {
-  const { metadata, onClose, onOpen, getPanelId } = useReactPanelManager();
+  const {
+    metadata,
+    onClose,
+    onOpen,
+    onDataChange,
+    getPanelId,
+    getInitialData,
+  } = useReactPanelManager();
   const panelId = useMemo(() => getPanelId(), [getPanelId]);
 
   return {
     metadata,
     onClose: useCallback(() => onClose(panelId), [onClose, panelId]),
     onOpen: useCallback(() => onOpen(panelId), [onOpen, panelId]),
+    onDataChange: useCallback(
+      (data: unknown[]) => onDataChange(panelId, data),
+      [onDataChange, panelId]
+    ),
+    getInitialData: useCallback(
+      () => getInitialData(panelId),
+      [getInitialData, panelId]
+    ),
     panelId,
   };
 }
