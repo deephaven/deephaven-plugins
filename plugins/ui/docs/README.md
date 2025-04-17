@@ -51,7 +51,7 @@ By assigning the component to the `hello_world` variable, it displays in the UI 
 Write functions to handle events. To write a button that will print event details to the console when clicked:
 
 ```python
-my_button = ui.button("Click Me!", on_press=lambda e: print(f"Button was clicked!"))
+my_button = ui.button("Click Me!", on_press=lambda e: print(f"Button was clicked! {e}"))
 ```
 
 ![Whenever the button is pressed, event details are printed to the console.](_assets/handling_events.png)
