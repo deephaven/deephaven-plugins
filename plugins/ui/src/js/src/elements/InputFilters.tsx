@@ -76,7 +76,6 @@ function useTableColumns(
 export function InputFilters(props: InputFiltersProps): JSX.Element {
   const { onChange, onFilters, table: exportedTable, columnNames } = props;
   const dashboardId = useDashboardId();
-  console.log('DG dashboardId', dashboardId);
   const { eventHub } = useLayoutManager();
   const inputFilters = useSelector((state: RootState) =>
     getInputFiltersForDashboard(state, dashboardId)
