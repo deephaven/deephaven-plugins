@@ -746,3 +746,40 @@ class DeephavenFigure:
         """
         self._calendar = calendar
         self._figure_calendar = FigureCalendar(calendar)
+
+    def to_image(self, format: str = "png") -> bytes:
+        """
+        Convert the figure to an image
+
+        Args:
+            format: The format of the image
+
+        Returns:
+            The image as bytes
+        """
+        import deephaven.pandas as dhpd
+        exporter = Exporter()
+
+
+        figure = self.to_dict(exporter)
+        tables = exporter._new_objects
+
+        for mapping in figure["deephaven"]["mappings"]:
+            table = tables[mapping["table"]]
+            data = dhpd.to_pandas(table)
+
+            for column, var in mapping["data_columns"].items():
+                for path in var:
+                    split_path = path.split("/")
+                    split_path.pop(0)  # remove empty str
+                    fig_update = figure
+                    while len(split_path) > 1:
+                        item = split_path.pop(0)
+                        if isinstance(fig_update, list):
+                            item = int(item)
+                        fig_update = fig_update[item]
+                    fig_update[split_path[0]] = data[column].tolist()
+
+        new_figure = Figure(figure["plotly"])
+
+        return new_figure.to_image(format=format)
