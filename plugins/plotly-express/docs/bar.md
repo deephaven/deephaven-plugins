@@ -23,6 +23,8 @@ tips = dx.data.tips()
 bar_plot = dx.bar(tips, x="Day", y="TotalBill")
 ```
 
+![Bar Plot Basic Example](./_assets/bar_plot.png)
+
 Change the x-axis ordering by sorting the dataset by the categorical variable.
 
 ```python order=ordered_bar_plot,tips
@@ -54,8 +56,9 @@ bar_plot_sex = dx.bar(sorted_tips, x="Day", y="TotalBill", by="Sex")
 
 Visualize the frequency of categories in a column by passing to either the `x` or `y` argument.
 
-```python 
+```python
 import deephaven.plot.express as dx
+
 tips = dx.data.tips()
 
 # count the number of occurrences of each day with a vertical bar plot
@@ -66,6 +69,7 @@ bar_plot_horizontal = dx.bar(tips, y="Day")
 ```
 
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.bar
 ```

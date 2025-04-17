@@ -46,6 +46,8 @@ candlestick_plot = dx.candlestick(
 )
 ```
 
+![Candlestick Plot Basic Example](./_assets/candlestick_plot.png)
+
 ### Calendar
 
 Candlestick plots take a calendar argument. Dates and times are excluded from axes so that they conform to the calendar.
@@ -113,6 +115,7 @@ candlestick_plot_default = dx.candlestick(
 ```
 
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.candlestick
 ```

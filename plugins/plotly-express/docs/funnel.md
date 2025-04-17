@@ -26,7 +26,10 @@ marketing = dx.data.marketing()
 funnel_plot = dx.funnel(marketing, x="Count", y="Stage")
 ```
 
+![Funnel Plot Basic Example](./_assets/funnel_plot.png)
+
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.funnel
 ```

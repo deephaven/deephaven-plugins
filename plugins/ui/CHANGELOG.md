@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## ui-v0.29.2 - 2025-04-08
+#### Bug Fixes
+- remove incorrect defaults in ui.grid to fix auto (#1154) - (684e5fc) - dgodinez-dh
+
+- - -
+
 ## ui-v0.29.1 - 2025-04-01
 #### Bug Fixes
 - Handle a null jsonClient correctly (DH-18461) (#1138) - (1852554) - mofojed

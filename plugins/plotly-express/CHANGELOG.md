@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.14.0 - 2025-04-08
+#### Bug Fixes
+- DH-18685: Remove top margin from chart (#1126) - (47900a5) - Joe
+- Detect if webgl is supported (#1147) - (5e651d1) - Joe
+- Make `dx` histogram behavior consistent with `px` (#1002) - (08dcbce) - Joe
+- Fix type version for plotly-express (#1144) - (2630d25) - Matthew Runyon
+#### Build system
+- Add custom sphinx translator to fix relative image paths in output (#1136) - (fa6615e) - Matthew Runyon
+#### Features
+- DH-18165: Add calendar argument to several dx charts (#1122) - (47a2d71) - Joe
+- indicator chart (#1088) - (eb835e3) - Joe
+
+- - -
+
 ## plotly-express-v0.13.1 - 2025-03-07
 #### Bug Fixes
 - LivenessStateException with static table in `dx` and `ui` (#1074) - (951a376) - Joe

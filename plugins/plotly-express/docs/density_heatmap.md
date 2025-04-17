@@ -4,7 +4,7 @@ A density heatmap plot is a data visualization that uses a colored grid to repre
 
 Density heatmaps are appropriate when the data contain two continuous variables of interest. An additional quantitative variable may be incorporated into the visualization using shapes or colors.
 
-#### What are density heatmap plots useful for? 
+#### What are density heatmap plots useful for?
 
 - **Scatter Plot Replacement**: When dealing with a large number of data points, density heatmaps provide a more concise, informative and performant visualization than a [scatter plot](scatter.md).
 - **2D Density Estimation**: Density heatmaps can serve as the basis for 2D density estimation methods, helping to model and understand underlying data distributions, which is crucial in statistical analysis and machine learning.
@@ -23,6 +23,8 @@ iris = dx.data.iris()
 heatmap = dx.density_heatmap(iris, x="PetalLength", y="PetalWidth")
 ```
 
+![Heatmap Basic Example](./_assets/heatmap.png)
+
 ### A density heatmap with a custom color scale
 
 Custom color scales can be provided to the `color_continuous_scale` argument, and their range can be defined with the `range_color` argument.
@@ -33,9 +35,9 @@ iris = dx.data.iris()
 
 # use the "viridis" color scale with a range from 5 to 8
 heatmap_colorscale = dx.density_heatmap(iris,
-    x="PetalLength", 
-    y="PetalWidth", 
-    color_continuous_scale="viridis", 
+    x="PetalLength",
+    y="PetalWidth",
+    color_continuous_scale="viridis",
     range_color=[5, 8]
 )
 ```
@@ -48,15 +50,15 @@ The number of bins on each axis can be set using the `nbinsx` and `nbinsy` argum
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 
-# Create a density heatmap with 20 bins on each axis and a range from 3 to the maximum value for the x-axis. 
+# Create a density heatmap with 20 bins on each axis and a range from 3 to the maximum value for the x-axis.
 # None is used to specify an upper bound of the maximum value.
 heatmap_bins = dx.density_heatmap(
-    iris, 
-    x="PetalLength", 
-    y="PetalWidth", 
+    iris,
+    x="PetalLength",
+    y="PetalWidth",
     nbinsx=20,
     nbinsy=20,
-    range_bins_x=[3, None],  
+    range_bins_x=[3, None],
 )
 ```
 
@@ -69,10 +71,10 @@ import deephaven.plot.express as dx
 iris = dx.data.iris()
 
 # color the map by the average of an additional continuous variable
-heatmap_aggregation = dx.density_heatmap(iris, 
-    x="PetalLength", 
-    y="PetalWidth", 
-    z="SepalLength", 
+heatmap_aggregation = dx.density_heatmap(iris,
+    x="PetalLength",
+    y="PetalWidth",
+    z="SepalLength",
     histfunc="avg"
 )
 ```
@@ -100,12 +102,13 @@ large_heatmap_2 = dx.density_heatmap(
     y="Y",
     range_bins_x=[0,100],
     range_bins_y=[0,100],
-    nbinsx=100, 
+    nbinsx=100,
     nbinsy=100
 )
 ```
 
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.density_heatmap
 ```
