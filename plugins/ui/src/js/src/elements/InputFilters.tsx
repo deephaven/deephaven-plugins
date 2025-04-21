@@ -93,7 +93,7 @@ export function InputFilters(props: InputFiltersProps): JSX.Element {
   );
 
   useEffect(() => {
-    const id = nanoid();
+    const id = nanoid(); // TODO use widget id
     eventHub.emit(InputFilterEvent.COLUMNS_CHANGED, id, columns);
     return () => {
       eventHub.emit(InputFilterEvent.COLUMNS_CHANGED, id, []);
