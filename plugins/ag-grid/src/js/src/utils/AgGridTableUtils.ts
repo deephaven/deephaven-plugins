@@ -1,5 +1,5 @@
 import type { dh as DhType } from '@deephaven/jsapi-types';
-import { CellClassParams, CellStyle, ColDef } from '@ag-grid-community/core';
+import { ColDef } from '@ag-grid-community/core';
 import { TableUtils } from '@deephaven/jsapi-utils';
 import AgGridFormatter from './AgGridFormatter';
 

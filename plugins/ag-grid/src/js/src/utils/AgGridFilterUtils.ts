@@ -144,7 +144,7 @@ export default class AgGridFilterUtils {
     model: TextFilterModel
   ): DhType.FilterCondition {
     const filterValue = dh.FilterValue.ofString(model.filter ?? '');
-    console.log(model);
+
     switch (model.type) {
       case 'equals':
         return column.filter().eq(filterValue);
@@ -205,7 +205,7 @@ export default class AgGridFilterUtils {
     if (model.filter == null) {
       throw new Error('Model does not have a filter value');
     }
-    console.log(model);
+
     const filterValue =
       column.type === TableUtils.dataType.CHAR
         ? dh.FilterValue.ofString(String.fromCharCode(model.filter))

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { LoadingOverlay } from '@deephaven/components';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { type WidgetComponentProps } from '@deephaven/plugin';
@@ -7,6 +7,8 @@ import Log from '@deephaven/log';
 import AgGridView from './AgGridView';
 import { getSettings, RootState } from '@deephaven/redux';
 import { useSelector } from 'react-redux';
+import { themeQuartz } from '@ag-grid-community/theming';
+import AgGridDhTheme from './AgGridDhTheme';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/AgGridView');
 
@@ -21,6 +23,12 @@ export function AgGridWidget(
   const settings = useSelector(getSettings<RootState>);
   const { fetch } = props;
   const [table, setTable] = useState<DhType.Table>();
+
+  const gridDensity = settings?.gridDensity;
+  const theme = useMemo(
+    () => themeQuartz.withParams(AgGridDhTheme.getThemeParams(gridDensity)),
+    [gridDensity]
+  );
 
   /** First we load the widget object. This is the object that is sent from the server in AgGridMessageStream. */
   useEffect(() => {
@@ -44,7 +52,7 @@ export function AgGridWidget(
   }, [dh, fetch]);
 
   return table != null ? (
-    <AgGridView table={table} settings={settings} />
+    <AgGridView table={table} settings={settings} theme={theme} />
   ) : (
     <LoadingOverlay />
   );

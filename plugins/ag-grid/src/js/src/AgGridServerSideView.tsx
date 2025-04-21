@@ -1,6 +1,8 @@
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
+import { WorkspaceSettings } from '@deephaven/redux';
+import { createFormatterFromSettings } from '@deephaven/jsapi-utils';
 import { ColDef } from '@ag-grid-community/core';
 import { AgGridReact } from '@ag-grid-community/react';
 import { ServerSideRowModelModule } from '@ag-grid-enterprise/server-side-row-model';
@@ -8,12 +10,12 @@ import { useMemo } from 'react';
 import ServerSideDatasource from './datasources/ServerSideDatasource';
 import AgGridTableUtils from './utils/AgGridTableUtils';
 import AgGridFormatter from './utils/AgGridFormatter';
-import { WorkspaceSettings } from '@deephaven/redux';
-import { createFormatterFromSettings } from '@deephaven/jsapi-utils';
+import { Theme } from '@ag-grid-community/theming';
 
 type AgGridServerSideViewProps = {
   table: DhType.Table;
   settings?: WorkspaceSettings;
+  theme?: Theme;
 };
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/AgGridView');
@@ -21,6 +23,7 @@ const log = Log.module('@deephaven/js-plugin-ag-grid/AgGridView');
 export function AgGridServerSideView({
   table,
   settings,
+  theme,
 }: AgGridServerSideViewProps): JSX.Element | null {
   const dh = useApi();
 
@@ -47,9 +50,10 @@ export function AgGridServerSideView({
     [dh, table]
   );
 
-  const formatter = useMemo(() => {
-    return new AgGridFormatter(createFormatterFromSettings(dh, settings));
-  }, [dh, settings]);
+  const formatter = useMemo(
+    () => new AgGridFormatter(createFormatterFromSettings(dh, settings)),
+    [dh, settings]
+  );
 
   return (
     <AgGridReact
@@ -58,6 +62,8 @@ export function AgGridServerSideView({
       serverSideDatasource={datasource}
       rowModelType="serverSide"
       modules={[ServerSideRowModelModule]}
+      theme={theme}
+      suppressCellFocus
     />
   );
 }
