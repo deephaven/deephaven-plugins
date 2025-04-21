@@ -28,6 +28,8 @@ hist_plot_x = dx.histogram(setosa, x="SepalLength")
 hist_plot_y = dx.histogram(setosa, y="SepalLength")
 ```
 
+![Histogram Plot Basic Example](./_assets/histogram_plot.png)
+
 Modify the bin size by setting `nbins` equal to the number of desired bins.
 
 ```python order=hist_20_bins,hist_3_bins,hist_8_bins,virginica,iris
@@ -50,7 +52,6 @@ hist_8_bins = dx.histogram(setosa, x="SepalLength", nbins=8)
 ### Bin and aggregate on different columns
 
 If the plot orientation is vertical (`"v"`), the `x` column is binned and the `y` column is aggregated. The operations are flipped if the plot orientation is horizontal.
-
 
 ```python order=hist_v,hist_h,hist_avg,iris
 import deephaven.plot.express as dx
@@ -85,6 +86,7 @@ overlay_hist = dx.histogram(iris, x="SepalLength", by="Species", barmode="overla
 ```
 
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.histogram
 ```

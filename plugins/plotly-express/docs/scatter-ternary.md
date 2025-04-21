@@ -24,7 +24,10 @@ election = dx.data.election()
 ternary_scatter_plot = dx.scatter_ternary(election, a="Joly", b="Coderre", c="Bergeron")
 ```
 
+![Ternary Scatter Plot Basic Example](./_assets/scatter_plot_ternary.png)
+
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.scatter_ternary
 ```

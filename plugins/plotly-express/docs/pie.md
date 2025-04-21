@@ -32,7 +32,10 @@ gapminder_recent_pop = (
 pie_plot = dx.pie(gapminder_recent_pop, names="Continent", values="Pop")
 ```
 
+![Pie Plot Basic Example](./_assets/pie_plot.png)
+
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.pie
 ```

@@ -25,6 +25,7 @@ This page contains a collection of links to examples demonstrating different plo
 [![Bar plot - Rectangles depict comparisons between values](_assets/plot_icons/bar.svg)](bar.md)
 [![Area plot - Colored areas highlight trends, emphasizing change over time](_assets/plot_icons/area.svg)](area.md)
 [![Pie plot - Slices represent proportion of parts to a whole](_assets/plot_icons/pie.svg)](pie.md)
+[![Indicator - Displays a single value with an optional gauge](_assets/plot_icons/indicator.svg)](indicator.md)
 
 </CardList>
 

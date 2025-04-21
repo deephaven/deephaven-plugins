@@ -29,6 +29,8 @@ def update(figure):
 bar_lined_plot = dx.bar(tips, x="Day", unsafe_update_figure=update)
 ```
 
+![Unsafe Update Figure Example](./_assets/unsafe_update_figure.png)
+
 ### Legend Location
 
 Change the location of the legend to the bottom of the plot by updating the layout.
