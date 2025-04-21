@@ -3,6 +3,7 @@ import AgGridServerSideView from './AgGridServerSideView';
 import AgGridViewportView from './AgGridViewportView';
 import { WorkspaceSettings } from '@deephaven/redux';
 import { AgGridReactProps } from '@ag-grid-community/react';
+import styles from './AgGridCustomStyles.css?inline';
 
 type AgGridViewProps = {
   table: DhType.Table;
@@ -26,6 +27,7 @@ export function AgGridView({
 }: AgGridViewProps): JSX.Element | null {
   return (
     <div className="deephaven-ag-grid-view h-100">
+      <style>{styles}</style>
       {rowModelType === 'serverSide' ? (
         <AgGridServerSideView
           table={table}

@@ -34,6 +34,11 @@ export default class AgGridDhTheme {
       /* Text */
       textColor: 'var(--dh-color-grid-text)',
       fontFamily: 'Fira Sans, sans-serif',
+      fontSize: 14,
+
+      /* Menu */
+      menuBackgroundColor: 'var(--dh-color-grid-bg)',
+      menuTextColor: 'var(--dh-color-grid-text)',
 
       ...this.getDensityDependentParams(gridDensity),
     };
@@ -49,19 +54,19 @@ export default class AgGridDhTheme {
         return {
           rowHeight: 16,
           spacing: 5,
-          fontSize: 11,
+          dataFontSize: 11,
         };
       case 'regular':
         return {
           rowHeight: 19,
           spacing: 5,
-          fontSize: 11,
+          dataFontSize: 12,
         };
       case 'spacious':
         return {
           rowHeight: 28,
           spacing: 7,
-          fontSize: 12,
+          dataFontSize: 12,
         };
     }
   }

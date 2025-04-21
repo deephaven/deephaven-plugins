@@ -19,6 +19,12 @@ type AgGridServerSideViewProps = {
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/AgGridView');
 
+const defaultColDef: Partial<ColDef> = Object.freeze({
+  filterParams: {
+    buttons: ['reset', 'apply'],
+  },
+});
+
 export function AgGridServerSideView({
   table,
   settings,
@@ -34,9 +40,6 @@ export function AgGridServerSideView({
       table?.columns.map(c => {
         const templateColDef: Partial<ColDef> = {
           field: c.name,
-          filterParams: {
-            buttons: ['reset', 'apply'],
-          },
         };
         return AgGridTableUtils.convertColumnToColDef(c, templateColDef);
       }) ?? [],
@@ -56,11 +59,13 @@ export function AgGridServerSideView({
 
   return (
     <AgGridReact
+      defaultColDef={defaultColDef}
       columnDefs={colDefs}
       dataTypeDefinitions={formatter.cellDataTypeDefinitions}
       serverSideDatasource={datasource}
       rowModelType="serverSide"
       modules={[ServerSideRowModelModule]}
+      // eslint-disable-next-line react/jsx-props-no-spreading
       {...agGridProps}
     />
   );

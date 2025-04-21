@@ -140,6 +140,9 @@ export class ServerSideDatasource implements IServerSideDatasource {
           api.setRowCount(newSize);
         }
       );
+
+      // For now only resize columns to fit data during initial mount
+      api.autoSizeAllColumns();
     }
   }
 
