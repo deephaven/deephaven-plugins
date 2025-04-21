@@ -32,13 +32,15 @@ You'll need to find the link to open the UI in the Docker logs:
 
 Get started by importing the `deephaven.ui` package as `ui`:
 
-```python
+```python test-set=0
 from deephaven import ui
+
+print("XXXXXXX TODO FAIL")
 ```
 
 The `ui` package contains many _components_, which you can display in the UI:
 
-```python
+```python test-set=0
 hello_world = ui.heading("Hello World!")
 ```
 
@@ -50,7 +52,7 @@ By assigning the component to the `hello_world` variable, it displays in the UI 
 
 Write functions to handle events. To write a button that will print event details to the console when clicked:
 
-```python
+```python test-set=0
 my_button = ui.button("Click Me!", on_press=lambda e: print(f"Button was clicked! {e}"))
 ```
 
@@ -62,7 +64,7 @@ Use the `@ui.component` decorator to create your own custom components. This dec
 
 We can display a heading above a button as our custom component:
 
-```python
+```python test-set=0
 @ui.component
 def ui_foo_bar():
     return [
@@ -80,7 +82,7 @@ foo_bar = ui_foo_bar()
 
 Often, you'll want to react to the button presses and update the display. For example, to count the number of times a button has been pressed, use `ui.use_state` to introduce a _state variable_ in your custom component:
 
-```python
+```python skip-test
 @ui.component
 def ui_counter():
     count, set_count = ui.use_state(0)
@@ -91,7 +93,7 @@ Returned from `ui.use_state` is a tuple with two values: the current state (`cou
 
 The first time the button is displayed, the count will be `0` because that is the initial value passed into `ui.use_state`. Call `set_count` to update the state:
 
-```python
+```python skip-test
 @ui.component
 def ui_counter():
     count, set_count = ui.use_state(0)
@@ -102,7 +104,7 @@ When state is updated, deephaven.ui will call your component again to re-render 
 
 Each individual component has its own state:
 
-```python
+```python test-set=0
 @ui.component
 def ui_counter():
     count, set_count = ui.use_state(0)

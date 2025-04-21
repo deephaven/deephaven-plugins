@@ -8,11 +8,11 @@ This guide shows you how to build a dashboard with [`deephaven.ui`](https://gith
 - Finally, you'll embed your custom component into your dashboard.
 
 ![img](_assets/deephaven-ui-crash-course/iris_species_dashboard_final.png)
-To follow along, you need the [`deephaven.ui`](https://pypi.org/project/deephaven-plugin-ui/) package and simulated data and charts from [`deephaven.plot.express`](https://pypi.org/project/deephaven-plugin-ui/). Both of these packages are included in the default setup. 
+To follow along, you need the [`deephaven.ui`](https://pypi.org/project/deephaven-plugin-ui/) package and simulated data and charts from [`deephaven.plot.express`](https://pypi.org/project/deephaven-plugin-ui/). Both of these packages are included in the default setup.
 
 Import the simulated `iris` data with this script:
 
-```py
+```py test-set=0
 from deephaven import ui
 import deephaven.plot.express as dx
 
@@ -21,7 +21,7 @@ iris = dx.data.iris()
 
 ![img](_assets/deephaven-ui-crash-course/iris.png)
 
-In this dataset, the `Species` column is a categorical column with three values: `setosa`, `Versicolor`, and `Virginia`. The `SepalLength`, `SepalWidth`, `PetalLength`, and `PetalWidth` columns are continuous numerical columns that contain measurements of the sepal and petal of an iris flower. The `Timestamp` column is also useful for ordering the data. 
+In this dataset, the `Species` column is a categorical column with three values: `setosa`, `Versicolor`, and `Virginia`. The `SepalLength`, `SepalWidth`, `PetalLength`, and `PetalWidth` columns are continuous numerical columns that contain measurements of the sepal and petal of an iris flower. The `Timestamp` column is also useful for ordering the data.
 
 You'll mostly focus on `SepalLength` and `SepalWidth` in this guide.
 
@@ -40,7 +40,7 @@ With `iris`, create a `ui.table` that:
 3. Hides the `PetalLength`, `PetalWidth`, and `SpeciesID` columns.
 4. Uses the compact table density so you can see as many rows as possible.
 
-```py
+```py test-set=0
 ui_iris = ui.table(
   iris,
   reverse=True,
@@ -56,7 +56,7 @@ ui_iris = ui.table(
 
 Charts from Deephaven Plotly Express (`dx`) have no `deephaven.ui` specific wrapping and are added directly. Create a [`dx.scatter`](/core/plotly/docs/scatter) chart that compares `SepalLength` and `SepalWidth` by `Species`.
 
-```py
+```py test-set=0
 scatter_by_species = dx.scatter(iris, x = "SepalLength", y = "SepalWidth", by="Species")
 ```
 
@@ -66,7 +66,7 @@ scatter_by_species = dx.scatter(iris, x = "SepalLength", y = "SepalWidth", by="S
 
 The [`ui.text`](components/text.md) component adds basic text. Create text to accompany the chart and table.
 
-```py
+```py test-set=0
 sepal_text = ui.text("SepalLength vs. SepalWidth By Species")
 ```
 
@@ -77,7 +77,7 @@ sepal_text = ui.text("SepalLength vs. SepalWidth By Species")
 Wrap your chart and `ui.table` in a [`ui.flex`](components/flex.md) component. `ui.flex` is an implementation of [Flexbox](https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Flexbox) that enables responsive layouts that adjust as you resize panels.
 Items within a `ui.flex` component stretch and shrink based on available space.
 
-```py
+```py test-set=0
 sepal_flex = ui.flex(ui_iris, scatter_by_species)
 ```
 
@@ -85,7 +85,7 @@ sepal_flex = ui.flex(ui_iris, scatter_by_species)
 
 The `direction` of `sepal_flex` is `"row"`. Add `sepal_text` and `sepal_flex` to another panel, with a `direction` of `"column"`.
 
-```py
+```py test-set=0
 sepal_flex_column = ui.flex(sepal_text, sepal_flex, direction="column")
 ```
 
@@ -97,7 +97,7 @@ The [`ui.tabs`](components/tabs.md) component enables tabs within a panel. Creat
 Histograms are useful to display comparisons of data distributions, so create [`dx.histogram`](/core/plotly/docs/histogram) charts of the columns of interest, `SepalLength` and `SepalWidth`, by `Species`.
 Create `ui.tab` elements for `sepal_flex`, `sepal_length_hist`, and `sepal_width_hist`, then pass them to `ui.tabs` to switch between different views.
 
-```py
+```py test-set=0
 sepal_length_hist = dx.histogram(iris, x="SepalLength", by="Species")
 sepal_width_hist = dx.histogram(iris, x="SepalWidth", by="Species")
 
@@ -115,7 +115,7 @@ sepal_flex_tabs = ui.flex(sepal_text, sepal_tabs, direction="column")
 
 [`ui.markdown`](components/markdown.md) components allow you to provide text in a markdown format. Create an informational panel with markdown text.
 
-```py
+```py test-set=0
 about_markdown = ui.markdown(r"""
 ### Iris Dashboard
 
@@ -186,7 +186,7 @@ Explore the Iris dataset with **deephaven.ui**
 
 Before that, create a `ui.panel` manually to provide a `title`.
 
-```py
+```py test-set=0
 sepal_panel = ui.panel(sepal_flex_tabs, title="Sepal Panel")
 iris_dashboard = ui.dashboard(sepal_panel)
 ```
@@ -197,7 +197,7 @@ You now have a one-panel dashboard.
 
 You can create a default layout with multiple panels. Create a panel for `about_markdown` so you can give it a `title`.
 
-```py
+```py test-set=0
 about_panel = ui.panel(about_markdown, title="About")
 ```
 
@@ -207,7 +207,7 @@ about_panel = ui.panel(about_markdown, title="About")
 
 One way to create a default layout is by wrapping your panels in a [`ui.row`](components/dashboard.md) component.
 
-```py
+```py test-set=0
 iris_dashboard_row = ui.dashboard(ui.row(about_panel, sepal_panel))
 ```
 
@@ -217,7 +217,7 @@ iris_dashboard_row = ui.dashboard(ui.row(about_panel, sepal_panel))
 
 Another way to create a default layout is with [`ui.column`](components/dashboard.md).
 
-```py
+```py test-set=0
 iris_dashboard_column = ui.dashboard(ui.column(about_panel, sepal_panel))
 ```
 
@@ -230,7 +230,7 @@ One more way to create a default layout is with [`ui.stack`](components/dashboar
 Create tabs that show the average, max, and min values of `SepalLength`, `SepalWidth`, `PetalLength`, and `PetalWidth` by `Species`.
 You can compare a specific statistic across the different `Species` within the same panel or move between panels to compare different statistics across `Species`.
 
-```py
+```py test-set=0
 from deephaven import agg
 
 iris_avg = iris.agg_by([agg.avg(cols=["SepalLength", "SepalWidth", "PetalLength", "PetalWidth"])], by=["Species"])
@@ -242,7 +242,7 @@ ui_iris_max = ui.panel(iris_max, title="Max")
 ui_iris_min = ui.panel(iris_min, title="Min")
 
 iris_agg_stack = ui.stack(ui_iris_avg, ui_iris_max, ui_iris_min)
-  
+
 iris_dashboard_stack = ui.dashboard(iris_agg_stack)
 ```
 
@@ -257,7 +257,7 @@ Since this walkthrough investigates `SepalLength` and `SepalWidth`, this section
 
 A custom component uses the `ui.component` decorator. The decorator signals to the `deephaven.ui` rendering engine that this component needs to be rendered. Create a function with the `ui.component` decorator that returns `"Hello, World!"`.
 
-```py
+```py test-set=0
 @ui.component
 def custom_component():
   return "Hello, World!"
@@ -269,9 +269,9 @@ custom_panel = custom_component()
 
 ### Picker
 
-A [`ui.picker`](components/picker.md) allows you to select options from a list. 
+A [`ui.picker`](components/picker.md) allows you to select options from a list.
 
-```py
+```py test-set=0
 @ui.component
 def species_panel():
   species_picker = ui.picker("setosa", "versicolor", "virginica")
@@ -290,7 +290,7 @@ picker_panel = species_panel()
 > [!NOTE]
 > It’s important to filter your table down to the distinct values you want. The `ui.picker` does not do this for you.
 
-```py
+```py test-set=0
 species_table = iris.view("Species").select_distinct()
 
 @ui.component
@@ -310,10 +310,10 @@ The [`ui.use_state`](hooks/use_state.md) hook is how you’ll enable interactivi
 Next, modify your picker to take the `species` and `set_species` from the hook you just defined using `on_change` and `selected_key`. `on_change` is called whenever an option is selected. `selected_key` is the currently selected option. Using these makes the component controlled, meaning that the `selected_key` is controlled outside of the `ui.picker` itself. This allows you to use the `selected_key` in other ways such as filtering a table.
 
 > [!WARNING]
-> Hooks like `ui.use_state` are only available in components decorated with `ui.component`. 
+> Hooks like `ui.use_state` are only available in components decorated with `ui.component`.
 > Additionally, hooks should not be called conditionally within a component. Create a new component if conditional rendering is needed.
 
-```py
+```py test-set=0
 @ui.component
 def species_panel():
   species, set_species = ui.use_state()
@@ -333,7 +333,7 @@ Now, your picker is controlled by the rendering engine and updates as you pick v
 Now, add a table filtered on this value and a chart that uses this filtered table. Return them with the picker.
 You'll create a `dx.heatmap`, which shows the joint density of `SepalLength` and `SepalWidth` (the variables of interest) filtered by `Species`.
 
-```py
+```py test-set=0
 @ui.component
 def species_panel():
   species, set_species = ui.use_state()
@@ -347,7 +347,7 @@ def species_panel():
   filtered_table = iris.where("Species = species")
 
   heatmap = dx.density_heatmap(filtered_table, x="SepalLength", y="SepalWidth")
-  
+
   return ui.panel(ui.flex(species_picker, heatmap, direction="column"), title="Investigate Species")
 
 species_picker_panel = species_panel()
@@ -359,7 +359,7 @@ species_picker_panel = species_panel()
 
 Currently, an empty table and chart appear if no species is selected. For a more user-friendly experience, add a [`ui.illustrated_message`](components/illustrated_message.md) component to display instead if no `species` is selected.
 
-```py
+```py test-set=0
 @ui.component
 def species_panel():
   species, set_species = ui.use_state()
@@ -389,23 +389,23 @@ species_picker_panel = species_panel()
 
 ![img](_assets/deephaven-ui-crash-course/species_picker_panel_illustrated.png)
 
-
 ### Utilizing custom components
 
 Next, embed your custom component in your dashboard.
 
-```python
+```python test-set=0
 iris_species_dashboard = ui.dashboard(
     ui.column(
         ui.row(about_panel, iris_agg_stack), ui.row(sepal_panel, species_picker_panel)
     )
 )
 ```
+
 ![img](_assets/deephaven-ui-crash-course/iris_species_dashboard.png)
 
 The top row contains lots of empty space. Resize the height of the top row to 1 and the bottom row to 2 for a ratio of 1:2, so the bottom row is twice the height of the top row.
 
-```py
+```py test-set=0
 iris_species_dashboard_resized = ui.dashboard(ui.column(ui.row(about_panel, iris_agg_stack, height=1), ui.row(sepal_panel, species_picker_panel, height=2)))
 ```
 
@@ -421,7 +421,7 @@ Recreate the `sepal_flex_tabs` panel within the `create_sepal_panel` function, w
 - Pull the `Species` value from the row data and set it with `set_species`.
 - Then, create `sepal_panel` with `create_sepal_panel`, passing `set_species` to it.
 
-```python
+```python test-set=0
 def create_sepal_panel(set_species):
     ui_iris = ui.table(
         iris,
@@ -491,6 +491,7 @@ You've got a density heatmap that shows the density of `SepalLength` and `SepalW
 
 `deephaven.ui` provides hooks to access table data. Each hook provides access to a specific part of the table and is updated when the table changes.
 The hooks are:
+
 - [`ui.use_cell_data`](hooks/use_cell_data.md) - Accesses a single cell value.
 - [`ui.use_row_data`](hooks/use_row_data.md) - Accesses a row of data.
 - [`ui.use_row_list`](hooks/use_row_list.md) - Accesses a row as a list.
@@ -503,7 +504,7 @@ The hooks are:
 Create a custom component that pulls the min, max, and average values for `SepalLength` and `SepalWidth` for the selected `Species`.
 To display the values, wrap them in [`ui.badge`](components/badge.md) components, which draw attention to specific values.
 
-```python
+```python test-set=0
 @ui.component
 def summary_badges(species):
     # Filter the tables to the selected species
@@ -582,7 +583,7 @@ iris_species_dashboard_badge = ui.dashboard(create_species_dashboard())
 Since you've added badges to the dashboard, the `dx.heatmap` is recreated every time any of the badges change, but only needs to be recreated when the `Species` changes.
 Heatmap is a fairly expensive chart to create (it requires a filtered table in this case) and changes rarely, so pull the heatmap creation into a separate function and use `ui.use_memo` to cache the heatmap creation.
 
-```python
+```python test-set=0
 def create_heatmap(species):
     heatmap = ui.illustrated_message(
         ui.icon("vsFilter"),
@@ -710,16 +711,16 @@ def create_sepal_panel(set_species):
   )
 
   sepal_flex_tabs = ui.flex(sepal_text, sepal_tabs, direction="column")
-  
+
   return ui.panel(sepal_flex_tabs, title="Sepal Panel")
-  
+
 @ui.component
 def summary_badges(species):
   # Filter the tables to the selected species
   species_min = iris_min.where("Species=species")
   species_max = iris_max.where("Species=species")
   species_avg = iris_avg.where("Species=species")
-  
+
   # Pull the desired columns from the tables before using the hooks
   sepal_length_min = ui.use_cell_data(species_min.view(["SepalLength"]))
   sepal_width_min = ui.use_cell_data(species_min.view(["SepalWidth"]))
@@ -729,12 +730,12 @@ def summary_badges(species):
   sepal_width_avg = ui.use_cell_data(species_avg.view(["SepalWidth"]))
 
   # format the values to 3 decimal places
-  # set flex_grow to 0 to prevent the badges from growing 
+  # set flex_grow to 0 to prevent the badges from growing
   return ui.flex(
-    ui.badge(f"SepalLength Min: {sepal_length_min:.3f}", variant="info"), 
+    ui.badge(f"SepalLength Min: {sepal_length_min:.3f}", variant="info"),
     ui.badge(f"SepalLength Max: {sepal_length_max:.3f}", variant="info"),
     ui.badge(f"SepalLength Avg: {sepal_length_avg:.3f}", variant="info"),
-    ui.badge(f"SepalWidth Min: {sepal_width_min:.3f}", variant="info"), 
+    ui.badge(f"SepalWidth Min: {sepal_width_min:.3f}", variant="info"),
     ui.badge(f"SepalWidth Max: {sepal_width_max:.3f}", variant="info"),
     ui.badge(f"SepalWidth Avg: {sepal_width_avg:.3f}", variant="info"),
     flex_grow=0
@@ -747,13 +748,13 @@ def create_heatmap(species):
         ui.content("Select a species to display filtered table and chart."),
         width="100%",
     )
-  
+
     if species:
         filtered_table = iris.where("Species = species")
         heatmap = dx.density_heatmap(filtered_table, x="SepalLength", y="SepalWidth")
-      
+
     return heatmap
-  
+
 @ui.component
 def create_species_dashboard():
     species, set_species = ui.use_state()
@@ -763,7 +764,7 @@ def create_species_dashboard():
         selected_key=species,
         label="Current Species",
     )
-  
+
     heatmap = ui.use_memo(lambda: create_heatmap(species), [species])
 
     badges = summary_badges(species) if species else None
