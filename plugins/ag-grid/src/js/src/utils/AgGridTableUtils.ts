@@ -1,6 +1,7 @@
 import type { dh as DhType } from '@deephaven/jsapi-types';
-import { ColDef } from '@ag-grid-community/core';
+import { CellClassParams, CellStyle, ColDef } from '@ag-grid-community/core';
 import { TableUtils } from '@deephaven/jsapi-utils';
+import AgGridFormatter from './AgGridFormatter';
 
 export default class AgGridTableUtils {
   /**
@@ -44,18 +45,21 @@ export default class AgGridTableUtils {
           ...templateColDef,
           cellDataType: dataType,
           filter: 'agDateColumnFilter',
+          cellStyle: params => AgGridFormatter.styleForDateCell(params),
         };
       case TableUtils.dataType.DECIMAL:
         return {
           ...templateColDef,
           cellDataType: dataType,
           filter: 'agNumberColumnFilter',
+          cellStyle: params => AgGridFormatter.styleForNumberCell(params),
         };
       case TableUtils.dataType.INT:
         return {
           ...templateColDef,
           cellDataType: dataType,
           filter: 'agNumberColumnFilter',
+          cellStyle: params => AgGridFormatter.styleForNumberCell(params),
         };
       case TableUtils.dataType.STRING:
         return {
@@ -66,7 +70,7 @@ export default class AgGridTableUtils {
       case TableUtils.dataType.UNKNOWN:
         return {
           ...templateColDef,
-          cellDataType: dataType,
+          cellDataType: TableUtils.dataType.STRING,
           filter: false,
         };
     }
