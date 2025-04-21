@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { LoadingOverlay } from '@deephaven/components';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { type WidgetComponentProps } from '@deephaven/plugin';
@@ -30,6 +30,14 @@ export function AgGridWidget(
     [gridDensity]
   );
 
+  const agGridProps = useMemo(
+    () => ({
+      suppressCellFocus: true,
+      theme: theme,
+    }),
+    [theme]
+  );
+
   /** First we load the widget object. This is the object that is sent from the server in AgGridMessageStream. */
   useEffect(() => {
     let cancelled = false;
@@ -52,7 +60,7 @@ export function AgGridWidget(
   }, [dh, fetch]);
 
   return table != null ? (
-    <AgGridView table={table} settings={settings} theme={theme} />
+    <AgGridView table={table} settings={settings} agGridProps={agGridProps} />
   ) : (
     <LoadingOverlay />
   );

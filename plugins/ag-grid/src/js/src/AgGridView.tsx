@@ -2,15 +2,12 @@ import type { dh as DhType } from '@deephaven/jsapi-types';
 import AgGridServerSideView from './AgGridServerSideView';
 import AgGridViewportView from './AgGridViewportView';
 import { WorkspaceSettings } from '@deephaven/redux';
-import { Theme } from '@ag-grid-community/theming';
+import { AgGridReactProps } from '@ag-grid-community/react';
 
 type AgGridViewProps = {
   table: DhType.Table;
-
   settings?: WorkspaceSettings;
-
-  theme?: Theme;
-
+  agGridProps?: AgGridReactProps;
   /** Choose which model to use */
   rowModelType?: 'viewport' | 'serverSide';
 };
@@ -24,13 +21,17 @@ type AgGridViewProps = {
 export function AgGridView({
   table,
   settings,
-  theme,
+  agGridProps,
   rowModelType = 'serverSide',
 }: AgGridViewProps): JSX.Element | null {
   return (
     <div className="deephaven-ag-grid-view h-100">
       {rowModelType === 'serverSide' ? (
-        <AgGridServerSideView table={table} settings={settings} theme={theme} />
+        <AgGridServerSideView
+          table={table}
+          settings={settings}
+          agGridProps={agGridProps}
+        />
       ) : (
         <AgGridViewportView table={table} />
       )}
