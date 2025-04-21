@@ -83,7 +83,7 @@ export function InputFilters(props: InputFiltersProps): JSX.Element {
   );
 
   const tableColumns = useTableColumns(exportedTable);
-  const columnsString = JSON.stringify(columnNames);
+  const columnsString = JSON.stringify(columnNames); // TODO workaround for changing columnNames reference
   const columns = useMemo(
     () =>
       columnNames
