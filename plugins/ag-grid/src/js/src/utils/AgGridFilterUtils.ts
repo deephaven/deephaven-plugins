@@ -17,6 +17,11 @@ type SupportedSimpleFilterModel =
   | NumberFilterModel
   | DateFilterModel;
 
+// Boolean columns also use the text filter, but the incoming type prop isn't typed on {type: ISimpleFilterModelType}
+// https://www.ag-grid.com/javascript-data-grid/cell-data-types/#boolean
+// https://www.ag-grid.com/javascript-data-grid/filter-text/#reference-TextFilterModel-type
+type ExtendedTextFilterModelType = TextFilterModel['type'] | 'true' | 'false';
+
 export default class AgGridFilterUtils {
   /**
    * Compares two arrays to see if they contain the same filter conditions in any order.
@@ -143,7 +148,7 @@ export default class AgGridFilterUtils {
   ): DhType.FilterCondition {
     const filterValue = dh.FilterValue.ofString(model.filter ?? '');
 
-    switch (model.type) {
+    switch (model.type as ExtendedTextFilterModelType) {
       case 'equals':
         return column.filter().eq(filterValue);
       case 'notEqual':
@@ -176,9 +181,6 @@ export default class AgGridFilterUtils {
           .isNull()
           .not()
           .and(column.filter().notEq(filterValue));
-      // Boolean columns also use the text filter, but these aren't typed on ISimpleFilterModelType?
-      // https://www.ag-grid.com/javascript-data-grid/cell-data-types/#boolean
-      // https://www.ag-grid.com/javascript-data-grid/filter-text/#reference-TextFilterModel-type
       case 'true':
         return column.filter().isTrue();
       case 'false':
