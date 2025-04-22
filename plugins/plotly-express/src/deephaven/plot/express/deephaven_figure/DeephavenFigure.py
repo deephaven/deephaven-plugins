@@ -10,12 +10,28 @@ from copy import copy
 from deephaven.table import PartitionedTable, Table
 from deephaven.execution_context import ExecutionContext, get_exec_ctx
 from deephaven.liveness_scope import LivenessScope
+import deephaven.pandas as dhpd
 
 from ..shared import args_copy
 from ..data_mapping import DataMapping
 from ..exporter import Exporter
 from .RevisionManager import RevisionManager
 from .FigureCalendar import FigureCalendar, Calendar
+
+SINGLE_VALUE_REPLACEMENTS = {
+    "indicator": {"value", "delta/reference", "title/text"},
+}
+
+
+def is_single_value_replacement(self, figure_type, split_path) -> bool:
+    remaining_path = "/".join(split_path)
+
+    is_single_value = False
+
+    if remaining_path in SINGLE_VALUE_REPLACEMENTS.get(figure_type, set()):
+        is_single_value = True
+
+    return is_single_value
 
 
 def has_color_args(call_args: dict[str, Any]) -> bool:
@@ -747,39 +763,80 @@ class DeephavenFigure:
         self._calendar = calendar
         self._figure_calendar = FigureCalendar(calendar)
 
-    def to_image(self, format: str = "png") -> bytes:
+    def get_hydrated_figure(self) -> Figure:
         """
-        Convert the figure to an image
+        Get the hydrated plotly figure for this Deephaven figure. This will replace all
+        placeholder data within traces with the actual data from the Deephaven table.
 
-        Args:
-            format: The format of the image
+        At this time this does not have any client-side features such as calendar and theme
 
         Returns:
-            The image as bytes
+            The hydrated plotly figure
         """
-        import deephaven.pandas as dhpd
         exporter = Exporter()
 
-
         figure = self.to_dict(exporter)
-        tables = exporter._new_objects
+        tables, _, _ = exporter.references()
 
         for mapping in figure["deephaven"]["mappings"]:
             table = tables[mapping["table"]]
             data = dhpd.to_pandas(table)
 
-            for column, var in mapping["data_columns"].items():
-                for path in var:
+            for column, paths in mapping["data_columns"].items():
+                for path in paths:
                     split_path = path.split("/")
-                    split_path.pop(0)  # remove empty str
-                    fig_update = figure
+                    # remove empty str, "plotly", and "data"
+                    split_path = split_path[3:]
+                    figure_update = figure["plotly"]["data"]
+
+                    # next should always be an index within the data
+                    index = int(split_path.pop(0))
+                    figure_update = figure_update[index]
+
+                    # at this point, the figure_update is a figure trace with a specific type
+                    figure_type = figure_update["type"]
+
+                    is_single_value = is_single_value_replacement(
+                        self, figure_type, split_path
+                    )
+
                     while len(split_path) > 1:
                         item = split_path.pop(0)
-                        if isinstance(fig_update, list):
-                            item = int(item)
-                        fig_update = fig_update[item]
-                    fig_update[split_path[0]] = data[column].tolist()
+                        figure_update = figure_update[item]
+
+                    column_data = data[column].tolist()
+                    if is_single_value:
+                        column_data = column_data[0]
+                    figure_update[split_path[0]] = column_data
 
         new_figure = Figure(figure["plotly"])
 
-        return new_figure.to_image(format=format)
+        return new_figure
+
+    def to_image(
+        self,
+        format: str = "png",
+        width: int | None = None,
+        height: int | None = None,
+        scale: float | None = None,
+        validate: bool | None = None,
+    ) -> bytes:
+        """
+        Convert the figure to an image bytes string
+        This API is based off of Plotly's Figure.to_image
+        https://plotly.github.io/plotly.py-docs/generated/plotly.io.to_image.html
+
+        Args:
+            format: The format of the image.
+            width: The width of the image in pixels
+            height: The height of the image in pixels
+            scale: The scale of the image
+            validate: If the image should be validated
+
+        Returns:
+            The image as bytes
+        """
+
+        return self.get_hydrated_figure().to_image(
+            format=format, width=width, height=height, scale=scale, validate=validate
+        )
