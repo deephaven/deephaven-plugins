@@ -4,10 +4,11 @@ import type { dh as DhType } from '@deephaven/jsapi-types';
 import { type WidgetComponentProps } from '@deephaven/plugin';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import Log from '@deephaven/log';
-import AgGridView from './AgGridView';
 import { getSettings, RootState } from '@deephaven/redux';
 import { useSelector } from 'react-redux';
 import { themeQuartz } from '@ag-grid-community/theming';
+import type { AgGridReactProps } from '@ag-grid-community/react';
+import AgGridView from './AgGridView';
 import AgGridDhTheme from './AgGridDhTheme';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/AgGridView');
@@ -30,10 +31,16 @@ export function AgGridWidget(
     [gridDensity]
   );
 
-  const agGridProps = useMemo(
+  const agGridProps: AgGridReactProps = useMemo(
     () => ({
       suppressCellFocus: true,
-      theme: theme,
+      rowSelection: {
+        mode: 'multiRow',
+        checkboxes: false,
+        headerCheckbox: false,
+        enableClickSelection: true,
+      },
+      theme,
     }),
     [theme]
   );

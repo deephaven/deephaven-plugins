@@ -18,7 +18,7 @@ export default class AgGridDhTheme {
       headerBackgroundColor: 'var(--dh-color-grid-header-bg)',
       headerTextColor: 'var(--dh-color-grid-header-text)',
       headerColumnResizeHandleColor: 'var(--dh-color-grid-header-separator)',
-      headerFontFamily: 'Fira Sans, sans-serif',
+      headerFontFamily: 'var(--font-family-sans-serif)',
       headerFontSize: '12px',
       headerFontWeight: 600,
       headerHeight: 30,
@@ -27,13 +27,14 @@ export default class AgGridDhTheme {
       backgroundColor: 'var(--dh-color-grid-row-0-bg)',
       oddRowBackgroundColor: 'var(--dh-color-grid-row-1-bg)',
       rowHoverColor: 'var(--dh-color-grid-row-hover-bg)',
+      rowBorder: false,
 
       /* Selection */
       selectedRowBackgroundColor: 'var(--dh-color-grid-row-hover-bg-selected)',
 
       /* Text */
       textColor: 'var(--dh-color-grid-text)',
-      fontFamily: 'Fira Sans, sans-serif',
+      fontFamily: 'var(--font-family-sans-serif)',
       fontSize: 14,
 
       /* Menu */
