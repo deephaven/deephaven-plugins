@@ -1,8 +1,8 @@
 import type { dh as DhType } from '@deephaven/jsapi-types';
-import AgGridServerSideView from './AgGridServerSideView';
-import AgGridViewportView from './AgGridViewportView';
 import { WorkspaceSettings } from '@deephaven/redux';
 import { AgGridReactProps } from '@ag-grid-community/react';
+import AgGridServerSideView from './AgGridServerSideView';
+import AgGridViewportView from './AgGridViewportView';
 import styles from './AgGridCustomStyles.css?inline';
 
 type AgGridViewProps = {
