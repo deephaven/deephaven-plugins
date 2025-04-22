@@ -80,9 +80,6 @@ def remove_data_colors(
 
     Args:
         figure: The plotly figure dict to remove colors from
-
-    Returns:
-
     """
     colorway = (
         figure.get("layout", {})

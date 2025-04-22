@@ -2,7 +2,7 @@
 
 Convert a `DeephavenFigure` to a static image using the `to_image` method.
 
-### Static Image Export
+## `to_image`
 
 The `to_image` method allows you to export a `DeephavenFigure` to bytes, which can be converted to a static image format.
 
