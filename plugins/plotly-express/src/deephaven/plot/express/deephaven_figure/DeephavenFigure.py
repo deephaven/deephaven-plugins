@@ -23,7 +23,20 @@ SINGLE_VALUE_REPLACEMENTS = {
 }
 
 
-def is_single_value_replacement(self, figure_type, split_path) -> bool:
+def is_single_value_replacement(
+    figure_type: str,
+    split_path: list[str],
+) -> bool:
+    """
+    Check if the trace element needs to be replaced with a single value instead of a list.
+
+    Args:
+        figure_type: The type of the figure
+        split_path: The split path of the trace element
+
+    Returns:
+        True if the trace element needs to be replaced with a single value, False otherwise
+    """
     remaining_path = "/".join(split_path)
 
     is_single_value = False
@@ -32,6 +45,59 @@ def is_single_value_replacement(self, figure_type, split_path) -> bool:
         is_single_value = True
 
     return is_single_value
+
+
+def color_in_colorway(trace_element: dict, colorway: list[str]) -> bool:
+    """
+    Check if the color in the trace element is in the colorway.
+    Colors in the colorway should be lower case.
+
+    Args:
+        trace_element: The trace element to check
+        colorway: The colorway to check against
+
+    Returns:
+        True if the color is in the colorway, False otherwise
+    """
+    if not isinstance(trace_element.get("color"), str):
+        return False
+
+    color = trace_element["color"]
+
+    if color.lower() in colorway:
+        return True
+    return False
+
+
+def remove_data_colors(
+    figure: dict[str, Any],
+) -> None:
+    """
+    Deephaven plotly express (and plotly express itself) apply custom colors
+    to traces, but in many cases they need to be removed for theming
+    to work properly. This function removes the colors from the traces
+    if they are in the colorway.
+
+    Args:
+        figure: The plotly figure dict to remove colors from
+
+    Returns:
+
+    """
+    colorway = (
+        figure.get("layout", {})
+        .get("template", {})
+        .get("layout", {})
+        .get("colorway", [])
+    )
+    for i in range(len(colorway)):
+        colorway[i] = colorway[i].lower()
+
+    for trace in figure.get("data", []):
+        if color_in_colorway(trace.get("marker", {}), colorway):
+            trace["marker"]["color"] = None
+        if color_in_colorway(trace.get("line", {}), colorway):
+            trace["line"]["color"] = None
 
 
 def has_color_args(call_args: dict[str, Any]) -> bool:
@@ -643,6 +709,8 @@ class DeephavenFigure:
     def get_plotly_fig(self) -> Figure | None:
         """
         Get the plotly figure for this figure
+        Note that this will have placeholder data in it
+        See get_hydrated_figure for a hydrated version with the underlying data
 
         Returns:
             The plotly figure
@@ -763,12 +831,16 @@ class DeephavenFigure:
         self._calendar = calendar
         self._figure_calendar = FigureCalendar(calendar)
 
-    def get_hydrated_figure(self) -> Figure:
+    def get_hydrated_figure(self, template: str | None = None) -> Figure:
         """
         Get the hydrated plotly figure for this Deephaven figure. This will replace all
         placeholder data within traces with the actual data from the Deephaven table.
 
-        At this time this does not have any client-side features such as calendar and theme
+        At this time this does not have any client-side features such as calendar and system theme
+        but a template theme can be applied to the figure.
+
+        Args:
+            template: The theme to use for the figure
 
         Returns:
             The hydrated plotly figure
@@ -797,7 +869,7 @@ class DeephavenFigure:
                     figure_type = figure_update["type"]
 
                     is_single_value = is_single_value_replacement(
-                        self, figure_type, split_path
+                        figure_type, split_path
                     )
 
                     while len(split_path) > 1:
@@ -808,6 +880,10 @@ class DeephavenFigure:
                     if is_single_value:
                         column_data = column_data[0]
                     figure_update[split_path[0]] = column_data
+
+        if template:
+            remove_data_colors(figure["plotly"])
+            figure["plotly"]["layout"].update(template=template)
 
         new_figure = Figure(figure["plotly"])
 
@@ -820,6 +896,7 @@ class DeephavenFigure:
         height: int | None = None,
         scale: float | None = None,
         validate: bool | None = None,
+        template: str | None = None,
     ) -> bytes:
         """
         Convert the figure to an image bytes string
@@ -832,11 +909,11 @@ class DeephavenFigure:
             height: The height of the image in pixels
             scale: The scale of the image
             validate: If the image should be validated
+            template: The theme to use for the image
 
         Returns:
             The image as bytes
         """
-
-        return self.get_hydrated_figure().to_image(
+        return self.get_hydrated_figure(template).to_image(
             format=format, width=width, height=height, scale=scale, validate=validate
         )
