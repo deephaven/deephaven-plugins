@@ -78,7 +78,7 @@ export default class AgGridFilterUtils {
     });
   }
 
-  private static isCombinedSimpleModel<M extends ISimpleFilterModel>(
+  static isCombinedSimpleModel<M extends ISimpleFilterModel>(
     model: unknown,
     isSimpleFilterModel: (obj: unknown) => obj is M
   ): model is ICombinedSimpleModel<M> {
@@ -98,9 +98,7 @@ export default class AgGridFilterUtils {
     return hasValidOperator && hasValidConditions && hasValidFilterType;
   }
 
-  private static isSimpleFilterModel(
-    model: unknown
-  ): model is ISimpleFilterModel {
+  static isSimpleFilterModel(model: unknown): model is ISimpleFilterModel {
     if (typeof model !== 'object' || model === null) return false;
     const m = model as { type?: unknown; filterType?: unknown };
 
@@ -112,7 +110,7 @@ export default class AgGridFilterUtils {
     return hasValidType && hasValidFilterType;
   }
 
-  private static isSupportedSimpleFilterModel(
+  static isSupportedSimpleFilterModel(
     model: ISimpleFilterModel
   ): model is SupportedSimpleFilterModel {
     return (
