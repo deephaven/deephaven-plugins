@@ -20,14 +20,14 @@ At times, you may be uncertain whether to use a single state variable or multipl
 
 Should you use this?
 
-```python
+```python skip-test
 start_date, set_start_date = ui.use_state("2020-02-03")
 end_date, set_end_date = ui.use_state("2020-02-08")
 ```
 
 Or should you use this?
 
-```python
+```python skip-test
 date_range, set_date_range = ui.use_state({"start": "2020-02-03", "end": "2020-02-08"})
 ```
 
@@ -133,7 +133,7 @@ feedback_form_example = feedback_form()
 
 You can still declare some constants for readability:
 
-```python
+```python skip-test
 is_sending = status == "sending"
 is_sent = status == "sent"
 ```
@@ -217,7 +217,7 @@ name_input_example = name_input()
 
 Here, `full_name` is not a state variable. Instead, it is calculated during render:
 
-```python
+```python skip-test
 full_name = f"{first_name} {last_name}"
 ```
 

@@ -34,8 +34,6 @@ Get started by importing the `deephaven.ui` package as `ui`:
 
 ```python test-set=0
 from deephaven import ui
-
-print("XXXXXXX TODO FAIL")
 ```
 
 The `ui` package contains many _components_, which you can display in the UI:

@@ -73,7 +73,7 @@ t = ui.table(
 Any string value for a formatting rule can be read from a column by specifying the column name as the value. Note that if a value matches a column name, it will always be used (i.e., the theme color `positive` can not be used as a direct value if there is also a column called `positive`). The following example sets the `background_color` of column `x` using the value of the `bg_color` column.
 
 ```py
-from deephaven import ui
+from deephaven import empty_table, ui
 
 _t = empty_table(100).update(["x = i", "y = sin(i)", "bg_color = x % 2 == 0 ? `positive` : `negative`"])
 

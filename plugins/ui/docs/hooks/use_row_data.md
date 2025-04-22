@@ -11,7 +11,7 @@ from deephaven import time_table, ui
 @ui.component
 def ui_table_row(table):
     row_data = ui.use_row_data(table)
-    if row_data == ():
+    if row_data == None:
         return ui.heading("No data yet.")
     return ui.heading(f"Row data is {row_data}. Value of X is {row_data['x']}")
 

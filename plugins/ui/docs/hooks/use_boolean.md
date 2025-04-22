@@ -38,19 +38,19 @@ my_boolean_example = ui_boolean_example()
 
 `use_boolean` takes an optional parameter that intializes the value to an initial value:
 
-```python
+```python skip-test
 value, set_value = ui.use_boolean(True)
 ```
 
 If the parameter is omitted, the value will initalize to `False`:
 
-```python
+```python skip-test
 value, set_value = ui.use_boolean()
 ```
 
 If you pass a function into the initializer, it will be called on the first initialization. This is useful if you have an expensive computation to determine the value:
 
-```python
+```python skip-test
 value, set_value = ui.use_boolean(lambda: complex_function())
 ```
 

@@ -27,7 +27,7 @@ example_counter = counter()
 
 However, as mentioned in the previous section, the state values for each render are fixed. This means that the value of `number` within the event handler of the first render is always 0, regardless of how many times you call `set_number(number + 1)`:
 
-```python
+```python skip-test
 def handle_press():
     set_number(0 + 1)
     set_number(0 + 1)
@@ -72,7 +72,7 @@ Here, `lambda n: n + 1` is called an updater function. When you pass it to a sta
 1. `deephaven.ui` queues this function to be processed after all the other code in the event handler has run.
 2. During the next render, `deephaven.ui` goes through the queue and gives you the final updated state.
 
-```python
+```python skip-test
 set_number(lambda n: n + 1)
 set_number(lambda n: n + 1)
 set_number(lambda n: n + 1)
@@ -176,7 +176,7 @@ After the event handler completes, `deephaven.ui` will trigger a re-render. Duri
 
 It is common to name the updater function argument by the first letters of the corresponding state variable:
 
-```python
+```python skip-test
 set_enabled(lambda e: not e)
 set_last_name(lambda ln: ln.upper())
 set_friend_count(lambda fc: fc * 2)

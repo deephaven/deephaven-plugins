@@ -428,7 +428,9 @@ from deephaven import ui
 picker_contextual_help_example = ui.picker(
     ui.section(ui.item("Option 1"), ui.item("Option 2"), title="Section 1"),
     label="Sample Label",
-    contextual_help=ui.contextual_help(ui.heading("Content tips")),
+    contextual_help=ui.contextual_help(
+        ui.heading("Content tips"), ui.content("Select an option.")
+    ),
 )
 ```
 
