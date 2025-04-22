@@ -83,11 +83,11 @@ In `deephaven.ui`, you do not manipulate the UI directly. Instead, you declare w
 
 You’ve seen how to implement a form imperatively above. To better understand how to think declaratively, let's walk through reimplementing this UI using `deephaven.ui` below:
 
-1. **Identify** your component’s different visual states
-2. **Determine** what triggers those state changes
+1. **Identify** your component’s different visual states.
+2. **Determine** what triggers those state changes.
 3. **Represent** the state in memory using `useState`.
-4. **Remove** any non-essential state variables
-5. **Connect** the event handlers to set the state
+4. **Remove** any non-essential state variables.
+5. **Connect** the event handlers to set the state.
 
 ### Step 1: Identify your component’s different visual states
 
