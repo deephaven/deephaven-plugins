@@ -52,6 +52,8 @@ export function AgGridServerSideView({
     [dh, table]
   );
 
+  // Create the formatter used to format cell values, currently just a
+  // wrapper around jsapi-utils Formatter, but more functionality could be added.
   const formatter = useMemo(
     () => new AgGridFormatter(createFormatterFromSettings(dh, settings)),
     [dh, settings]

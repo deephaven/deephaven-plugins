@@ -4,6 +4,7 @@ import {
   DataTypeDefinition,
 } from '@ag-grid-community/core';
 import { Formatter, TableUtils } from '@deephaven/jsapi-utils';
+import { AgGridCellColors } from './AgGridColors';
 
 export default class AgGridFormatter {
   private formatter: Formatter;
@@ -90,19 +91,19 @@ export default class AgGridFormatter {
     if ((params.value as number) > 0) {
       return {
         textAlign: 'right',
-        color: 'var(--dh-color-grid-number-positive)',
+        color: AgGridCellColors.numberPositive,
       };
     }
     if ((params.value as number) < 0) {
       return {
         textAlign: 'right',
-        color: 'var(--dh-color-grid-number-negative)',
+        color: AgGridCellColors.numberNegative,
       };
     }
-    return { textAlign: 'right', color: 'var(--dh-color-grid-number-zero)' };
+    return { textAlign: 'right', color: AgGridCellColors.numberZero };
   }
 
   static styleForDateCell(params: CellClassParams): CellStyle {
-    return { textAlign: 'center', color: 'var(--dh-color-grid-date)' };
+    return { textAlign: 'center', color: AgGridCellColors.date };
   }
 }
