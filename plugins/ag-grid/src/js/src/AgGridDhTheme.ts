@@ -3,7 +3,8 @@ import {
   InputStyleParams,
   TabStyleParams,
 } from '@ag-grid-community/theming';
-import { CoreParams } from '@ag-grid-community/theming/dist/types/src/styles/core/core-css';
+import { type CoreParams } from '@ag-grid-community/theming/dist/types/src/styles/core/core-css';
+import { AgGridThemeColors } from './utils/AgGridColors';
 
 type GridDensity = 'compact' | 'regular' | 'spacious';
 
@@ -15,31 +16,35 @@ export default class AgGridDhTheme {
   > {
     return {
       /* Header */
-      headerBackgroundColor: 'var(--dh-color-grid-header-bg)',
-      headerTextColor: 'var(--dh-color-grid-header-text)',
-      headerColumnResizeHandleColor: 'var(--dh-color-grid-header-separator)',
+      headerBackgroundColor: AgGridThemeColors.headerBackgroundColor,
+      headerTextColor: AgGridThemeColors.headerTextColor,
+      headerColumnResizeHandleColor:
+        AgGridThemeColors.headerColumnResizeHandleColor,
       headerFontFamily: 'var(--font-family-sans-serif)',
       headerFontSize: '12px',
       headerFontWeight: 600,
       headerHeight: 30,
 
       /* Row */
-      backgroundColor: 'var(--dh-color-grid-row-0-bg)',
-      oddRowBackgroundColor: 'var(--dh-color-grid-row-1-bg)',
-      rowHoverColor: 'var(--dh-color-grid-row-hover-bg)',
+      backgroundColor: AgGridThemeColors.backgroundColor,
+      oddRowBackgroundColor: AgGridThemeColors.oddRowBackgroundColor,
+      rowHoverColor: AgGridThemeColors.rowHoverColor,
       rowBorder: false,
 
       /* Selection */
-      selectedRowBackgroundColor: 'var(--dh-color-grid-row-hover-bg-selected)',
+      selectedRowBackgroundColor: AgGridThemeColors.selectedRowBackgroundColor,
 
       /* Text */
-      textColor: 'var(--dh-color-grid-text)',
+      textColor: AgGridThemeColors.textColor,
       fontFamily: 'var(--font-family-sans-serif)',
       fontSize: 14,
 
       /* Menu */
-      menuBackgroundColor: 'var(--dh-color-grid-bg)',
-      menuTextColor: 'var(--dh-color-grid-text)',
+      menuBackgroundColor: AgGridThemeColors.menuBackgroundColor,
+      menuTextColor: AgGridThemeColors.menuTextColor,
+
+      /* Misc */
+      accentColor: AgGridThemeColors.accentColor,
 
       ...this.getDensityDependentParams(gridDensity),
     };
