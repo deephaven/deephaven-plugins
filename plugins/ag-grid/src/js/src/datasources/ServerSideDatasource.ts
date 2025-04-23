@@ -33,9 +33,9 @@ export class ServerSideDatasource implements IServerSideDatasource {
 
   private viewportEndRow?: number;
 
-  private filters: DhType.FilterCondition[] = [];
+  private filters?: DhType.FilterCondition[];
 
-  private sorts: DhType.Sort[] = [];
+  private sorts?: DhType.Sort[];
 
   /**
    * Create a Server Side Datasource that can be used with AG Grid.
@@ -95,19 +95,19 @@ export class ServerSideDatasource implements IServerSideDatasource {
     log.error('Request failed:', error);
   }
 
-  private createViewportSubscription(
+  createViewportSubscription(
     api: GridApi,
     firstRow: number,
     lastRow: number,
-    filters: DhType.FilterCondition[] = [],
-    sorts: DhType.Sort[] = []
+    filters?: DhType.FilterCondition[],
+    sorts?: DhType.Sort[]
   ): void {
     log.debug('Creating new viewport subscription', firstRow, lastRow, sorts);
 
     this.viewportSubscription?.close();
 
-    this.table.applyFilter(filters);
-    this.table.applySort(sorts);
+    if (filters) this.table.applyFilter(filters);
+    if (sorts) this.table.applySort(sorts);
     this.viewportSubscription = this.table.setViewport(firstRow, lastRow);
     this.viewportSubscription?.addEventListener<DhType.ViewportData>(
       this.dh.Table.EVENT_UPDATED,
@@ -147,7 +147,7 @@ export class ServerSideDatasource implements IServerSideDatasource {
   }
 
   private updateFilters(newFilters: DhType.FilterCondition[]): boolean {
-    if (AgGridFilterUtils.areFiltersEqual(this.filters, newFilters)) {
+    if (AgGridFilterUtils.areFiltersEqual(this.filters ?? [], newFilters)) {
       return false;
     }
     log.debug2('Filters changed', newFilters);
@@ -156,7 +156,7 @@ export class ServerSideDatasource implements IServerSideDatasource {
   }
 
   private updateSorts(newSorts: DhType.Sort[]): boolean {
-    if (AgGridSortUtils.areSortsEqual(this.sorts, newSorts)) {
+    if (AgGridSortUtils.areSortsEqual(this.sorts ?? [], newSorts)) {
       return false;
     }
     log.debug2('Sorts changed', newSorts);
@@ -192,8 +192,8 @@ export class ServerSideDatasource implements IServerSideDatasource {
     } else if (this.updateFilters(newFilters) || this.updateSorts(newSorts)) {
       this.getRowsSubscription?.close();
 
-      this.table.applyFilter(this.filters);
-      this.table.applySort(this.sorts);
+      if (this.filters) this.table.applyFilter(this.filters);
+      if (this.sorts) this.table.applySort(this.sorts);
       this.getRowsSubscription = this.table.setViewport(startRow, endRow);
 
       // We need to update the viewport subscription as well
