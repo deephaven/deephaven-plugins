@@ -6,6 +6,7 @@ from typing import Callable, Any
 from plotly.graph_objects import Figure
 from abc import abstractmethod
 from copy import copy
+import base64
 
 from deephaven.table import PartitionedTable, Table
 from deephaven.execution_context import ExecutionContext, get_exec_ctx
@@ -917,3 +918,55 @@ class DeephavenFigure:
         return self.get_hydrated_figure(template).to_image(
             format=format, width=width, height=height, scale=scale, validate=validate
         )
+
+    def to_image_uri(
+        self,
+        format: str = "png",
+        width: int | None = None,
+        height: int | None = None,
+        scale: float | None = None,
+        validate: bool = True,
+        template: str | dict | None = None,
+    ) -> str:
+        """
+        Convert the figure to an image url.
+        The image is converted to a data string that can be embedded as an image.
+        If interested in getting the image as bytes for more general usage,
+        use to_image instead.
+
+        Args:
+            format: The format of the image
+                One of png, jpg, jpeg, webp, svg
+            width: The width of the image in pixels
+            height: The height of the image in pixels
+            scale: The scale of the image
+                A scale of larger than one will increase the resolution of the image
+                A scale of less than one will decrease the resolution of the image
+            validate: If the image should be validated before being converted
+            template: The theme to use for the image
+
+        Returns:
+            The image as bytes
+        """
+        bytes_ = self.to_image(
+            format=format,
+            width=width,
+            height=height,
+            scale=scale,
+            validate=validate,
+            template=template,
+        )
+
+        mime_type_map = {
+            "png": "image/png",
+            "jpg": "image/jpeg",
+            "jpeg": "image/jpeg",
+            "webp": "image/webp",
+            "svg": "image/svg+xml",
+            "pdf": "application/pdf",
+        }
+        mime_type = mime_type_map.get(format, "image/png")
+
+        base64_str = base64.b64encode(bytes_).decode()
+
+        return f"data:{mime_type};base64,{base64_str}"

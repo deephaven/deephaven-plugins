@@ -3,6 +3,7 @@ from deephaven import new_table, merge, time_table, empty_table
 import deephaven.plot.express as dx
 import plotly.express as px
 from deephaven.calendar import calendar
+from deephaven import ui
 
 
 # Test basic deephaven plots
@@ -75,3 +76,8 @@ source = empty_table(3000).update(
 )
 
 line_calendar = dx.line(source, x="Timestamp", y="Price", calendar=nyse_cal)
+
+# Test that the image URI is generated correctly
+line_plot = dx.line(express_source, x="Values", y="Values2")
+line_plot_uri = line_plot.to_image_uri(format="png", template="ggplot2")
+line_plot_img = ui.html.img(src=line_plot_uri)

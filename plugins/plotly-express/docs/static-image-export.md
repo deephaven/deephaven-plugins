@@ -1,17 +1,16 @@
 # Static Image Export
 
-Convert a `DeephavenFigure` to a static image using the `to_image` method.
+Convert a `DeephavenFigure` to a static image using the `to_image_uri` method.
 
-## `to_image`
+## `to_image_uri`
 
-The `to_image` method allows you to export a `DeephavenFigure` to bytes, which can be converted to a static image format.
+The `to_image_uri` method allows you to export a `DeephavenFigure` to a URI, which can be embedded as an image.
 
 > [!WARNING]
 > The image is generated on the server, so it does not have access to client-side information such as timezones or theme.
 > The theme is customizable with the `template` argument, but the default is not the same as a client theme.
 
 ```python
-import base64
 import deephaven.plot.express as dx
 from deephaven import ui
 
@@ -19,11 +18,10 @@ dog_prices = dx.data.stocks()
 
 line_plot = dx.line(dog_prices, x="Timestamp", y="Price", by="Sym")
 
-# Convert the figure to a static base64 string
+# Create a URI for the image
 # Use the template to change the theme
-bytes_str = line_plot.to_image(format="png", template="ggplot2")
-base64_str = base64.b64encode(bytes_str)
+line_plot_uri = line_plot.to_image_uri(format="png", template="ggplot2")
 
-# Create an HTML image element with the base64 string
-img = ui.html.img(src="data:image/png;base64," + base64_str.decode())
+# Embed the image in a Deephaven UI image element
+img = ui.html.img(src=line_plot_uri)
 ```
