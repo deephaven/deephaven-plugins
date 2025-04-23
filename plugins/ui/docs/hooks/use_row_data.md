@@ -59,7 +59,7 @@ import datetime as dt
 
 @ui.component
 def ui_table_row(table):
-    row_data = ui.use_row_data(table, sentinel={"Timestamp": "No data yet."})
+    row_data = ui.use_row_data(table, sentinel={"x": "No data yet."})
     return ui.heading(f"Row data: {row_data}. Value of 'x' is {row_data['x']}")
 
 

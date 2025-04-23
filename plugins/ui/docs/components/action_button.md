@@ -34,7 +34,7 @@ from deephaven import ui
 
 @ui.component
 def counter():
-    count, set_count = use_state(0)
+    count, set_count = ui.use_state(0)
     return ui.action_button(
         f"Pressed {count} times",
         on_press=lambda: set_count(count + 1),

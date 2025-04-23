@@ -122,11 +122,13 @@ def ui_table_data(table):
     return ui.flex(
         table,
         ui.list_view(
-            [ui.item(str(timestamp)) for timestamp in table_data["Timestamp"]],
+            [ui.item(str(timestamp)) for timestamp in table_data["Timestamp"]]
+            if table_data
+            else None,
             selection_mode=None,
         ),
         ui.list_view(
-            [ui.item(x) for x in table_data["x"]],
+            [ui.item(x) for x in table_data["x"]] if table_data else None,
             selection_mode=None,
         ),
     )
@@ -144,11 +146,15 @@ from deephaven import time_table, ui
 @ui.component
 def ui_table_first_cell(table):
     row_data = ui.use_row_data(table)
-    return [
-        ui.heading("Latest data"),
-        ui.text(f"Timestamp: {row_data['Timestamp']}"),
-        ui.text(f"x: {row_data['x']}"),
-    ]
+    return (
+        [
+            ui.heading("Latest data"),
+            ui.text(f"Timestamp: {row_data['Timestamp']}"),
+            ui.text(f"x: {row_data['x']}"),
+        ]
+        if row_data
+        else ui.heading("Waiting for data...")
+    )
 
 
 table_first_cell2 = ui_table_first_cell(time_table("PT1s").update("x=i").reverse())
@@ -163,7 +169,7 @@ from deephaven import time_table, ui
 @ui.component
 def ui_table_first_cell(table):
     cell_value = ui.use_cell_data(table)
-    is_even = cell_value % 2 == 0
+    is_even = (cell_value % 2 == 0) if not cell_value is None else False
     return [
         ui.heading(f"The first cell value is {cell_value}"),
         ui.text(f"Is {cell_value} even?", " ✅" if is_even else " ❌"),
