@@ -1,9 +1,9 @@
-import {
+import type {
   CheckboxStyleParams,
   InputStyleParams,
   TabStyleParams,
 } from '@ag-grid-community/theming';
-import { type CoreParams } from '@ag-grid-community/theming/dist/types/src/styles/core/core-css';
+import type { CoreParams } from '@ag-grid-community/theming/dist/types/src/styles/core/core-css';
 import { AgGridThemeColors } from './utils/AgGridColors';
 
 type GridDensity = 'compact' | 'regular' | 'spacious';
