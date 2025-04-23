@@ -828,7 +828,7 @@ class DeephavenFigure:
         self._calendar = calendar
         self._figure_calendar = FigureCalendar(calendar)
 
-    def get_hydrated_figure(self, template: str | None = None) -> Figure:
+    def get_hydrated_figure(self, template: str | dict | None = None) -> Figure:
         """
         Get the hydrated plotly figure for this Deephaven figure. This will replace all
         placeholder data within traces with the actual data from the Deephaven table.
@@ -892,8 +892,8 @@ class DeephavenFigure:
         width: int | None = None,
         height: int | None = None,
         scale: float | None = None,
-        validate: bool | None = None,
-        template: str | None = None,
+        validate: bool = True,
+        template: str | dict | None = None,
     ) -> bytes:
         """
         Convert the figure to an image bytes string
@@ -901,11 +901,14 @@ class DeephavenFigure:
         https://plotly.github.io/plotly.py-docs/generated/plotly.io.to_image.html
 
         Args:
-            format: The format of the image.
+            format: The format of the image
+                One of png, jpg, jpeg, webp, svg, pdf
             width: The width of the image in pixels
             height: The height of the image in pixels
             scale: The scale of the image
-            validate: If the image should be validated
+                A scale of larger than one will increase the resolution of the image
+                A scale of less than one will decrease the resolution of the image
+            validate: If the image should be validated before being converted
             template: The theme to use for the image
 
         Returns:
