@@ -63,6 +63,6 @@ test('Calendar line chart loads', async ({ page }) => {
 
 test('Chart image loads', async ({ page }) => {
   await gotoPage(page, '');
-  await openPanel(page, 'ui_component', SELECTORS.REACT_PANEL_VISIBLE);
+  await openPanel(page, 'line_plot_img', SELECTORS.REACT_PANEL_VISIBLE);
   await expect(page.locator(SELECTORS.REACT_PANEL_VISIBLE)).toHaveScreenshot();
 });
