@@ -49,8 +49,8 @@ class StyleManager:
         if not map_applies:
             if self.wildcard is None:
                 self.wildcard = next(self.cycled)
-            # This should always be a string but pyright complains
-            return str(self.wildcard)
+            assert self.wildcard is not None
+            return self.wildcard
         if val not in self.found:
             new_val = next(self.cycled)
             if self.map and val in self.map:
