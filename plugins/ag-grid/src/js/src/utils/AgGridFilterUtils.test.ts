@@ -226,20 +226,14 @@ describe('AgGridFilterUtils', () => {
   describe('isCombinedSimpleModel', () => {
     const isSimpleModel = (obj: unknown): obj is ISimpleFilterModel => true;
 
-    it('should return false for non-object values', () => {
-      expect(AgGridFilterUtils.isCombinedSimpleModel(null, isSimpleModel)).toBe(
-        false
-      );
-      expect(
-        AgGridFilterUtils.isCombinedSimpleModel(undefined, isSimpleModel)
-      ).toBe(false);
-      expect(
-        AgGridFilterUtils.isCombinedSimpleModel('string', isSimpleModel)
-      ).toBe(false);
-      expect(AgGridFilterUtils.isCombinedSimpleModel(123, isSimpleModel)).toBe(
-        false
-      );
-    });
+    it.each([[null], [undefined], ['string'], [123]])(
+      'should return false for non-object value: %s',
+      val => {
+        expect(
+          AgGridFilterUtils.isCombinedSimpleModel(val, isSimpleModel)
+        ).toBe(false);
+      }
+    );
 
     it('should return false when operator is not a string', () => {
       expect(
