@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { type WidgetComponentProps } from '@deephaven/plugin';
 import { type dh as DhType } from '@deephaven/jsapi-types';
-import IrisGrid from '@deephaven/iris-grid';
+import { IrisGrid } from '@deephaven/iris-grid';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import { LoadingOverlay } from '@deephaven/components';
 import { getErrorMessage } from '@deephaven/utils';
