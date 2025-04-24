@@ -12,7 +12,7 @@ class {{ cookiecutter.__object_name }}:
         _connection: MessageStream: The connection to the client
     """
     def __init__(self):
-         self._connection = None
+        self._connection = None
 
     def send_message(self, message: str) -> None:
         """
