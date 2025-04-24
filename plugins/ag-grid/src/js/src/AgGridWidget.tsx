@@ -8,8 +8,9 @@ import { getSettings, RootState } from '@deephaven/redux';
 import { useSelector } from 'react-redux';
 import { themeQuartz } from '@ag-grid-community/theming';
 import type { AgGridReactProps } from '@ag-grid-community/react';
-import AgGridView from './AgGridView';
+import AgGridServerSideView from './AgGridServerSideView';
 import AgGridDhTheme from './AgGridDhTheme';
+import customStyles from './AgGridCustomStyles.css?inline';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/AgGridView');
 
@@ -67,7 +68,14 @@ export function AgGridWidget(
   }, [dh, fetch]);
 
   return table != null ? (
-    <AgGridView table={table} settings={settings} agGridProps={agGridProps} />
+    <div className="deephaven-ag-grid-view h-100">
+      <style>{customStyles}</style>
+      <AgGridServerSideView
+        table={table}
+        settings={settings}
+        agGridProps={agGridProps}
+      />
+    </div>
   ) : (
     <LoadingOverlay />
   );

@@ -25,6 +25,10 @@ const defaultColDef: Partial<ColDef> = Object.freeze({
   },
 });
 
+/**
+ * AgGrid view that uses the Server-Side Row Model and a Deephaven table as a data source to display
+ * it in AG Grid, with support for value formatting, sorting, and basic filtering operations.
+ */
 export function AgGridServerSideView({
   table,
   settings,
