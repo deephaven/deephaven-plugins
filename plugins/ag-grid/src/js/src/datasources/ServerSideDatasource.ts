@@ -95,6 +95,16 @@ export class ServerSideDatasource implements IServerSideDatasource {
     log.error('Request failed:', error);
   }
 
+  /**
+   * Create a new viewport subscription, closing the old one if it exists, and sets up
+   * listeners to update AG Grid when viewport data is updated.
+   *
+   * @param api AG Grid API instance
+   * @param firstRow Index of first viewport row
+   * @param lastRow Index of last viewport row
+   * @param filters Filters to apply to the table
+   * @param sorts Sorts to apply to the table
+   */
   createViewportSubscription(
     api: GridApi,
     firstRow: number,
@@ -128,6 +138,10 @@ export class ServerSideDatasource implements IServerSideDatasource {
             node.setData(rowUpdates.get(index));
           }
         });
+
+        // Updating table size here as the SIZECHANGED event doesn't fire on either the
+        // table or subscription in some cases. This should be fixed in DH-19071.
+        api.setRowCount(this.table.size);
       }
     );
 
