@@ -1,7 +1,10 @@
 from __future__ import annotations
+from typing import Protocol
 
-from deephaven.plugin.object_type import MessageStream
-from simple_pivot_type import SimplePivotMessageStream
+
+class MessageStreamInterface(Protocol):
+    def send_message(self, message: str) -> None:
+        ...
 
 
 class SimplePivotObject:
@@ -11,11 +14,11 @@ class SimplePivotObject:
     This connection can be used to send messages back to the client.
 
     Attributes:
-        _connection: MessageStream: The connection to the client
+        _connection: MessageStreamInterface: The connection to the client
     """
 
     def __init__(self):
-        self._connection = None
+        self._connection: MessageStreamInterface | None = None
 
     def send_message(self, message: str) -> None:
         """
@@ -27,7 +30,7 @@ class SimplePivotObject:
         if self._connection:
             self._connection.send_message(message)
 
-    def set_connection(self, connection: SimplePivotMessageStream) -> None:
+    def set_connection(self, connection: MessageStreamInterface) -> None:
         """
         Set the connection to the client.
         This is called on the object when it is created.
