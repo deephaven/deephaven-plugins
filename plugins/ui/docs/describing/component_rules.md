@@ -33,7 +33,7 @@ For developers familiar with React JSX, this example shows how `prop` and `child
 
 Here is the same component written in `deephaven.ui`.
 
-```python
+```python skip-test
 my_component("Hello World", prop1="value1")
 ```
 

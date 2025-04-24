@@ -4,7 +4,7 @@
 
 ## Example
 
-```python
+```python test-set=0
 from deephaven import ui
 
 img = ui.image(src="https://i.imgur.com/Z7AzH2c.png", alt="Sky and roof")
@@ -29,7 +29,7 @@ Other options:
 - `none` renders the image in its original dimensions.
 - `scale-down` sizes the image as if `none` or `contain` were specified. Whichever results in a smaller concrete image size is selected.
 
-```python
+```python test-set=0
 def image_variants():
     return ui.flex(
         ui.view(

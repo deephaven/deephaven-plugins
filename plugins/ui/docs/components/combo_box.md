@@ -674,7 +674,9 @@ my_combo_box_contextual_help_example = ui.combo_box(
         title="Section 1",
     ),
     label="Sample Label",
-    contextual_help=ui.contextual_help(ui.heading("Content tips")),
+    contextual_help=ui.contextual_help(
+        ui.heading("Content tips"), ui.content("Tips for the content.")
+    ),
 )
 ```
 

@@ -344,7 +344,9 @@ from deephaven import ui
 
 time_field_contextual_help_example = ui.time_field(
     label="Sample Label",
-    contextual_help=ui.contextual_help(ui.heading("Content tips")),
+    contextual_help=ui.contextual_help(
+        ui.heading("Content tips"), ui.content("Enter a time.")
+    ),
 )
 ```
 

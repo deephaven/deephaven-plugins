@@ -359,7 +359,9 @@ from deephaven import ui
 
 date_range_picker_contextual_help_example = ui.date_range_picker(
     label="Sample Label",
-    contextual_help=ui.contextual_help(ui.heading("Content tips")),
+    contextual_help=ui.contextual_help(
+        ui.heading("Content tips"), ui.content("Select a date range.")
+    ),
 )
 ```
 
