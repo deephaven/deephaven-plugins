@@ -169,7 +169,7 @@ from deephaven import time_table, ui
 @ui.component
 def ui_table_first_cell(table):
     cell_value = ui.use_cell_data(table)
-    is_even = (cell_value % 2 == 0) if not cell_value is None else False
+    is_even = (cell_value % 2 == 0) if cell_value is not None else False
     return [
         ui.heading(f"The first cell value is {cell_value}"),
         ui.text(f"Is {cell_value} even?", " ✅" if is_even else " ❌"),
