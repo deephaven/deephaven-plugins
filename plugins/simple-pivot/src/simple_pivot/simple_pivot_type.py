@@ -23,7 +23,6 @@ class SimplePivotMessageStream(MessageStream):
 
         # Start the message stream. All we do is send a blank message to start. Client will respond with the initial state.
         # Additional messages can be sent to the client by calling on_data on the client connection at any time after this.
-        # These additional messages are processed in SimplePivotView.tsx
         self._client_connection.on_data(b"", [])
 
         obj.set_connection(self)

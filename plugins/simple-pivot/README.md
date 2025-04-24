@@ -14,7 +14,7 @@ The Python files have the following structure:
 
 The JavaScript files have the following structure:  
 `SimplePivotPlugin.ts` registers the plugin with Deephaven. This contains the client equivalent of the type in `simple_pivot_type.py` and these should be kept in sync.  
-`SimplePivotView.tsx` defines the plugin panel and message handling. This is where messages are received when sent from the Python side of the plugin. This file is a good starting point for adding more complex plugin functionality.  
+`SimplePivotWidget.tsx` defines the plugin panel and message handling. This is where messages are received when sent from the Python side of the plugin. This file is a good starting point for adding more complex plugin functionality.  
 
 Additionally, the `test` directory contains Python tests for the plugin. This demonstrates how the embedded Deephaven server can be used in tests.  
 It's recommended to use `tox` to run the tests, and the `tox.ini` file is included in the project.  
