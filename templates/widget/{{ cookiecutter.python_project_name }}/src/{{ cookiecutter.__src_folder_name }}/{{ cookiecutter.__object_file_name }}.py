@@ -1,10 +1,5 @@
 from __future__ import annotations
-from typing import Protocol
-
-
-class MessageStreamInterface(Protocol):
-    def send_message(self, message: str) -> None:
-        ...
+from deephaven.plugin.object_type import MessageStream
 
 
 class {{ cookiecutter.__object_name }}:
@@ -14,11 +9,10 @@ class {{ cookiecutter.__object_name }}:
     This connection can be used to send messages back to the client.
 
     Attributes:
-        _connection: MessageStreamInterface: The connection to the client
+        _connection: MessageStream: The connection to the client
     """
-
     def __init__(self):
-        self._connection: MessageStreamInterface | None = None
+         self._connection = None
 
     def send_message(self, message: str) -> None:
         """
@@ -30,7 +24,7 @@ class {{ cookiecutter.__object_name }}:
         if self._connection:
             self._connection.send_message(message)
 
-    def set_connection(self, connection: MessageStreamInterface) -> None:
+    def set_connection(self, connection: MessageStream) -> None:
         """
         Set the connection to the client.
         This is called on the object when it is created.
