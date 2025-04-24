@@ -156,7 +156,7 @@ DHC and DHE can be configured when running locally to target the local `plugins`
 
 ##### Build deephaven-core
 
-Build [deephaven-core](https://github.com/deephaven/deephaven-core) using the directions [here](https://deephaven.io/core/docs/how-to-guides/launch-build/#build-and-run-deephaven).
+Build [deephaven-core](https://github.com/deephaven/deephaven-core) using the directions [here](https://deephaven.io/core/docs/getting-started/launch-build/#build-and-run-deephaven).
 
 ##### Install python plugin wheels
 
@@ -185,7 +185,7 @@ If installing multiple wheels, you can use the following shorthand to install al
 
 ```
 
-pip install <deephaven-plugins-path>/plugins/_/dist/_.whl
+pip install <deephaven-plugins-path>/plugins/*/dist/*.whl
 
 ```
 
@@ -194,7 +194,7 @@ For example, on reinstalls the above command becomes
 
 ```
 
-pip install --force-reinstall --no-deps <deephaven-plugins-path>/plugins/_/dist/_.whl
+pip install --force-reinstall --no-deps <deephaven-plugins-path>/plugins/*/dist/*.whl
 
 ```
 
