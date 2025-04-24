@@ -75,7 +75,7 @@ export function AgGridWidget(
   }, [dh, fetch]);
 
   return table != null ? (
-    <div className="deephaven-ag-grid-view h-100">
+    <div className="ui-table-container">
       <style>{customStyles}</style>
       <AgGridServerSideView
         table={table}
