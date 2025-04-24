@@ -185,7 +185,7 @@ If installing multiple wheels, you can use the following shorthand to install al
 
 ```
 
-pip install <deephaven-plugins-path>/plugins/*/dist/*.whl
+pip install <deephaven-plugins-path>/plugins/_/dist/_.whl
 
 ```
 
@@ -194,7 +194,7 @@ For example, on reinstalls the above command becomes
 
 ```
 
-pip install --force-reinstall --no-deps <deephaven-plugins-path>/plugins/*/dist/*.whl
+pip install --force-reinstall --no-deps <deephaven-plugins-path>/plugins/_/dist/_.whl
 
 ```
 
