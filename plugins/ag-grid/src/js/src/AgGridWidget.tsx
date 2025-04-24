@@ -8,6 +8,7 @@ import { getSettings, RootState } from '@deephaven/redux';
 import { useSelector } from 'react-redux';
 import { themeQuartz } from '@ag-grid-community/theming';
 import type { AgGridReactProps } from '@ag-grid-community/react';
+import { ServerSideRowModelModule } from '@ag-grid-enterprise/server-side-row-model';
 import AgGridServerSideView from './AgGridServerSideView';
 import AgGridDhTheme from './AgGridDhTheme';
 import customStyles from './AgGridCustomStyles.css?inline';
@@ -34,13 +35,19 @@ export function AgGridWidget(
 
   const agGridProps: AgGridReactProps = useMemo(
     () => ({
-      suppressCellFocus: true,
+      modules: [ServerSideRowModelModule],
+      defaultColDef: {
+        filterParams: {
+          buttons: ['reset', 'apply'],
+        },
+      },
       rowSelection: {
         mode: 'multiRow',
         checkboxes: false,
         headerCheckbox: false,
         enableClickSelection: true,
       },
+      suppressCellFocus: true,
       theme,
     }),
     [theme]

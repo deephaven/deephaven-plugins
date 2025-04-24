@@ -5,7 +5,6 @@ import { WorkspaceSettings } from '@deephaven/redux';
 import { createFormatterFromSettings } from '@deephaven/jsapi-utils';
 import { ColDef } from '@ag-grid-community/core';
 import { AgGridReact, AgGridReactProps } from '@ag-grid-community/react';
-import { ServerSideRowModelModule } from '@ag-grid-enterprise/server-side-row-model';
 import { useMemo } from 'react';
 import ServerSideDatasource from './datasources/ServerSideDatasource';
 import AgGridTableUtils from './utils/AgGridTableUtils';
@@ -18,12 +17,6 @@ type AgGridServerSideViewProps = {
 };
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/AgGridView');
-
-const defaultColDef: Partial<ColDef> = Object.freeze({
-  filterParams: {
-    buttons: ['reset', 'apply'],
-  },
-});
 
 /**
  * AgGrid view that uses the Server-Side Row Model and a Deephaven table as a data source to display
@@ -65,14 +58,12 @@ export function AgGridServerSideView({
 
   return (
     <AgGridReact
-      defaultColDef={defaultColDef}
+      // eslint-disable-next-line react/jsx-props-no-spreading
+      {...agGridProps}
       columnDefs={colDefs}
       dataTypeDefinitions={formatter.cellDataTypeDefinitions}
       serverSideDatasource={datasource}
       rowModelType="serverSide"
-      modules={[ServerSideRowModelModule]}
-      // eslint-disable-next-line react/jsx-props-no-spreading
-      {...agGridProps}
     />
   );
 }
