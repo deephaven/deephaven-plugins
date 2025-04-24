@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Generator
+from pathlib import Path
 from typing import Callable, Any
 from plotly.graph_objects import Figure
 from abc import abstractmethod
@@ -919,24 +920,25 @@ class DeephavenFigure:
             format=format, width=width, height=height, scale=scale, validate=validate
         )
 
-    def to_image_uri(
+    def write_image(
         self,
+        file: str | Path,
         format: str = "png",
         width: int | None = None,
         height: int | None = None,
         scale: float | None = None,
         validate: bool = True,
         template: str | dict | None = None,
-    ) -> str:
+    ) -> None:
         """
-        Convert the figure to an image url.
-        The image is converted to a data string that can be embedded as an image.
-        If interested in getting the image as bytes for more general usage,
-        use to_image instead.
+        Convert the figure to an image bytes string
+        This API is based off of Plotly's Figure.write_image
+        https://plotly.github.io/plotly.py-docs/generated/plotly.io.write_image.html
 
         Args:
+            file: The file to write the image to
             format: The format of the image
-                One of png, jpg, jpeg, webp, svg
+                One of png, jpg, jpeg, webp, svg, pdf
             width: The width of the image in pixels
             height: The height of the image in pixels
             scale: The scale of the image
@@ -944,29 +946,12 @@ class DeephavenFigure:
                 A scale of less than one will decrease the resolution of the image
             validate: If the image should be validated before being converted
             template: The theme to use for the image
-
-        Returns:
-            The image as bytes
         """
-        bytes_ = self.to_image(
+        return self.get_hydrated_figure(template).write_image(
+            file=file,
             format=format,
             width=width,
             height=height,
             scale=scale,
             validate=validate,
-            template=template,
         )
-
-        mime_type_map = {
-            "png": "image/png",
-            "jpg": "image/jpeg",
-            "jpeg": "image/jpeg",
-            "webp": "image/webp",
-            "svg": "image/svg+xml",
-            "pdf": "application/pdf",
-        }
-        mime_type = mime_type_map.get(format, "image/png")
-
-        base64_str = base64.b64encode(bytes_).decode()
-
-        return f"data:{mime_type};base64,{base64_str}"

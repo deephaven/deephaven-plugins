@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { openPanel, gotoPage, SELECTORS } from './utils';
+import { openPanel, gotoPage } from './utils';
 
 test('Express loads', async ({ page }) => {
   await gotoPage(page, '');
@@ -59,10 +59,4 @@ test('Calendar line chart loads', async ({ page }) => {
   await gotoPage(page, '');
   await openPanel(page, 'line_calendar', '.js-plotly-plot');
   await expect(page.locator('.iris-chart-panel')).toHaveScreenshot();
-});
-
-test('Chart image loads', async ({ page }) => {
-  await gotoPage(page, '');
-  await openPanel(page, 'line_plot_img', SELECTORS.REACT_PANEL_VISIBLE);
-  await expect(page.locator(SELECTORS.REACT_PANEL_VISIBLE)).toHaveScreenshot();
 });
