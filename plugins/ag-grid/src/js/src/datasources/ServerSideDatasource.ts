@@ -1,11 +1,15 @@
 /* eslint-disable class-methods-use-this */
 import {
+  GridApi,
   IServerSideDatasource,
   IServerSideGetRowsParams,
   ViewportChangedEvent,
 } from '@ag-grid-community/core';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
+import { assertNotNull } from '@deephaven/utils';
+import AgGridSortUtils from '../utils/AgGridSortUtils';
+import AgGridFilterUtils from '../utils/AgGridFilterUtils';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/ServerSideDataSource');
 
@@ -24,6 +28,14 @@ export class ServerSideDatasource implements IServerSideDatasource {
   private viewportSubscription?: DhType.TableViewportSubscription;
 
   private sizeListenerCleanup?: () => void;
+
+  private viewportStartRow?: number;
+
+  private viewportEndRow?: number;
+
+  private filters?: DhType.FilterCondition[];
+
+  private sorts?: DhType.Sort[];
 
   /**
    * Create a Server Side Datasource that can be used with AG Grid.
@@ -83,6 +95,89 @@ export class ServerSideDatasource implements IServerSideDatasource {
     log.error('Request failed:', error);
   }
 
+  /**
+   * Create a new viewport subscription, closing the old one if it exists, and sets up
+   * listeners to update AG Grid when viewport data is updated.
+   *
+   * @param api AG Grid API instance
+   * @param firstRow Index of first viewport row
+   * @param lastRow Index of last viewport row
+   * @param filters Filters to apply to the table
+   * @param sorts Sorts to apply to the table
+   */
+  createViewportSubscription(
+    api: GridApi,
+    firstRow: number,
+    lastRow: number,
+    filters?: DhType.FilterCondition[],
+    sorts?: DhType.Sort[]
+  ): void {
+    log.debug('Creating new viewport subscription', firstRow, lastRow, sorts);
+
+    this.viewportSubscription?.close();
+
+    if (filters) this.table.applyFilter(filters);
+    if (sorts) this.table.applySort(sorts);
+    this.viewportSubscription = this.table.setViewport(firstRow, lastRow);
+    this.viewportSubscription?.addEventListener<DhType.ViewportData>(
+      this.dh.Table.EVENT_UPDATED,
+      ({ detail: newViewportData }) => {
+        log.debug('Updated', newViewportData);
+
+        // Map from the row index to the new data for that row
+        const rowUpdates = new Map<number, unknown>();
+        newViewportData.rows.forEach((row, index) => {
+          rowUpdates.set(
+            index + newViewportData.offset,
+            this.extractViewportRow(row, newViewportData.columns)
+          );
+        });
+
+        api.forEachNode((node, index) => {
+          if (rowUpdates.has(index)) {
+            node.setData(rowUpdates.get(index));
+          }
+        });
+
+        // Updating table size here as the SIZECHANGED event doesn't fire on either the
+        // table or subscription in some cases. This should be fixed in DH-19071.
+        api.setRowCount(this.table.size);
+      }
+    );
+
+    if (this.sizeListenerCleanup == null) {
+      // We also want to listen for when the table size changes, so we can notify AG Grid
+      this.sizeListenerCleanup = this.table.addEventListener<number>(
+        this.dh.Table.EVENT_SIZECHANGED,
+        ({ detail: newSize }) => {
+          log.debug('Table size changed', newSize);
+          api.setRowCount(newSize);
+        }
+      );
+
+      // For now only resize columns to fit data during initial mount
+      api.autoSizeAllColumns();
+    }
+  }
+
+  private updateFilters(newFilters: DhType.FilterCondition[]): boolean {
+    if (AgGridFilterUtils.areFiltersEqual(this.filters ?? [], newFilters)) {
+      return false;
+    }
+    log.debug2('Filters changed', newFilters);
+    this.filters = newFilters;
+    return true;
+  }
+
+  private updateSorts(newSorts: DhType.Sort[]): boolean {
+    if (AgGridSortUtils.areSortsEqual(this.sorts ?? [], newSorts)) {
+      return false;
+    }
+    log.debug2('Sorts changed', newSorts);
+    this.sorts = newSorts;
+    return true;
+  }
+
   async getRows(params: IServerSideGetRowsParams): Promise<void> {
     const { api, fail, request, success } = params;
     if (this.table == null) {
@@ -95,9 +190,37 @@ export class ServerSideDatasource implements IServerSideDatasource {
     // We don't need to worry about cancelling this request, as even if the next request comes in we should still be able to use the data
     const startRow = request.startRow ?? 0;
     const endRow = Math.max(startRow, (request.endRow ?? this.table.size) - 1);
+    const newSorts = AgGridSortUtils.parseSortModel(
+      this.table,
+      request.sortModel
+    );
+    const newFilters = AgGridFilterUtils.parseFilterModel(
+      this.dh,
+      this.table,
+      request.filterModel
+    );
+
     if (this.getRowsSubscription == null) {
       this.getRowsSubscription = this.table.setViewport(startRow, endRow);
       api.addEventListener('viewportChanged', this.handleViewportChanged);
+    } else if (this.updateFilters(newFilters) || this.updateSorts(newSorts)) {
+      this.getRowsSubscription?.close();
+
+      if (this.filters) this.table.applyFilter(this.filters);
+      if (this.sorts) this.table.applySort(this.sorts);
+      this.getRowsSubscription = this.table.setViewport(startRow, endRow);
+
+      // We need to update the viewport subscription as well
+      // The bounds in the getRows request are independent from the viewport bounds, use cached bounds
+      assertNotNull(this.viewportStartRow);
+      assertNotNull(this.viewportEndRow);
+      this.createViewportSubscription(
+        api,
+        this.viewportStartRow,
+        this.viewportEndRow,
+        this.filters,
+        this.sorts
+      );
     } else {
       this.getRowsSubscription.setViewport(startRow, endRow);
     }
@@ -118,40 +241,13 @@ export class ServerSideDatasource implements IServerSideDatasource {
     }
 
     log.debug('Viewport changed', firstRow, lastRow);
+    // Cache viewport bounds so the viewport subscription can be swapped out when filtering/sorting
+    this.viewportStartRow = firstRow;
+    this.viewportEndRow = lastRow;
+
     if (this.viewportSubscription == null) {
-      log.debug('Creating new viewport subscription');
       // We need to setup the new subscription. After it's created, we just need to update the viewport
-      this.viewportSubscription = this.table.setViewport(firstRow, lastRow);
-      this.viewportSubscription?.addEventListener<DhType.ViewportData>(
-        this.dh.Table.EVENT_UPDATED,
-        ({ detail: newViewportData }) => {
-          log.debug('Updated', newViewportData);
-
-          // Map from the row index to the new data for that row
-          const rowUpdates = new Map<number, unknown>();
-          newViewportData.rows.forEach((row, index) => {
-            rowUpdates.set(
-              index + newViewportData.offset,
-              this.extractViewportRow(row, newViewportData.columns)
-            );
-          });
-
-          api.forEachNode((node, index) => {
-            if (rowUpdates.has(index)) {
-              node.setData(rowUpdates.get(index));
-            }
-          });
-        }
-      );
-
-      // We also want to listen for when the table size changes, so we can notify AG Grid
-      this.sizeListenerCleanup = this.table.addEventListener<number>(
-        this.dh.Table.EVENT_SIZECHANGED,
-        ({ detail: newSize }) => {
-          log.debug('Table size changed', newSize);
-          api.setRowCount(newSize);
-        }
-      );
+      this.createViewportSubscription(api, firstRow, lastRow);
     } else {
       // We just need to update the viewport
       this.viewportSubscription.setViewport(firstRow, lastRow);
