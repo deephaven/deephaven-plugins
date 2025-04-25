@@ -13,4 +13,3 @@ file_6=ui_panel_loading.py
 file_7=ui_dialog.py
 file_8=ui_markdown_code.py
 file_9=ui_grid.py
-file_10=ui_image.py

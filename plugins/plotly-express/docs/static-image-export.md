@@ -1,6 +1,16 @@
 # Static Image Export
 
 Convert a `DeephavenFigure` to a static image using the `to_image_uri` method.
+In order to use this feature, you need to have the `kaleido` package installed.
+Either install will `all` extras or install `kaleido` separately.
+
+```sh
+pip install 'deephaven-plugin-plotly-express[all]'
+```
+or
+```sh
+pip install kaleido
+```
 
 > [!WARNING]
 > The image is generated on the server, so it does not have access to client-side information such as timezones or theme.
