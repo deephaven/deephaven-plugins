@@ -138,6 +138,10 @@
           {
             "label": "Chart Customization",
             "path": "unsafe-update-figure.md"
+          },
+          {
+            "label": "Static Image Export",
+            "path": "static-image-export.md"
           }
         ]
       }
