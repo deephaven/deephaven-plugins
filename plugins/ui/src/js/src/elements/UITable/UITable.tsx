@@ -14,8 +14,10 @@ import {
   type IrisGridContextMenuData,
   IrisGridProps,
   IrisGridUtils,
+  IrisGridCacheUtils,
   IrisGridState,
-  DehydratedIrisGridState,
+  type DehydratedIrisGridState,
+  type DehydratedGridState,
 } from '@deephaven/iris-grid';
 import {
   ColorValues,
@@ -30,8 +32,9 @@ import { TableUtils } from '@deephaven/jsapi-utils';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { getSettings, RootState } from '@deephaven/redux';
-import { GridMouseHandler } from '@deephaven/grid';
+import { GridMouseHandler, GridState } from '@deephaven/grid';
 import { EMPTY_ARRAY, ensureArray } from '@deephaven/utils';
+import { usePersistentState } from '@deephaven/plugin';
 import {
   DatabarConfig,
   FormattingRule,
@@ -45,7 +48,6 @@ import UITableContextMenuHandler, {
 } from './UITableContextMenuHandler';
 import UITableModel, { makeUiTableModel } from './UITableModel';
 import { UITableLayoutHints } from './JsTableProxy';
-import usePersistentState from '../hooks/usePersistentState';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
 
@@ -176,8 +178,6 @@ export function UITable({
   databars = EMPTY_ARRAY as unknown as DatabarConfig[],
   ...userStyleProps
 }: UITableProps): JSX.Element | null {
-  const id = useMemo(() => Math.random().toString(36).substr(2, 9), []);
-  console.log('render table', id);
   const [throwError] = useThrowError();
 
   // Margin looks wrong with ui.table, so we want to map margin to padding instead
@@ -286,40 +286,32 @@ export function UITable({
     model.setColorMap(colorMap);
   }
 
-  const prevState = useRef<IrisGridState | undefined>();
   const [dehydratedState, setDehydratedState] = usePersistentState<
-    DehydratedIrisGridState | undefined
-  >(undefined);
+    (DehydratedIrisGridState & DehydratedGridState) | undefined
+  >(undefined, { type: 'UITable', version: 1 });
   const initialState = useRef(dehydratedState);
 
-  const onStateChange = useCallback(
-    (newState: IrisGridState) => {
-      if (
-        model == null ||
-        newState.metrics == null ||
-        newState === prevState.current ||
-        newState.sorts === prevState.current?.sorts
-      ) {
-        return;
-      }
-      // console.log('onStateChange', newState);
-      prevState.current = newState;
-      setDehydratedState(
-        utils.dehydrateIrisGridState(model, {
-          ...newState,
-          metrics: {
-            userColumnWidths: newState.metrics.userColumnWidths,
-            userRowHeights: newState.metrics.userRowHeights,
-          },
-        })
-      );
-    },
-    [model, setDehydratedState, utils]
+  const memoizedStateFn = useMemo(
+    () => IrisGridCacheUtils.makeMemoizedCombinedGridStateDehydrator(),
+    []
   );
 
-  const hydratedState = useMemo(() => {
-    if (model && initialState.current) {
-      return utils.hydrateIrisGridState(model, initialState.current);
+  const onStateChange = useCallback(
+    (irisGridState: IrisGridState, gridState: GridState) => {
+      if (model == null) {
+        return;
+      }
+      setDehydratedState(memoizedStateFn(model, irisGridState, gridState));
+    },
+    [memoizedStateFn, model, setDehydratedState]
+  );
+
+  const initialHydratedState = useMemo(() => {
+    if (model && initialState.current != null) {
+      return {
+        ...utils.hydrateIrisGridState(model, initialState.current),
+        ...IrisGridUtils.hydrateGridState(model, initialState.current),
+      };
     }
   }, [model, utils]);
 
@@ -521,7 +513,7 @@ export function UITable({
         model={model}
         onStateChange={onStateChange}
         // eslint-disable-next-line react/jsx-props-no-spreading
-        {...hydratedState}
+        {...initialHydratedState}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...irisGridProps}
       />

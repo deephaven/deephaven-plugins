@@ -8,7 +8,7 @@ import React, {
 import { nanoid } from 'nanoid';
 import { WidgetDescriptor } from '@deephaven/dashboard';
 import Log from '@deephaven/log';
-import { EMPTY_FUNCTION } from '@deephaven/utils';
+import { EMPTY_ARRAY, EMPTY_FUNCTION } from '@deephaven/utils';
 import { ReactPanelManagerContext } from '../layout/ReactPanelManager';
 import { getRootChildren } from './DocumentUtils';
 import {
@@ -150,7 +150,9 @@ function DocumentHandler({
   }, [widgetData]);
 
   const getInitialData = useCallback(
-    (panelId: string) => widgetData.panelStates?.[panelId] ?? [],
+    (panelId: string) =>
+      widgetData.panelStates?.[panelId] ??
+      (EMPTY_ARRAY as unknown as unknown[]),
     [widgetData]
   );
 

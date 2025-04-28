@@ -21,6 +21,7 @@ import {
   LoadingOverlay,
 } from '@deephaven/components';
 import Log from '@deephaven/log';
+import { PersistentStateProvider } from '@deephaven/plugin';
 import PortalPanel from './PortalPanel';
 import { ReactPanelControl, useReactPanel } from './ReactPanelManager';
 import { ReactPanelProps } from './LayoutUtils';
@@ -208,50 +209,9 @@ function ReactPanel({
     renderedChildren = children;
   }
 
-  const [render, setRender] = useState(0);
-
-  const persistentData = useRef({
-    initial: getInitialData(),
-    prev: [] as unknown[],
-    next: [] as unknown[],
-  });
-
-  console.log('panel render', renderedChildren);
-
-  const panelContextValue = useMemo(
-    () => ({
-      panelId,
-      addPanelState(state: unknown) {
-        persistentData.current.next.push(state);
-      },
-      initialStateIterator: persistentData.current.initial[Symbol.iterator](),
-      getInitialState() {
-        // eslint-disable-next-line react/no-this-in-sfc
-        const { value, done } = this.initialStateIterator.next();
-        return value;
-      },
-      trigger() {
-        persistentData.current.next = [];
-        // eslint-disable-next-line react/no-this-in-sfc
-        this.isTracking = true;
-        setRender(prev => prev + 1);
-      },
-      isTracking: false,
-    }),
-    [panelId]
-  );
-
-  useEffect(() => {
-    console.log('panel effect', persistentData.current.next.length);
-    persistentData.current.prev = persistentData.current.next;
-    persistentData.current.next = [];
-    panelContextValue.isTracking = false;
-    onDataChange(persistentData.current.prev);
-  }, [render, panelContextValue, onDataChange]);
-
   return portal
     ? ReactDOM.createPortal(
-        <ReactPanelContext.Provider value={panelContextValue}>
+        <ReactPanelContext.Provider value={panelId}>
           <View
             height="100%"
             width="100%"
@@ -287,9 +247,14 @@ function ReactPanel({
                  * Don't render the children if there's an error with the widget. If there's an error with the widget, we can assume the children won't render properly,
                  * but we still want the panels to appear so things don't disappear/jump around.
                  */}
-                {React.Children.map(renderedChildren, child =>
-                  React.cloneElement(child as React.ReactElement)
-                )}
+                <PersistentStateProvider
+                  initialState={getInitialData()}
+                  onChange={onDataChange}
+                >
+                  {React.Children.map(renderedChildren, child =>
+                    React.cloneElement(child as React.ReactElement)
+                  )}
+                </PersistentStateProvider>
               </ReactPanelErrorBoundary>
             </Flex>
           </View>
