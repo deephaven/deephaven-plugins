@@ -35,7 +35,7 @@ import {
   type SimplePivotSchema,
 } from './SimplePivotUtils';
 
-const log = Log.module('IrisGridSimplePivotModel');
+const log = Log.module('@deephaven/simple-pivot/IrisGridSimplePivotModel');
 
 function makeModel(
   dh: typeof DhType,
@@ -223,7 +223,6 @@ class IrisGridSimplePivotModel extends IrisGridModel {
   );
 
   get initialColumnHeaderGroups(): readonly ColumnHeaderGroup[] {
-    log.debug('get initialColumnHeaderGroups');
     return this.getCachedColumnHeaderGroups(this.columnMap, this.schema);
   }
 

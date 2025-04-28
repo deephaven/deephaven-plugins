@@ -4,7 +4,7 @@ from deephaven.plugin.utilities import create_js_plugin, DheSafeCallbackWrapper
 from .simple_pivot_type import SimplePivotType
 
 # The namespace that the Python plugin will be registered under.
-PACKAGE_NAMESPACE = "simple_pivot"
+PACKAGE_NAMESPACE = "deephaven.simple_pivot"
 # Where the Javascript plugin is. This is set in setup.py.
 JS_NAME = "_js"
 

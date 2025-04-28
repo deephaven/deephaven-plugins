@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from deephaven.plugin.object_type import MessageStream
 
 

@@ -2,15 +2,12 @@ import { type dh } from '@deephaven/jsapi-types';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import { useCallback, useEffect, useState } from 'react';
 import { type IrisGridModel } from '@deephaven/iris-grid';
-import Log from '@deephaven/log';
 import IrisGridSimplePivotModel from './IrisGridSimplePivotModel';
 
 import {
   type KeyColumnArray,
   type SimplePivotSchema,
 } from './SimplePivotUtils';
-
-const log = Log.module('useIrisGridSimplePivotModel');
 
 export interface SimplePivotFetchResult {
   columnMap: KeyColumnArray;
@@ -54,8 +51,6 @@ export function useIrisGridSimplePivotModel(
   const [error, setError] = useState<unknown>();
   const [isLoading, setIsLoading] = useState(true);
 
-  log.debug('render useIrisGridSimplePivotModel', model, error);
-
   // Close the model when component is unmounted
   useEffect(
     () => () => {
@@ -67,10 +62,8 @@ export function useIrisGridSimplePivotModel(
   );
 
   const makeModel = useCallback(async () => {
-    log.debug('Fetching model');
     const { columnMap, keyTable, pivotWidget, schema, table, totalsTable } =
       await fetch();
-    log.debug('Fetching model before new Model');
     return new IrisGridSimplePivotModel(
       dh,
       table,
@@ -96,7 +89,6 @@ export function useIrisGridSimplePivotModel(
   }, [makeModel]);
 
   useEffect(() => {
-    log.debug('useEffect makeModel');
     let cancelled = false;
     async function init() {
       setIsLoading(true);
