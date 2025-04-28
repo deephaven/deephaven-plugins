@@ -2,20 +2,101 @@ from __future__ import annotations
 
 import json
 from collections.abc import Generator
+from pathlib import Path
 from typing import Callable, Any
 from plotly.graph_objects import Figure
 from abc import abstractmethod
 from copy import copy
+import base64
 
 from deephaven.table import PartitionedTable, Table
 from deephaven.execution_context import ExecutionContext, get_exec_ctx
 from deephaven.liveness_scope import LivenessScope
+import deephaven.pandas as dhpd
 
 from ..shared import args_copy
 from ..data_mapping import DataMapping
 from ..exporter import Exporter
 from .RevisionManager import RevisionManager
 from .FigureCalendar import FigureCalendar, Calendar
+
+SINGLE_VALUE_REPLACEMENTS = {
+    "indicator": {"value", "delta/reference", "title/text"},
+}
+
+
+def is_single_value_replacement(
+    figure_type: str,
+    split_path: list[str],
+) -> bool:
+    """
+    Check if the trace element needs to be replaced with a single value instead of a list.
+
+    Args:
+        figure_type: The type of the figure
+        split_path: The split path of the trace element
+
+    Returns:
+        True if the trace element needs to be replaced with a single value, False otherwise
+    """
+    remaining_path = "/".join(split_path)
+
+    is_single_value = False
+
+    if remaining_path in SINGLE_VALUE_REPLACEMENTS.get(figure_type, set()):
+        is_single_value = True
+
+    return is_single_value
+
+
+def color_in_colorway(trace_element: dict, colorway: list[str]) -> bool:
+    """
+    Check if the color in the trace element is in the colorway.
+    Colors in the colorway should be lower case.
+
+    Args:
+        trace_element: The trace element to check
+        colorway: The colorway to check against
+
+    Returns:
+        True if the color is in the colorway, False otherwise
+    """
+    if not isinstance(trace_element.get("color"), str):
+        return False
+
+    color = trace_element["color"]
+
+    if color.lower() in colorway:
+        return True
+    return False
+
+
+def remove_data_colors(
+    figure: dict[str, Any],
+) -> None:
+    """
+    Deephaven plotly express (and plotly express itself) apply custom colors
+    to traces, but in many cases they need to be removed for theming
+    to work properly. This function removes the colors from the traces
+    if they are in the colorway.
+
+    Args:
+        figure: The plotly figure dict to remove colors from
+    """
+    colorway = (
+        figure.get("layout", {})
+        .get("template", {})
+        .get("layout", {})
+        .get("colorway", [])
+    )
+    for i in range(len(colorway)):
+        colorway[i] = colorway[i].lower()
+
+    for trace in figure.get("data", []):
+        if color_in_colorway(trace.get("marker", {}), colorway):
+            trace["marker"]["color"] = None
+        if color_in_colorway(trace.get("line", {}), colorway):
+            trace["line"]["color"] = None
 
 
 def has_color_args(call_args: dict[str, Any]) -> bool:
@@ -627,6 +708,8 @@ class DeephavenFigure:
     def get_plotly_fig(self) -> Figure | None:
         """
         Get the plotly figure for this figure
+        Note that this will have placeholder data in it
+        See get_hydrated_figure for a hydrated version with the underlying data
 
         Returns:
             The plotly figure
@@ -746,3 +829,129 @@ class DeephavenFigure:
         """
         self._calendar = calendar
         self._figure_calendar = FigureCalendar(calendar)
+
+    def get_hydrated_figure(self, template: str | dict | None = None) -> Figure:
+        """
+        Get the hydrated plotly figure for this Deephaven figure. This will replace all
+        placeholder data within traces with the actual data from the Deephaven table.
+
+        At this time this does not have any client-side features such as calendar and system theme
+        but a template theme can be applied to the figure.
+
+        Args:
+            template: The theme to use for the figure
+
+        Returns:
+            The hydrated plotly figure
+        """
+        exporter = Exporter()
+
+        figure = self.to_dict(exporter)
+        tables, _, _ = exporter.references()
+
+        for mapping in figure["deephaven"]["mappings"]:
+            table = tables[mapping["table"]]
+            data = dhpd.to_pandas(table)
+
+            for column, paths in mapping["data_columns"].items():
+                for path in paths:
+                    split_path = path.split("/")
+                    # remove empty str, "plotly", and "data"
+                    split_path = split_path[3:]
+                    figure_update = figure["plotly"]["data"]
+
+                    # next should always be an index within the data
+                    index = int(split_path.pop(0))
+                    figure_update = figure_update[index]
+
+                    # at this point, the figure_update is a figure trace with a specific type
+                    figure_type = figure_update["type"]
+
+                    is_single_value = is_single_value_replacement(
+                        figure_type, split_path
+                    )
+
+                    while len(split_path) > 1:
+                        item = split_path.pop(0)
+                        figure_update = figure_update[item]
+
+                    column_data = data[column].tolist()
+                    if is_single_value:
+                        column_data = column_data[0]
+                    figure_update[split_path[0]] = column_data
+
+        if template:
+            remove_data_colors(figure["plotly"])
+            figure["plotly"]["layout"].update(template=template)
+
+        new_figure = Figure(figure["plotly"])
+
+        return new_figure
+
+    def to_image(
+        self,
+        format: str | None = "png",
+        width: int | None = None,
+        height: int | None = None,
+        scale: float | None = None,
+        validate: bool = True,
+        template: str | dict | None = None,
+    ) -> bytes:
+        """
+        Convert the figure to an image bytes string
+        This API is based off of Plotly's Figure.to_image
+        https://plotly.github.io/plotly.py-docs/generated/plotly.io.to_image.html
+
+        Args:
+            format: The format of the image
+                One of png, jpg, jpeg, webp, svg, pdf
+            width: The width of the image in pixels
+            height: The height of the image in pixels
+            scale: The scale of the image
+                A scale of larger than one will increase the resolution of the image
+                A scale of less than one will decrease the resolution of the image
+            validate: If the image should be validated before being converted
+            template: The theme to use for the image
+
+        Returns:
+            The image as bytes
+        """
+        return self.get_hydrated_figure(template).to_image(
+            format=format, width=width, height=height, scale=scale, validate=validate
+        )
+
+    def write_image(
+        self,
+        file: str | Path,
+        format: str = "png",
+        width: int | None = None,
+        height: int | None = None,
+        scale: float | None = None,
+        validate: bool = True,
+        template: str | dict | None = None,
+    ) -> None:
+        """
+        Convert the figure to an image bytes string
+        This API is based off of Plotly's Figure.write_image
+        https://plotly.github.io/plotly.py-docs/generated/plotly.io.write_image.html
+
+        Args:
+            file: The file to write the image to
+            format: The format of the image
+                One of png, jpg, jpeg, webp, svg, pdf
+            width: The width of the image in pixels
+            height: The height of the image in pixels
+            scale: The scale of the image
+                A scale of larger than one will increase the resolution of the image
+                A scale of less than one will decrease the resolution of the image
+            validate: If the image should be validated before being converted
+            template: The theme to use for the image
+        """
+        return self.get_hydrated_figure(template).write_image(
+            file=file,
+            format=format,
+            width=width,
+            height=height,
+            scale=scale,
+            validate=validate,
+        )

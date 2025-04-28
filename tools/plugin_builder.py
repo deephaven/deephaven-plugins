@@ -231,6 +231,20 @@ def run_build(
             os._exit(1)
 
 
+def install_with_all_extras(
+    install: str,
+    wheels: str,
+) -> None:
+    """
+    Install all extras for the plugins
+
+    Args:
+        install: The command to use to install the plugins
+        wheels: The wheels to install
+    """
+    run_command(f'find {wheels} | xargs -I {{}} {install} "{{}}[all]"')
+
+
 def run_install(
     plugins: tuple[str],
     reinstall: bool,
@@ -254,10 +268,10 @@ def run_install(
         for plugin in plugins:
             # a plugin would have failed in the build step if it didn't have a setup.cfg
             click.echo(f"Installing {plugin}")
-            run_command(f"{install} {plugins_dir}/{plugin}/dist/*")
+            install_with_all_extras(install, f"{plugins_dir}/{plugin}/dist/*")
     else:
         click.echo("Installing all plugins")
-        run_command(f"{install} {plugins_dir}/*/dist/*")
+        install_with_all_extras(install, f"{plugins_dir}/*/dist/*")
 
 
 def run_docs(

@@ -48,7 +48,8 @@ RUN find ./plugins -maxdepth 1 -mindepth 1 -type d -exec python3 -m build --whee
 
 FROM ghcr.io/deephaven/server:edge
 COPY --link --from=build /work/ /opt/deephaven/config/plugins/
-RUN pip install /opt/deephaven/config/plugins/plugins/*/dist/*.whl
+# Tagging with all ensures that every optional package is installed
+RUN find /opt/deephaven/config/plugins/plugins/*/dist/*.whl | xargs -I {} pip install {}[all]
 
 COPY --link docker/config/deephaven.prop /opt/deephaven/config/deephaven.prop
 
