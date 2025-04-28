@@ -890,7 +890,7 @@ class DeephavenFigure:
 
     def to_image(
         self,
-        format: str = "png",
+        format: str | None = "png",
         width: int | None = None,
         height: int | None = None,
         scale: float | None = None,
