@@ -1,6 +1,6 @@
 {
   "name": "@deephaven/js-plugin-simple-pivot",
-  "version": "0.0.1",
+  "version": "0.0.2-dev.858+9338aea",
   "description": "Simple Pivot plugin for Deephaven",
   "keywords": [
     "Deephaven",
@@ -14,8 +14,8 @@
     "build": "vite build"
   },
   "devDependencies": {
-    "@deephaven/tsconfig": "^0.72.0",
     "@deephaven/jsapi-types": "^1.0.0-dev0.35.2",
+    "@deephaven/tsconfig": "^0.72.0",
     "@types/react": "^17.0.2",
     "@types/react-dom": "^17.0.2",
     "@vitejs/plugin-react-swc": "^3.0.0",
@@ -44,5 +44,6 @@
   },
   "files": [
     "dist/index.js"
-  ]
+  ],
+  "gitHead": "9338aeacea5b124a0da4e473afc82d22687f91ad"
 }
