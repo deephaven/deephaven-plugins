@@ -26,7 +26,7 @@ def table_of_contents():
 
 ### Example Import in Deephaven Core
 
-```python
+```python skip-test
 # file2.py
 # Tell the Python interpreter where the data directory is located
 import sys
@@ -75,7 +75,7 @@ def table_of_contents():
 
 ### Example Import in Deephaven Enterprise
 
-```python
+```python skip-test
 # file2.py
 # Use the notebook module to meta_import file1.py
 from deephaven_enterprise.notebook import meta_import

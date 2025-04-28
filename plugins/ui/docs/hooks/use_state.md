@@ -30,19 +30,19 @@ Recommendations for using state and creating state variables:
 
 `use_state` takes a parameter that intializes the state to an initial value:
 
-```python
+```python skip-test
 answer, set_answer = ui.use_state(42)
 ```
 
 In the example above, `set_answer` initializes to the value `42`. If you pass a function into the initializer, it will be called on the first initialization. This is useful if you have an expensive computation you want to set as your state:
 
-```python
+```python skip-test
 complex_item, set_complex_item = ui.use_state(lambda: complex_function())
 ```
 
 Note the initializer function does not take any parameters, and should be deterministic. If you wish to store a function in your state, return that function as a result of a function:
 
-```python
+```python skip-test
 operation, set_operation = ui.use_state(lambda: math.sin)
 ```
 
@@ -94,7 +94,7 @@ result = my_component()
 
 You can update the state using the previous value. However, let's say you have a function to update the count by three:
 
-```python
+```python skip-test
 def handle_press():
     set_count(count + 1)  # set_age(0 + 1)
     set_count(count + 1)  # set_age(0 + 1)
@@ -103,7 +103,7 @@ def handle_press():
 
 You can instead pass in an updater function that will allow you to use the previous value:
 
-```python
+```python skip-test
 def handle_press():
     set_count(lambda c: c + 1)  # set_age(0 + 1)
     set_count(lambda c: c + 1)  # set_age(1 + 1)

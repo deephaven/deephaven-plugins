@@ -194,7 +194,7 @@ An effect will run after the initial render (mount) and any subsequent render wh
 
 In this example below, we connect to a server when the host or scheme changes. The effect will run when the component is mounted, and when the host or scheme is changed:
 
-```python
+```python skip-test
 @ui.component
 def ui_server(scheme: str):  # `scheme` is a reactive prop passed in
     host, set_host = ui.use_state("localhost")  # `host` is a reactive state variable
@@ -215,7 +215,7 @@ def ui_server(scheme: str):  # `scheme` is a reactive prop passed in
 
 However, if we specify an empty dependency list, the effect will only run once when the component is mounted, which is probably not what we want:
 
-```python
+```python skip-test
 @ui.component
 def ui_server(scheme: str):
     host, set_host = ui.use_state("localhost")
@@ -236,7 +236,7 @@ def ui_server(scheme: str):
 
 If you use constant values in your effect, you can omit them from the dependency list. If the `host` was instead a constant outside of the component and not reactive, you can omit it from the dependency list:
 
-```python
+```python skip-test
 host = "localhost"
 
 
@@ -257,7 +257,7 @@ def ui_server(scheme: str):
 
 If your effect doesn't use any reactive values, its dependency list should be empty:
 
-```python
+```python skip-test
 scheme = "https"
 host = "localhost"
 
@@ -283,7 +283,7 @@ def ui_server():
 
 If you specify dependencies, the effect will run on initial render and on subsequent re-renders when the dependencies change.
 
-```python
+```python skip-test
 ui.use_effect(..., [scheme, host])  # Runs again when host or scheme changes
 ```
 
@@ -331,7 +331,7 @@ app = ui_app()
 
 If you specify an empty dependency list, the effect will only run once when the component is mounted, and cleanup on unmount. It will not re-run when any reactive values change.
 
-```python
+```python skip-test
 ui.use_effect(..., [])  # Does not run again
 ```
 
@@ -375,7 +375,7 @@ app = ui_app()
 
 If you specify no dependency list, the effect will run after every single render.
 
-```python
+```python skip-test
 ui.use_effect(...)  # Runs after every render
 ```
 
@@ -423,7 +423,7 @@ app = ui_app()
 
 If your effect depends on an object or function that is recreated on every render, you may want to memoize it to avoid unnecessary re-renders.
 
-```python
+```python skip-test
 class ServerDetails:
     scheme: str
     host: str
@@ -440,7 +440,7 @@ class ServerDetails:
 def ui_server():
     message, set_message = ui.use_state("")
 
-    # 🚩 this creates a new object on every re-render
+    # ❌ this creates a new object on every re-render
     details = ServerDetails("https", "localhost")
 
     def disconnect():
@@ -450,7 +450,7 @@ def ui_server():
         print(f"Connected to {details}")
         return disconnect
 
-    # 🚩 As a result, these dependencies are different on every re-render and the effect will always run again
+    # ❌ As a result, these dependencies are different on every re-render and the effect will always run again
     ui.use_effect(connect, [details])
 
     # ...
@@ -458,7 +458,7 @@ def ui_server():
 
 To avoid this, declare the object inside the effect:
 
-```python
+```python skip-test
 @ui.component
 def ui_server():
     message, set_message = ui.use_state("")
@@ -526,12 +526,12 @@ server = ui_server()
 
 Similarly, if your effect depends on a function declared within the component, you may want to memoize it to avoid unnecessary re-renders.
 
-```python
+```python skip-test
 @ui.component
 def ui_server():
     message, set_message = ui.use_state("")
 
-    # 🚩 this function is a new function on every re-render
+    # ❌ this function is a new function on every re-render
     def create_details():
         return ServerDetails("https", "localhost")
 
@@ -543,7 +543,7 @@ def ui_server():
         print(f"Connected to {details}")
         return lambda: disconnect(details)
 
-    # 🚩 As a result, these dependencies are different on every re-render and the effect will always run again
+    # ❌ As a result, these dependencies are different on every re-render and the effect will always run again
     ui.use_effect(connect, [create_details])
 
     # ...
@@ -551,7 +551,7 @@ def ui_server():
 
 To avoid this, move the function inside the effect:
 
-```python
+```python skip-test
 @ui.component
 def ui_server():
     message, set_message = ui.use_state("")

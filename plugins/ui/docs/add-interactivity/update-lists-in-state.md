@@ -64,7 +64,7 @@ artist_list_example = artist_list()
 
 The `concatenation` syntax also lets you prepend by placing it before the original list:
 
-```python
+```python skip-test
 set_artists([name] + artists)
 ```
 
@@ -271,7 +271,7 @@ Here, you use the `copy()` method to create a copy of the original list first. N
 
 However, even if you copy the list, you cannot mutate existing items inside of it directly. This is because copying is shallow and the new list will contain the same items as the original one. So, if you modify a dictionary inside the copied list, you are mutating the existing state. For example, code like this is a problem.
 
-```python
+```python skip-test
 artists_copy = artists.copy()
 artists_copy[0]["name"] = "Splinter"
 set_artists(artists_copy)
@@ -339,7 +339,7 @@ bucket_list_example = bucket_list()
 
 The problem is in code like this:
 
-```python
+```python skip-test
 my_list_copy = my_list.copy()
 artwork = next((a for a in my_list_copy if a["id"] == artworkId), None)
 artwork["seen"] = next_seen  # Problem: mutates an existing item

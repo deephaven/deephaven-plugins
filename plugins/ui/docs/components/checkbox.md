@@ -95,7 +95,7 @@ def ui_checkbox_event_example():
     selected, set_selected = ui.use_state(False)
     return ui.flex(
         ui.checkbox("Subscribe", is_selected=selected, on_change=set_selected),
-        ui.text(value="Subscribed!" if selected else "Not subscribed!"),
+        ui.text("Subscribed!" if selected else "Not subscribed!"),
         direction="column",
     )
 

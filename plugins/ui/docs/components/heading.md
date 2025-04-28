@@ -18,7 +18,6 @@ my_heading_basic = ui.heading("Hello world")
 
 Consider using a [`text`](./text.md) component if the content does not require a specific heading level or semantic importance, such as for paragraphs or inline text.
 
-
 ## Content
 
 The heading component represents a header that inherits styling from its parent container.
@@ -38,14 +37,15 @@ def ui_heading_content_examples():
         ui.heading("Heading 6", level=6),
         ui.time_field(
             label="Sample Label",
-            contextual_help=ui.contextual_help(ui.heading("Content tips")),
+            contextual_help=ui.contextual_help(
+                ui.heading("Content tips"), ui.content("Tips go here")
+            ),
         ),
     ]
 
 
 my_heading_content_examples = ui_heading_content_examples()
 ```
-
 
 ## Color
 
