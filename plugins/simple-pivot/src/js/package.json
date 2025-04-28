@@ -1,6 +1,6 @@
 {
   "name": "@deephaven/js-plugin-simple-pivot",
-  "version": "0.0.2-dev.858+9338aea",
+  "version": "0.0.2-dev.859+ae16f5e",
   "description": "Simple Pivot plugin for Deephaven",
   "keywords": [
     "Deephaven",
@@ -40,10 +40,11 @@
     "memoize-one": "^5.1.1"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   },
   "files": [
     "dist/index.js"
   ],
-  "gitHead": "9338aeacea5b124a0da4e473afc82d22687f91ad"
+  "gitHead": "ae16f5ea2c980eb66242796cee448b626f558879"
 }
