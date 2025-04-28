@@ -241,9 +241,7 @@ ui_iris_avg = ui.panel(iris_avg, title="Average")
 ui_iris_max = ui.panel(iris_max, title="Max")
 ui_iris_min = ui.panel(iris_min, title="Min")
 
-_iris_agg_stack = ui.stack(ui_iris_avg, ui_iris_max, ui_iris_min)
-
-iris_dashboard_stack = ui.dashboard(_iris_agg_stack)
+iris_dashboard_stack = ui.dashboard(ui.stack(ui_iris_avg, ui_iris_max, ui_iris_min))
 ```
 
 ![img](_assets/deephaven-ui-crash-course/iris_dashboard_stack.png)
@@ -396,7 +394,7 @@ Next, embed your custom component in your dashboard.
 ```python test-set=0
 iris_species_dashboard = ui.dashboard(
     ui.column(
-        ui.row(about_panel, _iris_agg_stack), ui.row(sepal_panel, species_picker_panel)
+        ui.row(about_panel, ui.stack(ui_iris_avg, ui_iris_max, ui_iris_min)), ui.row(sepal_panel, species_picker_panel)
     )
 )
 ```
@@ -406,7 +404,7 @@ iris_species_dashboard = ui.dashboard(
 The top row contains lots of empty space. Resize the height of the top row to 1 and the bottom row to 2 for a ratio of 1:2, so the bottom row is twice the height of the top row.
 
 ```py test-set=0
-iris_species_dashboard_resized = ui.dashboard(ui.column(ui.row(about_panel, _iris_agg_stack, height=1), ui.row(sepal_panel, species_picker_panel, height=2)))
+iris_species_dashboard_resized = ui.dashboard(ui.column(ui.row(about_panel, ui.stack(ui_iris_avg, ui_iris_max, ui_iris_min), height=1), ui.row(sepal_panel, species_picker_panel, height=2)))
 ```
 
 ![img](_assets/deephaven-ui-crash-course/iris_species_dashboard_resized.png)
@@ -475,7 +473,7 @@ def create_species_dashboard():
     sepal_panel = create_sepal_panel(set_species)
 
     return ui.column(
-        ui.row(about_panel, _iris_agg_stack, height=1),
+        ui.row(about_panel, ui.stack(ui_iris_avg, ui_iris_max, ui_iris_min), height=1),
         ui.row(sepal_panel, species_panel, height=2),
     )
 
@@ -567,7 +565,7 @@ def create_species_dashboard():
     sepal_panel = create_sepal_panel(set_species)
 
     return ui.column(
-        ui.row(about_panel, _iris_agg_stack, height=1),
+        ui.row(about_panel, ui.stack(ui_iris_avg, ui_iris_max, ui_iris_min), height=1),
         ui.row(sepal_panel, species_panel, height=2),
     )
 
@@ -621,7 +619,7 @@ def create_species_dashboard():
     sepal_panel = create_sepal_panel(set_species)
 
     return ui.column(
-        ui.row(about_panel, _iris_agg_stack, height=1),
+        ui.row(about_panel, ui.stack(ui_iris_avg, ui_iris_max, ui_iris_min), height=1),
         ui.row(sepal_panel, species_panel, height=2),
     )
 
@@ -688,7 +686,7 @@ ui_iris_avg = ui.panel(iris_avg, title="Average")
 ui_iris_max = ui.panel(iris_max, title="Max")
 ui_iris_min = ui.panel(iris_min, title="Min")
 
-_iris_agg_stack = ui.stack(ui_iris_avg, ui_iris_max, ui_iris_min)
+ui.stack(ui_iris_avg, ui_iris_max, ui_iris_min) = ui.stack(ui_iris_avg, ui_iris_max, ui_iris_min)
 
 species_table = iris.view("Species").select_distinct()
 
@@ -777,7 +775,7 @@ def create_species_dashboard():
     sepal_panel = create_sepal_panel(set_species)
 
     return ui.column(
-        ui.row(about_panel, _iris_agg_stack, height=1),
+        ui.row(about_panel, ui.stack(ui_iris_avg, ui_iris_max, ui_iris_min), height=1),
         ui.row(sepal_panel, species_panel, height=2),
     )
 
