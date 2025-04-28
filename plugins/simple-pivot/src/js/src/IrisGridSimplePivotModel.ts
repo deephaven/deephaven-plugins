@@ -35,7 +35,9 @@ import {
   type SimplePivotSchema,
 } from './SimplePivotUtils';
 
-const log = Log.module('@deephaven/simple-pivot/IrisGridSimplePivotModel');
+const log = Log.module(
+  '@deephaven/js-plugin-simple-pivot/IrisGridSimplePivotModel'
+);
 
 function makeModel(
   dh: typeof DhType,

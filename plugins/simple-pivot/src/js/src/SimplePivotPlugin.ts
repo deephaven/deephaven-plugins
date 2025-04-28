@@ -4,7 +4,7 @@ import { SimplePivotWidget } from './SimplePivotWidget';
 
 // Register the plugin with Deephaven
 export const SimplePivotPlugin: WidgetPlugin = {
-  name: '@deephaven/simple-pivot',
+  name: '@deephaven/js-plugin-simple-pivot',
   type: PluginType.WIDGET_PLUGIN,
   supportedTypes: 'simplepivot.SimplePivotTable',
   component: SimplePivotWidget,

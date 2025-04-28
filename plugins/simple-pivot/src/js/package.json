@@ -1,5 +1,5 @@
 {
-  "name": "@deephaven/simple-pivot",
+  "name": "@deephaven/js-plugin-simple-pivot",
   "version": "0.0.1",
   "description": "Simple Pivot plugin for Deephaven",
   "keywords": [
