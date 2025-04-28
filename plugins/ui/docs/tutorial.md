@@ -404,7 +404,12 @@ iris_species_dashboard = ui.dashboard(
 The top row contains lots of empty space. Resize the height of the top row to 1 and the bottom row to 2 for a ratio of 1:2, so the bottom row is twice the height of the top row.
 
 ```py test-set=0
-iris_species_dashboard_resized = ui.dashboard(ui.column(ui.row(about_panel, ui.stack(ui_iris_avg, ui_iris_max, ui_iris_min), height=1), ui.row(sepal_panel, species_picker_panel, height=2)))
+iris_species_dashboard_resized = ui.dashboard(
+    ui.column(
+        ui.row(about_panel, ui.stack(ui_iris_avg, ui_iris_max, ui_iris_min), height=1),
+        ui.row(sepal_panel, species_picker_panel, height=2),
+    )
+)
 ```
 
 ![img](_assets/deephaven-ui-crash-course/iris_species_dashboard_resized.png)
