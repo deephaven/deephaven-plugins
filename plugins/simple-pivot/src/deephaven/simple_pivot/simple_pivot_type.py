@@ -79,7 +79,7 @@ class SimplePivotType(BidirectionalObjectType):
             str: The name of the object
         """
         # this name should match the supportedTypes in SimplePivotPlugin.ts
-        return "simplepivot.SimplePivotTable"
+        return "test.simplepivot.SimplePivotTable"
 
     def is_type(self, obj: Any) -> bool:
         """
