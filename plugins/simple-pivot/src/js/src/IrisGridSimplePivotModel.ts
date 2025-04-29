@@ -511,7 +511,6 @@ class IrisGridSimplePivotModel extends IrisGridModel {
     if (this.listenerCount > 0) {
       this.addListeners(model);
     }
-    // TODO: which events need to be dispatched on model change and in what order?
     // Dispatch model updated event
     this.dispatchEvent(
       new EventShimCustomEvent(IrisGridModel.EVENT.UPDATED, {

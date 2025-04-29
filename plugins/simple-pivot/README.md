@@ -1,6 +1,6 @@
 # Deephaven Plugin for Simple Pivot
 
-- TODO
+The plugin adds UI support for Simple Pivot tables in Core+ workers in Enterprise.
 
 ## Plugin Structure
 
@@ -21,8 +21,45 @@ It's recommended to use `tox` to run the tests, and the `tox.ini` file is includ
 
 ## Building the Plugin
 
-Use the [`plugin_builder.py`](../../README.md#using-plugin_builderpy) from the root directory to build the plugin.
+Use the [`plugin_builder.py`](../../README.md#using-plugin_builderpy) from the root directory.
+
+## Installation
+
+1. Add `deephaven-plugin-simple-pivot` to Core+ dependencies in `requirements.txt`
+   
+2. Add `@deephaven/js-plugin-simple-pivot` js package to `pluginList` in `DhcInDhe/gradle.build`
 
 ## Using the Plugin
 
-- TODO
+Groovy API:
+```
+import io.deephaven.simplepivot.SimplePivotTable
+pivotTable = SimplePivotTable.FACTORY.create(table, [rowCol], [colCol], valueCol, aggSpec)
+```
+
+Example with ticket data:
+```
+import io.deephaven.api.agg.spec.AggSpec
+import io.deephaven.simplepivot.SimplePivotTable
+t = timeTable("PT1s").update("I=i", "J=i%171", "K=i%237");
+ticking_pivot = SimplePivotTable.FACTORY.create(t, ["J"], ["K"], "I", AggSpec.absSum())
+```
+
+Python API:
+```
+from deephaven.experimental.pivot import create_pivot
+ticking_pivot = create_pivot(table, [rowCol], [colCol], valueCol, aggSpec)
+```
+
+Example with ticket data:
+```
+from deephaven.agg import sum_
+from deephaven import time_table
+
+t = time_table("PT0.1s").update(["I=i", "J=(i*1201) % 1213", "K=(i*1217)%1223"])
+
+ticking_pivot = create_pivot(t, ['J'], ['K'], 'I', sum_())
+```
+
+
+
