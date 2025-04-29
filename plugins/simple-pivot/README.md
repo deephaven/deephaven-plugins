@@ -4,13 +4,7 @@ The plugin adds UI support for Simple Pivot tables in Core+ workers in Enterpris
 
 ## Plugin Structure
 
-The `src` directory contains the Python and JavaScript code for the plugin.  
-Within the `src` directory, the simple_pivot directory contains the Python code, and the `js` directory contains the JavaScript code.  
-
-The Python files have the following structure:  
-`simple_pivot_object.py` defines a simple Python class that can send messages to the client. This object can be modified to have other plugin functionality or replaced with a different object entirely, depending on the plugin's needs.  
-`simple_pivot_type.py` defines the Python type for the plugin (which is used for registration) and a simple message stream. These can be modified to handle different objects or messages. An initial message is sent from the Python side to the client, then additional messages can be sent back and forth.  
-`register.py` registers the plugin with Deephaven. This file will not need to be modified for most plugins at the initial stages, but will need to be if the package is renamed or JavaScript files are moved.
+`src/deephaven/simple_pivot/register.py` registers the plugin with Deephaven. This file will not need to be modified for most plugins at the initial stages, but will need to be if the package is renamed or JavaScript files are moved.
 
 The JavaScript files have the following structure:  
 `SimplePivotPlugin.ts` registers the plugin with Deephaven. This contains the client equivalent of the type in `simple_pivot_type.py` and these should be kept in sync.  

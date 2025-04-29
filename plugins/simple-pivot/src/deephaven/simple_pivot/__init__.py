@@ -1,5 +1,3 @@
 """
-This is a plugin for Deephaven that provides a simple object that can send messages to and from the client.
+This plugin does not require initialization.
 """
-
-from .simple_pivot_object import *
