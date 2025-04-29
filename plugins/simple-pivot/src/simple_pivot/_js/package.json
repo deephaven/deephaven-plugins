@@ -1,0 +1,50 @@
+{
+  "name": "@deephaven/js-plugin-simple-pivot",
+  "version": "0.0.3-dev.861+ffd65b9",
+  "description": "Simple Pivot plugin for Deephaven",
+  "keywords": [
+    "Deephaven",
+    "plugin"
+  ],
+  "author": "Deephaven Data Labs",
+  "license": "Apache-2.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "vite build --watch",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "@deephaven/jsapi-types": "^1.0.0-dev0.35.2",
+    "@deephaven/tsconfig": "^0.72.0",
+    "@types/react": "^17.0.2",
+    "@types/react-dom": "^17.0.2",
+    "@vitejs/plugin-react-swc": "^3.0.0",
+    "react": "^17.0.2",
+    "typescript": "^4.5.4",
+    "vite": "~4.1.4"
+  },
+  "peerDependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
+  "dependencies": {
+    "@deephaven/components": "^0.102.1",
+    "@deephaven/grid": "^0.102.0",
+    "@deephaven/icons": "^0.102.0",
+    "@deephaven/iris-grid": "^0.102.1",
+    "@deephaven/jsapi-bootstrap": "^0.102.1",
+    "@deephaven/jsapi-utils": "^0.102.0",
+    "@deephaven/log": "^0.102.0",
+    "@deephaven/plugin": "^0.102.1",
+    "@deephaven/utils": "^0.102.0",
+    "memoize-one": "^5.1.1"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": false
+  },
+  "files": [
+    "dist/index.js"
+  ],
+  "gitHead": "ffd65b91d87e2bc7064c8e448d1307a8f9c3d559"
+}
