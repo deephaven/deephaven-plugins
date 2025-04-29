@@ -31,27 +31,13 @@ Use the [`plugin_builder.py`](../../README.md#using-plugin_builderpy) from the r
 
 ## Using the Plugin
 
-Groovy API:
-```
-import io.deephaven.simplepivot.SimplePivotTable
-pivotTable = SimplePivotTable.FACTORY.create(table, [rowCol], [colCol], valueCol, aggSpec)
-```
-
-Example with ticket data:
-```
-import io.deephaven.api.agg.spec.AggSpec
-import io.deephaven.simplepivot.SimplePivotTable
-t = timeTable("PT1s").update("I=i", "J=i%171", "K=i%237");
-ticking_pivot = SimplePivotTable.FACTORY.create(t, ["J"], ["K"], "I", AggSpec.absSum())
-```
-
 Python API:
 ```
 from deephaven.experimental.pivot import create_pivot
 ticking_pivot = create_pivot(table, [rowCol], [colCol], valueCol, aggSpec)
 ```
 
-Example with ticket data:
+Example with ticking data:
 ```
 from deephaven.agg import sum_
 from deephaven import time_table
