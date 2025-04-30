@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.15.0 - 2025-04-30
+#### Documentation
+- Add ui component overview page, adjust sidebar (#1161) - (9ba7f2c) - Don
+- snapshots for plotly-express components (#1146) - (98b0115) - ethanalvizo
+- DH-18516: Add branchvalues info to hierarchical plots (#1153) - (8942623) - Joe
+#### Features
+- DH-18073: Static image creation for dx (#1167) - (650d496) - Joe
+
+- - -
+
 ## plotly-express-v0.14.0 - 2025-04-08
 #### Bug Fixes
 - DH-18685: Remove top margin from chart (#1126) - (47900a5) - Joe
