@@ -26,10 +26,6 @@ class PieTestCase(BaseTestCase):
         chart = dx.pie(self.source, names="names", values="values").to_dict(
             self.exporter
         )
-        plotly, deephaven = chart["plotly"], chart["deephaven"]
-
-        # pop template as we currently do not modify it
-        plotly["layout"].pop("template")
 
         expected_data = [
             {
@@ -72,10 +68,6 @@ class PieTestCase(BaseTestCase):
         chart = dx.pie(
             self.source, names="names", values="values", color="colors"
         ).to_dict(self.exporter)
-        plotly, deephaven = chart["plotly"], chart["deephaven"]
-
-        # pop template as we currently do not modify it
-        plotly["layout"].pop("template")
 
         expected_data = [
             {

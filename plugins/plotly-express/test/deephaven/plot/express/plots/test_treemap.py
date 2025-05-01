@@ -13,6 +13,7 @@ class TreemapTestCase(BaseTestCase):
             [
                 string_col("names", ["A", "B", "C", "D", "E", "F", "G", "H", "I"]),
                 string_col("parents", ["Z", "Z", "Z", "Z", "Z", "Z", "Z", "Z", "Z"]),
+                string_col("categories", ["A", "B", "A", "B", "A", "B", "A", "B", "A"]),
                 int_col("values", [1, 2, 2, 3, 3, 3, 4, 4, 5]),
                 int_col("colors", [2, 2, 2, 3, 3, 3, 4, 4, 4]),
             ]
@@ -27,10 +28,6 @@ class TreemapTestCase(BaseTestCase):
         chart = dx.treemap(
             self.source, names="names", parents="parents", values="values"
         ).to_dict(self.exporter)
-        plotly, deephaven = chart["plotly"], chart["deephaven"]
-
-        # pop template as we currently do not modify it
-        plotly["layout"].pop("template")
 
         expected_data = [
             {
@@ -66,7 +63,7 @@ class TreemapTestCase(BaseTestCase):
             expected_is_user_set_color=False,
         )
 
-    def test_treemap_colors(self):
+    def test_treemap_numeric_colors(self):
         import src.deephaven.plot.express as dx
         from deephaven.constants import NULL_INT
 
@@ -77,10 +74,6 @@ class TreemapTestCase(BaseTestCase):
             values="values",
             color="colors",
         ).to_dict(self.exporter)
-        plotly, deephaven = chart["plotly"], chart["deephaven"]
-
-        # pop template as we currently do not modify it
-        plotly["layout"].pop("template")
 
         expected_data = [
             {
@@ -119,6 +112,56 @@ class TreemapTestCase(BaseTestCase):
             {
                 "data_columns": {
                     "colors": ["/plotly/data/0/marker/colors"],
+                    "names": ["/plotly/data/0/labels"],
+                    "parents": ["/plotly/data/0/parents"],
+                    "values": ["/plotly/data/0/values"],
+                },
+                "table": 0,
+            }
+        ]
+
+        self.assert_chart_equals(
+            chart,
+            expected_data=expected_data,
+            expected_layout=expected_layout,
+            expected_mappings=expected_mappings,
+            expected_is_user_set_template=False,
+            expected_is_user_set_color=False,
+        )
+
+    def test_treemap_categorical_colors(self):
+        import src.deephaven.plot.express as dx
+        from deephaven.constants import NULL_INT
+
+        chart = dx.treemap(
+            self.source,
+            names="names",
+            parents="parents",
+            values="values",
+            color="categories",
+        ).to_dict(self.exporter)
+
+        expected_data = [
+            {
+                "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
+                "hovertemplate": "names=%{label}<br>values=%{value}<br>parents=%{parent}<extra></extra>",
+                "labels": ["None"],
+                "name": "",
+                "marker": {"colors": []},
+                "parents": ["None"],
+                "type": "treemap",
+                "values": [NULL_INT],
+            }
+        ]
+
+        expected_layout = {
+            "legend": {"tracegroupgap": 0},
+        }
+
+        expected_mappings = [
+            {
+                "data_columns": {
+                    "color": ["/plotly/data/0/marker/colors"],
                     "names": ["/plotly/data/0/labels"],
                     "parents": ["/plotly/data/0/parents"],
                     "values": ["/plotly/data/0/values"],

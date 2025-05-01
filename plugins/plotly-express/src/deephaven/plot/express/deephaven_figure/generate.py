@@ -692,15 +692,14 @@ def handle_custom_args(
     return trace_generator
 
 
-def get_list_param_info(data_cols: Mapping[str, str | list[str]]) -> set[str]:
-    """Extract the variable that is a list.
+def get_hovertext_types(data_cols: Mapping[str, str | list[str]]) -> set[str]:
+    """Calculate the types of this chart that require special hovertext processing
 
     Args:
       data_cols: The dictionary of data columns.
-        Note this is only the main data columns and excludes "attached" columns
 
     Returns:
-      A tuple of (list variable values, list variable name, set of types)
+      A set of types that require special processing
 
     """
     types = set()
@@ -713,13 +712,6 @@ def get_list_param_info(data_cols: Mapping[str, str | list[str]]) -> set[str]:
     types.add("finance" if data_cols.get("x_finance", False) else None)
 
     types.add("indicator" if data_cols.get("value", False) else None)
-
-    """for var, cols in data_cols.items():
-        # there should only be at most one data list (with the filtered
-        # exception of finance charts) so the first one encountered is the var
-        if isinstance(cols, list):
-            # the col name here might be overriden during data_mapping
-            return cols, var, types"""
 
     return types
 
@@ -780,14 +772,15 @@ def get_hover_body(
             hover_body.append(f"{col}={val}")
     for var, data_col in current_mapping.items():
         if var == "marker/colors":
-            if "hierarchical" in types:
-                # marker/colors in treemap, iceberg, and sunburst are a special case
-                # https://github.com/plotly/plotly.py/blob/b6d86a7700e0dcc0ac98c463bb56768aceaae91b/plotly/express/_core.py#L526
-                var = "color"
-            else:
-                # pie chart and funnel area can't handle this case at the moment because they require using customdata,
+            if "attached_color_markers" in types:
+                # pie chart, funnel area and hierarchical plots that map a color to a literal value
+                # can't handle this case at the moment because they require using customdata,
                 # which uses an array, to map to from the hovertext
                 continue
+            else:
+                # marker/colors in treemap, iceberg, and sunburst that are numeric are a special case
+                # https://github.com/plotly/plotly.py/blob/b6d86a7700e0dcc0ac98c463bb56768aceaae91b/plotly/express/_core.py#L526
+                var = "color"
         elif var.startswith("error"):
             # error bars are automatically displayed with the associated variable
             continue
@@ -1006,6 +999,8 @@ def create_hover_and_axis_titles(
     hist_agg_label = custom_call_args.get("hist_agg_label", None)
     hist_orientation = custom_call_args.get("hist_orientation", None)
     heatmap_agg_label = custom_call_args.get("heatmap_agg_label", None)
+    if custom_call_args.get("attached_color_markers", None):
+        types.add("attached_color_markers")
 
     current_partition = custom_call_args.get("current_partition", {})
 
@@ -1073,10 +1068,7 @@ def generate_figure(
         data_cols, custom_call_args, table, start_index
     )
 
-    # types for special hovermap processing
-    types = get_list_param_info(data_cols)
-    if draw in (px.treemap, px.icicle, px.sunburst):
-        types.add("hierarchical")
+    types = get_hovertext_types(data_cols)
 
     hover_text = create_hover_and_axis_titles(custom_call_args, hover_mapping, types)
 
