@@ -19,8 +19,18 @@ export interface ReactPanelManager {
   /** Triggered when a panel is closed */
   onClose: (panelId: string) => void;
 
+  /**
+   * Must be called when client data that should be persisted is changed.
+   * @param panelId The panelId for the changed data
+   * @param data The data to persist. Must be JSON serializable.
+   */
   onDataChange: (panelId: string, data: unknown[]) => void;
 
+  /**
+   * Gets the initial persisted data for a panel.
+   * @param panelId The panelId for the data to be retrieved.
+   * @returns Data that was persisted for the panelId.
+   */
   getInitialData: (panelId: string) => unknown[];
 
   /**
@@ -44,8 +54,16 @@ export interface ReactPanelControl {
   /** Must be called when the panel is closed */
   onClose: () => void;
 
+  /**
+   * Must be called when client data that should be persisted is changed.
+   * @param data The data to persist. Must be JSON serializable.
+   */
   onDataChange: (data: unknown[]) => void;
 
+  /**
+   * Gets the initial persisted data for a panel.
+   * @returns Data that was persisted for the panel.
+   */
   getInitialData: () => unknown[];
 
   /** The panelId for this react panel */

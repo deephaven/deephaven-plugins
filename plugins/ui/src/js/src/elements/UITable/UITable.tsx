@@ -28,7 +28,6 @@ import {
   viewStyleProps,
 } from '@deephaven/components';
 import { useApi } from '@deephaven/jsapi-bootstrap';
-import { TableUtils } from '@deephaven/jsapi-utils';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { getSettings, RootState } from '@deephaven/redux';
@@ -441,7 +440,7 @@ export function UITable({
     [contextMenu, alwaysFetchColumns]
   );
 
-  const irisGridProps = useMemo(() => {
+  const irisGridServerProps = useMemo(() => {
     const props = {
       mouseHandlers,
       alwaysFetchColumns,
@@ -449,9 +448,7 @@ export function UITable({
       sorts: hydratedSorts,
       quickFilters: hydratedQuickFilters,
       isFilterBarShown: showQuickFilters,
-      reverseType: reverse
-        ? TableUtils.REVERSE_TYPE.POST_SORT
-        : TableUtils.REVERSE_TYPE.NONE,
+      reverse,
       density,
       settings: { ...settings, showExtraGroupColumn: showGroupingColumn },
       onContextMenu,
@@ -478,8 +475,13 @@ export function UITable({
       },
     } satisfies Partial<IrisGridProps>;
 
-    // Remove any explicit undefined values
-    Object.entries(props).forEach(([key, value]) => {
+    // Remove any explicit undefined values so we can use client state if available
+    (
+      Object.entries(props) as [
+        keyof typeof props,
+        (typeof props)[keyof typeof props],
+      ][]
+    ).forEach(([key, value]) => {
       if (value === undefined) {
         delete props[key];
       }
@@ -502,6 +504,29 @@ export function UITable({
     aggregationsPosition,
   ]);
 
+  const initialIrisGridServerProps = useRef(irisGridServerProps);
+
+  /**
+   * We want to set the props based on a combination of server state and client state.
+   * If the server state is the same as its initial state, then we are rehydrating and
+   * the client state should take precedence.
+   * Otherwise, we have received changes from the server and we should use those over client state.
+   * In the future we may want to do a smarter merge of these.
+   */
+  const mergedIrisGridProps = useMemo(() => {
+    if (initialIrisGridServerProps.current === irisGridServerProps) {
+      return {
+        ...irisGridServerProps,
+        ...initialHydratedState,
+      };
+    }
+
+    return {
+      ...initialHydratedState,
+      ...irisGridServerProps,
+    };
+  }, [irisGridServerProps, initialHydratedState]);
+
   return model ? (
     <div
       // eslint-disable-next-line react/jsx-props-no-spreading
@@ -513,9 +538,7 @@ export function UITable({
         model={model}
         onStateChange={onStateChange}
         // eslint-disable-next-line react/jsx-props-no-spreading
-        {...initialHydratedState}
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...irisGridProps}
+        {...mergedIrisGridProps}
       />
     </div>
   ) : null;
