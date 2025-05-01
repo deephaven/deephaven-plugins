@@ -34,7 +34,7 @@ treemap_plot = dx.treemap(gapminder_recent, names="Continent", values="Pop", par
 
 ![Treemap Plot Basic Example](./_assets/treemap_plot.png)
 
-### A treemap plot with path
+### A treemap plot with `path`
 
 Instead of manually aggregating and passing in `names` and `parents`, use the `path` argument to specify the hierarchy of the data. The first column is the root category, and the last column is the leaf category. The values are automatically summed up.
 

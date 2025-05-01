@@ -31,7 +31,7 @@ gapminder_recent = (
 
 icicle_plot = dx.icicle(gapminder_recent, names="Continent", values="Pop", parents="World")
 ```
-### An icicle plot with path
+### An icicle plot with `path`
 
 Instead of manually aggregating and passing in `names` and `parents`, use the `path` argument to specify the hierarchy of the data. The first column is the root category, and the last column is the leaf category. The values are automatically summed up.
 
