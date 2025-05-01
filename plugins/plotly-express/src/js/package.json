@@ -32,7 +32,9 @@
   "homepage": "https://github.com/deephaven/deephaven-plugins",
   "scripts": {
     "start": "vite build --watch",
-    "build": "vite build",
+    "build": "run-s build:*",
+    "build:transpile": "tsc",
+    "build:bundle": "vite build",
     "update-dh-packages": "node ../../../../tools/update-dh-packages.mjs"
   },
   "devDependencies": {
