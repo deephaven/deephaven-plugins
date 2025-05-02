@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from itertools import cycle
+from typing import cast
 
 
 class StyleManager:
@@ -31,16 +32,25 @@ class StyleManager:
         self.cycled = cycle(self.ls)
         self.found = {}
 
-    def assign_style(self, val: str) -> str:
+        self.wildcard = None
+
+    def assign_style(self, val: str, map_applies: bool) -> str:
         """
         Assign and return a style for the specified value.
 
         Args:
             val: The val to assign
+            map_applies: Whether the map applies to this value
 
         Returns:
             The assigned style
         """
+
+        if not map_applies:
+            if self.wildcard is None:
+                self.wildcard = next(self.cycled)
+            assert self.wildcard is not None
+            return self.wildcard
         if val not in self.found:
             new_val = next(self.cycled)
             if self.map and val in self.map:
