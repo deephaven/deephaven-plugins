@@ -335,7 +335,7 @@ scoreboard_example = scoreboard()
 
 Switching between John and Jill does not preserve the state. This is because they have different keys:
 
-```python
+```python skip-test
 counter("John", key="John") if is_player1 else counter("Jill", key="Jill")
 ```
 

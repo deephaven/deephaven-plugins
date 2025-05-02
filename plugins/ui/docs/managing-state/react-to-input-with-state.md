@@ -83,11 +83,11 @@ In `deephaven.ui`, you do not manipulate the UI directly. Instead, you declare w
 
 You’ve seen how to implement a form imperatively above. To better understand how to think declaratively, let's walk through reimplementing this UI using `deephaven.ui` below:
 
-1. **Identify** your component’s different visual states
-2. **Determine** what triggers those state changes
+1. **Identify** your component’s different visual states.
+2. **Determine** what triggers those state changes.
 3. **Represent** the state in memory using `useState`.
-4. **Remove** any non-essential state variables
-5. **Connect** the event handlers to set the state
+4. **Remove** any non-essential state variables.
+5. **Connect** the event handlers to set the state.
 
 ### Step 1: Identify your component’s different visual states
 
@@ -133,14 +133,14 @@ Next you’ll need to represent the visual states of your component in memory wi
 
 Start with the state that absolutely must be there. For example, you’ll need to store the answer for the input, and the error (if it exists) to store the last error:
 
-```python
+```python skip-test
 answer, set_answer = ui.use_state("")
 error, set_error = ui.use_state(None)
 ```
 
 Then, you’ll need a state variable representing which one of the visual states that you want to display. Naively, you can represent each state as a boolean value. There are issues with this which we will cover later.
 
-```python
+```python skip-test
 is_empty, set_is_empty = ui.use_state(True)
 is_typing, set_is_typing = ui.use_state(False)
 is_submitting, set_is_submitting = ui.use_state(False)
@@ -160,7 +160,7 @@ Here are some questions to consider about your state variables:
 
 After this clean-up, you’re left with three essential state variables, down from seven.
 
-```python
+```python skip-test
 answer, set_answer = ui.use_state("")
 error, set_error = ui.use_state(None)
 status, set_status = ui.use_state("typing")  # "typing", "submitting", or "success"

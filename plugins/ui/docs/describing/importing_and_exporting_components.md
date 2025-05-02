@@ -26,7 +26,7 @@ def table_of_contents():
 
 ### Example Import in Deephaven Core
 
-```python
+```python skip-test
 # file2.py
 # Tell the Python interpreter where the data directory is located
 import sys
@@ -53,7 +53,7 @@ my_multiple_contents = multiple_contents()
 
 ## Exporting and Importing in Deephaven Enterprise
 
-In Deephaven Enterprise, notebook files are stored in a secure file system which prevents importing by default. In order to import from another script, you can use the `deephaven_enterprise.notebook` module to do either an `exec_notebook` or a `meta_import`. For details on how to do this, see [Modularizing Queries](/enterprise/docs/development/modularizing-queries).
+In Deephaven Enterprise, notebook files are stored in a secure file system which prevents importing by default. In order to import from another script, you can use the `deephaven_enterprise.notebook` module to do either an `exec_notebook` or a `meta_import`. For details on how to do this, see [Modularizing Queries](/enterprise/docs/query-management/modularizing-queries-python/).
 
 ### Example Export in Deephaven Enterprise
 
@@ -75,7 +75,7 @@ def table_of_contents():
 
 ### Example Import in Deephaven Enterprise
 
-```python
+```python skip-test
 # file2.py
 # Use the notebook module to meta_import file1.py
 from deephaven_enterprise.notebook import meta_import

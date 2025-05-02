@@ -19,13 +19,12 @@ ta = ui.text_area(
 Recommendations for creating text areas:
 
 1. Text area should include a label, or else, the text area is ambiguous and not accessible.
-2. Text area labels and placeholder text should follow sentence casing. 
+2. Text area labels and placeholder text should follow sentence casing.
 3. A text area should not use `is_quiet` styling if it has a fixed height, given that the field underline may be too far from the text to be considered part of the component.
 4. Use help text to provide instructions on input format, content, and requirements; the help text should not restate the same information as the label, or prompt a user to interact with the text area.
 5. Dynamically switch between help text and error messages based on input, ensuring both convey essential input requirements.
 
 Consider using [`text_field`](./text_field.md) for cases where concise, single-line input is required.
-
 
 ## Value
 
@@ -48,7 +47,7 @@ text_area_value_example = text_area_value_prop()
 
 ## Labeling
 
-To provide a visual label for the text area, use the `label` prop. To indicate that the text area is mandatory, use the `is_required` prop. 
+To provide a visual label for the text area, use the `label` prop. To indicate that the text area is mandatory, use the `is_required` prop.
 
 ```python
 from deephaven import ui
@@ -111,6 +110,7 @@ from deephaven import ui
 
 text_area_name_example = ui.form(ui.flex(ui.text_area(label="Comment", name="comment")))
 ```
+
 ## Quiet State
 
 The `is_quiet` prop makes text areas "quiet". This can be useful when the text area and its corresponding styling should not distract users from surrounding content.
@@ -146,10 +146,9 @@ text_area_is_read_only_example = ui.text_area(label="Sample", is_read_only=True)
 
 ## Label position
 
-By default, the position of a text area's label is above the text area, but it can be changed to the side using the `label_position` prop. 
+By default, the position of a text area's label is above the text area, but it can be changed to the side using the `label_position` prop.
 
 While labels can be placed either on top or on the side of the text area, top labels are the default recommendation. Top labels work better with longer copy, localization, and responsive layouts. Side labels are more useful when vertical space is limited.
-
 
 ```python
 from deephaven import ui
@@ -203,13 +202,16 @@ from deephaven import ui
 
 
 text_area_contextual_help_example = ui.text_area(
-    label="Comment", contextual_help=ui.contextual_help(ui.heading("Sample tips"))
+    label="Comment",
+    contextual_help=ui.contextual_help(
+        ui.heading("Sample tips"), ui.content("Enter a comment.")
+    ),
 )
 ```
 
 ## Custom width
 
-The `width` prop adjusts the width of a text area, and the `max_width` prop enforces a maximum width. 
+The `width` prop adjusts the width of a text area, and the `max_width` prop enforces a maximum width.
 
 ```python
 from deephaven import ui

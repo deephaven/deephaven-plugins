@@ -101,7 +101,7 @@ my_list_view = ui_list_view()
 
 Set `selection_mode=None` or `selection_mode='NONE'` to disable selection.
 
-```python
+```python test-set=0
 from deephaven import ui
 
 
@@ -120,7 +120,7 @@ my_list_view = ui_list_view()
 
 `selection_mode` can be explicitly set to `MULTIPLE` for cases where it is dynamically defined. For example, a `ui.radio` can be used to change the selection mode.
 
-```python
+```python test-set=0
 @ui.component
 def ui_list_view():
     selection_mode, set_selection_mode = ui.use_state("NONE")
