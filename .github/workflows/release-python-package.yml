@@ -22,7 +22,7 @@ jobs:
 
   release:
     needs: build-plugin
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions:
       id-token: write
     outputs:
@@ -60,7 +60,7 @@ jobs:
           attestations: false # TODO: Followup this thread to see if there's a better fix https://github.com/pypa/gh-action-pypi-publish/issues/283
 
   check-make-docs:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       files_exists: ${{ steps.check_files.outputs.files_exists }}
     steps:
