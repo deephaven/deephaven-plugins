@@ -16,6 +16,7 @@ def treemap(
     values: str | None = None,
     parents: str | None = None,
     ids: str | None = None,
+    path: str | list[str] | None = None,
     color: str | list[str] | None = None,
     hover_name: str | None = None,
     color_discrete_sequence: list[str] | None = None,
@@ -39,10 +40,14 @@ def treemap(
       parents: The column containing parents of the sections
       ids: The column containing ids of the sections. Unlike values, these
         must be unique. Values are used for ids if ids are not specified.
+      path: A column or list of columns that describe the hierarchy.
+        The first column is the root, the second column contains the children
+        of the root, and so on. The last column is the leaf.
       color: A column or list of columns that contain color values.
         If only one column is passed, and it contains numeric values, the value
         is used as a value on a continuous color scale. Otherwise, the value is
         used for a plot by on color.
+        If path is provided, only a single color column is allowed.
         See color_discrete_map for additional behaviors.
       hover_name: A column that contains names to bold in the hover tooltip.
       labels: A dictionary of labels mapping columns to new labels.
@@ -84,6 +89,7 @@ def sunburst(
     values: str | None = None,
     parents: str | None = None,
     ids: str | None = None,
+    path: str | list[str] | None = None,
     color: str | list[str] | None = None,
     hover_name: str | None = None,
     color_discrete_sequence: list[str] | None = None,
@@ -107,10 +113,14 @@ def sunburst(
       parents: The column containing parents of the sections
       ids: The column containing ids of the sections. Unlike values, these
         must be unique. Values are used for ids if ids are not specified.
+      path: A column or list of columns that describe the hierarchy.
+        The first column is the root, the second column contains the children
+        of the root, and so on. The last column is the leaf.
       color: A column or list of columns that contain color values.
         If only one column is passed, and it contains numeric values, the value
         is used as a value on a continuous color scale. Otherwise, the value is
         used for a plot by on color.
+        If path is provided, only a single color column is allowed.
         See color_discrete_map for additional behaviors.
       hover_name: A column that contains names to bold in the hover tooltip.
       color_discrete_sequence: A list of colors to sequentially apply to
@@ -152,6 +162,7 @@ def icicle(
     values: str | None = None,
     parents: str | None = None,
     ids: str | None = None,
+    path: str | list[str] | None = None,
     color: str | list[str] | None = None,
     hover_name: str | None = None,
     color_discrete_sequence: list[str] | None = None,
@@ -173,13 +184,17 @@ def icicle(
       names: The column containing names of the sections
       values: The column containing values of the sections
       parents: The column containing parents of the sections
+      ids: The column containing ids of the sections. Unlike values, these
+        must be unique. Values are used for ids if ids are not specified.
+      path: A column or list of columns that describe the hierarchy.
+        The first column is the root, the second column contains the children
+        of the root, and so on. The last column is the leaf.
       color: A column or list of columns that contain color values.
         If only one column is passed, and it contains numeric values, the value
         is used as a value on a continuous color scale. Otherwise, the value is
         used for a plot by on color.
+        If path is provided, only a single color column is allowed.
         See color_discrete_map for additional behaviors.
-      ids: The column containing ids of the sections. Unlike values, these
-        must be unique. Values are used for ids if ids are not specified.
       hover_name: A column that contains names to bold in the hover tooltip.
       color_discrete_sequence: A list of colors to sequentially apply to
         the series. The colors loop, so if there are more series than colors,
