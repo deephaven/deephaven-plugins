@@ -54,7 +54,6 @@ NAME = "deephaven.plot.express.DeephavenFigure"
 class DeephavenFigureType(BidirectionalObjectType):
     """
     DeephavenFigureType for plugin registration
-
     """
 
     @property
