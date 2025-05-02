@@ -6,6 +6,7 @@ import Log from '@deephaven/log';
 import { Formatter, TableUtils } from '@deephaven/jsapi-utils';
 import {
   assertNotNull,
+  EMPTY_ARRAY,
   EventShimCustomEvent,
   PromiseUtils,
   type CancelablePromise,
@@ -15,6 +16,7 @@ import {
   DisplayColumn,
   type ModelIndex,
   type ColumnName,
+  type MoveOperation,
 } from '@deephaven/grid';
 import {
   ColumnHeaderGroup,
@@ -226,6 +228,14 @@ class IrisGridSimplePivotModel extends IrisGridModel {
 
   get initialColumnHeaderGroups(): readonly ColumnHeaderGroup[] {
     return this.getCachedColumnHeaderGroups(this.columnMap, this.schema);
+  }
+
+  get initialMovedColumns(): readonly MoveOperation[] {
+    log.debug('get initialMovedColumns');
+    return this.getCachedMovedColumns(
+      this.model.columns,
+      this.schema.hasTotals
+    );
   }
 
   get columns(): DhType.Column[] {
@@ -443,6 +453,33 @@ class IrisGridSimplePivotModel extends IrisGridModel {
     this.dispatchEvent(new EventShimCustomEvent(IrisGridModel.EVENT.UPDATED));
   }
 
+  getCachedMovedColumns = memoize(
+    (
+      columns: readonly DhType.Column[],
+      hasTotals: boolean
+    ): readonly MoveOperation[] => {
+      if (!hasTotals) {
+        return EMPTY_ARRAY;
+      }
+
+      const totalsColumnIndex = columns.findIndex(
+        c => c.name === TOTALS_COLUMN
+      );
+      if (totalsColumnIndex === -1) {
+        log.warn('Totals column not found in getCachedMovedColumns');
+        return EMPTY_ARRAY;
+      }
+      const movedColumns: MoveOperation[] = [];
+      if (totalsColumnIndex < columns.length - 1) {
+        movedColumns.push({
+          from: totalsColumnIndex,
+          to: columns.length - 1,
+        });
+      }
+      return movedColumns;
+    }
+  );
+
   getCachedColumns = memoize(
     (columnMap: SimplePivotColumnMap, tableColumns: readonly DhType.Column[]) =>
       tableColumns.map(c => this.createDisplayColumn(c, columnMap))
@@ -450,6 +487,10 @@ class IrisGridSimplePivotModel extends IrisGridModel {
 
   get layoutHints(): DhType.LayoutHints | null | undefined {
     return this._layoutHints;
+  }
+
+  isColumnMovable(): boolean {
+    return false;
   }
 
   /**
@@ -511,12 +552,7 @@ class IrisGridSimplePivotModel extends IrisGridModel {
     if (this.listenerCount > 0) {
       this.addListeners(model);
     }
-    // Dispatch model updated event
-    this.dispatchEvent(
-      new EventShimCustomEvent(IrisGridModel.EVENT.UPDATED, {
-        detail: this,
-      })
-    );
+
     if (isIrisGridTableModelTemplate(model)) {
       this.dispatchEvent(
         new EventShimCustomEvent(IrisGridModel.EVENT.TABLE_CHANGED, {
@@ -527,6 +563,11 @@ class IrisGridSimplePivotModel extends IrisGridModel {
     this.dispatchEvent(
       new EventShimCustomEvent(IrisGridModel.EVENT.COLUMNS_CHANGED, {
         detail: this.columns,
+      })
+    );
+    this.dispatchEvent(
+      new EventShimCustomEvent(IrisGridModel.EVENT.UPDATED, {
+        detail: this,
       })
     );
   }
