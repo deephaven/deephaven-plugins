@@ -15,6 +15,7 @@ from ._layer import atomic_layer
 from .. import DeephavenFigure
 from ..preprocess.Preprocessor import Preprocessor
 from ..shared import get_unique_names
+from ..types import AttachedTransforms, HierarchicalTransforms
 from .subplots import atomic_make_grid
 
 PARTITION_ARGS = {
@@ -191,11 +192,9 @@ class PartitionManager:
         has_color: bool: True if this figure has user set color, False otherwise
         facet_row: str: The facet row
         facet_col: str: The facet col
-        (arg, col), (map, ls, new_col)
-        always_attached: dict[tuple[str, str],
-          tuple[dict[str, str], list[str], str]: The dict mapping the arg and column
-          to the style map, dictionary, and new column name, to be used for
-          AttachedProcessor when dealing with an "always_attached" plot
+        attached_transforms: to be used for AttachedProcessor when dealing with an "always_attached" plot
+        hierarchical_transforms: HierarchicalTransforms: to be used for HierarchicalProcessor when dealing with
+            a hierarchical plot with a path
         marginal_x: Type of marginal on the x-axis, if applicable
         marginal_y: Type of marginal on the y-axis, if applicable
         marg_args: dict[str, Any]: The dictionary of args to pass to marginals
@@ -226,7 +225,8 @@ class PartitionManager:
         self.has_color = None
         self.facet_row = None
         self.facet_col = None
-        self.always_attached = {}
+        self.attached_transforms = AttachedTransforms()
+        self.hierarchical_transforms = HierarchicalTransforms()
 
         self.marginal_x = args.pop("marginal_x", None)
         self.marginal_y = args.pop("marginal_y", None)
@@ -310,7 +310,7 @@ class PartitionManager:
 
         args["table"] = self.to_long_mode(table, self.cols)
 
-    def is_by(self, arg: str, map_val: str | list[str] | None = None) -> None:
+    def is_by(self, arg: str, map_val: str | list[str] | dict | None = None) -> None:
         """
         Given that the specific arg is a by arg, prepare the arg depending on
         if it is attached or not
@@ -325,10 +325,16 @@ class PartitionManager:
 
         if "always_attached" in self.groups:
             new_col = get_unique_names(self.args["table"], [arg])[arg]
-            self.always_attached[(arg, self.args[arg])] = (
-                map_val,
-                self.args[seq_arg],
-                new_col,
+            if not isinstance(map_val, dict) and map_val is not None:
+                raise TypeError(
+                    f"Expected a dictionary for {arg} map, got {type(map_val)}"
+                )
+            self.attached_transforms.add(
+                by_col=self.args[arg],
+                new_col=new_col,
+                style_map=map_val,
+                style_list=self.args[seq_arg],
+                style=arg,
             )
             # a new column will be constructed so this color is always updated
             self.args[f"attached_{arg}"] = new_col
@@ -395,9 +401,13 @@ class PartitionManager:
             ):
                 if "always_attached" in self.groups:
                     args["colors"] = args.pop("color")
-                # just keep the argument in place so it can be passed to plotly
-                # express directly
-                pass
+                    if self.args.get("path"):
+                        # is_single_numeric_col must be true so it is safe to pull the first element
+                        if not isinstance(val, str):
+                            val = val[0]
+                        # numeric column that is the source of color need to be aggregated if path is passed
+                        self.hierarchical_transforms.add(avg_col=val)
+                    # otherwise the colors are attached directly
             elif val:
                 self.is_by(arg, args[map_name])
             elif plot_by_cols and (
@@ -511,7 +521,8 @@ class PartitionManager:
         self.preprocessor = Preprocessor(
             args,
             self.groups,
-            self.always_attached,
+            self.attached_transforms,
+            self.hierarchical_transforms,
             self.stacked_column_names,
             self.list_param,
         )
@@ -645,15 +656,16 @@ class PartitionManager:
         column = (
             self.stacked_column_names["value"] if self.stacked_column_names else None
         )
-        if self.preprocessor:
-            tables = self.preprocessor.preprocess_partitioned_tables(
-                self.constituents, column
-            )
-            for table, current_partition in zip(
-                tables, self.current_partition_generator()
-            ):
-                # since this is preprocessed it will always be a tuple
-                yield cast(Tuple[Table, Dict[str, str]], (table, current_partition))
+
+        if self.preprocessor is None:
+            return
+
+        tables = self.preprocessor.preprocess_partitioned_tables(
+            self.constituents, column
+        )
+        for table, current_partition in zip(tables, self.current_partition_generator()):
+            # since this is preprocessed it will always be a tuple
+            yield cast(Tuple[Table, Dict[str, str]], (table, current_partition))
 
     def partition_generator(self) -> Generator[dict[str, Any], None, None]:
         """
@@ -681,13 +693,8 @@ class PartitionManager:
                 args["current_partition"] = current_partition
                 args["table"] = table
                 yield args
-        elif (
-            "preprocess_hist" in self.groups
-            or "preprocess_freq" in self.groups
-            or "preprocess_time" in self.groups
-            or "preprocess_heatmap" in self.groups
-        ) and self.preprocessor:
-            # still need to preprocess the base table
+        elif self.preprocessor:
+            # still need to preprocess the base table if preprocessors were created
             table, arg_update = cast(
                 Tuple,
                 [*self.preprocessor.preprocess_partitioned_tables([args["table"]])][0],

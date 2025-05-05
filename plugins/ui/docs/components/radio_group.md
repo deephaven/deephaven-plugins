@@ -1,6 +1,6 @@
 # Radio Group
 
-A radio group is a UI component that groups multiple radio buttons together, allowing users to select one option from a set of mutually exclusive choices. 
+A radio group is a UI component that groups multiple radio buttons together, allowing users to select one option from a set of mutually exclusive choices.
 
 Note that the radio component can only be used within a radio group.
 
@@ -69,7 +69,6 @@ def radio_group_value_examples():
 my_radio_group_value_examples = radio_group_value_examples()
 ```
 
-
 ## HTML Forms
 
 Radio groups can support a `name` prop for integration with HTML forms, allowing for easy identification of a value on form submission.
@@ -86,7 +85,6 @@ my_radio_group_name_example = ui.form(
     ),
 )
 ```
-
 
 ## Labeling
 
@@ -114,7 +112,6 @@ def ui_radio_group_label_examples():
 
 my_radio_group_label_examples = ui_radio_group_label_examples()
 ```
-
 
 The `is_required` prop and the `necessity_indicator` props can be used to show whether selecting an option in the radio group is required or optional.
 
@@ -152,7 +149,6 @@ def ui_radio_group_required_examples():
 my_radio_group_required_examples = ui_radio_group_required_examples()
 ```
 
-
 ## Events
 
 The `on_change` property is triggered whenever the value in the radio group selection is changed.
@@ -178,7 +174,6 @@ def ui_radio_group_on_change_example():
 
 my_radio_group_on_change_example = ui_radio_group_on_change_example()
 ```
-
 
 ## Validation
 
@@ -208,7 +203,6 @@ my_radio_group_validation_behaviour_example = (
 )
 ```
 
-
 ## Orientation
 
 While aligned vertically by default, the axis the radio buttons align with can be changed via the `orientation` prop.
@@ -225,10 +219,9 @@ my_radio_group_orientation_example = ui.radio_group(
 )
 ```
 
-
 ## Label position
 
-By default, the position of a radio group's label is above the radio group, but it can be changed to the side using the `label_position` prop. 
+By default, the position of a radio group's label is above the radio group, but it can be changed to the side using the `label_position` prop.
 
 ```python
 from deephaven import ui
@@ -241,7 +234,6 @@ my_radio_group_label_position_example = ui.radio_group(
     label_position="side",
 )
 ```
-
 
 ## Help text
 
@@ -276,7 +268,6 @@ def ui_radio_group_help_text_examples():
 my_radio_group_help_text_examples = ui_radio_group_help_text_examples()
 ```
 
-
 ## Contextual Help
 
 Using the `contextual_help` prop, a `ui.contextual_help` can be placed next to the label to provide additional information about the radio group.
@@ -289,10 +280,11 @@ my_radio_group_contextual_help_example = ui.radio_group(
     ui.radio("Wizard", value="wizard"),
     ui.radio("Dragon", value="dragon"),
     label="Favorite avatar",
-    contextual_help=ui.contextual_help(ui.heading("Content tips")),
+    contextual_help=ui.contextual_help(
+        ui.heading("Content tips"), ui.content("Select an avatar.")
+    ),
 )
 ```
-
 
 ## Disabled state
 
@@ -331,7 +323,6 @@ my_radio_group_is_read_only_example = ui.radio_group(
 
 The `is_emphasized` prop makes the selected radio button the user's accent color, adding a visual prominence to the selection.
 
-
 ```python
 from deephaven import ui
 
@@ -344,8 +335,6 @@ my_radio_group_is_emphasized_example = ui.radio_group(
     is_emphasized=True,
 )
 ```
-
-
 
 ## API Reference
 

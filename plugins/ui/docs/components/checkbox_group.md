@@ -283,7 +283,9 @@ my_checkbox_group_contextual_help_example = ui.checkbox_group(
     "Basketball",
     "Baseball",
     label="Favorite sports",
-    contextual_help=ui.contextual_help(ui.heading("Content tips")),
+    contextual_help=ui.contextual_help(
+        ui.heading("Tips"), ui.content("Select all your favorite sports.")
+    ),
 )
 ```
 

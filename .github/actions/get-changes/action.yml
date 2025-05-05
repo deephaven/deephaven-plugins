@@ -34,3 +34,6 @@ runs:
           packaging:
             - plugins/packaging/**
             - .github/workflows/test-*.yml
+          ag-grid:
+            - plugins/ag-grid/**
+            - .github/workflows/test-*.yml

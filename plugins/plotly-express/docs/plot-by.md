@@ -18,6 +18,8 @@ iris = dx.data.iris() # import the example iris data set
 pedal_size_by_species = dx.scatter(iris, x="PetalLength", y="PetalWidth", by="Species")
 ```
 
+![Plot By Basic Example](./_assets/plot_by.png)
+
 Or, use `symbol` to differentiate groups with symbols.
 
 ```python order=pedal_size_by_species_sym,iris

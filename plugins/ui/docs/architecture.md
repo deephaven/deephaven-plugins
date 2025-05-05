@@ -8,7 +8,7 @@ Components are reusable pieces of UI that can be combined to create complex UIs.
 
 Components are created using the `@ui.component` decorator. This decorator takes a function that returns a list of components, and returns a new function that can be called to render the component. The function returned by the decorator is called a "component function". Calling the function and assigning it to a variable will create an "element" that can be rendered by the client.
 
-```python
+```python test-set=0
 from deephaven import ui
 
 
@@ -22,7 +22,7 @@ btn = my_button()
 
 Once you have declared a component, you can nest it into another component.
 
-```python
+```python test-set=0
 @ui.component
 def my_app():
     return ui.flex(ui.text("Hello, world!"), my_button(), direction="column")

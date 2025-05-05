@@ -51,13 +51,13 @@ The [`use_state`](../hooks/use_state.md) hook provides those two things:
 
 To add a state variable, replace this line:
 
-```python
+```python skip-test
 index = 0
 ```
 
 with
 
-```python
+```python skip-test
 index, set_index = ui.use_state(0)
 ```
 
@@ -65,7 +65,7 @@ index, set_index = ui.use_state(0)
 
 This is how they work together in `handle_press`:
 
-```python
+```python skip-test
 set_index(index + 1)
 ```
 
@@ -110,7 +110,7 @@ Hooks can only be called at the top level of your components or your own hooks. 
 
 When you call `use_state`, you are telling `deephaven.ui` that you want this component to remember something:
 
-```python
+```python skip-test
 index, set_index = ui.use_state(0)
 ```
 
@@ -127,7 +127,7 @@ Every time your component renders, `use_state` gives you an array containing two
 
 Here’s how that happens in action:
 
-```python
+```python skip-test
 index, set_index = ui.use_state(0)
 ```
 

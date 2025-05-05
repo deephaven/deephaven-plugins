@@ -6,7 +6,8 @@ Create plots with multiple axes by specifying `xaxis_sequence` or `yaxis_sequenc
 
 ### Multiple columns
 
-When two or more response variables appear in separate columns, pass their column names to the `x` or `y` arguments.  The resulting chart will have shared axes.
+When two or more response variables appear in separate columns, pass their column names to the `x` or `y` arguments. The resulting chart will have shared axes.
+
 ```python order=line_plot_shared,brazil,gapminder
 import deephaven.plot.express as dx
 gapminder = dx.data.gapminder()
@@ -17,6 +18,8 @@ brazil = gapminder.where("Country == `Brazil`")
 # population and per capita gdp have very different scales and units
 line_plot_shared = dx.line(brazil, x="Year", y=["Pop", "GdpPerCap"])
 ```
+
+![Multiple Axes Plot Basic Example](./_assets/multiple_axes_plot.png)
 
 The `xaxis_sequence` or `yaxis_sequence` arguments can be used to create multiple axes.
 

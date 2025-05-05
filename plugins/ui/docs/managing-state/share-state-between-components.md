@@ -60,7 +60,7 @@ This approach will enable the `accordion` component to manage both `info` panels
 
 You will delegate control of the `info` panel’s `is_active` state to its parent component. This means the parent component will pass `is_active` to the `info` panel as a prop. Start by removing this line from the `info` component:
 
-```python
+```python skip-test
 is_active, set_is_active = ui.use_state(False)
 ```
 
@@ -118,7 +118,7 @@ Lifting state up often changes the nature of the state you are managing.
 
 In this scenario, only one `info` panel should be active at any given time. Therefore, the parent component must track which `info` is currently active. Instead of using a boolean value, it can use a number representing the index of the active `info` for the state variable:
 
-```python
+```python skip-test
 active, set_active = ui.use_state(0)
 ```
 
@@ -126,7 +126,7 @@ When `active` is `0`, the first `info` is active. When it is `1`, the second `in
 
 Clicking the “Show” button in any panel should change `active` in the `accordion`. An `info` cannot directly set the `active` state because it is defined within the `accordion`. The `accordion` component must explicitly allow the `info` component to change its state by passing an event handler as a prop:
 
-```python
+```python skip-test
 info(
     "Apple", "Red and delicious", is_active=active == 0, on_show=lambda: set_active(0)
 ),

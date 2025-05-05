@@ -6,13 +6,13 @@ State can hold any kind of Python value, including dictionaries. However, you sh
 
 You can store any kind of Python value in state.
 
-```python
+```python skip-test
 x, set_x = ui.use_state(0)
 ```
 
 Python data types like numbers, strings, and booleans are "immutable", meaning unchangeable or "read-only". You can trigger a re-render to replace a value:
 
-```python
+```python skip-test
 set_x(5)
 ```
 
@@ -20,13 +20,13 @@ The `x` state changed from `0` to `5`, but the number `0` itself did not change.
 
 Now consider a dictionary in state:
 
-```python
+```python skip-test
 position, set_position = ui.use_state({"x": 0, "y": 0})
 ```
 
 It is possible to change the contents of the dictionary itself. This is called a mutation:
 
-```python
+```python skip-test
 position["x"] = 5
 ```
 
@@ -60,7 +60,7 @@ my_range_example = range_example()
 
 The problem is with this bit of code.
 
-```python
+```python skip-test
 def handle_press():
     value["end"] = value["end"] + 1
 ```
@@ -69,7 +69,7 @@ This code modifies the dictionary assigned to `value` from the previous render. 
 
 To actually trigger a re-render in this case, create a new dictionary and pass it to the state setting function:
 
-```python
+```python skip-test
 def handle_press():
     set_value({"start": 0, "end": value["end"] + 1})
 ```
@@ -153,13 +153,13 @@ form_example = form()
 
 For example, this line mutates the state from a past render:
 
-```python
+```python skip-test
 person["first_name"] = value
 ```
 
 To achieve the desired behavior, it is best to create a new dictionary and pass it to `set_person`. Since only one of the fields has changed, you'll want to copy the existing data into this new dictionary.
 
-```python
+```python skip-test
 set_person(
     {
         "first_name": value,
@@ -171,7 +171,7 @@ set_person(
 
 You can use dictionary `unpacking` so that you do not need to copy every property separately.
 
-```python
+```python skip-test
 set_person({**person, "first_name": value})
 ```
 
@@ -232,7 +232,7 @@ Note that the dictionary `unpacking` is “shallow”. It only copies things one
 
 Consider a nested dictionary structure like this:
 
-```python
+```python skip-test
 person, set_person = ui.use_state(
     {
         "first_name": "John",
@@ -244,13 +244,13 @@ person, set_person = ui.use_state(
 
 If you wanted to update `email`, it’s clear how to do it with mutation:
 
-```python
+```python skip-test
 person["contact"]["email"] = "jdoe@domain.net"
 ```
 
 But in `deephaven.ui`, you should treat state as immutable. In order to change `email`, you first need to produce the new `contact` dictionary (pre-populated with data from the previous one), and then produce the new `person` dictionary, which points at the new artwork:
 
-```python
+```python skip-test
 new_person = {**person, "contact": {**person["contact"], "email": "jdoe@domain.net"}}
 ```
 

@@ -38,15 +38,19 @@
     "@ag-grid-community/core": "32.3.4",
     "@ag-grid-community/react": "32.3.4",
     "@ag-grid-community/styles": "32.3.4",
+    "@ag-grid-community/theming": "32.3.4",
     "@ag-grid-enterprise/core": "32.3.4",
     "@ag-grid-enterprise/server-side-row-model": "32.3.4",
     "@ag-grid-enterprise/viewport-row-model": "32.3.4",
     "@deephaven/components": "^0.106.2",
     "@deephaven/icons": "^0.106.0",
     "@deephaven/jsapi-bootstrap": "^0.106.2",
+    "@deephaven/jsapi-utils": "^0.106.2",
+    "@deephaven/redux": "^0.106.2",
     "@deephaven/log": "^0.106.2",
     "@deephaven/plugin": "^0.106.4",
-    "@deephaven/utils": "^0.106.0"
+    "@deephaven/utils": "^0.106.0",
+    "react-redux": "^7.x"
   },
   "publishConfig": {
     "access": "public"

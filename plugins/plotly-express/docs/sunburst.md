@@ -32,7 +32,56 @@ gapminder_recent = (
 sunburst_plot = dx.sunburst(gapminder_recent, names="Continent", values="Pop", parents="World")
 ```
 
+![Sunburst Plot Basic Example](./_assets/sunburst_plot.png)
+
+### A sunburst plot with `path`
+
+Instead of manually aggregating and passing in `names` and `parents`, use the `path` argument to specify the hierarchy of the data. The first column is the root category, and the last column is the leaf category. The values are automatically summed up.
+
+```python order=treemap_path_plot,gapminder
+import deephaven.plot.express as dx
+
+gapminder = dx.data.gapminder().update_view("World = `World`")
+
+sunburst_path_plot = dx.sunburst(gapminder, path=["World", "Continent", "Country"], values="Pop")
+```
+
+# A nested sunburst plot with branch values
+
+By default, the `branchvalues` argument is set to `"remainder"`.
+Keep the default if the values column should be added to the sum of its children to get the value for a node.
+If the values column is equal to the sum of its children, set `branchvalues` to `"total"`.
+
+```python
+import deephaven.plot.express as dx
+from deephaven import merge
+
+data = dx.data.gapminder(ticking=False)
+
+countries = data.last_by("Country").view(["Name=Country", "Pop", "Parent=Continent"])
+
+# Sum country population by continent
+continents = (
+    countries.drop_columns("Name")
+    .sum_by("Parent")
+    .view(["Name=Parent", "Pop", "Parent=`World`"])
+)
+
+# Sum continent population
+world = (
+    continents.view("Pop").sum_by().view(["Name=`World`", "Pop", "Parent=(String)null"])
+)
+
+merged_gapminder = merge([world, continents, countries])
+
+# Since the values column is equal to the sum of it's children, set branchvalues to "total"
+sunburst_nested = dx.sunburst(
+    merged_gapminder, names="Name", values="Pop", parents="Parent", branchvalues="total"
+)
+```
+
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.sunburst
 ```

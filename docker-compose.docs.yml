@@ -1,0 +1,11 @@
+services:
+  docs:
+    image: ghcr.io/deephaven/salmon
+    pull_policy: always
+    ports:
+      - '${PORT:-3001}:${PORT:-3001}'
+    environment:
+      - PORT=${PORT:-3001}
+    volumes:
+      - ./plugins/ui/docs${BUILT+/build/markdown}:/salmon/core/ui/docs
+      - ./plugins/plotly-express/docs${BUILT+/build/markdown}:/salmon/core/plotly/docs

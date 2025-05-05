@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import base64
+import puremagic
+
 from .basic import component_element
 from ..elements import Element
 from typing import Callable
@@ -14,8 +17,29 @@ from .types import (
 )
 
 
+def convert_src_to_str(src: str | bytes) -> str:
+    """
+    Converts the source of an image to a string.
+    If the source is in bytes, it converts it to a base64 URI string.
+
+    Args:
+        src: The source of the image, either as a string (URL) or bytes.
+
+    Returns:
+        The source as a string. If the input was bytes, it will be a base64 data URI.
+    """
+    if isinstance(src, str):
+        return src
+
+    mime_type = puremagic.from_string(src, mime=True)
+
+    base64_str = base64.b64encode(src).decode()
+
+    return f"data:{mime_type};base64,{base64_str}"
+
+
 def image(
-    src: str,
+    src: str | bytes,
     alt: str | None = None,
     object_fit: ObjectFit = "fill",
     on_error: Callable[[], None] | None = None,
@@ -66,6 +90,7 @@ def image(
 
     Args:
         src: The URL of the image.
+            If the source is in bytes, it will be converted to a base64 data URI.
         alt: Text description of the image.
         object_fit: How the image should be resized to fit its container.
         on_error: A callback function to run when the image fails to load.
@@ -114,6 +139,8 @@ def image(
     Returns:
         The rendered Image element.
     """
+
+    src = convert_src_to_str(src)
 
     return component_element(
         "Image",

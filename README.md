@@ -340,6 +340,23 @@ This example reinstalls the `ui` plugin with js, starts the server, and watches 
 python tools/plugin_builder.py -jrsw ui
 ```
 
+### Previewing Docs
+
+To preview the docs, run the following command from the root directory of this repo:
+
+```shell
+npm run docs
+```
+
+This will use the source directories and serve the preview docs at `http://localhost:3001`. Note that this will not include the API reference docs which are only part of the fully built docs with `plugin_builder.py`.
+
+To build and preview docs from the `build` directory, run the following commands:
+
+```shell
+python tools/plugin_builder.py -d ui plotly-express
+BUILT=true npm run docs
+```
+
 ## Release Management
 
 In order to manage changelogs, version bumps and github releases, we use [cocogitto](https://github.com/cocogitto/cocogitto), or `cog` for short. Follow the [Installation instructions](https://github.com/cocogitto/cocogitto?tab=readme-ov-file#installation) to install `cog`. For Linux and Windows, we recommend using [cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) to install. For MacOS, we recommend using [brew](https://brew.sh/).
