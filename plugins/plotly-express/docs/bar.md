@@ -16,6 +16,8 @@ Bar plots are appropriate when the data contain a continuous response variable t
 
 Visualize the relationship between a continuous variable and a categorical or discrete variable by passing the column names to the `x` and `y` arguments.
 
+<!-- TODO: Need to figure out how to get this info string through, without dropping it! Sphinx parser seems to just drop it -->
+
 ```python order=bar_plot,tips
 import deephaven.plot.express as dx
 tips = dx.data.tips()

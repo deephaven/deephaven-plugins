@@ -124,6 +124,25 @@ def remove_paramtable_comment(
     return line
 
 
+def copy_snapshots() -> int:
+    """
+    Copy the snapshots from the docs directory to the built docs directory
+
+    Returns:
+        1 if the copy failed, 0 if it succeeded
+    """
+    commands = [
+        f"rm -rf {BUILT_DOCS}/snapshots",
+        f"cp -r docs/snapshots {BUILT_DOCS}/snapshots",
+    ]
+
+    code = attempt_command_sequence(commands)
+    if code != 0:
+        return 1
+
+    return 0
+
+
 def build_documents() -> int:
     """
     Make the markdown files and copy the assets in
