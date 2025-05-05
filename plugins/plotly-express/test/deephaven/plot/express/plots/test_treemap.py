@@ -245,7 +245,7 @@ class TreemapTestCase(BaseTestCase):
                 "branchvalues": "total",
                 "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
                 "hovertemplate": "Names=%{label}<br>values=%{value}<br>Parents=%{parent}<br>Ids=%{"
-                "id}<extra></extra>",
+                "id}<br>colors=%{color}<extra></extra>",
                 "ids": ["None"],
                 "labels": ["None"],
                 "marker": {
