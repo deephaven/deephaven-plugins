@@ -53,7 +53,7 @@ tips = dx.data.tips() # import a ticking version of the Tips dataset
 lunch_tips = tips.where("Time = `Lunch`")
 dinner_tips = tips.where("Time = `Dinner`")
 
-# create chart that share all axes
+# create chart that shares all axes
 tipping_plots = dx.make_subplots(
     dx.scatter(lunch_tips, x="TotalBill", y="Tip", labels={"Tip": "Lunch Tips"}),
     dx.scatter(dinner_tips, x="TotalBill", y="Tip", labels={"Tip": "Dinner Tips"}),
@@ -74,7 +74,7 @@ tips = dx.data.tips() # import a ticking version of the Tips dataset
 lunch_tips = tips.where("Time = `Lunch`")
 dinner_tips = tips.where("Time = `Dinner`")
 
-# create chart that share y axes along the row
+# create chart that shares y axes along the row
 tipping_plots = dx.make_subplots(
     dx.scatter(lunch_tips, x="TotalBill", y="Tip", labels={"Tip": "Lunch Tips"}),
      dx.scatter(dinner_tips, x="TotalBill", y="Tip", labels={"Tip": "Dinner Tips"}),
@@ -92,7 +92,7 @@ tips = dx.data.tips() # import a ticking version of the Tips dataset
 lunch_tips = tips.where("Time = `Lunch`")
 dinner_tips = tips.where("Time = `Dinner`")
 
-# create chart that share y axes along the column
+# create chart that shares y axes along the column
 tipping_plots = dx.make_subplots(
     dx.scatter(lunch_tips, x="TotalBill", y="Tip", labels={"Tip": "Lunch Tips"}),
      dx.scatter(dinner_tips, x="TotalBill", y="Tip", labels={"Tip": "Dinner Tips"}),
@@ -113,7 +113,7 @@ tips = dx.data.tips() # import a ticking version of the Tips dataset
 lunch_tips = tips.where("Time = `Lunch`")
 dinner_tips = tips.where("Time = `Dinner`")
 
-# create chart that share x axes along the column
+# create chart that shares x axes along the column
 tipping_plots = dx.make_subplots(
     dx.scatter(lunch_tips, x="TotalBill", y="Tip", labels={"Tip": "Lunch Tips"}),
      dx.scatter(dinner_tips, x="TotalBill", y="Tip", labels={"Tip": "Dinner Tips"}),
@@ -131,7 +131,7 @@ tips = dx.data.tips() # import a ticking version of the Tips dataset
 lunch_tips = tips.where("Time = `Lunch`")
 dinner_tips = tips.where("Time = `Dinner`")
 
-# create chart that share x axes along the row
+# create chart that shares x axes along the row
 tipping_plots = dx.make_subplots(
     dx.scatter(lunch_tips, x="TotalBill", y="Tip", labels={"Tip": "Lunch Tips"}),
      dx.scatter(dinner_tips, x="TotalBill", y="Tip", labels={"Tip": "Dinner Tips"}),
