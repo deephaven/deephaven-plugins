@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## plotly-express-v0.16.0 - 2025-05-06
+#### Bug Fixes
+- fix hovertext logic for hierarchical plots (#1159) - (fddd6de) - Joe
+#### Build system
+- DH-19353: Add transpiled files and types to plotly-express build (#1170) - (65fa2fc) - Matthew Runyon
+#### Features
+- DH-18317: Add hierarchical path (#1164) - (334829d) - Joe
+
+- - -
+
 ## plotly-express-v0.15.0 - 2025-04-30
 #### Documentation
 - Add ui component overview page, adjust sidebar (#1161) - (9ba7f2c) - Don

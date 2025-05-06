@@ -1,6 +1,6 @@
 {
   "name": "@deephaven/js-plugin-plotly-express",
-  "version": "0.15.0",
+  "version": "0.16.0",
   "description": "Deephaven plotly express plugin",
   "keywords": [
     "Deephaven",
