@@ -2,13 +2,17 @@ import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { WorkspaceSettings } from '@deephaven/redux';
-import { createFormatterFromSettings } from '@deephaven/jsapi-utils';
+import {
+  createFormatterFromSettings,
+  TableUtils,
+} from '@deephaven/jsapi-utils';
 import { ColDef } from '@ag-grid-community/core';
 import { AgGridReact, AgGridReactProps } from '@ag-grid-community/react';
 import { useMemo } from 'react';
 import ServerSideDatasource from './datasources/ServerSideDatasource';
 import AgGridTableUtils from './utils/AgGridTableUtils';
 import AgGridFormatter from './utils/AgGridFormatter';
+import TreeTableServerSideDatasource from './datasources/TreeTableServerSideDatasource';
 
 type AgGridServerSideViewProps = {
   table: DhType.Table;
@@ -45,7 +49,10 @@ export function AgGridServerSideView({
 
   /** Create the ViewportDatasource to pass in to AG Grid based on the Deephaven Table */
   const datasource = useMemo(
-    () => new ServerSideDatasource(dh, table),
+    () =>
+      TableUtils.isTreeTable(table)
+        ? new TreeTableServerSideDatasource(dh, table)
+        : new ServerSideDatasource(dh, table),
     [dh, table]
   );
 
