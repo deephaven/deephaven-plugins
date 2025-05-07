@@ -158,6 +158,9 @@ def scatter_mapbox(*args, **kwargs) -> DeephavenFigure:
         DeprecationWarning,
     )
 
+    if "style_mapbox" in kwargs:
+        kwargs["map_style"] = kwargs.pop("style_mapbox")
+
     return scatter_map(*args, **kwargs)
 
 
@@ -170,6 +173,9 @@ def line_mapbox(*args, **kwargs) -> DeephavenFigure:
         DeprecationWarning,
     )
 
+    if "style_mapbox" in kwargs:
+        kwargs["map_style"] = kwargs.pop("style_mapbox")
+
     return line_map(*args, **kwargs)
 
 
@@ -181,6 +187,9 @@ def density_mapbox(*args, **kwargs) -> DeephavenFigure:
         "density_mapbox is deprecated and will be removed in a future release. Use scatter_map instead.",
         DeprecationWarning,
     )
+
+    if "style_mapbox" in kwargs:
+        kwargs["map_style"] = kwargs.pop("style_mapbox")
 
     return density_map(*args, **kwargs)
 
