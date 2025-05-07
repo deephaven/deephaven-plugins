@@ -43,6 +43,9 @@ from .plots import (
     line_mapbox,
     density_heatmap,
     indicator,
+    scatter_map,
+    density_map,
+    line_map,
 )
 
 from .data import data_generators
