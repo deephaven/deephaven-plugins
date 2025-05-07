@@ -1,6 +1,6 @@
 # Deephaven Plugin for Simple Pivot
 
-The plugin adds UI support for Simple Pivot tables in Core+ workers in Enterprise.
+This plugin adds UI support for Simple Pivot tables in Core+ workers in Enterprise.
 
 ## Plugin Structure
 

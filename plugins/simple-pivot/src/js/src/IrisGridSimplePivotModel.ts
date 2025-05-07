@@ -13,9 +13,7 @@ import {
 } from '@deephaven/utils';
 import {
   GridRange,
-  DisplayColumn,
   type ModelIndex,
-  type ColumnName,
   type MoveOperation,
 } from '@deephaven/grid';
 import {
@@ -24,6 +22,8 @@ import {
   IrisGridTableModel,
   isIrisGridTableModelTemplate,
   IrisGridUtils,
+  type ColumnName,
+  type DisplayColumn,
   type IrisGridThemeType,
 } from '@deephaven/iris-grid';
 import {
@@ -51,14 +51,19 @@ function makeModel(
 
 const GRAND_TOTAL_VALUE = 'Grand Total';
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface IrisGridSimplePivotModel extends IrisGridTableModel {}
+
 /**
  * Model which proxies calls to IrisGridModel.
  * This allows updating the underlying Simple Pivot tables on schema changes.
  * The proxy model will call any methods it has implemented and delegate any
  * it does not implement to the underlying model.
  */
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
+// // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// // @ts-ignore
 class IrisGridSimplePivotModel extends IrisGridModel {
   private keyTable: DhType.Table;
 
@@ -713,10 +718,6 @@ class IrisGridSimplePivotModel extends IrisGridModel {
   }
 
   colorForCell(x: ModelIndex, y: ModelIndex, theme: IrisGridThemeType): string {
-    if (!isIrisGridTableModelTemplate(this.model)) {
-      throw new Error('Invalid model, colorForCell not available');
-    }
-
     if (this.schema.hasTotals && y === this.rowCount - 1) {
       if (x >= this.schema.rowColNames.length) {
         const value = this.valueForCell(x, y);
@@ -750,6 +751,9 @@ class IrisGridSimplePivotModel extends IrisGridModel {
       return theme.textColor;
     }
 
+    if (!isIrisGridTableModelTemplate(this.model)) {
+      throw new Error('Invalid model, colorForCell not available');
+    }
     return this.model.colorForCell(x, y, theme);
   }
 

@@ -7,8 +7,9 @@ export const PIVOT_COLUMN_PREFIX = 'PIVOT_C_';
 export const TOTALS_COLUMN = '__TOTALS_COLUMN';
 
 export interface SimplePivotSchema {
-  columnColNames: string[];
-  rowColNames: string[];
+  // ColNames arrays require at least one entry
+  columnColNames: [string, ...string[]];
+  rowColNames: [string, ...string[]];
   hasTotals: boolean;
   pivotDescription: string;
 }
