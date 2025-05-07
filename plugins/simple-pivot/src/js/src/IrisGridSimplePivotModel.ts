@@ -62,8 +62,6 @@ interface IrisGridSimplePivotModel extends IrisGridTableModel {}
  * The proxy model will call any methods it has implemented and delegate any
  * it does not implement to the underlying model.
  */
-// // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// // @ts-ignore
 class IrisGridSimplePivotModel extends IrisGridModel {
   private keyTable: DhType.Table;
 
