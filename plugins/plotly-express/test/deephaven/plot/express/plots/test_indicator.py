@@ -19,7 +19,6 @@ class IndicatorTestCase(BaseTestCase):
 
     def test_basic_indicator(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.indicator(self.source, value="value").to_dict(self.exporter)
 
@@ -32,7 +31,7 @@ class IndicatorTestCase(BaseTestCase):
                 "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
                 "mode": "number",
                 "type": "indicator",
-                "value": NULL_INT,
+                "value": self.PLOTLY_NULL_INT,
             }
         ]
 
@@ -53,7 +52,6 @@ class IndicatorTestCase(BaseTestCase):
 
     def test_complex_indicator(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.indicator(
             self.source,
@@ -77,7 +75,7 @@ class IndicatorTestCase(BaseTestCase):
                     "decreasing": {"symbol": "decreasing"},
                     "increasing": {"symbol": "increasing"},
                     "prefix": "prefix",
-                    "reference": NULL_INT,
+                    "reference": self.PLOTLY_NULL_INT,
                     "suffix": "suffix",
                     "valueformat": "DEEPHAVEN_JAVA_FORMAT=$#,##0.00",
                 },
@@ -91,7 +89,7 @@ class IndicatorTestCase(BaseTestCase):
                 },
                 "title": {"text": "None"},
                 "type": "indicator",
-                "value": NULL_INT,
+                "value": self.PLOTLY_NULL_INT,
             }
         ]
 
@@ -123,7 +121,6 @@ class IndicatorTestCase(BaseTestCase):
 
     def test_by_indicators(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.indicator(
             self.source,
@@ -147,7 +144,7 @@ class IndicatorTestCase(BaseTestCase):
                 "delta": {
                     "decreasing": {"color": "red", "symbol": "▼"},
                     "increasing": {"color": "chocolate", "symbol": "▲"},
-                    "reference": NULL_INT,
+                    "reference": self.PLOTLY_NULL_INT,
                 },
                 "domain": {"x": [0.0, 0.45], "y": [0.0, 0.425]},
                 "gauge": {
@@ -158,13 +155,13 @@ class IndicatorTestCase(BaseTestCase):
                 "mode": "number+delta+gauge",
                 "type": "indicator",
                 "title": {"text": "C"},
-                "value": NULL_INT,
+                "value": self.PLOTLY_NULL_INT,
             },
             {
                 "delta": {
                     "decreasing": {"color": "blue", "symbol": "▼"},
                     "increasing": {"color": "salmon", "symbol": "▲"},
-                    "reference": NULL_INT,
+                    "reference": self.PLOTLY_NULL_INT,
                 },
                 "domain": {"x": [0.0, 0.45], "y": [0.575, 1.0]},
                 "gauge": {
@@ -175,13 +172,13 @@ class IndicatorTestCase(BaseTestCase):
                 "mode": "number+delta+gauge",
                 "type": "indicator",
                 "title": {"text": "A"},
-                "value": NULL_INT,
+                "value": self.PLOTLY_NULL_INT,
             },
             {
                 "delta": {
                     "decreasing": {"color": "bisque", "symbol": "▼"},
                     "increasing": {"color": "salmon", "symbol": "▲"},
-                    "reference": NULL_INT,
+                    "reference": self.PLOTLY_NULL_INT,
                 },
                 "domain": {"x": [0.55, 1.0], "y": [0.575, 1.0]},
                 "gauge": {
@@ -192,7 +189,7 @@ class IndicatorTestCase(BaseTestCase):
                 "mode": "number+delta+gauge",
                 "type": "indicator",
                 "title": {"text": "B"},
-                "value": NULL_INT,
+                "value": self.PLOTLY_NULL_INT,
             },
         ]
 
@@ -265,7 +262,6 @@ class IndicatorTestCase(BaseTestCase):
 
     def test_square_indicators(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.indicator(self.source, value="value", by="text").to_dict(
             self.exporter
@@ -281,7 +277,7 @@ class IndicatorTestCase(BaseTestCase):
                 "mode": "number",
                 "type": "indicator",
                 "title": {"text": "C"},
-                "value": NULL_INT,
+                "value": self.PLOTLY_NULL_INT,
             },
             {
                 "delta": {
@@ -292,7 +288,7 @@ class IndicatorTestCase(BaseTestCase):
                 "mode": "number",
                 "type": "indicator",
                 "title": {"text": "A"},
-                "value": NULL_INT,
+                "value": self.PLOTLY_NULL_INT,
             },
             {
                 "delta": {
@@ -303,7 +299,7 @@ class IndicatorTestCase(BaseTestCase):
                 "mode": "number",
                 "type": "indicator",
                 "title": {"text": "B"},
-                "value": NULL_INT,
+                "value": self.PLOTLY_NULL_INT,
             },
         ]
 
@@ -326,7 +322,6 @@ class IndicatorTestCase(BaseTestCase):
 
     def test_row_indicators(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.indicator(self.source, value="value", by="text", rows=1).to_dict(
             self.exporter
@@ -342,7 +337,7 @@ class IndicatorTestCase(BaseTestCase):
                 "mode": "number",
                 "type": "indicator",
                 "title": {"text": "A"},
-                "value": NULL_INT,
+                "value": self.PLOTLY_NULL_INT,
             },
             {
                 "delta": {
@@ -356,7 +351,7 @@ class IndicatorTestCase(BaseTestCase):
                 "mode": "number",
                 "type": "indicator",
                 "title": {"text": "B"},
-                "value": NULL_INT,
+                "value": self.PLOTLY_NULL_INT,
             },
             {
                 "delta": {
@@ -370,7 +365,7 @@ class IndicatorTestCase(BaseTestCase):
                 "mode": "number",
                 "type": "indicator",
                 "title": {"text": "C"},
-                "value": NULL_INT,
+                "value": self.PLOTLY_NULL_INT,
             },
         ]
 
@@ -393,7 +388,6 @@ class IndicatorTestCase(BaseTestCase):
 
     def test_column_indicators(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.indicator(self.source, value="value", by="text", cols=1).to_dict(
             self.exporter
@@ -409,7 +403,7 @@ class IndicatorTestCase(BaseTestCase):
                 "mode": "number",
                 "type": "indicator",
                 "title": {"text": "C"},
-                "value": NULL_INT,
+                "value": self.PLOTLY_NULL_INT,
             },
             {
                 "delta": {
@@ -423,7 +417,7 @@ class IndicatorTestCase(BaseTestCase):
                 "mode": "number",
                 "type": "indicator",
                 "title": {"text": "B"},
-                "value": NULL_INT,
+                "value": self.PLOTLY_NULL_INT,
             },
             {
                 "delta": {
@@ -437,7 +431,7 @@ class IndicatorTestCase(BaseTestCase):
                 "mode": "number",
                 "type": "indicator",
                 "title": {"text": "A"},
-                "value": NULL_INT,
+                "value": self.PLOTLY_NULL_INT,
             },
         ]
 

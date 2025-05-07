@@ -46,7 +46,7 @@ class TimelineTestCase(BaseTestCase):
                 "orientation": "h",
                 "showlegend": False,
                 "textposition": "auto",
-                "x": [0.0],
+                "x": {"bdata": "AA==", "dtype": "i1"},
                 "xaxis": "x",
                 "y": ["None"],
                 "yaxis": "y",

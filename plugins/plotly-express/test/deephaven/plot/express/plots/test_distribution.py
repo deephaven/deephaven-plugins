@@ -41,7 +41,7 @@ class DistributionTestCase(BaseTestCase):
 
     def test_basic_histogram_x(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_LONG, NULL_DOUBLE
+        from deephaven.constants import NULL_LONG
 
         chart = dx.histogram(self.source, x="X").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -60,7 +60,7 @@ class DistributionTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": False,
                 "textposition": "auto",
-                "x": [NULL_DOUBLE],
+                "x": self.PLOTLY_NULL_DOUBLE,
                 "xaxis": "x",
                 "y": [NULL_LONG],
                 "yaxis": "y",
@@ -108,7 +108,7 @@ class DistributionTestCase(BaseTestCase):
 
     def test_basic_histogram_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_LONG, NULL_DOUBLE
+        from deephaven.constants import NULL_LONG
 
         chart = dx.histogram(self.source, y="Y").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -129,7 +129,7 @@ class DistributionTestCase(BaseTestCase):
                 "textposition": "auto",
                 "x": [NULL_LONG],
                 "xaxis": "x",
-                "y": [NULL_DOUBLE],
+                "y": self.PLOTLY_NULL_DOUBLE,
                 "yaxis": "y",
                 "type": "bar",
             }
@@ -175,7 +175,7 @@ class DistributionTestCase(BaseTestCase):
 
     def test_marginal_histogram_x(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_LONG, NULL_DOUBLE, NULL_INT
+        from deephaven.constants import NULL_LONG
 
         chart = dx.histogram(self.source, x="X", marginal="violin").to_dict(
             self.exporter
@@ -196,7 +196,7 @@ class DistributionTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": False,
                 "textposition": "auto",
-                "x": [NULL_DOUBLE],
+                "x": self.PLOTLY_NULL_DOUBLE,
                 "xaxis": "x",
                 "y": [NULL_LONG],
                 "yaxis": "y",
@@ -213,7 +213,7 @@ class DistributionTestCase(BaseTestCase):
                 "orientation": "h",
                 "scalegroup": "True",
                 "showlegend": False,
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x2",
                 "y0": " ",
@@ -281,7 +281,7 @@ class DistributionTestCase(BaseTestCase):
 
     def test_marginal_histogram_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_LONG, NULL_DOUBLE, NULL_INT
+        from deephaven.constants import NULL_LONG
 
         chart = dx.histogram(self.source, x="X", marginal="box").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -300,7 +300,7 @@ class DistributionTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": False,
                 "textposition": "auto",
-                "x": [NULL_DOUBLE],
+                "x": self.PLOTLY_NULL_DOUBLE,
                 "xaxis": "x",
                 "y": [NULL_LONG],
                 "yaxis": "y",
@@ -316,7 +316,7 @@ class DistributionTestCase(BaseTestCase):
                 "offsetgroup": "",
                 "orientation": "h",
                 "showlegend": False,
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x2",
                 "y0": " ",
@@ -384,7 +384,7 @@ class DistributionTestCase(BaseTestCase):
 
     def test_basic_histogram_x_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_LONG, NULL_DOUBLE
+        from deephaven.constants import NULL_LONG
 
         chart = dx.histogram(self.source, x="X", y="Y").to_dict(self.exporter)
 
@@ -399,7 +399,7 @@ class DistributionTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": False,
                 "textposition": "auto",
-                "x": [NULL_DOUBLE],
+                "x": self.PLOTLY_NULL_DOUBLE,
                 "xaxis": "x",
                 "y": [NULL_LONG],
                 "yaxis": "y",
@@ -447,7 +447,7 @@ class DistributionTestCase(BaseTestCase):
 
     def test_basic_histogram_x_y_h(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_LONG, NULL_DOUBLE
+        from deephaven.constants import NULL_LONG
 
         chart = dx.histogram(self.source, x="X", y="Y", orientation="h").to_dict(
             self.exporter
@@ -466,7 +466,7 @@ class DistributionTestCase(BaseTestCase):
                 "textposition": "auto",
                 "x": [NULL_LONG],
                 "xaxis": "x",
-                "y": [NULL_DOUBLE],
+                "y": self.PLOTLY_NULL_DOUBLE,
                 "yaxis": "y",
                 "type": "bar",
             }
@@ -512,7 +512,7 @@ class DistributionTestCase(BaseTestCase):
 
     def test_basic_histogram_x_list(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_LONG, NULL_DOUBLE
+        from deephaven.constants import NULL_LONG
 
         chart = dx.histogram(self.source, x=["X", "X2"]).to_dict(self.exporter)
 
@@ -527,7 +527,7 @@ class DistributionTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": True,
                 "textposition": "auto",
-                "x": [NULL_DOUBLE],
+                "x": self.PLOTLY_NULL_DOUBLE,
                 "xaxis": "x",
                 "y": [NULL_LONG],
                 "yaxis": "y",
@@ -543,7 +543,7 @@ class DistributionTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": True,
                 "textposition": "auto",
-                "x": [NULL_DOUBLE],
+                "x": self.PLOTLY_NULL_DOUBLE,
                 "xaxis": "x",
                 "y": [NULL_LONG],
                 "yaxis": "y",
@@ -597,7 +597,7 @@ class DistributionTestCase(BaseTestCase):
 
     def test_basic_histogram_y_list(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_LONG, NULL_DOUBLE
+        from deephaven.constants import NULL_LONG
 
         chart = dx.histogram(self.source, y=["Y", "Y2"]).to_dict(self.exporter)
 
@@ -615,7 +615,7 @@ class DistributionTestCase(BaseTestCase):
                 "type": "bar",
                 "x": [NULL_LONG],
                 "xaxis": "x",
-                "y": [NULL_DOUBLE],
+                "y": self.PLOTLY_NULL_DOUBLE,
                 "yaxis": "y",
             },
             {
@@ -631,7 +631,7 @@ class DistributionTestCase(BaseTestCase):
                 "type": "bar",
                 "x": [NULL_LONG],
                 "xaxis": "x",
-                "y": [NULL_DOUBLE],
+                "y": self.PLOTLY_NULL_DOUBLE,
                 "yaxis": "y",
             },
         ]
@@ -682,7 +682,7 @@ class DistributionTestCase(BaseTestCase):
 
     def test_basic_histogram_x_y_list(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_LONG, NULL_DOUBLE
+        from deephaven.constants import NULL_LONG
 
         chart = dx.histogram(self.source, x="X", y=["Y", "Y2"]).to_dict(self.exporter)
 
@@ -698,7 +698,7 @@ class DistributionTestCase(BaseTestCase):
                 "showlegend": True,
                 "textposition": "auto",
                 "type": "bar",
-                "x": [NULL_DOUBLE],
+                "x": self.PLOTLY_NULL_DOUBLE,
                 "xaxis": "x",
                 "y": [NULL_LONG],
                 "yaxis": "y",
@@ -714,7 +714,7 @@ class DistributionTestCase(BaseTestCase):
                 "showlegend": True,
                 "textposition": "auto",
                 "type": "bar",
-                "x": [NULL_DOUBLE],
+                "x": self.PLOTLY_NULL_DOUBLE,
                 "xaxis": "x",
                 "y": [NULL_LONG],
                 "yaxis": "y",
@@ -767,7 +767,7 @@ class DistributionTestCase(BaseTestCase):
 
     def test_basic_histogram_x_list_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_LONG, NULL_DOUBLE
+        from deephaven.constants import NULL_LONG
 
         chart = dx.histogram(self.source, x=["X", "X2"], y="Y").to_dict(self.exporter)
 
@@ -783,7 +783,7 @@ class DistributionTestCase(BaseTestCase):
                 "showlegend": True,
                 "textposition": "auto",
                 "type": "bar",
-                "x": [NULL_DOUBLE],
+                "x": self.PLOTLY_NULL_DOUBLE,
                 "xaxis": "x",
                 "y": [NULL_LONG],
                 "yaxis": "y",
@@ -799,7 +799,7 @@ class DistributionTestCase(BaseTestCase):
                 "showlegend": True,
                 "textposition": "auto",
                 "type": "bar",
-                "x": [NULL_DOUBLE],
+                "x": self.PLOTLY_NULL_DOUBLE,
                 "xaxis": "x",
                 "y": [NULL_LONG],
                 "yaxis": "y",
@@ -1009,7 +1009,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_basic_violin_x(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.violin(self.source, x="X").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -1030,7 +1029,7 @@ class DistributionTestCase(BaseTestCase):
                 "points": "outliers",
                 "scalegroup": "True",
                 "showlegend": False,
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
                 "y0": " ",
@@ -1064,7 +1063,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_basic_violin_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.violin(self.source, y="X").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -1087,7 +1085,7 @@ class DistributionTestCase(BaseTestCase):
                 "showlegend": False,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
                 "type": "violin",
@@ -1120,7 +1118,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_basic_violin_x_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.violin(self.source, x="X", y="Y").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -1142,10 +1139,10 @@ class DistributionTestCase(BaseTestCase):
                 "scalegroup": "True",
                 "showlegend": False,
                 "type": "violin",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             }
@@ -1187,7 +1184,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_list_violin_x(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.violin(self.source, x=["X", "Y"]).to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -1209,7 +1205,7 @@ class DistributionTestCase(BaseTestCase):
                 "scalegroup": "True",
                 "showlegend": True,
                 "type": "violin",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
                 "y0": " ",
@@ -1228,7 +1224,7 @@ class DistributionTestCase(BaseTestCase):
                 "scalegroup": "True",
                 "showlegend": True,
                 "type": "violin",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
                 "y0": " ",
@@ -1264,7 +1260,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_list_violin_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.violin(self.source, y=["X", "Y"]).to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -1288,7 +1283,7 @@ class DistributionTestCase(BaseTestCase):
                 "type": "violin",
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -1307,7 +1302,7 @@ class DistributionTestCase(BaseTestCase):
                 "type": "violin",
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -1341,7 +1336,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_list_violin_x_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.violin(self.source, x=["X", "X2"], y="Y").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -1363,10 +1357,10 @@ class DistributionTestCase(BaseTestCase):
                 "scalegroup": "True",
                 "showlegend": True,
                 "type": "violin",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -1383,10 +1377,10 @@ class DistributionTestCase(BaseTestCase):
                 "scalegroup": "True",
                 "showlegend": True,
                 "type": "violin",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -1455,10 +1449,10 @@ class DistributionTestCase(BaseTestCase):
                 "scalegroup": "True",
                 "showlegend": True,
                 "type": "violin",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -1475,10 +1469,10 @@ class DistributionTestCase(BaseTestCase):
                 "scalegroup": "True",
                 "showlegend": True,
                 "type": "violin",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -1529,7 +1523,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_by_violin_x(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.violin(self.source, x="X", by="category").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -1551,7 +1544,7 @@ class DistributionTestCase(BaseTestCase):
                 "scalegroup": "True",
                 "showlegend": True,
                 "type": "violin",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
                 "y0": " ",
@@ -1570,7 +1563,7 @@ class DistributionTestCase(BaseTestCase):
                 "scalegroup": "True",
                 "showlegend": True,
                 "type": "violin",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
                 "y0": " ",
@@ -1606,7 +1599,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_by_violin_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.violin(self.source, y="Y", by="category").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -1630,7 +1622,7 @@ class DistributionTestCase(BaseTestCase):
                 "type": "violin",
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -1649,7 +1641,7 @@ class DistributionTestCase(BaseTestCase):
                 "type": "violin",
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -1683,7 +1675,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_by_violin_x_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.violin(self.source, x="X", y="Y", by="category").to_dict(
             self.exporter
@@ -1707,10 +1698,10 @@ class DistributionTestCase(BaseTestCase):
                 "scalegroup": "True",
                 "showlegend": True,
                 "type": "violin",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -1727,10 +1718,10 @@ class DistributionTestCase(BaseTestCase):
                 "scalegroup": "True",
                 "showlegend": True,
                 "type": "violin",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -1775,7 +1766,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_list_by_violin_x(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.violin(self.source, x=["X", "X2"], by="category").to_dict(
             self.exporter
@@ -1799,7 +1789,7 @@ class DistributionTestCase(BaseTestCase):
                 "scalegroup": "True",
                 "showlegend": True,
                 "type": "violin",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
                 "y0": " ",
@@ -1818,7 +1808,7 @@ class DistributionTestCase(BaseTestCase):
                 "scalegroup": "True",
                 "showlegend": True,
                 "type": "violin",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
                 "y0": " ",
@@ -1854,7 +1844,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_list_by_violin_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.violin(self.source, y=["Y", "Y2"], by="category").to_dict(
             self.exporter
@@ -1880,7 +1869,7 @@ class DistributionTestCase(BaseTestCase):
                 "type": "violin",
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -1899,7 +1888,7 @@ class DistributionTestCase(BaseTestCase):
                 "type": "violin",
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -1933,7 +1922,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_list_by_violin_x_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.violin(self.source, x=["X", "X2"], y="Y", by="category").to_dict(
             self.exporter
@@ -1957,10 +1945,10 @@ class DistributionTestCase(BaseTestCase):
                 "scalegroup": "True",
                 "showlegend": True,
                 "type": "violin",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -1977,10 +1965,10 @@ class DistributionTestCase(BaseTestCase):
                 "scalegroup": "True",
                 "showlegend": True,
                 "type": "violin",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -2030,7 +2018,6 @@ class DistributionTestCase(BaseTestCase):
         self.assertEqual(deephaven["is_user_set_color"], True)
 
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.violin(self.source, x="X", y=["Y", "Y2"], by="category").to_dict(
             self.exporter
@@ -2054,10 +2041,10 @@ class DistributionTestCase(BaseTestCase):
                 "scalegroup": "True",
                 "showlegend": True,
                 "type": "violin",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -2074,10 +2061,10 @@ class DistributionTestCase(BaseTestCase):
                 "scalegroup": "True",
                 "showlegend": True,
                 "type": "violin",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -2128,7 +2115,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_basic_box_x(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.box(self.source, x="X").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -2148,7 +2134,7 @@ class DistributionTestCase(BaseTestCase):
                 "offsetgroup": "",
                 "orientation": "h",
                 "showlegend": False,
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
                 "y0": " ",
@@ -2183,7 +2169,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_basic_box_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.box(self.source, y="X").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -2205,7 +2190,7 @@ class DistributionTestCase(BaseTestCase):
                 "showlegend": False,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
                 "type": "box",
@@ -2238,7 +2223,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_basic_box_x_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.box(self.source, x="X", y="Y").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -2259,10 +2243,10 @@ class DistributionTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": False,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             }
@@ -2304,7 +2288,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_list_box_x(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.box(self.source, x=["X", "Y"]).to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -2325,7 +2308,7 @@ class DistributionTestCase(BaseTestCase):
                 "orientation": "h",
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
                 "y0": " ",
@@ -2343,7 +2326,7 @@ class DistributionTestCase(BaseTestCase):
                 "orientation": "h",
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
                 "y0": " ",
@@ -2379,7 +2362,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_list_box_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.box(self.source, y=["X", "Y"]).to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -2402,7 +2384,7 @@ class DistributionTestCase(BaseTestCase):
                 "type": "box",
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -2420,7 +2402,7 @@ class DistributionTestCase(BaseTestCase):
                 "type": "box",
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -2454,7 +2436,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_list_box_x_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.box(self.source, x=["X", "X2"], y="Y").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -2475,10 +2456,10 @@ class DistributionTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -2494,10 +2475,10 @@ class DistributionTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -2565,10 +2546,10 @@ class DistributionTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -2584,10 +2565,10 @@ class DistributionTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -2638,7 +2619,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_by_box_x(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.box(self.source, x="X", by="category").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -2659,7 +2639,7 @@ class DistributionTestCase(BaseTestCase):
                 "orientation": "h",
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
                 "y0": " ",
@@ -2677,7 +2657,7 @@ class DistributionTestCase(BaseTestCase):
                 "orientation": "h",
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
                 "y0": " ",
@@ -2713,7 +2693,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_by_box_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.box(self.source, y="Y", by="category").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -2736,7 +2715,7 @@ class DistributionTestCase(BaseTestCase):
                 "type": "box",
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -2754,7 +2733,7 @@ class DistributionTestCase(BaseTestCase):
                 "type": "box",
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -2788,7 +2767,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_by_box_x_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.box(self.source, x="X", y="Y", by="category").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -2809,10 +2787,10 @@ class DistributionTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -2828,10 +2806,10 @@ class DistributionTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -2876,7 +2854,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_list_by_box_x(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.box(self.source, x=["X", "X2"], by="category").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -2897,7 +2874,7 @@ class DistributionTestCase(BaseTestCase):
                 "orientation": "h",
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
                 "y0": " ",
@@ -2915,7 +2892,7 @@ class DistributionTestCase(BaseTestCase):
                 "orientation": "h",
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
                 "y0": " ",
@@ -2951,7 +2928,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_list_by_box_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.box(self.source, y="Y", by="category").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -2974,7 +2950,7 @@ class DistributionTestCase(BaseTestCase):
                 "type": "box",
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -2992,7 +2968,7 @@ class DistributionTestCase(BaseTestCase):
                 "type": "box",
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -3026,7 +3002,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_list_by_box_x_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.box(self.source, x=["X", "X2"], y="Y", by="category").to_dict(
             self.exporter
@@ -3049,10 +3024,10 @@ class DistributionTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -3068,10 +3043,10 @@ class DistributionTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -3121,7 +3096,6 @@ class DistributionTestCase(BaseTestCase):
         self.assertEqual(deephaven["is_user_set_color"], True)
 
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.violin(self.source, x="X", y=["Y", "Y2"], by="category").to_dict(
             self.exporter
@@ -3145,10 +3119,10 @@ class DistributionTestCase(BaseTestCase):
                 "scalegroup": "True",
                 "showlegend": True,
                 "type": "violin",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -3165,10 +3139,10 @@ class DistributionTestCase(BaseTestCase):
                 "scalegroup": "True",
                 "showlegend": True,
                 "type": "violin",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -3219,7 +3193,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_basic_strip_x(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.strip(self.source, x="X").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -3242,7 +3215,7 @@ class DistributionTestCase(BaseTestCase):
                 "orientation": "h",
                 "pointpos": 0,
                 "showlegend": False,
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
                 "y0": " ",
@@ -3277,7 +3250,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_basic_strip_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.box(self.source, y="X").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -3299,7 +3271,7 @@ class DistributionTestCase(BaseTestCase):
                 "showlegend": False,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
                 "type": "box",
@@ -3332,7 +3304,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_basic_strip_x_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.strip(self.source, x="X", y="Y").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -3356,10 +3327,10 @@ class DistributionTestCase(BaseTestCase):
                 "pointpos": 0,
                 "showlegend": False,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             }
@@ -3401,7 +3372,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_list_strip_x(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.strip(self.source, x=["X", "Y"]).to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -3425,7 +3395,7 @@ class DistributionTestCase(BaseTestCase):
                 "pointpos": 0,
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
                 "y0": " ",
@@ -3446,7 +3416,7 @@ class DistributionTestCase(BaseTestCase):
                 "pointpos": 0,
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
                 "y0": " ",
@@ -3482,7 +3452,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_list_strip_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.strip(self.source, y=["X", "Y"]).to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -3508,7 +3477,7 @@ class DistributionTestCase(BaseTestCase):
                 "type": "box",
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -3529,7 +3498,7 @@ class DistributionTestCase(BaseTestCase):
                 "type": "box",
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -3563,7 +3532,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_list_strip_x_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.strip(self.source, x=["X", "X2"], y="Y").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -3587,10 +3555,10 @@ class DistributionTestCase(BaseTestCase):
                 "pointpos": 0,
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -3609,10 +3577,10 @@ class DistributionTestCase(BaseTestCase):
                 "pointpos": 0,
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -3681,10 +3649,10 @@ class DistributionTestCase(BaseTestCase):
                 "scalegroup": "True",
                 "showlegend": True,
                 "type": "violin",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -3701,10 +3669,10 @@ class DistributionTestCase(BaseTestCase):
                 "scalegroup": "True",
                 "showlegend": True,
                 "type": "violin",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -3755,7 +3723,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_by_strip_x(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.strip(self.source, x="X", by="category").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -3779,7 +3746,7 @@ class DistributionTestCase(BaseTestCase):
                 "pointpos": 0,
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
                 "y0": " ",
@@ -3800,7 +3767,7 @@ class DistributionTestCase(BaseTestCase):
                 "pointpos": 0,
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
                 "y0": " ",
@@ -3836,7 +3803,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_by_strip_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.strip(self.source, y="Y", by="category").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -3862,7 +3828,7 @@ class DistributionTestCase(BaseTestCase):
                 "type": "box",
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -3883,7 +3849,7 @@ class DistributionTestCase(BaseTestCase):
                 "type": "box",
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -3917,7 +3883,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_by_strip_x_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.strip(self.source, x="X", y="Y", by="category").to_dict(
             self.exporter
@@ -3943,10 +3908,10 @@ class DistributionTestCase(BaseTestCase):
                 "pointpos": 0,
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -3965,10 +3930,10 @@ class DistributionTestCase(BaseTestCase):
                 "pointpos": 0,
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -4013,7 +3978,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_list_by_strip_x(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.strip(self.source, x=["X", "X2"], by="category").to_dict(
             self.exporter
@@ -4039,7 +4003,7 @@ class DistributionTestCase(BaseTestCase):
                 "pointpos": 0,
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
                 "y0": " ",
@@ -4060,7 +4024,7 @@ class DistributionTestCase(BaseTestCase):
                 "pointpos": 0,
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
                 "y0": " ",
@@ -4096,7 +4060,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_list_by_strip_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.strip(self.source, y="Y", by="category").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -4122,7 +4085,7 @@ class DistributionTestCase(BaseTestCase):
                 "type": "box",
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -4143,7 +4106,7 @@ class DistributionTestCase(BaseTestCase):
                 "type": "box",
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -4177,7 +4140,6 @@ class DistributionTestCase(BaseTestCase):
 
     def test_list_by_strip_x_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.strip(self.source, x=["X", "X2"], y="Y", by="category").to_dict(
             self.exporter
@@ -4203,10 +4165,10 @@ class DistributionTestCase(BaseTestCase):
                 "pointpos": 0,
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -4225,10 +4187,10 @@ class DistributionTestCase(BaseTestCase):
                 "pointpos": 0,
                 "showlegend": True,
                 "type": "box",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -4299,10 +4261,10 @@ class DistributionTestCase(BaseTestCase):
                 "scalegroup": "True",
                 "showlegend": True,
                 "type": "violin",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },
@@ -4319,10 +4281,10 @@ class DistributionTestCase(BaseTestCase):
                 "scalegroup": "True",
                 "showlegend": True,
                 "type": "violin",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "x0": " ",
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "y0": " ",
                 "yaxis": "y",
             },

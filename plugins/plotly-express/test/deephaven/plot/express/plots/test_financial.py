@@ -20,7 +20,6 @@ class FinancialTestCase(BaseTestCase):
 
     def test_basic_ohlc(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.ohlc(
             self.source, x="X", open="Open", high="High", low="Low", close="Close"
@@ -28,12 +27,12 @@ class FinancialTestCase(BaseTestCase):
 
         expected_data = [
             {
-                "close": [[NULL_INT]],
-                "high": [[NULL_INT]],
-                "low": [[NULL_INT]],
-                "open": [[NULL_INT]],
+                "close": self.PLOTLY_NULL_INT,
+                "high": self.PLOTLY_NULL_INT,
+                "low": self.PLOTLY_NULL_INT,
+                "open": self.PLOTLY_NULL_INT,
                 "type": "ohlc",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
             }
         ]
 
@@ -66,7 +65,6 @@ class FinancialTestCase(BaseTestCase):
 
     def test_basic_candlestick(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.candlestick(
             self.source, x="X", open="Open", high="High", low="Low", close="Close"
@@ -74,12 +72,12 @@ class FinancialTestCase(BaseTestCase):
 
         expected_data = [
             {
-                "close": [[NULL_INT]],
-                "high": [[NULL_INT]],
-                "low": [[NULL_INT]],
-                "open": [[NULL_INT]],
+                "close": self.PLOTLY_NULL_INT,
+                "high": self.PLOTLY_NULL_INT,
+                "low": self.PLOTLY_NULL_INT,
+                "open": self.PLOTLY_NULL_INT,
                 "type": "candlestick",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
             }
         ]
 

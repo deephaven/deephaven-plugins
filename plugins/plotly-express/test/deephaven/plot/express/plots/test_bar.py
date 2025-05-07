@@ -23,7 +23,7 @@ class BarTestCase(BaseTestCase):
 
     def test_basic_bar_x(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_LONG, NULL_INT
+        from deephaven.constants import NULL_LONG
 
         chart = dx.bar(self.source, x="X").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -43,7 +43,7 @@ class BarTestCase(BaseTestCase):
                 "showlegend": False,
                 "textposition": "auto",
                 "type": "bar",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "xaxis": "x",
                 "y": [NULL_LONG],
                 "yaxis": "y",
@@ -88,7 +88,7 @@ class BarTestCase(BaseTestCase):
 
     def test_basic_bar_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_LONG, NULL_INT
+        from deephaven.constants import NULL_LONG
 
         chart = dx.bar(self.source, y="Y").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -110,7 +110,7 @@ class BarTestCase(BaseTestCase):
                 "type": "bar",
                 "x": [NULL_LONG],
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "yaxis": "y",
             }
         ]
@@ -153,7 +153,6 @@ class BarTestCase(BaseTestCase):
 
     def test_basic_bar_x_y(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.bar(self.source, x="X", y="Y").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -173,9 +172,9 @@ class BarTestCase(BaseTestCase):
                 "showlegend": False,
                 "textposition": "auto",
                 "type": "bar",
-                "x": [NULL_INT],
+                "x": self.PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": [NULL_INT],
+                "y": self.PLOTLY_NULL_INT,
                 "yaxis": "y",
             }
         ]

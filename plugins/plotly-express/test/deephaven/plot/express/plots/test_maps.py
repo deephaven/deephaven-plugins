@@ -18,7 +18,6 @@ class MapTestCase(BaseTestCase):
 
     def test_basic_scatter_geo(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.scatter_geo(self.source, lat="lat", lon="lon").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -31,9 +30,9 @@ class MapTestCase(BaseTestCase):
                 "featureidkey": "id",
                 "geo": "geo",
                 "hovertemplate": "lat=%{lat}<br>lon=%{lon}<extra></extra>",
-                "lat": [NULL_INT],
+                "lat": self.PLOTLY_NULL_INT,
                 "legendgroup": "",
-                "lon": [NULL_INT],
+                "lon": self.PLOTLY_NULL_INT,
                 "marker": {"color": "#636efa", "symbol": "circle"},
                 "mode": "markers",
                 "name": "",
@@ -53,7 +52,6 @@ class MapTestCase(BaseTestCase):
 
     def test_basic_scatter_map(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.scatter_map(self.source, lat="lat", lon="lon").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -64,9 +62,9 @@ class MapTestCase(BaseTestCase):
         expected_data = [
             {
                 "hovertemplate": "lat=%{lat}<br>lon=%{lon}<extra></extra>",
-                "lat": [NULL_INT],
+                "lat": self.PLOTLY_NULL_INT,
                 "legendgroup": "",
-                "lon": [NULL_INT],
+                "lon": self.PLOTLY_NULL_INT,
                 "marker": {"color": "#636efa"},
                 "mode": "markers",
                 "name": "",
@@ -81,7 +79,7 @@ class MapTestCase(BaseTestCase):
         expected_layout = {
             "legend": {"tracegroupgap": 0},
             "map": {
-                "center": {"lat": NULL_INT, "lon": NULL_INT},
+                "center": {"lat": self.PLOTLY_NULL_INT, "lon": self.PLOTLY_NULL_INT},
                 "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
                 "style": "open-street-map",
                 "zoom": 8,
@@ -92,7 +90,6 @@ class MapTestCase(BaseTestCase):
 
     def test_basic_line_geo(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.line_geo(self.source, lat="lat", lon="lon").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -105,10 +102,10 @@ class MapTestCase(BaseTestCase):
                 "featureidkey": "id",
                 "geo": "geo",
                 "hovertemplate": "lat=%{lat}<br>lon=%{lon}<extra></extra>",
-                "lat": [NULL_INT],
+                "lat": self.PLOTLY_NULL_INT,
                 "legendgroup": "",
                 "line": {"color": "#636efa", "dash": "solid"},
-                "lon": [NULL_INT],
+                "lon": self.PLOTLY_NULL_INT,
                 "marker": {"symbol": "circle"},
                 "mode": "lines",
                 "name": "",
@@ -128,7 +125,6 @@ class MapTestCase(BaseTestCase):
 
     def test_basic_line_map(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.line_map(self.source, lat="lat", lon="lon").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -139,10 +135,10 @@ class MapTestCase(BaseTestCase):
         expected_data = [
             {
                 "hovertemplate": "lat=%{lat}<br>lon=%{lon}<extra></extra>",
-                "lat": [NULL_INT],
+                "lat": self.PLOTLY_NULL_INT,
                 "legendgroup": "",
                 "line": {"color": "#636efa"},
-                "lon": [NULL_INT],
+                "lon": self.PLOTLY_NULL_INT,
                 "mode": "lines",
                 "name": "",
                 "showlegend": False,
@@ -156,7 +152,7 @@ class MapTestCase(BaseTestCase):
         expected_layout = {
             "legend": {"tracegroupgap": 0},
             "map": {
-                "center": {"lat": NULL_INT, "lon": NULL_INT},
+                "center": {"lat": self.PLOTLY_NULL_INT, "lon": self.PLOTLY_NULL_INT},
                 "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
                 "style": "open-street-map",
                 "zoom": 8,
@@ -167,7 +163,6 @@ class MapTestCase(BaseTestCase):
 
     def test_basic_density_map(self):
         import src.deephaven.plot.express as dx
-        from deephaven.constants import NULL_INT
 
         chart = dx.density_map(self.source, lat="lat", lon="lon", z="z").to_dict(
             self.exporter
@@ -181,8 +176,8 @@ class MapTestCase(BaseTestCase):
             {
                 "coloraxis": "coloraxis",
                 "hovertemplate": "lat=%{lat}<br>lon=%{lon}<br>z=%{z}<extra></extra>",
-                "lat": [NULL_INT],
-                "lon": [NULL_INT],
+                "lat": self.PLOTLY_NULL_INT,
+                "lon": self.PLOTLY_NULL_INT,
                 "name": "",
                 "radius": 30,
                 "subplot": "map",
@@ -211,7 +206,7 @@ class MapTestCase(BaseTestCase):
             },
             "legend": {"tracegroupgap": 0},
             "map": {
-                "center": {"lat": NULL_INT, "lon": NULL_INT},
+                "center": {"lat": self.PLOTLY_NULL_INT, "lon": self.PLOTLY_NULL_INT},
                 "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
                 "style": "open-street-map",
                 "zoom": 8,
