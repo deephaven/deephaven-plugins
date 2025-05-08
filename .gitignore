@@ -46,3 +46,7 @@ replay_pid*
 
 plugins-venv/
 plugins-dev-venv/
+
+# Docs snapshots
+extract-results/
+snapshot-results/
