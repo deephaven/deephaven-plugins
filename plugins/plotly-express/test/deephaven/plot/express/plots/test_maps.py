@@ -52,6 +52,7 @@ class MapTestCase(BaseTestCase):
 
     def test_basic_scatter_map(self):
         import src.deephaven.plot.express as dx
+        from deephaven.constants import NULL_INT
 
         chart = dx.scatter_map(self.source, lat="lat", lon="lon").to_dict(self.exporter)
         plotly, deephaven = chart["plotly"], chart["deephaven"]
@@ -79,8 +80,13 @@ class MapTestCase(BaseTestCase):
         expected_layout = {
             "legend": {"tracegroupgap": 0},
             "map": {
-                "center": {"lat": self.PLOTLY_NULL_INT, "lon": self.PLOTLY_NULL_INT},
+                "center": {"lat": -2147483648.0, "lon": -2147483648.0},
                 "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
+                "style": "open-street-map",
+                "zoom": 8,
+            },
+            "mapbox": {
+                "center": {"lat": -2147483648.0, "lon": -2147483648.0},
                 "style": "open-street-map",
                 "zoom": 8,
             },
@@ -152,8 +158,13 @@ class MapTestCase(BaseTestCase):
         expected_layout = {
             "legend": {"tracegroupgap": 0},
             "map": {
-                "center": {"lat": self.PLOTLY_NULL_INT, "lon": self.PLOTLY_NULL_INT},
+                "center": {"lat": -2147483648.0, "lon": -2147483648.0},
                 "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
+                "style": "open-street-map",
+                "zoom": 8,
+            },
+            "mapbox": {
+                "center": {"lat": -2147483648.0, "lon": -2147483648.0},
                 "style": "open-street-map",
                 "zoom": 8,
             },
@@ -181,7 +192,7 @@ class MapTestCase(BaseTestCase):
                 "name": "",
                 "radius": 30,
                 "subplot": "map",
-                "z": [-2147483648],
+                "z": self.PLOTLY_NULL_INT,
                 "type": "densitymap",
             }
         ]
@@ -206,8 +217,13 @@ class MapTestCase(BaseTestCase):
             },
             "legend": {"tracegroupgap": 0},
             "map": {
-                "center": {"lat": self.PLOTLY_NULL_INT, "lon": self.PLOTLY_NULL_INT},
+                "center": {"lat": -2147483648.0, "lon": -2147483648.0},
                 "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
+                "style": "open-street-map",
+                "zoom": 8,
+            },
+            "mapbox": {
+                "center": {"lat": -2147483648.0, "lon": -2147483648.0},
                 "style": "open-street-map",
                 "zoom": 8,
             },

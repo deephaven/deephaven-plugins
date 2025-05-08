@@ -33,12 +33,10 @@ class BarTestCase(BaseTestCase):
 
         expected_data = [
             {
-                "alignmentgroup": "True",
                 "hovertemplate": "X=%{x}<br>count=%{y}<extra></extra>",
                 "legendgroup": "",
                 "marker": {"color": "#636efa", "pattern": {"shape": ""}},
                 "name": "",
-                "offsetgroup": "",
                 "orientation": "v",
                 "showlegend": False,
                 "textposition": "auto",
@@ -98,12 +96,10 @@ class BarTestCase(BaseTestCase):
 
         expected_data = [
             {
-                "alignmentgroup": "True",
                 "hovertemplate": "count=%{x}<br>Y=%{y}<extra></extra>",
                 "legendgroup": "",
                 "marker": {"color": "#636efa", "pattern": {"shape": ""}},
                 "name": "",
-                "offsetgroup": "",
                 "orientation": "h",
                 "showlegend": False,
                 "textposition": "auto",
@@ -162,12 +158,10 @@ class BarTestCase(BaseTestCase):
 
         expected_data = [
             {
-                "alignmentgroup": "True",
                 "hovertemplate": "X=%{x}<br>Y=%{y}<extra></extra>",
                 "legendgroup": "",
                 "marker": {"color": "#636efa", "pattern": {"shape": ""}},
                 "name": "",
-                "offsetgroup": "",
                 "orientation": "v",
                 "showlegend": False,
                 "textposition": "auto",

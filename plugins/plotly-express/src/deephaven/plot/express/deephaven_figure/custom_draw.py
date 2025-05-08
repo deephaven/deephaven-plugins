@@ -57,10 +57,10 @@ def draw_finance(
         data.append(
             go_func(
                 x=data_frame[x_f],
-                open=data_frame[open],
-                high=data_frame[high],
-                low=data_frame[low],
-                close=data_frame[close],
+                open=data_frame[o],
+                high=data_frame[h],
+                low=data_frame[l],
+                close=data_frame[c],
             )
         )
 

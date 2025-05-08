@@ -645,7 +645,6 @@ class ScatterTestCase(BaseTestCase):
                 "type": "box",
             },
             {
-                "alignmentgroup": "True",
                 "hovertemplate": "Y=%{y}<br>count=%{x}<extra></extra>",
                 "legendgroup": "",
                 "marker": {
@@ -654,7 +653,6 @@ class ScatterTestCase(BaseTestCase):
                     "pattern": {"shape": ""},
                 },
                 "name": "",
-                "offsetgroup": "",
                 "orientation": "h",
                 "showlegend": False,
                 "textposition": "auto",
