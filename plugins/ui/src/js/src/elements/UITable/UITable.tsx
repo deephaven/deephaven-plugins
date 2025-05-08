@@ -27,6 +27,7 @@ import {
   useTheme,
   viewStyleProps,
 } from '@deephaven/components';
+import { useDashboardColumnFilters } from '@deephaven/dashboard-core-plugins';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
@@ -527,6 +528,11 @@ export function UITable({
     };
   }, [irisGridServerProps, initialHydratedState]);
 
+  const inputFilters = useDashboardColumnFilters(
+    model?.columns ?? EMPTY_ARRAY,
+    model?.table
+  );
+
   return model ? (
     <div
       // eslint-disable-next-line react/jsx-props-no-spreading
@@ -539,6 +545,7 @@ export function UITable({
         onStateChange={onStateChange}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...mergedIrisGridProps}
+        inputFilters={inputFilters}
       />
     </div>
   ) : null;
