@@ -121,31 +121,28 @@ def picker(
 ) -> PickerElement:
     """
     A picker that can be used to select from a list. Children should be one of five types:
+
     1. If children are of type `Item`, they are the dropdown options.
     2. If children are of type `SectionElement`, they are the dropdown sections.
     3. If children are of type `Table`, the values in the table are the dropdown options.
-        There can only be one child, the `Table`.
-        The first column is used as the key and label by default.
+       There can only be one child, the `Table`.
+       The first column is used as the key and label by default.
     4. If children are of type `PartitionedTable`, the values in the table are the dropdown options
-        and the partitions create multiple sections. There can only be one child, the `PartitionedTable`.
-        The first column is used as the key and label by default.
+       and the partitions create multiple sections. There can only be one child, the `PartitionedTable`.
+       The first column is used as the key and label by default.
     5. If children are of type `ItemTableSource`, complex items are created from the source.
-        There can only be one child, the `ItemTableSource`.
-        Supported ItemTableSource arguments are `key_column`, `label_column`, `description_column`,
-        `icon_column`, and `title_column`.
+       There can only be one child, the `ItemTableSource`.
+       Supported ItemTableSource arguments are `key_column`, `label_column`, `description_column`,
+       `icon_column`, and `title_column`.
 
     Args:
         *children: The options to render within the picker.
-        default_selected_key:
-            The initial selected key in the collection (uncontrolled).
-        selected_key:
-            The currently selected key in the collection (controlled).
-        on_selection_change:
-            Handler that is called when the selection changes.
-        on_change:
-            Alias of `on_selection_change`. Handler that is called when the selection changes.
+        default_selected_key: The initial selected key in the collection (uncontrolled).
+        selected_key: The currently selected key in the collection (controlled).
+        on_selection_change: Handler that is called when the selection changes.
+        on_change: Alias of `on_selection_change`. Handler that is called when the selection changes.
 
-        is_quiet: Whether the TextField should be displayed with a quiet style
+        is_quiet: Whether the TextField should be displayed with a quiet style.
         align: Alignment of the menu relative to the input target.
         direction: Direction in which the menu should open relative to the Picker.
         should_flip: Whether the menu should flip when it reaches the viewport boundaries.
@@ -219,7 +216,6 @@ def picker(
         UNSAFE_class_name: A CSS class to apply to the element.
         UNSAFE_style: A CSS style to apply to the element.
         key: A unique identifier used by React to render elements in a list.
-
 
     Returns:
         The rendered Picker.
