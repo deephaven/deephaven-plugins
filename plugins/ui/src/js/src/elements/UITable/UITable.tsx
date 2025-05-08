@@ -17,6 +17,7 @@ import {
   useTheme,
   viewStyleProps,
 } from '@deephaven/components';
+import { useGlobalFilters } from '@deephaven/dashboard-core-plugins';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import { TableUtils } from '@deephaven/jsapi-utils';
 import type { dh as DhType } from '@deephaven/jsapi-types';
@@ -455,6 +456,8 @@ export function UITable({
     ]
   );
 
+  const inputFilters = useGlobalFilters(model?.columns ?? EMPTY_ARRAY);
+
   return model ? (
     <div
       // eslint-disable-next-line react/jsx-props-no-spreading
@@ -466,6 +469,7 @@ export function UITable({
         model={model}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...irisGridProps}
+        inputFilters={inputFilters}
       />
     </div>
   ) : null;
