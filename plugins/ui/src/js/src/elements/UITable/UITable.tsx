@@ -48,6 +48,7 @@ import UITableContextMenuHandler, {
 } from './UITableContextMenuHandler';
 import UITableModel, { makeUiTableModel } from './UITableModel';
 import { UITableLayoutHints } from './JsTableProxy';
+import { nanoid } from 'nanoid';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
 
@@ -147,7 +148,7 @@ function useUITableModel({
   return model;
 }
 
-export function UITable({
+export function UITableInner({
   format_: formatProp = EMPTY_ARRAY as unknown as FormattingRule[],
   onCellPress,
   onCellDoublePress,
@@ -549,5 +550,10 @@ export function UITable({
 }
 
 UITable.displayName = 'TableElementView';
+
+export function UITable(props: UITableProps): JSX.Element {
+  const [__dhId] = useState(() => nanoid());
+  return <UITableInner {...props} __dhId={__dhId} />;
+}
 
 export default UITable;
