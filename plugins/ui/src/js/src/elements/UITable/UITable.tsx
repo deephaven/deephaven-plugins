@@ -17,6 +17,7 @@ import {
   useTheme,
   viewStyleProps,
 } from '@deephaven/components';
+import { useGlobalFilters } from '@deephaven/dashboard-core-plugins';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import { TableUtils } from '@deephaven/jsapi-utils';
 import type { dh as DhType } from '@deephaven/jsapi-types';
@@ -37,6 +38,7 @@ import UITableContextMenuHandler, {
 } from './UITableContextMenuHandler';
 import UITableModel, { makeUiTableModel } from './UITableModel';
 import { UITableLayoutHints } from './JsTableProxy';
+import { nanoid } from 'nanoid';
 
 const log = Log.module('@deephaven/js-plugin-ui/UITable');
 
@@ -136,7 +138,7 @@ function useUITableModel({
   return model;
 }
 
-export function UITable({
+export function UITableInner({
   format_: formatProp = EMPTY_ARRAY as unknown as FormattingRule[],
   onCellPress,
   onCellDoublePress,
@@ -455,6 +457,8 @@ export function UITable({
     ]
   );
 
+  const inputFilters = useGlobalFilters(model?.columns ?? EMPTY_ARRAY);
+
   return model ? (
     <div
       // eslint-disable-next-line react/jsx-props-no-spreading
@@ -466,11 +470,17 @@ export function UITable({
         model={model}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...irisGridProps}
+        inputFilters={inputFilters}
       />
     </div>
   ) : null;
 }
 
 UITable.displayName = 'TableElementView';
+
+export function UITable(props: UITableProps): JSX.Element {
+  const [__dhId] = useState(() => nanoid());
+  return <UITableInner {...props} __dhId={__dhId} />;
+}
 
 export default UITable;
