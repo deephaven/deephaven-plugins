@@ -4,7 +4,7 @@ A density heatmap plot is a data visualization that uses a colored grid to repre
 
 Density heatmaps are appropriate when the data contain two continuous variables of interest. An additional quantitative variable may be incorporated into the visualization using shapes or colors.
 
-#### What are density heatmap plots useful for?
+## What are density heatmap plots useful for?
 
 - **Scatter Plot Replacement**: When dealing with a large number of data points, density heatmaps provide a more concise, informative and performant visualization than a [scatter plot](scatter.md).
 - **2D Density Estimation**: Density heatmaps can serve as the basis for 2D density estimation methods, helping to model and understand underlying data distributions, which is crucial in statistical analysis and machine learning.

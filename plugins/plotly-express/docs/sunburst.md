@@ -4,7 +4,7 @@ Sunburst plots are a data visualization technique used to represent hierarchical
 
 Sunburst plots are appropriate when the data have a hierarchical structure. Each level of the hierarchy consists of a categorical variable and an associated numeric variable with a value for each unique category.
 
-### What are sunburst plots useful for?
+## What are sunburst plots useful for?
 
 - **Hierarchical Data Visualization**: Sunburst plots are valuable for visualizing hierarchical data structures, making them suitable for applications where data has multiple levels of nested categories or relationships. Developers can use sunburst plots to represent data in a manner that clearly illustrates the hierarchical organization of information.
 - **Tree Maps Replacement**: Sunburst plots can be an alternative to tree maps for visualizing hierarchical data. Developers can use sunburst plots to present hierarchical data in a space-efficient and visually appealing manner. This can be particularly beneficial in applications where screen real estate is limited, and users need to view hierarchical data with an interactive and intuitive interface.

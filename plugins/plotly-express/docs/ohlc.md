@@ -4,7 +4,7 @@ OHLC (Open-High-Low-Close) plots are a common data visualization tool used in fi
 
 In OHLC plots, each bar consists of a vertical line with small horizontal lines on both ends. The top of the vertical line represents the high price, the bottom represents the low price, the horizontal line on the left indicates the opening price, and the horizontal line on the right signifies the closing price. Additionally, the color of the bar is often used to indicate whether the closing price was higher (bullish, often green) or lower (bearish, often red) than the opening price, aiding in the quick assessment of price trends and market sentiment. Analyzing the shape, color, and position of these bars helps traders and analysts assess the price movement, trends, and market sentiment within a given time frame.
 
-### What are OHLC plots useful for?
+## What are OHLC plots useful for?
 
 - **Price trend analysis**: OHLC charts provide a clear visual representation of price trends and movements over specific time periods, helping traders and analysts assess market direction.
 - **Identifying support and resistance**: They aid in identifying support and resistance levels, key price points that can inform trading decisions and risk management.

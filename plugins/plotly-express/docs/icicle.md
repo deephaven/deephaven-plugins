@@ -4,7 +4,7 @@ Icicle plots, a hierarchical data visualization technique, are used to represent
 
 Icicle plots are appropriate when the data have a hierarchical structure. Each level of the hierarchy consists of a categorical variable and an associated numeric variable with a value for each unique category.
 
-### What are icicle plots useful for?
+## What are icicle plots useful for?
 
 - **Representing hierarchical data**: Icicle charts are particularly useful for visualizing hierarchical data, such as organizational structures, file directories, or nested categorical data. They provide a clear and intuitive way to represent multiple levels of hierarchy in a single view.
 - **Space-efficient plotting**: By using a compact rectangular layout, icicle charts make efficient use of space. This allows for the display of large and complex hierarchies without requiring extensive scrolling or panning, making it easier to analyze and interpret the data at a glance.

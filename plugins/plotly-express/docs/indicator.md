@@ -2,7 +2,7 @@
 
 An indicator plot is a type of plot that highlights a collection of numeric values.
 
-### What are indicator plots useful for?
+## What are indicator plots useful for?
 
 - **Highlight specific metrics**: Indicator plots are useful when you want to highlight specific numeric metrics in a visually appealing way.
 - **Compare metrics to a reference value**: Indicator plots are useful to compare metrics to a reference value, such as a starting value or a target value.
@@ -78,7 +78,7 @@ dog_agg = my_table.where("Sym = `DOG`").agg_by([agg.avg(cols="Price"), agg.first
 indicator_plot = dx.indicator(dog_agg, value="Price", reference="StartingPrice", number=False)
 ```
 
-### An angular indicator plot
+## An angular indicator plot
 
 Visualize a single numeric value with an angular gauge by passing `gauge="angular"`.
 
@@ -94,7 +94,7 @@ dog_avg = my_table.where("Sym = `DOG`").agg_by([agg.avg(cols="Price")])
 indicator_plot = dx.indicator(dog_avg, value="Price", gauge="angular")
 ```
 
-### A hidden axis bullet indicator plot
+## A hidden axis bullet indicator plot
 
 Visualize a single numeric value with a bullet gauge by passing `gauge="bullet"`. Hide the axis by passing `axis=False`.
 
@@ -110,7 +110,7 @@ dog_avg = my_table.where("Sym = `DOG`").agg_by([agg.avg(cols="Price")])
 indicator_plot = dx.indicator(dog_avg, value="Price", gauge="bullet", axis=False)
 ```
 
-### Prefixes and suffixes
+## Prefixes and suffixes
 
 Add a prefix and suffix to the numeric value by passing `prefix` and `suffix`.
 
