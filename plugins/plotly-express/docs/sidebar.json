@@ -144,6 +144,10 @@
             "path": "static-image-export.md"
           }
         ]
+      },
+      {
+        "label": "Limitations",
+        "path": "limitations.md"
       }
     ]
   }
