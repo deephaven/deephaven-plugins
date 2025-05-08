@@ -270,6 +270,9 @@ def match_axes(
             # this is the base axis to match to, so matches is not added
             return {}
         if axis_index is not None:
+            if axis_index not in matches_axes[match_axis_key]:
+                # this is the first axis to match to, so add it
+                matches_axes[match_axis_key][axis_index] = new_trace_axis
             return {"matches": matches_axes[match_axis_key][axis_index]}
 
     return {}
