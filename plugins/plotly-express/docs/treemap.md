@@ -4,7 +4,7 @@ Treemap plots are a data visualization technique used to represent hierarchical 
 
 Treemap plots are appropriate when the data have a hierarchical structure. Each level of the hierarchy consists of a categorical variable and an associated numeric variable with a value for each unique category.
 
-### What are treemap plots useful for?
+## What are treemap plots useful for?
 
 - **Visualizing hierarchical data**: Treemap plots are valuable for visualizing hierarchical data structures with multiple levels of nested categories or relationships. Developers can use treemaps to represent data in a space-efficient manner, making them suitable for applications where data has complex hierarchical organizations.
 - **Hierarchical data comparison**: Treemaps can be used to compare data within hierarchical structures, allowing users to understand the distribution of categories and their relative sizes. Developers can implement features that enable users to compare data across multiple hierarchies or time periods.

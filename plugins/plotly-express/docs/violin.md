@@ -4,7 +4,7 @@ A violin plot is a data visualization that combines a box plot with a rotated ke
 
 Violin plots are appropriate when the data contain a continuous variable of interest. If there is an additional categorical variable that the variable of interest depends on, side-by-side violin plots may be appropriate using the `by` argument.
 
-### What are violin plots useful for?
+## What are violin plots useful for?
 
 - **Comparing distributions**: Violin plots are effective for visually comparing and contrasting the distribution of multiple datasets or categories, allowing for quick identification of differences in data patterns.
 - **Assessing central tendency and spread**: Violin plots provide insights into the central tendencies and variability of data, including the median, quartiles, and potential outliers.
