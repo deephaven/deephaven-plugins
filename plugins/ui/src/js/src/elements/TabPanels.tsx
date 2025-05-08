@@ -12,6 +12,7 @@ export function TabPanels(props: DHCTabPanelsProps<object>): JSX.Element {
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...otherProps}
       UNSAFE_style={{ display: 'flex', ...unsafeStyle }}
+      keepMounted
     />
   );
 }
