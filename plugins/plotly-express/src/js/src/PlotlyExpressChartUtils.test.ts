@@ -316,7 +316,7 @@ describe('hasUnreplaceableWebGlTraces', () => {
     expect(
       hasUnreplaceableWebGlTraces([
         {
-          type: 'scattermapbox',
+          type: 'scatter3d',
         },
       ])
     ).toBe(true);
