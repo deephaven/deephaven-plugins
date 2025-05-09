@@ -200,7 +200,7 @@ def draw_density_heatmap(
 
     heatmap.update_layout(
         coloraxis1=coloraxis_layout,
-        title=title,
+        title_text=title,
         template=template,
         xaxis_title=x,
         yaxis_title=y,
@@ -276,7 +276,7 @@ def draw_indicator(
         fig.update_traces(delta_reference=data_frame[reference][0])
 
     if layout_title:
-        fig.update_layout(title=layout_title)
+        fig.update_layout(title_text=layout_title)
 
     if title:
         # This is the title on the indicator trace. This is where it should go by default.
