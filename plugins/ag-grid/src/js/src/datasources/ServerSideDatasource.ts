@@ -31,6 +31,9 @@ export class ServerSideDatasource implements IServerSideDatasource {
 
   private hasAutoSizedAllColumns = false;
 
+  /** Last viewport data that was received */
+  private viewportData?: DhType.ViewportData;
+
   /**
    * Create a Server Side Datasource that can be used with AG Grid.
    *
@@ -131,9 +134,7 @@ export class ServerSideDatasource implements IServerSideDatasource {
     // The stub data should already be there
     rowUpdates.forEach((data, index) => {
       const node = api.getRowNode(index);
-      if (node) {
-        node.setData(data);
-      }
+      node?.setData(data);
     });
 
     // Updating table size here as the SIZECHANGED event doesn't fire on either the
@@ -145,6 +146,8 @@ export class ServerSideDatasource implements IServerSideDatasource {
       this.hasAutoSizedAllColumns = true;
       api.autoSizeAllColumns();
     }
+
+    this.viewportData = newViewportData;
   }
 
   private handleTableSizeChanged() {
@@ -173,8 +176,6 @@ export class ServerSideDatasource implements IServerSideDatasource {
       return;
     }
 
-    log.debug2('getRows', request);
-
     // Set the request, and add stub data. The viewport change event will update the data
     const { startRow, endRow, ...otherParams } = request;
     this.setRequest({
@@ -186,22 +187,33 @@ export class ServerSideDatasource implements IServerSideDatasource {
     });
 
     if (startRow == null || endRow == null || startRow < 0 || endRow < 0) {
-      log.debug('Invalid startRow', startRow, 'endRow', endRow, ', ignoring');
+      log.warn('Invalid startRow', startRow, 'endRow', endRow, ', ignoring');
       fail();
-      // success({ rowData: [], rowCount: this.table.size });
       return;
     }
 
-    // Just provide stub data. It will be updated when the UPDATE event comes in from the table viewport.
     const rowData = [];
-    for (let i = startRow; i <= endRow; i += 1) {
-      const row: Record<string, unknown> = {};
-      for (let c = 0; c < this.table.columns.length; c += 1) {
-        const column = this.table.columns[c];
-        row[column.name] = undefined;
+    for (let r = startRow; r <= endRow; r += 1) {
+      if (
+        this.viewportData != null &&
+        r >= this.viewportData.offset &&
+        r < this.viewportData.offset + this.viewportData.rows.length
+      ) {
+        // We already have data from the viewport, just use that
+        const row = this.viewportData.rows[r - this.viewportData.offset];
+        rowData.push(this.extractViewportRow(row, this.viewportData.columns));
+      } else {
+        // Just provide stub data. It will be updated when the UPDATE event comes in from the table viewport.
+        const row: Record<string, unknown> = {};
+        for (let c = 0; c < this.table.columns.length; c += 1) {
+          const column = this.table.columns[c];
+          row[column.name] = undefined;
+        }
+        rowData.push(row);
       }
-      rowData.push(row);
     }
+
+    log.debug2('getRows', request, 'returning data', rowData);
 
     success({ rowData, rowCount: this.table.size });
   }
