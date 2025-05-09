@@ -68,8 +68,8 @@
     "deep-equal": "^2.2.1",
     "memoizee": "^0.4.17",
     "nanoid": "^5.0.7",
-    "plotly.js": "^2.29.1",
-    "plotly.js-dist-min": "^2.29.1",
+    "plotly.js": "^3.0.0",
+    "plotly.js-dist-min": "^3.0.0",
     "react-plotly.js": "^2.4.0",
     "react-redux": "^7.2.9"
   },

@@ -4,11 +4,12 @@ import unittest
 from unittest.mock import patch
 
 import pandas as pd
-from deephaven import DHError
 from deephaven.plot.express import DeephavenFigure
-from typing import List, Any
-import os
-import pathlib
+from typing import List
+
+
+PLOTLY_NULL_INT = {"dtype": "i4", "bdata": "AAAAgA=="}
+PLOTLY_NULL_DOUBLE = {"dtype": "f8", "bdata": "////////7/8="}
 
 
 def remap_types(
