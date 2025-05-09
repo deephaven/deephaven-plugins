@@ -1,6 +1,6 @@
 import unittest
 
-from ..BaseTest import BaseTestCase
+from ..BaseTest import BaseTestCase, PLOTLY_NULL_INT
 
 
 class MapTestCase(BaseTestCase):
@@ -30,9 +30,9 @@ class MapTestCase(BaseTestCase):
                 "featureidkey": "id",
                 "geo": "geo",
                 "hovertemplate": "lat=%{lat}<br>lon=%{lon}<extra></extra>",
-                "lat": self.PLOTLY_NULL_INT,
+                "lat": PLOTLY_NULL_INT,
                 "legendgroup": "",
-                "lon": self.PLOTLY_NULL_INT,
+                "lon": PLOTLY_NULL_INT,
                 "marker": {"color": "#636efa", "symbol": "circle"},
                 "mode": "markers",
                 "name": "",
@@ -63,9 +63,9 @@ class MapTestCase(BaseTestCase):
         expected_data = [
             {
                 "hovertemplate": "lat=%{lat}<br>lon=%{lon}<extra></extra>",
-                "lat": self.PLOTLY_NULL_INT,
+                "lat": PLOTLY_NULL_INT,
                 "legendgroup": "",
-                "lon": self.PLOTLY_NULL_INT,
+                "lon": PLOTLY_NULL_INT,
                 "marker": {"color": "#636efa"},
                 "mode": "markers",
                 "name": "",
@@ -108,10 +108,10 @@ class MapTestCase(BaseTestCase):
                 "featureidkey": "id",
                 "geo": "geo",
                 "hovertemplate": "lat=%{lat}<br>lon=%{lon}<extra></extra>",
-                "lat": self.PLOTLY_NULL_INT,
+                "lat": PLOTLY_NULL_INT,
                 "legendgroup": "",
                 "line": {"color": "#636efa", "dash": "solid"},
-                "lon": self.PLOTLY_NULL_INT,
+                "lon": PLOTLY_NULL_INT,
                 "marker": {"symbol": "circle"},
                 "mode": "lines",
                 "name": "",
@@ -141,10 +141,10 @@ class MapTestCase(BaseTestCase):
         expected_data = [
             {
                 "hovertemplate": "lat=%{lat}<br>lon=%{lon}<extra></extra>",
-                "lat": self.PLOTLY_NULL_INT,
+                "lat": PLOTLY_NULL_INT,
                 "legendgroup": "",
                 "line": {"color": "#636efa"},
-                "lon": self.PLOTLY_NULL_INT,
+                "lon": PLOTLY_NULL_INT,
                 "mode": "lines",
                 "name": "",
                 "showlegend": False,
@@ -187,12 +187,12 @@ class MapTestCase(BaseTestCase):
             {
                 "coloraxis": "coloraxis",
                 "hovertemplate": "lat=%{lat}<br>lon=%{lon}<br>z=%{z}<extra></extra>",
-                "lat": self.PLOTLY_NULL_INT,
-                "lon": self.PLOTLY_NULL_INT,
+                "lat": PLOTLY_NULL_INT,
+                "lon": PLOTLY_NULL_INT,
                 "name": "",
                 "radius": 30,
                 "subplot": "map",
-                "z": self.PLOTLY_NULL_INT,
+                "z": PLOTLY_NULL_INT,
                 "type": "densitymap",
             }
         ]

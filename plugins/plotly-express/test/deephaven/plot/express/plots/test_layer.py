@@ -1,6 +1,6 @@
 import unittest
 
-from ..BaseTest import BaseTestCase
+from ..BaseTest import BaseTestCase, PLOTLY_NULL_INT
 
 
 class LayerTestCase(BaseTestCase):
@@ -43,9 +43,9 @@ class LayerTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": False,
                 "stackgroup": "1",
-                "x": self.PLOTLY_NULL_INT,
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": self.PLOTLY_NULL_INT,
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scatter",
             },
@@ -60,9 +60,9 @@ class LayerTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": False,
                 "stackgroup": "1",
-                "x": self.PLOTLY_NULL_INT,
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": self.PLOTLY_NULL_INT,
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scatter",
             },
@@ -128,9 +128,9 @@ class LayerTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": False,
                 "stackgroup": "1",
-                "x": self.PLOTLY_NULL_INT,
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": self.PLOTLY_NULL_INT,
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scatter",
             },
@@ -145,9 +145,9 @@ class LayerTestCase(BaseTestCase):
                 "orientation": "v",
                 "showlegend": False,
                 "stackgroup": "1",
-                "x": self.PLOTLY_NULL_INT,
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": self.PLOTLY_NULL_INT,
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scatter",
             },

@@ -1,6 +1,6 @@
 import unittest
 
-from ..BaseTest import BaseTestCase
+from ..BaseTest import BaseTestCase, PLOTLY_NULL_INT, PLOTLY_NULL_DOUBLE
 
 
 class TreemapTestCase(BaseTestCase):
@@ -39,7 +39,7 @@ class TreemapTestCase(BaseTestCase):
                 "name": "",
                 "parents": ["None"],
                 "type": "sunburst",
-                "values": self.PLOTLY_NULL_INT,
+                "values": PLOTLY_NULL_INT,
             }
         ]
 
@@ -132,7 +132,7 @@ class TreemapTestCase(BaseTestCase):
                 "labels": ["None"],
                 "marker": {
                     "coloraxis": "coloraxis",
-                    "colors": self.PLOTLY_NULL_DOUBLE,
+                    "colors": PLOTLY_NULL_DOUBLE,
                 },
                 "name": "",
                 "parents": ["None"],

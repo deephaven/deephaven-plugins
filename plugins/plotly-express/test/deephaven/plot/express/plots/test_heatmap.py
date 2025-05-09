@@ -1,6 +1,6 @@
 import unittest
 
-from ..BaseTest import BaseTestCase
+from ..BaseTest import BaseTestCase, PLOTLY_NULL_DOUBLE
 
 
 class HeatmapTestCase(BaseTestCase):
@@ -31,8 +31,8 @@ class HeatmapTestCase(BaseTestCase):
                 "coloraxis": "coloraxis",
                 "hovertemplate": "X=%{x}<br>Y=%{y}<br>count=%{z}<extra></extra>",
                 "opacity": 1.0,
-                "x": self.PLOTLY_NULL_DOUBLE,
-                "y": self.PLOTLY_NULL_DOUBLE,
+                "x": PLOTLY_NULL_DOUBLE,
+                "y": PLOTLY_NULL_DOUBLE,
                 "z": [NULL_LONG],
                 "type": "heatmap",
             }
@@ -99,8 +99,8 @@ class HeatmapTestCase(BaseTestCase):
                 "coloraxis": "coloraxis",
                 "hovertemplate": "Column X=%{x}<br>Column Y=%{y}<br>count of Column Z=%{z}<extra></extra>",
                 "opacity": 1.0,
-                "x": self.PLOTLY_NULL_DOUBLE,
-                "y": self.PLOTLY_NULL_DOUBLE,
+                "x": PLOTLY_NULL_DOUBLE,
+                "y": PLOTLY_NULL_DOUBLE,
                 "z": [NULL_LONG],
                 "type": "heatmap",
             }
@@ -167,8 +167,8 @@ class HeatmapTestCase(BaseTestCase):
                 "coloraxis": "coloraxis",
                 "hovertemplate": "Column X=%{x}<br>Column Y=%{y}<br>count=%{z}<extra></extra>",
                 "opacity": 1.0,
-                "x": self.PLOTLY_NULL_DOUBLE,
-                "y": self.PLOTLY_NULL_DOUBLE,
+                "x": PLOTLY_NULL_DOUBLE,
+                "y": PLOTLY_NULL_DOUBLE,
                 "z": [NULL_LONG],
                 "type": "heatmap",
             }
@@ -255,8 +255,8 @@ class HeatmapTestCase(BaseTestCase):
                 "hovertemplate": "Column X=%{x}<br>Column Y=%{y}<br>sum=%{z}<extra></extra>",
                 "opacity": 0.5,
                 "type": "heatmap",
-                "x": self.PLOTLY_NULL_DOUBLE,
-                "y": self.PLOTLY_NULL_DOUBLE,
+                "x": PLOTLY_NULL_DOUBLE,
+                "y": PLOTLY_NULL_DOUBLE,
                 "z": [NULL_LONG],
             }
         ]

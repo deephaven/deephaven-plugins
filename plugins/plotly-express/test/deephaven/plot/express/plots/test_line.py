@@ -1,6 +1,6 @@
 import unittest
 
-from ..BaseTest import BaseTestCase
+from ..BaseTest import BaseTestCase, PLOTLY_NULL_INT
 
 
 class LineTestCase(BaseTestCase):
@@ -35,9 +35,9 @@ class LineTestCase(BaseTestCase):
                 "mode": "lines",
                 "name": "",
                 "showlegend": False,
-                "x": self.PLOTLY_NULL_INT,
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": self.PLOTLY_NULL_INT,
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
                 "type": "scattergl",
             }

@@ -1,6 +1,6 @@
 import unittest
 
-from ..BaseTest import BaseTestCase
+from ..BaseTest import BaseTestCase, PLOTLY_NULL_INT
 
 
 class FinancialTestCase(BaseTestCase):
@@ -27,12 +27,12 @@ class FinancialTestCase(BaseTestCase):
 
         expected_data = [
             {
-                "close": self.PLOTLY_NULL_INT,
-                "high": self.PLOTLY_NULL_INT,
-                "low": self.PLOTLY_NULL_INT,
-                "open": self.PLOTLY_NULL_INT,
+                "close": PLOTLY_NULL_INT,
+                "high": PLOTLY_NULL_INT,
+                "low": PLOTLY_NULL_INT,
+                "open": PLOTLY_NULL_INT,
                 "type": "ohlc",
-                "x": self.PLOTLY_NULL_INT,
+                "x": PLOTLY_NULL_INT,
             }
         ]
 
@@ -72,12 +72,12 @@ class FinancialTestCase(BaseTestCase):
 
         expected_data = [
             {
-                "close": self.PLOTLY_NULL_INT,
-                "high": self.PLOTLY_NULL_INT,
-                "low": self.PLOTLY_NULL_INT,
-                "open": self.PLOTLY_NULL_INT,
+                "close": PLOTLY_NULL_INT,
+                "high": PLOTLY_NULL_INT,
+                "low": PLOTLY_NULL_INT,
+                "open": PLOTLY_NULL_INT,
                 "type": "candlestick",
-                "x": self.PLOTLY_NULL_INT,
+                "x": PLOTLY_NULL_INT,
             }
         ]
 

@@ -1,6 +1,6 @@
 import unittest
 
-from ..BaseTest import BaseTestCase
+from ..BaseTest import BaseTestCase, PLOTLY_NULL_INT
 
 
 class BarTestCase(BaseTestCase):
@@ -41,7 +41,7 @@ class BarTestCase(BaseTestCase):
                 "showlegend": False,
                 "textposition": "auto",
                 "type": "bar",
-                "x": self.PLOTLY_NULL_INT,
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
                 "y": [NULL_LONG],
                 "yaxis": "y",
@@ -106,7 +106,7 @@ class BarTestCase(BaseTestCase):
                 "type": "bar",
                 "x": [NULL_LONG],
                 "xaxis": "x",
-                "y": self.PLOTLY_NULL_INT,
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             }
         ]
@@ -166,9 +166,9 @@ class BarTestCase(BaseTestCase):
                 "showlegend": False,
                 "textposition": "auto",
                 "type": "bar",
-                "x": self.PLOTLY_NULL_INT,
+                "x": PLOTLY_NULL_INT,
                 "xaxis": "x",
-                "y": self.PLOTLY_NULL_INT,
+                "y": PLOTLY_NULL_INT,
                 "yaxis": "y",
             }
         ]

@@ -1,6 +1,6 @@
 import unittest
 
-from ..BaseTest import BaseTestCase
+from ..BaseTest import BaseTestCase, PLOTLY_NULL_INT
 
 
 class PieTestCase(BaseTestCase):
@@ -35,7 +35,7 @@ class PieTestCase(BaseTestCase):
                 "name": "",
                 "showlegend": True,
                 "type": "pie",
-                "values": self.PLOTLY_NULL_INT,
+                "values": PLOTLY_NULL_INT,
             }
         ]
 
@@ -77,7 +77,7 @@ class PieTestCase(BaseTestCase):
                 "name": "",
                 "showlegend": True,
                 "type": "pie",
-                "values": self.PLOTLY_NULL_INT,
+                "values": PLOTLY_NULL_INT,
             }
         ]
 

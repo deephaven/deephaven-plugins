@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import unittest
 from unittest.mock import patch
-import base64
 
 import pandas as pd
 from deephaven.plot.express import DeephavenFigure
 from typing import List
+
+
+PLOTLY_NULL_INT = {"dtype": "i4", "bdata": "AAAAgA=="}
+PLOTLY_NULL_DOUBLE = {"dtype": "f8", "bdata": "////////7/8="}
 
 
 def remap_types(
@@ -145,20 +148,6 @@ class BaseTestCase(unittest.TestCase):
                 self.assertCountEqual(calendar[key], value)
             else:
                 self.assertEqual(calendar[key], value)
-
-    @property
-    def PLOTLY_NULL_INT(self) -> dict:
-        """
-        Deephaven's NULL_INT as a base64 encoded string dict
-        """
-        return {"dtype": "i4", "bdata": "AAAAgA=="}
-
-    @property
-    def PLOTLY_NULL_DOUBLE(self) -> dict:
-        """
-        Deephaven's NULL_DOUBLE as a base64 encoded string dict
-        """
-        return {"dtype": "f8", "bdata": "////////7/8="}
 
 
 if __name__ == "__main__":
