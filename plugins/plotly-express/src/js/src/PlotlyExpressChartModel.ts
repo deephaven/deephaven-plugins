@@ -791,9 +791,7 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   shouldPauseOnUserInteraction(): boolean {
-    return (
-      this.hasScene() || this.hasGeo() || this.hasMap() || this.hasPolar()
-    );
+    return this.hasScene() || this.hasGeo() || this.hasMap() || this.hasPolar();
   }
 
   hasScene(): boolean {
