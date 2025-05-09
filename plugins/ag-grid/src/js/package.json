@@ -50,6 +50,7 @@
     "@deephaven/log": "^0.106.2",
     "@deephaven/plugin": "^0.106.4",
     "@deephaven/utils": "^0.106.0",
+    "lodash.throttle": "^4.1.1",
     "react-redux": "^7.x"
   },
   "publishConfig": {
