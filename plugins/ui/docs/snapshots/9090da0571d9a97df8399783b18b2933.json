@@ -1,0 +1,1 @@
+{"file":"components/disclosure.md","objects":{"my_disclosure_expanded":{"type":"deephaven.ui.Element","data":{"document":{"__dhElemName":"deephaven.ui.components.Disclosure","props":{"title":"Heading","panel":"Content","defaultExpanded":true}},"state":"{}"}}}}
