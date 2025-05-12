@@ -114,12 +114,12 @@ public class HelloWorld {
     }
 }
 ```
+
 """
 
 @ui.component
 def code_markdown():
     return ui.markdown(code_str)
-
 
 code_example = code_markdown()
 ````
@@ -144,4 +144,8 @@ style_example = style_markdown()
 
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.markdown
+```
+
+```
+
 ```
