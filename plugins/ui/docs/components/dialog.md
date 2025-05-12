@@ -320,9 +320,9 @@ my_large_example = large_example()
 
 ## API Reference
 
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.dialog
-    :no-index:
 
 .. dhautofunction:: deephaven.ui.content
 

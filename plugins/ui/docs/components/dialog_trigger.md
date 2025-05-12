@@ -364,5 +364,14 @@ my_event_example = event_example()
 ## API Reference
 
 ```{eval-rst}
+.. dhautofunction:: deephaven.ui.dialog_trigger
+
 .. dhautofunction:: deephaven.ui.dialog
+    :no-index:
+
+.. dhautofunction:: deephaven.ui.content
+    :no-index:
+
+.. dhautofunction:: deephaven.ui.footer
+    :no-index:
 ```
