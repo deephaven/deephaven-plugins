@@ -50,7 +50,7 @@ tips = dx.data.tips() # import a ticking version of the Tips dataset
 
 # the `size` column from tips gives the number in the party, map it to different sizes
 total_bill_tip_size = dx.scatter(
-    tips, x="TotalBill", y="Tip", size="size",
+    tips, x="TotalBill", y="Tip", size="Size",
     size_map={"1": 5, "2": 7, "3": 11, "4": 13, "5": 15, "6": 17}
 )
 ```

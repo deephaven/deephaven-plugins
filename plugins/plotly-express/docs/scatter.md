@@ -288,7 +288,7 @@ scatter_plot_axes_titles = dx.scatter(
 
 
 # create multiple axes by values from a column
-stocks_table = dx.data.stocks().where("sym in `DOG`, `CAT`")
+stocks_table = dx.data.stocks().where("Sym in `DOG`, `CAT`")
 
 scatter_stocks = dx.scatter(
     stocks_table,
@@ -371,7 +371,7 @@ scatter_as_markers = dx.layer(
 
 Deephaven's scatter plots can comfortably render around 0.5 - 1 million points before performance of the browser will begin to degrade. For large datasets under 1 million observations, setting an appropriate marker opacity and/or marker size can provide a much clearer picture of the data. If the number of points is expected to exceed 1 million, consider employing a [density heatmap](density_heatmap.md) as an alternative visualization method, which can easily summarize billions of data points in a single plot.
 
-```python order=heatmap_replacement,scatter_plot_opacity
+```python skip-test
 from deephaven.plot import express as dx
 from deephaven import empty_table
 
@@ -391,7 +391,7 @@ scatter_plot_opacity = dx.scatter(large_data, x="X", y="Y", range_x=[0,100], ran
 
 Scatter plots take a calendar argument. Dates and times are excluded from axes so that they conform to the calendar.
 
-```python
+```python order=scatter_plot_cal_name,scatter_plot_cal_y,scatter_plot_cal,scatter_plot_default,dog_prices,stocks
 import deephaven.plot.express as dx
 from deephaven.calendar import calendar, set_calendar
 

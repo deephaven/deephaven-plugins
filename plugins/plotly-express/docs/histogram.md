@@ -40,13 +40,13 @@ iris = dx.data.iris()
 virginica = iris.where("Species == `virginica`")
 
 # too many bins will produce jagged, disconnected histograms
-hist_20_bins = dx.histogram(setosa, x="SepalLength", nbins=20)
+hist_20_bins = dx.histogram(virginica, x="SepalLength", nbins=20)
 
 # too few bins will mask distributional information
-hist_3_bins = dx.histogram(setosa, x="SepalLength", nbins=3)
+hist_3_bins = dx.histogram(virginica, x="SepalLength", nbins=3)
 
 # play with the `nbins` parameter to get a good visualization
-hist_8_bins = dx.histogram(setosa, x="SepalLength", nbins=8)
+hist_8_bins = dx.histogram(virginica, x="SepalLength", nbins=8)
 ```
 
 ### Bin and aggregate on different columns
