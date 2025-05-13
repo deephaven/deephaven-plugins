@@ -1,14 +1,3 @@
-volumes:
-  # This is a temporary directory that is used to store the test sets and results.
-  # It is mounted in the extractor and snapshotter containers.
-  # The results are then copied back to the plugins directories.
-  test-sets:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./docker/build/test-sets
-      o: bind
-
 services:
   # Test server that has all the plugins loaded. Test sets are run against this server.
   deephaven-plugins-docs-test-server:
@@ -38,7 +27,7 @@ services:
     volumes:
       - ./plugins/ui/docs/build/markdown:/extract/ui
       - ./plugins/plotly-express/docs/build/markdown:/extract/plotly-express
-      - test-sets:/results # Output to a temporary build directory
+      - ./docker/build/test-sets:/results # Output to a temporary build directory
 
   # Read the test sets from the results directory and run them against the test server, taking a snapshot of the results.
   deephaven-plugins-docs-snapshotter:
@@ -58,7 +47,16 @@ services:
         'node snapshot.cjs --directory /test-sets/plotly-express --output /results/plotly-express; node snapshot.cjs --directory /test-sets/ui --output /results/ui',
       ]
     volumes:
-      - test-sets:/test-sets
+      - ./docker/build/test-sets:/test-sets
       # Map all the results back to the snapshots directory for those docs
       - ./plugins/ui/docs/snapshots:/results/ui
       - ./plugins/plotly-express/docs/snapshots:/results/plotly-express
+
+  # Validate MDX and the snapshots that were written are valid
+  deephaven-plugins-docs-validator:
+    image: ghcr.io/deephaven/salmon-validator
+    pull_policy: always
+    volumes:
+      - ./plugins/ui/docs/build/markdown:/validate/ui
+      - ./plugins/plotly-express/docs/build/markdown:/validate/plotly-express
+      - ./docker/build/validator-results:/results

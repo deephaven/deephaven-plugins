@@ -26,7 +26,8 @@
     "e2e:update-snapshots": "./tools/run_docker.sh ./tests/docker-compose.yml update-snapshots",
     "update-dh-packages": "lerna run --concurrency 1 update-dh-packages",
     "update-dh-packages:ui": "npm run update-dh-packages -- --scope=@deephaven/js-plugin-ui --",
-    "update-doc-snapshots": "./tools/run_docker.sh ./docker-compose.docs-snapshots.yml deephaven-plugins-docs-snapshotter"
+    "update-doc-snapshots": "./tools/run_docker.sh ./docker-compose.docs-snapshots.yml deephaven-plugins-docs-snapshotter",
+    "validate-doc-snapshots": "./tools/run_docker.sh ./docker-compose.docs-snapshots.yml deephaven-plugins-docs-validator"
   },
   "devDependencies": {
     "@deephaven/babel-preset": "^0.72.0",
