@@ -2,7 +2,7 @@
 
 ## Chrome WebGL Limit
 Chrome has a limit of 8 WebGL contexts active at one time.
-If more than 8 charts that use WebGL are created, the earliest charts created will appear empty.
+If more than 8 charts that use WebGL are created, the earliest charts appear as empty.
 Options to work around this include:
 1. Using Firefox, which has a higher limit.
 2. Setting `render_mode = "svg"` when creating the chart where possible, such as in scatter charts.
