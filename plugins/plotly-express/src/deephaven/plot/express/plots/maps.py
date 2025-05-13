@@ -151,11 +151,12 @@ def scatter_geo(
 
 def scatter_mapbox(*args, **kwargs) -> DeephavenFigure:
     """
-    Deprecated function. Use scatter_map instead.
+    c
     """
     warnings.warn(
         "scatter_mapbox is deprecated and will be removed in a future release. Use scatter_map instead.",
         DeprecationWarning,
+        stacklevel=2,
     )
 
     if "style_mapbox" in kwargs:
@@ -169,8 +170,9 @@ def line_mapbox(*args, **kwargs) -> DeephavenFigure:
     Deprecated function. Use line_map instead.
     """
     warnings.warn(
-        "line_mapbox is deprecated and will be removed in a future release. Use scatter_map instead.",
+        "line_mapbox is deprecated and will be removed in a future release. Use line_map instead.",
         DeprecationWarning,
+        stacklevel=2,
     )
 
     if "style_mapbox" in kwargs:
@@ -184,8 +186,9 @@ def density_mapbox(*args, **kwargs) -> DeephavenFigure:
     Deprecated function. Use density_map instead.
     """
     warnings.warn(
-        "density_mapbox is deprecated and will be removed in a future release. Use scatter_map instead.",
+        "density_mapbox is deprecated and will be removed in a future release. Use density_map instead.",
         DeprecationWarning,
+        stacklevel=2,
     )
 
     if "style_mapbox" in kwargs:
