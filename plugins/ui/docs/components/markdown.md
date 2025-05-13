@@ -90,7 +90,7 @@ def latex_markdown():
 latex_example = latex_markdown()
 ```
 
-<!-- TODO: Need to find a way to get this working correctly. Myst parser does not handle nested code blocks correctly.
+<!-- TODO (DOC-770): Need to find a way to get this working correctly. Myst parser does not handle nested code blocks correctly.
 ## Code Blocks
 
 Code blocks follow Deephaven's formatting.
@@ -145,8 +145,4 @@ style_example = style_markdown()
 
 ```{eval-rst}
 .. dhautofunction:: deephaven.ui.markdown
-```
-
-```
-
 ```

@@ -136,11 +136,7 @@ def copy_snapshots() -> int:
         f"cp -r docs/snapshots {BUILT_DOCS}/snapshots",
     ]
 
-    code = attempt_command_sequence(commands)
-    if code != 0:
-        return 1
-
-    return 0
+    return attempt_command_sequence(commands)
 
 
 def build_documents() -> int:

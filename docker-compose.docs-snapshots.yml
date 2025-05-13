@@ -1,7 +1,17 @@
-version: '3'
+volumes:
+  # This is a temporary directory that is used to store the test sets and results.
+  # It is mounted in the extractor and snapshotter containers.
+  # The results are then copied back to the plugins directories.
+  test-sets:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./docker/build/test-sets
+      o: bind
 
 services:
-  deephaven-plugins-docs:
+  # Test server that has all the plugins loaded. Test sets are run against this server.
+  deephaven-plugins-docs-test-server:
     container_name: deephaven-plugins
     build:
       dockerfile: ./Dockerfile
@@ -9,12 +19,15 @@ services:
     ports:
       - '${DEEPHAVEN_SNAPSHOT_PORT:-10090}:10000'
     volumes:
+      # Override the /app.d/ directory with a blank directory. We don't want to run any of the default apps.
       - /app.d/
     environment:
       - START_OPTS=-Xmx4g -DAuthHandlers=io.deephaven.auth.AnonymousAuthenticationHandler -Ddeephaven.console.type=python -Ddeephaven.application.dir=./app.d
 
+  # Extract the code blocks from the docs in the plugins directories and output them to a results directory.
   deephaven-plugins-docs-extractor:
     image: ghcr.io/deephaven/salmon-extractor
+    pull_policy: always
     container_name: deephaven-plugins-docs-extractor
     command:
       [
@@ -25,17 +38,19 @@ services:
     volumes:
       - ./plugins/ui/docs/build/markdown:/extract/ui
       - ./plugins/plotly-express/docs/build/markdown:/extract/plotly-express
-      - ./docker/build/test-sets:/results # Output to a temporary build directory
+      - test-sets:/results # Output to a temporary build directory
 
+  # Read the test sets from the results directory and run them against the test server, taking a snapshot of the results.
   deephaven-plugins-docs-snapshotter:
     image: ghcr.io/deephaven/salmon-snapshotter
+    pull_policy: always
     depends_on:
-      deephaven-plugins-docs:
+      deephaven-plugins-docs-test-server:
         condition: service_healthy
       deephaven-plugins-docs-extractor:
         condition: service_completed_successfully
     environment:
-      HOST_URL: 'http://deephaven-plugins-docs:10000'
+      HOST_URL: 'http://deephaven-plugins-docs-test-server:10000'
     command:
       [
         'sh',
@@ -43,7 +58,7 @@ services:
         'node snapshot.cjs --directory /test-sets/plotly-express --output /results/plotly-express; node snapshot.cjs --directory /test-sets/ui --output /results/ui',
       ]
     volumes:
-      - ./docker/build/test-sets:/test-sets
+      - test-sets:/test-sets
       # Map all the results back to the snapshots directory for those docs
       - ./plugins/ui/docs/snapshots:/results/ui
       - ./plugins/plotly-express/docs/snapshots:/results/plotly-express

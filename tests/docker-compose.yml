@@ -17,14 +17,13 @@ services:
 
   e2e-tests:
     build:
-      context: ../
-      dockerfile: ./tests/Dockerfile
+      dockerfile: ./Dockerfile
       pull: true # We only use FROM with a pinned version here, but adding this just in case that changes in the future
     ports:
       - '9323:9323'
     ipc: host
     volumes:
-      - ../tests:/work/tests
+      - .:/work/tests
       - ../test-results:/work/test-results
       - ../playwright-report:/work/playwright-report
     entrypoint: 'npx playwright test --config=playwright-docker.config.ts'
