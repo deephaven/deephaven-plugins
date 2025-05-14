@@ -136,6 +136,8 @@ export class ServerSideDatasource implements IServerSideDatasource {
         api.forEachNode((node, index) => {
           if (rowUpdates.has(index)) {
             node.setData(rowUpdates.get(index));
+          } else {
+            log.warn('No row update for index', index, typeof index);
           }
         });
 

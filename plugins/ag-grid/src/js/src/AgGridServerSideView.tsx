@@ -7,6 +7,7 @@ import { ColDef } from '@ag-grid-community/core';
 import { AgGridReact, AgGridReactProps } from '@ag-grid-community/react';
 import { useMemo } from 'react';
 import ServerSideDatasource from './datasources/ServerSideDatasource';
+import ViewportDatasource from './datasources/ViewportRowDataSource';
 import AgGridTableUtils from './utils/AgGridTableUtils';
 import AgGridFormatter from './utils/AgGridFormatter';
 
@@ -45,7 +46,7 @@ export function AgGridServerSideView({
 
   /** Create the ViewportDatasource to pass in to AG Grid based on the Deephaven Table */
   const datasource = useMemo(
-    () => new ServerSideDatasource(dh, table),
+    () => new ViewportDatasource(dh, table),
     [dh, table]
   );
 
@@ -62,8 +63,8 @@ export function AgGridServerSideView({
       {...agGridProps}
       columnDefs={colDefs}
       dataTypeDefinitions={formatter.cellDataTypeDefinitions}
-      serverSideDatasource={datasource}
-      rowModelType="serverSide"
+      viewportDatasource={datasource}
+      rowModelType="viewport"
     />
   );
 }
