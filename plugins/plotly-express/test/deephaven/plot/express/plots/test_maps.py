@@ -80,7 +80,7 @@ class MapTestCase(BaseTestCase):
         expected_layout = {
             "legend": {"tracegroupgap": 0},
             "map": {
-                "center": {"lat": -2147483648.0, "lon": -2147483648.0},
+                "center": {"lat": NULL_INT, "lon": NULL_INT},
                 "domain": {"x": [0.0, 1.0], "y": [0.0, 1.0]},
                 "style": "open-street-map",
                 "zoom": 8,
