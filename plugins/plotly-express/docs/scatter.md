@@ -4,7 +4,7 @@ A scatter plot is a type of data visualization that uses Cartesian coordinates t
 
 Scatter plots are appropriate when the data contain a continuous response variable that directly depends on a continuous explanatory variable. If there is an additional categorical variable that the response variable depends on, shapes or colors can be used in the scatter plot to distinguish the categories. For large datasets (> 1 million points), consider using a [density heatmap](density_heatmap.md) instead of a scatter plot.
 
-### What are scatter plots useful for?
+## What are scatter plots useful for?
 
 - **Exploring relationships**: Scatter plots are useful for exploring and visualizing the relationship between two continuous variables. By plotting the data points, you can quickly identify patterns, trends, or correlations between the variables. It helps in understanding how changes in one variable affect the other.
 - **Outlier detection**: Scatter plots are effective in identifying outliers or extreme values in a dataset. Outliers appear as points that deviate significantly from the general pattern of the data. By visualizing the data in a scatter plot, you can easily spot these outliers, which may be important in certain analyses.

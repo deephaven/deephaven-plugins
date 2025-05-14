@@ -4,7 +4,7 @@ A bar plot is a graphical representation of data that uses rectangular bars to d
 
 Bar plots are appropriate when the data contain a continuous response variable that is directly related to a categorical explanatory variable. Additionally, if the response variable is a cumulative total of contributions from different subcategories, each bar can be broken up to demonstrate those contributions.
 
-### What are bar plots useful for?
+## What are bar plots useful for?
 
 - **Comparing categorical data**: Bar plots are ideal for comparing the quantities or frequencies of different categories. The height of each bar represents the value of each category, making it easy to compare them at a glance.
 - **Decomposing data by category**: When the data belong to several independent categories, bar plots make it easy to visualize the relative contributions of each category to the overall total. The bar segments are colored by category, making it easy to identify the contribution of each.
