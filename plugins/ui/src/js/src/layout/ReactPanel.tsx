@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import ReactDOM from 'react-dom';
 import { nanoid } from 'nanoid';
 import {
@@ -95,6 +101,12 @@ function ReactPanel({
   const portalManager = usePortalPanelManager();
   const portal = portalManager.get(panelId);
   const panelTitle = title ?? metadata?.name ?? '';
+  const [initialData, setInitialData] = useState(getInitialData());
+  const onErrorReset = useCallback(() => {
+    // Not EMPTY_ARRAY, because we always want to trigger a re-render
+    // in case a panel is reloaded and errors again
+    setInitialData([]);
+  }, []);
 
   // Tracks whether the panel is open and that we have emitted the onOpen event
   const isPanelOpenRef = useRef(false);
@@ -236,13 +248,13 @@ function ReactPanel({
               rowGap={rowGap}
               columnGap={columnGap}
             >
-              <ReactPanelErrorBoundary>
+              <ReactPanelErrorBoundary onReset={onErrorReset}>
                 {/**
                  * Don't render the children if there's an error with the widget. If there's an error with the widget, we can assume the children won't render properly,
                  * but we still want the panels to appear so things don't disappear/jump around.
                  */}
                 <PersistentStateProvider
-                  initialState={getInitialData()}
+                  initialState={initialData}
                   onChange={onDataChange}
                 >
                   {React.Children.map(renderedChildren, child =>
