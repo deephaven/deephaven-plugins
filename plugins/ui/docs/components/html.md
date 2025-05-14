@@ -108,6 +108,8 @@ html = ui.html.div(ui.html.h1("Component inside html"), ui.text("this is a compo
 
 .. dhautofunction:: deephaven.ui.html.pre
 
+.. dhautofunction:: deephaven.ui.html.select
+
 .. dhautofunction:: deephaven.ui.html.span
 
 .. dhautofunction:: deephaven.ui.html.table
@@ -120,11 +122,9 @@ html = ui.html.div(ui.html.h1("Component inside html"), ui.text("this is a compo
 
 .. dhautofunction:: deephaven.ui.html.th
 
+.. dhautofunction:: deephaven.ui.html.thead
+
 .. dhautofunction:: deephaven.ui.html.tr
 
 .. dhautofunction:: deephaven.ui.html.ul
-
-.. dhautofunction:: deephaven.ui.html.thead
-
-.. dhautofunction:: deephaven.ui.html.select
 ```
