@@ -61,6 +61,10 @@ export function AgGridServerSideView({
     <AgGridReact
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...agGridProps}
+      onGridReady={event => {
+        log.debug('Grid ready', event);
+        datasource.setGridApi(event.api);
+      }}
       columnDefs={colDefs}
       dataTypeDefinitions={formatter.cellDataTypeDefinitions}
       viewportDatasource={datasource}

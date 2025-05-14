@@ -1,14 +1,25 @@
 import {
+  GridApi,
   IViewportDatasource,
   IViewportDatasourceParams,
 } from '@ag-grid-community/core';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
+import { assertNotNull } from '@deephaven/utils';
+import AgGridFilterUtils from '../utils/AgGridFilterUtils';
+import AgGridSortUtils from '../utils/AgGridSortUtils';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/ViewportRowDataSource');
 
 export class ViewportDatasource implements IViewportDatasource {
   private params?: IViewportDatasourceParams;
+
+  private gridApi?: GridApi;
+
+  private currentViewport?: {
+    firstRow: number;
+    lastRow: number;
+  };
 
   /**
    * Create a Viewport Row Model data source that can be used with AG Grid.
@@ -24,6 +35,8 @@ export class ViewportDatasource implements IViewportDatasource {
   ) {
     this.handleUpdate = this.handleUpdate.bind(this);
     this.handleDisconnect = this.handleDisconnect.bind(this);
+    this.handleFilterChanged = this.handleFilterChanged.bind(this);
+    this.handleSortChanged = this.handleSortChanged.bind(this);
   }
 
   init(params: IViewportDatasourceParams): void {
@@ -88,8 +101,51 @@ export class ViewportDatasource implements IViewportDatasource {
     this.stopListening();
   }
 
+  setGridApi(gridApi: GridApi): void {
+    log.debug('Setting grid API', gridApi);
+    this.gridApi = gridApi;
+    this.gridApi.addEventListener('filterChanged', this.handleFilterChanged);
+    this.gridApi.addEventListener('sortChanged', this.handleSortChanged);
+  }
+
+  private handleFilterChanged(): void {
+    assertNotNull(this.gridApi);
+    this.table.applyFilter(
+      AgGridFilterUtils.parseFilterModel(
+        this.dh,
+        this.table,
+        this.gridApi.getFilterModel()
+      )
+    );
+    this.refreshViewport();
+  }
+
+  private handleSortChanged(event: unknown): void {
+    log.debug('Sort changed', event);
+    log.warn('sort not implemented yet');
+    // TODO: How do we get the sort from the api? There is no gridApi.getSortModel()
+    // assertNotNull(this.gridApi);
+    // this.table.applySort(
+    //   AgGridSortUtils.parseSortModel(
+    //     this.dh,
+    //     this.table,
+    //     this.gridApi.sort
+    //   )
+    // );
+  }
+
+  refreshViewport(): void {
+    if (this.currentViewport == null) {
+      log.warn('No current viewport to refresh');
+      return;
+    }
+    const { firstRow, lastRow } = this.currentViewport;
+    this.table.setViewport(firstRow, lastRow);
+  }
+
   setViewportRange(firstRow: number, lastRow: number): void {
     log.debug('setViewportRange', firstRow, lastRow);
+    this.currentViewport = { firstRow, lastRow };
     this.table.setViewport(firstRow, lastRow);
   }
 
