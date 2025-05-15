@@ -80,8 +80,7 @@ line_plot = dx.line(dog_prices, x="Timestamp", y="Price", xaxis_titles="Timestam
 
 ## Legend Customization
 
-Legends are customizable with [unsafe_update_figure](unsafe-update-figure.md)
-Generally, legend customization is safe.
+Legends are customizable with [unsafe_update_figure](unsafe-update-figure.md). Generally, legend customization is safe.
 
 ### Legend Position
 
