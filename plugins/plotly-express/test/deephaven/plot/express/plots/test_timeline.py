@@ -36,17 +36,15 @@ class TimelineTestCase(BaseTestCase):
 
         expected_data = [
             {
-                "alignmentgroup": "True",
-                "base": ["2000-01-01"],
+                "base": ["2000-01-01T00:00:00.000000000"],
                 "hovertemplate": "Start=%{base}<br>Category=%{y}<br>x_diff=%{x}<extra></extra>",
                 "legendgroup": "",
                 "marker": {"color": "#636efa", "pattern": {"shape": ""}},
                 "name": "",
-                "offsetgroup": "",
                 "orientation": "h",
                 "showlegend": False,
                 "textposition": "auto",
-                "x": [0.0],
+                "x": {"bdata": "AA==", "dtype": "i1"},
                 "xaxis": "x",
                 "y": ["None"],
                 "yaxis": "y",
