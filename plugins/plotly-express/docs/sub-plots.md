@@ -42,7 +42,7 @@ Share axes between plots with the `shared_xaxes` and `shared_yaxes` parameters.
 
 #### Share All Axes
 
-When set to `"all"`, all axes of the same type are shared.
+When `shared_xaxes` or `shared_yaxes` is set to `"all"`, all axes of the same type are shared.
 When one axis is adjusted, all axes are adjusted to match.
 
 ```python order=tipping_plots,lunch_tips,dinner_tips
