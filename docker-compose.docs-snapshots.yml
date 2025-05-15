@@ -7,11 +7,8 @@ services:
       pull: true # We need to always pull the latest server image used in the Dockerfile
     ports:
       - '${DEEPHAVEN_SNAPSHOT_PORT:-10090}:10000'
-    volumes:
-      # Override the /app.d/ directory with a blank directory. We don't want to run any of the default apps.
-      - /app.d/
     environment:
-      - START_OPTS=-Xmx4g -DAuthHandlers=io.deephaven.auth.AnonymousAuthenticationHandler -Ddeephaven.console.type=python -Ddeephaven.application.dir=./app.d
+      - START_OPTS=-Xmx4g -DAuthHandlers=io.deephaven.auth.AnonymousAuthenticationHandler -Ddeephaven.console.type=python
 
   # Extract the code blocks from the docs in the plugins directories and output them to a results directory.
   deephaven-plugins-docs-extractor:

@@ -23,8 +23,6 @@ iris = dx.data.iris()
 scatter_plot = dx.scatter(iris, x="SepalWidth", y="SepalLength")
 ```
 
-![Scatter Plot Basic Example](./_assets/scatter_plot.png)
-
 ### Create a bubble plot
 
 Use the `size` argument to resize the markers by a third quantitative variable. Such a plot is commonly called a bubble plot, where the size of each bubble corresponds to the value of the additional variable.
@@ -269,7 +267,7 @@ scatter_plot_range_axes = dx.scatter(
 
 You can create multiple axes on a single graph in a number of different ways depending on what you are trying to do. Axes can be created from columns, or by value from a column, of from multiple plots layered together.
 
-```python order=scatter_plot_title,scatter_plot_axes_titles
+```python order=layered_scatter,table_versicolor,table_setosa,layered_table,scatter_stocks,stocks_table,scatter_plot_axes_titles,iris
 import deephaven.plot.express as dx
 iris = dx.data.iris()
 

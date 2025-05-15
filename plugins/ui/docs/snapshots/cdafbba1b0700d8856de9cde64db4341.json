@@ -1,1 +1,1 @@
-{"file":"installation.md","objects":{"hello_world":{"type":"deephaven.ui.Element","data":{"document":{"__dhElemName":"deephaven.ui.components.Heading","props":{"children":["Hello World!"],"level":3}},"state":"{}"}}}}
+{"file":"installation.md","objects":{"hello_world":{"type":"deephaven.ui.Element","data":{"document":{"props":{"children":["Hello World!"],"level":3},"__dhElemName":"deephaven.ui.components.Heading"},"state":"{}"}}}}

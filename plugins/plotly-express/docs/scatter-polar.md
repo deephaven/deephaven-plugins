@@ -24,8 +24,6 @@ wind = dx.data.wind()
 polar_scatter_plot = dx.scatter_polar(wind, r="Frequency", theta="Direction", by="Strength")
 ```
 
-![Polar Scatter Plot Basic Example](./_assets/scatter_plot_polar.png)
-
 ## API Reference
 
 ```{eval-rst}

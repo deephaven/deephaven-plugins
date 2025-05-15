@@ -34,8 +34,6 @@ tipping_plots = dx.make_subplots(
 )
 ```
 
-![Sub Plot Basic Example](./_assets/sub_plot.png)
-
 ## API Reference
 
 ```{eval-rst}

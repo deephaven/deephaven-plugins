@@ -28,8 +28,6 @@ hist_plot_x = dx.histogram(setosa, x="SepalLength")
 hist_plot_y = dx.histogram(setosa, y="SepalLength")
 ```
 
-![Histogram Plot Basic Example](./_assets/histogram_plot.png)
-
 Modify the bin size by setting `nbins` equal to the number of desired bins.
 
 ```python order=hist_20_bins,hist_3_bins,hist_8_bins,virginica,iris

@@ -4,7 +4,7 @@
 
 ## Example
 
-```python
+```python order=table_monitor,_source
 from deephaven import time_table, ui
 from deephaven.table import Table
 
@@ -27,7 +27,7 @@ table_monitor = ui_table_monitor(_source)
 
 Here's an example that listens to table updates and will display the last update as a header above the table. This is a simple example to demonstrate how to use `use_table_listener` to listen to table updates and update state in your component.
 
-```python
+```python order=show_last_changed,_source
 from deephaven import time_table, ui
 from deephaven.table import Table
 
@@ -51,7 +51,7 @@ show_last_changed = ui_show_last_changed(_source)
 
 Here is a simple example that listens to table updates and displays a toast message when the table updates. Note you must use a [render queue](./use_render_queue.md) to trigger the toast, as the listener is not fired on the render thread.
 
-```python
+```python order=my_toast_table,_source
 from deephaven import time_table
 from deephaven import ui
 
