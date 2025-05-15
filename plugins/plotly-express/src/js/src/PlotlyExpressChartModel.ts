@@ -1,7 +1,12 @@
 import type { Layout, Data, PlotData, LayoutAxis } from 'plotly.js';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import { DateTimeColumnFormatter, Formatter } from '@deephaven/jsapi-utils';
-import { ChartModel, ChartUtils } from '@deephaven/chart';
+import {
+  ChartModel,
+  ChartUtils,
+  FilterColumnMap,
+  FilterMap,
+} from '@deephaven/chart';
 import Log from '@deephaven/log';
 import { ChartEvent, RenderOptions } from '@deephaven/chart/dist/ChartModel';
 import memoize from 'memoizee';
@@ -777,6 +782,37 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.downsampleMap.forEach((_, id) => {
       this.updateDownsampledTable(id);
     });
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  override getFilterColumnMap(): FilterColumnMap {
+    return new Map([
+      [
+        'Sym',
+        {
+          name: 'Sym',
+          type: 'java.lang.String',
+        },
+      ],
+    ]);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  override isFilterRequired(): boolean {
+    return false;
+  }
+
+  override setFilter(filterMap: FilterMap): void {
+    console.log('setFilter', filterMap);
+    super.setFilter(filterMap);
+    this.widget?.sendMessage(
+      JSON.stringify({
+        type: 'INPUT_FILTER',
+        filters: {
+          Sym: filterMap.get('Sym'),
+        },
+      })
+    );
   }
 
   pauseUpdates(): void {

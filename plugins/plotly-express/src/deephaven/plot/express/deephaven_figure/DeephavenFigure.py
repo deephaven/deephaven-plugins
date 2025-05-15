@@ -224,6 +224,7 @@ class DeephavenFigureNode(DeephavenNode):
         self.func = func if func else lambda **kwargs: None
         self.cached_figure = None
         self.revision_manager = RevisionManager()
+        self.input_filters = {}
 
     def recreate_figure(self, update_parent: bool = True) -> None:
         """
@@ -238,9 +239,9 @@ class DeephavenFigureNode(DeephavenNode):
         # release the lock to ensure there is no deadlock
         # as for some table operations an exclusive lock is required
         with self.exec_ctx:
-            table = self.table
             copied_args = args_copy(self.args)
-            copied_args["args"]["table"] = table
+            copied_args["args"]["table"] = self.table
+            copied_args["args"]["input_filters"] = self.input_filters
             new_figure = self.func(**copied_args)
 
         with self.revision_manager:
@@ -292,6 +293,9 @@ class DeephavenFigureNode(DeephavenNode):
             self.recreate_figure(update_parent=False)
 
         return self.cached_figure
+
+    def update_input_filters(self, input_filters: dict[str, Any]) -> None:
+        self.input_filters = input_filters
 
 
 class DeephavenLayerNode(DeephavenNode):
@@ -450,6 +454,14 @@ class DeephavenHeadNode:
         if not self.cached_figure and self.node:
             self.cached_figure = self.node.get_figure()
         return self.cached_figure
+
+    def update_input_filters(self, input_filters: dict[str, Any]) -> None:
+        """
+        Update the input filters for this node. This is called when the underlying partition
+        or a child node changes
+        """
+        if self.node:
+            self.node.update_input_filters(input_filters)
 
 
 class DeephavenFigure:
@@ -955,3 +967,9 @@ class DeephavenFigure:
             scale=scale,
             validate=validate,
         )
+
+    def update_input_filters(
+        self,
+        input_filters: dict[str, Any],
+    ):
+        self._head_node.update_input_filters(input_filters)

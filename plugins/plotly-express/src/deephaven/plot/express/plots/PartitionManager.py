@@ -482,11 +482,22 @@ class PartitionManager:
             self.by_vars = set()
 
         if isinstance(args["table"], PartitionedTable):
+            input_filters = args.pop("input_filters", None)
             partitioned_table = args["table"]
+
+            if input_filters:
+                built_filter = [f"{k}=`{v}`" for k, v in input_filters.items()]
+                partitioned_table = partitioned_table.filter(built_filter)
 
         # save the by arg so it can be reused in renders,
         # especially if it was overriden
         self.by = args.get("by", None)
+
+        filter_by = args.pop("filter_by", [])
+        args.pop("require_all_filters", None)
+
+        filter_by = filter_by if isinstance(filter_by, list) else [filter_by]
+        partition_cols.update(filter_by)
 
         for arg, val in list(args.items()):
             if (val or self.by) and arg in PARTITION_ARGS:
@@ -518,6 +529,7 @@ class PartitionManager:
             partition_cols.update(self.by if isinstance(self.by, list) else [self.by])
 
         # preprocessor needs to be initialized after the always attached arguments are found
+        # TODO: this also needs to be after the partition
         self.preprocessor = Preprocessor(
             args,
             self.groups,
@@ -532,6 +544,10 @@ class PartitionManager:
                 partitioned_table = cast(Table, args["table"]).partition_by(
                     list(partition_cols)
                 )
+                # if filter_by:
+                # filter out the by columns from the table so they don't show up in the plot
+                # partitioned_table = partitioned_table.filter(...)
+
             if not self.key_column_table:
                 self.key_column_table = partitioned_table.table.drop_columns(
                     "__CONSTITUENT__"
