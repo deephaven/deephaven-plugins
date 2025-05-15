@@ -94,7 +94,7 @@ Negative values or values above 1 for `x` and `y` move the anchor point outside 
 
 ### Legend Overlay
 
-Overlay the legend by positing the top left corner of the legend just inside the plot area.
+Overlay the legend by positioning the top left corner of the legend just inside the plot area.
 
 ```py order=legend_overlay_plot,tips
 import deephaven.plot.express as dx
