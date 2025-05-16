@@ -1,0 +1,1 @@
+{"file":"components/progress_bar.md","objects":{"progress_bar_indeterminate_example":{"type":"deephaven.ui.Element","data":{"document":{"props":{"children":{"__dhElemName":"deephaven.ui.components.ProgressBar","props":{"size":"L","labelPosition":"top","value":0,"minValue":0,"maxValue":100,"isIndeterminate":true}}},"__dhElemName":"__main__.indeterminate_variant"},"state":"{}"}}}}

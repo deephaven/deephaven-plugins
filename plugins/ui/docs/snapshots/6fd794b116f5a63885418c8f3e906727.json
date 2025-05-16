@@ -1,0 +1,1 @@
+{"file":"architecture.md","objects":{"btn":{"type":"deephaven.ui.Element","data":{"document":{"props":{"children":{"__dhElemName":"deephaven.ui.components.Button","props":{"variant":"accent","style":"fill","type":"button","children":"Click me!"}}},"__dhElemName":"__main__.my_button"},"state":"{}"}}}}

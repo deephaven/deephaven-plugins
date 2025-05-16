@@ -15,7 +15,7 @@ You can display a Deephaven table in a component by doing one of the following:
 - Add a table to a container such as a `flex` or `panel`.
 - [Use `ui.table`](#use-uitable).
 
-```python
+```python order=my_single_table,my_list_table,my_flex_table,_source
 from deephaven import new_table, ui
 from deephaven.column import int_col
 
@@ -49,7 +49,7 @@ my_flex_table = flex_table(_source)
 
 [`ui.table`](../components/table.md) is a wrapper for Deephaven tables that allows you to change how the table is displayed in the UI and how to handle user events. Here is an example of adding custom color formatting.
 
-```py
+```python order=t,_stocks_table
 from deephaven import ui
 import deephaven.plot.express as dx
 
@@ -70,7 +70,7 @@ t = ui.table(
 
 If you are working with a table, memoize the table operation. This stores the result in a memoized value and prevents the table from being re-computed on every render. This can be done with the [`use_memo`](../hooks/use_memo.md) hook.
 
-```python
+```python order=memo_table_app
 from deephaven import time_table, ui
 from deephaven.table import Table
 
@@ -111,7 +111,7 @@ memo_table_app = ui_memo_table_app()
 
 The [`use_table_data`](../hooks/use_table_data.md) hook lets you use a table's data. This is useful when you want to listen to an updating table and use the data in your component. This example uses the table data to populate two list views.
 
-```python
+```python order=table_data_example
 from deephaven import time_table, ui
 
 
@@ -182,7 +182,7 @@ table_first_cell2 = ui_table_first_cell(
 
 If the previous hooks do not fit your use case, you can use the [`use_table_listener`](../hooks/use_table_listener.md) hook. This allows you to listen to the raw updates from a table and perform a custom action when the table updates. The update is a dictionary containing dictionaries for data that is `added`, `removed`, or `modified`. Additionally, there is flag indicating if the data is a [replay](/core/docs/how-to-guides/replay-data/).
 
-```python
+```python order=table_monitor,_source
 from deephaven import time_table, ui
 from deephaven.table import Table
 
@@ -207,7 +207,7 @@ Some `deephaven.ui` components support the use of tables directly or through an 
 
 This example shows a [`list_view`](../components/list_view.md) populated directly from a table.
 
-```python
+```python order=list_view_table_example,_colors
 from deephaven import ui, new_table
 from deephaven.column import string_col
 
@@ -228,7 +228,7 @@ list_view_table_example = ui_list_view_table()
 
 In this example, an `item_table_source` is used to create complex items from a table (i.e., defining which columns are the data's keys/labels). These complex items are displayed in a `picker`.
 
-```python
+```python order=picker_item_table_source_example
 from deephaven import ui, empty_table
 
 icon_names = ["vsAccount"]
@@ -253,7 +253,7 @@ picker_item_table_source_example = ui.picker(item_table_source, label="User Pick
 
 Tables and plots can update in response to user input. The following examples allows a user to pick two dates on a [`date_range_picker`](../components/date_range_picker.md). This updates a state variable which causes the component to re-render with a filtered table and plot.
 
-```python
+```python order=date_filter,_table
 from deephaven.time import dh_now
 from deephaven import time_table, ui
 import deephaven.plot.express as dx

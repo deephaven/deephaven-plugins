@@ -135,7 +135,7 @@ my_labeled_value_list_formatting = labeled_value_list_formatting()
 
 When passing a `int` or `str` into the `value` prop, `format_options` with a `date_format` parameter must be specified to indicate that it should be parsed as a date. See more about date formatting in the next section.
 
-```python
+```python order=my_labeled_value_datetime,_table
 from deephaven import ui, time_table
 from deephaven.time import dh_now
 import datetime

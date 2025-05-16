@@ -26,8 +26,6 @@ usa_population = gapminder.where("Country == `United States`")
 area_plot = dx.area(usa_population, x="Year", y="Pop")
 ```
 
-![Area Plot Basic Example](./_assets/area_plot.png)
-
 ### Area by group
 
 Area plots are unique in that the y-axis demonstrates each groups' total contribution to the whole. Pass the name of the grouping column(s) to the `by` argument.
@@ -47,7 +45,7 @@ area_plot_group = dx.area(large_countries_population, x="Year", y="Pop", by="Cou
 
 Area plots take a calendar argument. Dates and times are excluded from axes so that they conform to the calendar.
 
-```python
+```python order=area_plot_default,area_plot_cal_name,area_plot_cal_y,area_plot_cal,dog_prices,stocks
 import deephaven.plot.express as dx
 from deephaven.calendar import calendar, set_calendar
 

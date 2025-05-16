@@ -1,0 +1,1 @@
+{"file":"components/inline_alert.md","objects":{"my_inline_alert_basic":{"type":"deephaven.ui.Element","data":{"document":{"props":{"heading":"Payment Information","content":"Enter your billing address, shipping address, and payment method to complete your purchase.","variant":"neutral"},"__dhElemName":"deephaven.ui.components.InlineAlert"},"state":"{}"}}}}

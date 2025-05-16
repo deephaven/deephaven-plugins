@@ -27,6 +27,7 @@ extensions = [
     "sphinx_markdown_builder",
     "sphinx_autodoc_typehints",
     "deephaven_autodoc",
+    "deephaven_code_block",
 ]
 
 source_suffix = [".rst", ".md"]  # Can use either rst or markdown files as input
@@ -41,6 +42,7 @@ exclude_patterns = ["build", "Thumbs.db", ".DS_Store"]
 always_use_bars_union = True
 
 myst_all_links_external = True
+myst_fence_as_directive = ("python", "groovy")
 
 from deephaven_server import Server
 

@@ -1,0 +1,1 @@
+{"file":"tutorial.md","objects":{"picker_panel":{"type":"deephaven.ui.Element","data":{"document":{"__dhElemName":"__main__.species_panel","props":{"children":{"__dhElemName":"deephaven.ui.components.Picker","props":{"align":"start","direction":"bottom","shouldFlip":true,"labelPosition":"top","children":["setosa","versicolor","virginica"]}}}},"state":"{}"}}}}

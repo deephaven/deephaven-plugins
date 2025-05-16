@@ -1,0 +1,1 @@
+{"file":"components/switch.md","objects":{"my_switch_is_read_only_example":{"type":"deephaven.ui.Element","data":{"document":{"props":{"defaultSelected":true,"isReadOnly":true,"children":"Switch Label"},"__dhElemName":"deephaven.ui.components.Switch"},"state":"{}"}}}}

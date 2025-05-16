@@ -17,8 +17,6 @@ jobs = dx.data.jobs()
 timeline_plot = dx.timeline(jobs, x_start="StartTime", x_end="EndTime", y="Job")
 ```
 
-![Timeline Plot Basic Example](./_assets/timeline_plot.png)
-
 ## API Reference
 
 ```{eval-rst}

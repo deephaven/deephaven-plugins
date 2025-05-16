@@ -289,6 +289,14 @@ python tools/plugin_builder.py --docs --install ui
 
 After the first time install, you can drop the `--install` flag and just run the script with `--docs` unless you have plugin changes.
 
+You can also re-generate the snapshots for the docs by passing the `--snapshots` flag. This should be done when new code blocks are added to the docs.
+
+This example will build the docs for the `ui` plugin and re-generate the snapshots:
+
+```shell
+python tools/plugin_builder.py --docs --snapshots ui
+```
+
 To run the server, pass the `--server` flag.  
 First install `deephaven-server` if it is not already installed (if setup with `--configure=full` this is already done):
 

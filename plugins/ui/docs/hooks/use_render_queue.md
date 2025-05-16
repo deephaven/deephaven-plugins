@@ -6,7 +6,7 @@
 
 This example listens to table updates and displays a toast message when the table updates. The [`toast` function](../components/toast.md) must be triggered on the render thread, whereas the listener is not fired on the render thread. Therefore, you must use the render queue to trigger the toast.
 
-```python
+```python order=my_toast_table,_source
 from deephaven import time_table
 from deephaven import ui
 

@@ -23,10 +23,8 @@ election = dx.data.election()
 ternary_line_plot = dx.line_ternary(election, a="Joly", b="Coderre", c="Bergeron")
 ```
 
-![Ternary Line Plot Basic Example](./_assets/line_plot_ternary.png)
-
-
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.line_ternary
 ```

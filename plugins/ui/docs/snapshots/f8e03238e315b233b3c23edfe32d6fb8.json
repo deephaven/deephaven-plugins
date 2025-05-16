@@ -1,0 +1,1 @@
+{"file":"components/text_area.md","objects":{"text_area_is_read_only_example":{"type":"deephaven.ui.Element","data":{"document":{"props":{"isReadOnly":true,"label":"Sample","labelPosition":"top"},"__dhElemName":"deephaven.ui.components.TextArea"},"state":"{}"}}}}

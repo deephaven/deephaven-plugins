@@ -1,0 +1,1 @@
+{"file":"components/logic_button.md","objects":{"my_logic_button_disabled":{"type":"deephaven.ui.Element","data":{"document":{"props":{"variant":"or","isDisabled":true,"type":"button","children":"Or"},"__dhElemName":"deephaven.ui.components.LogicButton"},"state":"{}"}}}}

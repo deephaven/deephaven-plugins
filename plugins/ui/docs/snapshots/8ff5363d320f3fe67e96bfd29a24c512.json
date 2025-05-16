@@ -1,0 +1,1 @@
+{"file":"components/icon.md","objects":{"my_icons":{"type":"deephaven.ui.Element","data":{"document":{"props":{"children":{"__dhElemName":"deephaven.ui.components.ActionButton","props":{"type":"button","aria-label":"squirrel","children":{"__dhElemName":"deephaven.ui.icons.vsSquirrel","props":{"name":"squirrel","slot":"icon"}}}}},"__dhElemName":"__main__.icons"},"state":"{}"}}}}

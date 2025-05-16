@@ -18,7 +18,7 @@ basic_html_example = ui.html.div("basic html example")
 
 The `html_element` method allows you to specify any html `tag` along with any `children` and `attributes`.
 
-```python
+```python order=simple_html,nested_html
 from deephaven import ui
 
 simple_html = ui.html.html_element("div", "Welcome to Deephaven", id="simple")
@@ -35,7 +35,7 @@ nested_html = ui.html.html_element(
 
 `ui.html` also provides methods for common tags.
 
-```python
+```python order=simple_html,nested_html
 from deephaven import ui
 
 simple_html = ui.html.div("Welcome to Deephaven", id="simple")
@@ -53,7 +53,7 @@ For a full list of methods, see the API reference below.
 
 The `ui.html` component can be nested inside other `deephaven.ui` components and vice versa.
 
-```python
+```python order=component,html
 from deephaven import ui
 
 component = ui.view(

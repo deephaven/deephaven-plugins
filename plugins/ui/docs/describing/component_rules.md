@@ -67,7 +67,7 @@ A `deephaven.ui` component usually returns a component. However, it may also ret
 - `None` if it should perform logic but does not need to be rendered.
 - a single value like a `string` or `int`.
 
-```python
+```python order=my_return_component,my_list_of_components,my_return_tuple,my_return_none,my_return_string,my_return_int
 from deephaven import ui
 
 
@@ -114,7 +114,7 @@ my_return_int = return_int()
 
 Return statements can be conditional in order to render different components based on inputs.
 
-```python
+```python order=my_button,my_text
 from deephaven import ui
 
 

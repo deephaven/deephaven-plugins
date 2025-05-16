@@ -28,8 +28,6 @@ violin_plot_x = dx.violin(versicolor, x="SepalLength")
 violin_plot_y = dx.violin(versicolor, y="SepalLength")
 ```
 
-![Violin Plot Basic Example](./_assets/violin_plot.png)
-
 ### Distributions for multiple groups
 
 Create separate violins for each group of data by passing the name of the grouping column(s) to the `by` argument.

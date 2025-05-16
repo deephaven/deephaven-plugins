@@ -8,7 +8,7 @@ The rendering process must always be pure. Component functions should always ret
 
 Here is a component that breaks this rule by reading and writing a `guest` variable declared outside of it:
 
-```python
+```python order=my_tea_set1,my_tea_set2
 from deephaven import ui
 
 guest = [0]
@@ -36,7 +36,7 @@ Calling this component multiple times will produce different results. If other c
 
 You can fix this component by passing `guest` as a prop instead:
 
-```python
+```python order=my_tea_set1,my_tea_set2
 from deephaven import ui
 
 
@@ -64,7 +64,7 @@ In general, you should not expect components to be rendered in any particular or
 
 Pure functions do not mutate variables outside of the function's scope or objects that were created before the function call. However, it is fine to change variables and objects created inside the function. In this example, the component creates a list and adds a dozen cups to it:
 
-```python
+```python order=my_tea_set1,my_tea_set2
 from deephaven import ui
 
 

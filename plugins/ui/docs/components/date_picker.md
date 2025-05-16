@@ -51,7 +51,7 @@ If none of these are provided, the `on_change` handler will be passed an `Instan
 Setting the `value` prop will put the date_picker in controlled mode. Selecting a new date will call the `on_change` callback.
 Then `value` must be updated programatically to render the new value. This can be done using the `use_state` hook.
 
-```python
+```python order=zoned_date_picker,instant_date_picker,local_date_picker
 from deephaven import ui
 from deephaven.time import to_j_local_date, dh_today, to_j_instant, to_j_zdt
 
@@ -92,7 +92,7 @@ dp = ui.date_picker(
 If both `value` and `default_value` are omitted, the date_picker will be in uncontrolled mode displaying no date selected. When opened, the date picker will suggest the date from the `placeholder_value` prop.
 Omitting `placeholder_value` will default it to today at the current time on the server machine time zone.
 
-```python
+```python order=dp1,dp2
 from deephaven import ui
 
 dp1 = ui.date_picker(
@@ -143,7 +143,7 @@ date_picker_variants_example = date_picker_variants()
 
 Date Pickers can be used to filter tables with time columns.
 
-```python
+```python order=date_filter,_table
 from deephaven.time import dh_now
 from deephaven import time_table, ui
 

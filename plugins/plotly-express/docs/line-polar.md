@@ -24,8 +24,6 @@ wind = dx.data.wind()
 polar_line_plot = dx.line_polar(wind, r="Frequency", theta="Direction", by="Strength")
 ```
 
-![Polar Line Plot Basic Example](./_assets/line_plot_polar.png)
-
 ## API Reference
 
 ```{eval-rst}

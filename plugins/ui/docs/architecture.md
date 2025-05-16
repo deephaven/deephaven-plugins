@@ -35,7 +35,7 @@ app = my_app()
 
 For almost all components, Python positional arguments are mapped to React children and keyword-only arguments are mapped to React props. Rarely, some arguments are positional and keyword. For example, in `contextual_help`, the footer argument is positional and keyword since it has a default of `None`. It will still be passed as a child.
 
-```python
+```python order=my_prop_variations,footer_as_positional,footer_as_keyword
 from deephaven import ui
 
 
@@ -56,7 +56,7 @@ When you call a function decorated by `@ui.component`, it will return an `Elemen
 
 Let's say we execute the following, where a table is filtered based on the value of a text input:
 
-```python
+```python order=tft,_stocks
 from deephaven import ui
 import deephaven.plot.express as dx
 

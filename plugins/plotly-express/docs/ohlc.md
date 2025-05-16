@@ -45,13 +45,11 @@ ohlc_plot = dx.ohlc(
 )
 ```
 
-![OHLC Plot Basic Example](./_assets/ohlc_plot.png)
-
 ### Calendar
 
 OHLC plots take a calendar argument. Dates and times are excluded from axes so that they conform to the calendar.
 
-```python
+```python order=ohlc_plot_default,ohlc_plot_cal_name,ohlc_plot_cal,dog_prices,stocks_1min_ohlc,stocks
 import deephaven.plot.express as dx
 import deephaven.agg as agg
 from deephaven.calendar import calendar, set_calendar

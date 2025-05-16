@@ -1,0 +1,1 @@
+{"file":"components/color_picker.md","objects":{"my_color_picker":{"type":"deephaven.ui.Element","data":{"document":{"props":{"children":[],"label":"Background","size":"M","rounding":"default","defaultValue":"#65C4D7"},"__dhElemName":"deephaven.ui.components.ColorPicker"},"state":"{}"}}}}

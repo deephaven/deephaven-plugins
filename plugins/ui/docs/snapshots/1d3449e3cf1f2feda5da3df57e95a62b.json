@@ -1,0 +1,1 @@
+{"file":"components/link.md","objects":{"my_link_is_quiet_example":{"type":"deephaven.ui.Element","data":{"document":{"props":{"children":["You can ",{"__dhElemName":"deephaven.ui.components.Link","props":{"variant":"primary","isQuiet":true,"children":"use quiet"}}," links inline."],"slot":"text"},"__dhElemName":"deephaven.ui.components.Text"},"state":"{}"}}}}

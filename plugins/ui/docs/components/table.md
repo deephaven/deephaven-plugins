@@ -4,7 +4,7 @@ Tables are wrappers for Deephaven tables that allow you to change how the table 
 
 ## Example
 
-```python
+```python order=t,_t
 from deephaven import ui, empty_table
 
 _t = empty_table(10).update("X=i")
@@ -72,7 +72,7 @@ t = ui.table(
 
 Any string value for a formatting rule can be read from a column by specifying the column name as the value. Note that if a value matches a column name, it will always be used (i.e., the theme color `positive` can not be used as a direct value if there is also a column called `positive`). The following example sets the `background_color` of column `x` using the value of the `bg_color` column.
 
-```py
+```python order=t,_t
 from deephaven import empty_table, ui
 
 _t = empty_table(100).update(["x = i", "y = sin(i)", "bg_color = x % 2 == 0 ? `positive` : `negative`"])
@@ -96,7 +96,7 @@ The `color` property sets the text color of the cell. If a cell has a `backgroun
 
 The following example will make all text the foreground color except the `Sym` column, which will be white. In dark mode, the foreground color is white, and in light mode, it is black. In light mode, the `Sym` column will be nearly invisible because it is not a theme color.
 
-```py
+```python
 from deephaven import ui
 import deephaven.plot.express as dx
 
@@ -115,7 +115,7 @@ The `background_color` property sets the background color of the cell. Setting t
 
 The following example will make all the background color what is usually the foreground color. This means the table will have a white background with black text in dark theme and a black background with white text in light theme. The `Sym` column text will be the accent color in both themes.
 
-```py
+```python
 from deephaven import ui
 import deephaven.plot.express as dx
 
@@ -137,7 +137,7 @@ Numeric values can be formatted using the `value` property. The `value` property
 
 This example will format the `Price` and `Dollars` columns with the dollar sign, a comma separator for every 3 digits, 2 decimal places, and a minimum of 1 digit to the left of the decimal point. The `Random` column will be formatted with 3 decimal places and will drop the leading zero if the absolute value is less than 1.
 
-```py
+```python
 from deephaven import ui
 import deephaven.plot.express as dx
 
@@ -145,7 +145,7 @@ t = ui.table(
     dx.data.stocks(),
     format_=[
         ui.TableFormat(cols=["Price", "Dollars"], value="$#,##0.00"),
-        ui.TableFormat(cols="Random", value="#.000")
+        ui.TableFormat(cols="Random", value="#.000"),
     ],
 )
 ```
@@ -156,7 +156,7 @@ Datetime and timestamp values can be formatted using the `value` property. The `
 
 The following example formats the `Timestamp` column to show the short date of the week, day of the month, short month name, full year, hours, minutes, seconds, and microseconds with the user selected timezone.
 
-```py
+```python
 from deephaven import ui
 import deephaven.plot.express as dx
 
@@ -176,7 +176,7 @@ Aggregations will be applied to all columns that can use the chosen aggregation 
 
 The following example show aggregations of the first row for each column, the last row for the `Timestamp` column, and the sum of all columns which can be summed except `Index` and `Random`. One table shows the aggregations at the bottom, and the other shows the aggregations at the top.
 
-```py
+```python order=t_bottom,t_top
 from deephaven import ui
 import deephaven.plot.express as dx
 
@@ -233,7 +233,7 @@ The `action` prop is a callback that is called when the item is clicked and rece
 
 The following example shows how to add a context menu item to the table and column header. When the context menu item is clicked, both actions print the cell's data.
 
-```py
+```python
 from deephaven import ui
 import deephaven.plot.express as dx
 
@@ -242,12 +242,12 @@ t = ui.table(
     context_menu={
         "title": "Context item",
         "icon": "dhTruck",
-        "action": lambda d: print("Context item", d)
+        "action": lambda d: print("Context item", d),
     },
     context_header_menu={
         "title": "Header context menu item",
-        "action": lambda d: print("Header context menu item", d)
-    }
+        "action": lambda d: print("Header context menu item", d),
+    },
 )
 ```
 
@@ -257,7 +257,7 @@ The `actions` prop is an array of menu items that will be displayed in a sub-men
 
 The following example shows how to add a context menu item and a nested menu item to the table. When the context menu item is clicked, the actions print the data of the cell.
 
-```py
+```python
 from deephaven import ui
 import deephaven.plot.express as dx
 
@@ -267,23 +267,23 @@ t = ui.table(
         {
             "title": "Context item",
             "icon": "dhTruck",
-            "action": lambda d: print("Context item", d)
+            "action": lambda d: print("Context item", d),
         },
         {
             "title": "Nested menu",
             "actions": [
                 {
                     "title": "Nested item 1",
-                    "action": lambda d: print("Nested item 1", d)
+                    "action": lambda d: print("Nested item 1", d),
                 },
                 {
                     "title": "Nested item 2",
                     "icon": "vsCheck",
-                    "action": lambda d: print("Nested item 2", d)
-                }
-            ]
-        }
-    ]
+                    "action": lambda d: print("Nested item 2", d),
+                },
+            ],
+        },
+    ],
 )
 ```
 
@@ -293,22 +293,21 @@ Menu items can be dynamically created by passing a function as the context item.
 
 The following example shows how to create a context menu item dynamically so that it appears only on the `sym` column. If a list of functions is provided, each will be called, and any items they return will be added to the context menu.
 
-```py
+```python
 from deephaven import ui
 import deephaven.plot.express as dx
+
 
 def create_context_menu(data):
     if data["column_name"] == "Sym":
         return {
             "title": f"Print {data['value']}",
-            "action": lambda d: print(d['value'])
+            "action": lambda d: print(d["value"]),
         }
     return None
 
-t = ui.table(
-    dx.data.stocks(),
-    context_menu=create_context_menu
-)
+
+t = ui.table(dx.data.stocks(), context_menu=create_context_menu)
 ```
 
 ## Column order and visibility
@@ -319,7 +318,7 @@ You can also pin columns to the front or back of the table using the `front_colu
 
 Columns can also be hidden by default using the `hidden_columns` prop. Note that users can still expand these columns if they want to see them. The columns will be collapsed by default. The `hidden_columns` prop takes a list of column names to hide.
 
-```py
+```python
 from deephaven import ui
 import deephaven.plot.express as dx
 
@@ -328,7 +327,7 @@ t = ui.table(
     frozen_columns=["Sym", "Exchange"],
     front_columns=["Price"],
     back_columns=["Index"],
-    hidden_columns=["Random"]
+    hidden_columns=["Random"],
 )
 ```
 
@@ -338,16 +337,12 @@ t = ui.table(
 
 You can set custom display names for columns using the `column_display_names` prop. The `column_display_names` prop takes a dictionary where the key is the column name and the value is the display name. The display name can be any string, so this can be used to show a user-friendly name that does not adhere to column naming rules.
 
-```py
+```python
 from deephaven import ui
 import deephaven.plot.express as dx
 
 t = ui.table(
-    dx.data.stocks(),
-    column_display_names={
-        "Price": "Price (USD)",
-        "Side": "Buy/Sell"
-    }
+    dx.data.stocks(), column_display_names={"Price": "Price (USD)", "Side": "Buy/Sell"}
 )
 ```
 
@@ -367,7 +362,7 @@ Column groups may be nested by including the name of another group in the `child
 
 The following example shows how to group columns and nest groups.
 
-```py
+```python
 from deephaven import ui
 import deephaven.plot.express as dx
 
@@ -378,16 +373,13 @@ t = ui.table(
             "name": "Sym_Info",
             "children": ["Sym", "Exchange"],
         },
-        {
-            "name": "Price_Info",
-            "children": ["Size", "Price", "Dollars"]
-        },
+        {"name": "Price_Info", "children": ["Size", "Price", "Dollars"]},
         {
             "name": "All_Info",
             "children": ["Sym_Info", "Price_Info"],
-            "color": "#3b6bda"
-        }
-    ]
+            "color": "#3b6bda",
+        },
+    ],
 )
 ```
 
@@ -404,7 +396,7 @@ The `always_fetch_columns` prop takes a single column name, a list of column nam
 
 This example shows how to use `always_fetch_columns` to always fetch the `Sym` column for a row press event. Without the `always_fetch_columns` prop, the press callback will fail because the `Sym` column is not fetched when hidden.
 
-```py
+```python
 from deephaven import ui
 import deephaven.plot.express as dx
 
@@ -426,7 +418,7 @@ Quick filters can be added to the table using the `quick_filters` prop. The `qui
 
 The quick filter bar can be expanded by default with the `show_quick_filters` prop.
 
-```py
+```python order=t2,t,_stocks
 from deephaven import ui
 import deephaven.plot.express as dx
 
@@ -451,14 +443,11 @@ t2 = ui.table( # Filters applied when table is opened on the client
 
 The table can be displayed in reverse order using the `reverse` prop. Using the reverse prop visually indicates to the user that the table is reversed via a colored bar under the column headers. Users can disable the reverse with the column header context menu or via a shortcut. The reverse is applied on the server via request from the client.
 
-```py
+```python
 from deephaven import ui
 import deephaven.plot.express as dx
 
-t = ui.table(
-    dx.data.stocks(),
-    reverse=True
-)
+t = ui.table(dx.data.stocks(), reverse=True)
 ```
 
 ## API Reference
