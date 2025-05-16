@@ -1,7 +1,7 @@
-import React, { DragEvent, useCallback, useEffect } from 'react';
+import React, { type DragEvent, useCallback, useEffect } from 'react';
 import { nanoid } from 'nanoid';
 import {
-  DashboardPluginComponentProps,
+  type DashboardPluginComponentProps,
   LayoutUtils,
   useListener,
 } from '@deephaven/dashboard';
