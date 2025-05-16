@@ -7,7 +7,7 @@ import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { assertNotNull } from '@deephaven/utils';
 import AgGridFilterUtils from '../utils/AgGridFilterUtils';
-import AgGridSortUtils from '../utils/AgGridSortUtils';
+import AgGridSortUtils, { isSortModelItem } from '../utils/AgGridSortUtils';
 
 const log = Log.module('@deephaven/js-plugin-ag-grid/ViewportRowDataSource');
 
@@ -108,7 +108,8 @@ export class ViewportDatasource implements IViewportDatasource {
     this.gridApi.addEventListener('sortChanged', this.handleSortChanged);
   }
 
-  private handleFilterChanged(): void {
+  private handleFilterChanged(event: unknown): void {
+    log.debug('Filter changed', event);
     assertNotNull(this.gridApi);
     this.table.applyFilter(
       AgGridFilterUtils.parseFilterModel(
@@ -122,16 +123,11 @@ export class ViewportDatasource implements IViewportDatasource {
 
   private handleSortChanged(event: unknown): void {
     log.debug('Sort changed', event);
-    log.warn('sort not implemented yet');
-    // TODO: How do we get the sort from the api? There is no gridApi.getSortModel()
-    // assertNotNull(this.gridApi);
-    // this.table.applySort(
-    //   AgGridSortUtils.parseSortModel(
-    //     this.dh,
-    //     this.table,
-    //     this.gridApi.sort
-    //   )
-    // );
+    assertNotNull(this.gridApi);
+    const columnState = this.gridApi.getColumnState();
+    const sortModel = columnState.filter(isSortModelItem);
+    this.table.applySort(AgGridSortUtils.parseSortModel(this.table, sortModel));
+    this.refreshViewport();
   }
 
   refreshViewport(): void {
