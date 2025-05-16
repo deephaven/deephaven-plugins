@@ -475,7 +475,6 @@ class PartitionManager:
         partition_cols = set()
         partition_map = {}
 
-
         by_vars = args.get("by_vars", None)
         if by_vars:
             self.by_vars = set([by_vars] if isinstance(by_vars, str) else by_vars)
@@ -487,7 +486,7 @@ class PartitionManager:
         filter_by = filter_by if isinstance(filter_by, list) else [filter_by]
         partition_cols.update(filter_by)
 
-        #todo - pull to function
+        # todo - pull to function
         input_filters_received = args.pop("input_filters_received", False)
         input_filters = args.pop("input_filters", {})
         require_all_filters = args.pop("require_all_filters", False)
@@ -495,8 +494,9 @@ class PartitionManager:
         if isinstance(args["table"], PartitionedTable):
             partitioned_table = args["table"]
 
-            if ((filter_by and not input_filters_received) or
-                    (require_all_filters and len(filter_by) != len(input_filters))):
+            if (filter_by and not input_filters_received) or (
+                require_all_filters and len(filter_by) != len(input_filters)
+            ):
                 # if there are input filters wait for them before creating the proper chart
                 # the python figure is created, then the filters are sent from the client
                 # if all filters are required, make sure all filters are applied before creating the chart
@@ -505,7 +505,6 @@ class PartitionManager:
             elif input_filters:
                 built_filter = [f"{k}=`{v}`" for k, v in input_filters.items()]
                 partitioned_table = partitioned_table.filter(built_filter)
-
 
         # save the by arg so it can be reused in renders,
         # especially if it was overriden

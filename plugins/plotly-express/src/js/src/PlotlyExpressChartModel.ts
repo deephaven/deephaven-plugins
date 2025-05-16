@@ -415,17 +415,10 @@ export class PlotlyExpressChartModel extends ChartModel {
     if (inputFilterColumns != null) {
       this.filterColumnMap = new Map(inputFilterColumns.columns);
       this.filterRequired = inputFilterColumns.requireAllFilters;
-    }
-    console.log(
-      'updateInputFilterColumns',
-      new Map(inputFilterColumns.columns)
-    );
-    console.log('updateInputFilterColumns', this.filterRequired);
 
-    if (this.filterMap) {
-      // There are active filters, so immediately request the filter update
-      console.log('updateInputFilterColumns', this.filterMap);
-      this.fireInputFilterUpdated(this.filterMap);
+      // immediately request the filter update as the full chart is not sent the first time
+      // since filters are sent after initial chart creation
+      this.fireInputFilterUpdated(this.filterMap ?? new Map());
     }
   }
 
@@ -529,7 +522,6 @@ export class PlotlyExpressChartModel extends ChartModel {
       this.fireLayoutUpdated({ title: plotlyLayout.title });
     }
 
-    console.log('handleWidgetUpdated done', this.filterColumnMap);
   }
 
   handleFigureUpdated(
