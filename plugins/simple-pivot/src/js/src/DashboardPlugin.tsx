@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { DragEvent, useCallback, useEffect } from 'react';
 import { nanoid } from 'nanoid';
 import {
   DashboardPluginComponentProps,
