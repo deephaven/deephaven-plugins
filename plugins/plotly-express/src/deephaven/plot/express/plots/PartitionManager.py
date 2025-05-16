@@ -8,7 +8,7 @@ import plotly.express as px
 from pandas import DataFrame
 
 from deephaven.table import Table, PartitionedTable
-from deephaven import pandas as dhpd
+from deephaven import pandas as dhpd, empty_table
 from deephaven import merge
 
 from ._layer import atomic_layer
@@ -475,29 +475,41 @@ class PartitionManager:
         partition_cols = set()
         partition_map = {}
 
+
         by_vars = args.get("by_vars", None)
         if by_vars:
             self.by_vars = set([by_vars] if isinstance(by_vars, str) else by_vars)
         else:
             self.by_vars = set()
 
+        filter_by = args.pop("filter_by", [])
+
+        filter_by = filter_by if isinstance(filter_by, list) else [filter_by]
+        partition_cols.update(filter_by)
+
+        #todo - pull to function
+        input_filters_received = args.pop("input_filters_received", False)
+        input_filters = args.pop("input_filters", {})
+        require_all_filters = args.pop("require_all_filters", False)
+
         if isinstance(args["table"], PartitionedTable):
-            input_filters = args.pop("input_filters", None)
             partitioned_table = args["table"]
 
-            if input_filters:
+            if ((filter_by and not input_filters_received) or
+                    (require_all_filters and len(filter_by) != len(input_filters))):
+                # if there are input filters wait for them before creating the proper chart
+                # the python figure is created, then the filters are sent from the client
+                # if all filters are required, make sure all filters are applied before creating the chart
+                args["table"] = partitioned_table.constituent_tables[0].head(0)
+                partitioned_table = None
+            elif input_filters:
                 built_filter = [f"{k}=`{v}`" for k, v in input_filters.items()]
                 partitioned_table = partitioned_table.filter(built_filter)
+
 
         # save the by arg so it can be reused in renders,
         # especially if it was overriden
         self.by = args.get("by", None)
-
-        filter_by = args.pop("filter_by", [])
-        args.pop("require_all_filters", None)
-
-        filter_by = filter_by if isinstance(filter_by, list) else [filter_by]
-        partition_cols.update(filter_by)
 
         for arg, val in list(args.items()):
             if (val or self.by) and arg in PARTITION_ARGS:

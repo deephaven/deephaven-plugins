@@ -174,14 +174,12 @@ class DeephavenFigureListener:
         if message["type"] == "RETRIEVE":
             return self._handle_retrieve_figure()
         elif message["type"] == "INPUT_FILTER":
-            self._figure.update_input_filters(message["filters"])
+            self._figure.update_input_filters(message["filterMap"])
             revision = self._revision_manager.get_revision()
             self._figure.get_head_node().recreate_figure()
             figure = self._get_figure()
             try:
-                print("Sending figure")
                 self._connection.on_data(*self._build_figure_message(figure, revision))
-                print("Sent figure")
             except RuntimeError:
                 # trying to send data when the connection is closed, ignore
                 pass

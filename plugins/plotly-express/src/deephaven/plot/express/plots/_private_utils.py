@@ -64,18 +64,18 @@ def calculate_mode(base_mode: str, args: dict[str, Any]) -> str:
     """
     modes = [base_mode]
     if base_mode == "lines" and any(
-        [
-            args.get("markers", None),
-            args.get("symbol", None),
-            args.get("symbol_sequence", None),
-            args.get("symbol_map", None),
-            args.get("text", None),
-            args.get("size", None),
-            args.get("size_sequence", None),
-            args.get("size_map", None),
-            "symbol" in args.get("by_vars", []),
-            "size" in args.get("by_vars", []),
-        ]
+            [
+                args.get("markers", None),
+                args.get("symbol", None),
+                args.get("symbol_sequence", None),
+                args.get("symbol_map", None),
+                args.get("text", None),
+                args.get("size", None),
+                args.get("size_sequence", None),
+                args.get("size_map", None),
+                "symbol" in args.get("by_vars", []),
+                "size" in args.get("by_vars", []),
+            ]
     ):
         modes.append("markers")
     if args.get("text", None):
@@ -186,12 +186,12 @@ def apply_args_groups(args: dict[str, Any], possible_groups: set[str] | None) ->
 
 
 def create_deephaven_figure(
-    args: dict[str, Any],
-    groups: set[str] | None = None,
-    add: dict[str, Any] | None = None,
-    pop: list[str] | None = None,
-    remap: dict[str, str] | None = None,
-    px_func: Callable = lambda: None,
+        args: dict[str, Any],
+        groups: set[str] | None = None,
+        add: dict[str, Any] | None = None,
+        pop: list[str] | None = None,
+        remap: dict[str, str] | None = None,
+        px_func: Callable = lambda: None,
 ) -> tuple[DeephavenFigure, Table | PartitionedTable, Table | None, dict[str, Any]]:
     """Process the provided args
 
@@ -308,13 +308,50 @@ def retrieve_calendar(render_args: dict[str, Any]) -> Calendar:
     return calendar
 
 
+def retrieve_input_filter_columns(render_args: dict[str, Any]) -> dict[str, Any] | None:
+    """
+    Retrieve the input filter columns from the render args
+
+    Args:
+        render_args: The render args to retrieve the input filter columns from
+
+    Returns:
+        The input filter columns
+    """
+    table = render_args["args"]["table"]
+
+    if isinstance(table, PartitionedTable):
+        columns = table.constituent_table_columns
+    else:
+        columns = table.columns
+
+    filter_by = render_args["args"].get("filter_by", None)
+    if filter_by is None:
+        return None
+    if not isinstance(filter_by, list):
+        filter_by = [filter_by]
+
+    column_filters = [
+        [column.name, {
+            "name": column.name,
+            "type": str(column.data_type),
+        }]
+        for column in columns if column.name in filter_by
+    ]
+
+    return {
+        "requireAllFilters": render_args["args"]["require_all_filters"],
+        "columns": column_filters,
+    }
+
+
 def process_args(
-    args: dict[str, Any],
-    groups: set[str] | None = None,
-    add: dict[str, Any] | None = None,
-    pop: list[str] | None = None,
-    remap: dict[str, str] | None = None,
-    px_func: Callable = lambda: None,
+        args: dict[str, Any],
+        groups: set[str] | None = None,
+        add: dict[str, Any] | None = None,
+        pop: list[str] | None = None,
+        remap: dict[str, str] | None = None,
+        px_func: Callable = lambda: None,
 ) -> DeephavenFigure:
     """Process the provided args
 
@@ -340,6 +377,8 @@ def process_args(
     # Calendar is directly sent to the client for processing
     calendar = retrieve_calendar(render_args)
 
+    input_filter_columns = retrieve_input_filter_columns(render_args)
+
     orig_process_args = args_copy(render_args)
     orig_process_func = lambda **local_args: create_deephaven_figure(**local_args)[0]
 
@@ -355,6 +394,7 @@ def process_args(
     )
 
     new_fig.calendar = calendar
+    new_fig.input_filter_columns = input_filter_columns
 
     return new_fig
 
@@ -435,7 +475,7 @@ def set_shared_defaults(args: dict[str, Any]) -> None:
 
 
 def shared_marginal(
-    is_marginal: bool, func: Callable, groups: set[str], **args: Any
+        is_marginal: bool, func: Callable, groups: set[str], **args: Any
 ) -> DeephavenFigure:
     """
     Create a marginal figure
@@ -455,8 +495,8 @@ def shared_marginal(
 
 
 def shared_violin(
-    is_marginal: bool = True,
-    **args: Any,
+        is_marginal: bool = True,
+        **args: Any,
 ) -> DeephavenFigure:
     """
     Create a violin figure
@@ -598,10 +638,10 @@ def create_marginal(marginal: str, args: dict[str, Any], which: str) -> Deephave
 
 
 def attach_marginals(
-    fig: DeephavenFigure,
-    args: dict[str, Any],
-    marginal_x: str | None = None,
-    marginal_y: str | None = None,
+        fig: DeephavenFigure,
+        args: dict[str, Any],
+        marginal_x: str | None = None,
+        marginal_y: str | None = None,
 ) -> DeephavenFigure:
     """Create and attach marginals to the provided figure.
 

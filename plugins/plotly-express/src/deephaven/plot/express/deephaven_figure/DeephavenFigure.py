@@ -225,6 +225,7 @@ class DeephavenFigureNode(DeephavenNode):
         self.cached_figure = None
         self.revision_manager = RevisionManager()
         self.input_filters = {}
+        self.input_filters_received = False
 
     def recreate_figure(self, update_parent: bool = True) -> None:
         """
@@ -242,6 +243,7 @@ class DeephavenFigureNode(DeephavenNode):
             copied_args = args_copy(self.args)
             copied_args["args"]["table"] = self.table
             copied_args["args"]["input_filters"] = self.input_filters
+            copied_args["args"]["input_filters_received"] = self.input_filters_received
             new_figure = self.func(**copied_args)
 
         with self.revision_manager:
@@ -296,6 +298,7 @@ class DeephavenFigureNode(DeephavenNode):
 
     def update_input_filters(self, input_filters: dict[str, Any]) -> None:
         self.input_filters = input_filters
+        self.input_filters_received = True
 
 
 class DeephavenLayerNode(DeephavenNode):
@@ -490,6 +493,7 @@ class DeephavenFigure:
         has_subplots: bool = False,
         is_plotly_fig: bool = False,
         calendar: Calendar = False,
+        input_filter_columns: dict | None = None,
     ):
         """
         Create a new DeephavenFigure
@@ -534,6 +538,10 @@ class DeephavenFigure:
         self._figure_calendar = FigureCalendar(calendar)
 
         self._sent_calendar = False
+
+        self._input_filter_columns = input_filter_columns
+
+        self._sent_input_filter_columns = False
 
     def copy_mappings(self: DeephavenFigure, offset: int = 0) -> list[DataMapping]:
         """Copy all DataMappings within this figure, adding a specific offset
@@ -605,6 +613,13 @@ class DeephavenFigure:
         ):
             deephaven["calendar"] = calendar_dict
             self._sent_calendar = True
+
+        # currently, there is one input filter and it only needs to be sent once
+        if not self._sent_input_filter_columns and (
+            input_filter_columns := self._input_filter_columns
+        ):
+            deephaven["inputFilterColumns"] = input_filter_columns
+            self._sent_input_filter_columns = True
 
         payload = {"plotly": plotly, "deephaven": deephaven}
         return json.dumps(payload)
@@ -715,6 +730,8 @@ class DeephavenFigure:
             # and attached as needed
             figure.calendar = self._calendar
 
+            figure.input_filter_columns = self._input_filter_columns
+
         return figure
 
     def get_plotly_fig(self) -> Figure | None:
@@ -811,6 +828,7 @@ class DeephavenFigure:
             self._has_subplots,
             self._is_plotly_fig,
             self._calendar,
+            self._input_filter_columns,
         )
         new_figure._head_node = self._head_node.copy_graph()
         return new_figure
@@ -973,3 +991,11 @@ class DeephavenFigure:
         input_filters: dict[str, Any],
     ):
         self._head_node.update_input_filters(input_filters)
+
+    @property
+    def input_filter_columns(self) -> Calendar:
+        return self._input_filter_columns
+
+    @input_filter_columns.setter
+    def input_filter_columns(self, calendar: Calendar) -> None:
+        self._input_filter_columns = calendar

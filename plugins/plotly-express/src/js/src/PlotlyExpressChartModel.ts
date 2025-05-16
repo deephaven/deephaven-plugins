@@ -33,6 +33,7 @@ import {
   IS_WEBGL_SUPPORTED,
   setRangebreaksFromCalendar,
 } from './PlotlyExpressChartUtils';
+import { object } from 'prop-types';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
 
@@ -50,7 +51,7 @@ export class PlotlyExpressChartModel extends ChartModel {
    * This is to prevent the chart from fetching too much data and crashing the browser.
    */
   static MAX_FETCH_SIZE = 1_000_000;
-
+  
   static canFetch(table: DhType.Table): boolean {
     return table.size <= PlotlyExpressChartModel.MAX_FETCH_SIZE;
   }
@@ -77,6 +78,9 @@ export class PlotlyExpressChartModel extends ChartModel {
 
     // The calendar is only fetched once at init.
     this.updateCalendar(widgetData);
+
+    // The input filter columns are set once at init.
+    this.updateInputFilterColumns(widgetData);
 
     this.setTitle(this.getDefaultTitle());
   }
@@ -167,6 +171,12 @@ export class PlotlyExpressChartModel extends ChartModel {
    * For example, '0/value' -> 'int'
    */
   dataTypeMap: Map<string, string> = new Map();
+
+  filterColumnMap: FilterColumnMap = new Map();
+
+  filterRequired = false;
+
+  filterMap: FilterMap | null = null;
 
   override getData(): Partial<Data>[] {
     const hydratedData = [...this.plotlyData];
@@ -398,6 +408,27 @@ export class PlotlyExpressChartModel extends ChartModel {
     }
   }
 
+  updateInputFilterColumns(data: PlotlyChartWidgetData): void {
+    const { deephaven } = data.figure;
+    const { inputFilterColumns } = deephaven;
+
+    if (inputFilterColumns != null) {
+      this.filterColumnMap = new Map(inputFilterColumns.columns);
+      this.filterRequired = inputFilterColumns.requireAllFilters;
+    }
+    console.log(
+      'updateInputFilterColumns',
+      new Map(inputFilterColumns.columns)
+    );
+    console.log('updateInputFilterColumns', this.filterRequired);
+
+    if (this.filterMap) {
+      // There are active filters, so immediately request the filter update
+      console.log('updateInputFilterColumns', this.filterMap);
+      this.fireInputFilterUpdated(this.filterMap);
+    }
+  }
+
   /**
    * Unsubscribe from a table.
    * @param id The table ID to unsubscribe from
@@ -443,6 +474,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     data: PlotlyChartWidgetData,
     references: DhType.Widget['exportedObjects']
   ): void {
+    console.log('handleWidgetUpdated', data, references);
     log.debug('handleWidgetUpdated', data, references);
     const {
       figure,
@@ -496,6 +528,8 @@ export class PlotlyExpressChartModel extends ChartModel {
     ) {
       this.fireLayoutUpdated({ title: plotlyLayout.title });
     }
+
+    console.log('handleWidgetUpdated done', this.filterColumnMap);
   }
 
   handleFigureUpdated(
@@ -746,6 +780,7 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   removeTable(id: number): void {
+
     this.subscriptionCleanupMap.get(id)?.();
     this.tableSubscriptionMap.get(id)?.close();
 
@@ -771,6 +806,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     // isSubscribed can also be checked before calling fireUpdate, but this is a
     // subtle bug that is good to check for here just in case
     if (!this.hasInitialLoadCompleted && this.isSubscribed) {
+      console.log('fireLoadFinished');
       this.fireLoadFinished();
       this.hasInitialLoadCompleted = true;
     }
@@ -784,33 +820,27 @@ export class PlotlyExpressChartModel extends ChartModel {
     });
   }
 
-  // eslint-disable-next-line class-methods-use-this
   override getFilterColumnMap(): FilterColumnMap {
-    return new Map([
-      [
-        'Sym',
-        {
-          name: 'Sym',
-          type: 'java.lang.String',
-        },
-      ],
-    ]);
+    return this.filterColumnMap;
   }
 
-  // eslint-disable-next-line class-methods-use-this
   override isFilterRequired(): boolean {
-    return false;
+    return this.filterRequired;
   }
 
   override setFilter(filterMap: FilterMap): void {
-    console.log('setFilter', filterMap);
     super.setFilter(filterMap);
+
+    this.filterMap = filterMap;
+
+    this.fireInputFilterUpdated(filterMap);
+  }
+
+  fireInputFilterUpdated(filterMap: FilterMap): void {
     this.widget?.sendMessage(
       JSON.stringify({
         type: 'INPUT_FILTER',
-        filters: {
-          Sym: filterMap.get('Sym'),
-        },
+        filterMap: Object.fromEntries(filterMap),
       })
     );
   }
