@@ -109,6 +109,37 @@ class SliderChange(TypedDict):
     """
 
 
+class FilterChangeEvent(TypedDict):
+    """
+    Data for a filter change event.
+    """
+
+    name: str
+    """
+    The column name
+    """
+
+    type: str
+    """
+    The column type
+    """
+
+    value: str
+    """
+    The filter value
+    """
+
+    timestamp: int
+    """
+    The timestamp of the filter change
+    """
+
+    exclude_panel_ids: list[str] | None
+    """
+    The list of panel ids to exclude from the filter change
+    """
+
+
 SliderChangeCallable = Callable[[SliderChange], None]
 
 PointerType = Literal["mouse", "touch", "pen", "keyboard", "virtual"]
@@ -127,3 +158,5 @@ Orientation = Literal["horizontal", "vertical"]
 FocusEventCallable = Callable[[FocusEvent], None]
 KeyboardEventCallable = Callable[[KeyboardEvent], None]
 PressEventCallable = Callable[[PressEvent], None]
+
+FilterChangeEventCallable = Callable[[list[FilterChangeEvent]], None]
