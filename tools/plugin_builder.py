@@ -419,11 +419,11 @@ def handle_args(
     if stop_event.is_set():
         return
 
-    if docs:
-        run_docs(plugins, len(plugins) > 0)
-
     if snapshots:
         run_command("npm run update-doc-snapshots")
+
+    if docs:
+        run_docs(plugins, len(plugins) > 0)
 
     if stop_event.is_set():
         return

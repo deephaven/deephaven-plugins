@@ -10,7 +10,7 @@ services:
     environment:
       - START_OPTS=-Xmx4g -DAuthHandlers=io.deephaven.auth.AnonymousAuthenticationHandler -Ddeephaven.console.type=python
 
-  # Extract the code blocks from the docs in the plugins directories and output them to a results directory.
+  # Extract the code blocks from the docs in the plugins directories and output them ssto a results directory.
   deephaven-plugins-docs-extractor:
     image: ghcr.io/deephaven/salmon-extractor
     pull_policy: always
@@ -22,8 +22,12 @@ services:
         'node extract.cjs --directory /extract/plotly-express --output /results/plotly-express; node extract.cjs --directory /extract/ui --output /results/ui',
       ]
     volumes:
-      - ./plugins/ui/docs/build/markdown:/extract/ui
-      - ./plugins/plotly-express/docs/build/markdown:/extract/plotly-express
+      - ./plugins/ui/docs:/extract/ui
+      - ./plugins/plotly-express/docs:/extract/plotly-express
+      # exclude doc build directories by overriding with empty volumes
+      # We could extract from the build directories, but we need to output the snapshots to the build directory itself for Salmon to pick up...
+      - /extract/plotly-express/build/
+      - /extract/ui/build/
       - ./docker/build/test-sets:/results # Output to a temporary build directory
 
   # Read the test sets from the results directory and run them against the test server, taking a snapshot of the results.
