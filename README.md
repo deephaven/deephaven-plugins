@@ -156,7 +156,7 @@ DHC and DHE can be configured when running locally to target the local `plugins`
 
 ##### Build deephaven-core
 
-Build [deephaven-core](https://github.com/deephaven/deephaven-core) using the directions [here](https://deephaven.io/core/docs/how-to-guides/launch-build/#build-and-run-deephaven).
+Build [deephaven-core](https://github.com/deephaven/deephaven-core) using the directions [here](https://deephaven.io/core/docs/getting-started/launch-build/#build-and-run-deephaven).
 
 ##### Install python plugin wheels
 
