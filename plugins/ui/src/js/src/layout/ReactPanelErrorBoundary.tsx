@@ -1,5 +1,6 @@
 import Log from '@deephaven/log';
 import React, { Component, ReactNode } from 'react';
+import memoizee from 'memoizee';
 import WidgetErrorView from '../widget/WidgetErrorView';
 import { type WidgetError } from '../widget/WidgetTypes';
 
@@ -51,43 +52,47 @@ export class ReactPanelErrorBoundary extends Component<
     log.error('Error caught by ErrorBoundary', error, errorInfo);
   }
 
-  getError(): WidgetError | undefined {
-    const { error } = this.state;
-    const { onReset } = this.props;
-
-    if (error == null) {
-      return error;
-    }
-    if (error instanceof Error) {
+  private getError = memoizee(
+    (
+      error: Error | WidgetError | undefined,
+      onReset: (() => void) | undefined
+    ): WidgetError | undefined => {
+      if (error == null) {
+        return error;
+      }
+      if (error instanceof Error) {
+        return {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+          action: onReset
+            ? {
+                title: 'Reload',
+                action: () => {
+                  onReset();
+                },
+              }
+            : undefined,
+        };
+      }
       return {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-        action: onReset
-          ? {
-              title: 'Reload',
-              action: () => {
-                onReset();
-              },
-            }
-          : undefined,
-      };
-    }
-    return {
-      ...error,
-      action: {
-        title: error.action?.title ?? 'Reload',
-        action: () => {
-          error.action?.action?.();
-          onReset?.();
+        ...error,
+        action: {
+          title: error.action?.title ?? 'Reload',
+          action: () => {
+            error.action?.action?.();
+            onReset?.();
+          },
         },
-      },
-    };
-  }
+      };
+    },
+    { max: 1 }
+  );
 
   render(): ReactNode {
-    const { children } = this.props;
-    const error = this.getError();
+    const { children, onReset } = this.props;
+    const { error: errorState } = this.state;
+    const error = this.getError(errorState, onReset);
     // We need to check for undefined children because React will throw an error if we return undefined from a render method
     // Note this behaviour was changed in React 18: https://github.com/reactwg/react-18/discussions/75
     return error != null ? <WidgetErrorView error={error} /> : children ?? null;
