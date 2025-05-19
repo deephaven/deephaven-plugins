@@ -37,3 +37,6 @@ runs:
           ag-grid:
             - plugins/ag-grid/**
             - .github/workflows/test-*.yml
+          simple-pivot:
+            - plugins/simple-pivot/**
+            - .github/workflows/test-*.yml

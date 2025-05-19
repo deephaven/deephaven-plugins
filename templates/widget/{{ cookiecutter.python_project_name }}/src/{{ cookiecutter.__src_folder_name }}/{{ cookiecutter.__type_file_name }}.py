@@ -51,8 +51,8 @@ class {{ cookiecutter.__message_stream_name }}(MessageStream):
         # This is where you would process the payload.
         # This is just an acknowledgement that the payload was received,
         # so print.
-        payload = io.BytesIO(payload).read().decode()
-        print(f"Received payload: {payload}")
+        decoded_payload = io.BytesIO(payload).read().decode()
+        print(f"Received payload: {decoded_payload}")
 
     def on_close(self) -> None:
         """
