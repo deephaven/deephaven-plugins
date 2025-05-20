@@ -34,6 +34,8 @@ function makeReactPanelManager({
   onClose = jest.fn(),
   onOpen = jest.fn(),
   getPanelId = jest.fn(() => mockPanelId),
+  onDataChange = jest.fn(),
+  getInitialData = jest.fn(() => []),
   title = 'test title',
 }: Partial<ReactPanelProps> & Partial<ReactPanelManager> = {}) {
   return (
@@ -43,6 +45,8 @@ function makeReactPanelManager({
         metadata,
         onClose,
         onOpen,
+        onDataChange,
+        getInitialData,
       }}
     >
       <ReactPanel title={title}>{children}</ReactPanel>

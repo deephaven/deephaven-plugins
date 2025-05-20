@@ -29,29 +29,6 @@ def update(figure):
 bar_lined_plot = dx.bar(tips, x="Day", unsafe_update_figure=update)
 ```
 
-### Legend Location
-
-Change the location of the legend to the bottom of the plot by updating the layout.
-
-```python order=legend_bottom_plot,tips
-import deephaven.plot.express as dx
-
-tips = dx.data.tips()
-
-
-def update(figure):
-    # Update the layout to move the legend to the bottom
-    # y is negative to move the legend outside the plot area
-    figure.update_layout(
-        legend=dict(orientation="h", yanchor="bottom", y=-0.3, xanchor="left", x=0.3)
-    )
-
-
-legend_bottom_plot = dx.scatter(
-    tips, x="TotalBill", y="Tip", color="Day", unsafe_update_figure=update
-)
-```
-
 ### Vertical Line
 
 Add a vertical line to a plot with `add_vline`.

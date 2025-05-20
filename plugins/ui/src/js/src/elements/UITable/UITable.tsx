@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useSelector } from 'react-redux';
 import classNames from 'classnames';
 import {
@@ -8,6 +14,10 @@ import {
   type IrisGridContextMenuData,
   IrisGridProps,
   IrisGridUtils,
+  IrisGridCacheUtils,
+  IrisGridState,
+  type DehydratedIrisGridState,
+  type DehydratedGridState,
 } from '@deephaven/iris-grid';
 import {
   ColorValues,
@@ -18,12 +28,12 @@ import {
   viewStyleProps,
 } from '@deephaven/components';
 import { useApi } from '@deephaven/jsapi-bootstrap';
-import { TableUtils } from '@deephaven/jsapi-utils';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { getSettings, RootState } from '@deephaven/redux';
-import { GridMouseHandler } from '@deephaven/grid';
+import { GridMouseHandler, GridState } from '@deephaven/grid';
 import { EMPTY_ARRAY, ensureArray } from '@deephaven/utils';
+import { usePersistentState } from '@deephaven/plugin';
 import {
   DatabarConfig,
   FormattingRule,
@@ -275,6 +285,35 @@ export function UITable({
     model.setColorMap(colorMap);
   }
 
+  const [dehydratedState, setDehydratedState] = usePersistentState<
+    (DehydratedIrisGridState & DehydratedGridState) | undefined
+  >(undefined, { type: 'UITable', version: 1 });
+  const initialState = useRef(dehydratedState);
+
+  const memoizedStateFn = useMemo(
+    () => IrisGridCacheUtils.makeMemoizedCombinedGridStateDehydrator(),
+    []
+  );
+
+  const onStateChange = useCallback(
+    (irisGridState: IrisGridState, gridState: GridState) => {
+      if (model == null) {
+        return;
+      }
+      setDehydratedState(memoizedStateFn(model, irisGridState, gridState));
+    },
+    [memoizedStateFn, model, setDehydratedState]
+  );
+
+  const initialHydratedState = useMemo(() => {
+    if (model && initialState.current != null) {
+      return {
+        ...utils.hydrateIrisGridState(model, initialState.current),
+        ...IrisGridUtils.hydrateGridState(model, initialState.current),
+      };
+    }
+  }, [model, utils]);
+
   const hydratedSorts = useMemo(() => {
     if (sorts !== undefined && columns !== undefined) {
       log.debug('Hydrating sorts', sorts);
@@ -401,59 +440,92 @@ export function UITable({
     [contextMenu, alwaysFetchColumns]
   );
 
-  const irisGridProps = useMemo(
-    () =>
-      ({
-        mouseHandlers,
-        alwaysFetchColumns,
-        showSearchBar,
-        sorts: hydratedSorts,
-        quickFilters: hydratedQuickFilters,
-        isFilterBarShown: showQuickFilters,
-        reverseType: reverse
-          ? TableUtils.REVERSE_TYPE.POST_SORT
-          : TableUtils.REVERSE_TYPE.NONE,
-        density,
-        settings: { ...settings, showExtraGroupColumn: showGroupingColumn },
-        onContextMenu,
-        aggregationSettings: {
-          aggregations:
-            aggregations != null
-              ? ensureArray(aggregations).map(agg => {
-                  if (agg.cols != null && agg.ignore_cols != null) {
-                    throw new Error(
-                      'Cannot specify both cols and ignore_cols in a UI table aggregation'
-                    );
-                  }
-                  return {
-                    operation: getAggregationOperation(agg.agg),
-                    selected: ensureArray(agg.cols ?? agg.ignore_cols ?? []),
-                    // If agg.cols is set, we don't want to invert
-                    // If it is not set, then the only other options are ignore_cols or neither
-                    // In both cases, we want to invert since we are either ignoring, or selecting all as [] inverted
-                    invert: agg.cols == null,
-                  };
-                })
-              : [],
-          showOnTop: aggregationsPosition === 'top',
-        },
-      }) satisfies Partial<IrisGridProps>,
-    [
+  const irisGridServerProps = useMemo(() => {
+    const props = {
       mouseHandlers,
       alwaysFetchColumns,
       showSearchBar,
-      showQuickFilters,
-      hydratedSorts,
-      hydratedQuickFilters,
+      sorts: hydratedSorts,
+      quickFilters: hydratedQuickFilters,
+      isFilterBarShown: showQuickFilters,
       reverse,
       density,
-      settings,
-      showGroupingColumn,
+      settings: { ...settings, showExtraGroupColumn: showGroupingColumn },
       onContextMenu,
-      aggregations,
-      aggregationsPosition,
-    ]
-  );
+      aggregationSettings: {
+        aggregations:
+          aggregations != null
+            ? ensureArray(aggregations).map(agg => {
+                if (agg.cols != null && agg.ignore_cols != null) {
+                  throw new Error(
+                    'Cannot specify both cols and ignore_cols in a UI table aggregation'
+                  );
+                }
+                return {
+                  operation: getAggregationOperation(agg.agg),
+                  selected: ensureArray(agg.cols ?? agg.ignore_cols ?? []),
+                  // If agg.cols is set, we don't want to invert
+                  // If it is not set, then the only other options are ignore_cols or neither
+                  // In both cases, we want to invert since we are either ignoring, or selecting all as [] inverted
+                  invert: agg.cols == null,
+                };
+              })
+            : [],
+        showOnTop: aggregationsPosition === 'top',
+      },
+    } satisfies Partial<IrisGridProps>;
+
+    // Remove any explicit undefined values so we can use client state if available
+    (
+      Object.entries(props) as [
+        keyof typeof props,
+        (typeof props)[keyof typeof props],
+      ][]
+    ).forEach(([key, value]) => {
+      if (value === undefined) {
+        delete props[key];
+      }
+    });
+
+    return props;
+  }, [
+    mouseHandlers,
+    alwaysFetchColumns,
+    showSearchBar,
+    showQuickFilters,
+    hydratedSorts,
+    hydratedQuickFilters,
+    reverse,
+    density,
+    settings,
+    showGroupingColumn,
+    onContextMenu,
+    aggregations,
+    aggregationsPosition,
+  ]);
+
+  const initialIrisGridServerProps = useRef(irisGridServerProps);
+
+  /**
+   * We want to set the props based on a combination of server state and client state.
+   * If the server state is the same as its initial state, then we are rehydrating and
+   * the client state should take precedence.
+   * Otherwise, we have received changes from the server and we should use those over client state.
+   * In the future we may want to do a smarter merge of these.
+   */
+  const mergedIrisGridProps = useMemo(() => {
+    if (initialIrisGridServerProps.current === irisGridServerProps) {
+      return {
+        ...irisGridServerProps,
+        ...initialHydratedState,
+      };
+    }
+
+    return {
+      ...initialHydratedState,
+      ...irisGridServerProps,
+    };
+  }, [irisGridServerProps, initialHydratedState]);
 
   return model ? (
     <div
@@ -464,8 +536,9 @@ export function UITable({
       <IrisGrid
         ref={ref => setIrisGrid(ref)}
         model={model}
+        onStateChange={onStateChange}
         // eslint-disable-next-line react/jsx-props-no-spreading
-        {...irisGridProps}
+        {...mergedIrisGridProps}
       />
     </div>
   ) : null;
