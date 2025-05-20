@@ -61,7 +61,7 @@ How, then, do we lift state up to share it between `panels` in a `dashboard`? A 
 
 In the example, `create_dashboard` contains the state variables shared across multiple panels. It then returns a `ui.row` which is used as the root layout for a `dashboard`. This allows the UI elements in the `control_panel` component to apply a filter to table and plot located in separate `panels`.
 
-```python order=example_dashboard,_time_table
+```python order=example_dashboard,_table
 from deephaven.time import dh_now
 from deephaven import time_table, ui
 import deephaven.plot.express as dx

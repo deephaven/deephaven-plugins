@@ -186,7 +186,7 @@ Explore the Iris dataset with **deephaven.ui**
 
 Before that, create a `ui.panel` manually to provide a `title`.
 
-```python test-set=tutorial
+```python test-set=tutorial order=iris_dashboard
 sepal_panel = ui.panel(sepal_flex_tabs, title="Sepal Panel")
 iris_dashboard = ui.dashboard(sepal_panel)
 ```
