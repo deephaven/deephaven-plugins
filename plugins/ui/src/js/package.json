@@ -64,6 +64,7 @@
     "classnames": "^2.5.1",
     "fast-json-patch": "^3.1.1",
     "json-rpc-2.0": "^1.6.0",
+    "memoizee": "^0.4.17",
     "nanoid": "^5.0.7",
     "react-markdown": "^8.0.7",
     "react-redux": "^7.x",
