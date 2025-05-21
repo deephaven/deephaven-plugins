@@ -365,6 +365,10 @@ python tools/plugin_builder.py -d ui plotly-express
 BUILT=true npm run docs
 ```
 
+### Snapshotting docs with npm
+
+You can also use `npm` to snapshot the docs instead of using the `--snapshots` flag in `plugin_builder.py`. Just run `npm run update-doc-snapshots` from the root directory of this repo. This will run the snapshotting script and update the snapshots in the `docs` directory.
+
 ## Release Management
 
 In order to manage changelogs, version bumps and github releases, we use [cocogitto](https://github.com/cocogitto/cocogitto), or `cog` for short. Follow the [Installation instructions](https://github.com/cocogitto/cocogitto?tab=readme-ov-file#installation) to install `cog`. For Linux and Windows, we recommend using [cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) to install. For MacOS, we recommend using [brew](https://brew.sh/).
