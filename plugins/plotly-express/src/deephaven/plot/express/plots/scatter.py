@@ -25,7 +25,7 @@ def scatter(
                | bool
                | None = None,
     # bool is only valid for PartitionedTable, in which case the partitions are treated as a filter instead of a plot by
-    require_all_filters: bool = False,
+    require_filters: bool = False,
     color: str | list[str] | None = None,
     symbol: str | list[str] | None = None,
     size: str | list[str] | None = None,

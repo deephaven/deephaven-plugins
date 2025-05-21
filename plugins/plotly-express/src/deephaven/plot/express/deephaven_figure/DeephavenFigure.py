@@ -261,7 +261,7 @@ class DeephavenNode:
 
     @property
     @abstractmethod
-    def require_all_filters(self) -> bool:
+    def require_filters(self) -> bool:
         """
         Get if this node requires all filters to be applied
 
@@ -293,7 +293,7 @@ class DeephavenFigureNode(DeephavenNode):
             table: Table | PartitionedTable | None = None,
             func: Callable | None = None,
             filter_columns: set[FilterColumn] | None = None,
-            require_all_filters: bool = False,
+            require_filters: bool = False,
     ):
         """
         Create a new DeephavenFigureNode
@@ -313,7 +313,7 @@ class DeephavenFigureNode(DeephavenNode):
         self.cached_figure = None
         self.revision_manager = RevisionManager()
         self._filter_columns = filter_columns
-        self._require_all_filters = require_all_filters
+        self._require_filters = require_filters
         self.filters = None
         self.prev_filter_set = None
 
@@ -373,7 +373,7 @@ class DeephavenFigureNode(DeephavenNode):
         # args need to be copied as the table key is modified
         new_args = args_copy(self.args)
         new_node = DeephavenFigureNode(
-            self.parent, self.exec_ctx, new_args, self.table, self.func, self.filter_columns, self.require_all_filters
+            self.parent, self.exec_ctx, new_args, self.table, self.func, self.filter_columns, self.require_filters
         )
 
         if id(self) in partitioned_tables:
@@ -413,14 +413,14 @@ class DeephavenFigureNode(DeephavenNode):
         return self._filter_columns
 
     @property
-    def require_all_filters(self) -> bool:
+    def require_filters(self) -> bool:
         """
         Get if this node requires all filters to be applied
 
         Returns:
             True if all filters are required, False otherwise
         """
-        return self._require_all_filters
+        return self._require_filters
 
 
 class DeephavenLayerNode(DeephavenNode):
@@ -552,9 +552,9 @@ class DeephavenLayerNode(DeephavenNode):
         return new_filter_columns
 
     @property
-    def require_all_filters(self):
+    def require_filters(self):
         for node in self.nodes:
-            if node.require_all_filters:
+            if node.require_filters:
                 return True
         return False
 
@@ -637,7 +637,7 @@ class DeephavenHeadNode:
         return set()
 
     @property
-    def require_all_filters(self) -> bool:
+    def require_filters(self) -> bool:
         """
         Get if this node requires all filters to be applied
 
@@ -645,7 +645,7 @@ class DeephavenHeadNode:
             True if all filters are required, False otherwise
         """
         if self.node:
-            return self.node.require_all_filters
+            return self.node.require_filters
         return False
 
 
@@ -676,7 +676,7 @@ class DeephavenFigure:
             is_plotly_fig: bool = False,
             calendar: Calendar = False,
             filter_columns: set[FilterColumn] | None = None,
-            require_all_filters: bool = False,
+            require_filters: bool = False,
     ):
         """
         Create a new DeephavenFigure
@@ -724,7 +724,7 @@ class DeephavenFigure:
 
         self._filter_columns = filter_columns if filter_columns else set()
 
-        self._require_all_filters = require_all_filters
+        self._require_filters = require_filters
 
         self._sent_filter_columns = False
 
@@ -805,11 +805,12 @@ class DeephavenFigure:
                 filter_columns := self.filter_columns
         ):
             deephaven["filterColumns"] = {
-                "requireAllFilters": self.require_all_filters,
+                "requireAllFilters": self.require_filters,
                 "columns": [
                     filter_column._asdict() for filter_column in filter_columns
                 ],
             }
+            print("Filter columns", deephaven["filterColumns"])
             self._sent_filter_columns = True
 
         payload = {"plotly": plotly, "deephaven": deephaven}
@@ -865,7 +866,7 @@ class DeephavenFigure:
             key_column_table: Table | None,
             func: Callable,
             filter_columns: dict | None = None,
-            require_all_filters: bool = False,
+            require_filters: bool = False,
     ) -> None:
         """
         Add a figure to the graph. It is assumed that this is the first figure
@@ -885,7 +886,7 @@ class DeephavenFigure:
         else:
             self._liveness_scope.manage(table)
 
-        node = DeephavenFigureNode(self._head_node, exec_ctx, args, table, func, filter_columns, require_all_filters)
+        node = DeephavenFigureNode(self._head_node, exec_ctx, args, table, func, filter_columns, require_filters)
 
         partitioned_tables = {}
         if isinstance(table, PartitionedTable):
@@ -926,7 +927,7 @@ class DeephavenFigure:
         if figure is not None:
             # filters are managed through the nodes, so attach them when creating the figure
             figure.filter_columns = self._head_node.filter_columns
-            figure.require_all_filters = self._head_node.require_all_filters
+            figure.require_filters = self._head_node.require_filters
 
         return figure
 
@@ -1025,7 +1026,7 @@ class DeephavenFigure:
             self._is_plotly_fig,
             self._calendar,
             self._filter_columns,
-            self._require_all_filters,
+            self._require_filters,
         )
         new_figure._head_node = self._head_node.copy_graph()
         return new_figure
@@ -1203,7 +1204,7 @@ class DeephavenFigure:
         return figure.filter_columns
 
     @property
-    def require_all_filters(self) -> bool:
+    def require_filters(self) -> bool:
         """
         Get if this figure requires all filters to be applied
 
@@ -1212,14 +1213,14 @@ class DeephavenFigure:
         """
         figure = self.get_figure()
         if not figure:
-            return self._require_all_filters
-        return figure.require_all_filters
+            return self._require_filters
+        return figure.require_filters
 
 
     @filter_columns.setter
     def filter_columns(self, value):
         self._filter_columns = value
 
-    @require_all_filters.setter
-    def require_all_filters(self, value):
-        self._require_all_filters = value
+    @require_filters.setter
+    def require_filters(self, value):
+        self._require_filters = value

@@ -1,3 +1,3 @@
 import collections
 
-FilterColumn = collections.namedtuple("InputFilter", ["name", "type"])
+FilterColumn = collections.namedtuple("Filter", ["name", "type", "required"])

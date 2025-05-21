@@ -484,11 +484,12 @@ class PartitionManager:
         filter_by = args.pop("filter_by", [])
 
         filter_by = filter_by if isinstance(filter_by, list) else [filter_by]
+
         partition_cols.update(filter_by)
 
         # todo - pull to function
         filters = args.pop("filters", None)
-        require_all_filters = args.pop("require_all_filters", False)
+        require_filters = args.pop("require_filters", False)
 
         if isinstance(args["table"], PartitionedTable):
             partitioned_table = args["table"]
@@ -498,13 +499,17 @@ class PartitionManager:
             if filters is None and filter_by:
                 # if there are input filters wait for them before creating the proper chart
                 # the python figure is created, then the filters are sent from the client
-                args["table"] = partitioned_table.constituent_tables[0].head(0)
-                partitioned_table = None
+                args["table"] = empty_table(0).update(
+                    [f"{column}=null" for column in partitioned_table.key_columns]
+                )
+                #partitioned_table = None
             elif filters is not None:
-                if require_all_filters and len(filter_by) != len(filters):
+                if require_filters and len(filter_by) != len(filters):
                     # if all filters are required, make sure all filters are applied before creating the chart
-                    args["table"] = partitioned_table.constituent_tables[0].head(0)
-                    partitioned_table = None
+                    args["table"] = empty_table(0).update(
+                        [f"{column}=null" for column in partitioned_table.key_columns]
+                    )
+                    #partitioned_table = None
                 elif len(filters) > 0:
                     built_filter = [f"{k}=`{v}`" for k, v in filters.items()]
                     print("Built filter", built_filter)
@@ -544,7 +549,6 @@ class PartitionManager:
             partition_cols.update(self.by if isinstance(self.by, list) else [self.by])
 
         # preprocessor needs to be initialized after the always attached arguments are found
-        # TODO: this also needs to be after the partition
         self.preprocessor = Preprocessor(
             args,
             self.groups,
@@ -559,9 +563,6 @@ class PartitionManager:
                 partitioned_table = cast(Table, args["table"]).partition_by(
                     list(partition_cols)
                 )
-                # if filter_by:
-                # filter out the by columns from the table so they don't show up in the plot
-                # partitioned_table = partitioned_table.filter(...)
 
             if not self.key_column_table:
                 self.key_column_table = partitioned_table.table.drop_columns(

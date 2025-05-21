@@ -308,7 +308,7 @@ def retrieve_calendar(render_args: dict[str, Any]) -> Calendar:
     return calendar
 
 
-def retrieve_input_filter_columns(render_args: dict[str, Any]) -> dict[str, Any] | None:
+def retrieve_input_filter_columns(render_args: dict[str, Any]) -> tuple[bool, set[FilterColumn]]:
     """
     Retrieve the input filter columns from the render args
 
@@ -327,17 +327,24 @@ def retrieve_input_filter_columns(render_args: dict[str, Any]) -> dict[str, Any]
 
     filter_by = render_args["args"].get("filter_by", None)
     if filter_by is None:
-        return None
-    if not isinstance(filter_by, list):
+        return False, set()
+    if filter_by is True and isinstance(table, PartitionedTable):
+        # if the table is already partitioned and filter_by is True,
+        # use the key columns as the filter
+        # this is a replacement for one_click_partitioned_table
+        filter_by = table.key_columns
+    elif not isinstance(filter_by, list):
         filter_by = [filter_by]
 
+    require_filters = render_args["args"]["require_filters"]
+
     filter_columns = set([
-        FilterColumn(column.name, str(column.data_type))
+        FilterColumn(column.name, str(column.data_type), require_filters)
         for column in columns
         if column.name in filter_by
     ])
 
-    return render_args["args"]["require_all_filters"], filter_columns
+    return require_filters, filter_columns
 
 def process_args(
     args: dict[str, Any],
@@ -371,7 +378,7 @@ def process_args(
     # Calendar is directly sent to the client for processing
     calendar = retrieve_calendar(render_args)
 
-    require_all_filters, filter_columns = retrieve_input_filter_columns(render_args)
+    require_filters, filter_columns = retrieve_input_filter_columns(render_args)
 
     orig_process_args = args_copy(render_args)
     orig_process_func = lambda **local_args: create_deephaven_figure(**local_args)[0]
@@ -384,7 +391,7 @@ def process_args(
 
     # these are needed for when partitions are added
     new_fig.add_figure_to_graph(
-        exec_ctx, orig_process_args, table, key_column_table, orig_process_func, filter_columns, require_all_filters
+        exec_ctx, orig_process_args, table, key_column_table, orig_process_func, filter_columns, require_filters
     )
 
     new_fig.calendar = calendar
