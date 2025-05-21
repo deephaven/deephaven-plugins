@@ -17,6 +17,7 @@ services:
 
   e2e-tests:
     build:
+      # Use the root as the context so that the Dockerfile can find the package.json
       context: ../
       dockerfile: ./tests/Dockerfile
       pull: true # We only use FROM with a pinned version here, but adding this just in case that changes in the future

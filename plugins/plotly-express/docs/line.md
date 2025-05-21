@@ -26,13 +26,11 @@ dog_prices = my_table.where("Sym = `DOG`")
 line_plot = dx.line(dog_prices, x="Timestamp", y="Price")
 ```
 
-![Line Plot Basic Example](./_assets/line_plot.png)
-
 ### Line by group
 
 Create a line with a unique color for each group in the dataset by passing the grouping column name to the `by` argument.
 
-```python order=line_plot,mytable
+```python order=line_plot,my_table
 import deephaven.plot.express as dx
 my_table = dx.data.stocks()
 
@@ -44,7 +42,7 @@ line_plot = dx.line(my_table, x="Timestamp", y="Price", by="Sym")
 
 Line plots take a calendar argument. Dates and times are excluded from axes so that they conform to the calendar.
 
-```python
+```python order=line_plot_default,line_plot_cal_name,line_plot_cal_y,line_plot_cal,dog_prices,stocks
 import deephaven.plot.express as dx
 from deephaven.calendar import calendar, set_calendar
 

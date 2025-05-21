@@ -15,7 +15,7 @@ Every `dx` chart is backed by a Plotly [`Figure`](https://plotly.com/python/figu
 
 Add a line to bars in a bar plot with `update_traces`.
 
-```python
+```python order=bar_lined_plot,tips
 import deephaven.plot.express as dx
 
 tips = dx.data.tips()
@@ -29,13 +29,11 @@ def update(figure):
 bar_lined_plot = dx.bar(tips, x="Day", unsafe_update_figure=update)
 ```
 
-![Unsafe Update Figure Example](./_assets/unsafe_update_figure.png)
-
 ### Vertical Line
 
 Add a vertical line to a plot with `add_vline`.
 
-```python
+```python order=scatter_vline_plot,tips
 import deephaven.plot.express as dx
 
 tips = dx.data.tips()
@@ -55,7 +53,7 @@ scatter_vline_plot = dx.scatter(
 
 Fill the area between lines in a line plot with `fill="tonexty"`.
 
-```python
+```python order=filled_line_plot,dog_prices,my_table
 import deephaven.plot.express as dx
 
 my_table = dx.data.stocks()

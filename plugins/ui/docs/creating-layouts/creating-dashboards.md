@@ -36,7 +36,7 @@ Automatic wrapping is applied by the following rules:
 
 To create multiple dashboards, you can return more than one `dashboard` from your script.
 
-```python
+```python order=dash_2x1,dash_1x2,dash_2x2
 from deephaven import ui
 
 dash_2x1 = ui.dashboard(ui.row(ui.panel("A", title="A"), ui.panel("B", title="B")))
@@ -61,7 +61,7 @@ How, then, do we lift state up to share it between `panels` in a `dashboard`? A 
 
 In the example, `create_dashboard` contains the state variables shared across multiple panels. It then returns a `ui.row` which is used as the root layout for a `dashboard`. This allows the UI elements in the `control_panel` component to apply a filter to table and plot located in separate `panels`.
 
-```python
+```python order=example_dashboard,_table
 from deephaven.time import dh_now
 from deephaven import time_table, ui
 import deephaven.plot.express as dx

@@ -53,7 +53,7 @@ are determined by the type of the following props in order of precedence:
 
 If none of these are provided, the `on_change` handler will be passed a field of `Instant`.
 
-```python
+```python order=zoned_date_field,instant_date_field,local_date_field
 from deephaven import ui
 from deephaven.time import to_j_local_date, dh_today, to_j_instant, to_j_zdt
 
@@ -110,7 +110,7 @@ For `ZonedDateTime` objects, the date field will display the specified time zone
 
 For `Instant` objects, the date field will display the time zone from the user settings.
 
-```python
+```python order=my_zoned_date_time,my_instant
 from deephaven import ui
 from deephaven.time import to_j_instant
 
@@ -406,7 +406,7 @@ date_field_hour_cycle_example = ui.date_field(label="Date field", hour_cycle=24)
 
 Date fields can be used to filter tables with time columns.
 
-```python
+```python order=date_filter,_table
 from deephaven.time import dh_now
 from deephaven import time_table, ui
 

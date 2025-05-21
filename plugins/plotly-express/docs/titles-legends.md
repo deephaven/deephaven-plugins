@@ -19,10 +19,10 @@ line_plot = dx.line(dog_prices, x="Timestamp", y="Price")
 
 ## Plot by Titles and Legend
 
-When using the `by` argument, the legend is automatically generated. 
-An entry is created for each unique value in the `by` column. 
+When using the `by` argument, the legend is automatically generated.
+An entry is created for each unique value in the `by` column.
 
-```python order=line_plot,mytable
+```python order=line_plot,my_table
 import deephaven.plot.express as dx
 my_table = dx.data.stocks()
 
@@ -35,7 +35,7 @@ line_plot = dx.line(my_table, x="Timestamp", y="Price", by="Sym")
 When passing in a list of columns, the axis title for the corresponding axis is set to a new name, `value`.
 As with the `by` argument, the legend is automatically generated.
 
-```python order=line_plot,mytable
+```python order=line_plot,my_table
 import deephaven.plot.express as dx
 my_table = dx.data.stocks()
 
@@ -50,9 +50,9 @@ line_plot = dx.line(dog_prices, x="Timestamp", y=["Price", "SPet500"])
 
 ### Custom Title
 
-Add a title to the plot with the `title` argument. 
+Add a title to the plot with the `title` argument.
 
-```python order=line_plot,mytable
+```python order=line_plot,my_table
 import deephaven.plot.express as dx
 my_table = dx.data.stocks()
 
@@ -63,11 +63,11 @@ dog_prices = my_table.where("Sym = `DOG`")
 line_plot = dx.line(dog_prices, x="Timestamp", y="Price", title="Price of DOG")
 ```
 
-### Custom Axis Titles 
+### Custom Axis Titles
 
-Customize the titles of the x and y axes with the `xaxis_titles` and `yaxis_titles` arguments. 
+Customize the titles of the x and y axes with the `xaxis_titles` and `yaxis_titles` arguments.
 
-```python order=line_plot,mytable
+```python order=line_plot,my_table
 import deephaven.plot.express as dx
 my_table = dx.data.stocks()
 
@@ -96,7 +96,7 @@ Negative values or values above 1 for `x` and `y` move the anchor point outside 
 
 Overlay the legend by positioning the top left corner of the legend just inside the plot area.
 
-```py order=legend_overlay_plot,tips
+```python order=legend_overlay_plot,tips
 import deephaven.plot.express as dx
 
 tips = dx.data.tips()
@@ -129,10 +129,10 @@ def update(figure):
     # xanchor and x are set to center the legend
     figure.update_layout(
         legend=dict(
-            orientation="h", 
-            yanchor="bottom", 
-            y=-0.3, 
-            xanchor="center", 
+            orientation="h",
+            yanchor="bottom",
+            y=-0.3,
+            xanchor="center",
             x=0.5)
     )
 
@@ -159,4 +159,3 @@ legend_hidden_plot = dx.scatter(
     tips, x="TotalBill", y="Tip", color="Day", unsafe_update_figure=update
 )
 ```
-

@@ -1,0 +1,1 @@
+{"file":"components/range_slider.md","objects":{"my_range_slider_basic":{"type":"deephaven.ui.Element","data":{"document":{"props":{"labelPosition":"top","orientation":"horizontal","minValue":0,"maxValue":100,"step":1,"defaultValue":{"start":18,"end":80},"label":"Age range"},"__dhElemName":"deephaven.ui.components.RangeSlider"},"state":"{}"}}}}

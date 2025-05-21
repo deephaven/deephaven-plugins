@@ -20,7 +20,7 @@ COPY package.json package-lock.json requirements.txt ./
 # cd first so the cp doesn't include /tmp/deephaven-plugins in the paths
 RUN cd /tmp/deephaven-plugins && cp --parents ./*/src/js/package.json /work/ && cp --parents ./*/setup.* /work/
 
-FROM base as build
+FROM base AS build
 WORKDIR /work/
 COPY --from=copy-plugins /work/ .
 
@@ -59,3 +59,5 @@ COPY --link docker/data /data
 
 # Set the environment variable to enable the JS plugins embedded in Python
 ENV DEEPHAVEN_ENABLE_PY_JS=true
+
+HEALTHCHECK --interval=3s --retries=3 --timeout=11s CMD /opt/grpc_health_probe/grpc_health_probe -addr=localhost:10000 -connect-timeout=10s || exit 1

@@ -1,0 +1,1 @@
+{"file":"describing/pure_components.md","objects":{"my_event_handler_example":{"type":"deephaven.ui.Element","data":{"document":{"props":{"children":{"__dhElemName":"deephaven.ui.components.Button","props":{"variant":"accent","style":"fill","type":"button","onPress":{"__dhCbid":"cb0"},"children":"button"}}},"__dhElemName":"__main__.event_handler_example"},"state":"{}"}}}}

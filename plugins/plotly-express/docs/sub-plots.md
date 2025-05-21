@@ -34,8 +34,6 @@ tipping_plots = dx.make_subplots(
 )
 ```
 
-![Sub Plot Basic Example](./_assets/sub_plot.png)
-
 ### Share Axes
 
 Share axes between plots with the `shared_xaxes` and `shared_yaxes` parameters.
@@ -140,6 +138,7 @@ tipping_plots = dx.make_subplots(
 ```
 
 ## API Reference
+
 ```{eval-rst}
 .. dhautofunction:: deephaven.plot.express.make_subplots
 ```

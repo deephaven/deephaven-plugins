@@ -1,0 +1,1 @@
+{"file":"components/labeled_value.md","objects":{"my_labeled_value_basic":{"type":"deephaven.ui.Element","data":{"document":{"props":{"value":"Budget.xls","label":"File name","formatOptions":{},"labelPosition":"top","isDate":false,"isNanoseconds":false},"__dhElemName":"deephaven.ui.components.LabeledValue"},"state":"{}"}}}}

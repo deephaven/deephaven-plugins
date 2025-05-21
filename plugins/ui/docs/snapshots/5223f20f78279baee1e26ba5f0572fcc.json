@@ -1,0 +1,1 @@
+{"file":"components/toggle_button.md","objects":{"my_toggle_button_accessibility_example":{"type":"deephaven.ui.Element","data":{"document":{"props":{"type":"button","aria-label":"pin content","children":{"__dhElemName":"deephaven.ui.icons.vsPin","props":{"name":"pin","slot":"icon"}}},"__dhElemName":"deephaven.ui.components.ToggleButton"},"state":"{}"}}}}

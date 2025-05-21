@@ -26,8 +26,6 @@ thursday_tips = tips.where("Day == `Thur`")
 strip_plot = dx.strip(thursday_tips, x="TotalBill", color_discrete_sequence=["lightgreen"])
 ```
 
-![Strip Plot Basic Example](./_assets/strip_plot.png)
-
 ### Distributions for multiple groups
 
 Strip plots are useful for comparing the distributions of two or more groups of data. Pass the name of the grouping column(s) to the `by` argument.

@@ -1,0 +1,1 @@
+{"file":"components/meter.md","objects":{"my_meter_value":{"type":"deephaven.ui.Element","data":{"document":{"props":{"children":{"__dhElemName":"deephaven.ui.components.Meter","props":{"variant":"informative","size":"L","labelPosition":"top","label":"Tutorials completed","value":100,"minValue":50,"maxValue":150}}},"__dhElemName":"__main__.ui_meter_value"},"state":"{}"}}}}

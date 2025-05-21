@@ -1,0 +1,1 @@
+{"file":"components/labeled_value.md","objects":{"my_labeled_value_label_position_example":{"type":"deephaven.ui.Element","data":{"document":{"props":{"value":"Onboarding.pdf","label":"File name","formatOptions":{},"labelPosition":"side","labelAlign":"end","isDate":false,"isNanoseconds":false},"__dhElemName":"deephaven.ui.components.LabeledValue"},"state":"{}"}}}}
