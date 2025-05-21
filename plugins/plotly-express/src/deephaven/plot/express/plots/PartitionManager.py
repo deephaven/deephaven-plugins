@@ -487,24 +487,28 @@ class PartitionManager:
         partition_cols.update(filter_by)
 
         # todo - pull to function
-        input_filters_received = args.pop("input_filters_received", False)
-        input_filters = args.pop("input_filters", {})
+        filters = args.pop("filters", None)
         require_all_filters = args.pop("require_all_filters", False)
 
         if isinstance(args["table"], PartitionedTable):
             partitioned_table = args["table"]
 
-            if (filter_by and not input_filters_received) or (
-                require_all_filters and len(filter_by) != len(input_filters)
-            ):
+            # todo: clean this up
+            print(filters, filter_by)
+            if filters is None and filter_by:
                 # if there are input filters wait for them before creating the proper chart
                 # the python figure is created, then the filters are sent from the client
-                # if all filters are required, make sure all filters are applied before creating the chart
                 args["table"] = partitioned_table.constituent_tables[0].head(0)
                 partitioned_table = None
-            elif input_filters:
-                built_filter = [f"{k}=`{v}`" for k, v in input_filters.items()]
-                partitioned_table = partitioned_table.filter(built_filter)
+            elif filters is not None:
+                if require_all_filters and len(filter_by) != len(filters):
+                    # if all filters are required, make sure all filters are applied before creating the chart
+                    args["table"] = partitioned_table.constituent_tables[0].head(0)
+                    partitioned_table = None
+                elif len(filters) > 0:
+                    built_filter = [f"{k}=`{v}`" for k, v in filters.items()]
+                    print("Built filter", built_filter)
+                    partitioned_table = partitioned_table.filter(built_filter)
 
         # save the by arg so it can be reused in renders,
         # especially if it was overriden

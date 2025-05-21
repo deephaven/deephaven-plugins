@@ -312,6 +312,12 @@ def histogram(
     y: str | list[str] | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = HISTOGRAM_DEFAULTS["by_vars"],
+    filter_by: str
+               | list[str]
+               | bool
+               | None = None,
+    # bool is only valid for PartitionedTable, in which case the partitions are treated as a filter instead of a plot by
+    require_all_filters: bool = False,
     color: str | list[str] | None = None,
     pattern_shape: str | list[str] | None = None,
     labels: dict[str, str] | None = None,

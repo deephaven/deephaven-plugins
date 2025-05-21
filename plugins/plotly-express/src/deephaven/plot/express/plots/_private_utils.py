@@ -25,7 +25,7 @@ from ..shared.distribution_args import (
     HISTOGRAM_DEFAULTS,
     SPREAD_GROUPS,
 )
-from ..types import PartitionableTableLike
+from ..types import PartitionableTableLike, FilterColumn
 
 
 def validate_common_args(args: dict) -> None:
@@ -331,23 +331,13 @@ def retrieve_input_filter_columns(render_args: dict[str, Any]) -> dict[str, Any]
     if not isinstance(filter_by, list):
         filter_by = [filter_by]
 
-    column_filters = [
-        [
-            column.name,
-            {
-                "name": column.name,
-                "type": str(column.data_type),
-            },
-        ]
+    filter_columns = set([
+        FilterColumn(column.name, str(column.data_type))
         for column in columns
         if column.name in filter_by
-    ]
+    ])
 
-    return {
-        "requireAllFilters": render_args["args"]["require_all_filters"],
-        "columns": column_filters,
-    }
-
+    return render_args["args"]["require_all_filters"], filter_columns
 
 def process_args(
     args: dict[str, Any],
@@ -381,7 +371,7 @@ def process_args(
     # Calendar is directly sent to the client for processing
     calendar = retrieve_calendar(render_args)
 
-    input_filter_columns = retrieve_input_filter_columns(render_args)
+    require_all_filters, filter_columns = retrieve_input_filter_columns(render_args)
 
     orig_process_args = args_copy(render_args)
     orig_process_func = lambda **local_args: create_deephaven_figure(**local_args)[0]
@@ -394,11 +384,10 @@ def process_args(
 
     # these are needed for when partitions are added
     new_fig.add_figure_to_graph(
-        exec_ctx, orig_process_args, table, key_column_table, orig_process_func
+        exec_ctx, orig_process_args, table, key_column_table, orig_process_func, filter_columns, require_all_filters
     )
 
     new_fig.calendar = calendar
-    new_fig.input_filter_columns = input_filter_columns
 
     return new_fig
 

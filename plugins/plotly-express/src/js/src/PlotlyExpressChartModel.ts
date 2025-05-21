@@ -33,7 +33,6 @@ import {
   IS_WEBGL_SUPPORTED,
   setRangebreaksFromCalendar,
 } from './PlotlyExpressChartUtils';
-import { object } from 'prop-types';
 
 const log = Log.module('@deephaven/js-plugin-plotly-express.ChartModel');
 
@@ -51,7 +50,7 @@ export class PlotlyExpressChartModel extends ChartModel {
    * This is to prevent the chart from fetching too much data and crashing the browser.
    */
   static MAX_FETCH_SIZE = 1_000_000;
-  
+
   static canFetch(table: DhType.Table): boolean {
     return table.size <= PlotlyExpressChartModel.MAX_FETCH_SIZE;
   }
@@ -80,7 +79,7 @@ export class PlotlyExpressChartModel extends ChartModel {
     this.updateCalendar(widgetData);
 
     // The input filter columns are set once at init.
-    this.updateInputFilterColumns(widgetData);
+    this.updateFilterColumns(widgetData);
 
     this.setTitle(this.getDefaultTitle());
   }
@@ -408,17 +407,21 @@ export class PlotlyExpressChartModel extends ChartModel {
     }
   }
 
-  updateInputFilterColumns(data: PlotlyChartWidgetData): void {
+  updateFilterColumns(data: PlotlyChartWidgetData): void {
     const { deephaven } = data.figure;
-    const { inputFilterColumns } = deephaven;
+    const { filterColumns } = deephaven;
+    console.log(deephaven);
 
-    if (inputFilterColumns != null) {
-      this.filterColumnMap = new Map(inputFilterColumns.columns);
-      this.filterRequired = inputFilterColumns.requireAllFilters;
+    if (filterColumns != null) {
+      this.filterColumnMap = new Map(
+        filterColumns.columns.map(({ name, type }) => [name, { name, type }])
+      );
+
+      this.filterRequired = filterColumns.requireAllFilters;
 
       // immediately request the filter update as the full chart is not sent the first time
       // since filters are sent after initial chart creation
-      this.fireInputFilterUpdated(this.filterMap ?? new Map());
+      this.fireFilterUpdated(this.filterMap ?? new Map());
     }
   }
 
@@ -467,7 +470,6 @@ export class PlotlyExpressChartModel extends ChartModel {
     data: PlotlyChartWidgetData,
     references: DhType.Widget['exportedObjects']
   ): void {
-    console.log('handleWidgetUpdated', data, references);
     log.debug('handleWidgetUpdated', data, references);
     const {
       figure,
@@ -521,7 +523,6 @@ export class PlotlyExpressChartModel extends ChartModel {
     ) {
       this.fireLayoutUpdated({ title: plotlyLayout.title });
     }
-
   }
 
   handleFigureUpdated(
@@ -772,7 +773,6 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   removeTable(id: number): void {
-
     this.subscriptionCleanupMap.get(id)?.();
     this.tableSubscriptionMap.get(id)?.close();
 
@@ -825,16 +825,22 @@ export class PlotlyExpressChartModel extends ChartModel {
 
     this.filterMap = filterMap;
 
-    this.fireInputFilterUpdated(filterMap);
+    this.fireFilterUpdated(filterMap);
   }
 
-  fireInputFilterUpdated(filterMap: FilterMap): void {
-    this.widget?.sendMessage(
-      JSON.stringify({
-        type: 'INPUT_FILTER',
-        filterMap: Object.fromEntries(filterMap),
-      })
-    );
+  fireFilterUpdated(filterMap: FilterMap): void {
+    // Only send the filter update if filters are not required or all filters are set
+    // to prevent unnecessary updates
+    console.log('fireFilterUpdated', filterMap);
+    if (!this.filterRequired || filterMap.size === this.filterColumnMap.size) {
+      console.log('fireFilterUpdated', filterMap);
+      this.widget?.sendMessage(
+        JSON.stringify({
+          type: 'FILTER',
+          filterMap: Object.fromEntries(filterMap),
+        })
+      );
+    }
   }
 
   pauseUpdates(): void {

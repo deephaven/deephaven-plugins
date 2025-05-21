@@ -68,17 +68,12 @@ export interface PlotlyChartDeephavenData {
     businessPeriods: Array<DeephavenCalendarBusinessPeriod>;
     name: string;
   };
-  inputFilterColumns: {
+  filterColumns: {
     requireAllFilters: boolean;
-    columns: Array<
-      [
-        string,
-        {
-          type: string;
-          name: string;
-        },
-      ]
-    >;
+    columns: Array<{
+      type: string;
+      name: string;
+    }>;
   };
   mappings: Array<{
     table: number;

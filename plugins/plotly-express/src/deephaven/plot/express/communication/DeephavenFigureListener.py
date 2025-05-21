@@ -150,6 +150,7 @@ class DeephavenFigureListener:
                 "new_references": new_references,
                 "removed_references": removed_references,
             }
+            print("Figure message", len(message["figure"]["plotly"]["data"]))
             return json.dumps(message).encode(), new_objects
             # otherwise, don't need to send anything, as a newer revision has
             # already been sent
@@ -173,11 +174,12 @@ class DeephavenFigureListener:
         message = json.loads(io.BytesIO(payload).read().decode())
         if message["type"] == "RETRIEVE":
             return self._handle_retrieve_figure()
-        elif message["type"] == "INPUT_FILTER":
-            self._figure.update_input_filters(message["filterMap"])
+        elif message["type"] == "FILTER":
+            self._figure.update_filters(message["filterMap"])
             revision = self._revision_manager.get_revision()
             self._figure.get_head_node().recreate_figure()
             figure = self._get_figure()
+            print("Figure after filter", figure)
             try:
                 self._connection.on_data(*self._build_figure_message(figure, revision))
             except RuntimeError:
