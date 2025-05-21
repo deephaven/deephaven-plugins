@@ -341,6 +341,9 @@ class DeephavenFigureNode(DeephavenNode):
                     print(get_matching_filters(self.filter_columns, self.filters))
                     copied_args["args"]["filters"] = get_matching_filters(self.filter_columns, self.filters)
                     new_figure = self.func(**copied_args)
+                else:
+                    # if the filters haven't changed, just use the cached figure
+                    new_figure = self.cached_figure
             else:
                 new_figure = self.func(**copied_args)
 
@@ -473,6 +476,7 @@ class DeephavenLayerNode(DeephavenNode):
         # as for some table operations an exclusive lock is required
         with self.exec_ctx:
             figs = [node.cached_figure for node in self.nodes]
+            print("Figs", figs)
             new_figure = self.layer_func(*figs, **self.args)
 
         with self.revision_manager:
@@ -529,7 +533,6 @@ class DeephavenLayerNode(DeephavenNode):
         Args:
             filters: The input filters to update
         """
-        print("Updating filters for layer node", id(self), filters)
         for node in self.nodes:
             node.update_filters(filters)
 
