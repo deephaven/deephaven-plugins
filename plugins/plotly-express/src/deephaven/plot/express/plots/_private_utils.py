@@ -308,7 +308,9 @@ def retrieve_calendar(render_args: dict[str, Any]) -> Calendar:
     return calendar
 
 
-def retrieve_input_filter_columns(render_args: dict[str, Any]) -> tuple[bool, set[FilterColumn]]:
+def retrieve_input_filter_columns(
+    render_args: dict[str, Any]
+) -> tuple[bool, set[FilterColumn]]:
     """
     Retrieve the input filter columns from the render args
 
@@ -336,15 +338,20 @@ def retrieve_input_filter_columns(render_args: dict[str, Any]) -> tuple[bool, se
     elif not isinstance(filter_by, list):
         filter_by = [filter_by]
 
+
+    print(render_args["args"])
     require_filters = render_args["args"]["require_filters"]
 
-    filter_columns = set([
-        FilterColumn(column.name, str(column.data_type), require_filters)
-        for column in columns
-        if column.name in filter_by
-    ])
+    filter_columns = set(
+        [
+            FilterColumn(column.name, str(column.data_type), require_filters)
+            for column in columns
+            if column.name in filter_by
+        ]
+    )
 
     return require_filters, filter_columns
+
 
 def process_args(
     args: dict[str, Any],
@@ -391,7 +398,13 @@ def process_args(
 
     # these are needed for when partitions are added
     new_fig.add_figure_to_graph(
-        exec_ctx, orig_process_args, table, key_column_table, orig_process_func, filter_columns, require_filters
+        exec_ctx,
+        orig_process_args,
+        table,
+        key_column_table,
+        orig_process_func,
+        filter_columns,
+        require_filters,
     )
 
     new_fig.calendar = calendar

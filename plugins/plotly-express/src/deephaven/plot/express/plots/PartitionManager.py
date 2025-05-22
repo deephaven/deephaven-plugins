@@ -491,6 +491,8 @@ class PartitionManager:
         filters = args.pop("filters", None)
         require_filters = args.pop("require_filters", False)
 
+        # in some cases, prevent the partition in order to avoid sending unnecessary data
+        prevent_partition = args.pop("prevent_partition", False)
         if isinstance(args["table"], PartitionedTable):
             partitioned_table = args["table"]
 
@@ -500,16 +502,16 @@ class PartitionManager:
                 # if there are input filters wait for them before creating the proper chart
                 # the python figure is created, then the filters are sent from the client
                 args["table"] = empty_table(0).update(
-                    [f"{column}=null" for column in partitioned_table.key_columns]
+                    [column.name for column in partitioned_table.constituent_table_columns]
                 )
-                #partitioned_table = None
+                prevent_partition = True
             elif filters is not None:
                 if require_filters and len(filter_by) != len(filters):
                     # if all filters are required, make sure all filters are applied before creating the chart
                     args["table"] = empty_table(0).update(
-                        [f"{column}=null" for column in partitioned_table.key_columns]
+                        [column.name for column in partitioned_table.constituent_table_columns]
                     )
-                    #partitioned_table = None
+                    prevent_partition = True
                 elif len(filters) > 0:
                     built_filter = [f"{k}=`{v}`" for k, v in filters.items()]
                     print("Built filter", built_filter)
@@ -558,7 +560,7 @@ class PartitionManager:
             self.list_param,
         )
 
-        if partition_cols:
+        if partition_cols and not prevent_partition:
             if not partitioned_table:
                 partitioned_table = cast(Table, args["table"]).partition_by(
                     list(partition_cols)

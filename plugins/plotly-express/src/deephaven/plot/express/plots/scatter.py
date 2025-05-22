@@ -20,10 +20,7 @@ def scatter(
     error_y_minus: str | None = None,
     by: str | list[str] | None = None,
     by_vars: str | list[str] = "color",
-    filter_by: str
-               | list[str]
-               | bool
-               | None = None,
+    filter_by: str | list[str] | bool | None = None,
     # bool is only valid for PartitionedTable, in which case the partitions are treated as a filter instead of a plot by
     require_filters: bool = False,
     color: str | list[str] | None = None,

@@ -26,8 +26,8 @@ SINGLE_VALUE_REPLACEMENTS = {
 
 
 def is_single_value_replacement(
-        figure_type: str,
-        split_path: list[str],
+    figure_type: str,
+    split_path: list[str],
 ) -> bool:
     """
     Check if the trace element needs to be replaced with a single value instead of a list.
@@ -72,7 +72,7 @@ def color_in_colorway(trace_element: dict, colorway: list[str]) -> bool:
 
 
 def remove_data_colors(
-        figure: dict[str, Any],
+    figure: dict[str, Any],
 ) -> None:
     """
     Deephaven plotly express (and plotly express itself) apply custom colors
@@ -136,8 +136,9 @@ def has_arg(call_args: dict[str, Any] | None, check: str | Callable) -> bool:
     return False
     # check is either a function or string
 
+
 def get_filter_name_set(
-        filter_columns: set[FilterColumn],
+    filter_columns: set[FilterColumn],
 ):
     """
     Get the filter name set for the given filter columns.
@@ -151,9 +152,10 @@ def get_filter_name_set(
     # At the moment, input filters do not have a column type when sent from the client, so simplify the set
     return {filter_column.name for filter_column in filter_columns}
 
+
 def get_filter_set(
-        filter_columns: set[FilterColumn],
-        filters: dict[str, Any],
+    filter_columns: set[FilterColumn],
+    filters: dict[str, Any],
 ) -> set[tuple[str, Any]]:
     """
     Get the filter set for the given filter columns.
@@ -167,12 +169,12 @@ def get_filter_set(
     """
     # At the moment, input filters do not have a column type when sent from the client, so simplify the set
     name_set = get_filter_name_set(filter_columns)
-    return {
-        (column, value) for column, value in filters.items() if column in name_set
-    }
+    return {(column, value) for column, value in filters.items() if column in name_set}
+
 
 def get_matching_filters(
-        filter_columns: set[FilterColumn], filters: dict[str, Any],
+    filter_columns: set[FilterColumn],
+    filters: dict[str, Any],
 ) -> dict[str, Any]:
     """
     Get the matching input filters for the given filter columns.
@@ -186,9 +188,7 @@ def get_matching_filters(
     """
     # At the moment, input filters do not have a column type when sent from the client, so simplify the set
     name_set = get_filter_name_set(filter_columns)
-    return {
-        column: filter for column, filter in filters.items() if column in name_set
-    }
+    return {column: filter for column, filter in filters.items() if column in name_set}
 
 
 class DeephavenNode:
@@ -211,9 +211,9 @@ class DeephavenNode:
 
     @abstractmethod
     def copy(
-            self,
-            parent: DeephavenNode | DeephavenHeadNode,
-            partitioned_tables: dict[int, tuple[PartitionedTable, DeephavenNode]],
+        self,
+        parent: DeephavenNode | DeephavenHeadNode,
+        partitioned_tables: dict[int, tuple[PartitionedTable, DeephavenNode]],
     ) -> DeephavenNode:
         """
         Copy this node and all children nodes
@@ -286,14 +286,14 @@ class DeephavenFigureNode(DeephavenNode):
     """
 
     def __init__(
-            self,
-            parent: DeephavenNode | DeephavenHeadNode | None = None,
-            exec_ctx: ExecutionContext | None = None,
-            args: dict[str, Any] | None = None,
-            table: Table | PartitionedTable | None = None,
-            func: Callable | None = None,
-            filter_columns: set[FilterColumn] | None = None,
-            require_filters: bool = False,
+        self,
+        parent: DeephavenNode | DeephavenHeadNode | None = None,
+        exec_ctx: ExecutionContext | None = None,
+        args: dict[str, Any] | None = None,
+        table: Table | PartitionedTable | None = None,
+        func: Callable | None = None,
+        filter_columns: set[FilterColumn] | None = None,
+        require_filters: bool = False,
     ):
         """
         Create a new DeephavenFigureNode
@@ -339,7 +339,9 @@ class DeephavenFigureNode(DeephavenNode):
                     # when filters are passed in, only update the chart when the filters change
                     self.prev_filter_set = filter_set
                     print(get_matching_filters(self.filter_columns, self.filters))
-                    copied_args["args"]["filters"] = get_matching_filters(self.filter_columns, self.filters)
+                    copied_args["args"]["filters"] = get_matching_filters(
+                        self.filter_columns, self.filters
+                    )
                     new_figure = self.func(**copied_args)
                 else:
                     # if the filters haven't changed, just use the cached figure
@@ -355,9 +357,9 @@ class DeephavenFigureNode(DeephavenNode):
             self.parent.recreate_figure()
 
     def copy(
-            self,
-            parent: DeephavenNode | DeephavenHeadNode,
-            partitioned_tables: dict[int, tuple[PartitionedTable, DeephavenNode]],
+        self,
+        parent: DeephavenNode | DeephavenHeadNode,
+        partitioned_tables: dict[int, tuple[PartitionedTable, DeephavenNode]],
     ) -> DeephavenFigureNode:
         """
         Copy this node
@@ -373,7 +375,13 @@ class DeephavenFigureNode(DeephavenNode):
         # args need to be copied as the table key is modified
         new_args = args_copy(self.args)
         new_node = DeephavenFigureNode(
-            self.parent, self.exec_ctx, new_args, self.table, self.func, self.filter_columns, self.require_filters
+            self.parent,
+            self.exec_ctx,
+            new_args,
+            self.table,
+            self.func,
+            self.filter_columns,
+            self.require_filters,
         )
 
         if id(self) in partitioned_tables:
@@ -438,12 +446,12 @@ class DeephavenLayerNode(DeephavenNode):
     """
 
     def __init__(
-            self,
-            layer_func: Callable,
-            args: dict[str, Any],
-            exec_ctx: ExecutionContext,
-            cached_figure: DeephavenFigure | None = None,
-            parent: DeephavenLayerNode | DeephavenHeadNode | None = None,
+        self,
+        layer_func: Callable,
+        args: dict[str, Any],
+        exec_ctx: ExecutionContext,
+        cached_figure: DeephavenFigure | None = None,
+        parent: DeephavenLayerNode | DeephavenHeadNode | None = None,
     ):
         """
         Create a new DeephavenLayerNode
@@ -487,9 +495,9 @@ class DeephavenLayerNode(DeephavenNode):
             self.parent.recreate_figure()
 
     def copy(
-            self,
-            parent: DeephavenLayerNode | DeephavenHeadNode,
-            partitioned_tables: dict[int, tuple[PartitionedTable, DeephavenNode]],
+        self,
+        parent: DeephavenLayerNode | DeephavenHeadNode,
+        partitioned_tables: dict[int, tuple[PartitionedTable, DeephavenNode]],
     ) -> DeephavenLayerNode:
         """
         Copy this node and all children nodes
@@ -665,18 +673,18 @@ class DeephavenFigure:
     """
 
     def __init__(
-            self: DeephavenFigure,
-            fig: Figure | None = None,
-            call_args: dict[str, Any] | None = None,
-            data_mappings: list[DataMapping] | None = None,
-            has_template: bool = False,
-            has_color: bool = False,
-            trace_generator: Generator[dict[str, Any], None, None] | None = None,
-            has_subplots: bool = False,
-            is_plotly_fig: bool = False,
-            calendar: Calendar = False,
-            filter_columns: set[FilterColumn] | None = None,
-            require_filters: bool = False,
+        self: DeephavenFigure,
+        fig: Figure | None = None,
+        call_args: dict[str, Any] | None = None,
+        data_mappings: list[DataMapping] | None = None,
+        has_template: bool = False,
+        has_color: bool = False,
+        trace_generator: Generator[dict[str, Any], None, None] | None = None,
+        has_subplots: bool = False,
+        is_plotly_fig: bool = False,
+        calendar: Calendar = False,
+        filter_columns: set[FilterColumn] | None = None,
+        require_filters: bool = False,
     ):
         """
         Create a new DeephavenFigure
@@ -741,7 +749,7 @@ class DeephavenFigure:
         return [mapping.copy(offset) for mapping in self._data_mappings]
 
     def get_json_links(
-            self: DeephavenFigure, exporter: Exporter
+        self: DeephavenFigure, exporter: Exporter
     ) -> list[dict[str, str]]:
         """Convert the internal data mapping to the JSON data mapping with
         tables and proper plotly indices attached
@@ -794,16 +802,14 @@ class DeephavenFigure:
 
         # currently, there is one calendar and it only needs to be sent once
         if not self._sent_calendar and (
-                calendar_dict := self._figure_calendar.to_dict()
+            calendar_dict := self._figure_calendar.to_dict()
         ):
             deephaven["calendar"] = calendar_dict
             self._sent_calendar = True
 
         # the input filters do not update so they only need to be sent once
-        #TODO fix - this is not really set once because a new figure was generated to send it
-        if not self._sent_filter_columns and (
-                filter_columns := self.filter_columns
-        ):
+        # TODO fix - this is not really set once because a new figure was generated to send it
+        if not self._sent_filter_columns and (filter_columns := self.filter_columns):
             deephaven["filterColumns"] = {
                 "requireAllFilters": self.require_filters,
                 "columns": [
@@ -817,7 +823,7 @@ class DeephavenFigure:
         return json.dumps(payload)
 
     def add_layer_to_graph(
-            self, layer_func: Callable, args: dict[str, Any], exec_ctx: ExecutionContext
+        self, layer_func: Callable, args: dict[str, Any], exec_ctx: ExecutionContext
     ) -> None:
         """
         Add a layer to the graph
@@ -859,14 +865,14 @@ class DeephavenFigure:
             node.parent = layer_node
 
     def add_figure_to_graph(
-            self,
-            exec_ctx: ExecutionContext,
-            args: dict[str, Any],
-            table: Table | PartitionedTable,
-            key_column_table: Table | None,
-            func: Callable,
-            filter_columns: dict | None = None,
-            require_filters: bool = False,
+        self,
+        exec_ctx: ExecutionContext,
+        args: dict[str, Any],
+        table: Table | PartitionedTable,
+        key_column_table: Table | None,
+        func: Callable,
+        filter_columns: dict | None = None,
+        require_filters: bool = False,
     ) -> None:
         """
         Add a figure to the graph. It is assumed that this is the first figure
@@ -886,7 +892,15 @@ class DeephavenFigure:
         else:
             self._liveness_scope.manage(table)
 
-        node = DeephavenFigureNode(self._head_node, exec_ctx, args, table, func, filter_columns, require_filters)
+        node = DeephavenFigureNode(
+            self._head_node,
+            exec_ctx,
+            args,
+            table,
+            func,
+            filter_columns,
+            require_filters,
+        )
 
         partitioned_tables = {}
         if isinstance(table, PartitionedTable):
@@ -1117,13 +1131,13 @@ class DeephavenFigure:
         return new_figure
 
     def to_image(
-            self,
-            format: str | None = "png",
-            width: int | None = None,
-            height: int | None = None,
-            scale: float | None = None,
-            validate: bool = True,
-            template: str | dict | None = None,
+        self,
+        format: str | None = "png",
+        width: int | None = None,
+        height: int | None = None,
+        scale: float | None = None,
+        validate: bool = True,
+        template: str | dict | None = None,
     ) -> bytes:
         """
         Convert the figure to an image bytes string
@@ -1149,14 +1163,14 @@ class DeephavenFigure:
         )
 
     def write_image(
-            self,
-            file: str | Path,
-            format: str = "png",
-            width: int | None = None,
-            height: int | None = None,
-            scale: float | None = None,
-            validate: bool = True,
-            template: str | dict | None = None,
+        self,
+        file: str | Path,
+        format: str = "png",
+        width: int | None = None,
+        height: int | None = None,
+        scale: float | None = None,
+        validate: bool = True,
+        template: str | dict | None = None,
     ) -> None:
         """
         Convert the figure to an image bytes string
@@ -1185,8 +1199,8 @@ class DeephavenFigure:
         )
 
     def update_filters(
-            self,
-            filters: dict[str, Any],
+        self,
+        filters: dict[str, Any],
     ):
         self._head_node.update_filters(filters)
 
@@ -1215,7 +1229,6 @@ class DeephavenFigure:
         if not figure:
             return self._require_filters
         return figure.require_filters
-
 
     @filter_columns.setter
     def filter_columns(self, value):
