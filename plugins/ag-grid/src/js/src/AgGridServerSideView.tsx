@@ -36,16 +36,22 @@ export function AgGridServerSideView({
   log.debug('AgGridView rendering', table, table?.columns);
 
   /** Map from Deephaven Table Columns to AG Grid ColDefs */
-  const colDefs: ColDef[] = useMemo(
-    () =>
+  const colDefs: ColDef[] = useMemo(() => {
+    const groupedColSet = new Set(
+      (TableUtils.isTreeTable(table) ? table.groupedColumns : []).map(
+        c => c.name
+      )
+    );
+    const newDefs =
       table?.columns.map(c => {
         const templateColDef: Partial<ColDef> = {
           field: c.name,
+          rowGroup: groupedColSet.has(c.name),
         };
         return AgGridTableUtils.convertColumnToColDef(c, templateColDef);
-      }) ?? [],
-    [table]
-  );
+      }) ?? [];
+    return newDefs;
+  }, [table]);
 
   /** Create the ViewportDatasource to pass in to AG Grid based on the Deephaven Table */
   const datasource = useMemo(
