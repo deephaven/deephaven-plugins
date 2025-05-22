@@ -15,6 +15,7 @@ import AgGridTableUtils from './utils/AgGridTableUtils';
 import AgGridFormatter from './utils/AgGridFormatter';
 import TreeTableServerSideDatasource from './datasources/TreeTableServerSideDatasource';
 import TreeViewportDatasource from './datasources/TreeViewportRowDataSource';
+import CustomRowRenderer from './CustomRowRenderer';
 
 type AgGridServerSideViewProps = {
   table: DhType.Table;
@@ -71,6 +72,8 @@ export function AgGridServerSideView({
     [dh, settings]
   );
 
+  const groupRowRenderer = useMemo(() => CustomRowRenderer, []);
+
   return (
     <AgGridReact
       // eslint-disable-next-line react/jsx-props-no-spreading
@@ -82,6 +85,7 @@ export function AgGridServerSideView({
       columnDefs={colDefs}
       dataTypeDefinitions={formatter.cellDataTypeDefinitions}
       viewportDatasource={datasource}
+      groupRowRenderer={groupRowRenderer}
       rowModelType="viewport"
     />
   );
