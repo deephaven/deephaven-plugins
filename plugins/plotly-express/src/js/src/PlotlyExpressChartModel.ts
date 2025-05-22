@@ -421,7 +421,8 @@ export class PlotlyExpressChartModel extends ChartModel {
 
       // immediately request the filter update as the full chart is not sent the first time
       // since filters are sent after initial chart creation
-      this.fireFilterUpdated(this.filterMap ?? new Map());
+      // this might fire when input filters exist but have not yet been passed to this chart model
+      //this.fireFilterUpdated(this.filterMap ?? new Map());
     }
   }
 
@@ -821,17 +822,25 @@ export class PlotlyExpressChartModel extends ChartModel {
   }
 
   override setFilter(filterMap: FilterMap): void {
+    console.log('setFilter', filterMap);
     super.setFilter(filterMap);
 
     this.filterMap = filterMap;
 
     this.fireFilterUpdated(filterMap);
+
   }
 
   fireFilterUpdated(filterMap: FilterMap): void {
     // Only send the filter update if filters are not required or all filters are set
     // to prevent unnecessary updates
-    console.log('fireFilterUpdated', filterMap);
+    console.log(
+      'fireFilterUpdated',
+      filterMap,
+      this.filterRequired,
+      filterMap.size === this.filterColumnMap.size
+    );
+
     if (!this.filterRequired || filterMap.size === this.filterColumnMap.size) {
       console.log('fireFilterUpdated', filterMap);
       this.widget?.sendMessage(

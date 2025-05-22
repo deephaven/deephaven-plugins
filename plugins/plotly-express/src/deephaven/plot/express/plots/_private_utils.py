@@ -338,8 +338,6 @@ def retrieve_input_filter_columns(
     elif not isinstance(filter_by, list):
         filter_by = [filter_by]
 
-
-    print(render_args["args"])
     require_filters = render_args["args"]["require_filters"]
 
     filter_columns = set(
@@ -350,7 +348,7 @@ def retrieve_input_filter_columns(
         ]
     )
 
-    return require_filters, filter_columns
+    return require_filters, filter_columns, filter_by
 
 
 def process_args(
@@ -385,7 +383,8 @@ def process_args(
     # Calendar is directly sent to the client for processing
     calendar = retrieve_calendar(render_args)
 
-    require_filters, filter_columns = retrieve_input_filter_columns(render_args)
+    require_filters, filter_columns, filter_by = retrieve_input_filter_columns(render_args)
+    render_args["args"]["filter_by"] = filter_by
 
     orig_process_args = args_copy(render_args)
     orig_process_func = lambda **local_args: create_deephaven_figure(**local_args)[0]

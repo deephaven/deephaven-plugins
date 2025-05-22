@@ -338,7 +338,6 @@ class DeephavenFigureNode(DeephavenNode):
                 if filter_set != self.prev_filter_set:
                     # when filters are passed in, only update the chart when the filters change
                     self.prev_filter_set = filter_set
-                    print(get_matching_filters(self.filter_columns, self.filters))
                     copied_args["args"]["filters"] = get_matching_filters(
                         self.filter_columns, self.filters
                     )
@@ -484,7 +483,6 @@ class DeephavenLayerNode(DeephavenNode):
         # as for some table operations an exclusive lock is required
         with self.exec_ctx:
             figs = [node.cached_figure for node in self.nodes]
-            print("Figs", figs)
             new_figure = self.layer_func(*figs, **self.args)
 
         with self.revision_manager:
@@ -816,7 +814,6 @@ class DeephavenFigure:
                     filter_column._asdict() for filter_column in filter_columns
                 ],
             }
-            print("Filter columns", deephaven["filterColumns"])
             self._sent_filter_columns = True
 
         payload = {"plotly": plotly, "deephaven": deephaven}
