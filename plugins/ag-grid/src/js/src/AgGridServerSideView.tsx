@@ -7,7 +7,11 @@ import {
   TableUtils,
 } from '@deephaven/jsapi-utils';
 import { ColDef } from '@ag-grid-community/core';
-import { AgGridReact, AgGridReactProps } from '@ag-grid-community/react';
+import {
+  AgGridReact,
+  AgGridReactProps,
+  CustomCellRendererProps,
+} from '@ag-grid-community/react';
 import { useMemo } from 'react';
 import ServerSideDatasource from './datasources/ServerSideDatasource';
 import ViewportDatasource from './datasources/ViewportRowDataSource';
@@ -15,10 +19,10 @@ import AgGridTableUtils from './utils/AgGridTableUtils';
 import AgGridFormatter from './utils/AgGridFormatter';
 import TreeTableServerSideDatasource from './datasources/TreeTableServerSideDatasource';
 import TreeViewportDatasource from './datasources/TreeViewportRowDataSource';
-import CustomRowRenderer from './CustomRowRenderer';
+import TreeCellRenderer from './TreeCellRenderer';
 
 type AgGridServerSideViewProps = {
-  table: DhType.Table;
+  table: DhType.Table | DhType.TreeTable;
   settings?: WorkspaceSettings;
   agGridProps?: AgGridReactProps;
 };
@@ -47,10 +51,15 @@ export function AgGridServerSideView({
     );
     const newDefs =
       table?.columns.map(c => {
-        const templateColDef: Partial<ColDef> = {
-          field: c.name,
-          rowGroup: groupedColSet.has(c.name),
-        };
+        const templateColDef: Partial<ColDef> = groupedColSet.has(c.name)
+          ? {
+              field: c.name,
+              rowGroup: true,
+              // cellRenderer: CustomRowRenderer,
+            }
+          : {
+              field: c.name,
+            };
         return AgGridTableUtils.convertColumnToColDef(c, templateColDef);
       }) ?? [];
     return newDefs;
@@ -64,6 +73,13 @@ export function AgGridServerSideView({
         : new ViewportDatasource(dh, table),
     [dh, table]
   );
+  // const serverSideDatasource = useMemo(
+  //   () =>
+  //     TableUtils.isTreeTable(table)
+  //       ? new TreeTableServerSideDatasource(dh, table)
+  //       : new ServerSideDatasource(dh, table),
+  //   [dh, table]
+  // );
 
   // Create the formatter used to format cell values, currently just a
   // wrapper around jsapi-utils Formatter, but more functionality could be added.
@@ -72,21 +88,47 @@ export function AgGridServerSideView({
     [dh, settings]
   );
 
-  const groupRowRenderer = useMemo(() => CustomRowRenderer, []);
+  const treeCellRenderer = useMemo(
+    // eslint-disable-next-line react/no-unstable-nested-components, react/display-name, react/function-component-definition, react/jsx-props-no-spreading
+    () =>
+      datasource instanceof TreeViewportDatasource
+        ? (props: CustomCellRendererProps) => (
+            <TreeCellRenderer
+              // eslint-disable-next-line react/jsx-props-no-spreading
+              {...props}
+              datasource={datasource}
+            />
+          )
+        : undefined,
+    [datasource]
+  );
+
+  const autoGroupColumnDef = useMemo(
+    () => ({
+      cellRendererParams: {
+        suppressCount: true,
+        innerRenderer: treeCellRenderer,
+      },
+    }),
+    [treeCellRenderer]
+  );
 
   return (
     <AgGridReact
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...agGridProps}
-      onGridReady={event => {
-        log.debug('Grid ready', event);
-        datasource.setGridApi(event.api);
-      }}
+      // onGridReady={event => {
+      //   log.debug('Grid ready', event);
+      //   datasource.setGridApi(event.api);
+      // }}
+      autoGroupColumnDef={autoGroupColumnDef}
       columnDefs={colDefs}
       dataTypeDefinitions={formatter.cellDataTypeDefinitions}
       viewportDatasource={datasource}
-      groupRowRenderer={groupRowRenderer}
+      // serverSideDatasource={serverSideDatasource}
+      // groupRowRenderer={groupRowRenderer}
       rowModelType="viewport"
+      // rowModelType="serverSide"
     />
   );
 }

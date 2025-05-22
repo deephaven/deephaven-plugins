@@ -37,6 +37,8 @@ export class TreeTableServerSideDatasource implements IServerSideDatasource {
 
   private api?: GridApi;
 
+  private dataPromise?: Promise<DhType.TreeViewportData>;
+
   /**
    * Create a Server Side Datasource that can be used with AG Grid.
    *
@@ -50,11 +52,12 @@ export class TreeTableServerSideDatasource implements IServerSideDatasource {
     this.handleDisconnect = this.handleDisconnect.bind(this);
     this.handleViewportChanged = this.handleViewportChanged.bind(this);
     this.startListening();
+    this.initTreeData();
   }
 
   private startListening() {
     this.table.addEventListener(
-      this.dh.Table.EVENT_DISCONNECT,
+      this.dh.TreeTable.EVENT_DISCONNECT,
       this.handleDisconnect
     );
     this.table.addEventListener(
@@ -69,7 +72,7 @@ export class TreeTableServerSideDatasource implements IServerSideDatasource {
 
   private stopListening() {
     this.table.removeEventListener(
-      this.dh.Table.EVENT_DISCONNECT,
+      this.dh.TreeTable.EVENT_DISCONNECT,
       this.handleDisconnect
     );
     this.table.removeEventListener(
@@ -80,6 +83,14 @@ export class TreeTableServerSideDatasource implements IServerSideDatasource {
       this.dh.Table.EVENT_REQUEST_FAILED,
       this.handleRequestFailed
     );
+  }
+
+  // TODO: We should be more efficient, but for now we're just fetching ALL the tree data in one shot.
+  // AG Grid's model of requesting server rows does not map to our tree table model very well.
+  private initTreeData(): void {
+    this.table.expandAll();
+    this.table.setViewport(0, this.table.size);
+    this.dataPromise = this.table.getViewportData();
   }
 
   private extractViewportRow(
@@ -150,6 +161,7 @@ export class TreeTableServerSideDatasource implements IServerSideDatasource {
   async getRows(params: IServerSideGetRowsParams): Promise<void> {
     const { api, fail, request, success } = params;
     if (this.table == null) {
+      log.warn('Failing getRows table is null for request:', request);
       fail();
       return;
     }
@@ -166,17 +178,33 @@ export class TreeTableServerSideDatasource implements IServerSideDatasource {
     }
 
     if (this.api !== api) {
-      this.api?.removeEventListener(
-        'viewportChanged',
-        this.handleViewportChanged
-      );
+      // this.api?.removeEventListener(
+      //   'viewportChanged',
+      //   this.handleViewportChanged
+      // );
 
       this.api = api;
       // We need to set the row count here, as AG Grid doesn't know how many rows there are
-      api.setRowCount(Math.max(0, this.table.size));
-      api.addEventListener('viewportChanged', this.handleViewportChanged);
-      this.table.setViewport(startRow, endRow);
+      // api.setRowCount(Math.max(0, this.table.size));
+      // api.addEventListener('viewportChanged', this.handleViewportChanged);
+      // TODO: We need to map this to the correct Deephaven table viewport...
+      // this.table.setViewport(startRow, endRow);
     }
+
+    // TODO: We need to somehow map the start/end rows here to the correct Deephaven table viewport. Since it'll request at a specific depth.
+    // this.table.setViewport(startRow, endRow);
+
+    // const viewportData = await this.table.getViewportData();
+    const treeData = await this.dataPromise;
+
+    // Now we need to find the offset within the viewport data of where these group keys start
+    // const viewportOffset =
+    // const rowData = [];
+    // for (let i = startRow; i <= endRow; i += 1) {
+
+    // }
+
+    // this.extractViewportRow
 
     // TODO: Sorting and filtering
     // const newSorts = AgGridSortUtils.parseSortModel(
@@ -197,17 +225,17 @@ export class TreeTableServerSideDatasource implements IServerSideDatasource {
     // }
 
     // Just return a stub of data. We'll get the actual data with a viewport update
-    const rowData = [];
-    for (let i = startRow; i <= endRow; i += 1) {
-      const row: Record<string, unknown> = {};
-      for (let c = 0; c < this.table.columns.length; c += 1) {
-        const column = this.table.columns[c];
-        row[column.name] = undefined;
-      }
-      rowData.push(row);
-    }
+    // const rowData = [];
+    // for (let i = startRow; i <= endRow; i += 1) {
+    //   const row: Record<string, unknown> = {};
+    //   for (let c = 0; c < this.table.columns.length; c += 1) {
+    //     const column = this.table.columns[c];
+    //     row[column.name] = undefined;
+    //   }
+    //   rowData.push(row);
+    // }
 
-    success({ rowData, rowCount: this.table.size });
+    // success({ rowData, rowCount: this.table.size });
   }
 
   handleViewportChanged(event: ViewportChangedEvent<unknown>): void {

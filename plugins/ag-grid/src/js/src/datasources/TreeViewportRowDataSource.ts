@@ -13,6 +13,13 @@ const log = Log.module(
   '@deephaven/js-plugin-ag-grid/TreeViewportRowDataSource'
 );
 
+export const TREE_NODE_KEY = '__treeNode';
+export type TreeNode = {
+  depth: number;
+  isExpanded: boolean;
+  hasChildren: boolean;
+};
+
 export class TreeViewportDatasource implements IViewportDatasource {
   private params?: IViewportDatasourceParams;
 
@@ -71,7 +78,7 @@ export class TreeViewportDatasource implements IViewportDatasource {
     );
   }
 
-  private handleUpdate(event: DhType.Event<DhType.ViewportData>): void {
+  private handleUpdate(event: DhType.Event<DhType.TreeViewportData>): void {
     const newData: Record<number, unknown> = {};
 
     const { detail: data } = event;
@@ -88,7 +95,7 @@ export class TreeViewportDatasource implements IViewportDatasource {
 
   // eslint-disable-next-line class-methods-use-this
   private extractViewportRow(
-    row: DhType.Row,
+    row: DhType.TreeRow,
     columns: DhType.Column[]
   ): { [key: string]: unknown } {
     const data: Record<string, unknown> = {};
@@ -96,6 +103,13 @@ export class TreeViewportDatasource implements IViewportDatasource {
       const column = columns[c];
       data[column.name] = row.get(column);
     }
+
+    // eslint-disable-next-line no-underscore-dangle
+    data[TREE_NODE_KEY] = {
+      depth: row.depth,
+      isExpanded: row.isExpanded,
+      hasChildren: row.hasChildren,
+    };
 
     return data;
   }
@@ -111,6 +125,9 @@ export class TreeViewportDatasource implements IViewportDatasource {
     this.gridApi = gridApi;
     this.gridApi.addEventListener('filterChanged', this.handleFilterChanged);
     this.gridApi.addEventListener('sortChanged', this.handleSortChanged);
+    this.gridApi.addEventListener('expandedChanged', e =>
+      console.log('xxx expandedChanged', e)
+    );
   }
 
   private handleFilterChanged(event: unknown): void {
@@ -153,6 +170,11 @@ export class TreeViewportDatasource implements IViewportDatasource {
   destroy(): void {
     this.stopListening();
     this.table.close();
+  }
+
+  setExpanded(rowIndex: number, isExpanded: boolean): void {
+    log.debug('setExpanded', rowIndex);
+    this.table.setExpanded(rowIndex, isExpanded);
   }
 }
 
