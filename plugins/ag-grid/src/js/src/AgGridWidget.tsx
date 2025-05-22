@@ -10,6 +10,8 @@ import { themeQuartz } from '@ag-grid-community/theming';
 import type { AgGridReactProps } from '@ag-grid-community/react';
 // import { ServerSideRowModelModule } from '@ag-grid-enterprise/server-side-row-model';
 import { ViewportRowModelModule } from '@ag-grid-enterprise/viewport-row-model';
+import { ServerSideRowModelModule } from '@ag-grid-enterprise/server-side-row-model';
+import { RowGroupingModule } from '@ag-grid-enterprise/row-grouping';
 import AgGridServerSideView from './AgGridServerSideView';
 import AgGridDhTheme from './AgGridDhTheme';
 import customStyles from './AgGridCustomStyles.css?inline';
@@ -36,7 +38,11 @@ export function AgGridWidget(
 
   const agGridProps: AgGridReactProps = useMemo(
     () => ({
-      modules: [ViewportRowModelModule],
+      modules: [
+        RowGroupingModule,
+        ServerSideRowModelModule,
+        ViewportRowModelModule,
+      ],
       defaultColDef: {
         filterParams: {
           buttons: ['reset', 'apply'],

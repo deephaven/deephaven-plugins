@@ -2,7 +2,10 @@ import { useApi } from '@deephaven/jsapi-bootstrap';
 import type { dh as DhType } from '@deephaven/jsapi-types';
 import Log from '@deephaven/log';
 import { WorkspaceSettings } from '@deephaven/redux';
-import { createFormatterFromSettings } from '@deephaven/jsapi-utils';
+import {
+  createFormatterFromSettings,
+  TableUtils,
+} from '@deephaven/jsapi-utils';
 import { ColDef } from '@ag-grid-community/core';
 import { AgGridReact, AgGridReactProps } from '@ag-grid-community/react';
 import { useMemo } from 'react';
@@ -10,6 +13,8 @@ import ServerSideDatasource from './datasources/ServerSideDatasource';
 import ViewportDatasource from './datasources/ViewportRowDataSource';
 import AgGridTableUtils from './utils/AgGridTableUtils';
 import AgGridFormatter from './utils/AgGridFormatter';
+import TreeTableServerSideDatasource from './datasources/TreeTableServerSideDatasource';
+import TreeViewportDatasource from './datasources/TreeViewportRowDataSource';
 
 type AgGridServerSideViewProps = {
   table: DhType.Table;
@@ -33,20 +38,29 @@ export function AgGridServerSideView({
   log.debug('AgGridView rendering', table, table?.columns);
 
   /** Map from Deephaven Table Columns to AG Grid ColDefs */
-  const colDefs: ColDef[] = useMemo(
-    () =>
+  const colDefs: ColDef[] = useMemo(() => {
+    const groupedColSet = new Set(
+      (TableUtils.isTreeTable(table) ? table.groupedColumns : []).map(
+        c => c.name
+      )
+    );
+    const newDefs =
       table?.columns.map(c => {
         const templateColDef: Partial<ColDef> = {
           field: c.name,
+          rowGroup: groupedColSet.has(c.name),
         };
         return AgGridTableUtils.convertColumnToColDef(c, templateColDef);
-      }) ?? [],
-    [table]
-  );
+      }) ?? [];
+    return newDefs;
+  }, [table]);
 
   /** Create the ViewportDatasource to pass in to AG Grid based on the Deephaven Table */
   const datasource = useMemo(
-    () => new ViewportDatasource(dh, table),
+    () =>
+      TableUtils.isTreeTable(table)
+        ? new TreeViewportDatasource(dh, table)
+        : new ViewportDatasource(dh, table),
     [dh, table]
   );
 

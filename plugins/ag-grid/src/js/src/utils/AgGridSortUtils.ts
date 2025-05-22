@@ -26,7 +26,7 @@ export default class AgGridSortUtils {
   }
 
   static parseSortModel(
-    table: DhType.Table,
+    table: DhType.Table | DhType.TreeTable,
     sortModelItems: readonly SortModelItem[]
   ): DhType.Sort[] {
     return sortModelItems.map(item => {
