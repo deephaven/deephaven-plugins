@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { CustomCellRendererProps } from '@ag-grid-community/react';
 import { Button } from '@deephaven/components';
-import { vsChevronDown, vsChevronRight } from '@deephaven/icons';
+import { vsTriangleDown, vsTriangleRight } from '@deephaven/icons';
 import TreeViewportDatasource, {
   TREE_NODE_KEY,
   TreeNode,
@@ -26,22 +26,28 @@ export default function TreeCellRenderer(
   }, [datasource, treeNode]);
 
   return (
-    <div
-      style={{
-        paddingLeft: `${depth * 15}px`,
-      }}
-    >
+    <>
       {hasChildren && (
         <Button
-          icon={isExpanded ? vsChevronDown : vsChevronRight}
+          icon={isExpanded ? vsTriangleDown : vsTriangleRight}
           kind="ghost"
           tooltip={isExpanded ? 'Collapse' : 'Expand'}
           onClick={handleClick}
-          style={{ height: 20 }}
+          style={{
+            width: 'calc(100% - 5px)',
+            height: '100%',
+            margin: 0,
+            paddingTop: 0,
+            paddingBottom: 0,
+            paddingRight: 0,
+            paddingLeft: depth * 10,
+            textAlign: 'left',
+            justifyContent: 'left',
+          }}
         />
       )}
       &nbsp;
       {value}
-    </div>
+    </>
   );
 }
